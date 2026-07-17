@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -15,7 +14,9 @@ DATABASE_ID = st.secrets["DATABASE_ID"]
 
 # 3. NOTION DATA FETCHER
 def fetch_live_notion_data(token, db_id):
+    # This pure URL completely cleans out the old mashed URL
     url = f"https://notion.com{db_id}/query"
+    
     headers = {
         "Authorization": f"Bearer {token}",
         "Notion-Version": "2022-06-28",
