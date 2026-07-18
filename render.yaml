@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: notion-live-analyzer
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.address 0.0.0.0 --server.port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # Required by app.py (used to query Notion)
+      # Set these in Render to enable the dashboard.
+      - key: NOTION_TOKEN
+        value: ""
+      - key: DATABASE_ID
+        value: ""
+
+
