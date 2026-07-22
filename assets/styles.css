@@ -1,0 +1,179 @@
+/* 
+ * Custom Styles — Advanced Research Data Analyzer
+ * Dark mode, responsive design, and professional UI
+ */
+
+/* ─── Base Layout ──────────────────────────────────────────────────── */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+}
+
+/* ─── Selection ────────────────────────────────────────────────────── */
+::selection {
+    background: rgba(29, 78, 216, 0.2);
+    color: inherit;
+}
+
+/* ─── Typography ───────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* ─── Links ────────────────────────────────────────────────────────── */
+a {
+    color: #1d4ed8;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+a:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+/* ─── Tables ───────────────────────────────────────────────────────── */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th {
+    font-weight: 600;
+    text-align: left;
+    padding: 0.5rem;
+    border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+}
+td {
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+tr:hover {
+    background: rgba(29, 78, 216, 0.03);
+}
+
+/* ─── Button Hover Effects ─────────────────────────────────────────── */
+.stButton button {
+    transition: all 0.2s ease;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+}
+.stButton button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Input Fields ─────────────────────────────────────────────────── */
+.stTextInput input,
+.stSelectbox select,
+.stTextarea textarea {
+    border-radius: 12px !important;
+    border: 1px solid rgba(148, 163, 184, 0.3) !important;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.stTextInput input:focus,
+.stSelectbox select:focus,
+.stTextarea textarea:focus {
+    border-color: #1d4ed8 !important;
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1) !important;
+}
+
+/* ─── File Uploader ────────────────────────────────────────────────── */
+[data-testid="stFileUploader"] {
+    border: 2px dashed rgba(148, 163, 184, 0.3);
+    border-radius: 18px;
+    padding: 1rem;
+    transition: all 0.2s;
+}
+[data-testid="stFileUploader"]:hover {
+    border-color: #1d4ed8;
+    background: rgba(29, 78, 216, 0.02);
+}
+
+/* ─── Metric Cards ─────────────────────────────────────────────────── */
+[data-testid="stMetric"] {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+[data-testid="stMetric"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+/* ─── Tabs ─────────────────────────────────────────────────────────── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.5rem;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 12px 12px 0 0 !important;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.stTabs [data-baseweb="tab"]:hover {
+    background: rgba(29, 78, 216, 0.05);
+}
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+    background: rgba(29, 78, 216, 0.1);
+    border-bottom: 2px solid #1d4ed8;
+}
+
+/* ─── Expander ─────────────────────────────────────────────────────── */
+.streamlit-expanderHeader {
+    font-weight: 600 !important;
+    border-radius: 12px !important;
+    transition: all 0.2s;
+}
+.streamlit-expanderHeader:hover {
+    background: rgba(29, 78, 216, 0.05);
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    .hero-card h1 {
+        font-size: 1.5rem !important;
+    }
+    [data-testid="column"] {
+        min-width: 100% !important;
+    }
+}
+
+/* ─── Print Styles ─────────────────────────────────────────────────── */
+@media print {
+    .stApp::before,
+    .stApp::after,
+    .app-watermark {
+        display: none !important;
+    }
+    [data-testid="stSidebar"] {
+        display: none !important;
+    }
+    .block-container {
+        max-width: 100% !important;
+    }
+}
+

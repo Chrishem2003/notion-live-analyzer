@@ -6,6 +6,7 @@ services:
     region: oregon
     buildCommand: pip install -r requirements.txt
     startCommand: streamlit run app.py --server.address 0.0.0.0 --server.port $PORT
+    healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
@@ -15,5 +16,27 @@ services:
         value: ""
       - key: DATABASE_ID
         value: ""
+
+  # ─── CRON JOB: Keeps the web service awake on Render free tier ───
+  # Pings the app every 10 minutes to prevent 15-min inactivity spin-down
+  - type: cron
+    name: notion-live-analyzer-keepalive
+    env: python
+    plan: free
+    schedule: "*/10 * * * *"
+    buildCommand: ""
+    startCommand: |
+      python -c "
+import urllib.request, os
+url = os.environ.get('RENDER_EXTERNAL_URL', 'https://YOUR-APP-URL')
+try:
+  r = urllib.request.urlopen(url, timeout=30)
+  print(f'Ping OK — {r.status}')
+except Exception as e:
+  print(f'Ping FAILED — {e}')
+"
+    envVars:
+      - key: RENDER_EXTERNAL_URL
+        value: https://YOUR-APP-URL.onrender.com
 
 

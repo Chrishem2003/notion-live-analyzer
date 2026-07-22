@@ -1,0 +1,31 @@
+[server]
+# ─── Layer 3: Server Heartbeat ────────────────────────────────────────
+# Keeps the Streamlit server session alive when clients are connected
+heartbeatInterval = 5000
+
+# General server settings
+maxUploadSize = 50
+enableXsrfProtection = false
+enableCORS = true
+enableWebsocketCompression = true
+maxMessageSize = 200
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+# Base theme (overridden in app with CSS)
+base = "light"
+primaryColor = "#1d4ed8"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8fafc"
+textColor = "#0f172a"
+
+[runner]
+# Enable faster re-runs
+magicEnabled = true
+
+[global]
+# Disable development warnings in production
+developmentMode = false
+
