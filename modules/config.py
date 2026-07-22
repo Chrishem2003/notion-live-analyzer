@@ -49,10 +49,13 @@ CHART_COLOR_PALETTES = {
 def init_session_state():
     """Initialize all session state keys with defaults."""
     defaults = {
+        # Auth
         "user_NOTION_TOKEN": "",
         "user_DATABASE_ID": "",
         "creds_validated": False,
         "creds_failed": False,
+
+        # App
         "refresh_choice": "30 sec",
         "keep_alive_enabled": False,
         "keep_alive_interval_sec": 300,
@@ -62,9 +65,50 @@ def init_session_state():
         "accent_color": "#1d4ed8",
         "show_onboarding": True,
         "data_source": "notion",
+        "chart_palette": "Plotly",
+
+        # Data
         "uploaded_df": None,
         "merged_df": None,
-        "chart_palette": "Plotly",
+        "active_df": None,
+
+        # Modules
+        "variable_metadata": None,
+        "saved_dashboards": {},
+        "current_dashboard": None,
+        "simulation_metadata": None,
+        "gs_credentials": None,
+        "statistical_results": [],
+        "analysis_log": [],
+
+        # Research Project
+        "current_project": None,
+        "saved_projects": {},
+        "findings_repository": [],
+
+        # Hypothesis Generator
+        "generated_hypotheses": [],
+        "hypothesis_history": [],
+
+        # Sensitivity
+        "sensitivity_results": None,
+
+        # NL Query
+        "nl_query_history": [],
+
+        # Feature Engineering
+        "engineered_features": None,
+        "feature_history": [],
+
+        # Meta-Analysis
+        "meta_analysis_results": None,
+
+        # Network Analysis
+        "network_results": None,
+        "network_graph": None,
+
+        # Quality Check
+        "quality_report": None,
     }
     for key, val in defaults.items():
         if key not in st.session_state:

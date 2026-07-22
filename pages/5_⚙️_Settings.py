@@ -47,6 +47,29 @@ with col3:
         unsafe_allow_html=True,
     )
 
+# ─── Module Information ─────────────────────────────────────────────
+section_header("🧩 Available Modules")
+st.markdown("""
+| Module | Version | Description |
+|--------|---------|-------------|
+| 📁 **File Analyzer** | ✅ | Upload CSV, Excel, SPSS, SAS, STATA, JSON |
+| 🏷️ **Variable View** | ✅ NEW | SPSS-style variable metadata editor |
+| 🔬 **Statistical Tests** | ✅ | 20+ SPSS-level statistical analyses |
+| 📈 **Advanced Visuals** | ✅ | 18+ interactive chart types |
+| 🧬 **Predictive Modeling** | ✅ NEW | AutoML classification, regression, clustering |
+| 🤖 **AI Insights** | ✅ | Automated AI-powered data analysis |
+| 🔧 **Data Transformer** | ✅ NEW | SPSS Compute, Recode, Rank, Binning |
+| 📋 **Methodology Advisor** | ✅ NEW | Study design and test recommendation |
+| 🏥 **Clinical Analytics** | ✅ NEW | BMI, clinical ranges, health risk |
+| 💬 **Text Analysis** | ✅ NEW | Sentiment, word clouds, N-grams |
+| 📊 **Dashboard Builder** | ✅ NEW | Custom multi-chart dashboards |
+| 🔍 **Data Quality** | ✅ NEW | Automated data quality audit |
+| 📑 **APA Outputs** | ✅ NEW | APA 7th edition formatted results |
+| 🎲 **Data Simulator** | ✅ NEW | Synthetic data generation |
+| 🔗 **Google Sheets** | ✅ NEW | Sheets read/write integration |
+| ⚙️ **Settings** | ✅ | Theme, credentials, keep-alive |
+""")
+
 # ─── Credential Settings ─────────────────────────────────────────────
 section_header("🔑 Notion Credentials")
 
