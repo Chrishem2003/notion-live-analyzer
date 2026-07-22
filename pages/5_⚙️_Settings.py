@@ -1,7 +1,8 @@
 """
-⚙️ Settings Page — Theme, credentials, keep-alive, and data management.
+⚙️ Settings Page — Theme, credentials, dependencies, keep-alive, and data management.
 """
 import os
+import sys
 import streamlit as st
 
 st.set_page_config(page_title="Settings", layout="wide", page_icon="⚙️")
@@ -11,7 +12,7 @@ from modules.ui_components import hero_card, section_header, load_css, watermark
 
 init_session_state()
 load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("⚙️ Settings & Configuration", "Manage your preferences, credentials, and data.", "Configuration")
+hero_card("⚙️ Settings & Configuration", "Manage your preferences, credentials, dependencies, and data.", "Configuration")
 watermark("CHRISHEM")
 
 # ─── Theme Settings ──────────────────────────────────────────────────
@@ -47,6 +48,115 @@ with col3:
         unsafe_allow_html=True,
     )
 
+# ─── Dependency Manager ─────────────────────────────────────────────
+section_header("🔧 Dependency Manager")
+st.markdown("*Check, verify, and install all required Python packages with one click.*")
+
+from modules.dependency_manager import check_all_packages, install_missing_packages, install_package, CATEGORY_ICONS, CATEGORY_ORDER
+
+all_pkgs, missing_pkgs, categories = check_all_packages()
+
+total = len(all_pkgs)
+installed_count = total - len(missing_pkgs)
+pct = int(installed_count / total * 100) if total > 0 else 0
+
+# Overall status
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric("📦 Total Packages", total)
+with col2:
+    st.metric("✅ Installed", installed_count)
+with col3:
+    st.metric("❌ Missing", len(missing_pkgs))
+
+if len(missing_pkgs) == 0:
+    st.success("🎉 **All packages are installed!** The application is fully ready.")
+else:
+    st.warning(f"⚠️ **{len(missing_pkgs)} packages** missing — click 'Fix All' below to install them.")
+
+st.progress(pct, text=f"{pct}% complete")
+
+# Per-category expanders
+from modules.dependency_manager import get_package_summary
+summary = get_package_summary()
+
+for cat in categories:
+    cat_data = summary[cat]
+    icon = CATEGORY_ICONS.get(cat, "📦")
+    with st.expander(
+        f"{icon} **{cat}** — {cat_data['installed']}/{cat_data['total']} installed",
+        expanded=cat_data["missing"] > 0 and cat_data["missing"] < cat_data["total"],
+    ):
+        cols = st.columns(2)
+        with cols[0]:
+            st.markdown("**✅ Installed:**")
+            for name in cat_data["installed_names"]:
+                pkg = next((p for p in all_pkgs if p.pip_name == name), None)
+                version = f" v{pkg.installed_version}" if pkg and pkg.installed_version else ""
+                st.markdown(f"- ✅ {name}{version}")
+        with cols[1]:
+            if cat_data["missing_names"]:
+                st.markdown("**❌ Missing:**")
+                for name in cat_data["missing_names"]:
+                    pkg = next((p for p in all_pkgs if p.pip_name == name), None)
+                    desc = f" — {pkg.description}" if pkg else ""
+                    st.markdown(f"- ❌ {name}{desc}")
+            else:
+                st.markdown("**✅ All installed!**")
+
+# One-click fix button
+if missing_pkgs:
+    st.markdown("---")
+    st.markdown("### 🚀 One-Click Fix")
+
+    missing_names = [p.pip_name for p in missing_pkgs]
+    st.markdown(f"Packages to install: `{', '.join(missing_names)}`")
+
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        fix_clicked = st.button("🔧 Fix All Missing Packages", type="primary", use_container_width=True)
+
+    if fix_clicked:
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+
+        def progress_cb(current, total, msg):
+            progress_bar.progress(int(current / total * 100))
+            status_text.text(f"[{current}/{total}] {msg}")
+
+        with st.spinner("Installing packages... This may take several minutes."):
+            results = install_missing_packages(missing_names, progress_cb)
+
+        success_count = sum(1 for s, _ in results.values() if s)
+        fail_count = sum(1 for s, _ in results.values() if not s)
+
+        st.markdown(f"**{success_count} succeeded**, **{fail_count} failed**")
+        for name, (success, msg) in results.items():
+            if success:
+                st.success(msg)
+            else:
+                st.error(msg)
+
+        if fail_count == 0:
+            st.success("🎉 **All packages installed!** Refresh the app to apply changes.")
+            if st.button("🔄 Refresh App Now", type="primary"):
+                st.rerun()
+
+    # Individual install
+    with st.expander("🛠️ Install Individual Package"):
+        pkg_names = sorted([p.pip_name for p in missing_pkgs])
+        selected_pkg = st.selectbox("Select a package to install", options=pkg_names)
+        if st.button(f"📥 Install {selected_pkg}"):
+            with st.spinner(f"Installing {selected_pkg}..."):
+                success, message = install_package(selected_pkg)
+            if success:
+                st.success(message)
+                st.rerun()
+            else:
+                st.error(message)
+
+st.markdown("---")
+
 # ─── Module Information ─────────────────────────────────────────────
 section_header("🧩 Available Modules")
 st.markdown("""
@@ -57,7 +167,7 @@ st.markdown("""
 | 🔬 **Statistical Tests** | ✅ | 20+ SPSS-level statistical analyses |
 | 📈 **Advanced Visuals** | ✅ | 18+ interactive chart types |
 | 🧬 **Predictive Modeling** | ✅ NEW | AutoML classification, regression, clustering |
-| 🤖 **AI Insights** | ✅ | Automated AI-powered data analysis |
+| 🤖 **CHRISHEM Insights** | ✅ | Automated CHRISHEM-powered data analysis |
 | 🔧 **Data Transformer** | ✅ NEW | SPSS Compute, Recode, Rank, Binning |
 | 📋 **Methodology Advisor** | ✅ NEW | Study design and test recommendation |
 | 🏥 **Clinical Analytics** | ✅ NEW | BMI, clinical ranges, health risk |
@@ -67,7 +177,7 @@ st.markdown("""
 | 📑 **APA Outputs** | ✅ NEW | APA 7th edition formatted results |
 | 🎲 **Data Simulator** | ✅ NEW | Synthetic data generation |
 | 🔗 **Google Sheets** | ✅ NEW | Sheets read/write integration |
-| ⚙️ **Settings** | ✅ | Theme, credentials, keep-alive |
+| ⚙️ **Settings** | ✅ | Theme, credentials, dependencies, keep-alive |
 """)
 
 # ─── Credential Settings ─────────────────────────────────────────────
@@ -186,7 +296,7 @@ st.markdown("""
 - 📁 **File Upload** — CSV, Excel, SPSS (.sav), SAS, STATA, JSON, Parquet
 - 🔬 **Statistical Tests** — 20+ SPSS-level analyses (t-test, ANOVA, correlation, regression, etc.)
 - 📈 **Visualizations** — 18+ interactive chart types with auto-recommendation
-- 🤖 **AI Insights** — Automated profiling, outlier detection, smart recommendations
+- 🤖 **CHRISHEM Insights** — Automated profiling, outlier detection, smart recommendations
 - 📄 **Report Generation** — Downloadable reports in Markdown, HTML, PDF
 - ⏰ **24/7 Uptime** — 5-layer keep-alive system
 

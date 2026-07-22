@@ -8,6 +8,12 @@ import streamlit as st
 from datetime import datetime
 import json
 import os
+import sys
+import subprocess
+import importlib
+
+# ─── Auto-install Google Sheets dependencies ──────────────────────────
+# This allows non-technical users to use Google Sheets without manual pip install
 
 try:
     import gspread
@@ -15,6 +21,27 @@ try:
     HAS_GSPREAD = True
 except ImportError:
     HAS_GSPREAD = False
+    # Attempt automatic installation
+    try:
+        st.info("🔧 Installing Google Sheets dependencies (gspread, oauth2client, google-auth)...")
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "gspread", "oauth2client", "google-auth"],
+            capture_output=True, text=True, timeout=120
+        )
+        if result.returncode == 0:
+            importlib.invalidate_caches()
+            try:
+                import gspread
+                from oauth2client.service_account import ServiceAccountCredentials
+                HAS_GSPREAD = True
+                st.success("✅ Google Sheets dependencies installed successfully!")
+                st.rerun()
+            except ImportError:
+                pass
+        else:
+            st.warning(f"⚠️ Auto-install failed: {result.stderr[:200]}")
+    except Exception as e:
+        st.warning(f"⚠️ Could not auto-install: {str(e)}")
 
 
 class GoogleSheetsClient:

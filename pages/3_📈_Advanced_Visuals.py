@@ -14,7 +14,7 @@ from modules.data_processor import infer_column_types
 
 init_session_state()
 load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("📈 Advanced Visualization Engine", "18+ interactive chart types with AI-powered auto-recommendation.", "Chart Studio")
+hero_card("📈 Advanced Visualization Engine", "18+ interactive chart types with CHRISHEM-powered auto-recommendation.", "Chart Studio")
 watermark("CHRISHEM")
 
 # ─── Data Selection ──────────────────────────────────────────────────
@@ -38,14 +38,15 @@ tab1, tab2, tab3 = st.tabs(["🤖 Auto-Recommend", "🎨 Custom Chart Builder", 
 
 # ─── TAB 1: Auto-Recommend ──────────────────────────────────────────
 with tab1:
-    section_header("🤖 AI-Powered Chart Recommendations")
-    st.caption("Select columns and let AI recommend the best visualization")
+    section_header("🤖 CHRISHEM-Powered Chart Recommendations")
+    st.caption("Select columns and let CHRISHEM recommend the best visualization")
+
 
     selected_cols = st.multiselect(
         "Select columns to visualize",
         options=all_columns,
         default=numeric_cols[:2] + cat_cols[:1] if numeric_cols else all_columns[:3],
-        help="The AI will analyze the selected columns and recommend the best chart types"
+        help="CHRISHEM will analyze the selected columns and recommend the best chart types"
     )
 
     if selected_cols:

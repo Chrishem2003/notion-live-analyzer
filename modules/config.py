@@ -32,6 +32,11 @@ DEFAULT_KEEP_ALIVE_OPTIONS = {
     "15 min": 900,
 }
 
+# ─── Cache ────────────────────────────────────────────────────────────
+DEFAULT_CACHE_TTL = 300  # 5 minutes (was 60s)
+NOTION_API_CACHE_TTL = 600  # 10 minutes for API calls (database list etc.)
+NOTION_DATA_CACHE_TTL = 300  # 5 minutes for Notion data
+
 CHART_COLOR_PALETTES = {
     "Plotly": px.colors.qualitative.Plotly,
     "Set2": px.colors.qualitative.Set2,

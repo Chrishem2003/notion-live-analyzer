@@ -1,14 +1,14 @@
 """
-🤖 AI Insights Page — Automated data analysis, profiling, and smart recommendations.
+🤖 CHRISHEM Insights Page — Automated data analysis, profiling, and smart recommendations.
 """
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="AI Insights", layout="wide", page_icon="🤖")
+st.set_page_config(page_title="CHRISHEM Insights", layout="wide", page_icon="🤖")
 
 from modules.config import init_session_state
 from modules.ui_components import hero_card, section_header, load_css, watermark, insight_card
-from modules.ai_analyzer import AIAnalyzer
+from modules.ai_analyzer import CHRISHEMAnalyzer
 from modules.data_processor import profile_dataset
 from modules.chart_builder import build_chart
 from modules.report_generator import auto_generate_report, get_report_download_link
@@ -16,7 +16,7 @@ from modules.export import render_export_buttons
 
 init_session_state()
 load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("🤖 AI Insights Engine", "Automated data profiling, statistical recommendations, and natural language insights.", "AI-Powered Analysis")
+hero_card("🤖 CHRISHEM Insights Engine", "Automated data profiling, statistical recommendations, and natural language insights.", "CHRISHEM-Powered Analysis")
 watermark("CHRISHEM")
 
 # ─── Data Selection ──────────────────────────────────────────────────
@@ -32,7 +32,7 @@ st.info(f"**Analyzing**: {len(active_df):,} rows × {len(active_df.columns)} col
 
 # ─── Run Full Automated Analysis ─────────────────────────────────────
 if st.button("🚀 Run Full Automated Analysis", type="primary", use_container_width=True):
-    analyzer = AIAnalyzer()
+    analyzer = CHRISHEMAnalyzer()
 
     with st.spinner("🔄 Running comprehensive analysis... This may take a moment."):
         results = analyzer.auto_analyze(active_df)
@@ -162,7 +162,7 @@ if st.button("🚀 Run Full Automated Analysis", type="primary", use_container_w
             st.markdown(link, unsafe_allow_html=True)
 
 else:
-    st.info("👆 Click **'Run Full Automated Analysis'** above to start the AI-powered analysis pipeline.")
+    st.info("👆 Click **'Run Full Automated Analysis'** above to start the CHRISHEM-powered analysis pipeline.")
     st.markdown("""
     ### What this will do:
     1. **Profile** your dataset (rows, columns, types)

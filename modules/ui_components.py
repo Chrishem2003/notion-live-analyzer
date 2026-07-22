@@ -321,12 +321,12 @@ def render_onboarding_tour():
             - **📁 File Analyzer** — Upload CSV, Excel, SPSS, SAS, STATA files
             - **🔬 Statistical Tests** — T-tests, ANOVA, Correlation, Regression, and more
             - **📈 Advanced Visuals** — 18+ chart types with auto-recommendation
-            - **🤖 AI Insights** — Automated data analysis and smart recommendations
+            - **🤖 CHRISHEM Insights** — Automated data analysis and smart recommendations
             - **⚙️ Settings** — Theme, credentials, keep-alive configuration
 
             **💡 Tips:**
             - Connect your Notion workspace OR upload a file to get started
-            - The AI will automatically recommend the best analysis for your data
+            - CHRISHEM will automatically recommend the best analysis for your data
             - Enable Keep-Alive in Settings for 24/7 operation
             """)
             if st.button("✅ Got it! Hide this tour"):

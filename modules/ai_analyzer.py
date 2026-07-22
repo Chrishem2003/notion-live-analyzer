@@ -1,5 +1,5 @@
 """
-AI Analyzer — automated data analysis, profiling, and insight generation.
+CHRISHEM Analyzer — automated data analysis, profiling, and insight generation.
 Provides smart test recommendations and natural language insights.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -15,8 +15,8 @@ from modules.data_processor import (
 from modules.statistical_engine import StatisticalEngine
 
 
-class AIAnalyzer:
-    """Automated AI-powered data analysis engine."""
+class CHRISHEMAnalyzer:
+    """Automated CHRISHEM-powered data analysis engine."""
 
     def __init__(self):
         self.stats = StatisticalEngine()

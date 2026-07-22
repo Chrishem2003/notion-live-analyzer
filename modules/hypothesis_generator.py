@@ -15,7 +15,7 @@ from scipy import stats as scipy_stats
 
 
 class HypothesisGenerator:
-    """AI-powered research hypothesis discovery and formulation engine."""
+    """CHRISHEM-powered research hypothesis discovery and formulation engine."""
 
     def __init__(self):
         self.stats = StatisticalEngine()

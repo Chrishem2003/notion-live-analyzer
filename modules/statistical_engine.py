@@ -5,20 +5,75 @@ Replaces SPSS, STATA, and SAS for common research analyses.
 from typing import Dict, List, Any, Optional, Tuple
 import pandas as pd
 import numpy as np
-from scipy import stats as scipy_stats
-from scipy.stats import (
-    ttest_ind, ttest_rel, ttest_1samp,
-    f_oneway, chi2_contingency, pearsonr, spearmanr,
-    kruskal, mannwhitneyu, wilcoxon, friedmanchisquare,
-    shapiro, normaltest, kstest,
-)
-from statsmodels.stats.multicomp import pairwise_tukeyhsd
-from statsmodels.stats.power import TTestIndPower, TTestPower
-from statsmodels.stats.proportion import proportions_ztest
-import pingouin as pg
+
+# ─── Graceful Import of scipy ────────────────────────────────────────
+try:
+    from scipy import stats as scipy_stats
+    from scipy.stats import (
+        ttest_ind, ttest_rel, ttest_1samp,
+        f_oneway, chi2_contingency, pearsonr, spearmanr,
+        kruskal, mannwhitneyu, wilcoxon, friedmanchisquare,
+        shapiro, normaltest, kstest,
+    )
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+    scipy_stats = None
+    # Placeholder assignments to avoid NameError during class definition
+    ttest_ind = ttest_rel = ttest_1samp = None
+    f_oneway = chi2_contingency = pearsonr = spearmanr = None
+    kruskal = mannwhitneyu = wilcoxon = friedmanchisquare = None
+    shapiro = normaltest = kstest = None
+
+# ─── Graceful Import of statsmodels ──────────────────────────────────
+try:
+    from statsmodels.stats.multicomp import pairwise_tukeyhsd
+    from statsmodels.stats.power import TTestIndPower, TTestPower
+    from statsmodels.stats.proportion import proportions_ztest
+    HAS_STATSMODELS = True
+except ImportError:
+    HAS_STATSMODELS = False
+    pairwise_tukeyhsd = None
+    TTestIndPower = TTestPower = None
+    proportions_ztest = None
+
+# ─── Graceful Import of pingouin ─────────────────────────────────────
+try:
+    import pingouin as pg
+    HAS_PINGOUIN = True
+except ImportError:
+    HAS_PINGOUIN = False
+    pg = None
 
 class StatisticalEngine:
     """Complete statistical analysis engine."""
+
+    def __init__(self):
+        """Initialize and check dependency availability."""
+        self._has_scipy = HAS_SCIPY
+        self._has_statsmodels = HAS_STATSMODELS
+        self._has_pingouin = HAS_PINGOUIN
+
+    def _require_scipy(self) -> Optional[str]:
+        """Return error message if scipy is not available."""
+        if not self._has_scipy:
+            return ("scipy is not installed. Click Settings → Dependency Manager → 'Fix All Missing Packages' "
+                    "to install it automatically, or run: pip install scipy")
+        return None
+
+    def _require_statsmodels(self) -> Optional[str]:
+        """Return error message if statsmodels is not available."""
+        if not self._has_statsmodels:
+            return ("statsmodels is not installed. Click Settings → Dependency Manager → 'Fix All Missing Packages' "
+                    "to install it automatically, or run: pip install statsmodels")
+        return None
+
+    def _require_pingouin(self) -> Optional[str]:
+        """Return error message if pingouin is not available."""
+        if not self._has_pingouin:
+            return ("pingouin is not installed. Click Settings → Dependency Manager → 'Fix All Missing Packages' "
+                    "to install it automatically, or run: pip install pingouin")
+        return None
 
     # ─── DESCRIPTIVE STATISTICS ─────────────────────────────────────
     def descriptive_stats(self, df: pd.DataFrame, columns: List[str] = None) -> pd.DataFrame:
@@ -76,6 +131,9 @@ class StatisticalEngine:
     # ─── T-TESTS ────────────────────────────────────────────────────
     def independent_ttest(self, df: pd.DataFrame, group_col: str, value_col: str) -> Dict[str, Any]:
         """Independent samples t-test with Cohen's d effect size."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         groups = df[group_col].dropna().unique()
         if len(groups) != 2:
             return {"error": "Exactly 2 groups required for independent t-test"}
@@ -111,6 +169,9 @@ class StatisticalEngine:
 
     def paired_ttest(self, df: pd.DataFrame, before_col: str, after_col: str) -> Dict[str, Any]:
         """Paired samples t-test."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         valid = df[[before_col, after_col]].dropna()
         if len(valid) < 3:
             return {"error": "Need at least 3 paired observations"}
@@ -132,6 +193,9 @@ class StatisticalEngine:
 
     def one_sample_ttest(self, df: pd.DataFrame, col: str, test_value: float = 0) -> Dict[str, Any]:
         """One-sample t-test against a population mean."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         series = df[col].dropna()
         if len(series) < 3:
             return {"error": "Need at least 3 observations"}
@@ -152,6 +216,9 @@ class StatisticalEngine:
     # ─── ANOVA ──────────────────────────────────────────────────────
     def anova_one_way(self, df: pd.DataFrame, group_col: str, value_col: str) -> Dict[str, Any]:
         """One-way ANOVA with post-hoc Tukey HSD."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         groups_data = [group[value_col].dropna() for name, group in df.groupby(group_col)]
         if len(groups_data) < 2:
             return {"error": "Need at least 2 groups for ANOVA"}
@@ -187,6 +254,9 @@ class StatisticalEngine:
 
     def anova_two_way(self, df: pd.DataFrame, factor1: str, factor2: str, value_col: str) -> pd.DataFrame:
         """Two-way ANOVA using pingouin."""
+        err = self._require_pingouin()
+        if err:
+            return pd.DataFrame({"error": [err]})
         try:
             aov = pg.anova(dv=value_col, between=[factor1, factor2], data=df, detailed=True)
             return aov
@@ -196,6 +266,9 @@ class StatisticalEngine:
     # ─── CHI-SQUARE ─────────────────────────────────────────────────
     def chi_square_test(self, df: pd.DataFrame, col1: str, col2: str) -> Dict[str, Any]:
         """Chi-square test of independence with Cramer's V."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         contingency = pd.crosstab(df[col1], df[col2])
         chi2, p_val, dof, expected = chi2_contingency(contingency)
         # Cramer's V
@@ -217,6 +290,9 @@ class StatisticalEngine:
     # ─── CORRELATION ────────────────────────────────────────────────
     def pearson_correlation(self, df: pd.DataFrame, col1: str, col2: str) -> Dict[str, Any]:
         """Pearson correlation coefficient."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         valid = df[[col1, col2]].dropna()
         if len(valid) < 3:
             return {"error": "Need at least 3 observations"}
@@ -233,6 +309,9 @@ class StatisticalEngine:
 
     def spearman_correlation(self, df: pd.DataFrame, col1: str, col2: str) -> Dict[str, Any]:
         """Spearman rank correlation."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         valid = df[[col1, col2]].dropna()
         if len(valid) < 3:
             return {"error": "Need at least 3 observations"}
@@ -255,6 +334,9 @@ class StatisticalEngine:
     # ─── REGRESSION ─────────────────────────────────────────────────
     def linear_regression(self, df: pd.DataFrame, target: str, features: List[str]) -> Dict[str, Any]:
         """Simple/multiple linear regression using pingouin."""
+        err = self._require_pingouin()
+        if err:
+            return {"error": err}
         try:
             result = pg.linear_regression(df[features], df[target])
             return {"summary": result}
@@ -263,6 +345,9 @@ class StatisticalEngine:
 
     def logistic_regression(self, df: pd.DataFrame, target: str, features: List[str]) -> Dict[str, Any]:
         """Logistic regression using pingouin."""
+        err = self._require_pingouin()
+        if err:
+            return {"error": err}
         try:
             result = pg.logistic_regression(df[features], df[target])
             return {"summary": result}
@@ -272,6 +357,9 @@ class StatisticalEngine:
     # ─── NON-PARAMETRIC TESTS ───────────────────────────────────────
     def mann_whitney(self, df: pd.DataFrame, group_col: str, value_col: str) -> Dict[str, Any]:
         """Mann-Whitney U test (non-parametric alternative to independent t-test)."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         groups = df[group_col].dropna().unique()
         if len(groups) != 2:
             return {"error": "Exactly 2 groups required"}
@@ -291,6 +379,9 @@ class StatisticalEngine:
 
     def kruskal_wallis(self, df: pd.DataFrame, group_col: str, value_col: str) -> Dict[str, Any]:
         """Kruskal-Wallis H test (non-parametric alternative to one-way ANOVA)."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         groups_data = [group[value_col].dropna() for name, group in df.groupby(group_col)]
         if len(groups_data) < 2:
             return {"error": "Need at least 2 groups"}
@@ -305,6 +396,9 @@ class StatisticalEngine:
 
     def wilcoxon_signed_rank(self, df: pd.DataFrame, before_col: str, after_col: str) -> Dict[str, Any]:
         """Wilcoxon signed-rank test (non-parametric paired t-test)."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         valid = df[[before_col, after_col]].dropna()
         if len(valid) < 3:
             return {"error": "Need at least 3 paired observations"}
@@ -320,6 +414,9 @@ class StatisticalEngine:
     # ─── NORMALITY TESTS ────────────────────────────────────────────
     def test_normality(self, df: pd.DataFrame, col: str) -> Dict[str, Any]:
         """Shapiro-Wilk test for normality."""
+        err = self._require_scipy()
+        if err:
+            return {"error": err}
         series = df[col].dropna()
         if len(series) < 3:
             return {"error": "Need at least 3 observations"}
@@ -341,6 +438,9 @@ class StatisticalEngine:
     # ─── POWER ANALYSIS ─────────────────────────────────────────────
     def power_ttest(self, effect_size: float = 0.5, alpha: float = 0.05, power: float = 0.8, ratio: float = 1.0) -> Dict[str, Any]:
         """Power analysis for t-test — estimate required sample size."""
+        err = self._require_statsmodels()
+        if err:
+            return {"error": err}
         analysis = TTestIndPower()
         n = analysis.solve_power(effect_size=effect_size, alpha=alpha, power=power, ratio=ratio)
         return {
@@ -355,6 +455,9 @@ class StatisticalEngine:
     # ─── RELIABILITY ANALYSIS ───────────────────────────────────────
     def cronbach_alpha(self, df: pd.DataFrame, items: List[str]) -> Dict[str, Any]:
         """Cronbach's alpha for scale reliability."""
+        err = self._require_pingouin()
+        if err:
+            return {"error": err}
         try:
             alpha = pg.cronbach_alpha(df[items])
             return {

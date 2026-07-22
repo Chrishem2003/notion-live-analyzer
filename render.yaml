@@ -1,12 +1,11 @@
 services:
   - type: web
     name: notion-live-analyzer
-    env: python
+    env: docker
     plan: free
     region: oregon
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.address 0.0.0.0 --server.port $PORT
-    healthCheckPath: /
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /_stcore/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
@@ -16,14 +15,21 @@ services:
         value: ""
       - key: DATABASE_ID
         value: ""
+      - key: AUTO_FIX_DEPS
+        value: "false"
+      - key: STREAMLIT_SERVER_RUN_ON_SAVE
+        value: "false"
+      # Performance: reduce re-run overhead
+      - key: STREAMLIT_RUNNER_FAST_RERUNS
+        value: "true"
 
   # ─── CRON JOB: Keeps the web service awake on Render free tier ───
-  # Pings the app every 10 minutes to prevent 15-min inactivity spin-down
+  # Pings the app every 14 minutes to prevent 15-min inactivity spin-down
   - type: cron
     name: notion-live-analyzer-keepalive
     env: python
     plan: free
-    schedule: "*/10 * * * *"
+    schedule: "*/14 * * * *"
     buildCommand: ""
     startCommand: |
       python -c "

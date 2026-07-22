@@ -5,11 +5,67 @@ Replaces SPSS, Tableau, Power BI with a single, intelligent, Notion-connected re
 """
 import time
 import os
+import sys
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
 import streamlit as st
 import pandas as pd
+
+# ─── Startup Performance Timer ────────────────────────────────────────
+_startup_start = time.time()
+
+# ─── Lightweight Dependency Check (Non-Blocking) ─────────────────────
+# Replaced the old blocking per-package import check with a fast lazy check
+# that runs AFTER the page renders, so users see the dashboard immediately.
+AUTO_FIX_DEPS = os.environ.get("AUTO_FIX_DEPS", "true").lower() == "true"
+_HEAVY_PACKAGES = {"xgboost", "shap", "pymc", "arviz", "causalml", "prophet"}
+
+# We defer the full dependency scan to a background check by storing the
+# result of a quick pip list instead of 30+ importlib calls.
+import subprocess as _sp
+try:
+    _installed_pkgs = set(
+        line.split("==")[0].lower().replace("-", "_")
+        for line in _sp.check_output(
+            [sys.executable, "-m", "pip", "list", "--format=columns"],
+            text=True, timeout=15, stderr=_sp.DEVNULL
+        ).splitlines()[2:]  # skip header
+        if "==" in line
+    )
+except Exception:
+    _installed_pkgs = set()
+
+# Quick check: are core packages present? (fast set lookup)
+_CORE_PACKAGES = {"streamlit", "pandas", "numpy", "plotly", "requests", "scipy", "statsmodels", "openpyxl"}
+_missing_core = [p for p in _CORE_PACKAGES if p not in _installed_pkgs]
+
+# Heavy package detection (lazy — not imported, just check pip list)
+_missing_heavy = [p for p in _HEAVY_PACKAGES if p.replace("-", "_") not in _installed_pkgs]
+
+# Store results for later non-blocking display
+st.session_state["_startup_missing_core"] = _missing_core
+st.session_state["_startup_missing_heavy"] = _missing_heavy
+st.session_state["_startup_complete"] = False  # will be set to True after render
+
+if AUTO_FIX_DEPS and _missing_core:
+    from modules.dependency_manager import install_missing_packages
+
+    st.info(f"🔧 Installing {len(_missing_core)} required dependencies. This may take a minute...")
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+
+    def progress_cb(current, total, msg):
+        progress_bar.progress(int(current / total * 100))
+        status_text.text(f"[{current}/{total}] {msg}")
+
+    results = install_missing_packages(_missing_core, progress_cb)
+    success_count = sum(1 for s, _ in results.values() if s)
+    if success_count > 0:
+        status_text.text(f"✅ {success_count}/{len(_missing_core)} packages installed")
+        import importlib as _il
+        _il.invalidate_caches()
 
 # ─── Modules ──────────────────────────────────────────────────────────
 from modules.config import init_session_state, get_secret, find_background_image, CACHE_DIR
@@ -52,10 +108,23 @@ load_css(is_dark=is_dark, accent_color=accent_color)
 # ═══════════════════════════════════════════════════════════════════════
 hero_card(
     "📊 Advanced Research Data Analyzer & Visualizer",
-    "Replace SPSS, Tableau & Power BI — AI-powered analysis for Notion, CSV, Excel, SPSS & more.",
+    "Replace SPSS, Tableau & Power BI — CHRISHEM-powered analysis for Notion, CSV, Excel, SPSS & more.",
     badge_text="v2.0 — Research Suite"
 )
 watermark("CHRISHEM")
+
+# ─── Startup time (non-blocking) ────────────────────────────────────
+_startup_elapsed = time.time() - _startup_start
+st.caption(f"⚡ App loaded in {_startup_elapsed:.1f}s")
+
+# Non-blocking warning for missing heavy packages
+if st.session_state.get("_startup_missing_heavy"):
+    st.info(
+        f"ℹ️ Advanced AI packages not installed ({', '.join(st.session_state['_startup_missing_heavy'])}). "
+        "Some features (AutoML, forecasting) will use fallback. "
+        "Install from Settings page for full capabilities.",
+        icon="🧠"
+    )
 
 # ═══════════════════════════════════════════════════════════════════════
 # 5. CREDENTIAL SETUP (if needed)
@@ -161,13 +230,24 @@ if (not NOTION_TOKEN) or st.session_state.get("creds_failed"):
     show_credential_setup()
 
 # ───────────────────────────────────────────────────────────────────────
-# 6. DATABASE ID RESOLUTION
+# 6. DATABASE ID RESOLUTION (CACHED)
 # ───────────────────────────────────────────────────────────────────────
+from modules.config import DEFAULT_CACHE_TTL, NOTION_API_CACHE_TTL, NOTION_DATA_CACHE_TTL
+
 DATABASE_SOURCE = "configured"
+
+# Cache database discovery results (rarely changes)
+@st.cache_data(ttl=NOTION_API_CACHE_TTL, show_spinner=False)
+def _cached_discover_db_id(token: str):
+    return discover_database_id(token)
+
+@st.cache_data(ttl=NOTION_API_CACHE_TTL, show_spinner=False)
+def _cached_get_database_options(token: str):
+    return get_database_options(token)
 
 if not DATABASE_ID:
     with st.spinner("🔍 Auto-discovering databases..."):
-        DATABASE_ID = discover_database_id(NOTION_TOKEN)
+        DATABASE_ID = _cached_discover_db_id(NOTION_TOKEN)
         DATABASE_SOURCE = "auto-discovered"
         if DATABASE_ID:
             st.session_state["user_DATABASE_ID"] = DATABASE_ID
@@ -202,9 +282,9 @@ with st.sidebar:
     refresh_seconds = refresh_options.get(refresh_choice, 30)
     st.caption(f"Current cadence: {refresh_choice}")
 
-    # Database selector
+    # Database selector (cached)
     try:
-        database_options = get_database_options(NOTION_TOKEN)
+        database_options = _cached_get_database_options(NOTION_TOKEN)
         if database_options:
             option_ids = [db["id"] for db in database_options]
             option_names = {db["id"]: f"{db['title']} ({db['id'][:8]}...)" for db in database_options}
@@ -226,10 +306,13 @@ with st.sidebar:
                     format_func=lambda db_id: filtered_names.get(db_id, db_id),
                 )
                 if selected_db_id != DATABASE_ID:
-                    DATABASE_ID = selected_db_id
-                    DATABASE_SOURCE = "selected in sidebar"
-                    st.cache_data.clear()
-                    st.rerun()
+                    # Debounce: only trigger if user hasn't changed selection in last 2s
+                    if st.session_state.get("_last_db_change", 0) + 2 < time.time():
+                        DATABASE_ID = selected_db_id
+                        DATABASE_SOURCE = "selected in sidebar"
+                        st.session_state["_last_db_change"] = time.time()
+                        st.cache_data.clear()
+                        st.rerun()
 
             st.code(DATABASE_ID, language="text")
             st.caption(f"Source: {DATABASE_SOURCE}")
@@ -307,9 +390,9 @@ if st.session_state.get("keep_alive_enabled") and keep_alive_interval_sec > 0:
 render_onboarding_tour()
 
 # ───────────────────────────────────────────────────────────────────────
-# 12. DATA FETCHING
+# 12. DATA FETCHING (CACHED — 5 min TTL)
 # ───────────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=60, show_spinner="🔄 Syncing with Notion...")
+@st.cache_data(ttl=NOTION_DATA_CACHE_TTL, show_spinner="🔄 Syncing with Notion...")
 def get_notion_data(token, db_id):
     return fetch_notion_data(token, db_id)
 
@@ -352,7 +435,7 @@ else:
         st.metric("Missing %", f"{missing_pct}%")
 
     # Auto-recommended charts
-    section_header("🎯 AI-Recommended Visualizations")
+    section_header("🎯 CHRISHEM-Recommended Visualizations")
     recommendations = auto_recommend_chart(df)[:6]
 
     rec_cols = st.columns(3)
@@ -384,7 +467,7 @@ st.sidebar.markdown(
     - **📁 File Analyzer** — Upload CSV/Excel/SPSS files
     - **🔬 Statistical Tests** — T-tests, ANOVA, Regression
     - **📈 Advanced Visuals** — 18+ chart types
-    - **🤖 AI Insights** — Automated analysis
+    - **🤖 CHRISHEM Insights** — Automated analysis
     - **⚙️ Settings** — Theme, credentials, keep-alive
     """
 )

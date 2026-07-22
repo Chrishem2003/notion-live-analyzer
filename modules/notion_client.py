@@ -1,10 +1,13 @@
 """
 Notion API Client — handles all interactions with the Notion API.
 Supports all 20+ property types and automatic database detection.
+Includes caching and rate-limiting to improve performance.
 """
 import hashlib
 import time
-from typing import Optional, List, Dict, Any, Tuple
+import functools
+from typing import Optional, List, Dict, Any, Tuple, Callable
+from datetime import datetime, timedelta
 import requests
 import pandas as pd
 import streamlit as st
@@ -12,6 +15,70 @@ import streamlit as st
 NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
 PAGE_SIZE = 100
+
+# ─── Simple In-Memory Cache ──────────────────────────────────────────
+# Avoids duplicate API calls within the same request cycle
+_request_cache: Dict[str, tuple] = {}
+_request_cache_ttl: int = 60  # seconds
+
+def _cached_request(cache_key: str, ttl: int = 60):
+    """Decorator to cache API responses in-memory for the request cycle."""
+    def decorator(func: Callable):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # Skip cache if explicitly requested with force_refresh=True
+            if kwargs.pop("force_refresh", False):
+                return func(*args, **kwargs)
+            
+            full_key = f"{cache_key}:{hash(str(args) + str(kwargs))}"
+            now = time.time()
+            
+            if full_key in _request_cache:
+                cached_at, cached_value = _request_cache[full_key]
+                if now - cached_at < ttl:
+                    return cached_value
+            
+            result = func(*args, **kwargs)
+            _request_cache[full_key] = (now, result)
+            return result
+        return wrapper
+    return decorator
+
+def clear_request_cache():
+    """Clear the in-memory request cache."""
+    _request_cache.clear()
+
+# ─── Rate Limiter ────────────────────────────────────────────────────
+# Notion API allows 3 requests per second; we pace ourselves.
+class RateLimiter:
+    def __init__(self, max_calls: int = 3, per_seconds: float = 1.0):
+        self.max_calls = max_calls
+        self.per_seconds = per_seconds
+        self.calls: List[float] = []
+    
+    def wait_if_needed(self):
+        """Wait if we've exceeded the rate limit."""
+        now = time.time()
+        # Remove calls older than the window
+        self.calls = [t for t in self.calls if now - t < self.per_seconds]
+        
+        if len(self.calls) >= self.max_calls:
+            sleep_time = self.calls[0] + self.per_seconds - now
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+        
+        self.calls.append(time.time())
+
+_rate_limiter = RateLimiter(max_calls=3, per_seconds=1.0)
+
+def _rate_limited_request(method: str, url: str, **kwargs) -> requests.Response:
+    """Make a rate-limited HTTP request to the Notion API."""
+    _rate_limiter.wait_if_needed()
+    
+    # Add timeout default
+    kwargs.setdefault("timeout", 30)
+    
+    return requests.request(method, url, **kwargs)
 
 # ─── Universal Property Parser ────────────────────────────────────────
 def extract_rich_text(rich_text_list: list) -> str:
@@ -100,8 +167,9 @@ def _handle_api_error(response: requests.Response, token: str, db_id: str = None
     return False
 
 # ─── Database Operations ──────────────────────────────────────────────
+@_cached_request("get_database_options", ttl=300)  # Cache for 5 minutes
 def get_database_options(token: str) -> List[Dict]:
-    """Search and list all accessible databases."""
+    """Search and list all accessible databases (cached for 5 min)."""
     url = f"{NOTION_API_URL}/search"
     headers = _make_headers(token)
     payload = {
@@ -113,11 +181,13 @@ def get_database_options(token: str) -> List[Dict]:
     try:
         has_more = True
         next_cursor = None
-        while has_more:
+        max_pages = 3  # Limit pagination to avoid timeout
+        page_count = 0
+        while has_more and page_count < max_pages:
             request_payload = payload.copy()
             if next_cursor:
                 request_payload["start_cursor"] = next_cursor
-            response = requests.post(url, json=request_payload, headers=headers, timeout=30)
+            response = _rate_limited_request("POST", url, json=request_payload, headers=headers)
             if response.status_code != 200:
                 break
             data = response.json()
@@ -131,6 +201,7 @@ def get_database_options(token: str) -> List[Dict]:
                 })
             has_more = data.get("has_more", False)
             next_cursor = data.get("next_cursor")
+            page_count += 1
     except Exception as e:
         st.error(f"Error fetching databases: {str(e)}")
     return databases
@@ -195,6 +266,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
     """
     Fetch all pages from a Notion database and return a DataFrame.
     Parses ALL property types automatically.
+    Uses rate-limited requests to avoid 429 errors.
     """
     url = f"{NOTION_API_URL}/databases/{db_id}/query"
     headers = _make_headers(token)
@@ -202,27 +274,31 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
     has_more = True
     next_cursor = None
 
-    # First, get the database schema
+    # First, get the database schema (cached per request)
     schema_url = f"{NOTION_API_URL}/databases/{db_id}"
-    schema_response = requests.get(schema_url, headers=headers, timeout=30)
-    property_definitions = {}
-    if schema_response.status_code == 200:
-        schema_data = schema_response.json()
-        property_definitions = schema_data.get("properties", {})
-    else:
-        if _handle_api_error(schema_response, token, db_id):
-            return pd.DataFrame()
+    try:
+        schema_response = _rate_limited_request("GET", schema_url, headers=headers)
+        property_definitions = {}
+        if schema_response.status_code == 200:
+            schema_data = schema_response.json()
+            property_definitions = schema_data.get("properties", {})
+        else:
+            if _handle_api_error(schema_response, token, db_id):
+                return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error fetching database schema: {str(e)}")
+        return pd.DataFrame()
 
     fetch_attempts = 0
-    max_attempts = 3
+    max_attempts = 2  # Reduced from 3
 
     while has_more and fetch_attempts < max_attempts:
-        payload = {"page_size": PAGE_SIZE}
+        payload = {"page_size": min(PAGE_SIZE, 50)}  # Reduced page size for faster first load
         if next_cursor:
             payload["start_cursor"] = next_cursor
 
         try:
-            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            response = _rate_limited_request("POST", url, json=payload, headers=headers)
             if _handle_api_error(response, token, db_id):
                 return pd.DataFrame()
 
@@ -261,22 +337,21 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
         except requests.exceptions.Timeout:
             st.warning("⏱️ Notion API timeout. Retrying...")
             fetch_attempts += 1
-            time.sleep(2)
+            time.sleep(1)
         except Exception as e:
             st.error(f"Error fetching data: {str(e)}")
             fetch_attempts += 1
-            time.sleep(1)
+            time.sleep(0.5)
 
     if not rows:
         return pd.DataFrame()
 
     df = pd.DataFrame(rows)
 
-    # Auto-type inference
+    # Auto-type inference (optimized)
     for col in df.columns:
         if col.startswith("_"):
             continue
-        # Try numeric conversion
         if df[col].dtype == object:
             try:
                 numeric_series = pd.to_numeric(df[col], errors="coerce")
@@ -287,12 +362,13 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
 
     return df
 
+@_cached_request("get_database_schema", ttl=600)  # Cache for 10 minutes
 def get_database_schema(token: str, db_id: str) -> Dict:
-    """Get the schema/property definitions of a Notion database."""
+    """Get the schema/property definitions of a Notion database (cached for 10 min)."""
     url = f"{NOTION_API_URL}/databases/{db_id}"
     headers = _make_headers(token)
     try:
-        response = requests.get(url, headers=headers, timeout=30)
+        response = _rate_limited_request("GET", url, headers=headers)
         if response.status_code == 200:
             data = response.json()
             return data.get("properties", {})

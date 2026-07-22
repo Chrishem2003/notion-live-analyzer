@@ -10,6 +10,10 @@ enableCORS = true
 enableWebsocketCompression = true
 maxMessageSize = 200
 
+# Performance: reduce startup time by lazy-loading
+# Prevents Streamlit from scanning all files on every run
+runOnSave = false
+
 [browser]
 gatherUsageStats = false
 
@@ -24,8 +28,14 @@ textColor = "#0f172a"
 [runner]
 # Enable faster re-runs
 magicEnabled = true
+# Fast reruns without full page refresh
+fastReruns = true
 
 [global]
 # Disable development warnings in production
 developmentMode = false
+
+[logger]
+# Only log errors in production
+level = "error"
 
