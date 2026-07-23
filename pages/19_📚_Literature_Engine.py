@@ -33,6 +33,7 @@ from modules.literature_engine import (
     render_paper_table_row,
     render_report_builder,
 )
+from modules.audit_ui import render_audit_tab
 
 # ─── Init ─────────────────────────────────────────────────────────────
 init_session_state()
@@ -162,11 +163,12 @@ if not project_id:
     st.stop()
 
 # Main tabs
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🔍 Paper Harvester",
     "📋 Working Bibliography",
     "✍️ Report Builder",
     "📑 Reference Engine",
+    "🛡️ Audit & Compliance Hub",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -464,3 +466,9 @@ with tab4:
         bib_content = st.session_state["_bibtex_content"]
         st.markdown(exporter.get_bib_download_link(bib_content,
             f"references_{datetime.now().strftime('%Y%m%d_%H%M%S')}.bib"), unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════════════════
+# TAB 5: AUDIT & COMPLIANCE HUB
+# ══════════════════════════════════════════════════════════════════════════
+with tab5:
+    render_audit_tab(db, project_id)

@@ -186,6 +186,15 @@ def init_session_state():
         "lit_engine_last_country": "",
         "lit_engine_fetch_count": 0,
         "lit_engine_generated_report": None,
+
+        # ─── Audit & Compliance Hub ──────────────────────────────
+        "forensic_unlocked": False,
+        "_last_audit_results": None,
+        "_last_audit_text": "",
+        "_last_audit_source": "",
+        "_last_optimized_text": "",
+        "_last_optimized_stats": None,
+        "_export_report": "",
     }
     for key, val in defaults.items():
         if key not in st.session_state:
