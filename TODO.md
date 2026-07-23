@@ -1,23 +1,25 @@
-# TODO - Professional Visual & UI Enhancement
+# ✅ Implementation Progress: Global Literature Aggregator & Auto-Drafting Engine
 
-## Phase 1: Research Color Palettes (config.py)
-- [x] Add RESEARCH_PALETTES with Nature, Science, Lancet, JAMA, NEJM, APA, BMJ, Cell colors
+## Phase 1: Core Engine - `modules/literature_engine.py`
+- [x] Create LiteratureDatabase class (SQLite persistence - zero-loss safeguard)
+- [x] Create PaperHarvester class (Semantic Scholar API + CrossRef fallback)
+- [x] Create ReferenceFormatter class (citeproc-py mechanical formatting, no AI)
+- [x] Create DraftingEngine class (user findings + structured citations)
 
-## Phase 2: Chart Builder Overhaul (chart_builder.py)
-- [ ] Add research journal color palettes to `get_color_palette()`
-- [ ] Add `apply_publication_theme()` for publication-ready figures
-- [ ] Enhance `apply_theme()` with axis spines, hover templates, better grids
-- [ ] Professional defaults per chart type (rounded bars, better markers, etc.)
-- [ ] Add `RESEARCH_PALETTES` constant
+## Phase 2: Streamlit Page - `pages/19_📚_Literature_Engine.py`
+- [x] Tab 1: Paper Harvester (Topic/Country, fetch 100 real papers, paginated checkboxes)
+- [x] Tab 2: Working Bibliography (checked papers only, user findings/notes)
+- [x] Tab 3: Proposal Drafting (sectioned editor with citation insertion)
+- [x] Tab 4: Reference Engine (generate formatted references, download .bib)
 
-## Phase 3: CSS Polish (styles.css)
-- [ ] Professional chart containers with paper-shadow
-- [ ] Better tab, button, card styling
-- [ ] Enhanced metric cards with icons
-- [ ] Responsive improvements
+## Phase 3: Dependencies & Config
+- [x] Update requirements.txt with citeproc-py, bibtexparser
+- [x] Add session state keys for literature engine in config.py
+- [x] Install dependencies
 
-## Phase 4: UI Components Enhancement (ui_components.py)
-- [ ] Add `professional_stat_card()` with accent bar
-- [ ] Add `publication_note()` for annotations
-- [ ] Enhance `recommendation_card()` with badges
+## Phase 4: Testing
+- [ ] Verify page loads correctly
+- [ ] Verify SQLite persistence across reloads
+- [ ] Verify Semantic Scholar API fetches real papers
+- [ ] Verify .bib download works
 

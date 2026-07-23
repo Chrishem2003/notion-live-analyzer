@@ -177,3 +177,120 @@ tr:hover {
     }
 }
 
+/* ═════════════════════════════════════════════════════════════════════
+   NOTION EMBED OPTIMIZATIONS
+   ═════════════════════════════════════════════════════════════════════ */
+
+/* Notion embed container — adaptable to iframe widths (400px–1200px) */
+.notion-embed-container {
+    max-width: 100%;
+    padding: 0.5rem;
+}
+
+/* Compact mode toggle — tighter spacing for narrow Notion embeds */
+.notion-compact .block-container {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+.notion-compact .hero-card {
+    padding: 0.75rem 1rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.notion-compact .hero-card h1 {
+    font-size: 1.3rem !important;
+}
+
+.notion-compact [data-testid="stMetric"] {
+    padding: 0.35rem 0.5rem !important;
+}
+
+.notion-compact .stPlotlyChart > div {
+    border-radius: 10px !important;
+}
+
+/* Sticky Action Bar — stays at top when scrolling */
+.sticky-action-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    padding: 0.5rem 1rem;
+    margin: 0 -1rem 1rem -1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+[data-testid="stAppViewContainer"] .notion-dark .sticky-action-bar {
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+/* Responsive grid for Notion embeds */
+@media (max-width: 600px) {
+    .notion-embed-container [data-testid="column"] {
+        min-width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+    .notion-embed-container .stPlotlyChart > div {
+        height: 300px !important;
+    }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+    .notion-embed-container [data-testid="column"] {
+        min-width: 50% !important;
+        flex: 0 0 50% !important;
+    }
+}
+
+/* Deck builder slide transitions */
+.deck-slide-enter {
+    animation: fadeSlideIn 0.3s ease-out;
+}
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Executive report cards */
+.executive-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239, 246, 255, 0.9));
+    border: 1px solid rgba(219, 228, 244, 0.8);
+    border-radius: 16px;
+    padding: 1.2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    transition: all 0.2s;
+}
+.executive-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+}
+
+/* Git status badges */
+.git-status-connected {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(46, 204, 113, 0.15);
+    color: #27ae60;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.git-status-disconnected {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+

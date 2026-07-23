@@ -152,6 +152,40 @@ def init_session_state():
 
         # Quality Check
         "quality_report": None,
+
+        # ─── Notion Bi-Directional Sync ────────────────────────────
+        "notion_sync_queue": [],
+        "notion_sync_history": [],
+        "notion_page_ids": {},
+
+        # ─── Executive Storyteller ─────────────────────────────────
+        "executive_report": None,
+        "executive_report_generated": False,
+
+        # ─── Git Integration ───────────────────────────────────────
+        "git_connected": False,
+        "git_repo_url": "",
+        "git_token": "",
+        "git_branch": "main",
+        "git_last_sync": None,
+        "git_commit_history": [],
+
+        # ─── Presentation Deck Builder ─────────────────────────────
+        "deck_slides": [],
+        "deck_charts": [],
+        "deck_current_slide": 0,
+        "deck_title": "Untitled Presentation",
+
+        # ─── Notion Embed UI ───────────────────────────────────────
+        "compact_mode": False,
+        "notion_embed_mode": False,
+
+        # ─── Literature Aggregator Engine ──────────────────────────
+        "lit_engine_project_id": None,
+        "lit_engine_last_topic": "",
+        "lit_engine_last_country": "",
+        "lit_engine_fetch_count": 0,
+        "lit_engine_generated_report": None,
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -227,6 +261,3 @@ def clear_cache():
         import shutil
         shutil.rmtree(CACHE_DIR)
         CACHE_DIR.mkdir(parents=True)
-
-
-

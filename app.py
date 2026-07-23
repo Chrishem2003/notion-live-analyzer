@@ -405,6 +405,18 @@ if df is not None and not df.empty:
     st.session_state["active_df"] = df
     st.session_state["data_source"] = "notion"
 
+    # ─── Auto-trigger Executive Storyteller ────────────────────────
+    if not st.session_state.get("executive_report_generated", False) and not df.empty:
+        try:
+            from modules.executive_storyteller import ExecutiveStoryteller
+            storyteller = ExecutiveStoryteller()
+            report = storyteller.generate_executive_report(df)
+            if "error" not in report:
+                st.session_state["executive_report"] = report
+                st.session_state["executive_report_generated"] = True
+        except Exception as e:
+            pass  # Non-blocking; will be generated on demand
+
 # ───────────────────────────────────────────────────────────────────────
 # 13. DASHBOARD OVERVIEW
 # ───────────────────────────────────────────────────────────────────────

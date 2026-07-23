@@ -40,7 +40,14 @@ google-auth>=2.0.0
 # Network Analysis
 networkx>=3.0.0
 
+# Git Integration
+GitPython>=3.1.0
+PyGithub>=2.0.0
+
+# Literature Engine & Academic References
+citeproc-py>=0.6.0  # Mechanical, zero-AI reference formatting (APA, Harvard, Chicago, MLA, Vancouver)
+bibtexparser>=2.0.0  # .bib file generation for Mendeley/Zotero import
+
 # Utilities
 python-dateutil>=2.8.0
 tabulate>=0.9.0
-

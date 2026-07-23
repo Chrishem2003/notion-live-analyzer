@@ -307,6 +307,67 @@ def watermark(text: str = "CHRISHEM"):
     """Render the app watermark."""
     st.markdown(f'<div class="app-watermark">{text}</div>', unsafe_allow_html=True)
 
+
+# ═══════════════════════════════════════════════════════════════════════
+# NOTION EMBED UI COMPONENTS
+# ═══════════════════════════════════════════════════════════════════════
+
+def notion_embed_container():
+    """Wrap content in a Notion-embed-aware container."""
+    compact = st.session_state.get("compact_mode", False)
+    embed_mode = st.session_state.get("notion_embed_mode", False)
+    classes = "notion-embed-container"
+    if compact:
+        classes += " notion-compact"
+    st.markdown(f'<div class="{classes}">', unsafe_allow_html=True)
+    return True  # For context manager usage
+
+def end_notion_embed_container():
+    """Close the notion embed container."""
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def sticky_action_bar():
+    """Render a sticky action bar at the top for quick actions."""
+    st.markdown('<div class="sticky-action-bar">', unsafe_allow_html=True)
+    return True
+
+def end_sticky_action_bar():
+    """Close the sticky action bar."""
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def compact_metric(label: str, value, delta=None, help_text: str = None):
+    """Render a compact metric card suitable for narrow Notion embeds."""
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        st.caption(label)
+    with col2:
+        st.markdown(f"<div style='font-size:1.3rem;font-weight:700;'>{value}</div>", unsafe_allow_html=True)
+    with col3:
+        if delta:
+            st.markdown(f"<div style='font-size:0.9rem;color:#64748b;'>{delta}</div>", unsafe_allow_html=True)
+    if help_text:
+        st.caption(help_text)
+
+
+def git_status_badge(connected: bool):
+    """Render a Git connection status badge."""
+    if connected:
+        return '<span class="git-status-connected">● CONNECTED</span>'
+    return '<span class="git-status-disconnected">○ DISCONNECTED</span>'
+
+
+def execution_card(title: str, content: str, severity: str = "low"):
+    """Render an executive report-style card with severity coloring."""
+    colors = {"high": "#e74c3c", "medium": "#e67e22", "low": "#2ecc71"}
+    color = colors.get(severity, "#64748b")
+    st.markdown(f"""
+    <div class="executive-card" style="border-left: 4px solid {color};">
+        <h4 style="margin:0 0 0.3rem 0;color:{color};">{title}</h4>
+        <p style="margin:0;color:#334155;font-size:0.95rem;">{content}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render_onboarding_tour():
     """First-time user onboarding tour."""
     if st.session_state.get("show_onboarding", True):
@@ -322,12 +383,15 @@ def render_onboarding_tour():
             - **🔬 Statistical Tests** — T-tests, ANOVA, Correlation, Regression, and more
             - **📈 Advanced Visuals** — 18+ chart types with auto-recommendation
             - **🤖 CHRISHEM Insights** — Automated data analysis and smart recommendations
+            - **🔗 Git Integration** — Connect GitHub for data version control
+            - **📊 Presentation Deck** — Build interactive slide decks
             - **⚙️ Settings** — Theme, credentials, keep-alive configuration
 
             **💡 Tips:**
             - Connect your Notion workspace OR upload a file to get started
             - CHRISHEM will automatically recommend the best analysis for your data
             - Enable Keep-Alive in Settings for 24/7 operation
+            - Push cleaned data + analysis scripts back to GitHub
             """)
             if st.button("✅ Got it! Hide this tour"):
                 st.session_state["show_onboarding"] = False
