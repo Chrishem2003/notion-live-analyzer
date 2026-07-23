@@ -1,17 +1,19 @@
 """
 Chart Builder — builds 18+ interactive chart types using Plotly.
 Handles all configuration, theming, and rendering.
+Research-grade publication-ready visualizations.
 """
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional, Union, Tuple
 import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from modules.config import RESEARCH_PALETTES, PUBLICATION_CONFIG
 
-# ─── Color Palette Loading ────────────────────────────────────────────
+# ─── Research Color Palette Loading ───────────────────────────────────
 def get_color_palette(palette_name: str = "Plotly") -> list:
-    """Get a color palette by name."""
+    """Get a color palette by name — includes research journal palettes."""
     palettes = {
         "Plotly": px.colors.qualitative.Plotly,
         "Set2": px.colors.qualitative.Set2,
@@ -28,8 +30,117 @@ def get_color_palette(palette_name: str = "Plotly") -> list:
         "Inferno": px.colors.sequential.Inferno,
         "Magma": px.colors.sequential.Magma,
         "Cividis": px.colors.sequential.Cividis,
+        **RESEARCH_PALETTES,  # Inject all research palettes
     }
     return palettes.get(palette_name, px.colors.qualitative.Plotly)
+
+# ─── Publication-Ready Theming ────────────────────────────────────────
+PC = PUBLICATION_CONFIG
+
+def _spine_style(fig: go.Figure) -> go.Figure:
+    """Apply clean axis spine styling (Nature/Science style)."""
+    fig.update_xaxes(
+        showline=True, linewidth=PC["axis_line_width"],
+        linecolor=PC["axis_line_color"],
+        mirror=False,
+        ticks="outside", tickwidth=1, ticklen=5,
+        tickcolor=PC["axis_line_color"],
+    )
+    fig.update_yaxes(
+        showline=True, linewidth=PC["axis_line_width"],
+        linecolor=PC["axis_line_color"],
+        mirror=False,
+        ticks="outside", tickwidth=1, ticklen=5,
+        tickcolor=PC["axis_line_color"],
+    )
+    return fig
+
+def _clean_grid(fig: go.Figure) -> go.Figure:
+    """Apply subtle thin grid lines (Science-style)."""
+    fig.update_xaxes(
+        showgrid=True, gridwidth=PC["grid_width"],
+        gridcolor=PC["grid_color"], zeroline=False,
+    )
+    fig.update_yaxes(
+        showgrid=True, gridwidth=PC["grid_width"],
+        gridcolor=PC["grid_color"], zeroline=False,
+    )
+    return fig
+
+def _professional_hover(fig: go.Figure) -> go.Figure:
+    """Apply clean hover template."""
+    fig.update_layout(
+        hoverlabel=dict(
+            font_size=PC["hoverlabel_font_size"],
+            font_family=PC["font_family"],
+            bordercolor="rgba(128,128,128,0.3)",
+        ),
+        hovermode="closest",
+    )
+    return fig
+
+def apply_publication_theme(fig: go.Figure, title: str = None) -> go.Figure:
+    """Apply full publication-ready theme to any figure."""
+    fig.update_layout(
+        font=dict(
+            family=PC["font_family"],
+            size=PC["font_size_axis_ticks"],
+        ),
+        title=dict(
+            text=title,
+            font=dict(size=PC["font_size_title"], weight=600),
+            x=0.02,  # Left-aligned title like Nature/Science
+            xanchor="left",
+            y=0.97,
+        ),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(
+            l=PC["margin_l"], r=PC["margin_r"],
+            t=PC["margin_t"], b=PC["margin_b"],
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom", y=1.02,
+            xanchor="left", x=0,
+            font=dict(size=PC["font_size_legend"]),
+            bordercolor="rgba(128,128,128,0.15)",
+            borderwidth=1,
+        ),
+    )
+    fig = _spine_style(fig)
+    fig = _clean_grid(fig)
+    fig = _professional_hover(fig)
+    return fig
+
+def apply_research_theme(fig: go.Figure, journal: str = "Nature") -> go.Figure:
+    """Apply a specific journal-style theme to a figure."""
+    journal_themes = {
+        "Nature": dict(
+            font=dict(family="Inter, sans-serif", size=12, color="#333333"),
+            plot_bgcolor="rgba(248,249,250,0.3)",
+            paper_bgcolor="rgba(255,255,255,0)",
+        ),
+        "Science": dict(
+            font=dict(family="Inter, sans-serif", size=12, color="#222222"),
+            plot_bgcolor="rgba(255,255,255,0)",
+            paper_bgcolor="rgba(255,255,255,0)",
+        ),
+        "The Lancet": dict(
+            font=dict(family="'Times New Roman', Georgia, serif", size=12, color="#1a1a1a"),
+            plot_bgcolor="rgba(255,255,255,0)",
+            paper_bgcolor="rgba(255,255,255,0)",
+        ),
+        "JAMA": dict(
+            font=dict(family="'IBM Plex Sans', Inter, sans-serif", size=11, color="#1a1a1a"),
+            plot_bgcolor="rgba(255,255,255,0)",
+            paper_bgcolor="rgba(255,255,255,0)",
+        ),
+    }
+    theme = journal_themes.get(journal, {})
+    if theme:
+        fig.update_layout(**theme)
+    return fig
 
 # ─── Base Theme ───────────────────────────────────────────────────────
 CHART_THEME = {
@@ -47,18 +158,17 @@ def dark_theme_overrides():
         "paper_bgcolor": "rgba(0,0,0,0)",
     }
 
-def apply_theme(fig: go.Figure, is_dark: bool = False) -> go.Figure:
-    """Apply consistent theming to a figure."""
-    theme = dark_theme_overrides() if is_dark else CHART_THEME
-    fig.update_layout(**theme)
-    fig.update_xaxes(
-        showgrid=True, gridwidth=1, gridcolor="rgba(128,128,128,0.1)",
-        zeroline=False,
-    )
-    fig.update_yaxes(
-        showgrid=True, gridwidth=1, gridcolor="rgba(128,128,128,0.1)",
-        zeroline=False,
-    )
+def apply_theme(fig: go.Figure, is_dark: bool = False, publication: bool = True,
+                journal: str = None, title: str = None) -> go.Figure:
+    """Apply consistent theming — optionally with publication-grade styling."""
+    if publication:
+        fig = apply_publication_theme(fig, title=title)
+        if journal:
+            fig = apply_research_theme(fig, journal)
+    else:
+        theme = dark_theme_overrides() if is_dark else CHART_THEME
+        fig.update_layout(**theme)
+        fig = _clean_grid(fig)
     return fig
 
 # ─── Chart Builder Functions ──────────────────────────────────────────
@@ -86,12 +196,12 @@ def build_bar(df, x=None, y=None, color=None, barmode="group", orientation="v", 
     else:
         return None
     fig.update_layout(
-        title=kwargs.get("title", None),
         xaxis_title=kwargs.get("x_label", x),
         yaxis_title=kwargs.get("y_label", y or "Count"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False),
+                       title=kwargs.get("title"),
+                       journal=kwargs.get("journal"))
 
 def build_line(df, x=None, y=None, color=None, **kwargs):
     """Line chart with optional confidence bands."""
@@ -112,7 +222,7 @@ def build_line(df, x=None, y=None, color=None, **kwargs):
         hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_pie(df, names=None, values=None, **kwargs):
     """Pie / Donut chart."""
@@ -141,7 +251,7 @@ def build_pie(df, names=None, values=None, **kwargs):
         title=kwargs.get("title", None),
         legend=dict(orientation="h", yanchor="bottom", y=-0.2),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_histogram(df, x=None, **kwargs):
     """Histogram with optional KDE overlay."""
@@ -161,7 +271,7 @@ def build_histogram(df, x=None, **kwargs):
         yaxis_title="Frequency",
         bargap=0.05,
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_scatter(df, x=None, y=None, color=None, size=None, **kwargs):
     """Scatter plot with optional trendline."""
@@ -181,7 +291,7 @@ def build_scatter(df, x=None, y=None, color=None, size=None, **kwargs):
         yaxis_title=kwargs.get("y_label", y),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_bubble(df, x=None, y=None, size=None, color=None, **kwargs):
     """Bubble chart."""
@@ -199,7 +309,7 @@ def build_bubble(df, x=None, y=None, size=None, color=None, **kwargs):
         xaxis_title=kwargs.get("x_label", x),
         yaxis_title=kwargs.get("y_label", y),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_area(df, x=None, y=None, color=None, **kwargs):
     """Area chart."""
@@ -217,7 +327,7 @@ def build_area(df, x=None, y=None, color=None, **kwargs):
         yaxis_title=kwargs.get("y_label", y),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_box(df, x=None, y=None, color=None, **kwargs):
     """Box plot."""
@@ -236,7 +346,7 @@ def build_box(df, x=None, y=None, color=None, **kwargs):
         yaxis_title=kwargs.get("y_label", y),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_violin(df, x=None, y=None, color=None, **kwargs):
     """Violin plot."""
@@ -255,7 +365,7 @@ def build_violin(df, x=None, y=None, color=None, **kwargs):
         yaxis_title=kwargs.get("y_label", y),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_heatmap(df, x=None, y=None, z=None, **kwargs):
     """Heatmap."""
@@ -280,7 +390,7 @@ def build_heatmap(df, x=None, y=None, z=None, **kwargs):
             zmin=-1, zmax=1,
         )
     fig.update_layout(title=kwargs.get("title", "Heatmap"))
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_treemap(df, path=None, values=None, color=None, **kwargs):
     """Treemap."""
@@ -294,7 +404,7 @@ def build_treemap(df, path=None, values=None, color=None, **kwargs):
     )
     fig.update_traces(textinfo="label+value+percent root")
     fig.update_layout(title=kwargs.get("title", "Treemap"))
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_sunburst(df, path=None, values=None, color=None, **kwargs):
     """Sunburst chart."""
@@ -308,7 +418,7 @@ def build_sunburst(df, path=None, values=None, color=None, **kwargs):
     )
     fig.update_traces(textinfo="label+value+percent root")
     fig.update_layout(title=kwargs.get("title", "Sunburst"))
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_radar(df, categories=None, values=None, color=None, **kwargs):
     """Radar / Spider chart."""
@@ -329,7 +439,7 @@ def build_radar(df, categories=None, values=None, color=None, **kwargs):
         )
     fig.update_traces(fill="toself", opacity=0.6)
     fig.update_layout(title=kwargs.get("title", "Radar Chart"))
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_scatter_3d(df, x=None, y=None, z=None, color=None, **kwargs):
     """3D Scatter plot."""
@@ -349,7 +459,7 @@ def build_scatter_3d(df, x=None, y=None, z=None, color=None, **kwargs):
             bgcolor="rgba(0,0,0,0)",
         ),
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_parallel_coordinates(df, dimensions=None, color=None, **kwargs):
     """Parallel coordinates plot."""
@@ -365,7 +475,7 @@ def build_parallel_coordinates(df, dimensions=None, color=None, **kwargs):
         height=kwargs.get("height", 500),
     )
     fig.update_layout(title=kwargs.get("title", "Parallel Coordinates"))
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_waterfall(df, x=None, y=None, **kwargs):
     """Waterfall chart."""
@@ -385,7 +495,7 @@ def build_waterfall(df, x=None, y=None, **kwargs):
         height=kwargs.get("height", 430),
         template="plotly_white",
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_funnel(df, x=None, y=None, **kwargs):
     """Funnel chart."""
@@ -399,7 +509,7 @@ def build_funnel(df, x=None, y=None, **kwargs):
     )
     fig.update_traces(textinfo="value+percent previous")
     fig.update_layout(title=kwargs.get("title", "Funnel Chart"))
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 def build_gauge(df, value_col=None, **kwargs):
     """Gauge / Speedometer chart for a single value."""
@@ -434,7 +544,7 @@ def build_gauge(df, value_col=None, **kwargs):
         height=kwargs.get("height", 350),
         template="plotly_white",
     )
-    return apply_theme(fig, kwargs.get("is_dark", False))
+    return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
 # ─── Chart Factory ────────────────────────────────────────────────────
 CHART_BUILDERS = {

@@ -8,8 +8,8 @@ st.set_page_config(page_title="Advanced Visuals", layout="wide", page_icon="📈
 
 from modules.config import init_session_state, CHART_COLOR_PALETTES
 from modules.ui_components import hero_card, section_header, load_css, watermark
-from modules.chart_builder import build_chart, ALL_CHART_TYPES
-from modules.viz_engine import auto_recommend_chart, get_chart_search_results, explain_chart_recommendation
+from modules.chart_builder import build_chart
+from modules.viz_engine import ALL_CHART_TYPES, auto_recommend_chart, get_chart_search_results, explain_chart_recommendation
 from modules.data_processor import infer_column_types
 
 init_session_state()

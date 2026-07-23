@@ -50,6 +50,44 @@ CHART_COLOR_PALETTES = {
     "Prism": px.colors.qualitative.Prism,
 }
 
+# ─── Research-Grade Color Palettes ────────────────────────────────────
+RESEARCH_PALETTES = {
+    "Nature":      ["#3B4992", "#EE0000", "#008B45", "#631879", "#008280", "#BB0021", "#5F559B", "#A20056"],
+    "Science":     ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B", "#E377C2", "#7F7F7F"],
+    "The Lancet":  ["#00468B", "#ED0000", "#42B540", "#0099B4", "#925E9F", "#FDAF91", "#AD002A", "#ADB6B6"],
+    "JAMA":        ["#374E55", "#DF8F44", "#00A1D5", "#B24745", "#79AF97", "#6A6599", "#80796B", "#F0B49B"],
+    "NEJM":        ["#BC3C29", "#0072B5", "#E18727", "#20854E", "#7876B1", "#6F99AD", "#FFDC91", "#EE4C97"],
+    "APA Style":   ["#1B3252", "#9CC3D5", "#E5A135", "#43586E", "#7B9CB4", "#D36E3B", "#2E5A6B", "#BBAAB8"],
+    "BMJ":         ["#005AB5", "#DC3220", "#009E73", "#F0E442", "#56B4E9", "#E69F00", "#CC79A7", "#000000"],
+    "Cell":        ["#D41F1F", "#377EB8", "#4DAF4A", "#FF7F00", "#984EA3", "#A65628", "#F781BF", "#999999"],
+    "Research Std": ["#2C3E50", "#E74C3C", "#3498DB", "#2ECC71", "#F39C12", "#9B59B6", "#1ABC9C", "#E67E22"],
+}
+
+RESEARCH_PALETTE_NAMES = list(RESEARCH_PALETTES.keys())
+
+# ─── Publication Theme Config ─────────────────────────────────────────
+PUBLICATION_CONFIG = {
+    "font_family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    "font_size_axis_title": 14,
+    "font_size_axis_ticks": 12,
+    "font_size_title": 16,
+    "font_size_legend": 12,
+    "grid_color": "rgba(128,128,128,0.08)",
+    "grid_width": 0.8,
+    "axis_line_color": "rgba(128,128,128,0.25)",
+    "axis_line_width": 1.2,
+    "marker_size": 8,
+    "marker_opacity": 0.85,
+    "line_width": 2.5,
+    "bar_opacity": 0.92,
+    "bar_corner_radius": 4,
+    "hoverlabel_font_size": 13,
+    "margin_t": 40,
+    "margin_b": 30,
+    "margin_l": 50,
+    "margin_r": 20,
+}
+
 # ─── Session State Initialization ─────────────────────────────────────
 def init_session_state():
     """Initialize all session state keys with defaults."""

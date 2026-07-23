@@ -9,8 +9,8 @@ import streamlit as st
 import json
 from datetime import datetime
 
-from modules.chart_builder import build_chart, ALL_CHART_TYPES
-from modules.viz_engine import auto_recommend_chart
+from modules.chart_builder import build_chart
+from modules.viz_engine import ALL_CHART_TYPES, auto_recommend_chart
 from modules.data_processor import infer_column_types
 
 
@@ -160,10 +160,13 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         return
 
     # Initialize dashboard
-    if "current_dashboard" not in st.session_state:
+    if "current_dashboard" not in st.session_state or st.session_state["current_dashboard"] is None:
         st.session_state["current_dashboard"] = DashboardBuilder.create_dashboard(df)
 
     dashboard = st.session_state["current_dashboard"]
+    if dashboard is None:
+        dashboard = DashboardBuilder.create_dashboard(df)
+        st.session_state["current_dashboard"] = dashboard
     col_types = infer_column_types(df)
     all_cols = df.columns.tolist()
 
