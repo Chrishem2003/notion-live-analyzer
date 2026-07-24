@@ -1,10 +1,20 @@
 """
 Data Processor — handles data type inference, cleaning, aggregation, and merging.
+Includes provenance tracking integration for full lineage logging.
 """
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, Callable
 import pandas as pd
 import numpy as np
 from datetime import datetime
+
+# ─── Provenance Integration ──────────────────────────────────────────
+try:
+    from modules.data_provenance import ProvenanceTracker, with_provenance
+    _HAS_PROVENANCE = True
+except ImportError:
+    _HAS_PROVENANCE = False
+    ProvenanceTracker = None
+    with_provenance = None
 
 # ─── Column Type Inference ────────────────────────────────────────────
 def infer_column_type(series: pd.Series) -> str:
@@ -228,4 +238,130 @@ def bin_column_quantile(
 ) -> pd.Series:
     """Discretize based on quantiles."""
     return pd.qcut(df[col], q=q, labels=labels)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PROVENANCE-TRACKED WRAPPER FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════
+
+def tracked_clean_dataframe(
+    df: pd.DataFrame,
+    tracker: "ProvenanceTracker",
+    options: Dict[str, bool] = None,
+) -> pd.DataFrame:
+    """Clean a DataFrame with provenance tracking."""
+    if tracker is None:
+        return clean_dataframe(df, options)
+
+    with tracker.track(
+        "clean_dataframe",
+        operation_desc="Remove duplicates, fill NAs, strip whitespace",
+        parameters={"options": options},
+    ) as ctx:
+        result = clean_dataframe(df, options)
+        ctx.capture(df, result)
+        return result
+
+
+def tracked_groupby_aggregate(
+    df: pd.DataFrame,
+    tracker: "ProvenanceTracker",
+    group_cols: List[str],
+    agg_col: str,
+    agg_func: str = "mean",
+) -> pd.DataFrame:
+    """Groupby aggregation with provenance tracking."""
+    if tracker is None:
+        return groupby_aggregate(df, group_cols, agg_col, agg_func)
+
+    with tracker.track(
+        "groupby_aggregate",
+        operation_desc=f"Group by {group_cols}, aggregate {agg_col} with {agg_func}",
+        parameters={"group_cols": group_cols, "agg_col": agg_col, "agg_func": agg_func},
+    ) as ctx:
+        result = groupby_aggregate(df, group_cols, agg_col, agg_func)
+        ctx.capture(df, result)
+        return result
+
+
+def tracked_pivot_table(
+    df: pd.DataFrame,
+    tracker: "ProvenanceTracker",
+    index_cols: List[str],
+    columns_col: str,
+    values_col: str,
+    agg_func: str = "mean",
+) -> pd.DataFrame:
+    """Pivot table with provenance tracking."""
+    if tracker is None:
+        return pivot_table(df, index_cols, columns_col, values_col, agg_func)
+
+    with tracker.track(
+        "pivot_table",
+        operation_desc=f"Pivot: index={index_cols}, columns={columns_col}, values={values_col}",
+        parameters={
+            "index_cols": index_cols,
+            "columns_col": columns_col,
+            "values_col": values_col,
+            "agg_func": agg_func,
+        },
+    ) as ctx:
+        result = pivot_table(df, index_cols, columns_col, values_col, agg_func)
+        ctx.capture(df, result)
+        return result
+
+
+def tracked_rolling_aggregate(
+    df: pd.DataFrame,
+    tracker: "ProvenanceTracker",
+    date_col: str,
+    value_col: str,
+    window: int = 7,
+    agg_func: str = "mean",
+) -> pd.DataFrame:
+    """Rolling aggregate with provenance tracking."""
+    if tracker is None:
+        return rolling_aggregate(df, date_col, value_col, window, agg_func)
+
+    with tracker.track(
+        "rolling_aggregate",
+        operation_desc=f"Rolling {agg_func} of {value_col} over {window} periods",
+        parameters={"date_col": date_col, "value_col": value_col, "window": window, "agg_func": agg_func},
+    ) as ctx:
+        result = rolling_aggregate(df, date_col, value_col, window, agg_func)
+        ctx.capture(df, result)
+        return result
+
+
+def tracked_bin_column(
+    df: pd.DataFrame,
+    tracker: "ProvenanceTracker",
+    col: str,
+    bins: int = 5,
+    labels: List[str] = None,
+) -> pd.Series:
+    """Bin a column with provenance tracking."""
+    if tracker is None:
+        return bin_column(df, col, bins, labels)
+
+    with tracker.track(
+        "bin_column",
+        operation_desc=f"Discretize {col} into {bins} bins",
+        parameters={"col": col, "bins": bins, "labels": labels},
+    ) as ctx:
+        result = bin_column(df, col, bins, labels)
+        ctx.capture(df, df.copy())  # Capture even though result is a Series
+        return result
+
+
+def get_tracker_from_session() -> "ProvenanceTracker":
+    """Get or create a provenance tracker from Streamlit session state."""
+    import streamlit as st
+
+    tracker = st.session_state.get("_provenance_tracker")
+    if tracker is None:
+        from modules.data_provenance import ProvenanceTracker
+        tracker = ProvenanceTracker()
+        st.session_state["_provenance_tracker"] = tracker
+    return tracker
 

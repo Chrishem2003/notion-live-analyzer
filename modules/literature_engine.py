@@ -1052,7 +1052,237 @@ class ExportEngine:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 5. DRAFTING ENGINE — Human-authored, machine-structured
+# 5. EFFECT SIZE EXTRACTOR — Bridge to Hypothesis Generator
+# ═══════════════════════════════════════════════════════════════════════
+class EffectSizeExtractor:
+    """
+    Extracts reported effect sizes from paper metadata and user annotations.
+    Provides a standardized format for the Hypothesis Generator's
+    compare_against_literature() method.
+    
+    Supports:
+      - Regex extraction from abstracts (Cohen's d, r, OR, RR, eta-squared)
+      - Manual user input via structured form
+      - Database persistence of extracted effect sizes
+      - Export in hypothesis-compatible format
+    """
+
+    # Regex patterns for common effect size reporting formats
+    EFFECT_PATTERNS = {
+        "cohens_d": [
+            r"(?:Cohens?\s*[dD]|[dD]\s*=)\s*([-+]?\d+\.?\d*)",
+            r"[dD]\s*=\s*([-+]?\d+\.?\d*)",
+            r"effect\s+size\s*(?:of\s*)?([-+]?\d+\.?\d*)",
+        ],
+        "pearson_r": [
+            r"(?:Pearson\s*)?[rR]\s*=\s*([-+]?\d+\.?\d*)",
+            r"correlation\s*(?:of\s*)?([-+]?\d+\.?\d*)",
+            r"[rR]\s*=\s*([-+]?\d+\.?\d*)",
+        ],
+        "odds_ratio": [
+            r"(?:odds\s*ratio|OR)\s*(?:=\s*)?([-+]?\d+\.?\d*)",
+            r"OR\s*=\s*([-+]?\d+\.?\d*)",
+        ],
+        "eta_squared": [
+            r"(?:eta[\s-]*squared|η²|\u03b7²)\s*(?:=\s*)?([-+]?\d+\.?\d*)",
+            r"\u03b7\s*=\s*([-+]?\d+\.?\d*)",
+        ],
+        "f_statistic": [
+            r"[Ff]\s*\([^)]+\)\s*=\s*([-+]?\d+\.?\d*)",
+        ],
+        "t_statistic": [
+            r"[Tt]\s*\([^)]+\)\s*=\s*([-+]?\d+\.?\d*)",
+        ],
+        "beta_coeff": [
+            r"[β\u03b2]\s*=\s*([-+]?\d+\.?\d*)",
+            r"beta\s*=\s*([-+]?\d+\.?\d*)",
+        ],
+        "sample_size": [
+            r"[Nn]\s*=\s*(\d+)",
+            r"[nN]\s*=\s*(\d+)",
+            r"(?:total|overall)\s*[Nn]\s*=\s*(\d+)",
+        ],
+    }
+
+    # Mapping from extracted stat type to hypothesis effect type
+    STAT_TO_EFFECT_MAP = {
+        "cohens_d": "cohens_d",
+        "pearson_r": "r",
+        "eta_squared": "eta_squared",
+        "odds_ratio": "or",
+    }
+
+    def __init__(self, db: Optional[LiteratureDatabase] = None):
+        self.db = db or LiteratureDatabase()
+        self._ensure_effect_sizes_table()
+
+    def _ensure_effect_sizes_table(self):
+        """Create the effect_sizes table if it doesn't exist."""
+        conn = self.db._get_conn()
+        try:
+            conn.executescript("""
+                CREATE TABLE IF NOT EXISTS paper_effect_sizes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    paper_id INTEGER NOT NULL,
+                    project_id INTEGER NOT NULL,
+                    variable_pair TEXT NOT NULL DEFAULT '',
+                    effect_type TEXT NOT NULL DEFAULT 'cohens_d',
+                    effect_size REAL NOT NULL DEFAULT 0,
+                    ci_lower REAL,
+                    ci_upper REAL,
+                    sample_size INTEGER,
+                    source TEXT DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    extracted_by TEXT DEFAULT 'manual',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (paper_id) REFERENCES fetched_papers(id) ON DELETE CASCADE,
+                    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS idx_effect_sizes_paper 
+                    ON paper_effect_sizes(paper_id);
+                CREATE INDEX IF NOT EXISTS idx_effect_sizes_project 
+                    ON paper_effect_sizes(project_id);
+            """)
+            conn.commit()
+        finally:
+            conn.close()
+
+    def extract_from_text(self, text: str) -> List[Dict[str, Any]]:
+        """
+        Scan text (abstract, findings) for reported effect sizes.
+        Returns list of extracted effect dicts.
+        """
+        extracted = []
+
+        for stat_type, patterns in self.EFFECT_PATTERNS.items():
+            for pattern in patterns:
+                matches = re.findall(pattern, text, re.IGNORECASE)
+                for match in matches:
+                    try:
+                        value = float(match)
+                        # Map to effect type
+                        effect_type = self.STAT_TO_EFFECT_MAP.get(stat_type, stat_type)
+                        extracted.append({
+                            "effect_type": effect_type,
+                            "effect_size": value,
+                            "stat_type": stat_type,
+                            "raw_match": match,
+                            "extracted_by": "regex",
+                        })
+                    except (ValueError, TypeError):
+                        continue
+
+        # Deduplicate by effect_type, keeping the first occurrence
+        seen_types = set()
+        deduped = []
+        for e in extracted:
+            if e["effect_type"] not in seen_types:
+                seen_types.add(e["effect_type"])
+                deduped.append(e)
+
+        return deduped
+
+    def extract_from_paper(self, paper: Dict) -> List[Dict[str, Any]]:
+        """
+        Extract effect sizes from a paper's abstract and findings.
+        Returns list of dicts compatible with hypothesis_generator.
+        """
+        extracted = []
+
+        # Try abstract
+        abstract = paper.get("abstract", "") or ""
+        if abstract:
+            extracted.extend(self.extract_from_text(abstract))
+
+        # Try user findings
+        findings = paper.get("user_findings", "") or ""
+        if findings:
+            extracted.extend(self.extract_from_text(findings))
+
+        return extracted
+
+    def save_effect_size(
+        self,
+        paper_id: int,
+        project_id: int,
+        variable_pair: str,
+        effect_type: str = "cohens_d",
+        effect_size: float = 0.0,
+        ci_lower: Optional[float] = None,
+        ci_upper: Optional[float] = None,
+        sample_size: Optional[int] = None,
+        source: str = "",
+        notes: str = "",
+        extracted_by: str = "manual",
+    ) -> int:
+        """Save a manually entered or extracted effect size. Returns record ID."""
+        conn = self.db._get_conn()
+        try:
+            cursor = conn.execute(
+                """INSERT INTO paper_effect_sizes 
+                   (paper_id, project_id, variable_pair, effect_type, effect_size,
+                    ci_lower, ci_upper, sample_size, source, notes, extracted_by)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (paper_id, project_id, variable_pair, effect_type, effect_size,
+                 ci_lower, ci_upper, sample_size, source[:200], notes, extracted_by),
+            )
+            conn.commit()
+            return cursor.lastrowid
+        finally:
+            conn.close()
+
+    def get_project_effect_sizes(self, project_id: int) -> List[Dict]:
+        """
+        Get all effect sizes for a project.
+        Returns list of dicts in hypothesis_generator format.
+        """
+        conn = self.db._get_conn()
+        try:
+            rows = conn.execute(
+                """SELECT es.*, p.title as paper_title, p.authors as paper_authors
+                   FROM paper_effect_sizes es
+                   JOIN fetched_papers p ON es.paper_id = p.id
+                   WHERE es.project_id = ?
+                   ORDER BY es.created_at DESC""",
+                (project_id,),
+            ).fetchall()
+            return [dict(r) for r in rows]
+        finally:
+            conn.close()
+
+    def export_for_hypothesis_generator(self, project_id: int) -> List[Dict]:
+        """
+        Export effect sizes in the format expected by
+        HypothesisGenerator.compare_against_literature().
+        """
+        raw_sizes = self.get_project_effect_sizes(project_id)
+        formatted = []
+        for es in raw_sizes:
+            formatted.append({
+                "variable_pair": es.get("variable_pair", ""),
+                "effect_size": es.get("effect_size", 0),
+                "ci_lower": es.get("ci_lower", es.get("effect_size", 0) * 0.8),
+                "ci_upper": es.get("ci_upper", es.get("effect_size", 0) * 1.2),
+                "n": es.get("sample_size", 30),
+                "source": es.get("paper_title", es.get("source", "unknown")),
+                "effect_type": es.get("effect_type", "cohens_d"),
+                "paper_id": es.get("paper_id", 0),
+            })
+        return formatted
+
+    def delete_effect_size(self, effect_id: int) -> bool:
+        """Delete an effect size record."""
+        conn = self.db._get_conn()
+        try:
+            conn.execute("DELETE FROM paper_effect_sizes WHERE id = ?", (effect_id,))
+            conn.commit()
+            return True
+        finally:
+            conn.close()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 6. DRAFTING ENGINE — Human-authored, machine-structured
 # ═══════════════════════════════════════════════════════════════════════
 class DraftingEngine:
     """Helps users structure their research writing. NO AI text generation."""
