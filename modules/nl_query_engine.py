@@ -10,7 +10,7 @@ from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
-from modules.data_processor import infer_column_types, profile_dataset
+from modules.data_processor import infer_column_types
 from modules.statistical_engine import StatisticalEngine
 from modules.viz_engine import auto_recommend_chart
 from modules.chart_builder import build_chart
@@ -130,232 +130,291 @@ class NaturalLanguageQueryEngine:
             return {"type": "error", "narrative": "Need at least 2 numeric columns for correlation.", "confidence": 0}
 
         # Try to extract two columns
-        col1 = self._extract_column(query, numeric_cols, exclude=None)
+        col1 = self._extract_column(query, numeric_cols)
         remaining = [c for c in numeric_cols if c != col1] if col1 else numeric_cols
         col2 = self._extract_column(query, remaining)
 
         if col1 and col2 and col1 != col2:
-                    "visualization": {"type": "heatmap"},
-                }
-            else:
-                response = {"error": "Need at least 2 numeric columns for correlation", "type": "error"}
-
-        # 6. Compare groups
-        elif re.search(r'\b(compare|difference|group|by)\b', query_lower):
-            found_cat = None
-            found_num = None
-            for _, col_name in cat_cols_lower.items():
-                if col_name.lower() in query_lower:
-                    found_cat = col_name
-                    break
-            for _, col_name in num_cols_lower.items():
-                if col_name.lower() in query_lower:
-                    found_num = col_name
-                    break
-
-            if found_cat and found_num:
-                groups = df.groupby(found_cat)[found_num].agg(["mean", "std", "count", "min", "max"]).round(2)
-                self.last_result = groups
-                response = {
-                    "type": "comparison",
-                    "data": groups,
-                    "message": f"Comparison of {found_num} across {found_cat}:",
-                    "visualization": {"type": "bar", "x": found_cat, "y": found_num},
-                }
-            elif found_cat:
-                freq = df[found_cat].value_counts().reset_index()
-                freq.columns = [found_cat, "Count"]
-                self.last_result = freq
-                response = {
-                    "type": "comparison",
-                    "data": freq,
-                    "message": f"Distribution of {found_cat}:",
-                    "visualization": {"type": "pie", "names": found_cat, "values": "Count"},
-                }
-            else:
-                if cat_cols and numeric_cols:
-                    groups = df.groupby(cat_cols[0])[numeric_cols[0]].agg(["mean", "std", "count"]).round(2)
-                    self.last_result = groups
-                    response = {
-                        "type": "comparison",
-                        "data": groups,
-                        "message": f"Comparison of {numeric_cols[0]} across {cat_cols[0]}:",
-                        "visualization": {"type": "bar", "x": cat_cols[0], "y": numeric_cols[0]},
-                    }
-                else:
-                    response = {"error": "Cannot determine comparison variables", "type": "error"}
-
-        # 7. Filter rows
-        elif re.search(r'\b(where|filter|only|contain|greater|less|equal|>|<|=)\b', query_lower):
-            response = self._process_filter_query(query_lower, df, col_names, num_cols_lower, cat_cols_lower)
-
-        # 8. Sort / order
-        elif re.search(r'\b(sort|order|arrange|rank)\b', query_lower):
-            for _, col_name in (num_cols_lower | cat_cols_lower).items():
-                if col_name.lower() in query_lower:
-                    ascending = any(w in query_lower for w in ["ascending", "low", "small", "least"])
-                    result_df = df.sort_values(col_name, ascending=ascending).head(20)
-                    self.last_result = result_df
-                    response = {
-                        "type": "data",
-                        "data": result_df,
-                        "message": f"Sorted by {col_name} ({'ascending' if ascending else 'descending'}):",
-                        "visualization": None,
-                    }
-                    break
-            else:
-                response = {"error": "Specify a column to sort by", "type": "error"}
-
-        # 9. Missing values
-        elif re.search(r'\b(missing|na|null|empty|incomplete)\b', query_lower):
-            missing_info = []
-            for col in df.columns:
-                n_missing = df[col].isna().sum()
-                if n_missing > 0:
-                    missing_info.append({"Column": col, "Missing": n_missing, "Percentage": round(n_missing / len(df) * 100, 2)})
-            result_df = pd.DataFrame(missing_info).sort_values("Missing", ascending=False)
-            self.last_result = result_df
-            response = {
-                "type": "missing",
-                "data": result_df,
-                "message": "Missing value analysis:",
-                "visualization": {"type": "bar", "x": "Column", "y": "Missing"},
+            result = self.stats.correlation(df, col1, col2)
+            return {
+                "type": "correlation",
+                "var1": col1,
+                "var2": col2,
+                "result": result,
+                "chart_type": "scatter",
+                "chart_params": {"x": col1, "y": col2},
+                "narrative": f"Correlation between {col1} and {col2}.",
+                "confidence": 90,
             }
-
-        # 10. Trend over time
-        elif re.search(r'\b(trend|over time|change|increase|decrease|time series)\b', query_lower):
-            date_cols = []
-            for col in df.columns:
-                try:
-                    if pd.api.types.is_datetime64_any_dtype(df[col]):
-                        date_cols.append(col)
-                except Exception:
-                    pass
-            if date_cols and numeric_cols:
-                date_col = date_cols[0]
-                num_col = numeric_cols[0]
-                trend_df = df[[date_col, num_col]].dropna().sort_values(date_col)
-                self.last_result = trend_df
-                response = {
-                    "type": "trend",
-                    "data": trend_df,
-                    "message": f"Trend of {num_col} over time:",
-                    "visualization": {"type": "line", "x": date_col, "y": num_col},
-                }
-            else:
-                response = {"error": "Need a date column and numeric column for trend analysis", "type": "error"}
-
-        # 11. Outliers
-        elif re.search(r'\b(outlier|anomaly|abnormal|extreme)\b', query_lower):
-            outlier_info = {}
-            for col in numeric_cols:
-                series = df[col].dropna()
-                if len(series) > 3:
-                    mean = series.mean()
-                    std = series.std()
-                    outliers = series[(series - mean).abs() > 3 * std]
-                    if len(outliers) > 0:
-                        outlier_info[col] = {"outliers": len(outliers), "percentage": round(len(outliers) / len(series) * 100, 2)}
-            if outlier_info:
-                result_df = pd.DataFrame.from_dict(outlier_info, orient="index").reset_index()
-                result_df.columns = ["Column", "Outliers", "Percentage"]
-                self.last_result = result_df
-                response = {
-                    "type": "outliers",
-                    "data": result_df,
-                    "message": "Outlier detection results:",
-                    "visualization": {"type": "bar", "x": "Column", "y": "Outliers"},
-                }
-            else:
-                response = {"type": "info", "data": pd.DataFrame(), "message": "No significant outliers detected (Z-score > 3)"}
-
-        # 12. Help
-        elif re.search(r'\b(help|what can|command|guide|tutorial)\b', query_lower):
-            response = {
-                "type": "help",
-                "data": None,
-                "message": "",
-                "commands": [
-                    "show data — Display the first rows of data",
-                    "describe data — Show summary statistics",
-                    "count [column] — Show frequency distribution",
-                    "average [column] — Calculate mean of a column",
-                    "compare [group] by [variable] — Group comparison",
-                    "correlation between [col1] and [col2] — Correlation analysis",
-                    "trend of [variable] over time — Time series trend",
-                    "missing values — Show missing data info",
-                    "outliers — Detect extreme values",
-                    "sort [column] — Sort data by column",
-                    "where [column] > [value] — Filter data",
-                ],
-            }
-
-        # 13. Default: help
         else:
-            response = {
-                "type": "help",
-                "data": None,
-                "message": f"I didn't understand '{query}'. Try these commands:",
-                "commands": [
-                    "show data", "describe data", "count [column]",
-                    "average [column]", "compare [group] by [variable]",
-                    "correlation between [col1] and [col2]",
-                    "trend over time", "missing values", "outliers", "help",
-                ],
+            return {
+                "type": "correlation",
+                "narrative": "Correlation matrix for all numeric variables.",
+                "result": df[numeric_cols].corr(),
+                "chart_type": "heatmap",
+                "confidence": 85,
             }
 
-        # Store response
-        result = {
-            "query": query,
-            "response": response,
-            "timestamp": datetime.now().strftime("%H:%M:%S"),
-            "type": response.get("type", "info"),
+    def _handle_regression(self, query: str, df: pd.DataFrame, numeric_cols: List[str], cat_cols: List[str]) -> Dict[str, Any]:
+        """Handle regression/prediction queries."""
+        target_col = self._extract_column(query, numeric_cols)
+        if not target_col and numeric_cols:
+            target_col = numeric_cols[0]
+
+        predictors = [c for c in numeric_cols if c != target_col]
+        if not predictors:
+            return {"type": "error", "narrative": "Need at least one predictor variable for regression.", "confidence": 0}
+
+        try:
+            from sklearn.linear_model import LinearRegression
+            X = df[predictors].dropna()
+            y = df[target_col].dropna()
+            # Align indices
+            common_idx = X.index.intersection(y.index)
+            X = X.loc[common_idx]
+            y = y.loc[common_idx]
+
+            if len(X) < 10:
+                return {"type": "error", "narrative": f"Only {len(X)} valid observations. Need at least 10 for regression.", "confidence": 0}
+
+            model = LinearRegression()
+            model.fit(X, y)
+            r_squared = model.score(X, y)
+
+            return {
+                "type": "regression",
+                "target": target_col,
+                "predictors": predictors,
+                "r_squared": r_squared,
+                "coefficients": dict(zip(predictors, model.coef_)),
+                "intercept": model.intercept_,
+                "narrative": f"Regression model for **{target_col}**: R² = {r_squared:.3f}, {len(predictors)} predictor(s).",
+                "confidence": 80,
+            }
+        except ImportError:
+            return {"type": "info", "narrative": "Regression requires scikit-learn. Install with: pip install scikit-learn", "confidence": 0}
+        except Exception as e:
+            return {"type": "error", "narrative": f"Regression failed: {str(e)}", "confidence": 0}
+
+    def _handle_visualization(self, query: str, df: pd.DataFrame, col_types: Dict[str, str]) -> Dict[str, Any]:
+        """Handle visualization/chart queries."""
+        numeric_cols = [c for c, t in col_types.items() if t in ("numeric", "integer")]
+        cat_cols = [c for c, t in col_types.items() if t in ("categorical", "string")]
+
+        chart_type = "scatter"
+        x_col = None
+        y_col = None
+
+        if "bar" in query.lower():
+            chart_type = "bar"
+            if cat_cols:
+                x_col = cat_cols[0]
+            if numeric_cols:
+                y_col = numeric_cols[0]
+        elif "histogram" in query.lower() or "distribution" in query.lower():
+            chart_type = "histogram"
+            if numeric_cols:
+                x_col = numeric_cols[0]
+        elif "box" in query.lower() or "boxplot" in query.lower():
+            chart_type = "box"
+            if cat_cols:
+                x_col = cat_cols[0]
+            if numeric_cols:
+                y_col = numeric_cols[0]
+        elif "line" in query.lower() or "trend" in query.lower():
+            chart_type = "line"
+            if numeric_cols:
+                x_col = numeric_cols[0]
+            if len(numeric_cols) > 1:
+                y_col = numeric_cols[1]
+        else:
+            # Default: scatter
+            chart_type = "scatter"
+            if len(numeric_cols) >= 2:
+                x_col = numeric_cols[0]
+                y_col = numeric_cols[1]
+
+        chart_params = {}
+        if x_col:
+            chart_params["x"] = x_col
+        if y_col:
+            chart_params["y"] = y_col
+
+        return {
+            "type": "visualization",
+            "chart_type": chart_type,
+            "chart_params": chart_params,
+            "narrative": f"Generated {chart_type} chart.",
+            "confidence": 85,
         }
-        self.conversation_history.append({"role": "assistant", "response": result})
-        return result
 
-    def _process_filter_query(self, query: str, df: pd.DataFrame, col_names: Dict, num_cols: Dict, cat_cols: Dict) -> Dict:
-        """Process filter/where queries."""
-        # Pattern: column > value, column < value, column = value
-        patterns = [
-            (r'(\w+)\s*(>|>=|greater than|more than)\s*(\d+\.?\d*)', 'gt'),
-            (r'(\w+)\s*(<|<=|less than|fewer than)\s*(\d+\.?\d*)', 'lt'),
-            (r'(\w+)\s*(=|==|equals|is|equal to)\s*["\']?(.+?)["\']?\s*$', 'eq'),
-            (r'(\w+)\s*(!=|<>|not equal|is not|not)\s*["\']?(.+?)["\']?\s*$', 'ne'),
-        ]
+    def _handle_trend(self, query: str, df: pd.DataFrame, temporal_cols: List[str], numeric_cols: List[str]) -> Dict[str, Any]:
+        """Handle trend/over-time queries."""
+        time_col = self._extract_column(query, temporal_cols)
+        if not time_col and temporal_cols:
+            time_col = temporal_cols[0]
 
-        for pattern, op in patterns:
-            match = re.search(pattern, query, re.IGNORECASE)
-            if match:
-                col_match = match.group(1).strip().lower()
-                if col_match in col_names:
-                    actual_col = col_names[col_match]
-                    if op in ('gt', 'lt'):
-                        val = float(match.group(3))
-                        if op == 'gt':
-                            result_df = df[df[actual_col] > val]
-                            desc = f"where {actual_col} > {val}"
-                        else:
-                            result_df = df[df[actual_col] < val]
-                            desc = f"where {actual_col} < {val}"
-                    elif op == 'eq':
-                        val = match.group(3).strip().strip("'\"")
-                        result_df = df[df[actual_col].astype(str).str.lower() == val.lower()]
-                        desc = f"where {actual_col} = {val}"
-                    else:  # ne
-                        val = match.group(3).strip().strip("'\"")
-                        result_df = df[df[actual_col].astype(str).str.lower() != val.lower()]
-                        desc = f"where {actual_col} != {val}"
+        value_col = self._extract_column(query, numeric_cols)
+        if not value_col and numeric_cols:
+            value_col = numeric_cols[0]
 
-                    self.last_result = result_df
-                    return {
-                        "type": "filtered",
-                        "data": result_df,
-                        "message": f"Filtered {desc}: {len(result_df)} rows ({len(result_df)/len(df)*100:.1f}% of data)",
-                        "visualization": None,
-                    }
+        if not time_col or not value_col:
+            return {"type": "info", "narrative": "Trend analysis requires both a time column and a value column.", "confidence": 0}
 
-        return {"error": "Could not parse filter condition. Try: [column] > [value]", "type": "error"}
+        try:
+            trend_data = df[[time_col, value_col]].dropna().sort_values(time_col)
+            return {
+                "type": "trend",
+                "time_col": time_col,
+                "value_col": value_col,
+                "chart_type": "line",
+                "chart_params": {"x": time_col, "y": value_col},
+                "narrative": f"Trend of **{value_col}** over **{time_col}** ({len(trend_data)} data points).",
+                "confidence": 85,
+            }
+        except Exception:
+            return {"type": "error", "narrative": "Could not compute trend.", "confidence": 0}
+
+    def _handle_outliers(self, df: pd.DataFrame, numeric_cols: List[str]) -> Dict[str, Any]:
+        """Handle outlier detection queries."""
+        if not numeric_cols:
+            return {"type": "error", "narrative": "No numeric columns to check for outliers.", "confidence": 0}
+
+        outlier_info = {}
+        total_outliers = 0
+        for col in numeric_cols[:10]:
+            q1 = df[col].quantile(0.25)
+            q3 = df[col].quantile(0.75)
+            iqr = q3 - q1
+            lower = q1 - 1.5 * iqr
+            upper = q3 + 1.5 * iqr
+            outliers = df[(df[col] < lower) | (df[col] > upper)][col]
+            n_outliers = len(outliers)
+            if n_outliers > 0:
+                outlier_info[col] = {
+                    "count": n_outliers,
+                    "percentage": round(n_outliers / len(df) * 100, 2),
+                    "lower_bound": round(lower, 2),
+                    "upper_bound": round(upper, 2),
+                }
+                total_outliers += n_outliers
+
+        return {
+            "type": "outliers",
+            "outliers": outlier_info,
+            "total_outliers": total_outliers,
+            "narrative": f"Found {total_outliers} outliers across {len(outlier_info)} columns." if outlier_info else "No significant outliers detected.",
+            "confidence": 90,
+        }
+
+    def _handle_distribution(self, query: str, df: pd.DataFrame, numeric_cols: List[str], cat_cols: List[str]) -> Dict[str, Any]:
+        """Handle distribution queries."""
+        target_col = self._extract_column(query, numeric_cols) or (numeric_cols[0] if numeric_cols else None)
+        if not target_col:
+            return {"type": "error", "narrative": "No numeric column found for distribution analysis.", "confidence": 0}
+
+        try:
+            desc = df[target_col].describe()
+            return {
+                "type": "distribution",
+                "target": target_col,
+                "chart_type": "histogram",
+                "chart_params": {"x": target_col},
+                "narrative": f"Distribution of **{target_col}**: Min={desc['min']:.2f}, Max={desc['max']:.2f}, Mean={desc['mean']:.2f}, Median={desc['50%']:.2f}, Std={desc['std']:.2f}",
+                "confidence": 90,
+            }
+        except Exception:
+            return {"type": "error", "narrative": f"Could not compute distribution for {target_col}.", "confidence": 0}
+
+    def _handle_frequency(self, query: str, df: pd.DataFrame, cat_cols: List[str]) -> Dict[str, Any]:
+        """Handle frequency/count queries."""
+        target_col = self._extract_column(query, cat_cols) or (cat_cols[0] if cat_cols else None)
+        if not target_col:
+            return {"type": "error", "narrative": "No categorical column found for frequency analysis.", "confidence": 0}
+
+        try:
+            freq = df[target_col].value_counts().reset_index()
+            freq.columns = [target_col, "Count"]
+            freq["Percentage"] = (freq["Count"] / freq["Count"].sum() * 100).round(2)
+
+            return {
+                "type": "frequency",
+                "target": target_col,
+                "result": freq,
+                "chart_type": "bar",
+                "chart_params": {"x": target_col, "y": "Count"},
+                "narrative": f"Frequency distribution for **{target_col}**: {len(freq)} categories.",
+                "confidence": 90,
+            }
+        except Exception:
+            return {"type": "error", "narrative": f"Could not compute frequency for {target_col}.", "confidence": 0}
+
+    def _handle_general(self, query: str, df: pd.DataFrame, col_types: Dict[str, str]) -> Dict[str, Any]:
+        """Handle general/informational queries about the dataset."""
+        query_lower = query.lower()
+
+        if "row" in query_lower or "shape" in query_lower or "size" in query_lower:
+            return {
+                "type": "info",
+                "narrative": f"Dataset has **{len(df):,} rows** and **{len(df.columns):,} columns**.",
+                "confidence": 100,
+            }
+
+        if "column" in query_lower or "variable" in query_lower or "field" in query_lower:
+            col_list = "\n".join(f"- **{c}** ({t})" for c, t in list(col_types.items())[:20])
+            return {
+                "type": "info",
+                "narrative": f"**Columns ({len(col_types)}):**\n{col_list}",
+                "confidence": 100,
+            }
+
+        if "missing" in query_lower or "null" in query_lower or "na" in query_lower:
+            missing = df.isnull().sum()
+            missing = missing[missing > 0]
+            if len(missing) > 0:
+                missing_str = "\n".join(f"- **{c}**: {v} missing ({v/len(df)*100:.1f}%)" for c, v in missing.items())
+                return {
+                    "type": "info",
+                    "narrative": f"**Missing Values:**\n{missing_str}",
+                    "confidence": 95,
+                }
+            return {"type": "info", "narrative": "No missing values found in the dataset.", "confidence": 100}
+
+        if "sort" in query_lower or "order" in query_lower:
+            col = self._extract_column(query, list(col_types.keys()))
+            if col:
+                ascending = "descending" not in query_lower and "desc" not in query_lower
+                sorted_df = df.sort_values(col, ascending=ascending)
+                return {
+                    "type": "data",
+                    "result": sorted_df.head(20),
+                    "narrative": f"Data sorted by **{col}** ({'ascending' if ascending else 'descending'}).",
+                    "confidence": 95,
+                }
+            return {"type": "info", "narrative": "Specify a column to sort by.", "confidence": 0}
+
+        if "where" in query_lower or "filter" in query_lower:
+            return {
+                "type": "info",
+                "narrative": "Filtering not yet supported in NL queries. Use the Data Transformer page for filtering.",
+                "confidence": 0,
+            }
+
+        # Default: show data overview
+        return {
+            "type": "data",
+            "result": df.head(10),
+            "narrative": f"Showing first 10 rows of {len(df):,} rows.",
+            "confidence": 100,
+        }
+
+    def _extract_column(self, query: str, columns: List[str]) -> Optional[str]:
+        """Extract a column name from a natural language query."""
+        query_lower = query.lower()
+        for col in columns:
+            if col.lower() in query_lower:
+                return col
+        return None
 
 
 # ─── UI ─────────────────────────────────────────────────────────────
@@ -373,7 +432,7 @@ def render_nl_query_ui(df: pd.DataFrame):
 
     # Initialize engine
     if "nl_engine" not in st.session_state:
-        st.session_state["nl_engine"] = NLQueryEngine()
+        st.session_state["nl_engine"] = NaturalLanguageQueryEngine()
     engine = st.session_state["nl_engine"]
 
     # Example queries
@@ -401,4 +460,47 @@ def render_nl_query_ui(df: pd.DataFrame):
         query = st.text_input("💬 Ask a question about your data:", placeholder="e.g., Describe the data", key="nl_query_input")
     with col2:
         st.caption("")
-        submit = st.button("🔍 Ask", type="primary", use_container_width
+        submit = st.button("🔍 Ask", type="primary", use_container_width=True)
+
+    # Process query
+    if submit and query.strip():
+        with st.spinner("🔍 Analyzing..."):
+            result = engine.process_query(query, df)
+            st.session_state["last_nl_result"] = result
+        st.rerun()
+
+    # Display results
+    if "last_nl_result" in st.session_state:
+        result = st.session_state["last_nl_result"]
+        result_type = result.get("type", "info")
+        narrative = result.get("narrative", result.get("message", ""))
+
+        if result_type == "error":
+            st.error(narrative)
+        elif result_type == "info":
+            st.info(narrative)
+        elif result_type == "help":
+            commands = result.get("commands", [])
+            for cmd in commands:
+                st.markdown(f"- `{cmd}`")
+        else:
+            if narrative:
+                st.markdown(narrative)
+
+            data = result.get("result") or result.get("data")
+            if data is not None:
+                if isinstance(data, pd.DataFrame):
+                    st.dataframe(data, use_container_width=True, hide_index=True)
+                elif isinstance(data, dict):
+                    st.json(data)
+
+            # Show chart if available
+            chart_type = result.get("chart_type")
+            chart_params = result.get("chart_params", {})
+            if chart_type and chart_params:
+                try:
+                    fig = auto_recommend_chart(df, chart_type, chart_params)
+                    if fig:
+                        st.plotly_chart(fig, use_container_width=True)
+                except Exception:
+                    pass

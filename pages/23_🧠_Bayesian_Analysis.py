@@ -5,7 +5,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Bayesian Analysis", page_icon="🧠", layout="wide")
 
-from modules.bayesian_engine import render_bayesian_ui
+from modules.bayesian_engine import render_bayesian_analysis_ui
 
 try:
     import pymc as pm
@@ -16,7 +16,7 @@ except ImportError:
 if not HAS_PYMC:
     st.warning("⚠️ PyMC not installed. Bayesian MCMC models will use pingouin/scipy fallback. Install with: `pip install pymc arviz`")
 
-render_bayesian_ui()
+render_bayesian_analysis_ui()
 
 st.sidebar.markdown("---")
 st.sidebar.info("💡 **Tip:** Bayesian methods provide intuitive probability statements about parameters. BF10 > 3 indicates substantial evidence for H1.")

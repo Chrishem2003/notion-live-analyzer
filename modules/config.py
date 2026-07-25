@@ -195,6 +195,17 @@ def init_session_state():
         "_last_optimized_text": "",
         "_last_optimized_stats": None,
         "_export_report": "",
+
+        # ─── Global Localization Engine ─────────────────────────
+        "loc_selected_language": "en",
+        "loc_selected_accent": "Academic US",
+        "loc_selected_glossary": "bio",
+        "loc_academic_tone": "peer_reviewed",
+        "loc_preserve_tech_terms": True,
+        "loc_dual_view_enabled": True,
+        "loc_offline_pack_enabled": True,
+        "loc_institutional_policy": True,
+        "loc_region_filter": "All Regions",
     }
     for key, val in defaults.items():
         if key not in st.session_state:

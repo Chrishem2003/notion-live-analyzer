@@ -5,7 +5,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Sensitivity Analysis", page_icon="🔍", layout="wide")
 
-from modules.sensitivity_engine import render_sensitivity_ui
+from modules.sensitivity_engine import render_sensitivity_analysis_ui
 
 try:
     from scipy import stats
@@ -17,7 +17,7 @@ if not HAS_DEPS:
     st.error("⚠️ scipy required. Install with: `pip install scipy statsmodels`")
     st.stop()
 
-render_sensitivity_ui()
+render_sensitivity_analysis_ui()
 
 st.sidebar.markdown("---")
 st.sidebar.info("💡 **Tip:** Sensitivity analysis tests how robust your findings are to different analytical choices. Always run before finalizing results.")
