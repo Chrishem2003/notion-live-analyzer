@@ -6,6 +6,8 @@ from typing import Dict, List, Any, Optional, Tuple
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import math
+import re
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -13,6 +15,18 @@ from modules.data_processor import infer_column_types, profile_dataset
 from modules.statistical_engine import StatisticalEngine
 from scipy import stats as scipy_stats
 
+
+# ─── Literature Effect Size Benchmarks ─────────────────────────────
+DEFAULT_BENCHMARKS = {
+    "psychology": {"small": 0.20, "medium": 0.50, "large": 0.80},
+    "education": {"small": 0.15, "medium": 0.40, "large": 0.65},
+    "medicine": {"small": 0.10, "medium": 0.30, "large": 0.50},
+    "neuroscience": {"small": 0.25, "medium": 0.55, "large": 0.85},
+    "social_science": {"small": 0.15, "medium": 0.35, "large": 0.60},
+    "business": {"small": 0.15, "medium": 0.35, "large": 0.55},
+    "biology": {"small": 0.30, "medium": 0.60, "large": 0.90},
+    "default": {"small": 0.20, "medium": 0.50, "large": 0.80},
+}
 
 class HypothesisGenerator:
     """CHRISHEM-powered research hypothesis discovery and formulation engine."""
@@ -215,6 +229,208 @@ class HypothesisGenerator:
         except Exception:
             pass
         return hypotheses
+
+    # ─── Literature Gap Analysis ───────────────────────────────────
+
+    def compare_against_literature(
+        self,
+        hypotheses: List[Dict],
+        literature_effect_sizes: Optional[List[Dict]] = None,
+        discipline: str = "default",
+    ) -> List[Dict]:
+        """
+        Compare discovered hypotheses against published effect size benchmarks
+        or literature-extracted effect sizes to identify:
+          - Novel findings (effect differs from literature norms)
+          - Replication support (effect matches literature)
+          - Knowledge gaps (patterns not found in literature)
+
+        Args:
+            hypotheses: List of hypothesis dicts from discover_hypotheses()
+            literature_effect_sizes: Optional list of dicts with keys:
+                'variable_pair', 'effect_size', 'ci_lower', 'ci_upper', 'n', 'source'
+                If None, uses generic discipline benchmarks.
+            discipline: Academic discipline for benchmark selection
+
+        Returns:
+            Hypotheses with added gap analysis fields
+        """
+        benchmarks = DEFAULT_BENCHMARKS.get(discipline, DEFAULT_BENCHMARKS["default"])
+
+        for h in hypotheses:
+            gap_analysis = {}
+
+            # Extract the effect size and variable pair label
+            es = abs(h.get("effect_size", h.get("r", h.get("cramers_v", h.get("rho", 0)))))
+            htype = h.get("type", "")
+
+            # Build a variable pair key for matching against literature
+            if htype == "mean_difference":
+                var_pair = f"{h.get('independent_variable','')}__{h.get('dependent_variable','')}"
+            elif htype == "correlation":
+                var_pair = f"{h.get('variable_1','')}__{h.get('variable_2','')}"
+            elif htype == "association":
+                var_pair = f"{h.get('variable_1','')}__{h.get('variable_2','')}"
+            elif htype == "trend":
+                var_pair = f"{h.get('dependent_variable','')}__time"
+            elif htype == "multi_group_difference":
+                var_pair = f"{h.get('group_variable','')}__{h.get('dependent_variable','')}"
+            else:
+                var_pair = "unknown"
+
+            # 1. Compare against discipline benchmarks
+            if es < benchmarks["small"] * 0.8:
+                benchmark_label = "very_small"
+            elif es < benchmarks["medium"] * 0.8:
+                benchmark_label = "small"
+            elif es < benchmarks["large"] * 0.8:
+                benchmark_label = "medium"
+            else:
+                benchmark_label = "large"
+
+            h["effect_size_label"] = benchmark_label
+            gap_analysis["benchmark_vs_discipline"] = {
+                "discipline": discipline,
+                "your_effect": round(es, 3),
+                "small_threshold": benchmarks["small"],
+                "medium_threshold": benchmarks["medium"],
+                "large_threshold": benchmarks["large"],
+                "label": benchmark_label,
+            }
+
+            # 2. Compare against literature-extracted effect sizes (if provided)
+            literature_match = None
+            if literature_effect_sizes and var_pair != "unknown":
+                for lit in literature_effect_sizes:
+                    lit_pair = lit.get("variable_pair", "")
+                    # Fuzzy match: check if variable names overlap
+                    if self._variable_pairs_match(var_pair, lit_pair):
+                        literature_match = lit
+                        break
+
+            if literature_match:
+                lit_es = abs(literature_match.get("effect_size", 0))
+                lit_ci_lower = literature_match.get("ci_lower", lit_es * 0.7)
+                lit_ci_upper = literature_match.get("ci_upper", lit_es * 1.3)
+
+                # Compute overlap: does our effect fall within literature CI?
+                our_ci_lower, our_ci_upper = self._approximate_ci(
+                    es, n=h.get("n", literature_match.get("n", 100))
+                )
+
+                # Check if our CI overlaps with literature CI
+                overlap_low = max(our_ci_lower, lit_ci_lower)
+                overlap_high = min(our_ci_upper, lit_ci_upper)
+                overlaps = overlap_low <= overlap_high
+
+                # Effect size discrepancy
+                es_diff = abs(es - lit_es)
+                es_diff_pct = (es_diff / max(lit_es, 0.01)) * 100
+
+                if overlaps:
+                    gap_type = "replication"
+                    gap_label = "✅ Consistent with literature"
+                    novelty_score = 20  # Low novelty
+                elif es > lit_es * 1.5:
+                    gap_type = "novel_larger"
+                    gap_label = "🔬 Novel finding — larger than reported"
+                    novelty_score = 85
+                elif es < lit_es * 0.5:
+                    gap_type = "novel_smaller"
+                    gap_label = "🔬 Novel finding — smaller than reported"
+                    novelty_score = 75
+                else:
+                    gap_type = "inconsistent"
+                    gap_label = "⚠️ Inconsistent with literature"
+                    novelty_score = 60
+
+                gap_analysis["literature_comparison"] = {
+                    "type": gap_type,
+                    "label": gap_label,
+                    "novelty_score": novelty_score,
+                    "literature_effect": round(lit_es, 3),
+                    "your_effect": round(es, 3),
+                    "effect_difference": round(es_diff, 3),
+                    "effect_difference_pct": round(es_diff_pct, 1),
+                    "ci_overlap": overlaps,
+                    "source": literature_match.get("source", "unknown"),
+                }
+
+                # Adjust priority score with novelty
+                current_score = h.get("priority_score", 50)
+                if gap_type == "novel_larger" or gap_type == "novel_smaller":
+                    adjusted = min(100, current_score + 15)
+                elif gap_type == "replication":
+                    adjusted = min(100, current_score + 5)
+                else:
+                    adjusted = max(0, current_score - 10)
+                h["priority_score"] = adjusted
+                h["priority_label"] = self._score_to_label(adjusted)
+
+            else:
+                # No literature match — this is a potential knowledge gap
+                gap_analysis["literature_comparison"] = {
+                    "type": "knowledge_gap",
+                    "label": "💡 Potential knowledge gap — no literature comparison found",
+                    "novelty_score": 70,
+                    "literature_effect": None,
+                    "your_effect": round(es, 3),
+                    "effect_difference": None,
+                    "effect_difference_pct": None,
+                    "ci_overlap": None,
+                    "source": None,
+                }
+                # Boost score for unexplored patterns
+                h["priority_score"] = min(100, h.get("priority_score", 50) + 10)
+                h["priority_label"] = self._score_to_label(h["priority_score"])
+
+            h["gap_analysis"] = gap_analysis
+            h["has_literature_context"] = literature_match is not None
+
+        return hypotheses
+
+    def _variable_pairs_match(self, pair_a: str, pair_b: str) -> bool:
+        """Check if two variable pair strings refer to similar variables."""
+        vars_a = set(pair_a.lower().replace("__", " ").replace("_", " ").split())
+        vars_b = set(pair_b.lower().replace("__", " ").replace("_", " ").split())
+        if not vars_a or not vars_b:
+            return False
+        shorter = min(len(vars_a), len(vars_b))
+        if shorter == 0:
+            return False
+        overlap = len(vars_a & vars_b)
+        return overlap / shorter >= 0.5
+
+    def _approximate_ci(self, effect_size: float, n: int = 100, alpha: float = 0.05) -> Tuple[float, float]:
+        """Approximate confidence interval for an effect size using normal approximation."""
+        if n < 2:
+            return (effect_size * 0.5, effect_size * 1.5)
+        se = math.sqrt((1 - effect_size**2) / (n - 2)) if abs(effect_size) < 1 else 1.0 / math.sqrt(n - 2)
+        z = scipy_stats.norm.ppf(1 - alpha / 2)
+        return (effect_size - z * se, effect_size + z * se)
+
+    def _score_to_label(self, score: int) -> str:
+        if score >= 80: return "Critical"
+        if score >= 60: return "High"
+        if score >= 40: return "Medium"
+        return "Low"
+
+    def generate_gap_narrative(self, h: Dict) -> str:
+        """Generate an enhanced narrative that includes literature gap context."""
+        base_narrative = h.get("narrative", self._generate_narrative(h))
+        gap = h.get("gap_analysis", {}).get("literature_comparison", {})
+        gap_type = gap.get("type", "")
+
+        if gap_type == "replication":
+            return base_narrative + f" ✅ This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
+        elif gap_type in ("novel_larger", "novel_smaller"):
+            direction = "larger" if gap_type == "novel_larger" else "smaller"
+            return base_narrative + f" 🔬 This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
+        elif gap_type == "knowledge_gap":
+            return base_narrative + " 💡 This pattern has not been found in the literature review — potential knowledge gap worth exploring."
+        elif gap_type == "inconsistent":
+            return base_narrative + f" ⚠️ This finding diverges from published literature (d_lit={gap.get('literature_effect', 0):.2f}). Consider contextual or methodological factors."
+        return base_narrative
 
     def _score_hypotheses(self, hypotheses: List[Dict]) -> List[Dict]:
         """Score and rank hypotheses by statistical support and novelty."""

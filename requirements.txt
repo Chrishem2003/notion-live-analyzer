@@ -48,6 +48,12 @@ PyGithub>=2.0.0
 citeproc-py>=0.6.0  # Mechanical, zero-AI reference formatting (APA, Harvard, Chicago, MLA, Vancouver)
 bibtexparser>=2.0.0  # .bib file generation for Mendeley/Zotero import
 
+# Secure Vault (AES-GCM-256 encryption)
+cryptography>=41.0.0
+
+# JWT Token Authentication (Project Collaboration)
+PyJWT>=2.8.0
+
 # Utilities
 python-dateutil>=2.8.0
 tabulate>=0.9.0

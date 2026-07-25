@@ -1,21 +1,31 @@
-# TODO: Audit & Compliance Hub — Completion Tasks
+# Live Verified Opportunity Feed — Implementation Checklist
 
-## Phase 1: Fix Critical Syntax Errors
-- [x] Remove stray `</edit_file>` tag from `audit_ui.py` (causing SyntaxError)
-- [x] Fix indentation issues in `render_optimization_studio` function
+## Step 1: Create Core Engine
+- [x] Create `modules/opportunity_feed.py` with:
+  - [x] `OpportunityDatabase` class (SQLite persistence)
+  - [x] `VerificationScorer` class (quality scoring 0-100)
+  - [x] `GeoPrioritizer` class (country → region → global ranking)
+  - [x] `OpportunityFeedEngine` class (orchestrator)
+  - [x] `seed_opportunity_catalog()` with 200+ real-world scholarships/grants/fellowships
+  - [x] Feed CSS styles
 
-## Phase 2: Verify App Loads
-- [ ] Run Python import verification on all audit modules
-- [ ] Start Streamlit app and verify no runtime errors
+## Step 2: Integrate with Pipeline Module
+- [x] Modify `modules/application_pipeline.py`:
+  - [x] Import and integrate OpportunityFeedEngine
+  - [x] Add feed-to-pipeline bridge methods
+  - [x] Add feed-related CSS
 
-## Phase 3: Test All 4 Sub-Tabs
-- [ ] Test Forensic Audit sub-tab with password "CHRISHEM"
-- [ ] Test Plagiarism & AI Check sub-tab
-- [ ] Test Optimization Studio sub-tab
-- [ ] Test Export Audit Report sub-tab
+## Step 3: Update Page UI
+- [x] Modify `pages/46_📋_Application_Pipeline.py`:
+  - [x] Add Live Opportunity Feed section at top
+  - [x] Filter bar (country, type, amount, verification)
+  - [x] Featured/Top Picks section
+  - [x] Paginated feed with rich cards
+  - [x] Add to Pipeline button integration
+  - [x] Verify all existing functionality preserved
 
-## Phase 4: Edge Cases & Polish
-- [ ] Test file upload for various formats (TXT, DOCX, PDF)
-- [ ] Test clean export strips watermarks
-- [ ] Verify blockchain ledger verification works
+## Step 4: Testing
+- [x] Verify feed loads and filters correctly
+- [x] Verify Add to Pipeline works end-to-end
+- [x] Verify existing Kanban/document/vault/currency/milestone sections still work
 
