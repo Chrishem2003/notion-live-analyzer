@@ -196,6 +196,14 @@ def init_session_state():
         "_last_optimized_stats": None,
         "_export_report": "",
 
+        # ─── Application Pipeline & Document Vault ──────────────
+        "pipeline_manager": None,
+        "pipeline_selected_app": None,
+        "pipeline_active_tab": "kanban",
+        "pipeline_applications": [],
+        "pipeline_documents": [],
+        "pipeline_currencies": {},
+
         # ─── Global Localization Engine ─────────────────────────
         "loc_selected_language": "en",
         "loc_selected_accent": "Academic US",
