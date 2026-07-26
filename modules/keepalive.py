@@ -102,7 +102,6 @@ class ServerKeepAliveThread:
 # [server]
 # heartbeatInterval = 5000
 # maxUploadSize = 50
-# enableXsrfProtection = false
 
 
 # ─── Layer 4: External Cron / Health Monitor ─────────────────────────

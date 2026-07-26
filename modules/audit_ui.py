@@ -10,6 +10,7 @@ Renders the 5th tab "Audit & Compliance Hub" with 4 sub-tabs:
 from __future__ import annotations
 
 import base64
+import hmac
 import io
 import json
 import time
@@ -31,10 +32,11 @@ from modules.audit_engine import (
     UniversalFileReader,
     get_audit_orchestrator,
 )
+from modules.config import get_secret
 from modules.ui_components import section_header
 
 # ─── Constants ────────────────────────────────────────────────────────
-MASTER_PASSWORD = "CHRISHEM"
+MASTER_PASSWORD_SECRET = "AUDIT_MASTER_PASSWORD"
 SUPPORTED_FORMATS = ", ".join(sorted(UniversalFileReader.SUPPORTED_EXTENSIONS))
 
 
@@ -110,6 +112,15 @@ def render_forensic_audit(
         st.session_state["forensic_unlocked"] = False
 
     if not st.session_state["forensic_unlocked"]:
+        master_password = get_secret(MASTER_PASSWORD_SECRET)
+        if not master_password:
+            st.error(
+                f"🔒 Forensic Audit is unavailable: no `{MASTER_PASSWORD_SECRET}` is "
+                "configured. Set it as an environment variable or in "
+                "`.streamlit/secrets.toml` to enable this view."
+            )
+            return
+
         col1, col2 = st.columns([2, 1])
         with col1:
             pwd = st.text_input(
@@ -122,7 +133,7 @@ def render_forensic_audit(
             st.markdown("")
             st.markdown("")
             if st.button("🔓 Unlock", type="primary", use_container_width=True):
-                if pwd == MASTER_PASSWORD:
+                if hmac.compare_digest(pwd or "", master_password):
                     st.session_state["forensic_unlocked"] = True
                     st.success("✅ Forensic view unlocked!")
                     st.rerun()

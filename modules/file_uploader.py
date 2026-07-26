@@ -17,7 +17,6 @@ SUPPORTED_FORMATS = {
     "STATA (.dta)": "dta",
     "Parquet (.parquet)": "parquet",
     "Feather (.feather)": "feather",
-    "Pickle (.pkl)": "pkl",
 }
 
 def get_file_extension(filename: str) -> str:
@@ -38,7 +37,7 @@ def detect_encoding(file_path: str) -> str:
 def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
     """
     Parse an uploaded file into a pandas DataFrame.
-    Handles CSV, Excel, JSON, SPSS, SAS, STATA, Parquet, Feather, Pickle.
+    Handles CSV, Excel, JSON, SPSS, SAS, STATA, Parquet and Feather.
     """
     if uploaded_file is None:
         return None
@@ -107,7 +106,10 @@ def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
             df = pd.read_feather(uploaded_file)
 
         elif file_ext in ("pkl", "pickle"):
-            df = pd.read_pickle(uploaded_file)
+            error_msg = (
+                "Pickle files are not supported: unpickling executes arbitrary "
+                "code. Convert the file to CSV, Parquet or Feather first."
+            )
 
         else:
             error_msg = f"Unsupported file format: .{file_ext}. Supported formats: {', '.join(SUPPORTED_FORMATS.keys())}"

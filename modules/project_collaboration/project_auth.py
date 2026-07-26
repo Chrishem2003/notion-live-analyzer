@@ -14,6 +14,9 @@ Architecture:
 from __future__ import annotations
 
 import json
+import logging
+import os
+import secrets
 import time
 import uuid
 import hmac
@@ -40,8 +43,27 @@ REFRESH_TOKEN_EXPIRY_DAYS = 30
 TOKEN_ISSUER = "chrishem-project-collab"
 TOKEN_AUDIENCE = "chrishem-collab-api"
 
-# Production-grade signing key (in production, use a KMS/vault)
-DEFAULT_SIGNING_KEY = "chrishem-collab-signing-key-v1-secure"
+SIGNING_KEY_ENV_VAR = "PROJECT_COLLAB_SIGNING_KEY"
+
+logger = logging.getLogger(__name__)
+
+
+def resolve_signing_key() -> str:
+    """
+    Resolve the JWT signing key from the environment.
+
+    Falls back to a random per-process key so tokens are never signed with a
+    predictable value; such tokens do not survive a restart or a second worker.
+    """
+    key = os.environ.get(SIGNING_KEY_ENV_VAR)
+    if key:
+        return key
+    logger.warning(
+        "%s is not set — generating an ephemeral signing key. Tokens will be "
+        "invalidated on restart and are not shared across processes.",
+        SIGNING_KEY_ENV_VAR,
+    )
+    return secrets.token_urlsafe(48)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -229,7 +251,7 @@ class ProjectAuthManager:
     """
 
     def __init__(self, signing_key: Optional[str] = None):
-        self.signing_key = signing_key or DEFAULT_SIGNING_KEY
+        self.signing_key = signing_key or resolve_signing_key()
         self._blacklisted_tokens: Dict[str, float] = {}  # jti -> expiry time
         self._refresh_tokens: Dict[str, Dict[str, Any]] = {}
         self._audit_log: List[Dict[str, Any]] = []

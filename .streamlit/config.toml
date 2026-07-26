@@ -1,8 +1,8 @@
 [server]
 # General server settings
 maxUploadSize = 50
-enableXsrfProtection = false
-enableCORS = true
+enableXsrfProtection = true
+enableCORS = false
 enableWebsocketCompression = true
 maxMessageSize = 200
 

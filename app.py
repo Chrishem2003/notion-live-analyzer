@@ -19,7 +19,7 @@ _startup_start = time.time()
 # ─── Lightweight Dependency Check (Non-Blocking) ─────────────────────
 # Replaced the old blocking per-package import check with a fast lazy check
 # that runs AFTER the page renders, so users see the dashboard immediately.
-AUTO_FIX_DEPS = os.environ.get("AUTO_FIX_DEPS", "true").lower() == "true"
+AUTO_FIX_DEPS = os.environ.get("AUTO_FIX_DEPS", "false").lower() == "true"
 _HEAVY_PACKAGES = {"xgboost", "shap", "pymc", "arviz", "causalml", "prophet"}
 
 # We defer the full dependency scan to a background check by storing the
