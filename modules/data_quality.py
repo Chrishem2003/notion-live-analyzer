@@ -6,6 +6,7 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
 import streamlit as st
+import warnings
 from datetime import datetime
 
 from modules.pandas_compat import is_text_dtype, text_columns
@@ -181,7 +182,10 @@ class DataQualityReport:
         date_issues = []
         for col in text_columns(self.df):
             try:
-                parsed = pd.to_datetime(self.df[col], errors='coerce')
+                with warnings.catch_warnings():
+                    # Non-date text columns are expected here; the format probe is deliberate.
+                    warnings.simplefilter("ignore", UserWarning)
+                    parsed = pd.to_datetime(self.df[col], errors='coerce')
                 if parsed.notna().sum() > 0.3 * len(self.df) and parsed.notna().sum() < len(self.df):
                     date_issues.append(col)
             except Exception:

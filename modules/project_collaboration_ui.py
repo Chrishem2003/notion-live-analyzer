@@ -804,15 +804,15 @@ def _render_floating_dock(webrtc: Optional[WebRTCProvider],
             speaking_class = " speaking" if p.is_speaking else ""
             active_class = " active" if p.id == webrtc.local_participant_id else ""
             initials = p.name[0].upper() if p.name else "?"
-            video_html += f"""
-            <div class="collab-dock-video{speaking_class}{active_class}">
-                <span style="font-size:1.5rem;font-weight:700;color:#475569;">{initials}</span>
-                <div class="collab-dock-video-label">
-                    {p.name[:12]} {'🎤' if p.is_audio_on else '🔇'}
-                    {'👑' if p.role == 'host' else '🤝' if p.role == 'co_host' else ''}
-                </div>
-            </div>
-            """
+            mic_icon = "🎤" if p.is_audio_on else "🔇"
+            role_icon = "👑" if p.role == "host" else "🤝" if p.role == "co_host" else ""
+            # Kept on one line: indented lines would be rendered as a markdown code block.
+            video_html += (
+                f'<div class="collab-dock-video{speaking_class}{active_class}">'
+                f'<span style="font-size:1.5rem;font-weight:700;color:#475569;">{initials}</span>'
+                f'<div class="collab-dock-video-label">{p.name[:12]} {mic_icon} {role_icon}</div>'
+                '</div>'
+            )
         video_html += "</div>"
         st.markdown(video_html, unsafe_allow_html=True)
 

@@ -2,6 +2,7 @@
 Data Processor — handles data type inference, cleaning, aggregation, and merging.
 Includes provenance tracking integration for full lineage logging.
 """
+import warnings
 from typing import Dict, List, Any, Optional, Tuple, Callable
 import pandas as pd
 import numpy as np
@@ -35,7 +36,10 @@ def infer_column_type(series: pd.Series) -> str:
     if pd.api.types.is_bool_dtype(dtype):
         return "boolean"
     try:
-        parsed = pd.to_datetime(clean, errors="coerce")
+        with warnings.catch_warnings():
+            # Heterogeneous text columns are expected here; the format probe is deliberate.
+            warnings.simplefilter("ignore", UserWarning)
+            parsed = pd.to_datetime(clean, errors="coerce")
         if parsed.notna().sum() > len(clean) * 0.5:
             return "temporal"
     except (ValueError, TypeError):
