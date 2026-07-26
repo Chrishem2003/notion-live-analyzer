@@ -128,6 +128,20 @@ notion-live-analyzer/
 
 ---
 
+## 🧪 Tests
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+pytest                          # run the unit test suite
+pytest --cov --cov-report=term  # with a coverage report for modules/
+```
+
+Tests live in `tests/` and cover the pure-logic modules (`config`, `data_processor`,
+`notion_client`, `keepalive`, `export`, `feature_engineer`, `data_quality`).
+Streamlit `render_*` UI functions are intentionally not unit tested.
+
+---
+
 ## 🤝 Contributing
 
 Pull requests are welcome. For major changes, please open an issue first.
