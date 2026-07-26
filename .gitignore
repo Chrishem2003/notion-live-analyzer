@@ -4,3 +4,7 @@ __pycache__/
 .streamlit/secrets.toml
 .env
 .DS_Store
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
