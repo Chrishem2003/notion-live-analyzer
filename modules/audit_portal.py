@@ -29,6 +29,8 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 
+from modules.db_utils import connect_sqlite
+
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = APP_DIR / "research_workspace.db"
@@ -92,10 +94,7 @@ class CHRISHEMSubmissionSystem:
         self._init_db()
 
     def _get_conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self.db_path))
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        return conn
+        return connect_sqlite(self.db_path)
 
     def _init_db(self):
         """Create submission tables with blockchain tracking."""

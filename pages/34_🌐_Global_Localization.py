@@ -7,12 +7,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Global Localization Engine", layout="wide", page_icon="🌐")
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, watermark
-
-init_session_state()
-load_css = __import__("modules.ui_components", fromlist=["load_css"]).load_css
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
+from modules.page_setup import bootstrap_page
 
 # ==========================================
 # 1. COMPREHENSIVE WORLD LANGUAGE OPTIONS
@@ -442,13 +437,12 @@ def get_langs_by_region(region):
 # 3. RENDER PAGE
 # ==========================================
 
-hero_card(
+bootstrap_page(
     "🌐 Global Language & Academic Register",
     "Complete localization engine for the application interface, AI synthesis, and neural audio podcasts. "
     f"Supports {len(EXTENDED_LANGUAGES)} official languages across {len(REGIONS)} world regions.",
     badge_text=f"v1.0 — {len(REGIONS)} Regions · {sum(len(gl['accentVariants']) for gl in EXTENDED_LANGUAGES)} Accents"
 )
-watermark("CHRISHEM")
 
 st.markdown('<div class="loc-engine-wrapper">', unsafe_allow_html=True)
 

@@ -6,25 +6,17 @@ import pandas as pd
 
 st.set_page_config(page_title="Advanced Visuals", layout="wide", page_icon="📈")
 
-from modules.config import init_session_state, CHART_COLOR_PALETTES
-from modules.ui_components import hero_card, section_header, load_css, watermark
+from modules.page_setup import bootstrap_page, get_active_dataframe
+from modules.config import CHART_COLOR_PALETTES
+from modules.ui_components import section_header
 from modules.chart_builder import build_chart
 from modules.viz_engine import ALL_CHART_TYPES, auto_recommend_chart, get_chart_search_results, explain_chart_recommendation
 from modules.data_processor import infer_column_types
 
-init_session_state()
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("📈 Advanced Visualization Engine", "18+ interactive chart types with CHRISHEM-powered auto-recommendation.", "Chart Studio")
-watermark("CHRISHEM")
+bootstrap_page("📈 Advanced Visualization Engine", "18+ interactive chart types with CHRISHEM-powered auto-recommendation.", "Chart Studio")
 
 # ─── Data Selection ──────────────────────────────────────────────────
-active_df = st.session_state.get("active_df")
-if active_df is None or active_df.empty:
-    active_df = st.session_state.get("notion_df")
-
-if active_df is None or active_df.empty:
-    st.warning("⚠️ No data available. Load data from Notion or upload a file first.")
-    st.stop()
+active_df = get_active_dataframe(warning="⚠️ No data available. Load data from Notion or upload a file first.")
 
 # Get column info
 col_types = infer_column_types(active_df)

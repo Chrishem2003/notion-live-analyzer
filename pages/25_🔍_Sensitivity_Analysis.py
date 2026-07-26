@@ -5,17 +5,10 @@ import streamlit as st
 
 st.set_page_config(page_title="Sensitivity Analysis", page_icon="🔍", layout="wide")
 
+from modules.page_setup import require_dependency
 from modules.sensitivity_engine import render_sensitivity_analysis_ui
 
-try:
-    from scipy import stats
-    HAS_DEPS = True
-except ImportError:
-    HAS_DEPS = False
-
-if not HAS_DEPS:
-    st.error("⚠️ scipy required. Install with: `pip install scipy statsmodels`")
-    st.stop()
+require_dependency("scipy", "⚠️ scipy required. Install with: `pip install scipy statsmodels`")
 
 render_sensitivity_analysis_ui()
 

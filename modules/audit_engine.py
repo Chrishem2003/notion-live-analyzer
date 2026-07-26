@@ -33,6 +33,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from modules.db_utils import connect_sqlite
+
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = APP_DIR / "research_workspace.db"
@@ -53,10 +55,7 @@ class EnterpriseDataEngine:
         self._init_architecture()
 
     def _get_connection(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self.db_path))
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        return conn
+        return connect_sqlite(self.db_path)
 
     def _init_architecture(self):
         """Create the audit_ledger table with blockchain structure."""

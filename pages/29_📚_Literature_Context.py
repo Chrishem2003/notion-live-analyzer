@@ -5,17 +5,10 @@ import streamlit as st
 
 st.set_page_config(page_title="Literature Context", page_icon="📚", layout="wide")
 
+from modules.page_setup import require_dependency
 from modules.literature_context import render_literature_context_ui
 
-try:
-    import numpy as np
-    HAS_DEPS = True
-except ImportError:
-    HAS_DEPS = False
-
-if not HAS_DEPS:
-    st.error("⚠️ numpy required.")
-    st.stop()
+require_dependency("numpy", "⚠️ numpy required.")
 
 render_literature_context_ui()
 

@@ -9,16 +9,13 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'NEW')))
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, section_header, load_css, watermark
+from modules.page_setup import bootstrap_page
+from modules.ui_components import section_header
 from modules.file_uploader import parse_uploaded_file, merge_datasets, manual_data_entry, SUPPORTED_FORMATS
 from modules.data_processor import profile_dataset, infer_column_types
 from modules.export import render_export_buttons
 
-init_session_state()
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("📁 File Analyzer", "Upload CSV, Excel, SPSS, SAS, STATA, or JSON files for automated analysis and visualization.", "Upload & Analyze")
-watermark("CHRISHEM")
+bootstrap_page("📁 File Analyzer", "Upload CSV, Excel, SPSS, SAS, STATA, or JSON files for automated analysis and visualization.", "Upload & Analyze")
 
 # ─── File Upload Section ─────────────────────────────────────────────
 section_header("📤 Upload Data File")

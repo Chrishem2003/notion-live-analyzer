@@ -8,25 +8,15 @@ import numpy as np
 
 st.set_page_config(page_title="Statistical Tests", layout="wide", page_icon="🔬")
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, section_header, load_css, watermark, insight_card, stat_result_card
+from modules.page_setup import bootstrap_page, get_active_dataframe
+from modules.ui_components import section_header, insight_card, stat_result_card
 from modules.statistical_engine import StatisticalEngine
 from modules.data_processor import profile_dataset, infer_column_types
 
-init_session_state()
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("🔬 Statistical Tests", "Professional research-grade statistical analysis — replaces SPSS, STATA, and SAS.", "SPSS Replacement Suite")
-watermark("CHRISHEM")
+bootstrap_page("🔬 Statistical Tests", "Professional research-grade statistical analysis — replaces SPSS, STATA, and SAS.", "SPSS Replacement Suite")
 
 # ─── Data Selection ──────────────────────────────────────────────────
-active_df = st.session_state.get("active_df")
-if active_df is None or active_df.empty:
-    # Try notion data
-    active_df = st.session_state.get("notion_df")
-
-if active_df is None or active_df.empty:
-    st.warning("⚠️ No data available. Load data from the **File Analyzer** page or connect to Notion first.")
-    st.stop()
+active_df = get_active_dataframe(warning="⚠️ No data available. Load data from the **File Analyzer** page or connect to Notion first.")
 
 # Get column types
 col_types = infer_column_types(active_df)

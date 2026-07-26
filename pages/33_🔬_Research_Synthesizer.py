@@ -19,20 +19,16 @@ import streamlit as st
 
 st.set_page_config(page_title="Research Synthesizer", page_icon="🔬", layout="wide")
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, load_css, watermark, section_header
+from modules.page_setup import bootstrap_page
+from modules.ui_components import section_header
 
 # ─── Init ─────────────────────────────────────────────────────────────
-init_session_state()
-is_dark = st.session_state.get("theme", "light") == "dark"
-load_css(is_dark=is_dark)
-hero_card(
+bootstrap_page(
     "🔬 Research Synthesizer & Audio Intelligence Hub",
     "Ingest dense papers, lectures, or URLs. Get verifiable breakdowns, "
     "grounded audio podcasts, and real-time prior art mapping.",
     badge_text="⚡ Next-Gen Multimodal Research Engine"
 )
-watermark("CHRISHEM")
 
 # ─── Session State Initialization ────────────────────────────────────
 if "synth_input_type" not in st.session_state:

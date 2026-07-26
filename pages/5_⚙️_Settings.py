@@ -7,13 +7,11 @@ import streamlit as st
 
 st.set_page_config(page_title="Settings", layout="wide", page_icon="⚙️")
 
-from modules.config import init_session_state, clear_cache
-from modules.ui_components import hero_card, section_header, load_css, watermark
+from modules.page_setup import bootstrap_page
+from modules.config import clear_cache
+from modules.ui_components import section_header
 
-init_session_state()
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("⚙️ Settings & Configuration", "Manage your preferences, credentials, dependencies, and data.", "Configuration")
-watermark("CHRISHEM")
+bootstrap_page("⚙️ Settings & Configuration", "Manage your preferences, credentials, dependencies, and data.", "Configuration")
 
 # ─── Theme Settings ──────────────────────────────────────────────────
 section_header("🎨 Theme & Appearance")
@@ -52,7 +50,7 @@ with col3:
 section_header("🔧 Dependency Manager")
 st.markdown("*Check, verify, and install all required Python packages with one click.*")
 
-from modules.dependency_manager import check_all_packages, install_missing_packages, install_package, CATEGORY_ICONS, CATEGORY_ORDER
+from modules.dependency_manager import check_all_packages, install_missing_packages, install_package, render_package_categories, CATEGORY_ORDER
 
 all_pkgs, missing_pkgs, categories = check_all_packages()
 
@@ -77,32 +75,7 @@ else:
 st.progress(pct, text=f"{pct}% complete")
 
 # Per-category expanders
-from modules.dependency_manager import get_package_summary
-summary = get_package_summary()
-
-for cat in categories:
-    cat_data = summary[cat]
-    icon = CATEGORY_ICONS.get(cat, "📦")
-    with st.expander(
-        f"{icon} **{cat}** — {cat_data['installed']}/{cat_data['total']} installed",
-        expanded=cat_data["missing"] > 0 and cat_data["missing"] < cat_data["total"],
-    ):
-        cols = st.columns(2)
-        with cols[0]:
-            st.markdown("**✅ Installed:**")
-            for name in cat_data["installed_names"]:
-                pkg = next((p for p in all_pkgs if p.pip_name == name), None)
-                version = f" v{pkg.installed_version}" if pkg and pkg.installed_version else ""
-                st.markdown(f"- ✅ {name}{version}")
-        with cols[1]:
-            if cat_data["missing_names"]:
-                st.markdown("**❌ Missing:**")
-                for name in cat_data["missing_names"]:
-                    pkg = next((p for p in all_pkgs if p.pip_name == name), None)
-                    desc = f" — {pkg.description}" if pkg else ""
-                    st.markdown(f"- ❌ {name}{desc}")
-            else:
-                st.markdown("**✅ All installed!**")
+render_package_categories(categories, all_pkgs, expand_partial_only=True)
 
 # One-click fix button
 if missing_pkgs:

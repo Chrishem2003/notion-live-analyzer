@@ -24,6 +24,8 @@ from collections import OrderedDict
 import pandas as pd
 import numpy as np
 
+from modules.db_utils import connect_sqlite
+
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = APP_DIR / "research_workspace.db"
@@ -43,10 +45,7 @@ class ProvenanceDatabase:
         self._init_tables()
 
     def _get_conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self.db_path))
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        return conn
+        return connect_sqlite(self.db_path)
 
     def _init_tables(self):
         """Create provenance tables if they don't exist."""

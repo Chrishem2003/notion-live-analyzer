@@ -5,16 +5,10 @@ import streamlit as st
 
 st.set_page_config(page_title="Bayesian Analysis", page_icon="🧠", layout="wide")
 
+from modules.page_setup import require_dependency
 from modules.bayesian_engine import render_bayesian_analysis_ui
 
-try:
-    import pymc as pm
-    HAS_PYMC = True
-except ImportError:
-    HAS_PYMC = False
-
-if not HAS_PYMC:
-    st.warning("⚠️ PyMC not installed. Bayesian MCMC models will use pingouin/scipy fallback. Install with: `pip install pymc arviz`")
+require_dependency("pymc", "⚠️ PyMC not installed. Bayesian MCMC models will use pingouin/scipy fallback. Install with: `pip install pymc arviz`", stop=False)
 
 render_bayesian_analysis_ui()
 

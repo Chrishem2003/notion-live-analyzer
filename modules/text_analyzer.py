@@ -130,6 +130,22 @@ class TextAnalyzer:
         return wc
 
     @staticmethod
+    def _sentiment_row(text: Any, polarity: float, subjectivity: float) -> Dict[str, Any]:
+        """Build a sentiment result row, labelling polarity as pos/neg/neutral."""
+        if polarity > 0.1:
+            sentiment = 'Positive'
+        elif polarity < -0.1:
+            sentiment = 'Negative'
+        else:
+            sentiment = 'Neutral'
+        return {
+            'Text': str(text)[:200],
+            'Sentiment': sentiment,
+            'Polarity': round(polarity, 4),
+            'Subjectivity': round(subjectivity, 4),
+        }
+
+    @staticmethod
     def analyze_sentiment(texts: List[str]) -> pd.DataFrame:
         """Analyze sentiment of texts using TextBlob."""
         if not HAS_TEXTBLOB:
@@ -150,19 +166,7 @@ class TextAnalyzer:
                 polarity = (pos_count - neg_count) / max(len(words), 1)
                 subjectivity = (pos_count + neg_count) / max(len(words), 1)
 
-                if polarity > 0.1:
-                    sentiment = 'Positive'
-                elif polarity < -0.1:
-                    sentiment = 'Negative'
-                else:
-                    sentiment = 'Neutral'
-
-                results.append({
-                    'Text': str(text)[:200],
-                    'Sentiment': sentiment,
-                    'Polarity': round(polarity, 4),
-                    'Subjectivity': round(subjectivity, 4),
-                })
+                results.append(TextAnalyzer._sentiment_row(text, polarity, subjectivity))
             return pd.DataFrame(results)
 
         results = []
@@ -174,19 +178,7 @@ class TextAnalyzer:
                 polarity = blob.sentiment.polarity
                 subjectivity = blob.sentiment.subjectivity
 
-                if polarity > 0.1:
-                    sentiment = 'Positive'
-                elif polarity < -0.1:
-                    sentiment = 'Negative'
-                else:
-                    sentiment = 'Neutral'
-
-                results.append({
-                    'Text': str(text)[:200],
-                    'Sentiment': sentiment,
-                    'Polarity': round(polarity, 4),
-                    'Subjectivity': round(subjectivity, 4),
-                })
+                results.append(TextAnalyzer._sentiment_row(text, polarity, subjectivity))
             except Exception:
                 continue
 

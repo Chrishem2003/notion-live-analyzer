@@ -337,6 +337,25 @@ class BayesianEngine:
 
 
 # ─── UI Renderer ─────────────────────────────────────────────────────
+def render_bayes_factor_card(result: Dict[str, Any], detail: str) -> None:
+    """Render the shared BF₁₀ result card with a test-specific detail line."""
+    import streamlit as st
+
+    bf = result.get("bf10", 1)
+    bf_color = "#2ecc71" if bf >= 3 else "#e67e22" if bf >= 1 else "#e74c3c"
+    st.markdown(f"""
+    <div style="text-align:center;padding:1.5rem;border-radius:16px;
+        border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
+        <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
+        <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
+        <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
+        <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
+            {detail}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render_bayesian_analysis_ui():
     """Render the Bayesian Analysis page in Streamlit."""
     import streamlit as st
@@ -396,19 +415,7 @@ def render_bayesian_analysis_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                bf = result.get("bf10", 1)
-                bf_color = "#2ecc71" if bf >= 3 else "#e67e22" if bf >= 1 else "#e74c3c"
-                st.markdown(f"""
-                <div style="text-align:center;padding:1.5rem;border-radius:16px;
-                    border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
-                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
-                    <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
-                    <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
-                    <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
-                        Cohen's d = {result.get('cohens_d', 0):.3f}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                render_bayes_factor_card(result, f"Cohen's d = {result.get('cohens_d', 0):.3f}")
 
     with tab2:
         st.subheader("📊 Bayesian Correlation — BF₁₀")
@@ -423,19 +430,7 @@ def render_bayesian_analysis_ui():
             x = data[corr_x].values
             y = data[corr_y].values
             result = engine.bayesian_correlation(x, y)
-            bf = result.get("bf10", 1)
-            bf_color = "#2ecc71" if bf >= 3 else "#e67e22" if bf >= 1 else "#e74c3c"
-            st.markdown(f"""
-            <div style="text-align:center;padding:1.5rem;border-radius:16px;
-                border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
-                <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
-                <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
-                <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
-                <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
-                    r = {result.get('pearson_r', 0):.3f} | N = {result.get('n', 0)}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            render_bayes_factor_card(result, f"r = {result.get('pearson_r', 0):.3f} | N = {result.get('n', 0)}")
 
             # Scatter plot
             fig = px.scatter(data, x=corr_x, y=corr_y, trendline="ols", title=f"Scatter Plot (r = {result.get('pearson_r', 0):.3f})")
@@ -455,19 +450,7 @@ def render_bayesian_analysis_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                bf = result.get("bf10", 1)
-                bf_color = "#2ecc71" if bf >= 3 else "#e67e22" if bf >= 1 else "#e74c3c"
-                st.markdown(f"""
-                <div style="text-align:center;padding:1.5rem;border-radius:16px;
-                    border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
-                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
-                    <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
-                    <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
-                    <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
-                        F = {result.get('f_value', 0):.2f} | η² = {result.get('eta_squared', 0):.3f}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                render_bayes_factor_card(result, f"F = {result.get('f_value', 0):.2f} | η² = {result.get('eta_squared', 0):.3f}")
 
     with tab4:
         st.subheader("📈 Bayesian Regression — BF₁₀")
@@ -483,19 +466,7 @@ def render_bayesian_analysis_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                bf = result.get("bf10", 1)
-                bf_color = "#2ecc71" if bf >= 3 else "#e67e22" if bf >= 1 else "#e74c3c"
-                st.markdown(f"""
-                <div style="text-align:center;padding:1.5rem;border-radius:16px;
-                    border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
-                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
-                    <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
-                    <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
-                    <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
-                        R² = {result.get('r_squared', 0):.3f} | N = {result.get('n_obs', 0)}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                render_bayes_factor_card(result, f"R² = {result.get('r_squared', 0):.3f} | N = {result.get('n_obs', 0)}")
 
                 if result.get("coefficients"):
                     coef_df = pd.DataFrame(list(result["coefficients"].items()), columns=["Predictor", "Coefficient"])

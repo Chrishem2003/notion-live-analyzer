@@ -199,6 +199,50 @@ def get_package_summary() -> Dict[str, Dict]:
 
 # ─── Streamlit UI ─────────────────────────────────────────────────----
 
+def render_package_categories(
+    categories: List[str],
+    all_pkgs: List[PackageInfo],
+    expand_partial_only: bool = False,
+) -> None:
+    """Render one expander per category listing installed and missing packages.
+
+    With `expand_partial_only`, categories where every package is missing stay
+    collapsed.
+    """
+    import streamlit as st
+
+    summary = get_package_summary()
+
+    for cat in categories:
+        cat_data = summary[cat]
+        icon = CATEGORY_ICONS.get(cat, "📦")
+        expanded = cat_data["missing"] > 0 and (
+            not expand_partial_only or cat_data["missing"] < cat_data["total"]
+        )
+
+        with st.expander(
+            f"{icon} **{cat}** — {cat_data['installed']}/{cat_data['total']} installed",
+            expanded=expanded,
+        ):
+            cols = st.columns(2)
+            with cols[0]:
+                st.markdown("**✅ Installed:**")
+                for name in cat_data["installed_names"]:
+                    pkg = next((p for p in all_pkgs if p.pip_name == name), None)
+                    version = f" v{pkg.installed_version}" if pkg and pkg.installed_version else ""
+                    st.markdown(f"- ✅ {name}{version}")
+
+            with cols[1]:
+                if cat_data["missing_names"]:
+                    st.markdown("**❌ Missing:**")
+                    for name in cat_data["missing_names"]:
+                        pkg = next((p for p in all_pkgs if p.pip_name == name), None)
+                        desc = f" — {pkg.description}" if pkg else ""
+                        st.markdown(f"- ❌ {name}{desc}")
+                else:
+                    st.markdown("**✅ All installed!**")
+
+
 def render_dependency_ui():
     """Render a Streamlit UI for checking and fixing dependencies."""
     import streamlit as st
@@ -227,33 +271,7 @@ def render_dependency_ui():
     # ─── Per-category breakdown ────────────────────────────────────
     st.markdown("### 📋 Package Breakdown by Category")
 
-    summary = get_package_summary()
-
-    for cat in categories:
-        cat_data = summary[cat]
-        icon = CATEGORY_ICONS.get(cat, "📦")
-
-        with st.expander(
-            f"{icon} **{cat}** — {cat_data['installed']}/{cat_data['total']} installed",
-            expanded=cat_data["missing"] > 0,
-        ):
-            cols = st.columns(2)
-            with cols[0]:
-                st.markdown("**✅ Installed:**")
-                for name in cat_data["installed_names"]:
-                    pkg = next((p for p in all_pkgs if p.pip_name == name), None)
-                    version = f" v{pkg.installed_version}" if pkg and pkg.installed_version else ""
-                    st.markdown(f"- ✅ {name}{version}")
-
-            with cols[1]:
-                if cat_data["missing_names"]:
-                    st.markdown("**❌ Missing:**")
-                    for name in cat_data["missing_names"]:
-                        pkg = next((p for p in all_pkgs if p.pip_name == name), None)
-                        desc = f" — {pkg.description}" if pkg else ""
-                        st.markdown(f"- ❌ {name}{desc}")
-                else:
-                    st.markdown("**✅ All installed!**")
+    render_package_categories(categories, all_pkgs)
 
     # ─── Install missing packages ──────────────────────────────────
     if missing_pkgs:

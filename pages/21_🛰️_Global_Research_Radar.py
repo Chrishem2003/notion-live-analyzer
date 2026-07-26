@@ -22,19 +22,17 @@ st.set_page_config(
     layout="wide",
 )
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, load_css, watermark, section_header
+from modules.page_setup import bootstrap_page
+from modules.ui_components import section_header
 
 # ─── Init ─────────────────────────────────────────────────────────────
-init_session_state()
-load_css(is_dark=True)
-hero_card(
+bootstrap_page(
     "🛰️ Global Research Pain Points & Satellite Intelligence Platform",
     "A unified, zero-blindspot hub for researchers worldwide to detect critical scientific gaps, "
     "claim unsolved loopholes, and link directly to real-time satellite telemetry.",
-    badge_text="Autonomous Research Operating System v2.6"
+    badge_text="Autonomous Research Operating System v2.6",
+    is_dark=True,
 )
-watermark("CHRISHEM")
 
 # ═══════════════════════════════════════════════════════════════════════
 # TYPES & DATA STRUCTURES

@@ -5,17 +5,10 @@ import streamlit as st
 
 st.set_page_config(page_title="Feature Engineering", page_icon="⚡", layout="wide")
 
+from modules.page_setup import require_dependency
 from modules.feature_engineer import render_feature_engineering_ui
 
-try:
-    from sklearn.preprocessing import PolynomialFeatures
-    HAS_DEPS = True
-except ImportError:
-    HAS_DEPS = False
-
-if not HAS_DEPS:
-    st.error("⚠️ scikit-learn required. Install with: `pip install scikit-learn`")
-    st.stop()
+require_dependency("sklearn.preprocessing", "⚠️ scikit-learn required. Install with: `pip install scikit-learn`")
 
 render_feature_engineering_ui()
 

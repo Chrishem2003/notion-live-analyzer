@@ -22,8 +22,8 @@ import pandas as pd
 
 st.set_page_config(page_title="Literature Engine", layout="wide", page_icon="📚")
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, load_css, watermark, section_header
+from modules.page_setup import bootstrap_page
+from modules.ui_components import section_header
 from modules.literature_engine import (
     LiteratureDatabase,
     PaperHarvester,
@@ -36,14 +36,11 @@ from modules.literature_engine import (
 from modules.audit_ui import render_audit_tab
 
 # ─── Init ─────────────────────────────────────────────────────────────
-init_session_state()
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card(
+bootstrap_page(
     "📚 Global Literature Aggregator & Auto-Drafting Engine",
     "Fetch unlimited real academic papers, build your bibliography, write your own findings, and export in multiple formats — zero AI hallucination, zero plagiarism.",
     badge_text="v2.0 — Unlimited Fetch + Multi-Export"
 )
-watermark("CHRISHEM")
 
 # ─── Initialize Engine ───────────────────────────────────────────────
 db = LiteratureDatabase()

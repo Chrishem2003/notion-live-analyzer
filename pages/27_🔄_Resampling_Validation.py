@@ -5,17 +5,10 @@ import streamlit as st
 
 st.set_page_config(page_title="Resampling & Validation", page_icon="🔄", layout="wide")
 
+from modules.page_setup import require_dependency
 from modules.resampling_engine import render_resampling_ui
 
-try:
-    from scipy import stats
-    HAS_DEPS = True
-except ImportError:
-    HAS_DEPS = False
-
-if not HAS_DEPS:
-    st.error("⚠️ scipy required. Install with: `pip install scipy`")
-    st.stop()
+require_dependency("scipy", "⚠️ scipy required. Install with: `pip install scipy`")
 
 render_resampling_ui()
 

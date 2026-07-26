@@ -12,22 +12,16 @@ st.set_page_config(
     layout="wide",
 )
 
+from modules.page_setup import require_dependency
 from modules.meta_analysis import render_meta_analysis_ui
 
 # ─── Check dependencies ──────────────────────────────────────────────
-try:
-    from scipy import stats
-    HAS_DEPS = True
-except ImportError:
-    HAS_DEPS = False
-
-if not HAS_DEPS:
-    st.error(
-        "⚠️ Required dependencies not installed.\n\n"
-        "Please go to **⚙️ Settings → Dependency Manager** and install missing packages, "
-        "or run: `pip install scipy statsmodels`"
-    )
-    st.stop()
+require_dependency(
+    "scipy",
+    "⚠️ Required dependencies not installed.\n\n"
+    "Please go to **⚙️ Settings → Dependency Manager** and install missing packages, "
+    "or run: `pip install scipy statsmodels`",
+)
 
 # ─── Render the meta-analysis UI ─────────────────────────────────────
 render_meta_analysis_ui()

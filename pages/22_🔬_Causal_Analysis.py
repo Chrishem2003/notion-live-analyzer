@@ -5,16 +5,10 @@ import streamlit as st
 
 st.set_page_config(page_title="Causal Analysis", page_icon="🔬", layout="wide")
 
+from modules.page_setup import require_dependency
 from modules.causal_inference import render_causal_inference_ui
 
-try:
-    from causalml.inference.tree import CausalForest
-    HAS_CAUSALML = True
-except ImportError:
-    HAS_CAUSALML = False
-
-if not HAS_CAUSALML:
-    st.warning("⚠️ causalml not fully installed. Propensity score matching and CATE estimation will use scikit-learn fallback. Install with: `pip install causalml`")
+require_dependency("causalml.inference.tree", "⚠️ causalml not fully installed. Propensity score matching and CATE estimation will use scikit-learn fallback. Install with: `pip install causalml`", stop=False)
 
 render_causal_inference_ui()
 

@@ -6,22 +6,13 @@ import pandas as pd
 
 st.set_page_config(page_title="Variable View", layout="wide", page_icon="🏷️")
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, load_css, watermark, section_header
+from modules.page_setup import bootstrap_page, get_active_dataframe
+from modules.ui_components import section_header
 from modules.variable_view import render_variable_view_editor, apply_variable_metadata
 
-init_session_state()
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("🏷️ Variable View Editor", "SPSS-style variable metadata — labels, value labels, measurement levels, and missing values.", "SPSS Variable View")
-watermark("CHRISHEM")
+bootstrap_page("🏷️ Variable View Editor", "SPSS-style variable metadata — labels, value labels, measurement levels, and missing values.", "SPSS Variable View")
 
-active_df = st.session_state.get("active_df")
-if active_df is None or active_df.empty:
-    active_df = st.session_state.get("notion_df")
-
-if active_df is None or active_df.empty:
-    st.warning("⚠️ No data available. Load data first.")
-    st.stop()
+active_df = get_active_dataframe()
 
 st.info(f"**Dataset**: {len(active_df)} rows × {len(active_df.columns)} columns")
 

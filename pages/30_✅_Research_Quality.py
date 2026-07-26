@@ -5,17 +5,10 @@ import streamlit as st
 
 st.set_page_config(page_title="Research Quality", page_icon="✅", layout="wide")
 
+from modules.page_setup import require_dependency
 from modules.research_quality import render_research_quality_ui
 
-try:
-    import numpy as np
-    HAS_DEPS = True
-except ImportError:
-    HAS_DEPS = False
-
-if not HAS_DEPS:
-    st.error("⚠️ numpy required.")
-    st.stop()
+require_dependency("numpy", "⚠️ numpy required.")
 
 df = st.session_state.get("active_df")
 statistical_results = st.session_state.get("statistical_results", [])

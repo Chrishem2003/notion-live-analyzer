@@ -5,17 +5,10 @@ import streamlit as st
 
 st.set_page_config(page_title="Network Analysis", page_icon="🔗", layout="wide")
 
+from modules.page_setup import require_dependency
 from modules.network_analyzer import render_network_analysis_ui
 
-try:
-    import networkx as nx
-    HAS_NETWORKX = True
-except ImportError:
-    HAS_NETWORKX = False
-
-if not HAS_NETWORKX:
-    st.error("⚠️ networkx is required. Install with: `pip install networkx python-louvain`")
-    st.stop()
+require_dependency("networkx", "⚠️ networkx is required. Install with: `pip install networkx python-louvain`")
 
 render_network_analysis_ui()
 

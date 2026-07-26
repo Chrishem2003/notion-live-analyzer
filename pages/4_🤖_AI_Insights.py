@@ -6,27 +6,18 @@ import pandas as pd
 
 st.set_page_config(page_title="CHRISHEM Insights", layout="wide", page_icon="🤖")
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, section_header, load_css, watermark, insight_card
+from modules.page_setup import bootstrap_page, get_active_dataframe
+from modules.ui_components import section_header, insight_card
 from modules.ai_analyzer import CHRISHEMAnalyzer
 from modules.data_processor import profile_dataset
 from modules.chart_builder import build_chart
 from modules.report_generator import auto_generate_report, get_report_download_link
 from modules.export import render_export_buttons
 
-init_session_state()
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-hero_card("🤖 CHRISHEM Insights Engine", "Automated data profiling, statistical recommendations, and natural language insights.", "CHRISHEM-Powered Analysis")
-watermark("CHRISHEM")
+bootstrap_page("🤖 CHRISHEM Insights Engine", "Automated data profiling, statistical recommendations, and natural language insights.", "CHRISHEM-Powered Analysis")
 
 # ─── Data Selection ──────────────────────────────────────────────────
-active_df = st.session_state.get("active_df")
-if active_df is None or active_df.empty:
-    active_df = st.session_state.get("notion_df")
-
-if active_df is None or active_df.empty:
-    st.warning("⚠️ No data available. Connect to Notion or upload a file first.")
-    st.stop()
+active_df = get_active_dataframe(warning="⚠️ No data available. Connect to Notion or upload a file first.")
 
 st.info(f"**Analyzing**: {len(active_df):,} rows × {len(active_df.columns)} columns")
 

@@ -57,6 +57,7 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 
 # ─── Database Path (matching existing pattern) ──────────────────────
 from modules.config import APP_DIR
+from modules.db_utils import connect_sqlite
 from modules.opportunity_feed import (
     OpportunityDatabase as FeedDatabase,
     OpportunityFeedEngine,
@@ -267,11 +268,7 @@ class PipelineDatabase:
 
     def _get_conn(self) -> sqlite3.Connection:
         """Get a reusable database connection."""
-        conn = sqlite3.connect(str(self.db_path))
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
-        return conn
+        return connect_sqlite(self.db_path, foreign_keys=True)
 
     def _init_schema(self):
         """Create tables if they don't exist."""

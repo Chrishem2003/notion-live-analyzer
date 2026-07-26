@@ -257,6 +257,36 @@ class ResearchQualityChecker:
 
 # ─── UI ─────────────────────────────────────────────────────────────
 
+def render_score_card(score: Any, headline: str, caption: str, color: str) -> None:
+    """Render the shared score summary card used by each quality check."""
+    import streamlit as st
+
+    st.markdown(f"""
+    <div style="text-align:center;padding:1.2rem;border-radius:14px;
+        border:2px solid {color};background:{color}10;margin-bottom:1rem;">
+        <div style="font-size:2.5rem;font-weight:900;color:{color};">{score}</div>
+        <div style="font-size:1.2rem;font-weight:700;color:{color};">{headline}</div>
+        <div>{caption}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_findings(findings: List[Dict]) -> None:
+    """Render severity-coloured finding cards with their recommendations."""
+    import streamlit as st
+
+    for f in findings:
+        severity = f["severity"]
+        sev_color = "#e74c3c" if severity == "high" else "#e67e22" if severity == "medium" else "#f1c40f"
+        st.markdown(f"""
+        <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
+            border-left:4px solid {sev_color};background:{sev_color}08;">
+            <strong>{f['detail']}</strong><br>
+            <span style="font-size:0.9rem;color:#64748b;">💡 {f['recommendation']}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+
 def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
     """Render the research quality checker UI."""
     import streamlit as st
@@ -282,24 +312,9 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                 score = result.get("score", 0)
                 risk_color = "#2ecc71" if risk == "low" else "#e67e22" if risk == "moderate" else "#e74c3c"
 
-                st.markdown(f"""
-                <div style="text-align:center;padding:1.2rem;border-radius:14px;
-                    border:2px solid {risk_color};background:{risk_color}10;margin-bottom:1rem;">
-                    <div style="font-size:2.5rem;font-weight:900;color:{risk_color};">{score}</div>
-                    <div style="font-size:1.2rem;font-weight:700;color:{risk_color};">{risk.upper()} RISK</div>
-                    <div>p-Hacking Risk Score</div>
-                </div>
-                """, unsafe_allow_html=True)
+                render_score_card(score, f"{risk.upper()} RISK", "p-Hacking Risk Score", risk_color)
 
-                for f in result.get("findings", []):
-                    sev_color = "#e74c3c" if f["severity"] == "high" else "#e67e22" if f["severity"] == "medium" else "#f1c40f"
-                    st.markdown(f"""
-                    <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
-                        border-left:4px solid {sev_color};background:{sev_color}08;">
-                        <strong style="color:{sev_color};">⚠️ {f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;">💡 {f['recommendation']}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                render_findings(result.get("findings", []))
 
             # Summary stats
             st.markdown("### 📊 Results Summary")
@@ -321,24 +336,9 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                 score = result.get("score", 0)
                 qual_color = "#2ecc71" if quality == "excellent" else "#e67e22" if quality == "good" else "#e74c3c"
 
-                st.markdown(f"""
-                <div style="text-align:center;padding:1.2rem;border-radius:14px;
-                    border:2px solid {qual_color};background:{qual_color}10;margin-bottom:1rem;">
-                    <div style="font-size:2.5rem;font-weight:900;color:{qual_color};">{score}</div>
-                    <div style="font-size:1.2rem;font-weight:700;color:{qual_color};">{quality.upper()}</div>
-                    <div>Reproducibility Score</div>
-                </div>
-                """, unsafe_allow_html=True)
+                render_score_card(score, f"{quality.upper()}", "Reproducibility Score", qual_color)
 
-                for f in result.get("findings", []):
-                    sev_color = "#e74c3c" if f["severity"] == "high" else "#e67e22" if f["severity"] == "medium" else "#f1c40f"
-                    st.markdown(f"""
-                    <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
-                        border-left:4px solid {sev_color};background:{sev_color}08;">
-                        <strong>{f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;color:#64748b;">💡 {f['recommendation']}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                render_findings(result.get("findings", []))
 
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
@@ -363,24 +363,9 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                 score = result.get("score", 0)
                 risk_color = "#2ecc71" if risk == "low" else "#e67e22" if risk == "moderate" else "#e74c3c"
 
-                st.markdown(f"""
-                <div style="text-align:center;padding:1.2rem;border-radius:14px;
-                    border:2px solid {risk_color};background:{risk_color}10;margin-bottom:1rem;">
-                    <div style="font-size:2.5rem;font-weight:900;color:{risk_color};">{score}</div>
-                    <div style="font-size:1.2rem;font-weight:700;color:{risk_color};">{risk.upper()} RISK</div>
-                    <div>QRP Risk Score</div>
-                </div>
-                """, unsafe_allow_html=True)
+                render_score_card(score, f"{risk.upper()} RISK", "QRP Risk Score", risk_color)
 
-                for f in result.get("findings", []):
-                    sev_color = "#e74c3c" if f["severity"] == "high" else "#e67e22" if f["severity"] == "medium" else "#f1c40f"
-                    st.markdown(f"""
-                    <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
-                        border-left:4px solid {sev_color};background:{sev_color}08;">
-                        <strong>{f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;color:#64748b;">💡 {f['recommendation']}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                render_findings(result.get("findings", []))
         else:
             st.info("No statistical results available. Run analyses first.")
 

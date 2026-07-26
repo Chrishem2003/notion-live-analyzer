@@ -29,6 +29,8 @@ import pandas as pd
 import requests
 import streamlit as st
 
+from modules.db_utils import connect_sqlite
+
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = APP_DIR / "research_workspace.db"
@@ -50,11 +52,7 @@ class LiteratureDatabase:
 
     def _get_conn(self) -> sqlite3.Connection:
         """Get a connection with row factory for dict-like access."""
-        conn = sqlite3.connect(str(self.db_path))
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
-        return conn
+        return connect_sqlite(self.db_path, foreign_keys=True)
 
     def _init_tables(self):
         """Create all tables if they don't exist. Auto-migrates if needed."""
