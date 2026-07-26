@@ -12,6 +12,10 @@ import requests
 import pandas as pd
 import streamlit as st
 
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
 PAGE_SIZE = 100
@@ -39,7 +43,10 @@ def _cached_request(cache_key: str, ttl: int = 60):
                     return cached_value
             
             result = func(*args, **kwargs)
-            _request_cache[full_key] = (now, result)
+            # Empty results usually mean the call failed; caching them would
+            # hide the failure for the whole TTL.
+            if result:
+                _request_cache[full_key] = (now, result)
             return result
         return wrapper
     return decorator
@@ -189,6 +196,15 @@ def get_database_options(token: str) -> List[Dict]:
                 request_payload["start_cursor"] = next_cursor
             response = _rate_limited_request("POST", url, json=request_payload, headers=headers)
             if response.status_code != 200:
+                logger.error(
+                    "Notion database search failed (page %s): %s — %s",
+                    page_count + 1, response.status_code, response.text[:200],
+                )
+                if not _handle_api_error(response, token):
+                    st.error(
+                        f"Could not list Notion databases (HTTP {response.status_code}). "
+                        "Showing any databases retrieved so far."
+                    )
                 break
             data = response.json()
             for db in data.get("results", []):
@@ -203,6 +219,7 @@ def get_database_options(token: str) -> List[Dict]:
             next_cursor = data.get("next_cursor")
             page_count += 1
     except Exception as e:
+        logger.exception("Error fetching Notion databases")
         st.error(f"Error fetching databases: {str(e)}")
     return databases
 
@@ -286,6 +303,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
             if _handle_api_error(schema_response, token, db_id):
                 return pd.DataFrame()
     except Exception as e:
+        logger.exception("Error fetching schema for Notion database %s", db_id)
         st.error(f"Error fetching database schema: {str(e)}")
         return pd.DataFrame()
 
@@ -303,6 +321,10 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
                 return pd.DataFrame()
 
             if response.status_code != 200:
+                logger.error(
+                    "Notion query failed for database %s: %s — %s",
+                    db_id, response.status_code, response.text[:200],
+                )
                 st.error(f"Notion API Error: {response.status_code} — {response.text[:200]}")
                 fetch_attempts += 1
                 continue
@@ -322,6 +344,10 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
                             parsed = ", ".join(str(item) for item in parsed) if parsed else None
                         row[prop_name] = parsed
                     except Exception:
+                        logger.warning(
+                            "Failed to parse Notion property %r (type %s) on page %s",
+                            prop_name, prop_type, page.get("id", "?"), exc_info=True,
+                        )
                         row[prop_name] = None
 
                 # Also add metadata
@@ -335,10 +361,12 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
             fetch_attempts = 0  # Reset on success
 
         except requests.exceptions.Timeout:
+            logger.warning("Timeout querying Notion database %s — retrying", db_id)
             st.warning("⏱️ Notion API timeout. Retrying...")
             fetch_attempts += 1
             time.sleep(1)
         except Exception as e:
+            logger.exception("Error fetching rows from Notion database %s", db_id)
             st.error(f"Error fetching data: {str(e)}")
             fetch_attempts += 1
             time.sleep(0.5)
@@ -358,7 +386,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
                 if numeric_series.notna().sum() > len(df) * 0.5:
                     df[col] = numeric_series
             except (ValueError, TypeError):
-                pass
+                logger.debug("Numeric type inference skipped for column %r", col, exc_info=True)
 
     return df
 
@@ -372,7 +400,12 @@ def get_database_schema(token: str, db_id: str) -> Dict:
         if response.status_code == 200:
             data = response.json()
             return data.get("properties", {})
+        logger.error(
+            "Failed to fetch schema for Notion database %s: %s — %s",
+            db_id, response.status_code, response.text[:200],
+        )
         return {}
     except Exception:
+        logger.exception("Error fetching schema for Notion database %s", db_id)
         return {}
 

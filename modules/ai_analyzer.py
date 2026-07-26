@@ -13,6 +13,9 @@ from modules.data_processor import (
     detect_outliers_iqr, detect_outliers_zscore,
 )
 from modules.statistical_engine import StatisticalEngine
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
 
 
 class CHRISHEMAnalyzer:
@@ -151,7 +154,10 @@ class CHRISHEMAnalyzer:
                 result = self.stats.test_normality(df, col)
                 if "error" not in result:
                     results[col] = result
+                else:
+                    logger.warning("Normality test for %r failed: %s", col, result["error"])
             except Exception:
+                logger.warning("Normality test raised for column %r", col, exc_info=True)
                 continue
 
         normal_cols = [c for c, r in results.items() if r.get("is_normal")]
@@ -335,7 +341,7 @@ class CHRISHEMAnalyzer:
                         direction = "positively" if skew > 0 else "negatively"
                         insights.append(f"📊 **{col}** is {direction} skewed ({skew:.2f}) — consider log transformation")
                 except Exception:
-                    pass
+                    logger.warning("Skewness insight failed for column %r", col, exc_info=True)
 
         # Categorical insights
         cat_cols = profile.get("categorical_columns", [])
@@ -348,7 +354,7 @@ class CHRISHEMAnalyzer:
                     if top_pct > 50:
                         insights.append(f"🏆 In **{col}**, **{top_val}** dominates ({top_pct:.0f}% of {n_unique} categories)")
                 except Exception:
-                    pass
+                    logger.warning("Categorical insight failed for column %r", col, exc_info=True)
 
         # Temporal insights
         temporal_cols = profile.get("temporal_columns", [])
@@ -359,7 +365,7 @@ class CHRISHEMAnalyzer:
                     if hasattr(date_range, 'days'):
                         insights.append(f"📅 **{col}** spans {date_range.days} days (from {df[col].min():%Y-%m-%d} to {df[col].max():%Y-%m-%d})")
                 except Exception:
-                    pass
+                    logger.warning("Temporal insight failed for column %r", col, exc_info=True)
 
         if not insights:
             insights.append("✅ No notable patterns detected — data appears clean and simple")

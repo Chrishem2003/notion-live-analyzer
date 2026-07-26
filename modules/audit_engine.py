@@ -33,6 +33,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = APP_DIR / "research_workspace.db"
@@ -87,8 +91,10 @@ class EnterpriseDataEngine:
             try:
                 conn.execute("ALTER TABLE audit_ledger ADD COLUMN project_id INTEGER DEFAULT 0")
                 conn.commit()
-            except sqlite3.OperationalError:
-                pass
+            except sqlite3.OperationalError as exc:
+                if "duplicate column name" not in str(exc).lower():
+                    logger.error("Audit ledger migration failed: %s", exc)
+                    raise
 
     def _get_last_block(self, session_id: str) -> str:
         """Get the current_hash of the most recent block in the chain."""

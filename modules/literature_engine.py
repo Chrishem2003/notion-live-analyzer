@@ -29,6 +29,10 @@ import pandas as pd
 import requests
 import streamlit as st
 
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = APP_DIR / "research_workspace.db"
@@ -125,8 +129,10 @@ class LiteratureDatabase:
             try:
                 conn.execute("ALTER TABLE fetched_papers ADD COLUMN is_cited INTEGER DEFAULT 0")
                 conn.commit()
-            except sqlite3.OperationalError:
-                pass  # Column already exists — fine
+            except sqlite3.OperationalError as exc:
+                if "duplicate column name" not in str(exc).lower():
+                    logger.error("fetched_papers migration failed: %s", exc)
+                    raise
 
         finally:
             conn.close()
@@ -561,10 +567,13 @@ class PaperHarvester:
                 time.sleep(0.35)  # Rate limiting
 
         except requests.exceptions.Timeout:
+            logger.warning("Semantic Scholar search timed out for query %r", query)
             st.warning("⏱️ Semantic Scholar API timed out. Try a more specific query.")
         except requests.exceptions.ConnectionError:
+            logger.warning("Could not connect to Semantic Scholar for query %r", query)
             st.warning("🔌 Could not connect to Semantic Scholar API. Check your internet.")
         except Exception as e:
+            logger.exception("Semantic Scholar search failed for query %r", query)
             st.warning(f"⚠️ Semantic Scholar search error: {str(e)[:100]}")
 
         return papers[:limit]
@@ -616,6 +625,7 @@ class PaperHarvester:
                 "abstract": (paper.get("abstract") or "")[:2000],
             }
         except Exception:
+            logger.warning("Could not normalise Semantic Scholar paper record", exc_info=True)
             return None
 
     def search_crossref(self, query: str, limit: int = 50, offset: int = 0) -> List[Dict]:
@@ -631,6 +641,11 @@ class PaperHarvester:
             }
             resp = self.session.get(self.CROSSREF_URL, params=params, timeout=self.timeout)
             if resp.status_code != 200:
+                logger.error(
+                    "CrossRef search for %r failed: %s — %s",
+                    query, resp.status_code, resp.text[:200],
+                )
+                st.warning(f"⚠️ CrossRef returned HTTP {resp.status_code} — no results from this source.")
                 return papers
 
             data = resp.json()
@@ -642,10 +657,13 @@ class PaperHarvester:
                     papers.append(entry)
 
         except requests.exceptions.Timeout:
+            logger.warning("CrossRef search timed out for query %r", query)
             st.warning("⏱️ CrossRef API timed out.")
         except requests.exceptions.ConnectionError:
+            logger.warning("Could not connect to CrossRef for query %r", query)
             st.warning("🔌 Could not connect to CrossRef API.")
         except Exception as e:
+            logger.exception("CrossRef search failed for query %r", query)
             st.warning(f"⚠️ CrossRef search error: {str(e)[:100]}")
 
         return papers[:limit]
@@ -690,6 +708,7 @@ class PaperHarvester:
                 "abstract": "",
             }
         except Exception:
+            logger.warning("Could not normalise CrossRef paper record", exc_info=True)
             return None
 
     def search_combined(
@@ -757,7 +776,10 @@ class ReferenceFormatter:
             try:
                 return self._format_with_citeproc(papers, style)
             except Exception:
-                pass
+                logger.warning(
+                    "citeproc formatting failed for style %r — falling back to manual formatting",
+                    style, exc_info=True,
+                )
         return self._format_manual(papers, style)
 
     def format_citation(self, paper: Dict, style: str = "apa", inline: bool = True) -> str:
@@ -808,6 +830,10 @@ class ReferenceFormatter:
                 formatted.append(str(item))
             return "\n\n".join(formatted) if formatted else self._format_manual(papers, style)
         except Exception:
+            logger.warning(
+                "citeproc rendering failed for style %r — falling back to manual formatting",
+                style, exc_info=True,
+            )
             return self._format_manual(papers, style)
 
     def _paper_to_csl_json(self, paper: Dict, index: int) -> Optional[Dict]:
@@ -832,6 +858,7 @@ class ReferenceFormatter:
                 csl["URL"] = paper["url"]
             return csl
         except Exception:
+            logger.warning("Could not build CSL record for paper %r", paper.get("title"), exc_info=True)
             return None
 
     def _format_manual(self, papers: List[Dict], style: str) -> str:

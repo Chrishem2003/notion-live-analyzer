@@ -8,6 +8,10 @@ import importlib
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass, field
 
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 # ─── Package Registry ─────────────────────────────────────────────────
 # Each package: pip_name -> (import_name, category, description, min_version)
 
@@ -119,7 +123,9 @@ def check_single_package(pkg: PackageInfo) -> bool:
         pkg.installed_version = None
         return False
     except Exception:
-        # If import succeeds partially, still count as installed
+        # The module exists but fails to import cleanly (broken install, bad
+        # native extension, ...). Treat it as present, but make it visible.
+        logger.warning("Package %r is installed but failed to import", pkg.pip_name, exc_info=True)
         pkg.is_installed = True
         return True
 
@@ -337,9 +343,11 @@ def auto_fix_missing_critical(quiet: bool = False) -> int:
                 if not quiet:
                     print(f"✅ Auto-installed: {pkg.pip_name}")
             else:
+                logger.error("Auto-install of %s failed: %s", pkg.pip_name, msg)
                 if not quiet:
                     print(f"⚠️ Failed: {pkg.pip_name} — {msg}")
         except Exception as e:
+            logger.exception("Auto-install of %s raised an error", pkg.pip_name)
             if not quiet:
                 print(f"⚠️ Error installing {pkg.pip_name}: {e}")
 
@@ -357,7 +365,9 @@ def safe_import(import_name: str, pip_name: str, category: str = "Custom", descr
         mod = importlib.import_module(import_name)
         return mod, True
     except ImportError:
+        logger.info("Optional dependency %r is not installed (pip install %s)", import_name, pip_name)
         return None, False
-    except Exception as e:
+    except Exception:
+        logger.warning("Optional dependency %r failed to import", import_name, exc_info=True)
         return None, False
 

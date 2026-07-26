@@ -27,6 +27,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple, Callable
 
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
@@ -34,6 +38,7 @@ try:
     HAS_CRYPTO = True
 except ImportError:
     HAS_CRYPTO = False
+    logger.warning("cryptography package unavailable — vault falls back to a reduced crypto path")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -209,6 +214,7 @@ class CryptoEngine:
                     decryptor.authenticate_additional_data(associated_data)
                 return decryptor.update(ciphertext) + decryptor.finalize()
         except Exception:
+            logger.warning("AES-GCM decryption failed (wrong key or tampered ciphertext)", exc_info=True)
             return None
 
     @staticmethod
@@ -233,9 +239,11 @@ class CryptoEngine:
             if plaintext is not None and expected_hash:
                 actual_hash = hashlib.sha256(plaintext).hexdigest()
                 if not hmac.compare_digest(actual_hash, expected_hash):
-                    return None  # integrity check failed
+                    logger.error("Vault file integrity check failed — content hash mismatch")
+                    return None
             return plaintext
         except Exception:
+            logger.warning("Vault file decryption failed", exc_info=True)
             return None
 
 

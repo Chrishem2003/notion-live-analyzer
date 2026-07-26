@@ -12,6 +12,9 @@ import streamlit as st
 from modules.data_processor import infer_column_types, profile_dataset
 from modules.statistical_engine import StatisticalEngine
 from modules.ai_analyzer import CHRISHEMAnalyzer
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
 
 
 class ExecutiveStoryteller:
@@ -104,7 +107,7 @@ class ExecutiveStoryteller:
                                         f"(t({result.get('n', 0)-1}) = {result.get('t_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, d = {result.get('cohens_d', 0):.2f})",
                         })
             except Exception:
-                pass
+                logger.warning("One-sample t-test failed for column %r", col, exc_info=True)
 
         # Group comparisons
         for cat in cat_cols[:3]:
@@ -138,7 +141,7 @@ class ExecutiveStoryteller:
                                             f"(F = {result.get('f_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, η² = {result.get('eta_squared', 0):.2f})",
                             })
                 except Exception:
-                    pass
+                    logger.warning("Group comparison failed for %r by %r", num, cat, exc_info=True)
 
         # Chi-square tests
         for i, cat1 in enumerate(cat_cols[:4]):
@@ -157,7 +160,7 @@ class ExecutiveStoryteller:
                                         f"(χ² = {result.get('chi_square', 0):.2f}, p = {result.get('p_value', 1):.3f}, V = {result.get('cramers_v', 0):.2f})",
                         })
                 except Exception:
-                    pass
+                    logger.warning("Chi-square test failed for %r vs %r", cat1, cat2, exc_info=True)
 
         # Correlation tests
         if len(numeric_cols) >= 2:
@@ -177,7 +180,7 @@ class ExecutiveStoryteller:
                                                 f"(r = {result.get('r', 0):.2f}, p = {result.get('p_value', 1):.3f})",
                                 })
                     except Exception:
-                        pass
+                        logger.warning("Correlation test failed for %r vs %r", col1, col2, exc_info=True)
             battery["strong_correlations"] = strong_corrs
 
         # Temporal trends
@@ -202,7 +205,7 @@ class ExecutiveStoryteller:
                                             f"(ρ = {r:.2f}, p = {p:.3f})",
                             })
                     except Exception:
-                        pass
+                        logger.warning("Temporal trend test failed for %r over %r", num, temp, exc_info=True)
 
         return battery
 
@@ -232,7 +235,7 @@ class ExecutiveStoryteller:
                         "upper_bound": round(float(upper), 2),
                     })
             except Exception:
-                pass
+                logger.warning("Outlier detection failed for column %r", col, exc_info=True)
 
         anomalies["severity"] = (
             "low" if anomalies["total_outliers"] < 10

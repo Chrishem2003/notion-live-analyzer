@@ -25,24 +25,35 @@ _HEAVY_PACKAGES = {"xgboost", "shap", "pymc", "arviz", "causalml", "prophet"}
 # We defer the full dependency scan to a background check by storing the
 # result of a quick pip list instead of 30+ importlib calls.
 import subprocess as _sp
+
+from modules.logging_utils import get_logger
+
+logger = get_logger("app")
+
 try:
     _installed_pkgs = set(
         line.split("==")[0].lower().replace("-", "_")
         for line in _sp.check_output(
-            [sys.executable, "-m", "pip", "list", "--format=columns"],
+            [sys.executable, "-m", "pip", "list", "--format=freeze"],
             text=True, timeout=15, stderr=_sp.DEVNULL
-        ).splitlines()[2:]  # skip header
+        ).splitlines()
         if "==" in line
     )
 except Exception:
-    _installed_pkgs = set()
+    logger.exception("Dependency scan failed — skipping the startup dependency check")
+    _installed_pkgs = None
 
 # Quick check: are core packages present? (fast set lookup)
+# A failed scan (_installed_pkgs is None) must not be reported as "everything
+# is missing" — that would trigger a needless reinstall of every package.
 _CORE_PACKAGES = {"streamlit", "pandas", "numpy", "plotly", "requests", "scipy", "statsmodels", "openpyxl"}
-_missing_core = [p for p in _CORE_PACKAGES if p not in _installed_pkgs]
+_missing_core = [] if _installed_pkgs is None else [p for p in _CORE_PACKAGES if p not in _installed_pkgs]
 
 # Heavy package detection (lazy — not imported, just check pip list)
-_missing_heavy = [p for p in _HEAVY_PACKAGES if p.replace("-", "_") not in _installed_pkgs]
+_missing_heavy = (
+    [] if _installed_pkgs is None
+    else [p for p in _HEAVY_PACKAGES if p.replace("-", "_") not in _installed_pkgs]
+)
 
 # Store results for later non-blocking display
 st.session_state["_startup_missing_core"] = _missing_core
@@ -316,8 +327,9 @@ with st.sidebar:
 
             st.code(DATABASE_ID, language="text")
             st.caption(f"Source: {DATABASE_SOURCE}")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.exception("Failed to render the Notion database selector")
+        st.warning(f"⚠️ Could not load the database list: {e}")
 
     end_sidebar_card()
 
@@ -414,8 +426,11 @@ if df is not None and not df.empty:
             if "error" not in report:
                 st.session_state["executive_report"] = report
                 st.session_state["executive_report_generated"] = True
-        except Exception as e:
-            pass  # Non-blocking; will be generated on demand
+            else:
+                logger.warning("Executive report generation returned an error: %s", report["error"])
+        except Exception:
+            # Non-blocking; the report can still be generated on demand.
+            logger.exception("Auto-generation of the executive report failed")
 
 # ───────────────────────────────────────────────────────────────────────
 # 13. DASHBOARD OVERVIEW
