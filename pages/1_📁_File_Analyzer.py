@@ -5,6 +5,9 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="File Analyzer", layout="wide", page_icon="📁")
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'NEW')))
 
 from modules.config import init_session_state
 from modules.ui_components import hero_card, section_header, load_css, watermark
