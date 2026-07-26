@@ -82,7 +82,8 @@ render_audit_tab(db, project_id)
 st.sidebar.markdown("---")
 st.sidebar.info(
     "💡 **Quick Guide:**\n\n"
-    "• **Forensic Audit** — Professor view (password: CHRISHEM)\n"
+    "• **Forensic Audit** — Professor view (requires the configured "
+    "`AUDIT_MASTER_PASSWORD`)\n"
     "• **Plagiarism & AI Check** — Score any text\n"
     "• **Optimization Studio** — Humanize your writing\n"
     "• **Export** — Download audit reports"

@@ -131,7 +131,7 @@ class GitIntegration:
 
             # Download to temp file
             import requests
-            response = requests.get(content.download_url)
+            response = requests.get(content.download_url, timeout=30)
             response.raise_for_status()
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:

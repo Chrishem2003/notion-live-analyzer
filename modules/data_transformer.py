@@ -9,6 +9,24 @@ import re
 import streamlit as st
 from datetime import datetime, timedelta
 
+# ─── Expression Safety ───────────────────────────────────────────────
+
+_FORBIDDEN_EXPR_PATTERNS = ("__", "import", "lambda", "@")
+
+
+def validate_expression(expression: str) -> None:
+    """
+    Reject expressions that could escape pandas' evaluation sandbox.
+
+    `DataFrame.eval` falls back to the Python engine, where dunder attribute
+    access or `@` local-variable injection can reach arbitrary objects.
+    """
+    lowered = expression.lower()
+    for token in _FORBIDDEN_EXPR_PATTERNS:
+        if token in lowered:
+            raise ValueError(f"Expression contains a disallowed token: '{token}'")
+
+
 # ─── Compute Variable ────────────────────────────────────────────────
 
 def compute_variable(
@@ -39,7 +57,8 @@ def compute_variable(
     try:
         # Replace SPSS-like functions with Python
         expr_clean = expression.strip()
-        result = df.eval(expr_clean, local_dict=safe_builtins)
+        validate_expression(expr_clean)
+        result = df.eval(expr_clean, local_dict=safe_builtins, parser="pandas")
         df[new_var_name] = result
         return df
     except Exception as e:
@@ -262,7 +281,8 @@ def select_cases(
     """
     df = df.copy()
     try:
-        mask = df.eval(condition)
+        validate_expression(condition)
+        mask = df.eval(condition, parser="pandas")
         if mode == "filter":
             return df[mask].reset_index(drop=True)
         else:

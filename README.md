@@ -122,6 +122,8 @@ notion-live-analyzer/
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `NOTION_TOKEN` | ✅ | Notion Internal Integration Secret |
+| `AUDIT_MASTER_PASSWORD` | ❌ | Unlocks the Forensic Audit view (view stays locked if unset) |
+| `PROJECT_COLLAB_SIGNING_KEY` | ❌ | JWT signing key for Project Collaboration (random per-process if unset) |
 | `DATABASE_ID` | ❌ | Notion database ID (auto-discovers if blank) |
 | `RENDER_EXTERNAL_URL` | ❌ | Your app URL (used by cron keep-alive) |
 | `PYTHON_VERSION` | ❌ | Python version (default: 3.11.9) |

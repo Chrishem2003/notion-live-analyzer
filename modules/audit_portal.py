@@ -43,40 +43,50 @@ except ImportError:
     HAS_CRYPTOGRAPHY = False
     Fernet = None
 
-CHRISHEM_SALT = b"CHRISHEM_AUDIT_PORTAL_SALT_2024"
+# Legacy static salt — only used to read submissions written before
+# per-submission salts were introduced.
+LEGACY_SALT = b"CHRISHEM_AUDIT_PORTAL_SALT_2024"
+KDF_ITERATIONS = 600000
+SALT_BYTES = 16
 
 
-def derive_fernet_key(password: str) -> bytes:
-    """Derive a 32-byte Fernet key from a password."""
+class CryptographyUnavailable(RuntimeError):
+    """Raised when encryption is requested without the cryptography package."""
+
+
+def derive_fernet_key(password: str, salt: bytes) -> bytes:
+    """Derive a 32-byte Fernet key from a password and salt."""
     if not HAS_CRYPTOGRAPHY:
-        return hashlib.sha256(password.encode() + CHRISHEM_SALT).digest()
+        raise CryptographyUnavailable(
+            "The 'cryptography' package is required for submission encryption."
+        )
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
-        salt=CHRISHEM_SALT,
-        iterations=600000,
+        salt=salt,
+        iterations=KDF_ITERATIONS,
     )
     return base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
 
 def encrypt_text(plaintext: str, password: str) -> str:
-    """Encrypt text using Fernet. Falls back to base64 if cryptography missing."""
-    if not HAS_CRYPTOGRAPHY:
-        return base64.b64encode(plaintext.encode()).decode()
-    f = Fernet(derive_fernet_key(password))
-    return f.encrypt(plaintext.encode()).decode()
+    """Encrypt text with Fernet using a random per-record salt."""
+    salt = os.urandom(SALT_BYTES)
+    token = Fernet(derive_fernet_key(password, salt)).encrypt(plaintext.encode())
+    return f"v2:{base64.urlsafe_b64encode(salt).decode()}:{token.decode()}"
 
 
 def decrypt_text(ciphertext: str, password: str) -> str:
-    """Decrypt Fernet-encrypted text."""
-    if not HAS_CRYPTOGRAPHY:
-        try:
-            return base64.b64decode(ciphertext.encode()).decode()
-        except Exception:
-            return "[Decryption failed: cryptography package required]"
+    """Decrypt Fernet-encrypted text (salted records and legacy records)."""
     try:
-        f = Fernet(derive_fernet_key(password))
-        return f.decrypt(ciphertext.encode()).decode()
+        if ciphertext.startswith("v2:"):
+            _, salt_b64, token = ciphertext.split(":", 2)
+            salt = base64.urlsafe_b64decode(salt_b64)
+        else:
+            salt, token = LEGACY_SALT, ciphertext
+        return Fernet(derive_fernet_key(password, salt)).decrypt(token.encode()).decode()
+    except CryptographyUnavailable as e:
+        return f"[🔒 {e}]"
     except Exception as e:
         return f"[🔒 Decryption failed: {str(e)}]"
 
@@ -136,7 +146,7 @@ class CHRISHEMSubmissionSystem:
         student_name: str,
         title: str,
         content: str,
-        password: str = "CHRISHEM",
+        password: str,
         file_name: str = "",
         file_type: str = "",
         file_size: int = 0,
@@ -229,7 +239,7 @@ class CHRISHEMSubmissionSystem:
         grade: str,
         score: float,
         feedback: str,
-        professor_password: str = "CHRISHEM",
+        professor_password: str,
     ) -> bool:
         """Professor reviews and grades a submission."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
@@ -251,7 +261,7 @@ class CHRISHEMSubmissionSystem:
         self,
         submission_id: int,
         feedback: str,
-        professor_password: str = "CHRISHEM",
+        professor_password: str,
     ) -> bool:
         """Return submission with feedback for revision."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
