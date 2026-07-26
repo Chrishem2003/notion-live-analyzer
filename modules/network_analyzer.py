@@ -8,6 +8,8 @@ from typing import Dict, List, Any, Optional, Tuple
 import pandas as pd
 import numpy as np
 import warnings
+
+from modules.pandas_compat import text_columns
 warnings.filterwarnings('ignore')
 
 try:
@@ -302,7 +304,7 @@ def render_network_analysis_ui():
 
     with tab2:
         st.subheader("📝 Co-occurrence Network (from text)")
-        text_cols = df.select_dtypes(include=['object']).columns.tolist()
+        text_cols = text_columns(df)
         if text_cols:
             text_col = st.selectbox("Text column", options=text_cols, key="net_text_col")
             top_n = st.slider("Top N words", 10, 100, 50, key="net_top_n")

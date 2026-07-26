@@ -8,6 +8,8 @@ from typing import Dict, List, Any, Optional, Tuple
 import pandas as pd
 import numpy as np
 import warnings
+
+from modules.pandas_compat import text_columns
 warnings.filterwarnings('ignore')
 
 try:
@@ -229,7 +231,7 @@ def render_feature_engineering_ui():
 
     engine = FeatureEngineer()
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    cat_cols = df.select_dtypes(include=['object']).columns.tolist()
+    cat_cols = text_columns(df)
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🔗 Interactions", "📐 Polynomials", "📊 Binning",

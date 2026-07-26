@@ -148,6 +148,95 @@ class AudioSpatialPosition:
         }
 
 
+class SpatialAudioEngine:
+    """
+    Session-level spatial audio mixer.
+
+    Keeps the listener (local user) position and every remote participant's
+    position, and derives per-participant stereo pan / volume from their cursor
+    distance using :class:`AudioSpatialPosition`.
+    """
+
+    def __init__(self, min_volume: float = 0.3, enabled: bool = True):
+        self.listener_x: float = 0.0
+        self.listener_y: float = 0.0
+        self.min_volume = max(0.0, min(1.0, min_volume))
+        self._enabled = enabled
+        self._positions: Dict[str, AudioSpatialPosition] = {}
+
+    @property
+    def is_enabled(self) -> bool:
+        return self._enabled
+
+    def toggle(self) -> bool:
+        """Toggle spatial audio on/off. Returns the new state."""
+        self._enabled = not self._enabled
+        return self._enabled
+
+    def set_listener_position(self, x: float, y: float):
+        """Move the local listener."""
+        self.listener_x = float(x)
+        self.listener_y = float(y)
+
+    def set_position(self, participant_id: str, x: float, y: float) -> AudioSpatialPosition:
+        """Set (or create) a participant's spatial position."""
+        position = self._positions.get(participant_id)
+        if position is None:
+            position = AudioSpatialPosition(x, y)
+            self._positions[participant_id] = position
+        else:
+            position.x = float(x)
+            position.y = float(y)
+        return position
+
+    def remove_participant(self, participant_id: str) -> bool:
+        """Drop a participant from the mix. Returns True if it was present."""
+        return self._positions.pop(participant_id, None) is not None
+
+    def clear(self):
+        """Remove all tracked participants."""
+        self._positions.clear()
+
+    def get_params(self, participant_id: str) -> Dict[str, float]:
+        """
+        Spatial audio parameters for one participant.
+        Returns centered/full-volume parameters when the engine is disabled,
+        and an empty dict for an unknown participant.
+        """
+        position = self._positions.get(participant_id)
+        if position is None:
+            return {}
+        if not self._enabled:
+            return {"pan": 0.0, "volume": 1.0, "distance": 0.0, "azimuth": 0.0}
+
+        params = position.get_spatial_audio_params(
+            self.listener_x, self.listener_y, position.x, position.y
+        )
+        params["volume"] = max(
+            self.min_volume,
+            AudioSpatialPosition.calculate_volume(
+                self.listener_x, self.listener_y, position.x, position.y,
+                min_volume=self.min_volume,
+            ),
+        )
+        return params
+
+    def mix(self) -> Dict[str, Dict[str, float]]:
+        """Spatial audio parameters for every tracked participant."""
+        return {pid: self.get_params(pid) for pid in self._positions}
+
+    def get_state(self) -> Dict[str, Any]:
+        """Current engine state."""
+        return {
+            "is_enabled": self._enabled,
+            "listener": {"x": self.listener_x, "y": self.listener_y},
+            "participant_count": len(self._positions),
+            "min_volume": self.min_volume,
+            "max_distance": MAX_SPATIAL_DISTANCE,
+            "pan_range": SPATIAL_PAN_RANGE,
+        }
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # NOISE SUPPRESSION ENGINE
 # ═══════════════════════════════════════════════════════════════════════

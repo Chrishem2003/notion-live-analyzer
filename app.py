@@ -5,9 +5,8 @@ Replaces SPSS, Tableau, Power BI with a single, intelligent, Notion-connected re
 """
 import time
 import os
-import sys
-import subprocess
 from datetime import datetime
+from importlib.metadata import distributions as _distributions
 from pathlib import Path
 
 import streamlit as st
@@ -22,20 +21,24 @@ _startup_start = time.time()
 AUTO_FIX_DEPS = os.environ.get("AUTO_FIX_DEPS", "true").lower() == "true"
 _HEAVY_PACKAGES = {"xgboost", "shap", "pymc", "arviz", "causalml", "prophet"}
 
-# We defer the full dependency scan to a background check by storing the
-# result of a quick pip list instead of 30+ importlib calls.
-import subprocess as _sp
-try:
-    _installed_pkgs = set(
-        line.split("==")[0].lower().replace("-", "_")
-        for line in _sp.check_output(
-            [sys.executable, "-m", "pip", "list", "--format=columns"],
-            text=True, timeout=15, stderr=_sp.DEVNULL
-        ).splitlines()[2:]  # skip header
-        if "==" in line
-    )
-except Exception:
-    _installed_pkgs = set()
+# We defer the full dependency scan to a background check by reading the
+# installed distribution metadata instead of 30+ importlib calls. The result is
+# cached in session state so reruns (every widget interaction) stay instant.
+
+
+def _scan_installed_packages() -> set:
+    try:
+        return {
+            (dist.metadata["Name"] or "").lower().replace("-", "_")
+            for dist in _distributions()
+        }
+    except Exception:
+        return set()
+
+
+if "_installed_pkgs" not in st.session_state:
+    st.session_state["_installed_pkgs"] = _scan_installed_packages()
+_installed_pkgs = st.session_state["_installed_pkgs"]
 
 # Quick check: are core packages present? (fast set lookup)
 _CORE_PACKAGES = {"streamlit", "pandas", "numpy", "plotly", "requests", "scipy", "statsmodels", "openpyxl"}

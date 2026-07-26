@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
+from modules.pandas_compat import is_text_dtype, text_columns
+
 # ─── Provenance Integration ──────────────────────────────────────────
 try:
     from modules.data_provenance import ProvenanceTracker, with_provenance
@@ -44,7 +46,7 @@ def infer_column_type(series: pd.Series) -> str:
         return "categorical"
 
     # Check for text / rich text
-    if clean.dtype == object:
+    if is_text_dtype(clean):
         sample = clean.iloc[0] if len(clean) > 0 else ""
         if isinstance(sample, str) and len(sample) > 50:
             return "text"
@@ -135,7 +137,7 @@ def clean_dataframe(df: pd.DataFrame, options: Dict[str, bool] = None) -> pd.Dat
         df = df.drop_duplicates()
 
     if options.get("strip_whitespace"):
-        for col in df.select_dtypes(include="object").columns:
+        for col in text_columns(df):
             df[col] = df[col].astype(str).str.strip()
 
     if options.get("fill_numeric_na") == "mean":
@@ -148,7 +150,7 @@ def clean_dataframe(df: pd.DataFrame, options: Dict[str, bool] = None) -> pd.Dat
         df[df.select_dtypes(include=[np.number]).columns] = df.select_dtypes(include=[np.number]).fillna(0)
 
     if options.get("fill_categorical_na") == "mode":
-        for col in df.select_dtypes(include="object").columns:
+        for col in text_columns(df):
             if df[col].isna().any():
                 mode_val = df[col].mode()
                 if len(mode_val) > 0:

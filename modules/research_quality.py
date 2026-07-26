@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import warnings
+
+from modules.pandas_compat import is_text_dtype
 warnings.filterwarnings('ignore')
 
 
@@ -121,7 +123,7 @@ class ResearchQualityChecker:
         # 3. Data types consistency
         mixed_types = []
         for col in df.columns:
-            if df[col].dtype == 'object':
+            if is_text_dtype(df[col]):
                 numeric_ratio = pd.to_numeric(df[col], errors='coerce').notna().mean()
                 if 0.2 < numeric_ratio < 0.8:
                     mixed_types.append(col)

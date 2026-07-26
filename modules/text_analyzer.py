@@ -9,6 +9,8 @@ import streamlit as st
 import re
 from collections import Counter
 import warnings
+
+from modules.pandas_compat import text_columns
 warnings.filterwarnings('ignore')
 
 # Text processing
@@ -294,7 +296,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
         return
 
     # Select text column
-    text_cols = df.select_dtypes(include=['object']).columns.tolist()
+    text_cols = text_columns(df)
     if not text_cols:
         st.warning("No text columns found in the dataset.")
         return

@@ -12,6 +12,8 @@ import io
 import base64
 import json
 
+from modules.pandas_compat import is_text_dtype, text_columns
+
 warnings.filterwarnings('ignore')
 
 # ─── scikit-learn imports ──────────────────────────────────────────
@@ -139,7 +141,7 @@ class PredictiveEngine:
         X = pd.DataFrame(imputer.fit_transform(X), columns=feature_cols)
 
         # Handle categorical target
-        if y.dtype == 'object' or y.dtype.name == 'category':
+        if is_text_dtype(y) or y.dtype.name == 'category':
             le = LabelEncoder()
             y = le.fit_transform(y)
             self.label_encoders['target'] = le
@@ -688,7 +690,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
             except Exception:
                 pass
         # Also check object columns that might be dates
-        for col in df.select_dtypes(include=['object']).columns:
+        for col in text_columns(df):
             try:
                 pd.to_datetime(df[col].dropna().head(5))
                 date_cols.append(col)
