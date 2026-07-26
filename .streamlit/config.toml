@@ -1,8 +1,4 @@
 [server]
-# ─── Layer 3: Server Heartbeat ────────────────────────────────────────
-# Keeps the Streamlit server session alive when clients are connected
-heartbeatInterval = 5000
-
 # General server settings
 maxUploadSize = 50
 enableXsrfProtection = false
@@ -38,4 +34,3 @@ developmentMode = false
 [logger]
 # Only log errors in production
 level = "error"
-
