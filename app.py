@@ -245,6 +245,7 @@ from modules.runtime_perf import (
     release,
     resolve_app_url,
 )
+from modules.session_auth import render_account_badge
 
 DATABASE_SOURCE = "configured"
 
@@ -274,6 +275,8 @@ if not DATABASE_ID:
 # 7. SIDEBAR — Control Panel & Keep-Alive
 # ───────────────────────────────────────────────────────────────────────
 with st.sidebar:
+    render_account_badge()
+
     # ─── Connection Status ───────────────────────────────────────
     sidebar_card("Control Panel", "Live connection")
 

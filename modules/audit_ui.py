@@ -10,8 +10,10 @@ Renders the 5th tab "Audit & Compliance Hub" with 4 sub-tabs:
 from __future__ import annotations
 
 import base64
+import hmac
 import io
 import json
+import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -31,11 +33,25 @@ from modules.audit_engine import (
     UniversalFileReader,
     get_audit_orchestrator,
 )
+from modules.accounts import AccountError
+from modules.billing import AUDIT_CHECK, UNLIMITED
+from modules.session_auth import consume as consume_feature
+from modules.session_auth import entitlement
 from modules.ui_components import section_header
 
 # ─── Constants ────────────────────────────────────────────────────────
-MASTER_PASSWORD = "CHRISHEM"
 SUPPORTED_FORMATS = ", ".join(sorted(UniversalFileReader.SUPPORTED_EXTENSIONS))
+
+
+def forensic_password() -> str:
+    """Password guarding the professor-facing forensic view.
+
+    Read from the environment: the previous literal in this file was public in
+    the repository, so anyone who read the source could unlock a professor's
+    audit trail. An unset variable keeps the view locked rather than falling
+    back to a shared default.
+    """
+    return os.environ.get("FORENSIC_MASTER_PASSWORD", "")
 
 
 def render_audit_tab(db, project_id: int):
@@ -122,7 +138,13 @@ def render_forensic_audit(
             st.markdown("")
             st.markdown("")
             if st.button("🔓 Unlock", type="primary", use_container_width=True):
-                if pwd == MASTER_PASSWORD:
+                secret = forensic_password()
+                if not secret:
+                    st.error(
+                        "❌ `FORENSIC_MASTER_PASSWORD` is not configured on this "
+                        "deployment, so the forensic view stays locked."
+                    )
+                elif hmac.compare_digest(pwd or "", secret):
                     st.session_state["forensic_unlocked"] = True
                     st.success("✅ Forensic view unlocked!")
                     st.rerun()
@@ -432,7 +454,22 @@ def render_plagiarism_ai_check(
             else:
                 st.info("📚 No bibliography references available. AI-check only (no plagiarism cross-ref).")
 
+        allowance = entitlement(AUDIT_CHECK)
+        if not allowance.allowed:
+            st.warning(allowance.reason)
+            st.page_link("pages/48_💳_Pricing.py", label="See plans", icon="💳")
+        elif allowance.limit != UNLIMITED:
+            st.caption(
+                f"🎟️ {allowance.remaining} of {allowance.limit} audit checks left this month."
+            )
+
         if run_audit:
+            try:
+                consume_feature(AUDIT_CHECK)
+            except AccountError as exc:
+                st.warning(str(exc))
+                st.stop()
+
             with st.spinner("🔍 Running multi-vector audit..."):
                 results = orchestrator.audit_text(
                     text=text_to_audit,
