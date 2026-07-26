@@ -2,13 +2,13 @@
 Keep-Alive System — multi-layer approach to prevent app sleep.
 5 layers: Client JS + Server Thread + Streamlit Config + Cron + Auto-Restart
 """
-import os
 import time
 import threading
 import logging
 import requests
 from typing import Optional
-import streamlit as st
+
+from modules.runtime_perf import resolve_app_url
 
 logger = logging.getLogger(__name__)
 
@@ -60,14 +60,18 @@ class ServerKeepAliveThread:
     """Background thread that pings the app from inside the server."""
 
     def __init__(self, app_url: Optional[str] = None, interval: int = 300):
-        self.app_url = app_url or os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:8501")
+        self.app_url = app_url or resolve_app_url()
         self.interval = interval
         self._running = False
         self._thread: Optional[threading.Thread] = None
 
     def start(self):
-        """Start the background keep-alive thread."""
-        if self._running:
+        """Start the background keep-alive thread.
+
+        No-op without a public URL: pinging the container's own localhost keeps
+        nothing awake and only holds a thread open for the process lifetime.
+        """
+        if self._running or not self.app_url:
             return
         self._running = True
         self._thread = threading.Thread(target=self._run, daemon=True, name="keepalive-server")

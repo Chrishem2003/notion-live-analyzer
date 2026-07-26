@@ -123,8 +123,37 @@ notion-live-analyzer/
 |----------|----------|-------------|
 | `NOTION_TOKEN` | ✅ | Notion Internal Integration Secret |
 | `DATABASE_ID` | ❌ | Notion database ID (auto-discovers if blank) |
-| `RENDER_EXTERNAL_URL` | ❌ | Your app URL (used by cron keep-alive) |
+| `APP_URL` | ❌ | Public URL of this deployment (enables the server-side keep-alive ping) |
+| `RENDER_EXTERNAL_URL` | ❌ | Same purpose as `APP_URL`; set automatically by Render |
+| `AUTO_FIX_DEPS` | ❌ | Auto-install missing core packages on startup (default: `true`) |
 | `PYTHON_VERSION` | ❌ | Python version (default: 3.11.9) |
+
+Without `APP_URL`/`RENDER_EXTERNAL_URL` the server-side keep-alive stays off — it would
+otherwise ping the container's own `localhost`, which keeps nothing awake.
+
+---
+
+## 🧠 Memory Budget (hosted deployments)
+
+Streamlit Community Cloud gives the container ~1 GB shared by every browser session on the
+same process, so retained objects — not single computations — cause the OOM restarts.
+`modules/runtime_perf.py` holds the guards, and their limits are the knobs to tune:
+
+| Constant | Default | Effect |
+|----------|---------|--------|
+| `MAX_UPLOAD_MB` | 50 | Uploads above this are rejected before parsing |
+| `MAX_ROWS_IN_MEMORY` | 200,000 | Rows kept from one upload; the rest is truncated with a warning |
+| `CSV_CHUNK_ROWS` | 50,000 | CSVs stream in chunks instead of loading whole |
+| `CACHE_MAX_ENTRIES` | 8 | Cap per `st.cache_data` function (caches are shared across sessions) |
+| `HISTORY_MAX_ENTRIES` | 100 | Cap on append-only `session_state` history lists |
+| `AUTO_REPORT_MAX_ROWS` | 5,000 | Above this the executive report is on-demand, not automatic |
+
+Parsed frames are also downcast (`shrink_dataframe`) — pandas defaults to int64/float64, which
+is 2-4x wider than most data needs. Measured on a 200k-row / 5 MB CSV: peak parse memory
+13.2 MB → 5.5 MB, resident frame 4.8 MB → 2.9 MB.
+
+The sidebar shows live process and dataset memory, plus a **🧹 Free memory** button that clears
+caches and forces a collection.
 
 ---
 

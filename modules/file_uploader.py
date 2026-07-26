@@ -6,6 +6,14 @@ import pandas as pd
 import streamlit as st
 from pathlib import Path
 
+from modules.runtime_perf import (
+    check_upload_size,
+    dataframe_memory_mb,
+    read_csv_chunked,
+    release,
+    shrink_dataframe,
+)
+
 # ─── Supported Formats ────────────────────────────────────────────────
 SUPPORTED_FORMATS = {
     "CSV (.csv)": "csv",
@@ -43,22 +51,27 @@ def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
     if uploaded_file is None:
         return None
 
+    size_ok, size_msg = check_upload_size(uploaded_file)
+    if not size_ok:
+        st.error(f"⚠️ {size_msg}")
+        return None
+
     file_ext = get_file_extension(uploaded_file.name)
     df = None
     error_msg = None
+    truncated = False
 
     try:
         if file_ext == "csv":
-            # Try multiple encodings
-            try:
-                df = pd.read_csv(uploaded_file, encoding="utf-8")
-            except UnicodeDecodeError:
-                uploaded_file.seek(0)
+            # Streamed in chunks so a large CSV never lands in RAM whole.
+            for encoding in ("utf-8", "latin-1", "iso-8859-1"):
                 try:
-                    df = pd.read_csv(uploaded_file, encoding="latin-1")
-                except UnicodeDecodeError:
                     uploaded_file.seek(0)
-                    df = pd.read_csv(uploaded_file, encoding="iso-8859-1")
+                    df, truncated = read_csv_chunked(uploaded_file, encoding=encoding)
+                    break
+                except UnicodeDecodeError:
+                    df = None
+                    continue
 
         elif file_ext in ("xlsx", "xls"):
             # Read all sheets
@@ -122,7 +135,18 @@ def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
     if df is not None and not df.empty:
         # Clean column names
         df.columns = [str(col).strip() for col in df.columns]
-        st.success(f"✅ Loaded '{uploaded_file.name}' — {len(df)} rows × {len(df.columns)} columns")
+        if file_ext != "csv":  # CSV chunks are shrunk during the streamed read
+            df = shrink_dataframe(df)
+        release()
+        st.success(
+            f"✅ Loaded '{uploaded_file.name}' — {len(df)} rows × {len(df.columns)} columns "
+            f"({dataframe_memory_mb(df):.1f} MB in memory)"
+        )
+        if truncated:
+            st.warning(
+                f"⚠️ Only the first {len(df):,} rows were loaded to stay within the memory budget. "
+                "Pre-filter or sample the file to analyse the rest."
+            )
         return df
 
     return None

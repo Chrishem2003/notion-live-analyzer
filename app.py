@@ -237,14 +237,24 @@ if (not NOTION_TOKEN) or st.session_state.get("creds_failed"):
 # ───────────────────────────────────────────────────────────────────────
 from modules.config import DEFAULT_CACHE_TTL, NOTION_API_CACHE_TTL, NOTION_DATA_CACHE_TTL
 
+from modules.runtime_perf import (
+    AUTO_REPORT_MAX_ROWS,
+    CACHE_MAX_ENTRIES,
+    dataframe_memory_mb,
+    memory_usage_mb,
+    release,
+    resolve_app_url,
+)
+
 DATABASE_SOURCE = "configured"
 
+
 # Cache database discovery results (rarely changes)
-@st.cache_data(ttl=NOTION_API_CACHE_TTL, show_spinner=False)
+@st.cache_data(ttl=NOTION_API_CACHE_TTL, max_entries=CACHE_MAX_ENTRIES, show_spinner=False)
 def _cached_discover_db_id(token: str):
     return discover_database_id(token)
 
-@st.cache_data(ttl=NOTION_API_CACHE_TTL, show_spinner=False)
+@st.cache_data(ttl=NOTION_API_CACHE_TTL, max_entries=CACHE_MAX_ENTRIES, show_spinner=False)
 def _cached_get_database_options(token: str):
     return get_database_options(token)
 
@@ -342,14 +352,30 @@ with st.sidebar:
         st.session_state["keep_alive_interval_sec"] = interval_map[keep_alive_interval]
         st.caption(f"⏱️ Will ping every {keep_alive_interval}")
 
-        # Also start server-side keep-alive
-        app_url = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:8501")
-        start_server_keepalive(app_url, interval=interval_map[keep_alive_interval])
+        # Server-side keep-alive only helps when the deployment has a public URL.
+        app_url = resolve_app_url()
+        if app_url:
+            start_server_keepalive(app_url, interval=interval_map[keep_alive_interval])
+        else:
+            st.caption(
+                "ℹ️ Server-side ping disabled — set `APP_URL` to this deployment's "
+                "public URL to enable it."
+            )
 
         st.info(
             "💡 For 24/7 uptime on free Render/Hosting plans, also set up a free "
             "external monitor like **UptimeRobot** or **cron-job.org**."
         )
+
+    rss_mb = memory_usage_mb()
+    if rss_mb:
+        active_mb = dataframe_memory_mb(st.session_state.get("active_df"))
+        st.caption(f"🧮 Memory: {rss_mb:.0f} MB process · {active_mb:.1f} MB dataset")
+
+    if st.button("🧹 Free memory", help="Clear cached data and run garbage collection"):
+        st.cache_data.clear()
+        freed = release()
+        st.success(f"Released {freed:.0f} MB" if freed else "Caches cleared")
 
     if st.button("🔄 Sync New Changes"):
         st.cache_data.clear()
@@ -395,7 +421,7 @@ render_onboarding_tour()
 # ───────────────────────────────────────────────────────────────────────
 # 12. DATA FETCHING (CACHED — 5 min TTL)
 # ───────────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=NOTION_DATA_CACHE_TTL, show_spinner="🔄 Syncing with Notion...")
+@st.cache_data(ttl=NOTION_DATA_CACHE_TTL, max_entries=CACHE_MAX_ENTRIES, show_spinner="🔄 Syncing with Notion...")
 def get_notion_data(token, db_id):
     return fetch_notion_data(token, db_id)
 
@@ -409,7 +435,13 @@ if df is not None and not df.empty:
     st.session_state["data_source"] = "notion"
 
     # ─── Auto-trigger Executive Storyteller ────────────────────────
-    if not st.session_state.get("executive_report_generated", False) and not df.empty:
+    # Skipped for large frames: it profiles every column, and on a shared
+    # container that peak is what gets the process OOM-killed.
+    if (
+        not st.session_state.get("executive_report_generated", False)
+        and not df.empty
+        and len(df) <= AUTO_REPORT_MAX_ROWS
+    ):
         try:
             from modules.executive_storyteller import ExecutiveStoryteller
             storyteller = ExecutiveStoryteller()
@@ -417,8 +449,10 @@ if df is not None and not df.empty:
             if "error" not in report:
                 st.session_state["executive_report"] = report
                 st.session_state["executive_report_generated"] = True
-        except Exception as e:
+        except Exception:
             pass  # Non-blocking; will be generated on demand
+        finally:
+            release()
 
 # ───────────────────────────────────────────────────────────────────────
 # 13. DASHBOARD OVERVIEW
