@@ -10,6 +10,7 @@ import pandas as pd
 import streamlit as st
 
 from modules.config import get_secret
+from modules.runtime_perf import trim_history
 
 NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
@@ -341,12 +342,14 @@ def render_notion_sync_ui(df: pd.DataFrame):
                     for err in result.get("errors", []):
                         st.error(err)
 
-                # Add to history
-                st.session_state["notion_sync_history"].append({
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "type": "insight_push",
-                    "result": result,
-                })
+                # Add to history (bounded — each entry retains a full API result)
+                st.session_state["notion_sync_history"] = trim_history(
+                    st.session_state["notion_sync_history"] + [{
+                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "type": "insight_push",
+                        "result": result,
+                    }]
+                )
         else:
             st.info("No insights generated yet. Run hypothesis discovery first.")
 
@@ -366,12 +369,14 @@ def render_notion_sync_ui(df: pd.DataFrame):
             else:
                 st.warning(result["message"])
 
-            st.session_state["notion_sync_history"].append({
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "type": "column_sync",
-                "column": column_to_sync,
-                "result": result,
-            })
+            st.session_state["notion_sync_history"] = trim_history(
+                st.session_state["notion_sync_history"] + [{
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "type": "column_sync",
+                    "column": column_to_sync,
+                    "result": result,
+                }]
+            )
 
         # Quick actions
         st.markdown("#### ⚡ Quick Actions")

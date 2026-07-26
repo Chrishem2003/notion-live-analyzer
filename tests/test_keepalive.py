@@ -24,9 +24,22 @@ class TestServerKeepAliveThread:
         monkeypatch.setenv("RENDER_EXTERNAL_URL", "https://example.dev")
         assert keepalive.ServerKeepAliveThread().app_url == "https://example.dev"
 
-    def test_default_url_fallback(self, monkeypatch):
-        monkeypatch.delenv("RENDER_EXTERNAL_URL", raising=False)
-        assert keepalive.ServerKeepAliveThread().app_url == "http://localhost:8501"
+    def test_no_url_without_public_deployment_url(self, monkeypatch):
+        for var in ("APP_URL", "RENDER_EXTERNAL_URL", "STREAMLIT_APP_URL", "SPACE_HOST"):
+            monkeypatch.delenv(var, raising=False)
+        assert keepalive.ServerKeepAliveThread().app_url is None
+
+    def test_start_is_a_noop_without_url(self, monkeypatch):
+        for var in ("APP_URL", "RENDER_EXTERNAL_URL", "STREAMLIT_APP_URL", "SPACE_HOST"):
+            monkeypatch.delenv(var, raising=False)
+
+        def fail(**kwargs):  # pragma: no cover - must not be reached
+            raise AssertionError("thread should not be created without a public URL")
+
+        monkeypatch.setattr(keepalive.threading, "Thread", fail)
+        thread = keepalive.ServerKeepAliveThread()
+        thread.start()
+        assert thread.is_alive is False
 
     def test_explicit_url_wins(self, monkeypatch):
         monkeypatch.setenv("RENDER_EXTERNAL_URL", "https://example.dev")
