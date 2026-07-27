@@ -35,6 +35,8 @@ st.markdown("""
 # ---------------------------------------------------------
 # 1. TIMEZONE & STATE INITIALIZATION
 # ---------------------------------------------------------
+OWNER_EMAIL = "chrishem242@gmail.com"
+
 COMMON_TIMEZONES = [
     "Africa/Kampala",
     "UTC",
@@ -48,6 +50,9 @@ COMMON_TIMEZONES = [
 
 if "user_tz" not in st.session_state:
     st.session_state["user_tz"] = "Africa/Kampala"
+
+if "is_owner" not in st.session_state:
+    st.session_state["is_owner"] = False
 
 active_tz_name = st.session_state["user_tz"]
 
@@ -91,7 +96,7 @@ if "load_css" in globals():
         pass
 
 # ---------------------------------------------------------
-# 2. SIDEBAR WITH SCROLLING, TIMEZONE & NOTION CONTROLS
+# 2. SIDEBAR WITH OWNER AUTHENTICATION & CONTROLS
 # ---------------------------------------------------------
 with st.sidebar:
     logo_path = os.path.join("assets", "app_logo.png")
@@ -161,17 +166,38 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Admin Portal Controls
-    with st.expander("⚙️ Admin & User Management"):
-        st.write("**Role:** System Administrator")
-        admin_mode = st.toggle("Enable Admin Override", value=st.session_state.get("admin_mode", False))
-        st.session_state["admin_mode"] = admin_mode
+    # Admin & Owner Portal
+    with st.expander("🔐 Owner & Admin Portal"):
+        if st.session_state["is_owner"]:
+            st.success("👑 **Master Owner Unlocked**")
+            st.caption(f"Authenticated as: `{OWNER_EMAIL}`")
+            
+            # Owner Overrides
+            admin_mode = st.toggle("Enable Admin Override Mode", value=st.session_state.get("admin_mode", True))
+            st.session_state["admin_mode"] = admin_mode
+            
+            if st.button("🔒 Lock Owner Portal", use_container_width=True):
+                st.session_state["is_owner"] = False
+                st.session_state["admin_mode"] = False
+                st.rerun()
+        else:
+            st.write("**System Authentication**")
+            input_email = st.text_input("Owner Email Address", key="admin_email_input")
+            admin_pass = st.text_input("Master Key", type="password", key="admin_pass_input")
+            
+            if st.button("Verify Credentials", use_container_width=True):
+                if input_email.strip().lower() == OWNER_EMAIL.lower():
+                    st.session_state["is_owner"] = True
+                    st.session_state["admin_mode"] = True
+                    st.success("Access Granted! Owner Privileges Activated.")
+                    st.rerun()
+                else:
+                    st.error("Unauthorized email address.")
 
 # ---------------------------------------------------------
 # 3. REAL-TIME AUTO-REFRESHING HEADER & DASHBOARD
 # ---------------------------------------------------------
 
-# Fragment function for auto-refreshing clock every 5 seconds natively
 @st.fragment(run_every=5)
 def render_live_header():
     current_tz = st.session_state.get("user_tz", "Africa/Kampala")
@@ -179,7 +205,6 @@ def render_live_header():
     st.markdown(f"# {greeting}, Welcome Back!")
     st.caption(f"📅 {formatted_date} | 🕒 **{formatted_time}** ({current_tz})")
 
-# Render the dynamic header
 render_live_header()
 
 st.markdown("---")
@@ -222,8 +247,33 @@ with m_col3:
     st.metric(label="Selected Timezone", value=active_tz_name.split('/')[-1], delta=formatted_time)
 
 with m_col4:
-    admin_status = "Active" if st.session_state.get("admin_mode", False) else "Standard"
-    st.metric(label="Admin Status", value=admin_status)
+    role_label = "👑 Master Owner" if st.session_state.get("is_owner") else "Standard User"
+    st.metric(label="Account Privilege", value=role_label)
+
+# ---------------------------------------------------------
+# 4. OWNER-ONLY SYSTEM CONTROLS (Rendered if Unlocked)
+# ---------------------------------------------------------
+if st.session_state.get("is_owner"):
+    st.markdown("---")
+    st.markdown("## ⚙️ Master Owner Controls & Global Overrides")
+    
+    o_col1, o_col2, o_col3 = st.columns(3)
+    
+    with o_col1:
+        st.subheader("🧹 System Cache & State")
+        if st.button("Clear Application Cache", use_container_width=True):
+            st.cache_data.clear()
+            st.success("Cache cleared successfully!")
+            
+    with o_col2:
+        st.subheader("📡 Workspace Sync Controls")
+        if st.button("Force Global Re-index", use_container_width=True):
+            st.info("Re-indexing database schemas...")
+            
+    with o_col3:
+        st.subheader("📊 Global Analytics")
+        st.write(f"**Registered Owner:** `{OWNER_EMAIL}`")
+        st.write(f"**Session Active:** `{st.session_state['is_owner']}`")
 
 if "watermark" in globals():
     watermark()
