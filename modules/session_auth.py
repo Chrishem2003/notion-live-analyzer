@@ -28,8 +28,10 @@ from modules.billing import (
     plan_for_user,
 )
 from modules.eligibility import country_choices, evaluate
+from modules.session_security import RiskAssessment, RiskLevel, SecurityLog, assess
 
 SESSION_USER_KEY = "_account_user_id"
+SESSION_RISK_KEY = "_session_risk"
 
 
 @st.cache_resource(show_spinner=False)
@@ -40,6 +42,56 @@ def _store() -> SQLiteAccountStore:
 
 def store() -> SQLiteAccountStore:
     return _store()
+
+
+@st.cache_resource(show_spinner=False)
+def _security_log() -> SecurityLog:
+    return SecurityLog()
+
+
+def request_headers() -> dict:
+    """Forwarded headers for this session, or ``{}`` outside a script run."""
+    try:
+        return dict(st.context.headers or {})
+    except Exception:
+        return {}
+
+
+def session_risk(account: str = "", refresh: bool = False) -> RiskAssessment:
+    """Assess the current session once per browser session and log it."""
+    cached = st.session_state.get(SESSION_RISK_KEY)
+    if cached is not None and not refresh:
+        return cached
+    user = current_user()
+    account = account or (user.email if user else "")
+    log = _security_log()
+    result = assess(
+        request_headers(),
+        declared=(user.country if user else None),
+        history=log.sightings(account) if account else (),
+    )
+    try:
+        log.record(result, account=account)
+    except Exception:
+        pass
+    st.session_state[SESSION_RISK_KEY] = result
+    return result
+
+
+def render_risk_notice() -> None:
+    """Tell a flagged visitor what was noticed instead of failing silently."""
+    result = session_risk()
+    if result.level is RiskLevel.OK:
+        return
+    message = (
+        "⚠️ This session looks unusual and has been flagged for review: "
+        f"{result.summary}. Access is unchanged — if this is you travelling or "
+        "on a university VPN, you can ignore it."
+    )
+    if result.level is RiskLevel.REVIEW:
+        st.warning(message)
+    else:
+        st.error(message)
 
 
 def current_user(refresh: bool = False) -> Optional[User]:
@@ -193,6 +245,7 @@ def render_sign_in_form() -> Optional[User]:
         st.error(str(exc))
         return None
     sign_in(user)
+    session_risk(account=user.email, refresh=True)
     st.success(f"Signed in as {user.email}")
     return user
 
