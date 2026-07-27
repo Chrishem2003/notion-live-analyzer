@@ -627,10 +627,11 @@ def display_audit_results(results: Dict[str, Any], source_label: str = "Text"):
             gauge={
                 "axis": {"range": [0, max(10, burst * 1.5)]},
                 "bar": {"color": "#1d4ed8"},
+                # plotly rejects #RRGGBBAA, so translucent bands use rgba().
                 "steps": [
-                    {"range": [0, 2], "color": "#e74c3c22"},
-                    {"range": [2, 5], "color": "#2ecc7122"},
-                    {"range": [5, max(10, burst * 1.5)], "color": "#f39c1222"},
+                    {"range": [0, 2], "color": "rgba(231, 76, 60, 0.13)"},
+                    {"range": [2, 5], "color": "rgba(46, 204, 113, 0.13)"},
+                    {"range": [5, max(10, burst * 1.5)], "color": "rgba(243, 156, 18, 0.13)"},
                 ],
                 "threshold": {
                     "line": {"color": "red", "width": 4},
