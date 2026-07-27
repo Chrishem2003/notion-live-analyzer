@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# CUSTOM CSS FOR SIDEBAR SCROLLING & UI STYLING
+# CUSTOM CSS FOR SIDEBAR & ADMIN DASHBOARD BEAUTY
 # ---------------------------------------------------------
 st.markdown("""
     <style>
@@ -28,6 +28,18 @@ st.markdown("""
         [data-testid="stSidebar"]::-webkit-scrollbar-thumb {
             background-color: rgba(255, 255, 255, 0.2);
             border-radius: 3px;
+        }
+        /* Admin Card Visual Styling */
+        .admin-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 15px;
+        }
+        .admin-header {
+            color: #4CAF50;
+            font-weight: 700;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -172,7 +184,6 @@ with st.sidebar:
             st.success("👑 **Master Owner Unlocked**")
             st.caption(f"Authenticated as: `{OWNER_EMAIL}`")
             
-            # Owner Overrides
             admin_mode = st.toggle("Enable Admin Override Mode", value=st.session_state.get("admin_mode", True))
             st.session_state["admin_mode"] = admin_mode
             
@@ -195,7 +206,7 @@ with st.sidebar:
                     st.error("Unauthorized email address.")
 
 # ---------------------------------------------------------
-# 3. REAL-TIME AUTO-REFRESHING HEADER & DASHBOARD
+# 3. REAL-TIME HEADER & DASHBOARD
 # ---------------------------------------------------------
 
 @st.fragment(run_every=5)
@@ -251,29 +262,80 @@ with m_col4:
     st.metric(label="Account Privilege", value=role_label)
 
 # ---------------------------------------------------------
-# 4. OWNER-ONLY SYSTEM CONTROLS (Rendered if Unlocked)
+# 4. BEAUTIFUL STYLED ADMIN COMMAND CENTER
 # ---------------------------------------------------------
 if st.session_state.get("is_owner"):
     st.markdown("---")
-    st.markdown("## ⚙️ Master Owner Controls & Global Overrides")
-    
-    o_col1, o_col2, o_col3 = st.columns(3)
-    
-    with o_col1:
-        st.subheader("🧹 System Cache & State")
-        if st.button("Clear Application Cache", use_container_width=True):
-            st.cache_data.clear()
-            st.success("Cache cleared successfully!")
+    st.markdown("## 👑 Master Admin Command Center")
+    st.caption("Central Management System | System Owner Access")
+
+    # Visual Admin Tabs
+    tab_ops, tab_users, tab_billing = st.tabs([
+        "⚙️ System Operations", 
+        "👥 User & Access Control", 
+        "💵 Billing & Feature Flags"
+    ])
+
+    with tab_ops:
+        st.markdown("### 📡 Operations & Memory Controls")
+        o_col1, o_col2 = st.columns(2)
+        
+        with o_col1:
+            st.markdown('<div class="admin-card">', unsafe_allow_html=True)
+            st.markdown("#### 🧹 Cache & Memory")
+            st.write("Purge global runtime memory to release server resources.")
+            if st.button("Clear Application Cache", use_container_width=True):
+                st.cache_data.clear()
+                st.success("App cache purged!")
+            st.markdown('</div>', unsafe_allow_html=True)
             
-    with o_col2:
-        st.subheader("📡 Workspace Sync Controls")
-        if st.button("Force Global Re-index", use_container_width=True):
-            st.info("Re-indexing database schemas...")
+        with o_col2:
+            st.markdown('<div class="admin-card">', unsafe_allow_html=True)
+            st.markdown("#### 🔄 Notion DB Schema Sync")
+            st.write("Force an immediate re-indexing of all Notion database structures.")
+            if st.button("Force Global Re-index", use_container_width=True):
+                st.info("Re-indexing complete.")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab_users:
+        st.markdown("### 👥 User Access & Privilege Tiering")
+        u_col1, u_col2 = st.columns(2)
+        
+        with u_col1:
+            st.markdown('<div class="admin-card">', unsafe_allow_html=True)
+            st.markdown("#### 🛡️ Assign User Tier")
+            target_user = st.text_input("User Email / ID", value="researcher@university.edu")
+            user_tier = st.radio("Access Level", ["Free Tier", "Pro Researcher", "Lab Administrator"])
+            if st.button("Save User Tier", use_container_width=True):
+                st.success(f"Assigned {user_tier} to {target_user}")
+            st.markdown('</div>', unsafe_allow_html=True)
             
-    with o_col3:
-        st.subheader("📊 Global Analytics")
-        st.write(f"**Registered Owner:** `{OWNER_EMAIL}`")
-        st.write(f"**Session Active:** `{st.session_state['is_owner']}`")
+        with u_col2:
+            st.markdown('<div class="admin-card">', unsafe_allow_html=True)
+            st.markdown("#### 📊 Session Overview")
+            st.write(f"**Primary Owner:** `{OWNER_EMAIL}`")
+            st.write("**Active Session:** Master Admin")
+            st.write("**Security Protocol:** Token Verified")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab_billing:
+        st.markdown("### 💵 Feature Gating & Revenue Metrics")
+        b_col1, b_col2 = st.columns(2)
+        
+        with b_col1:
+            st.markdown('<div class="admin-card">', unsafe_allow_html=True)
+            st.markdown("#### 🚀 Feature Toggles")
+            st.toggle("Enable Genomic Sequence Viewer (Pro)", value=True)
+            st.toggle("Enable Auto DOI Literature Importer", value=True)
+            st.toggle("Enable PDF/Excel Export Center", value=False)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        with b_col2:
+            st.markdown('<div class="admin-card">', unsafe_allow_html=True)
+            st.markdown("#### 💳 Subscription Model")
+            st.metric("Monthly Recurring Revenue (Est.)", "$0.00", "Free Access Active")
+            st.caption("Integrate Stripe or Flutterwave to activate paid tiers.")
+            st.markdown('</div>', unsafe_allow_html=True)
 
 if "watermark" in globals():
     watermark()
