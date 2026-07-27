@@ -98,6 +98,12 @@ except ImportError:
         return st.query_params.get("route") == "admin"
 
 try:
+    from modules.advanced_features import render_professor_vault
+except ImportError:
+    def render_professor_vault():
+        st.warning("Professor Vault not available.")
+
+try:
     from modules.collaboration_ui import render_command_center
     from modules.advanced_automations import render_automations_advanced
 except ImportError:
@@ -174,16 +180,16 @@ def main():
             "📊 Dashboard",
             "📁 File Analyzer",
             "📚 Literature Engine",
-            "📜 Audit Compliance",
+            "📜 Audit & Compliance",
+            "🔐 Professor Vault",
             "🔗 Notion Workspace",
             "🔗 Integrations",
             "🎯 Research Hub",
             "⚙️ Settings",
         ]
         
-        # Add admin link
-        if os.environ.get("ADMIN_KEY"):
-            pages.append("🔧 Admin")
+        # Always show admin link for developer access
+        pages.append("🔧 Admin Portal")
         
         page = st.radio("Navigation", pages)
         
@@ -206,17 +212,18 @@ def main():
         render_file_analyzer()
     elif page == "📚 Literature Engine":
         render_literature_engine()
-    elif page == "📜 Audit Compliance":
+    elif page == "📜 Audit & Compliance":
         render_audit_portal()
+    elif page == "🔐 Professor Vault":
+        render_professor_vault()
     elif page == "🔗 Notion Workspace":
         render_notion_module()
     elif page == "⚙️ Settings":
-        from modules.advanced_features import render_settings_new
-        render_settings_new()
+        render_settings()
     elif page == "🔗 Integrations":
         from modules.academic_integrations import render_academic_integrations
         render_academic_integrations()
-    elif page == "🔧 Admin":
+    elif page == "🔧 Admin Portal":
         render_admin_router()
     elif page == "🎯 Research Hub":
         render_research_hub()
@@ -378,77 +385,66 @@ def render_literature_engine():
     gc.collect()
 
 def render_audit_portal():
-    """Audit compliance page."""
+    """Audit compliance page with tier-based access."""
     st.markdown("---")
     
     try:
         from modules.ui_stunning import render_hero, render_badge
-        render_hero("📜 Audit Compliance", "AI-powered academic integrity analysis", "🛡️")
+        render_hero("📜 Audit & Compliance", "AI-powered academic integrity analysis", "🛡️")
     except Exception:
-        st.title("📜 Audit Compliance")
+        st.title("📜 Audit & Compliance")
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Document input
-    st.subheader("📄 Submit Document for Audit")
+    # Check tier and limits
+    tier = get_current_tier() if 'get_current_tier' in dir() else None
+    tier_name = tier.name if tier else "FREE"
     
-    input_method = st.radio("Input Method", ["Upload File", "Paste Text"], horizontal=True)
+    # Audit limits per tier
+    AUDIT_LIMITS = {"FREE": 3, "STANDARD": 15, "PREMIUM": 999999}
+    audit_limit = AUDIT_LIMITS.get(tier_name, 3)
     
-    text_content = ""
+    # Track usage
+    if "audit_count" not in st.session_state:
+        st.session_state["audit_count"] = 0
     
-    if input_method == "Upload File":
-        uploaded = st.file_uploader("Upload PDF, DOCX, or TXT", type=["pdf", "docx", "txt"])
-        if uploaded:
-            # Process file
-            if AuditOrchestrator:
-                try:
-                    from modules.audit_engine import UniversalFileReader
-                    text_content, _ = UniversalFileReader.read_file(
-                        uploaded.getvalue(), uploaded.name
-                    )
-                    st.success(f"✅ Extracted {len(text_content)} characters")
-                except Exception as e:
-                    st.error(f"❌ Error: {e}")
-            else:
-                st.warning("⚠️ Audit engine not available")
-    else:
-        text_content = st.text_area("Paste text here", height=200)
+    # Access check
+    if tier_name == "FREE" and st.session_state["audit_count"] >= 3:
+        st.warning("🔒 **Free Tier Limit Reached** - You've used 3/3 free audits this month.")
+        st.info("💡 Upgrade to **Standard** (15 audits/mo) or **Premium** (unlimited) in Settings → Subscription")
+        return
     
-    # Run audit
-    if text_content:
-        st.markdown("---")
-        st.subheader("📊 Audit Results")
-        
-        if st.button("🔍 Run Audit Analysis", type="primary"):
-            with st.spinner("Analyzing document..."):
-                if AuditOrchestrator:
-                    try:
-                        orch = get_audit_orchestrator()
-                        result = orch.audit_text(text_content, student_id="user")
-                        
-                        # Display scores
-                        scores = result.get("composite_scores", {})
-                        
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.metric("AI Content", f"{scores.get('ai_content_score', 0)}%")
-                        with col2:
-                            st.metric("Plagiarism Risk", f"{scores.get('plagiarism_score', 0)}%")
-                        with col3:
-                            st.metric("Authenticity", f"{scores.get('authenticity_score', 0)}%")
-                        
-                        # Statistical profile
-                        profile = result.get("statistical_profile", {})
-                        st.json(profile)
-                        
-                        # Email delivery
-                        st.divider()
-                        render_email_options(result)
-                        
-                    except Exception as e:
-                        st.error(f"Audit failed: {e}")
-                else:
-                    st.error("Audit engine not available")
+    # Show tier badge & remaining
+    col_info, col_tier = st.columns([2, 1])
+    with col_info:
+        if audit_limit < 999999:
+            st.markdown(f"**Remaining Audits:** {audit_limit - st.session_state['audit_count']}/{audit_limit}")
+        else:
+            st.markdown("**📊 Unlimited Audits**")
+    with col_tier:
+        st.markdown(f'<span class="tier-badge tier-{tier_name.lower() if tier_name != "FREE" else "free"}">{tier_name}</span>', unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Multi-tab interface
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "📤 Upload & Analyze",
+        "🔍 Trace Tracker", 
+        "📈 Similarity Heatmap",
+        "📋 Audit History"
+    ])
+    
+    with tab1:
+        render_audit_upload(tab=True)
+    
+    with tab2:
+        render_trace_tracker()
+    
+    with tab3:
+        render_similarity_heatmap()
+    
+    with tab4:
+        render_audit_history()
     
     gc.collect()
 
@@ -517,6 +513,126 @@ def render_settings():
             st.rerun()
     
     gc.collect()
+
+# ─── Audit Portal Helpers ─────────────────────────────────────────────
+
+def render_audit_upload(tab=False):
+    """Render audit file upload and analysis."""
+    if not tab:
+        st.subheader("📄 Submit Document for Audit")
+    
+    input_method = st.radio("Input Method", ["Upload File", "Paste Text"], horizontal=True)
+    
+    text_content = ""
+    
+    if input_method == "Upload File":
+        uploaded = st.file_uploader("Upload PDF, DOCX, or TXT", type=["pdf", "docx", "txt"])
+        if uploaded:
+            if AuditOrchestrator:
+                try:
+                    from modules.audit_engine import UniversalFileReader
+                    text_content, _ = UniversalFileReader.read_file(
+                        uploaded.getvalue(), uploaded.name
+                    )
+                    st.success(f"✅ Extracted {len(text_content)} characters")
+                except Exception as e:
+                    st.error(f"❌ Error: {e}")
+            else:
+                st.warning("⚠️ Audit engine not available")
+    else:
+        text_content = st.text_area("Paste text here", height=200)
+    
+    # Analysis options
+    if text_content:
+        st.markdown("---")
+        st.subheader("⚙️ Analysis Options")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.checkbox("AI Content Detection", value=True, disabled=True)
+        with col2:
+            st.checkbox("Plagiarism Check", value=True, disabled=True)
+        with col3:
+            st.checkbox("Statistical Profile", value=True, disabled=True)
+        
+        if st.button("🔍 Run Audit Analysis", type="primary"):
+            st.session_state["audit_count"] = st.session_state.get("audit_count", 0) + 1
+            
+            with st.spinner("Analyzing document..."):
+                if AuditOrchestrator:
+                    try:
+                        orch = get_audit_orchestrator()
+                        result = orch.audit_text(text_content, student_id="user")
+                        
+                        scores = result.get("composite_scores", {})
+                        
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            ai_score = scores.get('ai_content_score', 0)
+                            st.metric("🤖 AI Content", f"{ai_score}%")
+                        with col2:
+                            plag_score = scores.get('plagiarism_score', 0)
+                            st.metric("🚨 Plagiarism Risk", f"{plag_score}%")
+                        with col3:
+                            auth_score = scores.get('authenticity_score', 0)
+                            st.metric("✅ Authenticity", f"{auth_score}%")
+                        
+                        st.divider()
+                        render_email_options(result)
+                        
+                    except Exception as e:
+                        st.error(f"Audit failed: {e}")
+
+def render_trace_tracker():
+    """Render Aidify traceability timeline."""
+    st.subheader("🔍 Aidify Trace Tracker")
+    st.info("Track every modification and AI assistance in your document.")
+    
+    demo_events = [
+        {"time": "2 mins ago", "event": "BULK_PASTE_DETECTED", "detail": "150 words pasted"},
+        {"time": "5 mins ago", "event": "AI_ASSISTANCE", "detail": "Text humanization applied"},
+        {"time": "10 mins ago", "event": "MANUAL_EDIT", "detail": "Paragraph reworded"},
+    ]
+    
+    for ev in demo_events:
+        st.markdown(f"**{ev['time']}** - {ev['event']}: {ev['detail']}")
+    
+    st.info("💡 Connect to a project for real-time traceability.")
+
+def render_similarity_heatmap():
+    """Render plagiarism similarity heatmap."""
+    st.subheader("📈 Similarity Heatmap")
+    st.info("Visualize potential similarity with source materials.")
+    
+    # Demo visualization
+    st.progress(85, text="High similarity: Section 2 (lines 20-45)")
+    st.progress(45, text="Moderate: Section 5 (lines 60-80)")
+    st.progress(15, text="Low: Section 8 (lines 100-120)")
+    
+    st.markdown("""
+    **Legend:**
+    - 🔴 Red (>50%): Review required
+    - 🟡 Yellow (20-50%): Citation needed
+    - 🟢 Green (<20%): Acceptable
+    """)
+
+def render_audit_history():
+    """Render audit history."""
+    st.subheader("📋 Audit History")
+    
+    if "audit_history" not in st.session_state:
+        st.session_state["audit_history"] = []
+    
+    history = st.session_state.get("audit_history", [])
+    
+    if not history:
+        st.info("No audits run yet. Upload a document to begin.")
+    else:
+        for idx, audit in enumerate(history):
+            st.write(f"Audit #{idx+1}: {audit.get('date', 'Unknown')}")
+    
+    if st.button("🗑️ Clear History"):
+        st.session_state["audit_history"] = []
 
 # ═══════════════════════════════════════════════════════════════════════
 # ENTRY POINT
