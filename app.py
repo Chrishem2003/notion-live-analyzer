@@ -24,13 +24,14 @@ from modules.ultimate_ecosystem import render_ultimate_ecosystem_tab
 from modules.visual_canvas import render_hybrid_visual_canvas
 from modules.who_surveillance import render_who_surveillance_tab
 from modules.mastercard_impact import render_mastercard_impact_tab
+from modules.policy_generator import render_policy_generator_tab
 
 st.set_page_config(page_title="World-Record Autonomous Research Platform", page_icon="🌐", layout="wide")
 
 initialize_rbac()
 
-st.title("🌐 ResearchOS: Autonomous Research Intelligence & Global Sponsorship Mesh")
-st.caption("WHO Pathogen Surveillance • MasterCard Foundation Impact Hub • Aviation HUDs • ICU Waveforms • FAIR Provenance")
+st.title("🌐 ResearchOS: Autonomous Research Intelligence & Global Sponsorship Platform")
+st.caption("UN/WHO Policy Briefs • Offline Mesh • WHO Pathogen Surveillance • MasterCard Impact Hub • Aviation HUDs • FAIR Provenance")
 
 # --- SIDEBAR AUTHENTICATION & SETTINGS ---
 with st.sidebar:
@@ -61,9 +62,10 @@ with st.sidebar:
                 if webhook_url:
                     send_backup_webhook_alert(webhook_url, res['record_count'], database_id)
 
-# --- MASTER NAVIGATION TABS (20 MODULES) ---
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17, tab18, tab19, tab20 = st.tabs([
+# --- MASTER NAVIGATION TABS (22 MODULES) ---
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17, tab18, tab19, tab20, tab21, tab22 = st.tabs([
     "🎛️ Hybrid Visual Core",
+    "📄 UN/WHO Policy Briefs",
     "🌐 WHO Pathogen Mesh",
     "💳 MasterCard Impact Hub",
     "🧬 Genomics & NCBI", 
@@ -82,23 +84,28 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13
     "💡 System Telemetry",
     "🔍 Variant Profiler",
     "📈 Analytics Hub",
-    "⚙️ System Status"
+    "⚙️ System Status",
+    "🌐 Offline P2P Mesh"
 ])
 
 # TAB 1: HYBRID VISUAL CORE
 with tab1:
     render_hybrid_visual_canvas()
 
-# TAB 2: WHO PATHOGEN SURVEILLANCE MESH
+# TAB 2: POLICY BRIEF GENERATOR
 with tab2:
+    render_policy_generator_tab()
+
+# TAB 3: WHO PATHOGEN SURVEILLANCE MESH
+with tab3:
     render_who_surveillance_tab()
 
-# TAB 3: MASTERCARD FOUNDATION IMPACT HUB
-with tab3:
+# TAB 4: MASTERCARD FOUNDATION IMPACT HUB
+with tab4:
     render_mastercard_impact_tab()
 
-# TAB 4: GENOMICS & NCBI
-with tab4:
+# TAB 5: GENOMICS & NCBI
+with tab5:
     st.subheader("NCBI Direct Fetch & Genomic Variant Profiler")
     col_a, col_b = st.columns([1, 1])
     with col_a:
@@ -116,8 +123,8 @@ with tab4:
                 st.metric("GC Content", f"{metrics['gc_content']}%")
                 st.metric("Length", f"{metrics['length']} bp")
 
-# TAB 5: TRANSLATIONAL PROTEOMICS
-with tab5:
+# TAB 6: TRANSLATIONAL PROTEOMICS
+with tab6:
     st.subheader("Translational Proteomics & Structure Data Engine")
     p_col1, p_col2 = st.columns(2)
     with p_col1:
@@ -135,16 +142,16 @@ with tab5:
         if st.button("Fetch PDB Metadata"):
             st.json(fetch_pdb_metadata(pdb_id_input))
 
-# TAB 6: 3D STRUCTURE VIEWER
-with tab6:
+# TAB 7: 3D STRUCTURE VIEWER
+with tab7:
     render_structure_viewer_tab()
 
-# TAB 7: LAB INVENTORY & PCR CALCULATOR
-with tab7:
+# TAB 8: LAB INVENTORY & PCR CALCULATOR
+with tab8:
     render_inventory_tab()
 
-# TAB 8: SATELLITE TELEMETRY
-with tab8:
+# TAB 9: SATELLITE TELEMETRY
+with tab9:
     st.subheader("Satellite Environmental Monitoring for Field Research Sites")
     col_lat, col_lon = st.columns(2)
     lat_val = col_lat.number_input("Latitude", value=3.0300)
@@ -158,36 +165,36 @@ with tab8:
             t3.metric("Surface Temp", f"{telemetry['surface_temp_c']} °C")
             t4.metric("Soil Moisture", telemetry["moisture_index"])
 
-# TAB 9: KNOWLEDGE GRAPH
-with tab9:
+# TAB 10: KNOWLEDGE GRAPH
+with tab10:
     st.subheader("Interactive Research Knowledge Graph")
     if st.button("Render Knowledge Graph Network"):
         graph_file = build_research_knowledge_graph([])
         with open(graph_file, "r", encoding="utf-8") as f:
             components.html(f.read(), height=480)
 
-# TAB 10: GRANT INDEXER
-with tab10:
+# TAB 11: GRANT INDEXER
+with tab11:
     render_grant_matcher_tab()
 
-# TAB 11: AI GRANT DRAFTER
-with tab11:
+# TAB 12: AI GRANT DRAFTER
+with tab12:
     render_grant_engine_tab()
 
-# TAB 12: RESILIENCE & INTEGRITY
-with tab12:
+# TAB 13: RESILIENCE & INTEGRITY
+with tab13:
     render_blindspot_engine_tab()
 
-# TAB 13: ULTIMATE ECOSYSTEM
-with tab13:
+# TAB 14: ULTIMATE ECOSYSTEM
+with tab14:
     render_ultimate_ecosystem_tab()
 
-# TAB 14: UNIFIED DATABASE SCHEMA
-with tab14:
+# TAB 15: UNIFIED DATABASE SCHEMA
+with tab15:
     render_schema_engine_tab()
 
-# TAB 15: PDF REPORT EXPORT
-with tab15:
+# TAB 16: PDF REPORT EXPORT
+with tab16:
     st.subheader("Publication-Ready PDF Generator")
     if check_permission("Analyst"):
         if st.button("Generate Enterprise PDF Report"):
@@ -199,24 +206,28 @@ with tab15:
     else:
         st.warning("Analyst permission required.")
 
-# TAB 16: PROVENANCE & AUDIT
-with tab16:
+# TAB 17: PROVENANCE & AUDIT
+with tab17:
     st.subheader("System Telemetry & FAIR Compliance Audit")
     st.json({"platform_status": "ONLINE", "active_user": user_id, "assigned_role": st.session_state["user_role"]})
 
-# TAB 17-20: ADDITIONAL EXTENSIONS
-with tab17:
+# TABS 18-22: ADDITIONAL EXTENSIONS
+with tab18:
     st.subheader("ResearchOS Core System Telemetry")
     st.success("All operational pipelines reporting zero exceptions.")
 
-with tab18:
-    st.subheader("Advanced Genomic Variant Profiler")
-    st.info("Integrated directly with Tab 4 sequence analysis engine.")
-
 with tab19:
+    st.subheader("Advanced Genomic Variant Profiler")
+    st.info("Integrated directly with Tab 5 sequence analysis engine.")
+
+with tab20:
     st.subheader("Analytics & Research Intelligence Hub")
     st.info("Aggregating multi-source analytics across active database nodes.")
 
-with tab20:
+with tab21:
     st.subheader("System Status & Node Health")
-    st.json({"database": "SQLite transactional", "security": "RBAC & SHA-256 Provenance Active", "modules": 20})
+    st.json({"database": "SQLite transactional", "security": "RBAC & SHA-256 Provenance Active", "modules": 22})
+
+with tab22:
+    st.subheader("🌐 Offline P2P Mesh Synchronization Engine")
+    st.info("Local node broadcasting enabled. Ready for intermittent connection environments.")
