@@ -52,3 +52,8 @@ class ProductionLinguisticProcessor:
             "word_count": len(text.split()) if text else 0,
             "hash": generate_compliance_hash(text)
         }
+
+# Aliases/additional classes for absolute backwards compatibility with audit_ui.py imports
+ComplianceEngine = AuditOrchestrator
+DataEngine = EnterpriseDataEngine
+LinguisticProcessor = ProductionLinguisticProcessor
