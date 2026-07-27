@@ -12,57 +12,56 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# 1. NATIVE BROWSER TIMEZONE & HOUR AUTO-DETECTION
+# CUSTOM CSS FOR SIDEBAR SCROLLING & UI STYLING
 # ---------------------------------------------------------
-# Extract timezone or local hour passed from browser URL query params
-query_params = st.query_params
-
-if "tz" in query_params:
-    st.session_state["user_tz"] = query_params["tz"]
-if "local_hour" in query_params:
-    try:
-        st.session_state["local_hour"] = int(query_params["local_hour"])
-    except ValueError:
-        pass
-
-# Fallback defaults if URL params are not yet set on first load
-if "user_tz" not in st.session_state:
-    st.session_state["user_tz"] = "UTC"
-if "local_hour" not in st.session_state:
-    st.session_state["local_hour"] = datetime.now().hour
-
-# Non-blocking client-side script to detect browser time and update URL params smoothly
-st.components.v1.html(
-    """
-    <script>
-        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const localHour = new Date().getHours();
-        const urlParams = new URLSearchParams(window.parent.location.search);
-        
-        if (urlParams.get('tz') !== userTz || urlParams.get('local_hour') !== String(localHour)) {
-            urlParams.set('tz', userTz);
-            urlParams.set('local_hour', localHour);
-            window.parent.location.search = urlParams.toString();
+st.markdown("""
+    <style>
+        /* Force scrollbar on Streamlit sidebar */
+        [data-testid="stSidebar"] > div:first-child {
+            overflow-y: auto !important;
+            max-height: 100vh !important;
         }
-    </script>
-    """,
-    height=0,
-    width=0
-)
+        /* Custom scrollbar styling */
+        [data-testid="stSidebar"]::-webkit-scrollbar {
+            width: 6px;
+        }
+        [data-testid="stSidebar"]::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------------
+# 1. TIMEZONE & LOCATION ENGINE (Non-blocking)
+# ---------------------------------------------------------
+# Default timezones list
+COMMON_TIMEZONES = [
+    "Africa/Kampala",
+    "UTC",
+    "Africa/Nairobi",
+    "Europe/London",
+    "America/New_York",
+    "America/Los_Angeles",
+    "Asia/Tokyo",
+    "Asia/Dubai"
+]
+
+if "user_tz" not in st.session_state:
+    st.session_state["user_tz"] = "Africa/Kampala"
 
 active_tz_name = st.session_state["user_tz"]
-local_hour = st.session_state["local_hour"]
 
-# Compute formatted time string using detected timezone
+# Calculate current time cleanly in selected timezone
 try:
     tz = zoneinfo.ZoneInfo(active_tz_name)
     user_now = datetime.now(tz)
-    formatted_time = user_now.strftime("%I:%M %p")
-    formatted_date = user_now.strftime("%A, %B %d, %Y")
 except Exception:
     user_now = datetime.now()
-    formatted_time = user_now.strftime("%I:%M %p")
-    formatted_date = user_now.strftime("%A, %B %d, %Y")
+
+local_hour = user_now.hour
+formatted_time = user_now.strftime("%I:%M %p")
+formatted_date = user_now.strftime("%A, %B %d, %Y")
 
 # Safe imports for internal modules
 try:
@@ -82,9 +81,10 @@ if "load_css" in globals():
         pass
 
 # ---------------------------------------------------------
-# 2. SIDEBAR: BRANDING, DYNAMIC LOCATION & NOTION CONNECTOR
+# 2. SIDEBAR WITH SCROLLING, TIMEZONE & NOTION CONTROLS
 # ---------------------------------------------------------
 with st.sidebar:
+    # DP / Branding Header
     logo_path = os.path.join("assets", "app_logo.png")
     if os.path.exists(logo_path):
         st.image(logo_path, use_container_width=True)
@@ -95,10 +95,20 @@ with st.sidebar:
     st.caption("⚡ Automated Research Intelligence & Live Sync")
     st.markdown("---")
 
-    # Time Zone & Auto-Detected Location Status
-    st.subheader("🌍 Dynamic Location Sync")
-    st.success(f"📍 **Detected Timezone:** `{active_tz_name}`")
-    st.caption(f"🕒 **Local Time:** {formatted_time}")
+    # Timezone Selector (Interactive Touch/Click Enabled)
+    st.subheader("🌍 Timezone & Location")
+    st.caption(f"🕒 Current Time: **{formatted_time}**")
+    
+    selected_tz = st.selectbox(
+        "Select Your Location / Timezone:",
+        options=COMMON_TIMEZONES,
+        index=COMMON_TIMEZONES.index(active_tz_name) if active_tz_name in COMMON_TIMEZONES else 0,
+        help="Choose your local timezone to adjust greetings and time metrics."
+    )
+    
+    if selected_tz != st.session_state["user_tz"]:
+        st.session_state["user_tz"] = selected_tz
+        st.rerun()
 
     st.markdown("---")
 
@@ -143,17 +153,17 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Admin Portal Controls
+    # Admin Portal Controls (Scroll down to access)
     with st.expander("⚙️ Admin & User Management"):
         st.write("**Role:** System Administrator")
         admin_mode = st.toggle("Enable Admin Override", value=st.session_state.get("admin_mode", False))
         st.session_state["admin_mode"] = admin_mode
 
 # ---------------------------------------------------------
-# 3. ACCURATE REAL-TIME GREETING & DASHBOARD
+# 3. ACCURATE GREETING & DASHBOARD
 # ---------------------------------------------------------
 
-# Greeting calculation based on the user's detected local browser hour
+# Greeting Calculation based on selected timezone hour
 if 5 <= local_hour < 12:
     greeting = "Good Morning ☀️"
 elif 12 <= local_hour < 17:
@@ -203,7 +213,7 @@ with m_col2:
     st.metric(label="Active Notion DBs", value=f"{detected_count}/5", delta="Synced")
 
 with m_col3:
-    st.metric(label="User Timezone", value=active_tz_name.split('/')[-1], delta=formatted_time)
+    st.metric(label="Selected Timezone", value=active_tz_name.split('/')[-1], delta=formatted_time)
 
 with m_col4:
     admin_status = "Active" if st.session_state.get("admin_mode", False) else "Standard"
