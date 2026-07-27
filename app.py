@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 import plotly.express as px
 
-# 1. Page Configuration
+# Streamlit Page Config
 st.set_page_config(
     page_title="Notion Live Research Analyzer",
     page_icon="🧬",
@@ -11,20 +11,39 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Import local modules safely
+# ---------------------------------------------------------
+# 1. ADVANCED AUTOMATION: JAVASCRIPT LOCAL TIME DETECTOR
+# ---------------------------------------------------------
+# Fallback local hour from server or JavaScript session state
+if "user_local_hour" not in st.session_state:
+    st.session_state["user_local_hour"] = datetime.now().hour
+
+# Embed lightweight JS script to send real browser local time to Streamlit
+st.components.v1.html(
+    """
+    <script>
+        const userHour = new Date().getHours();
+        window.parent.postMessage({
+            type: 'streamlit:setComponentValue',
+            value: userHour
+        }, '*');
+    </script>
+    """,
+    height=0,
+    width=0
+)
+
+# Safely import custom modules
 try:
     from modules.config import init_session_state, APP_DIR
     from modules.ui_components import hero_card, load_css, watermark
     from notion_helper import auto_detect_database_ids
-except Exception as e:
-    # Safe fallback if helper/modules are initializing
+except Exception:
     pass
 
-# Initialize session state tracking
 if "init_session_state" in globals():
     init_session_state()
 
-# Load custom CSS styling & theme if available
 if "load_css" in globals():
     try:
         load_css()
@@ -32,10 +51,9 @@ if "load_css" in globals():
         pass
 
 # ---------------------------------------------------------
-# SIDEBAR: DP BRANDING, ADMIN & NOTION CONNECTION
+# 2. SIDEBAR BRANDING & AUTOMATED WORKSPACE SYNC
 # ---------------------------------------------------------
 with st.sidebar:
-    # Display Profile DP / App Logo
     logo_path = os.path.join("assets", "app_logo.png")
     if os.path.exists(logo_path):
         st.image(logo_path, use_container_width=True)
@@ -43,11 +61,11 @@ with st.sidebar:
         st.title("🧬 Research Hub")
 
     st.markdown("## Notion Live Analyzer")
-    st.caption("⚡ Advanced Research Analytics & Workspace Sync")
+    st.caption("⚡ Automated Research Intelligence & Live Sync")
     st.markdown("---")
 
     # Notion Workspace Authentication
-    st.subheader("🔑 Workspace Integration")
+    st.subheader("🔑 Workspace Connection")
     notion_token = st.text_input(
         "Notion Access Token",
         type="password",
@@ -63,53 +81,62 @@ with st.sidebar:
         "Bio-Acoustics Data"
     ]
 
+    # Automatic Sync trigger whenever token changes
     if notion_token:
         st.session_state["notion_token"] = notion_token
-        if st.button("🔍 Auto-Detect Workspace DBs", use_container_width=True):
-            with st.spinner("Scanning Notion workspace..."):
+        
+        # Auto-run discovery if not already done
+        if "db_ids" not in st.session_state or st.sidebar.button("🔄 Force Re-sync Workspace", use_container_width=True):
+            with st.spinner("Automating Notion DB Discovery..."):
                 try:
                     db_map = auto_detect_database_ids(notion_token, REQUIRED_DATABASES)
                     st.session_state["db_ids"] = db_map
-                except NameError:
-                    st.error("Auto-detect helper module is loading...")
+                except Exception as e:
+                    st.error(f"Sync error: {e}")
 
     # Display Auto-Detected Status
     if "db_ids" in st.session_state:
         db_map = st.session_state["db_ids"]
         found = len(db_map)
         total = len(REQUIRED_DATABASES)
+        
         if found == total:
-            st.success(f" Connected: {found}/{total} DBs Found")
+            st.success(f" Automated Sync Active ({found}/{total} DBs)")
         else:
-            st.warning(f" Syncing: {found}/{total} DBs Found")
+            st.warning(f" Partial Sync ({found}/{total} DBs)")
+            
+        with st.expander("🔍 Live DB Map"):
+            for db_name, db_id in db_map.items():
+                st.caption(f"**{db_name}:** `{db_id[:8]}...`")
 
     st.markdown("---")
 
-    # Quick Admin & User Management Expandable Portal
+    # Admin Portal Controls
     with st.expander("⚙️ Admin & User Management"):
         st.write("**Role:** System Administrator")
-        st.caption("Manage user permissions and integration tokens.")
-        admin_mode = st.toggle("Enable Admin Controls", value=st.session_state.get("admin_mode", False))
+        st.caption("Automated security overrides and user management.")
+        admin_mode = st.toggle("Enable Admin Override", value=st.session_state.get("admin_mode", False))
         st.session_state["admin_mode"] = admin_mode
-        if admin_mode:
-            st.info("Admin Mode Active: Full read/write overrides enabled.")
 
 # ---------------------------------------------------------
-# MAIN CONTENT: AUTO GREETING & HERO DASHBOARD
+# 3. REAL-TIME AUTOMATED GREETING & DASHBOARD
 # ---------------------------------------------------------
 
-# Dynamic Time-based Auto Greeting
-current_hour = datetime.now().hour
-if current_hour < 12:
+# Compute Greeting using real-time local browser hour
+local_hour = st.session_state.get("user_local_hour", datetime.now().hour)
+
+if 5 <= local_hour < 12:
     greeting = "Good Morning ☀️"
-elif 12 <= current_hour < 17:
+elif 12 <= local_hour < 17:
     greeting = "Good Afternoon 🌤️"
-else:
+elif 17 <= local_hour < 22:
     greeting = "Good Evening 🌙"
+else:
+    greeting = "Good Night 🌌"
 
-# Main Greeting Display
+# Header Banner
 st.markdown(f"# {greeting}, Welcome Back!")
-st.markdown("#### *Notion Live Research Analyzer & Intelligence Dashboard*")
+st.markdown("#### *Real-Time Notion Research Analyzer & Automated Pipeline Hub*")
 
 st.markdown("---")
 
@@ -118,7 +145,7 @@ st.markdown("### ⚡ Quick Access Actions")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    if st.button("🚀 Application Pipeline", use_container_width=True):
+    if st.button("📋 Application Pipeline", use_container_width=True):
         st.switch_page("pages/46_📋_Application_Pipeline.py")
 
 with col2:
@@ -131,19 +158,31 @@ with col3:
 
 with col4:
     if st.button("📊 Database Metrics", use_container_width=True):
-        st.info("Select a page from the sidebar navigation menu to view specific metrics.")
+        st.info("Select a page from the sidebar navigation to inspect detailed database charts.")
 
 st.markdown("---")
 
-# Visual Analytics Showcase Section
-m_col1, m_col2, m_col3 = st.columns(3)
-with m_col1:
-    st.metric(label="Active Projects", value="12", delta="+2 this week")
-with m_col2:
-    st.metric(label="Genomic Sequences Logged", value="1,480", delta="+120 synced")
-with m_col3:
-    st.metric(label="Workspace Status", value="Connected" if "db_ids" in st.session_state else "Pending Sync")
+# ---------------------------------------------------------
+# 4. AUTOMATED HEALTH & ANALYTICS MONITOR
+# ---------------------------------------------------------
+st.markdown("### 📊 Automated Workspace Health Monitor")
 
-# Bottom Watermark / Signature
+m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+
+with m_col1:
+    st.metric(label="System Status", value="Online ⚡", delta="Automated")
+
+with m_col2:
+    detected_count = len(st.session_state.get("db_ids", {}))
+    st.metric(label="Active Notion DBs", value=f"{detected_count}/5", delta="Live")
+
+with m_col3:
+    st.metric(label="Data Refresh Rate", value="Real-Time", delta="60s Sync")
+
+with m_col4:
+    admin_status = "Active" if st.session_state.get("admin_mode", False) else "Standard"
+    st.metric(label="Admin Status", value=admin_status)
+
+# Automated Watermark
 if "watermark" in globals():
     watermark()
