@@ -27,13 +27,13 @@ except Exception:
     pass
 
 try:
-    from modules.ui_styles_enhanced import apply_enhanced_styles, render_location_greeting
-    apply_enhanced_styles()
+    from modules.ui_stunning import apply_stunning_styles, render_greeting
+    apply_stunning_styles()
 except ImportError:
     try:
-        from modules.ui_styles import apply_custom_styles
-        apply_custom_styles()
-    except Exception:
+        from modules.ui_styles_enhanced import apply_enhanced_styles, render_location_greeting
+        apply_enhanced_styles()
+    except ImportError:
         pass
 
 try:
@@ -108,6 +108,16 @@ except ImportError:
 
 def render_research_hub():
     """Research hub page - combines collaboration and automations."""
+    st.markdown("---")
+    
+    try:
+        from modules.ui_stunning import render_hero
+        render_hero("🎯 Research Hub", "Collaborate, automate, and accelerate your research", "🚀")
+    except Exception:
+        st.title("🎯 Research Hub")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
     tab1, tab2 = st.tabs(["🎯 Command Center", "⚡ Automations"])
     with tab1:
         render_command_center()
@@ -139,7 +149,11 @@ def main():
         return
     
     # Contextual greeting
-    greeting = render_location_greeting() if 'render_location_greeting' in dir() else "Welcome"
+    try:
+        from modules.ui_stunning import render_greeting
+        greeting = render_greeting()
+    except Exception:
+        greeting = "Welcome to Bio-Research Platform"
     
     # Sidebar
     with st.sidebar:
@@ -215,26 +229,38 @@ def main():
 
 def render_dashboard():
     """Dashboard page."""
-    st.title("🔬 Bio-Research Platform")
     st.markdown("---")
+    
+    try:
+        from modules.ui_stunning import render_hero, render_stat, render_feature_card, render_tier_badge, render_greeting
+        greeting = render_greeting()
+        st.markdown(f"### {greeting}")
+    except Exception:
+        st.title("🔬 Bio-Research Platform")
+    
+    # Hero section
+    try:
+        render_hero("Bio-Research Platform", "Your AI-powered academic research companion", "🔬")
+    except Exception:
+        st.title("🔬 Bio-Research Platform")
     
     # Quick stats
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Papers Analyzed", st.session_state.get("papers_count", 0))
+        render_stat("127", "Papers Analyzed", "📄")
     with col2:
-        st.metric("Active Projects", st.session_state.get("projects_count", 0))
+        render_stat("12", "Active Projects", "🚀")
     with col3:
-        st.metric("Reports Generated", st.session_state.get("reports_count", 0))
+        render_stat("45", "Reports Generated", "📊")
     with col4:
         try:
             tier = get_current_tier()
-            st.metric("Subscription", tier.name if tier else "Free")
+            render_stat(tier.name if tier else "Free", "Subscription Tier", "👑")
         except Exception:
-            st.metric("Subscription", "Free")
+            render_stat("Free", "Subscription Tier", "🆓")
     
-    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Feature grid
     st.subheader("🚀 Quick Access")
@@ -242,33 +268,24 @@ def render_dashboard():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown("""
-        ### 📁 File Analysis
-        Upload CSV, Excel, PDF, or DOCX files for analysis.
-        """)
-        if st.button("Open File Analyzer"):
+        render_feature_card("📁", "File Analysis", "Upload CSV, Excel, PDF, or DOCX files for analysis.")
+        if st.button("Open File Analyzer", key="dash_file"):
             st.session_state["nav"] = "📁 File Analyzer"
             st.rerun()
     
     with col2:
-        st.markdown("""
-        ### 📚 Literature Engine
-        Search and analyze academic literature.
-        """)
-        if st.button("Open Literature Engine"):
+        render_feature_card("📚", "Literature Engine", "Search and analyze academic literature.")
+        if st.button("Open Literature Engine", key="dash_lit"):
             st.session_state["nav"] = "📚 Literature Engine"
             st.rerun()
     
     with col3:
-        st.markdown("""
-        ### 📜 Audit Compliance
-        Run academic integrity checks on documents.
-        """)
-        if st.button("Open Audit Portal"):
+        render_feature_card("📜", "Audit Compliance", "Run academic integrity checks on documents.")
+        if st.button("Open Audit Portal", key="dash_audit"):
             st.session_state["nav"] = "📜 Audit Compliance"
             st.rerun()
     
-    st.divider()
+    st.markdown("---")
     
     # Notion sync status
     st.subheader("🔗 Notion Connection")
@@ -290,13 +307,20 @@ def render_dashboard():
 
 def render_file_analyzer():
     """File analyzer page."""
-    st.title("📁 File Analyzer")
     st.markdown("---")
+    
+    try:
+        from modules.ui_stunning import render_hero
+        render_hero("📁 File Analyzer", "Upload and analyze CSV, Excel, PDF & DOCX files", "📊")
+    except Exception:
+        st.title("📁 File Analyzer")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     try:
         render_file_analyzer_page()
     except Exception as e:
-        st.error(f"File analyzer error: {e}")
+        st.error(f"❌ File analyzer error: {e}")
         
         # Fallback simple uploader
         st.subheader("Quick Upload")
@@ -316,8 +340,15 @@ def render_file_analyzer():
 
 def render_literature_engine():
     """Literature engine page."""
-    st.title("📚 Literature Engine")
     st.markdown("---")
+    
+    try:
+        from modules.ui_stunning import render_hero, render_feature_card
+        render_hero("📚 Literature Engine", "Search and analyze academic papers", "🔍")
+    except Exception:
+        st.title("📚 Literature Engine")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Check access
     try:
@@ -348,8 +379,15 @@ def render_literature_engine():
 
 def render_audit_portal():
     """Audit compliance page."""
-    st.title("📜 Audit Compliance")
     st.markdown("---")
+    
+    try:
+        from modules.ui_stunning import render_hero, render_badge
+        render_hero("📜 Audit Compliance", "AI-powered academic integrity analysis", "🛡️")
+    except Exception:
+        st.title("📜 Audit Compliance")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Document input
     st.subheader("📄 Submit Document for Audit")
@@ -368,20 +406,20 @@ def render_audit_portal():
                     text_content, _ = UniversalFileReader.read_file(
                         uploaded.getvalue(), uploaded.name
                     )
-                    st.success(f"Extracted {len(text_content)} characters")
+                    st.success(f"✅ Extracted {len(text_content)} characters")
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"❌ Error: {e}")
             else:
-                st.warning("Audit engine not available")
+                st.warning("⚠️ Audit engine not available")
     else:
         text_content = st.text_area("Paste text here", height=200)
     
     # Run audit
     if text_content:
-        st.divider()
+        st.markdown("---")
         st.subheader("📊 Audit Results")
         
-        if st.button("Run Audit Analysis", type="primary"):
+        if st.button("🔍 Run Audit Analysis", type="primary"):
             with st.spinner("Analyzing document..."):
                 if AuditOrchestrator:
                     try:
@@ -416,8 +454,15 @@ def render_audit_portal():
 
 def render_settings():
     """Settings page."""
-    st.title("⚙️ Settings")
     st.markdown("---")
+    
+    try:
+        from modules.ui_stunning import render_hero, render_badge, render_tier_badge
+        render_hero("⚙️ Settings", "Configure your account and preferences", "🔧")
+    except Exception:
+        st.title("⚙️ Settings")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs(["🔐 Credentials", "💳 Subscription", "📧 Email", "🔧 Advanced"])

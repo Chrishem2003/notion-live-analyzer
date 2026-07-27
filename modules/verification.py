@@ -1,6 +1,7 @@
 """African Student Verification — Automated ID Verification Pipeline."""
 import io
 import hashlib
+import logging
 import re
 import os
 import time
@@ -10,9 +11,8 @@ from typing import Optional, Dict, Any, Tuple, List
 import streamlit as st
 import requests
 
-from modules.subscription import Tier, update_user_tier
-
-logger = logging.getLogger(__name__) if 'logging' in dir() else None
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════════════
 # ELIGIBLE AFRICAN DOMAINS & COUNTRIES
