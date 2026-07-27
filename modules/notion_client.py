@@ -172,6 +172,10 @@ def _handle_api_error(response: requests.Response, token: str, db_id: str = None
     if response.status_code == 404 and db_id:
         st.warning(f"Database {db_id} not found. It may have been deleted or the ID is incorrect.")
         return True
+    # Error boundary: catch 400 validation errors (e.g., Page ID passed instead of Database ID)
+    if response.status_code == 400:
+        st.warning("⚠️ Invalid database ID. You may have passed a Page ID instead of a Database ID.")
+        return pd.DataFrame()
     return False
 
 # ─── Database Operations ──────────────────────────────────────────────
@@ -285,7 +289,13 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
     Fetch all pages from a Notion database and return a DataFrame.
     Parses ALL property types automatically.
     Uses rate-limited requests to avoid 429 errors.
+    
+    Error Boundary: Returns empty DataFrame gracefully if HTTP 400 (Page ID passed instead of Database ID).
     """
+    if not db_id or not db_id.strip():
+        st.warning("No Database ID provided.")
+        return pd.DataFrame()
+    
     url = f"{NOTION_API_URL}/databases/{db_id}/query"
     headers = _make_headers(token)
     rows = []
