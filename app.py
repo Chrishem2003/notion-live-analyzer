@@ -26,13 +26,17 @@ from modules.who_surveillance import render_who_surveillance_tab
 from modules.mastercard_impact import render_mastercard_impact_tab
 from modules.policy_generator import render_policy_generator_tab
 from modules.master_automation import render_master_automation_control_center
+from modules.ui_enhancements import render_ui_enhancements
 
 st.set_page_config(page_title="World-Record Autonomous Research Platform", page_icon="🌐", layout="wide")
 
 initialize_rbac()
 
+# Render UI Enhancements (Dynamic time-based styling, background clarity, and smart calendar greetings)
+render_ui_enhancements()
+
 st.title("🌐 ResearchOS: Autonomous Research Intelligence & Global Command Platform")
-st.caption("Master Multi-System Automations • UN/WHO Policy Briefs • WHO Surveillance • MasterCard Impact Hub • Aviation HUDs • FAIR Provenance")
+st.caption("Master Multi-System Automations • Smart Calendar Greetings • UN/WHO Policy Briefs • WHO Surveillance • MasterCard Impact Hub • FAIR Provenance")
 
 # --- SIDEBAR AUTHENTICATION & SETTINGS ---
 with st.sidebar:
@@ -63,8 +67,8 @@ with st.sidebar:
                 if webhook_url:
                     send_backup_webhook_alert(webhook_url, res['record_count'], database_id)
 
-# --- ORGANIZED MASTER NAVIGATION TABS (23 MODULES) ---
-tab_auto, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17, tab18, tab19, tab20, tab21, tab22, tab23 = st.tabs([
+# --- ORGANIZED MASTER NAVIGATION TABS ---
+tabs = st.tabs([
     "⚡ Master Automation",
     "🎛️ Hybrid Visual Core",
     "📄 UN/WHO Policy Briefs",
@@ -89,6 +93,31 @@ tab_auto, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, ta
     "⚙️ System Status",
     "🌐 Offline P2P Mesh"
 ])
+
+# Assign tabs safely by index (Guarantees zero unpacking errors)
+tab_auto = tabs[0]
+tab1 = tabs[1]
+tab2 = tabs[2]
+tab3 = tabs[3]
+tab4 = tabs[4]
+tab5 = tabs[5]
+tab6 = tabs[6]
+tab7 = tabs[7]
+tab8 = tabs[8]
+tab9 = tabs[9]
+tab10 = tabs[10]
+tab11 = tabs[11]
+tab12 = tabs[12]
+tab13 = tabs[13]
+tab14 = tabs[14]
+tab15 = tabs[15]
+tab16 = tabs[16]
+tab17 = tabs[17]
+tab18 = tabs[18]
+tab19 = tabs[19]
+tab20 = tabs[20]
+tab21 = tabs[21]
+tab22 = tabs[22]
 
 # TAB 0: MASTER AUTOMATION ENGINE
 with tab_auto:
@@ -217,7 +246,7 @@ with tab17:
     st.subheader("System Telemetry & FAIR Compliance Audit")
     st.json({"platform_status": "ONLINE", "active_user": user_id, "assigned_role": st.session_state["user_role"]})
 
-# TABS 18-23: ADDITIONAL EXTENSIONS
+# TABS 18-22: ADDITIONAL EXTENSIONS
 with tab18:
     st.subheader("ResearchOS Core System Telemetry")
     st.success("All operational pipelines reporting zero exceptions.")
@@ -237,7 +266,3 @@ with tab21:
 with tab22:
     st.subheader("🌐 Offline P2P Mesh Synchronization Engine")
     st.info("Local node broadcasting enabled. Ready for intermittent connection environments.")
-
-with tab23:
-    st.subheader("🚀 Final Master Command Center Telemetry")
-    st.success("All 23 modules synchronized under autonomous event-driven architecture.")
