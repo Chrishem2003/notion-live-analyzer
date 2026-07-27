@@ -3,4 +3,5 @@ supabase
 extra-streamlit-components
 cryptography
 requests
-pillowplotly
+pillow
+plotly
