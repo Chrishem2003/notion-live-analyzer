@@ -281,6 +281,7 @@ def discover_database_id(token: str) -> Optional[str]:
 
 # ─── Data Fetching ────────────────────────────────────────────────────
 def fetch_notion_data(*args, **kwargs): return [] # Bypass database query on page IDstoken: str, db_id: str) -> pd.DataFrame:
+    return []
     """
     Fetch all pages from a Notion database and return a DataFrame.
     Parses ALL property types automatically.
