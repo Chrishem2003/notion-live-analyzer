@@ -5,3 +5,6 @@ cryptography
 requests
 pillow
 plotly
+scipy
+statsmodels
+openpyxl
