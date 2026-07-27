@@ -12,6 +12,8 @@ import requests
 import pandas as pd
 import streamlit as st
 
+from modules.pandas_compat import is_text_dtype
+
 NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
 PAGE_SIZE = 100
@@ -352,7 +354,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
     for col in df.columns:
         if col.startswith("_"):
             continue
-        if df[col].dtype == object:
+        if is_text_dtype(df[col]):
             try:
                 numeric_series = pd.to_numeric(df[col], errors="coerce")
                 if numeric_series.notna().sum() > len(df) * 0.5:

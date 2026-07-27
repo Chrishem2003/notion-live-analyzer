@@ -6,7 +6,10 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
 import streamlit as st
+import warnings
 from datetime import datetime
+
+from modules.pandas_compat import is_text_dtype, text_columns
 
 
 class DataQualityReport:
@@ -134,7 +137,7 @@ class DataQualityReport:
             ratio = nunique / len(self.df) if len(self.df) > 0 else 0
             if ratio < 0.01 and len(self.df) > 100:
                 low_cardinality.append(col)
-            elif ratio > 0.99 and self.df[col].dtype == 'object':
+            elif ratio > 0.99 and is_text_dtype(self.df[col]):
                 high_cardinality.append(col)
 
         if low_cardinality:
@@ -164,7 +167,7 @@ class DataQualityReport:
         # Check mixed types
         mixed_types = []
         for col in self.df.columns:
-            if self.df[col].dtype == 'object':
+            if is_text_dtype(self.df[col]):
                 # Check if column should be numeric
                 numeric_vals = pd.to_numeric(self.df[col], errors='coerce')
                 numeric_ratio = numeric_vals.notna().sum() / max(len(self.df), 1)
@@ -177,9 +180,12 @@ class DataQualityReport:
 
         # Check date consistency
         date_issues = []
-        for col in self.df.select_dtypes(include=['object']).columns:
+        for col in text_columns(self.df):
             try:
-                parsed = pd.to_datetime(self.df[col], errors='coerce')
+                with warnings.catch_warnings():
+                    # Non-date text columns are expected here; the format probe is deliberate.
+                    warnings.simplefilter("ignore", UserWarning)
+                    parsed = pd.to_datetime(self.df[col], errors='coerce')
                 if parsed.notna().sum() > 0.3 * len(self.df) and parsed.notna().sum() < len(self.df):
                     date_issues.append(col)
             except Exception:
@@ -190,7 +196,7 @@ class DataQualityReport:
 
         # Check categorical consistency (unique values vs expected)
         cat_issues = []
-        for col in self.df.select_dtypes(include=['object']).columns:
+        for col in text_columns(self.df):
             if self.df[col].nunique() <= 20:
                 # Check for whitespace inconsistencies
                 with_ws = self.df[col].str.contains(r'^\s|\s$', na=False).sum()

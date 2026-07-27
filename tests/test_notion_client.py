@@ -7,8 +7,6 @@ import requests
 
 from modules import notion_client as nc
 
-PANDAS_MAJOR = int(pd.__version__.split(".")[0])
-
 
 class FakeResponse:
     """Minimal stand-in for ``requests.Response``."""
@@ -444,10 +442,6 @@ class TestFetchNotionData:
         df = nc.fetch_notion_data("tok", "db1")
         assert df.loc[0, "Weird"] == "{'x': 1}"
 
-    @pytest.mark.skipif(
-        PANDAS_MAJOR >= 3,
-        reason="fetch_notion_data only coerces object-dtype columns; pandas 3 infers str dtype",
-    )
     def test_numeric_strings_are_coerced(self, monkeypatch):
         schema = {"properties": {"Score": {"type": "rich_text"}}}
 

@@ -2,10 +2,13 @@
 Data Processor — handles data type inference, cleaning, aggregation, and merging.
 Includes provenance tracking integration for full lineage logging.
 """
+import warnings
 from typing import Dict, List, Any, Optional, Tuple, Callable
 import pandas as pd
 import numpy as np
 from datetime import datetime
+
+from modules.pandas_compat import is_text_dtype, text_columns
 
 # ─── Provenance Integration ──────────────────────────────────────────
 try:
@@ -33,7 +36,10 @@ def infer_column_type(series: pd.Series) -> str:
     if pd.api.types.is_bool_dtype(dtype):
         return "boolean"
     try:
-        parsed = pd.to_datetime(clean, errors="coerce")
+        with warnings.catch_warnings():
+            # Heterogeneous text columns are expected here; the format probe is deliberate.
+            warnings.simplefilter("ignore", UserWarning)
+            parsed = pd.to_datetime(clean, errors="coerce")
         if parsed.notna().sum() > len(clean) * 0.5:
             return "temporal"
     except (ValueError, TypeError):
@@ -44,7 +50,7 @@ def infer_column_type(series: pd.Series) -> str:
         return "categorical"
 
     # Check for text / rich text
-    if clean.dtype == object:
+    if is_text_dtype(clean):
         sample = clean.iloc[0] if len(clean) > 0 else ""
         if isinstance(sample, str) and len(sample) > 50:
             return "text"
@@ -135,7 +141,7 @@ def clean_dataframe(df: pd.DataFrame, options: Dict[str, bool] = None) -> pd.Dat
         df = df.drop_duplicates()
 
     if options.get("strip_whitespace"):
-        for col in df.select_dtypes(include="object").columns:
+        for col in text_columns(df):
             df[col] = df[col].astype(str).str.strip()
 
     if options.get("fill_numeric_na") == "mean":
@@ -148,7 +154,7 @@ def clean_dataframe(df: pd.DataFrame, options: Dict[str, bool] = None) -> pd.Dat
         df[df.select_dtypes(include=[np.number]).columns] = df.select_dtypes(include=[np.number]).fillna(0)
 
     if options.get("fill_categorical_na") == "mode":
-        for col in df.select_dtypes(include="object").columns:
+        for col in text_columns(df):
             if df[col].isna().any():
                 mode_val = df[col].mode()
                 if len(mode_val) > 0:

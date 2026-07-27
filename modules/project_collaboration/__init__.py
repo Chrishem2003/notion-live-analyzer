@@ -40,22 +40,35 @@ from .webrtc_provider import (
     Participant,
     ParticipantTrack,
     AudioSpatialPosition,
+    TrackType,
+    TrackQuality,
+    ConnectionState,
 )
 
 from .collaborative_canvas import (
     CollaborativeCanvas,
     ViewportState,
+    ViewportSyncMode,
     CursorPosition,
+    CursorType,
     CRDTElement,
+    CanvasElementType,
     GhostStage,
+    GhostStageState,
     CanvasSnapshot,
 )
 
 from .ai_researcher import (
     AIResearcher,
     TranscriptProcessor,
+    TranscriptSegment,
+    TranscriptSource,
     ActionItemDetector,
+    ActionItem,
+    ActionItemPriority,
+    ActionItemStatus,
     MeetingNote,
+    NoteCategory,
     ResearchContext,
 )
 
@@ -76,18 +89,31 @@ __all__ = [
     "Participant",
     "ParticipantTrack",
     "AudioSpatialPosition",
+    "TrackType",
+    "TrackQuality",
+    "ConnectionState",
     # Canvas
     "CollaborativeCanvas",
     "ViewportState",
+    "ViewportSyncMode",
     "CursorPosition",
+    "CursorType",
     "CRDTElement",
+    "CanvasElementType",
     "GhostStage",
+    "GhostStageState",
     "CanvasSnapshot",
     # AI
     "AIResearcher",
     "TranscriptProcessor",
+    "TranscriptSegment",
+    "TranscriptSource",
     "ActionItemDetector",
+    "ActionItem",
+    "ActionItemPriority",
+    "ActionItemStatus",
     "MeetingNote",
+    "NoteCategory",
     "ResearchContext",
 ]
 

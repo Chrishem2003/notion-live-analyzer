@@ -3,31 +3,16 @@ Audit Portal — CHRISHEM Encrypted Submission & Analytics System
 ================================================================
 Provides:
   1. CHRISHEMSubmissionSystem — Fernet-encrypted student submissions with SQLite
-  2. CHRISHEMAnalyticsEngine — Plotly-based trace-backs, blockchain graphs, risk dashboards
-  3. StealthHumanizer — Advanced anti-AI-detection engine covering all tell-tale traces
 """
 from __future__ import annotations
 
 import base64
 import hashlib
-import io
 import json
-import os
-import re
 import sqlite3
-import statistics
 import time
-from collections import Counter
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-import numpy as np
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import streamlit as st
+from typing import Any, Dict, List, Optional
 
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
@@ -282,6 +267,18 @@ class CHRISHEMSubmissionSystem:
                 "SELECT COUNT(*) as c FROM portal_submissions WHERE project_id=? AND student_name=? AND status='submitted'",
                 (project_id, student_name),
             ).fetchone()["c"]
-avg_score = conn.execute(
-                "SELECT AVG(professor_score) as avg FROM portal_submissions WHERE project_id=? AND student_name=? AND professor_score IS NOT NULL",
-                (project_id, student_name
+            avg_score = conn.execute(
+                "SELECT AVG(professor_score) as avg FROM portal_submissions "
+                "WHERE project_id=? AND student_name=? AND professor_score IS NOT NULL",
+                (project_id, student_name),
+            ).fetchone()["avg"]
+
+        return {
+            "student_name": student_name,
+            "project_id": project_id,
+            "total_submissions": total,
+            "reviewed": reviewed,
+            "pending": pending,
+            "returned": total - reviewed - pending,
+            "average_score": round(float(avg_score), 2) if avg_score is not None else None,
+        }
