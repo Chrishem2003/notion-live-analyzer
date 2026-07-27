@@ -1,6 +1,5 @@
 """
 Application Pipeline, Document Vault & Currency Module
-========================================================
 Production-grade Application Lifecycle Management module for the
 Opportunities Hub — featuring a Pipeline Tracker, Document Vault,
 and Currency Conversion engine.

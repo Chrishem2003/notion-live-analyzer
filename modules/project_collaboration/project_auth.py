@@ -1,6 +1,5 @@
 """
 Project Security & JWT Token Generator
-========================================
 Next-gen API route generating project-isolated JWT tokens carrying
 user identity, room permissions, and co-host capabilities.
 

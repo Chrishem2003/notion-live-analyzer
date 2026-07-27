@@ -1,6 +1,5 @@
 """
 Academic Audit & Optimization Engine
-======================================
 Cryptographic blockchain ledger for tamper-proof forensic auditing,
 triple-vector linguistic scoring (plagiarism, AI-content detection),
 fluid cadence transformation, and advanced text humanization.

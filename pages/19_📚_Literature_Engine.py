@@ -1,6 +1,5 @@
 """
 📚 Global Literature Aggregator & Auto-Drafting Engine
-=====================================================
 Fetch REAL papers from Semantic Scholar, build your working bibliography,
 write your own findings, and generate publication-ready references.
 

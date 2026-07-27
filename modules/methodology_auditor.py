@@ -1,6 +1,5 @@
 """
 Active Bias & Methodological Flaw Detector — AI-driven "Peer Reviewer"
-=====================================================================
 Critically audits research methodology sections, sample sizes, experimental setups.
 Flags small sample sizes, unaddressed confounding variables, statistical over-claims,
 p-hacking risks, selection bias, and assigns overall "Methodological Rigor Score" (0–100%).

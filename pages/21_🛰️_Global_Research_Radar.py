@@ -1,6 +1,5 @@
 """
 🌍 Global Research Radar & Satellite Intelligence Platform
-=========================================================
 Based on the Advanced Research Operating System concept, this page provides:
   1. Global Intelligence Radar — Search/filter research pain points with satellite feeds
   2. Impact vs Feasibility Matrix — 2D scatter quadrant visualization

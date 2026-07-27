@@ -1,6 +1,5 @@
 """
 One-Click Grant & Journal Transpiler
-======================================
 Instantly reformats summaries, bibliographies, and proposal drafts into
 specific institutional or journal formats. Supports APA 7, IEEE, Nature,
 Science, NIH Grant, European Research Council, and institutional templates.

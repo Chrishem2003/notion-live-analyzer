@@ -1,6 +1,5 @@
 """
 Unified Split-Screen Collaboration Shell UI
-==============================================
 Production-grade Tailwind-styled (custom CSS) split-screen collaboration interface featuring:
   - Main Panel: Interactive Yjs research canvas with viewport sync
   - Floating Dock: Live participant video grid + secondary presentation player

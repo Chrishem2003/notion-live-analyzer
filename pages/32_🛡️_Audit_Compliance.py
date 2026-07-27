@@ -1,6 +1,5 @@
 """
 Audit & Compliance Hub — Standalone Page
-=========================================
 Provides forensic text analysis, AI-content detection, plagiarism checking,
 text humanization, and blockchain-verified audit trails.
 

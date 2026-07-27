@@ -12,13 +12,10 @@ import requests
 import pandas as pd
 import streamlit as st
 
-<<<<<<< HEAD
 from modules.pandas_compat import is_text_dtype
-=======
 from modules.logging_utils import get_logger
 
 logger = get_logger(__name__)
->>>>>>> origin/devin/1785103427-error-handling
 
 NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"

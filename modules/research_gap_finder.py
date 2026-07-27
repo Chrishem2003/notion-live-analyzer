@@ -1,6 +1,5 @@
 """
 Novelty & Unexplored Research Gap Finder
-=========================================
 A cross-synthesis engine that analyzes clusters of papers to identify unaddressed
 questions, conflicting findings, and unexplored hypotheses. Auto-drafts research proposals.
 

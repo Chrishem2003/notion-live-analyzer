@@ -1,6 +1,5 @@
 """
 Audit & Compliance Hub — UI Rendering Module
-==============================================
 Renders the 5th tab "Audit & Compliance Hub" with 4 sub-tabs:
   1. 🔍 Forensic Audit        — Professor-facing forensic view (password-protected)
   2. 🎯 Plagiarism & AI Check — Multi-vector scoring dashboard

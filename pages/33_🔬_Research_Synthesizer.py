@@ -1,6 +1,5 @@
 """
 Research Synthesizer & Audio Intelligence Hub — Standalone Page
-=================================================================
 World-class multimodal research engine that ingests papers, lectures,
 or URLs and produces verifiable breakdowns, grounded audio podcasts,
 and real-time prior art mapping.

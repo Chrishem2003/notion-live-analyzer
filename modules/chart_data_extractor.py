@@ -1,6 +1,5 @@
 """
 Visual Chart Data Extractor & CSV Re-Synthesizer
-=================================================
 A vision pipeline that extracts buried quantitative data from static PDF charts,
 bar graphs, scatter plots, and reconstructs raw numerical data points.
 
