@@ -12,6 +12,10 @@ import sys
 import subprocess
 import importlib
 
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 # ─── Auto-install Google Sheets dependencies ──────────────────────────
 # This allows non-technical users to use Google Sheets without manual pip install
 
@@ -37,10 +41,15 @@ except ImportError:
                 st.success("✅ Google Sheets dependencies installed successfully!")
                 st.rerun()
             except ImportError:
-                pass
+                logger.warning(
+                    "gspread/oauth2client still not importable after auto-install", exc_info=True
+                )
+                st.warning("⚠️ Google Sheets packages installed but still not importable — restart the app.")
         else:
+            logger.error("Google Sheets dependency auto-install failed: %s", result.stderr[:500])
             st.warning(f"⚠️ Auto-install failed: {result.stderr[:200]}")
     except Exception as e:
+        logger.exception("Google Sheets dependency auto-install raised an error")
         st.warning(f"⚠️ Could not auto-install: {str(e)}")
 
 

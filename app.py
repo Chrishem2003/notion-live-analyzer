@@ -3,29 +3,28 @@ Advanced Research Data Analyzer & Visualizer
 Entry point — thin orchestrator that sets up the app and delegates to modules.
 Replaces SPSS, Tableau, Power BI with a single, intelligent, Notion-connected research platform.
 """
-import time
 import os
+import time
 from datetime import datetime
 from importlib.metadata import distributions as _distributions
 from pathlib import Path
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
+from modules.logging_utils import get_logger
+
+logger = get_logger("app")
 
 # ─── Startup Performance Timer ────────────────────────────────────────
 _startup_start = time.time()
 
 # ─── Lightweight Dependency Check (Non-Blocking) ─────────────────────
-# Replaced the old blocking per-package import check with a fast lazy check
-# that runs AFTER the page renders, so users see the dashboard immediately.
 AUTO_FIX_DEPS = os.environ.get("AUTO_FIX_DEPS", "true").lower() == "true"
 _HEAVY_PACKAGES = {"xgboost", "shap", "pymc", "arviz", "causalml", "prophet"}
 
-# We defer the full dependency scan to a background check by reading the
-# installed distribution metadata instead of 30+ importlib calls. The result is
-# cached in session state so reruns (every widget interaction) stay instant.
-
-
+# We defer the full dependency scan by reading the installed distribution metadata
+# instead of blocking import calls. Cached in session state for fast reruns.
 def _scan_installed_packages() -> set:
     try:
         return {
@@ -33,6 +32,7 @@ def _scan_installed_packages() -> set:
             for dist in _distributions()
         }
     except Exception:
+        logger.exception("Dependency scan failed — skipping the startup dependency check")
         return set()
 
 
@@ -40,14 +40,17 @@ if "_installed_pkgs" not in st.session_state:
     st.session_state["_installed_pkgs"] = _scan_installed_packages()
 _installed_pkgs = st.session_state["_installed_pkgs"]
 
-# Quick check: are core packages present? (fast set lookup)
+# Quick check: are core packages present?
 _CORE_PACKAGES = {"streamlit", "pandas", "numpy", "plotly", "requests", "scipy", "statsmodels", "openpyxl"}
-_missing_core = [p for p in _CORE_PACKAGES if p not in _installed_pkgs]
+_missing_core = [] if _installed_pkgs is None else [p for p in _CORE_PACKAGES if p not in _installed_pkgs]
 
-# Heavy package detection (lazy — not imported, just check pip list)
-_missing_heavy = [p for p in _HEAVY_PACKAGES if p.replace("-", "_") not in _installed_pkgs]
+# Heavy package detection (lazy check)
+_missing_heavy = (
+    [] if _installed_pkgs is None
+    else [p for p in _HEAVY_PACKAGES if p.replace("-", "_") not in _installed_pkgs]
+)
 
-# Store results for later non-blocking display
+# Store results for non-blocking display
 st.session_state["_startup_missing_core"] = _missing_core
 st.session_state["_startup_missing_heavy"] = _missing_heavy
 st.session_state["_startup_complete"] = False  # will be set to True after render
@@ -71,17 +74,17 @@ if AUTO_FIX_DEPS and _missing_core:
         _il.invalidate_caches()
 
 # ─── Modules ──────────────────────────────────────────────────────────
-from modules.config import init_session_state, get_secret, find_background_image, CACHE_DIR
-from modules.notion_client import (
-    get_database_options, discover_database_id, auto_find_duplicated_db,
-    fingerprint_database, fetch_notion_data
-)
+from modules.config import CACHE_DIR, init_session_state, get_secret, find_background_image
 from modules.keepalive import (
-    inject_client_keepalive, start_server_keepalive, get_health_check_html
+    get_health_check_html, inject_client_keepalive, start_server_keepalive
+)
+from modules.notion_client import (
+    auto_find_duplicated_db, discover_database_id, fetch_notion_data,
+    fingerprint_database, get_database_options
 )
 from modules.ui_components import (
-    load_css, hero_card, sync_status_card, sidebar_card, end_sidebar_card,
-    watermark, render_onboarding_tour
+    end_sidebar_card, hero_card, load_css, render_onboarding_tour,
+    sidebar_card, sync_status_card, watermark
 )
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -137,8 +140,8 @@ DATABASE_ID = get_secret("DATABASE_ID")
 
 def show_credential_setup():
     """Render the credential setup wizard for Notion connection."""
-    from modules.ui_components import sidebar_card, end_sidebar_card
     import requests
+    from modules.ui_components import end_sidebar_card, sidebar_card
 
     st.markdown(
         """
@@ -319,8 +322,9 @@ with st.sidebar:
 
             st.code(DATABASE_ID, language="text")
             st.caption(f"Source: {DATABASE_SOURCE}")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.exception("Failed to render the Notion database selector")
+        st.warning(f"⚠️ Could not load the database list: {e}")
 
     end_sidebar_card()
 
@@ -417,8 +421,11 @@ if df is not None and not df.empty:
             if "error" not in report:
                 st.session_state["executive_report"] = report
                 st.session_state["executive_report_generated"] = True
-        except Exception as e:
-            pass  # Non-blocking; will be generated on demand
+            else:
+                logger.warning("Executive report generation returned an error: %s", report["error"])
+        except Exception:
+            # Non-blocking; the report can still be generated on demand.
+            logger.exception("Auto-generation of the executive report failed")
 
 # ───────────────────────────────────────────────────────────────────────
 # 13. DASHBOARD OVERVIEW
@@ -426,11 +433,11 @@ if df is not None and not df.empty:
 if df.empty:
     st.warning("⚠️ No data parsed from Notion yet. Try uploading a file in **📁 File Analyzer** page, or check your Notion credentials.")
 else:
-    from modules.data_processor import profile_dataset, get_column_summary, infer_column_types
-    from modules.viz_engine import auto_recommend_chart
     from modules.chart_builder import build_chart
-    from modules.ui_components import section_header, insight_card
+    from modules.data_processor import get_column_summary, infer_column_types, profile_dataset
     from modules.export import render_export_buttons
+    from modules.ui_components import insight_card, section_header
+    from modules.viz_engine import auto_recommend_chart
 
     # Profile
     profile = profile_dataset(df)
@@ -486,4 +493,3 @@ st.sidebar.markdown(
     - **⚙️ Settings** — Theme, credentials, keep-alive
     """
 )
-

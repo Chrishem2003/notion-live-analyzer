@@ -11,6 +11,10 @@ from typing import Optional, Dict, Any
 import streamlit as st
 import plotly.express as px
 
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = APP_DIR / "assets"
@@ -229,7 +233,8 @@ def get_secret(name: str) -> Optional[str]:
         if name in st.secrets:
             return st.secrets[name]
     except Exception:
-        pass
+        # No secrets.toml (or it is unreadable) — fall back to the environment.
+        logger.debug("Could not read secret %r from st.secrets", name, exc_info=True)
     return os.environ.get(name)
 
 # ─── Background Image ─────────────────────────────────────────────────

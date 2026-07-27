@@ -23,11 +23,16 @@ from datetime import datetime, timedelta
 from enum import IntEnum
 from typing import Dict, List, Any, Optional, Tuple, Callable
 
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 try:
     import jwt as pyjwt
     HAS_PYJWT = True
 except ImportError:
     HAS_PYJWT = False
+    logger.warning("PyJWT unavailable — falling back to the manual HMAC-SHA256 JWT implementation")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -485,6 +490,7 @@ class ProjectAuthManager:
                     options={"verify_exp": False},
                 )
             except Exception:
+                logger.warning("JWT verification failed — rejecting token", exc_info=True)
                 return None
         else:
             return self._manual_jwt_decode(token)
@@ -520,12 +526,14 @@ class ProjectAuthManager:
             ).digest()
             actual_sig = self._b64decode(sig_b64)
             if not hmac.compare_digest(actual_sig, expected_sig):
+                logger.warning("JWT signature mismatch — rejecting token")
                 return None
 
             # Decode payload
             payload_bytes = self._b64decode(payload_b64)
             return json.loads(payload_bytes.decode())
         except Exception:
+            logger.warning("Malformed JWT — rejecting token", exc_info=True)
             return None
 
     @staticmethod

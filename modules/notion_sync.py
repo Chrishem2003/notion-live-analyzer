@@ -10,6 +10,9 @@ import pandas as pd
 import streamlit as st
 
 from modules.config import get_secret
+from modules.logging_utils import get_logger
+
+logger = get_logger(__name__)
 
 NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
@@ -56,8 +59,10 @@ class NotionSyncEngine:
             else:
                 return False, f"❌ API Error {response.status_code}: {response.text[:200]}"
         except requests.exceptions.Timeout:
+            logger.warning("Timeout updating property %r on Notion page %s", property_name, page_id)
             return False, "⏱️ Request timed out — check your network"
         except Exception as e:
+            logger.exception("Failed to update property %r on Notion page %s", property_name, page_id)
             return False, f"❌ Sync error: {str(e)}"
 
     def _build_property_payload(self, name: str, value: Any, ptype: str) -> Dict:
@@ -112,8 +117,13 @@ class NotionSyncEngine:
             if response.status_code == 200:
                 return True, "✅ Comment added to page"
             else:
+                logger.error(
+                    "Failed to add comment to Notion page %s: %s — %s",
+                    page_id, response.status_code, response.text[:200],
+                )
                 return False, f"❌ Failed to add comment: {response.status_code}"
         except Exception as e:
+            logger.exception("Error adding comment to Notion page %s", page_id)
             return False, f"❌ Comment error: {str(e)}"
 
     # ─── Create Database Entry ────────────────────────────────────────
@@ -129,6 +139,7 @@ class NotionSyncEngine:
 
         # Build property payload
         notion_properties = {}
+        rejected: List[str] = []
         for prop_name, prop_info in properties.items():
             if isinstance(prop_info, dict):
                 ptype = prop_info.get("type", "rich_text")
@@ -138,8 +149,14 @@ class NotionSyncEngine:
                 pvalue = prop_info
 
             payload = self._build_property_payload(prop_name, pvalue, ptype)
-            if "error" not in payload:
-                notion_properties.update(payload)
+            if "error" in payload:
+                logger.warning("Skipping property %r: %s", prop_name, payload["error"])
+                rejected.append(f"{prop_name} ({payload['error']})")
+                continue
+            notion_properties.update(payload)
+
+        if not notion_properties:
+            return False, f"❌ No valid properties to write — {'; '.join(rejected)}", None
 
         payload = {
             "parent": {"database_id": db_id},
@@ -151,10 +168,18 @@ class NotionSyncEngine:
             if response.status_code == 200:
                 data = response.json()
                 new_id = data.get("id", "")
-                return True, "✅ New entry created in Notion database", new_id
+                message = "✅ New entry created in Notion database"
+                if rejected:
+                    message += f" — skipped invalid properties: {'; '.join(rejected)}"
+                return True, message, new_id
             else:
+                logger.error(
+                    "Failed to create entry in Notion database %s: %s — %s",
+                    db_id, response.status_code, response.text[:200],
+                )
                 return False, f"❌ Failed to create entry: {response.status_code} — {response.text[:200]}", None
         except Exception as e:
+            logger.exception("Error creating entry in Notion database %s", db_id)
             return False, f"❌ Create error: {str(e)}", None
 
     # ─── Batch Sync Insights ─────────────────────────────────────────
@@ -202,7 +227,11 @@ class NotionSyncEngine:
                     errors.append(msg)
 
                 # Also add as a comment
-                self.add_page_comment(page_id, f"🤖 AI Insight: {insight_text[:200]}")
+                comment_ok, comment_msg = self.add_page_comment(
+                    page_id, f"🤖 AI Insight: {insight_text[:200]}"
+                )
+                if not comment_ok:
+                    errors.append(f"{page_id[:8]}: {comment_msg}")
 
                 time.sleep(0.35)  # Rate limiting
 
@@ -270,8 +299,13 @@ class NotionSyncEngine:
             response = requests.get(url, headers=headers, timeout=15)
             if response.status_code == 200:
                 return response.json()
+            logger.error(
+                "Failed to read content of Notion page %s: %s — %s",
+                page_id, response.status_code, response.text[:200],
+            )
             return None
         except Exception:
+            logger.exception("Error reading content of Notion page %s", page_id)
             return None
 
     # ─── Append Block to Page ─────────────────────────────────────────
@@ -290,8 +324,13 @@ class NotionSyncEngine:
             response = requests.patch(url, json={"children": [block]}, headers=headers, timeout=15)
             if response.status_code == 200:
                 return True, f"✅ Block appended to page {page_id[:8]}..."
+            logger.error(
+                "Failed to append %s block to Notion page %s: %s — %s",
+                block_type, page_id, response.status_code, response.text[:200],
+            )
             return False, f"❌ Failed: {response.status_code}"
         except Exception as e:
+            logger.exception("Error appending %s block to Notion page %s", block_type, page_id)
             return False, f"❌ Error: {str(e)}"
 
 
