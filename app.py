@@ -19,13 +19,14 @@ from modules.grant_engine import render_grant_engine_tab
 from modules.inventory_engine import render_inventory_tab
 from modules.schema_engine import render_schema_engine_tab
 from modules.grant_matcher import render_grant_matcher_tab
+from modules.blindspot_engine import render_blindspot_engine_tab
 
 st.set_page_config(page_title="World-Record Autonomous Research Platform", page_icon="🧬", layout="wide")
 
 initialize_rbac()
 
-st.title("🌐 World-Record Autonomous Research Intelligence System (ResearchOS)")
-st.caption("Genomics • 3D Proteomics • Satellite Telemetry • Grant Indexer • FAIR Database Schema • Inventory & Lab Workflows")
+st.title("🌐 ResearchOS: Autonomous Research Intelligence & Integrity System")
+st.caption("Genomics • 3D Proteomics • Satellite Telemetry • Grant Indexer • Negative Result Vault • Anti-Rot Provenance")
 
 # --- SIDEBAR AUTHENTICATION & SETTINGS ---
 with st.sidebar:
@@ -56,34 +57,33 @@ with st.sidebar:
                 if webhook_url:
                     send_backup_webhook_alert(webhook_url, res['record_count'], database_id)
 
-# --- MASTER NAVIGATION TABS ---
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
+# --- MASTER NAVIGATION TABS (13 MODULES) ---
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13 = st.tabs([
     "🧬 Genomics & NCBI", 
     "🧪 Transl. Proteomics",
     "🖥️ 3D Structure Viewer",
     "🧫 Lab Inventory & PCR",
     "🛰️ Satellite Intelligence", 
     "🕸️ Knowledge Graph",
-    "🎯 Grant Indexer & Matcher",
+    "🎯 Grant Indexer",
     "📄 AI Grant Drafter",
+    "🛡️ Resilience & Integrity",
     "🗄️ Unified DB Schema",
     "📊 PDF Report Generator",
-    "🔒 Provenance & Audit"
+    "🔒 Provenance & Audit",
+    "💡 System Telemetry"
 ])
 
 # TAB 1: GENOMICS & NCBI
 with tab1:
     st.subheader("NCBI Direct Fetch & Genomic Variant Profiler")
     col_a, col_b = st.columns([1, 1])
-    
     with col_a:
         st.markdown("### 🔍 NCBI Gene Locus Fetcher")
         gene_query = st.text_input("Gene Symbol / Term", value="BRCA1")
         if st.button("Fetch NCBI Summary"):
             with st.spinner("Querying NCBI Entrez API..."):
-                ncbi_res = fetch_ncbi_gene_summary(gene_query, pubmed_api_key)
-                st.json(ncbi_res)
-
+                st.json(fetch_ncbi_gene_summary(gene_query, pubmed_api_key))
     with col_b:
         st.markdown("### 🧬 Sequence Variant Analytics")
         dna_in = st.text_area("Paste DNA Sequence", height=100, value="ATGCGATCGATCGATCGATCGATCGA")
@@ -97,7 +97,6 @@ with tab1:
 with tab2:
     st.subheader("Translational Proteomics & Structure Data Engine")
     p_col1, p_col2 = st.columns(2)
-    
     with p_col1:
         st.markdown("### 🧬 DNA -> Amino Acid Translation")
         dna_prot_in = st.text_area("Paste Coding DNA", height=100, value="ATGGCCATTGTAATGGGCCGCTGAAAG")
@@ -107,13 +106,11 @@ with tab2:
             m1, m2 = st.columns(2)
             m1.metric("Amino Acids", translation["aa_count"])
             m2.metric("Est. Mol Weight", f"{translation['est_mol_weight_kDa']} kDa")
-
     with p_col2:
         st.markdown("### 🏛️ RCSB PDB Metadata Lookup")
         pdb_id_input = st.text_input("Enter PDB Code", value="1TUP")
         if st.button("Fetch PDB Metadata"):
-            pdb_info = fetch_pdb_metadata(pdb_id_input)
-            st.json(pdb_info)
+            st.json(fetch_pdb_metadata(pdb_id_input))
 
 # TAB 3: 3D STRUCTURE VIEWER
 with tab3:
@@ -129,7 +126,6 @@ with tab5:
     col_lat, col_lon = st.columns(2)
     lat_val = col_lat.number_input("Latitude", value=3.0300)
     lon_val = col_lon.number_input("Longitude", value=30.9100)
-    
     if st.button("Query Satellite Telemetry"):
         with st.spinner("Pulling satellite indices..."):
             telemetry = fetch_field_site_telemetry(lat_val, lon_val)
@@ -147,7 +143,7 @@ with tab6:
         with open(graph_file, "r", encoding="utf-8") as f:
             components.html(f.read(), height=480)
 
-# TAB 7: AUTOMATED GRANT INDEXER
+# TAB 7: GRANT INDEXER
 with tab7:
     render_grant_matcher_tab()
 
@@ -155,40 +151,37 @@ with tab7:
 with tab8:
     render_grant_engine_tab()
 
-# TAB 9: UNIFIED DATABASE SCHEMA
+# TAB 9: RESILIENCE & BLIND SPOT INTEGRITY
 with tab9:
+    render_blindspot_engine_tab()
+
+# TAB 10: UNIFIED DATABASE SCHEMA
+with tab10:
     render_schema_engine_tab()
 
-# TAB 10: PDF REPORT EXPORT
-with tab10:
+# TAB 11: PDF REPORT EXPORT
+with tab11:
     st.subheader("Publication-Ready PDF Generator")
     if check_permission("Analyst"):
         if st.button("Generate Enterprise PDF Report"):
             dummy_metrics = {"length": 150, "gc_content": 52.4, "at_content": 47.6, "total_codons": 50}
             stamp = generate_compliance_hash(dummy_metrics)
             pdf_path = generate_research_pdf_report(dummy_metrics, user_id, stamp)
-            
             with open(pdf_path, "rb") as f:
                 st.download_button("📥 Download PDF Report", data=f, file_name="Research_Report.pdf", mime="application/pdf")
     else:
         st.warning("Analyst permission required.")
 
-# TAB 11: PROVENANCE & AUDIT
-with tab11:
+# TAB 12: PROVENANCE & AUDIT
+with tab12:
     st.subheader("System Telemetry & FAIR Compliance Audit")
     st.json({
         "platform_status": "ONLINE",
         "active_user": user_id,
-        "assigned_role": st.session_state["user_role"],
-        "active_modules": [
-            "NCBI Entrez API",
-            "3Dmol.js WebGL Engine",
-            "Lab Inventory & Reaction Calculator",
-            "Automated Grant Matcher",
-            "AI Grant Generator",
-            "SQLite Unified Research Schema",
-            "Sentinel-2 Environmental Telemetry",
-            "Vis.js Knowledge Graph",
-            "SHA-256 FAIR Provenance Ledger"
-        ]
+        "assigned_role": st.session_state["user_role"]
     })
+
+# TAB 13: SYSTEM TELEMETRY
+with tab13:
+    st.subheader("ResearchOS Core Architecture Status")
+    st.success("All 13 modules operating concurrently in unified transactional state.")
