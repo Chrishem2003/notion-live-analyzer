@@ -13,13 +13,14 @@ from modules.auth_engine import initialize_rbac, check_permission
 from modules.ncbi_engine import fetch_ncbi_gene_summary
 from modules.satellite_engine import fetch_field_site_telemetry
 from modules.knowledge_graph import build_research_knowledge_graph
+from modules.proteomics_engine import translate_dna_to_protein, fetch_pdb_metadata
 
 st.set_page_config(page_title="World-Class Research Intelligence Platform", page_icon="🧬", layout="wide")
 
 initialize_rbac()
 
 st.title("🌐 World-Class Autonomous Research Intelligence Platform")
-st.caption("Genomics • Satellite Telemetry • Knowledge Graphs • FAIR Data Provenance")
+st.caption("Genomics • Structural Proteomics • Satellite Telemetry • Knowledge Graphs • FAIR Data Provenance")
 
 # --- SIDEBAR AUTH & CONFIG ---
 with st.sidebar:
@@ -51,8 +52,9 @@ with st.sidebar:
                     send_backup_webhook_alert(webhook_url, res['record_count'], database_id)
 
 # --- NAVIGATION TABS ---
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "🧬 Genomics & NCBI Entrez", 
+    "🧪 Structural Proteomics & PDB",
     "🛰️ Satellite Environmental Intelligence", 
     "🕸️ Research Knowledge Graph",
     "📄 PDF Report Generator",
@@ -82,8 +84,37 @@ with tab1:
                 st.metric("GC Content", f"{metrics['gc_content']}%")
                 st.metric("Length", f"{metrics['length']} bp")
 
-# TAB 2: SATELLITE TELEMETRY
+# TAB 2: STRUCTURAL PROTEOMICS
 with tab2:
+    st.subheader("Translational Proteomics & 3D Structure Data Engine")
+    p_col1, p_col2 = st.columns(2)
+    
+    with p_col1:
+        st.markdown("### 🧬 DNA -> Amino Acid Translation")
+        dna_prot_in = st.text_area("Paste Coding DNA Sequence", height=120, value="ATGGCCATTGTAATGGGCCGCTGAAAG")
+        if st.button("Translate to Protein"):
+            translation = translate_dna_to_protein(dna_prot_in)
+            st.code(translation["protein_sequence"], language="text")
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Amino Acids", translation["aa_count"])
+            m2.metric("Est. Mol Weight", f"{translation['est_mol_weight_kDa']} kDa")
+            m3.metric("Stop Codons", translation["stop_codons"])
+
+    with p_col2:
+        st.markdown("### 🏛️ RCSB PDB Structure Lookup")
+        pdb_id_input = st.text_input("Enter 4-Letter PDB Code", value="1TUP")
+        if st.button("Fetch Structure Metadata"):
+            pdb_info = fetch_pdb_metadata(pdb_id_input)
+            if pdb_info.get("valid"):
+                st.success(f"Structure Found: **{pdb_info['pdb_id']}**")
+                st.write(f"**Title:** {pdb_info['title']}")
+                st.write(f"**Experimental Method:** {pdb_info['method']}")
+                st.write(f"**Resolution:** {pdb_info['resolution']}")
+            else:
+                st.error("Invalid or unavailable PDB ID.")
+
+# TAB 3: SATELLITE TELEMETRY
+with tab3:
     st.subheader("Satellite Environmental Monitoring for Field Research Sites")
     col_lat, col_lon = st.columns(2)
     lat_val = col_lat.number_input("Latitude", value=3.0300)
@@ -97,18 +128,17 @@ with tab2:
             t2.metric("Vegetation Health", telemetry["vegetation_health"])
             t3.metric("Surface Temp", f"{telemetry['surface_temp_c']} °C")
             t4.metric("Soil Moisture", telemetry["moisture_index"])
-            st.caption(f"Source: {telemetry['satellite_source']} | Timestamp: {telemetry['timestamp']}")
 
-# TAB 3: KNOWLEDGE GRAPH
-with tab3:
+# TAB 4: KNOWLEDGE GRAPH
+with tab4:
     st.subheader("Interactive Research Knowledge Graph")
     if st.button("Render Knowledge Graph Network"):
         graph_file = build_research_knowledge_graph([])
         with open(graph_file, "r", encoding="utf-8") as f:
             components.html(f.read(), height=480)
 
-# TAB 4: PDF EXPORT
-with tab4:
+# TAB 5: PDF EXPORT
+with tab5:
     st.subheader("Publication-Ready PDF Generator")
     if check_permission("Analyst"):
         if st.button("Generate Enterprise PDF Report"):
@@ -121,19 +151,19 @@ with tab4:
     else:
         st.warning("Analyst permission required.")
 
-# TAB 5: GRANT ALIGNMENT
-with tab5:
+# TAB 6: GRANT ALIGNMENT
+with tab6:
     st.subheader("Grant & Funding Matcher")
     abstract = st.text_area("Project Proposal Abstract", height=120)
     if abstract:
         st.success("Abstract matched against active funding calls.")
 
-# TAB 6: PROVENANCE & TELEMETRY
-with tab6:
+# TAB 7: PROVENANCE & TELEMETRY
+with tab7:
     st.subheader("System Telemetry & Access Control")
     st.json({
         "status": "ONLINE",
         "active_user": user_id,
         "assigned_role": st.session_state["user_role"],
-        "modules": ["NCBI Entrez", "Sentinel-2 Telemetry", "Vis.js Graph Engine", "FAIR Provenance Hash"]
+        "modules": ["NCBI Entrez", "RCSB PDB Proteomics", "Sentinel-2 Telemetry", "Vis.js Graph Engine", "FAIR Provenance Hash"]
     })
