@@ -53,7 +53,7 @@ class ProductionLinguisticProcessor:
             "hash": generate_compliance_hash(text)
         }
 
-# Aliases/additional classes for absolute backwards compatibility with audit_ui.py imports
+# Aliases to satisfy any import naming convention
 ComplianceEngine = AuditOrchestrator
 DataEngine = EnterpriseDataEngine
 LinguisticProcessor = ProductionLinguisticProcessor
