@@ -17,13 +17,15 @@ from modules.proteomics_engine import translate_dna_to_protein, fetch_pdb_metada
 from modules.structure_viewer import render_structure_viewer_tab
 from modules.grant_engine import render_grant_engine_tab
 from modules.inventory_engine import render_inventory_tab
+from modules.schema_engine import render_schema_engine_tab
+from modules.grant_matcher import render_grant_matcher_tab
 
 st.set_page_config(page_title="World-Record Autonomous Research Platform", page_icon="🧬", layout="wide")
 
 initialize_rbac()
 
-st.title("🌐 World-Record Autonomous Research Intelligence Platform")
-st.caption("Genomics • 3D Proteomics • Satellite Telemetry • AI Grant Engine • Inventory & Lab Workflows • FAIR Provenance")
+st.title("🌐 World-Record Autonomous Research Intelligence System (ResearchOS)")
+st.caption("Genomics • 3D Proteomics • Satellite Telemetry • Grant Indexer • FAIR Database Schema • Inventory & Lab Workflows")
 
 # --- SIDEBAR AUTHENTICATION & SETTINGS ---
 with st.sidebar:
@@ -55,14 +57,16 @@ with st.sidebar:
                     send_backup_webhook_alert(webhook_url, res['record_count'], database_id)
 
 # --- MASTER NAVIGATION TABS ---
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
     "🧬 Genomics & NCBI", 
     "🧪 Transl. Proteomics",
     "🖥️ 3D Structure Viewer",
     "🧫 Lab Inventory & PCR",
     "🛰️ Satellite Intelligence", 
     "🕸️ Knowledge Graph",
+    "🎯 Grant Indexer & Matcher",
     "📄 AI Grant Drafter",
+    "🗄️ Unified DB Schema",
     "📊 PDF Report Generator",
     "🔒 Provenance & Audit"
 ])
@@ -143,12 +147,20 @@ with tab6:
         with open(graph_file, "r", encoding="utf-8") as f:
             components.html(f.read(), height=480)
 
-# TAB 7: AI GRANT DRAFTER
+# TAB 7: AUTOMATED GRANT INDEXER
 with tab7:
+    render_grant_matcher_tab()
+
+# TAB 8: AI GRANT DRAFTER
+with tab8:
     render_grant_engine_tab()
 
-# TAB 8: PDF REPORT EXPORT
-with tab8:
+# TAB 9: UNIFIED DATABASE SCHEMA
+with tab9:
+    render_schema_engine_tab()
+
+# TAB 10: PDF REPORT EXPORT
+with tab10:
     st.subheader("Publication-Ready PDF Generator")
     if check_permission("Analyst"):
         if st.button("Generate Enterprise PDF Report"):
@@ -161,8 +173,8 @@ with tab8:
     else:
         st.warning("Analyst permission required.")
 
-# TAB 9: PROVENANCE & AUDIT
-with tab9:
+# TAB 11: PROVENANCE & AUDIT
+with tab11:
     st.subheader("System Telemetry & FAIR Compliance Audit")
     st.json({
         "platform_status": "ONLINE",
@@ -172,9 +184,11 @@ with tab9:
             "NCBI Entrez API",
             "3Dmol.js WebGL Engine",
             "Lab Inventory & Reaction Calculator",
+            "Automated Grant Matcher",
             "AI Grant Generator",
+            "SQLite Unified Research Schema",
             "Sentinel-2 Environmental Telemetry",
             "Vis.js Knowledge Graph",
-            "SHA-256 FAIR Provenance Hashing"
+            "SHA-256 FAIR Provenance Ledger"
         ]
     })
