@@ -2,7 +2,6 @@
 import os
 from datetime import datetime
 import zoneinfo
-from streamlit_autorefresh import st_autorefresh
 
 # Page Configuration
 st.set_page_config(
@@ -34,12 +33,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 1. SILENT AUTO-REFRESH CLOCK (Updates every 10 seconds)
+# 1. TIMEZONE & STATE INITIALIZATION
 # ---------------------------------------------------------
-# Silent background refresh keeping local time accurate without interrupting typing
-count = st_autorefresh(interval=10000, limit=None, key="time_counter")
-
-# Timezone & State Initialization (Autosaved in st.session_state)
 COMMON_TIMEZONES = [
     "Africa/Kampala",
     "UTC",
@@ -56,16 +51,27 @@ if "user_tz" not in st.session_state:
 
 active_tz_name = st.session_state["user_tz"]
 
-# Compute real-time hour and formatted date/time strings
-try:
-    tz = zoneinfo.ZoneInfo(active_tz_name)
-    user_now = datetime.now(tz)
-except Exception:
-    user_now = datetime.now()
-
-local_hour = user_now.hour
-formatted_time = user_now.strftime("%I:%M:%S %p")
-formatted_date = user_now.strftime("%A, %B %d, %Y")
+def get_time_data(tz_name):
+    try:
+        tz = zoneinfo.ZoneInfo(tz_name)
+        user_now = datetime.now(tz)
+    except Exception:
+        user_now = datetime.now()
+    
+    local_hour = user_now.hour
+    formatted_time = user_now.strftime("%I:%M:%S %p")
+    formatted_date = user_now.strftime("%A, %B %d, %Y")
+    
+    if 5 <= local_hour < 12:
+        greeting = "Good Morning ☀️"
+    elif 12 <= local_hour < 17:
+        greeting = "Good Afternoon 🌤️"
+    elif 17 <= local_hour < 22:
+        greeting = "Good Evening 🌙"
+    else:
+        greeting = "Good Night 🌌"
+        
+    return greeting, formatted_time, formatted_date
 
 # Safe imports for internal modules
 try:
@@ -98,9 +104,8 @@ with st.sidebar:
     st.caption("⚡ Automated Research Intelligence & Live Sync")
     st.markdown("---")
 
-    # Timezone Selector with Real-time Clock
+    # Timezone Selector
     st.subheader("🌍 Timezone & Location")
-    st.success(f"🕒 **Live Local Time:** `{formatted_time}`")
     
     selected_tz = st.selectbox(
         "Select Your Location / Timezone:",
@@ -115,13 +120,13 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Notion Workspace Authentication with Autosave
+    # Notion Workspace Authentication
     st.subheader("🔑 Workspace Integration")
     notion_token = st.text_input(
         "Notion Access Token",
         type="password",
         value=st.session_state.get("notion_token", ""),
-        help="Paste your integration token here (Autosaved)"
+        help="Paste your integration token here"
     )
 
     REQUIRED_DATABASES = [
@@ -163,22 +168,19 @@ with st.sidebar:
         st.session_state["admin_mode"] = admin_mode
 
 # ---------------------------------------------------------
-# 3. ACCURATE GREETING & DASHBOARD
+# 3. REAL-TIME AUTO-REFRESHING HEADER & DASHBOARD
 # ---------------------------------------------------------
 
-# Accurate Greeting based on current local hour
-if 5 <= local_hour < 12:
-    greeting = "Good Morning ☀️"
-elif 12 <= local_hour < 17:
-    greeting = "Good Afternoon 🌤️"
-elif 17 <= local_hour < 22:
-    greeting = "Good Evening 🌙"
-else:
-    greeting = "Good Night 🌌"
+# Fragment function for auto-refreshing clock every 5 seconds natively
+@st.fragment(run_every=5)
+def render_live_header():
+    current_tz = st.session_state.get("user_tz", "Africa/Kampala")
+    greeting, formatted_time, formatted_date = get_time_data(current_tz)
+    st.markdown(f"# {greeting}, Welcome Back!")
+    st.caption(f"📅 {formatted_date} | 🕒 **{formatted_time}** ({current_tz})")
 
-# Header Display with Live Clock
-st.markdown(f"# {greeting}, Welcome Back!")
-st.caption(f"📅 {formatted_date} | 🕒 **{formatted_time}** ({active_tz_name})")
+# Render the dynamic header
+render_live_header()
 
 st.markdown("---")
 
@@ -216,6 +218,7 @@ with m_col2:
     st.metric(label="Active Notion DBs", value=f"{detected_count}/5", delta="Synced")
 
 with m_col3:
+    greeting, formatted_time, _ = get_time_data(active_tz_name)
     st.metric(label="Selected Timezone", value=active_tz_name.split('/')[-1], delta=formatted_time)
 
 with m_col4:
