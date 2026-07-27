@@ -21,13 +21,14 @@ from modules.schema_engine import render_schema_engine_tab
 from modules.grant_matcher import render_grant_matcher_tab
 from modules.blindspot_engine import render_blindspot_engine_tab
 from modules.ultimate_ecosystem import render_ultimate_ecosystem_tab
+from modules.visual_canvas import render_hybrid_visual_canvas
 
 st.set_page_config(page_title="World-Record Autonomous Research Platform", page_icon="🌐", layout="wide")
 
 initialize_rbac()
 
-st.title("🌐 ResearchOS: Autonomous Research Intelligence & Global Ecosystem")
-st.caption("Genomics • Proteomics • Satellite • Grant Indexer • Resilience Engine • Polyglot Normalizer • Living Protocols")
+st.title("🌐 ResearchOS: Autonomous Research Intelligence & Hybrid Visual Core")
+st.caption("Genomics • Proteomics • Aviation HUDs • ICU Waveforms • Chemical P&ID Process Controls • FAIR Provenance")
 
 # --- SIDEBAR AUTHENTICATION & SETTINGS ---
 with st.sidebar:
@@ -58,8 +59,9 @@ with st.sidebar:
                 if webhook_url:
                     send_backup_webhook_alert(webhook_url, res['record_count'], database_id)
 
-# --- MASTER NAVIGATION TABS (17 MODULES) ---
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
+# --- MASTER NAVIGATION TABS (18 MODULES) ---
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17, tab18 = st.tabs([
+    "🎛️ Hybrid Visual Core",
     "🧬 Genomics & NCBI", 
     "🧪 Transl. Proteomics",
     "🖥️ 3D Structure Viewer",
@@ -79,8 +81,12 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13
     "⚙️ System Status"
 ])
 
-# TAB 1: GENOMICS & NCBI
+# TAB 1: HYBRID VISUAL CORE (Industrial Dashboard)
 with tab1:
+    render_hybrid_visual_canvas()
+
+# TAB 2: GENOMICS & NCBI
+with tab2:
     st.subheader("NCBI Direct Fetch & Genomic Variant Profiler")
     col_a, col_b = st.columns([1, 1])
     with col_a:
@@ -98,8 +104,8 @@ with tab1:
                 st.metric("GC Content", f"{metrics['gc_content']}%")
                 st.metric("Length", f"{metrics['length']} bp")
 
-# TAB 2: TRANSLATIONAL PROTEOMICS
-with tab2:
+# TAB 3: TRANSLATIONAL PROTEOMICS
+with tab3:
     st.subheader("Translational Proteomics & Structure Data Engine")
     p_col1, p_col2 = st.columns(2)
     with p_col1:
@@ -117,16 +123,16 @@ with tab2:
         if st.button("Fetch PDB Metadata"):
             st.json(fetch_pdb_metadata(pdb_id_input))
 
-# TAB 3: 3D STRUCTURE VIEWER
-with tab3:
+# TAB 4: 3D STRUCTURE VIEWER
+with tab4:
     render_structure_viewer_tab()
 
-# TAB 4: LAB INVENTORY & PCR CALCULATOR
-with tab4:
+# TAB 5: LAB INVENTORY & PCR CALCULATOR
+with tab5:
     render_inventory_tab()
 
-# TAB 5: SATELLITE TELEMETRY
-with tab5:
+# TAB 6: SATELLITE TELEMETRY
+with tab6:
     st.subheader("Satellite Environmental Monitoring for Field Research Sites")
     col_lat, col_lon = st.columns(2)
     lat_val = col_lat.number_input("Latitude", value=3.0300)
@@ -140,36 +146,36 @@ with tab5:
             t3.metric("Surface Temp", f"{telemetry['surface_temp_c']} °C")
             t4.metric("Soil Moisture", telemetry["moisture_index"])
 
-# TAB 6: KNOWLEDGE GRAPH
-with tab6:
+# TAB 7: KNOWLEDGE GRAPH
+with tab7:
     st.subheader("Interactive Research Knowledge Graph")
     if st.button("Render Knowledge Graph Network"):
         graph_file = build_research_knowledge_graph([])
         with open(graph_file, "r", encoding="utf-8") as f:
             components.html(f.read(), height=480)
 
-# TAB 7: GRANT INDEXER
-with tab7:
+# TAB 8: GRANT INDEXER
+with tab8:
     render_grant_matcher_tab()
 
-# TAB 8: AI GRANT DRAFTER
-with tab8:
+# TAB 9: AI GRANT DRAFTER
+with tab9:
     render_grant_engine_tab()
 
-# TAB 9: RESILIENCE & INTEGRITY
-with tab9:
+# TAB 10: RESILIENCE & INTEGRITY
+with tab10:
     render_blindspot_engine_tab()
 
-# TAB 10: ULTIMATE ECOSYSTEM (New Friction Breakers)
-with tab10:
+# TAB 11: ULTIMATE ECOSYSTEM
+with tab11:
     render_ultimate_ecosystem_tab()
 
-# TAB 11: UNIFIED DATABASE SCHEMA
-with tab11:
+# TAB 12: UNIFIED DATABASE SCHEMA
+with tab12:
     render_schema_engine_tab()
 
-# TAB 12: PDF REPORT EXPORT
-with tab12:
+# TAB 13: PDF REPORT EXPORT
+with tab13:
     st.subheader("Publication-Ready PDF Generator")
     if check_permission("Analyst"):
         if st.button("Generate Enterprise PDF Report"):
@@ -181,24 +187,24 @@ with tab12:
     else:
         st.warning("Analyst permission required.")
 
-# TAB 13: PROVENANCE & AUDIT
-with tab13:
+# TAB 14: PROVENANCE & AUDIT
+with tab14:
     st.subheader("System Telemetry & FAIR Compliance Audit")
     st.json({"platform_status": "ONLINE", "active_user": user_id, "assigned_role": st.session_state["user_role"]})
 
-# TAB 14-17: ADDITIONAL EXTENSION TABS
-with tab14:
+# TAB 15-18: ADDITIONAL EXTENSIONS
+with tab15:
     st.subheader("ResearchOS Core System Telemetry")
     st.success("All operational pipelines reporting zero exceptions.")
 
-with tab15:
-    st.subheader("Advanced Genomic Variant Profiler")
-    st.info("Integrated directly with Tab 1 sequence analysis engine.")
-
 with tab16:
+    st.subheader("Advanced Genomic Variant Profiler")
+    st.info("Integrated directly with Tab 2 sequence analysis engine.")
+
+with tab17:
     st.subheader("Analytics & Research Intelligence Hub")
     st.info("Aggregating multi-source analytics across active database nodes.")
 
-with tab17:
+with tab18:
     st.subheader("System Status & Node Health")
-    st.json({"database": "SQLite transactional", "security": "RBAC & SHA-256 Provenance Active", "modules": 17})
+    st.json({"database": "SQLite transactional", "security": "RBAC & SHA-256 Provenance Active", "modules": 18})
