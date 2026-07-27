@@ -127,9 +127,90 @@ notion-live-analyzer/
 | `RENDER_EXTERNAL_URL` | ❌ | Same purpose as `APP_URL`; set automatically by Render |
 | `AUTO_FIX_DEPS` | ❌ | Auto-install missing core packages on startup (default: `true`) |
 | `PYTHON_VERSION` | ❌ | Python version (default: 3.11.9) |
+| `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` | ❌ | Durable account storage (see below) |
+| `ADMIN_EMAILS` | ❌ | Comma-separated emails allowed into the developer console |
+| `ADMIN_PANEL_PASSWORD` | ❌ | Second factor for the console; unset keeps it locked |
+| `FORENSIC_MASTER_PASSWORD` | ❌ | Unlocks the professor forensic view; unset keeps it locked |
+| `STRIPE_SECRET_KEY` / `STRIPE_PRICE_*` | ❌ | Enables checkout on the Pricing page |
+| `STRIPE_WEBHOOK_SECRET` | ❌ | Verifies incoming Stripe webhooks |
+| `NOTION_TEMPLATE_URL` | ❌ | Premium one-time workspace duplication link |
+| `REPORT_SENDER_EMAIL` / `REPORT_SENDER_NAME` | ❌ | From-address for emailed audit reports |
+| `SENDGRID_API_KEY` | ❌ | Sends reports through the SendGrid API |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` / `SMTP_USE_TLS` | ❌ | SMTP alternative to SendGrid |
+
+`.env.example` lists them all with comments; copy it to `.env` locally, or paste
+the values into **Streamlit Cloud → Settings → Secrets** in TOML form.
 
 Without `APP_URL`/`RENDER_EXTERNAL_URL` the server-side keep-alive stays off — it would
 otherwise ping the container's own `localhost`, which keeps nothing awake.
+
+---
+
+## 🎓 Professor vault, similarity and session checks
+
+**Professor vault.** Student submissions and marker feedback are sealed with
+AES-256-GCM under a password the professor sets per project
+(`modules/professor_vault.py`). The key is derived with PBKDF2-HMAC-SHA256 over
+a per-record salt, and only a verifier — never the password — is stored, so a
+leaked database file opens nothing. A wrong password raises rather than
+returning text that could be mistaken for the submission. Set
+`FORENSIC_MASTER_PASSWORD` if you want a deployment-wide recovery key; without
+it there is no backdoor, and a forgotten project password means unrecoverable
+submissions.
+
+**Similarity.** `modules/similarity.py` compares a document against the
+references and sections in the same project using word shingles, and reports
+citation coverage — the share of citation-worthy sentences that carry a
+reference marker. This is *not* a web-wide plagiarism check: that requires a
+licensed index (Turnitin, Copyleaks), and the UI says so next to every
+percentage rather than implying a verdict it cannot support.
+
+**Session checks.** `modules/session_security.py` reads the forwarded headers
+for proxy signatures and compares the network country against previous
+sightings of the account. Header inspection cannot prove a VPN, so findings are
+advisory: flagged sessions are logged for the console's Security tab and the
+visitor is told what was noticed. Only an impossible travel speed between two
+sightings escalates further.
+
+---
+
+## 👤 Accounts, Plans & Billing
+
+Accounts, quotas and tier gating live in `modules/accounts.py` (storage),
+`modules/billing.py` (plan matrix and entitlements) and `modules/session_auth.py`
+(Streamlit session + gates). Nothing is mandatory: with no configuration at all
+the app runs anonymously on the Free plan.
+
+| Plan | Price | Audit checks | Highlights |
+|------|-------|--------------|------------|
+| Free | $0 | 3 / month | Basic queries, PDF export |
+| Standard | $9/mo (15-day trial) | 15 / month | Advanced filtering, Word + BibTeX, webhooks |
+| Premium | $29/mo | Unlimited | Multi-paper synthesis, professor suite, Notion template, full integrations |
+
+Students at universities in African Union member states and qualifying
+developing countries get Standard free. Verification is by **institutional email
+domain + country** (`modules/eligibility.py`) — no identity documents are
+collected or stored, because holding national ID scans creates real obligations
+under the Uganda DPPA, the Nigeria NDPA, POPIA and the GDPR, and the failure
+mode of a wrongly granted subscription is far cheaper than the failure mode of
+an ID database.
+
+**Storage.** Without Supabase, accounts sit in a local SQLite file — fine
+self-hosted, but hosted containers wipe it on redeploy, and the app says so in
+the UI. To persist: run `docs/supabase_schema.sql` in the Supabase SQL editor,
+then set `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`. Both backends implement the
+same interface, so nothing else changes.
+
+**Billing.** Set `STRIPE_SECRET_KEY` and the `STRIPE_PRICE_*` ids to turn on
+checkout; the Pricing page hides the buy buttons until then. Webhook signatures
+are verified with stdlib `hmac` (`billing.verify_webhook_signature`) — the
+Stripe SDK is not a dependency — and `billing.apply_webhook_event` maps
+`checkout.session.completed`, `customer.subscription.updated/deleted` and
+`invoice.payment_failed` onto tier changes.
+
+**Admin.** `pages/49_🛠️_Admin.py` needs both an account listed in `ADMIN_EMAILS`
+*and* `ADMIN_PANEL_PASSWORD`; if the password is unset the console refuses to
+open rather than falling back to a default.
 
 ---
 

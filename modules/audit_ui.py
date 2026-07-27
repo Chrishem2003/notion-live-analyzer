@@ -10,8 +10,10 @@ Renders the 5th tab "Audit & Compliance Hub" with 4 sub-tabs:
 from __future__ import annotations
 
 import base64
+import hmac
 import io
 import json
+import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -31,11 +33,33 @@ from modules.audit_engine import (
     UniversalFileReader,
     get_audit_orchestrator,
 )
+from modules import similarity as similarity_engine
+from modules.accounts import AccountError
+from modules.billing import AUDIT_CHECK, EMAIL_REPORT, UNLIMITED
+from modules.email_reports import (
+    Attachment,
+    AuditSummary,
+    active_transport,
+    configuration_hint,
+    send_audit_report,
+)
+from modules.session_auth import consume as consume_feature
+from modules.session_auth import entitlement
 from modules.ui_components import section_header
 
 # ─── Constants ────────────────────────────────────────────────────────
-MASTER_PASSWORD = "CHRISHEM"
 SUPPORTED_FORMATS = ", ".join(sorted(UniversalFileReader.SUPPORTED_EXTENSIONS))
+
+
+def forensic_password() -> str:
+    """Password guarding the professor-facing forensic view.
+
+    Read from the environment: the previous literal in this file was public in
+    the repository, so anyone who read the source could unlock a professor's
+    audit trail. An unset variable keeps the view locked rather than falling
+    back to a shared default.
+    """
+    return os.environ.get("FORENSIC_MASTER_PASSWORD", "")
 
 
 def render_audit_tab(db, project_id: int):
@@ -122,7 +146,13 @@ def render_forensic_audit(
             st.markdown("")
             st.markdown("")
             if st.button("🔓 Unlock", type="primary", use_container_width=True):
-                if pwd == MASTER_PASSWORD:
+                secret = forensic_password()
+                if not secret:
+                    st.error(
+                        "❌ `FORENSIC_MASTER_PASSWORD` is not configured on this "
+                        "deployment, so the forensic view stays locked."
+                    )
+                elif hmac.compare_digest(pwd or "", secret):
                     st.session_state["forensic_unlocked"] = True
                     st.success("✅ Forensic view unlocked!")
                     st.rerun()
@@ -432,7 +462,22 @@ def render_plagiarism_ai_check(
             else:
                 st.info("📚 No bibliography references available. AI-check only (no plagiarism cross-ref).")
 
+        allowance = entitlement(AUDIT_CHECK)
+        if not allowance.allowed:
+            st.warning(allowance.reason)
+            st.page_link("pages/48_💳_Pricing.py", label="See plans", icon="💳")
+        elif allowance.limit != UNLIMITED:
+            st.caption(
+                f"🎟️ {allowance.remaining} of {allowance.limit} audit checks left this month."
+            )
+
         if run_audit:
+            try:
+                consume_feature(AUDIT_CHECK)
+            except AccountError as exc:
+                st.warning(str(exc))
+                st.stop()
+
             with st.spinner("🔍 Running multi-vector audit..."):
                 results = orchestrator.audit_text(
                     text=text_to_audit,
@@ -448,6 +493,9 @@ def render_plagiarism_ai_check(
                 # ─── Display Results ────────────────────────────────
                 display_audit_results(results, source_label)
 
+                corpus = build_corpus(bibliography, report_sections, source_label)
+                render_similarity_panel(text_to_audit, corpus)
+
                 # Store in session state for export
                 st.session_state["_last_audit_results"] = results
                 st.session_state["_last_audit_text"] = text_to_audit
@@ -456,6 +504,108 @@ def render_plagiarism_ai_check(
     else:
         if source_option != "📄 Report Sections (from Report Builder)":
             st.info("👆 Paste text or upload a file above, then click 'Run Full Audit'.")
+
+
+def build_corpus(
+    bibliography: List[Dict],
+    report_sections: List[Dict],
+    exclude_label: str = "",
+) -> List[similarity_engine.Source]:
+    """Everything in this project the audited text can legitimately be compared to."""
+    sources: List[similarity_engine.Source] = []
+    for paper in bibliography or []:
+        text = " ".join(
+            filter(
+                None,
+                [
+                    paper.get("abstract", ""),
+                    paper.get("user_notes", ""),
+                    paper.get("user_findings", ""),
+                ],
+            )
+        ).strip()
+        if len(text) > 50:
+            sources.append(
+                similarity_engine.Source(
+                    id=f"ref-{paper.get('id', len(sources))}",
+                    title=(paper.get("title") or "Untitled reference")[:60],
+                    text=text,
+                )
+            )
+    for section in report_sections or []:
+        title = section.get("section_title", "Section")
+        content = (section.get("content") or "").strip()
+        # Comparing a section with itself would report 100% and mean nothing.
+        if len(content) > 50 and title not in exclude_label:
+            sources.append(
+                similarity_engine.Source(
+                    id=f"sec-{section.get('id', len(sources))}",
+                    title=f"§ {title}"[:60],
+                    text=content,
+                )
+            )
+    return sources
+
+
+def render_similarity_panel(
+    text: str,
+    sources: List[similarity_engine.Source],
+) -> Dict[str, Any]:
+    """Corpus similarity and citation coverage, with the scope stated up front."""
+    st.markdown("---")
+    st.markdown("### 🧬 Source Similarity & Citation Coverage")
+    st.caption(similarity_engine.SCOPE_NOTE)
+
+    report = similarity_engine.compare(text, sources)
+    citations = similarity_engine.citation_coverage(text)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Corpus similarity", f"{report.overall_similarity:.1f}%")
+    col2.metric("Citation coverage", f"{citations.coverage:.1f}%", citations.verdict)
+    col3.metric("Uncited claims", len(citations.uncited))
+
+    if not sources:
+        st.info(
+            "No comparable sources in this project yet — add references with "
+            "abstracts or notes in the Literature Engine to enable matching."
+        )
+    else:
+        labels, source_labels, matrix = similarity_engine.heatmap(text, sources)
+        if matrix:
+            figure = px.imshow(
+                matrix,
+                x=labels,
+                y=source_labels,
+                color_continuous_scale="Reds",
+                labels={"x": "Document position (words)", "y": "Source", "color": "% overlap"},
+                aspect="auto",
+            )
+            figure.update_layout(height=90 + 34 * len(source_labels), margin=dict(l=8, r=8, t=28, b=8))
+            st.plotly_chart(figure, use_container_width=True)
+
+        passages = report.passages(limit=10)
+        if passages:
+            with st.expander(f"🔎 {len(passages)} matching passages", expanded=False):
+                for passage in passages:
+                    st.markdown(
+                        f"**{passage.source_title}** · words "
+                        f"{passage.start_word + 1}–{passage.end_word}"
+                    )
+                    st.caption(f"“{passage.text[:300]}”")
+
+    if citations.uncited:
+        with st.expander(f"📚 {len(citations.uncited)} claims without a citation", expanded=False):
+            for sentence in citations.uncited[:20]:
+                st.markdown(f"- {sentence.text[:240]}")
+
+    summary = {
+        "similarity": report.overall_similarity,
+        "citation_coverage": citations.coverage,
+        "uncited_claims": len(citations.uncited),
+        "top_source": report.top_source.source_title if report.top_source else None,
+    }
+    st.session_state["_last_similarity"] = summary
+    return summary
 
 
 def display_audit_results(results: Dict[str, Any], source_label: str = "Text"):
@@ -590,10 +740,11 @@ def display_audit_results(results: Dict[str, Any], source_label: str = "Text"):
             gauge={
                 "axis": {"range": [0, max(10, burst * 1.5)]},
                 "bar": {"color": "#1d4ed8"},
+                # plotly rejects #RRGGBBAA, so translucent bands use rgba().
                 "steps": [
-                    {"range": [0, 2], "color": "#e74c3c22"},
-                    {"range": [2, 5], "color": "#2ecc7122"},
-                    {"range": [5, max(10, burst * 1.5)], "color": "#f39c1222"},
+                    {"range": [0, 2], "color": "rgba(231, 76, 60, 0.13)"},
+                    {"range": [2, 5], "color": "rgba(46, 204, 113, 0.13)"},
+                    {"range": [5, max(10, burst * 1.5)], "color": "rgba(243, 156, 18, 0.13)"},
                 ],
                 "threshold": {
                     "line": {"color": "red", "width": 4},
@@ -858,6 +1009,63 @@ def render_optimization_studio(orchestrator: AuditOrchestrator):
 # ═══════════════════════════════════════════════════════════════════════
 # SUB-TAB 4: EXPORT AUDIT REPORT
 # ═══════════════════════════════════════════════════════════════════════
+def render_email_delivery(export_content: str) -> None:
+    """Offer emailing the report, or say plainly why it is unavailable."""
+    with st.expander("✉️ Email this report", expanded=False):
+        transport = active_transport()
+        if transport == "none":
+            st.info(
+                "Email delivery is not configured on this deployment. "
+                f"{configuration_hint()} You can still download the report above."
+            )
+            return
+
+        allowance = entitlement(EMAIL_REPORT)
+        if not allowance.allowed:
+            st.warning(allowance.reason)
+            st.page_link("pages/48_💳_Pricing.py", label="See plans", icon="💳")
+            return
+        if allowance.limit != UNLIMITED:
+            st.caption(f"🎟️ {allowance.remaining} of {allowance.limit} emailed reports left this month.")
+
+        recipient = st.text_input("Send to", key="audit_email_to", placeholder="supervisor@university.edu")
+        attach = st.checkbox("Attach the report as a .txt file", value=True, key="audit_email_attach")
+        if not st.button("Send report", type="primary", key="audit_email_send"):
+            return
+
+        similarity_summary = st.session_state.get("_last_similarity", {})
+        scores = (st.session_state.get("_last_audit_results") or {}).get("composite_scores", {})
+        summary = AuditSummary(
+            document=st.session_state.get("_last_audit_source", "Audit report"),
+            authenticity=scores.get("authenticity_score"),
+            ai_content=scores.get("ai_content_score"),
+            similarity=similarity_summary.get("similarity"),
+            citation_coverage=similarity_summary.get("citation_coverage"),
+            findings=(
+                [f"{similarity_summary['uncited_claims']} claims carry no citation."]
+                if similarity_summary.get("uncited_claims")
+                else []
+            ),
+        )
+        attachments = (
+            [Attachment("audit_report.txt", export_content.encode("utf-8"), "text/plain")]
+            if attach
+            else []
+        )
+        try:
+            consume_feature(EMAIL_REPORT)
+        except AccountError as exc:
+            st.warning(str(exc))
+            return
+
+        with st.spinner("Sending…"):
+            result = send_audit_report([recipient], summary, attachments)
+        if result.sent:
+            st.success(f"✅ Sent to {recipient} via {result.transport}.")
+        else:
+            st.error(f"❌ Not sent: {result.detail}")
+
+
 def render_export_audit(
     orchestrator: AuditOrchestrator,
     report_sections: List[Dict],
@@ -987,6 +1195,8 @@ def render_export_audit(
 
         with st.expander("📖 Preview", expanded=True):
             st.text_area("", value=export_content[:5000], height=250, label_visibility="collapsed")
+
+        render_email_delivery(export_content)
 
         col1, col2 = st.columns(2)
         with col1:

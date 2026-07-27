@@ -8,3 +8,6 @@ __pycache__/
 coverage.xml
 htmlcov/
 .pytest_cache/
+accounts.db
+test-plan*.md
+test-report.md

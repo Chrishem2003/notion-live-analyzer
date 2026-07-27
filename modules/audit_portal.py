@@ -2,68 +2,41 @@
 Audit Portal — CHRISHEM Encrypted Submission & Analytics System
 ================================================================
 Provides:
-  1. CHRISHEMSubmissionSystem — Fernet-encrypted student submissions with SQLite
+  1. CHRISHEMSubmissionSystem — AES-256-GCM encrypted student submissions in SQLite,
+     keyed by a per-project professor password (see modules.professor_vault).
 """
 from __future__ import annotations
 
-import base64
 import hashlib
+import hmac
 import json
 import sqlite3
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from modules import professor_vault
+from modules.professor_vault import VaultError
+
 # ─── Paths ────────────────────────────────────────────────────────────
 APP_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = APP_DIR / "research_workspace.db"
 
-# ─── Cryptography for Fernet ─────────────────────────────────────────
-try:
-    from cryptography.fernet import Fernet
-    from cryptography.hazmat.primitives import hashes
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-    HAS_CRYPTOGRAPHY = True
-except ImportError:
-    HAS_CRYPTOGRAPHY = False
-    Fernet = None
-
-CHRISHEM_SALT = b"CHRISHEM_AUDIT_PORTAL_SALT_2024"
-
-
-def derive_fernet_key(password: str) -> bytes:
-    """Derive a 32-byte Fernet key from a password."""
-    if not HAS_CRYPTOGRAPHY:
-        return hashlib.sha256(password.encode() + CHRISHEM_SALT).digest()
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=32,
-        salt=CHRISHEM_SALT,
-        iterations=600000,
-    )
-    return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+HAS_CRYPTOGRAPHY = professor_vault.HAS_CRYPTOGRAPHY
 
 
 def encrypt_text(plaintext: str, password: str) -> str:
-    """Encrypt text using Fernet. Falls back to base64 if cryptography missing."""
-    if not HAS_CRYPTOGRAPHY:
-        return base64.b64encode(plaintext.encode()).decode()
-    f = Fernet(derive_fernet_key(password))
-    return f.encrypt(plaintext.encode()).decode()
+    """Seal text with AES-256-GCM. Raises :class:`VaultError` if it cannot."""
+    return professor_vault.encrypt(plaintext, password)
 
 
 def decrypt_text(ciphertext: str, password: str) -> str:
-    """Decrypt Fernet-encrypted text."""
-    if not HAS_CRYPTOGRAPHY:
-        try:
-            return base64.b64decode(ciphertext.encode()).decode()
-        except Exception:
-            return "[Decryption failed: cryptography package required]"
-    try:
-        f = Fernet(derive_fernet_key(password))
-        return f.decrypt(ciphertext.encode()).decode()
-    except Exception as e:
-        return f"[🔒 Decryption failed: {str(e)}]"
+    """Open a sealed record, including legacy Fernet ones.
+
+    Raises :class:`VaultLocked` on a wrong password instead of returning a
+    message, so a caller cannot mistake the failure for the plaintext.
+    """
+    return professor_vault.open_any(ciphertext, password)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -112,8 +85,55 @@ class CHRISHEMSubmissionSystem:
                     ON portal_submissions(student_name);
                 CREATE INDEX IF NOT EXISTS idx_portal_sub_status
                     ON portal_submissions(status);
+                CREATE TABLE IF NOT EXISTS portal_vault_keys (
+                    project_id INTEGER PRIMARY KEY,
+                    verifier TEXT NOT NULL,
+                    created_at REAL NOT NULL
+                );
             """)
             conn.commit()
+
+    # ─── Per-project vault password ─────────────────────────────────
+    def set_vault_password(self, project_id: int, password: str) -> None:
+        """Set the professor password for a project.
+
+        Only a verifier is stored: the key itself is re-derived per record, so
+        the database alone never reveals the password or the submissions.
+        """
+        strength = professor_vault.check_password_strength(password)
+        if not strength.ok:
+            raise VaultError(strength.reason)
+        with self._get_conn() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO portal_vault_keys (project_id, verifier, created_at)"
+                " VALUES (?, ?, ?)",
+                (project_id, professor_vault.password_verifier(password), time.time()),
+            )
+            conn.commit()
+
+    def vault_password_set(self, project_id: int) -> bool:
+        with self._get_conn() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM portal_vault_keys WHERE project_id = ?", (project_id,)
+            ).fetchone()
+        return row is not None
+
+    def unlock(self, project_id: int, password: str) -> bool:
+        """Check a password against the project verifier.
+
+        Falls back to ``FORENSIC_MASTER_PASSWORD`` so a professor who forgets
+        their password is not the end of the submissions, but only when the
+        deployment actually sets one.
+        """
+        with self._get_conn() as conn:
+            row = conn.execute(
+                "SELECT verifier FROM portal_vault_keys WHERE project_id = ?",
+                (project_id,),
+            ).fetchone()
+        if row and professor_vault.verify(password, row["verifier"]):
+            return True
+        master = professor_vault.master_password()
+        return bool(master) and hmac.compare_digest(password, master)
 
     def submit(
         self,
@@ -121,7 +141,7 @@ class CHRISHEMSubmissionSystem:
         student_name: str,
         title: str,
         content: str,
-        password: str = "CHRISHEM",
+        password: str,
         file_name: str = "",
         file_type: str = "",
         file_size: int = 0,
@@ -214,7 +234,7 @@ class CHRISHEMSubmissionSystem:
         grade: str,
         score: float,
         feedback: str,
-        professor_password: str = "CHRISHEM",
+        professor_password: str,
     ) -> bool:
         """Professor reviews and grades a submission."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
@@ -236,7 +256,7 @@ class CHRISHEMSubmissionSystem:
         self,
         submission_id: int,
         feedback: str,
-        professor_password: str = "CHRISHEM",
+        professor_password: str,
     ) -> bool:
         """Return submission with feedback for revision."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
