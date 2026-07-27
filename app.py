@@ -16,13 +16,14 @@ from modules.knowledge_graph import build_research_knowledge_graph
 from modules.proteomics_engine import translate_dna_to_protein, fetch_pdb_metadata
 from modules.structure_viewer import render_structure_viewer_tab
 from modules.grant_engine import render_grant_engine_tab
+from modules.inventory_engine import render_inventory_tab
 
 st.set_page_config(page_title="World-Record Autonomous Research Platform", page_icon="🧬", layout="wide")
 
 initialize_rbac()
 
 st.title("🌐 World-Record Autonomous Research Intelligence Platform")
-st.caption("Genomics • 3D Proteomics • Satellite Telemetry • AI Grant Engine • Knowledge Graphs • FAIR Compliance")
+st.caption("Genomics • 3D Proteomics • Satellite Telemetry • AI Grant Engine • Inventory & Lab Workflows • FAIR Provenance")
 
 # --- SIDEBAR AUTHENTICATION & SETTINGS ---
 with st.sidebar:
@@ -54,10 +55,11 @@ with st.sidebar:
                     send_backup_webhook_alert(webhook_url, res['record_count'], database_id)
 
 # --- MASTER NAVIGATION TABS ---
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "🧬 Genomics & NCBI", 
     "🧪 Transl. Proteomics",
     "🖥️ 3D Structure Viewer",
+    "🧫 Lab Inventory & PCR",
     "🛰️ Satellite Intelligence", 
     "🕸️ Knowledge Graph",
     "📄 AI Grant Drafter",
@@ -113,8 +115,12 @@ with tab2:
 with tab3:
     render_structure_viewer_tab()
 
-# TAB 4: SATELLITE TELEMETRY
+# TAB 4: LAB INVENTORY & PCR CALCULATOR
 with tab4:
+    render_inventory_tab()
+
+# TAB 5: SATELLITE TELEMETRY
+with tab5:
     st.subheader("Satellite Environmental Monitoring for Field Research Sites")
     col_lat, col_lon = st.columns(2)
     lat_val = col_lat.number_input("Latitude", value=3.0300)
@@ -129,20 +135,20 @@ with tab4:
             t3.metric("Surface Temp", f"{telemetry['surface_temp_c']} °C")
             t4.metric("Soil Moisture", telemetry["moisture_index"])
 
-# TAB 5: KNOWLEDGE GRAPH
-with tab5:
+# TAB 6: KNOWLEDGE GRAPH
+with tab6:
     st.subheader("Interactive Research Knowledge Graph")
     if st.button("Render Knowledge Graph Network"):
         graph_file = build_research_knowledge_graph([])
         with open(graph_file, "r", encoding="utf-8") as f:
             components.html(f.read(), height=480)
 
-# TAB 6: AI GRANT DRAFTER
-with tab6:
+# TAB 7: AI GRANT DRAFTER
+with tab7:
     render_grant_engine_tab()
 
-# TAB 7: PDF REPORT EXPORT
-with tab7:
+# TAB 8: PDF REPORT EXPORT
+with tab8:
     st.subheader("Publication-Ready PDF Generator")
     if check_permission("Analyst"):
         if st.button("Generate Enterprise PDF Report"):
@@ -155,8 +161,8 @@ with tab7:
     else:
         st.warning("Analyst permission required.")
 
-# TAB 8: PROVENANCE & AUDIT
-with tab8:
+# TAB 9: PROVENANCE & AUDIT
+with tab9:
     st.subheader("System Telemetry & FAIR Compliance Audit")
     st.json({
         "platform_status": "ONLINE",
@@ -165,6 +171,7 @@ with tab8:
         "active_modules": [
             "NCBI Entrez API",
             "3Dmol.js WebGL Engine",
+            "Lab Inventory & Reaction Calculator",
             "AI Grant Generator",
             "Sentinel-2 Environmental Telemetry",
             "Vis.js Knowledge Graph",
