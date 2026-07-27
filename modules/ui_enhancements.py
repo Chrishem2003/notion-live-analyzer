@@ -22,81 +22,29 @@ def render_ui_enhancements():
     st.markdown(
         """
         <style>
-        /* Import Inter & Outfit Typography */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap');
-
-        /* Global Theme & Luxurious Palette */
+        /* Clean, highly readable typography & standard dark theme background */
         .stApp {
-            background: radial-gradient(circle at 10% 20%, #090d16 0%, #030712 90%);
-            color: #f3f4f6;
-            font-family: 'Inter', sans-serif;
+            background-color: #0e1117;
+            color: #fafafa;
         }
 
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Outfit', sans-serif !important;
-            letter-spacing: -0.025em;
+        /* Remove any intrusive background blur overlays */
+        div.stMarkdownContainer, .element-container {
+            backdrop-filter: none !important;
         }
 
-        /* Glassmorphism Containers */
-        div.stMarkdownContainer, .element-container, div[data-testid="stVerticalBlock"] > div {
-            backdrop-filter: blur(12px);
-        }
-
-        /* Top-notch Sidebar Stylings */
-        section[data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0b1329 0%, #030712 100%);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        /* Metrics & Cards Styling */
-        div[data-testid="stMetric"] {
-            background: rgba(17, 24, 39, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 18px;
-            border-radius: 14px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-        div[data-testid="stMetric"]:hover {
-            border-color: rgba(59, 130, 246, 0.4);
-            box-shadow: 0 10px 30px -5px rgba(59, 130, 246, 0.15);
-        }
-
-        /* Custom Buttons */
+        /* Refined Professional Buttons */
         .stButton > button {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            background-color: #2563eb;
             color: #ffffff;
-            border: none;
-            font-weight: 600;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
-            transition: all 0.2s ease;
+            border: 1px solid #3b82f6;
+            font-weight: 500;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
         }
         .stButton > button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-        }
-
-        /* Tabs Styling */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
-            background-color: rgba(15, 23, 42, 0.6);
-            padding: 6px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .stTabs [data-baseweb="tab"] {
-            height: 40px;
-            border-radius: 8px;
-            color: #94a3b8;
-            font-weight: 500;
-            border: none !important;
-        }
-        .stTabs [aria-selected="true"] {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            background-color: #1d4ed8;
+            border-color: #2563eb;
         }
         </style>
         """,
@@ -105,12 +53,12 @@ def render_ui_enhancements():
 
     st.markdown(
         f"""
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%); border: 1px solid rgba(59, 130, 246, 0.2); border-left: 5px solid #3b82f6; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background-color: #161b22; border: 1px solid #30363d; border-left: 4px solid #58a6ff; border-radius: 6px; margin-bottom: 15px;">
             <div>
-                <span style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.05rem; color: #60a5fa;">{greeting}, Kula Chris</span>
-                <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">Autonomous Research Intelligence Suite Active</div>
+                <span style="font-weight: 600; font-size: 1rem; color: #58a6ff;">{greeting}, Kula Chris</span>
+                <span style="font-size: 0.85rem; color: #8b949e; margin-left: 10px;">• Autonomous Research Intelligence Suite</span>
             </div>
-            <div style="text-align: right; font-family: monospace; font-size: 0.85rem; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-family: monospace; font-size: 0.85rem; color: #8b949e;">
                 {current_time.strftime('%Y-%m-%d %H:%M:%S')} EAT
             </div>
         </div>
