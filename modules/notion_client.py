@@ -311,7 +311,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
             schema_data = schema_response.json()
             property_definitions = schema_data.get("properties", {})
         else:
-            if _handle_api_error(schema_response, token, db_id):
+            if isinstance(schema_response, pd.DataFrame) and schema_response.empty:
                 return pd.DataFrame()
     except Exception as e:
         logger.exception("Error fetching schema for Notion database %s", db_id)
