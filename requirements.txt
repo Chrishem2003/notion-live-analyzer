@@ -8,3 +8,5 @@ pillow
 requests
 pyjwt
 tzdata
+
+tenacity>=8.2.0
