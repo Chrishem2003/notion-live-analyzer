@@ -1,14 +1,77 @@
 """
 UI Components — reusable Streamlit UI elements for consistent design.
+Unified stunning styling system for all pages.
 """
 from typing import Optional, Dict, Any, List, Callable
 import streamlit as st
 from pathlib import Path
 from modules.config import find_background_image, image_to_data_url, ASSETS_DIR, APP_DIR
 
-# ─── CSS Theme Loading ────────────────────────────────────────────────
-def load_css(is_dark: bool = False, accent_color: str = "#1d4ed8"):
-    """Load and inject custom CSS with theme support."""
+# ─── Unified Stunning Styles (Applied everywhere) ─────────────────────
+def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
+    """Load unified stunning CSS with vibrant colors and animations."""
+    # Try to detect theme
+    try:
+        is_dark = st.get_option("theme.base") == "dark"
+    except Exception:
+        pass
+    
+    # Stunning vibrant color palette
+    colors = {
+        "primary": "#6366f1",        # Indigo
+        "primary_dark": "#4f46e5",
+        "secondary": "#ec4899",      # Pink
+        "accent": "#14b8a6",         # Teal
+        "success": "#22c55e",        # Green
+        "warning": "#f59e0b",        # Amber
+        "error": "#ef4444",          # Red
+        "purple": "#8b5cf6",
+        "cyan": "#06b6d4",
+        "orange": "#f97316",
+    }
+    
+    # Gradients
+    hero_gradient = f"linear-gradient(135deg, {colors['primary']} 0%, {colors['purple']} 50%, {colors['secondary']} 100%)"
+    card_gradient = f"linear-gradient(145deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)"
+    mesh_gradient = f"radial-gradient(at 40% 20%, {colors['primary']}20 0px, transparent 50%), radial-gradient(at 80% 0%, {colors['secondary']}20 0px, transparent 50%), radial-gradient(at 0% 50%, {colors['accent']}20 0px, transparent 50%), radial-gradient(at 80% 50%, {colors['purple']}20 0px, transparent 50%), radial-gradient(at 0% 100%, {colors['cyan']}20 0px, transparent 50%)"
+    
+    bg = "#0a0a0f" if is_dark else "#fafbfc"
+    card_bg = "#12121a" if is_dark else "#ffffff"
+    text = "#f8fafc" if is_dark else "#1e293b"
+    text_muted = "#94a3b8" if is_dark else "#64748b"
+    border = "rgba(99, 102, 241, 0.15)"
+    border_bright = "rgba(99, 102, 241, 0.3)"
+    
+    # Get background image
+    background_path = find_background_image()
+    background_css = ""
+    if background_path:
+        bg_url = image_to_data_url(background_path)
+        background_css = (
+            "background: linear-gradient(180deg, rgba(248, 251, 255, 0.94), rgba(238, 244, 255, 0.94)), "
+            f"url('{bg_url}') center/cover no-repeat;"
+        )
+    
+    # Build overlay for dark/light mode
+    if is_dark:
+        bg_overlay = """
+        background:
+            linear-gradient(180deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)),
+            radial-gradient(circle at top right, rgba(29, 78, 216, 0.15), transparent 55%);
+        """
+        text_color = "#e2e8f0"
+        side_card_bg = "rgba(30, 41, 59, 0.9)"
+        sidebar_bg = "linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.92))"
+    else:
+        bg_overlay = """
+        background:
+            linear-gradient(180deg, rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.35)),
+            radial-gradient(circle at top right, rgba(29, 78, 216, 0.28), transparent 55%),
+            radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.18), transparent 45%);
+        """
+        text_color = "#0f172a"
+        side_card_bg = "rgba(255, 255, 255, 0.78)"
+        sidebar_bg = "linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(241, 245, 249, 0.92))"
     background_path = find_background_image()
     background_css = ""
     if background_path:
@@ -41,20 +104,40 @@ def load_css(is_dark: bool = False, accent_color: str = "#1d4ed8"):
     st.markdown(
         f"""
         <style>
+        /* ═══════════════════════════════════════════════════════════════════
+           UNIFIED STUNNING DESIGN SYSTEM — All Pages
+        ═══════════════════════════════════════════════════════════════════ */
+        
+        /* ─── Base ───────────────────────────────────────────────────────── */
         .stApp {{
             {background_css}
             background-attachment: fixed;
             min-height: 100vh;
             background-size: cover;
         }}
-        .stApp::before {{
+        
+        /* Animated mesh gradient background */
+        [data-testid="stAppViewContainer"] {{
+            position: relative;
+            overflow: hidden;
+        }}
+        [data-testid="stAppViewContainer"]::before {{
             content: "";
             position: fixed;
-            inset: 0;
-            {bg_overlay}
-            pointer-events: none;
-            z-index: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: {mesh_gradient};
+            opacity: 0.6;
+            z-index: -1;
+            animation: mesh-move 20s ease-in-out infinite;
         }}
+        @keyframes mesh-move {{
+            0%, 100% {{ transform: scale(1) rotate(0deg); }}
+            50% {{ transform: scale(1.1) rotate(2deg); }}
+        }}
+        
         .stApp::after {{
             content: "";
             position: fixed;
@@ -70,46 +153,69 @@ def load_css(is_dark: bool = False, accent_color: str = "#1d4ed8"):
             padding-bottom: 2rem !important;
             max-width: 1320px !important;
         }}
+        
+        /* ─── Typography ───────────────────────────────────────────────── */
+        h1, h2, h3 {{
+            font-weight: 700 !important;
+            letter-spacing: -0.02em !important;
+        }}
+        h1 {{ font-size: 2.5rem !important; background: linear-gradient(135deg, {colors['primary']}, {colors['secondary']}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }}
+        h2 {{ font-size: 1.75rem !important; color: {text} !important; }}
+        h3 {{ font-size: 1.25rem !important; }}
+        
+        /* ─── Sidebar ───────────────────────────────────────────────────── */
         [data-testid="stSidebar"] {{
             background: {sidebar_bg};
             backdrop-filter: blur(16px);
             border-right: 1px solid rgba(189, 210, 255, 0.85);
             box-shadow: -12px 0 40px rgba(15, 23, 42, 0.10);
         }}
-        [data-testid="stMetricValue"] {{
-            color: {text_color} !important;
-            font-size: 1.65rem !important;
-            font-weight: 800 !important;
+        [data-testid="stSidebar"] h1 {{
+            background: linear-gradient(135deg, {colors['primary']}, {colors['secondary']}) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            font-size: 1.5rem !important;
         }}
-        [data-testid="stMetricLabel"] {{
-            color: #475569 !important;
-            font-weight: 700 !important;
-        }}
-        .stPlotlyChart > div {{
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-        }}
+        
+        /* ─── Hero Banner ───────────────────────────────────────────────── */
         .hero-card {{
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(29, 78, 216, 0.92));
-            color: white;
-            padding: 1.35rem 1.5rem;
-            border-radius: 22px;
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
-            backdrop-filter: blur(10px);
-            margin-bottom: 1rem;
+            background: {hero_gradient};
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+        }}
+        .hero-card::before {{
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: hero-shimmer 3s ease-in-out infinite;
+        }}
+        @keyframes hero-shimmer {{
+            0%, 100% {{ transform: translate(-10%, -10%); }}
+            50% {{ transform: translate(10%, 10%); }}
         }}
         .hero-card h1 {{
-            color: #ffffff !important;
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+            background: none !important;
+            position: relative;
+            z-index: 1;
             margin-bottom: 0.15rem !important;
             font-size: 2rem !important;
             font-weight: 800 !important;
         }}
         .hero-card p {{
-            color: #dbeafe !important;
-            margin: 0.1rem 0 0.2rem 0 !important;
-            font-size: 0.98rem !important;
+            color: rgba(255,255,255,0.9);
+            font-size: 1rem;
+            position: relative;
+            z-index: 1;
         }}
         .status-pill {{
             display: inline-block;
@@ -122,17 +228,104 @@ def load_css(is_dark: bool = False, accent_color: str = "#1d4ed8"):
             margin-top: 0.55rem;
             font-weight: 700;
         }}
-        div[data-testid="stMetric"] {{
+        
+        /* ─── Metrics ───────────────────────────────────────────────────── */
+        [data-testid="stMetric"] {{
             background: {card_bg};
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(219, 228, 244, 0.95);
-            border-radius: 18px;
-            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-            padding: 0.55rem 0.75rem;
+            border: 1px solid {border};
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: all 0.3s;
         }}
+        [data-testid="stMetric"]:hover {{
+            border-color: {border_bright};
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }}
+        [data-testid="stMetricValue"] {{
+            color: {colors['primary']} !important;
+            font-size: 1.65rem !important;
+            font-weight: 800 !important;
+        }}
+        [data-testid="stMetricLabel"] {{
+            color: {text_muted} !important;
+            font-weight: 700 !important;
+        }}
+        
+        /* ─── Charts ────────────────────────────────────────────────────�� */
+        .stPlotlyChart > div {{
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        }}
+        
+        /* ─── DataFrame ─────────────────────────────────────────────────── */
+        [data-testid="stDataFrame"] {{
+            background: {card_bg};
+            border-radius: 16px;
+            border: 1px solid {border};
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }}
+        [data-testid="stDataFrame"] thead th {{
+            background: linear-gradient(135deg, {colors['primary']}, {colors['purple']}) !important;
+            color: white !important;
+            font-weight: 600;
+            padding: 1rem !important;
+        }}
+        
+        /* ─── Buttons ───────────────────────────────────────────────────── */
+        .stButton > button {{
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            border: none !important;
+        }}
+        .stButton > button[kind="primary"] {{
+            background: {hero_gradient} !important;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+        }}
+        .stButton > button[kind="primary"]:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4) !important;
+        }}
+        
+        /* ─── Inputs ────────────────────────────────────────────────────── */
+        .stTextInput input, .stTextArea textarea, .stSelectbox {{
+            background: {card_bg} !important;
+            border: 1px solid {border} !important;
+            border-radius: 12px !important;
+            padding: 0.75rem 1rem !important;
+            transition: all 0.2s;
+        }}
+        .stTextInput input:focus, .stTextArea textarea:focus {{
+            border-color: {colors['primary']} !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+        }}
+        
+        /* ─── Tabs ──────────────────────────────────────────────────────── */
+        .stTabs [data-baseweb="tab-list"] {{
+            gap: 0.5rem;
+        }}
+        .stTabs [data-baseweb="tab"] {{
+            border-radius: 10px 10px 0 0 !important;
+            padding: 0.75rem 1.5rem !important;
+            font-weight: 600;
+            background: transparent !important;
+            transition: all 0.2s;
+        }}
+        .stTabs [data-baseweb="tab"]:hover {{
+            background: rgba(99, 102, 241, 0.1) !important;
+        }}
+        .stTabs [aria-selected="true"] {{
+            background: linear-gradient(135deg, {colors['primary']}, {colors['purple']}) !important;
+            color: white !important;
+        }}
+        
+        /* ─── Sidebar Card ───────────────────────────────────────────────── */
         .sidebar-card {{
-            background: {"rgba(30, 41, 59, 0.95)" if is_dark else "linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9))"};
-            border: 1px solid rgba(219, 229, 248, 0.95);
+            background: {side_card_bg};
+            border: 1px solid {border};
             border-radius: 18px;
             padding: 0.95rem;
             margin: 0.45rem 0 0.9rem 0;
@@ -140,17 +333,25 @@ def load_css(is_dark: bool = False, accent_color: str = "#1d4ed8"):
         }}
         .sidebar-card .stSubheader,
         .sidebar-card .stCaption {{
-            color: {text_color} !important;
+            color: {text} !important;
         }}
+        
+        /* ─── Section Header ────────────────────────────────────────────── */
         .section-header {{
             margin-top: 0.25rem;
             margin-bottom: 0.35rem;
         }}
         .section-header h3 {{
-            color: {text_color} !important;
+            color: {text} !important;
             font-size: 1.45rem !important;
             font-weight: 800 !important;
         }}
+        .stSubheader {{
+            color: {text} !important;
+            font-weight: 800 !important;
+        }}
+        
+        /* ─── Live Badge ───────────────────────────────────────────────── */
         .live-badge {{
             display: inline-block;
             padding: 0.35rem 0.8rem;
@@ -161,25 +362,50 @@ def load_css(is_dark: bool = False, accent_color: str = "#1d4ed8"):
             font-size: 0.85rem;
             margin-top: 0.5rem;
         }}
+        
+        /* ─── Insight & Recommendation Cards ───────────────────────────── */
+        .insight-card {{
+            background: {card_gradient};
+            border-left: 4px solid {colors['primary']};
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            margin: 0.4rem 0;
+        }}
+        .recommendation-card {{
+            background: {card_bg};
+            border: 1px solid {border};
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin: 0.4rem 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }}
+        .recommendation-card:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }}
+        
+        /* ─── Sync Card ────────────────────────────────────────────────── */
         .sync-card {{
-            background: {"rgba(30, 41, 59, 0.85)" if is_dark else "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(239, 246, 255, 0.92))"};
-            border: 1px solid rgba(219, 229, 248, 0.95);
+            background: {card_bg};
+            border: 1px solid {border};
             border-radius: 18px;
             padding: 1rem 1.05rem;
             box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
             margin-bottom: 1rem;
             backdrop-filter: blur(10px);
         }}
-        div[data-testid="stDataFrame"] {{
+        
+        /* ─── Stat Result Card ─────────────────────────────────────────── */
+        .stat-result-card {{
             background: {card_bg};
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            border-radius: 14px;
+            padding: 1rem;
+            border: 1px solid {border};
+            margin: 0.5rem 0;
         }}
-        .stSubheader {{
-            color: {text_color} !important;
-            font-weight: 800 !important;
-        }}
+        
+        /* ─── Watermark ────────────────────────────────────────────────── */
         .app-watermark {{
             position: fixed;
             right: 1.2rem;
@@ -194,34 +420,105 @@ def load_css(is_dark: bool = False, accent_color: str = "#1d4ed8"):
             text-transform: uppercase;
             text-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
         }}
-        .stat-result-card {{
+        
+        /* ─── Status Badges ────────────────────────────────────────────── */
+        .badge {{
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }}
+        .badge-success {{
+            background: rgba(34, 197, 94, 0.15);
+            color: {colors['success']};
+        }}
+        .badge-warning {{
+            background: rgba(245, 158, 11, 0.15);
+            color: {colors['warning']};
+        }}
+        .badge-error {{
+            background: rgba(239, 68, 68, 0.15);
+            color: {colors['error']};
+        }}
+        .badge-primary {{
+            background: rgba(99, 102, 241, 0.15);
+            color: {colors['primary']};
+        }}
+        
+        /* ─── Animations ────────────────────────────────────────────────── */
+        @keyframes fade-in {{
+            from {{ opacity: 0; transform: translateY(10px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+        .animate-fade-in {{
+            animation: fade-in 0.5s ease-out forwards;
+        }}
+        
+        @keyframes pulse-glow {{
+            0%, 100% {{ box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }}
+            50% {{ box-shadow: 0 0 40px rgba(99, 102, 241, 0.4); }}
+        }}
+        .pulse-glow {{
+            animation: pulse-glow 2s ease-in-out infinite;
+        }}
+        
+        /* ─── Expanders ─────────────────────────────────────────────────── */
+        .streamlit-expanderHeader {{
             background: {card_bg};
-            border-radius: 14px;
-            padding: 1rem;
-            border: 1px solid rgba(219, 228, 244, 0.95);
-            margin: 0.5rem 0;
-        }}
-        .insight-card {{
-            background: {"rgba(30, 41, 59, 0.8)" if is_dark else "rgba(239, 246, 255, 0.85)"};
-            border-left: 4px solid {accent_color};
-            border-radius: 10px;
-            padding: 0.8rem 1rem;
-            margin: 0.4rem 0;
-        }}
-        .recommendation-card {{
-            background: {"rgba(30, 41, 59, 0.8)" if is_dark else "rgba(255, 255, 255, 0.85)"};
-            border: 1px solid rgba(219, 228, 244, 0.6);
-            border-radius: 12px;
-            padding: 0.8rem;
-            margin: 0.4rem 0;
-            cursor: pointer;
+            border: 1px solid {border};
+            border-radius: 12px !important;
+            font-weight: 600;
+            padding: 1rem !important;
             transition: all 0.2s;
         }}
-        .recommendation-card:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        .streamlit-expanderHeader:hover {{
+            border-color: {colors['primary']};
+        }}
+        
+        /* ─── Alerts ────────────────────────────────────────────────────── */
+        .stSuccess, .stInfo, .stWarning, .stError {{
+            border-radius: 12px !important;
+            border: none !important;
+        }}
+        .stSuccess {{ background: rgba(34, 197, 94, 0.15) !important; color: {colors['success']} !important; }}
+        .stInfo {{ background: rgba(99, 102, 241, 0.15) !important; color: {colors['primary']} !important; }}
+        .stWarning {{ background: rgba(245, 158, 11, 0.15) !important; color: {colors['warning']} !important; }}
+        .stError {{ background: rgba(239, 68, 68, 0.15) !important; color: {colors['error']} !important; }}
+        
+        /* ─── Dividers ──────────────────────────────────────────────────── */
+        hr {{
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, {border_bright}, transparent);
+            margin: 2rem 0;
+        }}
+        
+        /* ─── Responsive ───────────────────────────────────────────────── */
+        @media (max-width: 768px) {{
+            .hero-card {{ padding: 1.5rem; }}
+            .hero-card h1 {{ font-size: 1.75rem !important; }}
+            [data-testid="column"] {{
+                min-width: 100% !important;
+            }}
+        }}
+        
+        /* ─── Print ─────────────────────────────────────────────────────── */
+        @media print {{
+            .app-watermark {{
+                display: block !important;
+                color: #999;
+            }}
+            [data-testid="stSidebar"] {{
+                display: none !important;
+            }}
         }}
         </style>
+        
+        <div class="app-watermark">CHRISHEM</div>
         """,
         unsafe_allow_html=True,
     )

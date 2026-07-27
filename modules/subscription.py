@@ -5,7 +5,7 @@ import hmac
 import time
 import json
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, List
 from enum import Enum
 
 import logging
@@ -21,44 +21,189 @@ logger = logging.getLogger(__name__)
 
 class Tier(Enum):
     FREE = "free"
-    STANDARD = "standard"
-    PREMIUM = "premium"
+    STANDARD = "standard"  # For verified African students
+    PREMIUM = "premium"    # Full features with payment
 
+# Detailed feature access per tier
 TIER_FEATURES = {
     Tier.FREE: {
-        "literature_search": True,
-        "limited_tools": True,
+        # Core Features
+        "file_upload": True,
+        "basic_stats": True,
+        "data_preview": True,
+        
+        # Limited Features (gated)
         "file_exports": False,
+        "advanced_stats": False,
+        "ai_insights": False,
+        "literature_search": False,
+        "predictive_modeling": False,
+        "dashboard_builder": False,
+        "data_simulator": False,
+        "meta_analysis": False,
         "automation": False,
-        "deep_research": False,
         "email_reports": False,
         "notion_workspace": False,
+        
+        # Usage Limits
+        "daily_queries": 10,
+        "max_file_rows": 100,
+        "max_audits": 3,
+        "max_charts": 3,
+        "export_limit": "preview",  # preview-only, limited
     },
     Tier.STANDARD: {
-        "literature_search": True,
-        "limited_tools": True,
+        # African/Developing Region Students (Verified via ID)
+        "file_upload": True,
+        "basic_stats": True,
+        "data_preview": True,
         "file_exports": True,
+        "advanced_stats": True,
+        "ai_insights": True,
+        "literature_search": True,
+        "dashboard_builder": True,
+        "data_simulator": True,
+        "predictive_modeling": False,
+        "meta_analysis": True,
         "automation": True,
-        "deep_research": False,
         "email_reports": False,
         "notion_workspace": False,
+        
+        # Usage Limits
+        "daily_queries": 100,
+        "max_file_rows": 5000,
+        "max_audits": 15,
+        "max_charts": 20,
+        "export_limit": "full",  # full export
     },
     Tier.PREMIUM: {
-        "literature_search": True,
-        "limited_tools": True,
+        # Full Access - Everything unlocked
+        "file_upload": True,
+        "basic_stats": True,
+        "data_preview": True,
         "file_exports": True,
+        "advanced_stats": True,
+        "ai_insights": True,
+        "literature_search": True,
+        "predictive_modeling": True,
+        "dashboard_builder": True,
+        "data_simulator": True,
+        "meta_analysis": True,
         "automation": True,
-        "deep_research": True,
         "email_reports": True,
         "notion_workspace": True,
+        
+        # Unlimited
+        "daily_queries": float('inf'),
+        "max_file_rows": float('inf'),
+        "max_audits": float('inf'),
+        "max_charts": float('inf'),
+        "export_limit": "unlimited",
     },
 }
 
-TIER_LIMITS = {
-    Tier.FREE: {"daily_queries": 10, "max_export_rows": 100},
-    Tier.STANDARD: {"daily_queries": 100, "max_export_rows": 5000},
-    Tier.PREMIUM: {"daily_queries": float('inf'), "max_export_rows": float('inf')},
+# Page access by tier (organizes pages by priority)
+TIER_PAGE_ACCESS = {
+    # FREE TIER - Core essential pages only
+    Tier.FREE: [
+        "1_📁_File_Analyzer",
+        "2_🔬_Statistical_Tests",
+        "3_📈_Advanced_Visuals",
+    ],
+    # STANDARD TIER - Verified students
+    Tier.STANDARD: [
+        "1_📁_File_Analyzer",
+        "2_🔬_Statistical_Tests",
+        "3_📈_Advanced_Visuals",
+        "4_🤖_AI_Insights",
+        "5_⚙️_Settings",
+        "6_🧬_Predictive_Modeling",
+        "7_🏷️_Variable_View",
+        "8_🔧_Data_Transformer",
+        "9_📋_Methodology_Advisor",
+        "10_🏥_Clinical_Analytics",
+        "11_💬_Text_Analysis",
+        "12_📊_Dashboard_Builder",
+        "13_🔍_Data_Quality",
+        "14_🎲_Data_Simulator",
+        "15_📑_APA_Outputs",
+        "16_🔗_Google_Sheets",
+        "18_📊_Presentation_Deck",
+        "19_📚_Literature_Engine",
+        "20_📊_Meta_Analysis",
+    ],
+    # PREMIUM TIER - Everything
+    Tier.PREMIUM: [],  # All pages accessible
 }
+
+# ═══════════════════════════════════════════════════════════════════════
+# BILLING LIMITS MANAGEMENT
+# ═══════════════════════════════════════════════════════════════════════
+
+def check_billing_limit(limit_type: str) -> Tuple[bool, str]:
+    """
+    Check if user has hit a billing limit.
+    Returns (can_proceed, message).
+    """
+    tier = get_current_tier()
+    features = TIER_FEATURES.get(tier, {})
+    
+    limits_config = {
+        "file_rows": {
+            "free": 100,
+            "standard": 5000,
+            "premium": float('inf'),
+        },
+        "exports": {
+            "free": "preview",
+            "standard": "full", 
+            "premium": "unlimited",
+        },
+        "audits": {
+            "free": 3,
+            "standard": 15,
+            "premium": float('inf'),
+        },
+        "charts": {
+            "free": 3,
+            "standard": 20,
+            "premium": float('inf'),
+        },
+    }
+    
+    config = limits_config.get(limit_type, {})
+    tier_key = tier.value
+    limit = config.get(tier_key, 0)
+    
+    # Get current usage
+    usage_key = f"{limit_type}_used"
+    current_usage = st.session_state.get(usage_key, 0)
+    
+    if limit == float('inf'):
+        return True, " unlimited"
+    
+    if current_usage >= limit:
+        return False, f"{limit_type.capitalize()} limit reached ({current_usage}/{limit}). Upgrade to access more."
+    
+    return True, f"{limit - current_usage} remaining"
+
+def increment_billingCounter(limit_type: str):
+    """Increment usage counter for a billing limit type."""
+    usage_key = f"{limit_type}_used"
+    current = st.session_state.get(usage_key, 0)
+    st.session_state[usage_key] = current + 1
+
+def render_limit_warning(limit_type: str):
+    """Render a warning when user approaches their limit."""
+    can_proceed, message = check_billing_limit(limit_type)
+    
+    if not can_proceed:
+        st.error(f"🚫 {message}")
+        st.info("💡 Upgrade to Premium for unlimited access")
+        return False
+    elif "remaining" in message and int(message.split()[0]) <= 2:
+        st.warning(f"⚠️ Only {message}")
+    return True
 
 # ═══════════════════════════════════════════════════════════════════════
 # STRIPE CONFIGURATION
@@ -199,7 +344,8 @@ def check_feature_access(feature: str) -> bool:
 def check_daily_limit() -> Tuple[bool, int]:
     """Check if user has exceeded daily query limit."""
     tier = get_current_tier()
-    limits = TIER_LIMITS.get(tier, {})
+    features = TIER_FEATURES.get(tier, {})
+    max_queries = features.get("daily_queries", 10)
     today = datetime.now().strftime("%Y-%m-%d")
     
     # Reset daily usage if new day
@@ -208,12 +354,34 @@ def check_daily_limit() -> Tuple[bool, int]:
         st.session_state["last_usage_date"] = today
     
     usage = st.session_state["daily_usage"].get("queries", 0)
-    max_queries = limits.get("daily_queries", 10)
     
     if max_queries == float('inf'):
         return True, usage
     
     return usage < max_queries, usage
+
+def get_user_limits() -> Dict[str, Any]:
+    """Get current user's usage limits based on tier."""
+    tier = get_current_tier()
+    return TIER_FEATURES.get(tier, {})
+
+def check_page_access(page_name: str) -> bool:
+    """Check if current tier has access to a specific page."""
+    tier = get_current_tier()
+    allowed_pages = TIER_PAGE_ACCESS.get(tier, [])
+    # Premium has access to all pages (empty list means all)
+    if tier == Tier.PREMIUM:
+        return True
+    # Check if page is in allowed list
+    return page_name in allowed_pages
+
+def get_accessible_pages() -> List[str]:
+    """Get list of pages accessible to current tier."""
+    tier = get_current_tier()
+    if tier == Tier.PREMIUM:
+        # Return all page files
+        return [f.stem for f in __import__('pathlib').Path(__import__('os').path.dirname(__file__)).parent.joinpath('pages').glob('*.py') if f.stem != '__init__']
+    return TIER_PAGE_ACCESS.get(tier, [])
 
 def increment_usage():
     """Increment daily usage counter."""

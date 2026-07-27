@@ -8,14 +8,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Try to import UI styles
+try:
+    from modules.ui_stunning import apply_stunning_styles
+    apply_stunning_styles()
+except Exception:
+    pass
+
 render_pipeline_ui()
-
-import uuid
-
-# ... inside _render_feed_card(opp, manager, user_id):
-# Make the key universally unique to avoid Streamlit collisions
-safe_opp_id = opp.get("id", "no_id")
-add_key = f"add_pipe_{safe_opp_id}_{uuid.uuid4().hex[:8]}"
-
-if st.button(f"➕ Add '{title[:40]}...' to Pipeline", key=add_key, use_container_width=True):
-    # (keep your existing button logic here)

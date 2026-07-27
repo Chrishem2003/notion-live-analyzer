@@ -64,18 +64,45 @@ except ImportError:
         st.info("File Analyzer not available.")
 
 # Enhanced modules
+Tier = None
+get_current_tier = None
+check_feature_access = None
+TIER_PAGE_ACCESS = {}
+
 try:
     from modules.subscription import (
         init_subscription_state,
         get_current_tier,
         check_feature_access,
+        check_billing_limit,
+        render_limit_warning,
         Tier,
         start_trial,
+        TIER_PAGE_ACCESS,
     )
-    init_subscription_state()
-except ImportError:
-    def get_current_tier():
-        return Tier.FREE if 'Tier' in dir() else None
+    if get_current_tier:
+        init_subscription_state()
+except ImportError as e:
+    print(f"Subscription module not available: {e}")
+
+# Fallback tier class
+if Tier is None:
+    class Tier:
+        FREE = "free"
+        STANDARD = "standard"
+        PREMIUM = "premium"
+        
+        @classmethod
+        def get_current_tier_name(cls):
+            return cls.FREE
+
+def get_tier_safe():
+    if get_current_tier:
+        try:
+            return get_current_tier()
+        except:
+            pass
+    return Tier.FREE
 
 try:
     from modules.notion_module import render_notion_module
@@ -163,35 +190,86 @@ def main():
     
     # Sidebar
     with st.sidebar:
+        # Logo/Title with tier badge
         st.title("🔬 Bio-Research")
         
         # User tier display
         try:
-            current_tier = get_current_tier()
-            tier_name = current_tier.name.title() if current_tier else "Free"
-            st.markdown(f"**Tier:** {tier_name}")
+            current_tier = get_tier_safe()
+            tier_name = current_tier.name.title() if hasattr(current_tier, 'name') else "Free"
+            tier_colors = {"Free": "🆓", "Standard": "📘", "Premium": "👑"}
+            tier_icon = tier_colors.get(tier_name, "🆓")
+            st.markdown(f"**{tier_icon} Tier:** {tier_name}")
+            
+            # Show usage for free tier
+            if tier_name == "Free":
+                st.caption("⚠️ Limited access - Verify student ID for Standard")
         except Exception:
             st.markdown("**Tier:** Free")
         
         st.divider()
         
-        # Main navigation
-        pages = [
+        # Organize pages by priority
+        free_pages = TIER_PAGE_ACCESS.get(Tier.FREE, [])
+        standard_pages = TIER_PAGE_ACCESS.get(Tier.STANDARD, [])
+        
+        # Priority-based navigation grouped by tier
+        page = None
+        
+        # Priority 1: Core (Available to ALL)
+        st.caption("🔰 CORE (Free)")
+        core_pages = [
             "📊 Dashboard",
             "📁 File Analyzer",
-            "📚 Literature Engine",
-            "📜 Audit & Compliance",
-            "🔐 Professor Vault",
-            "🔗 Notion Workspace",
-            "🔗 Integrations",
-            "🎯 Research Hub",
-            "⚙️ Settings",
+            "🔬 Statistical Tests",
+            "📈 Advanced Visuals",
         ]
         
-        # Always show admin link for developer access
-        pages.append("🔧 Admin Portal")
+        # Priority 2: Standard (Verified Students)
+        try:
+            tier_val = get_tier_safe().value if hasattr(get_tier_safe(), 'value') else 'free'
+            if tier_val in ['standard', 'premium']:
+                core_pages.extend([
+                    "🤖 AI Insights",
+                    "🏷️ Variable View",
+                    "🔧 Data Transformer",
+                    "📋 Methodology Advisor",
+                    "🏥 Clinical Analytics",
+                    "💬 Text Analysis",
+                    "📊 Dashboard Builder",
+                    "🔍 Data Quality",
+                    "📑 APA Outputs",
+                    "🔗 Google Sheets",
+                ])
+        except:
+            pass
         
-        page = st.radio("Navigation", pages)
+        # Priority 3: Premium (Full Access)
+        try:
+            tier_val = get_tier_safe().value if hasattr(get_tier_safe(), 'value') else 'free'
+            if tier_val == 'premium':
+                core_pages.extend([
+                    "🧬 Predictive Modeling",
+                    "📚 Literature Engine",
+                    "📊 Meta Analysis",
+                    "🎲 Data Simulator",
+                    "🛡️ Audit Compliance",
+                    "⚡ Advanced Features",
+                ])
+        except:
+            pass
+        
+        st.divider()
+        
+        # Common pages
+        core_pages.extend(["⚙️ Settings"])
+        try:
+            if get_tier_safe().value == 'premium':
+                core_pages.append("🔧 Admin Portal")
+        except:
+            pass
+        
+        page = st.selectbox("📂 Navigate", core_pages, label_visibility="collapsed")
         
         st.divider()
         
