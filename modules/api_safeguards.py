@@ -6,19 +6,16 @@ from tenacity import (
     retry,
     stop_after_attempt,
     wait_random_exponential,
-    retry_if_exception_type,
-    before_sleep_log
+    retry_if_exception_type
 )
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("APISafeguards")
 
 class RateLimitException(Exception):
-    """Raised when an API returns 429 or rate limit threshold is hit."""
     pass
 
 class SimpleRateLimiter:
-    """Enforces minimum time delay between API requests."""
     def __init__(self, max_per_second: float):
         self.min_interval = 1.0 / max_per_second
         self.last_call = 0.0
@@ -30,10 +27,7 @@ class SimpleRateLimiter:
             time.sleep(left_to_wait)
         self.last_call = time.time()
 
-# Global Rate Limiters
-# PubMed default: ~2.5 req/sec without API key, 9.0 with key
 pubmed_limiter = SimpleRateLimiter(max_per_second=2.5)
-# Notion safe threshold: ~2.5 req/sec
 notion_limiter = SimpleRateLimiter(max_per_second=2.5)
 
 def set_pubmed_key_mode(has_api_key: bool):
@@ -45,8 +39,7 @@ def set_pubmed_key_mode(has_api_key: bool):
     reraise=True,
     stop=stop_after_attempt(5),
     wait=wait_random_exponential(min=1, max=16),
-    retry=retry_if_exception_type((RateLimitException, requests.exceptions.ConnectionError, requests.exceptions.Timeout)),
-    before_sleep=before_sleep_log(logger, logging.WARNING)
+    retry=retry_if_exception_type((RateLimitException, requests.exceptions.ConnectionError, requests.exceptions.Timeout))
 )
 def safe_api_request(
     method: str,
@@ -57,7 +50,6 @@ def safe_api_request(
     timeout: int = 10,
     service_type: str = "generic"
 ) -> requests.Response:
-    """Executes HTTP request with thread delay and exponential backoff retry."""
     if service_type == "pubmed":
         pubmed_limiter.wait()
     elif service_type == "notion":

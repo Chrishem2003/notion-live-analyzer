@@ -1,12 +1,4 @@
-﻿streamlit
-streamlit-autorefresh
-notion-client
-plotly
-pandas
-numpy
-pillow
-requests
-pyjwt
-tzdata
-
+﻿streamlit>=1.30.0
+pandas>=2.0.0
+requests>=2.31.0
 tenacity>=8.2.0

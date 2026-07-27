@@ -5,9 +5,6 @@ from datetime import datetime
 from modules.api_safeguards import safe_api_request
 
 def export_notion_database_snapshot(database_id: str, notion_token: str, output_dir: str = "backups"):
-    """
-    Fetches full Notion database records and saves JSON + CSV snapshot backups.
-    """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -22,7 +19,6 @@ def export_notion_database_snapshot(database_id: str, notion_token: str, output_
     has_more = True
     next_cursor = None
 
-    # Paginate through all database entries safely
     while has_more:
         payload = {}
         if next_cursor:
@@ -41,14 +37,12 @@ def export_notion_database_snapshot(database_id: str, notion_token: str, output_
         next_cursor = data.get("next_cursor", None)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    json_path = os.path.join(output_dir, f"notion_db_{database_id}_{timestamp}.json")
-    csv_path = os.path.join(output_dir, f"notion_db_{database_id}_{timestamp}.csv")
+    json_path = os.path.join(output_dir, f"notion_db_{timestamp}.json")
+    csv_path = os.path.join(output_dir, f"notion_db_{timestamp}.csv")
 
-    # 1. Save RAW JSON Backup
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
-    # 2. Extract key properties for tabular CSV Backup
     rows = []
     for item in results:
         row = {"id": item.get("id"), "created_time": item.get("created_time")}
@@ -56,7 +50,7 @@ def export_notion_database_snapshot(database_id: str, notion_token: str, output_
         for prop_name, prop_data in props.items():
             p_type = prop_data.get("type")
             if p_type == "title" and prop_data.get("title"):
-                row[prop_name] = "".join([t.get("plain_text", "") for t.get in [prop_data["title"]][0]])
+                row[prop_name] = "".join([t.get("plain_text", "") for t in prop_data["title"]])
             elif p_type == "rich_text" and prop_data.get("rich_text"):
                 row[prop_name] = "".join([t.get("plain_text", "") for t in prop_data["rich_text"]])
             elif p_type == "number":
@@ -73,6 +67,8 @@ def export_notion_database_snapshot(database_id: str, notion_token: str, output_
     return {
         "status": "success",
         "record_count": len(results),
-        "json_snapshot": json_path,
-        "csv_snapshot": csv_path
+        "json_path": json_path,
+        "csv_path": csv_path,
+        "raw_json": json.dumps(results, indent=2),
+        "raw_csv": df.to_csv(index=False)
     }
