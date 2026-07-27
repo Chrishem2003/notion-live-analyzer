@@ -25,7 +25,9 @@ from modules.accounts import (
 from modules.billing import PLANS, create_discount_code, usage_summary
 from modules.notion_template import reset_claim
 from modules.runtime_perf import memory_usage_mb
+from modules.email_reports import active_transport, configuration_hint
 from modules.session_auth import current_user, store
+from modules.session_security import RiskLevel, SecurityLog
 
 UNLOCK_KEY = "_admin_unlocked"
 
@@ -192,6 +194,31 @@ def render_discount_codes(account_store: SQLiteAccountStore) -> None:
         st.rerun()
 
 
+def render_security(log: SecurityLog) -> None:
+    """Flagged sessions. Nothing here blocks a user by itself — see
+    :mod:`modules.session_security` for why the checks stay advisory."""
+    counts = log.counts()
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Clean sessions", counts.get(RiskLevel.OK.value, 0))
+    col2.metric("Flagged for review", counts.get(RiskLevel.REVIEW.value, 0))
+    col3.metric("Impossible travel", counts.get(RiskLevel.BLOCK.value, 0))
+
+    only_flagged = st.checkbox("Only flagged sessions", value=True)
+    events = log.recent(limit=200)
+    if only_flagged:
+        events = [e for e in events if e["level"] != RiskLevel.OK.value]
+    if not events:
+        st.caption("Nothing recorded yet.")
+        return
+    frame = pd.DataFrame(events)
+    frame["when"] = pd.to_datetime(frame["at"], unit="s").dt.strftime("%Y-%m-%d %H:%M")
+    st.dataframe(
+        frame[["when", "account", "level", "score", "country", "ip", "reasons"]],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+
 def render_telemetry(account_store: SQLiteAccountStore) -> None:
     users = account_store.list_users()
     now = utcnow()
@@ -214,6 +241,12 @@ def render_telemetry(account_store: SQLiteAccountStore) -> None:
         sum(1 for user in users if user.created_at > now - timedelta(days=30)),
     )
 
+    transport = active_transport()
+    if transport == "none":
+        st.caption(f"✉️ Email reports are off. {configuration_hint()}")
+    else:
+        st.caption(f"✉️ Email reports are delivered via **{transport}**.")
+
     if users:
         joins = pd.DataFrame({"joined": [user.created_at.date() for user in users]})
         st.bar_chart(joins.value_counts("joined").sort_index(), height=200)
@@ -226,8 +259,8 @@ def render() -> None:
         return
 
     account_store = store()
-    telemetry, subscribers, codes = st.tabs(
-        ["📈 Telemetry", "👥 Subscribers", "🏷️ Discount codes"]
+    telemetry, subscribers, codes, security = st.tabs(
+        ["📈 Telemetry", "👥 Subscribers", "🏷️ Discount codes", "🛡️ Security"]
     )
     with telemetry:
         render_telemetry(account_store)
@@ -235,6 +268,8 @@ def render() -> None:
         render_subscribers(account_store)
     with codes:
         render_discount_codes(account_store)
+    with security:
+        render_security(SecurityLog())
 
     if st.button("🔒 Lock console"):
         st.session_state.pop(UNLOCK_KEY, None)
