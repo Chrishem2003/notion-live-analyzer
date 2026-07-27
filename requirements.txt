@@ -1,4 +1,5 @@
 ﻿streamlit
+streamlit-autorefresh
 notion-client
 plotly
 pandas
@@ -6,3 +7,4 @@ numpy
 pillow
 requests
 pyjwt
+tzdata

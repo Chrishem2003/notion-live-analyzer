@@ -2,6 +2,7 @@
 import os
 from datetime import datetime
 import zoneinfo
+from streamlit_autorefresh import st_autorefresh
 
 # Page Configuration
 st.set_page_config(
@@ -33,9 +34,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 1. TIMEZONE & LOCATION ENGINE (Non-blocking)
+# 1. SILENT AUTO-REFRESH CLOCK (Updates every 10 seconds)
 # ---------------------------------------------------------
-# Default timezones list
+# Silent background refresh keeping local time accurate without interrupting typing
+count = st_autorefresh(interval=10000, limit=None, key="time_counter")
+
+# Timezone & State Initialization (Autosaved in st.session_state)
 COMMON_TIMEZONES = [
     "Africa/Kampala",
     "UTC",
@@ -52,7 +56,7 @@ if "user_tz" not in st.session_state:
 
 active_tz_name = st.session_state["user_tz"]
 
-# Calculate current time cleanly in selected timezone
+# Compute real-time hour and formatted date/time strings
 try:
     tz = zoneinfo.ZoneInfo(active_tz_name)
     user_now = datetime.now(tz)
@@ -60,7 +64,7 @@ except Exception:
     user_now = datetime.now()
 
 local_hour = user_now.hour
-formatted_time = user_now.strftime("%I:%M %p")
+formatted_time = user_now.strftime("%I:%M:%S %p")
 formatted_date = user_now.strftime("%A, %B %d, %Y")
 
 # Safe imports for internal modules
@@ -84,7 +88,6 @@ if "load_css" in globals():
 # 2. SIDEBAR WITH SCROLLING, TIMEZONE & NOTION CONTROLS
 # ---------------------------------------------------------
 with st.sidebar:
-    # DP / Branding Header
     logo_path = os.path.join("assets", "app_logo.png")
     if os.path.exists(logo_path):
         st.image(logo_path, use_container_width=True)
@@ -95,9 +98,9 @@ with st.sidebar:
     st.caption("⚡ Automated Research Intelligence & Live Sync")
     st.markdown("---")
 
-    # Timezone Selector (Interactive Touch/Click Enabled)
+    # Timezone Selector with Real-time Clock
     st.subheader("🌍 Timezone & Location")
-    st.caption(f"🕒 Current Time: **{formatted_time}**")
+    st.success(f"🕒 **Live Local Time:** `{formatted_time}`")
     
     selected_tz = st.selectbox(
         "Select Your Location / Timezone:",
@@ -112,13 +115,13 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Notion Workspace Authentication
+    # Notion Workspace Authentication with Autosave
     st.subheader("🔑 Workspace Integration")
     notion_token = st.text_input(
         "Notion Access Token",
         type="password",
         value=st.session_state.get("notion_token", ""),
-        help="Paste your integration token here"
+        help="Paste your integration token here (Autosaved)"
     )
 
     REQUIRED_DATABASES = [
@@ -153,7 +156,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Admin Portal Controls (Scroll down to access)
+    # Admin Portal Controls
     with st.expander("⚙️ Admin & User Management"):
         st.write("**Role:** System Administrator")
         admin_mode = st.toggle("Enable Admin Override", value=st.session_state.get("admin_mode", False))
@@ -163,7 +166,7 @@ with st.sidebar:
 # 3. ACCURATE GREETING & DASHBOARD
 # ---------------------------------------------------------
 
-# Greeting Calculation based on selected timezone hour
+# Accurate Greeting based on current local hour
 if 5 <= local_hour < 12:
     greeting = "Good Morning ☀️"
 elif 12 <= local_hour < 17:
@@ -173,9 +176,9 @@ elif 17 <= local_hour < 22:
 else:
     greeting = "Good Night 🌌"
 
-# Header Display
+# Header Display with Live Clock
 st.markdown(f"# {greeting}, Welcome Back!")
-st.caption(f"📅 {formatted_date} | 🕒 {formatted_time} ({active_tz_name})")
+st.caption(f"📅 {formatted_date} | 🕒 **{formatted_time}** ({active_tz_name})")
 
 st.markdown("---")
 
@@ -206,7 +209,7 @@ st.markdown("### 📊 Automated Workspace Health Monitor")
 m_col1, m_col2, m_col3, m_col4 = st.columns(4)
 
 with m_col1:
-    st.metric(label="System Status", value="Online ⚡", delta="Global Sync")
+    st.metric(label="System Status", value="Online ⚡", delta="Live Sync")
 
 with m_col2:
     detected_count = len(st.session_state.get("db_ids", {}))
