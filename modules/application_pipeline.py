@@ -1975,7 +1975,7 @@ def _render_feed_card(opp: Dict[str, Any], manager: ApplicationPipelineManager,
 
     # Add to Pipeline button (real Streamlit button hidden behind)
     add_key = f"feed_add_{opp_id[:12]}"
-    if st.button(f"➕ Add '{title[:40]}...' to Pipeline", key=add_key, use_container_width=True):
+    if st.button(f"➕ Add '{title[:40]}...' to Pipeline", key=f"{add_key}_{uuid.uuid4().hex[:6]}", use_container_width=True):
         app = manager.feed_add_to_pipeline(user_id, opp_id)
         if app:
             st.success(f"✅ Added '{title[:50]}' to your Pipeline! Track it in the Kanban board below.")

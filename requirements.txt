@@ -8,3 +8,6 @@ plotly
 scipy
 statsmodels
 openpyxl
+scipy
+statsmodels
+openpyxl
