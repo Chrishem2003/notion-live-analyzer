@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 from modules.auth import render_auth_gateway
 from modules.i18n import get_locale_strings
 from security.waf import sanitize_payload
@@ -7,6 +8,7 @@ from modules.database import init_db, save_user_session, log_backend_event
 from modules.vault import render_secure_vault
 from modules.analytics import render_advanced_analytics
 from modules.webhook import dispatch_system_alert
+from modules.db_viewer import render_database_audit_logs
 
 # Initialize Persistent Backend Database
 init_db()
@@ -19,7 +21,6 @@ st.set_page_config(
 )
 
 # Load Custom Styling Sheet if present
-import os
 if os.path.exists("assets/style.css"):
     with open("assets/style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -52,11 +53,12 @@ with st.sidebar.expander("?? Webhook Alerts"):
         else:
             st.error("Failed to reach webhook endpoint.")
 
-# Unified Multi-Tab Enterprise Architecture
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+# Unified Multi-Tab Enterprise Architecture (Expanded with DB Inspector)
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "?? Analytics Workspace", 
     "?? Bioinformatics Engine", 
     "?? Secure Vault", 
+    "??? Database Logs",
     "?? Global Downloads", 
     "??? System Diagnostics"
 ])
@@ -75,6 +77,9 @@ with tab3:
     render_secure_vault()
 
 with tab4:
+    render_database_audit_logs()
+
+with tab5:
     st.subheader(strings["export"])
     sample_export_df = pd.DataFrame({
         "Metric": ["Throughput", "Latency", "Integrity Check", "Uptime"],
@@ -90,7 +95,7 @@ with tab4:
         mime="text/csv"
     )
 
-with tab5:
+with tab6:
     st.subheader("Autonomous Daemon & System Status")
     st.success("Self-Healing Watchdog: **ONLINE**")
     st.success("Web Application Firewall (WAF): **ACTIVE**")
