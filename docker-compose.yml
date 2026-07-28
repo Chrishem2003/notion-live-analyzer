@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  chrishem-engine:
+    build: .
+    container_name: chrishem_intelligence_engine
+    restart: always
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_ENABLE_CORS=false
