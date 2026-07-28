@@ -1,11 +1,6 @@
 ﻿import streamlit as st
 import pandas as pd
 from datetime import datetime
-import os
-
-# ==========================================
-# 1. DATABASE & TELEMETRY MODULE
-# ==========================================
 import sqlite3
 
 DB_PATH = "chrishem_enterprise.db"
@@ -46,28 +41,20 @@ def log_backend_event(level: str, message: str):
 
 init_db()
 
-# ==========================================
-# 2. THEME & UI STYLING ENGINE (Neon Glassmorphism)
-# ==========================================
 def apply_custom_theme():
     st.markdown(
         """
         <style>
-            /* Global Background & Typography */
             .stApp, .main {
                 background-color: #0B0F19 !important;
                 background-image: linear-gradient(135deg, #0B0F19 0%, #131C2E 100%) !important;
                 color: #E2E8F0 !important;
                 font-family: 'Inter', sans-serif;
             }
-            
-            /* Sidebar Styling */
             [data-testid="stSidebar"] {
                 background-color: #0E1626 !important;
                 border-right: 1px solid rgba(0, 255, 102, 0.2) !important;
             }
-            
-            /* Form & Container Polish */
             div.stMarkdown container, div.stForm, div.row-widget {
                 background: rgba(19, 28, 46, 0.75) !important;
                 border: 1px solid rgba(0, 255, 102, 0.25) !important;
@@ -75,8 +62,6 @@ def apply_custom_theme():
                 padding: 1.5rem !important;
                 box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
             }
-
-            /* Inputs & Dropdowns */
             .stTextInput div[data-baseweb="input"], 
             .stTextArea div[data-baseweb="textarea"],
             .stSelectbox div[data-baseweb="select"] {
@@ -88,8 +73,6 @@ def apply_custom_theme():
             .stTextInput input, .stTextArea textarea {
                 color: #FFFFFF !important;
             }
-
-            /* Custom Neon Buttons */
             .stButton > button {
                 background: linear-gradient(135deg, #00FF66 0%, #00CC52 100%) !important;
                 color: #0B0F19 !important;
@@ -105,8 +88,6 @@ def apply_custom_theme():
                 box-shadow: 0 6px 20px rgba(0, 255, 102, 0.6) !important;
                 transform: translateY(-2px) !important;
             }
-
-            /* Metrics & Tables */
             [data-testid="stMetricValue"] {
                 color: #00FF66 !important;
                 font-weight: 800 !important;
@@ -128,10 +109,6 @@ st.set_page_config(
 )
 
 apply_custom_theme()
-
-# ==========================================
-# 3. MODULE RENDERERS
-# ==========================================
 
 def render_access_control_panel():
     st.subheader("🔐 Sovereign Access Control & Tiered Licensing Hub")
@@ -240,7 +217,7 @@ def render_academic_portfolio_studio():
             target = st.text_input("Target Role", value="Bioinformatics & Data Analytics Intern")
 
         if st.button("✨ Generate CV Summary"):
-            content = f\"\"\"# Professional Profile: {full_name}
+            content = f"""# Professional Profile: {full_name}
 * **Discipline:** {field} ({tier})
 * **Target Position:** {target}
 * **Generated On:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -253,7 +230,7 @@ Motivated undergraduate student in the Faculty of Science with rigorous training
 * Data Analytics & Python Scripting (Streamlit, Pandas, NumPy)
 * Secure Local Storage & SQLite Database Management
 * Version Control & Containerization
-\"\"\"
+"""
             st.markdown(content)
             st.download_button("📥 Download as Markdown (.md)", content, "Chrishem_CV_Summary.md", "text/markdown")
             st.download_button("📥 Download as Plain Text (.txt)", content, "Chrishem_CV_Summary.txt", "text/plain")
@@ -268,7 +245,7 @@ Motivated undergraduate student in the Faculty of Science with rigorous training
             inst = st.text_input("Institution", value="Muni University Faculty of Science")
 
         if st.button("✨ Generate Research Abstract"):
-            content = f\"\"\"# Research Report & Abstract
+            content = f"""# Research Report & Abstract
 * **Research Title:** {title}
 * **Institution:** {inst} ({field_name})
 * **Methodology:** {method}
@@ -276,7 +253,7 @@ Motivated undergraduate student in the Faculty of Science with rigorous training
 
 ## Abstract
 This study investigates regional environmental sample distributions using {method}. Conducted under academic evaluation guidelines at {inst}, the research maps biological specimen markers to track resistance patterns and evaluate public health indicators.
-\"\"\"
+"""
             st.markdown(content)
             st.download_button("📥 Download Abstract (.md)", content, "Research_Abstract.md", "text/markdown")
             st.download_button("📥 Download Abstract (.txt)", content, "Research_Abstract.txt", "text/plain")
@@ -287,7 +264,7 @@ This study investigates regional environmental sample distributions using {metho
         desc = st.text_area("Highlights", value="Built a sovereign enterprise workspace featuring secure local enclaves, automated telemetry dashboards, and bioinformatics pipelines.")
 
         if st.button("✨ Generate Portfolio"):
-            content = f\"\"\"# Project Portfolio: {name}
+            content = f"""# Project Portfolio: {name}
 * **Tech Stack:** {stack}
 * **Date:** {datetime.now().strftime('%Y-%m-%d')}
 
@@ -297,7 +274,7 @@ This study investigates regional environmental sample distributions using {metho
 ## Engineering Achievements
 * Engineered autonomous multi-module workspace with real-time health diagnostics.
 * Integrated local containerization and custom data processing tools.
-\"\"\"
+"""
             st.markdown(content)
             st.download_button("📥 Download Portfolio (.md)", content, "Project_Portfolio.md", "text/markdown")
             st.download_button("📥 Download Portfolio (.txt)", content, "Project_Portfolio.txt", "text/plain")
@@ -307,13 +284,13 @@ This study investigates regional environmental sample distributions using {metho
         pos = st.text_input("Position", value="Research & Data Analytics Fellow")
 
         if st.button("✨ Generate Cover Letter"):
-            content = f\"\"\"Dear Hiring Committee at {comp},
+            content = f"""Dear Hiring Committee at {comp},
 
 I am writing to express my strong interest in the {pos} position. As an undergraduate student in biological sciences and data analytics at Muni University, I have cultivated a strong foundation in automated data pipeline management and research reporting.
 
 Sincerely,
 Kula Chris (Chrishem)
-\"\"\"
+"""
             st.markdown(content)
             st.download_button("📥 Download Cover Letter (.md)", content, "Cover_Letter.md", "text/markdown")
             st.download_button("📥 Download Cover Letter (.txt)", content, "Cover_Letter.txt", "text/plain")
@@ -355,9 +332,6 @@ def render_system_diagnostics():
     except Exception as e:
         st.error(f"Error loading logs: {e}")
 
-# ==========================================
-# 4. MAIN NAVIGATION ROUTER
-# ==========================================
 def main():
     st.sidebar.title("🌌 CHRISHEM Enterprise")
     st.sidebar.caption("Sovereign Intelligence & Autonomous Grid")
