@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
 from datetime import datetime
 from modules.database import log_backend_event
@@ -7,10 +7,9 @@ def render_academic_portfolio_studio_panel():
     """
     Renders the enhanced Academic, CV & Portfolio Writing Studio with download and export capabilities.
     """
-    st.subheader("?? Academic, CV & Portfolio Writing Studio")
+    st.subheader("🎓 Academic, CV & Portfolio Writing Studio")
     st.caption("AI-powered professional drafting engine with instant downloadable document export (Markdown, Text, Report format).")
 
-    # Studio Mode Selection
     studio_mode = st.selectbox(
         "Select Writing & Generation Target:",
         [
@@ -24,7 +23,7 @@ def render_academic_portfolio_studio_panel():
     st.markdown("---")
 
     if studio_mode == "Professional CV & Profile Summary":
-        st.markdown("### ?? Professional CV & Career Summary Builder")
+        st.markdown("### 📄 Professional CV & Career Summary Builder")
         col1, col2 = st.columns(2)
         with col1:
             full_name = st.text_input("Full Name / Handle", value="Kula Chris (Chrishem)")
@@ -33,7 +32,7 @@ def render_academic_portfolio_studio_panel():
             experience_level = st.selectbox("Experience Tier", ["Undergraduate Researcher & Student", "Junior Data Analyst", "Independent Developer & Creator"])
             target_role = st.text_input("Target Opportunity / Role", value="Bioinformatics & Data Analytics Intern")
 
-        if st.button("? Generate Professional CV Summary"):
+        if st.button("✨ Generate Professional CV Summary"):
             log_backend_event("INFO", "User generated professional CV summary.")
             st.success("CV Summary Generated Successfully!")
             
@@ -53,26 +52,25 @@ Motivated and detail-oriented undergraduate student in the Faculty of Science wi
 """
             st.markdown(output_content)
             
-            # Export & Download Buttons
-            st.markdown("### ?? Download & Share Document")
+            st.markdown("### 📥 Download & Share Document")
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 st.download_button(
-                    label="?? Download as Markdown (.md)",
+                    label="📥 Download as Markdown (.md)",
                     data=output_content,
                     file_name="Chrishem_CV_Summary.md",
                     mime="text/markdown"
                 )
             with col_d2:
                 st.download_button(
-                    label="?? Download as Plain Text (.txt)",
+                    label="📥 Download as Plain Text (.txt)",
                     data=output_content,
                     file_name="Chrishem_CV_Summary.txt",
                     mime="text/plain"
                 )
 
     elif studio_mode == "Academic Research Abstract & Report":
-        st.markdown("### ?? Academic Research Abstract & Report Generator")
+        st.markdown("### 🔬 Academic Research Abstract & Report Generator")
         col1, col2 = st.columns(2)
         with col1:
             project_title = st.text_input("Research Title", value="Waterborne Pathogen & Antimicrobial Resistance Surveillance")
@@ -81,7 +79,7 @@ Motivated and detail-oriented undergraduate student in the Faculty of Science wi
             methodology = st.text_input("Methodology", value="Batch Data Log Filtering & Sequence Analysis")
             institution = st.text_input("Institution", value="Muni University Faculty of Science")
 
-        if st.button("? Generate Academic Abstract"):
+        if st.button("✨ Generate Academic Abstract"):
             log_backend_event("INFO", "User generated academic research abstract.")
             st.success("Research Abstract Generated Successfully!")
 
@@ -93,37 +91,33 @@ Motivated and detail-oriented undergraduate student in the Faculty of Science wi
 
 ## Abstract
 This study investigates regional environmental sample distributions using {methodology}. Conducted under academic evaluation guidelines at {institution}, the research maps biological specimen markers to track resistance patterns and evaluate public health indicators. Results demonstrate robust data capture reliability and highlight critical pathways for localized pathogen surveillance.
-
-## Methodology & Findings
-* Field specimen sample logs were structured and filtered utilizing automated validation routines.
-* Quantitative markers verified antimicrobial resistance variance across target domestic testing zones.
 """
             st.markdown(output_content)
 
-            st.markdown("### ?? Download & Share Document")
+            st.markdown("### 📥 Download & Share Document")
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 st.download_button(
-                    label="?? Download Research Abstract (.md)",
+                    label="📥 Download Research Abstract (.md)",
                     data=output_content,
                     file_name="Research_Abstract.md",
                     mime="text/markdown"
                 )
             with col_d2:
                 st.download_button(
-                    label="?? Download Research Abstract (.txt)",
+                    label="📥 Download Research Abstract (.txt)",
                     data=output_content,
                     file_name="Research_Abstract.txt",
                     mime="text/plain"
                 )
 
     elif studio_mode == "Project Portfolio Description":
-        st.markdown("### ?? Project Portfolio Showcase Builder")
+        st.markdown("### 🚀 Project Portfolio Showcase Builder")
         proj_name = st.text_input("Project Name", value="Enterprise Intelligence & Sovereign Workspace")
         tech_stack = st.text_input("Technologies Used", value="Python, Streamlit, SQLite, PowerShell, Docker")
         proj_desc = st.text_area("Project Highlights", value="Built a 20-module sovereign enterprise workspace featuring secure local enclaves, automated telemetry dashboards, and bioinformatics data pipelines.")
 
-        if st.button("? Generate Portfolio Description"):
+        if st.button("✨ Generate Portfolio Description"):
             log_backend_event("INFO", "User generated project portfolio description.")
             st.success("Portfolio Description Generated Successfully!")
 
@@ -137,33 +131,32 @@ This study investigates regional environmental sample distributions using {metho
 ## Key Engineering Achievements
 * Engineered a fully autonomous multi-module workspace with real-time health diagnostics and secure database logging.
 * Integrated local containerization, automated background cognitive workers, and custom data processing tools.
-* Designed for high reliability, zero data drift, and seamless cross-platform execution.
 """
             st.markdown(output_content)
 
-            st.markdown("### ?? Download & Share Document")
+            st.markdown("### 📥 Download & Share Document")
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 st.download_button(
-                    label="?? Download Portfolio (.md)",
+                    label="📥 Download Portfolio (.md)",
                     data=output_content,
                     file_name="Project_Portfolio.md",
                     mime="text/markdown"
                 )
             with col_d2:
                 st.download_button(
-                    label="?? Download Portfolio (.txt)",
+                    label="📥 Download Portfolio (.txt)",
                     data=output_content,
                     file_name="Project_Portfolio.txt",
                     mime="text/plain"
                 )
 
     else:
-        st.markdown("### ?? Formal Cover Letter & Application Builder")
+        st.markdown("### ✉️ Formal Cover Letter & Application Builder")
         company_name = st.text_input("Organization / Recipient", value="Data Analytics & Research Institute")
         position_applied = st.text_input("Position Applied For", value="Research & Data Analytics Fellow")
         
-        if st.button("? Generate Formal Cover Letter"):
+        if st.button("✨ Generate Formal Cover Letter"):
             log_backend_event("INFO", "User generated formal cover letter.")
             st.success("Cover Letter Generated Successfully!")
 
@@ -171,7 +164,7 @@ This study investigates regional environmental sample distributions using {metho
 
 I am writing to express my strong interest in the {position_applied} position. As an undergraduate student in biological sciences and data analytics at Muni University, I have cultivated a strong foundation in automated data pipeline management, research reporting, and quantitative analysis.
 
-My academic projects and technical implementations�ranging from molecular sequence tracking to secure local workspace architecture�demonstrate my capability to deliver rigorous, high-quality results. I am eager to bring my dedication, technical aptitude, and analytical skills to your esteemed organization.
+My academic projects and technical implementations—ranging from molecular sequence tracking to secure local workspace architecture—demonstrate my capability to deliver rigorous, high-quality results. I am eager to bring my dedication, technical aptitude, and analytical skills to your esteemed organization.
 
 Thank you for your time and consideration. I look forward to discussing how my background aligns with your institutional goals.
 
@@ -180,18 +173,18 @@ Kula Chris (Chrishem)
 """
             st.markdown(output_content)
 
-            st.markdown("### ?? Download & Share Document")
+            st.markdown("### 📥 Download & Share Document")
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 st.download_button(
-                    label="?? Download Cover Letter (.md)",
+                    label="📥 Download Cover Letter (.md)",
                     data=output_content,
                     file_name="Cover_Letter.md",
                     mime="text/markdown"
                 )
             with col_d2:
                 st.download_button(
-                    label="?? Download Cover Letter (.txt)",
+                    label="📥 Download Cover Letter (.txt)",
                     data=output_content,
                     file_name="Cover_Letter.txt",
                     mime="text/plain"
