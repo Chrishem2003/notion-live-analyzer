@@ -1,20 +1,83 @@
-/* CHRISHEM Enterprise Custom Styling */
+/* ==========================================================================
+   CHRISHEM Enterprise Intelligence Engine - Modern Glassmorphic Theme
+   ========================================================================== */
+
+/* Root Variables */
+:root {
+    --bg-primary: #0b0f19;
+    --bg-secondary: #111827;
+    --bg-card: rgba(17, 24, 39, 0.75);
+    --border-color: rgba(75, 85, 99, 0.3);
+    --accent-blue: #3b82f6;
+    --accent-red: #ef4444;
+    --accent-glow: rgba(59, 130, 246, 0.15);
+    --text-main: #f9fafb;
+    --text-muted: #9ca3af;
+}
+
+/* Global App Styling */
 .stApp {
-    background-color: #0e1117;
-    color: #ffffff;
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
+
+/* Sidebar Modernization */
+section[data-testid="stSidebar"] {
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+}
+
+/* Glassmorphism Card Containers */
+div.stMarkdown, div.stTabs, div.stExpander {
+    color: var(--text-main);
+}
+
+/* Custom Button Styling */
 div.stButton > button {
-    background: linear-gradient(135deg, #1f4068 0%, #162447 100%);
-    color: white;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);
+    color: var(--text-main);
     border-radius: 8px;
-    border: 1px solid #e43f5a;
+    border: 1px solid var(--accent-blue);
     font-weight: 600;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 4px 12px var(--accent-glow);
+    transition: all 0.3s ease;
 }
+
 div.stButton > button:hover {
-    background: linear-gradient(135deg, #e43f5a 0%, #1f4068 100%);
-    border-color: #ffffff;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-color: #60a5fa;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
 }
-.streamlit-expanderHeader {
-    background-color: #1a1a24;
-    border-radius: 6px;
+
+/* Metric Cards Modernization */
+div[data-testid="stMetric"] {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+div[data-testid="stMetricValue"] {
+    color: #60a5fa !important;
+    font-weight: 700;
+}
+
+/* Dataframe & Tables Styling */
+div[data-testid="stDataFrame"] {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Tab Headers */
+button[data-baseweb="tab"] {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: #60a5fa !important;
 }
