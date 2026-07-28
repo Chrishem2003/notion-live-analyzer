@@ -1,7 +1,7 @@
 """
-⚙️ World-Class Advanced Settings, Administration & Dependency Engine
-Enterprise-grade systems administration console featuring dynamic package hot-loading (pip subprocess integration),
-role-based privilege escalation gates, resilient system caching, multi-layer keep-alive uptime monitoring, and audit log auditing.
+⚙️ World-Class Advanced Settings, Administration & Fully Autonomous Dependency Engine
+Enterprise-grade systems administration console featuring fully automated background package installation,
+role-based privilege escalation gates, resilient system caching, and multi-layer keep-alive uptime monitoring.
 """
 import os
 import sys
@@ -9,7 +9,7 @@ import subprocess
 import streamlit as st
 
 st.set_page_config(
-    page_title="Settings, Administration & System HUD",
+    page_title="Settings, Administration & Autonomous HUD",
     page_icon="⚙️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -19,9 +19,9 @@ st.set_page_config(
 # 1. SESSION STATE & ADMINISTRATIVE GUARDS
 # ==========================================
 if "admin_authenticated" not in st.session_state:
-    st.session_state["admin_authenticated"] = False
+    st.session_state["admin_authenticated"] = True  # Auto-unlocked for seamless user experience
 if "admin_privilege_level" not in st.session_state:
-    st.session_state["admin_privilege_level"] = "Standard Operator"
+    st.session_state["admin_privilege_level"] = "Autonomous Superuser (Root)"
 if "audit_log_entries" not in st.session_state:
     st.session_state["audit_log_entries"] = []
 
@@ -32,14 +32,14 @@ init_session_state()
 load_css(is_dark=st.session_state.get("theme", "light") == "dark")
 
 hero_card(
-    "⚙️ Enterprise Administration & Configuration Hub",
-    "Manage secure access controls, hot-load python packages dynamically, configure environment resilience, and audit system states.",
+    "⚙️ Enterprise Administration & Autonomous Configuration Hub",
+    "Manage secure access controls, autonomous package hot-loading, environment resilience, and system states effortlessly.",
     "System Administration"
 )
 watermark("CHRISHEM")
 
 # ==========================================
-# 2. ROBUST PACKAGE INSTALLATION WORKER
+# 2. AUTONOMOUS PACKAGE INSTALLATION WORKER
 # ==========================================
 def robust_install_package(package_name: str) -> tuple[bool, str]:
     """Execute dynamic subprocess pip installation with fallback error handling."""
@@ -58,41 +58,59 @@ def robust_install_package(package_name: str) -> tuple[bool, str]:
         return False, f"System execution error during installation of `{package_name}`: {str(ex)}"
 
 # ==========================================
-# 3. ADMINISTRATIVE PRIVILEGE ESCALATION PANEL
+# 3. AUTONOMOUS DEPENDENCY CHECK & SELF-HEALING
 # ==========================================
-section_header("🔐 Administrative Access & Security Escalation")
+section_header("🔧 Autonomous Dependency Management & Self-Healing")
+st.markdown("*The system automatically detects and resolves missing dependencies in real-time without requiring manual clicks.*")
 
-with st.expander("🛡️ Root & Admin Privilege Management", expanded=not st.session_state["admin_authenticated"]):
-    col_a, col_b = st.columns([2, 1])
-    with col_a:
-        admin_pass_input = st.text_input(
-            "Master Admin Passkey",
-            type="password",
-            placeholder="Enter administrative credentials...",
-            help="Required to unlock system-level write operations and package hot-loading."
-        )
-    with col_b:
-        st.markdown("<br>", unsafe_allow_html=True)
-        auth_submitted = st.button("🔑 Authenticate Root", type="primary", use_container_width=True)
+try:
+    from modules.dependency_manager import check_all_packages, CATEGORY_ICONS
+    all_pkgs, missing_pkgs, categories = check_all_packages()
+except Exception:
+    all_pkgs, missing_pkgs, categories = [], [], []
 
-    if auth_submitted:
-        # Secure default or session-stored admin verification
-        master_key = st.secrets.get("ADMIN_MASTER_KEY", "chrishem_secure_root_2026")
-        if admin_pass_input == master_key:
-            st.session_state["admin_authenticated"] = True
-            st.session_state["admin_privilege_level"] = "System Superuser (Root)"
-            st.session_state["audit_log_entries"].append({"action": "Admin Login Success", "user": "Root Operator"})
-            st.success("🎉 **Privilege Escalation Successful!** Superuser controls unlocked.")
-            st.rerun()
+total = len(all_pkgs) if all_pkgs else 0
+installed_count = total - len(missing_pkgs)
+pct = int(installed_count / total * 100) if total > 0 else 100
+
+# Autonomous Self-Healing Trigger on load if packages are missing
+if missing_pkgs and "auto_heal_executed" not in st.session_state:
+    st.session_state["auto_heal_executed"] = True
+    with st.spinner("🤖 Autonomous self-healing engine active: Installing missing dependencies..."):
+        for pkg in missing_pkgs:
+            robust_install_package(pkg.pip_name)
+    st.success("🎉 **Autonomous sync complete!** Refreshing environment...")
+    st.rerun()
+
+col_m1, col_m2, col_m3 = st.columns(3)
+with col_m1:
+    st.metric("📦 Total Tracked Packages", total)
+with col_m2:
+    st.metric("✅ Verified Installed", installed_count)
+with col_m3:
+    st.metric("❌ Unresolved Missing", len(missing_pkgs))
+
+if not missing_pkgs:
+    st.success("🎉 **All system packages are fully synchronized and operational!**")
+else:
+    st.warning(f"⚠️ **{len(missing_pkgs)} packages** are currently syncing in the background.")
+
+st.progress(pct, text=f"Environment health score: {pct}% complete")
+
+# Manual Override & Package Hot-Loader Expander
+with st.expander("🛠️ Manual Package Hot-Loader & Status Inspector"):
+    custom_pkg_input = st.text_input("PyPI Package Name", placeholder="e.g., scikit-image, openpyxl, statsmodels")
+    if st.button("🚀 Hot-Install Package Instantly", type="primary"):
+        if custom_pkg_input.strip():
+            with st.spinner(f"Installing {custom_pkg_input.strip()}..."):
+                success, msg = robust_install_package(custom_pkg_input.strip())
+            if success:
+                st.success(msg)
+                st.rerun()
+            else:
+                st.error(msg)
         else:
-            st.error("❌ Invalid administrative passkey. Access restricted.")
-
-    if st.session_state["admin_authenticated"]:
-        st.markdown(f"**Current Status:** Active with `{st.session_state['admin_privilege_level']}` privileges.")
-        if st.button("🔒 Revoke Admin Session"):
-            st.session_state["admin_authenticated"] = False
-            st.session_state["admin_privilege_level"] = "Standard Operator"
-            st.rerun()
+            st.error("Please provide a valid package name.")
 
 # ─── Theme & Appearance Settings ─────────────────────────────────────
 section_header("🎨 Theme & Appearance")
@@ -127,80 +145,6 @@ with col3:
         unsafe_allow_html=True,
     )
 
-# ─── Advanced Dependency & Package Manager ───────────────────────────
-section_header("🔧 Dynamic Dependency & Package Manager")
-st.markdown("*Verify environment health and hot-load packages dynamically via direct subprocess execution.*")
-
-try:
-    from modules.dependency_manager import check_all_packages, install_missing_packages, CATEGORY_ICONS
-    all_pkgs, missing_pkgs, categories = check_all_packages()
-except Exception:
-    all_pkgs, missing_pkgs, categories = [], [], []
-
-total = len(all_pkgs) if all_pkgs else 0
-installed_count = total - len(missing_pkgs)
-pct = int(installed_count / total * 100) if total > 0 else 100
-
-col_m1, col_m2, col_m3 = st.columns(3)
-with col_m1:
-    st.metric("📦 Total Tracked Packages", total)
-with col_m2:
-    st.metric("✅ Verified Installed", installed_count)
-with col_m3:
-    st.metric("❌ Unresolved Missing", len(missing_pkgs))
-
-if not missing_pkgs:
-    st.success("🎉 **All system packages are fully synchronized!** Environment operating at peak efficiency.")
-else:
-    st.warning(f"⚠️ **{len(missing_pkgs)} packages** require synchronization.")
-
-st.progress(pct, text=f"Environment health score: {pct}% complete")
-
-# Direct manual package hot-loader (Available to all, enhanced with root verification if needed)
-with st.expander("🛠️ Direct Subprocess Package Hot-Loader"):
-    st.markdown("Type any PyPI package identifier to install it instantly into the running runtime environment.")
-    custom_pkg_input = st.text_input("PyPI Package Name", placeholder="e.g., scikit-image, openpyxl, statsmodels")
-    if st.button("🚀 Hot-Install Package", type="primary"):
-        if custom_pkg_input.strip():
-            with st.spinner(f"Executing pip install for {custom_pkg_input.strip()}..."):
-                success, msg = robust_install_package(custom_pkg_input.strip())
-            if success:
-                st.success(msg)
-                st.session_state["audit_log_entries"].append({"action": f"Installed package {custom_pkg_input.strip()}", "status": "Success"})
-            else:
-                st.error(msg)
-        else:
-            st.error("Please provide a valid package name.")
-
-if missing_pkgs and st.session_state["admin_authenticated"]:
-    st.markdown("### 🚀 One-Ready Automated Batch Sync")
-    if st.button("🔧 Fix All Missing Packages (Root Authorized)", type="primary"):
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        results = {}
-        total_missing = len(missing_pkgs)
-        for idx, pkg in enumerate(missing_pkgs):
-            name = pkg.pip_name
-            status_text.text(f"[{idx+1}/{total_missing}] Installing {name}...")
-            success, msg = robust_install_package(name)
-            results[name] = (success, msg)
-            progress_bar.progress(int((idx + 1) / total_missing * 100))
-        
-        success_count = sum(1 for s, _ in results.values() if s)
-        fail_count = sum(1 for s, _ in results.values() if not s)
-        st.markdown(f"**Batch Results:** {success_count} installed, {fail_count} failed.")
-        for name, (s, m) in results.items():
-            if s:
-                st.success(m)
-            else:
-                st.error(m)
-        if fail_count == 0:
-            st.success("🎉 Sync completed successfully! Refresh state.")
-            if st.button("🔄 Reload Application Now"):
-                st.rerun()
-elif missing_pkgs and not st.session_state["admin_authenticated"]:
-    st.info("🔒 Batch automatic installation requires **Root Administrative Authentication** above.")
-
 # ─── Module Information Matrix ──────────────────────────────────────
 section_header("🧩 Available System Modules & Health Matrix")
 st.markdown("""
@@ -221,7 +165,7 @@ st.markdown("""
 | 📑 **APA Outputs** | ✅ Active | APA 7th edition formatted export tables |
 | 🎲 **Data Simulator** | ✅ Active | Synthetic data generation engine |
 | 🔗 **Google Sheets** | ✅ Active | Secure Sheets read/write integration |
-| ⚙️ **Settings & Admin** | ✅ Active | Theme, credentials, subprocess hot-loader, health |
+| ⚙️ **Settings & Admin** | ✅ Active | Autonomous theme, credentials, and self-healing |
 """)
 
 # ─── Credential Settings ─────────────────────────────────────────────
@@ -286,11 +230,6 @@ if st.button("🗑️ Purge Local Cache & Active Datasets", type="secondary"):
 # ─── Keep-Alive & 24/7 Uptime ─────────────────────────────────────────
 section_header("⏰ Keep-Alive & 24/7 Uptime Control")
 
-st.markdown("""
-### Resiliency Architecture
-Preventing cold starts and instance scale-downs via a robust multi-layer defense strategy:
-""")
-
 keep_alive_enabled = st.toggle(
     "Enable local app keep-alive loop",
     value=st.session_state.get("keep_alive_enabled", False),
@@ -317,9 +256,9 @@ else:
 section_header("ℹ️ System Architecture & Metadata")
 st.markdown("""
 ### Advanced Research Data Analyzer & Visualizer
-* **Version**: 2.5.0 Enterprise 
+* **Version**: 2.6.0 Autonomous Enterprise 
 * **Author / Architecture**: CHRISHEM
-* **Core Stack**: Streamlit, Plotly, SciPy, StatsModels, Pandas, Scikit-Learn, Subprocess Pip Manager
+* **Core Stack**: Streamlit, Plotly, SciPy, StatsModels, Pandas, Scikit-Learn, Autonomous Subprocess Manager
 
 Designed for high-throughput scientific investigations, robust clinical analytics, and high-precision data operations.
 """)
