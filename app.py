@@ -2,6 +2,7 @@
 import os
 from datetime import datetime
 from modules.database import init_db, log_backend_event
+from modules.theme_loader import apply_custom_theme
 from modules.ai_intelligence_daemon import render_ai_intelligence_panel
 from modules.admin_billing_core import render_admin_billing_panel
 from modules.personal_workspace import render_personal_workspace_panel
@@ -14,7 +15,7 @@ from modules.neural_forecaster import render_neural_forecaster_panel
 from modules.academic_portfolio_studio import render_academic_portfolio_studio_panel
 from modules.access_control import render_access_control_panel
 
-# Initialize Database on startup
+# Initialize Database & Page Config
 init_db()
 
 st.set_page_config(
@@ -23,6 +24,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Apply Neon Glassmorphism Theme
+apply_custom_theme()
 
 def main():
     st.sidebar.title("🌌 CHRISHEM Enterprise")
@@ -46,7 +50,7 @@ def main():
     )
     
     st.sidebar.markdown("---")
-    st.sidebar.info("System Status: 100% Operational\nAdmin: chrishem242@gmail.com")
+    st.sidebar.info("System Status: 100% Operational\nEnclave: Secure Sovereign")
 
     if navigation == "Access Control & Licensing":
         render_access_control_panel()

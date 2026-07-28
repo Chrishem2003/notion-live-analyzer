@@ -1,36 +1,6 @@
-[server]
-# General server settings
-maxUploadSize = 50
-enableXsrfProtection = false
-enableCORS = true
-enableWebsocketCompression = true
-maxMessageSize = 200
-
-# Performance: reduce startup time by lazy-loading
-# Prevents Streamlit from scanning all files on every run
-runOnSave = false
-
-[browser]
-gatherUsageStats = false
-
-[theme]
-# Base theme (overridden in app with CSS)
-base = "light"
-primaryColor = "#1d4ed8"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f8fafc"
-textColor = "#0f172a"
-
-[runner]
-# Enable faster re-runs
-magicEnabled = true
-# Fast reruns without full page refresh
-fastReruns = true
-
-[global]
-# Disable development warnings in production
-developmentMode = false
-
-[logger]
-# Only log errors in production
-level = "error"
+﻿[theme]
+primaryColor = "#00FF66"
+backgroundColor = "#0B0F19"
+secondaryBackgroundColor = "#131C2E"
+textColor = "#E2E8F0"
+font = "sans serif"
