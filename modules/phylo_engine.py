@@ -1,5 +1,10 @@
 ﻿from io import StringIO
-from Bio import SeqIO
+try:
+    from Bio import SeqIO
+    BIOPYTHON_AVAILABLE = True
+except ImportError:
+    BIOPYTHON_AVAILABLE = False
+    SeqIO = None
 import numpy as np
 
 def parse_multi_fasta(fasta_text: str):
@@ -43,3 +48,4 @@ def render_ascii_tree(names):
         prefix = "    ├── " if i < len(names) - 1 else "    └── "
         lines.append(f"{prefix}{name}")
     return "\n".join(lines)
+

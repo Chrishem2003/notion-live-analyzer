@@ -1,5 +1,5 @@
-"""
-Predictive Engine — AutoML for classification, regression, clustering, and time series forecasting.
+﻿"""
+Predictive Engine â€” AutoML for classification, regression, clustering, and time series forecasting.
 Provides automated model selection, training, evaluation, and prediction.
 """
 from typing import Dict, List, Any, Optional, Tuple, Union
@@ -16,8 +16,17 @@ from modules.pandas_compat import is_text_dtype, text_columns
 
 warnings.filterwarnings('ignore')
 
-# ─── scikit-learn imports ──────────────────────────────────────────
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+# â”€â”€â”€ scikit-learn imports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+try:
+    from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+    from sklearn.metrics import accuracy_score, mean_squared_error, classification_report
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    train_test_split = cross_val_score = GridSearchCV = None
+    RandomForestClassifier = RandomForestRegressor = None
+    accuracy_score = mean_squared_error = classification_report = None
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -28,7 +37,7 @@ from sklearn.metrics import (
     classification_report, silhouette_score
 )
 
-# ─── Models ─────────────────────────────────────────────────────────
+# â”€â”€â”€ Models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -73,7 +82,7 @@ class PredictiveEngine:
         self.results = {}
         self.is_trained = False
 
-    # ─── Classification Models ─────────────────────────────────────
+    # â”€â”€â”€ Classification Models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def get_classification_models(self) -> Dict[str, Any]:
         """Return available classification models with hyperparameters."""
@@ -111,7 +120,7 @@ class PredictiveEngine:
             "Hierarchical (Agglomerative)": AgglomerativeClustering(n_clusters=3),
         }
 
-    # ─── Data Preparation ──────────────────────────────────────────
+    # â”€â”€â”€ Data Preparation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def prepare_data(
         self,
@@ -162,7 +171,7 @@ class PredictiveEngine:
 
         return X_train_scaled, X_test_scaled, y_train, y_test, X.columns.tolist()
 
-    # ─── Auto-Classification ───────────────────────────────────────
+    # â”€â”€â”€ Auto-Classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def auto_classify(
         self,
@@ -240,7 +249,7 @@ class PredictiveEngine:
             "class_distribution": pd.Series(y_test).value_counts().to_dict(),
         }
 
-    # ─── Auto-Regression ──────────────────────────────────────────
+    # â”€â”€â”€ Auto-Regression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def auto_regress(
         self,
@@ -308,7 +317,7 @@ class PredictiveEngine:
             "target_std": float(y_train.std()),
         }
 
-    # ─── Clustering ────────────────────────────────────────────────
+    # â”€â”€â”€ Clustering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def auto_cluster(
         self,
@@ -368,7 +377,7 @@ class PredictiveEngine:
             "feature_cols": feature_cols,
         }
 
-    # ─── Feature Importance ─────────────────────────────────────────
+    # â”€â”€â”€ Feature Importance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def get_feature_importance(self) -> Optional[pd.DataFrame]:
         """Get feature importance from trained tree-based model."""
@@ -397,7 +406,7 @@ class PredictiveEngine:
         importance_df["Importance_Pct"] = (importance_df["Importance"] / importance_df["Importance"].sum() * 100).round(2)
         return importance_df
 
-    # ─── Time Series Forecasting ────────────────────────────────────
+    # â”€â”€â”€ Time Series Forecasting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def forecast_time_series(
         self,
@@ -467,7 +476,7 @@ class PredictiveEngine:
                 "components": ['trend'],
             }
 
-    # ─── Model Persistence ─────────────────────────────────────────
+    # â”€â”€â”€ Model Persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def save_model(self, filepath: str) -> bool:
         """Save trained model to disk using joblib."""
@@ -504,7 +513,7 @@ class PredictiveEngine:
             st.error(f"Model load failed: {str(e)}")
             return False
 
-    # ─── Prediction on New Data ────────────────────────────────────
+    # â”€â”€â”€ Prediction on New Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def predict(self, df: pd.DataFrame) -> Optional[np.ndarray]:
         """Make predictions on new data."""
@@ -527,12 +536,12 @@ class PredictiveEngine:
             return None
 
 
-# ─── UI Helpers ─────────────────────────────────────────────────────
+# â”€â”€â”€ UI Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
     """Render the complete AutoML UI."""
-    st.markdown("## 🧬 Predictive Modeling Engine")
-    st.markdown("*Automated Machine Learning — Classification, Regression, Clustering, Forecasting*")
+    st.markdown("## ðŸ§¬ Predictive Modeling Engine")
+    st.markdown("*Automated Machine Learning â€” Classification, Regression, Clustering, Forecasting*")
 
     if df is None or df.empty:
         st.warning("No data available. Load data first.")
@@ -547,7 +556,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
     )
 
     if task_type == "Classification":
-        st.subheader("📊 Auto Classification")
+        st.subheader("ðŸ“Š Auto Classification")
         target_options = df.columns.tolist()
 
         target_col = st.selectbox("Target variable (to predict)", options=target_options, key="clf_target")
@@ -556,9 +565,9 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
         if target_col:
             nunique = df[target_col].nunique()
             if nunique > 20:
-                st.warning(f"⚠️ '{target_col}' has {nunique} unique values — consider Regression instead")
+                st.warning(f"âš ï¸ '{target_col}' has {nunique} unique values â€” consider Regression instead")
             elif nunique == 2:
-                st.info(f"✅ Binary classification detected (2 classes)")
+                st.info(f"âœ… Binary classification detected (2 classes)")
 
         feature_cols = st.multiselect(
             "Feature columns (leave empty to auto-select numeric columns)",
@@ -572,20 +581,20 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
         with col1:
             test_size = st.slider("Test size (%)", 10, 50, 20, 5, key="clf_test") / 100
 
-        if st.button("🚀 Run Auto Classification", type="primary"):
+        if st.button("ðŸš€ Run Auto Classification", type="primary"):
             with st.spinner("Training classification models..."):
                 results = engine.auto_classify(df, target_col, feature_cols or None, test_size, compare_all)
 
             if "error" in results:
                 st.error(results["error"])
             else:
-                st.success(f"✅ Best model: **{results.get('best_model', 'N/A')}**")
+                st.success(f"âœ… Best model: **{results.get('best_model', 'N/A')}**")
                 st.dataframe(results["results"], use_container_width=True, hide_index=True)
 
                 # Feature importance
                 imp_df = engine.get_feature_importance()
                 if imp_df is not None:
-                    st.subheader("🔑 Feature Importance")
+                    st.subheader("ðŸ”‘ Feature Importance")
                     st.dataframe(imp_df, use_container_width=True, hide_index=True)
 
                     # Plot
@@ -595,7 +604,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                     st.plotly_chart(fig, use_container_width=True)
 
     elif task_type == "Regression":
-        st.subheader("📈 Auto Regression")
+        st.subheader("ðŸ“ˆ Auto Regression")
         target_options = df.select_dtypes(include=[np.number]).columns.tolist()
 
         if not target_options:
@@ -611,19 +620,19 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
         compare_all = st.checkbox("Compare all models", value=True, key="reg_compare")
         test_size = st.slider("Test size (%)", 10, 50, 20, 5, key="reg_test") / 100
 
-        if st.button("🚀 Run Auto Regression", type="primary"):
+        if st.button("ðŸš€ Run Auto Regression", type="primary"):
             with st.spinner("Training regression models..."):
                 results = engine.auto_regress(df, target_col, feature_cols or None, test_size, compare_all)
 
             if "error" in results:
                 st.error(results["error"])
             else:
-                st.success(f"✅ Best model: **{results.get('best_model', 'N/A')}**")
+                st.success(f"âœ… Best model: **{results.get('best_model', 'N/A')}**")
                 st.dataframe(results["results"], use_container_width=True, hide_index=True)
 
                 imp_df = engine.get_feature_importance()
                 if imp_df is not None:
-                    st.subheader("🔑 Feature Importance")
+                    st.subheader("ðŸ”‘ Feature Importance")
                     st.dataframe(imp_df, use_container_width=True, hide_index=True)
 
                     import plotly.express as px
@@ -632,7 +641,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                     st.plotly_chart(fig, use_container_width=True)
 
     elif task_type == "Clustering":
-        st.subheader("🔵 Auto Clustering")
+        st.subheader("ðŸ”µ Auto Clustering")
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         if len(numeric_cols) < 2:
             st.warning("Need at least 2 numeric columns for clustering")
@@ -651,7 +660,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
             key="clust_algo"
         )
 
-        if st.button("🚀 Run Clustering", type="primary"):
+        if st.button("ðŸš€ Run Clustering", type="primary"):
             with st.spinner("Performing clustering..."):
                 results = engine.auto_cluster(df, feature_cols, n_clusters, algorithm)
 
@@ -666,7 +675,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                 with col3:
                     st.metric("Features", len(results.get("feature_cols", [])))
 
-                st.subheader("📋 Cluster Profiles")
+                st.subheader("ðŸ“‹ Cluster Profiles")
                 st.dataframe(results.get("profiles", pd.DataFrame()), use_container_width=True)
 
                 # Visualization
@@ -681,7 +690,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                     st.plotly_chart(fig, use_container_width=True)
 
     elif task_type == "Time Series Forecasting":
-        st.subheader("📅 Time Series Forecasting")
+        st.subheader("ðŸ“… Time Series Forecasting")
         date_cols = []
         for col in df.columns:
             try:
@@ -709,7 +718,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
         freq = st.selectbox("Time frequency", options=['D', 'W', 'M', 'Q', 'Y'], index=0, key="ts_freq",
                             help="D=Daily, W=Weekly, M=Monthly, Q=Quarterly, Y=Yearly")
 
-        if st.button("🚀 Run Forecast", type="primary"):
+        if st.button("ðŸš€ Run Forecast", type="primary"):
             with st.spinner("Generating forecast..."):
                 results = engine.forecast_time_series(df, date_col, value_col, int(periods), freq)
 
@@ -745,14 +754,14 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                     fig.update_layout(title=f"Time Series Forecast for {value_col}", height=500)
                     st.plotly_chart(fig, use_container_width=True)
 
-                    st.subheader("📋 Forecast Values")
+                    st.subheader("ðŸ“‹ Forecast Values")
                     st.dataframe(fore, use_container_width=True, hide_index=True)
 
         # Model export
         if engine.is_trained:
             st.markdown("---")
-            st.subheader("💾 Export Trained Model")
-            if st.button("📥 Download Model (joblib)"):
+            st.subheader("ðŸ’¾ Export Trained Model")
+            if st.button("ðŸ“¥ Download Model (joblib)"):
                 import tempfile
                 import os
                 with tempfile.NamedTemporaryFile(suffix='.joblib', delete=False) as f:
@@ -762,6 +771,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                     os.unlink(f.name)
 
                 b64 = base64.b64encode(model_bytes).decode()
-                href = f'<a href="data:application/octet-stream;base64,{b64}" download="trained_model.joblib">📥 Click to Download</a>'
+                href = f'<a href="data:application/octet-stream;base64,{b64}" download="trained_model.joblib">ðŸ“¥ Click to Download</a>'
                 st.markdown(href, unsafe_allow_html=True)
+
 
