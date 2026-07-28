@@ -9,6 +9,7 @@ from modules.vault import render_secure_vault
 from modules.analytics import render_advanced_analytics
 from modules.webhook import dispatch_system_alert
 from modules.db_viewer import render_database_audit_logs
+from modules.executive import render_executive_summary
 
 # Initialize Persistent Backend Database
 init_db()
@@ -20,7 +21,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Load Custom Styling Sheet if present
+# Load Custom Styling Sheet
 if os.path.exists("assets/style.css"):
     with open("assets/style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -53,8 +54,9 @@ with st.sidebar.expander("?? Webhook Alerts"):
         else:
             st.error("Failed to reach webhook endpoint.")
 
-# Unified Multi-Tab Enterprise Architecture (Expanded with DB Inspector)
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+# Unified Multi-Tab Enterprise Architecture (Executive Lead)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    "?? Executive Summary",
     "?? Analytics Workspace", 
     "?? Bioinformatics Engine", 
     "?? Secure Vault", 
@@ -64,22 +66,25 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 ])
 
 with tab1:
+    render_executive_summary()
+
+with tab2:
     st.subheader("Automated Dataset Diagnostics")
     raw_query = st.text_input("Enter search or filter term:", "Standard Analysis")
     safe_query = sanitize_payload(raw_query)
     st.write(f"Processed Query Safely: {safe_query}")
     log_backend_event("INFO", f"Executed safe query lookup: {safe_query}")
 
-with tab2:
+with tab3:
     render_advanced_analytics()
 
-with tab3:
+with tab4:
     render_secure_vault()
 
-with tab4:
+with tab5:
     render_database_audit_logs()
 
-with tab5:
+with tab6:
     st.subheader(strings["export"])
     sample_export_df = pd.DataFrame({
         "Metric": ["Throughput", "Latency", "Integrity Check", "Uptime"],
@@ -95,7 +100,7 @@ with tab5:
         mime="text/csv"
     )
 
-with tab6:
+with tab7:
     st.subheader("Autonomous Daemon & System Status")
     st.success("Self-Healing Watchdog: **ONLINE**")
     st.success("Web Application Firewall (WAF): **ACTIVE**")
