@@ -1,14 +1,24 @@
-﻿# Local databases & secrets
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.venv/
+env/
+venv/
+ENV/
+
+# Databases & Local Storage
 *.db
-.env
+*.sqlite
 *.sqlite3
 
-# Python cache & virtual environments
-__pycache__/
-.venv/
-*.pyc
+# Streamlit
+.streamlit/
 
-# OS & Editor files
+# OS Specific
 .DS_Store
-.vscode/
-daemon_activity.log
+Thumbs.db
+
+# Environment Variables
+.env
