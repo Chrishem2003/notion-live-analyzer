@@ -30,6 +30,7 @@ from modules.performance_profiler import render_profiler_panel
 from modules.threat_response import render_threat_response_panel
 from modules.quantum_core import render_quantum_core_panel
 from modules.award_command import render_award_command_panel
+from modules.orbital_relay import render_orbital_relay_panel
 from modules.aes_vault import generate_aes_key
 from modules.email_reports import send_audit_email
 from modules.stripe_verification import render_subscription_panel
@@ -153,6 +154,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
