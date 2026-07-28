@@ -147,11 +147,10 @@ elif test_name == "Chi-Square Test":
                     st.subheader("Expected Frequencies")
                     st.dataframe(expected_df.round(2), use_container_width=True)
                 
-                # Mosaic-style heatmap
                 ct = result.get("contingency_table", pd.DataFrame())
                 if not ct.empty:
                     fig = px.imshow(ct.values, x=list(ct.columns), y=list(ct.index), 
-                                   text_auto=True, color_continuous_scale="Blues", template="plotly_white")
+                                    text_auto=True, color_continuous_scale="Blues", template="plotly_white")
                     fig.update_layout(title="Contingency Table Heatmap", height=400)
                     st.plotly_chart(fig, use_container_width=True)
     else:
@@ -295,7 +294,6 @@ elif test_name == "Correlation Matrix":
             st.dataframe(result.round(4), use_container_width=True)
             st.plotly_chart(plot_correlation_matrix(result), use_container_width=True)
             
-            # Significance matrix
             st.subheader("📊 P-Value Matrix")
             pvals = pd.DataFrame(np.zeros((len(selected_cols), len(selected_cols))), columns=selected_cols, index=selected_cols)
             for i, c1 in enumerate(selected_cols):
@@ -324,7 +322,6 @@ elif test_name == "Linear Regression":
         features = st.multiselect("Features (predictors)", options=[c for c in numeric_cols if c != target])
         
         if features:
-            # VIF check
             vif_result = check_multicollinearity(active_df, features)
             if "vif_table" in vif_result:
                 with st.expander("🔍 Multicollinearity Check (VIF)"):
@@ -339,18 +336,15 @@ elif test_name == "Linear Regression":
                 elif "summary" in result:
                     st.dataframe(result["summary"], use_container_width=True, hide_index=True)
                     
-                    # Residual diagnostics
                     if "predictions" in result and "residuals" in result:
                         st.subheader("📈 Residual Diagnostics")
                         st.plotly_chart(plot_residuals(result.get("y_true", []), result.get("predictions", [])), use_container_width=True)
                     
-                    # APA report
                     apa = generate_apa_regression(result, target, features)
                     st.subheader("📄 APA-Style Report")
                     st.code(apa, language="markdown")
                     copy_to_clipboard_button(apa, "📋 Copy APA Report")
                     
-                    # Code export
                     st.subheader("💻 Reproducible Code")
                     code_tab1, code_tab2 = st.tabs(["Python", "R"])
                     with code_tab1:
@@ -385,10 +379,10 @@ elif test_name == "Logistic Regression":
             elif "summary" in result:
                 st.dataframe(result["summary"], use_container_width=True, hide_index=True)
                 
-                # Pseudo R² and classification metrics if available
-                if "pseudo_r2\" in result:
+                # FIXED: Corrected syntax error on key lookups
+                if "pseudo_r2" in result:
                     st.metric("Pseudo R² (McFadden)", f"{result['pseudo_r2']:.4f}")
-                if "accuracy\" in result:
+                if "accuracy" in result:
                     st.metric("Accuracy", f"{result['accuracy']:.3f}")
                 
                 log_analysis("Logistic Regression", {"target": target, "features": features}, result.get("summary", {}).to_dict() if hasattr(result.get("summary"), "to_dict") else {})
@@ -411,7 +405,6 @@ elif test_name == "Multicollinearity Check (VIF)":
                 st.metric("Max VIF", f"{result['max_vif']:.2f}")
                 st.markdown(f"**Interpretation**: {result['multicollinearity']} multicollinearity")
                 
-                # Bar chart of VIFs
                 fig = px.bar(result["vif_table"], x="Variable", y="VIF", color="VIF", 
                             color_continuous_scale=["green", "yellow", "red"], template="plotly_white")
                 fig.add_hline(y=5, line_dash="dash", line_color="orange", annotation_text="Moderate threshold")
@@ -466,7 +459,6 @@ elif test_name == "Kruskal-Wallis H":
                 fig = plot_boxplot_with_errorbars(active_df, group_col, value_col)
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # Post-hoc Dunn's test suggestion
                 if result.get("significant"):
                     st.info("💡 Significant result detected. Consider running **Dunn's post-hoc test** with Bonferroni correction in Python/R for pairwise comparisons.")
     else:
@@ -546,7 +538,6 @@ elif test_name == "Normality Test":
             if "error" in result:
                 st.error(result["error"])
             else:
-                # Override with our enhanced check
                 result = check_normality(active_df[col], alpha)
                 col1, col2 = st.columns(2)
                 with col1:
@@ -563,7 +554,6 @@ elif test_name == "Normality Test":
                 hist_fig.update_layout(showlegend=False, height=350)
                 st.plotly_chart(hist_fig, use_container_width=True)
                 
-                # Shapiro-Wilk vs KS comparison
                 with st.expander("🔬 Compare Normality Tests"):
                     sw_stat, sw_p = stats.shapiro(active_df[col].dropna())
                     ks_stat, ks_p = stats.kstest(active_df[col].dropna(), 'norm', args=(active_df[col].mean(), active_df[col].std()))
@@ -574,257 +564,3 @@ elif test_name == "Normality Test":
                         "Normal?": ["✅" if sw_p > alpha else "❌", "✅" if ks_p > alpha else "❌"]
                     })
                     st.dataframe(comp_df, use_container_width=True, hide_index=True)
-                
-                log_analysis("Normality Test", {"column": col, "alpha": alpha}, result)
-    else:
-        st.warning("No numeric variables available.")
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TEST: LEVENE'S TEST (NEW)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-elif test_name == "Levene's Test (Homogeneity)":
-    if cat_cols and numeric_cols:
-        group_col = st.selectbox("Group variable", options=cat_cols)
-        value_col = st.selectbox("Test variable", options=numeric_cols)
-        
-        if st.button("▶️ Run Levene's Test", type="primary"):
-            result = check_homogeneity(active_df, group_col, value_col)
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Statistic", result["statistic"])
-            with col2:
-                st.metric("P-Value", result["p_value"])
-            st.markdown(f"**Equal Variances**: {'✅ Yes' if result['equal_var'] else '❌ No'}")
-            st.info("💡 If variances are unequal, use Welch's t-test or a non-parametric alternative.")
-            
-            fig = plot_boxplot_with_errorbars(active_df, group_col, value_col)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            log_analysis("Levene's Test", {"group_col": group_col, "value_col": value_col}, result)
-    else:
-        st.warning("Need at least 1 categorical and 1 numeric variable.")
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TEST: OUTLIER DETECTION (NEW)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-elif test_name == "Outlier Detection":
-    if numeric_cols:
-        col = st.selectbox("Select variable", options=numeric_cols)
-        method = st.radio("Method", ["IQR (1.5×IQR rule)", "Z-Score (>3σ)", "Modified Z-Score (MAD)"], horizontal=True)
-        
-        if st.button("▶️ Detect Outliers", type="primary"):
-            series = active_df[col].dropna()
-            outliers = pd.Series([False] * len(series), index=series.index)
-            
-            if method == "IQR (1.5×IQR rule)":
-                Q1 = series.quantile(0.25)
-                Q3 = series.quantile(0.75)
-                IQR = Q3 - Q1
-                outliers = (series < (Q1 - 1.5 * IQR)) | (series > (Q3 + 1.5 * IQR))
-                bounds = f"Lower: {Q1 - 1.5 * IQR:.3f}, Upper: {Q3 + 1.5 * IQR:.3f}"
-            elif method == "Z-Score (>3σ)":
-                z_scores = np.abs(stats.zscore(series))
-                outliers = z_scores > 3
-                bounds = "Z > 3.0"
-            else:
-                median = series.median()
-                mad = np.median(np.abs(series - median))
-                modified_z = 0.6745 * (series - median) / mad
-                outliers = np.abs(modified_z) > 3.5
-                bounds = "Modified Z > 3.5"
-            
-            outlier_count = outliers.sum()
-            st.metric("Outliers Detected", f"{outlier_count} ({outlier_count/len(series)*100:.1f}%)")
-            st.caption(f"Method: {method} | Bounds: {bounds}")
-            
-            if outlier_count > 0:
-                outlier_df = active_df.loc[outliers.index[outliers], [col]].copy()
-                outlier_df["Method"] = method
-                st.dataframe(outlier_df, use_container_width=True)
-            
-            # Visualization
-            fig = go.Figure()
-            fig.add_trace(go.Box(y=series, name=col, boxpoints="outliers", marker_color="#667eea"))
-            fig.update_layout(title=f"Outlier Detection: {col} ({method})", template="plotly_white", height=400)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            log_analysis("Outlier Detection", {"column": col, "method": method}, {"outliers": int(outlier_count)})
-    else:
-        st.warning("No numeric variables available.")
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TEST: POWER ANALYSIS (ENHANCED)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-elif test_name == "Power Analysis (T-Test)":
-    st.markdown("**Power Analysis — Estimate Required Sample Size**")
-n    effect = st.slider("Expected effect size (Cohen's d)", 0.1, 2.0, 0.5, 0.05)
-    alpha = st.slider("Alpha (α)", 0.01, 0.10, 0.05, 0.01)
-    power = st.slider("Desired power (1-β)", 0.5, 0.99, 0.80, 0.05)
-    
-    if st.button("📊 Calculate Sample Size", type="primary"):
-        result = engine.power_ttest(effect_size=effect, alpha=alpha, power=power)
-        col1, col2 = st.columns(2)
-        col1.metric("Required N per Group", result["required_n_per_group"])
-        col2.metric("Total N Needed", result["total_n"])
-        st.markdown(f"**Settings**: d={effect}, α={alpha}, power={power}")
-        
-        # Power curve
-        effect_sizes = np.arange(0.1, 1.5, 0.05)
-        sample_sizes = []
-        for es in effect_sizes:
-            try:
-                from statsmodels.stats.power import TTestIndPower
-                analysis = TTestIndPower()
-                n = analysis.solve_power(effect_size=es, alpha=alpha, power=power, ratio=1.0)
-                sample_sizes.append(n)
-            except:
-                sample_sizes.append(None)
-        
-        fig = px.line(x=effect_sizes, y=[n for n in sample_sizes if n is not None], 
-                     labels={"x": "Effect Size (Cohen's d)", "y": "N per Group"}, template="plotly_white")
-        fig.add_vline(x=effect, line_dash="dash", line_color="red", annotation_text="Your effect size")
-        fig.update_layout(title="Power Curve: Sample Size vs Effect Size", height=400)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        log_analysis("Power Analysis", {"effect": effect, "alpha": alpha, "power": power}, result)
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TEST: CRONBACH'S ALPHA (ENHANCED)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-elif test_name == "Cronbach's Alpha":
-    if len(numeric_cols) >= 2:
-        items = st.multiselect("Select scale items", options=numeric_cols, default=numeric_cols[:min(3, len(numeric_cols))])
-        
-        if len(items) >= 2 and st.button("▶️ Calculate Alpha", type="primary"):
-            result = engine.cronbach_alpha(active_df, items)
-            if "error" in result:
-                st.error(result["error"])
-            else:
-                st.metric("Cronbach's α", result["alpha"])
-                st.markdown(f"**Interpretation**: {result.get('interpretation', 'N/A')}")
-                st.markdown(f"**Items**: {result['items']} | **Sample**: n={result['n']}")
-                
-                # Item-total correlation
-                st.subheader("📊 Item-Total Correlations")
-                item_total = []
-                for item in items:
-                    others = [i for i in items if i != item]
-                    total_others = active_df[others].sum(axis=1)
-                    r, _ = stats.pearsonr(active_df[item].dropna(), total_others.dropna())
-                    item_total.append({"Item": item, "Item-Total r": round(r, 3)})
-                it_df = pd.DataFrame(item_total)
-                st.dataframe(it_df, use_container_width=True, hide_index=True)
-                
-                fig = px.bar(it_df, x="Item", y="Item-Total r", color="Item-Total r", 
-                            color_continuous_scale="RdYlGn", template="plotly_white")
-                fig.update_layout(height=350)
-                st.plotly_chart(fig, use_container_width=True)
-                
-                log_analysis("Cronbach's Alpha", {"items": items}, result)
-    else:
-        st.warning("Need at least 2 numeric variables (scale items).")
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TEST: COHEN'S KAPPA (NEW)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-elif test_name == "Cohen's Kappa":
-    if len(binary_cats) >= 2 or len(bool_cols) >= 2:
-        available = binary_cats + bool_cols
-        rater1 = st.selectbox("Rater 1", options=available)
-        rater2 = st.selectbox("Rater 2", options=[c for c in available if c != rater1])
-        
-        if st.button("▶️ Calculate Cohen's Kappa", type="primary"):
-            from sklearn.metrics import cohen_kappa_score
-            kappa = cohen_kappa_score(active_df[rater1].astype(str), active_df[rater2].astype(str))
-            
-            if kappa < 0: interp = "Poor agreement"
-            elif kappa < 0.20: interp = "Slight agreement"
-            elif kappa < 0.40: interp = "Fair agreement"
-            elif kappa < 0.60: interp = "Moderate agreement"
-            elif kappa < 0.80: interp = "Substantial agreement"
-            else: interp = "Almost perfect agreement"
-            
-            st.metric("Cohen's Kappa", f"{kappa:.3f}")
-            st.markdown(f"**Interpretation**: {interp}")
-            
-            ct = pd.crosstab(active_df[rater1], active_df[rater2])
-            st.subheader("Agreement Table")
-            st.dataframe(ct, use_container_width=True)
-            
-            log_analysis("Cohen's Kappa", {"rater1": rater1, "rater2": rater2}, {"kappa": kappa})
-    else:
-        st.warning("Need at least 2 binary variables (raters).")
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TEST: KMO TEST (ENHANCED)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-elif test_name == "KMO Test":
-    if len(numeric_cols) >= 2:
-        variables = st.multiselect("Select variables for KMO", options=numeric_cols, default=numeric_cols[:min(4, len(numeric_cols))])
-        
-        if len(variables) >= 2 and st.button("▶️ Calculate KMO", type="primary"):
-            result = engine.kmo_test(active_df, variables)
-            if "error" in result:
-                st.error(result["error"])
-            else:
-                st.metric("KMO Overall", result["kmo_overall"])
-                st.markdown(f"**Interpretation**: {result.get('interpretation', 'N/A')}")
-                
-                if "kmo_per_variable" in result:
-                    st.subheader("KMO per Variable")
-                    kmo_df = pd.DataFrame([{"Variable": k, "KMO": v} for k, v in result["kmo_per_variable"].items()])
-                    st.dataframe(kmo_df, use_container_width=True, hide_index=True)
-                    
-                    fig = px.bar(kmo_df, x="Variable", y="KMO", color="KMO", 
-                                color_continuous_scale=["red", "yellow", "green"], template="plotly_white")
-                    fig.add_hline(y=0.5, line_dash="dash", line_color="red", annotation_text="Minimum acceptable")
-                    fig.update_layout(height=350)
-                    st.plotly_chart(fig, use_container_width=True)
-                
-                log_analysis("KMO Test", {"variables": variables}, result)
-    else:
-        st.warning("Need at least 2 numeric variables.")
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TEST: BARTLETT'S TEST (ENHANCED)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-elif test_name == "Bartlett's Test":
-    if len(numeric_cols) >= 2:
-        variables = st.multiselect("Select variables", options=numeric_cols, default=numeric_cols[:min(4, len(numeric_cols))])
-        
-        if len(variables) >= 2 and st.button("▶️ Run Bartlett's Test", type="primary"):
-            result = engine.bartlett_test(active_df, variables)
-            if "error" in result:
-                st.error(result["error"])
-            else:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric("Chi-Square", result["chi_square"])
-                with col2:
-                    st.metric("P-Value", result["p_value"])
-                st.markdown(f"**Sphericity Assumption Met**: {'✅ Yes' if result.get('significant') else '❌ No'}")
-                
-                # Correlation matrix for context
-                with st.expander("📊 Correlation Matrix of Selected Variables"):
-n                    corr = active_df[variables].corr()
-n                    st.dataframe(corr.round(3), use_container_width=True)
-n                    st.plotly_chart(plot_correlation_matrix(corr), use_container_width=True)
-                
-                log_analysis("Bartlett's Test", {"variables": variables}, result)
-    else:
-        st.warning("Need at least 2 numeric variables.")
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# FOOTER: AUDIT TRAIL & SESSION SUMMARY
-# ═══════════════════════════════════════════════════════════════════════════════
-
-st.markdown("---")
-nwith st.expander("📋 Session Analysis Audit Trail", expanded=False):
-n    show_audit_log()
