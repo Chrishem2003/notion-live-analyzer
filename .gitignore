@@ -11,3 +11,4 @@ __pycache__/
 # OS & Editor files
 .DS_Store
 .vscode/
+daemon_activity.log
