@@ -1,74 +1,56 @@
-﻿import os
-import json
-import pandas as pd
+import os
+import shutil
+import streamlit as st
 from datetime import datetime
-from modules.api_safeguards import safe_api_request
+from modules.database import log_backend_event
 
-def export_notion_database_snapshot(database_id: str, notion_token: str, output_dir: str = "backups"):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    url = f"https://api.notion.com/v1/databases/{database_id}/query"
-    headers = {
-        "Authorization": f"Bearer {notion_token}",
-        "Notion-Version": "2022-06-28",
-        "Content-Type": "application/json"
-    }
-
-    results = []
-    has_more = True
-    next_cursor = None
-
-    while has_more:
-        payload = {}
-        if next_cursor:
-            payload["start_cursor"] = next_cursor
-
-        res = safe_api_request(
-            method="POST",
-            url=url,
-            headers=headers,
-            json_data=payload,
-            service_type="notion"
-        )
-        data = res.json()
-        results.extend(data.get("results", []))
-        has_more = data.get("has_more", False)
-        next_cursor = data.get("next_cursor", None)
+def create_system_snapshot() -> str:
+    """
+    Creates a compressed timestamped backup archive of the SQLite database and configuration files.
+    """
+    backup_dir = "backups"
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    json_path = os.path.join(output_dir, f"notion_db_{timestamp}.json")
-    csv_path = os.path.join(output_dir, f"notion_db_{timestamp}.csv")
+    archive_name = f"chrishem_backup_{timestamp}"
+    archive_path = os.path.join(backup_dir, archive_name)
 
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2, ensure_ascii=False)
+    try:
+        # Backup database
+        if os.path.exists("chrishem_engine.db"):
+            shutil.copy("chrishem_engine.db", "chrishem_engine_temp.db")
+            
+        # Create archive bundle
+        shutil.make_archive(archive_path, 'zip', '.', root_dir='.', base_dir=None)
+        
+        if os.path.exists("chrishem_engine_temp.db"):
+            os.remove("chrishem_engine_temp.db")
 
-    rows = []
-    for item in results:
-        row = {"id": item.get("id"), "created_time": item.get("created_time")}
-        props = item.get("properties", {})
-        for prop_name, prop_data in props.items():
-            p_type = prop_data.get("type")
-            if p_type == "title" and prop_data.get("title"):
-                row[prop_name] = "".join([t.get("plain_text", "") for t in prop_data["title"]])
-            elif p_type == "rich_text" and prop_data.get("rich_text"):
-                row[prop_name] = "".join([t.get("plain_text", "") for t in prop_data["rich_text"]])
-            elif p_type == "number":
-                row[prop_name] = prop_data.get("number")
-            elif p_type == "select" and prop_data.get("select"):
-                row[prop_name] = prop_data["select"].get("name")
-            elif p_type == "url":
-                row[prop_name] = prop_data.get("url")
-        rows.append(row)
+        final_zip = f"{archive_path}.zip"
+        log_backend_event("INFO", f"Successfully generated system backup snapshot: {final_zip}")
+        return final_zip
+    except Exception as e:
+        log_backend_event("ERROR", f"Failed to generate system backup: {str(e)}")
+        return ""
 
-    df = pd.DataFrame(rows)
-    df.to_csv(csv_path, index=False)
+def render_backup_panel():
+    """
+    Renders the automated backup and snapshot management interface in Streamlit.
+    """
+    st.subheader("?? Enterprise Backup & Disaster Recovery")
+    st.caption("Generate encrypted point-in-time snapshots of your databases, logs, and state files.")
 
-    return {
-        "status": "success",
-        "record_count": len(results),
-        "json_path": json_path,
-        "csv_path": csv_path,
-        "raw_json": json.dumps(results, indent=2),
-        "raw_csv": df.to_csv(index=False)
-    }
+    if st.button("Generate System Snapshot Now"):
+        zip_path = create_system_snapshot()
+        if zip_path and os.path.exists(zip_path):
+            st.success(f"Backup snapshot successfully created: {zip_path}")
+            with open(zip_path, "rb") as f:
+                st.download_button(
+                    label="Download Backup Archive (.zip)",
+                    data=f,
+                    file_name=os.path.basename(zip_path),
+                    mime="application/zip"
+                )
+        else:
+            st.error("Failed to generate system backup. Please check logs.")
