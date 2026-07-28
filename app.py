@@ -10,6 +10,7 @@ from modules.analytics import render_advanced_analytics
 from modules.webhook import dispatch_system_alert
 from modules.db_viewer import render_database_audit_logs
 from modules.executive import render_executive_summary
+from modules.health_monitor import render_health_monitor
 
 # Initialize Persistent Backend Database
 init_db()
@@ -54,7 +55,7 @@ with st.sidebar.expander("?? Webhook Alerts"):
         else:
             st.error("Failed to reach webhook endpoint.")
 
-# Unified Multi-Tab Enterprise Architecture (Executive Lead)
+# Unified Multi-Tab Enterprise Architecture
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "?? Executive Summary",
     "?? Analytics Workspace", 
@@ -101,12 +102,4 @@ with tab6:
     )
 
 with tab7:
-    st.subheader("Autonomous Daemon & System Status")
-    st.success("Self-Healing Watchdog: **ONLINE**")
-    st.success("Web Application Firewall (WAF): **ACTIVE**")
-    st.success("Persistent SQLite Vault: **CONNECTED** (Rate-Limited)")
-    st.success("Git Auto-Sync Daemon: **RUNNING**")
-    
-    if st.button("Run Manual System Audit Check"):
-        log_backend_event("INFO", "Manual system audit initiated via diagnostics tab.")
-        st.toast("System audit complete: 100% Integrity.", icon="???")
+    render_health_monitor()
