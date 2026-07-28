@@ -16,6 +16,75 @@ from modules.ai_intelligence_daemon import render_ai_intelligence_panel
 # Initialize Database Backend
 init_db()
 
+# CHRISHEM Stunning UI Theme & Custom CSS Injection
+st.markdown(
+    \"\"\"
+    <style>
+        /* Global Dark Theme & Deep Space Aesthetic */
+        .stApp {
+            background-color: #090A0F;
+            color: #E2E8F0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        /* Sidebar Styling */
+        [data-testid="stSidebar"] {
+            background-color: #0E1117;
+            border-right: 1px solid #1E293B;
+        }
+        
+        /* Metric Cards with Glassmorphism */
+        [data-testid="stMetric"] {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid #334155;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        [data-testid="stMetricLabel"] {
+            color: #94A3B8 !important;
+            font-weight: 600;
+        }
+        [data-testid="stMetricValue"] {
+            color: #38BDF8 !important;
+            font-weight: 700;
+        }
+        
+        /* Buttons with Neon Glow */
+        .stButton>button {
+            background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+            color: white;
+            border: 1px solid #38BDF8;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+            transition: all 0.3s ease;
+        }
+        .stButton>button:hover {
+            background: linear-gradient(135deg, #0369A1 0%, #075985 100%);
+            border-color: #7DD3FC;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        /* Headers & Subheaders */
+        h1, h2, h3 {
+            color: #F8FAFC !important;
+            letter-spacing: -0.025em;
+        }
+        
+        /* Dataframes */
+        [data-testid="stDataFrame"] {
+            border: 1px solid #1E293B;
+            border-radius: 10px;
+            background-color: #0F172A;
+        }
+    </style>
+    \"\"\",
+    unsafe_allow_html=True
+)
+
 st.set_page_config(
     page_title="CHRISHEM Enterprise Intelligence Engine",
     page_icon="??",
@@ -68,4 +137,5 @@ elif navigation == "Biodefense & Pathogen Surveillance":
     render_biodefense_panel()
 elif navigation == "Sovereign Singularity Core":
     render_sovereign_singularity_panel()
+
 
