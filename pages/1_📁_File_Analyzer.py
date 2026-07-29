@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# ADVANCED FILE ANALYZER & MULTI-FORMAT INGESTION ENGINE [ENTERPRISE EDITION v6.1]
+# ADVANCED FILE ANALYZER & MULTI-FORMAT INGESTION ENGINE [ENTERPRISE EDITION v6.2]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import csv
@@ -130,8 +130,8 @@ st.markdown(
 hero_card(
     "📁 Advanced File Analyzer & Explorer Engine",
     "Universal data parsing for CSV, Excel, SPSS (.sav), SAS, STATA, JSON, and binary formats "
-    "with automated profiling, data-quality scoring, anomaly detection, and visualization.",
-    badge_text="v6.1 Enterprise — High Contrast & Pipeline Automation",
+    "with automated profiling, data-quality scoring, anomaly detection, and advanced statistical intelligence.",
+    badge_text="v6.2 Enterprise — High Intelligence & Pipeline Automation",
 )
 watermark("CHRISHEM")
 
@@ -187,9 +187,7 @@ def robust_parse_file(file_obj_or_path):
                     )
                 except Exception:
                     continue
-            st.error(
-                f"❌ Could not parse '{filename}' — unrecognized encoding or delimiter."
-            )
+            st.error(f"❌ Could not parse '{filename}' — unrecognized encoding or delimiter.")
             return None
 
         elif ext in ["xls", "xlsx"]:
@@ -218,9 +216,7 @@ def robust_parse_file(file_obj_or_path):
                     import tempfile
 
                     suffix_map = {"sav": ".sav", "sas7bdat": ".sas7bdat", "dta": ".dta"}
-                    with tempfile.NamedTemporaryFile(
-                        delete=False, suffix=suffix_map[ext]
-                    ) as tmp:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix_map[ext]) as tmp:
                         tmp.write(file_obj_or_path.read())
                         tmp_path = tmp.name
                     if ext == "sav":
@@ -232,9 +228,7 @@ def robust_parse_file(file_obj_or_path):
                     os.unlink(tmp_path)
                 return df
             except ImportError:
-                st.error(
-                    f"⚠️ `pyreadstat` library required for .{ext} files. Please install via pip."
-                )
+                st.error(f"⚠️ `pyreadstat` library required for .{ext} files. Please install via pip.")
                 return None
 
         elif ext == "parquet":
@@ -250,13 +244,11 @@ def robust_parse_file(file_obj_or_path):
                 else None
             )
     except Exception as e:
-        st.error(
-            f"❌ Error parsing file '{getattr(file_obj_or_path, 'name', file_obj_or_path)}': {e}"
-        )
+        st.error(f"❌ Error parsing file '{getattr(file_obj_or_path, 'name', file_obj_or_path)}': {e}")
         return None
 
 
-# ─── Data Quality & Analytics Utilities ───────────────────────────────
+# ─── Advanced Data Quality & Statistical Intelligence Engine ──────────
 def compute_data_quality(df: pd.DataFrame) -> dict:
     n_rows, n_cols = df.shape
     total_cells = n_rows * n_cols if n_rows and n_cols else 1
@@ -288,6 +280,55 @@ def compute_data_quality(df: pd.DataFrame) -> dict:
     }
 
 
+def generate_intelligent_insights(df: pd.DataFrame) -> list:
+    """Produces automated high-level analytical insights and anomaly diagnostics from the dataset."""
+    insights = []
+    numeric_df = df.select_dtypes(include=np.number)
+    
+    # 1. Dataset Shape and Volume Insight
+    rows, cols = df.shape
+    insights.append(f"📌 **Structural Scope**: Dataset contains **{rows:,} records** across **{cols} features**, providing an optimal matrix dimension for exploratory evaluation.")
+
+    # 2. Missing Value Vulnerabilities
+    total_nulls = df.isnull().sum().sum()
+    if total_nulls > 0:
+        worst_col = df.isnull().sum().idxmax()
+        worst_count = df.isnull().sum()[worst_col]
+        worst_pct = (worst_count / rows) * 100
+        insights.append(f"⚠️ **Data Completeness Warning**: Detected **{total_nulls:,} missing values** globally. Column **'{worst_col}'** exhibits the highest sparsity with **{worst_pct:.1f}%** missing data.")
+    else:
+        insights.append("✅ **High Data Integrity**: Zero missing values recorded across all columns. Dataset is structurally complete.")
+
+    # 3. Correlation & Multicollinearity Analysis
+    if not numeric_df.empty and numeric_df.shape[1] >= 2:
+        corr_matrix = numeric_df.corr().abs()
+        upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+        high_corrs = [(upper_tri.index[i], upper_tri.columns[j], upper_tri.iloc[i, j]) 
+                      for i in range(len(upper_tri)) for j in range(len(upper_tri.columns)) 
+                      if upper_tri.iloc[i, j] > 0.85]
+        if high_corrs:
+            c1, c2, val = high_corrs[0]
+            insights.append(f"🔗 **Strong Collinearity Detected**: High correlation coefficient (**{val:.2f}**) observed between numerical features **'{c1}'** and **'{c2}'**, suggesting potential redundancy.")
+
+    # 4. Outlier Diagnostics via IQR
+    outlier_summary = []
+    for col in numeric_df.columns:
+        q1 = numeric_df[col].quantile(0.25)
+        q3 = numeric_df[col].quantile(0.75)
+        iqr = q3 - q1
+        if iqr > 0:
+            outliers = numeric_df[(numeric_df[col] < q1 - 1.5 * iqr) | (numeric_df[col] > q3 + 1.5 * iqr)]
+            if len(outliers) > 0:
+                outlier_summary.append((col, len(outliers)))
+    
+    if outlier_summary:
+        outlier_summary.sort(key=lambda x: x[1], reverse=True)
+        top_outlier_col, top_outlier_count = outlier_summary[0]
+        insights.append(f"📈 **Distribution Skew / Outliers**: Feature **'{top_outlier_col}'** contains **{top_outlier_count} statistical outlier points** beyond standard interquartile bounds.")
+
+    return insights
+
+
 def detect_outliers_iqr(series: pd.Series) -> pd.Series:
     clean = series.dropna()
     if clean.empty:
@@ -296,14 +337,6 @@ def detect_outliers_iqr(series: pd.Series) -> pd.Series:
     iqr = q3 - q1
     lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
     return clean[(clean < lower) | (clean > upper)]
-
-
-def detect_outliers_zscore(series: pd.Series, threshold: float = 3.0) -> pd.Series:
-    clean = series.dropna()
-    if clean.empty or clean.std() == 0:
-        return pd.Series(dtype=series.dtype)
-    z = (clean - clean.mean()) / clean.std()
-    return clean[z.abs() > threshold]
 
 
 EMAIL_RE = re.compile(r"[\w.\-+]+@[\w\-]+\.[\w.\-]+")
@@ -316,11 +349,7 @@ def mask_pii(df: pd.DataFrame, columns: list) -> pd.DataFrame:
         masked[col] = (
             masked[col]
             .astype(str)
-            .apply(
-                lambda v: PHONE_RE.sub(
-                    "[PHONE MASKED]", EMAIL_RE.sub("[EMAIL MASKED]", v)
-                )
-            )
+            .apply(lambda v: PHONE_RE.sub("[PHONE MASKED]", EMAIL_RE.sub("[EMAIL MASKED]", v)))
         )
     return masked
 
@@ -341,9 +370,7 @@ active_source_name = None
 
 if ingestion_mode == "📤 Direct File Uploader (Standard)":
     section_header("📤 Upload Data File")
-    st.caption(
-        "Supported formats: CSV, Excel, SPSS (.sav), SAS (.sas7bdat), STATA (.dta), JSON, Parquet, Feather, Pickle."
-    )
+    st.caption("Supported formats: CSV, Excel, SPSS (.sav), SAS (.sas7bdat), STATA (.dta), JSON, Parquet, Feather, Pickle.")
 
     uploaded_file = st.file_uploader(
         "Choose a data file",
@@ -431,7 +458,7 @@ if working_df is not None and not working_df.empty:
 
     tabs = st.tabs([
         "📊 Overview",
-        "🩺 Data Quality",
+        "🩺 Data Quality & Intelligence",
         "👁️ Preview & Filter",
         "🛠️ Transform",
         "📈 Visualize",
@@ -457,6 +484,11 @@ if working_df is not None and not working_df.empty:
         mem_mb = working_df.memory_usage(deep=True).sum() / (1024 ** 2)
         c5.metric("Memory Footprint", f"{mem_mb:.2f} MB")
 
+        section_header("🤖 Automated AI Intelligence Insights")
+        insights = generate_intelligent_insights(working_df)
+        for ins in insights:
+            st.markdown(f"- {ins}")
+
         section_header("📋 Column Metadata & Data Types")
         col_types = (
             infer_column_types(working_df)
@@ -475,3 +507,24 @@ if working_df is not None and not working_df.empty:
             for col, ctype in col_types.items()
         ])
         st.dataframe(type_df, use_container_width=True, hide_index=True)
+
+    # ── Tab 1: Data Quality & Intelligence ──
+    with tabs[1]:
+        section_header("🩺 Data Quality Scoring & Diagnostics")
+        dq = compute_data_quality(working_df)
+        
+        q_col1, q_col2, q_col3, q_col4 = st.columns(4)
+        q_col1.metric("Data Quality Score", f"{dq['score']} / 100")
+        q_col2.metric("Missing Cells", f"{dq['missing_cells']:,} ({dq['missing_pct']}%)")
+        q_col3.metric("Duplicate Rows", f"{dq['duplicate_rows']:,} ({dq['duplicate_pct']}%)")
+        q_col4.metric("Whitespace Mismatches", f"{dq['whitespace_issues']:,}")
+
+        section_header("🔬 Statistical Dispersion & Variance Analysis")
+        numeric_sub = working_df.select_dtypes(include=np.number)
+        if not numeric_sub.empty:
+            desc_stats = numeric_sub.describe().T[['mean', 'std', 'min', '50%', 'max']]
+            desc_stats['skewness'] = numeric_sub.skew()
+            desc_stats['kurtosis'] = numeric_sub.kurtosis()
+            st.dataframe(desc_stats, use_container_width=True)
+        else:
+            st.info("No numeric columns available for statistical dispersion metrics.")
