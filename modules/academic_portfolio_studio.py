@@ -5,10 +5,10 @@ from modules.database import log_backend_event
 
 def render_academic_portfolio_studio_panel():
     """
-    Renders the Academic, CV & Portfolio Writing Studio inside Streamlit.
+    Renders the enhanced Academic, CV & Portfolio Writing Studio with download and export capabilities.
     """
     st.subheader("?? Academic, CV & Portfolio Writing Studio")
-    st.caption("AI-powered professional drafting engine: generate tailored CV summaries, academic research reports, project portfolios, and formal cover letters.")
+    st.caption("AI-powered professional drafting engine with instant downloadable document export (Markdown, Text, Report format).")
 
     # Studio Mode Selection
     studio_mode = st.selectbox(
@@ -34,19 +34,42 @@ def render_academic_portfolio_studio_panel():
             target_role = st.text_input("Target Opportunity / Role", value="Bioinformatics & Data Analytics Intern")
 
         if st.button("? Generate Professional CV Summary"):
-            log_backend_event("INFO", "User generated professional CV summary via Academic Portfolio Studio.")
+            log_backend_event("INFO", "User generated professional CV summary.")
             st.success("CV Summary Generated Successfully!")
             
-            generated_summary = f\"\"\"
-**Professional Profile: {full_name}**
+            output_content = f"""# Professional Profile: {full_name}
 * **Discipline:** {field_focus} ({experience_level})
 * **Target Position:** {target_role}
+* **Generated On:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-**Executive Summary:**
+## Executive Summary
 Motivated and detail-oriented undergraduate student in the Faculty of Science with rigorous training in biological sciences, data analytics, and computational pipelines. Proven track record in developing local web applications, managing sequence data pipelines, and executing precision research tasks. Adept at combining scientific inquiry with modern software automation and secure data management.
-            \"\"\"
-            st.markdown(generated_summary)
-            st.text_area("Copy Generated CV Text:", value=generated_summary, height=150)
+
+## Core Competencies
+* Biological Sciences & Molecular Sequence Analysis
+* Data Analytics & Python Scripting (Streamlit, Pandas, NumPy)
+* Secure Local Storage & SQLite Database Management
+* Version Control, Containerization & Automation
+"""
+            st.markdown(output_content)
+            
+            # Export & Download Buttons
+            st.markdown("### ?? Download & Share Document")
+            col_d1, col_d2 = st.columns(2)
+            with col_d1:
+                st.download_button(
+                    label="?? Download as Markdown (.md)",
+                    data=output_content,
+                    file_name="Chrishem_CV_Summary.md",
+                    mime="text/markdown"
+                )
+            with col_d2:
+                st.download_button(
+                    label="?? Download as Plain Text (.txt)",
+                    data=output_content,
+                    file_name="Chrishem_CV_Summary.txt",
+                    mime="text/plain"
+                )
 
     elif studio_mode == "Academic Research Abstract & Report":
         st.markdown("### ?? Academic Research Abstract & Report Generator")
@@ -59,18 +82,40 @@ Motivated and detail-oriented undergraduate student in the Faculty of Science wi
             institution = st.text_input("Institution", value="Muni University Faculty of Science")
 
         if st.button("? Generate Academic Abstract"):
-            log_backend_event("INFO", "User generated academic research abstract via Studio.")
+            log_backend_event("INFO", "User generated academic research abstract.")
             st.success("Research Abstract Generated Successfully!")
 
-            abstract_text = f\"\"\"
-**Research Title:** {project_title}
-**Institution:** {institution} ({academic_field})
+            output_content = f"""# Research Report & Abstract
+* **Research Title:** {project_title}
+* **Institution:** {institution} ({academic_field})
+* **Methodology:** {methodology}
+* **Timestamp:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-**Abstract:**
+## Abstract
 This study investigates regional environmental sample distributions using {methodology}. Conducted under academic evaluation guidelines at {institution}, the research maps biological specimen markers to track resistance patterns and evaluate public health indicators. Results demonstrate robust data capture reliability and highlight critical pathways for localized pathogen surveillance.
-            \"\"\"
-            st.markdown(abstract_text)
-            st.text_area("Copy Generated Abstract:", value=abstract_text, height=150)
+
+## Methodology & Findings
+* Field specimen sample logs were structured and filtered utilizing automated validation routines.
+* Quantitative markers verified antimicrobial resistance variance across target domestic testing zones.
+"""
+            st.markdown(output_content)
+
+            st.markdown("### ?? Download & Share Document")
+            col_d1, col_d2 = st.columns(2)
+            with col_d1:
+                st.download_button(
+                    label="?? Download Research Abstract (.md)",
+                    data=output_content,
+                    file_name="Research_Abstract.md",
+                    mime="text/markdown"
+                )
+            with col_d2:
+                st.download_button(
+                    label="?? Download Research Abstract (.txt)",
+                    data=output_content,
+                    file_name="Research_Abstract.txt",
+                    mime="text/plain"
+                )
 
     elif studio_mode == "Project Portfolio Description":
         st.markdown("### ?? Project Portfolio Showcase Builder")
@@ -82,17 +127,36 @@ This study investigates regional environmental sample distributions using {metho
             log_backend_event("INFO", "User generated project portfolio description.")
             st.success("Portfolio Description Generated Successfully!")
 
-            portfolio_output = f\"\"\"
-### **{proj_name}**
+            output_content = f"""# Project Portfolio: {proj_name}
 * **Tech Stack:** {tech_stack}
-* **Overview:** {proj_desc}
-* **Key Achievements:**
-  * Engineered a fully autonomous multi-module workspace with real-time health diagnostics and secure database logging.
-  * Integrated local containerization, automated background cognitive workers, and custom data processing tools.
-  * Designed for high reliability, zero data drift, and seamless cross-platform execution.
-            \"\"\"
-            st.markdown(portfolio_output)
-            st.text_area("Copy Portfolio Markup:", value=portfolio_output, height=150)
+* **Date Generated:** {datetime.now().strftime('%Y-%m-%d')}
+
+## Overview
+{proj_desc}
+
+## Key Engineering Achievements
+* Engineered a fully autonomous multi-module workspace with real-time health diagnostics and secure database logging.
+* Integrated local containerization, automated background cognitive workers, and custom data processing tools.
+* Designed for high reliability, zero data drift, and seamless cross-platform execution.
+"""
+            st.markdown(output_content)
+
+            st.markdown("### ?? Download & Share Document")
+            col_d1, col_d2 = st.columns(2)
+            with col_d1:
+                st.download_button(
+                    label="?? Download Portfolio (.md)",
+                    data=output_content,
+                    file_name="Project_Portfolio.md",
+                    mime="text/markdown"
+                )
+            with col_d2:
+                st.download_button(
+                    label="?? Download Portfolio (.txt)",
+                    data=output_content,
+                    file_name="Project_Portfolio.txt",
+                    mime="text/plain"
+                )
 
     else:
         st.markdown("### ?? Formal Cover Letter & Application Builder")
@@ -103,8 +167,7 @@ This study investigates regional environmental sample distributions using {metho
             log_backend_event("INFO", "User generated formal cover letter.")
             st.success("Cover Letter Generated Successfully!")
 
-            cover_letter = f\"\"\"
-Dear Hiring Committee at {company_name},
+            output_content = f"""Dear Hiring Committee at {company_name},
 
 I am writing to express my strong interest in the {position_applied} position. As an undergraduate student in biological sciences and data analytics at Muni University, I have cultivated a strong foundation in automated data pipeline management, research reporting, and quantitative analysis.
 
@@ -114,6 +177,22 @@ Thank you for your time and consideration. I look forward to discussing how my b
 
 Sincerely,
 Kula Chris (Chrishem)
-            \"\"\"
-            st.markdown(cover_letter)
-            st.text_area("Copy Cover Letter:", value=cover_letter, height=180)
+"""
+            st.markdown(output_content)
+
+            st.markdown("### ?? Download & Share Document")
+            col_d1, col_d2 = st.columns(2)
+            with col_d1:
+                st.download_button(
+                    label="?? Download Cover Letter (.md)",
+                    data=output_content,
+                    file_name="Cover_Letter.md",
+                    mime="text/markdown"
+                )
+            with col_d2:
+                st.download_button(
+                    label="?? Download Cover Letter (.txt)",
+                    data=output_content,
+                    file_name="Cover_Letter.txt",
+                    mime="text/plain"
+                )
