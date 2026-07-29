@@ -1,5 +1,5 @@
 ﻿# ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.2]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.4]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import datetime
@@ -46,7 +46,7 @@ if "live_transcript" not in st.session_state:
   st.session_state["live_transcript"] = [
       {
           "time": "12:00:15",
-          "speaker": "Chris Shem ☑️",
+          "speaker": 'Chris Shem <span class="verified-badge-gold" title="Global Verified VIP"></span>',
           "text": (
               "Initialized session on Waterborne Pathogen Genomic"
               " Surveillance."
@@ -54,7 +54,10 @@ if "live_transcript" not in st.session_state:
       },
       {
           "time": "12:02:40",
-          "speaker": "Ocircan Darius",
+          "speaker": (
+              "Ocircan Darius <span class=\"verified-badge-blue\""
+              ' title="Verified Co-Host"></span>'
+          ),
           "text": (
               "Confirmed pipeline synchronization across domestic field"
               " samples."
@@ -62,7 +65,10 @@ if "live_transcript" not in st.session_state:
       },
       {
           "time": "12:05:10",
-          "speaker": "Dr. Nsubuga 🕵️",
+          "speaker": (
+              'Dr. Nsubuga <span class="verified-badge-gold" title="Celebrity'
+              ' Guest VIP"></span>'
+          ),
           "text": (
               "Reviewing antimicrobial resistance marker frequencies in district"
               " isolates."
@@ -75,8 +81,8 @@ if "room_chat" not in st.session_state:
   st.session_state["room_chat"] = [{
       "user": "System",
       "msg": (
-          "Welcome! Intelligent AI Minute-Taker & Countdown Engine are"
-          " active."
+          "Welcome! Multi-Tier Verification Badge Engine & Anonymous Stealth"
+          " Channels are active."
       ),
   }]
 if "active_presentation" not in st.session_state:
@@ -94,6 +100,14 @@ if "whiteboard_notes" not in st.session_state:
   ]
 if "stage_highlights" not in st.session_state:
   st.session_state["stage_highlights"] = []
+if "current_active_speaker" not in st.session_state:
+  st.session_state["current_active_speaker"] = {
+      "name": "Chris Shem",
+      "badge_type": "gold",
+      "role": "Host / Operator",
+      "status": "Speaking 🎙️",
+      "db": "84 dB",
+  }
 
 # Advanced Session Timing, Expiration & Calendar State
 if "session_duration_minutes" not in st.session_state:
@@ -136,7 +150,7 @@ if "quick_vault" not in st.session_state:
       {"name": "Project Architecture Diagram.png", "type": "Image"},
   ]
 
-# Enterprise Dark-Mode CSS Styling
+# Enterprise Dark-Mode CSS Styling with Social Media Verified Badges & Floating PiP HUD
 st.markdown(
     """
 <style>
@@ -187,17 +201,41 @@ st.markdown(
         text-align: center;
         box-shadow: 0 10px 25px rgba(129, 140, 248, 0.2);
     }
-    .verified-badge {
-        background: #0284c7;
-        color: #ffffff;
-        font-size: 0.75rem;
-        padding: 2px 8px;
-        border-radius: 12px;
+    
+    /* Social Media Styled Verified Badges (TikTok / X / Instagram Aesthetic) */
+    .verified-badge-blue {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        background-color: #1d9bf0;
+        mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center;
+        -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center;
+        vertical-align: middle;
+        margin-left: 4px;
+    }
+    .verified-badge-gold {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+        mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>') no-repeat center;
+        -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>') no-repeat center;
+        vertical-align: middle;
+        margin-left: 4px;
+    }
+    .stealth-badge {
+        background: #374151;
+        color: #94a3b8;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 10px;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
         gap: 3px;
+        border: 1px dashed #6b7280;
     }
+    
     .telemetry-card {
         background: #0d1117;
         border: 1px solid #1f2937;
@@ -216,6 +254,25 @@ st.markdown(
         max-height: 280px;
         overflow-y: auto;
     }
+    /* Floating PiP Active Speaker HUD */
+    .floating-pip-hud {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+        border: 2px solid #38bdf8;
+        border-radius: 14px;
+        padding: 14px 18px;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+        z-index: 999999;
+        width: 270px;
+        animation: pulse-border 2s infinite;
+    }
+    @keyframes pulse-border {
+        0% { border-color: #38bdf8; }
+        50% { border-color: #34d399; }
+        100% { border-color: #38bdf8; }
+    }
 </style>
 """,
     unsafe_allow_html=True,
@@ -233,7 +290,7 @@ if not st.session_state["in_session"]:
                 Autonomous Collaboration & Research Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                Apple-Grade WebRTC streaming with Intelligent AI Minute-Taker, Automated Countdown Timer, Recurring Calendar Scheduler, and Exportable Dossiers.
+                Apple-Grade WebRTC streaming with Multi-Tier Verified Badges (Host, Co-Hosts, Celebrity VIPs), Stealth Anonymous Voice Channels, and AI Minutes.
             </p>
         </div>
     """,
@@ -249,6 +306,17 @@ if not st.session_state["in_session"]:
         "Your Name (Verified Host / Operator)",
         value=st.session_state["host_name"],
     )
+    host_badge_tier = st.selectbox(
+        "Host Verification Status",
+        [
+            "Gold VIP Executive (Creator / Host)",
+            "Blue Verified Pro (Co-Host / Presenter)",
+        ],
+    )
+    st.session_state["host_badge_type"] = (
+        "gold" if "Gold" in host_badge_tier else "blue"
+    )
+
     st.session_state["participant_name"] = st.text_input(
         "Default Co-Presenter / Peer Name",
         value=st.session_state["participant_name"],
@@ -276,15 +344,17 @@ if not st.session_state["in_session"]:
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
                 "status": "Speaking 🎙️",
-                "verified": True,
+                "badge_type": st.session_state["host_badge_type"],
                 "anonymous": False,
+                "allow_cam": True,
             },
             {
                 "name": st.session_state["participant_name"],
                 "role": "Co-Presenter",
                 "status": "Listening 🟢",
-                "verified": False,
+                "badge_type": "blue",
                 "anonymous": False,
+                "allow_cam": True,
             },
         ]
         st.rerun()
@@ -298,21 +368,23 @@ if not st.session_state["in_session"]:
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
                 "status": "Speaking 🎙️",
-                "verified": True,
+                "badge_type": st.session_state["host_badge_type"],
                 "anonymous": False,
+                "allow_cam": True,
             },
             {
                 "name": st.session_state["participant_name"],
                 "role": "Participant",
                 "status": "Listening 🟢",
-                "verified": False,
+                "badge_type": "blue",
                 "anonymous": False,
+                "allow_cam": True,
             },
         ]
         st.rerun()
     with c_act3:
-      if st.button("🧪 Test Live Tour", use_container_width=True):
-        st.session_state["room_id"] = "MINUTES-2026"
+      if st.button("🧪 Test VIP Tour", use_container_width=True):
+        st.session_state["room_id"] = "VERIFIED-2026"
         st.session_state["in_session"] = True
         st.session_state["session_start_time"] = datetime.datetime.now()
         st.session_state["active_attendees"] = [
@@ -320,26 +392,37 @@ if not st.session_state["in_session"]:
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
                 "status": "Speaking 🎙️",
-                "verified": True,
+                "badge_type": "gold",
                 "anonymous": False,
+                "allow_cam": True,
             },
             {
                 "name": st.session_state["participant_name"],
-                "role": "Co-Presenter",
+                "role": "Verified Co-Host",
                 "status": "Presenting 📊",
-                "verified": False,
+                "badge_type": "blue",
                 "anonymous": False,
+                "allow_cam": True,
             },
             {
                 "name": "Dr. Nsubuga",
-                "role": "Guest Reviewer",
+                "role": "Celebrity Guest VIP",
                 "status": "Listening 🟢",
-                "verified": False,
+                "badge_type": "gold",
+                "anonymous": False,
+                "allow_cam": True,
+            },
+            {
+                "name": "Agent Ghost (Encrypted)",
+                "role": "Stealth Contributor",
+                "status": "Speaking (Audio Only) 🔒",
+                "badge_type": "none",
                 "anonymous": True,
+                "allow_cam": False,
             },
         ]
         st.toast(
-            "🧪 Initializing Suite with Countdown & Calendar Scheduler!",
+            "🧪 Initialized Suite with Multi-Tier Badges & Stealth Mode!",
             icon="🎯",
         )
         st.rerun()
@@ -371,13 +454,37 @@ else:
   rem_hours, rem_minutes = divmod(rem_minutes, 60)
   countdown_str = f"{rem_hours:02d}:{rem_minutes:02d}:{rem_secs:02d}"
 
+  # Render Floating PiP Active Speaker HUD Across All Tabs with Social Media Verified Badges
+  curr_spk = st.session_state["current_active_speaker"]
+  curr_badge_html = (
+      f'<span class="verified-badge-{curr_spk.get("badge_type", "blue")}"></span>'
+      if curr_spk.get("badge_type") in ["blue", "gold"]
+      else ""
+  )
+  st.markdown(
+      f"""
+        <div class="floating-pip-hud">
+            <div style="font-size:0.7rem;color:#38bdf8;margin-bottom:2px;font-weight:bold;">🎙️ LIVE SPEAKER HUD</div>
+            <div style="font-size:0.95rem;font-weight:bold;color:#f8fafc;">{curr_spk['name']} {curr_badge_html}</div>
+            <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:6px;">{curr_spk['role']}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#34d399;">
+                <span>{curr_spk['status']}</span>
+                <span style="font-family:monospace;background:#0d1117;padding:2px 6px;border-radius:4px;">{curr_spk['db']}</span>
+            </div>
+        </div>
+        """,
+      unsafe_allow_html=True,
+  )
+
   # Top Navigation & Telemetry Hub with Dashboard Escape Hatch
   h1, h2, h3, h4, h5 = st.columns([1.5, 1.5, 1.6, 1.4, 1.2])
   with h1:
     st.markdown(f"### 🟢 Room: `{st.session_state['room_id']}`")
+    host_badge_class = st.session_state.get("host_badge_type", "gold")
     st.markdown(
         f"Host: **{st.session_state['host_name']}** <span"
-        ' class="verified-badge">☑️ Verified</span>',
+        f' class="verified-badge-{host_badge_class}"'
+        ' title="Verified"></span>',
         unsafe_allow_html=True,
     )
 
@@ -413,11 +520,12 @@ else:
 
   st.markdown("---")
 
-  # Core Extended Tabs
+  # Core Extended Tabs (Including New VIP & Stealth Controls)
   (
       tab_video_mesh,
       tab_calendar,
       tab_omni_share,
+      tab_vip_guest,
       tab_auto_inv,
       tab_audience,
       tab_whiteboard,
@@ -428,6 +536,7 @@ else:
       "🎥 WebRTC HD Video Feeds",
       "📅 Recurring Calendar & Scheduler",
       "🚀 Omni-Share & Asset Vault",
+      "⭐ VIP & Celebrity Badges",
       "📤 Bulk WhatsApp & Invites",
       "💬 Audience & Chat",
       "📋 Shared Whiteboard",
@@ -525,9 +634,11 @@ else:
     col_self, col_participants = st.columns(2)
 
     with col_self:
+      h_badge_cls = st.session_state.get("host_badge_type", "gold")
       st.markdown(
           f"##### 🪞 Verified Host View: `{st.session_state['host_name']}`"
-          ' <span class="verified-badge">☑️ Verified</span>',
+          f' <span class="verified-badge-{h_badge_cls}"'
+          ' title="Verified"></span>',
           unsafe_allow_html=True,
       )
 
@@ -570,54 +681,66 @@ else:
           "##### 🎙️ Active Speaker Spotlight & Telemetry Roster"
       )
 
+      # Active Speaker Selector for PiP HUD update
+      speaker_options = [a["name"] for a in st.session_state["active_attendees"]]
+      selected_spk = st.selectbox(
+          "Set Active Speaker for Floating HUD", speaker_options
+      )
+      if st.button("🎙️ Assign as Active Speaker"):
+        for a in st.session_state["active_attendees"]:
+          if a["name"] == selected_spk:
+            st.session_state["current_active_speaker"] = {
+                "name": a["name"],
+                "badge_type": a.get("badge_type", "blue"),
+                "role": a["role"],
+                "status": "Speaking 🎙️",
+                "db": "86 dB",
+            }
+            st.success(f"✅ Active speaker updated to **{a['name']}**!")
+            st.rerun()
+
+      attendee_cards_html = ""
+      for idx, att in enumerate(st.session_state["active_attendees"]):
+        is_anon = att.get("anonymous", False)
+        b_type = att.get("badge_type", "blue")
+
+        if is_anon:
+          disp_name = f"🕵️ Anonymous Contributor #{idx+1}"
+          badge_tag = '<span class="stealth-badge">🔒 Encrypted Voice</span>'
+          cam_status = (
+              '<span style="color:#94a3b8;font-size:0.75rem;">No Camera'
+              " (Strict Anonymity)</span>"
+          )
+        else:
+          disp_name = att["name"]
+          badge_tag = (
+              f'<span class="verified-badge-{b_type}" title="Verified"></span>'
+              if b_type in ["blue", "gold"]
+              else ""
+          )
+          cam_status = (
+              '<span style="color:#34d399;font-size:0.75rem;">Camera'
+              " Enabled</span>"
+          )
+
+        attendee_cards_html += f"""
+                <div style="background:#0d1117;border:1px solid #30363d;padding:8px 12px;border-radius:6px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <span style="color:#38bdf8;font-weight:bold;">{disp_name}</span> {badge_tag}
+                        <div style="color:#94a3b8;font-size:0.75rem;">Role: {att['role']} | {cam_status}</div>
+                    </div>
+                    <div style="color:#34d399;font-size:0.8rem;">{att['status']}</div>
+                </div>
+                """
       st.markdown(
-          """
-            <div style="background:#0d1117;border:1px solid #30363d;padding:10px 14px;border-radius:8px;margin-bottom:10px;">
-                <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:#38bdf8;margin-bottom:4px;">
-                    <span>🎙️ Active Speaker: Chris Shem (Host)</span>
-                    <span>Audio Level: 84 dB 📶</span>
-                </div>
-                <div style="background:#1f2937;height:6px;border-radius:3px;overflow:hidden;">
-                    <div style="background:linear-gradient(90deg, #38bdf8, #34d399);width:75%;height:100%;"></div>
-                </div>
+          f"""
+            <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:15px;height:200px;overflow-y:auto;margin-top:10px;">
+                <div style="color:#f8fafc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;">Connected Roster ({len(st.session_state['active_attendees'])} Online):</div>
+                {attendee_cards_html}
             </div>
             """,
           unsafe_allow_html=True,
       )
-
-      pres = st.session_state["active_presentation"]
-      if pres["mode"] == "Idle / Camera Feed":
-        attendee_cards_html = ""
-        for idx, att in enumerate(st.session_state["active_attendees"]):
-          disp_name = (
-              f"🕵️ Anonymous Guest #{idx+1}"
-              if att.get("anonymous", False)
-              else att["name"]
-          )
-          verified_tag = (
-              '<span class="verified-badge">☑️ Verified</span>'
-              if att.get("verified", False)
-              else ""
-          )
-
-          attendee_cards_html += f"""
-                    <div style="background:#0d1117;border:1px solid #30363d;padding:8px 12px;border-radius:6px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
-                        <div>
-                            <span style="color:#38bdf8;font-weight:bold;">{disp_name}</span> {verified_tag}
-                            <div style="color:#94a3b8;font-size:0.75rem;">Role: {att['role']}</div>
-                        </div>
-                        <div style="color:#34d399;font-size:0.8rem;">{att['status']}</div>
-                    </div>
-                    """
-        st.markdown(
-            f"""
-                <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:15px;height:240px;overflow-y:auto;">
-                    <div style="color:#f8fafc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;">Connected Roster ({len(st.session_state['active_attendees'])} Online):</div>
-                    {attendee_cards_html}
-                </div>
-                """,
-            unsafe_allow_html=True,
-        )
 
   # ── Tab 2: Recurring Enterprise Calendar & Scheduler ──
   with tab_calendar:
@@ -699,7 +822,7 @@ else:
         st.rerun()
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 3: Omni-Share & Quick Asset Vault (Upgraded Presentation Engine) ──
+  # ── Tab 3: Omni-Share & Quick Asset Vault ──
   with tab_omni_share:
     st.markdown(
         "#### 🚀 Omni-Share, Multi-Source Media Vault & Live Annotation Studio"
@@ -857,7 +980,82 @@ else:
 
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 4: Autonomous Bulk WhatsApp & Email Invites ──
+  # ── Tab 4: VIP & Celebrity Badges & Permissions Manager ──
+  with tab_vip_guest:
+    st.markdown(
+        "#### ⭐ Multi-Tier Social Media Verified Badges & VIP Celebrity Manager"
+    )
+    st.caption(
+        "Manage verified badges (TikTok / Instagram / X style) for Co-Hosts,"
+        " Presenters, and Special Celebrity Guests. Verified members gain"
+        " priority audio bandwidth, custom highlights, and special status."
+    )
+
+    v_col1, v_col2 = st.columns([1.2, 1.8])
+
+    with v_col1:
+      st.markdown(
+          '<div class="omni-share-card">', unsafe_allow_html=True
+      )
+      st.markdown("##### 🏅 Issue Verified Badge / Celebrity Status")
+      with st.form("badge_issuer_form", clear_on_submit=True):
+        target_attendee = st.selectbox(
+            "Select Room Participant",
+            [a["name"] for a in st.session_state["active_attendees"]],
+        )
+        badge_selection = st.selectbox(
+            "Badge Tier & Aesthetic",
+            [
+                "Gold VIP Celebrity Badge (Platform Owner / Keynote)",
+                "Blue Verified Pro (Co-Host / Presenter)",
+                "Remove Verification",
+            ],
+        )
+
+        if st.form_submit_button("✨ Apply Verified Status", type="primary"):
+          for a in st.session_state["active_attendees"]:
+            if a["name"] == target_attendee:
+              if "Gold" in badge_selection:
+                a["badge_type"] = "gold"
+                a["role"] = "Celebrity VIP / Keynote"
+                st.success(
+                    f"✨ **{target_attendee}** upgraded to Gold VIP Celebrity"
+                    " status!"
+                )
+              elif "Blue" in badge_selection:
+                a["badge_type"] = "blue"
+                a["role"] = "Verified Co-Host / Presenter"
+                st.success(
+                    f"✅ **{target_attendee}** verified with Blue Pro badge!"
+                )
+              else:
+                a["badge_type"] = "none"
+                st.info(f"Verification removed for {target_attendee}.")
+              st.rerun()
+      st.markdown("</div>", unsafe_allow_html=True)
+
+    with v_col2:
+      st.markdown(
+          '<div class="omni-share-card">', unsafe_allow_html=True
+      )
+      st.markdown("##### 👥 Current Verified Roster & Perks Status")
+      for att in st.session_state["active_attendees"]:
+        b_type = att.get("badge_type", "none")
+        badge_markup = (
+            f'<span class="verified-badge-{b_type}" title="Verified"></span>'
+            if b_type in ["blue", "gold"]
+            else '<span style="color:#6b7280;font-size:0.75rem;">(Unverified)'
+            "</span>"
+        )
+        st.markdown(
+            f"**{att['name']}** {badge_markup} — *{att['role']}*<br>"
+            f"<small style='color:#94a3b8;'>Status: `{att['status']}` |"
+            f" Camera: `{'On' if att.get('allow_cam', True) else 'Disabled (Stealth)'}`</small>"
+        )
+        st.markdown("---")
+      st.markdown("</div>", unsafe_allow_html=True)
+
+  # ── Tab 5: Automated Bulk WhatsApp & Email Invites ──
   with tab_auto_inv:
     st.markdown("#### Automated List Dispatcher (WhatsApp & Email Support)")
     inv_type = st.radio(
@@ -902,7 +1100,7 @@ else:
             link = f"https://wa.me/{num.replace('+', '')}?text={encoded}"
             st.markdown(f"- **{num}**: [Send Alert]({link})")
 
-  # ── Tab 5: Audience, Reply with Mention (@) & Chat ──
+  # ── Tab 6: Audience, Reply with Mention (@) & Chat ──
   with tab_audience:
     st.markdown("#### Audience Engagement Hub & Mention Direct Replies")
 
@@ -964,7 +1162,9 @@ else:
             else ""
         )
         sender = (
-            f"{st.session_state['host_name']} ☑️"
+            f"{st.session_state['host_name']} <span"
+            f' class="verified-badge-{st.session_state.get("host_badge_type", "gold")}">'
+            "</span>"
             if st.session_state["host_name"] == "Chris Shem"
             else st.session_state["host_name"]
         )
@@ -979,7 +1179,7 @@ else:
         })
         st.rerun()
 
-  # ── Tab 6: Shared Whiteboard ──
+  # ── Tab 7: Shared Whiteboard ──
   with tab_whiteboard:
     st.markdown("#### Real-Time Collaborative Whiteboard & Notes Canvas")
     wb_input = st.text_input(
@@ -1002,10 +1202,14 @@ else:
           unsafe_allow_html=True,
       )
 
-  # ── Tab 7: Master Host Controls & Stealth Mode ──
+  # ── Tab 8: Master Host Controls & Stealth Mode (Anonymous No-Cam Voice Channels) ──
   with tab_privileges:
     st.markdown(
-        "#### 👑 Verified Host Master Moderation & Stealth Controls"
+        "#### 👑 Verified Host Master Moderation & Stealth Anonymous Channels"
+    )
+    st.caption(
+        "Enable anonymous participants to contribute via secure voice and chat"
+        " with strict camera disabling to guarantee complete privacy."
     )
 
     col_mod1, col_mod2 = st.columns(2)
@@ -1014,27 +1218,25 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 🕵️ Stealth Mode & Anonymous Guest Toggle")
-      attendee_names = [
-          a["name"]
-          for a in st.session_state["active_attendees"]
-          if not a.get("verified", False)
-      ]
-      if attendee_names:
-        stealth_target = st.selectbox(
-            "Select Participant to Mask", attendee_names
+      st.markdown("##### 🕵️ Stealth Mode & Anonymous Contributor Mode")
+      with st.form("stealth_form"):
+        anon_name = st.text_input(
+            "Add Anonymous Contributor Alias", value="Anonymous Researcher #X"
         )
-        if st.button("🕵️ Toggle Anonymous Display", type="primary"):
-          for a in st.session_state["active_attendees"]:
-            if a["name"] == stealth_target:
-              a["anonymous"] = not a.get("anonymous", False)
-              st.success(
-                  f"Updated privacy status for **{stealth_target}**."
-                  f" Anonymous: {a['anonymous']}"
-              )
-              st.rerun()
-      else:
-        st.info("No non-host participants in room.")
+        if st.form_submit_button("🔒 Spawn Stealth Voice Seat", type="primary"):
+          st.session_state["active_attendees"].append({
+              "name": anon_name,
+              "role": "Stealth Contributor",
+              "status": "Speaking (Audio Only) 🔒",
+              "badge_type": "none",
+              "anonymous": True,
+              "allow_cam": False,
+          })
+          st.success(
+              f"✅ Stealth participant **{anon_name}** added with camera"
+              " disabled!"
+          )
+          st.rerun()
       st.markdown("</div>", unsafe_allow_html=True)
 
     with col_mod2:
@@ -1042,6 +1244,7 @@ else:
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
       st.markdown("##### 🥾 Participant Removal (Kick Control)")
+      attendee_names = [a["name"] for a in st.session_state["active_attendees"]]
       if attendee_names:
         kick_target = st.selectbox(
             "Select Participant to Kick",
@@ -1057,10 +1260,10 @@ else:
           st.warning(f"Participant **{kick_target}** removed from session.")
           st.rerun()
       else:
-        st.info("No kickable participants in room.")
+        st.info("No participants in room.")
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 8: AI Intelligent Minutes & Autonomous Summarizer ──
+  # ── Tab 9: AI Intelligent Minutes & Autonomous Summarizer ──
   with tab_transcript:
     st.markdown(
         "#### 🤖 Intelligent AI Minute-Taker & Autonomous Meeting Summarizer"
@@ -1148,7 +1351,7 @@ The session successfully tracked and recorded core collaborative discourse. All 
           use_container_width=True,
       )
 
-  # ── Tab 9: Session Recordings ──
+  # ── Tab 10: Session Recordings ──
   with tab_playback:
     st.markdown("#### Session Recordings & Lesson Archival")
     if st.button("🎥 Save & Archive Current Session Recording", type="primary"):
