@@ -11,6 +11,7 @@ from modules.webhook import dispatch_system_alert
 from modules.db_viewer import render_database_audit_logs
 from modules.executive import render_executive_summary
 from modules.health_monitor import render_health_monitor
+from modules.report_generator import render_report_exporter
 
 # Initialize Persistent Backend Database
 init_db()
@@ -100,6 +101,9 @@ with tab6:
         file_name="chrishem_engine_export.csv",
         mime="text/csv"
     )
+    
+    st.markdown("---")
+    render_report_exporter()
 
 with tab7:
     render_health_monitor()
