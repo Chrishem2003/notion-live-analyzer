@@ -13,6 +13,7 @@ from modules.biodefense_core import render_biodefense_panel
 from modules.sovereign_singularity import render_sovereign_singularity_panel
 from modules.ai_intelligence_daemon import render_ai_intelligence_panel
 from modules.admin_billing_core import render_admin_billing_panel
+from modules.personal_workspace import render_personal_workspace_panel
 
 # Initialize Database Backend
 init_db()
@@ -138,6 +139,7 @@ elif navigation == "Biodefense & Pathogen Surveillance":
     render_biodefense_panel()
 elif navigation == "Sovereign Singularity Core":
     render_sovereign_singularity_panel()
+
 
 
 
