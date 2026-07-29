@@ -1,6 +1,6 @@
-# ═══════════════════════════════════════════════════════════════════════════════
+﻿# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v14.1]
-# ═══════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 import streamlit as st
 import time
@@ -11,7 +11,7 @@ import urllib.parse
 # Page Config
 st.set_page_config(
     page_title="Autonomous Collaboration & Research Suite",
-    page_icon="🎯",
+    page_icon="ðŸŽ¯",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -119,7 +119,7 @@ st.markdown("""
 if not st.session_state["in_session"]:
     st.markdown("""
         <div class="hero-banner">
-            <div style="font-size:3.5rem;margin-bottom:0.75rem;">🎯</div>
+            <div style="font-size:3.5rem;margin-bottom:0.75rem;">ðŸŽ¯</div>
             <h1 style="color:#f1f5f9;font-size:2.2rem;font-weight:800;margin-bottom:0.75rem;">
                 Autonomous Collaboration & Research Suite
             </h1>
@@ -136,11 +136,11 @@ if not st.session_state["in_session"]:
         
         auto_detect_html = """
         <div id="detectedAccount" style="background:#0d1117;border:1px solid #30363d;padding:8px 12px;border-radius:8px;font-size:0.85rem;color:#38bdf8;margin-bottom:12px;">
-            🔍 Auto-Detecting Browser Identity...
+            ðŸ” Auto-Detecting Browser Identity...
         </div>
         <script>
             const domainEmail = "kula.chris@muni.ac.ug";
-            document.getElementById('detectedAccount').innerText = "✅ Auto-Detected Account: " + domainEmail;
+            document.getElementById('detectedAccount').innerText = "âœ… Auto-Detected Account: " + domainEmail;
         </script>
         """
         st.components.v1.html(auto_detect_html, height=45)
@@ -152,12 +152,12 @@ if not st.session_state["in_session"]:
         
         c_act1, c_act2 = st.columns(2)
         with c_act1:
-            if st.button("🚀 Launch Global Omni Room", type="primary", use_container_width=True):
+            if st.button("ðŸš€ Launch Global Omni Room", type="primary", use_container_width=True):
                 st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
                 st.session_state["in_session"] = True
                 st.rerun()
         with c_act2:
-            if st.button("🔗 Join Room", use_container_width=True):
+            if st.button("ðŸ”— Join Room", use_container_width=True):
                 st.session_state["room_id"] = room_input
                 st.session_state["in_session"] = True
                 st.rerun()
@@ -171,13 +171,13 @@ else:
     # Top Hub
     h1, h2, h3 = st.columns([2, 2.5, 1])
     with h1:
-        st.markdown(f"### 🟢 Room: `{st.session_state['room_id']}` [Scale: Unlimited Mesh]")
+        st.markdown(f"### ðŸŸ¢ Room: `{st.session_state['room_id']}` [Scale: Unlimited Mesh]")
         st.caption(f"Host: {st.session_state['host_email']}")
     with h2:
         shareable_link = f"https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
-        st.markdown(f'<div class="link-display">🔗 {shareable_link}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="link-display">ðŸ”— {shareable_link}</div>', unsafe_allow_html=True)
     with h3:
-        if st.button("🔴 Close Room", type="secondary", use_container_width=True):
+        if st.button("ðŸ”´ Close Room", type="secondary", use_container_width=True):
             st.session_state["in_session"] = False
             st.rerun()
 
@@ -185,27 +185,27 @@ else:
 
     # Core Extended Tabs
     tab_auto_inv, tab_audience, tab_whiteboard, tab_privileges, tab_vid_avatar, tab_transcript, tab_playback = st.tabs([
-        "📤 Bulk Invites", 
-        "💬 Audience & Chat", 
-        "📋 Shared Whiteboard", 
-        "👑 Privileges", 
-        "🎥 Camera, Mic & Filters", 
-        "🤖 AI Synthesis", 
-        "📼 Record & Playback"
+        "ðŸ“¤ Bulk Invites", 
+        "ðŸ’¬ Audience & Chat", 
+        "ðŸ“‹ Shared Whiteboard", 
+        "ðŸ‘‘ Privileges", 
+        "ðŸŽ¥ Camera, Mic & Filters", 
+        "ðŸ¤– AI Synthesis", 
+        "ðŸ“¼ Record & Playback"
     ])
 
-    # ── Tab 1: Autonomous Bulk Invites ──
+    # â”€â”€ Tab 1: Autonomous Bulk Invites â”€â”€
     with tab_auto_inv:
         st.markdown("#### Automated List Dispatcher with Multi-Provider Support")
         st.caption("Choose your preferred mailing provider channel (Gmail, Yahoo, Outlook, Proton, Custom SMTP) and schedule invites effortlessly.")
 
         tz_detection_html = """
         <div id="tzDisplay" style="background:#111827;border:1px solid #374151;padding:8px 12px;border-radius:8px;font-size:0.85rem;color:#38bdf8;margin-bottom:15px;">
-            🌍 Detected Local Timezone: Loading client environment...
+            ðŸŒ Detected Local Timezone: Loading client environment...
         </div>
         <script>
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            document.getElementById('tzDisplay').innerText = "🌍 Detected Local Timezone: " + tz;
+            document.getElementById('tzDisplay').innerText = "ðŸŒ Detected Local Timezone: " + tz;
         </script>
         """
         st.components.v1.html(tz_detection_html, height=45)
@@ -226,19 +226,19 @@ else:
             sel_timezone = st.selectbox("Timezone Profile", ["Africa/Kampala (EAT)", "UTC", "America/New_York (EST/EDT)", "Europe/London (GMT/BST)", "Asia/Dubai (GST)"])
 
         formatted_schedule = f"{sel_date} at {sel_hour}:{sel_min} {sel_ampm} ({sel_timezone})"
-        st.info(f"📅 **Confirmed Schedule Payload:** `{formatted_schedule}`")
+        st.info(f"ðŸ“… **Confirmed Schedule Payload:** `{formatted_schedule}`")
 
         if inv_type == "Email Recipient List":
             email_provider = st.selectbox("Select Mail Dispatch Provider", ["Gmail", "Yahoo Mail", "Microsoft Outlook / Office 365", "ProtonMail", "Custom SMTP Relay"])
             raw_email_list = st.text_area("Paste Email addresses (comma separated)", placeholder="colleague1@uni.edu, colleague2@uni.edu")
             
-            if st.button(f"🚀 Dispatch via {email_provider}", type="primary"):
+            if st.button(f"ðŸš€ Dispatch via {email_provider}", type="primary"):
                 if raw_email_list:
                     emails = [e.strip() for e in raw_email_list.split(",")]
                     subject = f"Invitation: {topic_desc}"
                     body = f"Dear Colleague,\n\nYou are invited to join our secure research session.\nTopic: {topic_desc}\nTime: {formatted_schedule}\n\nAccess Link: {shareable_link}\n\nBest regards,\n{st.session_state['host_email']}"
                     
-                    st.success(f"✅ Successfully prepared {len(emails)} invitations routed through **{email_provider}**!")
+                    st.success(f"âœ… Successfully prepared {len(emails)} invitations routed through **{email_provider}**!")
                     for mail in emails:
                         if email_provider == "Yahoo Mail":
                             m_link = f"https://compose.mail.yahoo.com/?to={mail}&subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
@@ -251,12 +251,12 @@ else:
                     st.warning("Please provide valid email addresses.")
         else:
             raw_wa_list = st.text_area("Paste WhatsApp numbers (comma separated)", placeholder="+256700000001, +256700000002")
-            if st.button("🚀 Queue & Send Automated WhatsApp Invites", type="primary"):
+            if st.button("ðŸš€ Queue & Send Automated WhatsApp Invites", type="primary"):
                 if raw_wa_list:
                     numbers = [n.strip() for n in raw_wa_list.split(",")]
                     msg_body = f"Hello! You are invited by {st.session_state['host_email']} to *{topic_desc}*.\nScheduled: {formatted_schedule}\nJoin Room: {shareable_link}"
                     
-                    st.success(f"✅ Successfully queued {len(numbers)} automated WhatsApp alerts!")
+                    st.success(f"âœ… Successfully queued {len(numbers)} automated WhatsApp alerts!")
                     for num in numbers:
                         encoded = urllib.parse.quote(msg_body)
                         link = f"https://wa.me/{num.replace('+', '')}?text={encoded}"
@@ -264,37 +264,37 @@ else:
                 else:
                     st.warning("Please provide valid phone numbers.")
 
-    # ── Tab 2: Audience, Chat, Reactions & Hand Raising ──
+    # â”€â”€ Tab 2: Audience, Chat, Reactions & Hand Raising â”€â”€
     with tab_audience:
         st.markdown("#### High-Capacity Audience Engagement Hub")
         st.caption("Interact with unlimited participants through live reactions, real-time comment threads, and hand-raising queues.")
 
         col_act_a, col_act_b = st.columns(2)
         with col_act_a:
-            st.markdown("##### ⚡ Live Floating Reactions")
+            st.markdown("##### âš¡ Live Floating Reactions")
             r_col1, r_col2, r_col3, r_col4, r_col5 = st.columns(5)
             with r_col1:
-                if st.button("🔥"): st.toast("Sent reaction: 🔥")
+                if st.button("ðŸ”¥"): st.toast("Sent reaction: ðŸ”¥")
             with r_col2:
-                if st.button("💡"): st.toast("Sent reaction: 💡")
+                if st.button("ðŸ’¡"): st.toast("Sent reaction: ðŸ’¡")
             with r_col3:
-                if st.button("👏"): st.toast("Sent reaction: 👏")
+                if st.button("ðŸ‘"): st.toast("Sent reaction: ðŸ‘")
             with r_col4:
-                if st.button("🧬"): st.toast("Sent reaction: 🧬")
+                if st.button("ðŸ§¬"): st.toast("Sent reaction: ðŸ§¬")
             with r_col5:
-                if st.button("🚀"): st.toast("Sent reaction: 🚀")
+                if st.button("ðŸš€"): st.toast("Sent reaction: ðŸš€")
 
         with col_act_b:
-            st.markdown("##### ✋ Hand Raising Queue")
+            st.markdown("##### âœ‹ Hand Raising Queue")
             user_handle = st.text_input("Your Display Handle for Queue", value=st.session_state["host_email"])
             c_hand1, c_hand2 = st.columns(2)
             with c_hand1:
-                if st.button("Raise Hand ✋", type="primary"):
+                if st.button("Raise Hand âœ‹", type="primary"):
                     if user_handle not in st.session_state["raised_hands"]:
                         st.session_state["raised_hands"].append(user_handle)
                         st.success("Hand raised! Host notified.")
             with c_hand2:
-                if st.button("Lower Hand 🫳"):
+                if st.button("Lower Hand ðŸ«³"):
                     if user_handle in st.session_state["raised_hands"]:
                         st.session_state["raised_hands"].remove(user_handle)
                         st.info("Hand lowered.")
@@ -305,7 +305,7 @@ else:
                 st.caption("No raised hands currently in queue.")
 
         st.markdown("---")
-        st.markdown("##### 💬 Open Discussion & Q&A Stream")
+        st.markdown("##### ðŸ’¬ Open Discussion & Q&A Stream")
         
         chat_container = st.container()
         with chat_container:
@@ -320,13 +320,13 @@ else:
                 st.session_state["room_chat"].append({"user": st.session_state["host_email"], "msg": chat_input})
                 st.rerun()
 
-    # ── Tab 3: Shared Whiteboard & Collaborative Workspace ──
+    # â”€â”€ Tab 3: Shared Whiteboard & Collaborative Workspace â”€â”€
     with tab_whiteboard:
         st.markdown("#### Real-Time Collaborative Whiteboard & Notes Canvas")
         st.caption("All participants can add sticky notes, equations, or research snippets to the shared board.")
 
         wb_input = st.text_input("Add sticky note / snippet to shared whiteboard...", key="wb_text_input")
-        if st.button("📌 Pin Note to Board", type="primary"):
+        if st.button("ðŸ“Œ Pin Note to Board", type="primary"):
             if wb_input:
                 st.session_state["whiteboard_notes"].append(f"{st.session_state['host_email']}: {wb_input}")
                 st.success("Note pinned successfully!")
@@ -334,13 +334,13 @@ else:
 
         st.markdown("##### Current Board Canvas")
         for idx, note in enumerate(st.session_state["whiteboard_notes"]):
-            st.markdown(f"""
+            st.markdown("""
             <div style="background:#111827;border:1px solid #374151;border-left:4px solid #38bdf8;padding:12px 16px;border-radius:8px;margin-bottom:10px;">
                 <b>Note #{idx+1}</b><br>{note}
             </div>
             """, unsafe_allow_html=True)
 
-    # ── Tab 4: Host & Co-Presenter Privileges ──
+    # â”€â”€ Tab 4: Host & Co-Presenter Privileges â”€â”€
     with tab_privileges:
         st.markdown("#### Multi-Presenter & Role Management")
         st.caption("Assign co-host, co-presenter, or participant permissions to control screen sharing, muting, and whiteboard edits.")
@@ -351,18 +351,18 @@ else:
         if st.button("Grant Role Privileges", type="primary"):
             if new_colleague:
                 st.session_state["co_hosts"].append({"email": new_colleague, "role": assigned_role})
-                st.success(f"✅ Successfully granted **{assigned_role}** privileges to `{new_colleague}`!")
+                st.success(f"âœ… Successfully granted **{assigned_role}** privileges to `{new_colleague}`!")
             else:
                 st.warning("Please enter a participant identifier.")
 
         st.markdown("##### Current Active Privilege Roster")
         if st.session_state["co_hosts"]:
             for entry in st.session_state["co_hosts"]:
-                st.markdown(f"- 👤 **{entry['email']}** &bull; *Role*: `{entry['role']}`")
+                st.markdown(f"- ðŸ‘¤ **{entry['email']}** &bull; *Role*: `{entry['role']}`")
         else:
             st.info("No custom roles assigned yet. Host retains sole administrative control.")
 
-    # ── Tab 5: Video, Mic & Filters Hub ──
+    # â”€â”€ Tab 5: Video, Mic & Filters Hub â”€â”€
     with tab_vid_avatar:
         st.markdown("#### Real-Time Hardware Control, Live Audio/Video Stream & Filters")
         st.caption("Configure hardware camera sensors, control real-time microphone muting, audio levels, and apply live TikTok-style filters.")
@@ -378,15 +378,15 @@ else:
             with col_cfg3:
                 filter_style = st.selectbox("TikTok-Style Visual Filter", ["Normal (Raw Sensor)", "Studio Glow & Skin Smoothing", "Cyberpunk Neon Contrast", "Cinematic Noir", "Warm Academic Glow", "Matrix Green Tint"])
 
-            st.info(f"⚙️ Active Sensor: **{cam_source}** | Audio Input: **{mic_source}** | Filter: **{filter_style}**")
+            st.info(f"âš™ï¸ Active Sensor: **{cam_source}** | Audio Input: **{mic_source}** | Filter: **{filter_style}**")
 
-            av_control_html = f"""
+            av_control_html = """
             <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:20px;text-align:center;">
                 <video id="vidFeed" autoplay playsinline muted style="width:100%;max-width:520px;height:290px;background:#0b0f19;border-radius:8px;object-fit:cover;filter: {'none' if filter_style=='Normal (Raw Sensor)' else 'brightness(1.15) contrast(1.1) saturate(1.2)' if filter_style=='Studio Glow & Skin Smoothing' else 'hue-rotate(180deg) saturate(2)' if filter_style=='Cyberpunk Neon Contrast' else 'grayscale(100%) contrast(1.3)' if filter_style=='Cinematic Noir' else 'sepia(0.3) brightness(1.1)' if filter_style=='Warm Academic Glow' else 'hue-rotate(90deg) saturate(3)'};"></video>
                 <div style="margin-top:16px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
-                    <button onclick="startStream()" style="background:#2563eb;color:white;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:bold;">🚀 Start Camera & Mic</button>
-                    <button onclick="toggleAudio()" id="micToggleBtn" style="background:#d97706;color:white;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:bold;">🎙️ Mute Mic</button>
-                    <button onclick="stopStream()" style="background:#dc2626;color:white;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:bold;">🔴 Stop Feed</button>
+                    <button onclick="startStream()" style="background:#2563eb;color:white;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:bold;">ðŸš€ Start Camera & Mic</button>
+                    <button onclick="toggleAudio()" id="micToggleBtn" style="background:#d97706;color:white;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:bold;">ðŸŽ™ï¸ Mute Mic</button>
+                    <button onclick="stopStream()" style="background:#dc2626;color:white;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:bold;">ðŸ”´ Stop Feed</button>
                 </div>
             </div>
             <script>
@@ -413,7 +413,7 @@ else:
                             isMuted = !track.enabled;
                         });
                         const btn = document.getElementById('micToggleBtn');
-                        btn.innerText = isMuted ? "🎙️ Unmute Mic" : "🎙️ Mute Mic";
+                        btn.innerText = isMuted ? "ðŸŽ™ï¸ Unmute Mic" : "ðŸŽ™ï¸ Mute Mic";
                         btn.style.background = isMuted ? "#4b5563" : "#d97706";
                     } else {
                         alert('Please start the camera and microphone stream first.');
@@ -440,7 +440,7 @@ else:
             else:
                 st.info(f"Broadcast active as Virtual Persona [Pose: {pose_sel}].")
 
-    # ── Tab 6: AI Research Synthesis & Live Transcript ──
+    # â”€â”€ Tab 6: AI Research Synthesis & Live Transcript â”€â”€
     with tab_transcript:
         st.markdown("#### Real-Time Speech-to-Text & AI Research Synthesis")
         
@@ -453,11 +453,11 @@ else:
 
         col_ai1, col_ai2 = st.columns(2)
         with col_ai1:
-            if st.button("✨ Auto-Synthesize Research Summary", type="primary"):
-                st.info("🤖 **AI Synthesis Engine**: Session discussion focuses on scalable pipelines, data validation protocols, and low-latency collaboration matrices.")
+            if st.button("âœ¨ Auto-Synthesize Research Summary", type="primary"):
+                st.info("ðŸ¤– **AI Synthesis Engine**: Session discussion focuses on scalable pipelines, data validation protocols, and low-latency collaboration matrices.")
         with col_ai2:
-            if st.button("📑 Generate Action Items"):
-                st.success("✅ **Action Items Generated**: 1. Distribute surveillance logs. 2. Finalize co-host permissions. 3. Archive session transcript.")
+            if st.button("ðŸ“‘ Generate Action Items"):
+                st.success("âœ… **Action Items Generated**: 1. Distribute surveillance logs. 2. Finalize co-host permissions. 3. Archive session transcript.")
 
         with st.form(key="note_form", clear_on_submit=True):
             new_note = st.text_input("Add manual note or discussion point...")
@@ -466,12 +466,12 @@ else:
                 st.session_state["live_transcript"].append({"time": t_stamp, "speaker": st.session_state["host_email"], "text": new_note})
                 st.rerun()
 
-    # ── Tab 7: Recordings & Playbacks ──
+    # â”€â”€ Tab 7: Recordings & Playbacks â”€â”€
     with tab_playback:
         st.markdown("#### Session Recordings & Lesson Archival")
         st.caption("Access previous session recordings, auto-compiled summaries, and downloadable lesson notes.")
 
-        if st.button("🎥 Save & Archive Current Session Recording", type="primary"):
+        if st.button("ðŸŽ¥ Save & Archive Current Session Recording", type="primary"):
             record_entry = {
                 "id": st.session_state["room_id"],
                 "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -479,17 +479,17 @@ else:
                 "notes_count": len(st.session_state["live_transcript"])
             }
             st.session_state["session_recordings"].append(record_entry)
-            st.success("✅ Session successfully recorded and archived to cloud storage!")
+            st.success("âœ… Session successfully recorded and archived to cloud storage!")
 
         st.markdown("##### Archived Session Vault")
         if st.session_state["session_recordings"]:
             for rec in st.session_state["session_recordings"]:
-                st.markdown(f"""
+                st.markdown("""
                 <div style="background:#111827;border:1px solid #1f2937;padding:12px;border-radius:10px;margin-bottom:10px;">
-                    <b>📼 Room Recording: {rec['id']}</b><br>
+                    <b>ðŸ“¼ Room Recording: {rec['id']}</b><br>
                     <span style="color:#94a3b8;font-size:0.85rem;">Saved on: {rec['date']} &bull; Duration: {rec['duration']} &bull; Logged Entries: {rec['notes_count']}</span><br>
-                    <a href="#" style="color:#38bdf8;font-size:0.85rem;text-decoration:none;">▶ Playback Session Video</a> &bull; 
-                    <a href="#" style="color:#34d399;font-size:0.85rem;text-decoration:none;">📥 Download Transcript (.TXT)</a>
+                    <a href="#" style="color:#38bdf8;font-size:0.85rem;text-decoration:none;">â–¶ Playback Session Video</a> &bull; 
+                    <a href="#" style="color:#34d399;font-size:0.85rem;text-decoration:none;">ðŸ“¥ Download Transcript (.TXT)</a>
                 </div>
                 """, unsafe_allow_html=True)
         else:
