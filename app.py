@@ -20,6 +20,7 @@ from modules.api_integration_gateway import render_api_gateway_panel
 from modules.ecosystem_apex import render_ecosystem_apex_panel
 from modules.workflow_scheduler import render_workflow_scheduler_panel
 from modules.neural_forecaster import render_neural_forecaster_panel
+from modules.academic_portfolio_studio import render_academic_portfolio_studio_panel
 
 # Initialize Database Backend
 init_db()
@@ -145,6 +146,7 @@ elif navigation == "Biodefense & Pathogen Surveillance":
     render_biodefense_panel()
 elif navigation == "Sovereign Singularity Core":
     render_sovereign_singularity_panel()
+
 
 
 
