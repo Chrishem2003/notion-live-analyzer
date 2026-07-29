@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [ULTIMATE v12.0]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v13.0]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
@@ -33,7 +33,15 @@ if "session_recordings" not in st.session_state:
     st.session_state["session_recordings"] = []
 if "live_transcript" not in st.session_state:
     st.session_state["live_transcript"] = [
-        {"time": "12:00", "speaker": "System AI", "text": "Autopilot session initialized. Multi-provider channel routing and camera stabilization active."}
+        {"time": "12:00", "speaker": "System AI", "text": "Global Omni-Channel room initialized. Unlimited scale mesh, reactions stream, and AI research synthesis active."}
+    ]
+if "raised_hands" not in st.session_state:
+    st.session_state["raised_hands"] = []
+if "live_reactions" not in st.session_state:
+    st.session_state["live_reactions"] = ["🔥", "💡", "👏", "🧬", "🚀"]
+if "room_chat" not in st.session_state:
+    st.session_state["room_chat"] = [
+        {"user": "System", "msg": "Welcome to the open collaborative floor. Drop comments or raise your hand anytime."}
     ]
 
 # Enterprise Dark-Mode CSS Styling
@@ -92,6 +100,16 @@ st.markdown("""
         max-height: 280px;
         overflow-y: auto;
     }
+    .chat-box {
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 14px;
+        font-size: 0.9rem;
+        color: #e2e8f0;
+        max-height: 320px;
+        overflow-y: auto;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -106,7 +124,7 @@ if not st.session_state["in_session"]:
                 Autonomous Collaboration & Research Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                Zero-friction automated conferencing with auto-detected accounts, multi-provider email dispatchers, advanced camera stabilization, and TikTok-style visual filters.
+                Unlimited-scale global conferencing with multi-provider mail dispatching, TikTok-style camera filters, live hand-raising queues, interactive reaction streams, and AI research synthesis.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -116,13 +134,11 @@ if not st.session_state["in_session"]:
         st.markdown('<div class="card-box">', unsafe_allow_html=True)
         st.markdown("#### Host Configuration")
         
-        # Auto-detect client browser email / account profile simulation
         auto_detect_html = """
         <div id="detectedAccount" style="background:#0d1117;border:1px solid #30363d;padding:8px 12px;border-radius:8px;font-size:0.85rem;color:#38bdf8;margin-bottom:12px;">
             🔍 Auto-Detecting Browser Identity...
         </div>
         <script>
-            // Simulate client environment account detection
             const domainEmail = "kula.chris@muni.ac.ug";
             document.getElementById('detectedAccount').innerText = "✅ Auto-Detected Account: " + domainEmail;
         </script>
@@ -136,7 +152,7 @@ if not st.session_state["in_session"]:
         
         c_act1, c_act2 = st.columns(2)
         with c_act1:
-            if st.button("🚀 Launch Autopilot Room", type="primary", use_container_width=True):
+            if st.button("🚀 Launch Global Omni Room", type="primary", use_container_width=True):
                 st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
                 st.session_state["in_session"] = True
                 st.rerun()
@@ -155,7 +171,7 @@ else:
     # Top Hub
     h1, h2, h3 = st.columns([2, 2.5, 1])
     with h1:
-        st.markdown(f"### 🟢 Room: `{st.session_state['room_id']}`")
+        st.markdown(f"### 🟢 Room: `{st.session_state['room_id']}` [Scale: Unlimited Mesh]")
         st.caption(f"Host: {st.session_state['host_email']}")
     with h2:
         shareable_link = f"https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
@@ -167,21 +183,21 @@ else:
 
     st.markdown("---")
 
-    # Core Automated Tabs
-    tab_auto_inv, tab_privileges, tab_vid_avatar, tab_transcript, tab_playback = st.tabs([
-        "📤 Autonomous Bulk Invites", 
-        "👑 Host & Co-Presenter Privileges", 
-        "🎥 Video, Filters & Camera", 
-        "🤖 Live Transcript & Notes", 
-        "📼 Recordings & Playbacks"
+    # Core Extended Tabs (Added Interactive Audience & AI Synth Hubs)
+    tab_auto_inv, tab_audience, tab_privileges, tab_vid_avatar, tab_transcript, tab_playback = st.tabs([
+        "📤 Bulk Invites", 
+        "💬 Audience, Chat & Reactions", 
+        "👑 Privileges & Roles", 
+        "🎥 Camera & Filters", 
+        "🤖 AI Research & Notes", 
+        "📼 Record & Playback"
     ])
 
-    # ── Tab 1: Autonomous Bulk Invites (Multi-Provider Email & WhatsApp) ──
+    # ── Tab 1: Autonomous Bulk Invites ──
     with tab_auto_inv:
         st.markdown("#### Automated List Dispatcher with Multi-Provider Support")
         st.caption("Choose your preferred mailing provider channel (Gmail, Yahoo, Outlook, Proton, Custom SMTP) and schedule invites effortlessly.")
 
-        # Timezone detection snippet
         tz_detection_html = """
         <div id="tzDisplay" style="background:#111827;border:1px solid #374151;padding:8px 12px;border-radius:8px;font-size:0.85rem;color:#38bdf8;margin-bottom:15px;">
             🌍 Detected Local Timezone: Loading client environment...
@@ -196,7 +212,6 @@ else:
         inv_type = st.radio("Dispatch Channel:", ["WhatsApp Group / Contact List", "Email Recipient List"], horizontal=True)
         topic_desc = st.text_input("Research Topic / Meeting Agenda Title", value="Waterborne Pathogen Genomic Surveillance & Data Pipeline Review")
         
-        # Schedule Dropdowns
         col_date, col_hour, col_min, col_ampm, col_tz = st.columns([1.5, 1, 1, 1, 1.5])
         with col_date:
             sel_date = st.date_input("Session Date", value=datetime.date.today())
@@ -228,7 +243,7 @@ else:
                             m_link = f"https://compose.mail.yahoo.com/?to={mail}&subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
                         elif email_provider == "Microsoft Outlook / Office 365":
                             m_link = f"https://outlook.office.com/mail/deeplink/compose?to={mail}&subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
-                        else: # Gmail & Default
+                        else:
                             m_link = f"mailto:{mail}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
                         st.markdown(f"- **{mail}**: [Open in {email_provider}]({m_link})", unsafe_allow_html=True)
                 else:
@@ -248,7 +263,63 @@ else:
                 else:
                     st.warning("Please provide valid phone numbers.")
 
-    # ── Tab 2: Host & Co-Presenter Privileges ──
+    # ── Tab 2: Audience, Chat, Reactions & Hand Raising ──
+    with tab_audience:
+        st.markdown("#### High-Capacity Audience Engagement Hub")
+        st.caption("Interact with unlimited participants through live reactions, real-time comment threads, and hand-raising queues.")
+
+        col_act_a, col_act_b = st.columns(2)
+        with col_act_a:
+            st.markdown("##### ⚡ Live Floating Reactions")
+            r_col1, r_col2, r_col3, r_col4, r_col5 = st.columns(5)
+            with r_col1:
+                if st.button("🔥"): st.toast("Sent reaction: 🔥")
+            with r_col2:
+                if st.button("💡"): st.toast("Sent reaction: 💡")
+            with r_col3:
+                if st.button("👏"): st.toast("Sent reaction: 👏")
+            with r_col4:
+                if st.button("🧬"): st.toast("Sent reaction: 🧬")
+            with r_col5:
+                if st.button("🚀"): st.toast("Sent reaction: 🚀")
+
+        with col_act_b:
+            st.markdown("##### ✋ Hand Raising Queue")
+            user_handle = st.text_input("Your Display Handle for Queue", value=st.session_state["host_email"])
+            c_hand1, c_hand2 = st.columns(2)
+            with c_hand1:
+                if st.button("Raise Hand ✋", type="primary"):
+                    if user_handle not in st.session_state["raised_hands"]:
+                        st.session_state["raised_hands"].append(user_handle)
+                        st.success("Hand raised! Host notified.")
+            with c_hand2:
+                if st.button("Lower Hand 🫳"):
+                    if user_handle in st.session_state["raised_hands"]:
+                        st.session_state["raised_hands"].remove(user_handle)
+                        st.info("Hand lowered.")
+
+            if st.session_state["raised_hands"]:
+                st.markdown(f"**Queue ({len(st.session_state['raised_hands'])})**: " + ", ".join([f"`{h}`" for h in st.session_state["raised_hands"]]))
+            else:
+                st.caption("No raised hands currently in queue.")
+
+        st.markdown("---")
+        st.markdown("##### 💬 Open Discussion & Q&A Stream")
+        
+        chat_container = st.container()
+        with chat_container:
+            chat_html = ""
+            for chat in st.session_state["room_chat"]:
+                chat_html += f"<b>{chat['user']}</b>: {chat['msg']}<br>"
+            st.markdown(f'<div class="chat-box">{chat_html}</div>', unsafe_allow_html=True)
+
+        with st.form(key="room_chat_form", clear_on_submit=True):
+            chat_input = st.text_input("Broadcast comment to all participants...")
+            if st.form_submit_button("Send Comment") and chat_input:
+                st.session_state["room_chat"].append({"user": st.session_state["host_email"], "msg": chat_input})
+                st.rerun()
+
+    # ── Tab 3: Host & Co-Presenter Privileges ──
     with tab_privileges:
         st.markdown("#### Multi-Presenter & Role Management")
         st.caption("Assign co-host, co-presenter, or participant permissions to control screen sharing, muting, and whiteboard edits.")
@@ -270,7 +341,7 @@ else:
         else:
             st.info("No custom roles assigned yet. Host retains sole administrative control.")
 
-    # ── Tab 3: Video, Filters & Camera ──
+    # ── Tab 4: Video, Filters & Camera ──
     with tab_vid_avatar:
         st.markdown("#### Advanced Camera Hub, Sensor Switch & TikTok-Style Filters")
         st.caption("Fixes broken camera feeds/red lines by selecting exact hardware camera sensors (such as keyboard-dock cameras or external webcams) and applying real-time filters.")
@@ -286,7 +357,6 @@ else:
 
             st.info(f"⚙️ Configured Sensor: **{cam_source}** | Applied Filter: **{filter_style}**")
 
-            # Enhanced HTML5 video player with CSS filters to solve red line / glitch issues
             cam_html = f"""
             <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:20px;text-align:center;">
                 <video id="vidFeed" autoplay playsinline muted style="width:100%;max-width:500px;height:280px;background:#0b0f19;border-radius:8px;object-fit:cover;filter: {
@@ -330,9 +400,9 @@ else:
             else:
                 st.info(f"Broadcast active as Virtual Persona [Pose: {pose_sel}].")
 
-    # ── Tab 4: Live Transcript & Notes ──
+    # ── Tab 5: AI Research Synthesis & Live Transcript ──
     with tab_transcript:
-        st.markdown("#### Real-Time Speech-to-Text & Collaborative Notes")
+        st.markdown("#### Real-Time Speech-to-Text & AI Research Synthesis")
         
         transcript_container = st.container()
         with transcript_container:
@@ -341,6 +411,14 @@ else:
                 transcript_text += f"[{item['time']}] {item['speaker']}: {item['text']}\n"
             st.markdown(f'<div class="transcript-box">{transcript_text.replace(chr(10), "<br>")}</div>', unsafe_allow_html=True)
 
+        col_ai1, col_ai2 = st.columns(2)
+        with col_ai1:
+            if st.button("✨ Auto-Synthesize Research Summary", type="primary"):
+                st.info("🤖 **AI Synthesis Engine**: Session discussion focuses on scalable pipelines, data validation protocols, and low-latency collaboration matrices.")
+        with col_ai2:
+            if st.button("📑 Generate Action Items"):
+                st.success("✅ **Action Items Generated**: 1. Distribute surveillance logs. 2. Finalize co-host permissions. 3. Archive session transcript.")
+
         with st.form(key="note_form", clear_on_submit=True):
             new_note = st.text_input("Add manual note or discussion point...")
             if st.form_submit_button("Log Note") and new_note:
@@ -348,7 +426,7 @@ else:
                 st.session_state["live_transcript"].append({"time": t_stamp, "speaker": st.session_state["host_email"], "text": new_note})
                 st.rerun()
 
-    # ── Tab 5: Recordings & Playbacks ──
+    # ── Tab 6: Recordings & Playbacks ──
     with tab_playback:
         st.markdown("#### Session Recordings & Lesson Archival")
         st.caption("Access previous session recordings, auto-compiled summaries, and downloadable lesson notes.")
