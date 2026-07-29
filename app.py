@@ -1,4 +1,10 @@
-﻿
+
+try:
+    from modules.ui_stunning import apply_stunning_styles
+    apply_stunning_styles()
+except Exception:
+    pass
+
 import streamlit as st
 import os
 from datetime import datetime
