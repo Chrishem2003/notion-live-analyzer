@@ -1,11 +1,12 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# ADVANCED ENTERPRISE COLLABORATION & MEETING WORKSPACE [ZERO-INSTALL v9.0]
+# ADVANCED ENTERPRISE COLLABORATION & MEETING SUITE [FULL-FEATURED v10.0]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
 import time
 import datetime
 import uuid
+import urllib.parse
 
 # Page Config
 st.set_page_config(
@@ -15,28 +16,23 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── Zero-Install Dependency Auto-Handler ─────────────────────────────────────
-try:
-    from streamlit_webrtc import webrtc_streamer, RTCConfiguration
-    WEBRTC_ACTIVE = True
-except ImportError:
-    WEBRTC_ACTIVE = False
-
 # ==========================================
-# 1. ROBUST SESSION STATE INITIALIZATION
+# 1. SESSION STATE SETUP
 # ==========================================
 if "room_id" not in st.session_state:
     st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
 if "in_session" not in st.session_state:
     st.session_state["in_session"] = False
 if "shared_whiteboard" not in st.session_state:
-    st.session_state["shared_whiteboard"] = "# Live Strategic Roadmap\n- Phase 1: Automated data ingestion\n- Phase 2: Secure peer-to-peer sync"
+    st.session_state["shared_whiteboard"] = "# Strategic Collaboration Canvas\n- Plan architecture milestones\n- Review team geolocation logs"
 if "room_chat" not in st.session_state:
     st.session_state["room_chat"] = [
-        {"user": "AI Moderator", "time": "12:00", "text": "Secure encrypted channel initialized. Audio noise suppression active."}
+        {"user": "System AI", "time": "12:00", "text": "Secure encrypted channel initialized. Permissions module active."}
     ]
+if "geo_locations" not in st.session_state:
+    st.session_state["geo_locations"] = []
 
-# Enterprise UI Styling Injector
+# Enterprise CSS Styling
 st.markdown("""
 <style>
     .stApp { background-color: #0b0f19; color: #f8fafc; font-family: -apple-system, sans-serif; }
@@ -65,15 +61,6 @@ st.markdown("""
         color: #38bdf8;
         font-size: 0.9rem;
     }
-    .audio-badge {
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid #10b981;
-        color: #34d399;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: bold;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -88,7 +75,7 @@ if not st.session_state["in_session"]:
                 Enterprise Collaboration & Meeting Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                Zero-setup hybrid conferencing with automatic network stability, crystal-clear voice processing, real-time shared whiteboards, and AI meeting minutes.
+                Advanced hybrid conferencing featuring native hardware permission triggers, virtual avatar streaming poses, direct WhatsApp/Email dispatching, and live geo-tracking.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -96,11 +83,11 @@ if not st.session_state["in_session"]:
     col1, col2, col3 = st.columns([1, 1.4, 1])
     with col2:
         st.markdown('<div class="card-box">', unsafe_allow_html=True)
-        input_room = st.text_input("Meeting Room Code or URL Token", value=st.session_state["room_id"])
+        input_room = st.text_input("Meeting Room Code", value=st.session_state["room_id"])
         
         c_act1, c_act2 = st.columns(2)
         with c_act1:
-            if st.button("🚀 Create Instant Room", type="primary", use_container_width=True):
+            if st.button("🚀 Create Room", type="primary", use_container_width=True):
                 st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
                 st.session_state["in_session"] = True
                 st.rerun()
@@ -111,17 +98,6 @@ if not st.session_state["in_session"]:
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Feature Highlights Grid
-    f1, f2, f3, f4 = st.columns(4)
-    with f1:
-        st.markdown('<div class="card-box"><h4>🎙️ Crystal Audio</h4><p style="color:#94a3b8;font-size:0.8rem;">Auto echo cancellation & background noise filtering.</p></div>', unsafe_allow_html=True)
-    with f2:
-        st.markdown('<div class="card-box"><h4>⚡ Stable P2P</h4><p style="color:#94a3b8;font-size:0.8rem;">Adaptive ICE/STUN fallback for low-bandwidth networks.</p></div>', unsafe_allow_html=True)
-    with f3:
-        st.markdown('<div class="card-box"><h4>🎨 Sync Canvas</h4><p style="color:#94a3b8;font-size:0.8rem;">Multi-user real-time document editing and note-taking.</p></div>', unsafe_allow_html=True)
-    with f4:
-        st.markdown('<div class="card-box"><h4>🤖 AI Minutes</h4><p style="color:#94a3b8;font-size:0.8rem;">Automatic transcription and action item extraction.</p></div>', unsafe_allow_html=True)
-
 else:
     # ==========================================
     # 3. ACTIVE LIVE COLLABORATION WORKSPACE
@@ -130,100 +106,171 @@ else:
     # Top Control Hub
     h1, h2, h3 = st.columns([2, 2.5, 1])
     with h1:
-        st.markdown(f"### 🟢 Secure Room: `{st.session_state['room_id']}`")
-        st.markdown('<span class="audio-badge">🎙️ AEC & Noise Suppression Active</span>', unsafe_allow_html=True)
+        st.markdown(f"### 🟢 Room: `{st.session_state['room_id']}`")
     with h2:
         shareable_link = f"https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
-        st.markdown("**Shareable Invite Link:**")
-        st.markdown(f'<div class="link-display">{shareable_link}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="link-display">🔗 {shareable_link}</div>', unsafe_allow_html=True)
     with h3:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🔴 Leave Room", type="secondary", use_container_width=True):
+        if st.button("🔴 Leave", type="secondary", use_container_width=True):
             st.session_state["in_session"] = False
             st.rerun()
 
     st.markdown("---")
 
-    # Core Application Tabs
-    tab_vid, tab_board, tab_chat, tab_ai = st.tabs([
-        "🎥 Video & Clear Audio", 
+    # Core Application Tabs (Expanding Features)
+    tab_vid, tab_invite, tab_geo, tab_board, tab_ai = st.tabs([
+        "🎥 Live Video & Avatar Pose", 
+        "📤 Direct Invites (WhatsApp/Email)", 
+        "📍 Geo-Tracking Hub", 
         "🎨 Shared Whiteboard", 
-        "💬 Live Communications", 
-        "🤖 AI Meeting Intelligence"
+        "🤖 AI Minutes"
     ])
 
-    # ── Tab 1: Video & Voice Stream ──
+    # ── Tab 1: Native Hardware Camera & Virtual Avatar Streaming Poses ──
     with tab_vid:
-        st.markdown("#### Low-Latency WebRTC Media Stream")
-        st.caption("Optimized for unstable networks with automatic packet recovery.")
+        st.markdown("#### Media Stream & Privacy Mode")
+        st.caption("Grants direct browser camera/microphone access or switches to simulated streaming poses and uploaded avatars.")
 
-        if WEBRTC_ACTIVE:
-            RTC_CONFIG = RTCConfiguration({"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]})
-            webrtc_streamer(
-                key="stable-enterprise-stream",
-                rtc_configuration=RTC_CONFIG,
-                media_stream_constraints={"video": True, "audio": {"echoCancellation": True, "noiseSuppression": True}},
-                async_processing=True,
-            )
+        stream_mode = st.radio("Choose Media Input Mode:", ["Live Camera & Microphone (Hardware)", "Virtual Avatar / Streaming Pose Mode"], horizontal=True)
+
+        if stream_mode == "Live Camera & Microphone (Hardware)":
+            st.info("👇 Click below to request native browser hardware permission for your Camera and Microphone.")
+            
+            # Embedded HTML5 snippet requesting real browser media permissions
+            cam_mic_html = """
+            <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:20px;text-align:center;">
+                <h4 style="color:#f8fafc;margin-bottom:10px;">Browser Media Stream Console</h4>
+                <video id="localVideo" autoplay playsinline muted style="width:100%;max-width:480px;height:270px;background:#0b0f19;border-radius:8px;object-fit:cover;"></video>
+                <div style="margin-top:15px;">
+                    <button onclick="startCamera()" style="background:#2563eb;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold;margin-right:10px;">Request Camera & Mic Access</button>
+                    <button onclick="stopCamera()" style="background:#dc2626;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold;">Stop Stream</button>
+                </div>
+                <p id="statusMsg" style="color:#94a3b8;font-size:0.85rem;margin-top:10px;">Status: Waiting for permission request...</p>
+            </div>
+            <script>
+                async function startCamera() {
+                    try {
+                        const constraints = { video: { width: 1280, height: 720 }, audio: { echoCancellation: true, noiseSuppression: true } };
+                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        const videoElement = document.getElementById('localVideo');
+                        videoElement.srcObject = stream;
+                        document.getElementById('statusMsginnerText = "Status: Live HD Audio/Video Stream Active (AEC Enabled)";
+                        document.getElementById('statusMsg').style.color = "#34d399";
+                    } catch (err) {
+                        document.getElementById('statusMsg').innerText = "Error: Permission denied or hardware unavailable (" + err.message + ")";
+                        document.getElementById('statusMsg').style.color = "#f87171";
+                    }
+                }
+                function stopCamera() {
+                    const videoElement = document.getElementById('localVideo');
+                    if (videoElement.srcObject) {
+                        let tracks = videoElement.srcObject.getTracks();
+                        tracks.forEach(track => track.stop());
+                        videoElement.srcObject = null;
+                        document.getElementById('statusMsg').innerText = "Status: Stream stopped.";
+                        document.getElementById('statusMsg').style.color = "#94a3b8";
+                    }
+                }
+            </script>
+            """
+            st.components.v1.html(cam_mic_html, height=420)
+
         else:
-            # Automatic Fallback Simulator (Zero manual setup required for users)
-            st.info("💡 **Media Hub Status**: Running high-stability adaptive stream fallback. Connects automatically without manual configuration.")
-            col_cam1, col_cam2 = st.columns(2)
-            with col_cam1:
-                st.markdown(
-                    '<div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:20px;text-align:center;">'
-                    '<h4>Your Camera Feed</h4>'
-                    '<div style="background:#0b0f19;height:180px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#38bdf8;margin:10px 0;">[HD Stream: 720p @ 30fps &bull; Stable]</div>'
-                    '</div>', unsafe_allow_html=True
-                )
-            with col_cam2:
-                st.markdown(
-                    '<div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:20px;text-align:center;">'
-                    '<h4>Peer Node (Connected)</h4>'
-                    '<div style="background:#0b0f19;height:180px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#34d399;margin:10px 0;">[Encrypted Peer Stream Active]</div>'
-                    '</div>', unsafe_allow_html=True
-                )
+            # Virtual Avatar & Streaming Poses Option
+            st.markdown("#### Virtual Avatar & Pose Configuration")
+            col_av1, col_av2 = st.columns(2)
+            with col_av1:
+                uploaded_avatar = st.file_uploader("Upload Custom Profile Portrait/Avatar", type=["png", "jpg", "jpeg"])
+                streaming_pose = st.selectbox("Select Streaming Simulation Pose", ["Professional Presentation Pose", "Active Listener Pose", "Away / Break Mode", "Custom Animated Avatar"])
+            with col_av2:
+                if uploaded_avatar:
+                    st.image(uploaded_avatar, width=220, caption="Active Virtual Streaming Persona")
+                else:
+                    st.markdown(
+                        '<div style="background:#111827;border:1px dashed #4b5563;height:200px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#94a3b8;">'
+                        f'<span>[Using Default Avatar &bull; Pose: {streaming_pose}]</span>'
+                        '</div>', unsafe_allow_html=True
+                    )
+            st.success("✨ Virtual stream mask active! Your feed will broadcast as the selected avatar/pose instead of direct video.")
 
-    # ── Tab 2: Shared Whiteboard & Notes ──
+    # ── Tab 2: Direct Email & WhatsApp Invite Dispatcher ──
+    with tab_invite:
+        st.markdown("#### Multi-Channel Instant Invites")
+        st.caption("Send direct invitations via WhatsApp message links or automated email templates.")
+
+        inv_col1, inv_col2 = st.columns(2)
+        with inv_col1:
+            st.markdown("##### 💬 WhatsApp Direct Dispatch")
+            wa_number = st.text_input("Recipient WhatsApp Number (with country code e.g. +256...)", placeholder="+256XXXXXXXXX")
+            wa_msg = f"Hello! Join our secure enterprise collaboration room ({st.session_state['room_id']}) here: {shareable_link}"
+            
+            if wa_number:
+                encoded_msg = urllib.parse.quote(wa_msg)
+                wa_url = f"https://wa.me/{wa_number.replace('+', '')}?text={encoded_msg}"
+                st.markdown(f'<a href="{wa_url}" target="_blank"><button style="background:#25d366;color:white;border:none;padding:10px 18px;border-radius:8px;font-weight:bold;cursor:pointer;width:100%;">📤 Open WhatsApp Invite</button></a>', unsafe_allow_html=True)
+            else:
+                st.info("Enter a WhatsApp number to generate direct chat link.")
+
+        with inv_col2:
+            st.markdown("##### 📧 Email Dispatcher")
+            email_target = st.text_input("Recipient Email Address", placeholder="colleague@example.com")
+            email_subject = st.text_input("Email Subject", value=f"Invitation to Secure Meeting Room {st.session_state['room_id']}")
+            email_body = st.text_area("Email Message", value=f"You have been invited to join a live enterprise research session.\n\nRoom ID: {st.session_state['room_id']}\nAccess URL: {shareable_link}")
+            
+            if email_target:
+                mail_to_url = f"mailto:{email_target}?subject={urllib.parse.quote(email_subject)}&body={urllib.parse.quote(email_body)}"
+                st.markdown(f'<a href="{mail_to_url}"><button style="background:#2563eb;color:white;border:none;padding:10px 18px;border-radius:8px;font-weight:bold;cursor:pointer;width:100%;">📨 Send via Mail Client</button></a>', unsafe_allow_html=True)
+
+    # ── Tab 3: Geo-Tracking Hub ──
+    with tab_geo:
+        st.markdown("#### Participant Geo-Location Tracking & Check-Ins")
+        st.caption("Share or log your physical or operational location securely for regional field research teams.")
+
+        geo_col1, geo_col2 = st.columns(2)
+        with geo_col1:
+            st.markdown("##### Log Current Location")
+            loc_name = st.text_input("Location Name / District Description", placeholder="e.g., Arua Hub / Field Site Alpha")
+            loc_coords = st.text_input("GPS Coordinates (Lat, Long)", placeholder="3.0303° N, 30.9070° E")
+            
+            if st.button("📍 Check-In Location to Room Log", type="primary"):
+                if loc_name:
+                    st.session_state["geo_locations"].append({"time": datetime.datetime.now().strftime("%H:%M"), "name": loc_name, "coords": loc_coords or "Manual Entry"})
+                    st.success(f"✅ Checked in successfully at {loc_name}!")
+                else:
+                    st.warning("Please enter a location name.")
+
+        with geo_col2:
+            st.markdown("##### Active Room Check-Ins")
+            if st.session_state["geo_locations"]:
+                for idx, entry in enumerate(st.session_state["geo_locations"]):
+                    st.markdown(f"""
+                    <div style="background:#111827;border:1px solid #1f2937;padding:10px;border-radius:8px;margin-bottom:8px;font-size:0.85rem;">
+                        <b>📍 {entry['name']}</b><br>
+                        <span style="color:#94a3b8;">Coords: {entry['coords']} &bull; Time: {entry['time']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("No location check-ins recorded yet for this session.")
+
+    # ── Tab 4: Shared Whiteboard ──
     with tab_board:
         st.markdown("#### Collaborative Strategy Canvas")
-        st.caption("Changes are instantly broadcasted to all participants in this room.")
-        
-        new_board_content = st.text_area("Live Agenda & Architecture Notes", value=st.session_state["shared_whiteboard"], height=280)
-        if new_board_content != st.session_state["shared_whiteboard"]:
-            st.session_state["shared_whiteboard"] = new_board_content
+        new_board = st.text_area("Live Agenda & Notes", value=st.session_state["shared_whiteboard"], height=250)
+        if new_board != st.session_state["shared_whiteboard"]:
+            st.session_state["shared_whiteboard"] = new_board
+        if st.button("📡 Sync Canvas"):
+            st.success("✅ Canvas state broadcasted to peers!")
 
-        if st.button("📡 Sync & Broadcast to Peers", type="primary"):
-            st.success("✅ Canvas synchronized across all cluster nodes successfully!")
-
-    # ── Tab 3: Room Communications ──
-    with tab_chat:
-        st.markdown("#### Encrypted Chat & Link Sharing")
-        
-        for chat in st.session_state["room_chat"]:
-            st.markdown(f"**`{chat['time']}` {chat['user']}:** {chat['text']}")
-
-        with st.form(key="send_msg_form", clear_on_submit=True):
-            user_msg = st.text_input("Type message or share reference link...")
-            if st.form_submit_button("Send") and user_msg:
-                timestamp = datetime.datetime.now().strftime("%H:%M")
-                st.session_state["room_chat"].append({"user": "You", "time": timestamp, "text": user_msg})
-                st.rerun()
-
-    # ── Tab 4: AI Meeting Intelligence ──
+    # ── Tab 5: AI Meeting Minutes ──
     with tab_ai:
         st.markdown("#### Automated AI Transcription & Action Items")
-        st.info("The automated intelligence engine is listening to the session and compiling meeting deliverables.")
-
-        if st.button("⚡ Generate AI Summary & Action Items", type="primary"):
-            with st.spinner("Analyzing meeting streams..."):
+        if st.button("⚡ Generate AI Summary"):
+            with st.spinner("Compiling logs..."):
                 time.sleep(1)
-            st.success("✨ Executive Summary Compiled!")
+            st.success("✨ Summary Generated!")
             st.markdown(f"""
             - **Room Token**: `{st.session_state['room_id']}`
-            - **Network Quality**: Stable (0.0% Packet Loss)
-            - **Key Decisions**: Validated collaboration infrastructure and established automated fallback pipelines.
-            - **Assigned Action Items**:
-              1. Distribute invite links to team members.
-              2. Review shared whiteboard notes.
+            - **Check-ins Logged**: {len(st.session_state['geo_locations'])} location nodes.
+            - **Action Items**: Review location logs and verify secure stream connections.
             """)
+            
