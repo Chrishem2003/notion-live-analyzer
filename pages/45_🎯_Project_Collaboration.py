@@ -1,5 +1,5 @@
 ﻿# ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v15.0]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v15.2]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import datetime
@@ -39,9 +39,8 @@ if "live_transcript" not in st.session_state:
       "time": "12:00",
       "speaker": "System AI",
       "text": (
-          "Global Omni-Channel room initialized. Unlimited scale mesh,"
-          " reactions stream, WebRTC video feeds, and WhatsApp/Email dispatchers"
-          " active."
+          "Global Omni-Channel room initialized. Echo cancellation active,"
+          " WebRTC video feeds online."
       ),
   }]
 if "raised_hands" not in st.session_state:
@@ -50,8 +49,7 @@ if "room_chat" not in st.session_state:
   st.session_state["room_chat"] = [{
       "user": "System",
       "msg": (
-          "Welcome to the open collaborative floor. Try the test live tour or"
-          " drop comments anytime."
+          "Welcome to the open collaborative floor. Test live demo running."
       ),
   }]
 if "whiteboard_notes" not in st.session_state:
@@ -124,7 +122,7 @@ if not st.session_state["in_session"]:
                 Autonomous Collaboration & Research Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                High-definition Apple-grade WebRTC video streaming, bulk WhatsApp/Email invites, host role privileges, interactive whiteboards, and AI research synthesis.
+                High-definition Apple-grade WebRTC video streaming with echo cancellation, bulk WhatsApp/Email invites, and interactive whiteboards.
             </p>
         </div>
     """,
@@ -164,8 +162,7 @@ if not st.session_state["in_session"]:
         st.session_state["room_id"] = "TEST-LIVE-2026"
         st.session_state["in_session"] = True
         st.toast(
-            "🧪 Initializing Test Live Demo for first-time operators!",
-            icon="🎯",
+            "🧪 Initializing Test Live Demo with Echo Suppression!", icon="🎯"
         )
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
@@ -195,7 +192,7 @@ else:
 
   st.markdown("---")
 
-  # Core Extended Tabs (Restored all features)
+  # Core Extended Tabs
   (
       tab_video_mesh,
       tab_auto_inv,
@@ -220,27 +217,30 @@ else:
         "#### High-Grade WebRTC Live Video Mesh (Apple-Grade Clarity)"
     )
     st.caption(
-        "Operate in dual-view mode: inspect your studio-processed self-feed"
-        " alongside simulated participant streams with isolated audio/video"
-        " toggles."
+        "Dual-view active: your studio self-feed uses built-in echo cancellation"
+        " and noise suppression."
     )
 
-    with st.sidebar:
-      st.subheader("⚙️ Stream & Quality Controls")
+    # Control Panel right above video for instant filter switching (tested & accessible during test live)
+    col_ctrl1, col_ctrl2, col_ctrl3 = st.columns(3)
+    with col_ctrl1:
       enable_video = st.toggle("Enable Camera Feed", value=True)
-      enable_audio = st.toggle("Enable Microphone Audio", value=True)
-      st.markdown("---")
-      st.subheader("🎨 Cinematic Filters (Apple-Grade FX)")
-      filter_mode = st.selectbox(
-          "Video Enhancement Profile",
-          [
-              "Standard HD",
-              "Cinematic Contrast",
-              "Studio Grayscale",
-              "Edge Sharpen",
-          ],
+    with col_ctrl2:
+      enable_audio = st.toggle(
+          "Enable Microphone Audio (Echo Cancelled)", value=True
       )
+    with col_ctrl3:
       mirror_feed = st.toggle("Mirror Video Stream", value=True)
+
+    filter_mode = st.selectbox(
+        "🎨 Cinematic Filters (Apple-Grade FX - Select anytime)",
+        [
+            "Standard HD",
+            "Cinematic Contrast",
+            "Studio Grayscale",
+            "Edge Sharpen",
+        ],
+    )
 
     def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
       img = frame.to_ndarray(format="bgr24")
@@ -277,7 +277,13 @@ else:
               "video": {"width": {"ideal": 1280}, "height": {"ideal": 720}}
               if enable_video
               else False,
-              "audio": enable_audio,
+              "audio": {
+                  "echoCancellation": True,
+                  "noiseSuppression": True,
+                  "autoGainControl": True,
+              }
+              if enable_audio
+              else False,
           },
           media_toggle_controls=True,
           async_processing=True,
@@ -292,7 +298,7 @@ else:
                 <div style="color:#38bdf8;font-weight:bold;font-size:1.05rem;">Connected Participants Grid</div>
                 <div style="color:#94a3b8;font-size:0.85rem;margin-top:6px;">Ocircan Darius &bull; Research Cohort</div>
                 <div style="margin-top:15px;background:#0d1117;padding:8px 14px;border-radius:8px;font-size:0.8rem;color:#34d399;">
-                    🎙️ Audio Stream Active | 📹 HD Feed Synchronized
+                    🎙️ Echo-Suppressed Audio | 📹 HD Feed Synchronized
                 </div>
             </div>
             """,
@@ -300,7 +306,9 @@ else:
       )
 
     if webrtc_ctx.state.playing:
-      st.success("🟢 Secure WebRTC Data Pipeline Active & Streaming.")
+      st.success(
+          "🟢 Secure WebRTC Data Pipeline Active (Echo Suppression Enabled)."
+      )
     else:
       st.warning(
           "⚠️ Stream is currently paused. Click 'START' in your self-view above"
