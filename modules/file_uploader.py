@@ -176,7 +176,7 @@ def manual_data_entry() -> pd.DataFrame:
         cols = st.columns(n_cols)
         for col_idx, col_name in enumerate(col_names):
             with cols[col_idx]:
-                val = st.text_input("", key=f"man_val_{row_idx}_{col_idx}", label_visibility="collapsed")
+                val = st.text_input("Cell Value", key=f"man_val_{row_idx}_{col_idx}", label_visibility="collapsed")
                 data[col_name].append(val)
 
     if st.button("✅ Create Dataset", type="primary"):

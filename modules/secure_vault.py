@@ -1,6 +1,4 @@
 import streamlit as st
-import base64
-import time
 
 def render_secure_vault():
     st.subheader("🔐 Secure Storage Vault & Two-Factor Authentication")
