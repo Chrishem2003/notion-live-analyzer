@@ -1,5 +1,5 @@
 ﻿# ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v15.2]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v15.3]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import datetime
@@ -26,10 +26,16 @@ if "room_id" not in st.session_state:
   st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
 if "in_session" not in st.session_state:
   st.session_state["in_session"] = False
+if "host_name" not in st.session_state:
+  st.session_state["host_name"] = "Chris Shem"
 if "host_email" not in st.session_state:
   st.session_state["host_email"] = "kula.chris@muni.ac.ug"
 if "host_phone" not in st.session_state:
   st.session_state["host_phone"] = "+256700000000"
+if "participant_name" not in st.session_state:
+  st.session_state["participant_name"] = "Ocircan Darius"
+if "active_attendees" not in st.session_state:
+  st.session_state["active_attendees"] = []
 if "co_hosts" not in st.session_state:
   st.session_state["co_hosts"] = []
 if "session_recordings" not in st.session_state:
@@ -39,8 +45,8 @@ if "live_transcript" not in st.session_state:
       "time": "12:00",
       "speaker": "System AI",
       "text": (
-          "Global Omni-Channel room initialized. Echo cancellation active,"
-          " WebRTC video feeds online."
+          "Global Omni-Channel room initialized. Host and participant"
+          " directories active."
       ),
   }]
 if "raised_hands" not in st.session_state:
@@ -49,7 +55,8 @@ if "room_chat" not in st.session_state:
   st.session_state["room_chat"] = [{
       "user": "System",
       "msg": (
-          "Welcome to the open collaborative floor. Test live demo running."
+          "Welcome to the open collaborative floor. Check participant roster"
+          " below."
       ),
   }]
 if "whiteboard_notes" not in st.session_state:
@@ -111,7 +118,7 @@ st.markdown(
 )
 
 # ==========================================
-# 2. LANDING & HOST SETUP SHELL
+# 2. LANDING & HOST/PARTICIPANT SETUP SHELL
 # ==========================================
 if not st.session_state["in_session"]:
   st.markdown(
@@ -122,7 +129,7 @@ if not st.session_state["in_session"]:
                 Autonomous Collaboration & Research Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                High-definition Apple-grade WebRTC video streaming with echo cancellation, bulk WhatsApp/Email invites, and interactive whiteboards.
+                High-definition Apple-grade WebRTC video streaming with named host and participant directories, live attendee lists, and echo cancellation.
             </p>
         </div>
     """,
@@ -132,13 +139,17 @@ if not st.session_state["in_session"]:
   col1, col2, col3 = st.columns([1, 1.4, 1])
   with col2:
     st.markdown('<div class="card-box">', unsafe_allow_html=True)
-    st.markdown("#### Host Configuration & Test Live Tour")
+    st.markdown("#### User Identification & Room Access")
 
-    st.session_state["host_email"] = st.text_input(
-        "Host Verified Email", value=st.session_state["host_email"]
+    st.session_state["host_name"] = st.text_input(
+        "Your Name (Host / Operator)", value=st.session_state["host_name"]
     )
-    st.session_state["host_phone"] = st.text_input(
-        "WhatsApp Number", value=st.session_state["host_phone"]
+    st.session_state["participant_name"] = st.text_input(
+        "Default Co-Presenter / Peer Name",
+        value=st.session_state["participant_name"],
+    )
+    st.session_state["host_email"] = st.text_input(
+        "Host Email", value=st.session_state["host_email"]
     )
     room_input = st.text_input(
         "Room Identifier", value=st.session_state["room_id"]
@@ -151,18 +162,60 @@ if not st.session_state["in_session"]:
       ):
         st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
         st.session_state["in_session"] = True
+        st.session_state["active_attendees"] = [
+            {
+                "name": st.session_state["host_name"],
+                "role": "Host (Operator)",
+                "status": "Online 🟢",
+            },
+            {
+                "name": st.session_state["participant_name"],
+                "role": "Co-Presenter",
+                "status": "Online 🟢",
+            },
+        ]
         st.rerun()
     with c_act2:
       if st.button("🔗 Join Room", use_container_width=True):
         st.session_state["room_id"] = room_input
         st.session_state["in_session"] = True
+        st.session_state["active_attendees"] = [
+            {
+                "name": st.session_state["host_name"],
+                "role": "Host (Operator)",
+                "status": "Online 🟢",
+            },
+            {
+                "name": st.session_state["participant_name"],
+                "role": "Participant",
+                "status": "Online 🟢",
+            },
+        ]
         st.rerun()
     with c_act3:
       if st.button("🧪 Test Live Tour", use_container_width=True):
         st.session_state["room_id"] = "TEST-LIVE-2026"
         st.session_state["in_session"] = True
+        st.session_state["active_attendees"] = [
+            {
+                "name": st.session_state["host_name"],
+                "role": "Host (Operator)",
+                "status": "Online 🟢",
+            },
+            {
+                "name": st.session_state["participant_name"],
+                "role": "Co-Presenter",
+                "status": "Online 🟢",
+            },
+            {
+                "name": "Dr. Nsubuga",
+                "role": "Guest Reviewer",
+                "status": "Online 🟢",
+            },
+        ]
         st.toast(
-            "🧪 Initializing Test Live Demo with Echo Suppression!", icon="🎯"
+            "🧪 Initializing Test Live Demo with Named Participants!",
+            icon="🎯",
         )
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
@@ -178,7 +231,10 @@ else:
     st.markdown(
         f"### 🟢 Room: `{st.session_state['room_id']}` [Scale: Unlimited Mesh]"
     )
-    st.caption(f"Host: {st.session_state['host_email']}")
+    st.caption(
+        f"Host: **{st.session_state['host_name']}**"
+        f" ({st.session_state['host_email']})"
+    )
   with h2:
     shareable_link = f"https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
     st.markdown(
@@ -211,17 +267,16 @@ else:
       "📼 Record & Playback",
   ])
 
-  # ── Tab 1: WebRTC HD Video Feeds (Self View & Participant Split) ──
+  # ── Tab 1: WebRTC HD Video Feeds (Self View & Named Participant Split) ──
   with tab_video_mesh:
     st.markdown(
         "#### High-Grade WebRTC Live Video Mesh (Apple-Grade Clarity)"
     )
     st.caption(
-        "Dual-view active: your studio self-feed uses built-in echo cancellation"
-        " and noise suppression."
+        f"Active session operator: **{st.session_state['host_name']}** | Peer"
+        f" viewer: **{st.session_state['participant_name']}**"
     )
 
-    # Control Panel right above video for instant filter switching (tested & accessible during test live)
     col_ctrl1, col_ctrl2, col_ctrl3 = st.columns(3)
     with col_ctrl1:
       enable_video = st.toggle("Enable Camera Feed", value=True)
@@ -242,6 +297,7 @@ else:
         ],
     )
 
+
     def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
       img = frame.to_ndarray(format="bgr24")
       if mirror_feed:
@@ -260,6 +316,7 @@ else:
         img = cv2.filter2D(img, -1, kernel)
       return av.VideoFrame.from_ndarray(img, format="bgr24")
 
+
     RTC_CONFIGURATION = RTCConfiguration(
         {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
     )
@@ -267,7 +324,9 @@ else:
     col_self, col_participants = st.columns(2)
 
     with col_self:
-      st.markdown("##### 🪞 Your Live Self-View (Studio Feed)")
+      st.markdown(
+          f"##### 🪞 Host Self-View: `{st.session_state['host_name']}`"
+      )
       webrtc_ctx = webrtc_streamer(
           key="project-collab-self-view",
           mode=WebRtcMode.SENDRECV,
@@ -290,16 +349,25 @@ else:
       )
 
     with col_participants:
-      st.markdown("##### 👥 Active Participants Mesh (Simulated Feeds)")
-      st.markdown(
-          """
-            <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:15px;text-align:center;height:320px;display:flex;flex-direction:column;justify-content:center;align-items:center;">
-                <div style="font-size:2.5rem;margin-bottom:8px;">🟢</div>
-                <div style="color:#38bdf8;font-weight:bold;font-size:1.05rem;">Connected Participants Grid</div>
-                <div style="color:#94a3b8;font-size:0.85rem;margin-top:6px;">Ocircan Darius &bull; Research Cohort</div>
-                <div style="margin-top:15px;background:#0d1117;padding:8px 14px;border-radius:8px;font-size:0.8rem;color:#34d399;">
-                    🎙️ Echo-Suppressed Audio | 📹 HD Feed Synchronized
+      st.markdown("##### 👥 Active Attendees & Participant Grid")
+      # Render active attendee roster dynamically
+      attendee_cards_html = ""
+      for att in st.session_state["active_attendees"]:
+        attendee_cards_html += f"""
+                <div style="background:#0d1117;border:1px solid #30363d;padding:10px 14px;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <span style="color:#38bdf8;font-weight:bold;">{att['name']}</span>
+                        <div style="color:#94a3b8;font-size:0.8rem;">Role: {att['role']}</div>
+                    </div>
+                    <div style="color:#34d399;font-size:0.85rem;">{att['status']}</div>
                 </div>
+                """
+
+      st.markdown(
+          f"""
+            <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:15px;height:320px;overflow-y:auto;">
+                <div style="color:#f8fafc;font-weight:bold;margin-bottom:10px;font-size:0.95rem;">Connected Room Roster ({len(st.session_state['active_attendees'])} Online):</div>
+                {attendee_cards_html}
             </div>
             """,
           unsafe_allow_html=True,
@@ -348,7 +416,7 @@ else:
         if raw_email_list:
           emails = [e.strip() for e in raw_email_list.split(",")]
           subject = f"Invitation: {topic_desc}"
-          body = f"Dear Colleague,\n\nYou are invited to join our secure research session.\nTopic: {topic_desc}\nAccess Link: {shareable_link}\n\nBest regards,\n{st.session_state['host_email']}"
+          body = f"Dear Colleague,\n\nYou are invited by {st.session_state['host_name']} to join our secure research session.\nTopic: {topic_desc}\nAccess Link: {shareable_link}\n\nBest regards,\n{st.session_state['host_name']} ({st.session_state['host_email']})"
           st.success(
               f"✅ Successfully prepared {len(emails)} invitations routed"
               f" through **{email_provider}**!"
@@ -373,7 +441,7 @@ else:
       ):
         if raw_wa_list:
           numbers = [n.strip() for n in raw_wa_list.split(",")]
-          msg_body = f"Hello! You are invited by {st.session_state['host_email']} to *{topic_desc}*.\nJoin Room: {shareable_link}"
+          msg_body = f"Hello! You are invited by {st.session_state['host_name']} to *{topic_desc}*.\nJoin Room: {shareable_link}"
           st.success(
               f"✅ Successfully queued {len(numbers)} automated WhatsApp"
               " alerts!"
@@ -409,7 +477,7 @@ else:
     with col_act_b:
       st.markdown("##### ✋ Hand Raising Queue")
       user_handle = st.text_input(
-          "Your Display Handle", value=st.session_state["host_email"]
+          "Your Display Handle", value=st.session_state["host_name"]
       )
       h_col1, h_col2 = st.columns(2)
       if h_col1.button("Raise Hand ✋", type="primary"):
@@ -441,7 +509,7 @@ else:
       chat_input = st.text_input("Broadcast comment...")
       if st.form_submit_button("Send Comment") and chat_input:
         st.session_state["room_chat"].append(
-            {"user": st.session_state["host_email"], "msg": chat_input}
+            {"user": st.session_state["host_name"], "msg": chat_input}
         )
         st.rerun()
 
@@ -454,7 +522,7 @@ else:
     if st.button("📌 Pin Note to Board", type="primary"):
       if wb_input:
         st.session_state["whiteboard_notes"].append(
-            f"{st.session_state['host_email']}: {wb_input}"
+            f"{st.session_state['host_name']}: {wb_input}"
         )
         st.success("Note pinned successfully!")
         st.rerun()
@@ -472,7 +540,7 @@ else:
   with tab_privileges:
     st.markdown("#### Host & Co-Presenter Role Management")
     new_colleague = st.text_input(
-        "Participant Email or Handle", placeholder="e.g., ocircan.darius@muni.ac.ug"
+        "Participant Name or Email", placeholder="e.g., Ocircan Darius"
     )
     assigned_role = st.selectbox(
         "Assign Role & Permissions",
@@ -487,15 +555,28 @@ else:
         st.session_state["co_hosts"].append(
             {"email": new_colleague, "role": assigned_role}
         )
+        # Also add to active attendee roster if not present
+        if not any(
+            a["name"].lower() == new_colleague.lower()
+            for a in st.session_state["active_attendees"]
+        ):
+          st.session_state["active_attendees"].append({
+              "name": new_colleague,
+              "role": assigned_role,
+              "status": "Online 🟢",
+          })
         st.success(
             f"✅ Successfully granted **{assigned_role}** privileges to"
             f" `{new_colleague}`!"
         )
       else:
-        st.warning("Please enter a participant identifier.")
+        st.warning("Please enter a participant name.")
     if st.session_state["co_hosts"]:
       for entry in st.session_state["co_hosts"]:
-        st.markdown(f"- 👤 **{entry['email']}** &bull; *Role*: `{entry['role']}`")
+        st.markdown(
+            f"- 👤 **{entry['email']}** &bull; *Assigned Role*:"
+            f" `{entry['role']}`"
+        )
     else:
       st.info("No custom roles assigned yet. Host retains sole control.")
 
@@ -513,9 +594,9 @@ else:
     col_ai1, col_ai2 = st.columns(2)
     if col_ai1.button("✨ Auto-Synthesize Research Summary", type="primary"):
       st.info(
-          "🤖 **AI Synthesis Engine**: Discussion focuses on scalable"
-          " pipelines, data validation protocols, and low-latency WebRTC"
-          " meshes."
+          f"🤖 **AI Synthesis Engine**: Session led by"
+            f" {st.session_state['host_name']}. Focuses on scalable pipelines,"
+            f" active participant mesh, and data validation protocols."
       )
     if col_ai2.button("📑 Generate Action Items"):
       st.success(
@@ -531,6 +612,7 @@ else:
           "id": st.session_state["room_id"],
           "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
           "duration": "45 mins",
+          "host": st.session_state["host_name"],
           "notes_count": len(st.session_state["live_transcript"]),
       }
       st.session_state["session_recordings"].append(record_entry)
@@ -541,7 +623,7 @@ else:
             f"""
                 <div style="background:#111827;border:1px solid #1f2937;padding:12px;border-radius:10px;margin-bottom:10px;">
                     <b>📼 Room Recording: {rec['id']}</b><br>
-                    <span style="color:#94a3b8;font-size:0.85rem;">Saved on: {rec['date']} &bull; Duration: {rec['duration']} &bull; Entries: {rec['notes_count']}</span>
+                    <span style="color:#94a3b8;font-size:0.85rem;">Host: {rec['host']} &bull; Saved on: {rec['date']} &bull; Duration: {rec['duration']}</span>
                 </div>
                 """,
             unsafe_allow_html=True,
