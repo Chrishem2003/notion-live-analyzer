@@ -183,7 +183,7 @@ else:
 
     st.markdown("---")
 
-    # Core Extended Tabs (Added Collaborative Whiteboard & Breakout Rooms)
+    # Core Extended Tabs
     tab_auto_inv, tab_audience, tab_whiteboard, tab_privileges, tab_vid_avatar, tab_transcript, tab_playback = st.tabs([
         "📤 Bulk Invites", 
         "💬 Audience & Chat", 
