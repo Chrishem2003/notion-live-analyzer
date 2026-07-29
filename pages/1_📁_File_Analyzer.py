@@ -983,96 +983,95 @@ if working_df is not None and not working_df.empty:
   # ── Tab 6: Export & Code ──
   with tabs[6]:
     section_header("📥 Export Processed Dataset & Pipeline Code")
-    if "render_export_buttons" in globals():
-      render_export_buttons(working_df)
+    
+    e1, e2 = st.columns(2)
+    with e1:
+      st.markdown("##### Export Working Dataset")
+      export_format = st.selectbox(
+          "Export Format", ["CSV", "Excel", "JSON", "Parquet"], key="export_fmt"
+      )
+      
+      if export_format == "CSV":
+        mime_type = "text/csv"
+        file_data = working_df.to_csv(index=False).encode("utf-8")
+        file_name = "processed_dataset.csv"
+      elif export_format == "Excel":
+        mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+          working_df.to_excel(writer, index=False, sheet_name="Sheet1")
+        file_data = buffer.getvalue()
+        file_name = "processed_dataset.xlsx"
+      elif export_format == "JSON":
+        mime_type = "application/json"
+        file_data = working_df.to_json(orient="records", indent=2).encode("utf-8")
+        file_name = "processed_dataset.json"
+      else: # Parquet
+        mime_type = "application/octet-stream"
+        buffer = io.BytesIO()
+        working_df.to_parquet(buffer, index=False)
+        file_data = buffer.getvalue()
+        file_name = "processed_dataset.parquet"
 
-    st.markdown("##### Standard Format Downloads")
-    ex1, ex2, ex3 = st.columns(3)
-    ex1.download_button(
-        "⬇️ Download CSV",
-        working_df.to_csv(index=False).encode("utf-8"),
-        file_name="processed_dataset.csv",
-        mime="text/csv",
-    )
-    ex2.download_button(
-        "⬇️ Download JSON",
-        working_df.to_json(orient="records").encode("utf-8"),
-        file_name="processed_dataset.json",
-        mime="application/json",
-    )
-    xlsx_buf = io.BytesIO()
-    with pd.ExcelWriter(xlsx_buf, engine="openpyxl") as writer:
-      working_df.to_excel(writer, index=False, sheet_name="ExportedData")
-    ex3.download_button(
-        "⬇️ Download Excel",
-        xlsx_buf.getvalue(),
-        file_name="processed_dataset.xlsx",
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-    )
+      st.download_button(
+          label=f"⬇️ Download as {export_format}",
+          data=file_data,
+          file_name=file_name,
+          mime=mime_type,
+          use_container_width=True,
+      )
 
-    st.markdown("##### 🧾 Reproducible Python Transformation Pipeline")
-    log = st.session_state.get("transform_log", [])
-    snippet = generate_pandas_snippet(
-        st.session_state.get("source_name", "dataset.csv"),
-        log if log else ["# No schema alterations applied during this session"],
-    )
-    st.code(snippet, language="python")
+    with e2:
+      st.markdown("##### Reproducible Pandas Pipeline Code")
+      transform_ops = st.session_state.get("transform_log", [])
+      code_snippet = generate_pandas_snippet(
+          active_source_name or "dataset.csv", transform_ops
+      )
+      st.code(code_snippet, language="python")
 
   # ── Tab 7: Merge ──
   with tabs[7]:
-    section_header("🔗 Dataset Merge & Integration Engine")
-    if (
-        "notion_df" in st.session_state
-        and st.session_state["notion_df"] is not None
-        and not st.session_state["notion_df"].empty
-    ):
-      notion_df = st.session_state["notion_df"]
-      common_cols = list(set(working_df.columns) & set(notion_df.columns))
-      merge_key = st.selectbox(
-          "Merge Key Column (leave empty for concatenation)",
-          options=[""] + common_cols,
-      )
-      merge_how = st.selectbox(
-          "Join Method", options=["inner", "outer", "left", "right"], index=0
-      )
+    section_header("🔗 Multi-Dataset Join & Merge Sandbox")
+    st.caption("Merge your current working dataset with a secondary uploaded file or directory source.")
 
-      if st.button("🔄 Execute Dataset Integration", type="primary"):
-        try:
-          if "merge_datasets" in globals():
-            merged = merge_datasets(
-                notion_df,
+    secondary_file = st.file_uploader(
+        "Upload Secondary Dataset to Merge",
+        type=["csv", "xlsx", "xls", "json", "parquet"],
+        key="secondary_uploader",
+    )
+
+    if secondary_file is not None:
+      secondary_df = robust_parse_file(secondary_file)
+      if secondary_df is not None and not secondary_df.empty:
+        st.success(f"Successfully parsed secondary dataset: '{secondary_file.name}' ({secondary_df.shape[0]:,} rows, {secondary_df.shape[1]} columns).")
+
+        mc1, mc2, mc3 = st.columns(3)
+        with mc1:
+          left_on = st.selectbox("Primary Dataset Key Column", working_df.columns, key="merge_left_on")
+        with mc2:
+          right_on = st.selectbox("Secondary Dataset Key Column", secondary_df.columns, key="merge_right_on")
+        with mc3:
+          how_join = st.selectbox("Join Type", ["inner", "left", "right", "outer"], key="merge_how")
+
+        if st.button("🚀 Execute Dataset Merge", type="primary", use_container_width=True):
+          try:
+            merged_df = pd.merge(
                 working_df,
-                merge_key=merge_key or None,
-                merge_how=merge_how,
+                secondary_df,
+                left_on=left_on,
+                right_on=right_on,
+                how=how_join,
+                suffixes=("_primary", "_secondary"),
             )
-            if merged is not None:
-              st.session_state["working_df"] = merged
-              st.success(
-                  f"Datasets merged successfully! New shape: {merged.shape}"
-              )
-              st.rerun()
-        except Exception as e:
-          st.error(f"Merge operation failed: {e}")
+            st.session_state["working_df"] = merged_df
+            st.session_state["transform_log"].append(
+                f'df = pd.merge(df, secondary_df, left_on="{left_on}", right_on="{right_on}", how="{how_join}")'
+            )
+            st.success(f"Merge successful! New dataset shape: {merged_df.shape[0]:,} rows × {merged_df.shape[1]} columns.")
+            st.rerun()
+          except Exception as e:
+            st.error(f"❌ Merge operation failed: {e}")
+      else:
+        st.warning("⚠️ The secondary dataset is empty or could not be parsed.")
     else:
-      st.info(
-          "📭 No auxiliary Notion or external database found in session state to"
-          " merge with."
-      )
-else:
-  st.markdown(
-      "---"
-  )  # Fallback prompt when no active dataset is currently loaded
-  st.info(
-      "📁 **No dataset currently loaded.** Choose an ingestion channel above"
-      " (Direct File Uploader or Directory Explorer) to begin enterprise"
-      " analysis."
-  )
-
-# ─── Footer Timestamp ─────────────────────────────────────────────────
-st.markdown("---")
-st.caption(
-    "📁 Advanced File Analyzer & Explorer Engine | Enterprise Edition | System"
-    f" Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} EAT"
-)
+      st.info("ℹ️ Upload a secondary dataset to begin joining and merging features.")
