@@ -79,3 +79,13 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+# --- Autonomous Background Git Sync ---
+try:
+    from modules.auto_sync import auto_commit_and_push
+    success, msg = auto_commit_and_push("auto: routine application sync")
+    if success:
+        print(f"🚀 [Auto-Sync] {msg}")
+except Exception as _sync_err:
+    pass
+# -------------------------------------
