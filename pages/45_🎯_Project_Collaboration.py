@@ -1,5 +1,5 @@
 ﻿# ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.1]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.2]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import datetime
@@ -92,6 +92,8 @@ if "whiteboard_notes" not in st.session_state:
       "Project Alpha: Genomic Sequence Pipeline Active",
       "Next checkpoint review scheduled Friday.",
   ]
+if "stage_highlights" not in st.session_state:
+  st.session_state["stage_highlights"] = []
 
 # Advanced Session Timing, Expiration & Calendar State
 if "session_duration_minutes" not in st.session_state:
@@ -697,76 +699,162 @@ else:
         st.rerun()
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 3: Omni-Share & Quick Asset Vault ──
+  # ── Tab 3: Omni-Share & Quick Asset Vault (Upgraded Presentation Engine) ──
   with tab_omni_share:
-    st.markdown("#### 🚀 Omni-Share & Quick Asset Vault")
-    col_os1, col_os2 = st.columns(2)
+    st.markdown(
+        "#### 🚀 Omni-Share, Multi-Source Media Vault & Live Annotation Studio"
+    )
+    st.caption(
+        "Seamlessly broadcast local computer files, stream YouTube tutorials,"
+        " and annotate live notes directly on stage."
+    )
 
-    with col_os1:
+    os_col1, os_col2 = st.columns([1.2, 1.8])
+
+    with os_col1:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 📁 Quick Asset Vault (Pre-Loaded Files)")
-      for item in st.session_state["quick_vault"]:
-        va_col1, va_col2 = st.columns([3, 1])
-        with va_col1:
-          st.markdown(f"📄 **{item['name']}** `({item['type']})`")
-        with va_col2:
-          if st.button("Present", key=f"vault_btn_{item['name']}"):
+      st.markdown("##### 📥 Multi-Source Media Source Selector")
+      media_source_type = st.radio(
+          "Select Source Type",
+          [
+              "Computer Local Files",
+              "YouTube Video Stream",
+              "Pre-Loaded Asset Vault",
+          ],
+          horizontal=False,
+      )
+
+      if media_source_type == "Pre-Loaded Asset Vault":
+        for item in st.session_state["quick_vault"]:
+          va_col1, va_col2 = st.columns([3, 1])
+          with va_col1:
+            st.markdown(f"📄 **{item['name']}** `({item['type']})`")
+          with va_col2:
+            if st.button("Present", key=f"vault_btn_{item['name']}"):
+              st.session_state["active_presentation"] = {
+                  "mode": "Pre-Loaded Asset Vault",
+                  "source": item["name"],
+                  "content": f"Vault Asset: {item['name']}",
+              }
+              st.success(f"✅ Now broadcasting **{item['name']}** on stage!")
+              st.rerun()
+
+      elif media_source_type == "Computer Local Files":
+        default_path = os.getcwd()
+        target_dir = st.text_input(
+            "Computer Directory Path", value=default_path
+        )
+        try:
+          files_in_dir = [
+              f
+              for f in os.listdir(target_dir)
+              if os.path.isfile(os.path.join(target_dir, f))
+              and not f.startswith(".")
+          ]
+        except Exception:
+          files_in_dir = [
+              "research_report_final.pdf",
+              "genomic_sequence_data.csv",
+              "presentation_deck.pptx",
+          ]
+
+        selected_file = st.selectbox(
+            "Select Computer File",
+            files_in_dir if files_in_dir else ["None"],
+        )
+        if st.button(
+            "🚀 Broadcast Local File to Stage",
+            type="primary",
+            use_container_width=True,
+        ):
+          st.session_state["active_presentation"] = {
+              "mode": "Computer Local File",
+              "source": selected_file,
+              "content": f"Path: {target_dir}/{selected_file}",
+          }
+          st.success(f"✅ Broadcasting computer file: **{selected_file}**")
+          st.rerun()
+
+      else:  # YouTube Video Stream
+        yt_url = st.text_input(
+            "YouTube Video URL",
+            value="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            placeholder="Paste YouTube link here...",
+        )
+        if st.button(
+            "▶️ Stream YouTube Video to Stage",
+            type="primary",
+            use_container_width=True,
+        ):
+          if yt_url:
             st.session_state["active_presentation"] = {
-                "mode": "Local Disk File Explorer",
-                "source": item["name"],
-                "content": f"Vault Asset: {item['name']}",
+                "mode": "YouTube Video Stream",
+                "source": yt_url,
+                "content": yt_url,
             }
-            st.success(f"✅ Now broadcasting **{item['name']}** on stage!")
+            st.success("✅ YouTube media stream initialized on stage!")
             st.rerun()
 
-      st.markdown("---")
-      st.markdown("##### 📂 Custom Local Disk File Selector")
-      default_path = os.getcwd()
-      target_dir = st.text_input("Directory Path", value=default_path)
-      try:
-        files_in_dir = [
-            f
-            for f in os.listdir(target_dir)
-            if os.path.isfile(os.path.join(target_dir, f))
-            and not f.startswith(".")
-        ]
-      except Exception:
-        files_in_dir = [
-            "research_report_final.pdf",
-            "genomic_sequence_data.csv",
-        ]
-
-      selected_file = st.selectbox(
-          "Select File to Broadcast", files_in_dir if files_in_dir else ["None"]
-      )
-      if st.button("🚀 Present Custom File on Stage", type="primary"):
-        st.session_state["active_presentation"] = {
-            "mode": "Local Disk File Explorer",
-            "source": selected_file,
-            "content": f"Path: {target_dir}/{selected_file}",
-        }
-        st.success(f"✅ Now broadcasting **{selected_file}** on stage!")
-        st.rerun()
       st.markdown("</div>", unsafe_allow_html=True)
 
-    with col_os2:
+    with os_col2:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 🌐 Virtual Browser Frame")
-      browser_url = st.text_input(
-          "Target URL", value="https://github.com/chrishem"
+      st.markdown("##### 🖥️ Active Stage Preview & Live Highlighting Suite")
+
+      current_pres = st.session_state["active_presentation"]
+      st.markdown(
+          f"""
+            <div style="background:#0d1117;border:1px solid #30363d;padding:16px;border-radius:10px;margin-bottom:15px;">
+                <div style="font-size:0.8rem;color:#38bdf8;margin-bottom:6px;">📡 CURRENT STAGE FEED STATUS</div>
+                <div style="font-size:1.05rem;font-weight:bold;color:#f8fafc;margin-bottom:4px;">Mode: {current_pres['mode']}</div>
+                <div style="color:#34d399;font-family:monospace;font-size:0.85rem;">Source: {current_pres['source']}</div>
+            </div>
+            """,
+          unsafe_allow_html=True,
       )
-      if st.button("🚀 Stream Browser Page to Stage", type="primary"):
-        st.session_state["active_presentation"] = {
-            "mode": "Virtual Browser Frame",
-            "source": browser_url,
-            "content": browser_url,
-        }
-        st.success(f"✅ Streaming `{browser_url}` to participants.")
-        st.rerun()
+
+      # Live Highlight & Markup Section
+      st.markdown("##### ✏️ Live Presentation Markup & Highlight Notes")
+      markup_input = st.text_input(
+          "Type highlight note or correction edit...",
+          placeholder="e.g., Emphasize paragraph 3 on antimicrobial resistance...",
+      )
+      markup_color = st.selectbox(
+          "Highlight Level",
+          [
+              "🟡 General Note",
+              "🔴 Critical Correction / Edit",
+              "🟢 Approved Action Item",
+          ],
+      )
+
+      if st.button("📌 Pin Highlight to Stage Feed", use_container_width=True):
+        if markup_input:
+          st.session_state["stage_highlights"].append(
+              f"[{markup_color}] {st.session_state['host_name']}: {markup_input}"
+          )
+          st.success("Highlight pinned successfully!")
+          st.rerun()
+
+      if st.session_state["stage_highlights"]:
+        st.markdown(
+            '<div style="background:#0d1117;border:1px solid #30363d;padding:10px;border-radius:8px;max-height:140px;overflow-y:auto;margin-top:10px;">',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "**Active Highlights & Edits on Current Presentation:**"
+        )
+        for h_idx, hl in enumerate(st.session_state["stage_highlights"]):
+          st.markdown(f"- `{h_idx+1}`. {hl}")
+        st.markdown("</div>", unsafe_allow_html=True)
+        if st.button("🗑️ Clear Stage Highlights"):
+          st.session_state["stage_highlights"] = []
+          st.rerun()
+
       st.markdown("</div>", unsafe_allow_html=True)
 
   # ── Tab 4: Autonomous Bulk WhatsApp & Email Invites ──
