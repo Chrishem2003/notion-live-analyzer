@@ -1,5 +1,5 @@
 ﻿# ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.0]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.1]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import datetime
@@ -343,7 +343,6 @@ if not st.session_state["in_session"]:
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Display Pre-Configured Recurring Calendar Preview on Home
     st.markdown("##### 📅 Recurring Enterprise Calendar Preview")
     for cal in st.session_state["calendar_schedule"]:
       st.markdown(
@@ -356,13 +355,11 @@ else:
   # 3. ACTIVE WORKSPACE & COUNTDOWN CHECK
   # ==========================================
 
-  # Calculate Session Countdown
   elapsed_delta = datetime.datetime.now() - st.session_state["session_start_time"]
   elapsed_seconds = int(elapsed_delta.total_seconds())
   total_allowed_seconds = st.session_state["session_duration_minutes"] * 60
   remaining_seconds = total_allowed_seconds - elapsed_seconds
 
-  # Auto-terminate if time runs out
   if remaining_seconds <= 0:
     st.session_state["in_session"] = False
     st.warning("🛑 Session time expired. Automatically terminated.")
@@ -372,8 +369,8 @@ else:
   rem_hours, rem_minutes = divmod(rem_minutes, 60)
   countdown_str = f"{rem_hours:02d}:{rem_minutes:02d}:{rem_secs:02d}"
 
-  # Top Hub & Live Chronometer Telemetry Bar
-  h1, h2, h3, h4 = st.columns([1.5, 1.8, 1.8, 1.4])
+  # Top Navigation & Telemetry Hub with Dashboard Escape Hatch
+  h1, h2, h3, h4, h5 = st.columns([1.5, 1.5, 1.6, 1.4, 1.2])
   with h1:
     st.markdown(f"### 🟢 Room: `{st.session_state['room_id']}`")
     st.markdown(
@@ -383,13 +380,12 @@ else:
     )
 
   with h2:
-    # Color code countdown based on urgency (< 5 mins remaining -> red/orange alert)
     timer_color = "#38bdf8" if remaining_seconds > 300 else "#f87171"
     st.markdown(
         f"""
             <div class="telemetry-card">
-                <div style="color:#94a3b8;font-size:0.75rem;">⏳ SESSION EXPIRATION COUNTDOWN</div>
-                <div style="color:{timer_color};font-size:1.1rem;font-weight:bold;font-family:monospace;">{countdown_str}</div>
+                <div style="color:#94a3b8;font-size:0.75rem;">⏳ COUNTDOWN</div>
+                <div style="color:{timer_color};font-size:1.05rem;font-weight:bold;font-family:monospace;">{countdown_str}</div>
             </div>
             """,
         unsafe_allow_html=True,
@@ -398,28 +394,24 @@ else:
   with h3:
     shareable_link = f"https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
     st.markdown(
-        f'<div class="link-display" style="font-size:0.8rem;overflow:hidden;text-overflow:ellipsis;">🔗 {shareable_link}</div>',
+        f'<div class="link-display" style="font-size:0.75rem;overflow:hidden;text-overflow:ellipsis;">🔗 {shareable_link}</div>',
         unsafe_allow_html=True,
     )
 
   with h4:
-    terminate_col1, terminate_col2 = st.columns(2)
-    with terminate_col1:
-      if st.button("➕ Extend", type="secondary", use_container_width=True):
-        st.session_state["session_duration_minutes"] += 15
-        st.toast(
-            "⏱️ Session extended by 15 minutes successfully!", icon="🚀"
-        )
-        st.rerun()
-    with terminate_col2:
-      if st.button("🚨 End Meeting", type="primary", use_container_width=True):
-        st.session_state["in_session"] = False
-        st.toast("🔴 Meeting ended manually by verified host.", icon="🛑")
-        st.rerun()
+    if st.button("➕ Extend", type="secondary", use_container_width=True):
+      st.session_state["session_duration_minutes"] += 15
+      st.toast("⏱️ Session extended by 15 minutes!", icon="🚀")
+      st.rerun()
+
+  with h5:
+    if st.button("🏠 Dashboard", type="primary", use_container_width=True):
+      st.session_state["in_session"] = False
+      st.rerun()
 
   st.markdown("---")
 
-  # Core Extended Tabs (Including Calendar Scheduler Tab)
+  # Core Extended Tabs
   (
       tab_video_mesh,
       tab_calendar,
@@ -1079,4 +1071,4 @@ The session successfully tracked and recorded core collaborative discourse. All 
           "host": st.session_state["host_name"],
       }
       st.session_state["session_recordings"].append(record_entry)
-      st.success("✅ Session and video recording archived successfully!")
+      st.success("✅ Session and video recording archived successfully!")git status
