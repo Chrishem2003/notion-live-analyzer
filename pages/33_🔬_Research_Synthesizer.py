@@ -1,5 +1,3 @@
-st.markdown("<style>.stApp{background-color:#0d1117!important;color:#f0f6fc!important;}h1,h2,h3,h4,h5,h6,span,p,label,.stMarkdown,.stCaption{color:#f0f6fc!important;}</style>",unsafe_allow_html=True)
-
 """
 Research Synthesizer & Audio Intelligence Hub — Standalone Page
 World-class multimodal research engine that ingests papers, lectures,
@@ -16,8 +14,9 @@ Features:
   - Clickable source citation inspector
   - Prior art & related literature context widget
 """
-import streamlit as st
 
+import streamlit as st
+st.markdown("<style>.stApp{background-color:#0d1117!important;color:#f0f6fc!important;}h1,h2,h3,h4,h5,h6,span,p,label,.stMarkdown,.stCaption{color:#f0f6fc!important;}</style>", unsafe_allow_html=True)
 st.set_page_config(page_title="Research Synthesizer", page_icon="🔬", layout="wide")
 
 from modules.config import init_session_state

@@ -1,5 +1,3 @@
-st.markdown("<style>.stApp{background-color:#0d1117!important;color:#f0f6fc!important;}h1,h2,h3,h4,h5,h6,span,p,label,.stMarkdown,.stCaption{color:#f0f6fc!important;}</style>",unsafe_allow_html=True)
-
 """
 🌍 Global Research Radar & Satellite Intelligence Platform
 Based on the Advanced Research Operating System concept, this page provides:
@@ -9,7 +7,9 @@ Based on the Advanced Research Operating System concept, this page provides:
   4. Loophole Accountability & Ownership — Claim/verification tracking
   5. AI Cross-Domain Synthesizer — Cross-pollinate disciplines for novel hypotheses
 """
+
 import streamlit as st
+st.markdown("<style>.stApp{background-color:#0d1117!important;color:#f0f6fc!important;}h1,h2,h3,h4,h5,h6,span,p,label,.stMarkdown,.stCaption{color:#f0f6fc!important;}</style>", unsafe_allow_html=True)
 import pandas as pd
 import numpy as np
 import json
