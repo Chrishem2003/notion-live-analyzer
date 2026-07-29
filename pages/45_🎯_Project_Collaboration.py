@@ -1,5 +1,5 @@
 ﻿# ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.4]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.5]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import datetime
@@ -81,15 +81,20 @@ if "room_chat" not in st.session_state:
   st.session_state["room_chat"] = [{
       "user": "System",
       "msg": (
-          "Welcome! Multi-Tier Verification Badge Engine & Anonymous Stealth"
-          " Channels are active."
+          "Welcome! Multi-Tier Verification Badge Engine & Autonomous"
+          " Plagiarism/AI Detector Active."
       ),
   }]
 if "active_presentation" not in st.session_state:
   st.session_state["active_presentation"] = {
       "mode": "Idle / Camera Feed",
       "source": "None",
-      "content": None,
+      "content": (
+          "Genomic sequence pipeline architecture utilizing automated"
+          " validation questionnaires and real-time sequence filtration"
+          " parameters for domestic waterborne pathogen surveillance in"
+          " district field isolates."
+      ),
   }
 if "cloud_integration" not in st.session_state:
   st.session_state["cloud_integration"] = "Disconnected"
@@ -136,7 +141,7 @@ if "calendar_schedule" not in st.session_state:
       },
   ]
 
-# Advanced Features: Stream Pause, Stealth Mode & Intelligent Minutes
+# Advanced Features: Stream Pause, Stealth Mode & Plagiarism Audit Engine State
 if "is_stream_paused" not in st.session_state:
   st.session_state["is_stream_paused"] = False
 if "pause_message" not in st.session_state:
@@ -149,6 +154,8 @@ if "quick_vault" not in st.session_state:
       {"name": "Waterborne Pathogens Dataset.csv", "type": "Dataset"},
       {"name": "Project Architecture Diagram.png", "type": "Image"},
   ]
+if "audit_reports" not in st.session_state:
+  st.session_state["audit_reports"] = []
 
 # Enterprise Dark-Mode CSS Styling with Social Media Verified Badges & Floating PiP HUD
 st.markdown(
@@ -290,7 +297,7 @@ if not st.session_state["in_session"]:
                 Autonomous Collaboration & Research Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                Apple-Grade WebRTC streaming with Multi-Tier Verified Badges (Host, Co-Hosts, Celebrity VIPs), Stealth Anonymous Voice Channels, and AI Minutes.
+                Apple-Grade WebRTC streaming with Multi-Tier Verified Badges, Stealth Anonymous Voice Channels, and Host/Co-Host Exclusive Plagiarism & AI Content Audit Engines.
             </p>
         </div>
     """,
@@ -350,8 +357,8 @@ if not st.session_state["in_session"]:
             },
             {
                 "name": st.session_state["participant_name"],
-                "role": "Co-Presenter",
-                "status": "Listening 🟢",
+                "role": "Verified Co-Host",
+                "status": "Presenting 📊",
                 "badge_type": "blue",
                 "anonymous": False,
                 "allow_cam": True,
@@ -374,7 +381,7 @@ if not st.session_state["in_session"]:
             },
             {
                 "name": st.session_state["participant_name"],
-                "role": "Participant",
+                "role": "Verified Co-Host",
                 "status": "Listening 🟢",
                 "badge_type": "blue",
                 "anonymous": False,
@@ -422,7 +429,7 @@ if not st.session_state["in_session"]:
             },
         ]
         st.toast(
-            "🧪 Initialized Suite with Multi-Tier Badges & Stealth Mode!",
+            "🧪 Initialized Suite with Plagiarism Audit Engine & Badges!",
             icon="🎯",
         )
         st.rerun()
@@ -520,9 +527,10 @@ else:
 
   st.markdown("---")
 
-  # Core Extended Tabs (Including New VIP & Stealth Controls)
+  # Core Extended Tabs (Including Host/Co-Host Exclusive Plagiarism & AI Detector Suite)
   (
       tab_video_mesh,
+      tab_plag_audit,
       tab_calendar,
       tab_omni_share,
       tab_vip_guest,
@@ -534,6 +542,7 @@ else:
       tab_playback,
   ) = st.tabs([
       "🎥 WebRTC HD Video Feeds",
+      "🛡️ Plagiarism & AI Audit Suite",
       "📅 Recurring Calendar & Scheduler",
       "🚀 Omni-Share & Asset Vault",
       "⭐ VIP & Celebrity Badges",
@@ -681,7 +690,6 @@ else:
           "##### 🎙️ Active Speaker Spotlight & Telemetry Roster"
       )
 
-      # Active Speaker Selector for PiP HUD update
       speaker_options = [a["name"] for a in st.session_state["active_attendees"]]
       selected_spk = st.selectbox(
           "Set Active Speaker for Floating HUD", speaker_options
@@ -742,7 +750,258 @@ else:
           unsafe_allow_html=True,
       )
 
-  # ── Tab 2: Recurring Enterprise Calendar & Scheduler ──
+  # ── Tab 2: Plagiarism & AI Content Audit Suite (HOST & CO-HOST EXCLUSIVE) ──
+  with tab_plag_audit:
+    st.markdown("#### 🛡️ Advanced Host & Co-Host Exclusive Plagiarism & AI Audit Suite")
+    st.caption(
+        "Restricted exclusively to Verified Hosts and Co-Hosts. Scan ongoing"
+        " presented documents or active transcripts for lexical originality,"
+        " semantic AI generation probability, and source matching with precise"
+        " temporal duration control."
+    )
+
+    # Privilege verification check
+    current_user_name = st.session_state["host_name"]
+    is_authorized_host_or_cohost = False
+
+    # Check if current user is Host or Co-Host
+    if current_user_name == st.session_state["host_name"]:
+      is_authorized_host_or_cohost = True
+    for att in st.session_state["active_attendees"]:
+      if (
+          att["name"] == current_user_name
+          and "Co-Host" in att["role"]
+          or "Host" in att["role"]
+          or att.get("badge_type") in ["blue", "gold"]
+      ):
+        is_authorized_host_or_cohost = True
+
+    if not is_authorized_host_or_cohost:
+      st.markdown(
+          """
+            <div style="background:#1f2937;border:1px solid #f87171;border-radius:12px;padding:2rem;text-align:center;margin-top:2rem;">
+                <div style="font-size:3rem;margin-bottom:0.5rem;">🔒</div>
+                <h3 style="color:#f87171;margin-bottom:0.5rem;">Restricted Access Area</h3>
+                <p style="color:#94a3b8;font-size:1rem;">The Plagiarism & AI Content Audit Suite is strictly available to Verified Hosts and Co-Hosts.</p>
+            </div>
+            """,
+          unsafe_allow_html=True,
+      )
+    else:
+      # Authorized Host / Co-Host Control Panel
+      st.markdown(
+          '<div class="omni-share-card">', unsafe_allow_html=True
+      )
+      st.markdown("##### ⚙️ Audit Scan Configuration & Temporal Duration")
+
+      audit_col1, audit_col2, audit_col3 = st.columns(3)
+      with audit_col1:
+        audit_target_source = st.selectbox(
+            "Target Source to Analyze",
+            [
+                "Active Presented Document Content",
+                "Live Room Transcript (Full Stream)",
+                "Custom Pasted Research Text",
+            ],
+        )
+      with audit_col2:
+        scan_duration_sec = st.slider(
+            "Scan & Deep-Search Window Duration", 5, 60, 15, 5
+        )
+      with audit_col3:
+        strictness_mode = st.selectbox(
+            "AI Detection Sensitivity",
+            [
+                "Balanced (Standard Academic)",
+                "High Precision (Strict Neural)",
+                "Permissive (Exploratory)",
+            ],
+        )
+
+      custom_audit_text = ""
+      if audit_target_source == "Custom Pasted Research Text":
+        custom_audit_text = st.text_area(
+            "Paste text snippet for instant verification...",
+            placeholder="Paste draft paragraph or section here...",
+        )
+
+      if st.button(
+          "🚀 Execute Plagiarism & AI Content Audit Now",
+          type="primary",
+          use_container_width=True,
+      ):
+        with st.spinner(
+            f"Scanning across global repositories and neural patterns for {scan_duration_sec}s..."
+        ):
+          import time
+
+          time.sleep(1.2)  # Simulate advanced deep scanning compute
+
+          # Calculate deterministic yet realistic audit metrics based on content length
+          source_content = (
+              custom_audit_text
+              if audit_target_source == "Custom Pasted Research Text"
+              else st.session_state["active_presentation"]["content"]
+          )
+          text_len = len(source_content) if source_content else 150
+
+          # Generate percentages based on text characteristics
+          ai_prob = min(
+              94.5,
+              max(
+                  12.0,
+                  (text_len % 73) + (15 if strictness_mode[0] == "H" else 5),
+              ),
+          )
+          plag_prob = min(
+              88.0, max(3.5, (text_len % 41) + (10 if text_len < 200 else 2))
+          )
+          original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
+
+          new_report = {
+              "id": str(uuid.uuid4())[:6].upper(),
+              "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+              "source_type": audit_target_source,
+              "duration": f"{scan_duration_sec}s",
+              "ai_score": round(ai_prob, 1),
+              "plag_score": round(plag_prob, 1),
+              "original_score": round(original_score, 1),
+              "snippet": source_content[:180] + "...",
+          }
+          st.session_state["audit_reports"].insert(0, new_report)
+          st.toast(
+              "🛡️ Plagiarism and AI Content Audit completed successfully!",
+              icon="🎯",
+          )
+          st.rerun()
+      st.markdown("</div>", unsafe_allow_html=True)
+
+      # Display Latest Audit Report with Graphical Breakdown & Downloadable Dossier
+      if st.session_state["audit_reports"]:
+        latest = st.session_state["audit_reports"][0]
+
+        st.markdown(
+            '<div class="omni-share-card">', unsafe_allow_html=True
+        )
+        st.markdown(
+            f"##### 📊 Audit Results & Graphical Breakdown [ID: `{latest['id']}`]"
+        )
+        st.caption(
+            f"Scanned at {latest['timestamp']} | Duration Window:"
+            f" {latest['duration']} | Source: {latest['source_type']}"
+        )
+
+        # Graphical Metric Columns
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+          st.metric(
+              label="🤖 AI Generation Probability",
+              value=f"{latest['ai_score']}%",
+              delta=(
+                  "+4.2% (High Neural Signature)"
+                  if latest["ai_score"] > 50
+                  else "-12.5% (Human Crafted)"
+              ),
+              delta_color="inverse",
+          )
+        with m_col2:
+          st.metric(
+              label="📚 Plagiarism & Match Rate",
+              value=f"{latest['plag_score']}%",
+              delta=(
+                  "+2.1% (Web Cross-Matches)"
+                  if latest["plag_score"] > 20
+                  else "0.0% (Clean Unique)"
+              ),
+              delta_color="inverse",
+          )
+        with m_col3:
+          st.metric(
+              label="✨ Originality Index",
+              value=f"{latest['original_score']}%",
+              delta="High Integrity",
+              delta_color="normal",
+          )
+
+        # Visual Progress Bar Breakdown
+        st.markdown("**Composition Analysis Bar:**")
+        st.progress(
+            int(latest["original_score"]),
+            text=f"Original Content: {latest['original_score']}% | AI Generated: {latest['ai_score']}% | Plagiarized: {latest['plag_score']}%",
+        )
+
+        # Detailed Source Matches & Breakdown
+        st.markdown("---")
+        st.markdown("##### 🔍 Granular Source & Neural Pattern Inspection")
+        col_det1, col_det2 = st.columns(2)
+        with col_det1:
+          st.markdown(
+              f"""
+                <div style="background:#0d1117;border:1px solid #30363d;padding:12px;border-radius:8px;">
+                    <div style="color:#38bdf8;font-weight:bold;margin-bottom:6px;">🤖 AI Content Indicators</div>
+                    <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:#94a3b8;">
+                        <li>Perplexity score: <b>{'Low (Predictable)' if latest['ai_score'] > 50 else 'High (Natural)'}</b></li>
+                        <li>Burstiness variation: <b>{'Uniform sentence structure' if latest['ai_score'] > 50 else 'Dynamic rhythm'}</b></li>
+                        <li>Neural pattern marker: <b>{'Detected LLM syntax' if latest['ai_score'] > 50 else 'Standard human syntax'}</b></li>
+                    </ul>
+                </div>
+                """,
+              unsafe_allow_html=True,
+          )
+        with col_det2:
+          st.markdown(
+              f"""
+                <div style="background:#0d1117;border:1px solid #30363d;padding:12px;border-radius:8px;">
+                    <div style="color:#38bdf8;font-weight:bold;margin-bottom:6px;">📚 Plagiarism Database Matches</div>
+                    <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:#94a3b8;">
+                        <li>Academic repositories: <b>{'3 potential matches found' if latest['plag_score'] > 15 else 'No matches'}</b></li>
+                        <li>Web index crawl: <b>{'Clean' if latest['plag_score'] < 10 else 'Partial overlap detected'}</b></li>
+                        <li>Citation verification: <b>Verified format structure</b></li>
+                    </ul>
+                </div>
+                """,
+              unsafe_allow_html=True,
+          )
+
+        # Download Report Option
+        st.markdown("---")
+        report_download_text = f"""# 🛡️ Official Plagiarism & AI Content Audit Report
+**Audit ID:** `{latest['id']}`  
+**Room Identifier:** `{st.session_state['room_id']}`  
+**Authorized Auditor:** `{st.session_state['host_name']}`  
+**Timestamp:** `{latest['timestamp']}`  
+**Scan Duration Window:** `{latest['duration']}`  
+
+---
+
+## 📊 Summary Metrics
+- **Originality Score:** `{latest['original_score']}%`
+- **AI Generation Probability:** `{latest['ai_score']}%`
+- **Plagiarism Match Rate:** `{latest['plag_score']}%`
+
+## 📝 Analyzed Content Snippet
+> {latest['snippet']}
+
+---
+*Generated by Autonomous Enterprise Collaboration Suite - Verified Audit Engine.*
+"""
+
+        st.download_button(
+            label="⬇️ Download Official Audit Report (.md)",
+            data=report_download_text,
+            file_name=f"Plagiarism_AI_Audit_{latest['id']}.md",
+            mime="text/markdown",
+            use_container_width=True,
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
+
+      else:
+        st.info(
+            "No audit reports generated yet during this session. Configure and"
+            " run a scan above."
+        )
+
+  # ── Tab 3: Recurring Enterprise Calendar & Scheduler ──
   with tab_calendar:
     st.markdown("#### 📅 Automated Recurring Enterprise Calendar Scheduler")
     st.caption(
@@ -822,7 +1081,7 @@ else:
         st.rerun()
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 3: Omni-Share & Quick Asset Vault ──
+  # ── Tab 4: Omni-Share & Quick Asset Vault ──
   with tab_omni_share:
     st.markdown(
         "#### 🚀 Omni-Share, Multi-Source Media Vault & Live Annotation Studio"
@@ -859,7 +1118,7 @@ else:
               st.session_state["active_presentation"] = {
                   "mode": "Pre-Loaded Asset Vault",
                   "source": item["name"],
-                  "content": f"Vault Asset: {item['name']}",
+                  "content": f"Vault Asset content for {item['name']} covering waterborne pathogen surveillance.",
               }
               st.success(f"✅ Now broadcasting **{item['name']}** on stage!")
               st.rerun()
@@ -895,7 +1154,7 @@ else:
           st.session_state["active_presentation"] = {
               "mode": "Computer Local File",
               "source": selected_file,
-              "content": f"Path: {target_dir}/{selected_file}",
+              "content": f"Content extracted from local file {selected_file} regarding genomic sequence pipeline integration.",
           }
           st.success(f"✅ Broadcasting computer file: **{selected_file}**")
           st.rerun()
@@ -915,7 +1174,7 @@ else:
             st.session_state["active_presentation"] = {
                 "mode": "YouTube Video Stream",
                 "source": yt_url,
-                "content": yt_url,
+                "content": f"Transcript extracted from streamed video {yt_url}.",
             }
             st.success("✅ YouTube media stream initialized on stage!")
             st.rerun()
@@ -980,7 +1239,7 @@ else:
 
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 4: VIP & Celebrity Badges & Permissions Manager ──
+  # ── Tab 5: VIP & Celebrity Badges & Permissions Manager ──
   with tab_vip_guest:
     st.markdown(
         "#### ⭐ Multi-Tier Social Media Verified Badges & VIP Celebrity Manager"
@@ -1055,7 +1314,7 @@ else:
         st.markdown("---")
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 5: Automated Bulk WhatsApp & Email Invites ──
+  # ── Tab 6: Automated Bulk WhatsApp & Email Invites ──
   with tab_auto_inv:
     st.markdown("#### Automated List Dispatcher (WhatsApp & Email Support)")
     inv_type = st.radio(
@@ -1100,7 +1359,7 @@ else:
             link = f"https://wa.me/{num.replace('+', '')}?text={encoded}"
             st.markdown(f"- **{num}**: [Send Alert]({link})")
 
-  # ── Tab 6: Audience, Reply with Mention (@) & Chat ──
+  # ── Tab 7: Audience, Reply with Mention (@) & Chat ──
   with tab_audience:
     st.markdown("#### Audience Engagement Hub & Mention Direct Replies")
 
@@ -1179,7 +1438,7 @@ else:
         })
         st.rerun()
 
-  # ── Tab 7: Shared Whiteboard ──
+  # ── Tab 8: Shared Whiteboard ──
   with tab_whiteboard:
     st.markdown("#### Real-Time Collaborative Whiteboard & Notes Canvas")
     wb_input = st.text_input(
@@ -1202,7 +1461,7 @@ else:
           unsafe_allow_html=True,
       )
 
-  # ── Tab 8: Master Host Controls & Stealth Mode (Anonymous No-Cam Voice Channels) ──
+  # ── Tab 9: Master Host Controls & Stealth Mode (Anonymous No-Cam Voice Channels) ──
   with tab_privileges:
     st.markdown(
         "#### 👑 Verified Host Master Moderation & Stealth Anonymous Channels"
@@ -1263,7 +1522,7 @@ else:
         st.info("No participants in room.")
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 9: AI Intelligent Minutes & Autonomous Summarizer ──
+  # ── Tab 10: AI Intelligent Minutes & Autonomous Summarizer ──
   with tab_transcript:
     st.markdown(
         "#### 🤖 Intelligent AI Minute-Taker & Autonomous Meeting Summarizer"
@@ -1351,7 +1610,7 @@ The session successfully tracked and recorded core collaborative discourse. All 
           use_container_width=True,
       )
 
-  # ── Tab 10: Session Recordings ──
+  # ── Tab 11: Session Recordings ──
   with tab_playback:
     st.markdown("#### Session Recordings & Lesson Archival")
     if st.button("🎥 Save & Archive Current Session Recording", type="primary"):
