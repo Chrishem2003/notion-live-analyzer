@@ -5,5 +5,6 @@ plotly>=5.18.0
 requests>=2.31.0
 scipy
 scikit-learn
-scikit-learn
-scipy
+streamlit-webrtc>=0.47.0
+av>=11.0.0
+opencv-python-headless>=4.8.0
