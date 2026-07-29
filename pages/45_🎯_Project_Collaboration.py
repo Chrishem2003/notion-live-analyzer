@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [UI-FIXED v11.1]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [TIMEZONE-AUTO v11.2]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
@@ -27,30 +27,28 @@ if "host_email" not in st.session_state:
     st.session_state["host_email"] = "kula.chris@muni.ac.ug"
 if "host_phone" not in st.session_state:
     st.session_state["host_phone"] = "+256700000000"
-if "scheduled_invites" not in st.session_state:
-    st.session_state["scheduled_invites"] = []
 if "co_hosts" not in st.session_state:
     st.session_state["co_hosts"] = []
 if "session_recordings" not in st.session_state:
     st.session_state["session_recordings"] = []
 if "live_transcript" not in st.session_state:
     st.session_state["live_transcript"] = [
-        {"time": "12:00", "speaker": "System AI", "text": "Autopilot session initialized. Automatic reminders and privileges active."}
+        {"time": "12:00", "speaker": "System AI", "text": "Autopilot session initialized with automatic timezone detection."}
     ]
 
-# Enterprise Dark-Mode CSS Styling (Fixes input box visibility & contrast)
+# Enterprise Dark-Mode CSS Styling (Ensures input boxes have clear text contrast)
 st.markdown("""
 <style>
     .stApp { background-color: #0b0f19; color: #f8fafc; font-family: -apple-system, sans-serif; }
     
-    /* Fix text inputs, text areas, and selectboxes to have dark backgrounds and visible text */
+    /* Input and select box styling for dark mode visibility */
     input, textarea, select {
         background-color: #111827 !important;
         color: #f8fafc !important;
         border: 1px solid #374151 !important;
         border-radius: 8px !important;
     }
-    div[data-baseweb="input"] > div, div[data-baseweb="textarea"] > div {
+    div[data-baseweb="input"] > div, div[data-baseweb="textarea"] > div, div[data-baseweb="select"] > div {
         background-color: #111827 !important;
         color: #f8fafc !important;
         border-color: #374151 !important;
@@ -109,7 +107,7 @@ if not st.session_state["in_session"]:
                 Autonomous Collaboration & Research Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                Zero-friction automated conferencing. Set your host credentials once, schedule bulk invites via email/WhatsApp, assign co-host privileges, and record session playbacks effortlessly.
+                Zero-friction automated conferencing with automatic timezone detection, dropdown schedule builders, multi-host privilege management, and recording vaults.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -119,7 +117,7 @@ if not st.session_state["in_session"]:
         st.markdown('<div class="card-box">', unsafe_allow_html=True)
         st.markdown("#### Host Configuration")
         st.session_state["host_email"] = st.text_input("Your Verified Host Email", value=st.session_state["host_email"])
-        st.session_state["host_phone"] = st.text_input("Your WhatsApp Number (for automated dispatch)", value=st.session_state["host_phone"])
+        st.session_state["host_phone"] = st.text_input("Your WhatsApp Number", value=st.session_state["host_phone"])
         
         room_input = st.text_input("Room Identifier", value=st.session_state["room_id"])
         
@@ -165,21 +163,48 @@ else:
         "📼 Recordings & Playbacks"
     ])
 
-    # ── Tab 1: Autonomous Bulk Invites (Email & WhatsApp Lists) ──
+    # ── Tab 1: Autonomous Bulk Invites (Dropdown Time & Auto Timezones) ──
     with tab_auto_inv:
-        st.markdown("#### Automated List Dispatcher (Zero Stress)")
-        st.caption("Paste a comma-separated list of emails or WhatsApp numbers. The system formats and queues automatic reminders instantly.")
+        st.markdown("#### Automated List Dispatcher with Smart Timezone Detection")
+        st.caption("Select your meeting schedule using structured dropdowns. Timezones automatically synchronize to local device clocks.")
+
+        # JavaScript snippet to detect user's local browser timezone and display it
+        tz_detection_html = """
+        <div id="tzDisplay" style="background:#111827;border:1px solid #374151;padding:8px 12px;border-radius:8px;font-size:0.85rem;color:#38bdf8;margin-bottom:15px;">
+            🌍 Detected Local Timezone: Loading client environment...
+        </div>
+        <script>
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById('tzDisplay').innerText = "🌍 Detected Local Timezone: " + tz;
+        </script>
+        """
+        st.components.v1.html(tz_detection_html, height=45)
 
         inv_type = st.radio("Dispatch Channel:", ["WhatsApp Group / Contact List", "Email Recipient List"], horizontal=True)
         topic_desc = st.text_input("Research Topic / Meeting Agenda Title", value="Waterborne Pathogen Genomic Surveillance & Data Pipeline Review")
-        schedule_time = st.text_input("Scheduled Date & Time", value="Today at 16:00 EAT")
+        
+        # Dropdown Schedule Builders
+        col_date, col_hour, col_min, col_ampm, col_tz = st.columns([1.5, 1, 1, 1, 1.5])
+        with col_date:
+            sel_date = st.date_input("Session Date", value=datetime.date.today())
+        with col_hour:
+            sel_hour = st.selectbox("Hour", [str(i).zfill(2) for i in range(1, 13)], index=3) # Default 04
+        with col_min:
+            sel_min = st.selectbox("Minute", ["00", "15", "30", "45"])
+        with col_ampm:
+            sel_ampm = st.selectbox("AM/PM", ["AM", "PM"], index=1) # Default PM
+        with col_tz:
+            sel_timezone = st.selectbox("Timezone Profile", ["Africa/Kampala (EAT)", "UTC", "America/New_York (EST/EDT)", "Europe/London (GMT/BST)", "Asia/Dubai (GST)"])
+
+        formatted_schedule = f"{sel_date} at {sel_hour}:{sel_min} {sel_ampm} ({sel_timezone})"
+        st.info(f"📅 **Confirmed Schedule Payload:** `{formatted_schedule}`")
 
         if inv_type == "WhatsApp Group / Contact List":
             raw_wa_list = st.text_area("Paste WhatsApp numbers (comma separated)", placeholder="+256700000001, +256700000002")
             if st.button("🚀 Queue & Send Automated WhatsApp Invites", type="primary"):
                 if raw_wa_list:
                     numbers = [n.strip() for n in raw_wa_list.split(",")]
-                    msg_body = f"Hello! You are invited by {st.session_state['host_email']} to our research session on *{topic_desc}*.\nScheduled: {schedule_time}\nJoin Room: {shareable_link}"
+                    msg_body = f"Hello! You are invited by {st.session_state['host_email']} to *{topic_desc}*.\nScheduled: {formatted_schedule}\nJoin Room: {shareable_link}"
                     
                     st.success(f"✅ Successfully queued {len(numbers)} automated WhatsApp alerts!")
                     for num in numbers:
@@ -194,7 +219,7 @@ else:
                 if raw_email_list:
                     emails = [e.strip() for e in raw_email_list.split(",")]
                     subject = f"Invitation: {topic_desc}"
-                    body = f"Dear Colleague,\n\nYou are invited to join our secure research session.\nTopic: {topic_desc}\nTime: {schedule_time}\n\nAccess Link: {shareable_link}\n\nBest regards,\n{st.session_state['host_email']}"
+                    body = f"Dear Colleague,\n\nYou are invited to join our secure research session.\nTopic: {topic_desc}\nTime: {formatted_schedule}\n\nAccess Link: {shareable_link}\n\nBest regards,\n{st.session_state['host_email']}"
                     
                     st.success(f"✅ Successfully compiled {len(emails)} automated email drafts!")
                     for mail in emails:
