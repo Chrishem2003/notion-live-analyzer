@@ -41,6 +41,7 @@ from modules.port_scanner import render_port_scanner_panel
 from modules.cve_auditor import render_cve_auditor_panel
 from modules.disk_monitor import render_disk_monitor_panel
 from modules.env_auditor import render_env_auditor_panel
+from modules.neural_sentinel import render_neural_sentinel_panel
 
 # Initialize Database Persistence Layer
 init_db()
@@ -72,7 +73,7 @@ def main():
             "Stripe Licensing & Student Verification",
             "Spatial Audio Focus Soundscapes",
             "Devin AI Code Reviewer",
-            "CI/CD Pipeline Watchdog",`n            "Runtime Supervisor Daemon",`n            "Global Edge Telemetry & Ping",`n            "Docker Container Lifecycle",`n            "Network Port Scanner",`n            "CVE Vulnerability Auditor",`n            "Disk Space & Partition Monitor",`n            "Environment & Secrets Auditor",
+            "CI/CD Pipeline Watchdog",`n            "Runtime Supervisor Daemon",`n            "Global Edge Telemetry & Ping",`n            "Docker Container Lifecycle",`n            "Network Port Scanner",`n            "CVE Vulnerability Auditor",`n            "Disk Space & Partition Monitor",`n            "Environment & Secrets Auditor",`n            "Neural Sentinel & Self-Healing",
             "Performance Profiler & Benchmarks",
             "Threat Response & Incident Log",
             "Automated Backup & Recovery"
@@ -157,6 +158,8 @@ def main():
         render_disk_monitor_panel()
     elif navigation == "Environment & Secrets Auditor":
         render_env_auditor_panel()
+    elif navigation == "Neural Sentinel & Self-Healing":
+        render_neural_sentinel_panel()
     elif navigation == "Performance Profiler & Benchmarks":
         render_profiler_panel()
     elif navigation == "Threat Response & Incident Log":
@@ -166,6 +169,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
