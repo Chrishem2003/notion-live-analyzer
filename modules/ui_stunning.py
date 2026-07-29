@@ -1,81 +1,91 @@
 """
-World-Class Enterprise UI Styling & Typography Engine (Dark Mode Optimized)
-Eliminates eye strain with soft charcoal backgrounds, high-contrast typography, and premium card styling.
+World-Class Enterprise UI Styling & Typography Engine (Deep Component Dark Mode)
+Forces crystal-clear contrast across all Streamlit pages, widgets, tables, and text blocks.
 """
 import streamlit as st
 
 def apply_stunning_styles():
-    """Injects global CSS to enforce a sleek, eye-soothing dark mode across all pages."""
+    """Injects universal CSS overrides to guarantee absolute text clarity on every page."""
     st.markdown("""
     <style>
-        /* Global Typography & Deep Charcoal Background */
-        html, body, [class*="css"] {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #f1f5f9 !important; /* Soft bright white for crystal-clear readability */
+        /* 1. Global App Background & Text */
+        .stApp, [data-testid="stViewToolbar"], header {
+            background-color: #0b0f19 !important;
+            color: #f8fafc !important;
         }
 
-        /* App Main Background - Deep Slate/Charcoal to stop blinding glare */
-        .stApp {
-            background-color: #0f172a !important;
+        /* 2. Sidebar Complete Dark Overhaul */
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div:first-child {
+            background-color: #111827 !important;
+            color: #f8fafc !important;
+            border-right: 1px solid #1f2937 !important;
+        }
+        [data-testid="stSidebar"] p, [data-testid="stSidebar"] span, [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stMarkdown {
+            color: #e2e8f0 !important;
         }
 
-        /* Sidebar Styling */
-        [data-testid="stSidebar"] {
-            background-color: #1e293b !important;
-            border-right: 1px solid #334155 !important;
-        }
-
-        /* High-Contrast Headings */
-        h1, h2, h3, h4, h5, h6 {
+        /* 3. Universal Headings & Paragraphs */
+        h1, h2, h3, h4, h5, h6, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
             color: #ffffff !important;
-            font-weight: 700 !important;
-            letter-spacing: -0.025em;
         }
-
-        /* Readable Paragraphs & Text */
-        p, span, label, .stMarkdown {
+        p, span, label, div, .stMarkdown, .stText {
             color: #cbd5e1 !important;
-            font-size: 1rem;
-            line-height: 1.6;
         }
 
-        /* Professional Card Containers */
-        .stMetric, div[data-testid="stVerticalBlock"] > div[style*="border"], div.element-container {
-            color: #f1f5f9 !important;
+        /* 4. Streamlit Cards, Containers & Metrics */
+        div[data-testid="stVerticalBlock"] > div, div.element-container {
+            color: #f8fafc !important;
         }
-        
+        .stMetric {
+            background-color: #111827 !important;
+            border: 1px solid #1f2937 !important;
+            padding: 1rem;
+            border-radius: 10px;
+        }
         div[data-testid="stMetricValue"] {
-            color: #38bdf8 !important; /* Vibrant cyan accent for metrics */
+            color: #38bdf8 !important;
+        }
+        div[data-testid="stMetricLabel"] {
+            color: #94a3b8 !important;
         }
 
-        /* Button Styling */
-        .stButton > button {
-            background-color: #2563eb !important;
+        /* 5. Input Fields, Selectboxes & Text Inputs */
+        .stTextInput input, .stSelectbox select, .stNumberInput input, textarea {
+            background-color: #1f2937 !important;
             color: #ffffff !important;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            border: none;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s ease-in-out;
-        }
-        .stButton > button:hover {
-            background-color: #1d4ed8 !important;
-            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Input Fields & Selectboxes */
-        .stTextInput input, .stSelectbox select, .stNumberInput input {
-            background-color: #1e293b !important;
-            color: #ffffff !important;
-            border: 1px solid #475569 !important;
+            border: 1px solid #374151 !important;
             border-radius: 8px !important;
         }
+        .stSelectbox div[data-baseweb="select"] {
+            background-color: #1f2937 !important;
+            color: #ffffff !important;
+        }
 
-        /* Dataframes & Tables */
-        dataframe, table {
-            background-color: #1e293b !important;
-            color: #f1f5f9 !important;
+        /* 6. Tables & DataFrames */
+        dataframe, table, [data-testid="stTable"] {
+            background-color: #111827 !important;
+            color: #f8fafc !important;
+        }
+        thead tr th {
+            background-color: #1f2937 !important;
+            color: #ffffff !important;
+        }
+        tbody tr td {
+            background-color: #111827 !important;
+            color: #e2e8f0 !important;
+        }
+
+        /* 7. Tabs & Sub-Navigation Headers */
+        .stTabs [data-baseweb="tab-list"] {
+            background-color: #0b0f19 !important;
+        }
+        .stTabs [data-baseweb="tab"] {
+            color: #94a3b8 !important;
+            font-weight: 600;
+        }
+        .stTabs [aria-selected="true"] {
+            color: #38bdf8 !important;
+            border-bottom-color: #38bdf8 !important;
         }
     </style>
     """, unsafe_allow_html=True)
