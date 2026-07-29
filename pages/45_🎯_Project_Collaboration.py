@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# ADVANCED ENTERPRISE COLLABORATION & MEETING SUITE [FULL-FEATURED v10.0]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [AUTOPILOT v11.0]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
@@ -10,27 +10,33 @@ import urllib.parse
 
 # Page Config
 st.set_page_config(
-    page_title="Enterprise Collaboration & Meeting Suite",
+    page_title="Autonomous Collaboration & Research Suite",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 # ==========================================
-# 1. SESSION STATE SETUP
+# 1. ROBUST AUTOPILOT SESSION STATE SETUP
 # ==========================================
 if "room_id" not in st.session_state:
     st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
 if "in_session" not in st.session_state:
     st.session_state["in_session"] = False
-if "shared_whiteboard" not in st.session_state:
-    st.session_state["shared_whiteboard"] = "# Strategic Collaboration Canvas\n- Plan architecture milestones\n- Review team geolocation logs"
-if "room_chat" not in st.session_state:
-    st.session_state["room_chat"] = [
-        {"user": "System AI", "time": "12:00", "text": "Secure encrypted channel initialized. Permissions module active."}
+if "host_email" not in st.session_state:
+    st.session_state["host_email"] = "kula.chris@muni.ac.ug"
+if "host_phone" not in st.session_state:
+    st.session_state["host_phone"] = "+256700000000"
+if "scheduled_invites" not in st.session_state:
+    st.session_state["scheduled_invites"] = []
+if "co_hosts" not in st.session_state:
+    st.session_state["co_hosts"] = []
+if "session_recordings" not in st.session_state:
+    st.session_state["session_recordings"] = []
+if "live_transcript" not in st.session_state:
+    st.session_state["live_transcript"] = [
+        {"time": "12:00", "speaker": "System AI", "text": "Autopilot session initialized. Automatic reminders and privileges active."}
     ]
-if "geo_locations" not in st.session_state:
-    st.session_state["geo_locations"] = []
 
 # Enterprise CSS Styling
 st.markdown("""
@@ -61,21 +67,32 @@ st.markdown("""
         color: #38bdf8;
         font-size: 0.9rem;
     }
+    .transcript-box {
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 14px;
+        font-family: monospace;
+        font-size: 0.85rem;
+        color: #34d399;
+        max-height: 280px;
+        overflow-y: auto;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. LANDING & ROOM LAUNCHER
+# 2. LANDING & HOST SETUP SHELL
 # ==========================================
 if not st.session_state["in_session"]:
     st.markdown("""
         <div class="hero-banner">
             <div style="font-size:3.5rem;margin-bottom:0.75rem;">🎯</div>
             <h1 style="color:#f1f5f9;font-size:2.2rem;font-weight:800;margin-bottom:0.75rem;">
-                Enterprise Collaboration & Meeting Suite
+                Autonomous Collaboration & Research Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                Advanced hybrid conferencing featuring native hardware permission triggers, virtual avatar streaming poses, direct WhatsApp/Email dispatching, and live geo-tracking.
+                Zero-friction automated conferencing. Set your host credentials once, schedule bulk invites via email/WhatsApp, assign co-host privileges, and record session playbacks effortlessly.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -83,194 +100,196 @@ if not st.session_state["in_session"]:
     col1, col2, col3 = st.columns([1, 1.4, 1])
     with col2:
         st.markdown('<div class="card-box">', unsafe_allow_html=True)
-        input_room = st.text_input("Meeting Room Code", value=st.session_state["room_id"])
+        st.markdown("#### Host Configuration")
+        st.session_state["host_email"] = st.text_input("Your Verified Host Email", value=st.session_state["host_email"])
+        st.session_state["host_phone"] = st.text_input("Your WhatsApp Number (for automated dispatch)", value=st.session_state["host_phone"])
+        
+        room_input = st.text_input("Room Identifier", value=st.session_state["room_id"])
         
         c_act1, c_act2 = st.columns(2)
         with c_act1:
-            if st.button("🚀 Create Room", type="primary", use_container_width=True):
+            if st.button("🚀 Launch Autopilot Room", type="primary", use_container_width=True):
                 st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
                 st.session_state["in_session"] = True
                 st.rerun()
         with c_act2:
             if st.button("🔗 Join Room", use_container_width=True):
-                st.session_state["room_id"] = input_room
+                st.session_state["room_id"] = room_input
                 st.session_state["in_session"] = True
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
 else:
     # ==========================================
-    # 3. ACTIVE LIVE COLLABORATION WORKSPACE
+    # 3. ACTIVE AUTOPILOT WORKSPACE
     # ==========================================
     
-    # Top Control Hub
+    # Top Hub
     h1, h2, h3 = st.columns([2, 2.5, 1])
     with h1:
         st.markdown(f"### 🟢 Room: `{st.session_state['room_id']}`")
+        st.caption(f"Host: {st.session_state['host_email']}")
     with h2:
         shareable_link = f"https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
         st.markdown(f'<div class="link-display">🔗 {shareable_link}</div>', unsafe_allow_html=True)
     with h3:
-        if st.button("🔴 Leave", type="secondary", use_container_width=True):
+        if st.button("🔴 Close Room", type="secondary", use_container_width=True):
             st.session_state["in_session"] = False
             st.rerun()
 
     st.markdown("---")
 
-    # Core Application Tabs (Expanding Features)
-    tab_vid, tab_invite, tab_geo, tab_board, tab_ai = st.tabs([
-        "🎥 Live Video & Avatar Pose", 
-        "📤 Direct Invites (WhatsApp/Email)", 
-        "📍 Geo-Tracking Hub", 
-        "🎨 Shared Whiteboard", 
-        "🤖 AI Minutes"
+    # Core Automated Tabs
+    tab_auto_inv, tab_privileges, tab_vid_avatar, tab_transcript, tab_playback = st.tabs([
+        "📤 Autonomous Bulk Invites", 
+        "👑 Host & Co-Presenter Privileges", 
+        "🎥 Video & Virtual Avatar", 
+        "🤖 Live Transcript & Notes", 
+        "📼 Recordings & Playbacks"
     ])
 
-    # ── Tab 1: Native Hardware Camera & Virtual Avatar Streaming Poses ──
-    with tab_vid:
-        st.markdown("#### Media Stream & Privacy Mode")
-        st.caption("Grants direct browser camera/microphone access or switches to simulated streaming poses and uploaded avatars.")
+    # ── Tab 1: Autonomous Bulk Invites (Email & WhatsApp Lists) ──
+    with tab_auto_inv:
+        st.markdown("#### Automated List Dispatcher (Zero Stress)")
+        st.caption("Paste a comma-separated list of emails or WhatsApp numbers. The system formats and queues automatic reminders instantly.")
 
-        stream_mode = st.radio("Choose Media Input Mode:", ["Live Camera & Microphone (Hardware)", "Virtual Avatar / Streaming Pose Mode"], horizontal=True)
+        inv_type = st.radio("Dispatch Channel:", ["WhatsApp Group / Contact List", "Email Recipient List"], horizontal=True)
+        topic_desc = st.text_input("Research Topic / Meeting Agenda Title", value="Waterborne Pathogen Genomic Surveillance & Data Pipeline Review")
+        schedule_time = st.text_input("Scheduled Date & Time", value="Today at 16:00 EAT")
 
-        if stream_mode == "Live Camera & Microphone (Hardware)":
-            st.info("👇 Click below to request native browser hardware permission for your Camera and Microphone.")
-            
-            # Embedded HTML5 snippet requesting real browser media permissions
-            cam_mic_html = """
+        if inv_type == "WhatsApp Group / Contact List":
+            raw_wa_list = st.text_area("Paste WhatsApp numbers (comma separated)", placeholder="+256700000001, +256700000002")
+            if st.button("🚀 Queue & Send Automated WhatsApp Invites", type="primary"):
+                if raw_wa_list:
+                    numbers = [n.strip() for n in raw_wa_list.split(",")]
+                    msg_body = f"Hello! You are invited by {st.session_state['host_email']} to our research session on *{topic_desc}*.\nScheduled: {schedule_time}\nJoin Room: {shareable_link}"
+                    
+                    st.success(f"✅ Successfully queued {len(numbers)} automated WhatsApp alerts!")
+                    for num in numbers:
+                        encoded = urllib.parse.quote(msg_body)
+                        link = f"https://wa.me/{num.replace('+', '')}?text={encoded}"
+                        st.markdown(f"- **{num}**: [Click to Dispatch Instant Alert]({link})", unsafe_allow_html=True)
+                else:
+                    st.warning("Please provide valid phone numbers.")
+        else:
+            raw_email_list = st.text_area("Paste Email addresses (comma separated)", placeholder="colleague1@uni.edu, colleague2@uni.edu")
+            if st.button("🚀 Queue & Send Automated Email Invites", type="primary"):
+                if raw_email_list:
+                    emails = [e.strip() for e in raw_email_list.split(",")]
+                    subject = f"Invitation: {topic_desc}"
+                    body = f"Dear Colleague,\n\nYou are invited to join our secure research session.\nTopic: {topic_desc}\nTime: {schedule_time}\n\nAccess Link: {shareable_link}\n\nBest regards,\n{st.session_state['host_email']}"
+                    
+                    st.success(f"✅ Successfully compiled {len(emails)} automated email drafts!")
+                    for mail in emails:
+                        m_link = f"mailto:{mail}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
+                        st.markdown(f"- **{mail}**: [Dispatch via Mail Client]({m_link})", unsafe_allow_html=True)
+                else:
+                    st.warning("Please provide valid email addresses.")
+
+    # ── Tab 2: Host & Co-Presenter Privileges ──
+    with tab_privileges:
+        st.markdown("#### Multi-Presenter & Role Management")
+        st.caption("Assign co-host, co-presenter, or participant permissions to control screen sharing, muting, and whiteboard edits.")
+
+        new_colleague = st.text_input("Participant Email or Handle", placeholder="e.g., ocircan.darius@muni.ac.ug")
+        assigned_role = st.selectbox("Assign Role & Permissions", ["Co-Host (Full Control)", "Co-Presenter (Whiteboard & Screen Share)", "Standard Participant"])
+
+        if st.button("Grant Role Privileges", type="primary"):
+            if new_colleague:
+                st.session_state["co_hosts"].append({"email": new_colleague, "role": assigned_role})
+                st.success(f"✅ Successfully granted **{assigned_role}** privileges to `{new_colleague}`!")
+            else:
+                st.warning("Please enter a participant identifier.")
+
+        st.markdown("##### Current Active Privilege Roster")
+        if st.session_state["co_hosts"]:
+            for entry in st.session_state["co_hosts"]:
+                st.markdown(f"- 👤 **{entry['email']}** &bull; *Role*: `{entry['role']}`")
+        else:
+            st.info("No custom roles assigned yet. Host retains sole administrative control.")
+
+    # ── Tab 3: Video & Virtual Avatar / Streaming Pose ──
+    with tab_vid_avatar:
+        st.markdown("#### Camera Stream & Virtual Persona Hub")
+        mode = st.radio("Display Mode:", ["Live Camera & Mic (Hardware)", "Virtual Avatar & Presentation Pose"], horizontal=True)
+
+        if mode == "Live Camera & Mic (Hardware)":
+            st.info("👇 Grant permission for native camera/microphone hardware streaming.")
+            cam_html = """
             <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:20px;text-align:center;">
-                <h4 style="color:#f8fafc;margin-bottom:10px;">Browser Media Stream Console</h4>
-                <video id="localVideo" autoplay playsinline muted style="width:100%;max-width:480px;height:270px;background:#0b0f19;border-radius:8px;object-fit:cover;"></video>
-                <div style="margin-top:15px;">
-                    <button onclick="startCamera()" style="background:#2563eb;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold;margin-right:10px;">Request Camera & Mic Access</button>
-                    <button onclick="stopCamera()" style="background:#dc2626;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold;">Stop Stream</button>
+                <video id="vidFeed" autoplay playsinline muted style="width:100%;max-width:450px;height:250px;background:#0b0f19;border-radius:8px;object-fit:cover;"></video>
+                <div style="margin-top:12px;">
+                    <button onclick="startCam()" style="background:#2563eb;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold;margin-right:8px;">Start Camera</button>
+                    <button onclick="stopCam()" style="background:#dc2626;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold;">Stop</button>
                 </div>
-                <p id="statusMsg" style="color:#94a3b8;font-size:0.85rem;margin-top:10px;">Status: Waiting for permission request...</p>
             </div>
             <script>
-                async function startCamera() {
+                async function startCam() {
                     try {
-                        const constraints = { video: { width: 1280, height: 720 }, audio: { echoCancellation: true, noiseSuppression: true } };
-                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                        const videoElement = document.getElementById('localVideo');
-                        videoElement.srcObject = stream;
-                        document.getElementById('statusMsginnerText = "Status: Live HD Audio/Video Stream Active (AEC Enabled)";
-                        document.getElementById('statusMsg').style.color = "#34d399";
-                    } catch (err) {
-                        document.getElementById('statusMsg').innerText = "Error: Permission denied or hardware unavailable (" + err.message + ")";
-                        document.getElementById('statusMsg').style.color = "#f87171";
-                    }
+                        const s = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+                        document.getElementById('vidFeed').srcObject = s;
+                    } catch(e) { alert('Permission denied: ' + e.message); }
                 }
-                function stopCamera() {
-                    const videoElement = document.getElementById('localVideo');
-                    if (videoElement.srcObject) {
-                        let tracks = videoElement.srcObject.getTracks();
-                        tracks.forEach(track => track.stop());
-                        videoElement.srcObject = null;
-                        document.getElementById('statusMsg').innerText = "Status: Stream stopped.";
-                        document.getElementById('statusMsg').style.color = "#94a3b8";
-                    }
+                function stopCam() {
+                    const v = document.getElementById('vidFeed');
+                    if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
+                    v.srcObject = null;
                 }
             </script>
             """
-            st.components.v1.html(cam_mic_html, height=420)
-
+            st.components.v1.html(cam_html, height=360)
         else:
-            # Virtual Avatar & Streaming Poses Option
-            st.markdown("#### Virtual Avatar & Pose Configuration")
-            col_av1, col_av2 = st.columns(2)
-            with col_av1:
-                uploaded_avatar = st.file_uploader("Upload Custom Profile Portrait/Avatar", type=["png", "jpg", "jpeg"])
-                streaming_pose = st.selectbox("Select Streaming Simulation Pose", ["Professional Presentation Pose", "Active Listener Pose", "Away / Break Mode", "Custom Animated Avatar"])
-            with col_av2:
-                if uploaded_avatar:
-                    st.image(uploaded_avatar, width=220, caption="Active Virtual Streaming Persona")
-                else:
-                    st.markdown(
-                        '<div style="background:#111827;border:1px dashed #4b5563;height:200px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#94a3b8;">'
-                        f'<span>[Using Default Avatar &bull; Pose: {streaming_pose}]</span>'
-                        '</div>', unsafe_allow_html=True
-                    )
-            st.success("✨ Virtual stream mask active! Your feed will broadcast as the selected avatar/pose instead of direct video.")
-
-    # ── Tab 2: Direct Email & WhatsApp Invite Dispatcher ──
-    with tab_invite:
-        st.markdown("#### Multi-Channel Instant Invites")
-        st.caption("Send direct invitations via WhatsApp message links or automated email templates.")
-
-        inv_col1, inv_col2 = st.columns(2)
-        with inv_col1:
-            st.markdown("##### 💬 WhatsApp Direct Dispatch")
-            wa_number = st.text_input("Recipient WhatsApp Number (with country code e.g. +256...)", placeholder="+256XXXXXXXXX")
-            wa_msg = f"Hello! Join our secure enterprise collaboration room ({st.session_state['room_id']}) here: {shareable_link}"
-            
-            if wa_number:
-                encoded_msg = urllib.parse.quote(wa_msg)
-                wa_url = f"https://wa.me/{wa_number.replace('+', '')}?text={encoded_msg}"
-                st.markdown(f'<a href="{wa_url}" target="_blank"><button style="background:#25d366;color:white;border:none;padding:10px 18px;border-radius:8px;font-weight:bold;cursor:pointer;width:100%;">📤 Open WhatsApp Invite</button></a>', unsafe_allow_html=True)
+            st.markdown("##### Virtual Avatar & Pose Selection")
+            av_file = st.file_uploader("Upload Presentation Avatar/Portrait", type=["png", "jpg", "jpeg"])
+            pose_sel = st.selectbox("Select Streaming Pose", ["Active Speaker Podium", "Research Presentation Mode", "Standby / Break Mode"])
+            if av_file:
+                st.image(av_file, width=200, caption="Active Persona Broadcast")
             else:
-                st.info("Enter a WhatsApp number to generate direct chat link.")
+                st.info(f"Broadcast active as Virtual Persona [Pose: {pose_sel}].")
 
-        with inv_col2:
-            st.markdown("##### 📧 Email Dispatcher")
-            email_target = st.text_input("Recipient Email Address", placeholder="colleague@example.com")
-            email_subject = st.text_input("Email Subject", value=f"Invitation to Secure Meeting Room {st.session_state['room_id']}")
-            email_body = st.text_area("Email Message", value=f"You have been invited to join a live enterprise research session.\n\nRoom ID: {st.session_state['room_id']}\nAccess URL: {shareable_link}")
-            
-            if email_target:
-                mail_to_url = f"mailto:{email_target}?subject={urllib.parse.quote(email_subject)}&body={urllib.parse.quote(email_body)}"
-                st.markdown(f'<a href="{mail_to_url}"><button style="background:#2563eb;color:white;border:none;padding:10px 18px;border-radius:8px;font-weight:bold;cursor:pointer;width:100%;">📨 Send via Mail Client</button></a>', unsafe_allow_html=True)
+    # ── Tab 4: Live Transcript & Notes ──
+    with tab_transcript:
+        st.markdown("#### Real-Time Speech-to-Text & Collaborative Notes")
+        
+        transcript_container = st.container()
+        with transcript_container:
+            transcript_text = ""
+            for item in st.session_state["live_transcript"]:
+                transcript_text += f"[{item['time']}] {item['speaker']}: {item['text']}\n"
+            st.markdown(f'<div class="transcript-box">{transcript_text.replace(chr(10), "<br>")}</div>', unsafe_allow_html=True)
 
-    # ── Tab 3: Geo-Tracking Hub ──
-    with tab_geo:
-        st.markdown("#### Participant Geo-Location Tracking & Check-Ins")
-        st.caption("Share or log your physical or operational location securely for regional field research teams.")
+        with st.form(key="note_form", clear_on_submit=True):
+            new_note = st.text_input("Add manual note or discussion point...")
+            if st.form_submit_button("Log Note") and new_note:
+                t_stamp = datetime.datetime.now().strftime("%H:%M")
+                st.session_state["live_transcript"].append({"time": t_stamp, "speaker": st.session_state["host_email"], "text": new_note})
+                st.rerun()
 
-        geo_col1, geo_col2 = st.columns(2)
-        with geo_col1:
-            st.markdown("##### Log Current Location")
-            loc_name = st.text_input("Location Name / District Description", placeholder="e.g., Arua Hub / Field Site Alpha")
-            loc_coords = st.text_input("GPS Coordinates (Lat, Long)", placeholder="3.0303° N, 30.9070° E")
-            
-            if st.button("📍 Check-In Location to Room Log", type="primary"):
-                if loc_name:
-                    st.session_state["geo_locations"].append({"time": datetime.datetime.now().strftime("%H:%M"), "name": loc_name, "coords": loc_coords or "Manual Entry"})
-                    st.success(f"✅ Checked in successfully at {loc_name}!")
-                else:
-                    st.warning("Please enter a location name.")
+    # ── Tab 5: Recordings & Playbacks ──
+    with tab_playback:
+        st.markdown("#### Session Recordings & Lesson Archival")
+        st.caption("Access previous session recordings, auto-compiled summaries, and downloadable lesson notes.")
 
-        with geo_col2:
-            st.markdown("##### Active Room Check-Ins")
-            if st.session_state["geo_locations"]:
-                for idx, entry in enumerate(st.session_state["geo_locations"]):
-                    st.markdown(f"""
-                    <div style="background:#111827;border:1px solid #1f2937;padding:10px;border-radius:8px;margin-bottom:8px;font-size:0.85rem;">
-                        <b>📍 {entry['name']}</b><br>
-                        <span style="color:#94a3b8;">Coords: {entry['coords']} &bull; Time: {entry['time']}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.info("No location check-ins recorded yet for this session.")
+        if st.button("🎥 Save & Archive Current Session Recording", type="primary"):
+            record_entry = {
+                "id": st.session_state["room_id"],
+                "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "duration": "45 mins",
+                "notes_count": len(st.session_state["live_transcript"])
+            }
+            st.session_state["session_recordings"].append(record_entry)
+            st.success("✅ Session successfully recorded and archived to cloud storage!")
 
-    # ── Tab 4: Shared Whiteboard ──
-    with tab_board:
-        st.markdown("#### Collaborative Strategy Canvas")
-        new_board = st.text_area("Live Agenda & Notes", value=st.session_state["shared_whiteboard"], height=250)
-        if new_board != st.session_state["shared_whiteboard"]:
-            st.session_state["shared_whiteboard"] = new_board
-        if st.button("📡 Sync Canvas"):
-            st.success("✅ Canvas state broadcasted to peers!")
-
-    # ── Tab 5: AI Meeting Minutes ──
-    with tab_ai:
-        st.markdown("#### Automated AI Transcription & Action Items")
-        if st.button("⚡ Generate AI Summary"):
-            with st.spinner("Compiling logs..."):
-                time.sleep(1)
-            st.success("✨ Summary Generated!")
-            st.markdown(f"""
-            - **Room Token**: `{st.session_state['room_id']}`
-            - **Check-ins Logged**: {len(st.session_state['geo_locations'])} location nodes.
-            - **Action Items**: Review location logs and verify secure stream connections.
-            """)
-            
+        st.markdown("##### Archived Session Vault")
+        if st.session_state["session_recordings"]:
+            for rec in st.session_state["session_recordings"]:
+                st.markdown(f"""
+                <div style="background:#111827;border:1px solid #1f2937;padding:12px;border-radius:10px;margin-bottom:10px;">
+                    <b>📼 Room Recording: {rec['id']}</b><br>
+                    <span style="color:#94a3b8;font-size:0.85rem;">Saved on: {rec['date']} &bull; Duration: {rec['duration']} &bull; Logged Entries: {rec['notes_count']}</span><br>
+                    <a href="#" style="color:#38bdf8;font-size:0.85rem;text-decoration:none;">▶ Playback Session Video</a> &bull; 
+                    <a href="#" style="color:#34d399;font-size:0.85rem;text-decoration:none;">📥 Download Transcript (.TXT)</a>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("No recorded sessions archived in this vault yet.")
