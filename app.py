@@ -35,6 +35,7 @@ from modules.spatial_audio import render_spatial_audio_panel
 from modules.devin_reviewer import render_devin_review_panel
 from modules.ci_watchdog import render_ci_watchdog_panel
 from supervisor_daemon import render_supervisor_panel
+from modules.global_ping import render_global_ping_panel
 
 # Initialize Database Persistence Layer
 init_db()
@@ -66,7 +67,7 @@ def main():
             "Stripe Licensing & Student Verification",
             "Spatial Audio Focus Soundscapes",
             "Devin AI Code Reviewer",
-            "CI/CD Pipeline Watchdog",`n            "Runtime Supervisor Daemon",
+            "CI/CD Pipeline Watchdog",`n            "Runtime Supervisor Daemon",`n            "Global Edge Telemetry & Ping",
             "Performance Profiler & Benchmarks",
             "Threat Response & Incident Log",
             "Automated Backup & Recovery"
@@ -139,6 +140,8 @@ def main():
         render_ci_watchdog_panel()
     elif navigation == "Runtime Supervisor Daemon":
         render_supervisor_panel()
+    elif navigation == "Global Edge Telemetry & Ping":
+        render_global_ping_panel()
     elif navigation == "Performance Profiler & Benchmarks":
         render_profiler_panel()
     elif navigation == "Threat Response & Incident Log":
@@ -148,4 +151,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
