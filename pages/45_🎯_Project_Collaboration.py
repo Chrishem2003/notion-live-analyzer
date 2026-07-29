@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v13.0]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v14.0]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
@@ -37,12 +37,12 @@ if "live_transcript" not in st.session_state:
     ]
 if "raised_hands" not in st.session_state:
     st.session_state["raised_hands"] = []
-if "live_reactions" not in st.session_state:
-    st.session_state["live_reactions"] = ["🔥", "💡", "👏", "🧬", "🚀"]
 if "room_chat" not in st.session_state:
     st.session_state["room_chat"] = [
         {"user": "System", "msg": "Welcome to the open collaborative floor. Drop comments or raise your hand anytime."}
     ]
+if "whiteboard_notes" not in st.session_state:
+    st.session_state["whiteboard_notes"] = ["Project Alpha: Genomic Sequence Pipeline Active", "Next checkpoint review scheduled Friday."]
 
 # Enterprise Dark-Mode CSS Styling
 st.markdown("""
@@ -124,7 +124,7 @@ if not st.session_state["in_session"]:
                 Autonomous Collaboration & Research Suite
             </h1>
             <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
-                Unlimited-scale global conferencing with multi-provider mail dispatching, TikTok-style camera filters, live hand-raising queues, interactive reaction streams, and AI research synthesis.
+                Unlimited-scale global conferencing with multi-provider mail dispatchers, TikTok-style camera filters, live hand-raising queues, interactive reaction streams, and AI research synthesis.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -183,13 +183,14 @@ else:
 
     st.markdown("---")
 
-    # Core Extended Tabs (Added Interactive Audience & AI Synth Hubs)
-    tab_auto_inv, tab_audience, tab_privileges, tab_vid_avatar, tab_transcript, tab_playback = st.tabs([
+    # Core Extended Tabs (Added Collaborative Whiteboard & Breakout Rooms)
+    tab_auto_inv, tab_audience, tab_whiteboard, tab_privileges, tab_vid_avatar, tab_transcript, tab_playback = st.tabs([
         "📤 Bulk Invites", 
-        "💬 Audience, Chat & Reactions", 
-        "👑 Privileges & Roles", 
+        "💬 Audience & Chat", 
+        "📋 Shared Whiteboard", 
+        "👑 Privileges", 
         "🎥 Camera & Filters", 
-        "🤖 AI Research & Notes", 
+        "🤖 AI Synthesis", 
         "📼 Record & Playback"
     ])
 
@@ -319,7 +320,27 @@ else:
                 st.session_state["room_chat"].append({"user": st.session_state["host_email"], "msg": chat_input})
                 st.rerun()
 
-    # ── Tab 3: Host & Co-Presenter Privileges ──
+    # ── Tab 3: Shared Whiteboard & Collaborative Workspace ──
+    with tab_whiteboard:
+        st.markdown("#### Real-Time Collaborative Whiteboard & Notes Canvas")
+        st.caption("All participants can add sticky notes, equations, or research snippets to the shared board.")
+
+        wb_input = st.text_input("Add sticky note / snippet to shared whiteboard...", key="wb_text_input")
+        if st.button("📌 Pin Note to Board", type="primary"):
+            if wb_input:
+                st.session_state["whiteboard_notes"].append(f"{st.session_state['host_email']}: {wb_input}")
+                st.success("Note pinned successfully!")
+                st.rerun()
+
+        st.markdown("##### Current Board Canvas")
+        for idx, note in enumerate(st.session_state["whiteboard_notes"]):
+            st.markdown(f"""
+            <div style="background:#111827;border:1px solid #374151;border-left:4px solid #38bdf8;padding:12px 16px;border-radius:8px;margin-bottom:10px;">
+                <b>Note #{idx+1}</b><br>{note}
+            </div>
+            """, unsafe_allow_html=True)
+
+    # ── Tab 4: Host & Co-Presenter Privileges ──
     with tab_privileges:
         st.markdown("#### Multi-Presenter & Role Management")
         st.caption("Assign co-host, co-presenter, or participant permissions to control screen sharing, muting, and whiteboard edits.")
@@ -341,7 +362,7 @@ else:
         else:
             st.info("No custom roles assigned yet. Host retains sole administrative control.")
 
-    # ── Tab 4: Video, Filters & Camera ──
+    # ── Tab 5: Video, Filters & Camera ──
     with tab_vid_avatar:
         st.markdown("#### Advanced Camera Hub, Sensor Switch & TikTok-Style Filters")
         st.caption("Fixes broken camera feeds/red lines by selecting exact hardware camera sensors (such as keyboard-dock cameras or external webcams) and applying real-time filters.")
@@ -359,14 +380,7 @@ else:
 
             cam_html = f"""
             <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:20px;text-align:center;">
-                <video id="vidFeed" autoplay playsinline muted style="width:100%;max-width:500px;height:280px;background:#0b0f19;border-radius:8px;object-fit:cover;filter: {
-                    'none' if filter_style=='Normal (Raw Sensor)' else 
-                    'brightness(1.15) contrast(1.1) saturate(1.2)' if filter_style=='Studio Glow & Skin Smoothing' else 
-                    'hue-rotate(180deg) saturate(2)' if filter_style=='Cyberpunk Neon Contrast' else 
-                    'grayscale(100%) contrast(1.3)' if filter_style=='Cinematic Noir' else 
-                    'sepia(0.3) brightness(1.1)' if filter_style=='Warm Academic Glow' else 
-                    'hue-rotate(90deg) saturate(3)'
-                };"></video>
+                <video id="vidFeed" autoplay playsinline muted style="width:100%;max-width:500px;height:280px;background:#0b0f19;border-radius:8px;object-fit:cover;filter: {'none' if filter_style=='Normal (Raw Sensor)' else 'brightness(1.15) contrast(1.1) saturate(1.2)' if filter_style=='Studio Glow & Skin Smoothing' else 'hue-rotate(180deg) saturate(2)' if filter_style=='Cyberpunk Neon Contrast' else 'grayscale(100%) contrast(1.3)' if filter_style=='Cinematic Noir' else 'sepia(0.3) brightness(1.1)' if filter_style=='Warm Academic Glow' else 'hue-rotate(90deg) saturate(3)'};"></video>
                 <div style="margin-top:14px;">
                     <button onclick="startCam()" style="background:#2563eb;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold;margin-right:8px;">Start Camera Feed</button>
                     <button onclick="stopCam()" style="background:#dc2626;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold;">Stop Camera</button>
@@ -381,7 +395,7 @@ else:
                         }};
                         const s = await navigator.mediaDevices.getUserMedia(constraints);
                         document.getElementById('vidFeed').srcObject = s;
-                    } catch(e) { alert('Camera access error or red-line conflict: ' + e.message); }
+                    } catch(e) {{ alert('Camera access error or red-line conflict: ' + e.message); }}
                 }
                 function stopCam() {
                     const v = document.getElementById('vidFeed');
@@ -400,7 +414,7 @@ else:
             else:
                 st.info(f"Broadcast active as Virtual Persona [Pose: {pose_sel}].")
 
-    # ── Tab 5: AI Research Synthesis & Live Transcript ──
+    # ── Tab 6: AI Research Synthesis & Live Transcript ──
     with tab_transcript:
         st.markdown("#### Real-Time Speech-to-Text & AI Research Synthesis")
         
@@ -426,7 +440,7 @@ else:
                 st.session_state["live_transcript"].append({"time": t_stamp, "speaker": st.session_state["host_email"], "text": new_note})
                 st.rerun()
 
-    # ── Tab 6: Recordings & Playbacks ──
+    # ── Tab 7: Recordings & Playbacks ──
     with tab_playback:
         st.markdown("#### Session Recordings & Lesson Archival")
         st.caption("Access previous session recordings, auto-compiled summaries, and downloadable lesson notes.")
