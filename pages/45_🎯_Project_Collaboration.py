@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [AUTOPILOT v11.0]
+# AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [UI-FIXED v11.1]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
@@ -38,10 +38,27 @@ if "live_transcript" not in st.session_state:
         {"time": "12:00", "speaker": "System AI", "text": "Autopilot session initialized. Automatic reminders and privileges active."}
     ]
 
-# Enterprise CSS Styling
+# Enterprise Dark-Mode CSS Styling (Fixes input box visibility & contrast)
 st.markdown("""
 <style>
     .stApp { background-color: #0b0f19; color: #f8fafc; font-family: -apple-system, sans-serif; }
+    
+    /* Fix text inputs, text areas, and selectboxes to have dark backgrounds and visible text */
+    input, textarea, select {
+        background-color: #111827 !important;
+        color: #f8fafc !important;
+        border: 1px solid #374151 !important;
+        border-radius: 8px !important;
+    }
+    div[data-baseweb="input"] > div, div[data-baseweb="textarea"] > div {
+        background-color: #111827 !important;
+        color: #f8fafc !important;
+        border-color: #374151 !important;
+    }
+    input::placeholder, textarea::placeholder {
+        color: #6b7280 !important;
+    }
+
     .hero-banner {
         background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
         border: 1px solid #312e81;
