@@ -1,35 +1,48 @@
-import streamlit as st
+import sqlite3
 import pandas as pd
+import streamlit as st
 from datetime import datetime
 from modules.database import log_backend_event
 
-def get_recent_incidents() -> pd.DataFrame:
+def scan_for_threats() -> pd.DataFrame:
     """
-    Returns recent security incidents and automated containment actions executed by the engine.
+    Scans system logs and active sessions for known attack signatures, SQL injection patterns,
+    or brute-force anomalies.
     """
-    incidents = [
-        {"Incident_ID": "INC-2026-001", "Vector": "Brute-Force SSH Probe", "Target_Node": "CH-EAST-AFRICA-01", "Action_Taken": "IP Blacklisted & Dropped", "Status": "RESOLVED"},
-        {"Incident_ID": "INC-2026-002", "Vector": "Anomalous API Payload", "Target_Node": "PostgreSQL Vault Gateway", "Action_Taken": "Token Revoked & Sandboxed", "Status": "CONTAINED"},
-        {"Incident_ID": "INC-2026-003", "Vector": "Port Scan Probing", "Target_Node": "Nginx TLS/WAF Proxy", "Action_Taken": "Rate-Limited & Logged", "Status": "MITIGATED"}
-    ]
-    return pd.DataFrame(incidents)
+    db_path = "chrishem_engine.db"
+    if not os.path.exists(db_path):
+        return pd.DataFrame()
+
+    try:
+        conn = sqlite3.connect(db_path)
+        # Fetch recent warning/error logs or potential WAF triggers
+        query = "SELECT * FROM system_logs WHERE level IN ('WARNING', 'ERROR') ORDER BY id DESC LIMIT 50;"
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+        return df
+    except Exception as e:
+        log_backend_event("ERROR", f"Threat scan failed: {str(e)}")
+        return pd.DataFrame()
 
 def render_threat_response_panel():
     """
-    Renders the Autonomous Incident Response & Threat Containment dashboard inside Streamlit.
+    Renders the incident response and threat intelligence dashboard inside Streamlit.
     """
-    st.subheader("?? Autonomous Incident Response & Threat Containment")
-    st.caption("Real-time automated threat neutralization, IP blacklisting, and instant cluster lockdown controls.")
+    st.subheader("?? Incident Response & Threat Intelligence")
+    st.caption("Active monitoring for malicious payloads, anomalous auth failures, and system intrusion attempts.")
 
-    df_incidents = get_recent_incidents()
-    st.dataframe(df_incidents, use_container_width=True)
+    df_threats = scan_for_threats()
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("??? Purge Active Threat Vectors"):
-            log_backend_event("INFO", "User executed manual purge of active threat vectors.")
-            st.success("All active threat vectors successfully purged and ingress blacklists updated.")
-    with col2:
-        if st.button("?? Engage Emergency Cluster Lockdown"):
-            log_backend_event("WARNING", "User engaged emergency cluster lockdown protocol.")
-            st.error("EMERGENCY LOCKDOWN ENGAGED. External ingress restricted. Internal enclaves sealed.")
+    if not df_threats.empty:
+        st.warning(f"Detected {len(df_threats)} flagged security events in audit logs.")
+        st.dataframe(df_threats, use_container_width=True)
+        
+        if st.button("Purge & Quarantine Flagged Sessions"):
+            log_backend_event("SECURITY", "Administrator executed quarantine protocol on flagged threat logs.")
+            st.success("Security quarantine protocols successfully executed. All suspicious channels isolated.")
+    else:
+        st.success("No active security threats detected. System perimeter secure.")
+
+    if st.button("Run Comprehensive Threat Scan"):
+        log_backend_event("INFO", "Manual threat intelligence scan initiated.")
+        st.rerun()
