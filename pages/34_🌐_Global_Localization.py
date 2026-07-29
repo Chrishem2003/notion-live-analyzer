@@ -3,11 +3,8 @@
 Complete application UI, AI synthesis, and neural audio localization
 with comprehensive world language support and formal academic precision.
 """
-
 import streamlit as st
 
-st.markdown("<style>.stApp{background-color:#0d1117!important;color:#f0f6fc!important;}h1,h2,h3,h4,h5,h6,span,p,label,.stMarkdown,.stCaption{color:#f0f6fc!important;}</style>",unsafe_allow_html=True)
-st.markdown("<style>.stApp{background-color:#0d1117!important;color:#f0f6fc!important;}h1,h2,h3,h4,h5,h6,span,p,label,.stMarkdown,.stCaption{color:#f0f6fc!important;}</style>", unsafe_allow_html=True)
 st.set_page_config(page_title="Global Localization Engine", layout="wide", page_icon="🌐")
 
 from modules.config import init_session_state
@@ -511,7 +508,6 @@ st.markdown(
 left_col, right_col = st.columns([7, 5])
 
 with left_col:
-    # ─── 1. LANGUAGE SELECTOR ──────────────────────────────────
     st.markdown(
         '<div class="loc-section-card">'
         '<div class="loc-section-header">'
@@ -521,260 +517,40 @@ with left_col:
         unsafe_allow_html=True
     )
 
-    filtered = get_langs_by_region(st.session_state["loc_region_filter"])
-    lang_opts = {l["code"]: f"{l['flag']} {l['name']} — {l['nativeName']} ({l.get('region', '')})" for l in filtered}
-    opt_list = list(lang_opts.keys())
-
-    cur_idx = 0
-    if st.session_state["loc_selected_language"] in opt_list:
-        cur_idx = opt_list.index(st.session_state["loc_selected_language"])
-
-    sel_lang = st.selectbox(
-        "Choose Language", opt_list,
-        format_func=lambda c: lang_opts.get(c, c),
-        index=cur_idx, key="loc_lang_select", label_visibility="collapsed"
+    filtered_langs = get_langs_by_region(st.session_state["loc_region_filter"])
+    lang_options = {f"{l['flag']} {l['name']} ({l['nativeName']})": l['code'] for l in filtered_langs}
+    
+    selected_label = st.selectbox(
+        "Select Working Locale", 
+        options=list(lang_options.keys()), 
+        key="loc_lang_selector_box"
     )
-
-    if sel_lang != st.session_state.get("loc_selected_language"):
-        st.session_state["loc_selected_language"] = sel_lang
-        new_lang = get_lang(sel_lang)
-        st.session_state["loc_selected_accent"] = new_lang["accentVariants"][0]
-        st.rerun()
-
-    # Visual language grid — purely decorative card display
-    lang_cards_html = '<div class="loc-lang-grid">'
-    for l in filtered:
-        sel = l["code"] == st.session_state["loc_selected_language"]
-        cls = "loc-lang-card active" if sel else "loc-lang-card"
-        lang_cards_html += f'<div class="{cls}">'
-        lang_cards_html += f'<span class="loc-lang-flag">{l["flag"]}</span>'
-        lang_cards_html += f'<div class="loc-lang-info"><div class="loc-lang-name">{l["name"]}</div>'
-        lang_cards_html += f'<div class="loc-lang-native">{l["nativeName"]}</div>'
-        lang_cards_html += f'<div class="loc-lang-desc">{l["description"][:55]}...</div>'
-        lang_cards_html += f'<div class="loc-lang-region">{l.get("region", "")} · {len(l["accentVariants"])} accents</div></div>'
-        if sel:
-            lang_cards_html += '<span class="loc-lang-check">✓</span>'
-        lang_cards_html += '</div>'
-    lang_cards_html += '</div>'
-    lang_cards_html += f'<div class="loc-lang-count">Showing {len(filtered)} of {len(EXTENDED_LANGUAGES)} languages</div>'
-    st.markdown(lang_cards_html, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)  # close section-card
-
-    # ─── 2. ACCENT SELECTOR ────────────────────────────────────
-    st.markdown(
-        '<div class="loc-section-card">'
-        '<div class="loc-section-header">'
-        '<span class="loc-section-title">🎙️ 2. Neural Vocal Model & Regional Accent</span>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    accent_opts = current_lang["accentVariants"]
-    cur_accent = st.session_state.get("loc_selected_accent", accent_opts[0])
-    acc_idx = accent_opts.index(cur_accent) if cur_accent in accent_opts else 0
-
-    sel_accent = st.radio("Select Accent", accent_opts, index=acc_idx,
-                          key="loc_accent_radio", label_visibility="collapsed",
-                          horizontal=True)
-
-    if sel_accent != st.session_state.get("loc_selected_accent"):
-        st.session_state["loc_selected_accent"] = sel_accent
-        st.rerun()
-
+    
+    if selected_label:
+        chosen_code = lang_options[selected_label]
+        st.session_state["loc_selected_language"] = chosen_code
+        
     st.markdown('</div>', unsafe_allow_html=True)
 
 with right_col:
-    st.markdown('<div class="loc-section-card loc-right-panel">', unsafe_allow_html=True)
-
-    # Domain Glossary
     st.markdown(
-        f'<div class="loc-glossary-header">'
-        f'<span class="loc-section-title">⚙️ Domain Technical Glossary</span>'
-        f'<span class="loc-glossary-badge">{active_glossary["termsLocked"]:,} TERMS</span>'
-        f'</div>',
+        '<div class="loc-section-card">'
+        '<div class="loc-section-header">'
+        '<span class="loc-section-title">📚 2. Domain Glossary & Terminology Bank</span>'
+        '</div>',
         unsafe_allow_html=True
     )
-
-    gl_opts = [g["id"] for g in DOMAIN_GLOSSARIES]
-    gl_fmt = lambda gid: f'{next(g["name"] for g in DOMAIN_GLOSSARIES if g["id"] == gid)} ({next(g["termsLocked"] for g in DOMAIN_GLOSSARIES if g["id"] == gid):,})'
-    gl_idx = gl_opts.index(st.session_state["loc_selected_glossary"])
-    sel_gl = st.selectbox("Glossary", gl_opts, format_func=gl_fmt, index=gl_idx,
-                          key="loc_glossary_sel", label_visibility="collapsed")
-    st.session_state["loc_selected_glossary"] = sel_gl
-    st.markdown('<div class="loc-glossary-hint">Forces exact scientific terminology mappings during translation.</div>',
-                unsafe_allow_html=True)
-
-    # Academic Tone
-    st.markdown('<div class="loc-divider"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="loc-section-title" style="margin-bottom:0.5rem;">Academic Tone & Register Level</div>',
-                unsafe_allow_html=True)
-
-    t1, t2 = st.columns(2)
-    cur_tone = st.session_state.get("loc_academic_tone", "peer_reviewed")
-    with t1:
-        cls = "loc-tone-btn active" if cur_tone == "peer_reviewed" else "loc-tone-btn"
-        if st.button("📘 Formal Academic", key="loc_tone_peer", use_container_width=True):
-            st.session_state["loc_academic_tone"] = "peer_reviewed"
-            st.rerun()
-        st.caption("Peer-Reviewed Standard")
-    with t2:
-        if st.button("📋 Executive Debrief", key="loc_tone_exec", use_container_width=True):
-            st.session_state["loc_academic_tone"] = "executive"
-            st.rerun()
-        st.caption("Concise & Direct")
-
-    # Feature Toggles
-    st.markdown('<div class="loc-divider"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="loc-features">', unsafe_allow_html=True)
-
-    dv = st.checkbox("🔄 Synchronized Dual Reader — Display source English side-by-side with localized outputs.",
-                     value=st.session_state.get("loc_dual_view_enabled", True), key="loc_dv")
-    st.session_state["loc_dual_view_enabled"] = dv
-
-    op = st.checkbox("📡 Offline Compressed MP3 Packs — Pre-compress audio for low-bandwidth field work.",
-                     value=st.session_state.get("loc_offline_pack_enabled", True), key="loc_op")
-    st.session_state["loc_offline_pack_enabled"] = op
-
-    ip = st.checkbox("🏛️ Enforce Team Language Policy — Apply standardized glossaries across shared workspaces.",
-                     value=st.session_state.get("loc_institutional_policy", True), key="loc_ip")
-    st.session_state["loc_institutional_policy"] = ip
-
-    pt = st.checkbox("🔒 Preserve Technical Identifiers — Lock gene names, formulas, and data variables.",
-                     value=st.session_state.get("loc_preserve_tech_terms", True), key="loc_pt")
-    st.session_state["loc_preserve_tech_terms"] = pt
+    
+    glossary_options = {g['name']: g['id'] for g in DOMAIN_GLOSSARIES}
+    selected_glossary_label = st.selectbox(
+        "Select Active Terminology",
+        options=list(glossary_options.keys()),
+        key="loc_glossary_selector_box"
+    )
+    
+    if selected_glossary_label:
+        st.session_state["loc_selected_glossary"] = glossary_options[selected_glossary_label]
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Status Footer
-    lock_state = '🔒' if st.session_state.get("loc_preserve_tech_terms", True) else '🔓'
-    st.markdown(
-        f'<div class="loc-footer">'
-        f'<span class="loc-footer-status"><span class="loc-live-dot"></span> Strict Academic Guard {lock_state}</span>'
-        f'<span class="loc-footer-saved">Auto-Saved</span>'
-        f'</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# DUAL-READER LIVE PREVIEW
-# ═══════════════════════════════════════════════════════════════════════
-if st.session_state.get("loc_dual_view_enabled", True):
-    st.markdown(
-        '<div class="loc-dual-reader">'
-        '<div class="loc-dual-header">'
-        '<span class="loc-dual-title">⇄ Live Preview: Synchronized Dual-Language Reader Mode</span>'
-        '<span class="loc-dual-badge">SYNCHRONIZED LINE-BY-LINE</span>'
-        '</div>'
-        '<div class="loc-dual-grid">',
-        unsafe_allow_html=True
-    )
-
-    pc1, pc2 = st.columns(2)
-
-    with pc1:
-        st.markdown(
-            '<div class="loc-dual-panel">'
-            '<div class="loc-dual-panel-header">'
-            '<span>ORIGINAL SOURCE (ENGLISH)</span>'
-            '<span>SECTION 3.2</span>'
-            '</div>'
-            '<p class="loc-dual-panel-text">'
-            '"The analysis identified major resistance genes in <i>Klebsiella pneumoniae</i> isolates, '
-            'specifically <b>KPC-2</b> and <b>NDM-1</b> carbapenemases. High-throughput sequencing '
-            'revealed plasmid-mediated dissemination across clinical datasets."'
-            '</p></div>',
-            unsafe_allow_html=True
-        )
-
-    with pc2:
-        lang_code = st.session_state.get("loc_selected_language", "en")
-        localized_map = {
-            "sw": '"Uchanganuzi ulibaini jenomu kuu za usugu, hasa <b>KPC-2</b> na <b>NDM-1</b>."',
-            "ha": '"Binciken ya gano manyan kwayoyin juriya, musamman <b>KPC-2</b> da <b>NDM-1</b>."',
-            "yo": '"Ìtúpalẹ̀ ṣàwárí àwọn jiín ìdènà, pàápàá <b>KPC-2</b> àti <b>NDM-1</b>."',
-            "ig": '"Nyocha ahụtara mkpụrụ ndụ iguzogide, karịsịa <b>KPC-2</b> na <b>NDM-1</b>."',
-            "am": '"ጥናቱ ዋና ዋና የተቃውሞ ጂኖችን ለይቷል፣ <b>KPC-2</b> እና <b>NDM-1</b>።"',
-            "so": '"Falanqeyntu waxay ogaatay hiddo-wadayaasha, gaar ahaan <b>KPC-2</b> iyo <b>NDM-1</b>."',
-            "zu": '"Ukuhlaziywa kuthole izakhi zofuzo, ikakhulukazi <b>KPC-2</b> kanye ne-<b>NDM-1</b>."',
-            "ar": '"حدد التحليل جينات المقاومة، وتحديداً <b>KPC-2</b> و<b>NDM-1</b>."',
-            "fa": '"تجزیه و تحلیل ژن‌های مقاومت، به طور خاص <b>KPC-2</b> و <b>NDM-1</b>."',
-            "he": '"הניתוח זיהה גנים של עמידות, במיוחד <b>KPC-2</b> ו-<b>NDM-1</b>."',
-            "hi": '"विश्लेषण ने प्रमुख प्रतिरोध जीन की पहचान की, विशेष रूप से <b>KPC-2</b> और <b>NDM-1</b>।"',
-            "bn": '"বিশ্লেষণে প্রধান প্রতিরোধ জিন চিহ্নিত, বিশেষ করে <b>KPC-2</b> এবং <b>NDM-1</b>।"',
-            "ur": '"تجزیہ نے مزاحمت کے اہم جینوں کی نشاندہی کی، خاص طور پر <b>KPC-2</b> اور <b>NDM-1</b>۔"',
-            "ta": '"பகுப்பாய்வு முக்கிய எதிர்ப்பு மரபணுக்களை அடையாளம் கண்டது, <b>KPC-2</b>, <b>NDM-1</b>."',
-            "te": '"విశ్లేషణ ప్రధాన నిరోధక జన్యువులను గుర్తించింది, <b>KPC-2</b>, <b>NDM-1</b>."',
-            "zh": '"分析确定了主要耐药基因，特别是<b>KPC-2</b>和<b>NDM-1</b>。"',
-            "ja": '"主要な耐性遺伝子、特に<b>KPC-2</b>および<b>NDM-1</b>が特定されました。"',
-            "ko": '"주요 내성 유전자, 특히 <b>KPC-2</b> 및 <b>NDM-1</b>이 확인되었습니다."',
-            "id": '"Analisis mengidentifikasi gen resistensi utama, khususnya <b>KPC-2</b> dan <b>NDM-1</b>."',
-            "ms": '"Analisis mengenal pasti gen rintangan utama, khususnya <b>KPC-2</b> dan <b>NDM-1</b>."',
-            "vi": '"Phân tích xác định gen kháng thuốc chính, đặc biệt <b>KPC-2</b> và <b>NDM-1</b>."',
-            "th": '"การวิเคราะห์ระบุยีนดื้อยาหลัก โดยเฉพาะ <b>KPC-2</b> และ <b>NDM-1</b>"',
-            "tr": '"Analiz, majör direnç genlerini tanımladı, özellikle <b>KPC-2</b> ve <b>NDM-1</b>."',
-            "ru": '"Анализ выявил гены резистентности, в частности <b>KPC-2</b> и <b>NDM-1</b>."',
-            "fr": '"L\'analyse a identifié les gènes de résistance, notamment <b>KPC-2</b> et <b>NDM-1</b>."',
-            "es": '"El análisis identificó genes de resistencia, específicamente <b>KPC-2</b> y <b>NDM-1</b>."',
-            "de": '"Die Analyse identifizierte Resistenzgene, insbesondere <b>KPC-2</b> und <b>NDM-1</b>."',
-            "pt": '"A análise identificou genes de resistência, especificamente <b>KPC-2</b> e <b>NDM-1</b>."',
-            "it": '"L\'analisi ha identificato geni di resistenza, in particolare <b>KPC-2</b> e <b>NDM-1</b>."',
-            "nl": '"De analyse identificeerde resistentiegenen, met name <b>KPC-2</b> en <b>NDM-1</b>."',
-            "pl": '"Analiza zidentyfikowała geny oporności, szczególnie <b>KPC-2</b> i <b>NDM-1</b>."',
-        }
-        localized_text = localized_map.get(lang_code,
-            f'"Professional localized output in {current_lang["name"]}. Locked scientific codes <b>KPC-2</b> and <b>NDM-1</b>."')
-
-        tone_label = st.session_state.get("loc_academic_tone", "peer_reviewed").replace("_", " ").title()
-
-        st.markdown(
-            f'<div class="loc-dual-panel localized">'
-            f'<div class="loc-dual-panel-header">'
-            f'<span>LOCALIZED SYNTHESIS ({current_lang["name"].upper()})</span>'
-            f'<span>{tone_label} REGISTER</span>'
-            f'</div>'
-            f'<p class="loc-dual-panel-text">{localized_text}</p>'
-            f'</div>',
-            unsafe_allow_html=True
-        )
-
-    st.markdown('</div></div>', unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# WORLD LANGUAGE COVERAGE MAP
-# ═══════════════════════════════════════════════════════════════════════
-st.markdown(
-    '<div class="loc-section-card">'
-    '<div class="loc-section-header">'
-    '<span class="loc-section-title">🌍 World Language Coverage Map</span>'
-    '</div>'
-    '<div class="loc-region-grid">',
-    unsafe_allow_html=True
-)
-
-rcols = st.columns(3)
-for idx, region in enumerate(REGIONS):
-    region_langs = [l for l in EXTENDED_LANGUAGES if l.get("region") == region]
-    n_accents = sum(len(l["accentVariants"]) for l in region_langs)
-    lang_list = ' '.join(f'{l["flag"]} {l["name"]}' for l in region_langs)
-    with rcols[idx % 3]:
-        st.markdown(
-            f'<div class="loc-region-card">'
-            f'<div class="loc-region-name">{region}</div>'
-            f'<div class="loc-region-langs">{lang_list}</div>'
-            f'<div class="loc-region-stats">{len(region_langs)} languages · {n_accents} accents</div>'
-            f'</div>',
-            unsafe_allow_html=True
-        )
-
-st.markdown('</div></div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)  # close loc-engine-wrapper
-
-st.caption(
-    f"🌐 Global Localization Engine — {tot_langs} languages · "
-    f"{tot_accents} neural accents · "
-    f"{len(DOMAIN_GLOSSARIES)} domain glossaries · "
-    f"Academic Tone: {st.session_state.get('loc_academic_tone', 'peer_reviewed').replace('_', ' ').title()}"
-)
-
+st.markdown('</div>', unsafe_allow_html=True)
