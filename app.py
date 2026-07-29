@@ -12,6 +12,7 @@ from modules.db_viewer import render_database_audit_logs
 from modules.executive import render_executive_summary
 from modules.health_monitor import render_health_monitor
 from modules.report_generator import render_report_exporter
+from modules.data_cleaner import render_data_cleaner
 
 # Initialize Persistent Backend Database
 init_db()
@@ -56,11 +57,12 @@ with st.sidebar.expander("?? Webhook Alerts"):
         else:
             st.error("Failed to reach webhook endpoint.")
 
-# Unified Multi-Tab Enterprise Architecture
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+# Unified Multi-Tab Enterprise Architecture (Expanded to 8 Tabs)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "?? Executive Summary",
     "?? Analytics Workspace", 
     "?? Bioinformatics Engine", 
+    "?? Dataset Cleaner",
     "?? Secure Vault", 
     "??? Database Logs",
     "?? Global Downloads", 
@@ -81,12 +83,15 @@ with tab3:
     render_advanced_analytics()
 
 with tab4:
-    render_secure_vault()
+    render_data_cleaner()
 
 with tab5:
-    render_database_audit_logs()
+    render_secure_vault()
 
 with tab6:
+    render_database_audit_logs()
+
+with tab7:
     st.subheader(strings["export"])
     sample_export_df = pd.DataFrame({
         "Metric": ["Throughput", "Latency", "Integrity Check", "Uptime"],
@@ -105,5 +110,5 @@ with tab6:
     st.markdown("---")
     render_report_exporter()
 
-with tab7:
+with tab8:
     render_health_monitor()
