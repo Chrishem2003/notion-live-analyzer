@@ -37,6 +37,7 @@ from modules.ci_watchdog import render_ci_watchdog_panel
 from supervisor_daemon import render_supervisor_panel
 from modules.global_ping import render_global_ping_panel
 from modules.docker_monitor import render_docker_monitor_panel
+from modules.port_scanner import render_port_scanner_panel
 
 # Initialize Database Persistence Layer
 init_db()
@@ -68,7 +69,7 @@ def main():
             "Stripe Licensing & Student Verification",
             "Spatial Audio Focus Soundscapes",
             "Devin AI Code Reviewer",
-            "CI/CD Pipeline Watchdog",`n            "Runtime Supervisor Daemon",`n            "Global Edge Telemetry & Ping",`n            "Docker Container Lifecycle",
+            "CI/CD Pipeline Watchdog",`n            "Runtime Supervisor Daemon",`n            "Global Edge Telemetry & Ping",`n            "Docker Container Lifecycle",`n            "Network Port Scanner",
             "Performance Profiler & Benchmarks",
             "Threat Response & Incident Log",
             "Automated Backup & Recovery"
@@ -145,6 +146,8 @@ def main():
         render_global_ping_panel()
     elif navigation == "Docker Container Lifecycle":
         render_docker_monitor_panel()
+    elif navigation == "Network Port Scanner":
+        render_port_scanner_panel()
     elif navigation == "Performance Profiler & Benchmarks":
         render_profiler_panel()
     elif navigation == "Threat Response & Incident Log":
@@ -154,6 +157,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
