@@ -1071,4 +1071,4 @@ The session successfully tracked and recorded core collaborative discourse. All 
           "host": st.session_state["host_name"],
       }
       st.session_state["session_recordings"].append(record_entry)
-      st.success("✅ Session and video recording archived successfully!")git status
+      st.success("✅ Session and video recording archived successfully!")
