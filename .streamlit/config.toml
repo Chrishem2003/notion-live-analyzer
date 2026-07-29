@@ -1,13 +1,12 @@
-﻿[server]
+[server]
 headless = true
 enableCORS = false
 enableXsrfProtection = true
 maxUploadSize = 200
 
 [theme]
-primaryColor = "#2563eb"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f8fafc"
-textColor = "#1e293b"
-font = "sans serif"
-
+primaryColor = '#2563eb'
+backgroundColor = '#ffffff'
+secondaryBackgroundColor = '#f8fafc'
+textColor = '#1e293b'
+font = 'sans serif'
