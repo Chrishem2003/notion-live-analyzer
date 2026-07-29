@@ -5,3 +5,5 @@ plotly>=5.18.0
 requests>=2.31.0
 scipy
 scikit-learn
+scikit-learn
+scipy
