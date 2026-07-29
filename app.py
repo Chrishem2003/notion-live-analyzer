@@ -1,4 +1,5 @@
-﻿import streamlit as st
+﻿
+import streamlit as st
 import os
 from datetime import datetime
 from modules.database import init_db, log_backend_event
@@ -77,3 +78,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
