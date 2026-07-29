@@ -17,6 +17,7 @@ from modules.personal_workspace import render_personal_workspace_panel
 from modules.telemetry_alerting import render_telemetry_alerting_panel
 from modules.system_diagnostics import render_system_diagnostics_panel
 from modules.api_integration_gateway import render_api_gateway_panel
+from modules.ecosystem_apex import render_ecosystem_apex_panel
 
 # Initialize Database Backend
 init_db()
@@ -142,6 +143,7 @@ elif navigation == "Biodefense & Pathogen Surveillance":
     render_biodefense_panel()
 elif navigation == "Sovereign Singularity Core":
     render_sovereign_singularity_panel()
+
 
 
 
