@@ -679,36 +679,18 @@ def plotly_monte_carlo(t_arr, runs, n_runs):
     )
     return fig
 
-def plotly_policy_comparison(t_arr, baseline, subsidy, reform, country, sector):
+def plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, country, sector):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=t_arr, y=baseline, mode='lines',
-        name='Option 1: Do nothing (baseline)',
-        line=dict(color='#F87171', width=3),
-        hovertemplate='Time: %{x:.1f}<br>Baseline: %{y:.4f}<extra></extra>'
-    ))
-    fig.add_trace(go.Scatter(
-        x=t_arr, y=subsidy, mode='lines',
-        name='Option 2: Emergency subsidy / buffer',
-        line=dict(color='#60A5FA', width=3, dash='dash'),
-        hovertemplate='Time: %{x:.1f}<br>Subsidy: %{y:.4f}<extra></extra>'
-    ))
-    fig.add_trace(go.Scatter(
-        x=t_arr, y=reform, mode='lines',
-        name='Option 3: Structural reform / damping',
-        line=dict(color='#4ADE80', width=3, dash='dot'),
-        hovertemplate='Time: %{x:.1f}<br>Reform: %{y:.4f}<extra></extra>'
-    ))
+    fig.add_trace(go.Scatter(x=t, y=sol_base[:, 0], mode='lines', name='Baseline Strategy', line=dict(color='#60A5FA', width=2)))
+    fig.add_trace(go.Scatter(x=t, y=sol_sub[:, 0], mode='lines', name='Sub-optimal Strategy', line=dict(color='#F87171', width=2, dash='dash')))
+    fig.add_trace(go.Scatter(x=t, y=sol_ref[:, 0], mode='lines', name='Reformed Strategy', line=dict(color='#34D399', width=2)))
+    
     fig.update_layout(
-        title=dict(text=f"Strategy Comparison â€” {country} / {sector}", font=dict(color='white', size=16, family='Inter')),
-        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
-        yaxis=dict(title="System health metric", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
+        title_text=f"Strategy Comparison - {country} / {sector}",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white', family='Inter'),
-        height=480,
-        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, bgcolor='rgba(15,23,42,0.9)'),
-        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
+        height=450,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
     return fig
 
