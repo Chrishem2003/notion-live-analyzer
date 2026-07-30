@@ -20,7 +20,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
 # -----------------------------------------------------------------------------
-# PAGE CONFIG & ENTERPRISE DARK THEME CUSTOM CSS
+# PAGE CONFIG & CLEAN HIGH-CONTRAST CUSTOM CSS
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="Sovereign Enterprise SIEM/SOAR Ecosystem",
@@ -28,62 +28,73 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom Cyber Threat Intelligence Styling
+# Clean, Accessible Slate Dark Theme CSS
 st.markdown("""
 <style>
-    /* Global Styling */
+    /* Global App Contrast Fixes */
     .stApp {
-        background-color: #0b0f19;
-        color: #e0e6ed;
+        background-color: #0f172a;
+        color: #f8fafc;
+    }
+    
+    /* Ensure all text elements are razor-sharp and visible */
+    p, span, label, .stMarkdown {
+        color: #f1f5f9 !important;
+        font-weight: 400;
     }
     
     /* Sidebar Styling */
     section[data-testid="stSidebar"] {
-        background-color: #111827;
-        border-right: 1px solid #1f2937;
+        background-color: #1e293b !important;
+        border-right: 1px solid #334155;
     }
     
-    /* Metric Cards */
+    /* Input Fields & Text Areas */
+    .stTextInput input, .stTextArea textarea, .stSelectbox select {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid #475569 !important;
+    }
+    
+    /* Metric Cards Fix */
     div[data-testid="stMetricValue"] {
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        color: #00f2fe;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: 700;
+        color: #38bdf8 !important;
     }
-    
-    /* Section Headers */
-    h1, h2, h3 {
-        color: #f8fafc !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    div[data-testid="stMetricLabel"] {
+        color: #94a3b8 !important;
     }
     
     /* Buttons */
     .stButton>button {
-        background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1rem !important;
     }
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 198, 255, 0.4);
+        background-color: #1d4ed8 !important;
     }
     
-    /* Custom Alert Boxes */
+    /* Clean Threat Alert Boxes */
     .threat-card {
-        background-color: #1e1b4b;
-        border-left: 4px solid #f43f5e;
+        background-color: #451a03;
+        border: 1px solid #f97316;
         padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 10px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        color: #ffedd5 !important;
     }
     .success-card {
         background-color: #064e3b;
-        border-left: 4px solid #10b981;
+        border: 1px solid #10b981;
         padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 10px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        color: #d1fae5 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -199,8 +210,8 @@ if "msf_tasks" not in st.session_state:
 # -----------------------------------------------------------------------------
 # SIDEBAR NAVIGATION
 # -----------------------------------------------------------------------------
-st.sidebar.title("🛡️ SOVEREIGN SIEM/SOAR")
-st.sidebar.markdown(f"**Access Tier:** `<span style='color:#00f2fe;'>{st.session_state['user_tier']}</span>`", unsafe_allow_html=True)
+st.sidebar.title("🛡️ Sovereign Platform")
+st.sidebar.markdown(f"**Access Tier:** `{st.session_state['user_tier']}`")
 st.sidebar.caption(f"Session Token: `{st.session_state['session_token']}`")
 
 tier_option = st.sidebar.selectbox("Privilege Switcher", ["Admin", "Analyst", "Auditor"], index=0)
@@ -238,7 +249,7 @@ module = st.sidebar.radio(
 # MODULE 1: SIEM DASHBOARD
 # -----------------------------------------------------------------------------
 if module == "📊 Live SIEM Dashboard":
-    st.title("📊 Live Enterprise SIEM Telemetry & Security Operations")
+    st.title("📊 Live SIEM Telemetry & Security Operations")
     
     block_count = db_query("SELECT COUNT(*) FROM audit_chain")[0][0]
     quarantine_count = db_query("SELECT COUNT(*) FROM quarantine_list")[0][0]
@@ -254,14 +265,14 @@ if module == "📊 Live SIEM Dashboard":
     col_chart1, col_chart2 = st.columns([2, 1])
     
     with col_chart1:
-        st.subheader("📈 Real-Time Ingress Event Frequency")
+        st.subheader("📈 Ingress Event Frequency")
         time_series = pd.DataFrame({
             "Time": pd.date_range(end=pd.Timestamp.now(), periods=12, freq="10s"),
             "Auth Events": np.random.randint(20, 50, 12),
             "API Calls": np.random.randint(100, 250, 12),
             "Threat Alerts": np.random.randint(0, 5, 12)
         })
-        fig = px.line(time_series, x="Time", y=["Auth Events", "API Calls", "Threat Alerts"], template="plotly_dark", color_discrete_sequence=["#00f2fe", "#7000ff", "#ff007f"])
+        fig = px.line(time_series, x="Time", y=["Auth Events", "API Calls", "Threat Alerts"], template="plotly_dark", color_discrete_sequence=["#38bdf8", "#a855f7", "#f43f5e"])
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig, use_container_width=True)
 
@@ -287,8 +298,8 @@ elif module == "🌐 Live REST Threat Intelligence Feed":
         if user_ioc in ["192.168.1.105", "10.0.0.1", "malicious-domain.org"]:
             st.markdown(f'''
             <div class="threat-card">
-                <h4>🚨 THREAT MATCH DETECTED</h4>
-                <p><b>Indicator:</b> {user_ioc}<br>
+                <h4 style="color:#fdba74; margin:0 0 8px 0;">🚨 THREAT MATCH DETECTED</h4>
+                <p style="margin:0; color:#ffedd5;"><b>Indicator:</b> {user_ioc}<br>
                 <b>Confidence Score:</b> 98%<br>
                 <b>Category:</b> Command & Control (C2) / Malware Distribution<br>
                 <b>First Seen:</b> 2026-07-28</p>
@@ -298,8 +309,8 @@ elif module == "🌐 Live REST Threat Intelligence Feed":
         else:
             st.markdown(f'''
             <div class="success-card">
-                <h4>✅ INDICATOR CLEAN</h4>
-                <p>Indicator <b>{user_ioc}</b> returned 0 malicious reports across global threat feeds.</p>
+                <h4 style="color:#6ee7b7; margin:0 0 8px 0;">✅ INDICATOR CLEAN</h4>
+                <p style="margin:0; color:#d1fae5;">Indicator <b>{user_ioc}</b> returned 0 malicious reports across global threat feeds.</p>
             </div>
             ''', unsafe_allow_html=True)
 
@@ -318,7 +329,6 @@ elif module == "⚡ CEP Event Correlation Engine":
     st.dataframe(cep_rules, use_container_width=True)
 
     st.subheader("Attack Correlation Stream")
-    nodes = ["Attacker IP (185.220.101.5)", "SSH Auth Failure", "JIT Elevation Request", "Honeytoken HT-01 Access", "Data Vault Path"]
     st.markdown("`[185.220.101.5]` ➔ *(3 Failed SSH Logins)* ➔ `[Privilege Elevation]` ➔ *(Triggered HT-01)* ➔ 🚨 **[AUTOMATED LOCKDOWN EXECUTED]**")
 
 # -----------------------------------------------------------------------------
@@ -409,7 +419,7 @@ elif module == "⚖️ Regulatory Compliance Matrix":
             r=[95, 90, 100, 85, 90],
             theta=categories,
             fill='toself',
-            line_color='#00f2fe'
+            line_color='#38bdf8'
         ))
         fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', template="plotly_dark")
         st.plotly_chart(fig_radar, use_container_width=True)
