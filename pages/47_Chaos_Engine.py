@@ -588,22 +588,23 @@ def plotly_pss(x, y, z, z_cut=0.0, title="Poincaré Section"):
     )
     return fig
 
-def plotly_bifurcation(b_vals, x_peaks, x_label):
-    fig = go.Figure(data=go.Scatter(
-        x=b_vals, y=x_peaks,
+def plotly_bifurcation(b_pts, peaks, x_label="Parameter (b)", title="Automated Bifurcation Diagram"):
+    fig = go.Figure(data=[go.Scatter(
+        x=b_pts, y=peaks,
         mode='markers',
-        marker=dict(color='#60A5FA', size=5, opacity=0.8, line=dict(color='white', width=0.4))
-    ))
+        marker=dict(size=1.5, color='#60A5FA', opacity=0.6),
+        name='Bifurcation Points'
+    )])
+
     fig.update_layout(
-        title=dict(text="Automated Bifurcation Diagram", font=dict(color='white', size=16, family='Inter')),
-        xaxis=dict(title=x_label, gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0'), zerolinecolor='rgba(255,255,255,0.3)'),
-        yaxis=dict(title="Asymptotic X states", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0'), zerolinecolor='rgba(255,255,255,0.3)'),
+        title_text=title,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white', family='Inter'),
-        height=480,
-        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
+        height=450,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
+    fig.update_xaxes(title_text=x_label, gridcolor='rgba(255,255,255,0.2)')
+    fig.update_yaxes(title_text="Local Maxima / Minima", gridcolor='rgba(255,255,255,0.2)')
     return fig
 
 def plotly_ews(t, rolling_variance, rolling_ac, title="Early Warning Signals (EWS)"):
