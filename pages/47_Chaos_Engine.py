@@ -680,10 +680,15 @@ def plotly_monte_carlo(t_arr, runs, n_runs):
     return fig
 
 def plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, country, sector):
+    # Safely extract 1D sequence regardless of array dimensions (1D or 2D)
+    y_base = sol_base[:, 0] if getattr(sol_base, 'ndim', 1) > 1 else sol_base
+    y_sub  = sol_sub[:, 0]  if getattr(sol_sub, 'ndim', 1) > 1 else sol_sub
+    y_ref  = sol_ref[:, 0]  if getattr(sol_ref, 'ndim', 1) > 1 else sol_ref
+
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=t, y=sol_base[:, 0], mode='lines', name='Baseline Strategy', line=dict(color='#60A5FA', width=2)))
-    fig.add_trace(go.Scatter(x=t, y=sol_sub[:, 0], mode='lines', name='Sub-optimal Strategy', line=dict(color='#F87171', width=2, dash='dash')))
-    fig.add_trace(go.Scatter(x=t, y=sol_ref[:, 0], mode='lines', name='Reformed Strategy', line=dict(color='#34D399', width=2)))
+    fig.add_trace(go.Scatter(x=t, y=y_base, mode='lines', name='Baseline Strategy', line=dict(color='#60A5FA', width=2)))
+    fig.add_trace(go.Scatter(x=t, y=y_sub, mode='lines', name='Sub-optimal Strategy', line=dict(color='#F87171', width=2, dash='dash')))
+    fig.add_trace(go.Scatter(x=t, y=y_ref, mode='lines', name='Reformed Strategy', line=dict(color='#34D399', width=2)))
     
     fig.update_layout(
         title_text=f"Strategy Comparison - {country} / {sector}",
