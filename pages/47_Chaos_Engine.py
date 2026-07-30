@@ -1,3 +1,4 @@
+from sovereign_advancements.advancements_core import SovereignAdvancementsEngine
 ﻿import datetime
 import io
 import json
@@ -559,13 +560,13 @@ def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
         hovertemplate='X: %{x:.4f}<br>Y: %{y:.4f}<br>Z: %{z:.4f}<extra></extra>'
     )])
     fig.update_layout(
-        title=dict(text=title, font=dict(color='white', size=18, family='Inter')),
+        title={'text': title, 'font': {'color': 'white', 'size': 18, 'family': 'Inter'}},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         scene=dict(
-            xaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title='X', titlefont=dict(color='#E2E8F0', size=12)),
-            yaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title='Y', titlefont=dict(color='#E2E8F0', size=12)),
-            zaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title='Z', titlefont=dict(color='#E2E8F0', size=12)),
+            xaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title=dict(text='X', font=dict(color='#E2E8F0'))),
+            yaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title=dict(text='Y', font=dict(color='#E2E8F0'))),
+            zaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title=dict(text='Z', font=dict(color='#E2E8F0'))),
             camera=dict(eye=dict(x=1.5, y=1.5, z=1.2)),
         ),
         margin=dict(l=0, r=0, t=50, b=0),
@@ -1005,3 +1006,12 @@ elif "Sector Automation Hub" in user_role:
     if presets:
         st.markdown("#### Saved Custom Presets")
         st.dataframe(pd.DataFrame(presets, columns=["Preset Name", "Sector"]), use_container_width=True)
+
+# ============================================================================
+# AUTOMATED ADVANCEMENTS INTEGRATION HOOK
+# ============================================================================
+try:
+    current_params = {'a': a, 'b': b, 'c': c, 'x0': x0, 'y0': y0, 'z0': z0}
+    SovereignAdvancementsEngine.render_advancements_ui(user_role, current_params)
+except Exception:
+    pass
