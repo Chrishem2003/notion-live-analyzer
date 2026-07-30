@@ -12,3 +12,5 @@ scikit-learn
 scipy>=1.10.0
 streamlit>=1.32.0
 streamlit-webrtc>=0.47.0
+psutil
+plotly
