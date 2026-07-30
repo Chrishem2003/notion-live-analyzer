@@ -606,37 +606,24 @@ def plotly_bifurcation(b_vals, x_peaks, x_label):
     )
     return fig
 
-def plotly_ews(t_arr, rolling_variance, rolling_ac):
-    fig = make_subplots(
-        rows=2, cols=1, shared_xaxes=True,
-        vertical_spacing=0.1,
-        subplot_titles=("Rolling Variance", "Lag-1 Autocorrelation")
-    )
-    fig.add_trace(go.Scatter(
-        x=t_arr, y=rolling_variance, mode='lines',
-        line=dict(color='#F87171', width=2.5),
-        fill='tozeroy', fillcolor='rgba(248,113,113,0.15)',
-        name='Variance',
-        hovertemplate='Time: %{x:.1f}<br>Variance: %{y:.6f}<extra></extra>'
-    ), row=1, col=1)
-    fig.add_trace(go.Scatter(
-        x=t_arr, y=rolling_ac, mode='lines',
-        line=dict(color='#60A5FA', width=2.5),
-        fill='tozeroy', fillcolor='rgba(96,165,250,0.15)',
-        name='Autocorrelation',
-        hovertemplate='Time: %{x:.1f}<br>AC(1): %{y:.4f}<extra></extra>'
-    ), row=2, col=1)
+def plotly_ews(t, rolling_variance, rolling_ac, title="Early Warning Signals (EWS)"):
+    from plotly.subplots import make_subplots
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=("Variance (Critical Slowing Down)", "Autocorrelation (Lag-1)"))
+
+    fig.add_trace(go.Scatter(x=t, y=rolling_variance, mode='lines', name='Rolling Variance', line=dict(color='#F59E0B', width=2)), row=1, col=1)
+    fig.add_trace(go.Scatter(x=t, y=rolling_ac, mode='lines', name='Rolling Autocorrelation', line=dict(color='#EC4899', width=2)), row=2, col=1)
+
+    fig.update_xaxes(gridcolor='rgba(255,255,255,0.2)', title_text="Time", row=2, col=1)
+    fig.update_yaxes(gridcolor='rgba(255,255,255,0.2)', title_text="Variance", row=1, col=1)
+    fig.update_yaxes(gridcolor='rgba(255,255,255,0.2)', title_text="Autocorrelation", row=2, col=1)
+
     fig.update_layout(
-        title=dict(text="Critical Slowing Down â€” Early-Warning Signals", font=dict(color='white', size=16, family='Inter')),
+        title_text=title,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white', family='Inter'),
-        height=620,
-        showlegend=False,
-        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
+        height=500,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
-    fig.update_xaxes(gridcolor='rgba(255,255,255,0.2)', title_text="Time", row=2, col=1, titlefont=dict(color='#E2E8F0'))
-    fig.update_yaxes(gridcolor='rgba(255,255,255,0.2)')
     return fig
 
 def plotly_monte_carlo(t_arr, runs, n_runs):
