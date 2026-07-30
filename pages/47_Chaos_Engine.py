@@ -696,31 +696,25 @@ def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_label="A", b_label="B"):
     fig.update_yaxes(title_text=b_label, gridcolor='rgba(255,255,255,0.2)')
     return fig
 
-def plotly_cross_coupling(t_arr, primary, secondary):
+def plotly_cross_coupling(t, x_traj, sec_sol, title="Cross-Sectoral Contagion & Shock Propagation"):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=t_arr, y=primary, mode='lines',
-        name='Primary sector',
-        line=dict(color='#60A5FA', width=3),
-        hovertemplate='Time: %{x:.1f}<br>Primary: %{y:.4f}<extra></extra>'
-    ))
-    fig.add_trace(go.Scatter(
-        x=t_arr, y=secondary, mode='lines',
-        name='Coupled target sector',
-        line=dict(color='#FACC15', width=3, dash='dot'),
-        hovertemplate='Time: %{x:.1f}<br>Secondary: %{y:.4f}<extra></extra>'
-    ))
+
+    # Safely extract 1D series for primary and secondary trajectories
+    y_prim = x_traj[:, 0] if getattr(x_traj, 'ndim', 1) > 1 else x_traj
+    y_sec  = sec_sol[:, 0] if getattr(sec_sol, 'ndim', 1) > 1 else sec_sol
+
+    fig.add_trace(go.Scatter(x=t, y=y_prim, mode='lines', name='Primary Dynamics', line=dict(color='#60A5FA', width=2)))
+    fig.add_trace(go.Scatter(x=t, y=y_sec, mode='lines', name='Coupled Sector Spillover', line=dict(color='#F59E0B', width=2, dash='dot')))
+
     fig.update_layout(
-        title_text="Cross-Sectoral Contagion & Shock Propagation",
-        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
-        yaxis=dict(title="Amplitude", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
+        title_text=title,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white', family='Inter'),
-        height=480,
-        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, bgcolor='rgba(15,23,42,0.9)'),
-        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
+        height=450,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
+    fig.update_xaxes(title_text="Time", gridcolor='rgba(255,255,255,0.2)')
+    fig.update_yaxes(title_text="Amplitude / Impact", gridcolor='rgba(255,255,255,0.2)')
     return fig
 
 # ============================================================================
