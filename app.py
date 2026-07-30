@@ -8,6 +8,7 @@ import re
 import io
 import time
 import hashlib
+import uuid
 from datetime import datetime
 from sklearn.ensemble import IsolationForest
 
@@ -21,7 +22,7 @@ from reportlab.lib import colors
 # PAGE CONFIG & SESSION STATE
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Notion Live SIEM & SOAR Security Platform",
+    page_title="Sovereign SIEM/SOAR & Compliance Engine",
     page_icon="🛡️",
     layout="wide"
 )
@@ -29,8 +30,14 @@ st.set_page_config(
 if "user_tier" not in st.session_state:
     st.session_state["user_tier"] = "Admin"
 
+if "session_token" not in st.session_state:
+    st.session_state["session_token"] = str(uuid.uuid4())[:18]
+
 if "scan_queue" not in st.session_state:
     st.session_state["scan_queue"] = []
+
+if "quarantine_list" not in st.session_state:
+    st.session_state["quarantine_list"] = []
 
 # Initialize Cryptographic Ledger Chain
 if "audit_chain" not in st.session_state:
@@ -44,7 +51,6 @@ if "audit_chain" not in st.session_state:
         "Hash": genesis_hash
     }]
 
-# Helper to append to ledger
 def log_ledger_event(actor, action):
     prev_entry = st.session_state["audit_chain"][-1]
     index = prev_entry["Index"] + 1
@@ -64,29 +70,33 @@ def log_ledger_event(actor, action):
     })
 
 # -----------------------------------------------------------------------------
-# SIDEBAR NAVIGATION
+# SIDEBAR NAVIGATION & ACCESS CONTROL
 # -----------------------------------------------------------------------------
-st.sidebar.title("🛡️ Sovereign SIEM/SOAR")
-st.sidebar.markdown(f"**Current Access Level:** `{st.session_state['user_tier']}`")
+st.sidebar.title("🛡️ Sovereign Security Platform")
+st.sidebar.markdown(f"**Access Tier:** `{st.session_state['user_tier']}`")
+st.sidebar.caption(f"Token: `{st.session_state['session_token']}`")
 
-tier_option = st.sidebar.selectbox("Privilege Level Switcher", ["Admin", "Analyst", "Auditor"], index=0)
+tier_option = st.sidebar.selectbox("Privilege Switcher", ["Admin", "Analyst", "Auditor"], index=0)
 if tier_option != st.session_state["user_tier"]:
     st.session_state["user_tier"] = tier_option
-    log_ledger_event(st.session_state["user_tier"], f"Switched privilege level to {tier_option}")
+    st.session_state["session_token"] = str(uuid.uuid4())[:18]
+    log_ledger_event(st.session_state["user_tier"], f"Elevation/Rotation: Tier set to {tier_option}")
 
 st.sidebar.divider()
-st.sidebar.header("Navigation Modules")
+st.sidebar.header("Platform Navigation")
 module = st.sidebar.radio(
-    "Select Engine",
+    "Select Engine Module",
     [
-        "📊 Live SIEM Overview",
-        "🔍 Notion Secret & Exfiltration Scanner",
-        "🔗 Cryptographic Tamper-Evident Ledger",
+        "📊 Live SIEM Dashboard",
+        "⚖️ Regulatory Compliance Matrix (SOC 2 / ISO)",
+        "⚡ Automated SOAR Playbooks",
+        "🔍 Secret & Exfiltration Scanner",
+        "🔗 Cryptographic Audit Ledger",
         "🌐 Threat Intelligence Feed (STIX/IoC)",
         "🤖 ML Anomaly Detector (IsolationForest)",
-        "🎯 Metasploit RPC Task Queue",
-        "🕸️ Interactive Attack Surface Graph",
-        "📄 Briefing & Forensic Export"
+        "🎯 Metasploit RPC Queue",
+        "🕸️ Interactive Attack Surface Map",
+        "📄 Forensic & Compliance Export"
     ]
 )
 
@@ -115,12 +125,13 @@ def generate_pdf_report(findings_df):
     story = []
 
     title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=18, spaceAfter=12)
-    story.append(Paragraph("Sovereign Platform Forensic & Security Brief", title_style))
+    story.append(Paragraph("Sovereign Platform Forensic & Governance Brief", title_style))
     story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC", styles['Normal']))
+    story.append(Paragraph(f"Session Token: {st.session_state['session_token']}", styles['Normal']))
     story.append(Spacer(1, 12))
 
     if not findings_df.empty:
-        story.append(Paragraph("<b>Exfiltration & Secret Findings Summary</b>", styles['Heading2']))
+        story.append(Paragraph("<b>Secret & Vulnerability Audit Results</b>", styles['Heading2']))
         data = [findings_df.columns.tolist()] + findings_df.values.tolist()
         t = Table(data)
         t.setStyle(TableStyle([
@@ -131,39 +142,112 @@ def generate_pdf_report(findings_df):
         ]))
         story.append(t)
     else:
-        story.append(Paragraph("No critical secrets or unauthorized paths were flagged during this cycle.", styles['Normal']))
+        story.append(Paragraph("No critical secrets or unauthorized path exposures flagged during audit cycle.", styles['Normal']))
 
     doc.build(story)
     buffer.seek(0)
     return buffer
 
 # -----------------------------------------------------------------------------
-# MODULE 1: OVERVIEW
+# MODULE 1: LIVE SIEM
 # -----------------------------------------------------------------------------
-if module == "📊 Live SIEM Overview":
-    st.title("📊 Workspace Real-Time SIEM Operations")
-    st.caption("Central dashboard displaying active security telemetry, automated response pipelines, and ledger health.")
+if module == "📊 Live SIEM Dashboard":
+    st.title("📊 Enterprise SIEM Real-Time Telemetry")
+    st.caption("Active monitoring of session tokens, cryptographic chain height, and real-time response triggers.")
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Active Sync Pipelines", "12/12", "Operational")
+    col1.metric("Active Sync Pipelines", "12/12", "Healthy")
     col2.metric("Ledger Block Height", f"#{len(st.session_state['audit_chain'])}")
-    col3.metric("Detected Anomalies", "3 Flags", "+1 pending review", delta_color="inverse")
-    col4.metric("Vault Protection", "AES-256 (TOTP Enforced)")
+    col3.metric("Quarantined Entities", f"{len(st.session_state['quarantine_list'])} Rules")
+    col4.metric("SOC 2 Readiness Score", "92%", "+4% this cycle")
 
-    st.subheader("Recent System Events")
+    st.subheader("System Telemetry Log")
     df = pd.DataFrame({
         "Timestamp": pd.date_range(end=pd.Timestamp.now(), periods=5, freq="min"),
-        "Event": ["Page Edited", "Database Query", "API Token Auth", "External Webhook Call", "Permission Change"],
+        "Event Class": ["Auth Grant", "Database Query", "API Token Auth", "Webhook Call", "Policy Elevation"],
         "Actor": ["User_Admin", "Integration_Bot", "System_Process", "Automation_Engine", "User_Admin"],
-        "Risk Score": ["Low", "Low", "Medium", "Low", "High"]
+        "Severity": ["Low", "Low", "Medium", "Low", "High"]
     })
     st.dataframe(df, use_container_width=True)
 
 # -----------------------------------------------------------------------------
-# MODULE 2: SECRET SCANNER
+# MODULE 2: COMPLIANCE MATRIX
 # -----------------------------------------------------------------------------
-elif module == "🔍 Notion Secret & Exfiltration Scanner":
-    st.title("🔍 Notion Secret & Exfiltration Detection Engine")
+elif module == "⚖️ Regulatory Compliance Matrix (SOC 2 / ISO)":
+    st.title("⚖️ Automated Regulatory Compliance Engine")
+    st.caption("Continuous control monitoring across frameworks to maintain enterprise audit readiness.")
+
+    compliance_data = pd.DataFrame([
+        {"Framework": "SOC 2 Type II", "Control ID": "CC6.1", "Description": "Logical Access Restrictions", "Status": "PASS", "Score": "100%"},
+        {"Framework": "SOC 2 Type II", "Control ID": "CC6.8", "Description": "Unauthorized Software Detection", "Status": "PASS", "Score": "95%"},
+        {"Framework": "ISO 27001", "Control ID": "A.12.4.1", "Description": "Event Logging & Audit Chains", "Status": "PASS", "Score": "100%"},
+        {"Framework": "ISO 27001", "Control ID": "A.9.2.6", "Description": "Removal of Access Rights", "Status": "ACTION REQUIRED", "Score": "70%"},
+        {"Framework": "GDPR", "Control ID": "Art. 32", "Description": "Security of Processing & Encryption", "Status": "PASS", "Score": "90%"}
+    ])
+
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.subheader("Control Evaluation Status")
+        st.dataframe(compliance_data, use_container_width=True)
+
+    with col2:
+        st.subheader("Overall Compliance Index")
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=91,
+            title={'text': "Compliance Rate"},
+            gauge={'axis': {'range': [None, 100]}, 'bar': {'color': "#00CC96"}}
+        ))
+        st.plotly_chart(fig, use_container_width=True)
+
+# -----------------------------------------------------------------------------
+# MODULE 3: SOAR PLAYBOOKS
+# -----------------------------------------------------------------------------
+elif module == "⚡ Automated SOAR Playbooks":
+    st.title("⚡ Security Orchestration & Automated Response (SOAR)")
+    st.caption("Execute pre-configured automated incident playbooks to mitigate risks in real time.")
+
+    st.subheader("Available Mitigation Playbooks")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("### 🔒 Lock Session")
+        st.write("Revokes active session tokens and forces privilege level downgrade.")
+        if st.button("Trigger Session Lock"):
+            st.session_state["user_tier"] = "Auditor"
+            st.session_state["session_token"] = "REVOKED_" + str(uuid.uuid4())[:8]
+            log_ledger_event("SOAR_Playbook", "EMERGENCY_LOCKDOWN: Revoked active sessions")
+            st.warning("Session locked down and demoted to Auditor.")
+            st.rerun()
+
+    with col2:
+        st.markdown("### 🛑 Quarantine Path")
+        st.write("Isolates sensitive datasets and registers file paths in the active blocklist.")
+        target_path = st.text_input("Path to Quarantine:", "/datasets/pathogens/sample.csv")
+        if st.button("Quarantine Target Path"):
+            st.session_state["quarantine_list"].append(target_path)
+            log_ledger_event("SOAR_Playbook", f"QUARANTINE: Restricted access to {target_path}")
+            st.success(f"Quarantined {target_path}")
+
+    with col3:
+        st.markdown("### 🧹 Purge Queue")
+        st.write("Terminates all background Metasploit RPC scan operations immediately.")
+        if st.button("Purge Active Tasks"):
+            st.session_state["scan_queue"] = []
+            log_ledger_event("SOAR_Playbook", "PURGE: Cancelled all background jobs")
+            st.info("Task queue cleared.")
+
+    if st.session_state["quarantine_list"]:
+        st.divider()
+        st.subheader("Currently Quarantined Paths")
+        st.write(st.session_state["quarantine_list"])
+
+# -----------------------------------------------------------------------------
+# MODULE 4: SECRET SCANNER
+# -----------------------------------------------------------------------------
+elif module == "🔍 Secret & Exfiltration Scanner":
+    st.title("🔍 Secret & Exfiltration Detection Engine")
     st.write("Perform regex-based forensic scans on incoming payload streams.")
 
     sample_input = st.text_area(
@@ -187,11 +271,11 @@ MIIEowIBAAKCAQEA0...""",
             st.success("✅ No secrets or confidential data patterns detected.")
 
 # -----------------------------------------------------------------------------
-# MODULE 3: CRYPTOGRAPHIC AUDIT LEDGER
+# MODULE 5: CRYPTOGRAPHIC LEDGER
 # -----------------------------------------------------------------------------
-elif module == "🔗 Cryptographic Tamper-Evident Ledger":
-    st.title("🔗 SHA-256 Cryptographic Audit Ledger")
-    st.caption("Immutable, block-chained log tracking all system modifications, tier elevations, and scan events.")
+elif module == "🔗 Cryptographic Audit Ledger":
+    st.title("🔗 Cryptographic Tamper-Evident Ledger")
+    st.caption("Immutable, block-chained log tracking all system modifications and SOAR executions.")
 
     col1, col2 = st.columns([3, 1])
     with col1:
@@ -217,16 +301,15 @@ elif module == "🔗 Cryptographic Tamper-Evident Ledger":
             else:
                 st.error("❌ TAMPERING DETECTED! Hash Chain Broken")
 
-        if st.button("Simulate Manual Action Log"):
-            log_ledger_event(st.session_state["user_tier"], "Manual Compliance Check Executed")
+        if st.button("Simulate Audit Log Entry"):
+            log_ledger_event(st.session_state["user_tier"], "Manual Verification Check Executed")
             st.rerun()
 
 # -----------------------------------------------------------------------------
-# MODULE 4: THREAT INTELLIGENCE (STIX / IoC)
+# MODULE 6: THREAT INTELLIGENCE
 # -----------------------------------------------------------------------------
 elif module == "🌐 Threat Intelligence Feed (STIX/IoC)":
     st.title("🌐 Threat Intelligence & Indicator Ingestion")
-    st.write("Cross-reference workspace activity against live global threat indicators (STIX 2.1 / MISP feeds).")
 
     mock_threat_feed = pd.DataFrame([
         {"Type": "IP Address", "Indicator": "192.168.1.105", "Threat Actor": "APT29", "Severity": "High", "Status": "Active"},
@@ -238,31 +321,28 @@ elif module == "🌐 Threat Intelligence Feed (STIX/IoC)":
     st.dataframe(mock_threat_feed, use_container_width=True)
 
     st.subheader("IoC Matcher")
-    user_ioc = st.text_input("Enter IP, Domain, or Hash to query against feed:", "192.168.1.105")
+    user_ioc = st.text_input("Enter IP, Domain, or Hash to query:", "192.168.1.105")
     if st.button("Query Threat Feed"):
         match = mock_threat_feed[mock_threat_feed["Indicator"] == user_ioc.strip()]
         if not match.empty:
-            st.error(f"🚨 THREAT MATCH FOUND! Indicator belongs to {match.iloc[0]['Threat Actor']} (Severity: {match.iloc[0]['Severity']})")
-            log_ledger_event(st.session_state["user_tier"], f"Threat Feed Alert: Matched IoC {user_ioc}")
+            st.error(f"🚨 THREAT MATCH FOUND! Threat Actor: {match.iloc[0]['Threat Actor']} (Severity: {match.iloc[0]['Severity']})")
+            log_ledger_event(st.session_state["user_tier"], f"Threat Alert: Matched IoC {user_ioc}")
         else:
-            st.success("✅ Indicator clean. No known threat matches found in database.")
+            st.success("✅ Indicator clean. No threat matches found.")
 
 # -----------------------------------------------------------------------------
-# MODULE 5: ML ANOMALY DETECTOR
+# MODULE 7: ML ANOMALY DETECTOR
 # -----------------------------------------------------------------------------
 elif module == "🤖 ML Anomaly Detector (IsolationForest)":
     st.title("🤖 ML Behavioral Anomaly Detection")
-    st.caption("Train a scikit-learn IsolationForest model on workspace activity to flag zero-day behavioral anomalies.")
 
-    # Generate synthetic behavioral dataset
     np.random.seed(42)
-    normal_traffic = np.random.normal(loc=[12, 50, 100], scale=[2, 10, 20], size=(100, 3)) # hour, req_count, payload_kb
+    normal_traffic = np.random.normal(loc=[12, 50, 100], scale=[2, 10, 20], size=(100, 3))
     anomalous_traffic = np.random.uniform(low=[0, 200, 500], high=[4, 1000, 2000], size=(10, 3))
     
     X = np.vstack([normal_traffic, anomalous_traffic])
     df_ml = pd.DataFrame(X, columns=["Access_Hour", "Request_Frequency", "Payload_KB"])
 
-    # Model training
     model = IsolationForest(contamination=0.09, random_state=42)
     df_ml["Anomaly_Code"] = model.fit_predict(X)
     df_ml["Status"] = df_ml["Anomaly_Code"].map({1: "Normal", -1: "Anomalous"})
@@ -283,22 +363,20 @@ elif module == "🤖 ML Anomaly Detector (IsolationForest)":
     with col2:
         st.subheader("Model Summary")
         anomalies_count = (df_ml["Status"] == "Anomalous").sum()
-        st.metric("Total Sample Patterns", len(df_ml))
-        st.metric("Flagged Zero-Day Outliers", anomalies_count, delta="Requires Audit", delta_color="inverse")
-        
+        st.metric("Total Samples", len(df_ml))
+        st.metric("Flagged Zero-Day Outliers", anomalies_count, delta="Requires Action", delta_color="inverse")
         st.dataframe(df_ml[df_ml["Status"] == "Anomalous"].head(5), use_container_width=True)
 
 # -----------------------------------------------------------------------------
-# MODULE 6: METASPLOIT TASK QUEUE
+# MODULE 8: METASPLOIT RPC QUEUE
 # -----------------------------------------------------------------------------
-elif module == "🎯 Metasploit RPC Task Queue":
+elif module == "🎯 Metasploit RPC Queue":
     st.title("🎯 Asynchronous Metasploit Task Queue")
-    st.caption("Trigger active network diagnostic scans without blocking UI operations.")
 
     col1, col2 = st.columns([1, 2])
     with col1:
-        target_ip = st.text_input("Target Subnet / IP", "192.168.1.100")
-        module_type = st.selectbox("Scan Module", ["auxiliary/scanner/portscan/tcp", "auxiliary/scanner/http/dir_scanner"])
+        target_ip = st.text_input("Target IP / Range", "192.168.1.100")
+        module_type = st.selectbox("Scan Engine", ["auxiliary/scanner/portscan/tcp", "auxiliary/scanner/http/dir_scanner"])
         if st.button("Queue Scan Job"):
             st.session_state["scan_queue"].append({
                 "ID": len(st.session_state["scan_queue"]) + 1,
@@ -315,17 +393,17 @@ elif module == "🎯 Metasploit RPC Task Queue":
         if st.session_state["scan_queue"]:
             queue_df = pd.DataFrame(st.session_state["scan_queue"])
             st.dataframe(queue_df, use_container_width=True)
-            if st.button("Clear Finished Jobs"):
+            if st.button("Clear Completed Tasks"):
                 st.session_state["scan_queue"] = []
                 st.rerun()
         else:
             st.info("Queue is currently empty.")
 
 # -----------------------------------------------------------------------------
-# MODULE 7: ATTACK SURFACE GRAPH
+# MODULE 9: ATTACK SURFACE MAP
 # -----------------------------------------------------------------------------
-elif module == "🕸️ Interactive Attack Surface Graph":
-    st.title("🕸️ Interactive Workspace & Network Topology Map")
+elif module == "🕸️ Interactive Attack Surface Map":
+    st.title("🕸️ Interactive Workspace Topology & Risk Vectors")
 
     nodes = ["Notion API Gateway", "Database Pipeline", "Local Workstation", "Storage Vault", "Metasploit RPC Node"]
     fig = go.Figure()
@@ -350,13 +428,11 @@ elif module == "🕸️ Interactive Attack Surface Graph":
     st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------------------------------------------------------------
-# MODULE 8: BRIEFING & EXPORT
+# MODULE 10: FORENSIC EXPORT
 # -----------------------------------------------------------------------------
-elif module == "📄 Briefing & Forensic Export":
-    st.title("📄 Executive Briefing & Multi-Format Export")
-    st.write("Compile operational telemetry and ledger records into formal compliance reports.")
+elif module == "📄 Forensic & Compliance Export":
+    st.title("📄 Executive Briefing & Forensic Export")
 
-    st.subheader("Export PDF Executive Brief")
     sample_df = pd.DataFrame([
         {"Line": 2, "Type": "AWS API Key", "Content Snippet": "AKIAIOSFODNN7EXAMPLE"},
         {"Line": 3, "Type": "Notion Integration Token", "Content Snippet": "secret_abc123456789..."}
@@ -372,11 +448,13 @@ elif module == "📄 Briefing & Forensic Export":
     )
 
     st.divider()
-    st.subheader("Raw Structured Forensic Logs")
+    st.subheader("Raw STIX 2.1 / Forensic Audit Stream")
     raw_json = json.dumps({
         "timestamp": datetime.now().isoformat(),
         "tier": st.session_state["user_tier"],
+        "session_token": st.session_state["session_token"],
         "ledger_blocks": len(st.session_state["audit_chain"]),
+        "quarantined_items": len(st.session_state["quarantine_list"]),
         "status": "ACTIVE"
     }, indent=2)
-    st.download_button("📥 Export STIX 2.1 / JSON Audit Log", raw_json, file_name="forensic_log.json", mime="application/json")
+    st.download_button("📥 Export STIX 2.1 Audit Log", raw_json, file_name="forensic_log.json", mime="application/json")
