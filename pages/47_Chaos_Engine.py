@@ -566,34 +566,25 @@ def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     )
     return fig
 
-def plotly_pss(x, y, z, z_cut, title="PoincarÃ© Surface of Section"):
-    mask = np.isclose(z, z_cut, atol=0.08)
-    fig = go.Figure()
-    if np.any(mask):
-        fig.add_trace(go.Scatter(
-            x=x[mask], y=y[mask],
-            mode='markers',
-            marker=dict(color='#F87171', size=10, opacity=0.9, line=dict(color='white', width=1)),
-            name='PSS Crossings',
-            hovertemplate='X: %{x:.4f}<br>Y: %{y:.4f}<extra></extra>'
-        ))
-    else:
-        fig.add_trace(go.Scatter(
-            x=x[::5], y=y[::5],
-            mode='markers',
-            marker=dict(color='#60A5FA', size=5, opacity=0.6),
-            name='Downsampled Flow',
-            hovertemplate='X: %{x:.4f}<br>Y: %{y:.4f}<extra></extra>'
-        ))
+def plotly_pss(x, y, z, z_cut=0.0, title="Poincaré Section"):
+    # Filter points near the Poincaré slice cut
+    mask = abs(z - z_cut) < 0.05
+    x_sec = x[mask] if hasattr(x, '__getitem__') else []
+    y_sec = y[mask] if hasattr(y, '__getitem__') else []
+
+    fig = go.Figure(data=[go.Scatter(
+        x=x_sec, y=y_sec,
+        mode='markers',
+        marker=dict(size=4, color='#60A5FA', opacity=0.8),
+        name='Section Hits'
+    )])
+
     fig.update_layout(
-        title=dict(text=f"{title} (Z = {z_cut:.2f})", font=dict(color='white', size=16, family='Inter')),
+        title_text=f"{title} (Z = {z_cut:.2f})",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(gridcolor='rgba(255,255,255,0.2)', title='X', titlefont=dict(color='#E2E8F0'), zerolinecolor='rgba(255,255,255,0.3)'),
-        yaxis=dict(gridcolor='rgba(255,255,255,0.2)', title='Y', titlefont=dict(color='#E2E8F0'), zerolinecolor='rgba(255,255,255,0.3)'),
-        font=dict(color='white', family='Inter'),
-        height=500,
-        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
+        height=450,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
     return fig
 
