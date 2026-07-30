@@ -55,7 +55,7 @@ def init_db():
 db_conn = init_db()
 
 # ============================================================================
-# PAGE CONFIG + PREMIUM GLASSMORPHISM STYLES
+# PAGE CONFIG + HIGH-CONTRAST PREMIUM GLASSMORPHISM STYLES
 # ============================================================================
 st.set_page_config(
     page_title="Global Sovereign Nonlinear Systems & Resilience Engine",
@@ -71,43 +71,46 @@ st.markdown(
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
+        color: #F8FAFC !important;
     }
 
     .stApp {
-        background: linear-gradient(135deg, #0B1120 0%, #111827 50%, #0B1120 100%);
+        background: linear-gradient(135deg, #070B14 0%, #0F172A 50%, #070B14 100%);
         background-attachment: fixed;
     }
 
-    /* --- Glassmorphism Cards --- */
+    /* --- High-Contrast Glassmorphism Cards --- */
     .glass-container {
-        background: rgba(30, 41, 59, 0.45);
+        background: rgba(15, 23, 42, 0.85);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 20px;
         padding: 1.5rem;
         margin-bottom: 1rem;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #F8FAFC !important;
     }
     .glass-container:hover {
-        border-color: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.8);
         transform: translateY(-1px);
     }
 
     /* --- Metric Cards --- */
     .metric-card {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.05) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 16px;
         padding: 1.2rem;
         text-align: center;
         backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         transition: all 0.3s ease;
     }
     .metric-card:hover {
-        border-color: rgba(59, 130, 246, 0.3);
+        border-color: rgba(59, 130, 246, 0.6);
         transform: scale(1.02);
     }
     .metric-value {
@@ -119,11 +122,12 @@ st.markdown(
         background-clip: text;
     }
     .metric-label {
-        font-size: 0.8rem;
-        color: #94A3B8;
+        font-size: 0.85rem;
+        color: #CBD5E1 !important;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-top: 0.3rem;
+        font-weight: 600;
     }
 
     /* --- Status Indicators --- */
@@ -139,163 +143,164 @@ st.markdown(
         border: 1px solid;
     }
     .status-stable {
-        background: rgba(34, 197, 94, 0.15);
-        border-color: rgba(34, 197, 94, 0.3);
-        color: #4ADE80;
+        background: rgba(22, 101, 52, 0.4);
+        border-color: rgba(74, 222, 128, 0.6);
+        color: #4ADE80 !important;
         animation: pulse-green 2.5s infinite;
     }
     .status-borderline {
-        background: rgba(234, 179, 8, 0.15);
-        border-color: rgba(234, 179, 8, 0.3);
-        color: #FACC15;
+        background: rgba(133, 77, 14, 0.4);
+        border-color: rgba(250, 204, 21, 0.6);
+        color: #FACC15 !important;
         animation: pulse-yellow 2.5s infinite;
     }
     .status-critical {
-        background: rgba(239, 68, 68, 0.15);
-        border-color: rgba(239, 68, 68, 0.3);
-        color: #F87171;
+        background: rgba(153, 27, 27, 0.4);
+        border-color: rgba(248, 113, 113, 0.6);
+        color: #F87171 !important;
         animation: pulse-red 2.5s infinite;
     }
 
     @keyframes pulse-green {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-        50% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+        50% { box-shadow: 0 0 0 12px rgba(74, 222, 128, 0); }
     }
     @keyframes pulse-yellow {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); }
-        50% { box-shadow: 0 0 0 12px rgba(234, 179, 8, 0); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.4); }
+        50% { box-shadow: 0 0 0 12px rgba(250, 204, 21, 0); }
     }
     @keyframes pulse-red {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-        50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4); }
+        50% { box-shadow: 0 0 0 12px rgba(248, 113, 113, 0); }
     }
 
     /* --- Tabs --- */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
-        background: rgba(30, 41, 59, 0.4);
+        background: rgba(15, 23, 42, 0.8);
         padding: 6px;
         border-radius: 12px;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
     .stTabs [data-baseweb="tab"] {
         background: transparent;
         border-radius: 8px;
         padding: 10px 18px;
         font-weight: 600;
-        color: #94A3B8;
+        color: #CBD5E1 !important;
         border: 1px solid transparent;
         transition: all 0.2s ease;
     }
     .stTabs [data-baseweb="tab"]:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: #E2E8F0;
+        background: rgba(255, 255, 255, 0.1);
+        color: #FFFFFF !important;
     }
     .stTabs [aria-selected="true"] {
         background: linear-gradient(135deg, #3B82F6, #8B5CF6) !important;
-        color: white !important;
-        border-color: rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        color: #FFFFFF !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
     }
 
     /* --- Buttons --- */
     .stButton > button {
         background: linear-gradient(135deg, #3B82F6, #8B5CF6) !important;
-        color: white !important;
-        border: none !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 12px !important;
         padding: 0.6rem 1.5rem !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25) !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
     }
     .stButton > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
-        filter: brightness(1.1) !important;
-    }
-    .stButton > button:active {
-        transform: translateY(0) !important;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5) !important;
+        filter: brightness(1.15) !important;
     }
 
     /* --- Inputs --- */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stNumberInput > div > div > input {
-        background: rgba(30, 41, 59, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(15, 23, 42, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 10px !important;
-        color: #E2E8F0 !important;
+        color: #F8FAFC !important;
         font-family: 'Inter', sans-serif !important;
+        font-weight: 500 !important;
     }
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus {
-        border-color: #3B82F6 !important;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+        border-color: #60A5FA !important;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25) !important;
     }
 
-    /* --- Selectbox --- */
+    /* --- Selectbox & Multiselect --- */
     .stSelectbox > div > div,
     .stMultiSelect > div > div {
-        background: rgba(30, 41, 59, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(15, 23, 42, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 10px !important;
-    }
-
-    /* --- Slider --- */
-    .stSlider > div > div > div > div {
-        background: linear-gradient(90deg, #3B82F6, #8B5CF6) !important;
+        color: #F8FAFC !important;
     }
 
     /* --- Sidebar --- */
     section[data-testid="stSidebar"] {
-        background: rgba(11, 17, 32, 0.9) !important;
+        background: rgba(7, 11, 20, 0.95) !important;
         backdrop-filter: blur(24px) !important;
         -webkit-backdrop-filter: blur(24px) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
     section[data-testid="stSidebar"] .block-container {
         padding-top: 2rem;
+    }
+    section[data-testid="stSidebar"] label {
+        color: #E2E8F0 !important;
+        font-weight: 600 !important;
     }
 
     /* --- Dataframes --- */
     .stDataFrame {
         border-radius: 12px !important;
         overflow: hidden !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
     }
 
     /* --- Chat Messages --- */
     .stChatMessage {
-        background: rgba(30, 41, 59, 0.5) !important;
+        background: rgba(15, 23, 42, 0.85) !important;
         backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 16px !important;
         margin-bottom: 0.8rem !important;
+        color: #F8FAFC !important;
     }
 
     /* --- Expander --- */
     .streamlit-expanderHeader {
-        background: rgba(30, 41, 59, 0.4) !important;
+        background: rgba(15, 23, 42, 0.8) !important;
         border-radius: 12px !important;
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        font-weight: 600 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        font-weight: 700 !important;
+        color: #F8FAFC !important;
     }
 
     /* --- Scrollbar --- */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
-    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+    ::-webkit-scrollbar-track { background: rgba(7, 11, 20, 0.8); }
+    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.7); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.9); }
 
     /* --- Headers --- */
-    h1, h2, h3 {
+    h1, h2, h3, h4, h5, h6 {
+        color: #FFFFFF !important;
         font-weight: 700 !important;
         letter-spacing: -0.02em !important;
     }
 
-    /* --- Main Header --- */
+    /* --- Main Header Glow --- */
     .main-header-glow {
         background: linear-gradient(90deg, #60A5FA, #A78BFA, #F472B6);
         -webkit-background-clip: text;
@@ -304,49 +309,48 @@ st.markdown(
         font-size: 2.4rem;
         font-weight: 800;
         letter-spacing: -1px;
-        text-shadow: 0 0 40px rgba(96, 165, 250, 0.15);
+        text-shadow: 0 0 40px rgba(96, 165, 250, 0.2);
     }
     .sub-header-glow {
-        color: #94A3B8;
-        font-size: 1rem;
-        font-weight: 400;
+        color: #E2E8F0 !important;
+        font-size: 1.05rem;
+        font-weight: 500;
     }
 
     /* --- Research Cards --- */
     .research-card {
-        background: rgba(30, 41, 59, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 16px;
         padding: 1.5rem;
         height: 100%;
         transition: all 0.3s ease;
     }
     .research-card:hover {
-        background: rgba(30, 41, 59, 0.6);
-        border-color: rgba(59, 130, 246, 0.3);
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(59, 130, 246, 0.5);
         transform: translateY(-3px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
     }
-    .research-card-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .research-card-title { font-size: 1.1rem; font-weight: 700; color: #E2E8F0; margin-bottom: 0.3rem; }
-    .research-card-desc { font-size: 0.85rem; color: #94A3B8; line-height: 1.4; }
+    .research-card-title { font-size: 1.1rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.3rem; }
+    .research-card-desc { font-size: 0.9rem; color: #CBD5E1 !important; line-height: 1.4; }
 
     /* --- Dividers --- */
     .glass-divider {
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
         margin: 1.5rem 0;
     }
 
     /* --- File Uploader --- */
     .stFileUploader > div > div {
-        background: rgba(30, 41, 59, 0.4) !important;
-        border: 2px dashed rgba(255, 255, 255, 0.1) !important;
+        background: rgba(15, 23, 42, 0.85) !important;
+        border: 2px dashed rgba(255, 255, 255, 0.25) !important;
         border-radius: 16px !important;
     }
     .stFileUploader > div > div:hover {
-        border-color: #3B82F6 !important;
-        background: rgba(59, 130, 246, 0.05) !important;
+        border-color: #60A5FA !important;
+        background: rgba(59, 130, 246, 0.1) !important;
     }
     </style>
     """,
@@ -357,7 +361,6 @@ st.markdown(
 # UNIVERSAL MULTI-FORMAT DATA LOADER
 # ============================================================================
 def _load_any(uploaded_file):
-    """Load csv / json / txt / xlsx into a DataFrame, tolerant of odd delimiters."""
     name = uploaded_file.name.lower()
     try:
         if name.endswith(".csv"):
@@ -392,7 +395,6 @@ if "session_start_time" not in st.session_state:
 # ============================================================================
 st.sidebar.markdown("## 🌐 Global Sovereign Command Hub")
 
-# Privilege & Institutional Metadata Layer
 with st.sidebar.expander("👤 Institutional & User Metadata", expanded=True):
     user_role = st.selectbox(
         "Privilege tier",
@@ -528,37 +530,9 @@ if np.any(np.abs(solution) >= 1e4 - 1):
             "a strongly unstable / runaway regime. Values are clipped for display; try reducing the shock "
             "magnitude or increasing the damping parameter for a cleaner view.")
 
-# --- mLCE: fast heuristic ---
 perturbation_growth = np.abs(np.gradient(x_traj)) + 1e-5
 mlce_heuristic = float(np.mean(np.log(perturbation_growth + 1e-5)) / (t[1] - t[0]))
 
-# --- mLCE: rigorous Benettin renormalization ---
-def benettin_mlce(f, ic, t_arr, args, eps=1e-8, renorm_every=10):
-    ic = np.array(ic, dtype=float)
-    ic_pert = ic + np.array([eps, 0.0, 0.0])
-    log_sum = 0.0
-    n_renorm = 0
-    steps = np.array_split(t_arr, max(1, len(t_arr) // renorm_every))
-    state, state_p = ic.copy(), ic_pert.copy()
-    for seg in steps:
-        if len(seg) < 2:
-            continue
-        sol1 = odeint(f, state, seg, args=args)
-        sol2 = odeint(f, state_p, seg, args=args)
-        state = sol1[-1]
-        diff = sol2[-1] - state
-        dist = np.linalg.norm(diff)
-        if dist == 0 or not np.isfinite(dist):
-            state_p = state + np.array([eps, 0.0, 0.0])
-            continue
-        log_sum += np.log(dist / eps)
-        n_renorm += 1
-        state_p = state + diff * (eps / dist)
-    if n_renorm == 0 or t_arr[-1] == t_arr[0]:
-        return 0.0
-    return float(log_sum / (t_arr[-1] - t_arr[0]))
-
-# EWS
 window = 20
 rolling_variance = [float(np.var(x_traj[max(0, i - window):i])) for i in range(1, len(x_traj) + 1)]
 rolling_ac = []
@@ -573,14 +547,14 @@ for i in range(1, len(x_traj) + 1):
 STATE_LABEL = "STABLE" if mlce_heuristic < 0 else ("BORDERLINE" if mlce_heuristic < 0.2 else "CRITICAL")
 
 # ============================================================================
-# PLOTLY HELPER FUNCTIONS — Interactive Scientific Charts
+# PLOTLY HELPER FUNCTIONS — High-Contrast Dark Charts
 # ============================================================================
 def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     fig = go.Figure(data=[go.Scatter3d(
         x=x, y=y, z=z,
         mode='lines',
-        line=dict(color='#3B82F6', width=4),
-        marker=dict(size=2, color=z, colorscale='Viridis', opacity=0.8),
+        line=dict(color='#60A5FA', width=4),
+        marker=dict(size=2, color=z, colorscale='Viridis', opacity=0.9),
         name='Trajectory',
         hovertemplate='X: %{x:.4f}<br>Y: %{y:.4f}<br>Z: %{z:.4f}<extra></extra>'
     )])
@@ -589,15 +563,15 @@ def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         scene=dict(
-            xaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.1)', title='X', titlefont=dict(color='#94A3B8')),
-            yaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.1)', title='Y', titlefont=dict(color='#94A3B8')),
-            zaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.1)', title='Z', titlefont=dict(color='#94A3B8')),
+            xaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title='X', titlefont=dict(color='#E2E8F0', size=12)),
+            yaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title='Y', titlefont=dict(color='#E2E8F0', size=12)),
+            zaxis=dict(backgroundcolor='rgba(0,0,0,0)', gridcolor='rgba(255,255,255,0.2)', title='Z', titlefont=dict(color='#E2E8F0', size=12)),
             camera=dict(eye=dict(x=1.5, y=1.5, z=1.2)),
         ),
         margin=dict(l=0, r=0, t=50, b=0),
         font=dict(color='white', family='Inter'),
         height=550,
-        hoverlabel=dict(bgcolor='rgba(30,41,59,0.9)', font=dict(color='white')),
+        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
     )
     return fig
 
@@ -608,7 +582,7 @@ def plotly_pss(x, y, z, z_cut, title="Poincaré Surface of Section"):
         fig.add_trace(go.Scatter(
             x=x[mask], y=y[mask],
             mode='markers',
-            marker=dict(color='#EF4444', size=10, opacity=0.85, line=dict(color='white', width=0.5)),
+            marker=dict(color='#F87171', size=10, opacity=0.9, line=dict(color='white', width=1)),
             name='PSS Crossings',
             hovertemplate='X: %{x:.4f}<br>Y: %{y:.4f}<extra></extra>'
         ))
@@ -616,7 +590,7 @@ def plotly_pss(x, y, z, z_cut, title="Poincaré Surface of Section"):
         fig.add_trace(go.Scatter(
             x=x[::5], y=y[::5],
             mode='markers',
-            marker=dict(color='#3B82F6', size=5, opacity=0.4),
+            marker=dict(color='#60A5FA', size=5, opacity=0.6),
             name='Downsampled Flow',
             hovertemplate='X: %{x:.4f}<br>Y: %{y:.4f}<extra></extra>'
         ))
@@ -624,11 +598,11 @@ def plotly_pss(x, y, z, z_cut, title="Poincaré Surface of Section"):
         title=dict(text=f"{title} (Z = {z_cut:.2f})", font=dict(color='white', size=16, family='Inter')),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(gridcolor='rgba(255,255,255,0.1)', title='X', titlefont=dict(color='#94A3B8'), zerolinecolor='rgba(255,255,255,0.1)'),
-        yaxis=dict(gridcolor='rgba(255,255,255,0.1)', title='Y', titlefont=dict(color='#94A3B8'), zerolinecolor='rgba(255,255,255,0.1)'),
+        xaxis=dict(gridcolor='rgba(255,255,255,0.2)', title='X', titlefont=dict(color='#E2E8F0'), zerolinecolor='rgba(255,255,255,0.3)'),
+        yaxis=dict(gridcolor='rgba(255,255,255,0.2)', title='Y', titlefont=dict(color='#E2E8F0'), zerolinecolor='rgba(255,255,255,0.3)'),
         font=dict(color='white', family='Inter'),
         height=500,
-        hoverlabel=dict(bgcolor='rgba(30,41,59,0.9)', font=dict(color='white')),
+        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
     )
     return fig
 
@@ -636,17 +610,17 @@ def plotly_bifurcation(b_vals, x_peaks, x_label):
     fig = go.Figure(data=go.Scatter(
         x=b_vals, y=x_peaks,
         mode='markers',
-        marker=dict(color='#3B82F6', size=4, opacity=0.7, line=dict(color='white', width=0.3))
+        marker=dict(color='#60A5FA', size=5, opacity=0.8, line=dict(color='white', width=0.4))
     ))
     fig.update_layout(
         title=dict(text="Automated Bifurcation Diagram", font=dict(color='white', size=16, family='Inter')),
-        xaxis=dict(title=x_label, gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8'), zerolinecolor='rgba(255,255,255,0.1)'),
-        yaxis=dict(title="Asymptotic X states", gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8'), zerolinecolor='rgba(255,255,255,0.1)'),
+        xaxis=dict(title=x_label, gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0'), zerolinecolor='rgba(255,255,255,0.3)'),
+        yaxis=dict(title="Asymptotic X states", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0'), zerolinecolor='rgba(255,255,255,0.3)'),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color='white', family='Inter'),
         height=480,
-        hoverlabel=dict(bgcolor='rgba(30,41,59,0.9)', font=dict(color='white')),
+        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
     )
     return fig
 
@@ -658,15 +632,15 @@ def plotly_ews(t_arr, rolling_variance, rolling_ac):
     )
     fig.add_trace(go.Scatter(
         x=t_arr, y=rolling_variance, mode='lines',
-        line=dict(color='#EF4444', width=2),
-        fill='tozeroy', fillcolor='rgba(239,68,68,0.1)',
+        line=dict(color='#F87171', width=2.5),
+        fill='tozeroy', fillcolor='rgba(248,113,113,0.15)',
         name='Variance',
         hovertemplate='Time: %{x:.1f}<br>Variance: %{y:.6f}<extra></extra>'
     ), row=1, col=1)
     fig.add_trace(go.Scatter(
         x=t_arr, y=rolling_ac, mode='lines',
-        line=dict(color='#3B82F6', width=2),
-        fill='tozeroy', fillcolor='rgba(59,130,246,0.1)',
+        line=dict(color='#60A5FA', width=2.5),
+        fill='tozeroy', fillcolor='rgba(96,165,250,0.15)',
         name='Autocorrelation',
         hovertemplate='Time: %{x:.1f}<br>AC(1): %{y:.4f}<extra></extra>'
     ), row=2, col=1)
@@ -677,10 +651,10 @@ def plotly_ews(t_arr, rolling_variance, rolling_ac):
         font=dict(color='white', family='Inter'),
         height=620,
         showlegend=False,
-        hoverlabel=dict(bgcolor='rgba(30,41,59,0.9)', font=dict(color='white')),
+        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
     )
-    fig.update_xaxes(gridcolor='rgba(255,255,255,0.1)', title_text="Time", row=2, col=1, titlefont=dict(color='#94A3B8'))
-    fig.update_yaxes(gridcolor='rgba(255,255,255,0.1)')
+    fig.update_xaxes(gridcolor='rgba(255,255,255,0.2)', title_text="Time", row=2, col=1, titlefont=dict(color='#E2E8F0'))
+    fig.update_yaxes(gridcolor='rgba(255,255,255,0.2)')
     return fig
 
 def plotly_monte_carlo(t_arr, runs, n_runs):
@@ -689,8 +663,8 @@ def plotly_monte_carlo(t_arr, runs, n_runs):
         fig.add_trace(go.Scatter(
             x=t_arr, y=run,
             mode='lines',
-            line=dict(color='#3B82F6', width=0.8),
-            opacity=0.12,
+            line=dict(color='#60A5FA', width=0.8),
+            opacity=0.15,
             showlegend=False,
             hoverinfo='skip'
         ))
@@ -698,19 +672,19 @@ def plotly_monte_carlo(t_arr, runs, n_runs):
     fig.add_trace(go.Scatter(
         x=t_arr, y=mean_run,
         mode='lines',
-        line=dict(color='#F472B6', width=2.5),
+        line=dict(color='#F472B6', width=3),
         name='Ensemble Mean',
         hovertemplate='Time: %{x:.1f}<br>Mean X: %{y:.4f}<extra></extra>'
     ))
     fig.update_layout(
         title=dict(text=f"Monte Carlo Uncertainty Envelope ({n_runs} runs)", font=dict(color='white', size=16, family='Inter')),
-        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8')),
-        yaxis=dict(title="X", gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8')),
+        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
+        yaxis=dict(title="X", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color='white', family='Inter'),
         height=480,
-        hoverlabel=dict(bgcolor='rgba(30,41,59,0.9)', font=dict(color='white')),
+        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
     )
     return fig
 
@@ -719,31 +693,31 @@ def plotly_policy_comparison(t_arr, baseline, subsidy, reform, country, sector):
     fig.add_trace(go.Scatter(
         x=t_arr, y=baseline, mode='lines',
         name='Option 1: Do nothing (baseline)',
-        line=dict(color='#DC2626', width=2.5),
+        line=dict(color='#F87171', width=3),
         hovertemplate='Time: %{x:.1f}<br>Baseline: %{y:.4f}<extra></extra>'
     ))
     fig.add_trace(go.Scatter(
         x=t_arr, y=subsidy, mode='lines',
         name='Option 2: Emergency subsidy / buffer',
-        line=dict(color='#3B82F6', width=2.5, dash='dash'),
+        line=dict(color='#60A5FA', width=3, dash='dash'),
         hovertemplate='Time: %{x:.1f}<br>Subsidy: %{y:.4f}<extra></extra>'
     ))
     fig.add_trace(go.Scatter(
         x=t_arr, y=reform, mode='lines',
         name='Option 3: Structural reform / damping',
-        line=dict(color='#10B981', width=2.5, dash='dot'),
+        line=dict(color='#4ADE80', width=3, dash='dot'),
         hovertemplate='Time: %{x:.1f}<br>Reform: %{y:.4f}<extra></extra>'
     ))
     fig.update_layout(
         title=dict(text=f"Strategy Comparison — {country} / {sector}", font=dict(color='white', size=16, family='Inter')),
-        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8')),
-        yaxis=dict(title="System health metric", gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8')),
+        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
+        yaxis=dict(title="System health metric", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color='white', family='Inter'),
         height=480,
-        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, bgcolor='rgba(30,41,59,0.6)'),
-        hoverlabel=dict(bgcolor='rgba(30,41,59,0.9)', font=dict(color='white')),
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, bgcolor='rgba(15,23,42,0.9)'),
+        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
     )
     return fig
 
@@ -751,19 +725,19 @@ def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_label, b_label):
     fig = go.Figure(data=go.Contour(
         z=Z, x=A_mat[0], y=B_mat[:, 0],
         colorscale='Plasma',
-        contours=dict(coloring='heatmap', showlabels=True, labelfont=dict(color='white')),
-        colorbar=dict(title='Max X', titlefont=dict(color='#94A3B8'), tickfont=dict(color='#94A3B8')),
+        contours=dict(coloring='heatmap', showlabels=True, labelfont=dict(color='white', size=11)),
+        colorbar=dict(title='Max X', titlefont=dict(color='#E2E8F0'), tickfont=dict(color='#E2E8F0')),
         hovertemplate=f'{a_label}: %{{x:.3f}}<br>{b_label}: %{{y:.3f}}<br>Max X: %{{z:.4f}}<extra></extra>'
     ))
     fig.update_layout(
         title=dict(text="Global 2-Parameter Sensitivity Heatmap", font=dict(color='white', size=16, family='Inter')),
-        xaxis=dict(title=a_label, gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8')),
-        yaxis=dict(title=b_label, gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8')),
+        xaxis=dict(title=a_label, gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
+        yaxis=dict(title=b_label, gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color='white', family='Inter'),
         height=520,
-        hoverlabel=dict(bgcolor='rgba(30,41,59,0.9)', font=dict(color='white')),
+        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
     )
     return fig
 
@@ -772,25 +746,25 @@ def plotly_cross_coupling(t_arr, primary, secondary):
     fig.add_trace(go.Scatter(
         x=t_arr, y=primary, mode='lines',
         name='Primary sector',
-        line=dict(color='#2563EB', width=2.5),
+        line=dict(color='#60A5FA', width=3),
         hovertemplate='Time: %{x:.1f}<br>Primary: %{y:.4f}<extra></extra>'
     ))
     fig.add_trace(go.Scatter(
         x=t_arr, y=secondary, mode='lines',
         name='Coupled target sector',
-        line=dict(color='#F59E0B', width=2.5, dash='dot'),
+        line=dict(color='#FACC15', width=3, dash='dot'),
         hovertemplate='Time: %{x:.1f}<br>Secondary: %{y:.4f}<extra></extra>'
     ))
     fig.update_layout(
         title=dict(text="Cross-Sectoral Contagion & Shock Propagation", font=dict(color='white', size=16, family='Inter')),
-        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8')),
-        yaxis=dict(title="Amplitude", gridcolor='rgba(255,255,255,0.1)', titlefont=dict(color='#94A3B8')),
+        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
+        yaxis=dict(title="Amplitude", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color='white', family='Inter'),
         height=480,
-        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, bgcolor='rgba(30,41,59,0.6)'),
-        hoverlabel=dict(bgcolor='rgba(30,41,59,0.9)', font=dict(color='white')),
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, bgcolor='rgba(15,23,42,0.9)'),
+        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
     )
     return fig
 
@@ -830,7 +804,6 @@ if "Chat Command" in user_role:
         with st.chat_message("user"):
             st.markdown(prompt)
             
-        # Basic heuristic command parser
         p_lower = prompt.lower()
         if "status" in p_lower or "health" in p_lower:
             reply = f"System status in {target_country} ({sector}): State is **{STATE_LABEL}** with Lyapunov exponent mLCE ≈ {mlce_heuristic:.4f}."
@@ -885,7 +858,6 @@ elif "Executive Storyboard" in user_role:
     </div>
     """, unsafe_allow_html=True)
     
-    # Quick visual summary
     fig = plotly_3d_phase(x_traj, y_traj, z_traj, title=f"Executive 3D Phase Portrait — {target_country}")
     st.plotly_chart(fig, use_container_width=True)
 
@@ -893,7 +865,6 @@ elif "Policy Comparison" in user_role:
     st.markdown("### ⚖️ Multi-Strategy Policy Comparison Matrix")
     st.markdown("Simulating competing policy interventions under identical initial stress conditions.")
     
-    # Run alternative policy trajectories
     sol_base = _solve(system_ode, initial_state, t, args=(a, b, c, 0.0))[:, 0]
     sol_sub = _solve(system_ode, initial_state, t, args=(max(0.1, a - 0.5), b, c, policy_shock * 0.5))[:, 0]
     sol_ref = _solve(system_ode, initial_state, t, args=(a, b + 0.5, c + 0.2, policy_shock * 0.1))[:, 0]
@@ -990,7 +961,6 @@ elif "Data Import / Export Center" in user_role:
             mime="text/csv",
         )
         
-        # Save to SQLite database button
         if st.button("💾 Commit Simulation to SQLite Database"):
             p_dict = {"a": a, "b": b, "c": c, "x0": x0, "y0": y0, "z0": z0, "shock": policy_shock}
             save_sim_to_db(db_conn, author_name, org_email, target_country, sector, user_role, mlce_heuristic, STATE_LABEL, p_dict, notes="Committed via Data Center")
