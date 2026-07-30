@@ -672,24 +672,28 @@ def plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, country, sector):
     )
     return fig
 
-def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_label, b_label):
+def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_label="A", b_label="B"):
+    # Extract 1D axes safely from 2D meshgrids or 1D arrays
+    x_axis = A_mat[0, :] if getattr(A_mat, 'ndim', 1) > 1 else A_mat
+    y_axis = B_mat[:, 0] if getattr(B_mat, 'ndim', 1) > 1 else B_mat
+
     fig = go.Figure(data=go.Contour(
-        z=Z, x=A_mat[0], y=B_mat[:, 0],
-        colorscale='Plasma',
-        contours=dict(coloring='heatmap', showlabels=True, labelfont=dict(color='white', size=11)),
-        colorbar=dict(title='Max X', titlefont=dict(color='#E2E8F0'), tickfont=dict(color='#E2E8F0')),
+        z=Z, x=x_axis, y=y_axis,
+        colorscale='Viridis',
+        contours=dict(coloring='heatmap', showlabels=True),
+        colorbar=dict(title_text="Max X"),
         hovertemplate=f'{a_label}: %{{x:.3f}}<br>{b_label}: %{{y:.3f}}<br>Max X: %{{z:.4f}}<extra></extra>'
     ))
+
     fig.update_layout(
-        title_text="Global 2-Parameter Sensitivity Heatmap",
-        xaxis=dict(title=a_label, gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
-        yaxis=dict(title=b_label, gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
+        title_text=f"Sensitivity Landscape: {a_label} vs {b_label}",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white', family='Inter'),
-        height=520,
-        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
+        height=500,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
+    fig.update_xaxes(title_text=a_label, gridcolor='rgba(255,255,255,0.2)')
+    fig.update_yaxes(title_text=b_label, gridcolor='rgba(255,255,255,0.2)')
     return fig
 
 def plotly_cross_coupling(t_arr, primary, secondary):
