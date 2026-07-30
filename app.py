@@ -542,3 +542,4 @@ elif "Audit Log & System History" in user_role:
 
 else:
     st.info("Select specific privilege tiers in the sidebar to access additional functional modules.")
+
