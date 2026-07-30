@@ -627,35 +627,29 @@ def plotly_ews(t, rolling_variance, rolling_ac, title="Early Warning Signals (EW
     )
     return fig
 
-def plotly_monte_carlo(t_arr, runs, n_runs):
+def plotly_monte_carlo(t, mc_runs, n_runs):
     fig = go.Figure()
-    for i, run in enumerate(runs):
-        fig.add_trace(go.Scatter(
-            x=t_arr, y=run,
-            mode='lines',
-            line=dict(color='#60A5FA', width=0.8),
-            opacity=0.15,
-            showlegend=False,
-            hoverinfo='skip'
-        ))
-    mean_run = np.mean(runs, axis=0)
-    fig.add_trace(go.Scatter(
-        x=t_arr, y=mean_run,
-        mode='lines',
-        line=dict(color='#F472B6', width=3),
-        name='Ensemble Mean',
-        hovertemplate='Time: %{x:.1f}<br>Mean X: %{y:.4f}<extra></extra>'
-    ))
+    
+    # Plot individual Monte Carlo simulation runs
+    if hasattr(mc_runs, 'shape'):
+        for i in range(min(n_runs, getattr(mc_runs, 'shape', [0, 0])[1] if len(getattr(mc_runs, 'shape', [])) > 1 else 1)):
+            run_data = mc_runs[:, i] if len(mc_runs.shape) > 1 else mc_runs
+            fig.add_trace(go.Scatter(
+                x=t, y=run_data,
+                mode='lines',
+                line=dict(width=0.8, color='rgba(96, 165, 250, 0.25)'),
+                showlegend=False
+            ))
+
     fig.update_layout(
-        title=dict(text=f"Monte Carlo Uncertainty Envelope ({n_runs} runs)", font=dict(color='white', size=16, family='Inter')),
-        xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
-        yaxis=dict(title="X", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
+        title_text=f"Monte Carlo Uncertainty Envelope ({n_runs} runs)",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white', family='Inter'),
-        height=480,
-        hoverlabel=dict(bgcolor='#0F172A', font=dict(color='white', size=13)),
+        height=450,
+        margin=dict(l=0, r=0, t=50, b=0)
     )
+    fig.update_xaxes(title_text="Time", gridcolor='rgba(255,255,255,0.2)')
+    fig.update_yaxes(title_text="State Variable Range", gridcolor='rgba(255,255,255,0.2)')
     return fig
 
 def plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, country, sector):
@@ -687,7 +681,7 @@ def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_label, b_label):
         hovertemplate=f'{a_label}: %{{x:.3f}}<br>{b_label}: %{{y:.3f}}<br>Max X: %{{z:.4f}}<extra></extra>'
     ))
     fig.update_layout(
-        title=dict(text="Global 2-Parameter Sensitivity Heatmap", font=dict(color='white', size=16, family='Inter')),
+        title_text="Global 2-Parameter Sensitivity Heatmap",
         xaxis=dict(title=a_label, gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
         yaxis=dict(title=b_label, gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
         paper_bgcolor='rgba(0,0,0,0)',
@@ -713,7 +707,7 @@ def plotly_cross_coupling(t_arr, primary, secondary):
         hovertemplate='Time: %{x:.1f}<br>Secondary: %{y:.4f}<extra></extra>'
     ))
     fig.update_layout(
-        title=dict(text="Cross-Sectoral Contagion & Shock Propagation", font=dict(color='white', size=16, family='Inter')),
+        title_text="Cross-Sectoral Contagion & Shock Propagation",
         xaxis=dict(title="Time", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
         yaxis=dict(title="Amplitude", gridcolor='rgba(255,255,255,0.2)', titlefont=dict(color='#E2E8F0')),
         paper_bgcolor='rgba(0,0,0,0)',
