@@ -12,14 +12,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # ============================================================================
-# PLOTLY INTEGRATION â€” Interactive Scientific Visualizations
+# PLOTLY INTEGRATION — Interactive Scientific Visualizations
 # ============================================================================
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 
 # ============================================================================
-# DATABASE INITIALIZATION (SQLite Persistent Store)
+# DATABASE INITIALIZATION (SQLite Persistent Store & Analyst Directory)
 # ============================================================================
 def init_db():
     conn = sqlite3.connect("sovereign_engine.db", check_same_thread=False)
@@ -49,6 +49,26 @@ def init_db():
             custom_dz TEXT
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS analyst_contacts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            analyst_name TEXT UNIQUE,
+            org_email TEXT,
+            contact_phone TEXT,
+            clearance_level TEXT,
+            primary_sector TEXT,
+            vault_hash TEXT
+        )
+    """)
+    
+    # Seed Initial Institutional Contacts
+    cursor.execute("""
+        INSERT OR IGNORE INTO analyst_contacts (analyst_name, org_email, contact_phone, clearance_level, primary_sector, vault_hash)
+        VALUES 
+        ('Kula Chris', 'chrishem@sovereign.org', '+256 700 000000', 'Tier-1 Lead Architect', 'Economics & Sovereign Risk', 'HASH-SOV-999'),
+        ('Dr. Matsiko', 'matsiko@muni.ac.ug', '+256 772 111222', 'Chief Scientific Director', 'Bioinformatics & Systems', 'HASH-SCI-888'),
+        ('Ocircan Darius', 'darius@sovereign.org', '+256 750 333444', 'Senior Policy Analyst', 'Infrastructure & Grid', 'HASH-POL-777')
+    """)
     conn.commit()
     return conn
 
@@ -59,7 +79,7 @@ db_conn = init_db()
 # ============================================================================
 st.set_page_config(
     page_title="Global Sovereign Nonlinear Systems & Resilience Engine",
-    page_icon="ðŸŒ",
+    page_icon="🌐",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -391,22 +411,23 @@ if "session_start_time" not in st.session_state:
     st.session_state.session_start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # ============================================================================
-# SIDEBAR â€” PRIVILEGES, METADATA, JURISDICTION, SECTOR, PARAMETERS
+# SIDEBAR — PRIVILEGES, METADATA, JURISDICTION, SECTOR, PARAMETERS
 # ============================================================================
-st.sidebar.markdown("## ðŸŒ Global Sovereign Command Hub")
+st.sidebar.markdown("## 🌐 Global Sovereign Command Hub")
 
-with st.sidebar.expander("ðŸ‘¤ Institutional & User Metadata", expanded=True):
+with st.sidebar.expander("👤 Institutional & Analyst Details", expanded=True):
     user_role = st.selectbox(
         "Privilege tier",
         [
-            "ðŸ’¬ Chat Command Core",
-            "ðŸ‘” Executive Storyboard",
-            "âš–ï¸ Policy Comparison Matrix",
-            "ðŸ“Š Technocrat Operations",
-            "ðŸ”¬ Research Scientist (full engine)",
-            "ðŸ“¥ Data Import / Export Center",
-            "ðŸ§ª System Self-Test & Diagnostics",
-            "âš¡ Sector Automation Hub",
+            "💬 Chat Command Core",
+            "👔 Executive Storyboard",
+            "⚖️ Policy Comparison Matrix",
+            "📊 Technocrat Operations",
+            "🔬 Research Scientist (full engine)",
+            "📥 Data Import / Export Center",
+            "🧪 System Self-Test & Diagnostics",
+            "⚡ Sector Automation Hub",
+            "📇 Institutional Contacts & Directory",
         ],
     )
     author_name = st.text_input("Author / Analyst Name", "Kula Chris")
@@ -415,14 +436,14 @@ with st.sidebar.expander("ðŸ‘¤ Institutional & User Metadata", expanded=Tru
     secure_vault_token = st.text_input("Secure Vault Passkey", type="password", value="SOV-999-KEY")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown("### ðŸ“ Jurisdiction & Domain")
+st.sidebar.markdown("### 📍 Jurisdiction & Domain")
 
 PRESET_COUNTRIES = [
-    "ðŸ‡ºðŸ‡¬ Uganda", "ðŸ‡°ðŸ‡ª Kenya", "ðŸ‡·ðŸ‡¼ Rwanda", "ðŸ‡³ðŸ‡¬ Nigeria", "ðŸ‡¿ðŸ‡¦ South Africa",
-    "ðŸ‡¬ðŸ‡­ Ghana", "ðŸ‡ªðŸ‡¹ Ethiopia", "ðŸ‡¹ðŸ‡¿ Tanzania", "ðŸ‡ªðŸ‡¬ Egypt",
-    "ðŸ‡ºðŸ‡¸ United States", "ðŸ‡¬ðŸ‡§ United Kingdom", "ðŸ‡«ðŸ‡· France", "ðŸ‡©ðŸ‡ª Germany",
-    "ðŸ‡¯ðŸ‡µ Japan", "ðŸ‡¨ðŸ‡³ China", "ðŸ‡®ðŸ‡³ India", "ðŸ‡§ðŸ‡· Brazil", "ðŸ‡¨ðŸ‡¦ Canada",
-    "ðŸ‡¦ðŸ‡º Australia", "ðŸŒ Global / Multi-State Aggregate",
+    "🇺🇬 Uganda", "🇰🇪 Kenya", "🇷🇼 Rwanda", "🇳🇬 Nigeria", "🇿🇦 South Africa",
+    "🇬🇭 Ghana", "🇪🇹 Ethiopia", "🇹🇿 Tanzania", "🇪🇬 Egypt",
+    "🇺🇸 United States", "🇬🇧 United Kingdom", "🇫🇷 France", "🇩🇪 Germany",
+    "🇯🇵 Japan", "🇨🇳 China", "🇮🇳 India", "🇧🇷 Brazil", "🇨🇦 Canada",
+    "🇦🇺 Australia", "🌐 Global / Multi-State Aggregate",
 ]
 
 region_mode = st.sidebar.radio(
@@ -434,15 +455,15 @@ else:
     target_country = st.sidebar.text_input("Type any country, city, or region", "e.g. Vietnam")
 
 PRESET_SECTORS = {
-    "ðŸ’° Economics & Finance (Huang-Li model)": ("a", "Savings / growth rate", "b", "Investment cost", "c", "Market elasticity"),
-    "ðŸ¥ Healthcare: Hospital surge & capacity": ("a", "Patient influx rate", "b", "ICU bed burnout", "c", "Staff fatigue decay"),
-    "ðŸ¦  Epidemiology: Outbreak dynamics": ("a", "Transmission rate", "b", "Recovery rate", "c", "Waning immunity"),
-    "ðŸŽ“ Education: Tuition & institutional cashflow": ("a", "Tuition collection speed", "b", "Operational overhead", "c", "Reserve depletion"),
-    "ðŸŒ¾ Agriculture: Food security & yield risk": ("a", "Climate stress index", "b", "Supply-chain friction", "c", "Reserve depletion"),
-    "ðŸ§¬ Bioinformatics: Gene regulatory networks": ("a", "Expression drive", "b", "Feedback damping", "c", "Mutation pressure"),
-    "ðŸ¦ Treasury: Fiscal deficit & contagion": ("a", "Stress multiplier", "b", "Structural friction", "c", "Damping coefficient"),
-    "âš¡ Infrastructure: Power / grid reliability": ("a", "Demand surge", "b", "Load friction", "c", "Buffer capacity"),
-    "ðŸŒ Environmental: Predator-prey / hydrology": ("a", "Growth rate", "b", "Consumption rate", "c", "Recovery rate"),
+    "💰 Economics & Finance (Huang-Li model)": ("a", "Savings / growth rate", "b", "Investment cost", "c", "Market elasticity"),
+    "🏥 Healthcare: Hospital surge & capacity": ("a", "Patient influx rate", "b", "ICU bed burnout", "c", "Staff fatigue decay"),
+    "🦠 Epidemiology: Outbreak dynamics": ("a", "Transmission rate", "b", "Recovery rate", "c", "Waning immunity"),
+    "🎓 Education: Tuition & institutional cashflow": ("a", "Tuition collection speed", "b", "Operational overhead", "c", "Reserve depletion"),
+    "🌾 Agriculture: Food security & yield risk": ("a", "Climate stress index", "b", "Supply-chain friction", "c", "Reserve depletion"),
+    "🧬 Bioinformatics: Gene regulatory networks": ("a", "Expression drive", "b", "Feedback damping", "c", "Mutation pressure"),
+    "🏦 Treasury: Fiscal deficit & contagion": ("a", "Stress multiplier", "b", "Structural friction", "c", "Damping coefficient"),
+    "⚡ Infrastructure: Power / grid reliability": ("a", "Demand surge", "b", "Load friction", "c", "Buffer capacity"),
+    "🌊 Environmental: Predator-prey / hydrology": ("a", "Growth rate", "b", "Consumption rate", "c", "Recovery rate"),
 }
 
 sector_mode = st.sidebar.radio("Sector scope", ["Choose from list", "Type any custom sector"], horizontal=True)
@@ -454,21 +475,21 @@ else:
     a_label, a_desc, b_label, b_desc, c_label, c_desc = "a", "Growth / drive term", "b", "Friction / damping term", "c", "Buffer / decay term"
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown(f"### âš™ï¸ Parameters â€” {sector}")
-a = st.sidebar.slider(f"{a_label} â€” {a_desc}", 0.1, 5.0, 1.5, 0.1)
-b = st.sidebar.slider(f"{b_label} â€” {b_desc}", 0.0, 3.0, 0.9, 0.1)
-c = st.sidebar.slider(f"{c_label} â€” {c_desc}", 0.0, 3.0, 1.0, 0.1)
+st.sidebar.markdown(f"### ⚙️ Parameters — {sector}")
+a = st.sidebar.slider(f"{a_label} — {a_desc}", 0.1, 5.0, 1.5, 0.1)
+b = st.sidebar.slider(f"{b_label} — {b_desc}", 0.0, 3.0, 0.9, 0.1)
+c = st.sidebar.slider(f"{c_label} — {c_desc}", 0.0, 3.0, 1.0, 0.1)
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown("### ðŸ“ Initial conditions & shock")
-x0 = st.sidebar.number_input("Initial xâ‚€", value=0.10, format="%.3f")
-y0 = st.sidebar.number_input("Initial yâ‚€", value=0.10, format="%.3f")
-z0 = st.sidebar.number_input("Initial zâ‚€", value=0.10, format="%.3f")
-policy_shock = st.sidebar.slider("Inject shock magnitude at tâ‰ˆmid-run", -3.0, 3.0, 0.0, 0.1)
+st.sidebar.markdown("### 🎯 Initial conditions & shock")
+x0 = st.sidebar.number_input("Initial x₀", value=0.10, format="%.3f")
+y0 = st.sidebar.number_input("Initial y₀", value=0.10, format="%.3f")
+z0 = st.sidebar.number_input("Initial z₀", value=0.10, format="%.3f")
+policy_shock = st.sidebar.slider("Inject shock magnitude at t≈mid-run", -3.0, 3.0, 0.0, 0.1)
 t_max = st.sidebar.slider("Simulation horizon (steps)", 50, 500, 200, 10)
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-use_custom_ode = st.sidebar.checkbox("âœï¸ Use custom ODE equations instead of the default model")
+use_custom_ode = st.sidebar.checkbox("✏️ Use custom ODE equations instead of the default model")
 custom_dx = custom_dy = custom_dz = ""
 if use_custom_ode:
     st.sidebar.caption("Variables available: x, y, z, a, b, c, shock, t, np")
@@ -477,7 +498,7 @@ if use_custom_ode:
     custom_dz = st.sidebar.text_input("dz/dt =", "x - c * z")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-pss_slice_z = st.sidebar.slider("âœ‚ï¸ PoincarÃ© cut plane (Z threshold)", float(z0 - 2.0), float(z0 + 2.0), float(z0), 0.05)
+pss_slice_z = st.sidebar.slider("✂️ Poincaré cut plane (Z threshold)", float(z0 - 2.0), float(z0 + 2.0), float(z0), 0.05)
 
 # ============================================================================
 # MODEL CORE
@@ -521,14 +542,10 @@ solution = _solve(system_ode, initial_state, t, args=(a, b, c, policy_shock))
 if use_custom_ode and custom_dx and custom_dy and custom_dz:
     probe = system_ode(initial_state, 0.0, a, b, c, policy_shock)
     if not np.all(np.isfinite(probe)):
-        st.warning("Custom equations produced a non-numeric result â€” falling back to the default model.")
+        st.warning("Custom equations produced a non-numeric result — falling back to the default model.")
         solution = _solve(default_ode, initial_state, t, args=(a, b, c, policy_shock))
 
 x_traj, y_traj, z_traj = solution[:, 0], solution[:, 1], solution[:, 2]
-if np.any(np.abs(solution) >= 1e4 - 1):
-    st.info("âš ï¸ Trajectory hit the numerical stability ceiling under these parameters â€” this itself indicates "
-            "a strongly unstable / runaway regime. Values are clipped for display; try reducing the shock "
-            "magnitude or increasing the damping parameter for a cleaner view.")
 
 perturbation_growth = np.abs(np.gradient(x_traj)) + 1e-5
 mlce_heuristic = float(np.mean(np.log(perturbation_growth + 1e-5)) / (t[1] - t[0]))
@@ -547,7 +564,7 @@ for i in range(1, len(x_traj) + 1):
 STATE_LABEL = "STABLE" if mlce_heuristic < 0 else ("BORDERLINE" if mlce_heuristic < 0.2 else "CRITICAL")
 
 # ============================================================================
-# PLOTLY HELPER FUNCTIONS â€” High-Contrast Dark Charts
+# PLOTLY HELPER FUNCTIONS — High-Contrast Dark Charts
 # ============================================================================
 def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     fig = go.Figure(data=[go.Scatter3d(
@@ -567,7 +584,6 @@ def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     return fig
 
 def plotly_pss(x, y, z, z_cut=0.0, title="Poincaré Section"):
-    # Filter points near the Poincaré slice cut
     mask = abs(z - z_cut) < 0.05
     x_sec = x[mask] if hasattr(x, '__getitem__') else []
     y_sec = y[mask] if hasattr(y, '__getitem__') else []
@@ -608,7 +624,6 @@ def plotly_bifurcation(b_pts, peaks, x_label="Parameter (b)", title="Automated B
     return fig
 
 def plotly_ews(t, rolling_variance, rolling_ac, title="Early Warning Signals (EWS)"):
-    from plotly.subplots import make_subplots
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=("Variance (Critical Slowing Down)", "Autocorrelation (Lag-1)"))
 
     fig.add_trace(go.Scatter(x=t, y=rolling_variance, mode='lines', name='Rolling Variance', line=dict(color='#F59E0B', width=2)), row=1, col=1)
@@ -629,8 +644,6 @@ def plotly_ews(t, rolling_variance, rolling_ac, title="Early Warning Signals (EW
 
 def plotly_monte_carlo(t, mc_runs, n_runs):
     fig = go.Figure()
-    
-    # Plot individual Monte Carlo simulation runs
     if hasattr(mc_runs, 'shape'):
         for i in range(min(n_runs, getattr(mc_runs, 'shape', [0, 0])[1] if len(getattr(mc_runs, 'shape', [])) > 1 else 1)):
             run_data = mc_runs[:, i] if len(mc_runs.shape) > 1 else mc_runs
@@ -653,7 +666,6 @@ def plotly_monte_carlo(t, mc_runs, n_runs):
     return fig
 
 def plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, country, sector):
-    # Safely extract 1D sequence regardless of array dimensions (1D or 2D)
     y_base = sol_base[:, 0] if getattr(sol_base, 'ndim', 1) > 1 else sol_base
     y_sub  = sol_sub[:, 0]  if getattr(sol_sub, 'ndim', 1) > 1 else sol_sub
     y_ref  = sol_ref[:, 0]  if getattr(sol_ref, 'ndim', 1) > 1 else sol_ref
@@ -673,7 +685,6 @@ def plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, country, sector):
     return fig
 
 def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_label="A", b_label="B"):
-    # Extract 1D axes safely from 2D meshgrids or 1D arrays
     x_axis = A_mat[0, :] if getattr(A_mat, 'ndim', 1) > 1 else A_mat
     y_axis = B_mat[:, 0] if getattr(B_mat, 'ndim', 1) > 1 else B_mat
 
@@ -699,7 +710,6 @@ def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_label="A", b_label="B"):
 def plotly_cross_coupling(t, x_traj, sec_sol, title="Cross-Sectoral Contagion & Shock Propagation"):
     fig = go.Figure()
 
-    # Safely extract 1D series for primary and secondary trajectories
     y_prim = x_traj[:, 0] if getattr(x_traj, 'ndim', 1) > 1 else x_traj
     y_sec  = sec_sol[:, 0] if getattr(sec_sol, 'ndim', 1) > 1 else sec_sol
 
@@ -739,9 +749,8 @@ st.markdown(f'<div class="main-header-glow">Global Sovereign Nonlinear Systems &
 st.markdown(f'<div class="sub-header-glow">Jurisdiction: <b>{target_country}</b> &nbsp;|&nbsp; Sector: <b>{sector}</b> &nbsp;|&nbsp; Analyst: <b>{author_name}</b></div>', unsafe_allow_html=True)
 st.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
 
-# Navigation based on role selection
 if "Chat Command" in user_role:
-    st.markdown("### ðŸ’¬ Natural Language Command Core")
+    st.markdown("### 💬 Natural Language Command Core")
     st.markdown('<div class="research-card"><div class="research-card-title">Sovereign Intelligent Assistant</div><div class="research-card-desc">Type commands or ask questions about the running system parameters, stability states, or policy interventions.</div></div>', unsafe_allow_html=True)
     
     for msg in st.session_state.chat_history:
@@ -755,7 +764,7 @@ if "Chat Command" in user_role:
             
         p_lower = prompt.lower()
         if "status" in p_lower or "health" in p_lower:
-            reply = f"System status in {target_country} ({sector}): State is **{STATE_LABEL}** with Lyapunov exponent mLCE â‰ˆ {mlce_heuristic:.4f}."
+            reply = f"System status in {target_country} ({sector}): State is **{STATE_LABEL}** with Lyapunov exponent mLCE ≈ {mlce_heuristic:.4f}."
         elif "help" in p_lower:
             reply = "Available commands: 'status', 'shock', 'bifurcation', 'reset', or ask general questions about nonlinear stability."
         elif "shock" in p_lower:
@@ -768,7 +777,7 @@ if "Chat Command" in user_role:
             st.markdown(reply)
 
 elif "Executive Storyboard" in user_role:
-    st.markdown("### ðŸ‘” Executive Decision Storyboard")
+    st.markdown("### 👔 Executive Decision Storyboard")
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -807,24 +816,24 @@ elif "Executive Storyboard" in user_role:
     </div>
     """, unsafe_allow_html=True)
     
-    fig = plotly_3d_phase(x_traj, y_traj, z_traj, title=f"Executive 3D Phase Portrait â€” {target_country}")
+    fig = plotly_3d_phase(x_traj, y_traj, z_traj, title=f"Executive 3D Phase Portrait — {target_country}")
     st.plotly_chart(fig, use_container_width=True)
 
 elif "Policy Comparison" in user_role:
-    st.markdown("### âš–ï¸ Multi-Strategy Policy Comparison Matrix")
+    st.markdown("### ⚖️ Multi-Strategy Policy Comparison Matrix")
     st.markdown("Simulating competing policy interventions under identical initial stress conditions.")
     
-    sol_base = _solve(system_ode, initial_state, t, args=(a, b, c, 0.0))[:, 0]
-    sol_sub = _solve(system_ode, initial_state, t, args=(max(0.1, a - 0.5), b, c, policy_shock * 0.5))[:, 0]
-    sol_ref = _solve(system_ode, initial_state, t, args=(a, b + 0.5, c + 0.2, policy_shock * 0.1))[:, 0]
+    sol_base = _solve(system_ode, initial_state, t, args=(a, b, c, 0.0))
+    sol_sub = _solve(system_ode, initial_state, t, args=(max(0.1, a - 0.5), b, c, policy_shock * 0.5))
+    sol_ref = _solve(system_ode, initial_state, t, args=(a, b + 0.5, c + 0.2, policy_shock * 0.1))
     
     fig_pol = plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, target_country, sector)
     st.plotly_chart(fig_pol, use_container_width=True)
 
 elif "Technocrat Operations" in user_role:
-    st.markdown("### ðŸ“Š Technocrat Operations & Phase Analysis")
+    st.markdown("### 📊 Technocrat Operations & Phase Analysis")
     
-    tab1, tab2, tab3 = st.tabs(["3D Phase Space", "PoincarÃ© Section", "Early Warning Signals"])
+    tab1, tab2, tab3 = st.tabs(["3D Phase Space", "Poincaré Section", "Early Warning Signals"])
     
     with tab1:
         fig_3d = plotly_3d_phase(x_traj, y_traj, z_traj)
@@ -837,7 +846,7 @@ elif "Technocrat Operations" in user_role:
         st.plotly_chart(fig_ews, use_container_width=True)
 
 elif "Research Scientist" in user_role:
-    st.markdown("### ðŸ”¬ Advanced Research Scientist Engine")
+    st.markdown("### 🔬 Advanced Research Scientist Engine")
     
     tab_bif, tab_mc, tab_sens, tab_cc = st.tabs(["Bifurcation Analysis", "Monte Carlo Ensembles", "Sensitivity Heatmap", "Cross-Coupling"])
     
@@ -864,7 +873,7 @@ elif "Research Scientist" in user_role:
             noise_state = [x0 + np.random.normal(0, 0.05), y0 + np.random.normal(0, 0.05), z0 + np.random.normal(0, 0.05)]
             run_sol = _solve(system_ode, noise_state, t, args=(a, b, c, policy_shock))[:, 0]
             mc_runs.append(run_sol)
-        fig_mc = plotly_monte_carlo(t, mc_runs, n_mc)
+        fig_mc = plotly_monte_carlo(t, np.array(mc_runs).T if mc_runs else np.array([]), n_mc)
         st.plotly_chart(fig_mc, use_container_width=True)
         
     with tab_sens:
@@ -882,12 +891,12 @@ elif "Research Scientist" in user_role:
         
     with tab_cc:
         st.markdown("#### Cross-Sectoral Contagion Propagation")
-        sec_sol = _solve(system_ode, [y0, x0, z0], t, args=(b, a, c, policy_shock * 1.2))[:, 0]
-        fig_cc = plotly_cross_coupling(t, x_traj, sec_sol)
+        sec_sol = _solve(system_ode, [y0, x0, z0], t, args=(b, a, c, policy_shock * 1.2))
+        fig_cc = plotly_cross_coupling(t, solution, sec_sol)
         st.plotly_chart(fig_cc, use_container_width=True)
 
 elif "Data Import / Export Center" in user_role:
-    st.markdown("### ðŸ“¥ Data Import & Sovereign Export Center")
+    st.markdown("### 📥 Data Import & Sovereign Export Center")
     
     col_up, col_down = st.columns(2)
     with col_up:
@@ -910,13 +919,13 @@ elif "Data Import / Export Center" in user_role:
             mime="text/csv",
         )
         
-        if st.button("ðŸ’¾ Commit Simulation to SQLite Database"):
+        if st.button("💾 Commit Simulation to SQLite Database"):
             p_dict = {"a": a, "b": b, "c": c, "x0": x0, "y0": y0, "z0": z0, "shock": policy_shock}
             save_sim_to_db(db_conn, author_name, org_email, target_country, sector, user_role, mlce_heuristic, STATE_LABEL, p_dict, notes="Committed via Data Center")
             st.success("Simulation parameters and state successfully committed to `sovereign_engine.db`!")
 
 elif "System Self-Test & Diagnostics" in user_role:
-    st.markdown("### ðŸ§ª System Self-Test & Diagnostics Hub")
+    st.markdown("### 🧪 System Self-Test & Diagnostics Hub")
     st.markdown("Running real-time diagnostic checks across numerical solvers, database connectivity, and UI rendering layers.")
     
     diag_results = [
@@ -932,7 +941,7 @@ elif "System Self-Test & Diagnostics" in user_role:
         st.success("All systems nominal. Numerical stability verified across simulation horizon.")
 
 elif "Sector Automation Hub" in user_role:
-    st.markdown("### âš¡ Sector Automation & Preset Hub")
+    st.markdown("### ⚡ Sector Automation & Preset Hub")
     st.markdown("Manage custom dynamical presets and automated batch workflows.")
     
     preset_name_input = st.text_input("New Preset Name", "Custom Regional Crisis Model")
@@ -954,3 +963,34 @@ elif "Sector Automation Hub" in user_role:
     if presets:
         st.markdown("#### Saved Custom Presets")
         st.dataframe(pd.DataFrame(presets, columns=["Preset Name", "Sector"]), use_container_width=True)
+
+elif "Institutional Contacts" in user_role:
+    st.markdown("### 📇 Institutional Contacts & Analyst Directory")
+    st.markdown("Manage institutional clearances, analyst profiles, and contact registries.")
+    
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT id, analyst_name, org_email, contact_phone, clearance_level, primary_sector FROM analyst_contacts")
+    contacts = cursor.fetchall()
+    
+    df_contacts = pd.DataFrame(contacts, columns=["ID", "Analyst Name", "Email", "Phone", "Clearance", "Primary Domain"])
+    st.dataframe(df_contacts, use_container_width=True)
+    
+    st.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
+    st.markdown("#### Register / Update Analyst Profile")
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        c_name = st.text_input("Analyst Name", author_name)
+        c_email = st.text_input("Institutional Email", org_email)
+        c_phone = st.text_input("Direct Phone", contact_phone)
+    with col_c2:
+        c_clearance = st.selectbox("Clearance Tier", ["Tier-1 Lead Architect", "Chief Scientific Director", "Senior Policy Analyst", "Technocrat Observer"])
+        c_domain = st.text_input("Primary Domain", sector)
+        
+    if st.button("➕ Register / Update Profile in Registry"):
+        v_hash = f"HASH-{c_name.replace(' ', '').upper()}-{np.random.randint(100, 999)}"
+        cursor.execute("""
+            INSERT OR REPLACE INTO analyst_contacts (analyst_name, org_email, contact_phone, clearance_level, primary_sector, vault_hash)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (c_name, c_email, c_phone, c_clearance, c_domain, v_hash))
+        db_conn.commit()
+        st.success(f"Analyst profile for `{c_name}` successfully registered with security hash `{v_hash}`!")
