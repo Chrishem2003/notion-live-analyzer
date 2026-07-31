@@ -15,49 +15,15 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# SCOPED / NON-INTRUSIVE CSS (PREVENTS STYLE BLEED)
-# ---------------------------------------------------------
-# Notice: No global overrides on radio groups, section tags, or global HTML body
-st.markdown("""
-    <style>
-    /* Scoped container cards - won't leak into other pages */
-    .scoped-metric-card {
-        background-color: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    .scoped-card-title {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        color: #94a3b8;
-        font-weight: 600;
-    }
-    .scoped-card-val {
-        font-size: 1.6rem;
-        font-weight: 800;
-        color: #38bdf8;
-    }
-    .scoped-card-sub {
-        font-size: 0.8rem;
-        color: #34d399;
-        font-weight: 600;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# ---------------------------------------------------------
 # MAIN NAVIGATION & LAYOUT
 # ---------------------------------------------------------
 def main():
-    # Sidebar Navigation using native Streamlit layout
     st.sidebar.title("🌌 CHRISHEM")
     st.sidebar.caption("Sovereign Enterprise Engine")
     st.sidebar.markdown("---")
 
-    navigation = st.sidebar.selectbox(
-        "Select Navigation Hub",
+    navigation = st.sidebar.radio(
+        "Navigation Hub",
         [
             "Personal Workspace",
             "Access Control & Licensing",
@@ -74,20 +40,16 @@ def main():
     )
 
     st.sidebar.markdown("---")
-
-    # Native Status Indicators in Sidebar
     st.sidebar.caption("SYSTEM STATUS")
     st.sidebar.success("🟢 Operational (100%)")
     st.sidebar.info("🔒 Secure Sovereign Enclave")
 
-    # Canvas Header Section
-    st.title(f"🌌 {navigation}")
+    # Header
+    st.title(navigation)
     st.caption(f"Enterprise Operational Node | Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} EAT")
     st.markdown("---")
 
-    # ---------------------------------------------------------
-    # ROUTE: PERSONAL WORKSPACE
-    # ---------------------------------------------------------
+    # ROUTE HANDLER
     if navigation == "Personal Workspace":
         try:
             from modules.personal_workspace import render_personal_workspace_panel
@@ -95,44 +57,30 @@ def main():
         except Exception:
             st.subheader("Universal Personal Workspace & Productivity Hub")
             st.caption("Manage research milestones, bioinformatics pipelines, system configurations, and daily workflow tasks.")
-            st.markdown("<br>", unsafe_allow_html=True)
-
-            # Scoped Metric Cards
+            
+            # Metric Cards using native Streamlit containers
             c1, c2, c3, c4 = st.columns(4)
             with c1:
-                st.markdown("""
-                    <div class="scoped-metric-card">
-                        <div class="scoped-card-title">Active Milestones</div>
-                        <div class="scoped-card-val">4 Tracked</div>
-                        <div class="scoped-card-sub">Up to Date</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                with st.container(border=True):
+                    st.caption("ACTIVE MILESTONES")
+                    st.subheader("4 Tracked")
+                    st.caption("🟢 Up to Date")
             with c2:
-                st.markdown("""
-                    <div class="scoped-metric-card">
-                        <div class="scoped-card-title">Research Progress</div>
-                        <div class="scoped-card-val">94.2%</div>
-                        <div class="scoped-card-sub">+3.5% Auto</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                with st.container(border=True):
+                    st.caption("RESEARCH PROGRESS")
+                    st.subheader("94.2%")
+                    st.caption("📈 +3.5% Auto")
             with c3:
-                st.markdown("""
-                    <div class="scoped-metric-card">
-                        <div class="scoped-card-title">Workspace Status</div>
-                        <div class="scoped-card-val">Synced</div>
-                        <div class="scoped-card-sub">Local Enclave</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                with st.container(border=True):
+                    st.caption("WORKSPACE STATUS")
+                    st.subheader("Synced")
+                    st.caption("🔒 Local Enclave")
             with c4:
-                st.markdown("""
-                    <div class="scoped-metric-card">
-                        <div class="scoped-card-title">Focus Score</div>
-                        <div class="scoped-card-val">100%</div>
-                        <div class="scoped-card-sub">Deep Work</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                with st.container(border=True):
+                    st.caption("FOCUS SCORE")
+                    st.subheader("100%")
+                    st.caption("⚡ Deep Work")
 
-            st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("#### 🎯 Active Research & Task Milestones")
 
             tasks_df = pd.DataFrame([
@@ -143,7 +91,6 @@ def main():
             ])
             st.dataframe(tasks_df, use_container_width=True, hide_index=True)
 
-            st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("#### 📝 Quick Notes & Code Snippet Vault")
             st.text_area("Jot down research notes, terminal commands, or project ideas:", height=120, placeholder="Type notes here...")
 
@@ -173,9 +120,6 @@ def main():
                         st.markdown(f"**📄 {item['name']}**")
                         st.caption(f"Size: {item['size']} | Status: {item['status']}")
 
-    # ---------------------------------------------------------
-    # OTHER STANDALONE SUB-MODULE ROUTES
-    # ---------------------------------------------------------
     elif navigation == "Access Control & Licensing":
         try:
             from modules.access_control import render_access_control_panel
