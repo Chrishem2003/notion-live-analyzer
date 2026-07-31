@@ -1,3155 +1,1349 @@
-"""
-
-Secure Personal Vault
-
-Zero-knowledge encrypted personal storage vault with 2FA authentication,
-
-AES-GCM-256 client-side encryption, duress PIN support, categorized file
-
-management, self-destruct share links, and an interactive media previewer.
-
-
-
-Architecture:
-
-  - Security Layer: Master passcode + TOTP 2FA gate, duress PIN, auto-lock
-
-  - Crypto Engine: AES-GCM-256 (simulated via cryptography library)
-
-  - Storage: Categorized vault with unlimited object store integration pattern
-
-  - UI: High-density dark-mode with slate-950/indigo/emerald/amber/cyan accents
-
-"""
-
-from __future__ import annotations
-
-
-
-import base64
-
-import hashlib
-
-import hmac
-
-import json
-
-import os
-
-import re
-
-import struct
-
-import time
-
-import uuid
-
-from datetime import datetime, timedelta
-
-from enum import Enum
-
-from pathlib import Path
-
-from typing import Dict, List, Any, Optional, Tuple, Callable
-
-
-
-from modules.logging_utils import get_logger
-
-
-
-logger = get_logger(__name__)
-
-
-
-try:
-
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-    from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-
-    from cryptography.hazmat.backends import default_backend
-
-    HAS_CRYPTO = True
-
-except ImportError:
-
-    HAS_CRYPTO = False
-
-    logger.warning("cryptography package unavailable  vault falls back to a reduced crypto path")
-
-
-
-
-
-# ═══════════════════════════════════════════════════════════════════════
-
-# ENUMS & CONSTANTS
-
-# ═══════════════════════════════════════════════════════════════════════
-
-
-
-class VaultCategory(str, Enum):
-
-    DOCUMENTS = "🔍 Documents"
-
-    IMAGES = "🔍 Images"
-
-    AUDIO = "🔍 ️ Audio Notes"
-
-    DATASETS = "🔍 Datasets & Code"
-
-
-
-
-
-CATEGORY_EXTENSIONS: Dict[VaultCategory, List[str]] = {
-
-    VaultCategory.DOCUMENTS: [".pdf", ".docx", ".doc", ".txt", ".md", ".rtf", ".odt"],
-
-    VaultCategory.IMAGES: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".raw", ".tiff"],
-
-    VaultCategory.AUDIO: [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a", ".wma"],
-
-    VaultCategory.DATASETS: [".csv", ".json", ".tsv", ".xlsx", ".xls", ".parquet", ".feather",
-
-                              ".fasta", ".fastq", ".gbk", ".gff", ".vcf", ".py", ".r", ".ipynb",
-
-                              ".sql", ".sh", ".yaml", ".yml", ".toml", ".cfg"],
-
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import * as math from 'mathjs';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  FileText, Table2, Presentation, Mail as MailIcon, Cloud, Bold, Italic,
+  Underline, Strikethrough, List, ListOrdered, Heading1, Heading2, Heading3,
+  Plus, Trash2, Send, Star, Search, Moon, Sun, Reply, Forward, Download,
+  X, Upload, Lock, AlignLeft, AlignCenter, AlignRight, AlignJustify, Link2,
+  Image as ImageIcon, Table as TableIcon, Undo2, Redo2, MessageSquare,
+  Quote, Code, Printer, History, Command, Palette, ChevronUp, ChevronDown,
+  Copy, Play, StickyNote, Tag, Archive, Paperclip, Clock, Settings,
+  CheckSquare, Square, RotateCcw, FileSpreadsheet, BarChart3,
+} from 'lucide-react';
+
+// ============================================================================
+// DESIGN TOKENS — "Vault Ledger" identity
+// ============================================================================
+const FONT_STYLE = `
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:wght@400;600&family=JetBrains+Mono:wght@500&display=swap');
+.ov-display { font-family: 'Space Grotesk', sans-serif; }
+.ov-serif { font-family: 'Source Serif 4', Georgia, serif; }
+.ov-mono { font-family: 'JetBrains Mono', monospace; }
+.ov-seal { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
+[contenteditable]:focus { outline: none; }
+.ov-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.ov-scrollbar::-webkit-scrollbar-thumb { background: #a1a1aa; border-radius: 8px; }
+mark.ov-comment-mark { background: rgba(201,154,58,0.28); border-bottom: 2px solid #C99A3A; cursor: pointer; }
+`;
+
+const BRASS = '#C99A3A';
+const BRASS_DARK = '#A87F2A';
+
+function VaultSeal({ size = 26, color = BRASS }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" className="ov-seal">
+      <circle cx="20" cy="20" r="18" fill="none" stroke={color} strokeWidth="2.5" />
+      <circle cx="20" cy="20" r="11" fill="none" stroke={color} strokeWidth="1.5" />
+      {[...Array(8)].map((_, i) => {
+        const a = (i * Math.PI) / 4;
+        const x1 = 20 + Math.cos(a) * 14, y1 = 20 + Math.sin(a) * 14;
+        const x2 = 20 + Math.cos(a) * 17, y2 = 20 + Math.sin(a) * 17;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="1.5" />;
+      })}
+      <circle cx="20" cy="20" r="3.2" fill={color} />
+    </svg>
+  );
 }
 
+const uid = (p) => `${p}${Math.random().toString(36).slice(2, 8)}`;
 
-
-CATEGORY_ICONS: Dict[VaultCategory, str] = {
-
-    VaultCategory.DOCUMENTS: "🔍 ",
-
-    VaultCategory.IMAGES: "🔍 ",
-
-    VaultCategory.AUDIO: "🔍 ️",
-
-    VaultCategory.DATASETS: "🔍 ",
-
+// ============================================================================
+// SAFE FORMULA ENGINE — range functions + cell refs, evaluated by mathjs
+// (a sandboxed expression parser; never raw JS eval()).
+// ============================================================================
+function colToNum(col) { let n = 0; for (let i = 0; i < col.length; i++) n = n * 26 + (col.charCodeAt(i) - 64); return n; }
+function numToCol(n) { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; }
+function parseRef(ref) { const m = ref.match(/^([A-Z]+)(\d+)$/); return m ? { col: m[1], row: parseInt(m[2], 10) } : null; }
+function expandRange(start, end) {
+  const s = parseRef(start), e = parseRef(end);
+  if (!s || !e) return [];
+  const c1 = colToNum(s.col), c2 = colToNum(e.col);
+  const cells = [];
+  for (let r = Math.min(s.row, e.row); r <= Math.max(s.row, e.row); r++) {
+    for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) cells.push(numToCol(c) + r);
+  }
+  return cells;
 }
 
-
-
-CATEGORY_COLORS: Dict[VaultCategory, str] = {
-
-    VaultCategory.DOCUMENTS: "#6366f1",   # indigo
-
-    VaultCategory.IMAGES: "#10b981",      # emerald
-
-    VaultCategory.AUDIO: "#f59e0b",       # amber
-
-    VaultCategory.DATASETS: "#06b6d4",    # cyan
-
+function resolveCell(ref, grid, seen) {
+  if (seen.has(ref)) return 0;
+  const raw = grid[ref];
+  if (raw === undefined || raw === '') return 0;
+  if (typeof raw === 'string' && raw.startsWith('=')) {
+    const nextSeen = new Set(seen); nextSeen.add(ref);
+    const r = evaluateFormula(raw, grid, nextSeen);
+    const n = parseFloat(r);
+    return isNaN(n) ? r : n;
+  }
+  const n = parseFloat(raw);
+  return isNaN(n) ? raw : n;
 }
 
-
-
-# Default storage quota (unlimited free tier)
-
-DEFAULT_STORAGE_QUOTA_BYTES = 10 * 1024 * 1024 * 1024  # 10 GB simulated
-
-MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024  # 500 MB per file
-
-
-
-AUTO_LOCK_TIMEOUT_SECONDS = 300  # 5 minutes of inactivity
-
-TOTP_INTERVAL = 30  # TOTP standard 30-second window
-
-
-
-
-
-# ═══════════════════════════════════════════════════════════════════════
-
-# TOTP UTILITY (RFC 6238-compatible)
-
-# ═══════════════════════════════════════════════════════════════════════
-
-
-
-def _generate_totp(secret: str, interval: int = TOTP_INTERVAL) -> str:
-
-    """Generate a 6-digit TOTP code from a base32-encoded secret."""
-
-    try:
-
-        import base64 as _b64
-
-        key = _b64.b32decode(secret.upper().replace(" ", ""))
-
-        counter = struct.pack(">Q", int(time.time()) // interval)
-
-        hmac_hash = hmac.new(key, counter, hashlib.sha1).digest()
-
-        offset = hmac_hash[-1] & 0x0F
-
-        truncated = struct.unpack(">I", hmac_hash[offset:offset+4])[0] & 0x7FFFFFFF
-
-        return f"{truncated % 1000000:06d}"
-
-    except Exception:
-
-        return "000000"
-
-
-
-
-
-def _verify_totp(secret: str, code: str, interval: int = TOTP_INTERVAL, window: int = 1) -> bool:
-
-    """Verify a TOTP code with a drift window of ±`window` intervals."""
-
-    if not code or len(code) != 6 or not code.isdigit():
-
-        return False
-
-    current = int(time.time()) // interval
-
-    for offset in range(-window, window + 1):
-
-        expected = _generate_totp_for_counter(secret, current + offset)
-
-        if hmac.compare_digest(expected, code):
-
-            return True
-
-    return False
-
-
-
-
-
-def _generate_totp_for_counter(secret: str, counter: int) -> str:
-
-    """Generate TOTP for a specific counter value."""
-
-    try:
-
-        import base64 as _b64
-
-        key = _b64.b32decode(secret.upper().replace(" ", ""))
-
-        packed = struct.pack(">Q", counter)
-
-        hmac_hash = hmac.new(key, packed, hashlib.sha1).digest()
-
-        offset = hmac_hash[-1] & 0x0F
-
-        truncated = struct.unpack(">I", hmac_hash[offset:offset+4])[0] & 0x7FFFFFFF
-
-        return f"{truncated % 1000000:06d}"
-
-    except Exception:
-
-        return "000000"
-
-
-
-
-
-def _generate_totp_secret() -> str:
-
-    """Generate a random base32-encoded TOTP secret."""
-
-    raw = os.urandom(20)
-
-    import base64 as _b64
-
-    return _b64.b32encode(raw).decode("utf-8")
-
-
-
-
-
-# ═══════════════════════════════════════════════════════════════════════
-
-# ENCRYPTION ENGINE (AES-GCM-256)
-
-# ═══════════════════════════════════════════════════════════════════════
-
-
-
-class CryptoEngine:
-
-    """
-
-    Zero-knowledge AES-GCM-256 encryption engine.
-
-    Uses Python's cryptography library; in production the browser's
-
-    Web Crypto API would handle all client-side encryption so the
-
-    server never sees plaintext keys.
-
-    """
-
-
-
-    @staticmethod
-
-    def generate_key() -> bytes:
-
-        """Generate a 256-bit AES-GCM key."""
-
-        return AESGCM.generate_key(bit_length=256) if HAS_CRYPTO else os.urandom(32)
-
-
-
-    @staticmethod
-
-    def derive_key_from_passcode(passcode: str, salt: Optional[bytes] = None) -> Tuple[bytes, bytes]:
-
-        """
-
-        Derive a 256-bit key from a passcode using Scrypt.
-
-        Returns (key, salt). If salt is None, a new salt is generated.
-
-        """
-
-        if salt is None:
-
-            salt = os.urandom(32)
-
-        if HAS_CRYPTO:
-
-            kdf = Scrypt(salt=salt, length=32, n=2**14, r=8, p=1, backend=default_backend())
-
-            key = kdf.derive(passcode.encode("utf-8"))
-
-        else:
-
-            # Fallback: PBKDF2 via hashlib
-
-            key = hashlib.pbkdf2_hmac("sha256", passcode.encode("utf-8"), salt, 100_000, dklen=32)
-
-        return key, salt
-
-
-
-    @staticmethod
-
-    def encrypt(plaintext: bytes, key: bytes, associated_data: Optional[bytes] = None) -> bytes:
-
-        """
-
-        Encrypt plaintext with AES-GCM-256.
-
-        Returns: nonce (12 bytes) + ciphertext + tag (16 bytes)
-
-        """
-
-        if HAS_CRYPTO:
-
-            aesgcm = AESGCM(key)
-
-            nonce = os.urandom(12)
-
-            ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data or b"")
-
-            return nonce + ciphertext
-
-        else:
-
-            # Fallback: XOR + HMAC (MUST use real AES-GCM in production)
-
-            nonce = os.urandom(12)
-
-            from cryptography.hazmat.primitives.ciphers.algorithms import AES
-
-            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
-            cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=default_backend())
-
-            encryptor = cipher.encryptor()
-
-            if associated_data:
-
-                encryptor.authenticate_additional_data(associated_data)
-
-            ciphertext = encryptor.update(plaintext) + encryptor.finalize()
-
-            return nonce + ciphertext + encryptor.tag
-
-
-
-    @staticmethod
-
-    def decrypt(ciphertext_with_nonce: bytes, key: bytes, associated_data: Optional[bytes] = None) -> Optional[bytes]:
-
-        """
-
-        Decrypt AES-GCM-256 ciphertext.
-
-        Input: nonce (12 bytes) + ciphertext + tag (16 bytes)
-
-        """
-
-        if len(ciphertext_with_nonce) < 28:
-
-            return None
-
-        try:
-
-            nonce = ciphertext_with_nonce[:12]
-
-            ct = ciphertext_with_nonce[12:]
-
-            if HAS_CRYPTO:
-
-                aesgcm = AESGCM(key)
-
-                return aesgcm.decrypt(nonce, ct, associated_data or b"")
-
-            else:
-
-                from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
-                tag = ct[-16:]
-
-                ciphertext = ct[:-16]
-
-                cipher = Cipher(algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend())
-
-                decryptor = cipher.decryptor()
-
-                if associated_data:
-
-                    decryptor.authenticate_additional_data(associated_data)
-
-                return decryptor.update(ciphertext) + decryptor.finalize()
-
-        except Exception:
-
-            logger.warning("AES-GCM decryption failed (wrong key or tampered ciphertext)", exc_info=True)
-
-            return None
-
-
-
-    @staticmethod
-
-    def encrypt_file(file_bytes: bytes, key: bytes) -> Dict[str, Any]:
-
-        """Encrypt a file and return metadata + ciphertext."""
-
-        file_hash = hashlib.sha256(file_bytes).hexdigest()
-
-        ciphertext = CryptoEngine.encrypt(file_bytes, key, associated_data=file_hash.encode())
-
-        return {
-
-            "ciphertext_b64": base64.b64encode(ciphertext).decode("utf-8"),
-
-            "original_hash": file_hash,
-
-            "encrypted_at": datetime.now().isoformat(),
-
-            "algorithm": "AES-256-GCM",
-
-            "key_hint": hashlib.sha256(key).hexdigest()[:16],  # non-sensitive hint
-
-        }
-
-
-
-    @staticmethod
-
-    def decrypt_file(ciphertext_b64: str, key: bytes, expected_hash: Optional[str] = None) -> Optional[bytes]:
-
-        """Decrypt a file, optionally verifying its hash."""
-
-        try:
-
-            ciphertext = base64.b64decode(ciphertext_b64)
-
-            plaintext = CryptoEngine.decrypt(ciphertext, key, associated_data=(expected_hash or "").encode())
-
-            if plaintext is not None and expected_hash:
-
-                actual_hash = hashlib.sha256(plaintext).hexdigest()
-
-                if not hmac.compare_digest(actual_hash, expected_hash):
-
-                    logger.error("Vault file integrity check failed  content hash mismatch")
-
-                    return None
-
-            return plaintext
-
-        except Exception:
-
-            logger.warning("Vault file decryption failed", exc_info=True)
-
-            return None
-
-
-
-
-
-# ═══════════════════════════════════════════════════════════════════════
-
-# VAULT FILE MODEL
-
-# ═══════════════════════════════════════════════════════════════════════
-
-
-
-class VaultFile:
-
-    """Represents a single file stored in the vault."""
-
-
-
-    def __init__(
-
-        self,
-
-        name: str,
-
-        file_bytes: bytes,
-
-        category: VaultCategory,
-
-        tags: Optional[List[str]] = None,
-
-        notes: str = "",
-
-        encryption_key: Optional[bytes] = None,
-
-    ):
-
-        self.id = str(uuid.uuid4())
-
-        self.name = name
-
-        self.original_name = name
-
-        self.size_bytes = len(file_bytes)
-
-        self.category = category
-
-        self.tags = tags or []
-
-        self.notes = notes
-
-        self.extension = Path(name).suffix.lower()
-
-        self.mime_type = self._infer_mime()
-
-        self.uploaded_at = datetime.now()
-
-        self.last_accessed = datetime.now()
-
-        self.last_modified = datetime.now()
-
-        self.access_count = 0
-
-
-
-        # Encryption
-
-        self.encryption_key = encryption_key or CryptoEngine.generate_key()
-
-        encrypted_data = CryptoEngine.encrypt_file(file_bytes, self.encryption_key)
-
-        self.ciphertext_b64 = encrypted_data["ciphertext_b64"]
-
-        self.original_hash = encrypted_data["original_hash"]
-
-        self.encrypted_at = encrypted_data["encrypted_at"]
-
-
-
-        # Share & self-destruct
-
-        self.share_links: List[Dict[str, Any]] = []
-
-        self.is_deleted = False
-
-        self.deleted_at: Optional[datetime] = None
-
-
-
-    def _infer_mime(self) -> str:
-
-        """Infer MIME type from file extension."""
-
-        mime_map = {
-
-            ".pdf": "application/pdf",
-
-            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-
-            ".doc": "application/msword",
-
-            ".txt": "text/plain",
-
-            ".md": "text/markdown",
-
-            ".png": "image/png",
-
-            ".jpg": "image/jpeg",
-
-            ".jpeg": "image/jpeg",
-
-            ".gif": "image/gif",
-
-            ".webp": "image/webp",
-
-            ".svg": "image/svg+xml",
-
-            ".mp3": "audio/mpeg",
-
-            ".wav": "audio/wav",
-
-            ".ogg": "audio/ogg",
-
-            ".flac": "audio/flac",
-
-            ".csv": "text/csv",
-
-            ".json": "application/json",
-
-            ".tsv": "text/tab-separated-values",
-
-            ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
-            ".py": "text/x-python",
-
-            ".r": "text/x-r-source",
-
-            ".ipynb": "application/x-ipynb+json",
-
-        }
-
-        return mime_map.get(self.extension, "application/octet-stream")
-
-
-
-    def decrypt(self) -> Optional[bytes]:
-
-        """Decrypt and return the original file bytes."""
-
-        self.access_count += 1
-
-        self.last_accessed = datetime.now()
-
-        return CryptoEngine.decrypt_file(self.ciphertext_b64, self.encryption_key, self.original_hash)
-
-
-
-    def generate_share_link(self, expires_in_hours: int = 1, max_downloads: int = 1) -> Dict[str, Any]:
-
-        """Generate a self-destruct time-bound share link."""
-
-        link_id = str(uuid.uuid4())[:12]
-
-        now = datetime.now()
-
-        link = {
-
-            "id": link_id,
-
-            "file_id": self.id,
-
-            "file_name": self.name,
-
-            "created_at": now.isoformat(),
-
-            "expires_at": (now + timedelta(hours=expires_in_hours)).isoformat(),
-
-            "max_downloads": max_downloads,
-
-            "download_count": 0,
-
-            "is_expired": False,
-
-            "url": f"vault://share/{link_id}",
-
-        }
-
-        self.share_links.append(link)
-
-        return link
-
-
-
-    def consume_share_link(self, link_id: str) -> Tuple[bool, Optional[bytes], str]:
-
-        """Consume a share link and return (success, data, message)."""
-
-        for link in self.share_links:
-
-            if link["id"] == link_id:
-
-                if link["is_expired"]:
-
-                    return False, None, "❌ This share link has expired."
-
-                expires_at = datetime.fromisoformat(link["expires_at"])
-
-                if datetime.now() > expires_at:
-
-                    link["is_expired"] = True
-
-                    return False, None, "❌ This share link has expired."
-
-                if link["download_count"] >= link["max_downloads"]:
-
-                    link["is_expired"] = True
-
-                    return False, None, "❌ Maximum downloads reached. Link self-destructed."
-
-                link["download_count"] += 1
-
-                data = self.decrypt()
-
-                if data is None:
-
-                    return False, None, "❌ Failed to decrypt file."
-
-                if link["download_count"] >= link["max_downloads"]:
-
-                    link["is_expired"] = True
-
-                return True, data, f"✅ File ready for download ({link['download_count']}/{link['max_downloads']} used)"
-
-        return False, None, "❌ Share link not found."
-
-
-
-    def to_dict(self) -> Dict[str, Any]:
-
-        """Serialize to dictionary for storage/display."""
-
-        return {
-
-            "id": self.id,
-
-            "name": self.name,
-
-            "original_name": self.original_name,
-
-            "size_bytes": self.size_bytes,
-
-            "size_display": self._format_size(),
-
-            "category": self.category.value,
-
-            "category_icon": CATEGORY_ICONS.get(self.category, "🔍 "),
-
-            "tags": self.tags,
-
-            "notes": self.notes,
-
-            "extension": self.extension,
-
-            "mime_type": self.mime_type,
-
-            "uploaded_at": self.uploaded_at.isoformat(),
-
-            "last_accessed": self.last_accessed.isoformat(),
-
-            "last_modified": self.last_modified.isoformat(),
-
-            "access_count": self.access_count,
-
-            "is_deleted": self.is_deleted,
-
-            "share_links": self.share_links,
-
-        }
-
-
-
-    def _format_size(self) -> str:
-
-        """Format file size in human-readable format."""
-
-        b = self.size_bytes
-
-        if b < 1024:
-
-            return f"{b} B"
-
-        elif b < 1024**2:
-
-            return f"{b/1024:.1f} KB"
-
-        elif b < 1024**3:
-
-            return f"{b/1024**2:.1f} MB"
-
-        else:
-
-            return f"{b/1024**3:.2f} GB"
-
-
-
-    def rename(self, new_name: str) -> None:
-
-        """Rename the file."""
-
-        self.name = new_name
-
-        self.last_modified = datetime.now()
-
-
-
-    def update_tags(self, tags: List[str]) -> None:
-
-        """Update file tags."""
-
-        self.tags = tags
-
-        self.last_modified = datetime.now()
-
-
-
-    def update_notes(self, notes: str) -> None:
-
-        """Update encrypted notes."""
-
-        self.notes = notes
-
-        self.last_modified = datetime.now()
-
-
-
-
-
-# ═══════════════════════════════════════════════════════════════════════
-
-# SECURE PERSONAL VAULT  Main Class
-
-# ═══════════════════════════════════════════════════════════════════════
-
-
-
-class SecurePersonalVault:
-
-    """
-
-    Zero-knowledge encrypted personal storage vault.
-
-
-
-    Features:
-
-      - 2FA gate: Master passcode + TOTP authenticator code
-
-      - Duress PIN: Shows dummy vault under pressure
-
-      - Auto-lock: Session locks after inactivity timeout
-
-      - AES-GCM-256: All files encrypted client-side before storage
-
-      - Categorized workspace: Documents, Images, Audio, Datasets
-
-      - Self-destruct share links: Time-bound, count-limited
-
-      - In-vault previewer: PDF, images, audio playback
-
-      - Metadata management: Rename, tag, notes
-
-      - Decrypted download: Client-side decryption
-
-      - Search & filter: Full-text search, category tabs
-
-    """
-
-
-
-    # ── Class-level storage (simulated vault database) ──────────────
-
-    _vaults: Dict[str, "SecurePersonalVault"] = {}
-
-
-
-    def __init__(self, vault_id: Optional[str] = None):
-
-        self.vault_id = vault_id or f"vault_{uuid.uuid4().hex[:12]}"
-
-
-
-        # Authentication
-
-        self.master_passcode_hash: Optional[str] = None
-
-        self.master_passcode_salt: Optional[bytes] = None
-
-        self.totp_secret: Optional[str] = None
-
-        self.duress_passcode_hash: Optional[str] = None
-
-        self.duress_passcode_salt: Optional[bytes] = None
-
-        self.is_locked = True
-
-        self.is_duress_mode = False
-
-        self.last_activity_time = time.time()
-
-        self.failed_login_attempts = 0
-
-        self.max_failed_attempts = 5
-
-        self.locked_until: Optional[float] = None
-
-
-
-        # Vault state
-
-        self.files: Dict[str, VaultFile] = {}
-
-        self.vault_key: Optional[bytes] = None
-
-        self.quota_bytes = DEFAULT_STORAGE_QUOTA_BYTES
-
-
-
-        # Decryption cache
-
-        self._decrypt_cache: Dict[str, bytes] = {}
-
-
-
-        # Audit log
-
-        self.audit_log: List[Dict[str, Any]] = []
-
-
-
-        # Store in class registry
-
-        SecurePersonalVault._vaults[self.vault_id] = self
-
-
-
-    # ── Factory ─────────────────────────────────────────────────────
-
-
-
-    @classmethod
-
-    def get_vault(cls, vault_id: str) -> Optional["SecurePersonalVault"]:
-
-        """Retrieve a vault instance by ID."""
-
-        return cls._vaults.get(vault_id)
-
-
-
-    @classmethod
-
-    def create_new(cls, passcode: str, totp_secret: Optional[str] = None,
-
-                   duress_passcode: Optional[str] = None) -> "SecurePersonalVault":
-
-        """Create a new vault with the given credentials."""
-
-        vault = cls()
-
-        vault.setup_master_passcode(passcode)
-
-        if totp_secret:
-
-            vault.totp_secret = totp_secret
-
-        else:
-
-            vault.totp_secret = _generate_totp_secret()
-
-        if duress_passcode:
-
-            vault.setup_duress_passcode(duress_passcode)
-
-        vault._log("vault_created", "Vault initialized")
-
-        return vault
-
-
-
-    # ── Logging ─────────────────────────────────────────────────────
-
-
-
-    def _log(self, action: str, details: str = "") -> None:
-
-        self.audit_log.append({
-
-            "timestamp": datetime.now().isoformat(),
-
-            "action": action,
-
-            "details": details,
-
-        })
-
-        # Keep only last 500 entries
-
-        if len(self.audit_log) > 500:
-
-            self.audit_log = self.audit_log[-500:]
-
-
-
-    # ═════════════════════════════════════════════════════════════════
-
-    # SECURITY & AUTHENTICATION
-
-    # ═════════════════════════════════════════════════════════════════
-
-
-
-    def setup_master_passcode(self, passcode: str) -> None:
-
-        """Hash and store the master passcode using Scrypt."""
-
-        if len(passcode) < 4:
-
-            raise ValueError("Passcode must be at least 4 characters.")
-
-        key, salt = CryptoEngine.derive_key_from_passcode(passcode)
-
-        self.master_passcode_hash = hashlib.sha256(key).hexdigest()
-
-        self.master_passcode_salt = salt
-
-        self._log("master_passcode_set", "Master passcode configured")
-
-
-
-    def setup_duress_passcode(self, passcode: str) -> None:
-
-        """Hash and store a duress passcode."""
-
-        if len(passcode) < 4:
-
-            raise ValueError("Duress passcode must be at least 4 characters.")
-
-        key, salt = CryptoEngine.derive_key_from_passcode(passcode)
-
-        self.duress_passcode_hash = hashlib.sha256(key).hexdigest()
-
-        self.duress_passcode_salt = salt
-
-        self._log("duress_passcode_set", "Duress passcode configured")
-
-
-
-    def verify_passcode(self, passcode: str) -> Tuple[bool, bool]:
-
-        """
-
-        Verify a passcode.
-
-        Returns: (authenticated: bool, is_duress: bool)
-
-        """
-
-        # Check lockout
-
-        if self.locked_until and time.time() < self.locked_until:
-
-            remaining = int(self.locked_until - time.time())
-
-            return False, False
-
-
-
-        # Check master passcode
-
-        key, _ = CryptoEngine.derive_key_from_passcode(passcode, self.master_passcode_salt)
-
-        if hashlib.sha256(key).hexdigest() == self.master_passcode_hash:
-
-            self.failed_login_attempts = 0
-
-            return True, False
-
-
-
-        # Check duress passcode
-
-        if self.duress_passcode_hash and self.duress_passcode_salt:
-
-            d_key, _ = CryptoEngine.derive_key_from_passcode(passcode, self.duress_passcode_salt)
-
-            if hashlib.sha256(d_key).hexdigest() == self.duress_passcode_hash:
-
-                self.failed_login_attempts = 0
-
-                return True, True
-
-
-
-        # Failed attempt
-
-        self.failed_login_attempts += 1
-
-        if self.failed_login_attempts >= self.max_failed_attempts:
-
-            self.locked_until = time.time() + 300  # 5 min lockout
-
-            self._log("account_locked", f"Locked for 5 min after {self.max_failed_attempts} failed attempts")
-
-        return False, False
-
-
-
-    def verify_totp(self, code: str) -> bool:
-
-        """Verify a TOTP code."""
-
-        if not self.totp_secret:
-
-            return True  # TOTP not configured
-
-        return _verify_totp(self.totp_secret, code)
-
-
-
-    def unlock(self, passcode: str, totp_code: str) -> Tuple[bool, str]:
-
-        """
-
-        Attempt to unlock the vault with passcode + TOTP.
-
-        Returns: (success: bool, message: str)
-
-        """
-
-        authenticated, is_duress = self.verify_passcode(passcode)
-
-        if not authenticated:
-
-            remaining_attempts = self.max_failed_attempts - self.failed_login_attempts
-
-            if remaining_attempts <= 0:
-
-                return False, "🔍 Account locked. Try again in 5 minutes."
-
-            return False, f"❌ Invalid passcode. {remaining_attempts} attempt(s) remaining."
-
-
-
-        if not self.verify_totp(totp_code):
-
-            return False, "❌ Invalid authenticator code. Check your TOTP app."
-
-
-
-        self.is_locked = False
-
-        self.is_duress_mode = is_duress
-
-        self.last_activity_time = time.time()
-
-        self._log("vault_unlocked", f"Vault {'(duress mode)' if is_duress else ''}unlocked")
-
-        if is_duress:
-
-            return True, "⚠️ DUress mode active  showing limited vault."
-
-        return True, "✅ Vault unlocked successfully."
-
-
-
-    def lock(self) -> None:
-
-        """Lock the vault immediately."""
-
-        self.is_locked = True
-
-        self.is_duress_mode = False
-
-        self._decrypt_cache.clear()
-
-        self._log("vault_locked", "Vault locked")
-
-
-
-    def check_auto_lock(self) -> bool:
-
-        """
-
-        Check if the vault should auto-lock due to inactivity.
-
-        Returns True if auto-locked.
-
-        """
-
-        if not self.is_locked and not self.is_duress_mode:
-
-            if time.time() - self.last_activity_time > AUTO_LOCK_TIMEOUT_SECONDS:
-
-                self.lock()
-
-                self._log("auto_locked", f"Auto-locked after {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity")
-
-                return True
-
-        return False
-
-
-
-    def touch(self) -> None:
-
-        """Record user activity to prevent auto-lock."""
-
-        self.last_activity_time = time.time()
-
-
-
-    def get_totp_setup_info(self) -> Dict[str, str]:
-
-        """Get TOTP setup information for authenticator apps."""
-
-        if not self.totp_secret:
-
-            self.totp_secret = _generate_totp_secret()
-
-        return {
-
-            "secret": self.totp_secret,
-
-            "issuer": "SecurePersonalVault",
-
-            "account": f"vault-{self.vault_id[:8]}",
-
-            "uri": f"otpauth://totp/SecurePersonalVault:vault-{self.vault_id[:8]}?secret={self.totp_secret}&issuer=SecurePersonalVault&algorithm=SHA1&digits=6&period={TOTP_INTERVAL}",
-
-        }
-
-
-
-    # ═════════════════════════════════════════════════════════════════
-
-    # FILE MANAGEMENT
-
-    # ═════════════════════════════════════════════════════════════════
-
-
-
-    def _categorize_file(self, filename: str) -> VaultCategory:
-
-        """Determine the category of a file based on its extension."""
-
-        ext = Path(filename).suffix.lower()
-
-        for category, extensions in CATEGORY_EXTENSIONS.items():
-
-            if ext in extensions:
-
-                return category
-
-        return VaultCategory.DOCUMENTS  # default
-
-
-
-    def upload_file(self, name: str, file_bytes: bytes, tags: Optional[List[str]] = None,
-
-                    notes: str = "", category: Optional[VaultCategory] = None) -> VaultFile:
-
-        """
-
-        Upload and encrypt a file to the vault.
-
-        Returns the VaultFile instance.
-
-        """
-
-        if len(file_bytes) > MAX_FILE_SIZE_BYTES:
-
-            raise ValueError(f"File exceeds maximum size of {MAX_FILE_SIZE_BYTES // (1024*1024)} MB")
-
-
-
-        # Check quota
-
-        used = self.get_storage_used()
-
-        if used + len(file_bytes) > self.quota_bytes:
-
-            raise ValueError("Storage quota exceeded.")
-
-
-
-        # Determine category
-
-        if category is None:
-
-            category = self._categorize_file(name)
-
-
-
-        # Create encrypted file
-
-        vfile = VaultFile(
-
-            name=name,
-
-            file_bytes=file_bytes,
-
-            category=category,
-
-            tags=tags or [],
-
-            notes=notes,
-
-            encryption_key=self.vault_key,
-
-        )
-
-        self.files[vfile.id] = vfile
-
-        self.touch()
-
-        self._log("file_uploaded", f"Uploaded {name} ({vfile.size_bytes} bytes) to {category.value}")
-
-        return vfile
-
-
-
-    def delete_file(self, file_id: str, permanent: bool = False) -> bool:
-
-        """Move a file to trash or permanently delete it."""
-
-        if file_id not in self.files:
-
-            return False
-
-        if permanent:
-
-            del self.files[file_id]
-
-            self._log("file_permanently_deleted", f"Permanently deleted file {file_id}")
-
-        else:
-
-            self.files[file_id].is_deleted = True
-
-            self.files[file_id].deleted_at = datetime.now()
-
-            self._log("file_trashed", f"Moved file {file_id} to trash")
-
-        self.touch()
-
-        return True
-
-
-
-    def restore_file(self, file_id: str) -> bool:
-
-        """Restore a file from trash."""
-
-        if file_id not in self.files:
-
-            return False
-
-        self.files[file_id].is_deleted = False
-
-        self.files[file_id].deleted_at = None
-
-        self._log("file_restored", f"Restored file {file_id}")
-
-        self.touch()
-
-        return True
-
-
-
-    def get_file(self, file_id: str) -> Optional[VaultFile]:
-
-        """Get a file by ID."""
-
-        self.touch()
-
-        f = self.files.get(file_id)
-
-        if f and not f.is_deleted:
-
-            f.last_accessed = datetime.now()
-
-            return f
-
-        return None
-
-
-
-    def list_files(self, category: Optional[VaultCategory] = None,
-
-                   search_query: str = "", include_trash: bool = False,
-
-                   sort_by: str = "uploaded_at", sort_desc: bool = True) -> List[VaultFile]:
-
-        """
-
-        List files with optional category filter, search, and sorting.
-
-        """
-
-        results = []
-
-        for f in self.files.values():
-
-            if not include_trash and f.is_deleted:
-
-                continue
-
-            if category and f.category != category:
-
-                continue
-
-            if search_query:
-
-                q = search_query.lower()
-
-                if q not in f.name.lower() and q not in " ".join(f.tags).lower() and q not in f.notes.lower():
-
-                    continue
-
-            results.append(f)
-
-
-
-        # Sort
-
-        reverse = sort_desc
-
-        if sort_by == "name":
-
-            results.sort(key=lambda x: x.name.lower(), reverse=reverse)
-
-        elif sort_by == "size":
-
-            results.sort(key=lambda x: x.size_bytes, reverse=reverse)
-
-        elif sort_by == "uploaded_at":
-
-            results.sort(key=lambda x: x.uploaded_at, reverse=reverse)
-
-        elif sort_by == "last_accessed":
-
-            results.sort(key=lambda x: x.last_accessed, reverse=reverse)
-
-        elif sort_by == "access_count":
-
-            results.sort(key=lambda x: x.access_count, reverse=reverse)
-
-        else:
-
-            results.sort(key=lambda x: x.uploaded_at, reverse=True)
-
-
-
-        self.touch()
-
-        return results
-
-
-
-    def get_files_by_category(self) -> Dict[VaultCategory, List[VaultFile]]:
-
-        """Get files organized by category."""
-
-        categorized: Dict[VaultCategory, List[VaultFile]] = {
-
-            cat: [] for cat in VaultCategory
-
-        }
-
-        for f in self.files.values():
-
-            if not f.is_deleted:
-
-                categorized[f.category].append(f)
-
-        return categorized
-
-
-
-    def get_storage_used(self) -> int:
-
-        """Calculate total storage used in bytes."""
-
-        return sum(f.size_bytes for f in self.files.values() if not f.is_deleted)
-
-
-
-    def get_storage_stats(self) -> Dict[str, Any]:
-
-        """Get comprehensive storage statistics."""
-
-        total_used = self.get_storage_used()
-
-        category_used = {cat: sum(f.size_bytes for f in flist)
-
-                         for cat, flist in self.get_files_by_category().items()}
-
-        total_files = sum(1 for f in self.files.values() if not f.is_deleted)
-
-        trashed_files = sum(1 for f in self.files.values() if f.is_deleted)
-
-
-
-        return {
-
-            "total_used_bytes": total_used,
-
-            "total_used_display": self._format_bytes(total_used),
-
-            "total_quota_bytes": self.quota_bytes,
-
-            "total_quota_display": self._format_bytes(self.quota_bytes),
-
-            "usage_pct": (total_used / self.quota_bytes * 100) if self.quota_bytes > 0 else 0,
-
-            "total_files": total_files,
-
-            "trashed_files": trashed_files,
-
-            "category_breakdown": {
-
-                cat.value: {
-
-                    "count": len(flist),
-
-                    "size_bytes": category_used.get(cat, 0),
-
-                    "size_display": self._format_bytes(category_used.get(cat, 0)),
-
-                }
-
-                for cat, flist in self.get_files_by_category().items()
-
-            },
-
-            "categories": [
-
-                {
-
-                    "name": cat.value,
-
-                    "icon": CATEGORY_ICONS.get(cat, ""),
-
-                    "color": CATEGORY_COLORS.get(cat, "#64748b"),
-
-                    "count": len(flist),
-
-                }
-
-                for cat, flist in sorted(
-
-                    self.get_files_by_category().items(),
-
-                    key=lambda x: len(x[1]),
-
-                    reverse=True,
-
-                )
-
-            ],
-
-        }
-
-
-
-    @staticmethod
-
-    def _format_bytes(b: int) -> str:
-
-        if b < 1024:
-
-            return f"{b} B"
-
-        elif b < 1024**2:
-
-            return f"{b/1024:.1f} KB"
-
-        elif b < 1024**3:
-
-            return f"{b/1024**2:.1f} MB"
-
-        else:
-
-            return f"{b/1024**3:.2f} GB"
-
-
-
-    def get_audit_log(self, limit: int = 50) -> List[Dict[str, Any]]:
-
-        """Get the vault audit log."""
-
-        return self.audit_log[-limit:]
-
-
-
-
-
-# ═══════════════════════════════════════════════════════════════════════
-
-# DUMMY VAULT (for duress mode)
-
-# ═══════════════════════════════════════════════════════════════════════
-
-
-
-def _create_dummy_vault() -> SecurePersonalVault:
-
-    """Create a dummy vault to show under duress mode."""
-
-    vault = SecurePersonalVault(vault_id=f"dummy_{uuid.uuid4().hex[:8]}")
-
-    vault.master_passcode_hash = hashlib.sha256(b"dummy").hexdigest()
-
-    vault.master_passcode_salt = os.urandom(32)
-
-    vault.totp_secret = _generate_totp_secret()
-
-    vault.is_locked = False
-
-    vault.is_duress_mode = True
-
-
-
-    # Add some fake files
-
-    dummy_files = [
-
-        ("notes.txt", b"This is a personal note.", VaultCategory.DOCUMENTS),
-
-        ("photo.jpg", b"\xff\xd8\xff\xe0" + b"\x00" * 100, VaultCategory.IMAGES),
-
-        ("todo.md", b"# TODO\n- Buy groceries\n- Call dentist", VaultCategory.DOCUMENTS),
-
-    ]
-
-    for name, content, cat in dummy_files:
-
-        vf = VaultFile(name, content, cat, encryption_key=os.urandom(32))
-
-        vault.files[vf.id] = vf
-
-
-
-    vault._log("dummy_vault_activated", "DUress mode: dummy vault displayed")
-
-    return vault
-
-
-
-
-
-# ═══════════════════════════════════════════════════════════════════════
-
-# STREAMLIT UI RENDERER
-
-# ═══════════════════════════════════════════════════════════════════════
-
-
-
-def render_secure_vault_ui():
-
-    """
-
-    Render the Secure Personal Vault UI in Streamlit.
-
-    This is the main entry point called from the Streamlit page.
-
-    """
-
-    import streamlit as st
-
-    import pandas as pd
-
-
-
-    # ── Vault CSS Injection (dark-mode slate-950 theme) ─────────────
-
-    st.markdown("""
-
-    <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
-    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
-    }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
-    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
-    }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-
-    .vault-container {
-
-        background: #0f172a;
-
-        border: 1px solid #1e293b;
-
-        border-radius: 16px;
-
-        padding: 0;
-
-        overflow: hidden;
-
-    }
-
-    .vault-header {
-
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-
-        border-bottom: 1px solid #1e293b;
-
-        padding: 1.2rem 1.5rem;
-
-    }
-
-    .vault-header h1 {
-
-        color: #f8fafc !important;
-
-        font-size: 1.5rem !important;
-
-        font-weight: 800 !important;
-
-        margin: 0 !important;
-
-    }
-
-    .vault-header p {
-
-        color: #94a3b8 !important;
-
-        font-size: 0.85rem !important;
-
-        margin: 0.2rem 0 0 0 !important;
-
-    }
-
-    .vault-card {
-
-        background: #0f172a;
-
-        border: 1px solid #1e293b;
-
-        border-radius: 12px;
-
-        padding: 1rem;
-
-        margin-bottom: 0.75rem;
-
-        transition: border-color 0.2s;
-
-    }
-
-    .vault-card:hover {
-
-        border-color: #6366f1;
-
-    }
-
-    .vault-card-header {
-
-        display: flex;
-
-        align-items: center;
-
-        gap: 0.75rem;
-
-        margin-bottom: 0.5rem;
-
-    }
-
-    .vault-card-title {
-
-        color: #f1f5f9;
-
-        font-weight: 700;
-
-        font-size: 1rem;
-
-        flex: 1;
-
-    }
-
-    .vault-card-meta {
-
-        color: #64748b;
-
-        font-size: 0.8rem;
-
-    }
-
-    .vault-badge {
-
-        display: inline-flex;
-
-        align-items: center;
-
-        gap: 0.3rem;
-
-        padding: 0.2rem 0.6rem;
-
-        border-radius: 999px;
-
-        font-size: 0.7rem;
-
-        font-weight: 700;
-
-        text-transform: uppercase;
-
-        letter-spacing: 0.05em;
-
-    }
-
-    .vault-badge-indigo { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
-
-    .vault-badge-emerald { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-
-    .vault-badge-amber { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-
-    .vault-badge-cyan { background: rgba(6,182,212,0.15); color: #22d3ee; border: 1px solid rgba(6,182,212,0.3); }
-
-    .vault-badge-slate { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
-
-
-
-    .vault-storage-bar {
-
-        background: #1e293b;
-
-        border-radius: 999px;
-
-        height: 8px;
-
-        overflow: hidden;
-
-        margin: 0.5rem 0;
-
-    }
-
-    .vault-storage-fill {
-
-        height: 100%;
-
-        border-radius: 999px;
-
-        background: linear-gradient(90deg, #6366f1, #818cf8);
-
-        transition: width 0.5s;
-
-    }
-
-    .vault-storage-warning .vault-storage-fill {
-
-        background: linear-gradient(90deg, #f59e0b, #fbbf24);
-
-    }
-
-    .vault-storage-critical .vault-storage-fill {
-
-        background: linear-gradient(90deg, #ef4444, #f87171);
-
-    }
-
-
-
-    .vault-gate {
-
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-
-        border: 1px solid #312e81;
-
-        border-radius: 20px;
-
-        padding: 2.5rem;
-
-        text-align: center;
-
-        max-width: 480px;
-
-        margin: 2rem auto;
-
-    }
-
-    .vault-gate-icon {
-
-        font-size: 3rem;
-
-        margin-bottom: 1rem;
-
-    }
-
-    .vault-gate h2 {
-
-        color: #f1f5f9 !important;
-
-        font-size: 1.4rem !important;
-
-        margin-bottom: 0.5rem !important;
-
-    }
-
-    .vault-gate p {
-
-        color: #64748b !important;
-
-        font-size: 0.9rem !important;
-
-        margin-bottom: 1.5rem !important;
-
-    }
-
-
-
-    .vault-upload-zone {
-
-        border: 2px dashed #334155;
-
-        border-radius: 16px;
-
-        padding: 2.5rem 1.5rem;
-
-        text-align: center;
-
-        transition: all 0.3s;
-
-        cursor: pointer;
-
-        background: rgba(15,23,42,0.5);
-
-    }
-
-    .vault-upload-zone:hover {
-
-        border-color: #6366f1;
-
-        background: rgba(99,102,241,0.05);
-
-    }
-
-    .vault-upload-zone svg { margin-bottom: 0.5rem; }
-
-    .vault-upload-zone p { color: #94a3b8; font-size: 0.9rem; margin: 0; }
-
-
-
-    .vault-file-row {
-
-        display: flex;
-
-        align-items: center;
-
-        gap: 0.75rem;
-
-        padding: 0.6rem 0.75rem;
-
-        border-bottom: 1px solid #1e293b;
-
-        transition: background 0.2s;
-
-    }
-
-    .vault-file-row:hover {
-
-        background: rgba(99,102,241,0.04);
-
-    }
-
-    .vault-file-row:last-child {
-
-        border-bottom: none;
-
-    }
-
-
-
-    .vault-search-input {
-
-        background: #1e293b !important;
-
-        border: 1px solid #334155 !important;
-
-        border-radius: 10px !important;
-
-        color: #f1f5f9 !important;
-
-        padding: 0.6rem 1rem !important;
-
-        font-size: 0.9rem !important;
-
-    }
-
-    .vault-search-input:focus {
-
-        border-color: #6366f1 !important;
-
-        box-shadow: 0 0 0 2px rgba(99,102,241,0.2) !important;
-
-    }
-
-
-
-    .vault-section-title {
-
-        color: #cbd5e1;
-
-        font-size: 0.75rem;
-
-        font-weight: 700;
-
-        text-transform: uppercase;
-
-        letter-spacing: 0.08em;
-
-        padding: 0.5rem 0.75rem;
-
-        margin: 0;
-
-    }
-
-
-
-    .vault-modal-overlay {
-
-        position: fixed;
-
-        inset: 0;
-
-        background: rgba(0,0,0,0.7);
-
-        backdrop-filter: blur(8px);
-
-        z-index: 999;
-
-        display: flex;
-
-        align-items: center;
-
-        justify-content: center;
-
-    }
-
-    .vault-modal {
-
-        background: #0f172a;
-
-        border: 1px solid #1e293b;
-
-        border-radius: 20px;
-
-        padding: 1.5rem;
-
-        max-width: 720px;
-
-        width: 90%;
-
-        max-height: 85vh;
-
-        overflow-y: auto;
-
-    }
-
-    .vault-modal h3 { color: #f1f5f9; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; }
-
-    .vault-modal-close {
-
-        float: right;
-
-        background: none;
-
-        border: none;
-
-        color: #64748b;
-
-        font-size: 1.5rem;
-
-        cursor: pointer;
-
-    }
-
-    .vault-modal-close:hover { color: #f1f5f9; }
-
-
-
-    div[data-testid="stTextInput"] input { background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important; }
-
-    div[data-testid="stTextArea"] textarea { background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important; }
-
-    div[data-testid="stSelectbox"] { background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important; }
-
-    .stButton button[kind="primary"] { background: #6366f1 !important; border: none !important; color: white !important; font-weight: 700 !important; }
-
-    .stButton button[kind="primary"]:hover { background: #818cf8 !important; }
-
-    </style>
-
-    """, unsafe_allow_html=True)
-
-
-
-    # ── Vault Session Initialization ────────────────────────────────
-
-    if "secure_vault" not in st.session_state:
-
-        st.session_state["secure_vault"] = None
-
-    if "vault_unlocked" not in st.session_state:
-
-        st.session_state["vault_unlocked"] = False
-
-    if "vault_duress" not in st.session_state:
-
-        st.session_state["vault_duress"] = False
-
-    if "vault_active_tab" not in st.session_state:
-
-        st.session_state["vault_active_tab"] = "All"
-
-    if "vault_search_query" not in st.session_state:
-
-        st.session_state["vault_search_query"] = ""
-
-    if "vault_sort_by" not in st.session_state:
-
-        st.session_state["vault_sort_by"] = "uploaded_at"
-
-    if "vault_preview_file" not in st.session_state:
-
-        st.session_state["vault_preview_file"] = None
-
-    if "vault_totp_setup_mode" not in st.session_state:
-
-        st.session_state["vault_totp_setup_mode"] = False
-
-
-
-    vault = st.session_state["secure_vault"]
-
-
-
-    # ═══════════════════════════════════════════════════════════════
-
-    # GATE  Authentication Screen
-
-    # ═══════════════════════════════════════════════════════════════
-
-    if vault is None or (vault.is_locked and not st.session_state["vault_unlocked"]):
-
-
-
-        st.markdown("""
-
-        <div class="vault-gate">
-
-            <div class="vault-gate-icon">🔍 </div>
-
-            <h2>Secure Personal Vault</h2>
-
-            <p>Zero-knowledge encrypted storage · Authenticator required</p>
-
+function rangeFn(fn, cells, grid, seen) {
+  const vals = cells.map((c) => resolveCell(c, grid, seen));
+  const nums = vals.map(Number).filter((n) => !isNaN(n));
+  const f = fn.toUpperCase();
+  if (f === 'SUM') return nums.reduce((a, b) => a + b, 0);
+  if (f === 'AVERAGE' || f === 'AVG') return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+  if (f === 'MIN') return nums.length ? Math.min(...nums) : 0;
+  if (f === 'MAX') return nums.length ? Math.max(...nums) : 0;
+  if (f === 'COUNT') return nums.length;
+  if (f === 'COUNTA') return vals.filter((v) => v !== '' && v !== 0).length;
+  if (f === 'CONCAT') return vals.join('');
+  return 0;
+}
+
+function vlookup(lookupVal, rangeStr, colIndex, grid, seen) {
+  const [start, end] = rangeStr.split(':');
+  const s = parseRef(start), e = parseRef(end);
+  if (!s || !e) return '#N/A';
+  const c1 = colToNum(s.col), c2 = colToNum(e.col);
+  const targetCol = c1 + colIndex - 1;
+  if (targetCol > c2) return '#REF!';
+  for (let r = Math.min(s.row, e.row); r <= Math.max(s.row, e.row); r++) {
+    const key = numToCol(c1) + r;
+    const val = resolveCell(key, grid, seen);
+    if (String(val).toLowerCase() === String(lookupVal).toLowerCase()) return resolveCell(numToCol(targetCol) + r, grid, seen);
+  }
+  return '#N/A';
+}
+
+function evaluateFormula(raw, grid, seen = new Set()) {
+  if (typeof raw !== 'string' || !raw.startsWith('=')) return raw;
+  let expr = raw.slice(1);
+  // 1. VLOOKUP(lookup, range, colIndex)
+  expr = expr.replace(/VLOOKUP\(\s*([^,]+),\s*([A-Z]+\d+:[A-Z]+\d+)\s*,\s*(\d+)\s*\)/gi, (m, key, range, idx) => {
+    const rawKey = key.trim();
+    const lookupVal = rawKey.startsWith('"') ? rawKey.replace(/"/g, '') : resolveCell(rawKey.toUpperCase(), grid, seen);
+    const res = vlookup(lookupVal, range.trim(), parseInt(idx, 10), grid, seen);
+    return typeof res === 'string' ? JSON.stringify(res) : String(res);
+  });
+  // 2. range functions: SUM(A1:A5), AVERAGE(B2:B9), COUNTA, CONCAT, etc.
+  expr = expr.replace(/(SUM|AVERAGE|AVG|MIN|MAX|COUNT|COUNTA|CONCAT)\(\s*([A-Z]+\d+)\s*:\s*([A-Z]+\d+)\s*\)/gi,
+    (m, fn, a, b) => {
+      const res = rangeFn(fn, expandRange(a.toUpperCase(), b.toUpperCase()), grid, seen);
+      return typeof res === 'string' ? JSON.stringify(res) : String(res);
+    });
+  // 3. plain single-cell refs
+  expr = expr.replace(/[A-Z]+[0-9]+/g, (ref) => {
+    const v = resolveCell(ref, grid, seen);
+    return typeof v === 'string' ? JSON.stringify(v) : String(v);
+  });
+  // 4. IF(cond, a, b) -> ternary (no nested parens inside args, by design)
+  expr = expr.replace(/IF\(([^()]*)\)/gi, (m, inner) => {
+    const parts = inner.split(',');
+    return parts.length === 3 ? `(${parts[0]}) ? (${parts[1]}) : (${parts[2]})` : m;
+  });
+  try {
+    const result = math.evaluate(expr);
+    if (typeof result === 'number') return isFinite(result) ? Math.round(result * 10000) / 10000 : '#ERR';
+    return result;
+  } catch { return '#ERR'; }
+}
+
+function formatValue(val, fmt) {
+  if (typeof val === 'string' && val.startsWith('#')) return val;
+  const n = parseFloat(val);
+  if (fmt === 'currency' && !isNaN(n)) return `$${n.toFixed(2)}`;
+  if (fmt === 'percent' && !isNaN(n)) return `${(n * 100).toFixed(1)}%`;
+  return val;
+}
+
+function displayCell(key, grid, formats = {}) {
+  const raw = grid[key];
+  if (raw === undefined) return '';
+  const val = typeof raw === 'string' && raw.startsWith('=') ? evaluateFormula(raw, grid) : raw;
+  return formatValue(val, formats[key]);
+}
+
+// ============================================================================
+// COMMAND PALETTE — Cmd/Ctrl+K quick switcher
+// ============================================================================
+function CommandPalette({ open, onClose, actions, dark }) {
+  const [q, setQ] = useState('');
+  const [idx, setIdx] = useState(0);
+  const inputRef = useRef(null);
+  useEffect(() => { if (open) { setQ(''); setIdx(0); setTimeout(() => inputRef.current?.focus(), 20); } }, [open]);
+  const filtered = actions.filter((a) => a.label.toLowerCase().includes(q.toLowerCase()) || (a.category || '').toLowerCase().includes(q.toLowerCase()));
+  if (!open) return null;
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setIdx((i) => (i + 1) % Math.max(1, filtered.length)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setIdx((i) => (i - 1 + filtered.length) % Math.max(1, filtered.length)); }
+    else if (e.key === 'Enter' && filtered[idx]) { filtered[idx].run(); onClose(); }
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-28" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className={`w-full max-w-md rounded-xl shadow-2xl border overflow-hidden ${dark ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-zinc-200'}`}>
+        <div className="flex items-center px-3 py-2.5 border-b border-zinc-200 dark:border-zinc-800">
+          <Command size={15} className="text-zinc-400 mr-2" />
+          <input ref={inputRef} value={q} onChange={(e) => { setQ(e.target.value); setIdx(0); }} onKeyDown={onKeyDown} placeholder="Jump to app, action..."
+            className={`flex-1 outline-none bg-transparent text-sm ${dark ? 'text-zinc-100' : 'text-zinc-900'}`} />
+          <kbd className="text-[10px] text-zinc-400 border rounded px-1">esc</kbd>
         </div>
-
-        """, unsafe_allow_html=True)
-
-
-
-        col1, col2, col3 = st.columns([1, 2, 1])
-
-        with col2:
-
-            setup_mode = st.toggle("🔍 First time? Set up new vault", value=vault is None, key="vault_setup_toggle")
-
-
-
-            if setup_mode:
-
-                st.markdown("### 🔍 Create New Vault")
-
-                with st.form("vault_setup_form"):
-
-                    passcode = st.text_input("Master Passcode (min 4 characters)", type="password",
-
-                                              placeholder="Enter your master passcode...", key="vault_setup_pass")
-
-                    passcode2 = st.text_input("Confirm Master Passcode", type="password",
-
-                                               placeholder="Confirm passcode...", key="vault_setup_pass2")
-
-                    duress_pass = st.text_input("Duress PIN (optional  triggers dummy vault)", type="password",
-
-                                                 placeholder="Alternate passcode for coercion...", key="vault_setup_duress")
-
-                    col_a, col_b = st.columns(2)
-
-                    with col_a:
-
-                        submitted = st.form_submit_button("🔍 Create Vault", type="primary", use_container_width=True)
-
-                    with col_b:
-
-                        st.form_submit_button("Clear", use_container_width=True)
-
-
-
-                    if submitted:
-
-                        if not passcode:
-
-                            st.error("❌ Passcode is required.")
-
-                        elif len(passcode) < 4:
-
-                            st.error("❌ Passcode must be at least 4 characters.")
-
-                        elif passcode != passcode2:
-
-                            st.error("❌ Passcodes do not match.")
-
-                        elif duress_pass and len(duress_pass) < 4:
-
-                            st.error("❌ Duress PIN must be at least 4 characters.")
-
-                        else:
-
-                            new_vault = SecurePersonalVault.create_new(
-
-                                passcode=passcode,
-
-                                duress_passcode=duress_pass if duress_pass else None,
-
-                            )
-
-                            st.session_state["secure_vault"] = new_vault
-
-                            st.success("✅ Vault created! Scan the TOTP secret with your authenticator app.")
-
-                            st.session_state["vault_totp_setup_mode"] = True
-
-                            st.rerun()
-
-
-
-                # Show TOTP setup after creation
-
-                if st.session_state.get("vault_totp_setup_mode") and st.session_state["secure_vault"]:
-
-                    v = st.session_state["secure_vault"]
-
-                    totp_info = v.get_totp_setup_info()
-
-                    st.markdown("### 🔍 Set Up Your Authenticator")
-
-                    st.info(
-
-                        f"**Secret Key:** `{totp_info['secret']}`\n\n"
-
-                        f"Scan this QR code URI in your authenticator app (Google Authenticator, Authy, etc.):\n\n"
-
-                        f"`{totp_info['uri']}`\n\n"
-
-                        "After setup, enter a code to verify:"
-
-                    )
-
-                    verify_code = st.text_input("Enter 6-digit code from authenticator", max_chars=6,
-
-                                                 placeholder="000000", key="vault_totp_verify")
-
-                    if st.button("✅ Verify & Continue", type="primary") and verify_code:
-
-                        if v.verify_totp(verify_code):
-
-                            st.success("✅ TOTP verified! You can now unlock your vault.")
-
-                            st.session_state["vault_totp_setup_mode"] = False
-
-                            st.rerun()
-
-                        else:
-
-                            st.error("❌ Invalid code. Check your authenticator app and try again.")
-
-            else:
-
-                st.markdown("### 🔍 Unlock Vault")
-
-                with st.form("vault_unlock_form"):
-
-                    passcode = st.text_input("Master Passcode", type="password",
-
-                                              placeholder="Enter your master passcode...", key="vault_unlock_pass")
-
-                    totp_code = st.text_input("Authenticator Code (6 digits)", max_chars=6,
-
-                                               placeholder="000000", key="vault_unlock_totp")
-
-                    submitted = st.form_submit_button("🔍 Unlock Vault", type="primary", use_container_width=True)
-
-                    if submitted:
-
-                        if vault is None:
-
-                            st.error("❌ No vault exists. Create one first.")
-
-                        else:
-
-                            success, msg = vault.unlock(passcode, totp_code)
-
-                            if success:
-
-                                st.session_state["vault_unlocked"] = True
-
-                                st.session_state["vault_duress"] = vault.is_duress_mode
-
-                                st.rerun()
-
-                            else:
-
-                                st.error(msg)
-
-
-
-            st.stop()
-
-
-
-    # ═══════════════════════════════════════════════════════════════
-
-    # VAULT  Main Interface
-
-    # ═══════════════════════════════════════════════════════════════
-
-
-
-    vault = st.session_state["secure_vault"]
-
-
-
-    # Check auto-lock
-
-    if vault.check_auto_lock():
-
-        st.session_state["vault_unlocked"] = False
-
-        st.warning("🔍 Auto-locked due to inactivity.")
-
-        st.rerun()
-
-
-
-    vault.touch()
-
-
-
-    # ── Header ──────────────────────────────────────────────────────
-
-    duress_badge = ""
-
-    if vault.is_duress_mode:
-
-        duress_badge = '<span class="vault-badge vault-badge-amber" style="margin-left:0.75rem;">⚠️ DUress Mode</span>'
-
-
-
-    st.markdown(f"""
-
-    <div class="vault-header" style="border-radius:16px 16px 0 0;margin-bottom:1rem;">
-
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-
+        <div className="max-h-72 overflow-y-auto ov-scrollbar p-1">
+          {filtered.length === 0 && <p className="text-xs text-zinc-400 px-3 py-3">No matches.</p>}
+          {filtered.map((a, i) => (
+            <button key={a.label} onClick={() => { a.run(); onClose(); }} onMouseEnter={() => setIdx(i)}
+              className={`w-full flex items-center justify-between space-x-2.5 px-3 py-2 rounded-lg text-sm text-left ${i === idx ? (dark ? 'bg-zinc-800 text-amber-400' : 'bg-amber-500/10 text-amber-600') : dark ? 'text-zinc-200' : 'text-zinc-700'}`}>
+              <span className="flex items-center space-x-2.5"><a.icon size={14} style={{ color: BRASS }} /> <span>{a.label}</span></span>
+              {a.category && <span className="text-[10px] uppercase tracking-wide text-zinc-400 border border-zinc-300 dark:border-zinc-700 rounded px-1.5 py-0.5">{a.category}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// TRASH PANEL — shared recycle bin across Drive / Docs / Slides
+// ============================================================================
+function TrashPanel({ open, onClose, dark, files, restoreFile, docs, restoreDoc, slides, restoreSlide, purge, emptyAll }) {
+  if (!open) return null;
+  const empty = files.length === 0 && docs.length === 0 && slides.length === 0;
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className={`w-96 h-full p-5 overflow-y-auto ov-scrollbar flex flex-col justify-between ${dark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-zinc-900'}`}>
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-lg flex items-center space-x-2"><Trash2 size={17} /><span>Trash</span></h2>
+            <button onClick={onClose}><X size={16} /></button>
+          </div>
+          {empty && <p className="text-sm text-zinc-400">Trash is empty.</p>}
+          {files.length > 0 && (
+            <div className="mb-5">
+              <p className="text-xs font-semibold text-zinc-400 mb-2">FILES</p>
+              {files.map((f) => (
+                <div key={f.id} className="flex items-center justify-between py-1.5 text-sm">
+                  <span className="truncate">{f.name}</span>
+                  <span className="space-x-3 shrink-0">
+                    <button onClick={() => restoreFile(f.id)} className="text-xs font-medium" style={{ color: BRASS }}>Restore</button>
+                    <button onClick={() => purge('file', f.id)} className="text-xs font-medium text-red-500">Purge</button>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          {docs.length > 0 && (
+            <div className="mb-5">
+              <p className="text-xs font-semibold text-zinc-400 mb-2">DOCS</p>
+              {docs.map((d) => (
+                <div key={d.id} className="flex items-center justify-between py-1.5 text-sm">
+                  <span className="truncate">{d.name}</span>
+                  <span className="space-x-3 shrink-0">
+                    <button onClick={() => restoreDoc(d.id)} className="text-xs font-medium" style={{ color: BRASS }}>Restore</button>
+                    <button onClick={() => purge('doc', d.id)} className="text-xs font-medium text-red-500">Purge</button>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          {slides.length > 0 && (
             <div>
-
-                <h1>🔍 Secure Personal Vault {duress_badge}</h1>
-
-                <p>Zero-knowledge encrypted · AES-256-GCM · Vault ID: {vault.vault_id[:16]}…</p>
-
-            </div>
-
-            <div style="display:flex;gap:0.5rem;align-items:center;">
-
-                <span class="vault-badge vault-badge-emerald">● Live</span>
-
-                <span class="vault-badge vault-badge-indigo">Encrypted</span>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    """, unsafe_allow_html=True)
-
-
-
-    # ── Action Bar ──────────────────────────────────────────────────
-
-    action_col1, action_col2, action_col3, action_col4, action_col5 = st.columns([1, 1, 1, 1, 1])
-
-    with action_col1:
-
-        if st.button("🔍 Lock Vault", use_container_width=True):
-
-            vault.lock()
-
-            st.session_state["vault_unlocked"] = False
-
-            st.rerun()
-
-    with action_col2:
-
-        st.markdown("")
-
-    with action_col3:
-
-        st.markdown("")
-
-    with action_col4:
-
-        st.markdown("")
-
-    with action_col5:
-
-        st.markdown("")
-
-
-
-    # ── Storage Quota Bar ───────────────────────────────────────────
-
-    stats = vault.get_storage_stats()
-
-    usage_pct = stats["usage_pct"]
-
-    bar_class = ""
-
-    if usage_pct > 90:
-
-        bar_class = "vault-storage-critical"
-
-    elif usage_pct > 70:
-
-        bar_class = "vault-storage-warning"
-
-
-
-    st.markdown(f"""
-
-    <div class="vault-card">
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
-
-            <span style="color:#94a3b8;font-size:0.85rem;">🔍 Storage</span>
-
-            <span style="color:#cbd5e1;font-size:0.9rem;font-weight:700;">
-
-                {stats['total_used_display']} / {stats['total_quota_display']}
-
-            </span>
-
-        </div>
-
-        <div class="vault-storage-bar {bar_class}">
-
-            <div class="vault-storage-fill" style="width:{min(usage_pct, 100)}%;"></div>
-
-        </div>
-
-        <div style="display:flex;justify-content:space-between;margin-top:0.2rem;">
-
-            <span style="color:#64748b;font-size:0.75rem;">{stats['total_files']} files</span>
-
-            <span style="color:#64748b;font-size:0.75rem;">{usage_pct:.1f}% used</span>
-
-        </div>
-
-    </div>
-
-    """, unsafe_allow_html=True)
-
-
-
-    # ── Category Stats Row ──────────────────────────────────────────
-
-    cat_cols = st.columns(4)
-
-    for idx, cat_info in enumerate(stats.get("categories", [])):
-
-        color = cat_info.get("color", "#64748b")
-
-        with cat_cols[idx]:
-
-            st.markdown(f"""
-
-            <div class="vault-card" style="text-align:center;padding:0.75rem 0.5rem;">
-
-                <div style="font-size:1.5rem;">{cat_info['icon']}</div>
-
-                <div style="color:#f1f5f9;font-size:0.85rem;font-weight:700;margin:0.15rem 0;">
-
-                    {cat_info['count']}
-
+              <p className="text-xs font-semibold text-zinc-400 mb-2">SLIDES</p>
+              {slides.map((s) => (
+                <div key={s.id} className="flex items-center justify-between py-1.5 text-sm">
+                  <span className="truncate">{s.title}</span>
+                  <span className="space-x-3 shrink-0">
+                    <button onClick={() => restoreSlide(s.id)} className="text-xs font-medium" style={{ color: BRASS }}>Restore</button>
+                    <button onClick={() => purge('slide', s.id)} className="text-xs font-medium text-red-500">Purge</button>
+                  </span>
                 </div>
-
-                <div style="color:#64748b;font-size:0.7rem;">{cat_info['name']}</div>
-
+              ))}
             </div>
+          )}
+        </div>
+        {!empty && <button onClick={emptyAll} className="w-full py-2 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white">Empty trash permanently</button>}
+      </div>
+    </div>
+  );
+}
 
-            """, unsafe_allow_html=True)
+// ============================================================================
+// MAIN APP
+// ============================================================================
+export default function OmniVault() {
+  const [app, setApp] = useState('drive');
+  const [dark, setDark] = useState(false);
+  const [query, setQuery] = useState('');
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
 
+  const [files, setFiles] = useState([
+    { id: 'f1', name: 'Q3_Board_Deck.pdf', size: 4.2, modified: 'Jul 28' },
+    { id: 'f2', name: 'Resistance_Dataset.csv', size: 18.6, modified: 'Jul 25' },
+  ]);
+  const [trashFiles, setTrashFiles] = useState([]);
 
+  const [docs, setDocs] = useState([
+    { id: 'd1', name: 'Strategic Plan', html: '<h2>Strategic Plan</h2><p>Client-side encryption is <strong>active</strong>. Start writing your notes here...</p>', versions: [], comments: [] },
+  ]);
+  const [trashDocs, setTrashDocs] = useState([]);
 
-    # ── Search & Filter Bar ─────────────────────────────────────────
+  const [slides, setSlides] = useState([
+    { id: 's1', title: 'Project Deck', body: 'Click to add presentation notes', notes: '', layout: 'title', theme: 'classic', image: null },
+    { id: 's2', title: 'Key Features', body: 'Detailed roadmap points', notes: '', layout: 'title-body', theme: 'classic', image: null },
+  ]);
+  const [trashSlides, setTrashSlides] = useState([]);
 
-    search_col1, search_col2, search_col3 = st.columns([2, 1, 1])
+  const quotaGB = 15;
+  const usedGB = files.reduce((s, f) => s + f.size, 0) / 1024;
 
-    with search_col1:
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPaletteOpen((v) => !v); }
+      if (e.key === 'Escape') { setPaletteOpen(false); setTrashOpen(false); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
-        search_query = st.text_input("🔍 Search files...", value=st.session_state["vault_search_query"],
+  const apps = [
+    { key: 'drive', label: 'Drive', icon: Cloud },
+    { key: 'docs', label: 'Docs', icon: FileText },
+    { key: 'sheets', label: 'Sheets', icon: Table2 },
+    { key: 'slides', label: 'Slides', icon: Presentation },
+    { key: 'mail', label: 'Mail', icon: MailIcon },
+  ];
 
-                                      placeholder="Search by name, tag, or notes...",
+  const paletteActions = [
+    ...apps.map((a) => ({ label: `Go to ${a.label}`, category: 'Navigation', icon: a.icon, run: () => setApp(a.key) })),
+    { label: 'Toggle dark mode', category: 'System', icon: dark ? Sun : Moon, run: () => setDark((d) => !d) },
+    { label: 'Open Trash', category: 'Storage', icon: Trash2, run: () => setTrashOpen(true) },
+    { label: 'New document', category: 'Docs', icon: FileText, run: () => { setApp('docs'); } },
+    { label: 'New sheet', category: 'Sheets', icon: Table2, run: () => setApp('sheets') },
+    { label: 'New slide', category: 'Slides', icon: Presentation, run: () => setApp('slides') },
+    { label: 'Compose email', category: 'Mail', icon: MailIcon, run: () => setApp('mail') },
+  ];
 
-                                      label_visibility="collapsed", key="vault_search")
+  const restoreFile = (id) => { const it = trashFiles.find((f) => f.id === id); if (!it) return; setFiles((p) => [...p, it]); setTrashFiles((p) => p.filter((f) => f.id !== id)); };
+  const restoreDoc = (id) => { const it = trashDocs.find((d) => d.id === id); if (!it) return; setDocs((p) => [...p, it]); setTrashDocs((p) => p.filter((d) => d.id !== id)); };
+  const restoreSlide = (id) => { const it = trashSlides.find((s) => s.id === id); if (!it) return; setSlides((p) => [...p, it]); setTrashSlides((p) => p.filter((s) => s.id !== id)); };
+  const purge = (kind, id) => {
+    if (kind === 'file') setTrashFiles((p) => p.filter((f) => f.id !== id));
+    if (kind === 'doc') setTrashDocs((p) => p.filter((d) => d.id !== id));
+    if (kind === 'slide') setTrashSlides((p) => p.filter((s) => s.id !== id));
+  };
+  const emptyAll = () => { setTrashFiles([]); setTrashDocs([]); setTrashSlides([]); };
+  const trashCount = trashFiles.length + trashDocs.length + trashSlides.length;
 
-        st.session_state["vault_search_query"] = search_query
+  const shell = dark ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50 text-zinc-900';
 
+  return (
+    <div className={`h-full w-full flex flex-col ${shell} ov-display`} style={{ minHeight: 640 }}>
+      <style>{FONT_STYLE}</style>
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} actions={paletteActions} dark={dark} />
+      <TrashPanel open={trashOpen} onClose={() => setTrashOpen(false)} dark={dark}
+        files={trashFiles} restoreFile={restoreFile} docs={trashDocs} restoreDoc={restoreDoc} slides={trashSlides} restoreSlide={restoreSlide}
+        purge={purge} emptyAll={emptyAll} />
 
-
-    with search_col2:
-
-        sort_by = st.selectbox("Sort by", options=["uploaded_at", "name", "size", "access_count"],
-
-                                index=0, key="vault_sort_selector")
-
-        st.session_state["vault_sort_by"] = sort_by
-
-
-
-    with search_col3:
-
-        include_trash = st.checkbox("🔍 ️ Include trash", value=False, key="vault_show_trash")
-
-
-
-    # ── Category Tabs ───────────────────────────────────────────────
-
-    tab_options = ["All"] + [cat.value for cat in VaultCategory]
-
-    active_tab = st.session_state.get("vault_active_tab", "All")
-
-
-
-    tab_cols = st.columns(len(tab_options))
-
-    for i, tab_name in enumerate(tab_options):
-
-        with tab_cols[i]:
-
-            is_active = (active_tab == tab_name)
-
-            btn_type = "primary" if is_active else "secondary"
-
-            if st.button(tab_name, key=f"vault_tab_{tab_name}", use_container_width=True, type=btn_type):
-
-                st.session_state["vault_active_tab"] = tab_name
-
-                st.rerun()
-
-
-
-    # ── Filter by category ──────────────────────────────────────────
-
-    selected_category = None
-
-    if active_tab != "All":
-
-        for cat in VaultCategory:
-
-            if cat.value == active_tab:
-
-                selected_category = cat
-
-                break
-
-
-
-    # ── File Listing ────────────────────────────────────────────────
-
-    files = vault.list_files(
-
-        category=selected_category,
-
-        search_query=search_query,
-
-        include_trash=include_trash,
-
-        sort_by=sort_by,
-
-    )
-
-
-
-    if not files:
-
-        st.markdown("""
-
-        <div class="vault-card" style="text-align:center;padding:2rem;">
-
-            <div style="font-size:3rem;margin-bottom:0.5rem;">🔍 </div>
-
-            <div style="color:#94a3b8;font-size:0.95rem;">No files found</div>
-
-            <div style="color:#64748b;font-size:0.8rem;">Upload files using the upload section below</div>
-
+      <header className="h-14 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-4 shrink-0">
+        <div className="flex items-center space-x-2.5">
+          <VaultSeal size={24} />
+          <span className="font-semibold text-white tracking-tight text-[15px]">OmniVault</span>
         </div>
 
-        """, unsafe_allow_html=True)
+        <nav className="flex items-center space-x-1 bg-zinc-800 p-1 rounded-lg">
+          {apps.map(({ key, label, icon: Icon }) => (
+            <button key={key} onClick={() => setApp(key)}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition ${app === key ? 'bg-zinc-950 text-amber-400' : 'text-zinc-400 hover:text-zinc-100'}`}
+              style={app === key ? { boxShadow: `inset 0 0 0 1px ${BRASS_DARK}` } : {}}>
+              <Icon size={15} /> <span>{label}</span>
+            </button>
+          ))}
+        </nav>
 
-    else:
+        <div className="flex items-center space-x-2.5">
+          <div className="relative hidden md:block">
+            <Search size={14} className="absolute left-2.5 top-2 text-zinc-500" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search workspace..."
+              className="pl-8 pr-3 py-1.5 bg-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-full text-xs outline-none w-52" />
+          </div>
+          <button onClick={() => setPaletteOpen(true)} title="Command palette (Ctrl/Cmd+K)" className="p-1.5 rounded-md text-zinc-400 hover:text-amber-400 hover:bg-zinc-800">
+            <Command size={16} />
+          </button>
+          <button onClick={() => setTrashOpen(true)} title="Trash" className="relative p-1.5 rounded-md text-zinc-400 hover:text-amber-400 hover:bg-zinc-800">
+            <Trash2 size={16} />
+            {trashCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-zinc-950 font-bold text-[9px] flex items-center justify-center">{trashCount}</span>}
+          </button>
+          <button onClick={() => setDark((d) => !d)} title="Toggle theme" className="p-1.5 rounded-md text-zinc-400 hover:text-amber-400 hover:bg-zinc-800">
+            {dark ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+          <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] text-zinc-950" style={{ background: BRASS }}>YOU</div>
+        </div>
+      </header>
 
-        st.markdown(f"<div class='vault-section-title'>🔍 {len(files)} file(s)</div>", unsafe_allow_html=True)
+      <div className={`px-4 py-1.5 border-b flex items-center gap-3 text-xs ${dark ? 'border-zinc-800 text-zinc-400' : 'border-zinc-200 text-zinc-500'}`}>
+        <Lock size={12} />
+        <span>Vault storage</span>
+        <div className="flex-1 h-1.5 rounded-full bg-zinc-200 max-w-xs overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${Math.min((usedGB / quotaGB) * 100, 100)}%`, background: BRASS }} />
+        </div>
+        <span className="ov-mono">{usedGB.toFixed(2)} / {quotaGB} GB</span>
+        <span className="ml-auto hidden sm:inline text-zinc-400">Press <kbd className="border rounded px-1 ov-mono">Ctrl K</kbd> to jump anywhere</span>
+      </div>
 
-        for vf in files:
+      <main className="flex-1 overflow-hidden flex">
+        {app === 'drive' && <DriveModule files={files} setFiles={setFiles} setTrashFiles={setTrashFiles} dark={dark} query={query} />}
+        {app === 'docs' && <DocsModule docs={docs} setDocs={setDocs} setTrashDocs={setTrashDocs} dark={dark} query={query} />}
+        {app === 'sheets' && <SheetsModule dark={dark} />}
+        {app === 'slides' && <SlidesModule slides={slides} setSlides={setSlides} setTrashSlides={setTrashSlides} dark={dark} />}
+        {app === 'mail' && <MailModule dark={dark} query={query} />}
+      </main>
+    </div>
+  );
+}
 
-            cat_color = CATEGORY_COLORS.get(vf.category, "#64748b")
+// ============================================================================
+// DRIVE
+// ============================================================================
+function DriveModule({ files, setFiles, setTrashFiles, dark, query }) {
+  const inputRef = useRef(null);
+  const [folder, setFolder] = useState('All');
+  const [selected, setSelected] = useState([]);
+  const [previewId, setPreviewId] = useState(null);
+  const folders = ['All', ...Array.from(new Set(files.map((f) => f.folder || 'Uploads')))];
 
-            cat_icon = CATEGORY_ICONS.get(vf.category, "🔍 ")
+  const visible = files.filter((f) => f.name.toLowerCase().includes(query.toLowerCase()) && (folder === 'All' || (f.folder || 'Uploads') === folder));
 
-            badge_class = {
+  const onUpload = (e) => {
+    const chosen = Array.from(e.target.files || []);
+    chosen.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFiles((prev) => [{
+          id: uid('f'), name: f.name, size: Math.round((f.size / (1024 * 1024)) * 100) / 100 || 0.01,
+          modified: 'Just now', type: f.type || '', folder: folder === 'All' ? 'Uploads' : folder, bytes: reader.result,
+        }, ...prev]);
+      };
+      reader.readAsDataURL(f);
+    });
+    e.target.value = '';
+  };
 
-                VaultCategory.DOCUMENTS: "vault-badge-indigo",
+  const trash = (f) => { setTrashFiles((p) => [...p, f]); setFiles((prev) => prev.filter((x) => x.id !== f.id)); setSelected((s) => s.filter((id) => id !== f.id)); };
+  const toggleSelect = (id) => setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const bulkTrash = () => { const toMove = files.filter((f) => selected.includes(f.id)); setTrashFiles((p) => [...p, ...toMove]); setFiles((prev) => prev.filter((f) => !selected.includes(f.id))); setSelected([]); };
+  const rename = (f) => { const next = prompt('Rename file:', f.name); if (!next) return; setFiles((prev) => prev.map((x) => (x.id === f.id ? { ...x, name: next } : x))); };
+  const createFolder = () => { const name = prompt('New folder name:'); if (name) setFolder(name); };
+  const previewFile = files.find((f) => f.id === previewId);
 
-                VaultCategory.IMAGES: "vault-badge-emerald",
+  return (
+    <div className={`flex-1 flex overflow-hidden ${dark ? 'bg-zinc-950' : 'bg-zinc-50'}`}>
+      <aside className={`w-48 border-r p-3 space-y-1 ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+        <div className="flex items-center justify-between px-1 mb-1">
+          <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide">Folders</span>
+          <button onClick={createFolder} title="New folder" className="text-zinc-400 hover:text-amber-500"><Plus size={13} /></button>
+        </div>
+        {folders.map((f) => (
+          <button key={f} onClick={() => setFolder(f)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs truncate ${folder === f ? 'bg-amber-500/10 text-amber-500 font-medium' : dark ? 'text-zinc-400 hover:bg-zinc-800' : 'text-zinc-600 hover:bg-zinc-100'}`}>{f}</button>
+        ))}
+      </aside>
 
-                VaultCategory.AUDIO: "vault-badge-amber",
+      <div className="flex-1 overflow-y-auto ov-scrollbar p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="text-xl font-semibold">Drive <span className="text-zinc-400 text-sm font-normal">/ {folder}</span></h1>
+          <div className="flex items-center gap-2">
+            {selected.length > 0 && (
+              <button onClick={bulkTrash} className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-red-500 border border-red-400/40">
+                <Trash2 size={13} /> <span>Delete {selected.length} selected</span>
+              </button>
+            )}
+            <button onClick={() => inputRef.current?.click()} className="flex items-center space-x-2 text-zinc-950 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm" style={{ background: BRASS }}>
+              <Upload size={15} /> <span>Upload</span>
+            </button>
+            <input ref={inputRef} type="file" multiple className="hidden" onChange={onUpload} />
+          </div>
+        </div>
 
-                VaultCategory.DATASETS: "vault-badge-cyan",
+        {visible.length === 0 ? (
+          <div className={`text-center py-20 rounded-xl border-2 border-dashed ${dark ? 'border-zinc-800 text-zinc-600' : 'border-zinc-300 text-zinc-400'}`}>No files match — upload something to get started.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {visible.map((f) => (
+              <div key={f.id} className={`rounded-xl border p-4 ${selected.includes(f.id) ? 'border-amber-500' : dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+                <div className="flex items-start justify-between">
+                  <button onClick={() => toggleSelect(f.id)}>{selected.includes(f.id) ? <CheckSquare size={16} style={{ color: BRASS }} /> : <Square size={16} className="text-zinc-400" />}</button>
+                  <FileText size={18} style={{ color: BRASS }} />
+                  <button onClick={() => trash(f)} className="text-zinc-400 hover:text-red-500"><Trash2 size={14} /></button>
+                </div>
+                <button onClick={() => setPreviewId(f.id)} className="text-sm font-medium mt-2 truncate text-left hover:underline block w-full">{f.name}</button>
+                <p className="text-xs text-zinc-500 mt-0.5 ov-mono">{f.size} MB · {f.modified}</p>
+                <button onClick={() => rename(f)} className="text-[10px] text-zinc-400 hover:text-amber-500 mt-1">Rename</button>
+              </div>
+            ))}
+          </div>
+        )}
 
-            }.get(vf.category, "vault-badge-slate")
+        {previewFile && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setPreviewId(null)}>
+            <div onClick={(e) => e.stopPropagation()} className={`max-w-lg w-full rounded-xl p-5 shadow-2xl ${dark ? 'bg-zinc-900 text-zinc-100' : 'bg-white'}`}>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-semibold truncate pr-4">{previewFile.name}</h3>
+                <button onClick={() => setPreviewId(null)}><X size={16} /></button>
+              </div>
+              {previewFile.bytes ? (
+                (previewFile.type || '').startsWith('image/') ? (
+                  <img src={previewFile.bytes} alt="" className="max-h-80 rounded mx-auto" />
+                ) : (
+                  <p className="text-sm text-zinc-500">No inline preview for this file type — use download.</p>
+                )
+              ) : <p className="text-sm text-zinc-500">Sample file — no stored content to preview.</p>}
+              {previewFile.bytes && (
+                <a href={previewFile.bytes} download={previewFile.name} className="mt-4 inline-flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-zinc-950" style={{ background: BRASS }}>
+                  <Download size={13} /> <span>Download</span>
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
+// ============================================================================
+// DOCS — rich text, comments, version history, find/replace, print
+// ============================================================================
+function DocsModule({ docs, setDocs, setTrashDocs, dark, query }) {
+  const [activeId, setActiveId] = useState(docs[0]?.id || null);
+  const [showFind, setShowFind] = useState(false);
+  const [findText, setFindText] = useState('');
+  const [replaceText, setReplaceText] = useState('');
+  const [wordCount, setWordCount] = useState(0);
+  const [outline, setOutline] = useState([]);
+  const editorRef = useRef(null);
+  const active = docs.find((d) => d.id === activeId);
+  const visible = docs.filter((d) => d.name.toLowerCase().includes(query.toLowerCase()));
 
+  useEffect(() => {
+    if (editorRef.current && active) {
+      editorRef.current.innerHTML = active.html;
+      updateCount();
+    }
+  }, [activeId]);
 
-            col_file, col_view, col_share, col_del = st.columns([4, 1, 1, 1])
+  const updateCount = () => {
+    const text = editorRef.current?.innerText || '';
+    setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0);
+    const heads = editorRef.current ? Array.from(editorRef.current.querySelectorAll('h1,h2,h3,h4')) : [];
+    setOutline(heads.map((h, i) => { if (!h.dataset.oid) h.dataset.oid = `h${i}`; return { id: h.dataset.oid, text: h.innerText, level: h.tagName }; }));
+  };
 
-            with col_file:
+  const jumpToHeading = (id) => {
+    const el = editorRef.current?.querySelector(`[data-oid="${id}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
 
-                st.markdown(f"""
+  const exportMarkdown = () => {
+    if (!active) return;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = active.html;
+    let md = tmp.innerHTML
+      .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n')
+      .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n')
+      .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n')
+      .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n')
+      .replace(/<strong>(.*?)<\/strong>/gi, '**$1**')
+      .replace(/<b>(.*?)<\/b>/gi, '**$1**')
+      .replace(/<em>(.*?)<\/em>/gi, '*$1*')
+      .replace(/<i>(.*?)<\/i>/gi, '*$1*')
+      .replace(/<li>(.*?)<\/li>/gi, '- $1\n')
+      .replace(/<blockquote>(.*?)<\/blockquote>/gi, '> $1\n')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<[^>]+>/g, '');
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${active.name}.md`; a.click();
+  };
 
-                <div class="vault-file-row">
+  const exec = (cmd, val = null) => { editorRef.current?.focus(); document.execCommand(cmd, false, val); saveContent(); };
 
-                    <span style="font-size:1.2rem;">{cat_icon}</span>
+  const saveContent = () => {
+    if (!editorRef.current) return;
+    const html = editorRef.current.innerHTML;
+    setDocs((prev) => prev.map((d) => (d.id === activeId ? { ...d, html } : d)));
+    updateCount();
+  };
 
-                    <div style="flex:1;min-width:0;">
+  const newDoc = () => {
+    const id = uid('d');
+    setDocs((prev) => [...prev, { id, name: `Untitled ${prev.length + 1}`, html: '<p>Start typing...</p>', versions: [], comments: [] }]);
+    setActiveId(id);
+  };
 
-                        <div style="color:#f1f5f9;font-weight:600;font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+  const trashDoc = (d) => { setTrashDocs((p) => [...p, d]); setDocs((prev) => prev.filter((x) => x.id !== d.id)); setActiveId((cur) => (cur === d.id ? docs.find((x) => x.id !== d.id)?.id : cur)); };
 
-                            {vf.name}
+  const insertLink = () => { const url = prompt('Link URL:'); if (url) exec('createLink', url); };
+  const insertImage = () => {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => exec('insertImage', reader.result);
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+  const insertTable = () => {
+    const rows = 3, cols = 3;
+    let html = '<table style="border-collapse:collapse;width:100%;margin:8px 0;">';
+    for (let r = 0; r < rows; r++) { html += '<tr>'; for (let c = 0; c < cols; c++) html += '<td style="border:1px solid #ccc;padding:6px;min-width:60px;">&nbsp;</td>'; html += '</tr>'; }
+    html += '</table><p></p>';
+    exec('insertHTML', html);
+  };
 
-                        </div>
+  const addComment = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) { alert('Select some text first.'); return; }
+    const range = sel.getRangeAt(0);
+    const anchorText = sel.toString();
+    const text = prompt('Comment:');
+    if (!text) return;
+    const id = uid('c');
+    const mark = document.createElement('mark');
+    mark.className = 'ov-comment-mark';
+    mark.dataset.cid = id;
+    try { range.surroundContents(mark); } catch { const contents = range.extractContents(); mark.appendChild(contents); range.insertNode(mark); }
+    setDocs((prev) => prev.map((d) => (d.id === activeId ? { ...d, comments: [...(d.comments || []), { id, text, anchorText }] } : d)));
+    saveContent();
+  };
+  const removeComment = (cid) => {
+    const el = editorRef.current?.querySelector(`[data-cid="${cid}"]`);
+    if (el) { const parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el); }
+    setDocs((prev) => prev.map((d) => (d.id === activeId ? { ...d, comments: (d.comments || []).filter((c) => c.id !== cid) } : d)));
+    saveContent();
+  };
 
-                        <div style="display:flex;gap:0.5rem;align-items:center;margin-top:0.15rem;">
+  const saveVersion = () => {
+    setDocs((prev) => prev.map((d) => (d.id === activeId ? { ...d, versions: [{ html: d.html, savedAt: new Date().toLocaleString() }, ...(d.versions || [])].slice(0, 10) } : d)));
+  };
+  const revertVersion = (html) => { editorRef.current.innerHTML = html; saveContent(); };
 
-                            <span style="color:#64748b;font-size:0.7rem;">{vf._format_size()}</span>
+  const runReplace = () => {
+    if (!editorRef.current || !findText) return;
+    editorRef.current.innerHTML = editorRef.current.innerHTML.split(findText).join(replaceText);
+    saveContent();
+  };
 
-                            <span class="vault-badge {badge_class}" style="font-size:0.65rem;">{cat_icon} {vf.category.value.split()[-1]}</span>
+  const printDoc = () => {
+    const w = window.open('', 'print-window', 'width=800,height=900');
+    if (!w) { alert('Enable pop-ups to print/export.'); return; }
+    w.document.write(`<html><head><title>${active.name}</title></head><body style="font-family:Georgia,serif;max-width:720px;margin:40px auto;">${active.html}</body></html>`);
+    w.document.close();
+    setTimeout(() => w.print(), 200);
+  };
 
-                            <span style="color:#64748b;font-size:0.7rem;">{vf.uploaded_at.strftime('%b %d, %H:%M')}</span>
+  const toolBtn = (icon, cmd, val = null, title = '') => {
+    const Icon = icon;
+    return (
+      <button title={title} onMouseDown={(e) => e.preventDefault()} onClick={() => exec(cmd, val)}
+        className="p-1.5 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800 text-zinc-600"><Icon size={15} /></button>
+    );
+  };
 
-                        </div>
+  if (!active) return <div className="flex-1 flex items-center justify-center text-zinc-400">No documents — create one to get started.</div>;
 
+  return (
+    <div className="flex-1 flex overflow-hidden">
+      <aside className={`w-56 border-r p-3 space-y-2 overflow-y-auto ov-scrollbar ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+        <button onClick={newDoc} className="w-full flex items-center justify-center space-x-2 py-2 rounded-lg text-sm font-semibold text-zinc-950" style={{ background: BRASS }}>
+          <Plus size={15} /> <span>New doc</span>
+        </button>
+        {visible.map((d) => (
+          <div key={d.id} className="group relative">
+            <button onClick={() => setActiveId(d.id)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm truncate pr-7 ${activeId === d.id ? 'bg-amber-500/10 text-amber-500 font-medium' : dark ? 'text-zinc-300 hover:bg-zinc-800' : 'text-zinc-600 hover:bg-zinc-100'}`}>
+              {d.name}
+            </button>
+            <button onClick={() => trashDoc(d)} className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500"><Trash2 size={13} /></button>
+          </div>
+        ))}
+      </aside>
+
+      <div className={`flex-1 flex flex-col ${dark ? 'bg-zinc-950' : 'bg-zinc-100'}`}>
+        <div className={`flex flex-wrap items-center gap-0.5 px-3 py-2 border-b ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+          {toolBtn(Undo2, 'undo', null, 'Undo')}
+          {toolBtn(Redo2, 'redo', null, 'Redo')}
+          <div className="w-px h-4 bg-zinc-300 mx-1" />
+          {toolBtn(Bold, 'bold', null, 'Bold')}
+          {toolBtn(Italic, 'italic', null, 'Italic')}
+          {toolBtn(Underline, 'underline', null, 'Underline')}
+          {toolBtn(Strikethrough, 'strikeThrough', null, 'Strikethrough')}
+          <div className="w-px h-4 bg-zinc-300 mx-1" />
+          {toolBtn(Heading1, 'formatBlock', 'H2', 'Heading 1')}
+          {toolBtn(Heading2, 'formatBlock', 'H3', 'Heading 2')}
+          {toolBtn(Heading3, 'formatBlock', 'H4', 'Heading 3')}
+          {toolBtn(Quote, 'formatBlock', 'BLOCKQUOTE', 'Quote')}
+          {toolBtn(Code, 'formatBlock', 'PRE', 'Code block')}
+          <div className="w-px h-4 bg-zinc-300 mx-1" />
+          {toolBtn(AlignLeft, 'justifyLeft', null, 'Align left')}
+          {toolBtn(AlignCenter, 'justifyCenter', null, 'Align center')}
+          {toolBtn(AlignRight, 'justifyRight', null, 'Align right')}
+          {toolBtn(AlignJustify, 'justifyFull', null, 'Justify')}
+          <div className="w-px h-4 bg-zinc-300 mx-1" />
+          {toolBtn(List, 'insertUnorderedList', null, 'Bullet list')}
+          {toolBtn(ListOrdered, 'insertOrderedList', null, 'Numbered list')}
+          <div className="w-px h-4 bg-zinc-300 mx-1" />
+          <button title="Text color" onMouseDown={(e) => e.preventDefault()} className="p-1 rounded hover:bg-zinc-200/60">
+            <input type="color" onChange={(e) => exec('foreColor', e.target.value)} className="w-5 h-5 cursor-pointer" />
+          </button>
+          <button title="Highlight" onMouseDown={(e) => e.preventDefault()} className="p-1 rounded hover:bg-zinc-200/60">
+            <input type="color" defaultValue="#fff59d" onChange={(e) => exec('hiliteColor', e.target.value)} className="w-5 h-5 cursor-pointer" />
+          </button>
+          <div className="w-px h-4 bg-zinc-300 mx-1" />
+          <button title="Insert link" onMouseDown={(e) => e.preventDefault()} onClick={insertLink} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><Link2 size={15} /></button>
+          <button title="Insert image" onMouseDown={(e) => e.preventDefault()} onClick={insertImage} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><ImageIcon size={15} /></button>
+          <button title="Insert table" onMouseDown={(e) => e.preventDefault()} onClick={insertTable} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><TableIcon size={15} /></button>
+          <button title="Comment selection" onMouseDown={(e) => e.preventDefault()} onClick={addComment} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><MessageSquare size={15} /></button>
+          <div className="w-px h-4 bg-zinc-300 mx-1" />
+          <button title="Find & replace" onClick={() => setShowFind((v) => !v)} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><Search size={15} /></button>
+          <button title="Save version" onClick={saveVersion} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><History size={15} /></button>
+          <button title="Print / export PDF" onClick={printDoc} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><Printer size={15} /></button>
+          <button title="Export as Markdown" onClick={exportMarkdown} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><Download size={15} /></button>
+          <span className="ml-auto text-xs text-zinc-400 ov-mono">{wordCount} words</span>
+        </div>
+
+        {showFind && (
+          <div className={`flex items-center gap-2 px-3 py-2 border-b text-sm ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+            <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Find" className={`px-2 py-1 rounded border text-sm outline-none ${dark ? 'bg-zinc-950 border-zinc-700' : 'border-zinc-300'}`} />
+            <input value={replaceText} onChange={(e) => setReplaceText(e.target.value)} placeholder="Replace with" className={`px-2 py-1 rounded border text-sm outline-none ${dark ? 'bg-zinc-950 border-zinc-700' : 'border-zinc-300'}`} />
+            <button onClick={runReplace} className="px-3 py-1 rounded text-xs font-semibold text-zinc-950" style={{ background: BRASS }}>Replace all</button>
+          </div>
+        )}
+
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 overflow-y-auto ov-scrollbar p-8 flex justify-center">
+            <div ref={editorRef} contentEditable suppressContentEditableWarning onInput={saveContent}
+              onClick={(e) => { if (e.target.dataset.cid) { /* click on comment mark */ } }}
+              className={`ov-serif w-full max-w-[720px] min-h-[600px] rounded-lg shadow-sm p-10 text-[15px] leading-relaxed ${dark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-zinc-900'}`} />
+          </div>
+
+          {(outline.length > 0 || active.comments?.length > 0 || active.versions?.length > 0) && (
+            <aside className={`w-64 border-l p-3 overflow-y-auto ov-scrollbar space-y-4 ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+              {outline.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-zinc-400 mb-2 flex items-center gap-1"><List size={12} /> OUTLINE</p>
+                  {outline.map((h) => (
+                    <button key={h.id} onClick={() => jumpToHeading(h.id)}
+                      className={`block w-full text-left text-xs truncate py-1 hover:text-amber-500 ${dark ? 'text-zinc-300' : 'text-zinc-600'}`}
+                      style={{ paddingLeft: (parseInt(h.level[1], 10) - 1) * 10 }}>
+                      {h.text}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {active.comments?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-zinc-400 mb-2 flex items-center gap-1"><MessageSquare size={12} /> COMMENTS</p>
+                  {active.comments.map((c) => (
+                    <div key={c.id} className={`text-xs rounded-lg p-2 mb-2 ${dark ? 'bg-zinc-800' : 'bg-zinc-50'}`}>
+                      <p className="text-zinc-400 italic truncate">"{c.anchorText}"</p>
+                      <p className="mt-1">{c.text}</p>
+                      <button onClick={() => removeComment(c.id)} className="text-[10px] text-red-500 mt-1">Resolve</button>
                     </div>
-
+                  ))}
                 </div>
-
-                """, unsafe_allow_html=True)
-
-
-
-            with col_view:
-
-                if st.button("🔍 ️", key=f"vault_view_{vf.id}", use_container_width=True, help="Preview file"):
-
-                    st.session_state["vault_preview_file"] = vf.id
-
-                    st.rerun()
-
-
-
-            with col_share:
-
-                if st.button("🔍 ", key=f"vault_share_{vf.id}", use_container_width=True, help="Generate share link"):
-
-                    link = vf.generate_share_link(expires_in_hours=1, max_downloads=1)
-
-                    st.info(f"🔍 Share link: `{link['url']}`  expires in 1h / 1 download")
-
-
-
-            with col_del:
-
-                if vf.is_deleted:
-
-                    if st.button("♻️", key=f"vault_restore_{vf.id}", use_container_width=True, help="Restore from trash"):
-
-                        vault.restore_file(vf.id)
-
-                        st.rerun()
-
-                else:
-
-                    if st.button("🔍 ️", key=f"vault_del_{vf.id}", use_container_width=True, help="Move to trash"):
-
-                        vault.delete_file(vf.id)
-
-                        st.rerun()
-
-
-
-    # ── File Preview Modal ──────────────────────────────────────────
-
-    preview_file_id = st.session_state.get("vault_preview_file")
-
-    if preview_file_id:
-
-        vf = vault.get_file(preview_file_id)
-
-        if vf:
-
-            with st.container():
-
-                st.markdown("""<div class="vault-modal-overlay" onclick="alert('close')">""", unsafe_allow_html=True)
-
-                st.markdown('<div class="vault-modal">', unsafe_allow_html=True)
-
-
-
-                close_col, title_col = st.columns([1, 10])
-
-                with close_col:
-
-                    if st.button("✕", key="vault_close_preview"):
-
-                        st.session_state["vault_preview_file"] = None
-
-                        st.rerun()
-
-                with title_col:
-
-                    cat_icon = CATEGORY_ICONS.get(vf.category, "🔍 ")
-
-                    st.markdown(f"### {cat_icon} {vf.name}")
-
-
-
-                # Preview content based on type
-
-                data = vf.decrypt()
-
-                if data is None:
-
-                    st.error("❌ Failed to decrypt file. Key may be invalid.")
-
-                else:
-
-                    ext = vf.extension
-
-                    if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"):
-
-                        import base64 as _b64
-
-                        b64_data = _b64.b64encode(data).decode()
-
-                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64_data}" style="max-width:100%;border-radius:12px;border:1px solid #1e293b;">', unsafe_allow_html=True)
-
-                    elif ext == ".pdf":
-
-                        import base64 as _b64
-
-                        b64_data = _b64.b64encode(data).decode()
-
-                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}" width="100%" height="600" style="border:1px solid #1e293b;border-radius:12px;"></iframe>', unsafe_allow_html=True)
-
-                    elif ext in (".mp3", ".wav", ".ogg"):
-
-                        import base64 as _b64
-
-                        b64_data = _b64.b64encode(data).decode()
-
-                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type};base64,{b64_data}" type="{vf.mime_type}"></audio>', unsafe_allow_html=True)
-
-                    elif ext in (".txt", ".md", ".csv", ".json", ".tsv", ".py", ".r", ".yaml", ".yml", ".toml", ".cfg", ".sh"):
-
-                        try:
-
-                            text = data.decode("utf-8")
-
-                            st.code(text, language="python" if ext == ".py" else "markdown" if ext == ".md" else "json" if ext == ".json" else "csv" if ext == ".csv" else "plain")
-
-                        except UnicodeDecodeError:
-
-                            st.info("🔍 Binary file  download to view")
-
-                    else:
-
-                        st.info(f"🔍 File type `{ext}`  download to view")
-
-
-
-                # File metadata
-
-                with st.expander("🔍 File Details", expanded=False):
-
-                    meta_col1, meta_col2 = st.columns(2)
-
-                    with meta_col1:
-
-                        st.markdown(f"**Name:** {vf.name}")
-
-                        st.markdown(f"**Size:** {vf._format_size()}")
-
-                        st.markdown(f"**Category:** {cat_icon} {vf.category.value}")
-
-                        st.markdown(f"**Type:** {vf.mime_type}")
-
-                    with meta_col2:
-
-                        st.markdown(f"**Uploaded:** {vf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}")
-
-                        st.markdown(f"**Last accessed:** {vf.last_accessed.strftime('%Y-%m-%d %H:%M:%S')}")
-
-                        st.markdown(f"**Access count:** {vf.access_count}")
-
-                        st.markdown(f"**Encryption:** AES-256-GCM")
-
-                    if vf.tags:
-
-                        st.markdown(f"**Tags:** {', '.join(f'`{t}`' for t in vf.tags)}")
-
-                    if vf.notes:
-
-                        st.markdown(f"**Notes:** {vf.notes}")
-
-
-
-                # Download button
-
-                decoded_data = vf.decrypt()
-
-                if decoded_data:
-
-                    st.download_button(
-
-                        "🔍 Download Decrypted File",
-
-                        data=decoded_data,
-
-                        file_name=vf.name,
-
-                        mime=vf.mime_type,
-
-                        use_container_width=True,
-
-                        type="primary",
-
-                    )
-
-
-
-                st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-    # ── Upload Section ──────────────────────────────────────────────
-
-    with st.expander("🔍 Upload Files to Vault", expanded=False):
-
-        st.markdown('<div class="vault-upload-zone">', unsafe_allow_html=True)
-
-        uploaded_file = st.file_uploader(
-
-            "Drop files here or click to browse",
-
-            type=None,
-
-            accept_multiple_files=False,
-
-            label_visibility="collapsed",
-
-            key="vault_file_uploader",
-
-        )
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-        if uploaded_file:
-
-            file_bytes = uploaded_file.getvalue()
-
-            file_name = uploaded_file.name
-
-
-
-            col_meta1, col_meta2, col_meta3 = st.columns(3)
-
-            with col_meta1:
-
-                custom_name = st.text_input("File name (optional)", value=file_name, key="vault_upload_name")
-
-            with col_meta2:
-
-                # Detect category from extension
-
-                detected_cat = vault._categorize_file(file_name)
-
-                cat_options = [c.value for c in VaultCategory]
-
-                default_idx = cat_options.index(detected_cat.value) if detected_cat.value in cat_options else 0
-
-                selected_cat_str = st.selectbox("Category", options=cat_options, index=default_idx, key="vault_upload_cat")
-
-                selected_cat = None
-
-                for c in VaultCategory:
-
-                    if c.value == selected_cat_str:
-
-                        selected_cat = c
-
-                        break
-
-            with col_meta3:
-
-                tags_str = st.text_input("Tags (comma-separated)", placeholder="e.g., important, draft", key="vault_upload_tags")
-
-
-
-            notes = st.text_area("Notes (encrypted)", placeholder="Add private notes about this file...", key="vault_upload_notes", height=60)
-
-
-
-            if st.button("🔍 Encrypt & Upload", type="primary", use_container_width=True):
-
-                try:
-
-                    tags = [t.strip() for t in tags_str.split(",") if t.strip()] if tags_str else []
-
-                    vf = vault.upload_file(
-
-                        name=custom_name or file_name,
-
-                        file_bytes=file_bytes,
-
-                        category=selected_cat,
-
-                        tags=tags,
-
-                        notes=notes,
-
-                    )
-
-                    st.success(f"✅ `{vf.name}` encrypted & stored securely ({vf._format_size()})")
-
-                    st.balloons()
-
-                    st.rerun()
-
-                except ValueError as e:
-
-                    st.error(f"❌ {str(e)}")
-
-
-
-    # ── Share Links Management ──────────────────────────────────────
-
-    with st.expander("🔍 Active Share Links", expanded=False):
-
-        active_links = []
-
-        for vf in vault.files.values():
-
-            for link in vf.share_links:
-
-                if not link["is_expired"]:
-
-                    expires_at = datetime.fromisoformat(link["expires_at"])
-
-                    if datetime.now() <= expires_at:
-
-                        active_links.append((vf, link))
-
-
-
-        if active_links:
-
-            for vf, link in active_links:
-
-                remaining = link["max_downloads"] - link["download_count"]
-
-                expires_dt = datetime.fromisoformat(link["expires_at"])
-
-                remaining_time = expires_dt - datetime.now()
-
-                hours_left = max(0, remaining_time.total_seconds() / 3600)
-
-                st.markdown(f"""
-
-                <div class="vault-file-row">
-
-                    <span>🔍 </span>
-
-                    <div style="flex:1;">
-
-                        <div style="color:#f1f5f9;font-size:0.85rem;">{vf.name}</div>
-
-                        <div style="color:#64748b;font-size:0.75rem;">
-
-                            Link: <code>{link['url']}</code> · {remaining}/{link['max_downloads']} downloads · {hours_left:.1f}h remaining
-
-                        </div>
-
+              )}
+              {active.versions?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-zinc-400 mb-2 flex items-center gap-1"><History size={12} /> VERSIONS</p>
+                  {active.versions.map((v, i) => (
+                    <div key={i} className={`text-xs rounded-lg p-2 mb-2 ${dark ? 'bg-zinc-800' : 'bg-zinc-50'}`}>
+                      <p className="text-zinc-400">{v.savedAt}</p>
+                      <button onClick={() => revertVersion(v.html)} className="text-[10px] font-medium mt-1" style={{ color: BRASS }}>Revert</button>
                     </div>
-
+                  ))}
                 </div>
+              )}
+            </aside>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-                """, unsafe_allow_html=True)
+// ============================================================================
+// SHEETS — multi-tab, cell formatting, ranges/IF, CSV/XLSX, charts
+// ============================================================================
+const emptySheet = () => ({ grid: {}, styles: {}, formats: {} });
 
-        else:
+function SheetsModule({ dark }) {
+  const [sheets, setSheets] = useState({
+    Sheet1: {
+      grid: { A1: 'Item', B1: 'Cost', C1: 'Qty', D1: 'Total', A2: 'Widget A', B2: '10', C2: '5', D2: '=B2*C2', A3: 'Widget B', B3: '20', C3: '3', D3: '=B3*C3', A4: '', B4: '', C4: 'Sum', D4: '=SUM(D2:D3)' },
+      styles: {}, formats: { B2: 'currency', B3: 'currency', D2: 'currency', D3: 'currency', D4: 'currency' },
+    },
+  });
+  const [activeSheet, setActiveSheet] = useState('Sheet1');
+  const [activeCell, setActiveCell] = useState('A1');
+  const [showChart, setShowChart] = useState(false);
+  const [chartCol, setChartCol] = useState('D');
+  const [chartType, setChartType] = useState('bar');
+  const [sortDir, setSortDir] = useState({});
+  const fileRef = useRef(null);
 
-            st.info("No active share links. Select a file and click 🔍 to generate one.")
+  const cur = sheets[activeSheet];
+  const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+  const rows = Array.from({ length: 16 }, (_, i) => i + 1);
 
+  const updateSheet = (patch) => setSheets((prev) => ({ ...prev, [activeSheet]: { ...prev[activeSheet], ...patch } }));
+  const setCell = (key, val) => updateSheet({ grid: { ...cur.grid, [key]: val } });
+  const toggleStyle = (key, prop) => updateSheet({ styles: { ...cur.styles, [key]: { ...cur.styles[key], [prop]: !cur.styles[key]?.[prop] } } });
+  const setColor = (key, prop, val) => updateSheet({ styles: { ...cur.styles, [key]: { ...cur.styles[key], [prop]: val } } });
+  const setFormat = (key, fmt) => updateSheet({ formats: { ...cur.formats, [key]: fmt } });
 
+  const addSheet = () => {
+    let n = Object.keys(sheets).length + 1;
+    let name = `Sheet${n}`;
+    while (sheets[name]) { n++; name = `Sheet${n}`; }
+    setSheets((prev) => ({ ...prev, [name]: emptySheet() }));
+    setActiveSheet(name);
+  };
+  const deleteSheet = (name) => {
+    if (Object.keys(sheets).length <= 1) return;
+    const rest = { ...sheets }; delete rest[name];
+    setSheets(rest);
+    if (activeSheet === name) setActiveSheet(Object.keys(rest)[0]);
+  };
+  const renameSheet = (name) => {
+    const next = prompt('Rename sheet:', name);
+    if (!next || sheets[next]) return;
+    const rest = {}; Object.entries(sheets).forEach(([k, v]) => { rest[k === name ? next : k] = v; });
+    setSheets(rest);
+    if (activeSheet === name) setActiveSheet(next);
+  };
 
-    # ── Vault Audit Log ─────────────────────────────────────────────
+  const importCSV = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const parsed = Papa.parse(reader.result, { skipEmptyLines: true });
+      const grid = {};
+      parsed.data.forEach((row, rIdx) => row.forEach((val, cIdx) => { grid[numToCol(cIdx + 1) + (rIdx + 1)] = val; }));
+      const name = file.name.replace(/\.csv$/i, '') || 'Imported';
+      setSheets((prev) => ({ ...prev, [name]: { grid, styles: {}, formats: {} } }));
+      setActiveSheet(name);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
 
-    with st.expander("🔍 Audit Log", expanded=False):
+  const boundsOf = (grid) => {
+    let maxRow = 1, maxCol = 1;
+    Object.keys(grid).forEach((k) => { const p = parseRef(k); if (p) { maxRow = Math.max(maxRow, p.row); maxCol = Math.max(maxCol, colToNum(p.col)); } });
+    return { maxRow, maxCol };
+  };
 
-        log_entries = vault.get_audit_log(limit=30)
+  const sortByColumn = (col) => {
+    const { maxRow, maxCol } = boundsOf(cur.grid);
+    const dir = sortDir[col] === 'asc' ? 'desc' : 'asc';
+    const dataRows = [];
+    for (let r = 2; r <= maxRow; r++) {
+      const row = {};
+      for (let c = 1; c <= maxCol; c++) { const key = numToCol(c) + r; row[numToCol(c)] = cur.grid[key]; }
+      dataRows.push(row);
+    }
+    dataRows.sort((a, b) => {
+      const av = parseFloat(a[col]), bv = parseFloat(b[col]);
+      const an = isNaN(av) ? (a[col] || '') : av, bn = isNaN(bv) ? (b[col] || '') : bv;
+      if (an < bn) return dir === 'asc' ? -1 : 1;
+      if (an > bn) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    const newGrid = { ...cur.grid };
+    dataRows.forEach((row, i) => { const r = i + 2; Object.entries(row).forEach(([c, v]) => { newGrid[c + r] = v; }); });
+    updateSheet({ grid: newGrid });
+    setSortDir((prev) => ({ ...prev, [col]: dir }));
+  };
+  const toAOA = () => {
+    const { maxRow, maxCol } = boundsOf(cur.grid);
+    const aoa = [];
+    for (let r = 1; r <= maxRow; r++) { const row = []; for (let c = 1; c <= maxCol; c++) row.push(displayCell(numToCol(c) + r, cur.grid, cur.formats)); aoa.push(row); }
+    return aoa;
+  };
+  const exportCSV = () => {
+    const csv = Papa.unparse(toAOA());
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${activeSheet}.csv`; a.click();
+  };
+  const exportXLSX = () => {
+    const ws = XLSX.utils.aoa_to_sheet(toAOA());
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, activeSheet.slice(0, 31));
+    XLSX.writeFile(wb, `${activeSheet}.xlsx`);
+  };
 
-        if log_entries:
+  const chartData = useMemo(() => {
+    const { maxRow } = boundsOf(cur.grid);
+    const out = [];
+    for (let r = 2; r <= maxRow; r++) {
+      const label = displayCell('A' + r, cur.grid, cur.formats);
+      const val = parseFloat(evaluateFormula(String(cur.grid[chartCol + r] ?? ''), cur.grid)) || parseFloat(cur.grid[chartCol + r]) || 0;
+      if (label) out.push({ name: String(label), value: val });
+    }
+    return out;
+  }, [cur, chartCol]);
 
-            for entry in reversed(log_entries):
+  const cellStyle = (key) => {
+    const s = cur.styles[key] || {};
+    return { fontWeight: s.bold ? 700 : 400, fontStyle: s.italic ? 'italic' : 'normal', color: s.color || undefined, background: s.bg || undefined };
+  };
 
-                ts = entry["timestamp"][:19] if "T" in entry["timestamp"] else entry["timestamp"]
+  return (
+    <div className={`flex-1 flex flex-col overflow-hidden ${dark ? 'bg-zinc-950' : 'bg-white'}`}>
+      <div className={`flex flex-wrap items-center gap-1 px-3 py-2 border-b ${dark ? 'border-zinc-800' : 'border-zinc-200'}`}>
+        <span className="ov-mono text-xs font-bold min-w-[32px]" style={{ color: BRASS_DARK }}>{activeCell}</span>
+        <div className="w-px h-4 bg-zinc-300" />
+        <span className="text-zinc-400 italic text-xs">fx</span>
+        <input value={cur.grid[activeCell] ?? ''} onChange={(e) => setCell(activeCell, e.target.value)} placeholder="Value, =SUM(A1:A5), =IF(A1>5,1,0)"
+          className={`flex-1 border rounded px-2 py-1 text-sm outline-none ov-mono min-w-[160px] ${dark ? 'bg-zinc-900 border-zinc-700 text-zinc-100' : 'bg-white border-zinc-300'}`} />
+        <div className="w-px h-4 bg-zinc-300 mx-1" />
+        <button title="Bold" onClick={() => toggleStyle(activeCell, 'bold')} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><Bold size={14} /></button>
+        <button title="Italic" onClick={() => toggleStyle(activeCell, 'italic')} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><Italic size={14} /></button>
+        <input title="Text color" type="color" onChange={(e) => setColor(activeCell, 'color', e.target.value)} className="w-5 h-5 cursor-pointer" />
+        <input title="Fill color" type="color" onChange={(e) => setColor(activeCell, 'bg', e.target.value)} className="w-5 h-5 cursor-pointer" />
+        <select value={cur.formats[activeCell] || 'general'} onChange={(e) => setFormat(activeCell, e.target.value)}
+          className={`text-xs rounded border px-1.5 py-1 ${dark ? 'bg-zinc-900 border-zinc-700' : 'border-zinc-300'}`}>
+          <option value="general">General</option>
+          <option value="currency">Currency</option>
+          <option value="percent">Percent</option>
+        </select>
+        <div className="w-px h-4 bg-zinc-300 mx-1" />
+        <button title="Import CSV" onClick={() => fileRef.current?.click()} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><Upload size={14} /></button>
+        <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={importCSV} />
+        <button title="Export CSV" onClick={exportCSV} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><Download size={14} /></button>
+        <button title="Export XLSX" onClick={exportXLSX} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><FileSpreadsheet size={14} /></button>
+        <button title="Insert chart" onClick={() => setShowChart((v) => !v)} className="p-1.5 rounded hover:bg-zinc-200/60 text-zinc-600"><BarChart3 size={14} /></button>
+      </div>
 
-                st.markdown(f"""
+      {showChart && (
+        <div className={`px-4 py-3 border-b ${dark ? 'border-zinc-800' : 'border-zinc-200'}`}>
+          <div className="flex items-center gap-2 mb-2 text-xs">
+            <span>Chart column (values):</span>
+            <select value={chartCol} onChange={(e) => setChartCol(e.target.value)} className={`rounded border px-1.5 py-0.5 ${dark ? 'bg-zinc-900 border-zinc-700' : 'border-zinc-300'}`}>
+              {cols.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={chartType} onChange={(e) => setChartType(e.target.value)} className={`rounded border px-1.5 py-0.5 ${dark ? 'bg-zinc-900 border-zinc-700' : 'border-zinc-300'}`}>
+              <option value="bar">Bar</option>
+              <option value="line">Line</option>
+            </select>
+            <span className="text-zinc-400">(labels come from column A)</span>
+          </div>
+          <ResponsiveContainer width="100%" height={180}>
+            {chartType === 'bar' ? (
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Bar dataKey="value" fill={BRASS} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            ) : (
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="value" stroke={BRASS} strokeWidth={2} />
+              </LineChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      )}
 
-                <div style="display:flex;gap:0.75rem;padding:0.3rem 0;border-bottom:1px solid #1e293b;font-size:0.8rem;">
+      <div className="flex-1 overflow-auto ov-scrollbar">
+        <table className="border-collapse w-full">
+          <thead>
+            <tr>
+              <th className={`w-10 border sticky top-0 z-10 ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-300'}`} />
+              {cols.map((c) => (
+                <th key={c} onClick={() => sortByColumn(c)} title="Click to sort"
+                  className={`border sticky top-0 z-10 text-xs font-semibold py-1.5 ov-mono cursor-pointer select-none ${dark ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-amber-400' : 'bg-zinc-100 border-zinc-300 text-zinc-500 hover:text-amber-600'}`}>
+                  {c}{sortDir[c] && (sortDir[c] === 'asc' ? ' ▲' : ' ▼')}
+                </th>
+              ))}
+            </tr>
+          </thead>
 
-                    <span style="color:#64748b;min-width:140px;">{ts}</span>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r}>
+                <td className={`border text-center text-xs ov-mono ${dark ? 'bg-zinc-900 border-zinc-800 text-zinc-500' : 'bg-zinc-100 border-zinc-300 text-zinc-400'}`}>{r}</td>
+                {cols.map((c) => {
+                  const key = `${c}${r}`;
+                  const isActive = activeCell === key;
+                  return (
+                    <td key={key} onClick={() => setActiveCell(key)} className={`border p-0 h-8 ${dark ? 'border-zinc-800' : 'border-zinc-200'}`}
+                      style={isActive ? { boxShadow: `inset 0 0 0 2px ${BRASS}` } : {}}>
+                      <div className="px-2 py-1 text-sm truncate" style={cellStyle(key)}>{String(displayCell(key, cur.grid, cur.formats))}</div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-                    <span style="color:#818cf8;">{entry['action']}</span>
+      <div className={`flex items-center gap-1 px-2 py-1.5 border-t overflow-x-auto ${dark ? 'border-zinc-800 bg-zinc-900' : 'border-zinc-200 bg-zinc-50'}`}>
+        {Object.keys(sheets).map((name) => (
+          <div key={name} className="flex items-center">
+            <button onClick={() => setActiveSheet(name)} onDoubleClick={() => renameSheet(name)}
+              className={`px-3 py-1 rounded-t-md text-xs font-medium ${activeSheet === name ? 'bg-white dark:bg-zinc-950 text-amber-600' : 'text-zinc-500'}`}>{name}</button>
+            {Object.keys(sheets).length > 1 && <button onClick={() => deleteSheet(name)} className="text-zinc-400 hover:text-red-500 -ml-1"><X size={11} /></button>}
+          </div>
+        ))}
+        <button onClick={addSheet} className="p-1 rounded hover:bg-zinc-200/60 text-zinc-500"><Plus size={14} /></button>
+      </div>
+      <p className="text-[11px] text-zinc-500 px-4 py-1.5">Formulas: SUM/AVERAGE/MIN/MAX/COUNT/COUNTA/CONCAT over ranges, <span className="ov-mono">VLOOKUP(key,range,col)</span>, IF, and arithmetic — evaluated by mathjs's sandboxed parser, never raw code execution. Click a column letter to sort by it.</p>
+    </div>
+  );
+}
 
-                    <span style="color:#94a3b8;">{entry['details']}</span>
+// ============================================================================
+// SLIDES — themes, layouts, notes, present mode, reorder, duplicate, print
+// ============================================================================
+const THEMES = {
+  classic: { bg: '#ffffff', fg: '#18181b', accent: BRASS },
+  midnight: { bg: '#0f172a', fg: '#f1f5f9', accent: '#38bdf8' },
+  sunset: { bg: '#431407', fg: '#fef3c7', accent: '#fb923c' },
+  mono: { bg: '#fafafa', fg: '#111111', accent: '#111111' },
+};
 
-                </div>
+function SlidesModule({ slides, setSlides, setTrashSlides, dark }) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [presenting, setPresenting] = useState(false);
+  const active = slides[activeIdx];
 
-                """, unsafe_allow_html=True)
+  useEffect(() => {
+    if (!presenting) return;
+    const onKey = (e) => {
+      if (e.key === 'ArrowRight') setActiveIdx((i) => Math.min(slides.length - 1, i + 1));
+      if (e.key === 'ArrowLeft') setActiveIdx((i) => Math.max(0, i - 1));
+      if (e.key === 'Escape') setPresenting(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [presenting, slides.length]);
 
-        else:
+  const update = (field, val) => setSlides((prev) => prev.map((s, i) => (i === activeIdx ? { ...s, [field]: val } : s)));
+  const addSlide = (layout = 'title-body') => { setSlides((prev) => [...prev, { id: uid('s'), title: 'New slide', body: 'Bullet point...', body2: '', notes: '', layout, theme: active?.theme || 'classic', image: null }]); setActiveIdx(slides.length); };
+  const duplicateSlide = (idx) => { const copy = { ...slides[idx], id: uid('s') }; setSlides((prev) => [...prev.slice(0, idx + 1), copy, ...prev.slice(idx + 1)]); setActiveIdx(idx + 1); };
+  const moveSlide = (idx, dir) => {
+    const j = idx + dir; if (j < 0 || j >= slides.length) return;
+    const next = [...slides]; [next[idx], next[j]] = [next[j], next[idx]]; setSlides(next); setActiveIdx(j);
+  };
+  const trashSlide = (idx) => { setTrashSlides((p) => [...p, slides[idx]]); setSlides((prev) => prev.filter((_, i) => i !== idx)); setActiveIdx((i) => Math.max(0, i - (idx <= activeIdx ? 1 : 0))); };
+  const insertImage = () => {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = (e) => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => update('image', r.result); r.readAsDataURL(f); };
+    input.click();
+  };
+  const printDeck = () => {
+    const w = window.open('', 'print-deck', 'width=900,height=700');
+    if (!w) { alert('Enable pop-ups to print/export.'); return; }
+    const html = slides.map((s) => `<div style="page-break-after:always;padding:60px;text-align:center;"><h1>${s.title}</h1><p>${s.body}</p></div>`).join('');
+    w.document.write(`<html><body>${html}</body></html>`); w.document.close();
+    setTimeout(() => w.print(), 200);
+  };
 
-            st.info("No audit log entries yet.")
+  if (!active) return (
+    <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 space-y-3">
+      <p>No slides — add one to start.</p>
+      <button onClick={() => addSlide()} className="px-4 py-2 rounded-lg text-sm font-semibold text-zinc-950" style={{ background: BRASS }}>Add slide</button>
+    </div>
+  );
 
+  const theme = THEMES[active.theme] || THEMES.classic;
 
+  if (presenting) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center" style={{ background: theme.bg, color: theme.fg }}>
+        <button onClick={() => setPresenting(false)} className="absolute top-4 right-4 text-sm opacity-70">Exit (Esc)</button>
+        <h1 className="text-5xl font-bold mb-6" style={{ color: theme.accent }}>{active.title}</h1>
+        <p className="text-xl max-w-2xl text-center whitespace-pre-line">{active.body}</p>
+        {active.image && <img src={active.image} alt="" className="max-h-64 mt-8 rounded-lg" />}
+        <p className="absolute bottom-6 text-xs opacity-50">{activeIdx + 1} / {slides.length} — use ← →</p>
+      </div>
+    );
+  }
 
-    # ── Duress mode indicator ───────────────────────────────────────
+  return (
+    <div className={`flex-1 flex overflow-hidden ${dark ? 'bg-zinc-950' : 'bg-zinc-100'}`}>
+      <aside className={`w-56 border-r p-3 space-y-3 overflow-y-auto ov-scrollbar ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+        <div className="grid grid-cols-3 gap-1.5">
+          <button onClick={() => addSlide('title')} className="flex items-center justify-center space-x-1 py-1.5 rounded-lg text-xs font-semibold text-zinc-950" style={{ background: BRASS }}><Plus size={13} /><span>Title</span></button>
+          <button onClick={() => addSlide('title-body')} className="flex items-center justify-center space-x-1 py-1.5 rounded-lg text-xs font-semibold text-zinc-950" style={{ background: BRASS }}><Plus size={13} /><span>Content</span></button>
+          <button onClick={() => addSlide('two-col')} className="flex items-center justify-center space-x-1 py-1.5 rounded-lg text-xs font-semibold text-zinc-950" style={{ background: BRASS }}><Plus size={13} /><span>2-Col</span></button>
+        </div>
+        <button onClick={() => setPresenting(true)} className="w-full flex items-center justify-center space-x-2 py-1.5 rounded-lg text-xs font-medium border border-zinc-300 dark:border-zinc-700"><Play size={13} /><span>Present</span></button>
+        <button onClick={printDeck} className="w-full flex items-center justify-center space-x-2 py-1.5 rounded-lg text-xs font-medium border border-zinc-300 dark:border-zinc-700"><Printer size={13} /><span>Print / export</span></button>
 
-    if vault.is_duress_mode:
+        {slides.map((s, idx) => (
+          <div key={s.id} onClick={() => setActiveIdx(idx)} className={`relative p-2 rounded-lg border cursor-pointer group ${activeIdx === idx ? 'border-amber-500' : dark ? 'border-zinc-800' : 'border-zinc-200'}`}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-zinc-400">{idx + 1}</span>
+              <div className="flex opacity-0 group-hover:opacity-100 gap-0.5">
+                <button onClick={(e) => { e.stopPropagation(); moveSlide(idx, -1); }}><ChevronUp size={11} /></button>
+                <button onClick={(e) => { e.stopPropagation(); moveSlide(idx, 1); }}><ChevronDown size={11} /></button>
+                <button onClick={(e) => { e.stopPropagation(); duplicateSlide(idx); }}><Copy size={11} /></button>
+                <button onClick={(e) => { e.stopPropagation(); trashSlide(idx); }}><Trash2 size={11} /></button>
+              </div>
+            </div>
+            <div className="h-16 rounded flex flex-col items-center justify-center text-center px-2 mt-1" style={{ background: (THEMES[s.theme] || THEMES.classic).bg, color: (THEMES[s.theme] || THEMES.classic).fg }}>
+              <p className="text-[10px] font-bold truncate w-full">{s.title}</p>
+              <p className="text-[8px] opacity-60 truncate w-full">{s.body}</p>
+            </div>
+          </div>
+        ))}
+      </aside>
 
-        st.markdown("""
-
-        <div class="vault-card" style="border:1px solid #92400e;background:rgba(245,158,11,0.05);text-align:center;padding:1rem;">
-
-            <span style="color:#fbbf24;font-size:1.5rem;">⚠️</span>
-
-            <div style="color:#fbbf24;font-weight:700;">DUress Mode Active</div>
-
-            <div style="color:#d97706;font-size:0.85rem;">Limited vault view  only dummy files visible</div>
-
+      <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-4">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-zinc-400">Theme:</span>
+          {Object.keys(THEMES).map((t) => (
+            <button key={t} onClick={() => update('theme', t)} className={`w-5 h-5 rounded-full border-2 ${active.theme === t ? 'border-amber-500' : 'border-transparent'}`} style={{ background: THEMES[t].bg }} title={t} />
+          ))}
+          <button onClick={insertImage} className="ml-3 flex items-center space-x-1 text-zinc-500"><ImageIcon size={13} /><span>Add image</span></button>
         </div>
 
-        """, unsafe_allow_html=True)
+        <div className="w-full max-w-[760px] aspect-video rounded-xl shadow-md p-12 flex flex-col items-center justify-center text-center space-y-4" style={{ background: theme.bg, color: theme.fg }}>
+          <input value={active.title} onChange={(e) => update('title', e.target.value)} className="ov-display text-3xl font-bold text-center outline-none bg-transparent w-full" style={{ color: theme.accent }} />
+          {active.layout === 'two-col' ? (
+            <div className="grid grid-cols-2 gap-4 w-full text-left">
+              <textarea value={active.body} onChange={(e) => update('body', e.target.value)} className="text-sm outline-none bg-transparent w-full resize-none h-28 opacity-90" />
+              <textarea value={active.body2 || ''} onChange={(e) => update('body2', e.target.value)} className="text-sm outline-none bg-transparent w-full resize-none h-28 opacity-90" />
+            </div>
+          ) : active.layout !== 'title' && <textarea value={active.body} onChange={(e) => update('body', e.target.value)} className="text-base text-center outline-none bg-transparent w-full resize-none h-20 opacity-90" />}
+          {active.image && <img src={active.image} alt="" className="max-h-32 rounded" />}
+        </div>
 
-
-
-    # ── Footer Stats ────────────────────────────────────────────────
-
-    st.markdown(f"""
-
-    <div style="margin-top:1.5rem;padding:0.75rem;border-top:1px solid #1e293b;display:flex;justify-content:space-between;">
-
-        <span style="color:#475569;font-size:0.7rem;">🔍 AES-256-GCM Encrypted</span>
-
-        <span style="color:#475569;font-size:0.7rem;">🔍 ️ Zero-knowledge architecture</span>
-
-        <span style="color:#475569;font-size:0.7rem;">⏱️ Auto-lock: {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity</span>
-
+        <textarea value={active.notes} onChange={(e) => update('notes', e.target.value)} placeholder="Speaker notes..."
+          className={`w-full max-w-[760px] text-xs rounded-lg border p-2 outline-none resize-none h-14 ${dark ? 'bg-zinc-900 border-zinc-800 text-zinc-300' : 'bg-white border-zinc-200'}`} />
+      </div>
     </div>
+  );
+}
 
-    """, unsafe_allow_html=True)
+// ============================================================================
+// MAIL — labels, archive, attachments, signature, shortcuts, undo send, bulk
+// ============================================================================
+function MailModule({ dark, query }) {
+  const [mails, setMails] = useState([
+    { id: 'm1', from: 'team@omnivault.io', subject: 'Weekly storage digest', preview: 'Your workspace used 165 MB this week...', time: '09:12', read: false, starred: true, label: 'Work' },
+    { id: 'm2', from: 'security@omnivault.io', subject: 'New sign-in detected', preview: 'A sign-in was detected from a new device...', time: 'Yesterday', read: true, starred: false, label: 'Important' },
+  ]);
+  const [archived, setArchived] = useState([]);
+  const [trashed, setTrashed] = useState([]);
+  const [snoozed, setSnoozed] = useState([]);
+  const [sent, setSent] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [activeId, setActiveId] = useState('m1');
+  const [composing, setComposing] = useState(false);
+  const [draft, setDraft] = useState({ to: '', subject: '', body: '', attachments: [] });
+  const [folder, setFolder] = useState('inbox');
+  const [labelFilter, setLabelFilter] = useState('All');
+  const [signature, setSignature] = useState('— Sent from OmniVault');
+  const [showSettings, setShowSettings] = useState(false);
+  const [pendingSend, setPendingSend] = useState(null);
+  const searchRef = useRef(null);
 
+  const folders = { inbox: mails, archive: archived, trash: trashed, snoozed, sent };
+  const labels = ['All', 'Work', 'Personal', 'Important'];
 
+  const visible = (folders[folder] || []).filter((m) => {
+    const text = (m.subject + (m.from || m.to || '')).toLowerCase();
+    const matchQ = text.includes(query.toLowerCase());
+    const matchLabel = folder !== 'inbox' || labelFilter === 'All' || m.label === labelFilter;
+    return matchQ && matchLabel;
+  });
+  const active = mails.find((m) => m.id === activeId);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+      if (typing) return;
+      if (e.key === 'c') startCompose();
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === 'r' && active) startCompose({ to: active.from, subject: `Re: ${active.subject}`, body: `\n\n---- Original ----\n${active.preview}`, attachments: [] });
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [active]);
 
+  const openMail = (id) => setMails((prev) => prev.map((m) => (m.id === id ? { ...m, read: true } : m)));
+  const toggleStar = (id) => setMails((prev) => prev.map((m) => (m.id === id ? { ...m, starred: !m.starred } : m)));
+  const setLabel = (id, label) => setMails((prev) => prev.map((m) => (m.id === id ? { ...m, label } : m)));
+  const archiveMail = (m) => { setArchived((p) => [...p, m]); setMails((prev) => prev.filter((x) => x.id !== m.id)); };
+  const deleteMail = (m) => { setTrashed((p) => [...p, m]); setMails((prev) => prev.filter((x) => x.id !== m.id)); setArchived((prev) => prev.filter((x) => x.id !== m.id)); };
+  const snoozeMail = (m) => { setSnoozed((p) => [...p, m]); setMails((prev) => prev.filter((x) => x.id !== m.id)); };
 
-# Automatically render the page UI when navigated to in Streamlit
-if __name__ == '__main__':
-    if 'main' in globals():
-        main()
-    elif 'render' in globals():
-        render()
-    elif 'show' in globals():
-        show()
-else:
-    if 'main' in globals():
-        main()
-    elif 'render' in globals():
-        render()
-    elif 'show' in globals():
-        show()
+  const toggleSelect = (id) => setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const bulkMarkRead = () => setMails((prev) => prev.map((m) => (selected.includes(m.id) ? { ...m, read: true } : m)));
+  const bulkDelete = () => { const toMove = mails.filter((m) => selected.includes(m.id)); setTrashed((p) => [...p, ...toMove]); setMails((prev) => prev.filter((m) => !selected.includes(m.id))); setSelected([]); };
 
+  const startCompose = (prefill = { to: '', subject: '', body: `\n\n${signature}`, attachments: [] }) => { setDraft(prefill); setComposing(true); };
+  const attachFile = (e) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = () => setDraft((d) => ({ ...d, attachments: [...d.attachments, { name: f.name, size: f.size, url: reader.result }] }));
+      reader.readAsDataURL(f);
+    });
+    e.target.value = '';
+  };
 
+  const send = () => {
+    if (!draft.to || !draft.subject) return;
+    const payload = { id: uid('sm'), to: draft.to, subject: draft.subject, body: draft.body, attachments: draft.attachments, time: 'Just now' };
+    setComposing(false);
+    const timer = setTimeout(() => { setSent((prev) => [payload, ...prev]); setPendingSend(null); }, 5000);
+    setPendingSend({ timer, payload });
+  };
+  const undoSend = () => { if (pendingSend) { clearTimeout(pendingSend.timer); setPendingSend(null); } };
 
+  return (
+    <div className={`flex-1 flex overflow-hidden relative ${dark ? 'bg-zinc-950' : 'bg-white'}`}>
+      <aside className={`w-56 border-r p-3 space-y-4 overflow-y-auto ov-scrollbar ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+        <button onClick={() => startCompose()} className="w-full flex items-center justify-center space-x-2 py-2.5 rounded-full text-sm font-semibold text-zinc-950 shadow-sm" style={{ background: BRASS }}>
+          <Plus size={16} /> <span>Compose</span>
+        </button>
+        <div className="space-y-1">
+          {[
+            { key: 'inbox', label: 'Inbox', icon: MailIcon, count: mails.filter((m) => !m.read).length },
+            { key: 'sent', label: 'Sent', icon: Send },
+            { key: 'archive', label: 'Archive', icon: Archive },
+            { key: 'snoozed', label: 'Snoozed', icon: Clock },
+            { key: 'trash', label: 'Trash', icon: Trash2 },
+          ].map(({ key, label, icon: Icon, count }) => (
+            <button key={key} onClick={() => setFolder(key)}
+              className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium ${folder === key ? 'bg-amber-500/10 text-amber-500' : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}>
+              <span className="flex items-center space-x-2"><Icon size={14} /><span>{label}</span></span>
+              {!!count && <span className="text-xs">{count}</span>}
+            </button>
+          ))}
+        </div>
+        {folder === 'inbox' && (
+          <div className="space-y-1">
+            <p className="text-[10px] font-semibold text-zinc-400 px-1">LABELS</p>
+            {labels.map((l) => (
+              <button key={l} onClick={() => setLabelFilter(l)} className={`flex items-center space-x-2 w-full px-3 py-1.5 rounded-lg text-xs ${labelFilter === l ? 'font-semibold' : 'text-zinc-500'}`}>
+                <Tag size={11} style={{ color: l === 'All' ? '#a1a1aa' : BRASS }} /> <span>{l}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <button onClick={() => setShowSettings(true)} className="flex items-center space-x-2 text-xs text-zinc-500 px-1"><Settings size={12} /><span>Signature settings</span></button>
+      </aside>
+
+      <div className={`w-72 border-r overflow-y-auto ov-scrollbar ${dark ? 'border-zinc-800' : 'border-zinc-200'}`}>
+        {folder === 'inbox' && selected.length > 0 && (
+          <div className="flex items-center gap-2 px-3 py-2 border-b text-xs">
+            <button onClick={bulkMarkRead} className="underline">Mark read</button>
+            <button onClick={bulkDelete} className="underline text-red-500">Delete</button>
+            <span className="ml-auto text-zinc-400">{selected.length} selected</span>
+          </div>
+        )}
+        {visible.length === 0 && <p className="text-sm text-zinc-400 p-4">Nothing here.</p>}
+        {folder === 'inbox' && visible.map((m) => (
+          <div key={m.id} className={`flex items-start gap-2 p-3.5 cursor-pointer border-b ${dark ? 'border-zinc-900' : 'border-zinc-100'} ${activeId === m.id ? (dark ? 'bg-zinc-900' : 'bg-amber-500/5') : ''}`}>
+            <button onClick={(e) => { e.stopPropagation(); toggleSelect(m.id); }} className="mt-0.5">
+              {selected.includes(m.id) ? <CheckSquare size={14} style={{ color: BRASS }} /> : <Square size={14} className="text-zinc-400" />}
+            </button>
+            <div className="flex-1 min-w-0 space-y-1" onClick={() => { setActiveId(m.id); openMail(m.id); }}>
+              <div className="flex justify-between items-center">
+                <span className={`text-sm truncate ${!m.read ? 'font-bold' : 'font-medium text-zinc-500'}`}>{m.from}</span>
+                <span className="text-[11px] text-zinc-400 shrink-0">{m.time}</span>
+              </div>
+              <p className={`text-xs truncate ${!m.read ? 'font-semibold' : 'text-zinc-500'}`}>{m.subject}</p>
+              <p className="text-xs text-zinc-400 truncate">{m.preview}</p>
+              {m.label && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: `${BRASS}22`, color: BRASS_DARK }}>{m.label}</span>}
+            </div>
+          </div>
+        ))}
+        {folder !== 'inbox' && visible.map((m) => (
+          <div key={m.id} className={`p-3.5 border-b space-y-1 ${dark ? 'border-zinc-900' : 'border-zinc-100'}`}>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium truncate">{m.to ? `To: ${m.to}` : m.from}</span>
+              <span className="text-[11px] text-zinc-400">{m.time}</span>
+            </div>
+            <p className="text-xs font-semibold truncate">{m.subject}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex-1 p-8 overflow-y-auto ov-scrollbar relative">
+        {folder === 'inbox' && active ? (
+          <>
+            <div className="flex justify-between items-start border-b pb-4 mb-4">
+              <div>
+                <h2 className="text-lg font-semibold">{active.subject}</h2>
+                <p className="text-xs text-zinc-500 mt-1">From: {active.from}</p>
+              </div>
+              <button onClick={() => toggleStar(active.id)}><Star size={16} fill={active.starred ? BRASS : 'none'} color={active.starred ? BRASS : '#a1a1aa'} /></button>
+            </div>
+            <p className="ov-serif text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-300">{active.preview}</p>
+            <div className="flex flex-wrap gap-2 mt-6">
+              <button onClick={() => startCompose({ to: active.from, subject: `Re: ${active.subject}`, body: `\n\n---- Original ----\n${active.preview}\n\n${signature}`, attachments: [] })} className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm border border-zinc-300 dark:border-zinc-700"><Reply size={14} /><span>Reply</span></button>
+              <button onClick={() => startCompose({ to: '', subject: `Fwd: ${active.subject}`, body: `\n\n---- Forwarded ----\n${active.preview}\n\n${signature}`, attachments: [] })} className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm border border-zinc-300 dark:border-zinc-700"><Forward size={14} /><span>Forward</span></button>
+              <button onClick={() => archiveMail(active)} className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm border border-zinc-300 dark:border-zinc-700"><Archive size={14} /><span>Archive</span></button>
+              <button onClick={() => snoozeMail(active)} className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm border border-zinc-300 dark:border-zinc-700"><Clock size={14} /><span>Snooze</span></button>
+              <button onClick={() => deleteMail(active)} className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm border border-zinc-300 dark:border-zinc-700 text-red-500"><Trash2 size={14} /><span>Delete</span></button>
+              {labels.filter((l) => l !== 'All').map((l) => (
+                <button key={l} onClick={() => setLabel(active.id, l)} className="text-xs px-2 py-1 rounded-full border border-zinc-300 dark:border-zinc-700">{l}</button>
+              ))}
+            </div>
+          </>
+        ) : folder === 'inbox' ? (
+          <div className="text-zinc-400 text-sm">Select an email to read it. <span className="ov-mono text-xs">(c: compose, /: search, r: reply)</span></div>
+        ) : (
+          <div className="text-zinc-400 text-sm">{visible.length ? 'Select an item on the left.' : 'This folder is empty.'}</div>
+        )}
+
+        {composing && (
+          <div className={`absolute bottom-4 right-4 w-[420px] rounded-t-xl shadow-2xl border flex flex-col ${dark ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-zinc-300'}`}>
+            <div className="px-4 py-2.5 rounded-t-xl flex justify-between items-center text-sm font-semibold text-white" style={{ background: '#18181b' }}>
+              <span>New message</span>
+              <button onClick={() => setComposing(false)}><X size={14} /></button>
+            </div>
+            <input value={draft.to} onChange={(e) => setDraft((d) => ({ ...d, to: e.target.value }))} placeholder="To" className={`px-3 py-2 text-sm outline-none border-b ${dark ? 'bg-zinc-900 border-zinc-800' : 'border-zinc-100'}`} />
+            <input value={draft.subject} onChange={(e) => setDraft((d) => ({ ...d, subject: e.target.value }))} placeholder="Subject" className={`px-3 py-2 text-sm outline-none border-b font-medium ${dark ? 'bg-zinc-900 border-zinc-800' : 'border-zinc-100'}`} />
+            <textarea value={draft.body} onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))} placeholder="Write your message..." className={`h-32 px-3 py-2 text-sm outline-none resize-none ${dark ? 'bg-zinc-900' : 'bg-white'}`} />
+            {draft.attachments.length > 0 && (
+              <div className="px-3 py-1 flex flex-wrap gap-1">
+                {draft.attachments.map((a, i) => <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 flex items-center gap-1"><Paperclip size={9} />{a.name}</span>)}
+              </div>
+            )}
+            <div className="p-3 flex justify-between items-center">
+              <label className="cursor-pointer text-zinc-500"><Paperclip size={16} /><input type="file" multiple className="hidden" onChange={attachFile} /></label>
+              <button onClick={send} className="px-4 py-1.5 rounded-lg text-sm font-semibold text-zinc-950" style={{ background: BRASS }}>Send</button>
+            </div>
+          </div>
+        )}
+
+        {pendingSend && (
+          <div className="absolute bottom-4 left-4 flex items-center gap-3 px-4 py-2.5 rounded-lg shadow-lg text-sm bg-zinc-900 text-white">
+            <span>Message sent</span>
+            <button onClick={undoSend} className="font-semibold flex items-center gap-1" style={{ color: BRASS }}><RotateCcw size={12} />Undo</button>
+          </div>
+        )}
+
+        {showSettings && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setShowSettings(false)}>
+            <div onClick={(e) => e.stopPropagation()} className={`w-96 rounded-xl p-5 shadow-2xl ${dark ? 'bg-zinc-900 text-zinc-100' : 'bg-white'}`}>
+              <h3 className="font-semibold mb-3">Signature</h3>
+              <textarea value={signature} onChange={(e) => setSignature(e.target.value)} className={`w-full h-20 rounded border p-2 text-sm outline-none resize-none ${dark ? 'bg-zinc-950 border-zinc-700' : 'border-zinc-300'}`} />
+              <button onClick={() => setShowSettings(false)} className="mt-3 px-4 py-1.5 rounded-lg text-sm font-semibold text-zinc-950" style={{ background: BRASS }}>Done</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
