@@ -110,7 +110,7 @@ if "current_active_speaker" not in st.session_state:
       "name": "Chris Shem",
       "badge_type": "gold",
       "role": "Host / Operator",
-      "status": "Speaking ???",
+      "status": "Speaking 🔍 ",
       "db": "84 dB",
   }
 
@@ -393,7 +393,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
-                "status": "Speaking ???",
+                "status": "Speaking 🔍 ",
                 "badge_type": st.session_state["host_badge_type"],
                 "anonymous": False,
                 "allow_cam": True,
@@ -417,7 +417,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
-                "status": "Speaking ???",
+                "status": "Speaking 🔍 ",
                 "badge_type": st.session_state["host_badge_type"],
                 "anonymous": False,
                 "allow_cam": True,
@@ -441,7 +441,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
-                "status": "Speaking ???",
+                "status": "Speaking 🔍 ",
                 "badge_type": "gold",
                 "anonymous": False,
                 "allow_cam": True,
@@ -514,7 +514,7 @@ else:
   st.markdown(
       f"""
         <div class="floating-pip-hud">
-            <div style="font-size:0.7rem;color:#38bdf8;margin-bottom:2px;font-weight:bold;">??? LIVE SPEAKER HUD</div>
+            <div style="font-size:0.7rem;color:#38bdf8;margin-bottom:2px;font-weight:bold;">🔍 LIVE SPEAKER HUD</div>
             <div style="font-size:0.95rem;font-weight:bold;color:#f8fafc;">{curr_spk['name']} {curr_badge_html}</div>
             <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:6px;">{curr_spk['role']}</div>
             <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#34d399;">
@@ -585,7 +585,7 @@ else:
       tab_playback,
   ) = st.tabs([
       "?? WebRTC HD Video Feeds",
-      "??? Plagiarism & AI Audit Suite",
+      "🔍 Plagiarism & AI Audit Suite",
       "?? Recurring Calendar & Scheduler",
       "?? Omni-Share & Asset Vault",
       "? VIP & Celebrity Badges",
@@ -737,14 +737,14 @@ else:
       selected_spk = st.selectbox(
           "Set Active Speaker for Floating HUD", speaker_options
       )
-      if st.button("??? Assign as Active Speaker"):
+      if st.button("🔍 Assign as Active Speaker"):
         for a in st.session_state["active_attendees"]:
           if a["name"] == selected_spk:
             st.session_state["current_active_speaker"] = {
                 "name": a["name"],
                 "badge_type": a.get("badge_type", "blue"),
                 "role": a["role"],
-                "status": "Speaking ???",
+                "status": "Speaking 🔍 ",
                 "db": "86 dB",
             }
             st.success(f"? Active speaker updated to **{a['name']}**!")
@@ -756,7 +756,7 @@ else:
         b_type = att.get("badge_type", "blue")
 
         if is_anon:
-          disp_name = f"??? Anonymous Contributor #{idx+1}"
+          disp_name = f"🔍 Anonymous Contributor #{idx+1}"
           badge_tag = '<span class="stealth-badge">?? Encrypted Voice</span>'
           cam_status = (
               '<span style="color:#94a3b8;font-size:0.75rem;">No Camera'
@@ -913,7 +913,7 @@ else:
           }
           st.session_state["audit_reports"].insert(0, new_report)
           st.toast(
-              "??? Plagiarism and AI Content Audit completed successfully!",
+              "🔍 Plagiarism and AI Content Audit completed successfully!",
               icon="??",
           )
           st.rerun()
@@ -1008,7 +1008,7 @@ else:
 
         # Download Report Option
         st.markdown("---")
-        report_download_text = f"""# ??? Official Plagiarism & AI Content Audit Report
+        report_download_text = f"""# 🔍 Official Plagiarism & AI Content Audit Report
 **Audit ID:** `{latest['id']}`  
 **Room Identifier:** `{st.session_state['room_id']}`  
 **Authorized Auditor:** `{st.session_state['host_name']}`  
@@ -1104,7 +1104,7 @@ else:
         sc_col1, sc_col2 = st.columns([3, 1])
         with sc_col1:
           st.markdown(
-              f"??? **{schedule['day']}s @ {schedule['time']}**<br>`{schedule['title']}`"
+              f"🔍 **{schedule['day']}s @ {schedule['time']}**<br>`{schedule['title']}`"
               f" *(Room: `{schedule['room']}`)*"
           )
         with sc_col2:
@@ -1118,7 +1118,7 @@ else:
             st.rerun()
         st.markdown("---")
 
-      if st.button("??? Clear Custom Calendar Schedule"):
+      if st.button("🔍 Clear Custom Calendar Schedule"):
         st.session_state["calendar_schedule"] = []
         st.success("Calendar cleared.")
         st.rerun()
@@ -1276,7 +1276,7 @@ else:
         for h_idx, hl in enumerate(st.session_state["stage_highlights"]):
           st.markdown(f"- `{h_idx+1}`. {hl}")
         st.markdown("</div>", unsafe_allow_html=True)
-        if st.button("??? Clear Stage Highlights"):
+        if st.button("🔍 Clear Stage Highlights"):
           st.session_state["stage_highlights"] = []
           st.rerun()
 

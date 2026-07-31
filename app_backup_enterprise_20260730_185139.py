@@ -195,7 +195,7 @@ with st.sidebar.expander("?? Institutional & User Context", expanded=True):
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
 st.sidebar.markdown("### ?? Location & Sector Setup")
 
-PRESET_COUNTRIES = ["???? Uganda", "???? Kenya", "???? Rwanda", "???? Nigeria", "???? South Africa", "???? United States", "??B United Kingdom", "?? Global Aggregate"]
+PRESET_COUNTRIES = ["🔍 Uganda", "🔍 Kenya", "🔍 Rwanda", "🔍 Nigeria", "🔍 South Africa", "🔍 United States", "??B United Kingdom", "?? Global Aggregate"]
 target_country = st.sidebar.selectbox("Country / Region", PRESET_COUNTRIES, index=0)
 specific_location = st.sidebar.text_input("Sub-location / Facility (Optional)", "e.g., Kampala Central / Mulago Hospital")
 

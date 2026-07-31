@@ -194,7 +194,7 @@ if len(st.session_state.telemetry_history) > 30:
 # SIDEBAR CONTROLS & UTILITIES
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.title("??? Admin Console")
+    st.title("🔍 Admin Console")
     st.markdown("System Control Panel & Actions")
     
     st.subheader("Telemetry Controls")
@@ -218,7 +218,7 @@ with st.sidebar:
             st.toast("Simulated diagnostic exception logged!", icon="??")
             st.rerun()
 
-    if st.button("??? Reset All Exception Logs", use_container_width=True):
+    if st.button("🔍 Reset All Exception Logs", use_container_width=True):
         st.session_state.error_logs = []
         st.toast("Error log history completely cleared.", icon="?")
         st.rerun()
@@ -255,14 +255,14 @@ tab_overview, tab_telemetry, tab_errors, tab_integrations, tab_state = st.tabs([
     "?? Resource Telemetry", 
     "?? Captured Exceptions", 
     "?? Integration Status",
-    "??? Session State Explorer"
+    "🔍 Session State Explorer"
 ])
 
 # -----------------------------------------------------------------------------
 # TAB 1: SYSTEM OVERVIEW
 # -----------------------------------------------------------------------------
 with tab_overview:
-    st.subheader("??? Server Resource Footprint")
+    st.subheader("🔍 Server Resource Footprint")
     
     ov_col1, ov_col2, ov_col3, ov_col4 = st.columns(4)
     
@@ -342,7 +342,7 @@ with tab_errors:
                 
         err_col1, err_col2 = st.columns([1, 4])
         with err_col1:
-            if st.button("??? Clear Log History", key="clear_logs_tab"):
+            if st.button("🔍 Clear Log History", key="clear_logs_tab"):
                 st.session_state.error_logs = []
                 st.rerun()
         with err_col2:
@@ -396,7 +396,7 @@ with tab_integrations:
 # TAB 5: SESSION STATE EXPLORER
 # -----------------------------------------------------------------------------
 with tab_state:
-    st.subheader("??? In-Memory Session State Inspection")
+    st.subheader("🔍 In-Memory Session State Inspection")
     st.markdown("Live diagnostic breakdown of variables retained within `st.session_state`.")
     
     state_dict = {key: str(value) for key, value in st.session_state.items()}

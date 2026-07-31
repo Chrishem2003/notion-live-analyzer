@@ -107,7 +107,7 @@ def render_enterprise_master_control_panel(st_instance, conn, mlce_val=0.1, stat
 
 # Main Application Execution
 def main():
-    st.title("??? Sovereign Nonlinear Systems & Resilience Engine v5.0")
+    st.title("🔍 Sovereign Nonlinear Systems & Resilience Engine v5.0")
     st.sidebar.title("Navigation & Control")
     
     menu_choice = st.sidebar.selectbox(

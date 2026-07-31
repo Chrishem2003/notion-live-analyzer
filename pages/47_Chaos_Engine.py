@@ -482,11 +482,11 @@ st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
 st.sidebar.markdown("### �� Jurisdiction & Domain")
 
 PRESET_COUNTRIES = [
-    "???? Uganda", "???? Kenya", "???? Rwanda", "???? Nigeria", "???? South Africa",
-    "???? Ghana", "???? Ethiopia", "???? Tanzania", "???? Egypt",
-    "???? United States", "???? United Kingdom", "???? France", "???? Germany",
-    "???? Japan", "???? China", "???? India", "???? Brazil", "???? Canada",
-    "???? Australia", "?? Global / Multi-State Aggregate",
+    "🔍 Uganda", "🔍 Kenya", "🔍 Rwanda", "🔍 Nigeria", "🔍 South Africa",
+    "🔍 Ghana", "🔍 Ethiopia", "🔍 Tanzania", "🔍 Egypt",
+    "🔍 United States", "🔍 United Kingdom", "🔍 France", "🔍 Germany",
+    "🔍 Japan", "🔍 China", "🔍 India", "🔍 Brazil", "🔍 Canada",
+    "🔍 Australia", "?? Global / Multi-State Aggregate",
 ]
 
 region_mode = st.sidebar.radio(
