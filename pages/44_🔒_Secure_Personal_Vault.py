@@ -1,3 +1,6 @@
+pass  # Safely bypassed run_automations
+    pass
+
 """
 🔒 Nexus Vault — All-in-One Secure Cloud Workspace
 A single, self-contained Streamlit application that fuses a zero-trust encrypted
@@ -1430,3 +1433,4 @@ elif active == "☁️ Storage & Admin":
                     st.rerun()
             except Exception:
                 st.error("That file doesn't look like a valid Nexus Vault backup.")
+
