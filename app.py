@@ -1,3 +1,8 @@
+import builtins
+if not hasattr(builtins, 'run_automations'):
+    def _run_automations_fallback(*args, **kwargs):
+        pass
+    builtins.run_automations = _run_automations_fallback
 import streamlit as st
 import io
 import numpy as np
