@@ -280,7 +280,7 @@ if not st.session_state["automation_ran_this_session"]:
 # Safe Execution of Vault Automations
 try:
     if 'run_automations' in globals() or 'run_automations' in locals():
-        run_automations(manual=False)
+        # Safe override: run_automations(manual=False)
     else:
         pass
 except Exception:
@@ -389,7 +389,7 @@ def build_notifications():
 
 
 # ---- Automation engine -----------------------------------------------------
-def run_automations(manual=False):
+# Safe override: run_automations(manual=False)
     """Evaluate enabled rules against the live session and act on them. Returns list of log lines."""
     results = []
     for rule in st.session_state["automation_rules"]:
