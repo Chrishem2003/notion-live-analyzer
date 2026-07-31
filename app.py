@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# HIGH-CONTRAST ENTERPRISE CSS (CLEAN & LEGIBLE)
+# HIGH-CONTRAST ENTERPRISE CSS (CLEAN & HIGH VISIBILITY)
 # ---------------------------------------------------------
 st.markdown("""
     <style>
@@ -25,16 +25,47 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Dark Premium Canvas */
+    /* Main Canvas Styling */
     .stApp {
         background-color: #0b0f19;
         color: #f8fafc;
     }
 
-    /* Sidebar Clean Styling */
+    /* --- SIDEBAR HIGH-CONTRAST TEXT FIXES --- */
     section[data-testid="stSidebar"] {
-        background-color: #111827 !important;
-        border-right: 1px solid #1f2937 !important;
+        background-color: #0f172a !important;
+        border-right: 1px solid #1e293b !important;
+    }
+
+    /* Target all radio/navigation text in sidebar */
+    section[data-testid="stSidebar"] div[role="radiogroup"] label {
+        background-color: transparent !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        margin-bottom: 4px !important;
+        transition: all 0.2s ease !important;
+    }
+
+    /* Unselected radio button label text */
+    section[data-testid="stSidebar"] div[role="radiogroup"] label p {
+        color: #e2e8f0 !important;
+        font-weight: 500 !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Hover state for navigation options */
+    section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+        background-color: #1e293b !important;
+    }
+
+    /* Selected radio button option label text */
+    section[data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] {
+        background-color: #2563eb !important;
+    }
+
+    section[data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] p {
+        color: #ffffff !important;
+        font-weight: 700 !important;
     }
 
     /* High-Contrast Card Containers */
@@ -69,7 +100,7 @@ st.markdown("""
         margin-top: 0.2rem;
     }
 
-    /* Primary Gradient Header */
+    /* Primary Header */
     .header-text {
         font-size: 2rem;
         font-weight: 800;
@@ -89,12 +120,12 @@ st.markdown("""
 # ---------------------------------------------------------
 def main():
     # Sidebar Top Header
-    st.sidebar.markdown("## 🌌 CHRISHEM")
-    st.sidebar.markdown("**Sovereign Enterprise Engine**")
+    st.sidebar.title("🌌 CHRISHEM")
+    st.sidebar.caption("Sovereign Enterprise Engine")
     st.sidebar.markdown("---")
 
     navigation = st.sidebar.radio(
-        "Navigation Hub",
+        "Select Page",
         [
             "Personal Workspace",
             "Access Control & Licensing",
@@ -107,18 +138,19 @@ def main():
             "Telemetry & Smart Alerts",
             "System Diagnostics & Health",
             "API & Integration Gateway"
-        ]
+        ],
+        label_visibility="collapsed"
     )
 
     st.sidebar.markdown("---")
 
-    # Native Streamlit Clean Status Indicator (Prevents CSS Overlaps)
+    # Native Clean Status Indicators
     with st.sidebar.container():
         st.caption("SYSTEM STATUS")
-        st.success("🟢 100% Operational")
-        st.info("🔒 Enclave: Secure Sovereign")
+        st.success("🟢 Operational (100%)")
+        st.info("🔒 Secure Sovereign Enclave")
 
-    # Canvas Header Section
+    # Main Header
     st.markdown(f'<div class="header-text">{navigation}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="sub-text">Enterprise Operational Node | Timestamp: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} EAT</div>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
@@ -209,7 +241,7 @@ def main():
                         st.caption(f"Size: {item['size']} | Status: {item['status']}")
 
     # ---------------------------------------------------------
-    # OTHER ROUTES (CLEAN FALLBACKS)
+    # OTHER ROUTES
     # ---------------------------------------------------------
     elif navigation == "Access Control & Licensing":
         c1, c2, c3 = st.columns(3)
