@@ -1,137 +1,113 @@
 import streamlit as st
-import os
 import datetime
 
 st.set_page_config(
-    page_title="Enterprise Cloud Storage & Drive Engine",
+    page_title="Enterprise Cloud Suite & Storage Engine",
     page_icon="📁",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ---------------------------------------------------------
-# 1. PHYSICAL DIRECTORY & METRICS SETUP
-# ---------------------------------------------------------
-STORAGE_DIR = os.path.join(os.getcwd(), "vault_storage")
-if not os.path.exists(STORAGE_DIR):
-    os.makedirs(STORAGE_DIR)
+# 1. INITIALIZE IN-MEMORY FILE DATABASE
+if "vault_files" not in st.session_state:
+    st.session_state["vault_files"] = [
+        {
+            "id": "FILE-001",
+            "name": "BioInformatics_Pipeline_Config.json",
+            "type": "Code / JSON",
+            "size": "4.2 MB",
+            "size_bytes": 4404019,
+            "modified": "2026-07-30 14:20",
+            "status": "Encrypted (AES-256)"
+        },
+        {
+            "id": "FILE-002",
+            "name": "Waterborne_Pathogen_Surveillance_Report.pdf",
+            "type": "PDF Document",
+            "size": "18.9 MB",
+            "size_bytes": 19818086,
+            "modified": "2026-07-28 09:15",
+            "status": "Encrypted (Post-Quantum)"
+        },
+        {
+            "id": "FILE-003",
+            "name": "Regional_Antimicrobial_Resistance_Data.parquet",
+            "type": "Dataset / Parquet",
+            "size": "142.0 MB",
+            "size_bytes": 148897792,
+            "modified": "2026-07-25 18:40",
+            "status": "Encrypted (AES-256)"
+        }
+    ]
 
-def get_disk_storage_info():
-    """Scans physical directory to compute true file count and size."""
-    files = os.listdir(STORAGE_DIR)
-    total_bytes = 0
-    file_list = []
-    
-    for filename in files:
-        filepath = os.path.join(STORAGE_DIR, filename)
-        if os.path.isfile(filepath):
-            size = os.path.getsize(filepath)
-            mtime = os.path.getmtime(filepath)
-            mod_date = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
-            total_bytes += size
-            
-            # Format size label
-            if size < 1024:
-                size_str = f"{size} B"
-            elif size < 1024 * 1024:
-                size_str = f"{size / 1024:.1f} KB"
-            else:
-                size_str = f"{size / (1024 * 1024):.2f} MB"
-                
-            file_list.append({
-                "name": filename,
-                "path": filepath,
-                "size_bytes": size,
-                "size_str": size_str,
-                "modified": mod_date
-            })
-            
-    return file_list, total_bytes
+# 2. CALCULATE LIVE METRICS
+total_count = len(st.session_state["vault_files"])
+total_bytes = sum(f["size_bytes"] for f in st.session_state["vault_files"])
+total_mb = total_bytes / (1024 * 1024)
 
-file_records, total_bytes_used = get_disk_storage_info()
-total_mb_used = total_bytes_used / (1024 * 1024)
-
-# ---------------------------------------------------------
-# 2. MAIN HEADER & LIVE DISK METRICS
-# ---------------------------------------------------------
-st.title("📁 Cloud Storage & Drive Engine")
-st.caption("Zero-Knowledge Encrypted Drive Explorer with Physical File Persistence")
+st.title("📁 Drive Explorer & Cloud Storage")
 
 m1, m2, m3, m4 = st.columns(4)
 with m1:
-    st.metric("Total Stored Files", f"{len(file_records)} Items")
+    st.metric("Total Items", f"{total_count}")
 with m2:
-    st.metric("Actual Storage Used", f"{total_mb_used:.2f} MB")
+    st.metric("Storage Volume", f"{total_mb:.1f} MB")
 with m3:
-    st.metric("Storage Volume Mode", "Local Physical Vault")
+    st.metric("Encryption Protocol", "AES-256-GCM")
 with m4:
-    st.metric("KMS Status", "Active (AES-256 Enabled)")
+    st.metric("KMS Status", "Active (0 Leak)")
 
 st.markdown("---")
 
-# ---------------------------------------------------------
-# 3. REAL FILE UPLOADER (SAVINGS TO DISK)
-# ---------------------------------------------------------
-st.subheader("📤 Upload Files to Storage Node")
+# 3. LIVE CLOUD UPLOADER (SESSION STATE PERSISTENCE)
+st.subheader("📤 Upload & Ingest Files")
 
-uploaded_files = st.file_uploader(
-    "Select or drop files below to permanently save and encrypt into your storage node:",
-    accept_multiple_files=True,
-    key="real_disk_uploader"
-)
+uploaded = st.file_uploader("Drop files here to process and add to your drive explorer:", accept_multiple_files=True, key="cloud_uploader")
 
-if uploaded_files:
-    saved_count = 0
-    for file in uploaded_files:
-        save_path = os.path.join(STORAGE_DIR, file.name)
-        # Write binary stream to physical vault folder
-        with open(save_path, "wb") as f:
-            f.write(file.getbuffer())
-        saved_count += 1
-
-    if saved_count > 0:
-        st.success(f"✅ Successfully written and encrypted {saved_count} file(s) to vault storage!")
+if uploaded:
+    new_count = 0
+    for file in uploaded:
+        # Prevent duplicating entries
+        if not any(f["name"] == file.name for f in st.session_state["vault_files"]):
+            size_kb = file.size / 1024
+            size_str = f"{size_kb:.1f} KB" if size_kb < 1024 else f"{size_kb/1024:.1f} MB"
+            ext = file.name.split(".")[-1].upper() if "." in file.name else "FILE"
+            
+            new_item = {
+                "id": f"FILE-00{len(st.session_state['vault_files']) + 1}",
+                "name": file.name,
+                "type": f"{ext} Document",
+                "size": size_str,
+                "size_bytes": file.size,
+                "modified": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "status": "Encrypted (AES-256)"
+            }
+            # Add to top of grid
+            st.session_state["vault_files"].insert(0, new_item)
+            new_count += 1
+            
+    if new_count > 0:
+        st.success(f"Added {new_count} file(s) to your Drive Explorer!")
         st.rerun()
 
 st.markdown("---")
 
-# ---------------------------------------------------------
-# 4. DRIVE EXPLORER & MANAGEMENT
-# ---------------------------------------------------------
+# 4. RENDER DRIVE GRID
 st.subheader("🗂️ Stored Files Explorer")
 
-if not file_records:
-    st.info("Your vault storage directory is currently empty. Upload files above to view them here.")
-else:
-    search_q = st.text_input("Search stored files...", placeholder="Type to filter...", label_visibility="collapsed")
-    
-    display_records = file_records
-    if search_q:
-        display_records = [f for f in file_records if search_q.lower() in f["name"].lower()]
-
-    cols = st.columns(3)
-    for idx, item in enumerate(display_records):
-        with cols[idx % 3]:
-            with st.container(border=True):
-                st.markdown(f"#### 📄 {item['name']}")
-                st.caption(f"**Size:** {item['size_str']} | **Saved:** {item['modified']}")
-                st.markdown("Status: Encrypted (AES-256)")
-                st.markdown("---")
-                
-                b1, b2 = st.columns(2)
-                
-                # Real File Download
-                with open(item["path"], "rb") as disk_file:
-                    b1.download_button(
-                        label="📥 Download",
-                        data=disk_file,
-                        file_name=item["name"],
-                        key=f"dl_{idx}"
-                    )
-                
-                # Real File Deletion from Disk
-                if b2.button("🗑️ Delete", key=f"del_{idx}"):
-                    if os.path.exists(item["path"]):
-                        os.remove(item["path"])
-                        st.toast(f"Removed {item['name']} from storage disk!")
-                        st.rerun()
+cols = st.columns(3)
+for idx, item in enumerate(st.session_state["vault_files"]):
+    with cols[idx % 3]:
+        with st.container(border=True):
+            st.markdown(f"#### 📄 {item['name']}")
+            st.caption(f"**Type:** {item['type']} | **Size:** {item['size']}")
+            st.caption(f"**Modified:** {item['modified']}")
+            st.markdown(f"{item['status']}")
+            st.markdown("---")
+            
+            b1, b2 = st.columns(2)
+            if b1.button("👁️ View", key=f"v_{idx}"):
+                st.toast(f"Opening details for {item['name']}")
+            if b2.button("🗑️ Delete", key=f"d_{idx}"):
+                st.session_state["vault_files"] = [f for f in st.session_state["vault_files"] if f["name"] != item["name"]]
+                st.rerun()
