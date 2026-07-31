@@ -12,7 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # ============================================================================
-# PLOTLY INTEGRATION — Interactive Scientific Visualizations
+# PLOTLY INTEGRATION ï¿½ Interactive Scientific Visualizations
 # ============================================================================
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -454,7 +454,7 @@ if "session_start_time" not in st.session_state:
     st.session_state.session_start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # ============================================================================
-# SIDEBAR — PRIVILEGES, METADATA, JURISDICTION, SECTOR, PARAMETERS
+# SIDEBAR ï¿½ PRIVILEGES, METADATA, JURISDICTION, SECTOR, PARAMETERS
 # ============================================================================
 st.sidebar.markdown("## ?? Global Sovereign Command Hub")
 
@@ -518,17 +518,17 @@ else:
     a_label, a_desc, b_label, b_desc, c_label, c_desc = "a", "Growth / drive term", "b", "Friction / damping term", "c", "Buffer / decay term"
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown(f"### ?? Parameters — {sector}")
-a = st.sidebar.slider(f"{a_label} — {a_desc}", 0.1, 5.0, 1.5, 0.1)
-b = st.sidebar.slider(f"{b_label} — {b_desc}", 0.0, 3.0, 0.9, 0.1)
-c = st.sidebar.slider(f"{c_label} — {c_desc}", 0.0, 3.0, 1.0, 0.1)
+st.sidebar.markdown(f"### ?? Parameters ï¿½ {sector}")
+a = st.sidebar.slider(f"{a_label} ï¿½ {a_desc}", 0.1, 5.0, 1.5, 0.1)
+b = st.sidebar.slider(f"{b_label} ï¿½ {b_desc}", 0.0, 3.0, 0.9, 0.1)
+c = st.sidebar.slider(f"{c_label} ï¿½ {c_desc}", 0.0, 3.0, 1.0, 0.1)
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
 st.sidebar.markdown("### ?? Initial conditions & shock")
 x0 = st.sidebar.number_input("Initial x0", value=0.10, format="%.3f")
 y0 = st.sidebar.number_input("Initial y0", value=0.10, format="%.3f")
 z0 = st.sidebar.number_input("Initial z0", value=0.10, format="%.3f")
-policy_shock = st.sidebar.slider("Inject shock magnitude at t˜mid-run", -3.0, 3.0, 0.0, 0.1)
+policy_shock = st.sidebar.slider("Inject shock magnitude at tï¿½mid-run", -3.0, 3.0, 0.0, 0.1)
 t_max = st.sidebar.slider("Simulation horizon (steps)", 50, 500, 200, 10)
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
@@ -541,7 +541,7 @@ if use_custom_ode:
     custom_dz = st.sidebar.text_input("dz/dt =", "x - c * z")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-pss_slice_z = st.sidebar.slider("?? Poincaré cut plane (Z threshold)", float(z0 - 2.0), float(z0 + 2.0), float(z0), 0.05)
+pss_slice_z = st.sidebar.slider("?? Poincarï¿½ cut plane (Z threshold)", float(z0 - 2.0), float(z0 + 2.0), float(z0), 0.05)
 
 # ============================================================================
 # MODEL CORE
@@ -585,7 +585,7 @@ solution = _solve(system_ode, initial_state, t, args=(a, b, c, policy_shock))
 if use_custom_ode and custom_dx and custom_dy and custom_dz:
     probe = system_ode(initial_state, 0.0, a, b, c, policy_shock)
     if not np.all(np.isfinite(probe)):
-        st.warning("Custom equations produced a non-numeric result — falling back to the default model.")
+        st.warning("Custom equations produced a non-numeric result ï¿½ falling back to the default model.")
         solution = _solve(default_ode, initial_state, t, args=(a, b, c, policy_shock))
 
 x_traj, y_traj, z_traj = solution[:, 0], solution[:, 1], solution[:, 2]
@@ -607,7 +607,7 @@ for i in range(1, len(x_traj) + 1):
 STATE_LABEL = "STABLE" if mlce_heuristic < 0 else ("BORDERLINE" if mlce_heuristic < 0.2 else "CRITICAL")
 
 # ============================================================================
-# PLOTLY HELPER FUNCTIONS — High-Contrast Dark Charts
+# PLOTLY HELPER FUNCTIONS ï¿½ High-Contrast Dark Charts
 # ============================================================================
 def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     fig = go.Figure(data=[go.Scatter3d(
@@ -626,7 +626,7 @@ def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     )
     return fig
 
-def plotly_pss(x, y, z, z_cut=0.0, title="Poincaré Section"):
+def plotly_pss(x, y, z, z_cut=0.0, title="Poincarï¿½ Section"):
     mask = abs(z - z_cut) < 0.05
     x_sec = x[mask] if hasattr(x, '__getitem__') else []
     y_sec = y[mask] if hasattr(y, '__getitem__') else []
@@ -807,7 +807,7 @@ if "Chat Command" in user_role:
             
         p_lower = prompt.lower()
         if "status" in p_lower or "health" in p_lower:
-            reply = f"System status in {target_country} ({sector}): State is **{STATE_LABEL}** with Lyapunov exponent mLCE ˜ {mlce_heuristic:.4f}."
+            reply = f"System status in {target_country} ({sector}): State is **{STATE_LABEL}** with Lyapunov exponent mLCE ï¿½ {mlce_heuristic:.4f}."
         elif "help" in p_lower:
             reply = "Available commands: 'status', 'shock', 'bifurcation', 'reset', or ask general questions about nonlinear stability."
         elif "shock" in p_lower:
@@ -859,7 +859,7 @@ elif "Executive Storyboard" in user_role:
     </div>
     """, unsafe_allow_html=True)
     
-    fig = plotly_3d_phase(x_traj, y_traj, z_traj, title=f"Executive 3D Phase Portrait — {target_country}")
+    fig = plotly_3d_phase(x_traj, y_traj, z_traj, title=f"Executive 3D Phase Portrait ï¿½ {target_country}")
     st.plotly_chart(fig, use_container_width=True)
 
 elif "Policy Comparison" in user_role:
@@ -876,7 +876,7 @@ elif "Policy Comparison" in user_role:
 elif "Technocrat Operations" in user_role:
     st.markdown("### ?? Technocrat Operations & Phase Analysis")
     
-    tab1, tab2, tab3 = st.tabs(["3D Phase Space", "Poincaré Section", "Early Warning Signals"])
+    tab1, tab2, tab3 = st.tabs(["3D Phase Space", "Poincarï¿½ Section", "Early Warning Signals"])
     
     with tab1:
         fig_3d = plotly_3d_phase(x_traj, y_traj, z_traj)
