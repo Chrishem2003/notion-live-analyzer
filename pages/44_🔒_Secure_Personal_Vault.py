@@ -274,8 +274,21 @@ if not st.session_state["signed_in"]:
     st.stop()
 
 if not st.session_state["automation_ran_this_session"]:
+# Safe Execution of Vault Automations
+# Automations
+    if 'run_automations' in globals() or 'run_automations' in locals():
+# Safe Execution of Vault Automations
 try:
-    run_automations(manual=False)
+    if 'run_automations' in globals() or 'run_automations' in locals():
+        run_automations(manual=False)
+    else:
+        pass
+except Exception:
+    pass
+    else:
+        pass
+except Exception:
+    pass
 except NameError:
     pass
 except Exception:
@@ -364,7 +377,7 @@ def build_notifications():
         notes.append("🟡 Storage is over 70% full.")
     today = datetime.date.today()
     for e in st.session_state["calendar_events"]:
-        try:
+# Automations
             ed = datetime.datetime.strptime(e["date"], "%Y-%m-%d").date()
             if 0 <= (ed - today).days <= 2:
                 notes.append(f"📅 Upcoming: **{e['title']}** on {e['date']} at {e['time']}.")
@@ -416,7 +429,7 @@ def run_automations(manual=False):
         elif rule["trigger"] == "Event within 24 hours" and rule["action"] == "Send reminder notification":
             today = datetime.date.today()
             for e in st.session_state["calendar_events"]:
-                try:
+# Automations
                     ed = datetime.datetime.strptime(e["date"], "%Y-%m-%d").date()
                     if 0 <= (ed - today).days <= 1:
                         acted = True
@@ -727,7 +740,7 @@ elif active == "📁 Drive":
             elif (pf["type"] or "").startswith("image/"):
                 st.image(raw, use_container_width=True)
             elif (pf["type"] or "").startswith("text/") or pf["name"].endswith((".txt", ".md", ".json", ".csv", ".py")):
-                try:
+# Automations
                     st.code(raw.decode("utf-8", errors="ignore")[:5000], language=None)
                 except Exception:
                     st.warning("Couldn't decode this file as text.")
@@ -923,7 +936,7 @@ elif active == "✉️ Mail":
             if not (to and subj):
                 st.error("Add a recipient and subject before sending.")
             elif st.session_state["mail_mode"] == "Live":
-                try:
+# Automations
                     smtp_send(to, subj, body)
                     st.session_state["live_sent"].append(
                         {"id": new_id("M"), "to": to, "subject": subj, "body": body, "time": now_str()})
@@ -966,7 +979,7 @@ elif active == "✉️ Mail":
             if not (creds["email"] and creds["app_password"] and creds["imap_host"]):
                 st.error("Fill in email, app password, and IMAP host first.")
             else:
-                try:
+# Automations
                     with st.spinner("Connecting over IMAP..."):
                         st.session_state["live_inbox"] = imap_fetch_inbox()
                     st.session_state["mail_mode"] = "Live"
@@ -1058,7 +1071,7 @@ elif active == "💬 Chat & Meet":
         if st.button("✉️ Send invite"):
             invite_body = f"Join our meeting: {room_url}"
             if st.session_state["mail_mode"] == "Live":
-                try:
+# Automations
                     smtp_send(invite_to, "Meeting invite — Nexus Vault", invite_body)
                     st.success(f"Invite sent live to {invite_to}.")
                 except Exception as e:
@@ -1407,7 +1420,7 @@ elif active == "☁️ Storage & Admin":
     with b2:
         restore_file = st.file_uploader("Restore from backup", type=["json"], key="restore_upl")
         if restore_file is not None:
-            try:
+# Automations
                 data = json.loads(restore_file.getvalue().decode("utf-8"))
                 if st.button("⚠️ Confirm restore (overwrites current workspace)", type="primary"):
                     for k in backup_keys:
