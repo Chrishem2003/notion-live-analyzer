@@ -1,4 +1,3 @@
-"""
 🔒 Nexus Vault — All-in-One Secure Cloud Workspace (v2026 Enterprise Edition)
 A single, self-contained Streamlit application that fuses zero-trust encrypted Drive,
 Docs, Sheets, Slides, Mail, Calendar, HD Video Conferencing, Task Boards, AI Assistant,
