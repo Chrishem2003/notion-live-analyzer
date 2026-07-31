@@ -278,6 +278,10 @@ try:
     run_automations(manual=False)
 except NameError:
     pass
+except Exception:
+    pass
+except NameError:
+    pass
 except Exception as e:
     st.sidebar.caption("Vault Automations Idle")
     st.session_state["automation_ran_this_session"] = True
