@@ -6,22 +6,10 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-# Optional Module Imports with Fallbacks
-try:
-    from modules.ui_stunning import apply_stunning_styles
-    apply_stunning_styles()
-except Exception:
-    pass
-
+# Optional Module Imports
 try:
     from modules.database import init_db, log_backend_event
     init_db()
-except Exception:
-    pass
-
-try:
-    from modules.theme_loader import apply_custom_theme
-    apply_custom_theme()
 except Exception:
     pass
 
@@ -32,79 +20,141 @@ except ImportError:
     HAS_PYPDF = False
 
 # ---------------------------------------------------------
-# PAGE CONFIGURATION & CLEAN STYLES
+# GLOBAL PAGE CONFIG
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="CHRISHEM Enterprise Intelligence Engine",
+    page_title="CHRISHEM Sovereign Enterprise",
     page_icon="🌌",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# ---------------------------------------------------------
+# WORLD-CLASS CYBER-SOVEREIGN CSS
+# ---------------------------------------------------------
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-    .stApp { background: linear-gradient(135deg, #070B14 0%, #0F172A 50%, #070B14 100%); color: #F8FAFC; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
     
-    /* Clean Sidebar Status Pill (Prevents Overlap) */
-    .sidebar-status-box {
-        background: rgba(16, 185, 129, 0.12);
-        border: 1px solid #10B981;
-        border-radius: 10px;
-        padding: 0.75rem 1rem;
-        margin-top: 1.5rem;
-        margin-bottom: 1rem;
-        font-size: 0.85rem;
-        line-height: 1.4;
-        display: block;
-        clear: both;
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    .header-glow {
-        background: linear-gradient(90deg, #60A5FA, #A78BFA, #F472B6);
+    .stApp {
+        background: radial-gradient(circle at 50% 0%, #0d1527 0%, #050811 100%);
+        color: #f1f5f9;
+    }
+
+    /* --- SIDEBAR STYLING FIXES --- */
+    section[data-testid="stSidebar"] {
+        background-color: rgba(10, 15, 30, 0.85) !important;
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+    
+    /* Dedicated non-overlapping status badge */
+    .status-badge-container {
+        margin-top: 2rem;
+        padding: 0.85rem 1rem;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .status-badge-header {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #34d399;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .status-badge-sub {
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+
+    /* --- METRIC CARDS --- */
+    .metric-card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .metric-card:hover {
+        border-color: rgba(56, 189, 248, 0.4);
+        transform: translateY(-2px);
+    }
+    .metric-card-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        font-weight: 600;
+    }
+    .metric-card-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-size: 2rem;
+        margin: 0.25rem 0;
+    }
+    .metric-card-delta {
+        font-size: 0.8rem;
+        color: #34d399;
+        font-weight: 600;
+    }
+
+    /* --- HEADERS --- */
+    .main-title-glow {
+        font-size: 2.2rem;
         font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(90deg, #60a5fa 0%, #c084fc 50%, #f472b6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.2rem;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# EMBEDDED SECURE VAULT DIALOG
+# SECURE VAULT MODAL
 # ---------------------------------------------------------
 @st.dialog("Enterprise Secure Vault Inspector", width="large")
 def inspect_vault_file(file_item):
     st.markdown(f"### 📄 {file_item.get('name', 'Document')}")
-    st.caption(f"**Size:** {file_item.get('size', 'N/A')} | **Status:** {file_item.get('status', 'Verified')}")
+    st.caption(f"Size: **{file_item.get('size', 'N/A')}** | Status: {file_item.get('status', 'Verified')}")
     
     file_bytes = file_item.get("bytes", b"")
     file_name = file_item.get("name", "").lower()
 
-    t_view, t_edit, t_export = st.tabs(["View / Read", "Edit Content", "Download Stream"])
+    t_view, t_edit, t_export = st.tabs(["👁️ Read Stream", "✏️ Live Editor", "📥 Export Stream"])
 
     with t_view:
         if file_name.endswith(".pdf"):
-            st.markdown("#### PDF Text Payload")
             if HAS_PYPDF and file_bytes:
                 try:
                     reader = pypdf.PdfReader(io.BytesIO(file_bytes))
                     text = "\n\n".join([f"--- Page {i+1} ---\n" + (p.extract_text() or "") for i, p in enumerate(reader.pages)])
-                    st.text_area("Extracted Stream", value=text, height=350)
+                    st.text_area("Extracted Text Payload", value=text, height=350)
                 except Exception as e:
-                    st.warning(f"Extracted Raw Stream: {e}")
+                    st.warning(f"Raw Byte Payload Loaded (Parse Note: {e})")
             else:
                 st.info("PDF Binary Payload Loaded.")
         elif file_name.endswith((".csv", ".xlsx")):
-            st.markdown("#### Spreadsheet View")
             try:
                 df = pd.read_csv(io.BytesIO(file_bytes))
                 st.dataframe(df, use_container_width=True)
             except Exception:
                 st.text_area("Raw Stream", value=file_bytes.decode("utf-8", errors="ignore"), height=300)
         else:
-            st.markdown("#### Document Text View")
             st.code(file_bytes.decode("utf-8", errors="ignore"))
 
     with t_edit:
@@ -112,25 +162,25 @@ def inspect_vault_file(file_item):
             try:
                 df = pd.read_csv(io.BytesIO(file_bytes))
                 edited_df = st.data_editor(df, num_rows="dynamic", key=f"v_edit_{file_item['name']}")
-                if st.button("Save Table Changes", type="primary"):
+                if st.button("💾 Save Spreadsheet Changes", type="primary"):
                     buf = io.StringIO()
                     edited_df.to_csv(buf, index=False)
                     file_item["bytes"] = buf.getvalue().encode("utf-8")
-                    st.success("Changes saved!")
+                    st.success("Spreadsheet synchronized successfully!")
                     st.rerun()
             except Exception as e:
                 st.error(f"Spreadsheet error: {e}")
         else:
             text_val = file_bytes.decode("utf-8", errors="ignore")
             updated = st.text_area("Edit Content:", value=text_val, height=300, key=f"v_txt_{file_item['name']}")
-            if st.button("Save Document", type="primary"):
+            if st.button("💾 Save Changes", type="primary"):
                 file_item["bytes"] = updated.encode("utf-8")
-                st.success("Document updated!")
+                st.success("Document updated successfully!")
                 st.rerun()
 
     with t_export:
         st.download_button(
-            label=f"Download {file_item.get('name')}",
+            label=f"⬇️ Download {file_item.get('name')}",
             data=file_bytes,
             file_name=file_item.get("name"),
             mime="application/octet-stream",
@@ -138,14 +188,17 @@ def inspect_vault_file(file_item):
         )
 
 # ---------------------------------------------------------
-# MAIN APPLICATION ROUTER
+# MAIN NAVIGATION ROUTER
 # ---------------------------------------------------------
 def main():
+    # Sidebar Header
     st.sidebar.markdown("## 🌌 CHRISHEM")
-    st.sidebar.caption("Enterprise Intelligence Engine")
+    st.sidebar.caption("Sovereign Enterprise Intelligence Engine")
     
+    st.sidebar.markdown("---")
+
     navigation = st.sidebar.selectbox(
-        "Navigation Hub",
+        "Select Navigation Hub",
         [
             "Personal Workspace",
             "Access Control & Licensing",
@@ -162,46 +215,84 @@ def main():
     )
     
     st.sidebar.markdown("---")
-    
-    # Styled non-overlapping status box
+
+    # Clean, non-overlapping Status Badge
     st.sidebar.markdown("""
-        <div class="sidebar-status-box">
-            🟢 <b>System Status:</b> Operational<br>
-            🔒 <b>Enclave:</b> Secure
+        <div class="status-badge-container">
+            <div class="status-badge-header">
+                <span style="display:inline-block; width:8px; height:8px; background:#34d399; border-radius:50%;"></span>
+                SYSTEM OPERATIONAL
+            </div>
+            <div class="status-badge-sub">Enclave: Secure Sovereign</div>
         </div>
     """, unsafe_allow_html=True)
 
-    # Dynamic Header Display
-    st.markdown(f'<div class="header-glow">{navigation}</div>', unsafe_allow_html=True)
-    st.caption(f"Operational Node | Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    st.markdown("---")
+    # Main Canvas Header
+    st.markdown(f'<div class="main-title-glow">{navigation}</div>', unsafe_allow_html=True)
+    st.caption(f"Enterprise Operational Node | Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} EAT")
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # Clean Sub-Panels
+    # ---------------------------------------------------------
+    # ROUTE: PERSONAL WORKSPACE
+    # ---------------------------------------------------------
     if navigation == "Personal Workspace":
         try:
             from modules.personal_workspace import render_personal_workspace_panel
             render_personal_workspace_panel()
         except Exception:
-            st.markdown("### Universal Personal Workspace & Productivity Hub")
-            st.caption("Custom command center: manage personal research milestones, bioinformatics pipelines, and daily workflow tasks.")
-            
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Active Milestones", "4 Tracked", "Up to Date")
-            c2.metric("Research Progress", "94.2%", "+3.5%")
-            c3.metric("Workspace Status", "Synchronized", "Local Enclave")
-            c4.metric("Focus Score", "100%", "Deep Work")
+            st.markdown("##### Universal Personal Workspace & Productivity Hub")
+            st.caption("Manage personal research milestones, bioinformatics pipelines, system configurations, and workflow tasks.")
+            st.markdown("<br>", unsafe_allow_html=True)
 
-            st.markdown("#### Active Research & Task Milestones")
+            # Metric Cards
+            c1, c2, c3, c4 = st.columns(4)
+            with c1:
+                st.markdown("""
+                    <div class="metric-card">
+                        <div class="metric-card-title">Active Milestones</div>
+                        <div class="metric-card-value">4 Tracked</div>
+                        <div class="metric-card-delta">Up to Date</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            with c2:
+                st.markdown("""
+                    <div class="metric-card">
+                        <div class="metric-card-title">Research Progress</div>
+                        <div class="metric-card-value">94.2%</div>
+                        <div class="metric-card-delta">+3.5% Auto</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            with c3:
+                st.markdown("""
+                    <div class="metric-card">
+                        <div class="metric-card-title">Workspace Status</div>
+                        <div class="metric-card-value">Synced</div>
+                        <div class="metric-card-delta">Local Enclave</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            with c4:
+                st.markdown("""
+                    <div class="metric-card">
+                        <div class="metric-card-title">Focus Score</div>
+                        <div class="metric-card-value">100%</div>
+                        <div class="metric-card-delta">Deep Work</div>
+                    </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("#### 🎯 Active Research & Task Milestones")
+            
             tasks_df = pd.DataFrame([
-                {"Task_Item": "Waterborne Pathogen Surveillance Batch Analysis", "Category": "Bioinformatics Research", "Priority": "Critical", "Status": "IN PROGRESS"},
-                {"Task_Item": "ALX Data Analytics Portfolio Integration", "Category": "Professional Certification", "Priority": "High", "Status": "OPTIMIZED"},
-                {"Task_Item": "Desktop Environment Styling", "Category": "Workspace Customization", "Priority": "Medium", "Status": "ACTIVE"},
-                {"Task_Item": "Cryptographic Vault Key Rotation", "Category": "Security Engineering", "Priority": "Critical", "Status": "COMPLETED"}
+                {"Task Item": "Waterborne Pathogen Surveillance Batch Analysis", "Category": "Bioinformatics Research", "Priority": "Critical", "Status": "IN PROGRESS"},
+                {"Task Item": "ALX Data Analytics Portfolio Integration", "Category": "Professional Certification", "Priority": "High", "Status": "OPTIMIZED"},
+                {"Task Item": "Desktop Environment Customization & UI Polish", "Category": "Workspace Customization", "Priority": "Medium", "Status": "ACTIVE"},
+                {"Task Item": "Cryptographic Vault Key Rotation", "Category": "Security Engineering", "Priority": "Critical", "Status": "COMPLETED"}
             ])
             st.dataframe(tasks_df, use_container_width=True)
 
-            st.markdown("#### Quick Notes & Code Snippet Vault")
-            st.text_area("Jot down research notes or commands:", height=120, placeholder="Type notes here...")
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("#### 📝 Quick Notes & Code Snippet Vault")
+            st.text_area("Jot down research notes, terminal commands, or project ideas:", height=120, placeholder="Type notes here...")
 
         st.markdown("---")
         st.subheader("📁 Embedded Secure Personal Vault Explorer")
@@ -231,22 +322,25 @@ def main():
                         if st.button("Open Workspace", key=f"vault_open_{idx}"):
                             inspect_vault_file(item)
 
+    # ---------------------------------------------------------
+    # OTHER SUB-PANEL FALLBACKS
+    # ---------------------------------------------------------
     elif navigation == "Access Control & Licensing":
         try:
             from modules.access_control import render_access_control_panel
             render_access_control_panel()
         except Exception:
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Clearance Tier", "Tier-1 Sovereign")
-            col2.metric("License Expiry", "2030-12-31")
-            col3.metric("Active Sessions", "3 Nodes")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Clearance Tier", "Tier-1 Sovereign")
+            c2.metric("License Expiry", "2030-12-31")
+            c3.metric("Active Sessions", "3 Nodes")
 
     elif navigation == "Ecosystem Apex":
         try:
             from modules.ecosystem_apex import render_ecosystem_apex_panel
             render_ecosystem_apex_panel()
         except Exception:
-            st.markdown("#### Macro Topology")
+            st.markdown("#### Macro Topology Monitor")
             cols = st.columns(4)
             cols[0].metric("Grid Load", "84.2 %")
             cols[1].metric("Throughput", "1.2 TB/s")
@@ -259,34 +353,34 @@ def main():
             render_ai_intelligence_panel()
         except Exception:
             st.markdown("#### Autonomous Intelligence Console")
-            prompt = st.text_input("Enter system directive:")
+            prompt = st.text_input("Enter natural language directive:")
             if prompt:
-                st.info(f"Processing command: **{prompt}**")
+                st.info(f"Command executed: **{prompt}**")
 
     elif navigation == "Admin Billing Ledger":
         try:
             from modules.admin_billing_core import render_admin_billing_panel
             render_admin_billing_panel()
         except Exception:
-            st.markdown("#### Billing & Allocation Ledger")
+            st.markdown("#### Billing & Resource Allocation")
             c1, c2 = st.columns(2)
-            c1.metric("Current Billing Cycle", "JULY 2026")
-            c2.metric("Total Compute Cost", ",240.50 USD")
+            c1.metric("Current Cycle", "JULY 2026")
+            c2.metric("Compute Allocation", ",240.50 USD")
 
     elif navigation == "Workflow Scheduler":
         try:
             from modules.workflow_scheduler import render_workflow_scheduler_panel
             render_workflow_scheduler_panel()
         except Exception:
-            st.markdown("#### Task & Workflow Engine")
-            st.checkbox("Enable Automated Nightly Git Backup", value=True)
+            st.markdown("#### Autonomous Task Scheduler")
+            st.checkbox("Enable Automated Nightly Git Sync", value=True)
 
     elif navigation == "Neural Forecaster & AI":
         try:
             from modules.neural_forecaster import render_neural_forecaster_panel
             render_neural_forecaster_panel()
         except Exception:
-            st.markdown("#### Forecast Engine")
+            st.markdown("#### Neural Forecast Matrix")
             st.line_chart(np.sin(np.linspace(0, 10, 30)))
 
     elif navigation == "Academic & CV Studio":
@@ -294,22 +388,23 @@ def main():
             from modules.academic_portfolio_studio import render_academic_portfolio_studio_panel
             render_academic_portfolio_studio_panel()
         except Exception:
-            st.markdown("#### Academic Portfolio Manager")
+            st.markdown("#### Academic Portfolio Studio")
             st.write("**Lead Researcher:** Kula Chris")
+            st.write("**Focus:** Bioinformatics, Systems Biology & Data Analytics")
 
     elif navigation == "Telemetry & Smart Alerts":
         try:
             from modules.telemetry_alerting import render_telemetry_alerting_panel
             render_telemetry_alerting_panel()
         except Exception:
-            st.success("✅ System Temperature Normal")
+            st.success("✅ Systems Operating Within Thermal Limits")
 
     elif navigation == "System Diagnostics & Health":
         try:
             from modules.system_diagnostics import render_system_diagnostics_panel
             render_system_diagnostics_panel()
         except Exception:
-            st.success("✅ Systems Operational")
+            st.success("✅ Diagnostic Integrity Verified")
 
     elif navigation == "API & Integration Gateway":
         try:
@@ -321,10 +416,10 @@ def main():
 if __name__ == "__main__":
     main()
 
-# Background Sync
+# --- Background Auto-Sync ---
 try:
     from modules.auto_sync import auto_commit_and_push
-    success, msg = auto_commit_and_push("auto: ui cleanup and encoding fix")
+    success, msg = auto_commit_and_push("auto: layout redesign and unicode clean")
     if success:
         print(f"[Auto-Sync] {msg}")
 except Exception:
