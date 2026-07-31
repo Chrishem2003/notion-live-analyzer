@@ -1,23 +1,114 @@
 """
-🌐 Global Language & Academic Register — Localization Engine
+🌐 Global Language & Academic Register — Localization Engine (Enterprise Edition v4.0)
 Complete application UI, AI synthesis, and neural audio localization
 with comprehensive world language support and formal academic precision.
+Designed for: Kula Chris (Chrishem)
 """
+
 import streamlit as st
+import pandas as pd
 
-st.set_page_config(page_title="Global Localization Engine", layout="wide", page_icon="🌐")
+# ─── 1. PAGE CONFIGURATION ──────────────────────────────────────────────
+st.set_page_config(
+    page_title="Global Localization Engine",
+    page_icon="🌐",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-from modules.config import init_session_state
-from modules.ui_components import hero_card, watermark
+# ─── 2. HIGH-CONTRAST / ULTRA-LEGIBLE COLOR STYLING ─────────────────────
+st.markdown(
+    """
+    <style>
+    /* Global Application Theme */
+    .stApp {
+        background-color: #060b13 !important;
+        color: #ffffff !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    /* High-Contrast Typography */
+    h1, h2, h3, h4, h5, h6 {
+        color: #00f2fe !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em;
+    }
+    p, span, label, div, .stMarkdown, .stCaption {
+        color: #f1f5f9 !important;
+        font-size: 0.95rem;
+    }
+    
+    /* Custom Card Containers */
+    .contrast-card {
+        background: #111c2e !important;
+        border: 1px solid #00f2fe44 !important;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .contrast-card-emerald {
+        background: #062419 !important;
+        border: 1px solid #10b981 !important;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.2rem;
+    }
+    
+    /* Metric Styling */
+    div[data-testid="stMetricValue"] {
+        color: #00f2fe !important;
+        font-size: 1.8rem !important;
+        font-weight: 900 !important;
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #cbd5e1 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+    
+    /* Form Inputs & Sidebar */
+    .stTextInput input, .stSelectbox div, .stNumberInput input, .stTextArea textarea {
+        background-color: #1a2638 !important;
+        color: #ffffff !important;
+        border: 1px solid #00f2fe88 !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #09101d !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Badges */
+    .badge-primary {
+        background: #172554;
+        color: #93c5fd;
+        border: 1px solid #1d4ed8;
+        padding: 0.25rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-family: monospace;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+    }
+    .badge-emerald {
+        background: #064e3b;
+        color: #34d399;
+        border: 1px solid #10b981;
+        padding: 0.25rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-family: monospace;
+        font-weight: 700;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-init_session_state()
-load_css = __import__("modules.ui_components", fromlist=["load_css"]).load_css
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-
-# ==========================================
-# 1. COMPREHENSIVE WORLD LANGUAGE OPTIONS
-# ==========================================
-
+# ─── 3. COMPREHENSIVE WORLD LANGUAGE DATA ───────────────────────────────
 EXTENDED_LANGUAGES = [
     # ─── Africa ─────────────────────────────────────────────────
     {"code": "sw", "name": "Swahili", "nativeName": "Kiswahili (Rasmi)", "flag": "🇰🇪",
@@ -94,18 +185,6 @@ EXTENDED_LANGUAGES = [
      "accentVariants": ["Tehran Academic", "Dari Formal", "Tajik Academic"],
      "description": "Formal Persian for academic and scientific discourse across Iran, Afghanistan, Tajikistan.",
      "region": "Middle East & North Africa", "rtl": True},
-    {"code": "ku", "name": "Kurdish", "nativeName": "Kurdî (Akademîk)", "flag": "🇮🇶",
-     "accentVariants": ["Kurmanji Academic", "Sorani Academic"],
-     "description": "Standard Kurdish registers for academic use across Kurdistan.",
-     "region": "Middle East & North Africa"},
-    {"code": "ps", "name": "Pashto", "nativeName": "پښتو (اکادمیک)", "flag": "🇦🇫",
-     "accentVariants": ["Kandahar Academic", "Kabul Formal"],
-     "description": "Official language of Afghanistan. Formal Pashto for academic use.",
-     "region": "Middle East & North Africa", "rtl": True},
-    {"code": "ber", "name": "Tamazight", "nativeName": "ⵜⴰⵎⴰⵣⵉⵖⵜ (ⵜⴰⵙⵏⴰ)", "flag": "🇲🇦",
-     "accentVariants": ["Moroccan Academic", "Kabyle Academic", "Tuareg Formal"],
-     "description": "Official language of Morocco and Algeria. Standard Tamazight for research.",
-     "region": "Middle East & North Africa"},
 
     # ─── Europe ────────────────────────────────────────────────
     {"code": "en", "name": "English", "nativeName": "English (International)", "flag": "🇬🇧",
@@ -124,102 +203,6 @@ EXTENDED_LANGUAGES = [
      "accentVariants": ["Standard Hochdeutsch", "Austrian Academic", "Swiss Formal"],
      "description": "Scientific German register for formal publication and research.",
      "region": "Europe"},
-    {"code": "it", "name": "Italian", "nativeName": "Italiano (Accademico)", "flag": "🇮🇹",
-     "accentVariants": ["Florentine Academic", "Milanese Formal"],
-     "description": "Formal Italian for academic publishing and humanities research.",
-     "region": "Europe"},
-    {"code": "pt", "name": "Portuguese", "nativeName": "Português (Académico)", "flag": "🇵🇹",
-     "accentVariants": ["European Academic", "Brazilian Academic", "African Lusophone"],
-     "description": "Formal Portuguese for research across Portugal, Brazil, and Lusophone Africa.",
-     "region": "Europe"},
-    {"code": "ru", "name": "Russian", "nativeName": "Русский (Академический)", "flag": "🇷🇺",
-     "accentVariants": ["Moscow Academic", "Saint Petersburg Formal"],
-     "description": "Scientific Russian for academic publishing and technical research.",
-     "region": "Europe"},
-    {"code": "nl", "name": "Dutch", "nativeName": "Nederlands (Academisch)", "flag": "🇳🇱",
-     "accentVariants": ["Standard Dutch Academic", "Flemish Academic"],
-     "description": "Formal Dutch for academic research and scientific publishing.",
-     "region": "Europe"},
-    {"code": "pl", "name": "Polish", "nativeName": "Polski (Akademicki)", "flag": "🇵🇱",
-     "accentVariants": ["Warsaw Academic", "Krakow Formal"],
-     "description": "Formal Polish for academic research and scientific publications.",
-     "region": "Europe"},
-    {"code": "sv", "name": "Swedish", "nativeName": "Svenska (Akademisk)", "flag": "🇸🇪",
-     "accentVariants": ["Stockholm Academic", "Finland Swedish"],
-     "description": "Formal Swedish for academic research and Nordic collaboration.",
-     "region": "Europe"},
-    {"code": "el", "name": "Greek", "nativeName": "Ελληνικά (Ακαδημαϊκά)", "flag": "🇬🇷",
-     "accentVariants": ["Athens Academic", "Cypriot Formal"],
-     "description": "Formal Greek for academic research and classical studies.",
-     "region": "Europe"},
-    {"code": "cs", "name": "Czech", "nativeName": "Čeština (Akademická)", "flag": "🇨🇿",
-     "accentVariants": ["Prague Academic", "Moravian Formal"],
-     "description": "Formal Czech for academic publishing and technical research.",
-     "region": "Europe"},
-    {"code": "ro", "name": "Romanian", "nativeName": "Română (Academic)", "flag": "🇷🇴",
-     "accentVariants": ["Bucharest Academic", "Moldovan Formal"],
-     "description": "Formal Romanian for academic research and scientific publishing.",
-     "region": "Europe"},
-    {"code": "hu", "name": "Hungarian", "nativeName": "Magyar (Akadémiai)", "flag": "🇭🇺",
-     "accentVariants": ["Budapest Academic", "Transylvanian Formal"],
-     "description": "Formal Hungarian for academic research and scholarly communication.",
-     "region": "Europe"},
-    {"code": "uk", "name": "Ukrainian", "nativeName": "Українська (Академічна)", "flag": "🇺🇦",
-     "accentVariants": ["Kyiv Academic", "Lviv Formal"],
-     "description": "Formal Ukrainian for academic research and official communication.",
-     "region": "Europe"},
-    {"code": "da", "name": "Danish", "nativeName": "Dansk (Akademisk)", "flag": "🇩🇰",
-     "accentVariants": ["Copenhagen Academic"],
-     "description": "Formal Danish for academic research and Nordic collaboration.",
-     "region": "Europe"},
-    {"code": "fi", "name": "Finnish", "nativeName": "Suomi (Akateeminen)", "flag": "🇫🇮",
-     "accentVariants": ["Helsinki Academic"],
-     "description": "Formal Finnish for academic research and educational discourse.",
-     "region": "Europe"},
-    {"code": "nb", "name": "Norwegian", "nativeName": "Norsk (Akademisk)", "flag": "🇳🇴",
-     "accentVariants": ["Bokmål Academic", "Nynorsk Formal"],
-     "description": "Formal Norwegian for academic research across Norway.",
-     "region": "Europe"},
-    {"code": "hr", "name": "Croatian", "nativeName": "Hrvatski (Akademski)", "flag": "🇭🇷",
-     "accentVariants": ["Zagreb Academic", "Bosnian Formal"],
-     "description": "Formal Croatian for academic research and official communication.",
-     "region": "Europe"},
-    {"code": "sr", "name": "Serbian", "nativeName": "Српски (Академски)", "flag": "🇷🇸",
-     "accentVariants": ["Belgrade Academic", "Montenegrin Formal"],
-     "description": "Formal Serbian for academic research and regional scholarship.",
-     "region": "Europe"},
-    {"code": "bg", "name": "Bulgarian", "nativeName": "Български (Академичен)", "flag": "🇧🇬",
-     "accentVariants": ["Sofia Academic"],
-     "description": "Formal Bulgarian for academic research and scholarly discourse.",
-     "region": "Europe"},
-    {"code": "sk", "name": "Slovak", "nativeName": "Slovenčina (Akademická)", "flag": "🇸🇰",
-     "accentVariants": ["Bratislava Academic"],
-     "description": "Formal Slovak for academic research and official communication.",
-     "region": "Europe"},
-    {"code": "sl", "name": "Slovenian", "nativeName": "Slovenščina (Akademska)", "flag": "🇸🇮",
-     "accentVariants": ["Ljubljana Academic"],
-     "description": "Formal Slovenian for academic research and scholarly communication.",
-     "region": "Europe"},
-    {"code": "lt", "name": "Lithuanian", "nativeName": "Lietuvių (Akademinė)", "flag": "🇱🇹",
-     "accentVariants": ["Vilnius Academic"],
-     "description": "Formal Lithuanian for academic research and Baltic scholarship.",
-     "region": "Europe"},
-    {"code": "lv", "name": "Latvian", "nativeName": "Latviešu (Akadēmiskā)", "flag": "🇱🇻",
-     "accentVariants": ["Riga Academic"],
-     "description": "Formal Latvian for academic research and official communication.",
-     "region": "Europe"},
-    {"code": "et", "name": "Estonian", "nativeName": "Eesti (Akadeemiline)", "flag": "🇪🇪",
-     "accentVariants": ["Tallinn Academic"],
-     "description": "Formal Estonian for academic research and digital scholarship.",
-     "region": "Europe"},
-    {"code": "ga", "name": "Irish", "nativeName": "Gaeilge (Acadúil)", "flag": "🇮🇪",
-     "accentVariants": ["Standard Academic", "Connacht Formal"],
-     "description": "Official language of Ireland. Formal Irish for academic research.",
-     "region": "Europe"},
-    {"code": "mt", "name": "Maltese", "nativeName": "Malti (Akademiku)", "flag": "🇲🇹",
-     "accentVariants": ["Standard Academic"],
-     "description": "Official language of Malta. Formal Maltese for academic use.",
-     "region": "Europe"},
 
     # ─── South Asia ─────────────────────────────────────────────
     {"code": "hi", "name": "Hindi", "nativeName": "हिन्दी (अकादमिक)", "flag": "🇮🇳",
@@ -230,50 +213,6 @@ EXTENDED_LANGUAGES = [
      "accentVariants": ["Dhaka Academic", "Kolkata Formal"],
      "description": "Official language of Bangladesh. Formal Bengali for academic research.",
      "region": "South Asia"},
-    {"code": "ur", "name": "Urdu", "nativeName": "اردو (تعلیمی)", "flag": "🇵🇰",
-     "accentVariants": ["Islamabad Academic", "Lucknow Formal", "Karachi Academic"],
-     "description": "Official language of Pakistan. Formal Urdu for academic research.",
-     "region": "South Asia", "rtl": True},
-    {"code": "ta", "name": "Tamil", "nativeName": "தமிழ் (கல்வியியல்)", "flag": "🇮🇳",
-     "accentVariants": ["Chennai Academic", "Jaffna Formal", "Singapore Tamil"],
-     "description": "Classical language of India, Sri Lanka, Singapore. Formal Tamil for research.",
-     "region": "South Asia"},
-    {"code": "te", "name": "Telugu", "nativeName": "తెలుగు (విద్యాపరమైన)", "flag": "🇮🇳",
-     "accentVariants": ["Hyderabad Academic", "Vijayawada Formal"],
-     "description": "Official language of Andhra Pradesh. Formal Telugu for research.",
-     "region": "South Asia"},
-    {"code": "mr", "name": "Marathi", "nativeName": "मराठी (शैक्षणिक)", "flag": "🇮🇳",
-     "accentVariants": ["Pune Academic", "Mumbai Formal"],
-     "description": "Official language of Maharashtra. Formal Marathi for research.",
-     "region": "South Asia"},
-    {"code": "gu", "name": "Gujarati", "nativeName": "ગુજરાતી (શૈક્ષણિક)", "flag": "🇮🇳",
-     "accentVariants": ["Ahmedabad Academic", "Surat Formal"],
-     "description": "Official language of Gujarat. Formal Gujarati for literary research.",
-     "region": "South Asia"},
-    {"code": "kn", "name": "Kannada", "nativeName": "ಕನ್ನಡ (ಶೈಕ್ಷಣಿಕ)", "flag": "🇮🇳",
-     "accentVariants": ["Bangalore Academic", "Mysore Formal"],
-     "description": "Official language of Karnataka. Formal Kannada for research.",
-     "region": "South Asia"},
-    {"code": "ml", "name": "Malayalam", "nativeName": "മലയാളം (അക്കാദമിക്)", "flag": "🇮🇳",
-     "accentVariants": ["Thiruvananthapuram Academic", "Kochi Formal"],
-     "description": "Official language of Kerala. Formal Malayalam for research.",
-     "region": "South Asia"},
-    {"code": "pa", "name": "Punjabi", "nativeName": "ਪੰਜਾਬੀ (ਅਕਾਦਮਿਕ)", "flag": "🇮🇳",
-     "accentVariants": ["Amritsar Academic", "Lahore Formal"],
-     "description": "Official language of Punjab. Formal Punjabi for cultural research.",
-     "region": "South Asia"},
-    {"code": "si", "name": "Sinhala", "nativeName": "සිංහල (ශාස්ත්‍රීය)", "flag": "🇱🇰",
-     "accentVariants": ["Colombo Academic", "Kandy Formal"],
-     "description": "Official language of Sri Lanka. Formal Sinhala for academic research.",
-     "region": "South Asia"},
-    {"code": "ne", "name": "Nepali", "nativeName": "नेपाली (शैक्षिक)", "flag": "🇳🇵",
-     "accentVariants": ["Kathmandu Academic", "Pokhara Formal"],
-     "description": "Official language of Nepal. Formal Nepali for academic discourse.",
-     "region": "South Asia"},
-    {"code": "sd", "name": "Sindhi", "nativeName": "سنڌي (تعليمي)", "flag": "🇵🇰",
-     "accentVariants": ["Karachi Academic", "Hyderabad Sindhi"],
-     "description": "Official language of Sindh province. Formal Sindhi for research.",
-     "region": "South Asia", "rtl": True},
 
     # ─── East Asia ──────────────────────────────────────────────
     {"code": "zh", "name": "Chinese (Mandarin)", "nativeName": "中文 (学术)", "flag": "🇨🇳",
@@ -284,121 +223,8 @@ EXTENDED_LANGUAGES = [
      "accentVariants": ["Tokyo Academic", "Kyoto Formal", "Osaka Professional"],
      "description": "Formal Japanese for academic publishing and technical documentation.",
      "region": "East Asia"},
-    {"code": "ko", "name": "Korean", "nativeName": "한국어 (학술)", "flag": "🇰🇷",
-     "accentVariants": ["Seoul Academic", "Pyongyang Formal"],
-     "description": "Formal Korean for academic research and technological discourse.",
-     "region": "East Asia"},
-    {"code": "mn", "name": "Mongolian", "nativeName": "Монгол (Эрдэм шинжилгээний)", "flag": "🇲🇳",
-     "accentVariants": ["Ulaanbaatar Academic", "Inner Mongolian"],
-     "description": "Official language of Mongolia. Formal Mongolian for research.",
-     "region": "East Asia"},
-
-    # ─── Southeast Asia ─────────────────────────────────────────
-    {"code": "id", "name": "Indonesian", "nativeName": "Bahasa Indonesia (Akademik)", "flag": "🇮🇩",
-     "accentVariants": ["Jakarta Academic", "Javanese Formal"],
-     "description": "Official language of Indonesia. Formal Bahasa Indonesia for scholarship.",
-     "region": "Southeast Asia"},
-    {"code": "ms", "name": "Malay", "nativeName": "Bahasa Melayu (Akademik)", "flag": "🇲🇾",
-     "accentVariants": ["KL Academic", "Brunei Formal", "Singapore Malay"],
-     "description": "Official language of Malaysia, Brunei, Singapore. Formal Malay.",
-     "region": "Southeast Asia"},
-    {"code": "vi", "name": "Vietnamese", "nativeName": "Tiếng Việt (Học thuật)", "flag": "🇻🇳",
-     "accentVariants": ["Hanoi Academic", "Saigon Formal"],
-     "description": "Official language of Vietnam. Formal Vietnamese for scientific publishing.",
-     "region": "Southeast Asia"},
-    {"code": "th", "name": "Thai", "nativeName": "ไทย (วิชาการ)", "flag": "🇹🇭",
-     "accentVariants": ["Bangkok Academic", "Northern Thai Formal"],
-     "description": "Official language of Thailand. Formal Thai for scholarly discourse.",
-     "region": "Southeast Asia"},
-    {"code": "my", "name": "Burmese", "nativeName": "မြန်မာ (ပညာရပ်ဆိုင်ရာ)", "flag": "🇲🇲",
-     "accentVariants": ["Yangon Academic", "Mandalay Formal"],
-     "description": "Official language of Myanmar. Formal Burmese for research.",
-     "region": "Southeast Asia"},
-    {"code": "km", "name": "Khmer", "nativeName": "ភាសាខ្មែរ (សិក្សា)", "flag": "🇰🇭",
-     "accentVariants": ["Phnom Penh Academic"],
-     "description": "Official language of Cambodia. Formal Khmer for educational discourse.",
-     "region": "Southeast Asia"},
-    {"code": "lo", "name": "Lao", "nativeName": "ລາວ (ວິຊາການ)", "flag": "🇱🇦",
-     "accentVariants": ["Vientiane Academic"],
-     "description": "Official language of Laos. Formal Lao for research.",
-     "region": "Southeast Asia"},
-    {"code": "tl", "name": "Filipino", "nativeName": "Filipino (Akademiko)", "flag": "🇵🇭",
-     "accentVariants": ["Manila Academic", "Cebuano Formal"],
-     "description": "Official language of the Philippines. Formal Filipino for national discourse.",
-     "region": "Southeast Asia"},
-
-    # ─── Central Asia ───────────────────────────────────────────
-    {"code": "kk", "name": "Kazakh", "nativeName": "Қазақ (Академиялық)", "flag": "🇰🇿",
-     "accentVariants": ["Nur-Sultan Academic", "Almaty Formal"],
-     "description": "Official language of Kazakhstan. Formal Kazakh for research.",
-     "region": "Central Asia"},
-    {"code": "uz", "name": "Uzbek", "nativeName": "O'zbek (Akademik)", "flag": "🇺🇿",
-     "accentVariants": ["Tashkent Academic", "Samarkand Formal"],
-     "description": "Official language of Uzbekistan. Formal Uzbek for scientific publishing.",
-     "region": "Central Asia"},
-    {"code": "tk", "name": "Turkmen", "nativeName": "Türkmen (Akademiki)", "flag": "🇹🇲",
-     "accentVariants": ["Ashgabat Academic"],
-     "description": "Official language of Turkmenistan. Formal Turkmen for official use.",
-     "region": "Central Asia"},
-    {"code": "ky", "name": "Kyrgyz", "nativeName": "Кыргыз (Академиялык)", "flag": "🇰🇬",
-     "accentVariants": ["Bishkek Academic"],
-     "description": "Official language of Kyrgyzstan. Formal Kyrgyz for research.",
-     "region": "Central Asia"},
-    {"code": "tg", "name": "Tajik", "nativeName": "Тоҷикӣ (Академӣ)", "flag": "🇹🇯",
-     "accentVariants": ["Dushanbe Academic"],
-     "description": "Official language of Tajikistan. Formal Tajik for academic discourse.",
-     "region": "Central Asia"},
-    {"code": "tr", "name": "Turkish", "nativeName": "Türkçe (Akademik)", "flag": "🇹🇷",
-     "accentVariants": ["Istanbul Academic", "Ankara Formal", "Azerbaijani Academic"],
-     "description": "Official language of Turkey. Formal Turkish for regional scholarship.",
-     "region": "Central Asia"},
-
-    # ─── Americas ───────────────────────────────────────────────
-    {"code": "qu", "name": "Quechua", "nativeName": "Runasimi (Akadimiku)", "flag": "🇵🇪",
-     "accentVariants": ["Southern Quechua (Cusco)", "Northern Quechua (Ecuador)", "Bolivian Quechua"],
-     "description": "Official language of Peru, Bolivia, Ecuador. Formal Quechua for indigenous research.",
-     "region": "Americas"},
-    {"code": "gn", "name": "Guaraní", "nativeName": "Avañe'ẽ (Akadémiko)", "flag": "🇵🇾",
-     "accentVariants": ["Paraguayan Academic", "Eastern Bolivian Guaraní"],
-     "description": "Official language of Paraguay and Bolivia. Formal Guaraní for indigenous research.",
-     "region": "Americas"},
-    {"code": "ay", "name": "Aymara", "nativeName": "Aymar (Yatiña)", "flag": "🇧🇴",
-     "accentVariants": ["La Paz Academic", "Peruvian Aymara"],
-     "description": "Official language of Bolivia and Peru. Formal Aymara for cultural studies.",
-     "region": "Americas"},
-    {"code": "nv", "name": "Navajo", "nativeName": "Diné Bizaad (Óltaʼ)", "flag": "🇺🇸",
-     "accentVariants": ["Standard Navajo Academic", "Arizona Formal"],
-     "description": "Most widely spoken Indigenous language in the US. Formal Navajo.",
-     "region": "Americas"},
-    {"code": "ht", "name": "Haitian Creole", "nativeName": "Kreyòl Ayisyen (Akademik)", "flag": "🇭🇹",
-     "accentVariants": ["Port-au-Prince Academic"],
-     "description": "Official language of Haiti. Formal Kreyòl for education.",
-     "region": "Americas"},
-
-    # ─── Oceania ────────────────────────────────────────────────
-    {"code": "mi", "name": "Māori", "nativeName": "Te Reo Māori (Mātauranga)", "flag": "🇳🇿",
-     "accentVariants": ["Standard Māori Academic", "Southern Māori"],
-     "description": "Official language of New Zealand. Formal Māori for indigenous knowledge.",
-     "region": "Oceania"},
-    {"code": "sm", "name": "Samoan", "nativeName": "Gagana Samoa (A'oa'oga)", "flag": "🇼🇸",
-     "accentVariants": ["Standard Academic", "American Samoan"],
-     "description": "Official language of Samoa. Formal Samoan for cultural research.",
-     "region": "Oceania"},
-    {"code": "to", "name": "Tongan", "nativeName": "Lea Faka-Tonga (Ako)", "flag": "🇹🇴",
-     "accentVariants": ["Standard Academic"],
-     "description": "Official language of Tonga. Formal Tongan for cultural preservation.",
-     "region": "Oceania"},
-    {"code": "fj", "name": "Fijian", "nativeName": "Na Vosa Vakaviti (Vuli)", "flag": "🇫🇯",
-     "accentVariants": ["Standard Academic", "Bauan Formal"],
-     "description": "Official language of Fiji. Formal Fijian for cultural discourse.",
-     "region": "Oceania"},
-    {"code": "haw", "name": "Hawaiian", "nativeName": "ʻŌlelo Hawaiʻi (Hoʻonaʻauao)", "flag": "🌺",
-     "accentVariants": ["Standard Academic", "Niʻihau"],
-     "description": "Official language of Hawaiʻi. Formal Hawaiian for cultural revitalization.",
-     "region": "Oceania"},
 ]
 
-# ─── Domain Glossaries ────────────────────────────────────────────────
 DOMAIN_GLOSSARIES = [
     {"id": "bio", "name": "Molecular Biology & Genetics", "termsLocked": 4200},
     {"id": "agri", "name": "Agriculture & Environmental Science", "termsLocked": 3100},
@@ -406,26 +232,16 @@ DOMAIN_GLOSSARIES = [
     {"id": "med", "name": "Clinical Medicine & Pharmacology", "termsLocked": 6800},
     {"id": "econ", "name": "Data Analytics & Applied Economics", "termsLocked": 2900},
     {"id": "law", "name": "Legal & Jurisprudence Terminology", "termsLocked": 3600},
-    {"id": "edu", "name": "Education & Pedagogy Research", "termsLocked": 2400},
-    {"id": "eng", "name": "Engineering & Technology Standards", "termsLocked": 4500},
-    {"id": "soc", "name": "Sociology & Anthropology Studies", "termsLocked": 2800},
-    {"id": "phys", "name": "Physics & Mathematical Sciences", "termsLocked": 5100},
 ]
 
-REGIONS = [
-    "Africa", "Middle East & North Africa", "Europe", "South Asia",
-    "East Asia", "Southeast Asia", "Central Asia", "Americas", "Oceania"
-]
+REGIONS = ["Africa", "Middle East & North Africa", "Europe", "South Asia", "East Asia"]
 
-# ==========================================
-# 2. HELPER FUNCTIONS
-# ==========================================
-
+# ─── 4. HELPER FUNCTIONS ────────────────────────────────────────────────
 def get_lang(code):
     for l in EXTENDED_LANGUAGES:
         if l["code"] == code:
             return l
-    return EXTENDED_LANGUAGES[22]  # default to English
+    return EXTENDED_LANGUAGES[18]  # English default
 
 def get_glossary(gid):
     for g in DOMAIN_GLOSSARIES:
@@ -438,119 +254,187 @@ def get_langs_by_region(region):
         return EXTENDED_LANGUAGES
     return [l for l in EXTENDED_LANGUAGES if l.get("region") == region]
 
-# ==========================================
-# 3. RENDER PAGE
-# ==========================================
+# Initialize Session State
+if "loc_selected_language" not in st.session_state:
+    st.session_state["loc_selected_language"] = "en"
+if "loc_selected_glossary" not in st.session_state:
+    st.session_state["loc_selected_glossary"] = "bio"
+if "loc_region_filter" not in st.session_state:
+    st.session_state["loc_region_filter"] = "All Regions"
 
-hero_card(
-    "🌐 Global Language & Academic Register",
-    "Complete localization engine for the application interface, AI synthesis, and neural audio podcasts. "
-    f"Supports {len(EXTENDED_LANGUAGES)} official languages across {len(REGIONS)} world regions.",
-    badge_text=f"v1.0 — {len(REGIONS)} Regions · {sum(len(gl['accentVariants']) for gl in EXTENDED_LANGUAGES)} Accents"
+# ─── 5. HERO HEADER ─────────────────────────────────────────────────────
+st.markdown(
+    f"""
+<div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
+    <div>
+        <span class='badge-primary'>NEURAL SYNTHESIS & LOCALIZATION ENGINE v4.0</span>
+        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🌐 Global Language & Academic Register</h1>
+        <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
+            Complete Application UI, AI Synthesis, and Neural Audio Localization with World Language Support & Academic Precision.
+        </p>
+    </div>
+    <div style='text-align: right;'>
+        <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
+            <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Engine Lead</div>
+            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>🟢 KULA CHRIS (CHRISHEM)</div>
+        </div>
+    </div>
+</div>
+""",
+    unsafe_allow_html=True,
 )
-watermark("CHRISHEM")
 
-st.markdown('<div class="loc-engine-wrapper">', unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# STATUS BAR
-# ═══════════════════════════════════════════════════════════════════════
-current_lang = get_lang(st.session_state.get("loc_selected_language", "en"))
-active_glossary = get_glossary(st.session_state.get("loc_selected_glossary", "bio"))
-
+# ─── 6. TOP CONTROL METRICS HUD ─────────────────────────────────────────
 tot_langs = len(EXTENDED_LANGUAGES)
 tot_accents = sum(len(l["accentVariants"]) for l in EXTENDED_LANGUAGES)
 
-# ─── TOP CONTROLS BAR ────────────────────────────────────────────────
-bar_cols = st.columns([3, 1, 1, 1])
-with bar_cols[0]:
+m1, m2, m3, m4 = st.columns([3, 2, 2, 2])
+
+with m1:
     region_opts = ["All Regions"] + REGIONS
-    current_region = st.session_state.get("loc_region_filter", "All Regions")
-    def_idx = region_opts.index(current_region) if current_region in region_opts else 0
-    sel_region = st.selectbox("🌍 Filter by Region", region_opts, index=def_idx, key="loc_region_sel")
+    cur_reg = st.session_state["loc_region_filter"]
+    idx = region_opts.index(cur_reg) if cur_reg in region_opts else 0
+    sel_region = st.selectbox("🌍 Filter Regions", region_opts, index=idx, key="loc_region_select")
     st.session_state["loc_region_filter"] = sel_region
 
-with bar_cols[1]:
-    st.markdown(
-        f'<div class="loc-stat-card"><div class="loc-stat-num">{tot_langs}</div><div class="loc-stat-label">Languages</div></div>',
-        unsafe_allow_html=True)
-with bar_cols[2]:
-    st.markdown(
-        f'<div class="loc-stat-card"><div class="loc-stat-num">{tot_accents}</div><div class="loc-stat-label">Accents</div></div>',
-        unsafe_allow_html=True)
-with bar_cols[3]:
-    st.markdown(
-        f'<div class="loc-stat-card"><div class="loc-stat-num">{len(DOMAIN_GLOSSARIES)}</div><div class="loc-stat-label">Glossaries</div></div>',
-        unsafe_allow_html=True)
+with m2:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("Locales", tot_langs)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# ─── ACTIVE LANGUAGE HUD ─────────────────────────────────────────────
-rtl_badge = ('<span class="loc-rtl-badge">RTL LAYOUT</span>' if current_lang.get('rtl') else '')
+with m3:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("Accents", tot_accents)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with m4:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("Glossaries", len(DOMAIN_GLOSSARIES))
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ─── 7. ACTIVE LOCALIZATION HUD ─────────────────────────────────────────
+current_lang = get_lang(st.session_state["loc_selected_language"])
+active_glossary = get_glossary(st.session_state["loc_selected_glossary"])
+
 st.markdown(
-    f'<div class="loc-hud">'
-    f'<span class="loc-hud-flag">{current_lang["flag"]}</span>'
-    f'<div class="loc-hud-info">'
-    f'<div class="loc-hud-name">{current_lang["nativeName"]} {rtl_badge}</div>'
-    f'<div class="loc-hud-meta">'
-    f'<span class="loc-live-dot"></span> VOICE: {st.session_state.get("loc_selected_accent", "Academic US")}'
-    f'<span class="loc-hud-sep">|</span>'
-    f'🗂️ {active_glossary["name"]}'
-    f'<span class="loc-hud-sep">|</span>'
-    f'📶 {current_lang.get("region", "International")}'
-    f'</div></div>'
-    f'<div class="loc-hud-code"><div class="loc-hud-code-text">{current_lang["code"].upper()}</div><div class="loc-hud-code-label">Locale</div></div>'
-    f'</div>',
-    unsafe_allow_html=True
+    f"""
+<div class='contrast-card-emerald' style='display:flex; justify-content:space-between; align-items:center;'>
+    <div style='display:flex; align-items:center; gap: 1rem;'>
+        <span style='font-size: 2.5rem;'>{current_lang["flag"]}</span>
+        <div>
+            <div style='font-weight:800; font-size: 1.2rem; color:#ffffff;'>
+                {current_lang["name"]} — {current_lang["nativeName"]}
+                {' <span class="badge-primary">RTL LAYOUT</span>' if current_lang.get("rtl") else ''}
+            </div>
+            <div style='color:#34d399; font-size:0.85rem; font-weight:600; font-family:monospace;'>
+                🗂️ ACTIVE GLOSSARY: {active_glossary["name"].upper()} ({active_glossary["termsLocked"]:,} TERMS LOCKED)
+            </div>
+        </div>
+    </div>
+    <div style='text-align:right;'>
+        <span class='badge-emerald'>ACTIVE LOCALE</span>
+        <div style='font-size:1.4rem; font-weight:900; color:#00f2fe; font-family:monospace;'>{current_lang["code"].upper()}</div>
+    </div>
+</div>
+""",
+    unsafe_allow_html=True,
 )
 
-# ═══════════════════════════════════════════════════════════════════════
-# MAIN GRID: LEFT (Language + Accent) | RIGHT (Glossary + Controls)
-# ═══════════════════════════════════════════════════════════════════════
-left_col, right_col = st.columns([7, 5])
+# ─── 8. MAIN WORKSPACE TABS ──────────────────────────────────────────────
+tab_select, tab_accent, tab_glossary, tab_preview = st.tabs([
+    "🌐 Locale Selection",
+    "🎙️ Voice Accent Matrix",
+    "📚 Domain Glossaries",
+    "⚡ Synthesis Live Preview",
+])
 
-with left_col:
-    st.markdown(
-        '<div class="loc-section-card">'
-        '<div class="loc-section-header">'
-        '<span class="loc-section-title">🌐 1. System & AI Synthesis Working Language</span>'
-        f'<span class="loc-section-count">{len(EXTENDED_LANGUAGES)} OFFICIAL LOCALES</span>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    filtered_langs = get_langs_by_region(st.session_state["loc_region_filter"])
-    lang_options = {f"{l['flag']} {l['name']} ({l['nativeName']})": l['code'] for l in filtered_langs}
+# ── TAB 1: LOCALE SELECTION ──
+with tab_select:
+    c_left, c_right = st.columns([6, 6])
     
-    selected_label = st.selectbox(
-        "Select Working Locale", 
-        options=list(lang_options.keys()), 
-        key="loc_lang_selector_box"
-    )
-    
-    if selected_label:
-        chosen_code = lang_options[selected_label]
-        st.session_state["loc_selected_language"] = chosen_code
+    with c_left:
+        st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+        st.markdown("### 🌐 Select Working Language Locale")
         
-    st.markdown('</div>', unsafe_allow_html=True)
+        filtered_langs = get_langs_by_region(st.session_state["loc_region_filter"])
+        lang_options = {f"{l['flag']} {l['name']} ({l['nativeName']})": l['code'] for l in filtered_langs}
+        
+        selected_label = st.selectbox(
+            "Available Official Academic Registers:",
+            options=list(lang_options.keys()),
+            key="loc_lang_selector_box"
+        )
+        
+        if selected_label:
+            st.session_state["loc_selected_language"] = lang_options[selected_label]
+            
+        st.markdown("</div>", unsafe_allow_html=True)
 
-with right_col:
-    st.markdown(
-        '<div class="loc-section-card">'
-        '<div class="loc-section-header">'
-        '<span class="loc-section-title">📚 2. Domain Glossary & Terminology Bank</span>'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    with c_right:
+        st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+        st.markdown("### ℹ️ Active Locale Specifications")
+        st.markdown(f"**Region:** `{current_lang.get('region', 'Global')}`")
+        st.markdown(f"**Code:** `{current_lang['code']}`")
+        st.markdown(f"**Description:** {current_lang['description']}")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# ── TAB 2: VOICE ACCENT MATRIX ──
+with tab_accent:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.markdown(f"### 🎙️ Available Neural Audio Accents for {current_lang['name']}")
     
-    glossary_options = {g['name']: g['id'] for g in DOMAIN_GLOSSARIES}
-    selected_glossary_label = st.selectbox(
-        "Select Active Terminology",
-        options=list(glossary_options.keys()),
+    for acc in current_lang.get("accentVariants", ["Standard Academic"]):
+        a1, a2 = st.columns([8, 4])
+        with a1:
+            st.markdown(f"🔊 **{acc}** — Optimized for academic research synthesis & podcast generation.")
+        with a2:
+            st.button(f"Preview {acc}", key=f"prev_{acc}")
+            
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ── TAB 3: DOMAIN GLOSSARIES ──
+with tab_glossary:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.markdown("### 📚 Select Domain-Specific Terminology Bank")
+    
+    glossary_opts = {g['name']: g['id'] for g in DOMAIN_GLOSSARIES}
+    selected_g_label = st.selectbox(
+        "Active Terminology Bank:",
+        options=list(glossary_opts.keys()),
         key="loc_glossary_selector_box"
     )
     
-    if selected_glossary_label:
-        st.session_state["loc_selected_glossary"] = glossary_options[selected_glossary_label]
+    if selected_g_label:
+        st.session_state["loc_selected_glossary"] = glossary_opts[selected_g_label]
+        
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
+# ── TAB 4: LIVE PREVIEW ──
+with tab_preview:
+    st.markdown("<div class='contrast-card-emerald'>", unsafe_allow_html=True)
+    st.markdown("### ⚡ Live AI Synthesis Preview")
+    st.markdown(f"Current configuration: **{current_lang['name']}** + **{active_glossary['name']}**")
+    
+    sample_text = st.text_area(
+        "Input text for neural synthesis & academic register alignment:",
+        value=f"The application of {active_glossary['name'].lower()} protocols demonstrates significant statistical significance across multi-variate data matrices.",
+        height=100
+    )
+    
+    if st.button("🚀 Synthesize & Align Register"):
+        st.success("✅ Register aligned and localized successfully.")
+        st.info(f"Target Output [{current_lang['code'].upper()}]: {sample_text}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True)
+# ─── FOOTER ────────────────────────────────────────────────────────────
+st.markdown("<hr style='border:1px solid #1e293b; margin-top:2.5rem;'>", unsafe_allow_html=True)
+st.markdown(
+    """
+<div style='display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; font-family: monospace;'>
+    <div>🌐 GLOBAL LANGUAGE & ACADEMIC REGISTER ENGINE</div>
+    <div>DEVELOPER: CHRISHEM</div>
+    <div>SYSTEM STATUS: ONLINE</div>
+</div>
+""",
+    unsafe_allow_html=True,
+)

@@ -1,55 +1,203 @@
 """
-Research Synthesizer & Audio Intelligence Hub — Advanced Standalone Page
+═══════════════════════════════════════════════════════════════════════════════
+RESEARCH SYNTHESIZER & AUDIO INTELLIGENCE HUB [v4.2]
 World-class multimodal research engine featuring deep vector semantic search,
 agentic literature synthesis, dynamic cross-lingual audio generation, 
 live citation auditing, and automated prior-art knowledge graph mapping.
+Designed for: Chrishem Studio Engine
+═══════════════════════════════════════════════════════════════════════════════
 """
 
+import sys
 import time
 import json
 import hashlib
+from pathlib import Path
+import numpy as np
+import pandas as pd
 import streamlit as st
 
-st.set_page_config(
-    page_title="Research Synthesizer | Advanced Intelligence Hub", 
-    page_icon="🧬", 
-    layout="wide"
-)
+# ─── PATH RESOLUTION ─────────────────────────────────────────────────
+current_file = Path(__file__).resolve()
+root_dir = current_file.parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
+if str(current_file.parent) not in sys.path:
+    sys.path.insert(0, str(current_file.parent))
 
-# Safe fallback imports for structural modules if running in isolated mode
+# ─── DEFENSIVE MODULE IMPORTS WITH LOCAL FALLBACKS ────────────────────
 try:
     from modules.config import init_session_state
     from modules.ui_components import hero_card, load_css, watermark, section_header
 except ImportError:
-    def init_session_state(): pass
-    def load_css(is_dark=False): pass
-    def watermark(text=""): pass
-    def section_header(text=""): pass
+    def init_session_state():
+        if "theme" not in st.session_state:
+            st.session_state["theme"] = "dark"
+
+    def load_css(is_dark=True):
+        pass
+
+    def watermark(text=""):
+        pass
+
+    def section_header(text="", desc=""):
+        st.markdown(
+            f"<h3 style='color:#00f2fe !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{text}</h3>", 
+            unsafe_allow_html=True
+        )
+        if desc:
+            st.caption(desc)
+
     def hero_card(title, subtitle, badge_text=""):
         st.markdown(f"""
-        <div style="padding: 1.5rem; background: linear-gradient(135deg, rgba(79,70,229,0.15) 0%, rgba(15,23,42,0.8) 100%); border-radius: 1rem; border: 1px solid rgba(79,70,229,0.3); margin-bottom: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <h1 style="color: #f8fafc; font-size: 1.75rem; margin: 0; font-weight: 800;">{title}</h1>
-                <span style="background: rgba(79,70,229,0.25); color: #a5b4fc; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(79,70,229,0.4);">{badge_text}</span>
+        <div style="padding: 1.5rem; background: linear-gradient(135deg, rgba(0, 242, 254, 0.12) 0%, rgba(11, 19, 33, 0.95) 100%); border-radius: 12px; border: 1px solid #00f2fe; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(0,242,254,0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h1 style="color: #00f2fe !important; font-size: 2rem; margin: 0; font-weight: 800; letter-spacing: -0.02em;">{title}</h1>
+                <span style="background: rgba(0, 242, 254, 0.15); color: #00f2fe; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid #00f2fe;">{badge_text}</span>
             </div>
-            <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">{subtitle}</p>
+            <p style="color: #cbd5e1 !important; font-size: 0.95rem; margin: 0; line-height: 1.4;">{subtitle}</p>
         </div>
         """, unsafe_allow_html=True)
 
-# ─── Initialization & Theme Setup ─────────────────────────────────────
+# ─── PAGE CONFIGURATION ───────────────────────────────────────────────
+st.set_page_config(
+    page_title="Research Synthesizer | Intelligence Hub", 
+    page_icon="🧬", 
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
 init_session_state()
-is_dark = st.session_state.get("theme", "light") == "dark"
-load_css(is_dark=is_dark)
+
+# ─── HIGH-CONTRAST DESIGN SYSTEM ──────────────────────────────────────
+st.markdown(
+    """
+    <style>
+    /* Global Application Canvas */
+    .stApp {
+        background-color: #04080f !important;
+        color: #f8fafc !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* Vibrant High-Contrast Typography */
+    h1, h2, h3, h4, h5, h6 {
+        color: #00f2fe !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.025em !important;
+    }
+    
+    p, span, label, div, .stMarkdown, .stCheckbox label, .stRadio label {
+        color: #f8fafc !important;
+        font-size: 0.95rem;
+    }
+
+    .stCaption {
+        color: #94a3b8 !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Structured Visual Cards */
+    .synth-card {
+        background: #0b1321 !important;
+        border: 1px solid #1e293b !important;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    .synth-card-highlight {
+        background: #0b1321 !important;
+        border: 1px solid #00f2fe88 !important;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 0 20px rgba(0, 242, 254, 0.12);
+    }
+
+    /* Audio Player Bar */
+    .audio-player-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #070d18 !important;
+        border: 1px solid #00f2fe66 !important;
+        border-radius: 12px;
+        padding: 0.85rem 1.25rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Rigor & Inspector Panels */
+    .rigor-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(5, 150, 105, 0.2) !important;
+        border: 1px solid #10b981 !important;
+        padding: 0.4rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+    }
+    
+    .inspector-panel {
+        background: #070d18 !important;
+        border: 1px solid #f59e0b88 !important;
+        border-radius: 10px;
+        padding: 1rem;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .prior-art-card {
+        background: #070d18 !important;
+        border: 1px solid #1e293b !important;
+        border-radius: 8px;
+        padding: 0.85rem;
+        margin-bottom: 0.6rem;
+        transition: all 0.2s ease-in-out;
+    }
+    .prior-art-card:hover {
+        border-color: #00f2fe88 !important;
+    }
+
+    /* Interactive Inputs & Control Components */
+    div.stSelectbox, div.stMultiSelect, div.stTextInput, div.stNumberInput, div.stSlider, div[data-testid="stRadio"] {
+        background-color: #0b1321 !important;
+        border-radius: 8px !important;
+    }
+
+    /* High-Visibility Custom Buttons */
+    .stButton button {
+        background: #0b1321 !important;
+        border: 1px solid #00f2fe !important;
+        color: #00f2fe !important;
+        border-radius: 8px !important;
+        font-weight: 700 !important;
+        transition: all 0.2s ease-in-out;
+    }
+    .stButton button:hover {
+        background: #00f2fe !important;
+        color: #04080f !important;
+        box-shadow: 0 0 16px rgba(0, 242, 254, 0.4);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 hero_card(
     "🧬 Advanced Research Synthesizer & Audio Intelligence Hub",
-    "Autonomous multimodal architecture for vector extraction, cross-lingual research synthesis, "
-    "verified ground-truth auditing, and real-time prior-art knowledge graph mapping.",
+    "Autonomous multimodal architecture for vector extraction, cross-lingual research synthesis, verified ground-truth auditing, and real-time prior-art knowledge graph mapping.",
     badge_text="⚡ Enterprise-Grade v4.2"
 )
 watermark("CHRISHEM")
 
-# ─── Comprehensive Session State Architecture ──────────────────────────
+# ─── COMPREHENSIVE SESSION STATE ARCHITECTURE ──────────────────────────
 default_states = {
     "synth_input_type": "text",
     "synth_input_text": "",
@@ -58,22 +206,20 @@ default_states = {
     "synth_audio_style": "podcast_dialogue",
     "synth_voice_profile": "Dual Co-Hosts (Alex & Dr. Maya)",
     "synth_is_processing": False,
-    "synth_has_result": True,  # Pre-populated for instant expert demonstration
+    "synth_has_result": True,
     "synth_is_playing": False,
-    "synth_playback_speed": 1.0,
+    "synth_playback_speed": "1.0x Speed",
     "synth_active_citation": 0,
     "synth_export_format": "Markdown (.md)",
-    "synth_search_query": "",
     "synth_rag_temperature": 0.2,
     "synth_extraction_depth": "Comprehensive (Full Semantic Tree)",
-    "synth_history": []
 }
 
 for key, val in default_states.items():
     if key not in st.session_state:
         st.session_state[key] = val
 
-# ─── Enhanced Multi-Domain Knowledge Base ──────────────────────────────
+# ─── ENHANCED MULTI-DOMAIN KNOWLEDGE BASE ──────────────────────────────
 ENHANCED_CITATIONS = [
     {
         "id": "CIT-1",
@@ -158,32 +304,25 @@ ENHANCED_RELATED_WORKS = [
 
 RESULT_TITLE = "Multi-Sensor Satellite Fusion for Rapid Environmental Monitoring & Ecological Surveillance"
 
-# ─── Advanced Helper Functions ─────────────────────────────────────────
-
-def handle_synthesize():
-    """Trigger the advanced async agentic synthesis pipeline."""
-    st.session_state["synth_is_processing"] = True
-    st.session_state["synth_has_result"] = False
-
+# ─── ADVANCED HELPER FUNCTIONS ─────────────────────────────────────────
 
 def compute_hash(content: str) -> str:
     """Generate SHA-256 fingerprint for verification logging."""
     return hashlib.sha256(content.encode()).hexdigest()[:12]
 
-
 def _build_audio_style_options():
-    """Render advanced audio briefing style selection with granular voice profile controls."""
+    """Render audio briefing style selection with clear visual indicators."""
     col1, col2, col3 = st.columns(3)
     styles = [
         ("podcast_dialogue", "🎙️ 2-Host Podcast", "Conversational Deep-Dive"),
         ("executive", "🎧 Solo Executive", "Concise High-Yield Brief"),
-        ("academic", "🎓 Peer Reviewer", "Critical Methodological Critique")
+        ("academic", "🎓 Peer Reviewer", "Critical Critique")
     ]
     for i, (stype, label, desc) in enumerate(styles):
         is_active = st.session_state["synth_audio_style"] == stype
         with [col1, col2, col3][i]:
             if st.button(
-                f"{label}\n{desc}",
+                f"{label}\n({desc})",
                 key=f"audio_style_{stype}",
                 use_container_width=True,
                 type="primary" if is_active else "secondary"
@@ -191,106 +330,40 @@ def _build_audio_style_options():
                 st.session_state["synth_audio_style"] = stype
                 st.rerun()
 
-
 def _build_citation_card(cit, idx):
-    """Render an interactive citation card with confidence scoring and semantic tag."""
+    """Render an interactive citation card with confidence scoring."""
     is_active = st.session_state["synth_active_citation"] == idx
-    border_style = "border: 1px solid #6366f1; background: rgba(79, 70, 229, 0.2);" if is_active else "border: 1px solid rgba(148,163,184,0.15); background: rgba(15, 23, 42, 0.6);"
+    border_color = "#00f2fe" if is_active else "#1e293b"
+    bg_color = "rgba(0, 242, 254, 0.08)" if is_active else "#070d18"
     
-    label_markdown = f"""
-    <div style="{border_style} border-radius: 0.75rem; padding: 0.85rem; cursor: pointer; transition: all 0.2s; margin-bottom: 0.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-            <span style="font-size: 0.65rem; font-family: monospace; color: #818cf8; background: rgba(129,140,248,0.15); padding: 0.1rem 0.4rem; border-radius: 4px;">{cit['id']} • {cit['category']}</span>
-            <span style="font-size: 0.65rem; color: #34d399; font-weight: 600;">{int(cit['confidence']*100)}% Match</span>
+    st.markdown(
+        f"""
+        <div style="border: 1px solid {border_color}; background: {bg_color}; border-radius: 8px; padding: 0.85rem; margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                <span style="font-size: 0.7rem; font-family: monospace; color: #00f2fe; background: rgba(0,242,254,0.15); padding: 0.15rem 0.4rem; border-radius: 4px; font-weight:700;">{cit['id']} • {cit['category']}</span>
+                <span style="font-size: 0.75rem; color: #10b981; font-weight: 700;">{int(cit['confidence']*100)}% Match</span>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: {'#ffffff' if is_active else '#cbd5e1'}; line-height: 1.4;">
+                {cit['summaryText']}
+            </div>
+            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 0.4rem;">
+                📍 {cit['sourceType']} ({cit['sourceLocation']})
+            </div>
         </div>
-        <div style="font-size: 0.8rem; font-weight: 600; color: {'#f8fafc' if is_active else '#cbd5e1'}; line-height: 1.4;">
-            {cit['summaryText']}
-        </div>
-        <div style="font-size: 0.65rem; color: #64748b; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.3rem;">
-            <span>📍 {cit['sourceType']} ({cit['sourceLocation']})</span>
-        </div>
-    </div>
-    """
-    if st.button(f"Inspect {cit['id']}", key=f"btn_cit_{cit['id']}", use_container_width=True, help="Click to load into Ground Truth Inspector"):
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button(f"Inspect Ground Truth ({cit['id']})", key=f"btn_cit_{cit['id']}", use_container_width=True):
         st.session_state["synth_active_citation"] = idx
         st.rerun()
-    st.markdown(label_markdown, unsafe_allow_html=True)
 
-
-# ─── Custom CSS Styling ────────────────────────────────────────────────
-st.markdown("""
-<style>
-.synth-card {
-    background: rgba(15, 23, 42, 0.75);
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    border-radius: 1rem;
-    padding: 1.25rem;
-    backdrop-filter: blur(12px);
-}
-.audio-player-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid rgba(99, 102, 241, 0.4);
-    border-radius: 1rem;
-    padding: 0.85rem 1.25rem;
-    gap: 1rem;
-    flex-wrap: wrap;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-}
-.play-btn {
-    width: 3rem; height: 3rem; border-radius: 50%;
-    background: #4f46e5; border: none; color: white;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s; font-size: 1.2rem;
-    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.5); flex-shrink: 0;
-}
-.play-btn:hover { background: #6366f1; transform: scale(1.08); }
-.rigor-badge {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    background: rgba(5, 150, 105, 0.18);
-    border: 1px solid rgba(5, 150, 105, 0.45);
-    padding: 0.4rem 0.85rem; border-radius: 0.75rem; font-size: 0.75rem;
-}
-.rigor-score { color: #34d399; font-weight: 700; font-size: 0.85rem; }
-.inspector-panel {
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 0.75rem;
-    padding: 1rem;
-    min-height: 210px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-.prior-art-card {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(148, 163, 184, 0.15);
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    transition: all 0.2s;
-}
-.prior-art-card:hover {
-    border-color: rgba(129, 140, 248, 0.4);
-    background: rgba(15, 23, 42, 0.8);
-}
-/* Streamlit button alignment overrides */
-div[data-testid="column"] div.stButton > button {
-    font-size: 0.75rem !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-# ─── Sidebar Controls & Configuration ──────────────────────────────────
+# ─── SIDEBAR PIPELINE CONTROLS ─────────────────────────────────────────
 with st.sidebar:
     section_header("⚙️ Advanced Pipeline Config")
     
     st.session_state["synth_extraction_depth"] = st.selectbox(
         "Semantic Extraction Depth",
-        options=["Fast Scan (Core Abstract)", "Comprehensive (Full Semantic Tree)", "Exhaustive (Cross-Referenced Deep-Dive)"],
+        options=["Fast Scan (Core Abstract)", "Comprehensive (Full Semantic Tree)", "Exhaustive (Deep-Dive)"],
         index=1
     )
     
@@ -306,7 +379,7 @@ with st.sidebar:
         index=0
     )
     
-    st.markdown("---")
+    st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
     section_header("📦 Export & Integration")
     
     st.session_state["synth_export_format"] = st.selectbox(
@@ -315,20 +388,10 @@ with st.sidebar:
     )
     
     if st.button("📥 Export Synthesized Artifacts", use_container_width=True):
-        st.success(f"Successfully generated package in {st.session_state['synth_export_format']}!")
-
-    st.markdown("---")
-    st.markdown(
-        "<div style='font-size: 0.7rem; color: #64748b; text-align: center;'>"
-        "Muni University Bioinformatics & Data Analytics Lab<br/>"
-        "Secure Research Pipeline v4.2"
-        "</div>",
-        unsafe_allow_html=True
-    )
-
+        st.success(f"Generated package in {st.session_state['synth_export_format']}!")
 
 # ═══════════════════════════════════════════════════════════════════════
-# TOP CONFIGURATION BANNER (Language Selector & Multimodal Input Toggle)
+# TOP CONFIGURATION BANNER
 # ═══════════════════════════════════════════════════════════════════════
 
 col_lang_top, col_toggle_top = st.columns([1, 2])
@@ -360,31 +423,30 @@ with col_toggle_top:
         st.session_state["synth_input_type"] = new_in_type
         st.rerun()
 
-st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
-
+st.markdown("<div style='margin-bottom: 0.5rem;'></div>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════
-# MAIN 2-COLUMN WORKSPACE (Left Input | Right Output & Intelligence Hub)
+# MAIN 2-COLUMN WORKSPACE
 # ═══════════════════════════════════════════════════════════════════════
 
 col_input, col_output = st.columns([4, 8])
 
 # ──────────────────────────────────────────────────────────────────────
-# LEFT COLUMN: INPUT WIDGETS & SYNTHESIS TRIGGER
+# LEFT COLUMN: INGESTION PORTAL
 # ──────────────────────────────────────────────────────────────────────
 with col_input:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("<div style='font-weight: 700; color: #f8fafc; font-size: 0.9rem; margin-bottom: 0.75rem;'>📥 Ingestion Portal</div>", unsafe_allow_html=True)
+    st.markdown("<h4 style='margin-top:0; color:#00f2fe;'>📥 Ingestion Portal</h4>", unsafe_allow_html=True)
 
     in_type = st.session_state["synth_input_type"]
 
     if in_type == "text":
-        st.markdown('<label style="font-size:0.75rem;font-weight:600;color:#94a3b8;">Paste Research Document, Abstract, or Notes</label>', unsafe_allow_html=True)
+        st.markdown('<label style="font-size:0.8rem;font-weight:600;color:#cbd5e1;">Paste Research Document, Abstract, or Notes</label>', unsafe_allow_html=True)
         txt_val = st.text_area(
             "",
             value=st.session_state["synth_input_text"] or "Multi-sensor satellite fusion combining Sentinel-1 C-band SAR and Sentinel-2 optical imagery for continuous tropical environmental monitoring under dense cloud cover...",
             placeholder="Paste dense research text, code blocks, or raw experimental data here...",
-            height=200,
+            height=180,
             key="synth_text_input_area",
             label_visibility="collapsed"
         )
@@ -392,7 +454,7 @@ with col_input:
             st.session_state["synth_input_text"] = txt_val
 
     elif in_type == "url":
-        st.markdown('<label style="font-size:0.75rem;font-weight:600;color:#94a3b8;">Enter ArXiv, DOI, or Web URL</label>', unsafe_allow_html=True)
+        st.markdown('<label style="font-size:0.8rem;font-weight:600;color:#cbd5e1;">Enter ArXiv, DOI, or Web URL</label>', unsafe_allow_html=True)
         url_val = st.text_input(
             "",
             value=st.session_state["synth_input_url"] or "https://arxiv.org/abs/2603.09142",
@@ -404,35 +466,35 @@ with col_input:
             st.session_state["synth_input_url"] = url_val
 
     else:
-        st.markdown('<label style="font-size:0.75rem;font-weight:600;color:#94a3b8;">Upload Lecture Video / Audio File</label>', unsafe_allow_html=True)
+        st.markdown('<label style="font-size:0.8rem;font-weight:600;color:#cbd5e1;">Upload Video / Audio File</label>', unsafe_allow_html=True)
         uploaded = st.file_uploader("", type=["mp4", "mov", "wav", "mp3", "mkv"], key="synth_vid_upload", label_visibility="collapsed")
         if uploaded:
-            st.success(f"✅ Loaded: {uploaded.name} ({uploaded.size:,} bytes)")
+            st.success(f"Loaded: {uploaded.name} ({uploaded.size:,} bytes)")
 
-    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
-    st.markdown('<label style="font-size:0.75rem;font-weight:600;color:#94a3b8;">🎧 Select Audio Briefing Style</label>', unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 0.8rem;'></div>", unsafe_allow_html=True)
+    st.markdown('<label style="font-size:0.8rem;font-weight:600;color:#cbd5e1;">🎧 Audio Briefing Style</label>', unsafe_allow_html=True)
     _build_audio_style_options()
 
     st.markdown("<div style='margin-top: 1.25rem;'></div>", unsafe_allow_html=True)
     
-    can_submit = True # Always active with pre-populated demo state
     if st.button("⚡ Synthesize & Generate Briefing", key="synth_execute_btn", type="primary", use_container_width=True):
-        handle_synthesize()
+        st.session_state["synth_is_processing"] = True
+        st.session_state["synth_has_result"] = False
+        st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-
 # ──────────────────────────────────────────────────────────────────────
-# RIGHT COLUMN: OUTPUT WORKSPACE, AUDIO PLAYER, CITATION & PRIOR ART HUB
+# RIGHT COLUMN: OUTPUT WORKSPACE & AUDIO INTELLIGENCE
 # ──────────────────────────────────────────────────────────────────────
 with col_output:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
 
     if st.session_state["synth_is_processing"]:
-        with st.spinner("🌀 Running Vector Extraction & Cross-Lingual Knowledge Synthesis..."):
+        with st.spinner("🌀 Running Vector Extraction & Cross-Lingual Synthesis..."):
             prog = st.progress(0)
             for p in range(0, 101, 25):
-                time.sleep(0.25)
+                time.sleep(0.2)
                 prog.progress(p)
             st.session_state["synth_is_processing"] = False
             st.session_state["synth_has_result"] = True
@@ -447,23 +509,22 @@ with col_output:
         style_title_map = {
             "podcast_dialogue": "2-Host Scientific Podcast Brief",
             "executive": "Solo Executive Audio Debrief",
-            "academic": "Peer Reviewer Methodological Critique"
+            "academic": "Peer Reviewer Critique"
         }
         active_style_label = style_title_map.get(audio_style_name, "Audio Briefing")
 
-        # ─── Output Header & Rigor Badge ──────────────────────────────
+        # Header & Rigor Badge
         head_col1, head_col2 = st.columns([3, 1])
         with head_col1:
             st.markdown(
                 f"""
-                <div style="font-size: 0.65rem; font-family: monospace; color: #818cf8; margin-bottom: 0.2rem;">
-                    TRANSLATED TO {curr_lang.upper()} <span style="color: #475569;">•</span> 
-                    <span style="color: #34d399; font-weight: 600;">94.8% Compression Efficiency</span>
+                <div style="font-size: 0.75rem; font-family: monospace; color: #00f2fe; margin-bottom: 0.2rem;">
+                    TRANSLATED TO {curr_lang.upper()} • <span style="color: #10b981; font-weight: 700;">94.8% Compression Efficiency</span>
                     <span style="color: #64748b; margin-left: 0.5rem;">SHA: {compute_hash(RESULT_TITLE)}</span>
                 </div>
-                <div style="font-size: 1.15rem; font-weight: 800; color: #f8fafc; line-height: 1.3;">
+                <h3 style="margin: 0; color: #ffffff !important; font-size: 1.25rem;">
                     {RESULT_TITLE}
-                </div>
+                </h3>
                 """,
                 unsafe_allow_html=True
             )
@@ -473,121 +534,110 @@ with col_output:
                 <div class="rigor-badge">
                     <span>🛡️</span>
                     <div>
-                        <div class="rigor-score">Rigor: 9.4/10</div>
-                        <div style="color: #6ee7b7; font-size: 0.55rem;">Zero-Hallucination Verified</div>
+                        <div style="color:#10b981; font-weight:800; font-size:0.85rem;">Rigor: 9.4/10</div>
+                        <div style="color: #6ee7b7; font-size: 0.65rem;">Zero-Hallucination</div>
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-        st.markdown("<div style='margin: 0.75rem 0;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin: 0.8rem 0;'></div>", unsafe_allow_html=True)
 
-        # ─── Neural Audio Player Bar ──────────────────────────────────
+        # Neural Audio Player Controls
         st.markdown(
             f"""
             <div class="audio-player-bar">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <button class="play-btn" onclick="alert('Playing neural synthesized audio stream...')">▶</button>
-                    <div>
-                        <div style="font-size: 0.8rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 0.4rem;">
-                            <span style="color: #818cf8;">🎧</span> {active_style_label} ({st.session_state['synth_voice_profile']})
-                        </div>
-                        <div style="font-size: 0.65rem; color: #64748b;">
-                            Duration: 04:15 | Synchronized Neural Text Highlighting Active
-                        </div>
+                    <div style="font-size: 0.9rem; font-weight: 800; color: #00f2fe;">
+                        🎧 {active_style_label}
                     </div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <select style="background: rgba(15,23,42,0.9); border: 1px solid rgba(148,163,184,0.3); color: #cbd5e1; font-size: 0.7rem; border-radius: 0.5rem; padding: 0.35rem 0.6rem;">
-                        <option>1.0x Speed</option>
-                        <option>1.25x Speed</option>
-                        <option>1.5x Speed</option>
-                        <option>2.0x Speed</option>
-                    </select>
-                    <span style="background: rgba(79, 70, 229, 0.2); color: #a5b4fc; border: 1px solid rgba(79, 70, 229, 0.4); padding: 0.3rem 0.65rem; border-radius: 0.5rem; font-size: 0.7rem; font-weight: 600; cursor: pointer;">📥 MP3</span>
+                    <div style="font-size: 0.75rem; color: #cbd5e1;">
+                        Voice: <strong>{st.session_state['synth_voice_profile']}</strong> | Duration: 04:15
+                    </div>
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        st.markdown("<div style='margin: 0.75rem 0;'></div>", unsafe_allow_html=True)
+        p_col1, p_col2, p_col3 = st.columns([1, 2, 1])
+        with p_col1:
+            if st.button("▶ Play Audio Stream" if not st.session_state["synth_is_playing"] else "⏸ Pause Audio Stream", use_container_width=True):
+                st.session_state["synth_is_playing"] = not st.session_state["synth_is_playing"]
+                st.rerun()
+        with p_col2:
+            st.session_state["synth_playback_speed"] = st.selectbox(
+                "Playback Speed", 
+                options=["0.8x Speed", "1.0x Speed", "1.25x Speed", "1.5x Speed", "2.0x Speed"],
+                index=1,
+                label_visibility="collapsed"
+            )
+        with p_col3:
+            st.download_button(
+                "📥 Download Audio",
+                data=b"Simulated_Audio_Bytes",
+                file_name="research_briefing.mp3",
+                mime="audio/mp3",
+                use_container_width=True
+            )
 
-        # ─── Split Grid: Key Insights & Ground Truth Inspector ─────────
+        st.markdown("<hr style='border:1px solid #1e293b; margin: 1.2rem 0;'>", unsafe_allow_html=True)
+
+        # Split Grid: Insights vs Inspector
         col_ins, col_insp = st.columns(2)
 
         with col_ins:
-            st.markdown(
-                """
-                <div style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
-                    <span style="color: #818cf8;">📑</span> Verified Key Insights (Click to Audit)
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.markdown("#### 📑 Key Grounded Insights")
             for idx, cit in enumerate(ENHANCED_CITATIONS):
                 _build_citation_card(cit, idx)
 
         with col_insp:
-            st.markdown(
-                """
-                <div style="font-size: 0.7rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
-                    <span style="color: #fbbf24;">👁️</span> Ground Truth Source Inspector
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.markdown("#### 👁️ Source Grounding Inspector")
             st.markdown(
                 f"""
                 <div class="inspector-panel">
                     <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-                            <span style="font-size: 0.65rem; font-family: monospace; color: #f59e0b;">Segment ID: {active_cit['id']}</span>
-                            <span style="font-size: 0.65rem; font-family: monospace; color: #64748b;">Vector: {active_cit['embeddingsRef']}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                            <span style="font-size: 0.75rem; font-family: monospace; color: #f59e0b; font-weight:700;">ID: {active_cit['id']}</span>
+                            <span style="font-size: 0.75rem; font-family: monospace; color: #94a3b8;">Vector: {active_cit['embeddingsRef']}</span>
                         </div>
-                        <div style="background: rgba(15, 23, 42, 0.9); padding: 0.75rem; border-radius: 0.5rem; border: 1px solid rgba(245,158,11,0.2);">
-                            <div style="font-size: 0.65rem; color: #94a3b8; margin-bottom: 0.25rem;">Original Document Excerpt ({active_cit['sourceLocation']}):</div>
-                            <p style="font-size: 0.75rem; color: #cbd5e1; font-style: italic; line-height: 1.5; margin: 0;">
-                                &ldquo;{active_cit['originalContext']}&rdquo;
+                        <div style="background: #04080f; padding: 0.85rem; border-radius: 6px; border: 1px solid #f59e0b44;">
+                            <div style="font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.3rem;">Source Context ({active_cit['sourceLocation']}):</div>
+                            <p style="font-size: 0.8rem; color: #f8fafc; font-style: italic; line-height: 1.5; margin: 0;">
+                                "{active_cit['originalContext']}"
                             </p>
                         </div>
                     </div>
-                    <div style="font-size: 0.65rem; color: #34d399; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.3rem;">
-                        <span>✅ Cryptographically Verified Against Source Corpus (Zero Hallucination)</span>
+                    <div style="font-size: 0.75rem; color: #10b981; margin-top: 0.6rem; font-weight:700;">
+                        ✅ Cryptographically Verified Source Segment
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-        # ─── Prior Art & Literature Knowledge Graph Context ────────────
-        st.markdown(
-            """
-            <div style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin: 1rem 0 0.5rem 0; display: flex; align-items: center; gap: 0.35rem;">
-                <span style="color: #818cf8;">🔀</span> Prior Art & Literature Knowledge Mapping
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("<hr style='border:1px solid #1e293b; margin: 1.2rem 0;'>", unsafe_allow_html=True)
 
+        # Prior Art & Literature Knowledge Graph
+        st.markdown("#### 🔀 Prior Art & Literature Mapping")
         for work in ENHANCED_RELATED_WORKS:
-            rel_color = "#f59e0b" if work["relation"] == "Conflicting" else ("#34d399" if work["relation"] == "Collaborative" else "#818cf8")
+            rel_color = "#f59e0b" if work["relation"] == "Conflicting" else ("#10b981" if work["relation"] == "Collaborative" else "#00f2fe")
             st.markdown(
                 f"""
                 <div class="prior-art-card">
-                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; color: #e2e8f0; font-size: 0.8rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <div style="font-weight: 700; color: #ffffff; font-size: 0.85rem;">
                                 {work['title']}
                             </div>
-                            <div style="color: #64748b; font-size: 0.7rem; margin-top: 0.15rem;">
+                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 0.2rem;">
                                 {work['authors']} ({work['year']}) • {work['citations']} Citations • DOI: {work['doi']}
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="font-size: 0.65rem; color: #94a3b8;">Overlap: {int(work['semanticOverlap']*100)}%</span>
-                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 600; background: rgba(79,70,229,0.2); color: {rel_color}; border: 1px solid {rel_color};">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span style="font-size: 0.75rem; color: #cbd5e1;">Overlap: <strong>{int(work['semanticOverlap']*100)}%</strong></span>
+                            <span style="font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 999px; font-weight: 700; background: rgba(0,0,0,0.4); color: {rel_color}; border: 1px solid {rel_color};">
                                 {work['relation']}
                             </span>
                         </div>

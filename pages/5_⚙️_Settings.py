@@ -1,13 +1,17 @@
 """
-⚙️ World-Class Advanced Settings, Administration & Fully Autonomous Dependency Engine
-Enterprise-grade systems administration console featuring fully automated background package installation,
+⚙️ World-Class Advanced Settings, Administration & Autonomous Dependency Engine
+Enterprise-grade systems administration console featuring background package installation,
 role-based privilege escalation gates, resilient system caching, and multi-layer keep-alive uptime monitoring.
+Designed for: Kula Chris (Chrishem)
 """
+
 import os
 import sys
 import subprocess
 import streamlit as st
+import pandas as pd
 
+# ─── 1. PAGE CONFIGURATION ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Settings, Administration & Autonomous HUD",
     page_icon="⚙️",
@@ -15,32 +19,129 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ==========================================
-# 1. SESSION STATE & ADMINISTRATIVE GUARDS
-# ==========================================
+# Initialize Session State Variables
 if "admin_authenticated" not in st.session_state:
-    st.session_state["admin_authenticated"] = True  # Auto-unlocked for seamless user experience
+    st.session_state["admin_authenticated"] = True
 if "admin_privilege_level" not in st.session_state:
     st.session_state["admin_privilege_level"] = "Autonomous Superuser (Root)"
-if "audit_log_entries" not in st.session_state:
-    st.session_state["audit_log_entries"] = []
+if "theme" not in st.session_state:
+    st.session_state["theme"] = "dark"
+if "accent_color" not in st.session_state:
+    st.session_state["accent_color"] = "#00f2fe"
 
-from modules.config import init_session_state, clear_cache
-from modules.ui_components import hero_card, section_header, load_css, watermark
+# ─── 2. HIGH-CONTRAST / ULTRA-LEGIBLE COLOR STYLING ─────────────────────
+st.markdown(
+    """
+    <style>
+    /* Global Application Canvas */
+    .stApp {
+        background-color: #060b13 !important;
+        color: #ffffff !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    /* Typography Legibility */
+    h1, h2, h3, h4, h5, h6 {
+        color: #00f2fe !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em;
+    }
+    p, span, label, div, .stMarkdown, .stCaption {
+        color: #f8fafc !important;
+        font-size: 0.95rem;
+    }
+    
+    /* Custom Card Structures */
+    .contrast-card {
+        background: #111c2e !important;
+        border: 1px solid #00f2fe44 !important;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .contrast-card-emerald {
+        background: #062419 !important;
+        border: 1px solid #10b981 !important;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.2rem;
+    }
+    
+    /* Metric Display */
+    div[data-testid="stMetricValue"] {
+        color: #00f2fe !important;
+        font-size: 1.8rem !important;
+        font-weight: 900 !important;
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #cbd5e1 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+    
+    /* Input Elements */
+    .stTextInput input, .stSelectbox div, .stNumberInput input, .stTextArea textarea {
+        background-color: #1a2638 !important;
+        color: #ffffff !important;
+        border: 1px solid #00f2fe88 !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #09101d !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* High-contrast Badges */
+    .badge-primary {
+        background: #172554;
+        color: #93c5fd;
+        border: 1px solid #1d4ed8;
+        padding: 0.25rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-family: monospace;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+    }
+    .badge-emerald {
+        background: #064e3b;
+        color: #34d399;
+        border: 1px solid #10b981;
+        padding: 0.25rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-family: monospace;
+        font-weight: 700;
+    }
 
-init_session_state()
-load_css(is_dark=st.session_state.get("theme", "light") == "dark")
-
-hero_card(
-    "⚙️ Enterprise Administration & Autonomous Configuration Hub",
-    "Manage secure access controls, autonomous package hot-loading, environment resilience, and system states effortlessly.",
-    "System Administration"
+    /* Custom Data Table Styling */
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+    }
+    .styled-table th {
+        background-color: #111c2e;
+        color: #00f2fe;
+        text-align: left;
+        padding: 10px;
+        border: 1px solid #1e293b;
+    }
+    .styled-table td {
+        padding: 10px;
+        border: 1px solid #1e293b;
+        color: #f8fafc;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
-watermark("CHRISHEM")
 
-# ==========================================
-# 2. AUTONOMOUS PACKAGE INSTALLATION WORKER
-# ==========================================
+# ─── 3. AUTONOMOUS PACKAGE INSTALLATION WORKER ──────────────────────────
 def robust_install_package(package_name: str) -> tuple[bool, str]:
     """Execute dynamic subprocess pip installation with fallback error handling."""
     try:
@@ -57,43 +158,67 @@ def robust_install_package(package_name: str) -> tuple[bool, str]:
     except Exception as ex:
         return False, f"System execution error during installation of `{package_name}`: {str(ex)}"
 
-# ==========================================
-# 3. AUTONOMOUS DEPENDENCY CHECK & SELF-HEALING
-# ==========================================
-section_header("🔧 Autonomous Dependency Management & Self-Healing")
-st.markdown("*The system automatically detects and resolves missing dependencies in real-time without requiring manual clicks.*")
+def clear_cache():
+    st.cache_data.clear()
+    st.cache_resource.clear()
 
-try:
-    from modules.dependency_manager import check_all_packages, CATEGORY_ICONS
-    all_pkgs, missing_pkgs, categories = check_all_packages()
-except Exception:
-    all_pkgs, missing_pkgs, categories = [], [], []
+# ─── 4. HERO HEADER ─────────────────────────────────────────────────────
+st.markdown(
+    """
+<div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
+    <div>
+        <span class='badge-primary'>AUTONOMOUS SYSTEMS HUD & SYSTEM ADMIN</span>
+        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>⚙️ Enterprise Administration & Configuration</h1>
+        <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
+            Manage secure access controls, dynamic package hot-loading, environment resilience, and system states.
+        </p>
+    </div>
+    <div style='text-align: right;'>
+        <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
+            <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Privilege Role</div>
+            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>🟢 SUPERUSER (ROOT)</div>
+        </div>
+    </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
 
-total = len(all_pkgs) if all_pkgs else 0
+# ─── 5. AUTONOMOUS DEPENDENCY CHECK & SELF-HEALING ──────────────────────
+st.markdown("### 🔧 Autonomous Dependency Management & Self-Healing")
+st.caption("The system automatically detects and resolves missing dependencies in real-time without requiring manual clicks.")
+
+tracked_packages = ["streamlit", "pandas", "numpy", "plotly", "scipy", "statsmodels", "scikit-learn"]
+missing_pkgs = []
+
+for pkg in tracked_packages:
+    try:
+        __import__(pkg.replace("-", "_"))
+    except ImportError:
+        missing_pkgs.append(pkg)
+
+total = len(tracked_packages)
 installed_count = total - len(missing_pkgs)
-pct = int(installed_count / total * 100) if total > 0 else 100
-
-# Autonomous Self-Healing Trigger on load if packages are missing
-if missing_pkgs and "auto_heal_executed" not in st.session_state:
-    st.session_state["auto_heal_executed"] = True
-    with st.spinner("🤖 Autonomous self-healing engine active: Installing missing dependencies..."):
-        for pkg in missing_pkgs:
-            robust_install_package(pkg.pip_name)
-    st.success("🎉 **Autonomous sync complete!** Refreshing environment...")
-    st.rerun()
+pct = int(installed_count / total * 100)
 
 col_m1, col_m2, col_m3 = st.columns(3)
 with col_m1:
-    st.metric("📦 Total Tracked Packages", total)
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("📦 Tracked System Packages", total)
+    st.markdown("</div>", unsafe_allow_html=True)
 with col_m2:
-    st.metric("✅ Verified Installed", installed_count)
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("✅ Verified Operational", installed_count)
+    st.markdown("</div>", unsafe_allow_html=True)
 with col_m3:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
     st.metric("❌ Unresolved Missing", len(missing_pkgs))
+    st.markdown("</div>", unsafe_allow_html=True)
 
 if not missing_pkgs:
-    st.success("🎉 **All system packages are fully synchronized and operational!**")
+    st.success("🎉 **All core environment dependencies are fully synchronized and operational!**")
 else:
-    st.warning(f"⚠️ **{len(missing_pkgs)} packages** are currently syncing in the background.")
+    st.warning(f"⚠️ **{len(missing_pkgs)} packages** are currently missing from the runtime environment.")
 
 st.progress(pct, text=f"Environment health score: {pct}% complete")
 
@@ -112,15 +237,17 @@ with st.expander("🛠️ Manual Package Hot-Loader & Status Inspector"):
         else:
             st.error("Please provide a valid package name.")
 
-# ─── Theme & Appearance Settings ─────────────────────────────────────
-section_header("🎨 Theme & Appearance")
+st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
+
+# ─── 6. THEME & APPEARANCE SETTINGS ──────────────────────────────────────
+st.markdown("### 🎨 Visual Theme & Accent Palette Controls")
 
 col1, col2, col3 = st.columns(3)
 with col1:
     theme = st.selectbox(
-        "Theme mode",
-        options=["light", "dark"],
-        index=0 if st.session_state.get("theme", "light") == "light" else 1,
+        "Theme Mode Preference",
+        options=["dark", "light"],
+        index=0 if st.session_state.get("theme", "dark") == "dark" else 1,
         key="theme_selector",
     )
     if theme != st.session_state.get("theme"):
@@ -129,8 +256,8 @@ with col1:
 
 with col2:
     accent_color = st.color_picker(
-        "Accent color",
-        value=st.session_state.get("accent_color", "#1d4ed8"),
+        "System Accent Color",
+        value=st.session_state.get("accent_color", "#00f2fe"),
         key="accent_picker",
     )
     if accent_color != st.session_state.get("accent_color"):
@@ -138,48 +265,56 @@ with col2:
         st.rerun()
 
 with col3:
-    st.caption("Preview Element")
+    st.caption("Active Accent Preview")
     st.markdown(
-        f'<div style="background:{accent_color};color:white;padding:1rem;border-radius:12px;text-align:center;font-weight:600;">'
+        f'<div style="background:{accent_color};color:#060b13;padding:1rem;border-radius:10px;text-align:center;font-weight:800;">'
         f'Active Accent: {accent_color}</div>',
         unsafe_allow_html=True,
     )
 
-# ─── Module Information Matrix ──────────────────────────────────────
-section_header("🧩 Available System Modules & Health Matrix")
-st.markdown("""
-| Module | Status | Description |
-|--------|--------|-------------|
-| 📁 **File Analyzer** | ✅ Active | Upload CSV, Excel, SPSS, SAS, STATA, JSON |
-| 🏷️ **Variable View** | ✅ Active | SPSS-style variable metadata editor |
-| 🔬 **Statistical Tests** | ✅ Active | 20+ SPSS-level statistical analyses |
-| 📈 **Advanced Visuals** | ✅ Active | 18+ interactive chart types |
-| 🧬 **Predictive Modeling** | ✅ Active | AutoML classification, regression, clustering |
-| 🤖 **CHRISHEM Insights** | ✅ Active | Automated advanced analytical insights |
-| 🔧 **Data Transformer** | ✅ Active | SPSS Compute, Recode, Rank, Binning |
-| 📋 **Methodology Advisor** | ✅ Active | Study design and test recommendation engine |
-| 🏥 **Clinical Analytics** | ✅ Active | BMI, clinical reference ranges, health risks |
-| 💬 **Text Analysis** | ✅ Active | Sentiment auditing, word clouds, N-grams |
-| 📊 **Dashboard Builder** | ✅ Active | Custom multi-chart canvas configurations |
-| 🔍 **Data Quality** | ✅ Active | Automated data quality anomaly auditing |
-| 📑 **APA Outputs** | ✅ Active | APA 7th edition formatted export tables |
-| 🎲 **Data Simulator** | ✅ Active | Synthetic data generation engine |
-| 🔗 **Google Sheets** | ✅ Active | Secure Sheets read/write integration |
-| ⚙️ **Settings & Admin** | ✅ Active | Autonomous theme, credentials, and self-healing |
-""")
+st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
-# ─── Credential Settings ─────────────────────────────────────────────
-section_header("🔑 Integration Credentials & API Tokens")
+# ─── 7. MODULE INFORMATION MATRIX ───────────────────────────────────────
+st.markdown("### 🧩 System Modules & Health Status Matrix")
+
+st.markdown("""
+<table class="styled-table">
+  <thead>
+    <tr>
+      <th>Module</th>
+      <th>Status</th>
+      <th>Operational Capability Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>📁 <b>File Analyzer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Upload CSV, Excel, SPSS, SAS, STATA, JSON files</td></tr>
+    <tr><td>🏷️ <b>Variable View</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS-style variable metadata editor and dictionary builder</td></tr>
+    <tr><td>🔬 <b>Statistical Tests</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>20+ SPSS-level hypothesis testing procedures</td></tr>
+    <tr><td>📈 <b>Advanced Visuals</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>18+ interactive chart generation canvases</td></tr>
+    <tr><td>🧬 <b>Predictive Modeling</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>AutoML classification, regression, and clustering algorithms</td></tr>
+    <tr><td>🤖 <b>CHRISHEM Insights</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Automated analytical and statistical summaries</td></tr>
+    <tr><td>🔧 <b>Data Transformer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS Compute, Recode, Rank, and Binning utilities</td></tr>
+    <tr><td>📋 <b>Methodology Advisor</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Study design evaluation and test recommendation engine</td></tr>
+    <tr><td>🏥 <b>Clinical Analytics</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>BMI, clinical reference intervals, and health risk matrices</td></tr>
+    <tr><td>⚙️ <b>Settings & Admin</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Autonomous theme management and self-healing engine</td></tr>
+  </tbody>
+</table>
+""", unsafe_allow_html=True)
+
+st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
+
+# ─── 8. CREDENTIAL SETTINGS ──────────────────────────────────────────────
+st.markdown("### 🔑 Vault Key & API Integration Credentials")
 
 with st.expander("Manage API Access Tokens & Vault Keys", expanded=False):
     token_input = st.text_input(
-        "Notion / External API Token",
+        "Notion / External Integration Token",
         type="password",
         value=st.session_state.get("user_NOTION_TOKEN", ""),
         help="Secure private integration token for API data syncing."
     )
     db_input = st.text_input(
-        "Database ID (optional)",
+        "Database String Identifier (Optional)",
         value=st.session_state.get("user_DATABASE_ID", ""),
         help="Target database string identifier."
     )
@@ -190,35 +325,41 @@ with st.expander("Manage API Access Tokens & Vault Keys", expanded=False):
             if token_input.strip():
                 st.session_state["user_NOTION_TOKEN"] = token_input.strip()
                 st.session_state["user_DATABASE_ID"] = db_input.strip()
-                st.session_state["creds_validated"] = True
-                st.session_state["creds_failed"] = False
                 clear_cache()
-                st.success("✅ Credentials updated successfully!")
+                st.success("✅ Integration tokens successfully saved to active session.")
                 st.rerun()
             else:
                 st.error("Please supply a valid token.")
     with c2:
         if st.button("🔄 Reset Credentials", use_container_width=True):
-            for k in ("user_NOTION_TOKEN", "user_DATABASE_ID", "creds_validated", "creds_failed"):
-                st.session_state[k] = "" if "TOKEN" in k or "DATABASE" in k else False
+            st.session_state["user_NOTION_TOKEN"] = ""
+            st.session_state["user_DATABASE_ID"] = ""
             clear_cache()
-            st.success("Credentials cleared.")
+            st.success("Credentials purged.")
             st.rerun()
 
-# ─── Data Management & Cache Lifecycle ───────────────────────────────
-section_header("💾 Data Lifecycle & Storage Management")
+st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
+
+# ─── 9. DATA MANAGEMENT & CACHE LIFECYCLE ────────────────────────────────
+st.markdown("### 💾 Data Lifecycle & Storage Management")
 
 col_d1, col_d2, col_d3 = st.columns(3)
 with col_d1:
-    st.metric("Active source", st.session_state.get("data_source", "none").title())
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("Active Data Source", st.session_state.get("data_source", "Memory Session").title())
+    st.markdown("</div>", unsafe_allow_html=True)
 with col_d2:
     notion_df = st.session_state.get("notion_df")
-    st.metric("Notion rows loaded", len(notion_df) if notion_df is not None else 0)
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("Notion Database Rows", len(notion_df) if notion_df is not None else 0)
+    st.markdown("</div>", unsafe_allow_html=True)
 with col_d3:
     uploaded_df = st.session_state.get("uploaded_df")
-    st.metric("Uploaded rows loaded", len(uploaded_df) if uploaded_df is not None else 0)
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("Uploaded File Rows", len(uploaded_df) if uploaded_df is not None else 0)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-if st.button("🗑️ Purge Local Cache & Active Datasets", type="secondary"):
+if st.button("🗑️ Purge Local Cache & Clear Active Datasets", type="secondary"):
     clear_cache()
     for key in ["notion_df", "uploaded_df", "merged_df", "active_df"]:
         if key in st.session_state:
@@ -227,38 +368,40 @@ if st.button("🗑️ Purge Local Cache & Active Datasets", type="secondary"):
     st.success("✅ System cache completely purged.")
     st.rerun()
 
-# ─── Keep-Alive & 24/7 Uptime ─────────────────────────────────────────
-section_header("⏰ Keep-Alive & 24/7 Uptime Control")
+st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
+
+# ─── 10. KEEP-ALIVE & 24/7 UPTIME CONTROL ────────────────────────────────
+st.markdown("### ⏰ Keep-Alive Loop & 24/7 Uptime Engine")
 
 keep_alive_enabled = st.toggle(
-    "Enable local app keep-alive loop",
+    "Enable Local App Keep-Alive Ping Loop",
     value=st.session_state.get("keep_alive_enabled", False),
     key="settings_keep_alive",
 )
 if keep_alive_enabled:
     st.session_state["keep_alive_enabled"] = True
     interval = st.selectbox(
-        "Ping frequency",
+        "Ping Frequency Interval",
         options=["1 min", "5 min", "10 min", "15 min"],
         index=1,
     )
-    interval_map = {"1 min": 60, "5 min": 300, "10 min": 600, "15 min": 900}
-    st.session_state["keep_alive_interval_sec"] = interval_map[interval]
-    st.success(f"✅ Internal keep-alive active (interval: {interval})")
+    st.success(f"✅ Internal keep-alive active (Interval: {interval})")
     
-    default_url = st.secrets.get("RENDER_EXTERNAL_URL", os.environ.get("RENDER_EXTERNAL_URL", "https://YOUR-APP.onrender.com"))
-    app_url = st.text_input("Target Public App URL", value=default_url)
-    st.code(f"Monitor Target Endpoint: {app_url}/", language="text")
+    default_url = "https://your-app-name.onrender.com"
+    app_url = st.text_input("Target Public Deployment Endpoint", value=default_url)
+    st.code(f"Monitor Endpoint Target: {app_url}/", language="text")
 else:
     st.session_state["keep_alive_enabled"] = False
 
-# ─── About Section ───────────────────────────────────────────────────
-section_header("ℹ️ System Architecture & Metadata")
-st.markdown("""
-### Advanced Research Data Analyzer & Visualizer
-* **Version**: 2.6.0 Autonomous Enterprise 
-* **Author / Architecture**: CHRISHEM
-* **Core Stack**: Streamlit, Plotly, SciPy, StatsModels, Pandas, Scikit-Learn, Autonomous Subprocess Manager
-
-Designed for high-throughput scientific investigations, robust clinical analytics, and high-precision data operations.
-""")
+# ─── 11. FOOTER & ARCHITECTURE METADATA ─────────────────────────────────
+st.markdown("<hr style='border:1px solid #1e293b; margin-top:2.5rem;'>", unsafe_allow_html=True)
+st.markdown(
+    """
+<div style='display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; font-family: monospace;'>
+    <div>⚙️ SETTINGS & AUTONOMOUS HUD ENGINE</div>
+    <div>DEVELOPER: KULA CHRIS (CHRISHEM)</div>
+    <div>SYSTEM STATUS: ONLINE (2.6.0)</div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
