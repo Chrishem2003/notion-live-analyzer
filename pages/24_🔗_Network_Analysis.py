@@ -8,9 +8,16 @@ Designed for CHRISHEM Enterprise Build.
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
+import os
+import sys
 import streamlit as st
 import pandas as pd
 import numpy as np
+
+# ─── RESOLVE IMPORT PATH (PREVENTS IMPORTERRORS ACROSS ALL PLATFORMS) ──────────
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
@@ -41,7 +48,7 @@ except ImportError:
     HAS_PLOTLY = False
 
 if not HAS_NETWORKX:
-    st.error("⚠️ networkx is required for topological analysis. Install with: `pip install networkx python-louvain plotly pandas numpy`")
+    st.error("⚠️ `networkx` is required for topological analysis. Please run `pip install networkx python-louvain plotly pandas numpy` in your terminal.")
     st.stop()
 
 # ─── CUSTOM HIGH-CONTRAST ENTERPRISE CSS ──────────────────────────────
@@ -90,6 +97,7 @@ st.markdown("""
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
+
     /* Main App Background & Default Text */
     .stApp {
         background-color: #020617 !important;
@@ -97,49 +105,6 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
 
-    /* ─── SIDEBAR DARK THEMING (FIX FOR WHITE SIDEBAR) ─── */
-    section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
-    }
-    
-    section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
-    }
-
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-
-    section[data-testid="stSidebar"] div[role="listbox"],
-    section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-        background-color: #020617 !important;
-        border: 1px solid #1e293b !important;
-        color: #f8fafc !important;
-    }
-
-    /* Page Navigation Item Hover & Active States */
-    section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"] {
-        border-radius: 8px !important;
-        padding: 0.5rem 0.8rem !important;
-        margin-bottom: 0.2rem !important;
-        transition: background-color 0.2s ease !important;
-    }
-
-    section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:hover {
-        background-color: #1e293b !important;
-    }
-
-    section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"][aria-current="page"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-    }
-
-    /* Headings & Text Cards */
     h1, h2, h3, h4, h5, h6 {
         color: #f8fafc !important;
         font-weight: 800 !important;
@@ -220,7 +185,7 @@ st.markdown("""
 
 # ─── HELPER FUNCTION: DYNAMIC GRAPH BUILDER ────────────────────────────
 @st.cache_data
-def generate_synthetic_graph(num_nodes=20, edge_prob=0.25, seed=42):
+def generate_synthetic_graph(num_nodes=20, edge_prob=0.30, seed=42):
     """Generates a weighted synthetic network graph with domain labels."""
     np.random.seed(seed)
     labels = [
@@ -236,7 +201,7 @@ def generate_synthetic_graph(num_nodes=20, edge_prob=0.25, seed=42):
     G = nx.relabel_nodes(G, mapping)
     
     for (u, v) in G.edges():
-        G.edges[u, v]['weight'] = np.round(np.random.uniform(0.35, 0.95), 3)
+        G.edges[u, v]['weight'] = float(np.round(np.random.uniform(0.35, 0.95), 3))
         
     return G
 
@@ -247,7 +212,8 @@ if "G" not in st.session_state:
 G = st.session_state["G"]
 
 # ─── HERO HEADER ───────────────────────────────────────────────────────
-st.markdown("""
+louvain_status = "🟢 Louvain Modularity Engine Active" if HAS_COMMUNITY else "🟡 Default Modularity Fallback"
+st.markdown(f"""
 <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;'>
     <div>
         <span class='badge-net'>⚡ v3.0 ULTRA — TOPOLOGICAL GRAPH ANALYTICS ENGINE</span>
@@ -261,7 +227,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#090d16; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>Graph Engine</div>
-            <div style='color:#10b981; font-size:0.85rem; font-weight:800;'>🟢 NetworkX & Louvain Active</div>
+            <div style='color:#10b981; font-size:0.85rem; font-weight:800;'>{louvain_status}</div>
         </div>
     </div>
 </div>
@@ -293,11 +259,16 @@ with tab1:
         remove_isolated = st.checkbox("Remove Isolated Nodes (Degree = 0)", value=True)
         
         if st.button("🚀 Rebuild Correlation Network", use_container_width=True):
-            raw_G = generate_synthetic_graph(num_nodes=20, edge_prob=0.35, seed=int(threshold * 100))
+            raw_G = generate_synthetic_graph(num_nodes=20, edge_prob=0.40, seed=int(threshold * 100))
             filtered_G = nx.Graph()
             for u, v, d in raw_G.edges(data=True):
                 if d.get("weight", 0) >= threshold:
                     filtered_G.add_edge(u, v, weight=d["weight"])
+            
+            # Keep nodes that meet the threshold or retain nodes connected to edges
+            for n in raw_G.nodes():
+                if not remove_isolated or n in filtered_G.nodes():
+                    filtered_G.add_node(n)
             
             if remove_isolated:
                 filtered_G.remove_nodes_from(list(nx.isolates(filtered_G)))
@@ -316,6 +287,8 @@ with tab1:
         n_edges = cur_G.number_of_edges()
         density = nx.density(cur_G) if n_nodes > 1 else 0
         avg_deg = np.mean([d for n, d in cur_G.degree()]) if n_nodes > 0 else 0
+        clustering_coeff = nx.average_clustering(cur_G) if n_nodes > 0 else 0
+        conn_comp = nx.number_connected_components(cur_G) if n_nodes > 0 else 0
         
         m1, m2, m3 = st.columns(3)
         m1.metric("Active Nodes", n_nodes)
@@ -327,8 +300,8 @@ Network Topology Summary:
 =================================================================
 Nodes: {n_nodes} variables | Edges: {n_edges}
 Average Degree: {avg_deg:.2f}
-Connected Components: {nx.number_connected_components(cur_G) if n_nodes > 0 else 0}
-Clustering Coefficient: {nx.average_clustering(cur_G):.3f} if n_nodes > 0 else 0
+Connected Components: {conn_comp}
+Clustering Coefficient: {clustering_coeff:.3f}
 =================================================================
         """, language="text")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -357,7 +330,10 @@ with tab2:
             elif cent_choice == "Betweenness Centrality":
                 scores = nx.betweenness_centrality(cur_G)
             elif cent_choice == "Eigenvector Centrality":
-                scores = nx.eigenvector_centrality(cur_G, max_iter=500)
+                try:
+                    scores = nx.eigenvector_centrality(cur_G, max_iter=500)
+                except Exception:
+                    scores = nx.degree_centrality(cur_G)
             else:
                 scores = nx.degree_centrality(cur_G)
 
@@ -375,6 +351,8 @@ with tab2:
                     xaxis=dict(gridcolor="#1e293b"), yaxis=dict(gridcolor="#1e293b")
                 )
                 st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.dataframe(df_cent, use_container_width=True)
         else:
             st.warning("⚠️ Graph is empty. Lower threshold in Tab 1 to populate graph.")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -394,7 +372,7 @@ with tab3:
 
     with col_cm2:
         st.markdown("<div class='net-card'>", unsafe_allow_html=True)
-        st.markdown("#### 📊 Partition Modularity & Color Map")
+        st.markdown("#### 📊 Partition Modularity & Network Map")
         
         cur_G = st.session_state["G"]
         if cur_G.number_of_nodes() > 0:
@@ -411,38 +389,41 @@ with tab3:
 
             st.metric(label="Optimal Modularity Score (Q)", value=f"Q = {modularity_q:.4f}")
             
-            pos = nx.spring_layout(cur_G, seed=42)
-            edge_x, edge_y = [], []
-            for edge in cur_G.edges():
-                x0, y0 = pos[edge[0]]
-                x1, y1 = pos[edge[1]]
-                edge_x.extend([x0, x1, None])
-                edge_y.extend([y0, y1, None])
+            if HAS_PLOTLY:
+                pos = nx.spring_layout(cur_G, seed=42)
+                edge_x, edge_y = [], []
+                for edge in cur_G.edges():
+                    x0, y0 = pos[edge[0]]
+                    x1, y1 = pos[edge[1]]
+                    edge_x.extend([x0, x1, None])
+                    edge_y.extend([y0, y1, None])
 
-            edge_trace = go.Scatter(x=edge_x, y=edge_y, line=dict(width=1, color='#475569'), hoverinfo='none', mode='lines')
+                edge_trace = go.Scatter(x=edge_x, y=edge_y, line=dict(width=1, color='#475569'), hoverinfo='none', mode='lines')
 
-            node_x, node_y, node_colors, node_text = [], [], [], []
-            for node in cur_G.nodes():
-                x, y = pos[node]
-                node_x.append(x)
-                node_y.append(y)
-                node_colors.append(partition.get(node, 0))
-                node_text.append(f"Node: {node}<br>Community: {partition.get(node, 0)}")
+                node_x, node_y, node_colors, node_text = [], [], [], []
+                for node in cur_G.nodes():
+                    x, y = pos[node]
+                    node_x.append(x)
+                    node_y.append(y)
+                    node_colors.append(partition.get(node, 0))
+                    node_text.append(f"Node: {node}<br>Community: {partition.get(node, 0)}")
 
-            node_trace = go.Scatter(
-                x=node_x, y=node_y, mode='markers+text', text=[n for n in cur_G.nodes()],
-                textposition="top center", hoverinfo='text', hovertext=node_text,
-                marker=dict(showscale=True, colorscale='Turbo', color=node_colors, size=16, line_width=2)
-            )
+                node_trace = go.Scatter(
+                    x=node_x, y=node_y, mode='markers+text', text=[n for n in cur_G.nodes()],
+                    textposition="top center", hoverinfo='text', hovertext=node_text,
+                    marker=dict(showscale=True, colorscale='Turbo', color=node_colors, size=16, line_width=2)
+                )
 
-            fig_net = go.Figure(data=[edge_trace, node_trace])
-            fig_net.update_layout(
-                showlegend=False, paper_bgcolor="#020617", plot_bgcolor="#090d16",
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                margin=dict(t=10, b=10, l=10, r=10), height=450
-            )
-            st.plotly_chart(fig_net, use_container_width=True)
+                fig_net = go.Figure(data=[edge_trace, node_trace])
+                fig_net.update_layout(
+                    showlegend=False, paper_bgcolor="#020617", plot_bgcolor="#090d16",
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    margin=dict(t=10, b=10, l=10, r=10), height=450
+                )
+                st.plotly_chart(fig_net, use_container_width=True)
+            else:
+                st.write(partition)
         else:
             st.warning("⚠️ Graph contains no active nodes.")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -521,13 +502,16 @@ with tab5:
                 temp_G.remove_node(n)
 
             df_decay = pd.DataFrame({"Fraction Removed": fractions, "Giant Component Share": giant_sizes})
-            fig_decay = px.line(df_decay, x="Fraction Removed", y="Giant Component Share", title="Network Breakdown Curve")
-            fig_decay.update_traces(line_color="#f43f5e", line_width=3)
-            fig_decay.update_layout(
-                paper_bgcolor="#020617", plot_bgcolor="#090d16",
-                font=dict(color="#f8fafc"), xaxis=dict(gridcolor="#1e293b"), yaxis=dict(gridcolor="#1e293b")
-            )
-            st.plotly_chart(fig_decay, use_container_width=True)
+            if HAS_PLOTLY:
+                fig_decay = px.line(df_decay, x="Fraction Removed", y="Giant Component Share", title="Network Breakdown Curve")
+                fig_decay.update_traces(line_color="#f43f5e", line_width=3)
+                fig_decay.update_layout(
+                    paper_bgcolor="#020617", plot_bgcolor="#090d16",
+                    font=dict(color="#f8fafc"), xaxis=dict(gridcolor="#1e293b"), yaxis=dict(gridcolor="#1e293b")
+                )
+                st.plotly_chart(fig_decay, use_container_width=True)
+            else:
+                st.dataframe(df_decay, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ─── FOOTER WATERMARK ───────────────────────────────────────────────────

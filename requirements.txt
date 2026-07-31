@@ -17,4 +17,5 @@ plotly
 streamlit
 pandas
 pyarrow
-pypdf
+pypdfnetworkx
+python-louvain
