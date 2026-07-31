@@ -1,11 +1,11 @@
-﻿"""
-═══════════════════════════════════════════════════════════════════════════════
+"""
+-------------------------------------------------------------------------------
 ENTERPRISE APA 7TH EDITION PUBLICATION STUDIO [v3.0]
 High-precision academic reporting engine: Automated statistical write-ups, APA 7th
 edition compliance checking, effect size formatting, table generation, and 
 manuscript export tools.
 Designed for: Chrishem Studio Engine
-═══════════════════════════════════════════════════════════════════════════════
+-------------------------------------------------------------------------------
 """
 
 import sys
@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-# ─── PATH RESOLUTION ─────────────────────────────────────────────────
+# --- PATH RESOLUTION -------------------------------------------------
 current_file = Path(__file__).resolve()
 root_dir = current_file.parent.parent
 if str(root_dir) not in sys.path:
@@ -23,7 +23,7 @@ if str(root_dir) not in sys.path:
 if str(current_file.parent) not in sys.path:
     sys.path.insert(0, str(current_file.parent))
 
-# ─── DEFENSIVE MODULE IMPORTS WITH LOCAL FALLBACKS ────────────────────
+# --- DEFENSIVE MODULE IMPORTS WITH LOCAL FALLBACKS --------------------
 try:
     from modules.config import init_session_state
     from modules.ui_components import hero_card, load_css, watermark, section_header
@@ -60,7 +60,7 @@ except ImportError:
 
     def render_apa_outputs_page(results):
         st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#00f2fe;'>📄 APA 7th Edition Statistical Results Repository</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe;'>?? APA 7th Edition Statistical Results Repository</h4>", unsafe_allow_html=True)
         if results:
             for idx, res in enumerate(results, 1):
                 st.markdown(f"**Result {idx}:** `{res}`")
@@ -74,7 +74,7 @@ except ImportError:
 
     def render_apa_quick_format_ui():
         st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#00f2fe;'>🔧 Instant APA Statistical Sentence Builder</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe;'>?? Instant APA Statistical Sentence Builder</h4>", unsafe_allow_html=True)
         
         test_type = st.selectbox("Statistical Test Type", ["Independent t-test", "One-Way ANOVA", "Pearson Correlation", "Chi-Square Test of Independence"])
         
@@ -99,8 +99,8 @@ except ImportError:
             with col_q3:
                 p_val = st.text_input("p-Value", value="< .001")
             
-            eta_val = st.number_input("Partial Eta Squared (η²p)", value=0.22, step=0.01)
-            sentence = f"*F*({df_between}, {df_within}) = {f_val:.2f}, *p* {p_val}, η²p = {eta_val:.2f}"
+            eta_val = st.number_input("Partial Eta Squared (?�p)", value=0.22, step=0.01)
+            sentence = f"*F*({df_between}, {df_within}) = {f_val:.2f}, *p* {p_val}, ?�p = {eta_val:.2f}"
 
         elif test_type == "Pearson Correlation":
             with col_q1:
@@ -116,28 +116,28 @@ except ImportError:
                 df_val = st.number_input("df", value=4, step=1)
                 n_val = st.number_input("Sample Size (N)", value=150, step=1)
             with col_q2:
-                chi_val = st.number_input("χ² Statistic", value=14.82, step=0.01)
+                chi_val = st.number_input("?� Statistic", value=14.82, step=0.01)
             with col_q3:
                 p_val = st.text_input("p-Value", value=".005")
             v_val = st.number_input("Cramer's V", value=0.31, step=0.01)
-            sentence = f"χ²({df_val}, *N* = {n_val}) = {chi_val:.2f}, *p* = {p_val}, *V* = {v_val:.2f}"
+            sentence = f"?�({df_val}, *N* = {n_val}) = {chi_val:.2f}, *p* = {p_val}, *V* = {v_val:.2f}"
 
         st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
         st.markdown("**Generated APA 7th Sentence:**")
         st.code(sentence, language="markdown")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── PAGE CONFIGURATION ───────────────────────────────────────────────
+# --- PAGE CONFIGURATION -----------------------------------------------
 st.set_page_config(
     page_title="Enterprise APA 7th Edition Studio", 
     layout="wide", 
-    page_icon="📑",
+    page_icon="??",
     initial_sidebar_state="collapsed"
 )
 
 init_session_state()
 
-# ─── HIGH-CONTRAST DESIGN SYSTEM ──────────────────────────────────────
+# --- HIGH-CONTRAST DESIGN SYSTEM --------------------------------------
 st.markdown(
     """
     <style>
@@ -339,59 +339,59 @@ st.markdown(
 )
 
 hero_card(
-    "📑 Enterprise APA 7th Edition Publication Studio", 
+    "?? Enterprise APA 7th Edition Publication Studio", 
     "High-precision academic reporting engine: Automated statistical write-ups, APA 7th edition compliance checking, effect size formatting, table generation, and manuscript export tools.", 
     "APA Style & Academic Publishing Engine 3.0"
 )
 watermark("CHRISHEM")
 
-# ─── DATASET CONTEXT INTEGRATION ───────────────────────────────────────
+# --- DATASET CONTEXT INTEGRATION ---------------------------------------
 active_df = st.session_state.get("active_df")
 if active_df is None or active_df.empty:
     active_df = st.session_state.get("notion_df")
 
 if active_df is not None and not active_df.empty:
-    st.info(f"💡 **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for automated APA statistical result compilation.")
+    st.info(f"?? **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for automated APA statistical result compilation.")
 
 # Collect results from session state
 statistical_results = st.session_state.get("statistical_results", [])
 
-# ─── HIGH-LEVEL APA REPORTING TOPOLOGY METRICS ─────────────────────────
-section_header("📊 APA Compliance & Result Stream Status")
+# --- HIGH-LEVEL APA REPORTING TOPOLOGY METRICS -------------------------
+section_header("?? APA Compliance & Result Stream Status")
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
     st.markdown(f'''
     <div class="metric-card">
-        <div class="metric-card-title">📋 Active Stored Results</div>
+        <div class="metric-card-title">?? Active Stored Results</div>
         <div class="metric-card-value">{len(statistical_results)}</div>
     </div>
     ''', unsafe_allow_html=True)
 with m2:
     st.markdown('''
     <div class="metric-card">
-        <div class="metric-card-title">📐 Edition Standard</div>
+        <div class="metric-card-title">?? Edition Standard</div>
         <div class="metric-card-value" style="color: #10b981 !important;">APA 7th</div>
     </div>
     ''', unsafe_allow_html=True)
 with m3:
     st.markdown('''
     <div class="metric-card">
-        <div class="metric-card-title">🔬 Test Categories</div>
+        <div class="metric-card-title">?? Test Categories</div>
         <div class="metric-card-value">Parametric</div>
     </div>
     ''', unsafe_allow_html=True)
 with m4:
     st.markdown('''
     <div class="metric-card">
-        <div class="metric-card-title">📊 Effect Sizes</div>
-        <div class="metric-card-value" style="color: #10b981 !important;">Cohen's d / η²</div>
+        <div class="metric-card-title">?? Effect Sizes</div>
+        <div class="metric-card-value" style="color: #10b981 !important;">Cohen's d / ?�</div>
     </div>
     ''', unsafe_allow_html=True)
 with m5:
     st.markdown('''
     <div class="metric-card">
-        <div class="metric-card-title">💾 Export Formats</div>
+        <div class="metric-card-title">?? Export Formats</div>
         <div class="metric-card-value">Docx / LaTeX</div>
     </div>
     ''', unsafe_allow_html=True)
@@ -399,28 +399,28 @@ with m5:
 st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 st.markdown("<hr style='border:1px solid #1e293b; margin: 1.5rem 0;'>", unsafe_allow_html=True)
 
-# ─── MULTI-TAB APA REPORTING WORKSPACE ─────────────────────────────────
-section_header("⚙️ Academic Manuscript & APA Generation Suite")
+# --- MULTI-TAB APA REPORTING WORKSPACE ---------------------------------
+section_header("?? Academic Manuscript & APA Generation Suite")
 
 apa_tabs = st.tabs([
-    "📄 Formatted Statistical Results",
-    "🔧 Quick APA Result Formatter",
-    "📊 APA Table Generator (Table 1 / 7th Edition)",
-    "📑 Complete Manuscript Write-Up Generator"
+    "?? Formatted Statistical Results",
+    "?? Quick APA Result Formatter",
+    "?? APA Table Generator (Table 1 / 7th Edition)",
+    "?? Complete Manuscript Write-Up Generator"
 ])
 
-# ── TAB 1: Formatted Results ───────────────────────────────────────────
+# -- TAB 1: Formatted Results -------------------------------------------
 with apa_tabs[0]:
     render_apa_outputs_page(statistical_results if statistical_results else None)
 
-# ── TAB 2: Quick APA Formatter ──────────────────────────────────────────
+# -- TAB 2: Quick APA Formatter ------------------------------------------
 with apa_tabs[1]:
     render_apa_quick_format_ui()
 
-# ── TAB 3: APA Table Generator ──────────────────────────────────────────
+# -- TAB 3: APA Table Generator ------------------------------------------
 with apa_tabs[2]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### 📊 APA 7th Edition Table Generator")
+    st.markdown("### ?? APA 7th Edition Table Generator")
     st.markdown("Construct perfectly formatted APA Table 1 descriptive statistics or inferential models with clean horizontal borders.")
 
     table_number = st.text_input("Table Number", value="Table 1")
@@ -431,13 +431,13 @@ with apa_tabs[2]:
         "Variable": ["Age (Years)", "Baseline Score", "Treatment Score", "Retention Rate (%)"],
         "Group A Mean (SD)": ["24.5 (3.2)", "45.2 (5.1)", "68.4 (4.8)", "94.2%"],
         "Group B Mean (SD)": ["25.1 (3.0)", "44.8 (4.9)", "52.1 (5.4)", "81.0%"],
-        "t / χ²": ["1.12", "0.45", "14.92*", "6.34*"],
+        "t / ?�": ["1.12", "0.45", "14.92*", "6.34*"],
         "p": [".266", ".654", "< .001", ".012"],
         "Effect Size": ["d = 0.19", "d = 0.08", "d = 3.18", "V = 0.28"]
     })
 
     st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
-    st.markdown("#### 👁️ APA 7th Edition Rendered Preview")
+    st.markdown("#### ??? APA 7th Edition Rendered Preview")
     
     # Render APA Style HTML Table
     apa_html = f"""
@@ -450,13 +450,13 @@ with apa_tabs[2]:
                     <th>Variable</th>
                     <th>Group A Mean (SD)</th>
                     <th>Group B Mean (SD)</th>
-                    <th><i>t</i> / χ²</th>
+                    <th><i>t</i> / ?�</th>
                     <th><i>p</i></th>
                     <th>Effect Size</th>
                 </tr>
             </thead>
             <tbody>
-                {''.join([f"<tr><td>{row['Variable']}</td><td>{row['Group A Mean (SD)']}</td><td>{row['Group B Mean (SD)']}</td><td>{row['t / χ²']}</td><td>{row['p']}</td><td>{row['Effect Size']}</td></tr>" for _, row in demo_table_data.iterrows()])}
+                {''.join([f"<tr><td>{row['Variable']}</td><td>{row['Group A Mean (SD)']}</td><td>{row['Group B Mean (SD)']}</td><td>{row['t / ?�']}</td><td>{row['p']}</td><td>{row['Effect Size']}</td></tr>" for _, row in demo_table_data.iterrows()])}
             </tbody>
         </table>
         <div class="apa-table-note">Note. N = 120. SD = Standard Deviation. * p < .05. All tests two-tailed.</div>
@@ -468,16 +468,16 @@ with apa_tabs[2]:
 
     col_t1, col_t2 = st.columns(2)
     with col_t1:
-        st.button("📥 Export Table to Word (.docx)", key="btn_exp_docx", use_container_width=True)
+        st.button("?? Export Table to Word (.docx)", key="btn_exp_docx", use_container_width=True)
     with col_t2:
-        st.button("📋 Copy LaTeX Table Source", key="btn_exp_latex", use_container_width=True)
+        st.button("?? Copy LaTeX Table Source", key="btn_exp_latex", use_container_width=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ── TAB 4: Complete Manuscript Write-Up Generator ──────────────────────
+# -- TAB 4: Complete Manuscript Write-Up Generator ----------------------
 with apa_tabs[3]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### 📑 Automated Results Section Write-Up Generator")
+    st.markdown("### ?? Automated Results Section Write-Up Generator")
     st.markdown("Synthesize raw statistical outputs into a complete, publication-ready APA 7th Edition Results Section.")
 
     study_hypothesis = st.text_area(
@@ -493,9 +493,9 @@ with apa_tabs[3]:
         include_post_hoc = st.checkbox("Include Post-Hoc Pairwise Comparisons", value=True)
         include_confidence_intervals = st.checkbox("Include 95% Confidence Intervals", value=True)
 
-    if st.button("🚀 Compile Full APA Results Section", type="primary", key="btn_compile_manuscript", use_container_width=True):
+    if st.button("?? Compile Full APA Results Section", type="primary", key="btn_compile_manuscript", use_container_width=True):
         st.markdown("<hr style='border:1px solid #1e293b; margin: 1.2rem 0;'>", unsafe_allow_html=True)
-        st.markdown("#### 📄 Draft Results Section (APA 7th Edition)")
+        st.markdown("#### ?? Draft Results Section (APA 7th Edition)")
         
         manuscript_draft = f"""
 ### Results
@@ -504,13 +504,13 @@ with apa_tabs[3]:
 A total sample of N = 120 participants was evaluated across two treatment arms. Preliminary data screening confirmed that the primary outcome measures satisfied assumptions of normality (Shapiro-Wilk $p > .05$) and homogeneity of variance (Levene's test $F(1, 118) = 1.14, p = .288$).
 
 #### Primary Hypothesis Testing
-To evaluate the primary hypothesis—*{study_hypothesis}*—an independent-samples t-test was conducted. As predicted, participants in Group A ($M = 68.40, SD = 4.80$) achieved significantly higher performance scores than participants in Group B ($M = 52.10, SD = 5.40$), $t(118) = 14.92, p < .001, d = 3.18, 95\\%\\text{ CI } [14.10, 18.50]$. 
+To evaluate the primary hypothesis�*{study_hypothesis}*�an independent-samples t-test was conducted. As predicted, participants in Group A ($M = 68.40, SD = 4.80$) achieved significantly higher performance scores than participants in Group B ($M = 52.10, SD = 5.40$), $t(118) = 14.92, p < .001, d = 3.18, 95\\%\\text{ CI } [14.10, 18.50]$. 
 
 Furthermore, a chi-square test of independence revealed a significant difference in categorical retention rates between groups, $\\chi^2(1, N = 120) = 6.34, p = .012, V = 0.28$. Consequently, the experimental hypothesis was fully supported.
         """
         st.markdown(manuscript_draft)
         st.download_button(
-            "📥 Download Manuscript Write-Up (.md)",
+            "?? Download Manuscript Write-Up (.md)",
             data=manuscript_draft,
             file_name="APA_Results_Section_Draft.md",
             mime="text/markdown",
@@ -518,3 +518,4 @@ Furthermore, a chi-square test of independence revealed a significant difference
         )
 
     st.markdown('</div>', unsafe_allow_html=True)
+

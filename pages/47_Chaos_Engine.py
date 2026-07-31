@@ -79,7 +79,7 @@ db_conn = init_db()
 # ============================================================================
 st.set_page_config(
     page_title="Global Sovereign Nonlinear Systems & Resilience Engine",
-    page_icon="??",
+    page_icon="🌐",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -456,21 +456,21 @@ if "session_start_time" not in st.session_state:
 # ============================================================================
 # SIDEBAR � PRIVILEGES, METADATA, JURISDICTION, SECTOR, PARAMETERS
 # ============================================================================
-st.sidebar.markdown("## ?? Global Sovereign Command Hub")
+st.sidebar.markdown("## 🏛️ Global Sovereign Command Hub")
 
-with st.sidebar.expander("?? Institutional & Analyst Details", expanded=True):
+with st.sidebar.expander("👤 Institutional & Analyst Details", expanded=True):
     user_role = st.selectbox(
         "Privilege tier",
         [
             "?? Chat Command Core",
             "?? Executive Storyboard",
             "?? Policy Comparison Matrix",
-            "?? Technocrat Operations",
+            "🛠️ Technocrat Operations",
             "?? Research Scientist (full engine)",
-            "?? Data Import / Export Center",
-            "?? System Self-Test & Diagnostics",
-            "? Sector Automation Hub",
-            "?? Institutional Contacts & Directory",
+            "💾 Data Import / Export Center",
+            "🧪 System Self-Test & Diagnostics",
+            "⚡ Sector Automation Hub",
+            "📇 Institutional Contacts & Directory",
         ],
     )
     author_name = st.text_input("Author / Analyst Name", "Kula Chris")
@@ -479,7 +479,7 @@ with st.sidebar.expander("?? Institutional & Analyst Details", expanded=True):
     secure_vault_token = st.text_input("Secure Vault Passkey", type="password", value="SOV-999-KEY")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown("### ?? Jurisdiction & Domain")
+st.sidebar.markdown("### 🌍 Jurisdiction & Domain")
 
 PRESET_COUNTRIES = [
     "???? Uganda", "???? Kenya", "???? Rwanda", "???? Nigeria", "???? South Africa",
@@ -518,13 +518,13 @@ else:
     a_label, a_desc, b_label, b_desc, c_label, c_desc = "a", "Growth / drive term", "b", "Friction / damping term", "c", "Buffer / decay term"
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown(f"### ?? Parameters � {sector}")
+st.sidebar.markdown(f"### ⚙️ Parameters � {sector}")
 a = st.sidebar.slider(f"{a_label} � {a_desc}", 0.1, 5.0, 1.5, 0.1)
 b = st.sidebar.slider(f"{b_label} � {b_desc}", 0.0, 3.0, 0.9, 0.1)
 c = st.sidebar.slider(f"{c_label} � {c_desc}", 0.0, 3.0, 1.0, 0.1)
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown("### ?? Initial conditions & shock")
+st.sidebar.markdown("### 📊 Initial conditions & shock")
 x0 = st.sidebar.number_input("Initial x0", value=0.10, format="%.3f")
 y0 = st.sidebar.number_input("Initial y0", value=0.10, format="%.3f")
 z0 = st.sidebar.number_input("Initial z0", value=0.10, format="%.3f")
@@ -532,7 +532,7 @@ policy_shock = st.sidebar.slider("Inject shock magnitude at t�mid-run", -3.0, 
 t_max = st.sidebar.slider("Simulation horizon (steps)", 50, 500, 200, 10)
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-use_custom_ode = st.sidebar.checkbox("?? Use custom ODE equations instead of the default model")
+use_custom_ode = st.sidebar.checkbox("✏️ Use custom ODE equations instead of the default model")
 custom_dx = custom_dy = custom_dz = ""
 if use_custom_ode:
     st.sidebar.caption("Variables available: x, y, z, a, b, c, shock, t, np")
@@ -541,7 +541,7 @@ if use_custom_ode:
     custom_dz = st.sidebar.text_input("dz/dt =", "x - c * z")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-pss_slice_z = st.sidebar.slider("?? Poincar� cut plane (Z threshold)", float(z0 - 2.0), float(z0 + 2.0), float(z0), 0.05)
+pss_slice_z = st.sidebar.slider("?? Poincaré� cut plane (Z threshold)", float(z0 - 2.0), float(z0 + 2.0), float(z0), 0.05)
 
 # ============================================================================
 # MODEL CORE
@@ -626,7 +626,7 @@ def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     )
     return fig
 
-def plotly_pss(x, y, z, z_cut=0.0, title="Poincar� Section"):
+def plotly_pss(x, y, z, z_cut=0.0, title="Poincaré� Section"):
     mask = abs(z - z_cut) < 0.05
     x_sec = x[mask] if hasattr(x, '__getitem__') else []
     y_sec = y[mask] if hasattr(y, '__getitem__') else []
@@ -793,7 +793,7 @@ st.markdown(f'<div class="sub-header-glow">Jurisdiction: <b>{target_country}</b>
 st.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
 
 if "Chat Command" in user_role:
-    st.markdown("### ?? Natural Language Command Core")
+    st.markdown("### 💬 Natural Language Command Core")
     st.markdown('<div class="research-card"><div class="research-card-title">Sovereign Intelligent Assistant</div><div class="research-card-desc">Type commands or ask questions about the running system parameters, stability states, or policy interventions.</div></div>', unsafe_allow_html=True)
     
     for msg in st.session_state.chat_history:
@@ -820,7 +820,7 @@ if "Chat Command" in user_role:
             st.markdown(reply)
 
 elif "Executive Storyboard" in user_role:
-    st.markdown("### ?? Executive Decision Storyboard")
+    st.markdown("### 📋 Executive Decision Storyboard")
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -863,7 +863,7 @@ elif "Executive Storyboard" in user_role:
     st.plotly_chart(fig, use_container_width=True)
 
 elif "Policy Comparison" in user_role:
-    st.markdown("### ?? Multi-Strategy Policy Comparison Matrix")
+    st.markdown("### 📈 Multi-Strategy Policy Comparison Matrix")
     st.markdown("Simulating competing policy interventions under identical initial stress conditions.")
     
     sol_base = _solve(system_ode, initial_state, t, args=(a, b, c, 0.0))
@@ -874,9 +874,9 @@ elif "Policy Comparison" in user_role:
     st.plotly_chart(fig_pol, use_container_width=True)
 
 elif "Technocrat Operations" in user_role:
-    st.markdown("### ?? Technocrat Operations & Phase Analysis")
+    st.markdown("### 🛠️ Technocrat Operations & Phase Analysis")
     
-    tab1, tab2, tab3 = st.tabs(["3D Phase Space", "Poincar� Section", "Early Warning Signals"])
+    tab1, tab2, tab3 = st.tabs(["3D Phase Space", "Poincaré� Section", "Early Warning Signals"])
     
     with tab1:
         fig_3d = plotly_3d_phase(x_traj, y_traj, z_traj)
@@ -889,7 +889,7 @@ elif "Technocrat Operations" in user_role:
         st.plotly_chart(fig_ews, use_container_width=True)
 
 elif "Research Scientist" in user_role:
-    st.markdown("### ?? Advanced Research Scientist Engine")
+    st.markdown("### 🔬 Advanced Research Scientist Engine")
     
     tab_bif, tab_mc, tab_sens, tab_cc = st.tabs(["Bifurcation Analysis", "Monte Carlo Ensembles", "Sensitivity Heatmap", "Cross-Coupling"])
     
@@ -939,7 +939,7 @@ elif "Research Scientist" in user_role:
         st.plotly_chart(fig_cc, use_container_width=True)
 
 elif "Data Import / Export Center" in user_role:
-    st.markdown("### ?? Data Import & Sovereign Export Center")
+    st.markdown("### 💾 Data Import & Sovereign Export Center")
     
     col_up, col_down = st.columns(2)
     with col_up:
@@ -968,7 +968,7 @@ elif "Data Import / Export Center" in user_role:
             st.success("Simulation parameters and state successfully committed to `sovereign_engine.db`!")
 
 elif "System Self-Test & Diagnostics" in user_role:
-    st.markdown("### ?? System Self-Test & Diagnostics Hub")
+    st.markdown("### 🧪 System Self-Test & Diagnostics Hub")
     st.markdown("Running real-time diagnostic checks across numerical solvers, database connectivity, and UI rendering layers.")
     
     diag_results = [
@@ -984,7 +984,7 @@ elif "System Self-Test & Diagnostics" in user_role:
         st.success("All systems nominal. Numerical stability verified across simulation horizon.")
 
 elif "Sector Automation Hub" in user_role:
-    st.markdown("### ? Sector Automation & Preset Hub")
+    st.markdown("### ⚡ Sector Automation & Preset Hub")
     st.markdown("Manage custom dynamical presets and automated batch workflows.")
     
     preset_name_input = st.text_input("New Preset Name", "Custom Regional Crisis Model")
@@ -1008,7 +1008,7 @@ elif "Sector Automation Hub" in user_role:
         st.dataframe(pd.DataFrame(presets, columns=["Preset Name", "Sector"]), use_container_width=True)
 
 elif "Institutional Contacts" in user_role:
-    st.markdown("### ?? Institutional Contacts & Analyst Directory")
+    st.markdown("### 📇 Institutional Contacts & Analyst Directory")
     st.markdown("Manage institutional clearances, analyst profiles, and contact registries.")
     
     cursor = db_conn.cursor()
