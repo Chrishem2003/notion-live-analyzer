@@ -13,7 +13,7 @@ def render_mfa_setup(username: str):
     """
     Renders an interactive TOTP setup interface with QR code generation for authenticator apps.
     """
-    st.subheader("??? Multi-Factor Authentication (MFA) Setup")
+    st.subheader("? Multi-Factor Authentication (MFA) Setup")
     st.caption("Secure your enterprise session using an authenticator app (Google Authenticator, Authy, etc.).")
 
     if 'mfa_secret' not in st.session_state:

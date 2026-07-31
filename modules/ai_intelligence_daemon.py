@@ -21,7 +21,7 @@ def render_ai_intelligence_panel():
     """
     Renders the Autonomous AI Intelligence & Self-Optimizing Engine inside Streamlit.
     """
-    st.subheader("?? Fully Automated & Highly Intelligent Cognitive Engine")
+    st.subheader(" Fully Automated & Highly Intelligent Cognitive Engine")
     st.caption("Self-governing enterprise AI daemon providing predictive auto-remediation, dynamic threat self-healing, and adaptive workload balancing.")
 
     # Top-tier Cognitive Metrics
@@ -36,7 +36,7 @@ def render_ai_intelligence_panel():
         st.metric(label="Human Intervention", value="0.0%", delta="Fully Autonomous")
 
     st.markdown("---")
-    st.markdown("### ?? Autonomous Cognitive Matrix & Self-Optimization Telemetry")
+    st.markdown("###  Autonomous Cognitive Matrix & Self-Optimization Telemetry")
     df_cognitive = get_autonomous_cognitive_metrics()
     st.dataframe(df_cognitive, use_container_width=True)
 
@@ -45,14 +45,14 @@ def render_ai_intelligence_panel():
 
     col_1, col_2, col_3 = st.columns(3)
     with col_1:
-        if st.button("?? Trigger Autonomous Cognitive Sweep"):
+        if st.button(" Trigger Autonomous Cognitive Sweep"):
             log_backend_event("INFO", "User triggered fully automated cognitive intelligence sweep.")
             st.success("Cognitive sweep complete. 14 micro-anomalies predicted and automatically neutralized before impact.")
     with col_2:
-        if st.button("?? Force Self-Optimizing Neural Retraining"):
+        if st.button(" Force Self-Optimizing Neural Retraining"):
             log_backend_event("INFO", "User initiated self-optimizing neural network retraining.")
             st.success("Neural weights successfully retrained against live global telemetry vectors with 0 loss drift.")
     with col_3:
-        if st.button("??? Engage Autonomous Zero-Day Shield"):
+        if st.button("? Engage Autonomous Zero-Day Shield"):
             log_backend_event("INFO", "User engaged autonomous zero-day cognitive defense shield.")
             st.success("Autonomous Zero-Day Shield locked active. Ingress vectors governed entirely by neural intelligence.")

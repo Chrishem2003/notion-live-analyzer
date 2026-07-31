@@ -8,7 +8,7 @@ def render_auth_gateway():
         st.session_state.authenticated = False
 
     if not st.session_state.authenticated:
-        st.markdown("## ?? Enterprise Secure Gateway")
+        st.markdown("##  Enterprise Secure Gateway")
         st.markdown("Please authenticate to access the Intelligence Engine workspace.")
         
         auth_method = st.selectbox(

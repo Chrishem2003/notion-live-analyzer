@@ -19,7 +19,7 @@ def render_workflow_scheduler_panel():
     """
     Renders the Workflow & Task Scheduler dashboard inside Streamlit.
     """
-    st.subheader("?? Autonomous Workflow & Task Scheduler")
+    st.subheader(" Autonomous Workflow & Task Scheduler")
     st.caption("Manage recurring background jobs, automated sequence synchronizations, and timed system triggers.")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -33,7 +33,7 @@ def render_workflow_scheduler_panel():
         st.metric(label="Scheduler Health", value="Optimal", delta="Daemon Active")
 
     st.markdown("---")
-    st.markdown("### ?? Active Workflow Execution Queue")
+    st.markdown("###  Active Workflow Execution Queue")
     df_workflows = get_scheduled_workflows()
     st.dataframe(df_workflows, use_container_width=True)
 

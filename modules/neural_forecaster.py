@@ -21,7 +21,7 @@ def render_neural_forecaster_panel():
     """
     Renders the Neural Forecaster & Predictive Analytics dashboard inside Streamlit.
     """
-    st.subheader("?? Neural Forecaster & Predictive Workload Analytics")
+    st.subheader("🧠 Neural Forecaster & Predictive Workload Analytics")
     st.caption("Advanced AI simulation engine: predicting future workload distributions, anomaly probabilities, and preemptive mitigation paths.")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -35,13 +35,13 @@ def render_neural_forecaster_panel():
         st.metric(label="Preemptive Actions", value="4 Armed", delta="Automated")
 
     st.markdown("---")
-    st.markdown("### ?? 12-Hour Predictive Workload Trajectory")
+    st.markdown("###  12-Hour Predictive Workload Trajectory")
     df_forecast = get_forecast_simulation_data()
     st.line_chart(df_forecast.set_index("Hour")[["Predicted_CPU_Load", "Anomaly_Probability_Pct"]])
 
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("?? Retrain Neural Forecasting Weights"):
+        if st.button(" Retrain Neural Forecasting Weights"):
             log_backend_event("INFO", "User retrained neural forecaster weights with latest telemetry vectors.")
             st.success("Neural weights successfully recalibrated with zero prediction drift.")
     with col_b:

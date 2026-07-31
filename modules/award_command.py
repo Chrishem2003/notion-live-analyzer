@@ -20,7 +20,7 @@ def render_award_command_panel():
     """
     Renders the Award-Winning Global Autonomous AI Command Center inside Streamlit.
     """
-    st.subheader("?? Award-Winning Global Autonomous AI Command Center")
+    st.subheader(" Award-Winning Global Autonomous AI Command Center")
     st.caption("The pinnacle of enterprise engineering: zero-latency orchestration, military-grade post-quantum security, and autonomous neural self-healing.")
 
     # Metric Banners
@@ -35,7 +35,7 @@ def render_award_command_panel():
         st.metric(label="Latency Average", value="1.8 ms", delta="-0.3 ms")
 
     st.markdown("---")
-    st.markdown("### ?? Live Cluster Mesh & Elite Telemetry Matrix")
+    st.markdown("###  Live Cluster Mesh & Elite Telemetry Matrix")
     df_award = get_award_grade_telemetry()
     st.dataframe(df_award, use_container_width=True)
 
@@ -44,14 +44,14 @@ def render_award_command_panel():
     
     col_a, col_b, col_a3 = st.columns(3)
     with col_a:
-        if st.button("?? Execute Global Award-Grade Diagnostic"):
+        if st.button(" Execute Global Award-Grade Diagnostic"):
             log_backend_event("INFO", "User executed global award-grade system diagnostic sweep.")
             st.success("Diagnostic sweep complete. All subsystems verified at world-class tier standards.")
     with col_b:
-        if st.button("?? Deploy Autonomous Hyper-Mesh Patch"):
+        if st.button(" Deploy Autonomous Hyper-Mesh Patch"):
             log_backend_event("INFO", "User deployed autonomous hyper-mesh patch.")
             st.success("Hyper-mesh patch successfully distributed across all regional worker nodes.")
     with col_a3:
-        if st.button("?? Seal All Enclaves & Rotate Master Keys"):
+        if st.button(" Seal All Enclaves & Rotate Master Keys"):
             log_backend_event("INFO", "User executed total enclave sealing and master key rotation.")
             st.success("All cryptographic enclaves successfully sealed and rotated to fresh post-quantum keys.")

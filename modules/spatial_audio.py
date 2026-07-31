@@ -5,7 +5,7 @@ def render_spatial_audio_panel():
     """
     Renders an ambient soundscape and spatial focus audio controller inside Streamlit.
     """
-    st.subheader("?? Spatial Audio & Focus Soundscapes")
+    st.subheader(" Spatial Audio & Focus Soundscapes")
     st.caption("Optimize deep-work sessions with ambient frequency generators and spatial background soundscapes.")
 
     soundscape = st.selectbox(

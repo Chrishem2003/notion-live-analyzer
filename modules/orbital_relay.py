@@ -19,7 +19,7 @@ def render_orbital_relay_panel():
     """
     Renders the Autonomous Orbital Edge Telemetry & Deep Space Relay dashboard inside Streamlit.
     """
-    st.subheader("??? Autonomous Orbital Edge Telemetry & Deep Space Relay")
+    st.subheader("? Autonomous Orbital Edge Telemetry & Deep Space Relay")
     st.caption("Next-generation satellite constellation tracking, deep-space relay synchronization, and ultra-high-bandwidth atmospheric downlinks.")
 
     df_orbital = get_orbital_telemetry()
@@ -27,10 +27,10 @@ def render_orbital_relay_panel():
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("?? Calibrate Orbital Uplink Array"):
+        if st.button(" Calibrate Orbital Uplink Array"):
             log_backend_event("INFO", "User calibrated orbital satellite uplink array.")
             st.success("Orbital uplink calibrated. Signal-to-noise ratio optimized across all LEO nodes.")
     with col2:
-        if st.button("?? Ping Deep-Space Gateway"):
+        if st.button(" Ping Deep-Space Gateway"):
             log_backend_event("INFO", "User executed deep-space gateway latency test.")
             st.success("Deep-space ping successful. Round-trip propagation time: 1,240 ms.")

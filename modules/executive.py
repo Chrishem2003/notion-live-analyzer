@@ -7,7 +7,7 @@ def render_executive_summary():
     """
     Renders a high-level executive dashboard with key performance indicators and trend forecasting.
     """
-    st.subheader("?? Executive Intelligence Summary")
+    st.subheader(" Executive Intelligence Summary")
     st.caption("High-level system throughput, resource allocation, and operational telemetry.")
 
     # Executive KPIs

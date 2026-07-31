@@ -18,7 +18,7 @@ def render_cluster_mesh_panel():
     """
     Renders the Global Distributed Cluster Mesh & Edge Sync dashboard inside Streamlit.
     """
-    st.subheader("?? Global Distributed Cluster Mesh & Edge Sync")
+    st.subheader(" Global Distributed Cluster Mesh & Edge Sync")
     st.caption("Oversee multi-region peer node connectivity, consensus synchronization, and global edge routing latencies.")
 
     df_mesh = get_cluster_nodes()
@@ -26,7 +26,7 @@ def render_cluster_mesh_panel():
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("?? Force Mesh State Synchronization"):
+        if st.button(" Force Mesh State Synchronization"):
             log_backend_event("INFO", "User triggered global cluster mesh synchronization.")
             st.success("Cluster mesh synchronized across all 4 global regional nodes successfully.")
     with col2:

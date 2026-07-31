@@ -18,7 +18,7 @@ def render_threat_response_panel():
     """
     Renders the Autonomous Incident Response & Threat Containment dashboard inside Streamlit.
     """
-    st.subheader("?? Autonomous Incident Response & Threat Containment")
+    st.subheader(" Autonomous Incident Response & Threat Containment")
     st.caption("Real-time automated threat neutralization, IP blacklisting, and instant cluster lockdown controls.")
 
     df_incidents = get_recent_incidents()
@@ -26,10 +26,10 @@ def render_threat_response_panel():
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("??? Purge Active Threat Vectors"):
+        if st.button("? Purge Active Threat Vectors"):
             log_backend_event("INFO", "User executed manual purge of active threat vectors.")
             st.success("All active threat vectors successfully purged and ingress blacklists updated.")
     with col2:
-        if st.button("?? Engage Emergency Cluster Lockdown"):
+        if st.button(" Engage Emergency Cluster Lockdown"):
             log_backend_event("WARNING", "User engaged emergency cluster lockdown protocol.")
             st.error("EMERGENCY LOCKDOWN ENGAGED. External ingress restricted. Internal enclaves sealed.")

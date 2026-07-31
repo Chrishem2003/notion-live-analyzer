@@ -9,7 +9,7 @@ def render_live_telemetry_panel():
     """
     Renders a live hardware telemetry and throughput monitoring dashboard.
     """
-    st.subheader("?? Live System Telemetry & Node Health")
+    st.subheader(" Live System Telemetry & Node Health")
     st.caption("Real-time performance diagnostics across CPU, Memory, and Database subsystems.")
 
     col1, col2, col3, col4 = st.columns(4)
@@ -28,7 +28,7 @@ def render_live_telemetry_panel():
         st.metric("System Uptime Status", "99.98%", delta="Optimal")
 
     st.markdown("---")
-    st.markdown("### ?? Node Resource Utilization Trend")
+    st.markdown("###  Node Resource Utilization Trend")
 
     # Simulate streaming telemetry data points for live charting
     chart_data = pd.DataFrame({

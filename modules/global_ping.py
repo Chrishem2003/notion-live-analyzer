@@ -19,7 +19,7 @@ def render_global_ping_panel():
     """
     Renders the Global Node Latency & Edge Health dashboard inside Streamlit.
     """
-    st.subheader("?? Global Edge Node Latency & Telemetry")
+    st.subheader(" Global Edge Node Latency & Telemetry")
     st.caption("Real-time distributed network monitoring across international cluster gateways.")
 
     df_nodes = get_global_node_metrics()

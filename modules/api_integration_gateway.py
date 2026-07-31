@@ -19,7 +19,7 @@ def render_api_gateway_panel():
     """
     Renders the API & Integration Gateway dashboard inside Streamlit.
     """
-    st.subheader("?? Autonomous API & Integration Gateway")
+    st.subheader(" Autonomous API & Integration Gateway")
     st.caption("Manage secure webhook dispatchers, REST endpoints, rate limits, and third-party connector pipelines.")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -33,13 +33,13 @@ def render_api_gateway_panel():
         st.metric(label="Security Handshake", value="TLS 1.3", delta="Encrypted")
 
     st.markdown("---")
-    st.markdown("### ?? Active Integration Endpoints & Webhooks")
+    st.markdown("###  Active Integration Endpoints & Webhooks")
     df_api = get_api_endpoints_matrix()
     st.dataframe(df_api, use_container_width=True)
 
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("?? Rotate API Access Tokens"):
+        if st.button(" Rotate API Access Tokens"):
             log_backend_event("INFO", "User executed automated API access token rotation.")
             st.success("API tokens successfully re-keyed with quantum-resistant encryption.")
     with col_b:

@@ -19,7 +19,7 @@ def render_biodefense_panel():
     """
     Renders the Autonomous Biodefense & Pathogen Surveillance dashboard inside Streamlit.
     """
-    st.subheader("?? Autonomous Biodefense & Pathogen Surveillance Core")
+    st.subheader(" Autonomous Biodefense & Pathogen Surveillance Core")
     st.caption("Real-time environmental surveillance, waterborne pathogen tracking, and genomic antimicrobial resistance profiling.")
 
     df_bio = get_pathogen_surveillance_data()
@@ -27,10 +27,10 @@ def render_biodefense_panel():
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("?? Execute Genomic Sequencing Pipeline"):
+        if st.button(" Execute Genomic Sequencing Pipeline"):
             log_backend_event("INFO", "User initiated automated genomic sequencing pipeline.")
             st.success("Sequencing pipeline complete. 4 active environmental sample batches processed successfully.")
     with col2:
-        if st.button("??? Run Pathogen Risk Simulation"):
+        if st.button("? Run Pathogen Risk Simulation"):
             log_backend_event("INFO", "User executed pathogen dispersion risk simulation.")
             st.success("Simulation complete. Zero transmission vectors breaching containment parameters.")

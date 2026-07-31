@@ -19,7 +19,7 @@ def render_sovereign_singularity_panel():
     """
     Renders the Ultimate Sovereign Singularity Core dashboard inside Streamlit.
     """
-    st.subheader("?? Ultimate Sovereign Singularity Core")
+    st.subheader(" Ultimate Sovereign Singularity Core")
     st.caption("The absolute zenith of engineering: unified quantum-neural command, autonomous orbital relay, and sovereign enterprise orchestration.")
 
     # Top-tier metric display
@@ -34,7 +34,7 @@ def render_sovereign_singularity_panel():
         st.metric(label="Threat Level", value="Zero", delta="Impenetrable")
 
     st.markdown("---")
-    st.markdown("### ?? Sovereign Cluster Mesh Matrix")
+    st.markdown("###  Sovereign Cluster Mesh Matrix")
     df_singularity = get_singularity_metrics()
     st.dataframe(df_singularity, use_container_width=True)
 
@@ -43,14 +43,14 @@ def render_sovereign_singularity_panel():
     
     c1, c2, c3 = st.columns(3)
     with c1:
-        if st.button("?? Execute Singularity Synchronization"):
+        if st.button(" Execute Singularity Synchronization"):
             log_backend_event("INFO", "User executed ultimate singularity synchronization sweep.")
             st.success("Singularity sync complete. All terrestrial, orbital, and cryptographic channels harmonized.")
     with c2:
-        if st.button("??? Engage Absolute Lockdown Protocol"):
+        if st.button("? Engage Absolute Lockdown Protocol"):
             log_backend_event("WARNING", "User engaged absolute sovereign lockdown protocol.")
             st.error("ABSOLUTE LOCKDOWN ENGAGED. All non-sovereign ingress ports permanently severed.")
     with c3:
-        if st.button("?? Initiate Hyper-Drive Intelligence Overdrive"):
+        if st.button(" Initiate Hyper-Drive Intelligence Overdrive"):
             log_backend_event("INFO", "User initiated hyper-drive intelligence overdrive.")
             st.success("Intelligence overdrive active. Processing throughput elevated by 10,000%.")

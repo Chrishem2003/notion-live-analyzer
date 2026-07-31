@@ -56,7 +56,7 @@ def render_security_audit_panel():
     """
     Renders the security compliance auditing dashboard inside Streamlit.
     """
-    st.subheader("??? Enterprise Security Audit & Compliance")
+    st.subheader("? Enterprise Security Audit & Compliance")
     st.caption("Automated vulnerability checks, asset isolation status, and integrity verification.")
 
     df_audit = run_security_audit()

@@ -28,14 +28,14 @@ def render_quantum_core_panel():
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("?? Execute Lattice Entanglement Audit"):
+        if st.button(" Execute Lattice Entanglement Audit"):
             log_backend_event("INFO", "User executed high-grade lattice entanglement audit.")
             st.success("Lattice verification passed. 0 cryptographic drift anomalies detected.")
     with col2:
-        if st.button("?? Recalibrate Neural Weights"):
+        if st.button(" Recalibrate Neural Weights"):
             log_backend_event("INFO", "User recalibrated predictive neural defense weights.")
             st.success("Neural weights successfully retrained against live cluster telemetry data.")
     with col3:
-        if st.button("?? Initiate Hyper-Sync Overdrive"):
+        if st.button(" Initiate Hyper-Sync Overdrive"):
             log_backend_event("INFO", "User initiated hyper-sync overdrive across cluster mesh.")
             st.success("Hyper-sync overdrive engaged. Inter-node propagation latency reduced to 2.1 ms.")

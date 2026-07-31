@@ -31,7 +31,7 @@ def render_admin_billing_panel():
     """
     Renders the Autonomous Admin Privileges & Enterprise Billing Management dashboard inside Streamlit with user-friendly controls.
     """
-    st.subheader("??? Autonomous Admin Privileges & Intelligent Billing Management")
+    st.subheader("? Autonomous Admin Privileges & Intelligent Billing Management")
     st.caption("Granular role-based access control (RBAC), automated invoice reconciliation, predictive financial risk scoring, and zero-touch administrative auditing.")
 
     # Top-tier Metrics Banner
@@ -46,22 +46,22 @@ def render_admin_billing_panel():
         st.metric(label="Privilege Drift", value="0.0%", delta="Impenetrable")
 
     st.markdown("---")
-    st.markdown("### ?? Granular Admin Privilege & Role Control")
+    st.markdown("###  Granular Admin Privilege & Role Control")
     df_admins = get_admin_privileges_matrix()
     st.dataframe(df_admins, use_container_width=True)
 
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("?? Audit & Rotate Admin Privileges"):
+        if st.button(" Audit & Rotate Admin Privileges"):
             log_backend_event("INFO", "Master admin executed automated privilege and session audit.")
             st.success("Admin audit complete. All session tokens verified and cryptographic roles re-validated.")
     with col_b:
-        if st.button("??? Elevate Security Clearance Tier"):
+        if st.button("? Elevate Security Clearance Tier"):
             log_backend_event("INFO", "User requested temporary administrative privilege elevation.")
             st.success("Clearance temporarily elevated with time-bound multi-factor authorization.")
 
     st.markdown("---")
-    st.markdown("### ?? Intelligent Enterprise Billing & Automated Ledger")
+    st.markdown("###  Intelligent Enterprise Billing & Automated Ledger")
     df_billing = get_billing_invoices_matrix()
     st.dataframe(df_billing, use_container_width=True)
 
@@ -71,6 +71,6 @@ def render_admin_billing_panel():
             log_backend_event("INFO", "User executed automated billing ledger reconciliation.")
             st.success("Billing reconciliation complete. Pending invoices auto-matched and cleared via secure gateway.")
     with col_d:
-        if st.button("?? Generate & Export Financial Ledger PDF"):
+        if st.button(" Generate & Export Financial Ledger PDF"):
             log_backend_event("INFO", "User exported enterprise financial ledger report.")
             st.success("Financial ledger successfully compiled and encrypted for secure local storage.")

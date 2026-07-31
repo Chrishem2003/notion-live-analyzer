@@ -32,7 +32,7 @@ def render_ci_watchdog_panel():
     """
     Renders the CI/CD Pipeline Watchdog & Self-Healing monitor inside Streamlit.
     """
-    st.subheader("?? CI/CD Pipeline Watchdog & Self-Healer")
+    st.subheader(" CI/CD Pipeline Watchdog & Self-Healer")
     st.caption("Continuous monitoring of Git repository health, branch synchronization, and automated build recovery.")
 
     git_info = check_git_pipeline_status()

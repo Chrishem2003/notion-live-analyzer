@@ -6,7 +6,7 @@ def render_data_cleaner():
     """
     Renders an interactive dataset cleaning and transformation utility.
     """
-    st.subheader("?? Automated Dataset Cleaner & Transformer")
+    st.subheader(" Automated Dataset Cleaner & Transformer")
     st.caption("Upload raw tabular data to clean null values, normalize columns, and export filtered results.")
 
     uploaded_file = st.file_uploader("Upload CSV Dataset for Cleaning", type=["csv"], key="cleaner_file_upload")
@@ -48,7 +48,7 @@ def render_data_cleaner():
 
                 csv_bytes = processed_df.to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    label="?? Download Cleaned Dataset (CSV)",
+                    label=" Download Cleaned Dataset (CSV)",
                     data=csv_bytes,
                     file_name="cleaned_dataset_export.csv",
                     mime="text/csv"

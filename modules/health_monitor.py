@@ -8,7 +8,7 @@ def render_health_monitor():
     """
     Renders live system resource telemetry, database size inspection, and watchdog status.
     """
-    st.subheader("??? Real-Time System Health & Diagnostics")
+    st.subheader("? Real-Time System Health & Diagnostics")
     st.caption("Live hardware resource utilization and persistent storage telemetry.")
 
     # Gather System Metrics via psutil
@@ -40,18 +40,18 @@ def render_health_monitor():
     # Subsystem Status Cards
     col_a, col_b = st.columns(2)
     with col_a:
-        st.markdown("### ?? Subsystem Daemons")
+        st.markdown("###  Subsystem Daemons")
         st.success("Self-Healing Watchdog: **ONLINE**")
         st.success("Web Application Firewall (WAF): **ACTIVE**")
         st.success("Git Auto-Sync Daemon: **RUNNING (Every 3m)**")
     
     with col_b:
-        st.markdown("### ?? Security & Persistence")
+        st.markdown("###  Security & Persistence")
         st.success("Encrypted Vault: **AES-256 (Rate-Limited)**")
         st.success("Session Backend: **SQLite Connected**")
         st.success("Localization Engine: **Multi-Gateway Ready**")
 
     st.markdown("---")
-    if st.button("?? Refresh System Telemetry"):
+    if st.button(" Refresh System Telemetry"):
         st.toast("System metrics successfully refreshed!", icon="?")
         st.rerun()

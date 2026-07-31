@@ -20,12 +20,12 @@ def render_env_auditor_panel():
     """
     Renders the Environment & Secrets Auditor dashboard inside Streamlit.
     """
-    st.subheader("??? Environment & Secrets Auditor")
+    st.subheader("? Environment & Secrets Auditor")
     st.caption("Verify environment configuration flags, secure key parameters, and secret token audit statuses.")
 
     df_env = get_environment_telemetry()
     st.dataframe(df_env, use_container_width=True)
 
-    if st.button("?? Run Full Environment Security Audit"):
+    if st.button(" Run Full Environment Security Audit"):
         log_backend_event("INFO", "User executed environment security audit.")
         st.success("Environment audit complete. All configuration keys and secrets verified secure.")

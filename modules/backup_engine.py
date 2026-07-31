@@ -38,7 +38,7 @@ def render_backup_panel():
     """
     Renders the automated backup and snapshot management interface in Streamlit.
     """
-    st.subheader("?? Enterprise Backup & Disaster Recovery")
+    st.subheader(" Enterprise Backup & Disaster Recovery")
     st.caption("Generate encrypted point-in-time snapshots of your databases, logs, and state files.")
 
     if st.button("Generate System Snapshot Now"):

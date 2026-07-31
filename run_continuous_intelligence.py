@@ -15,7 +15,7 @@ def main():
     Continuous background intelligence loop ensuring 100% autonomous operation.
     """
     init_db()
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ?? CHRISHEM Continuous Intelligence Daemon Started.")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  CHRISHEM Continuous Intelligence Daemon Started.")
     log_backend_event("INFO", "Continuous autonomous intelligence daemon initiated successfully.")
 
     cycle = 1
@@ -29,7 +29,7 @@ def main():
             cycle += 1
             time.sleep(60)
     except KeyboardInterrupt:
-        print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ?? Continuous Intelligence Daemon stopped by user.")
+        print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Continuous Intelligence Daemon stopped by user.")
         log_backend_event("INFO", "Continuous autonomous intelligence daemon terminated gracefully.")
 
 if __name__ == "__main__":

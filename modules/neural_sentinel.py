@@ -20,7 +20,7 @@ def render_neural_sentinel_panel():
     """
     Renders the Autonomous Neural Sentinel & Self-Healing dashboard inside Streamlit.
     """
-    st.subheader("?? Autonomous Neural Sentinel & Self-Healing Daemon")
+    st.subheader(" Autonomous Neural Sentinel & Self-Healing Daemon")
     st.caption("Next-generation AI anomaly detection engine engineered to autonomously secure runtime clusters worldwide.")
 
     df_neural = get_neural_telemetry()
@@ -32,6 +32,6 @@ def render_neural_sentinel_panel():
             log_backend_event("INFO", "User executed global neural threat sweep.")
             st.success("Neural scan complete across all cluster channels. Zero threats detected. System integrity at 100%.")
     with col2:
-        if st.button("??? Trigger Self-Healing Protocol"):
+        if st.button("? Trigger Self-Healing Protocol"):
             log_backend_event("INFO", "User triggered self-healing protocol.")
             st.success("Self-healing daemon active. All cluster memory pools and socket bindings optimized.")

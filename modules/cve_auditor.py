@@ -19,7 +19,7 @@ def render_cve_auditor_panel():
     """
     Renders the Dependency & CVE Vulnerability Auditor dashboard inside Streamlit.
     """
-    st.subheader("?? Dependency & CVE Vulnerability Auditor")
+    st.subheader(" Dependency & CVE Vulnerability Auditor")
     st.caption("Continuous security scanning of Python packages against live vulnerability databases.")
 
     df_cve = get_cve_audit_results()

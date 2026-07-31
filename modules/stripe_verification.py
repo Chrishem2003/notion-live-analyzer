@@ -23,14 +23,14 @@ def render_subscription_panel():
     """
     Renders the Stripe Tiered Subscription & Student Verification portal in Streamlit.
     """
-    st.subheader("?? Enterprise Tiered Licensing & Student Verification")
+    st.subheader(" Enterprise Tiered Licensing & Student Verification")
     st.caption("Upgrade your engine capabilities or verify institutional student status for academic grants.")
 
     user_email = st.text_input("Enter Institutional or Personal Email", value="chrishem@uni.ac.ug")
 
     if user_email:
         if verify_student_eligibility(user_email):
-            st.success("?? Institutional Student Status Verified! Eligible for 50% academic research discount.")
+            st.success(" Institutional Student Status Verified! Eligible for 50% academic research discount.")
             tier_price = ".00 / month (Academic Tier)"
         else:
             st.info("Standard Professional Tier selected.")

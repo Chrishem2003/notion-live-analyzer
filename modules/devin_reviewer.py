@@ -47,7 +47,7 @@ def render_devin_review_panel():
     """
     Renders the Devin AI autonomous code reviewer dashboard inside Streamlit.
     """
-    st.subheader("?? Devin AI Autonomous Code Reviewer")
+    st.subheader(" Devin AI Autonomous Code Reviewer")
     st.caption("Continuous static analysis, syntax inspection, and security anti-pattern detection across your codebase.")
 
     df_reviews = run_devin_code_review()

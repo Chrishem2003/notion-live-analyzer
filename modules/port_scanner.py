@@ -19,7 +19,7 @@ def render_port_scanner_panel():
     """
     Renders the Network Port Scanner & Firewall Diagnostic dashboard inside Streamlit.
     """
-    st.subheader("??? Network Port Scanner & Firewall Diagnostics")
+    st.subheader("? Network Port Scanner & Firewall Diagnostics")
     st.caption("Inspect local socket listeners, firewall bindings, and secure endpoint exposures.")
 
     df_ports = get_active_ports()

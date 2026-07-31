@@ -22,7 +22,7 @@ def render_supervisor_panel():
     """
     Renders the Runtime Supervisor & Autonomous Daemon panel inside Streamlit.
     """
-    st.subheader("??? Runtime Supervisor & Autonomous Daemon")
+    st.subheader("? Runtime Supervisor & Autonomous Daemon")
     st.caption("Active background monitoring, process supervision, and automated recovery telemetry.")
 
     health = verify_runtime_health()

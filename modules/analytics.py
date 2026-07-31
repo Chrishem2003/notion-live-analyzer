@@ -8,7 +8,7 @@ def render_advanced_analytics():
     """
     Renders interactive bioinformatics sequence analysis and visual telemetry telemetry charts.
     """
-    st.subheader("?? Advanced Sequence & Telemetry Analytics")
+    st.subheader(" Advanced Sequence & Telemetry Analytics")
     st.caption("Real-time computational processing pipeline for research data structures.")
 
     # Generate sample telemetry data frame for analysis

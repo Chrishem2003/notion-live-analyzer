@@ -39,7 +39,7 @@ def render_system_diagnostics_panel():
     """
     Renders the System Diagnostics & Health Status panel inside Streamlit.
     """
-    st.subheader("?? System Diagnostics & Component Health Monitor")
+    st.subheader("🩺 System Diagnostics & Component Health Monitor")
     st.caption("Live integrity checks, module synchronization reports, and automated environment diagnostics.")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -53,16 +53,16 @@ def render_system_diagnostics_panel():
         st.metric(label="Security Enclave", value="Secured", delta="Zero Drift")
 
     st.markdown("---")
-    st.markdown("### ?? Component Integrity Matrix")
+    st.markdown("###  Component Integrity Matrix")
     df_status = get_system_modules_status()
     st.dataframe(df_status, use_container_width=True)
 
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("?? Run Full Diagnostic Integrity Sweep"):
+        if st.button(" Run Full Diagnostic Integrity Sweep"):
             log_backend_event("INFO", "User initiated full system diagnostic integrity sweep.")
             st.success("Diagnostic sweep complete. All 19 modules verified with zero corruption.")
     with col_b:
-        if st.button("?? Purge & Optimize Cache Enclaves"):
+        if st.button(" Purge & Optimize Cache Enclaves"):
             log_backend_event("INFO", "User executed cache purge and memory optimization.")
             st.success("Cache successfully purged and memory buffers optimized.")

@@ -41,7 +41,7 @@ def render_docker_monitor_panel():
     """
     Renders the Docker Container Lifecycle & Health dashboard inside Streamlit.
     """
-    st.subheader("?? Docker Container Lifecycle & Volume Supervisor")
+    st.subheader(" Docker Container Lifecycle & Volume Supervisor")
     st.caption("Inspect container health metrics, resource allocation, and storage mount states across your local migration partitions.")
 
     df_containers = get_container_telemetry()
@@ -49,10 +49,10 @@ def render_docker_monitor_panel():
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("?? Refresh Container Telemetry"):
+        if st.button(" Refresh Container Telemetry"):
             log_backend_event("INFO", "User refreshed Docker container telemetry.")
             st.success("Container states synchronized successfully.")
     with col2:
-        if st.button("?? Prune Unused Volumes & Build Caches"):
+        if st.button(" Prune Unused Volumes & Build Caches"):
             log_backend_event("INFO", "User executed Docker container system prune.")
             st.success("System prune completed. 1.2 GB of storage reclaimed on secondary drive.")

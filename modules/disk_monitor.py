@@ -23,12 +23,12 @@ def render_disk_monitor_panel():
     """
     Renders the Advanced Disk Partition & Storage Monitor inside Streamlit.
     """
-    st.subheader("?? Advanced Disk & Storage Partition Monitor")
+    st.subheader(" Advanced Disk & Storage Partition Monitor")
     st.caption("Real-time telemetry tracking system storage allocations, partition health, and high-capacity migrations.")
 
     df_disk = get_disk_metrics()
     st.dataframe(df_disk, use_container_width=True)
 
-    if st.button("?? Execute Storage Cache Cleanup"):
+    if st.button(" Execute Storage Cache Cleanup"):
         log_backend_event("INFO", "User executed storage cache cleanup routine.")
         st.success("Storage cache purged successfully. Unused build artifacts cleared.")

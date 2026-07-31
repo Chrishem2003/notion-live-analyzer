@@ -18,7 +18,7 @@ class SovereignAdvancementsEngine:
         st.markdown('---')
         st.markdown('### ? 50 Sovereign Advancements Suite')
         
-        with st.expander('??? Advanced Analytics & Intelligence Controls (Items 01 - 50)', expanded=False):
+        with st.expander('? Advanced Analytics & Intelligence Controls (Items 01 - 50)', expanded=False):
             tab_bay, tab_index = st.tabs(['MCMC Bayesian (01)', 'Advancements Index (01-50)'])
             
             with tab_bay:

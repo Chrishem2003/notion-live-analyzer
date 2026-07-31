@@ -6,7 +6,7 @@ def render_database_audit_logs():
     """
     Renders an interactive data grid to inspect persistent SQLite logs and sessions.
     """
-    st.subheader("??? Persistent Database Inspection")
+    st.subheader("? Persistent Database Inspection")
     st.caption("Live audit trail and session records stored in chrishem_engine.db")
 
     try:
@@ -19,7 +19,7 @@ def render_database_audit_logs():
         
         conn.close()
 
-        tab_log, tab_sess = st.tabs(["?? System Audit Logs", "?? Active User Sessions"])
+        tab_log, tab_sess = st.tabs([" System Audit Logs", " Active User Sessions"])
         
         with tab_log:
             if not df_logs.empty:

@@ -15,24 +15,24 @@ LOCALES = {
     },
     "French": {
         "title": "Moteur d'Intelligence d'Entreprise",
-        "subtitle": "Analytique Autonome et Espace de Recherche Sécurisé",
-        "select_lang": "Sélectionner la Langue d'Affichage",
-        "export": "Exporter les Données Localisées"
+        "subtitle": "Analytique Autonome et Espace de Recherche Sï¿½curisï¿½",
+        "select_lang": "Sï¿½lectionner la Langue d'Affichage",
+        "export": "Exporter les Donnï¿½es Localisï¿½es"
     },
     "Arabic": {
-        "title": "???? ???? ????????",
-        "subtitle": "????????? ???????? ?????? ????? ??????",
-        "select_lang": "??? ??? ?????",
-        "export": "????? ???????? ???????"
+        "title": "  ",
+        "subtitle": "?   ? ",
+        "select_lang": "? ? ?",
+        "export": "?  ?"
     },
     "Mandarin": {
-        "title": "??????",
-        "subtitle": "????????????",
-        "select_lang": "??????",
-        "export": "???????"
+        "title": "",
+        "subtitle": "",
+        "select_lang": "",
+        "export": "?"
     }
 }
 
 def get_locale_strings():
-    selected_lang = st.sidebar.selectbox("?? Language / Lugha", list(LOCALES.keys()), key="global_lang_select")
+    selected_lang = st.sidebar.selectbox(" Language / Lugha", list(LOCALES.keys()), key="global_lang_select")
     return LOCALES.get(selected_lang, LOCALES["English"])

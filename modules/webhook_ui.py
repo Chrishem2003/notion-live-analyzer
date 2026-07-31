@@ -6,7 +6,7 @@ def render_webhook_panel():
     """
     Renders the Webhook Management & Event Dispatcher interface in Streamlit.
     """
-    st.subheader("?? Enterprise Webhook Event Dispatcher")
+    st.subheader(" Enterprise Webhook Event Dispatcher")
     st.caption("Configure and test real-time notification streams to external endpoints or collaboration channels.")
 
     webhook_url = st.text_input("Webhook Endpoint URL", value="https://your-webhook-endpoint.com/v1/events", type="default")

@@ -22,7 +22,7 @@ def render_telemetry_alerting_panel():
     """
     Renders the Real-Time Telemetry & Smart Alerting Hub inside Streamlit.
     """
-    st.subheader("?? Real-Time System Telemetry & Smart Alerting Hub")
+    st.subheader(" Real-Time System Telemetry & Smart Alerting Hub")
     st.caption("Live performance metrics, resource utilization analytics, and automated threshold-based alert triggers.")
 
     # Top Telemetry Metrics
@@ -37,12 +37,12 @@ def render_telemetry_alerting_panel():
         st.metric(label="Active Alerts", value="0 Unresolved", delta="Secure")
 
     st.markdown("---")
-    st.markdown("### ?? Performance Telemetry Trend Chart")
+    st.markdown("###  Performance Telemetry Trend Chart")
     df_telemetry = get_live_telemetry_data()
     st.line_chart(df_telemetry.set_index("Timestamp")[["CPU_Load_Pct", "Memory_Usage_Pct"]])
 
     st.markdown("---")
-    st.markdown("### ?? Automated Alert Rules & Notification Triggers")
+    st.markdown("###  Automated Alert Rules & Notification Triggers")
     
     alert_rules = [
         {"Alert_Rule": "CPU Threshold Exceeded (>85%)", "Severity": "High", "Action_Trigger": "Auto-Scale Worker Nodes", "Status": "ARMED"},
@@ -54,7 +54,7 @@ def render_telemetry_alerting_panel():
 
     col_1, col_2 = st.columns(2)
     with col_1:
-        if st.button("?? Refresh Telemetry Stream"):
+        if st.button(" Refresh Telemetry Stream"):
             log_backend_event("INFO", "User refreshed live system telemetry stream.")
             st.success("Telemetry stream successfully updated with latest node metrics.")
     with col_2:
