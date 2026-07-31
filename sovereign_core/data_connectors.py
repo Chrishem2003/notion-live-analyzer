@@ -2,7 +2,7 @@
 import datetime
 
 class LiveDataConnector:
-    ""Simulates high-throughput streaming feeds for central banks, WHO, and satellite telemetry.""
+    """Simulates high-throughput streaming feeds for central banks, WHO, and satellite telemetry."""
     @staticmethod
     def fetch_market_yields(country):
         base_yield = 12.5 if "Uganda" in country else 8.0
@@ -15,3 +15,8 @@ class LiveDataConnector:
     @staticmethod
     def fetch_satellite_crop_index():
         return round(float(np.clip(0.68 + np.random.normal(0, 0.05), 0.0, 1.0)), 3)
+
+
+
+
+

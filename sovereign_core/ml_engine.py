@@ -1,7 +1,7 @@
 ﻿import numpy as np
 
 class NeuralODEEngine:
-    ""Continuous-time Neural ODE framework for latent dynamics prediction.""
+    """Continuous-time Neural ODE framework for latent dynamics prediction."""
     def __init__(self, hidden_dim=64):
         self.hidden_dim = hidden_dim
 
@@ -16,8 +16,13 @@ class NeuralODEEngine:
         return x_pred, y_pred, z_pred
 
 class PINNValidator:
-    ""Physics-Informed Neural Network (PINN) state conservation validator.""
+    """Physics-Informed Neural Network (PINN) state conservation validator."""
     @staticmethod
     def validate_conservation(x_traj, y_traj, z_traj):
         energy_residual = np.var(x_traj**2 + y_traj**2 + z_traj**2)
         return float(energy_residual)
+
+
+
+
+
