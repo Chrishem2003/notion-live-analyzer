@@ -1,15 +1,12 @@
 import builtins
 import datetime
 import io
-import sqlite3
 import numpy as np
 import pandas as pd
 import streamlit as st
 from scipy.integrate import odeint
 
-# High-Performance Interactive Plotting
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # ---------------------------------------------------------
 # GLOBAL BUILTINS & FALLBACKS
@@ -24,13 +21,13 @@ if not hasattr(builtins, "run_automations"):
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="CHRISHEM Sovereign Engine",
-    page_icon="⚡",
+    page_icon="*",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ---------------------------------------------------------
-# ADVANCED METALLIC GLASSMORPHISM CSS (FIXES ???? EMOJI ISSUES)
+# ADVANCED METALLIC GLASSMORPHISM CSS (NO-EMOJI / NO-UNICODE)
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -46,23 +43,26 @@ st.markdown("""
         background-attachment: fixed;
     }
 
-    /* Top Subheader Banner Fix */
+    /* Top Subheader Banner */
     .top-banner {
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 16px;
-        padding: 1rem 1.5rem;
-        margin-bottom: 1.5rem;
+        padding: 0.85rem 1.25rem;
+        margin-bottom: 1.25rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
     
     .top-banner-item {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: #94A3B8;
+        font-weight: 500;
     }
     
     .top-banner-item b {
@@ -70,19 +70,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* Glassmorphic Cards */
-    .glass-card {
-        background: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
-
-    /* Custom Metric Styling */
+    /* Metric Boxes */
     .metric-box {
         background: rgba(30, 41, 59, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -131,7 +119,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# HELPER: SAFE MULTI-ENCODING LOADER
+# HELPER: SAFE MULTI-ENCODING DATA LOADER
 # ---------------------------------------------------------
 def load_dataset(uploaded_file):
     file_bytes = uploaded_file.read()
@@ -153,7 +141,7 @@ def load_dataset(uploaded_file):
 # MODULE: NONLINEAR CHAOS ENGINE VIEW
 # ---------------------------------------------------------
 def render_nonlinear_chaos_engine():
-    st.markdown("### 🌀 Dynamic Stability & Nonlinear Chaos Matrix")
+    st.markdown("### Dynamic Stability & Nonlinear Chaos Matrix")
     
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -165,7 +153,7 @@ def render_nonlinear_chaos_engine():
     with c4:
         shock = st.slider("Shock Vector", -3.0, 3.0, 0.0, 0.1)
 
-    t_max = st.slider("Simulation Time Horizon (t)", 50, 500, 200, 10)
+    t_max = st.slider("Simulation Horizon (t)", 50, 500, 200, 10)
 
     def system_ode(state, t, a, b, c, shock_val):
         x, y, z = state
@@ -186,12 +174,10 @@ def render_nonlinear_chaos_engine():
     sol = np.nan_to_num(sol, nan=0.0, posinf=1e4, neginf=-1e4)
     x_traj, y_traj, z_traj = sol[:, 0], sol[:, 1], sol[:, 2]
 
-    # Calculate Heuristic Lyapunov Metric
     growth = np.abs(np.gradient(x_traj)) + 1e-5
     mlce = float(np.mean(np.log(growth)) / (t_arr[1] - t_arr[0]))
     status = "STABLE" if mlce < 0 else "CRITICAL / CHAOTIC"
 
-    # Top Overview Cards
     mc1, mc2, mc3 = st.columns(3)
     with mc1:
         st.markdown(f'<div class="metric-box"><div class="val">{mlce:.4f}</div><div class="lbl">Max Lyapunov Exponent (mLCE)</div></div>', unsafe_allow_html=True)
@@ -203,7 +189,6 @@ def render_nonlinear_chaos_engine():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Plotly Interactive 3D Trajectory
     fig = go.Figure(data=[go.Scatter3d(
         x=x_traj, y=y_traj, z=z_traj,
         mode='lines',
@@ -229,7 +214,7 @@ def render_nonlinear_chaos_engine():
 # MAIN ROUTER & NAVIGATION
 # ---------------------------------------------------------
 def main():
-    st.sidebar.title("⚡ CHRISHEM")
+    st.sidebar.title("CHRISHEM")
     st.sidebar.caption("Sovereign Enterprise Engine v2.5")
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
@@ -253,10 +238,9 @@ def main():
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
     st.sidebar.caption("SYSTEM STATUS")
-    st.sidebar.success("🟢 Operational (100%)")
-    st.sidebar.info("🔒 Secure Sovereign Enclave")
+    st.sidebar.success("[OK] Operational (100%)")
+    st.sidebar.info("[SECURE] Sovereign Enclave")
 
-    # Clean Header Banner (Fixes Emoji ???? Bugs)
     target_country = "Uganda [UG]"
     sector_label = "Economics & Finance (Huang-Li)"
     analyst_name = "Kula Chris"
@@ -273,27 +257,26 @@ def main():
     st.title(navigation)
     st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
-    # ROUTE HANDLER
     if navigation == "Personal Workspace":
         try:
             from modules.personal_workspace import render_personal_workspace_panel
             render_personal_workspace_panel()
         except Exception:
-            st.subheader("🚀 Universal Personal Workspace & Productivity Hub")
+            st.subheader("Universal Personal Workspace & Productivity Hub")
             st.caption("Manage research milestones, bioinformatics pipelines, system configurations, and daily workflow tasks.")
 
             c1, c2, c3, c4 = st.columns(4)
             with c1:
-                st.markdown('<div class="metric-box"><div class="val">🎯 4</div><div class="lbl">Active Milestones</div></div>', unsafe_allow_html=True)
+                st.markdown('<div class="metric-box"><div class="val">4</div><div class="lbl">Active Milestones</div></div>', unsafe_allow_html=True)
             with c2:
-                st.markdown('<div class="metric-box"><div class="val">📊 94.2%</div><div class="lbl">Research Progress</div></div>', unsafe_allow_html=True)
+                st.markdown('<div class="metric-box"><div class="val">94.2%</div><div class="lbl">Research Progress</div></div>', unsafe_allow_html=True)
             with c3:
-                st.markdown('<div class="metric-box"><div class="val">⚡ Synced</div><div class="lbl">Workspace Status</div></div>', unsafe_allow_html=True)
+                st.markdown('<div class="metric-box"><div class="val">Synced</div><div class="lbl">Workspace Status</div></div>', unsafe_allow_html=True)
             with c4:
-                st.markdown('<div class="metric-box"><div class="val">🧠 100%</div><div class="lbl">Focus Score</div></div>', unsafe_allow_html=True)
+                st.markdown('<div class="metric-box"><div class="val">100%</div><div class="lbl">Focus Score</div></div>', unsafe_allow_html=True)
 
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("#### 🎯 Active Research & Task Milestones")
+            st.markdown("#### Active Research & Task Milestones")
             tasks_df = pd.DataFrame([
                 {"Task Item": "Waterborne Pathogen Surveillance Batch Analysis", "Category": "Bioinformatics Research", "Priority": "Critical", "Status": "IN PROGRESS"},
                 {"Task Item": "ALX Data Analytics Portfolio Integration", "Category": "Professional Certification", "Priority": "High", "Status": "OPTIMIZED"},
@@ -303,13 +286,13 @@ def main():
             st.dataframe(tasks_df, use_container_width=True, hide_index=True)
 
             st.markdown("---")
-            st.markdown("#### 📁 Embedded Secure Personal Vault Explorer")
+            st.markdown("#### Embedded Secure Personal Vault Explorer")
             up = st.file_uploader("Upload files into Secure Vault:", accept_multiple_files=True, key="main_vault_uploader")
             if up:
                 for f in up:
                     df = load_dataset(f)
                     if df is not None:
-                        st.success(f"Successfully decoded and validated `{f.name}`")
+                        st.success(f"Successfully decoded `{f.name}`")
                         st.dataframe(df.head(5), use_container_width=True)
 
     elif navigation == "Nonlinear Chaos Engine":
@@ -348,7 +331,7 @@ def main():
             st.markdown("#### Autonomous Intelligence Console")
             prompt = st.text_input("Enter natural language directive:")
             if prompt:
-                st.info(f"Command executed: **{prompt}**")
+                st.info(f"Command executed: {prompt}")
 
     elif navigation == "Admin Billing Ledger":
         try:
@@ -386,14 +369,14 @@ def main():
             from modules.telemetry_alerting import render_telemetry_alerting_panel
             render_telemetry_alerting_panel()
         except Exception:
-            st.success("✅ Systems Operating Within Thermal Limits")
+            st.success("[OK] Systems Operating Within Thermal Limits")
 
     elif navigation == "System Diagnostics & Health":
         try:
             from modules.system_diagnostics import render_system_diagnostics_panel
             render_system_diagnostics_panel()
         except Exception:
-            st.success("✅ Diagnostic Integrity Verified")
+            st.success("[OK] Diagnostic Integrity Verified")
 
     elif navigation == "API & Integration Gateway":
         try:
