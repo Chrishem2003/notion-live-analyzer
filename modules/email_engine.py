@@ -1,4 +1,4 @@
-"""Email Engine — SMTP/SendGrid Integration for Reports."""
+﻿"""Email Engine — SMTP/SendGrid Integration for Reports."""
 import os
 import io
 import base64

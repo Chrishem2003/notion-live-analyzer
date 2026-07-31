@@ -1,4 +1,4 @@
-"""
+﻿"""
 Automated Hypothesis Generator — discovers patterns, formulates research hypotheses,
 and prioritizes them by statistical support and novelty.
 """

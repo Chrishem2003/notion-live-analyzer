@@ -1,4 +1,4 @@
-import datetime
+ï»¿import datetime
 import io
 import json
 import sqlite3
@@ -210,7 +210,7 @@ PRESET_SECTORS = {
 sector_key = st.sidebar.selectbox("Sector Domain", list(PRESET_SECTORS.keys()))
 a_lbl, a_desc, b_lbl, b_desc, c_lbl, c_desc = PRESET_SECTORS[sector_key]
 
-st.sidebar.markdown(f"### ?? Dynamics — {sector_key}")
+st.sidebar.markdown(f"### ?? Dynamics ï¿½ {sector_key}")
 a = st.sidebar.slider(f"{a_lbl} ({a_desc})", 0.1, 5.0, 1.5, 0.1)
 b = st.sidebar.slider(f"{b_lbl} ({b_desc})", 0.0, 3.0, 0.9, 0.1)
 c = st.sidebar.slider(f"{c_lbl} ({c_desc})", 0.0, 3.0, 1.0, 0.1)
@@ -298,9 +298,9 @@ if "Decision & Action" in user_role:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(f"""
     <div class="glass-container">
-        <h4>?? Sector Guidance Briefing — {sector_key}</h4>
+        <h4>?? Sector Guidance Briefing ï¿½ {sector_key}</h4>
         <p><b>Recommended Action:</b> {ACTION_SUMMARY}</p>
-        <p><b>Location Scope:</b> {target_country} — {specific_location}</p>
+        <p><b>Location Scope:</b> {target_country} ï¿½ {specific_location}</p>
         <p><b>Primary Vulnerability Drivers:</b> Growth Drive (a={a}), Operational Friction (b={b}), Reserve Depletion Buffer (c={c}).</p>
     </div>
     """, unsafe_allow_html=True)

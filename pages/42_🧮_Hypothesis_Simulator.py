@@ -1,4 +1,4 @@
-"""
+﻿"""
 🧮 World-Class Dynamic Hypothesis & Parameter Simulator
 Enterprise-grade computational modeling and exploratory simulation engine featuring real-time
 Monte Carlo parameter sweeps, stochastic differential equation (SDE) solver integration, sensitivity heatmaps, and Bayesian updating loops.

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Notion API Client — handles all interactions with the Notion API.
 Supports all 20+ property types and automatic database detection.
 Includes caching and rate-limiting to improve performance.

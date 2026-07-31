@@ -1,4 +1,4 @@
-"""
+﻿"""
 Theoretical-to-Practical Protocol Transpiler
 Converts dense paper methodology into actionable step-by-step laboratory,
 computational, or data analysis protocols.

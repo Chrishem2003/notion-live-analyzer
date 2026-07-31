@@ -1,4 +1,4 @@
-"""
+﻿"""
 🚨 Advanced Real-Time Citation Integrity & Retraction Inspector
 Enterprise-grade reference auditing and scholarly validation engine featuring automated DOI cross-referencing,
 live retraction database synchronization, predatory journal identification, and cryptographic citation health scoring.

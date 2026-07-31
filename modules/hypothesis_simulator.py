@@ -1,4 +1,4 @@
-"""
+﻿"""
 Dynamic Hypothesis & Parameter Simulator
 Converts mathematical formulas and statistical relationships described in papers
 into interactive visual sliders. Users can vary parameters like sample size,

@@ -1,4 +1,4 @@
-# -------------------------------------------------------------------------------
+ï»¿# -------------------------------------------------------------------------------
 # AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.5]
 # -------------------------------------------------------------------------------
 
@@ -701,7 +701,7 @@ else:
                     <div style="font-size:3rem;margin-bottom:0.5rem;">??</div>
                     <h3 style="color:#f8fafc;margin-bottom:0.5rem;">Stream Paused by Host</h3>
                     <p style="color:#cbd5e1;font-size:1.05rem;">{st.session_state['pause_message']}</p>
-                    <div style="margin-top:1rem;color:#a5b4fc;font-size:0.85rem;">Stand by — session will resume shortly.</div>
+                    <div style="margin-top:1rem;color:#a5b4fc;font-size:0.85rem;">Stand by ï¿½ session will resume shortly.</div>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -1350,7 +1350,7 @@ else:
             "</span>"
         )
         st.markdown(
-            f"**{att['name']}** {badge_markup} — *{att['role']}*<br>"
+            f"**{att['name']}** {badge_markup} ï¿½ *{att['role']}*<br>"
             f"<small style='color:#94a3b8;'>Status: `{att['status']}` |"
             f" Camera: `{'On' if att.get('allow_cam', True) else 'Disabled (Stealth)'}`</small>"
         )

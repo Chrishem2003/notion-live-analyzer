@@ -1,4 +1,4 @@
-"""
+﻿"""
 Executive Auto-Insight Storyteller — automatically runs statistical test batteries
 on data load and generates a beautifully formatted executive summary,
 risk assessment, and core takeaways.

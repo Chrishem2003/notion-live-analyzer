@@ -1,4 +1,4 @@
-"""
+﻿"""
 ═══════════════════════════════════════════════════════════════════════════════
 🔍 ADVANCED SENSITIVITY, ROBUSTNESS & MULTIVERSE ANALYSIS ENGINE (v3.0 ENTERPRISE)
 Autonomous Research Operating System — Sensitivity & Diagnostics Module

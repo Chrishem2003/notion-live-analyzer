@@ -1,4 +1,4 @@
-"""
+﻿"""
 📊 World-Class Visual Chart Data Extractor & CSV Re-Synthesizer
 Enterprise-grade computer vision and multimodal OCR analytics engine featuring deep-learning
 plot vectorization, intelligent axis calibration, adaptive multi-format tabular reconstruction, and robust batch CSV export pipelines.

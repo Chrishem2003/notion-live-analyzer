@@ -1,4 +1,4 @@
-"""
+﻿"""
 ✅ Advanced Research Quality, Reproducibility & QRP Auditing Suite (Enterprise Edition)
 Autonomous Research Operating System v3.0 — Research Quality Module
 """

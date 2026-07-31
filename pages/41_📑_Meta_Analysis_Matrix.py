@@ -1,4 +1,4 @@
-"""
+﻿"""
 📑 World-Class Multi-Paper Meta-Analysis Matrix Synthesizer
 Enterprise-grade systematic review and evidence synthesis engine featuring automated effect-size extraction,
 heterogeneity modeling ($I^2$, Cochran's Q), publication bias Egger's regression testing, and forest plot generation pipelines.

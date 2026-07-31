@@ -1,4 +1,4 @@
-"""
+﻿"""
 ═══════════════════════════════════════════════════════════════════════════════
 ENTERPRISE GOOGLE SHEETS CLOUD SYNC & DATA PIPELINE STUDIO [v3.0]
 High-performance cloud connector featuring seamless bidirectional synchronization,

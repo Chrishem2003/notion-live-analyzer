@@ -1,4 +1,4 @@
-"""
+﻿"""
 Audit Portal — CHRISHEM Encrypted Submission & Analytics System
 Provides:
   1. CHRISHEMSubmissionSystem — Fernet-encrypted student submissions with SQLite

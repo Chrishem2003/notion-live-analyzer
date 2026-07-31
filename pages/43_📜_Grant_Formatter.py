@@ -1,4 +1,4 @@
-"""
+﻿"""
 📜 World-Class One-Click Grant & Journal Transpiler
 Enterprise-grade academic publishing and funding proposal transformation engine featuring automated
 guideline compliance parsing, multi-journal style mapping, tone adaptation, and structural gap analysis pipelines.

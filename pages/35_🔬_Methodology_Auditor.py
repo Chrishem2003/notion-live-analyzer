@@ -1,4 +1,4 @@
-"""
+﻿"""
 🔬 Advanced Active Bias & Methodological Flaw Detector (Enterprise Edition v4.0)
 Comprehensive research audit engine featuring real-time statistical power analysis,
 confounding variable stress-testing, Bayesian bias correction, and automated remediation pipelines.

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Secure Personal Vault
 Zero-knowledge encrypted personal storage vault with 2FA authentication,
 AES-GCM-256 client-side encryption, duress PIN support, categorized file

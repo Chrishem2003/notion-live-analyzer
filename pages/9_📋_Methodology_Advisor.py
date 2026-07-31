@@ -1,4 +1,4 @@
-"""
+﻿"""
 📋 Methodology Advisor Page — Advanced Research Design, Statistical Test Selector, & Power Analysis Studio.
 """
 import streamlit as st

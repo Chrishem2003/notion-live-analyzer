@@ -1,4 +1,4 @@
-st.markdown("<style>
+﻿st.markdown("<style>
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;

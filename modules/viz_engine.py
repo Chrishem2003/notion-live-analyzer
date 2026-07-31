@@ -1,4 +1,4 @@
-"""
+﻿"""
 Visualization Engine — intelligent auto-chart recommendation and selection.
 Analyzes data types and suggests the best visualization automatically.
 """

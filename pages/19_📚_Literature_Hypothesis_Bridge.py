@@ -1,4 +1,4 @@
-"""
+﻿"""
 Global Literature Aggregator & Auto-Drafting Engine [SECURE v5.0 ENTERPRISE-PRO]
 Features: Async Multi-API Harvesting, Local Vector Embeddings (Chroma/FAISS),
 Real-Time Collaborative Versioning, Advanced Bioinformatics Sequence Parsing,

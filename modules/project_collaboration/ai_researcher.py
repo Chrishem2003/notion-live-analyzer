@@ -1,4 +1,4 @@
-"""
+﻿"""
 AI Co-Researcher & Automation Layer
 Intelligent research assistant that processes meeting transcripts in real-time,
 auto-detects action items, and generates live meeting notes appended to the project state.

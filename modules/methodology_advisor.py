@@ -1,4 +1,4 @@
-"""
+﻿"""
 Research Methodology Advisor — CHRISHEM-powered expert system that recommends
 study designs, statistical tests, sample sizes, and research methodologies
 based on researcher's input questions and data characteristics.

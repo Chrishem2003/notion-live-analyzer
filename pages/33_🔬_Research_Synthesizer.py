@@ -1,4 +1,4 @@
-"""
+﻿"""
 ═══════════════════════════════════════════════════════════════════════════════
 RESEARCH SYNTHESIZER & AUDIO INTELLIGENCE HUB [v4.2]
 World-class multimodal research engine featuring deep vector semantic search,

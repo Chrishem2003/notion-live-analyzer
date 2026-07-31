@@ -1,4 +1,4 @@
-"""
+﻿"""
 📚 Advanced Automated Literature Context & Meta-Analytic Synthesis Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0 — Literature Context Module
 """

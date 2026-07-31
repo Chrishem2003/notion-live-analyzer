@@ -1,4 +1,4 @@
-# ═══════════════════════════════════════════════════════════════════════════════
+﻿# ═══════════════════════════════════════════════════════════════════════════════
 # AUDIT & COMPLIANCE HUB — ADVANCED HIGH-CONTRAST ENTERPRISE SUITE (v4.0)
 # Lead Researcher: Kula Chris
 # Features: 50 New Advanced Forensic, Security, Statistical & Compliance Engines

@@ -1,4 +1,4 @@
-"""Unit tests for modules.pandas_compat and its use across the app."""
+﻿"""Unit tests for modules.pandas_compat and its use across the app."""
 import pandas as pd
 
 from modules.data_processor import infer_column_type

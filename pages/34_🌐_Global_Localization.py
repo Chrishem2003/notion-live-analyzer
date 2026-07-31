@@ -1,4 +1,4 @@
-"""
+﻿"""
 🌐 Global Language & Academic Register — Localization Engine (Enterprise Edition v4.0)
 Complete application UI, AI synthesis, and neural audio localization
 with comprehensive world language support and formal academic precision.

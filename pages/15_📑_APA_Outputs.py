@@ -1,4 +1,4 @@
-"""
+﻿"""
 ═══════════════════════════════════════════════════════════════════════════════
 ENTERPRISE APA 7TH EDITION PUBLICATION STUDIO [v3.0]
 High-precision academic reporting engine: Automated statistical write-ups, APA 7th

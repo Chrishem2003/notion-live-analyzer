@@ -1,4 +1,4 @@
-"""
+﻿"""
 Data Transformation Engine — SPSS-like Compute, Recode, Rank, Count, Shift, and Binning.
 Provides a UI for transforming variables with full SPSS compatibility.
 """

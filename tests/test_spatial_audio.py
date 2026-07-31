@@ -1,4 +1,4 @@
-"""Unit tests for modules.project_collaboration.webrtc_provider.SpatialAudioEngine."""
+﻿"""Unit tests for modules.project_collaboration.webrtc_provider.SpatialAudioEngine."""
 import pytest
 
 from modules.project_collaboration import SpatialAudioEngine

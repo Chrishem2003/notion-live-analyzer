@@ -1,4 +1,4 @@
-"""
+﻿"""
 ═══════════════════════════════════════════════════════════════════════════════
 📊 ADVANCED VISUAL CHART DATA EXTRACTOR & CSV RE-SYNTHESIZER [ENTERPRISE v3.0]
 High-performance computer vision and multimodal OCR analytics engine featuring

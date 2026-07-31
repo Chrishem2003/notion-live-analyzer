@@ -1,4 +1,4 @@
-"""
+﻿"""
 Collaborative Canvas & Viewport Sync Engine (Yjs / CRDTs)
 Production-grade CRDT-based collaborative workspace with:
   - Real-time collaborative project canvas with multi-user presence cursors

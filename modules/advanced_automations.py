@@ -1,4 +1,4 @@
-"""Advanced Automations & Scheduling Module."""
+﻿"""Advanced Automations & Scheduling Module."""
 import os
 import time
 import json

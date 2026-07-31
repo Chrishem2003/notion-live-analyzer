@@ -1,4 +1,4 @@
-"""
+﻿"""
 Global Literature Aggregator & Auto-Drafting Engine [SECURE v4.0 ENTERPRISE]
 Fetch REAL papers from Semantic Scholar, CrossRef, PubMed, arXiv, and local device browser inputs, 
 build working bibliographies, write findings with AI synthesis & real-time citation pinning, and export securely.

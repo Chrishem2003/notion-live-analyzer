@@ -1,4 +1,4 @@
-"""
+﻿"""
 📑 Advanced Publication-Ready Table Generator & APA Formatting Suite (Enterprise Edition)
 Autonomous Research Operating System v3.0 — Table Generation Module
 """

@@ -1,4 +1,4 @@
-"""
+﻿"""
 🎙️ World-Class Hands-Free Interactive Audio Engine
 Enterprise-grade real-time voice synthesis and speech-to-text pipeline featuring neural audio streaming,
 bi-directional conversational streaming, voice activity detection (VAD), and low-latency WebRTC audio routing.

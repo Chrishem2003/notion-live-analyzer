@@ -1,4 +1,4 @@
-"""
+﻿"""
 ═══════════════════════════════════════════════════════════════════════════════
 META-ANALYSIS & EVIDENCE SYNTHESIS ENGINE [ENTERPRISE ULTRA v6.0]
 Features: Dynamic Effect Size Calculators (Continuous & Binary),

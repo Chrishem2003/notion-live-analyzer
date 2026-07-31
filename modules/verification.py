@@ -1,4 +1,4 @@
-"""African Student Verification — Automated ID Verification Pipeline."""
+﻿"""African Student Verification — Automated ID Verification Pipeline."""
 import io
 import hashlib
 import logging

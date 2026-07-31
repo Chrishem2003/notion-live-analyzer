@@ -1,4 +1,4 @@
-"""
+﻿"""
 Native Git/Repository Integration — connects to GitHub repositories,
 enables data version control, script pushing, and collaborative analysis.
 """

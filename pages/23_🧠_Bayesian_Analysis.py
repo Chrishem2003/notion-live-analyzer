@@ -1,4 +1,4 @@
-"""
+﻿"""
 🧠 Advanced Bayesian Inference & Probabilistic Programming Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0 — Bayesian Module
 """

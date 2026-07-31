@@ -1,4 +1,4 @@
-"""
+﻿"""
 💬 Advanced Natural Language Data Query & Conversational Analytics Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0 — Natural Language Query Module
 """

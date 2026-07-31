@@ -1,4 +1,4 @@
-"""
+﻿"""
 🧪 Advanced Theoretical-to-Practical Protocol Transpiler (Enterprise Edition v4.0)
 High-performance computational laboratory workflow engine featuring automated stoichiometry mapping,
 real-time biosafety compliance auditing, thermo-kinetic parameter optimization, and multi-format export pipelines.

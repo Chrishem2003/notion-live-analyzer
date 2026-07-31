@@ -1,4 +1,4 @@
-import os
+﻿import os
 import base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from modules.database import log_backend_event

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Multi-Paper Meta-Analysis Matrix Synthesizer
 Automatically constructs side-by-side comparative matrices across multiple studies.
 Extracts key variables across papers into a structured, exportable matrix.

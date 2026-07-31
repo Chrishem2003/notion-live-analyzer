@@ -1,4 +1,4 @@
-"""
+﻿"""
 🏷️ Variable View Page — Advanced SPSS-Style Metadata Editor & Codebook Studio
 Complete standalone edition featuring high-contrast layout, metadata editing, 
 batch transforms, APA codebook exports, and schema JSON synchronization.

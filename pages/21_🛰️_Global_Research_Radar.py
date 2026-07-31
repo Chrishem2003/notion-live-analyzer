@@ -1,4 +1,4 @@
-"""
+﻿"""
 ═══════════════════════════════════════════════════════════════════════════════
 GLOBAL RESEARCH RADAR & SATELLITE INTELLIGENCE PLATFORM (v3.0 ENTERPRISE BUILD)
 Autonomous Research Operating System — CHRISHEM Enterprise Edition

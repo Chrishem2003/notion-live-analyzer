@@ -1,4 +1,4 @@
-import requests
+﻿import requests
 import json
 from datetime import datetime
 from modules.database import log_backend_event

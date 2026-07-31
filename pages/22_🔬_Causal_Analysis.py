@@ -1,4 +1,4 @@
-"""
+﻿"""
 🔬 Advanced Causal Inference & Econometric Decision Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0 — Causal Module
 """

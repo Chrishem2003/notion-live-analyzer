@@ -1,4 +1,4 @@
-"""
+﻿"""
 Real-Time Citation Integrity & Retraction Inspector
 Audits paper bibliographies against live databases to protect researchers
 from citing discredited work. Cross-checks references for retractions,
