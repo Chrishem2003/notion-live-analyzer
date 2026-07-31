@@ -1,6 +1,5 @@
 pass  # Safely bypassed run_automations
-    pass
-
+pass
 """
 🔒 Nexus Vault — All-in-One Secure Cloud Workspace
 A single, self-contained Streamlit application that fuses a zero-trust encrypted
@@ -8,7 +7,6 @@ Drive, a full productivity suite (Docs / Sheets / Slides), Mail, Calendar,
 Team Chat & Meet, Task boards, an AI Assistant, and a live storage-quota system
 into one cohesive, colour-coded workspace.
 """
-
 import streamlit as st
 import streamlit.components.v1 as components
 import datetime
@@ -280,6 +278,7 @@ if not st.session_state["automation_ran_this_session"]:
 # Safe Execution of Vault Automations
 # Automations
     if 'run_automations' in globals() or 'run_automations' in locals():
+        pass
 # Safe Execution of Vault Automations
 try:
     if 'run_automations' in globals() or 'run_automations' in locals():
@@ -1352,6 +1351,7 @@ elif active == "☁️ Storage & Admin":
                 if st.button("Select" if name != st.session_state["plan"] else "✅ Current",
                               key=f"plan_{name}", use_container_width=True,
                               disabled=(name == st.session_state["plan"])):
+                                  pass
                     st.session_state["plan"] = name
                     st.rerun()
 
