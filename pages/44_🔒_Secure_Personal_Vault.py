@@ -1,5 +1,3 @@
-pass  # Safely bypassed run_automations
-pass
 """
 🔒 Nexus Vault — All-in-One Secure Cloud Workspace
 A single, self-contained Streamlit application that fuses a zero-trust encrypted
@@ -47,64 +45,60 @@ code, pre {{ font-family: 'JetBrains Mono', monospace !important; }}
 :root {{ --nv-text: {text}; }}
 .nv-card, .nv-file-card {{ background: {bg} !important; color: {text}; border-color: {border} !important; }}
 .nv-card-title {{ color: {muted} !important; }}
-""" + """
 /* ---- Header banner ---- */
-.nv-header {
+.nv-header {{
     background: linear-gradient(120deg, #4338CA 0%, #6D28D9 45%, #0EA5E9 100%);
     border-radius: 16px;
     padding: 22px 28px;
     color: white;
     margin-bottom: 18px;
     box-shadow: 0 8px 24px rgba(67,56,202,0.25);
-}
-.nv-header h1 { margin: 0; font-size: 1.65rem; font-weight: 800; }
-.nv-header p { margin: 4px 0 0 0; opacity: 0.9; font-size: 0.92rem; }
+}}
+.nv-header h1 {{ margin: 0; font-size: 1.65rem; font-weight: 800; }}
+.nv-header p {{ margin: 4px 0 0 0; opacity: 0.9; font-size: 0.92rem; }}
 
 /* ---- Metric / stat cards ---- */
-.nv-card {
+.nv-card {{
     background: var(--background-secondary-color, #ffffff);
     border: 1px solid rgba(120,120,140,0.15);
     border-radius: 14px;
     padding: 16px 18px;
     box-shadow: 0 2px 8px rgba(20,20,50,0.05);
-}
-.nv-card-title { font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.6px; color: #7B7F9B; }
-.nv-card-value { font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
+}}
+.nv-card-title {{ font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.6px; color: #7B7F9B; }}
+.nv-card-value {{ font-size: 1.4rem; font-weight: 800; margin-top: 4px; }}
 
 /* ---- App tiles (per module colour identity) ---- */
-.nv-tile { border-radius: 12px; padding: 10px 14px; font-weight: 700; color: white;
-    display: inline-block; font-size: 0.8rem; margin-right: 6px; }
-.nv-drive   { background: #4F46E5; }
-.nv-docs    { background: #2563EB; }
-.nv-sheets  { background: #16A34A; }
-.nv-slides  { background: #EA580C; }
-.nv-mail    { background: #DC2626; }
-.nv-cal     { background: #7C3AED; }
-.nv-chat    { background: #0D9488; }
-.nv-tasks   { background: #CA8A04; }
-.nv-ai      { background: #DB2777; }
-.nv-sec     { background: #334155; }
+.nv-tile {{ border-radius: 12px; padding: 10px 14px; font-weight: 700; color: white;
+    display: inline-block; font-size: 0.8rem; margin-right: 6px; }}
+.nv-drive   {{ background: #4F46E5; }}
+.nv-docs    {{ background: #2563EB; }}
+.nv-sheets  {{ background: #16A34A; }}
+.nv-slides  {{ background: #EA580C; }}
+.nv-mail    {{ background: #DC2626; }}
+.nv-cal     {{ background: #7C3AED; }}
+.nv-chat    {{ background: #0D9488; }}
+.nv-tasks   {{ background: #CA8A04; }}
+.nv-ai      {{ background: #DB2777; }}
+.nv-sec     {{ background: #334155; }}
 
 /* ---- Badges ---- */
-.badge { padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
-.badge-green  { background:#D1FAE5; color:#065F46; }
-.badge-purple { background:#EDE9FE; color:#5B21B6; }
-.badge-blue   { background:#DBEAFE; color:#1E40AF; }
-.badge-amber  { background:#FEF3C7; color:#92400E; }
-.badge-red    { background:#FEE2E2; color:#991B1B; }
-.badge-gray   { background:#F1F5F9; color:#475569; }
+.badge {{ padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }}
+.badge-green  {{ background:#D1FAE5; color:#065F46; }}
+.badge-purple {{ background:#EDE9FE; color:#5B21B6; }}
+.badge-blue   {{ background:#DBEAFE; color:#1E40AF; }}
+.badge-amber  {{ background:#FEF3C7; color:#92400E; }}
+.badge-red    {{ background:#FEE2E2; color:#991B1B; }}
+.badge-gray   {{ background:#F1F5F9; color:#475569; }}
 
-/* storage bar tinting handled inline via st.progress + caption color */
-hr { margin: 0.6rem 0 1rem 0; }
-
-.nv-file-card { transition: all .15s ease; }
-.nv-empty { text-align:center; padding: 40px 10px; color:#94A3B8; }
-
-.nv-trash   { background: #64748B; }
-.nv-analytics { background: #0891B2; }
-.nv-notif-dot { background:#EF4444; color:white; border-radius:50%; padding:1px 6px; font-size:0.68rem; font-weight:700; }
-.nv-version-row { border-left: 3px solid #6366F1; padding-left: 10px; margin-bottom: 6px; }
+hr {{ margin: 0.6rem 0 1rem 0; }}
+.nv-file-card {{ transition: all .15s ease; }}
+.nv-empty {{ text-align:center; padding: 40px 10px; color:#94A3B8; }}
+.nv-trash   {{ background: #64748B; }}
+.nv-analytics {{ background: #0891B2; }}
+.nv-notif-dot {{ background:#EF4444; color:white; border-radius:50%; padding:1px 6px; font-size:0.68rem; font-weight:700; }}
+.nv-version-row {{ border-left: 3px solid #6366F1; padding-left: 10px; margin-bottom: 6px; }}
 </style>
 """
 
@@ -274,33 +268,6 @@ if not st.session_state["signed_in"]:
                    "use Mail → ⚙️ Settings after signing in.")
     st.stop()
 
-if not st.session_state["automation_ran_this_session"]:
-# Safe Execution of Vault Automations
-# Automations
-    if 'run_automations' in globals() or 'run_automations' in locals():
-        pass
-# Safe Execution of Vault Automations
-try:
-    if 'run_automations' in globals() or 'run_automations' in locals():
-        pass  # Safely bypassed run_automations
-    else:
-        pass
-except Exception:
-    pass
-    else:
-        pass
-except Exception:
-    pass
-except NameError:
-    pass
-except Exception:
-    pass
-except NameError:
-    pass
-except Exception as e:
-    st.sidebar.caption("Vault Automations Idle")
-    st.session_state["automation_ran_this_session"] = True
-
 
 # ============================================================================
 # 5. HELPERS
@@ -337,7 +304,6 @@ def unread_mail_count():
     return sum(1 for m in st.session_state["mail_inbox"] if not m["read"])
 
 
-# ---- Trash / recycle bin -------------------------------------------------
 def trash_item(kind, item, sheet_name=None):
     """Soft-delete: move an item to trash instead of destroying it."""
     item = dict(item)
@@ -366,7 +332,6 @@ def trash_count():
             + len(st.session_state["trash_slides"]) + len(st.session_state["trash_sheets"]))
 
 
-# ---- Notifications ---------------------------------------------------------
 def build_notifications():
     notes = []
     unread = unread_mail_count()
@@ -379,7 +344,7 @@ def build_notifications():
         notes.append("🟡 Storage is over 70% full.")
     today = datetime.date.today()
     for e in st.session_state["calendar_events"]:
-# Automations
+        try:
             ed = datetime.datetime.strptime(e["date"], "%Y-%m-%d").date()
             if 0 <= (ed - today).days <= 2:
                 notes.append(f"📅 Upcoming: **{e['title']}** on {e['date']} at {e['time']}.")
@@ -390,9 +355,8 @@ def build_notifications():
     return notes
 
 
-# ---- Automation engine -----------------------------------------------------
-pass  # Safely bypassed run_automations
-    """Evaluate enabled rules against the live session and act on them. Returns list of log lines."""
+def run_automations(manual=False):
+    """Evaluate enabled rules against the live session and act on them."""
     results = []
     for rule in st.session_state["automation_rules"]:
         if not rule["enabled"]:
@@ -420,7 +384,6 @@ pass  # Safely bypassed run_automations
                 detail = "Applied extension-based tags to untagged files."
 
         elif rule["trigger"] == "Unread mail older than 3 days" and rule["action"] == "Archive old mail":
-            # demo heuristic: archive unread mail not from "today"/"Yesterday" markers
             for m in list(st.session_state["mail_inbox"]):
                 if not m["read"] and m["time"] not in ("Yesterday",) and ":" not in m["time"]:
                     m["read"] = True
@@ -431,7 +394,7 @@ pass  # Safely bypassed run_automations
         elif rule["trigger"] == "Event within 24 hours" and rule["action"] == "Send reminder notification":
             today = datetime.date.today()
             for e in st.session_state["calendar_events"]:
-# Automations
+                try:
                     ed = datetime.datetime.strptime(e["date"], "%Y-%m-%d").date()
                     if 0 <= (ed - today).days <= 1:
                         acted = True
@@ -448,7 +411,6 @@ pass  # Safely bypassed run_automations
     return results
 
 
-# ---- Real email (IMAP fetch / SMTP send) -----------------------------------
 def imap_fetch_inbox(limit=15):
     creds = st.session_state["mail_credentials"]
     ctx = ssl.create_default_context()
@@ -492,6 +454,14 @@ def smtp_send(to_addr, subject, body):
         server.sendmail(creds["email"], [to_addr], msg.as_string())
 
 
+# Execute initial session automations
+if not st.session_state.get("automation_ran_this_session"):
+    try:
+        run_automations()
+    except Exception:
+        pass
+    st.session_state["automation_ran_this_session"] = True
+
 # ============================================================================
 # 6. SIDEBAR — NAVIGATION + QUICK SETTINGS
 # ============================================================================
@@ -531,7 +501,7 @@ with st.sidebar:
         "🛡️ Security & Vault",
         "☁️ Storage & Admin",
     ]
-    # normalize labels carrying live counters so routing still matches
+    
     def _base(o):
         return o.split(" (")[0] if (" (" in o and o.rstrip(")").rsplit("(", 1)[-1].isdigit()) else o
     display_to_key = {o: _base(o) for o in nav_options}
@@ -555,7 +525,6 @@ with st.sidebar:
     if st.button("🔒 Sign out", use_container_width=True):
         st.session_state["signed_in"] = False
         st.rerun()
-
 
 # ============================================================================
 # 7. TOP BANNER + GLOBAL SEARCH
@@ -742,7 +711,7 @@ elif active == "📁 Drive":
             elif (pf["type"] or "").startswith("image/"):
                 st.image(raw, use_container_width=True)
             elif (pf["type"] or "").startswith("text/") or pf["name"].endswith((".txt", ".md", ".json", ".csv", ".py")):
-# Automations
+                try:
                     st.code(raw.decode("utf-8", errors="ignore")[:5000], language=None)
                 except Exception:
                     st.warning("Couldn't decode this file as text.")
@@ -778,7 +747,7 @@ elif active == "📄 Docs":
             cA, cB, cC = st.columns([1, 1, 3])
             if cA.button("💾 Save", type="primary"):
                 doc.setdefault("versions", []).append({"content": doc["content"], "saved_at": doc["modified"]})
-                doc["versions"] = doc["versions"][-10:]  # keep last 10 versions
+                doc["versions"] = doc["versions"][-10:]
                 doc["name"], doc["content"], doc["modified"] = new_name, new_content, now_str()
                 st.success("Saved — a version snapshot was kept.")
             if cB.button("🗑️ Delete"):
@@ -938,7 +907,7 @@ elif active == "✉️ Mail":
             if not (to and subj):
                 st.error("Add a recipient and subject before sending.")
             elif st.session_state["mail_mode"] == "Live":
-# Automations
+                try:
                     smtp_send(to, subj, body)
                     st.session_state["live_sent"].append(
                         {"id": new_id("M"), "to": to, "subject": subj, "body": body, "time": now_str()})
@@ -963,9 +932,8 @@ elif active == "✉️ Mail":
 
     with tab_settings:
         st.markdown("##### 🔌 Connect a real email account")
-        st.caption("Uses standard IMAP/SMTP over SSL with your own credentials — nothing is sent to Anthropic "
-                   "or stored outside this session. Use an **app password** (Gmail/Outlook/Yahoo all support "
-                   "these under Security settings when 2FA is on) — never your main account password.")
+        st.caption("Uses standard IMAP/SMTP over SSL with your own credentials. Use an **app password** "
+                   "(Gmail/Outlook/Yahoo support these under Security settings when 2FA is on).")
         creds = st.session_state["mail_credentials"]
         c1, c2 = st.columns(2)
         creds["email"] = c1.text_input("Email address", value=creds["email"])
@@ -981,22 +949,17 @@ elif active == "✉️ Mail":
             if not (creds["email"] and creds["app_password"] and creds["imap_host"]):
                 st.error("Fill in email, app password, and IMAP host first.")
             else:
-# Automations
+                try:
                     with st.spinner("Connecting over IMAP..."):
                         st.session_state["live_inbox"] = imap_fetch_inbox()
                     st.session_state["mail_mode"] = "Live"
                     st.success(f"✅ Connected — pulled {len(st.session_state['live_inbox'])} messages.")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Couldn't connect: {e}. Check host/port/app-password, and that IMAP is "
-                             f"enabled on the account.")
+                    st.error(f"Couldn't connect: {e}.")
         if cB.button("↩️ Switch back to Demo Mode", use_container_width=True):
             st.session_state["mail_mode"] = "Demo"
             st.rerun()
-
-        st.info("⚠️ This sandbox itself has no outbound internet access, so a live connection can only be "
-                "tested when you run this app on your own machine or a hosting platform (Streamlit Cloud, "
-                "your server, etc.) with real network access.")
 
 # ============================================================================
 # 14. CALENDAR
@@ -1051,8 +1014,7 @@ elif active == "💬 Chat & Meet":
             st.rerun()
 
     with tab_meet:
-        st.caption("Real, working video rooms via the free public Jitsi Meet service — no account or API key "
-                   "needed. Requires this app to be running with internet access.")
+        st.caption("Real, working video rooms via the free public Jitsi Meet service.")
         if "active_room" not in st.session_state:
             st.session_state["active_room"] = f"nexusvault-{uuid.uuid4().hex[:8]}"
 
@@ -1065,15 +1027,14 @@ elif active == "💬 Chat & Meet":
             st.session_state["active_room"] = f"nexusvault-{uuid.uuid4().hex[:8]}"
             st.rerun()
         started = c2.toggle("🎥 Join room now", value=False, key="meet_started")
-        rec_toggle = c3.toggle("🔴 Recording (simulated)", value=False, help=
-                                "UI only — real recording needs a Jitsi account with JaaS/recorder configured.")
+        rec_toggle = c3.toggle("🔴 Recording (simulated)", value=False)
 
         st.markdown("##### 📧 Invite by email")
         invite_to = st.selectbox("Invite contact", [c["email"] for c in st.session_state["contacts"]])
         if st.button("✉️ Send invite"):
             invite_body = f"Join our meeting: {room_url}"
             if st.session_state["mail_mode"] == "Live":
-# Automations
+                try:
                     smtp_send(invite_to, "Meeting invite — Nexus Vault", invite_body)
                     st.success(f"Invite sent live to {invite_to}.")
                 except Exception as e:
@@ -1130,7 +1091,7 @@ elif active == "🤖 AI Assistant":
         matches = [f["name"] for f in st.session_state["files"] if q.split()[0] in f["name"].lower()] if q else []
         with st.spinner("Searching your workspace..."):
             import time as _t
-            _t.sleep(0.6)
+            _t.sleep(0.4)
         if matches:
             st.markdown(f"> Based on **{matches[0]}**, here's a synthesized answer to your question. "
                         f"The most relevant sections have been located and cross-referenced with related "
@@ -1199,12 +1160,9 @@ elif active == "📈 Analytics":
 elif active == "⚙️ Automations":
     st.markdown('<span class="nv-tile nv-ai">⚙️ Automations</span> Rule-based workflows that act on your workspace.',
                 unsafe_allow_html=True)
-    st.caption("Rules run once automatically each time you sign in, or on demand below. For unattended "
-               "scheduling (e.g. every night at 2am) you'd point a cron job / hosting platform's scheduler "
-               "at this script — Streamlit itself has no built-in background timer.")
 
     if st.button("▶️ Run automations now", type="primary"):
-        pass  # Safely bypassed run_automations
+        results = run_automations(manual=True)
         if results:
             st.success(f"Ran {len(results)} action(s) — see log below.")
         else:
@@ -1329,7 +1287,6 @@ elif active == "🛡️ Security & Vault":
         st.button("💾 Apply security settings")
 
     with t3:
-        st.caption("Split your master key into N shares — require M of N to recover access.")
         n = st.number_input("Total shares (N)", 2, 10, 5)
         m = st.number_input("Required threshold (M)", 2, 10, 3)
         st.button("🧩 Generate key shares")
@@ -1351,7 +1308,6 @@ elif active == "☁️ Storage & Admin":
                 if st.button("Select" if name != st.session_state["plan"] else "✅ Current",
                               key=f"plan_{name}", use_container_width=True,
                               disabled=(name == st.session_state["plan"])):
-                                  pass
                     st.session_state["plan"] = name
                     st.rerun()
 
@@ -1406,8 +1362,7 @@ elif active == "☁️ Storage & Admin":
 
     st.markdown("---")
     st.markdown("### 💾 Backup & Restore")
-    st.caption("Export your entire workspace (files metadata, docs, sheets, slides, mail, calendar, tasks) "
-               "as an encrypted-at-rest JSON snapshot, or restore from a previous backup.")
+    st.caption("Export your workspace state as an encrypted JSON snapshot or restore from a backup.")
 
     backup_keys = ["files", "docs", "sheets", "slides", "mail_inbox", "mail_sent", "calendar_events",
                    "tasks", "chat_messages", "plan"]
@@ -1423,7 +1378,7 @@ elif active == "☁️ Storage & Admin":
     with b2:
         restore_file = st.file_uploader("Restore from backup", type=["json"], key="restore_upl")
         if restore_file is not None:
-# Automations
+            try:
                 data = json.loads(restore_file.getvalue().decode("utf-8"))
                 if st.button("⚠️ Confirm restore (overwrites current workspace)", type="primary"):
                     for k in backup_keys:
@@ -1433,4 +1388,3 @@ elif active == "☁️ Storage & Admin":
                     st.rerun()
             except Exception:
                 st.error("That file doesn't look like a valid Nexus Vault backup.")
-
