@@ -1,366 +1,367 @@
-﻿"""
-📑 Advanced Publication-Ready Table Generator & APA Formatting Suite (Enterprise Edition)
-Autonomous Research Operating System v3.0 — Table Generation Module
-"""
-import streamlit as st
-import pandas as pd
-import numpy as np
-
-# ─── Page Config ───────────────────────────────────────────────────────
-st.set_page_config(
-    page_title="Advanced Publication-Ready Tables & APA Suite",
-    page_icon="📑",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# ─── Dependency Check & Fallbacks ──────────────────────────────────────
-try:
-    import pandas as pd
-    HAS_PANDAS = True
-except ImportError:
-    HAS_PANDAS = False
-
-try:
-    import plotly.express as px
-    import plotly.graph_objects as go
-    HAS_PLOTLY = True
-except ImportError:
-    HAS_PLOTLY = False
-
-if not HAS_PANDAS:
-    st.error("⚠️ pandas is required for tabular generation. Install with: `pip install pandas`")
-    st.stop()
-
-# ─── Custom Enterprise CSS ──────────────────────────────────────────────
-st.markdown("""
-<style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
-    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
-    }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
-    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
-    }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-    .stApp {
-        background-color: #020617;
-        color: #f1f5f9;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    .table-card {
-        background: linear-gradient(145deg, #0f172a, #090d16);
-        border: 1px solid #1e293b;
-        border-radius: 16px;
-        padding: 1.2rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        margin-bottom: 1rem;
-    }
-    .badge-table {
-        background: #311005;
-        color: #fed7aa;
-        border: 1px solid #c2410c;
-        padding: 0.2rem 0.6rem;
-        border-radius: 6px;
-        font-size: 0.65rem;
-        font-family: monospace;
-        letter-spacing: 0.05em;
-    }
-    .apa-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: 'Times New Roman', Times, serif;
-        background-color: #ffffff;
-        color: #0f172a;
-        border-top: 2px solid #000000;
-        border-bottom: 2px solid #000000;
-        margin: 1rem 0;
-    }
-    .apa-table th {
-        border-bottom: 1px solid #000000;
-        padding: 8px 12px;
-        text-align: left;
-        font-weight: normal;
-        font-style: italic;
-    }
-    .apa-table td {
-        padding: 6px 12px;
-        text-align: left;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# ─── Session State Initialization ──────────────────────────────────────
-if "table_active_tab" not in st.session_state:
-    st.session_state["table_active_tab"] = "apa7"
-
-# ─── Hero Header ───────────────────────────────────────────────────────
-st.markdown("""
-<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;'>
-    <div>
-        <span class='badge-table'>APA 7TH EDITION & SCIENTIFIC TYPESETTING SUITE (v3.0)</span>
-        <h1 style='font-size:2rem; font-weight:800; color:#f1f5f9; margin:0.4rem 0 0.2rem 0;'>
-            Advanced Publication-Ready Tables & Formatter
-        </h1>
-        <p style='color:#94a3b8; font-size:0.9rem; max-width:800px; margin:0;'>
-            Generate flawless APA 7th edition manuscript tables, publication-grade correlation matrices, multiple regression coefficient grids, and export directly to LaTeX, CSV, or HTML.
-        </p>
-    </div>
-    <div style='text-align:right;'>
-        <div style='background:#0f172a; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
-            <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>Formatting Kernel</div>
-            <div style='color:#fb923c; font-size:0.85rem; font-weight:800;'>🟢 APA 7 & LaTeX Active</div>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ─── Navigation Tabs ───────────────────────────────────────────────────
-table_tabs = {
-    "apa7": "📑 APA 7th Descriptive Tables",
-    "correlation": "📊 Correlation Matrices (APA)",
-    "regression": "📈 Regression Coefficient Tables",
-    "summary": "📋 Summary & Custom Metrics",
-    "export": "📤 LaTeX & Document Export"
-}
-
-cols = st.columns(len(table_tabs))
-for i, (t_key, t_label) in enumerate(table_tabs.items()):
-    with cols[i]:
-        is_active = st.session_state["table_active_tab"] == t_key
-        
-        if st.button(t_label, key=f"nav_table_{t_key}", use_container_width=True):
-            st.session_state["table_active_tab"] = t_key
-            st.rerun()
-
-st.markdown("<hr style='margin:1rem 0 1.5rem 0;'>", unsafe_allow_html=True)
-active_table_tab = st.session_state["table_active_tab"]
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 1: APA 7TH DESCRIPTIVE TABLES
-# ═══════════════════════════════════════════════════════════════════════
-if active_table_tab == "apa7":
-    st.markdown("### 📑 APA 7th Edition Descriptive Statistics Tables")
-    st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Format means, standard deviations, skews, and kurtosis adhering strictly to APA formatting guidelines (horizontal borders only, italicized headers).</p>", unsafe_allow_html=True)
-    
-    col_t1, col_t2 = st.columns([4, 6])
-    with col_t1:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.text_input("Table Title Number", value="Table 1")
-        st.text_input("Table Caption", value="Descriptive Statistics and Intercorrelations for Study Variables")
-        st.multiselect("Metrics to Include", ["Mean ($M$)", "Standard Deviation ($SD$)", "Median", "IQR", "Skewness", "Kurtosis"], default=["Mean ($M$)", "Standard Deviation ($SD$)", "Skewness", "Kurtosis"])
-        st.button("🚀 Render APA Descriptive Table", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_t2:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>📊 Manuscript Table Preview (APA Style)</h4>", unsafe_allow_html=True)
-        
-        # HTML preview simulating strict APA lines
-        st.markdown("""
-        <div style="font-style: italic; color: #f1f5f9; font-size: 0.85rem; margin-bottom: 0.4rem;">
-            Table 1<br><span style="font-weight: bold;">Descriptive Statistics for Experimental Variables (N = 250)</span>
-        </div>
-        <table class="apa-table">
-            <thead>
-                <tr>
-                    <th>Variable</th>
-                    <th><i>M</i></th>
-                    <th><i>SD</i></th>
-                    <th><i>Skew</i></th>
-                    <th><i>Kurtosis</i></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>1. Ecosystem Yield Index</td><td>12.45</td><td>2.12</td><td>0.14</td><td>-0.32</td></tr>
-                <tr><td>2. Soil Moisture Index</td><td>45.80</td><td>8.45</td><td>-0.08</td><td>0.12</td></tr>
-                <tr><td>3. Atmospheric Temp (°C)</td><td>24.30</td><td>3.10</td><td>0.31</td><td>-0.54</td></tr>
-                <tr><td>4. Elevation Profile (m)</td><td>620.50</td><td>115.20</td><td>0.42</td><td>0.05</td></tr>
-            </tbody>
-        </table>
-        <div style="color: #94a3b8; font-size: 0.75rem;"><i>Note.</i> M and SD represent mean and standard deviation respectively. All values computed on winsorized cohort data.</div>
-        """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 2: CORRELATION MATRICES (APA)
-# ═══════════════════════════════════════════════════════════════════════
-elif active_table_tab == "correlation":
-    st.markdown("### 📊 APA-Style Correlation Matrices")
-    st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Generate lower-triangular Pearson correlation matrices complete with asterisk significance markers ($*p < .05, **p < .01$).</p>", unsafe_allow_html=True)
-    
-    col_c1, col_c2 = st.columns([4, 6])
-    with col_c1:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.selectbox("Correlation Type", ["Pearson r", "Spearman Rank ρ", "Partial Correlation"])
-        st.checkbox("Include Significance Asterisks (*p < .05, **p < .01)", value=True)
-        st.checkbox("Format Lower Triangle Only", value=True)
-        st.button("⚙️ Generate Correlation Matrix", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_c2:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>📊 Correlation Matrix Grid</h4>", unsafe_allow_html=True)
-        st.code("""
-Table 2
-Bivariate Correlations Among Primary Research Variables
------------------------------------------------------------------
-Variable                  1          2          3          4
------------------------------------------------------------------
-1. Yield Index            —
-2. Soil Moisture         .68**       —
-3. Temperature           -.31*      -.24*       —
-4. Elevation              .42**      .51**     -.18       —
------------------------------------------------------------------
-Note. *p < .05, **p < .01 (two-tailed). N = 250.
-        """, language="text")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 3: REGRESSION COEFFICIENT TABLES
-# ═══════════════════════════════════════════════════════════════════════
-elif active_table_tab == "regression":
-    st.markdown("### 📈 Multiple Regression Coefficient Tables")
-    st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Format unstandardized coefficients ($B$), standard errors ($SE$), standardized betas ($\beta$), $t$-statistics, and confidence intervals for publication.</p>", unsafe_allow_html=True)
-    
-    col_r1, col_r2 = st.columns([4, 6])
-    with col_r1:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.selectbox("Model Type", ["Ordinary Least Squares (OLS)", "Bayesian GLM", "Robust Regression"])
-        st.checkbox("Include Standardized Beta Weights (β)", value=True)
-        st.checkbox("Include 95% Confidence Intervals", value=True)
-        st.button("⚡ Generate Regression Table", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_r2:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>📊 Regression Output Matrix</h4>", unsafe_allow_html=True)
-        st.code("""
-Table 3
-Multiple Regression Analysis Predicting Ecosystem Yield Index
------------------------------------------------------------------
-Variable             B      SE     β      t      p      95% CI
------------------------------------------------------------------
-Intercept          2.45   0.62          3.95   .001   [1.22, 3.68]
-Soil Moisture      0.41   0.08   .48    5.12   <.001  [0.25, 0.57]
-Temperature       -0.30   0.11  -.22   -2.73   .007   [-0.52,-0.08]
-Elevation          0.005  0.001  .31    3.84   <.001  [0.002,0.008]
------------------------------------------------------------------
-Model Summary: R² = .624, Adjusted R² = .619, F(3, 246) = 43.21, p < .001
-        """, language="text")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 4: SUMMARY & CUSTOM METRICS
-# ═══════════════════════════════════════════════════════════════════════
-elif active_table_tab == "summary":
-    st.markdown("### 📋 Custom Metric & Model Comparison Tables")
-    st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Construct custom model selection tables comparing AIC, BIC, LOO, and R-squared across alternative specifications.</p>", unsafe_allow_html=True)
-    
-    col_s1, col_s2 = st.columns([4, 6])
-    with col_s1:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.multiselect("Comparison Criteria", ["AIC", "BIC", "Log-Likelihood", "R²", "Adjusted R²", "RMSE", "WAIC"], default=["AIC", "BIC", "R²", "RMSE"])
-        st.button("🔍 Generate Comparison Summary", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_s2:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>📊 Model Comparison Grid</h4>", unsafe_allow_html=True)
-        st.code("""
-Table 4
-Model Fit and Information Criteria Comparison
------------------------------------------------------------------
-Model Specification        AIC      BIC      R²      RMSE
------------------------------------------------------------------
-Model 1 (Full Covariates)  412.5    428.1    .624    1.12
-Model 2 (Reduced Soil)     431.2    442.8    .581    1.25
-Model 3 (Base Temperature) 465.8    474.2    .412    1.54
------------------------------------------------------------------
-Note. Lower AIC and BIC values indicate superior parsimony and fit.
-        """, language="text")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 5: LATEX & DOCUMENT EXPORT
-# ═══════════════════════════════════════════════════════════════════════
-elif active_table_tab == "export":
-    st.markdown("### 📤 LaTeX Source Code & Document Export")
-    st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Export tables directly into production-ready LaTeX environments (`booktabs` package) or copy CSV/Markdown formats.</p>", unsafe_allow_html=True)
-    
-    col_e1, col_e2 = st.columns([4, 6])
-    with col_e1:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.selectbox("Export Format", ["LaTeX (booktabs package)", "Markdown Table", "CSV Format", "HTML Snippet"])
-        st.checkbox("Include Table Environment Wrapper", value=True)
-        st.button("🔄 Generate Export Code", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_e2:
-        st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>📊 LaTeX Source Code</h4>", unsafe_allow_html=True)
-        st.code(r"""
-\begin{table}[!htbp]
-\centering
-\caption{Descriptive Statistics and Intercorrelations}
-\begin{label}{tab:descriptives}
-\begin{tabular}{lccccc}
-\toprule
-Variable & $M$ & $SD$ & 1 & 2 & 3 \\
-\midrule
-1. Yield Index & 12.45 & 2.12 & — & & \\
-2. Soil Moisture & 45.80 & 8.45 & .68** & — & \\
-3. Temperature & 24.30 & 3.10 & -.31* & -.24* & — \\
-\bottomrule
-\end{tabular}
-\begin{tablenotes}
-\small
-\item \textit{Note.} $N = 250$. $*p < .05, **p < .01$.
-\end{tablenotes}
-\end{table}
-        """, language="latex")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ─── Footer Watermark ───────────────────────────────────────────────────
-st.markdown("<hr style='margin-top:3rem;'>", unsafe_allow_html=True)
-st.markdown(
-    "<div style='text-align:center; color:#475569; font-size:0.7rem; font-family:monospace; letter-spacing:0.1em;'>"
-    "AUTONOMOUS RESEARCH OPERATING SYSTEM • PUBLICATION TABLE GENERATOR • DESIGNED FOR CHRISHEM"
-    "</div>",
-    unsafe_allow_html=True
-)
+﻿—"—"—"—
+—�—�— —A—d—v—a—n—c—e—d— —P—u—b—l—i—c—a—t—i—o—n—-—R—e—a—d—y— —T—a—b—l—e— —G—e—n—e—r—a—t—o—r— —&— —A—P—A— —F—o—r—m—a—t—t—i—n—g— —S—u—i—t—e— —(—E—n—t—e—r—p—r—i—s—e— —E—d—i—t—i—o—n—)—
+—A—u—t—o—n—o—m—o—u—s— —R—e—s—e—a—r—c—h— —O—p—e—r—a—t—i—n—g— —S—y—s—t—e—m— —v—3—.—0— ——— —T—a—b—l—e— —G—e—n—e—r—a—t—i—o—n— —M—o—d—u—l—e—
+—"—"—"—
+—i—m—p—o—r—t— —s—t—r—e—a—m—l—i—t— —a—s— —s—t—
+—i—m—p—o—r—t— —p—a—n—d—a—s— —a—s— —p—d—
+—i—m—p—o—r—t— —n—u—m—p—y— —a—s— —n—p—
+—
+—#— —─—─—─— —P—a—g—e— —C—o—n—f—i—g— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—s—e—t—_—p—a—g—e—_—c—o—n—f—i—g—(—
+— — — — —p—a—g—e—_—t—i—t—l—e—=—"—A—d—v—a—n—c—e—d— —P—u—b—l—i—c—a—t—i—o—n—-—R—e—a—d—y— —T—a—b—l—e—s— —&— —A—P—A— —S—u—i—t—e—"—,—
+— — — — —p—a—g—e—_—i—c—o—n—=—"—�—�—"—,—
+— — — — —l—a—y—o—u—t—=—"—w—i—d—e—"—,—
+— — — — —i—n—i—t—i—a—l—_—s—i—d—e—b—a—r—_—s—t—a—t—e—=—"—e—x—p—a—n—d—e—d—"—
+—)—
+—
+—#— —─—─—─— —D—e—p—e—n—d—e—n—c—y— —C—h—e—c—k— —&— —F—a—l—l—b—a—c—k—s— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—t—r—y—:—
+— — — — —i—m—p—o—r—t— —p—a—n—d—a—s— —a—s— —p—d—
+— — — — —H—A—S—_—P—A—N—D—A—S— —=— —T—r—u—e—
+—e—x—c—e—p—t— —I—m—p—o—r—t—E—r—r—o—r—:—
+— — — — —H—A—S—_—P—A—N—D—A—S— —=— —F—a—l—s—e—
+—
+—t—r—y—:—
+— — — — —i—m—p—o—r—t— —p—l—o—t—l—y—.—e—x—p—r—e—s—s— —a—s— —p—x—
+— — — — —i—m—p—o—r—t— —p—l—o—t—l—y—.—g—r—a—p—h—_—o—b—j—e—c—t—s— —a—s— —g—o—
+— — — — —H—A—S—_—P—L—O—T—L—Y— —=— —T—r—u—e—
+—e—x—c—e—p—t— —I—m—p—o—r—t—E—r—r—o—r—:—
+— — — — —H—A—S—_—P—L—O—T—L—Y— —=— —F—a—l—s—e—
+—
+—i—f— —n—o—t— —H—A—S—_—P—A—N—D—A—S—:—
+— — — — —s—t—.—e—r—r—o—r—(—"—⚠—️— —p—a—n—d—a—s— —i—s— —r—e—q—u—i—r—e—d— —f—o—r— —t—a—b—u—l—a—r— —g—e—n—e—r—a—t—i—o—n—.— —I—n—s—t—a—l—l— —w—i—t—h—:— —`—p—i—p— —i—n—s—t—a—l—l— —p—a—n—d—a—s—`—"—)—
+— — — — —s—t—.—s—t—o—p—(—)—
+—
+—#— —─—─—─— —C—u—s—t—o—m— —E—n—t—e—r—p—r—i—s—e— —C—S—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—"—"—
+—<—s—t—y—l—e—>—
+— — — — —/—*— —-—-—-— —G—L—O—B—A—L— —S—I—D—E—B—A—R— —D—A—R—K— —T—H—E—M—I—N—G— —O—V—E—R—R—I—D—E— —-—-—-— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]—,— —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—9—0—d—1—6— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—i—g—h—t—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —
+— — — — —/—*— —F—o—r—c—e— —a—l—l— —s—i—d—e—b—a—r— —t—e—x—t—,— —l—i—n—k—s—,— —a—n—d— —h—e—a—d—e—r—s— —t—o— —h—i—g—h—-—c—o—n—t—r—a—s—t— —o—f—f—-—w—h—i—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —*—,— —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —*— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —T—a—r—g—e—t— —n—a—v—i—g—a—t—i—o—n— —l—i—n—k—s— —a—n—d— —t—e—x—t— —e—x—p—l—i—c—i—t—l—y— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —s—p—a—n—,— —
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—H—e—a—d—e—r—"—]— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —6—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —N—a—v—i—g—a—t—i—o—n— —i—t—e—m— —h—o—v—e—r— —s—t—a—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—:—h—o—v—e—r—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—:—h—o—v—e—r— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—r—r—e—n—t—l—y— —s—e—l—e—c—t—e—d— —n—a—v—i—g—a—t—i—o—n— —i—t—e—m— —a—c—t—i—v—e— —s—t—a—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—[—a—r—i—a—-—c—u—r—r—e—n—t—=—"—p—a—g—e—"—]—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—[—a—r—i—a—-—s—e—l—e—c—t—e—d—=—"—t—r—u—e—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—2—8—4—c—7— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—f—f—f—f—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—s—t—o—m— —f—o—r—m— —i—n—p—u—t—s— —i—n—s—i—d—e— —s—i—d—e—b—a—r— —*—/—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—S—e—l—e—c—t—b—o—x— —l—a—b—e—l—,—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—R—a—d—i—o— —l—a—b—e—l—,—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—M—u—l—t—i—S—e—l—e—c—t— —l—a—b—e—l— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—3—8—b—d—f—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —.—s—t—A—p—p— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—2—0—6—1—7—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—1—f—5—f—9—;—
+— — — — — — — — —f—o—n—t—-—f—a—m—i—l—y—:— —'—I—n—t—e—r—'—,— —-—a—p—p—l—e—-—s—y—s—t—e—m—,— —B—l—i—n—k—M—a—c—S—y—s—t—e—m—F—o—n—t—,— —s—a—n—s—-—s—e—r—i—f—;—
+— — — — —}—
+— — — — —.—t—a—b—l—e—-—c—a—r—d— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —l—i—n—e—a—r—-—g—r—a—d—i—e—n—t—(—1—4—5—d—e—g—,— —#—0—f—1—7—2—a—,— —#—0—9—0—d—1—6—)—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—6—p—x—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —1—.—2—r—e—m—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —4—p—x— —2—0—p—x— —r—g—b—a—(—0—,— —0—,— —0—,— —0—.—4—)—;—
+— — — — — — — — —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —1—r—e—m—;—
+— — — — —}—
+— — — — —.—b—a—d—g—e—-—t—a—b—l—e— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—3—1—1—0—0—5—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—e—d—7—a—a—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—c—2—4—1—0—c—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —0—.—2—r—e—m— —0—.—6—r—e—m—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —6—p—x—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —0—.—6—5—r—e—m—;—
+— — — — — — — — —f—o—n—t—-—f—a—m—i—l—y—:— —m—o—n—o—s—p—a—c—e—;—
+— — — — — — — — —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:— —0—.—0—5—e—m—;—
+— — — — —}—
+— — — — —.—a—p—a—-—t—a—b—l—e— —{—
+— — — — — — — — —w—i—d—t—h—:— —1—0—0—%—;—
+— — — — — — — — —b—o—r—d—e—r—-—c—o—l—l—a—p—s—e—:— —c—o—l—l—a—p—s—e—;—
+— — — — — — — — —f—o—n—t—-—f—a—m—i—l—y—:— —'—T—i—m—e—s— —N—e—w— —R—o—m—a—n—'—,— —T—i—m—e—s—,— —s—e—r—i—f—;—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—f—f—f—f—f—f—;—
+— — — — — — — — —c—o—l—o—r—:— —#—0—f—1—7—2—a—;—
+— — — — — — — — —b—o—r—d—e—r—-—t—o—p—:— —2—p—x— —s—o—l—i—d— —#—0—0—0—0—0—0—;—
+— — — — — — — — —b—o—r—d—e—r—-—b—o—t—t—o—m—:— —2—p—x— —s—o—l—i—d— —#—0—0—0—0—0—0—;—
+— — — — — — — — —m—a—r—g—i—n—:— —1—r—e—m— —0—;—
+— — — — —}—
+— — — — —.—a—p—a—-—t—a—b—l—e— —t—h— —{—
+— — — — — — — — —b—o—r—d—e—r—-—b—o—t—t—o—m—:— —1—p—x— —s—o—l—i—d— —#—0—0—0—0—0—0—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —8—p—x— —1—2—p—x—;—
+— — — — — — — — —t—e—x—t—-—a—l—i—g—n—:— —l—e—f—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —n—o—r—m—a—l—;—
+— — — — — — — — —f—o—n—t—-—s—t—y—l—e—:— —i—t—a—l—i—c—;—
+— — — — —}—
+— — — — —.—a—p—a—-—t—a—b—l—e— —t—d— —{—
+— — — — — — — — —p—a—d—d—i—n—g—:— —6—p—x— —1—2—p—x—;—
+— — — — — — — — —t—e—x—t—-—a—l—i—g—n—:— —l—e—f—t—;—
+— — — — —}—
+—<—/—s—t—y—l—e—>—
+—"—"—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —S—e—s—s—i—o—n— —S—t—a—t—e— —I—n—i—t—i—a—l—i—z—a—t—i—o—n— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—i—f— —"—t—a—b—l—e—_—a—c—t—i—v—e—_—t—a—b—"— —n—o—t— —i—n— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—:—
+— — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—t—a—b—l—e—_—a—c—t—i—v—e—_—t—a—b—"—]— —=— —"—a—p—a—7—"—
+—
+—#— —─—─—─— —H—e—r—o— —H—e—a—d—e—r— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—"—"—
+—<—d—i—v— —s—t—y—l—e—=—'—d—i—s—p—l—a—y—:—f—l—e—x—;— —j—u—s—t—i—f—y—-—c—o—n—t—e—n—t—:—s—p—a—c—e—-—b—e—t—w—e—e—n—;— —a—l—i—g—n—-—i—t—e—m—s—:—c—e—n—t—e—r—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:—1—r—e—m—;—'—>—
+— — — — —<—d—i—v—>—
+— — — — — — — — —<—s—p—a—n— —c—l—a—s—s—=—'—b—a—d—g—e—-—t—a—b—l—e—'—>—A—P—A— —7—T—H— —E—D—I—T—I—O—N— —&— —S—C—I—E—N—T—I—F—I—C— —T—Y—P—E—S—E—T—T—I—N—G— —S—U—I—T—E— —(—v—3—.—0—)—<—/—s—p—a—n—>—
+— — — — — — — — —<—h—1— —s—t—y—l—e—=—'—f—o—n—t—-—s—i—z—e—:—2—r—e—m—;— —f—o—n—t—-—w—e—i—g—h—t—:—8—0—0—;— —c—o—l—o—r—:—#—f—1—f—5—f—9—;— —m—a—r—g—i—n—:—0—.—4—r—e—m— —0— —0—.—2—r—e—m— —0—;—'—>—
+— — — — — — — — — — — — —A—d—v—a—n—c—e—d— —P—u—b—l—i—c—a—t—i—o—n—-—R—e—a—d—y— —T—a—b—l—e—s— —&— —F—o—r—m—a—t—t—e—r—
+— — — — — — — — —<—/—h—1—>—
+— — — — — — — — —<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—9—4—a—3—b—8—;— —f—o—n—t—-—s—i—z—e—:—0—.—9—r—e—m—;— —m—a—x—-—w—i—d—t—h—:—8—0—0—p—x—;— —m—a—r—g—i—n—:—0—;—'—>—
+— — — — — — — — — — — — —G—e—n—e—r—a—t—e— —f—l—a—w—l—e—s—s— —A—P—A— —7—t—h— —e—d—i—t—i—o—n— —m—a—n—u—s—c—r—i—p—t— —t—a—b—l—e—s—,— —p—u—b—l—i—c—a—t—i—o—n—-—g—r—a—d—e— —c—o—r—r—e—l—a—t—i—o—n— —m—a—t—r—i—c—e—s—,— —m—u—l—t—i—p—l—e— —r—e—g—r—e—s—s—i—o—n— —c—o—e—f—f—i—c—i—e—n—t— —g—r—i—d—s—,— —a—n—d— —e—x—p—o—r—t— —d—i—r—e—c—t—l—y— —t—o— —L—a—T—e—X—,— —C—S—V—,— —o—r— —H—T—M—L—.—
+— — — — — — — — —<—/—p—>—
+— — — — —<—/—d—i—v—>—
+— — — — —<—d—i—v— —s—t—y—l—e—=—'—t—e—x—t—-—a—l—i—g—n—:—r—i—g—h—t—;—'—>—
+— — — — — — — — —<—d—i—v— —s—t—y—l—e—=—'—b—a—c—k—g—r—o—u—n—d—:—#—0—f—1—7—2—a—;— —b—o—r—d—e—r—:—1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b—;— —p—a—d—d—i—n—g—:—0—.—8—r—e—m— —1—.—2—r—e—m—;— —b—o—r—d—e—r—-—r—a—d—i—u—s—:—1—4—p—x—;—'—>—
+— — — — — — — — — — — — —<—d—i—v— —s—t—y—l—e—=—'—f—o—n—t—-—s—i—z—e—:—0—.—6—5—r—e—m—;— —c—o—l—o—r—:—#—6—4—7—4—8—b—;— —t—e—x—t—-—t—r—a—n—s—f—o—r—m—:—u—p—p—e—r—c—a—s—e—;— —f—o—n—t—-—w—e—i—g—h—t—:—7—0—0—;—'—>—F—o—r—m—a—t—t—i—n—g— —K—e—r—n—e—l—<—/—d—i—v—>—
+— — — — — — — — — — — — —<—d—i—v— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—f—b—9—2—3—c—;— —f—o—n—t—-—s—i—z—e—:—0—.—8—5—r—e—m—;— —f—o—n—t—-—w—e—i—g—h—t—:—8—0—0—;—'—>—�—�— —A—P—A— —7— —&— —L—a—T—e—X— —A—c—t—i—v—e—<—/—d—i—v—>—
+— — — — — — — — —<—/—d—i—v—>—
+— — — — —<—/—d—i—v—>—
+—<—/—d—i—v—>—
+—"—"—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —N—a—v—i—g—a—t—i—o—n— —T—a—b—s— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—t—a—b—l—e—_—t—a—b—s— —=— —{—
+— — — — —"—a—p—a—7—"—:— —"—�—�— —A—P—A— —7—t—h— —D—e—s—c—r—i—p—t—i—v—e— —T—a—b—l—e—s—"—,—
+— — — — —"—c—o—r—r—e—l—a—t—i—o—n—"—:— —"—�—�— —C—o—r—r—e—l—a—t—i—o—n— —M—a—t—r—i—c—e—s— —(—A—P—A—)—"—,—
+— — — — —"—r—e—g—r—e—s—s—i—o—n—"—:— —"—�—�— —R—e—g—r—e—s—s—i—o—n— —C—o—e—f—f—i—c—i—e—n—t— —T—a—b—l—e—s—"—,—
+— — — — —"—s—u—m—m—a—r—y—"—:— —"—�—�— —S—u—m—m—a—r—y— —&— —C—u—s—t—o—m— —M—e—t—r—i—c—s—"—,—
+— — — — —"—e—x—p—o—r—t—"—:— —"—�—�— —L—a—T—e—X— —&— —D—o—c—u—m—e—n—t— —E—x—p—o—r—t—"—
+—}—
+—
+—c—o—l—s— —=— —s—t—.—c—o—l—u—m—n—s—(—l—e—n—(—t—a—b—l—e—_—t—a—b—s—)—)—
+—f—o—r— —i—,— —(—t—_—k—e—y—,— —t—_—l—a—b—e—l—)— —i—n— —e—n—u—m—e—r—a—t—e—(—t—a—b—l—e—_—t—a—b—s—.—i—t—e—m—s—(—)—)—:—
+— — — — —w—i—t—h— —c—o—l—s—[—i—]—:—
+— — — — — — — — —i—s—_—a—c—t—i—v—e— —=— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—t—a—b—l—e—_—a—c—t—i—v—e—_—t—a—b—"—]— —=—=— —t—_—k—e—y—
+— — — — — — — — —
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—t—_—l—a—b—e—l—,— —k—e—y—=—f—"—n—a—v—_—t—a—b—l—e—_—{—t—_—k—e—y—}—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—:—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—t—a—b—l—e—_—a—c—t—i—v—e—_—t—a—b—"—]— —=— —t—_—k—e—y—
+— — — — — — — — — — — — —s—t—.—r—e—r—u—n—(—)—
+—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—r— —s—t—y—l—e—=—'—m—a—r—g—i—n—:—1—r—e—m— —0— —1—.—5—r—e—m— —0—;—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—a—c—t—i—v—e—_—t—a—b—l—e—_—t—a—b— —=— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—t—a—b—l—e—_—a—c—t—i—v—e—_—t—a—b—"—]—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —1—:— —A—P—A— —7—T—H— —D—E—S—C—R—I—P—T—I—V—E— —T—A—B—L—E—S—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—i—f— —a—c—t—i—v—e—_—t—a—b—l—e—_—t—a—b— —=—=— —"—a—p—a—7—"—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —A—P—A— —7—t—h— —E—d—i—t—i—o—n— —D—e—s—c—r—i—p—t—i—v—e— —S—t—a—t—i—s—t—i—c—s— —T—a—b—l—e—s—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—9—4—a—3—b—8—;— —f—o—n—t—-—s—i—z—e—:—0—.—8—5—r—e—m—;—'—>—F—o—r—m—a—t— —m—e—a—n—s—,— —s—t—a—n—d—a—r—d— —d—e—v—i—a—t—i—o—n—s—,— —s—k—e—w—s—,— —a—n—d— —k—u—r—t—o—s—i—s— —a—d—h—e—r—i—n—g— —s—t—r—i—c—t—l—y— —t—o— —A—P—A— —f—o—r—m—a—t—t—i—n—g— —g—u—i—d—e—l—i—n—e—s— —(—h—o—r—i—z—o—n—t—a—l— —b—o—r—d—e—r—s— —o—n—l—y—,— —i—t—a—l—i—c—i—z—e—d— —h—e—a—d—e—r—s—)—.—<—/—p—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —
+— — — — —c—o—l—_—t—1—,— —c—o—l—_—t—2— —=— —s—t—.—c—o—l—u—m—n—s—(—[—4—,— —6—]—)—
+— — — — —w—i—t—h— —c—o—l—_—t—1—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—t—e—x—t—_—i—n—p—u—t—(—"—T—a—b—l—e— —T—i—t—l—e— —N—u—m—b—e—r—"—,— —v—a—l—u—e—=—"—T—a—b—l—e— —1—"—)—
+— — — — — — — — —s—t—.—t—e—x—t—_—i—n—p—u—t—(—"—T—a—b—l—e— —C—a—p—t—i—o—n—"—,— —v—a—l—u—e—=—"—D—e—s—c—r—i—p—t—i—v—e— —S—t—a—t—i—s—t—i—c—s— —a—n—d— —I—n—t—e—r—c—o—r—r—e—l—a—t—i—o—n—s— —f—o—r— —S—t—u—d—y— —V—a—r—i—a—b—l—e—s—"—)—
+— — — — — — — — —s—t—.—m—u—l—t—i—s—e—l—e—c—t—(—"—M—e—t—r—i—c—s— —t—o— —I—n—c—l—u—d—e—"—,— —[—"—M—e—a—n— —(—$—M—$—)—"—,— —"—S—t—a—n—d—a—r—d— —D—e—v—i—a—t—i—o—n— —(—$—S—D—$—)—"—,— —"—M—e—d—i—a—n—"—,— —"—I—Q—R—"—,— —"—S—k—e—w—n—e—s—s—"—,— —"—K—u—r—t—o—s—i—s—"—]—,— —d—e—f—a—u—l—t—=—[—"—M—e—a—n— —(—$—M—$—)—"—,— —"—S—t—a—n—d—a—r—d— —D—e—v—i—a—t—i—o—n— —(—$—S—D—$—)—"—,— —"—S—k—e—w—n—e—s—s—"—,— —"—K—u—r—t—o—s—i—s—"—]—)—
+— — — — — — — — —s—t—.—b—u—t—t—o—n—(—"—�—�— —R—e—n—d—e—r— —A—P—A— —D—e—s—c—r—i—p—t—i—v—e— —T—a—b—l—e—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —
+— — — — —w—i—t—h— —c—o—l—_—t—2—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—4— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—f—1—f—5—f—9—;— —f—o—n—t—-—s—i—z—e—:—0—.—9—r—e—m—;—'—>—�—�— —M—a—n—u—s—c—r—i—p—t— —T—a—b—l—e— —P—r—e—v—i—e—w— —(—A—P—A— —S—t—y—l—e—)—<—/—h—4—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —
+— — — — — — — — —#— —H—T—M—L— —p—r—e—v—i—e—w— —s—i—m—u—l—a—t—i—n—g— —s—t—r—i—c—t— —A—P—A— —l—i—n—e—s—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—"—"—
+— — — — — — — — —<—d—i—v— —s—t—y—l—e—=—"—f—o—n—t—-—s—t—y—l—e—:— —i—t—a—l—i—c—;— —c—o—l—o—r—:— —#—f—1—f—5—f—9—;— —f—o—n—t—-—s—i—z—e—:— —0—.—8—5—r—e—m—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —0—.—4—r—e—m—;—"—>—
+— — — — — — — — — — — — —T—a—b—l—e— —1—<—b—r—>—<—s—p—a—n— —s—t—y—l—e—=—"—f—o—n—t—-—w—e—i—g—h—t—:— —b—o—l—d—;—"—>—D—e—s—c—r—i—p—t—i—v—e— —S—t—a—t—i—s—t—i—c—s— —f—o—r— —E—x—p—e—r—i—m—e—n—t—a—l— —V—a—r—i—a—b—l—e—s— —(—N— —=— —2—5—0—)—<—/—s—p—a—n—>—
+— — — — — — — — —<—/—d—i—v—>—
+— — — — — — — — —<—t—a—b—l—e— —c—l—a—s—s—=—"—a—p—a—-—t—a—b—l—e—"—>—
+— — — — — — — — — — — — —<—t—h—e—a—d—>—
+— — — — — — — — — — — — — — — — —<—t—r—>—
+— — — — — — — — — — — — — — — — — — — — —<—t—h—>—V—a—r—i—a—b—l—e—<—/—t—h—>—
+— — — — — — — — — — — — — — — — — — — — —<—t—h—>—<—i—>—M—<—/—i—>—<—/—t—h—>—
+— — — — — — — — — — — — — — — — — — — — —<—t—h—>—<—i—>—S—D—<—/—i—>—<—/—t—h—>—
+— — — — — — — — — — — — — — — — — — — — —<—t—h—>—<—i—>—S—k—e—w—<—/—i—>—<—/—t—h—>—
+— — — — — — — — — — — — — — — — — — — — —<—t—h—>—<—i—>—K—u—r—t—o—s—i—s—<—/—i—>—<—/—t—h—>—
+— — — — — — — — — — — — — — — — —<—/—t—r—>—
+— — — — — — — — — — — — —<—/—t—h—e—a—d—>—
+— — — — — — — — — — — — —<—t—b—o—d—y—>—
+— — — — — — — — — — — — — — — — —<—t—r—>—<—t—d—>—1—.— —E—c—o—s—y—s—t—e—m— —Y—i—e—l—d— —I—n—d—e—x—<—/—t—d—>—<—t—d—>—1—2—.—4—5—<—/—t—d—>—<—t—d—>—2—.—1—2—<—/—t—d—>—<—t—d—>—0—.—1—4—<—/—t—d—>—<—t—d—>—-—0—.—3—2—<—/—t—d—>—<—/—t—r—>—
+— — — — — — — — — — — — — — — — —<—t—r—>—<—t—d—>—2—.— —S—o—i—l— —M—o—i—s—t—u—r—e— —I—n—d—e—x—<—/—t—d—>—<—t—d—>—4—5—.—8—0—<—/—t—d—>—<—t—d—>—8—.—4—5—<—/—t—d—>—<—t—d—>—-—0—.—0—8—<—/—t—d—>—<—t—d—>—0—.—1—2—<—/—t—d—>—<—/—t—r—>—
+— — — — — — — — — — — — — — — — —<—t—r—>—<—t—d—>—3—.— —A—t—m—o—s—p—h—e—r—i—c— —T—e—m—p— —(—°—C—)—<—/—t—d—>—<—t—d—>—2—4—.—3—0—<—/—t—d—>—<—t—d—>—3—.—1—0—<—/—t—d—>—<—t—d—>—0—.—3—1—<—/—t—d—>—<—t—d—>—-—0—.—5—4—<—/—t—d—>—<—/—t—r—>—
+— — — — — — — — — — — — — — — — —<—t—r—>—<—t—d—>—4—.— —E—l—e—v—a—t—i—o—n— —P—r—o—f—i—l—e— —(—m—)—<—/—t—d—>—<—t—d—>—6—2—0—.—5—0—<—/—t—d—>—<—t—d—>—1—1—5—.—2—0—<—/—t—d—>—<—t—d—>—0—.—4—2—<—/—t—d—>—<—t—d—>—0—.—0—5—<—/—t—d—>—<—/—t—r—>—
+— — — — — — — — — — — — —<—/—t—b—o—d—y—>—
+— — — — — — — — —<—/—t—a—b—l—e—>—
+— — — — — — — — —<—d—i—v— —s—t—y—l—e—=—"—c—o—l—o—r—:— —#—9—4—a—3—b—8—;— —f—o—n—t—-—s—i—z—e—:— —0—.—7—5—r—e—m—;—"—>—<—i—>—N—o—t—e—.—<—/—i—>— —M— —a—n—d— —S—D— —r—e—p—r—e—s—e—n—t— —m—e—a—n— —a—n—d— —s—t—a—n—d—a—r—d— —d—e—v—i—a—t—i—o—n— —r—e—s—p—e—c—t—i—v—e—l—y—.— —A—l—l— —v—a—l—u—e—s— —c—o—m—p—u—t—e—d— —o—n— —w—i—n—s—o—r—i—z—e—d— —c—o—h—o—r—t— —d—a—t—a—.—<—/—d—i—v—>—
+— — — — — — — — —"—"—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —2—:— —C—O—R—R—E—L—A—T—I—O—N— —M—A—T—R—I—C—E—S— —(—A—P—A—)—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—e—l—i—f— —a—c—t—i—v—e—_—t—a—b—l—e—_—t—a—b— —=—=— —"—c—o—r—r—e—l—a—t—i—o—n—"—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —A—P—A—-—S—t—y—l—e— —C—o—r—r—e—l—a—t—i—o—n— —M—a—t—r—i—c—e—s—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—9—4—a—3—b—8—;— —f—o—n—t—-—s—i—z—e—:—0—.—8—5—r—e—m—;—'—>—G—e—n—e—r—a—t—e— —l—o—w—e—r—-—t—r—i—a—n—g—u—l—a—r— —P—e—a—r—s—o—n— —c—o—r—r—e—l—a—t—i—o—n— —m—a—t—r—i—c—e—s— —c—o—m—p—l—e—t—e— —w—i—t—h— —a—s—t—e—r—i—s—k— —s—i—g—n—i—f—i—c—a—n—c—e— —m—a—r—k—e—r—s— —(—$—*—p— —<— —.—0—5—,— —*—*—p— —<— —.—0—1—$—)—.—<—/—p—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —
+— — — — —c—o—l—_—c—1—,— —c—o—l—_—c—2— —=— —s—t—.—c—o—l—u—m—n—s—(—[—4—,— —6—]—)—
+— — — — —w—i—t—h— —c—o—l—_—c—1—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—s—e—l—e—c—t—b—o—x—(—"—C—o—r—r—e—l—a—t—i—o—n— —T—y—p—e—"—,— —[—"—P—e—a—r—s—o—n— —r—"—,— —"—S—p—e—a—r—m—a—n— —R—a—n—k— —ρ—"—,— —"—P—a—r—t—i—a—l— —C—o—r—r—e—l—a—t—i—o—n—"—]—)—
+— — — — — — — — —s—t—.—c—h—e—c—k—b—o—x—(—"—I—n—c—l—u—d—e— —S—i—g—n—i—f—i—c—a—n—c—e— —A—s—t—e—r—i—s—k—s— —(—*—p— —<— —.—0—5—,— —*—*—p— —<— —.—0—1—)—"—,— —v—a—l—u—e—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—c—h—e—c—k—b—o—x—(—"—F—o—r—m—a—t— —L—o—w—e—r— —T—r—i—a—n—g—l—e— —O—n—l—y—"—,— —v—a—l—u—e—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—b—u—t—t—o—n—(—"—⚙—️— —G—e—n—e—r—a—t—e— —C—o—r—r—e—l—a—t—i—o—n— —M—a—t—r—i—x—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —
+— — — — —w—i—t—h— —c—o—l—_—c—2—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—4— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—f—1—f—5—f—9—;— —f—o—n—t—-—s—i—z—e—:—0—.—9—r—e—m—;—'—>—�—�— —C—o—r—r—e—l—a—t—i—o—n— —M—a—t—r—i—x— —G—r—i—d—<—/—h—4—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—c—o—d—e—(—"—"—"—
+—T—a—b—l—e— —2—
+—B—i—v—a—r—i—a—t—e— —C—o—r—r—e—l—a—t—i—o—n—s— —A—m—o—n—g— —P—r—i—m—a—r—y— —R—e—s—e—a—r—c—h— —V—a—r—i—a—b—l—e—s—
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—V—a—r—i—a—b—l—e— — — — — — — — — — — — — — — — — — —1— — — — — — — — — — —2— — — — — — — — — — —3— — — — — — — — — — —4—
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—1—.— —Y—i—e—l—d— —I—n—d—e—x— — — — — — — — — — — — ———
+—2—.— —S—o—i—l— —M—o—i—s—t—u—r—e— — — — — — — — — —.—6—8—*—*— — — — — — — ———
+—3—.— —T—e—m—p—e—r—a—t—u—r—e— — — — — — — — — — — —-—.—3—1—*— — — — — — —-—.—2—4—*— — — — — — — ———
+—4—.— —E—l—e—v—a—t—i—o—n— — — — — — — — — — — — — — —.—4—2—*—*— — — — — — —.—5—1—*—*— — — — — —-—.—1—8— — — — — — — ———
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—N—o—t—e—.— —*—p— —<— —.—0—5—,— —*—*—p— —<— —.—0—1— —(—t—w—o—-—t—a—i—l—e—d—)—.— —N— —=— —2—5—0—.—
+— — — — — — — — —"—"—"—,— —l—a—n—g—u—a—g—e—=—"—t—e—x—t—"—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —3—:— —R—E—G—R—E—S—S—I—O—N— —C—O—E—F—F—I—C—I—E—N—T— —T—A—B—L—E—S—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—e—l—i—f— —a—c—t—i—v—e—_—t—a—b—l—e—_—t—a—b— —=—=— —"—r—e—g—r—e—s—s—i—o—n—"—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —M—u—l—t—i—p—l—e— —R—e—g—r—e—s—s—i—o—n— —C—o—e—f—f—i—c—i—e—n—t— —T—a—b—l—e—s—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—9—4—a—3—b—8—;— —f—o—n—t—-—s—i—z—e—:—0—.—8—5—r—e—m—;—'—>—F—o—r—m—a—t— —u—n—s—t—a—n—d—a—r—d—i—z—e—d— —c—o—e—f—f—i—c—i—e—n—t—s— —(—$—B—$—)—,— —s—t—a—n—d—a—r—d— —e—r—r—o—r—s— —(—$—S—E—$—)—,— —s—t—a—n—d—a—r—d—i—z—e—d— —b—e—t—a—s— —(—$—\—b—e—t—a—$—)—,— —$—t—$—-—s—t—a—t—i—s—t—i—c—s—,— —a—n—d— —c—o—n—f—i—d—e—n—c—e— —i—n—t—e—r—v—a—l—s— —f—o—r— —p—u—b—l—i—c—a—t—i—o—n—.—<—/—p—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —
+— — — — —c—o—l—_—r—1—,— —c—o—l—_—r—2— —=— —s—t—.—c—o—l—u—m—n—s—(—[—4—,— —6—]—)—
+— — — — —w—i—t—h— —c—o—l—_—r—1—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—s—e—l—e—c—t—b—o—x—(—"—M—o—d—e—l— —T—y—p—e—"—,— —[—"—O—r—d—i—n—a—r—y— —L—e—a—s—t— —S—q—u—a—r—e—s— —(—O—L—S—)—"—,— —"—B—a—y—e—s—i—a—n— —G—L—M—"—,— —"—R—o—b—u—s—t— —R—e—g—r—e—s—s—i—o—n—"—]—)—
+— — — — — — — — —s—t—.—c—h—e—c—k—b—o—x—(—"—I—n—c—l—u—d—e— —S—t—a—n—d—a—r—d—i—z—e—d— —B—e—t—a— —W—e—i—g—h—t—s— —(—β—)—"—,— —v—a—l—u—e—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—c—h—e—c—k—b—o—x—(—"—I—n—c—l—u—d—e— —9—5—%— —C—o—n—f—i—d—e—n—c—e— —I—n—t—e—r—v—a—l—s—"—,— —v—a—l—u—e—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—b—u—t—t—o—n—(—"—⚡— —G—e—n—e—r—a—t—e— —R—e—g—r—e—s—s—i—o—n— —T—a—b—l—e—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —
+— — — — —w—i—t—h— —c—o—l—_—r—2—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—4— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—f—1—f—5—f—9—;— —f—o—n—t—-—s—i—z—e—:—0—.—9—r—e—m—;—'—>—�—�— —R—e—g—r—e—s—s—i—o—n— —O—u—t—p—u—t— —M—a—t—r—i—x—<—/—h—4—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—c—o—d—e—(—"—"—"—
+—T—a—b—l—e— —3—
+—M—u—l—t—i—p—l—e— —R—e—g—r—e—s—s—i—o—n— —A—n—a—l—y—s—i—s— —P—r—e—d—i—c—t—i—n—g— —E—c—o—s—y—s—t—e—m— —Y—i—e—l—d— —I—n—d—e—x—
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—V—a—r—i—a—b—l—e— — — — — — — — — — — — — —B— — — — — — —S—E— — — — — —β— — — — — — —t— — — — — — —p— — — — — — —9—5—%— —C—I—
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—I—n—t—e—r—c—e—p—t— — — — — — — — — — —2—.—4—5— — — —0—.—6—2— — — — — — — — — — —3—.—9—5— — — —.—0—0—1— — — —[—1—.—2—2—,— —3—.—6—8—]—
+—S—o—i—l— —M—o—i—s—t—u—r—e— — — — — — —0—.—4—1— — — —0—.—0—8— — — —.—4—8— — — — —5—.—1—2— — — —<—.—0—0—1— — —[—0—.—2—5—,— —0—.—5—7—]—
+—T—e—m—p—e—r—a—t—u—r—e— — — — — — — —-—0—.—3—0— — — —0—.—1—1— — —-—.—2—2— — — —-—2—.—7—3— — — —.—0—0—7— — — —[—-—0—.—5—2—,—-—0—.—0—8—]—
+—E—l—e—v—a—t—i—o—n— — — — — — — — — — —0—.—0—0—5— — —0—.—0—0—1— — —.—3—1— — — — —3—.—8—4— — — —<—.—0—0—1— — —[—0—.—0—0—2—,—0—.—0—0—8—]—
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—M—o—d—e—l— —S—u—m—m—a—r—y—:— —R—²— —=— —.—6—2—4—,— —A—d—j—u—s—t—e—d— —R—²— —=— —.—6—1—9—,— —F—(—3—,— —2—4—6—)— —=— —4—3—.—2—1—,— —p— —<— —.—0—0—1—
+— — — — — — — — —"—"—"—,— —l—a—n—g—u—a—g—e—=—"—t—e—x—t—"—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —4—:— —S—U—M—M—A—R—Y— —&— —C—U—S—T—O—M— —M—E—T—R—I—C—S—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—e—l—i—f— —a—c—t—i—v—e—_—t—a—b—l—e—_—t—a—b— —=—=— —"—s—u—m—m—a—r—y—"—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —C—u—s—t—o—m— —M—e—t—r—i—c— —&— —M—o—d—e—l— —C—o—m—p—a—r—i—s—o—n— —T—a—b—l—e—s—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—9—4—a—3—b—8—;— —f—o—n—t—-—s—i—z—e—:—0—.—8—5—r—e—m—;—'—>—C—o—n—s—t—r—u—c—t— —c—u—s—t—o—m— —m—o—d—e—l— —s—e—l—e—c—t—i—o—n— —t—a—b—l—e—s— —c—o—m—p—a—r—i—n—g— —A—I—C—,— —B—I—C—,— —L—O—O—,— —a—n—d— —R—-—s—q—u—a—r—e—d— —a—c—r—o—s—s— —a—l—t—e—r—n—a—t—i—v—e— —s—p—e—c—i—f—i—c—a—t—i—o—n—s—.—<—/—p—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —
+— — — — —c—o—l—_—s—1—,— —c—o—l—_—s—2— —=— —s—t—.—c—o—l—u—m—n—s—(—[—4—,— —6—]—)—
+— — — — —w—i—t—h— —c—o—l—_—s—1—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—u—l—t—i—s—e—l—e—c—t—(—"—C—o—m—p—a—r—i—s—o—n— —C—r—i—t—e—r—i—a—"—,— —[—"—A—I—C—"—,— —"—B—I—C—"—,— —"—L—o—g—-—L—i—k—e—l—i—h—o—o—d—"—,— —"—R—²—"—,— —"—A—d—j—u—s—t—e—d— —R—²—"—,— —"—R—M—S—E—"—,— —"—W—A—I—C—"—]—,— —d—e—f—a—u—l—t—=—[—"—A—I—C—"—,— —"—B—I—C—"—,— —"—R—²—"—,— —"—R—M—S—E—"—]—)—
+— — — — — — — — —s—t—.—b—u—t—t—o—n—(—"—�—�— —G—e—n—e—r—a—t—e— —C—o—m—p—a—r—i—s—o—n— —S—u—m—m—a—r—y—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —
+— — — — —w—i—t—h— —c—o—l—_—s—2—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—4— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—f—1—f—5—f—9—;— —f—o—n—t—-—s—i—z—e—:—0—.—9—r—e—m—;—'—>—�—�— —M—o—d—e—l— —C—o—m—p—a—r—i—s—o—n— —G—r—i—d—<—/—h—4—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—c—o—d—e—(—"—"—"—
+—T—a—b—l—e— —4—
+—M—o—d—e—l— —F—i—t— —a—n—d— —I—n—f—o—r—m—a—t—i—o—n— —C—r—i—t—e—r—i—a— —C—o—m—p—a—r—i—s—o—n—
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—M—o—d—e—l— —S—p—e—c—i—f—i—c—a—t—i—o—n— — — — — — — — —A—I—C— — — — — — —B—I—C— — — — — — —R—²— — — — — — —R—M—S—E—
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—M—o—d—e—l— —1— —(—F—u—l—l— —C—o—v—a—r—i—a—t—e—s—)— — —4—1—2—.—5— — — — —4—2—8—.—1— — — — —.—6—2—4— — — — —1—.—1—2—
+—M—o—d—e—l— —2— —(—R—e—d—u—c—e—d— —S—o—i—l—)— — — — — —4—3—1—.—2— — — — —4—4—2—.—8— — — — —.—5—8—1— — — — —1—.—2—5—
+—M—o—d—e—l— —3— —(—B—a—s—e— —T—e—m—p—e—r—a—t—u—r—e—)— —4—6—5—.—8— — — — —4—7—4—.—2— — — — —.—4—1—2— — — — —1—.—5—4—
+—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—-—
+—N—o—t—e—.— —L—o—w—e—r— —A—I—C— —a—n—d— —B—I—C— —v—a—l—u—e—s— —i—n—d—i—c—a—t—e— —s—u—p—e—r—i—o—r— —p—a—r—s—i—m—o—n—y— —a—n—d— —f—i—t—.—
+— — — — — — — — —"—"—"—,— —l—a—n—g—u—a—g—e—=—"—t—e—x—t—"—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —5—:— —L—A—T—E—X— —&— —D—O—C—U—M—E—N—T— —E—X—P—O—R—T—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—e—l—i—f— —a—c—t—i—v—e—_—t—a—b—l—e—_—t—a—b— —=—=— —"—e—x—p—o—r—t—"—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —L—a—T—e—X— —S—o—u—r—c—e— —C—o—d—e— —&— —D—o—c—u—m—e—n—t— —E—x—p—o—r—t—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—9—4—a—3—b—8—;— —f—o—n—t—-—s—i—z—e—:—0—.—8—5—r—e—m—;—'—>—E—x—p—o—r—t— —t—a—b—l—e—s— —d—i—r—e—c—t—l—y— —i—n—t—o— —p—r—o—d—u—c—t—i—o—n—-—r—e—a—d—y— —L—a—T—e—X— —e—n—v—i—r—o—n—m—e—n—t—s— —(—`—b—o—o—k—t—a—b—s—`— —p—a—c—k—a—g—e—)— —o—r— —c—o—p—y— —C—S—V—/—M—a—r—k—d—o—w—n— —f—o—r—m—a—t—s—.—<—/—p—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —
+— — — — —c—o—l—_—e—1—,— —c—o—l—_—e—2— —=— —s—t—.—c—o—l—u—m—n—s—(—[—4—,— —6—]—)—
+— — — — —w—i—t—h— —c—o—l—_—e—1—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—s—e—l—e—c—t—b—o—x—(—"—E—x—p—o—r—t— —F—o—r—m—a—t—"—,— —[—"—L—a—T—e—X— —(—b—o—o—k—t—a—b—s— —p—a—c—k—a—g—e—)—"—,— —"—M—a—r—k—d—o—w—n— —T—a—b—l—e—"—,— —"—C—S—V— —F—o—r—m—a—t—"—,— —"—H—T—M—L— —S—n—i—p—p—e—t—"—]—)—
+— — — — — — — — —s—t—.—c—h—e—c—k—b—o—x—(—"—I—n—c—l—u—d—e— —T—a—b—l—e— —E—n—v—i—r—o—n—m—e—n—t— —W—r—a—p—p—e—r—"—,— —v—a—l—u—e—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—b—u—t—t—o—n—(—"—�—�— —G—e—n—e—r—a—t—e— —E—x—p—o—r—t— —C—o—d—e—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —
+— — — — —w—i—t—h— —c—o—l—_—e—2—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —c—l—a—s—s—=—'—t—a—b—l—e—-—c—a—r—d—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—4— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—f—1—f—5—f—9—;— —f—o—n—t—-—s—i—z—e—:—0—.—9—r—e—m—;—'—>—�—�— —L—a—T—e—X— —S—o—u—r—c—e— —C—o—d—e—<—/—h—4—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—c—o—d—e—(—r—"—"—"—
+—\—b—e—g—i—n—{—t—a—b—l—e—}—[—!—h—t—b—p—]—
+—\—c—e—n—t—e—r—i—n—g—
+—\—c—a—p—t—i—o—n—{—D—e—s—c—r—i—p—t—i—v—e— —S—t—a—t—i—s—t—i—c—s— —a—n—d— —I—n—t—e—r—c—o—r—r—e—l—a—t—i—o—n—s—}—
+—\—b—e—g—i—n—{—l—a—b—e—l—}—{—t—a—b—:—d—e—s—c—r—i—p—t—i—v—e—s—}—
+—\—b—e—g—i—n—{—t—a—b—u—l—a—r—}—{—l—c—c—c—c—c—}—
+—\—t—o—p—r—u—l—e—
+—V—a—r—i—a—b—l—e— —&— —$—M—$— —&— —$—S—D—$— —&— —1— —&— —2— —&— —3— —\—\—
+—\—m—i—d—r—u—l—e—
+—1—.— —Y—i—e—l—d— —I—n—d—e—x— —&— —1—2—.—4—5— —&— —2—.—1—2— —&— ——— —&— —&— —\—\—
+—2—.— —S—o—i—l— —M—o—i—s—t—u—r—e— —&— —4—5—.—8—0— —&— —8—.—4—5— —&— —.—6—8—*—*— —&— ——— —&— —\—\—
+—3—.— —T—e—m—p—e—r—a—t—u—r—e— —&— —2—4—.—3—0— —&— —3—.—1—0— —&— —-—.—3—1—*— —&— —-—.—2—4—*— —&— ——— —\—\—
+—\—b—o—t—t—o—m—r—u—l—e—
+—\—e—n—d—{—t—a—b—u—l—a—r—}—
+—\—b—e—g—i—n—{—t—a—b—l—e—n—o—t—e—s—}—
+—\—s—m—a—l—l—
+—\—i—t—e—m— —\—t—e—x—t—i—t—{—N—o—t—e—.—}— —$—N— —=— —2—5—0—$—.— —$—*—p— —<— —.—0—5—,— —*—*—p— —<— —.—0—1—$—.—
+—\—e—n—d—{—t—a—b—l—e—n—o—t—e—s—}—
+—\—e—n—d—{—t—a—b—l—e—}—
+— — — — — — — — —"—"—"—,— —l—a—n—g—u—a—g—e—=—"—l—a—t—e—x—"—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —F—o—o—t—e—r— —W—a—t—e—r—m—a—r—k— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—r— —s—t—y—l—e—=—'—m—a—r—g—i—n—-—t—o—p—:—3—r—e—m—;—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — —"—<—d—i—v— —s—t—y—l—e—=—'—t—e—x—t—-—a—l—i—g—n—:—c—e—n—t—e—r—;— —c—o—l—o—r—:—#—4—7—5—5—6—9—;— —f—o—n—t—-—s—i—z—e—:—0—.—7—r—e—m—;— —f—o—n—t—-—f—a—m—i—l—y—:—m—o—n—o—s—p—a—c—e—;— —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:—0—.—1—e—m—;—'—>—"—
+— — — — —"—A—U—T—O—N—O—M—O—U—S— —R—E—S—E—A—R—C—H— —O—P—E—R—A—T—I—N—G— —S—Y—S—T—E—M— —•— —P—U—B—L—I—C—A—T—I—O—N— —T—A—B—L—E— —G—E—N—E—R—A—T—O—R— —•— —D—E—S—I—G—N—E—D— —F—O—R— —C—H—R—I—S—H—E—M—"—
+— — — — —"—<—/—d—i—v—>—"—,—
+— — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—
+—)——
+—

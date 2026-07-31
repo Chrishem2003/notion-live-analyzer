@@ -1,441 +1,442 @@
-﻿"""
-═══════════════════════════════════════════════════════════════════════════════
-ENTERPRISE DATA QUALITY AUDIT & ANOMALY SUITE [v3.1]
-High-precision automated data validation engine: Auditing completeness, 
-uniqueness, consistency, validity, accuracy, outlier identification, 
-and automated remediation pipelines.
-Designed for: Chrishem Studio Engine
-═══════════════════════════════════════════════════════════════════════════════
-"""
-
-import sys
-from pathlib import Path
-import numpy as np
-import pandas as pd
-import streamlit as st
-
-# ─── PATH RESOLUTION ─────────────────────────────────────────────────
-current_file = Path(__file__).resolve()
-root_dir = current_file.parent.parent
-if str(root_dir) not in sys.path:
-    sys.path.insert(0, str(root_dir))
-if str(current_file.parent) not in sys.path:
-    sys.path.insert(0, str(current_file.parent))
-
-# ─── DEFENSIVE MODULE IMPORTS WITH LOCAL FALLBACKS ────────────────────
-try:
-    from modules.config import init_session_state
-    from modules.ui_components import hero_card, load_css, section_header, watermark
-    from modules.data_quality import render_data_quality_ui
-except ImportError:
-    def init_session_state():
-        if "theme" not in st.session_state:
-            st.session_state.theme = "dark"
-
-    def load_css(is_dark=True):
-        pass
-
-    def hero_card(title, subtitle, badge_text=""):
-        st.markdown(
-            f"""
-            <div style='background: linear-gradient(135deg, #091322 0%, #030812 100%); border: 1.5px solid #00f2fe; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(0,242,254,0.15);'>
-                <span style='background:#0f2942; color:#38bdf8; border:1px solid #0284c7; padding:0.25rem 0.65rem; border-radius:6px; font-size:0.75rem; font-weight:700;'>{badge_text}</span>
-                <h1 style='color: #00f2fe !important; font-size: 2.2rem; margin: 0.5rem 0 0.2rem 0; font-weight:800; letter-spacing: -0.02em;'>{title}</h1>
-                <p style='color: #e2e8f0 !important; margin: 0; font-size: 0.95rem; line-height: 1.4;'>{subtitle}</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    def watermark(text):
-        pass
-
-    def section_header(title, desc=""):
-        st.markdown(f"<h3 style='color:#00f2fe !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{title}</h3>", unsafe_allow_html=True)
-        if desc:
-            st.caption(desc)
-
-    def render_data_quality_ui(df: pd.DataFrame):
-        st.success("⚡ Automated Data Health Inspector Active: Multi-Dimensional Diagnostics Ready.")
-        st.markdown("##### 📋 Data Preview")
-        st.dataframe(df.head(5), use_container_width=True)
-
-# ─── PAGE CONFIGURATION ───────────────────────────────────────────────
-st.set_page_config(
-    page_title="Enterprise Data Quality Studio", 
-    layout="wide", 
-    page_icon="🔍",
-    initial_sidebar_state="collapsed"
-)
-
-init_session_state()
-
-# ─── HIGH-CONTRAST DESIGN SYSTEM ──────────────────────────────────────
-st.markdown(
-    """
-    <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
-    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
-    }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
-    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
-    }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-    /* Global Canvas */
-    .stApp {
-        background-color: #04080f !important;
-        color: #f8fafc !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    }
-
-    /* Vibrant Typography */
-    h1, h2, h3, h4, h5, h6 {
-        color: #00f2fe !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.025em !important;
-    }
-    
-    p, span, label, div, .stMarkdown, .stCheckbox label, .stRadio label {
-        color: #f8fafc !important;
-        font-size: 0.95rem;
-    }
-
-    .stCaption {
-        color: #94a3b8 !important;
-        font-size: 0.85rem !important;
-    }
-
-    /* Structured Cards & Containers */
-    .audit-card {
-        background: #0b1321 !important;
-        border: 1px solid #1e293b !important;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1.2rem;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-    }
-    
-    .audit-card-highlight {
-        background: #0b1321 !important;
-        border: 1px solid #00f2fe88 !important;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1.2rem;
-        box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
-    }
-
-    /* Metrics Styling */
-    div[data-testid="stMetricValue"] {
-        color: #00f2fe !important;
-        font-size: 1.8rem !important;
-        font-weight: 800 !important;
-    }
-    div[data-testid="stMetricLabel"] {
-        color: #cbd5e1 !important;
-        font-weight: 700 !important;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-    }
-
-    /* Tabs Layout */
-    div.stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
-        background-color: #070d18 !important;
-        padding: 6px;
-        border-radius: 10px;
-        border: 1px solid #1e293b;
-    }
-    div.stTabs [data-baseweb="tab"] {
-        height: 40px;
-        background-color: transparent;
-        border-radius: 6px;
-        color: #94a3b8 !important;
-        font-weight: 700 !important;
-        border: none;
-        padding: 0 16px;
-    }
-    div.stTabs [aria-selected="true"] {
-        background: #111c2e !important;
-        color: #00f2fe !important;
-        border-bottom: 2px solid #00f2fe !important;
-    }
-
-    /* Interactive Inputs & Selectors */
-    div.stSelectbox, div.stMultiSelect, div.stTextInput, div.stNumberInput, div.stSlider, div[data-testid="stRadio"] {
-        background-color: #0b1321 !important;
-        border-radius: 8px !important;
-    }
-
-    /* High-Visibility Custom Buttons */
-    .stButton button {
-        background: #0b1321 !important;
-        border: 1px solid #00f2fe !important;
-        color: #00f2fe !important;
-        border-radius: 8px !important;
-        font-weight: 700 !important;
-        transition: all 0.2s ease-in-out;
-    }
-    .stButton button:hover {
-        background: #00f2fe !important;
-        color: #04080f !important;
-        box-shadow: 0 0 16px rgba(0, 242, 254, 0.4);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-hero_card(
-    "🔍 Enterprise Data Quality & Anomaly Audit Suite", 
-    "High-precision data validation engine: Comprehensive auditing across completeness, uniqueness, consistency, validity, accuracy, outlier identification, and automated remediation pipelines.", 
-    "Data Quality Engine 3.0"
-)
-watermark("CHRISHEM")
-
-# ─── DATASET ACQUISITION & FALLBACK VALIDATION ───────────────────────────
-active_df = st.session_state.get("active_df") or st.session_state.get("notion_df")
-
-if active_df is None or active_df.empty:
-    st.markdown(
-        """
-        <div class='audit-card-highlight'>
-            <h3 style='margin-top:0;'>⚠️ No Active Dataset Detected</h3>
-            <p style='color:#cbd5e1;'>Load a dataset or generate synthetic observations containing missing values and outliers to benchmark the auditing engine.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    col_a, col_b = st.columns(2)
-    with col_a:
-        if st.button("🎲 Generate Benchmark Audit Dataset", type="primary", use_container_width=True):
-            np.random.seed(42)
-            n_rows = 120
-            sim_df = pd.DataFrame({
-                "Subject_ID": [f"SUBJ-{i:03d}" for i in range(1, n_rows + 1)],
-                "Age": np.random.choice([22, 29, 34, np.nan, 45, 52, 110, 31], n_rows),
-                "Blood_Glucose_mg_dL": np.random.choice([95.4, 110.2, 140.5, np.nan, 450.0, 102.1, 98.6], n_rows),
-                "Category": np.random.choice(["Control", "Treatment", "Placebo", "  Treatment  "], n_rows),
-                "Systolic_BP": np.random.normal(120, 15, n_rows)
-            })
-            # Inject duplicates
-            sim_df = pd.concat([sim_df, sim_df.iloc[[0, 1, 2]]], ignore_index=True)
-            st.session_state["active_df"] = sim_df
-            st.rerun()
-    with col_b:
-        if st.button("📁 Load Standard Sample Dataset", use_container_width=True):
-            sim_df = pd.DataFrame({
-                "ID": list(range(1, 21)),
-                "Value_A": [10.5, 12.1, np.nan, 14.8, 15.2] * 4,
-                "Status": ["Active", "Pending", "Active", "Inactive", "Active"] * 4
-            })
-            st.session_state["active_df"] = sim_df
-            st.rerun()
-    st.stop()
-
-# ─── HIGH-LEVEL DATA QUALITY HEALTH METRICS ─────────────────────────────
-section_header("📊 Data Health Index & Core Audit Summary")
-
-total_cells = active_df.shape[0] * active_df.shape[1]
-missing_cells = active_df.isnull().sum().sum()
-completeness_pct = ((total_cells - missing_cells) / total_cells * 100) if total_cells > 0 else 100.0
-duplicate_rows = active_df.duplicated().sum()
-duplicate_pct = (duplicate_rows / len(active_df) * 100) if len(active_df) > 0 else 0.0
-
-m1, m2, m3, m4, m5 = st.columns(5)
-with m1:
-    st.metric("📋 Total Observations", f"{len(active_df):,}")
-with m2:
-    st.metric("🔢 Total Attributes", f"{len(active_df.columns):,}")
-with m3:
-    st.metric("✨ Completeness", f"{completeness_pct:.1f}%")
-with m4:
-    st.metric("👥 Duplicates", f"{duplicate_rows:,} ({duplicate_pct:.1f}%)")
-with m5:
-    st.metric("🛡️ Quality Status", "Passed" if completeness_pct > 90 else "Review Needed")
-
-with st.expander("🔍 Preview Active Dataset Schema & Descriptive Audit", expanded=False):
-    st.dataframe(active_df.head(10), use_container_width=True)
-    st.markdown("##### Column Null Value Breakdown")
-    null_summary = pd.DataFrame({
-        "Missing Count": active_df.isnull().sum(),
-        "Missing Percentage (%)": (active_df.isnull().mean() * 100).round(2)
-    })
-    st.dataframe(null_summary[null_summary["Missing Count"] > 0], use_container_width=True)
-
-st.markdown("<hr style='border:1px solid #1e293b; margin: 1.5rem 0;'>", unsafe_allow_html=True)
-
-# ─── MULTI-TAB WORKSPACE ───────────────────────────────────────────────
-section_header("⚙️ Data Audit & Remediation Suite")
-
-quality_tabs = st.tabs([
-    "🔍 Core Quality Audit",
-    "⚠️ Outlier & Anomaly Detection",
-    "🧹 Automated Data Cleaning",
-    "📑 Executive Audit Report"
-])
-
-# ── TAB 1: Core Quality Audit ──────────────────────────────────────────
-with quality_tabs[0]:
-    st.markdown("### 🔍 Comprehensive Quality Assessment Dashboard")
-    st.caption("Execute full automated auditing across completeness, uniqueness, consistency, validity, and accuracy.")
-    render_data_quality_ui(active_df)
-
-# ── TAB 2: Outlier & Anomaly Detection ─────────────────────────────────
-with quality_tabs[1]:
-    st.markdown("### ⚠️ Statistical Outlier & Anomaly Identification")
-    st.caption("Detect extreme values across numeric features using Interquartile Range (IQR) or Z-Score thresholding.")
-
-    numeric_cols = list(active_df.select_dtypes(include=[np.number]).columns)
-    if numeric_cols:
-        col_sel, col_opt = st.columns([1, 1])
-        with col_sel:
-            target_outlier_col = st.selectbox("Select Numeric Feature for Audit", options=numeric_cols, key="outlier_col")
-        with col_opt:
-            outlier_method = st.radio("Detection Method", options=["IQR Method (1.5 x IQR)", "Z-Score Threshold (|Z| > 3.0)"])
-        
-        if st.button("🔎 Execute Outlier Scan", use_container_width=True):
-            series = active_df[target_outlier_col].dropna()
-            if "IQR" in outlier_method:
-                q1, q3 = np.percentile(series, 25), np.percentile(series, 75)
-                iqr = q3 - q1
-                lower_bound, upper_bound = q1 - 1.5 * iqr, q3 + 1.5 * iqr
-                outliers = series[(series < lower_bound) | (series > upper_bound)]
-            else:
-                mean, std = np.mean(series), np.std(series)
-                z_scores = (series - mean) / std if std > 0 else np.zeros(len(series))
-                outliers = series[np.abs(z_scores) > 3.0]
-                
-            outliers_count = len(outliers)
-            
-            st.markdown(
-                f"""
-                <div class='audit-card-highlight'>
-                    <h4 style='margin-top:0;'>📊 Outlier Audit Results: <code>{target_outlier_col}</code></h4>
-                    <p style='margin:0;'>Identified <strong>{outliers_count} anomalous record(s)</strong> out of {len(series)} valid entries.</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            if outliers_count > 0:
-                st.markdown("##### Outlier Records Summary")
-                st.dataframe(active_df.loc[outliers.index], use_container_width=True)
-    else:
-        st.warning("No numeric variables available for outlier detection.")
-
-# ── TAB 3: Automated Data Cleaning Tools ───────────────────────────────
-with quality_tabs[2]:
-    st.markdown("### 🧹 Automated Remediation & Imputation Hub")
-    st.caption("Fix data quality issues instantly with automated imputation, whitespace stripping, and duplicate purging.")
-
-    c_clean1, c_clean2 = st.columns(2)
-    with c_clean1:
-        st.markdown("#### Missing Value Remediation")
-        impute_strategy = st.selectbox(
-            "Imputation Strategy", 
-            options=["Do Not Impute", "Drop Rows with Missing Values", "Impute Numeric with Median", "Impute Numeric with Mean", "Forward Fill / Backward Fill"]
-        )
-    with c_clean2:
-        st.markdown("#### Data Formatting Cleanup")
-        strip_ws = st.checkbox("Strip Leading/Trailing Whitespaces from Strings", value=True)
-        snake_case = st.checkbox("Standardize Column Header Naming (Snake_case)", value=True)
-        remove_dupes = st.checkbox("Remove Exact Duplicate Rows Automatically", value=False)
-
-    if st.button("🚀 Execute Automated Cleaning Pipeline", type="primary", use_container_width=True):
-        cleaned_df = active_df.copy()
-        
-        # 1. Whitespace Strip
-        if strip_ws:
-            str_cols = cleaned_df.select_dtypes(include=['object']).columns
-            for col in str_cols:
-                cleaned_df[col] = cleaned_df[col].astype(str).str.strip()
-        
-        # 2. Snake Case Header Conversion
-        if snake_case:
-            cleaned_df.columns = [c.strip().lower().replace(' ', '_').replace('-', '_') for c in cleaned_df.columns]
-            
-        # 3. Duplicate Removal
-        if remove_dupes:
-            cleaned_df = cleaned_df.drop_duplicates()
-
-        # 4. Imputation
-        if impute_strategy == "Drop Rows with Missing Values":
-            cleaned_df = cleaned_df.dropna()
-        elif impute_strategy == "Impute Numeric with Median":
-            num_cols = cleaned_df.select_dtypes(include=[np.number]).columns
-            cleaned_df[num_cols] = cleaned_df[num_cols].fillna(cleaned_df[num_cols].median())
-        elif impute_strategy == "Impute Numeric with Mean":
-            num_cols = cleaned_df.select_dtypes(include=[np.number]).columns
-            cleaned_df[num_cols] = cleaned_df[num_cols].fillna(cleaned_df[num_cols].mean())
-        elif impute_strategy == "Forward Fill / Backward Fill":
-            cleaned_df = cleaned_df.ffill().bfill()
-
-        st.session_state["active_df"] = cleaned_df
-        st.markdown(
-            """
-            <div class='audit-card-highlight' style='text-align:center;'>
-                <h4 style='margin-top:0;'>🎉 Data Cleaning Pipeline Executed Successfully!</h4>
-                <p style='margin:0;'>Active dataset updated in session state.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        st.rerun()
-
-# ── TAB 4: Executive Quality Audit Report ──────────────────────────────
-with quality_tabs[3]:
-    st.markdown("### 📑 Publication-Ready Data Quality Report")
-    st.caption("Generate executive summary metrics and compliance checklists for research or enterprise reporting.")
-
-    report_data = [
-        {"Audit Dimension": "Completeness", "Metric": f"{completeness_pct:.1f}% valid cells", "Status": "✅ Optimal" if completeness_pct > 90 else "⚠️ Review Required"},
-        {"Audit Dimension": "Uniqueness", "Metric": f"{100 - duplicate_pct:.1f}% unique records", "Status": "✅ Optimal" if duplicate_pct == 0 else "⚠️ Duplicates Found"},
-        {"Audit Dimension": "Consistency", "Metric": "Schema types verified", "Status": "✅ Verified"},
-        {"Audit Dimension": "Validity", "Metric": "Range constraints checked", "Status": "✅ Verified"}
-    ]
-    st.dataframe(pd.DataFrame(report_data), use_container_width=True, hide_index=True)
-    
-    csv_report = pd.DataFrame(report_data).to_csv(index=False).encode('utf-8')
-    st.download_button(
-        "📥 Download Quality Audit Report (CSV)",
-        data=csv_report,
-        file_name="data_quality_audit_report.csv",
-        mime="text/csv",
-        use_container_width=True
-    )
+﻿—"—"—"—
+—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—E—N—T—E—R—P—R—I—S—E— —D—A—T—A— —Q—U—A—L—I—T—Y— —A—U—D—I—T— —&— —A—N—O—M—A—L—Y— —S—U—I—T—E— —[—v—3—.—1—]—
+—H—i—g—h—-—p—r—e—c—i—s—i—o—n— —a—u—t—o—m—a—t—e—d— —d—a—t—a— —v—a—l—i—d—a—t—i—o—n— —e—n—g—i—n—e—:— —A—u—d—i—t—i—n—g— —c—o—m—p—l—e—t—e—n—e—s—s—,— —
+—u—n—i—q—u—e—n—e—s—s—,— —c—o—n—s—i—s—t—e—n—c—y—,— —v—a—l—i—d—i—t—y—,— —a—c—c—u—r—a—c—y—,— —o—u—t—l—i—e—r— —i—d—e—n—t—i—f—i—c—a—t—i—o—n—,— —
+—a—n—d— —a—u—t—o—m—a—t—e—d— —r—e—m—e—d—i—a—t—i—o—n— —p—i—p—e—l—i—n—e—s—.—
+—D—e—s—i—g—n—e—d— —f—o—r—:— —C—h—r—i—s—h—e—m— —S—t—u—d—i—o— —E—n—g—i—n—e—
+—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—"—"—"—
+—
+—i—m—p—o—r—t— —s—y—s—
+—f—r—o—m— —p—a—t—h—l—i—b— —i—m—p—o—r—t— —P—a—t—h—
+—i—m—p—o—r—t— —n—u—m—p—y— —a—s— —n—p—
+—i—m—p—o—r—t— —p—a—n—d—a—s— —a—s— —p—d—
+—i—m—p—o—r—t— —s—t—r—e—a—m—l—i—t— —a—s— —s—t—
+—
+—#— —─—─—─— —P—A—T—H— —R—E—S—O—L—U—T—I—O—N— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—c—u—r—r—e—n—t—_—f—i—l—e— —=— —P—a—t—h—(—_—_—f—i—l—e—_—_—)—.—r—e—s—o—l—v—e—(—)—
+—r—o—o—t—_—d—i—r— —=— —c—u—r—r—e—n—t—_—f—i—l—e—.—p—a—r—e—n—t—.—p—a—r—e—n—t—
+—i—f— —s—t—r—(—r—o—o—t—_—d—i—r—)— —n—o—t— —i—n— —s—y—s—.—p—a—t—h—:—
+— — — — —s—y—s—.—p—a—t—h—.—i—n—s—e—r—t—(—0—,— —s—t—r—(—r—o—o—t—_—d—i—r—)—)—
+—i—f— —s—t—r—(—c—u—r—r—e—n—t—_—f—i—l—e—.—p—a—r—e—n—t—)— —n—o—t— —i—n— —s—y—s—.—p—a—t—h—:—
+— — — — —s—y—s—.—p—a—t—h—.—i—n—s—e—r—t—(—0—,— —s—t—r—(—c—u—r—r—e—n—t—_—f—i—l—e—.—p—a—r—e—n—t—)—)—
+—
+—#— —─—─—─— —D—E—F—E—N—S—I—V—E— —M—O—D—U—L—E— —I—M—P—O—R—T—S— —W—I—T—H— —L—O—C—A—L— —F—A—L—L—B—A—C—K—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—t—r—y—:—
+— — — — —f—r—o—m— —m—o—d—u—l—e—s—.—c—o—n—f—i—g— —i—m—p—o—r—t— —i—n—i—t—_—s—e—s—s—i—o—n—_—s—t—a—t—e—
+— — — — —f—r—o—m— —m—o—d—u—l—e—s—.—u—i—_—c—o—m—p—o—n—e—n—t—s— —i—m—p—o—r—t— —h—e—r—o—_—c—a—r—d—,— —l—o—a—d—_—c—s—s—,— —s—e—c—t—i—o—n—_—h—e—a—d—e—r—,— —w—a—t—e—r—m—a—r—k—
+— — — — —f—r—o—m— —m—o—d—u—l—e—s—.—d—a—t—a—_—q—u—a—l—i—t—y— —i—m—p—o—r—t— —r—e—n—d—e—r—_—d—a—t—a—_—q—u—a—l—i—t—y—_—u—i—
+—e—x—c—e—p—t— —I—m—p—o—r—t—E—r—r—o—r—:—
+— — — — —d—e—f— —i—n—i—t—_—s—e—s—s—i—o—n—_—s—t—a—t—e—(—)—:—
+— — — — — — — — —i—f— —"—t—h—e—m—e—"— —n—o—t— —i—n— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—:—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—t—h—e—m—e— —=— —"—d—a—r—k—"—
+—
+— — — — —d—e—f— —l—o—a—d—_—c—s—s—(—i—s—_—d—a—r—k—=—T—r—u—e—)—:—
+— — — — — — — — —p—a—s—s—
+—
+— — — — —d—e—f— —h—e—r—o—_—c—a—r—d—(—t—i—t—l—e—,— —s—u—b—t—i—t—l—e—,— —b—a—d—g—e—_—t—e—x—t—=—"—"—)—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — — — — — — — — — —f—"—"—"—
+— — — — — — — — — — — — —<—d—i—v— —s—t—y—l—e—=—'—b—a—c—k—g—r—o—u—n—d—:— —l—i—n—e—a—r—-—g—r—a—d—i—e—n—t—(—1—3—5—d—e—g—,— —#—0—9—1—3—2—2— —0—%—,— —#—0—3—0—8—1—2— —1—0—0—%—)—;— —b—o—r—d—e—r—:— —1—.—5—p—x— —s—o—l—i—d— —#—0—0—f—2—f—e—;— —p—a—d—d—i—n—g—:— —1—.—5—r—e—m—;— —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—2—p—x—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —1—.—5—r—e—m—;— —b—o—x—-—s—h—a—d—o—w—:— —0— —4—p—x— —2—0—p—x— —r—g—b—a—(—0—,—2—4—2—,—2—5—4—,—0—.—1—5—)—;—'—>—
+— — — — — — — — — — — — — — — — —<—s—p—a—n— —s—t—y—l—e—=—'—b—a—c—k—g—r—o—u—n—d—:—#—0—f—2—9—4—2—;— —c—o—l—o—r—:—#—3—8—b—d—f—8—;— —b—o—r—d—e—r—:—1—p—x— —s—o—l—i—d— —#—0—2—8—4—c—7—;— —p—a—d—d—i—n—g—:—0—.—2—5—r—e—m— —0—.—6—5—r—e—m—;— —b—o—r—d—e—r—-—r—a—d—i—u—s—:—6—p—x—;— —f—o—n—t—-—s—i—z—e—:—0—.—7—5—r—e—m—;— —f—o—n—t—-—w—e—i—g—h—t—:—7—0—0—;—'—>—{—b—a—d—g—e—_—t—e—x—t—}—<—/—s—p—a—n—>—
+— — — — — — — — — — — — — — — — —<—h—1— —s—t—y—l—e—=—'—c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;— —f—o—n—t—-—s—i—z—e—:— —2—.—2—r—e—m—;— —m—a—r—g—i—n—:— —0—.—5—r—e—m— —0— —0—.—2—r—e—m— —0—;— —f—o—n—t—-—w—e—i—g—h—t—:—8—0—0—;— —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:— —-—0—.—0—2—e—m—;—'—>—{—t—i—t—l—e—}—<—/—h—1—>—
+— — — — — — — — — — — — — — — — —<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:— —#—e—2—e—8—f—0— —!—i—m—p—o—r—t—a—n—t—;— —m—a—r—g—i—n—:— —0—;— —f—o—n—t—-—s—i—z—e—:— —0—.—9—5—r—e—m—;— —l—i—n—e—-—h—e—i—g—h—t—:— —1—.—4—;—'—>—{—s—u—b—t—i—t—l—e—}—<—/—p—>—
+— — — — — — — — — — — — —<—/—d—i—v—>—
+— — — — — — — — — — — — —"—"—"—,—
+— — — — — — — — — — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—
+— — — — — — — — —)—
+—
+— — — — —d—e—f— —w—a—t—e—r—m—a—r—k—(—t—e—x—t—)—:—
+— — — — — — — — —p—a—s—s—
+—
+— — — — —d—e—f— —s—e—c—t—i—o—n—_—h—e—a—d—e—r—(—t—i—t—l—e—,— —d—e—s—c—=—"—"—)—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—f—"—<—h—3— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;— —m—a—r—g—i—n—-—t—o—p—:—1—.—4—r—e—m—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:—0—.—3—r—e—m—;— —f—o—n—t—-—w—e—i—g—h—t—:—8—0—0—;—'—>—{—t—i—t—l—e—}—<—/—h—3—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —i—f— —d—e—s—c—:—
+— — — — — — — — — — — — —s—t—.—c—a—p—t—i—o—n—(—d—e—s—c—)—
+—
+— — — — —d—e—f— —r—e—n—d—e—r—_—d—a—t—a—_—q—u—a—l—i—t—y—_—u—i—(—d—f—:— —p—d—.—D—a—t—a—F—r—a—m—e—)—:—
+— — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—"—⚡— —A—u—t—o—m—a—t—e—d— —D—a—t—a— —H—e—a—l—t—h— —I—n—s—p—e—c—t—o—r— —A—c—t—i—v—e—:— —M—u—l—t—i—-—D—i—m—e—n—s—i—o—n—a—l— —D—i—a—g—n—o—s—t—i—c—s— —R—e—a—d—y—.—"—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#—#—#— —�—�— —D—a—t—a— —P—r—e—v—i—e—w—"—)—
+— — — — — — — — —s—t—.—d—a—t—a—f—r—a—m—e—(—d—f—.—h—e—a—d—(—5—)—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+—
+—#— —─—─—─— —P—A—G—E— —C—O—N—F—I—G—U—R—A—T—I—O—N— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—s—e—t—_—p—a—g—e—_—c—o—n—f—i—g—(—
+— — — — —p—a—g—e—_—t—i—t—l—e—=—"—E—n—t—e—r—p—r—i—s—e— —D—a—t—a— —Q—u—a—l—i—t—y— —S—t—u—d—i—o—"—,— —
+— — — — —l—a—y—o—u—t—=—"—w—i—d—e—"—,— —
+— — — — —p—a—g—e—_—i—c—o—n—=—"—�—�—"—,—
+— — — — —i—n—i—t—i—a—l—_—s—i—d—e—b—a—r—_—s—t—a—t—e—=—"—c—o—l—l—a—p—s—e—d—"—
+—)—
+—
+—i—n—i—t—_—s—e—s—s—i—o—n—_—s—t—a—t—e—(—)—
+—
+—#— —─—─—─— —H—I—G—H—-—C—O—N—T—R—A—S—T— —D—E—S—I—G—N— —S—Y—S—T—E—M— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — —"—"—"—
+— — — — —<—s—t—y—l—e—>—
+— — — — —/—*— —-—-—-— —G—L—O—B—A—L— —S—I—D—E—B—A—R— —D—A—R—K— —T—H—E—M—I—N—G— —O—V—E—R—R—I—D—E— —-—-—-— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]—,— —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—9—0—d—1—6— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—i—g—h—t—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —
+— — — — —/—*— —F—o—r—c—e— —a—l—l— —s—i—d—e—b—a—r— —t—e—x—t—,— —l—i—n—k—s—,— —a—n—d— —h—e—a—d—e—r—s— —t—o— —h—i—g—h—-—c—o—n—t—r—a—s—t— —o—f—f—-—w—h—i—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —*—,— —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —*— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —T—a—r—g—e—t— —n—a—v—i—g—a—t—i—o—n— —l—i—n—k—s— —a—n—d— —t—e—x—t— —e—x—p—l—i—c—i—t—l—y— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —s—p—a—n—,— —
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—H—e—a—d—e—r—"—]— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —6—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —N—a—v—i—g—a—t—i—o—n— —i—t—e—m— —h—o—v—e—r— —s—t—a—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—:—h—o—v—e—r—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—:—h—o—v—e—r— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—r—r—e—n—t—l—y— —s—e—l—e—c—t—e—d— —n—a—v—i—g—a—t—i—o—n— —i—t—e—m— —a—c—t—i—v—e— —s—t—a—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—[—a—r—i—a—-—c—u—r—r—e—n—t—=—"—p—a—g—e—"—]—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—[—a—r—i—a—-—s—e—l—e—c—t—e—d—=—"—t—r—u—e—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—2—8—4—c—7— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—f—f—f—f—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—s—t—o—m— —f—o—r—m— —i—n—p—u—t—s— —i—n—s—i—d—e— —s—i—d—e—b—a—r— —*—/—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—S—e—l—e—c—t—b—o—x— —l—a—b—e—l—,—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—R—a—d—i—o— —l—a—b—e—l—,—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—M—u—l—t—i—S—e—l—e—c—t— —l—a—b—e—l— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—3—8—b—d—f—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —/—*— —G—l—o—b—a—l— —C—a—n—v—a—s— —*—/—
+— — — — —.—s—t—A—p—p— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—4—0—8—0—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—f—a—m—i—l—y—:— —'—I—n—t—e—r—'—,— —-—a—p—p—l—e—-—s—y—s—t—e—m—,— —B—l—i—n—k—M—a—c—S—y—s—t—e—m—F—o—n—t—,— —"—S—e—g—o—e— —U—I—"—,— —R—o—b—o—t—o—,— —s—a—n—s—-—s—e—r—i—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —V—i—b—r—a—n—t— —T—y—p—o—g—r—a—p—h—y— —*—/—
+— — — — —h—1—,— —h—2—,— —h—3—,— —h—4—,— —h—5—,— —h—6— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —8—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:— —-—0—.—0—2—5—e—m— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —
+— — — — —p—,— —s—p—a—n—,— —l—a—b—e—l—,— —d—i—v—,— —.—s—t—M—a—r—k—d—o—w—n—,— —.—s—t—C—h—e—c—k—b—o—x— —l—a—b—e—l—,— —.—s—t—R—a—d—i—o— —l—a—b—e—l— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —0—.—9—5—r—e—m—;—
+— — — — —}—
+—
+— — — — —.—s—t—C—a—p—t—i—o—n— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—9—4—a—3—b—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —0—.—8—5—r—e—m— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —S—t—r—u—c—t—u—r—e—d— —C—a—r—d—s— —&— —C—o—n—t—a—i—n—e—r—s— —*—/—
+— — — — —.—a—u—d—i—t—-—c—a—r—d— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—2—p—x—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —1—.—2—5—r—e—m—;—
+— — — — — — — — —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —1—.—2—r—e—m—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —4—p—x— —1—6—p—x— —r—g—b—a—(—0—,— —0—,— —0—,— —0—.—5—)—;—
+— — — — —}—
+— — — — —
+— — — — —.—a—u—d—i—t—-—c—a—r—d—-—h—i—g—h—l—i—g—h—t— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—0—0—f—2—f—e—8—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—2—p—x—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —1—.—2—5—r—e—m—;—
+— — — — — — — — —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —1—.—2—r—e—m—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —0— —2—0—p—x— —r—g—b—a—(—0—,— —2—4—2—,— —2—5—4—,— —0—.—1—)—;—
+— — — — —}—
+—
+— — — — —/—*— —M—e—t—r—i—c—s— —S—t—y—l—i—n—g— —*—/—
+— — — — —d—i—v—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—M—e—t—r—i—c—V—a—l—u—e—"—]— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —1—.—8—r—e—m— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —8—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —d—i—v—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—M—e—t—r—i—c—L—a—b—e—l—"—]— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—c—b—d—5—e—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —t—e—x—t—-—t—r—a—n—s—f—o—r—m—:— —u—p—p—e—r—c—a—s—e—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —0—.—7—5—r—e—m—;—
+— — — — — — — — —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:— —0—.—0—5—e—m—;—
+— — — — —}—
+—
+— — — — —/—*— —T—a—b—s— —L—a—y—o—u—t— —*—/—
+— — — — —d—i—v—.—s—t—T—a—b—s— —[—d—a—t—a—-—b—a—s—e—w—e—b—=—"—t—a—b—-—l—i—s—t—"—]— —{—
+— — — — — — — — —g—a—p—:— —6—p—x—;—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—7—0—d—1—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —6—p—x—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—0—p—x—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b—;—
+— — — — —}—
+— — — — —d—i—v—.—s—t—T—a—b—s— —[—d—a—t—a—-—b—a—s—e—w—e—b—=—"—t—a—b—"—]— —{—
+— — — — — — — — —h—e—i—g—h—t—:— —4—0—p—x—;—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —t—r—a—n—s—p—a—r—e—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —6—p—x—;—
+— — — — — — — — —c—o—l—o—r—:— —#—9—4—a—3—b—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —n—o—n—e—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —0— —1—6—p—x—;—
+— — — — —}—
+— — — — —d—i—v—.—s—t—T—a—b—s— —[—a—r—i—a—-—s—e—l—e—c—t—e—d—=—"—t—r—u—e—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—1—1—1—c—2—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—b—o—t—t—o—m—:— —2—p—x— —s—o—l—i—d— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —I—n—t—e—r—a—c—t—i—v—e— —I—n—p—u—t—s— —&— —S—e—l—e—c—t—o—r—s— —*—/—
+— — — — —d—i—v—.—s—t—S—e—l—e—c—t—b—o—x—,— —d—i—v—.—s—t—M—u—l—t—i—S—e—l—e—c—t—,— —d—i—v—.—s—t—T—e—x—t—I—n—p—u—t—,— —d—i—v—.—s—t—N—u—m—b—e—r—I—n—p—u—t—,— —d—i—v—.—s—t—S—l—i—d—e—r—,— —d—i—v—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—R—a—d—i—o—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —H—i—g—h—-—V—i—s—i—b—i—l—i—t—y— —C—u—s—t—o—m— —B—u—t—t—o—n—s— —*—/—
+— — — — —.—s—t—B—u—t—t—o—n— —b—u—t—t—o—n— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —t—r—a—n—s—i—t—i—o—n—:— —a—l—l— —0—.—2—s— —e—a—s—e—-—i—n—-—o—u—t—;—
+— — — — —}—
+— — — — —.—s—t—B—u—t—t—o—n— —b—u—t—t—o—n—:—h—o—v—e—r— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—0—4—0—8—0—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —0— —1—6—p—x— —r—g—b—a—(—0—,— —2—4—2—,— —2—5—4—,— —0—.—4—)—;—
+— — — — —}—
+— — — — —<—/—s—t—y—l—e—>—
+— — — — —"—"—"—,—
+— — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—,—
+—)—
+—
+—h—e—r—o—_—c—a—r—d—(—
+— — — — —"—�—�— —E—n—t—e—r—p—r—i—s—e— —D—a—t—a— —Q—u—a—l—i—t—y— —&— —A—n—o—m—a—l—y— —A—u—d—i—t— —S—u—i—t—e—"—,— —
+— — — — —"—H—i—g—h—-—p—r—e—c—i—s—i—o—n— —d—a—t—a— —v—a—l—i—d—a—t—i—o—n— —e—n—g—i—n—e—:— —C—o—m—p—r—e—h—e—n—s—i—v—e— —a—u—d—i—t—i—n—g— —a—c—r—o—s—s— —c—o—m—p—l—e—t—e—n—e—s—s—,— —u—n—i—q—u—e—n—e—s—s—,— —c—o—n—s—i—s—t—e—n—c—y—,— —v—a—l—i—d—i—t—y—,— —a—c—c—u—r—a—c—y—,— —o—u—t—l—i—e—r— —i—d—e—n—t—i—f—i—c—a—t—i—o—n—,— —a—n—d— —a—u—t—o—m—a—t—e—d— —r—e—m—e—d—i—a—t—i—o—n— —p—i—p—e—l—i—n—e—s—.—"—,— —
+— — — — —"—D—a—t—a— —Q—u—a—l—i—t—y— —E—n—g—i—n—e— —3—.—0—"—
+—)—
+—w—a—t—e—r—m—a—r—k—(—"—C—H—R—I—S—H—E—M—"—)—
+—
+—#— —─—─—─— —D—A—T—A—S—E—T— —A—C—Q—U—I—S—I—T—I—O—N— —&— —F—A—L—L—B—A—C—K— —V—A—L—I—D—A—T—I—O—N— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—a—c—t—i—v—e—_—d—f— —=— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—a—c—t—i—v—e—_—d—f—"—)— —o—r— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—n—o—t—i—o—n—_—d—f—"—)—
+—
+—i—f— —a—c—t—i—v—e—_—d—f— —i—s— —N—o—n—e— —o—r— —a—c—t—i—v—e—_—d—f—.—e—m—p—t—y—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — — — — — —"—"—"—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—'—a—u—d—i—t—-—c—a—r—d—-—h—i—g—h—l—i—g—h—t—'—>—
+— — — — — — — — — — — — —<—h—3— —s—t—y—l—e—=—'—m—a—r—g—i—n—-—t—o—p—:—0—;—'—>—⚠—️— —N—o— —A—c—t—i—v—e— —D—a—t—a—s—e—t— —D—e—t—e—c—t—e—d—<—/—h—3—>—
+— — — — — — — — — — — — —<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—c—b—d—5—e—1—;—'—>—L—o—a—d— —a— —d—a—t—a—s—e—t— —o—r— —g—e—n—e—r—a—t—e— —s—y—n—t—h—e—t—i—c— —o—b—s—e—r—v—a—t—i—o—n—s— —c—o—n—t—a—i—n—i—n—g— —m—i—s—s—i—n—g— —v—a—l—u—e—s— —a—n—d— —o—u—t—l—i—e—r—s— —t—o— —b—e—n—c—h—m—a—r—k— —t—h—e— —a—u—d—i—t—i—n—g— —e—n—g—i—n—e—.—<—/—p—>—
+— — — — — — — — —<—/—d—i—v—>—
+— — — — — — — — —"—"—"—,—
+— — — — — — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—
+— — — — —)—
+— — — — —c—o—l—_—a—,— —c—o—l—_—b— —=— —s—t—.—c—o—l—u—m—n—s—(—2—)—
+— — — — —w—i—t—h— —c—o—l—_—a—:—
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —G—e—n—e—r—a—t—e— —B—e—n—c—h—m—a—r—k— —A—u—d—i—t— —D—a—t—a—s—e—t—"—,— —t—y—p—e—=—"—p—r—i—m—a—r—y—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—:—
+— — — — — — — — — — — — —n—p—.—r—a—n—d—o—m—.—s—e—e—d—(—4—2—)—
+— — — — — — — — — — — — —n—_—r—o—w—s— —=— —1—2—0—
+— — — — — — — — — — — — —s—i—m—_—d—f— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—{—
+— — — — — — — — — — — — — — — — —"—S—u—b—j—e—c—t—_—I—D—"—:— —[—f—"—S—U—B—J—-—{—i—:—0—3—d—}—"— —f—o—r— —i— —i—n— —r—a—n—g—e—(—1—,— —n—_—r—o—w—s— —+— —1—)—]—,—
+— — — — — — — — — — — — — — — — —"—A—g—e—"—:— —n—p—.—r—a—n—d—o—m—.—c—h—o—i—c—e—(—[—2—2—,— —2—9—,— —3—4—,— —n—p—.—n—a—n—,— —4—5—,— —5—2—,— —1—1—0—,— —3—1—]—,— —n—_—r—o—w—s—)—,—
+— — — — — — — — — — — — — — — — —"—B—l—o—o—d—_—G—l—u—c—o—s—e—_—m—g—_—d—L—"—:— —n—p—.—r—a—n—d—o—m—.—c—h—o—i—c—e—(—[—9—5—.—4—,— —1—1—0—.—2—,— —1—4—0—.—5—,— —n—p—.—n—a—n—,— —4—5—0—.—0—,— —1—0—2—.—1—,— —9—8—.—6—]—,— —n—_—r—o—w—s—)—,—
+— — — — — — — — — — — — — — — — —"—C—a—t—e—g—o—r—y—"—:— —n—p—.—r—a—n—d—o—m—.—c—h—o—i—c—e—(—[—"—C—o—n—t—r—o—l—"—,— —"—T—r—e—a—t—m—e—n—t—"—,— —"—P—l—a—c—e—b—o—"—,— —"— — —T—r—e—a—t—m—e—n—t— — —"—]—,— —n—_—r—o—w—s—)—,—
+— — — — — — — — — — — — — — — — —"—S—y—s—t—o—l—i—c—_—B—P—"—:— —n—p—.—r—a—n—d—o—m—.—n—o—r—m—a—l—(—1—2—0—,— —1—5—,— —n—_—r—o—w—s—)—
+— — — — — — — — — — — — —}—)—
+— — — — — — — — — — — — —#— —I—n—j—e—c—t— —d—u—p—l—i—c—a—t—e—s—
+— — — — — — — — — — — — —s—i—m—_—d—f— —=— —p—d—.—c—o—n—c—a—t—(—[—s—i—m—_—d—f—,— —s—i—m—_—d—f—.—i—l—o—c—[—[—0—,— —1—,— —2—]—]—]—,— —i—g—n—o—r—e—_—i—n—d—e—x—=—T—r—u—e—)—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—a—c—t—i—v—e—_—d—f—"—]— —=— —s—i—m—_—d—f—
+— — — — — — — — — — — — —s—t—.—r—e—r—u—n—(—)—
+— — — — —w—i—t—h— —c—o—l—_—b—:—
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —L—o—a—d— —S—t—a—n—d—a—r—d— —S—a—m—p—l—e— —D—a—t—a—s—e—t—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—:—
+— — — — — — — — — — — — —s—i—m—_—d—f— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—{—
+— — — — — — — — — — — — — — — — —"—I—D—"—:— —l—i—s—t—(—r—a—n—g—e—(—1—,— —2—1—)—)—,—
+— — — — — — — — — — — — — — — — —"—V—a—l—u—e—_—A—"—:— —[—1—0—.—5—,— —1—2—.—1—,— —n—p—.—n—a—n—,— —1—4—.—8—,— —1—5—.—2—]— —*— —4—,—
+— — — — — — — — — — — — — — — — —"—S—t—a—t—u—s—"—:— —[—"—A—c—t—i—v—e—"—,— —"—P—e—n—d—i—n—g—"—,— —"—A—c—t—i—v—e—"—,— —"—I—n—a—c—t—i—v—e—"—,— —"—A—c—t—i—v—e—"—]— —*— —4—
+— — — — — — — — — — — — —}—)—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—a—c—t—i—v—e—_—d—f—"—]— —=— —s—i—m—_—d—f—
+— — — — — — — — — — — — —s—t—.—r—e—r—u—n—(—)—
+— — — — —s—t—.—s—t—o—p—(—)—
+—
+—#— —─—─—─— —H—I—G—H—-—L—E—V—E—L— —D—A—T—A— —Q—U—A—L—I—T—Y— —H—E—A—L—T—H— —M—E—T—R—I—C—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—e—c—t—i—o—n—_—h—e—a—d—e—r—(—"—�—�— —D—a—t—a— —H—e—a—l—t—h— —I—n—d—e—x— —&— —C—o—r—e— —A—u—d—i—t— —S—u—m—m—a—r—y—"—)—
+—
+—t—o—t—a—l—_—c—e—l—l—s— —=— —a—c—t—i—v—e—_—d—f—.—s—h—a—p—e—[—0—]— —*— —a—c—t—i—v—e—_—d—f—.—s—h—a—p—e—[—1—]—
+—m—i—s—s—i—n—g—_—c—e—l—l—s— —=— —a—c—t—i—v—e—_—d—f—.—i—s—n—u—l—l—(—)—.—s—u—m—(—)—.—s—u—m—(—)—
+—c—o—m—p—l—e—t—e—n—e—s—s—_—p—c—t— —=— —(—(—t—o—t—a—l—_—c—e—l—l—s— —-— —m—i—s—s—i—n—g—_—c—e—l—l—s—)— —/— —t—o—t—a—l—_—c—e—l—l—s— —*— —1—0—0—)— —i—f— —t—o—t—a—l—_—c—e—l—l—s— —>— —0— —e—l—s—e— —1—0—0—.—0—
+—d—u—p—l—i—c—a—t—e—_—r—o—w—s— —=— —a—c—t—i—v—e—_—d—f—.—d—u—p—l—i—c—a—t—e—d—(—)—.—s—u—m—(—)—
+—d—u—p—l—i—c—a—t—e—_—p—c—t— —=— —(—d—u—p—l—i—c—a—t—e—_—r—o—w—s— —/— —l—e—n—(—a—c—t—i—v—e—_—d—f—)— —*— —1—0—0—)— —i—f— —l—e—n—(—a—c—t—i—v—e—_—d—f—)— —>— —0— —e—l—s—e— —0—.—0—
+—
+—m—1—,— —m—2—,— —m—3—,— —m—4—,— —m—5— —=— —s—t—.—c—o—l—u—m—n—s—(—5—)—
+—w—i—t—h— —m—1—:—
+— — — — —s—t—.—m—e—t—r—i—c—(—"—�—�— —T—o—t—a—l— —O—b—s—e—r—v—a—t—i—o—n—s—"—,— —f—"—{—l—e—n—(—a—c—t—i—v—e—_—d—f—)—:—,—}—"—)—
+—w—i—t—h— —m—2—:—
+— — — — —s—t—.—m—e—t—r—i—c—(—"—�—�— —T—o—t—a—l— —A—t—t—r—i—b—u—t—e—s—"—,— —f—"—{—l—e—n—(—a—c—t—i—v—e—_—d—f—.—c—o—l—u—m—n—s—)—:—,—}—"—)—
+—w—i—t—h— —m—3—:—
+— — — — —s—t—.—m—e—t—r—i—c—(—"—✨— —C—o—m—p—l—e—t—e—n—e—s—s—"—,— —f—"—{—c—o—m—p—l—e—t—e—n—e—s—s—_—p—c—t—:—.—1—f—}—%—"—)—
+—w—i—t—h— —m—4—:—
+— — — — —s—t—.—m—e—t—r—i—c—(—"—�—�— —D—u—p—l—i—c—a—t—e—s—"—,— —f—"—{—d—u—p—l—i—c—a—t—e—_—r—o—w—s—:—,—}— —(—{—d—u—p—l—i—c—a—t—e—_—p—c—t—:—.—1—f—}—%—)—"—)—
+—w—i—t—h— —m—5—:—
+— — — — —s—t—.—m—e—t—r—i—c—(—"—�—�—️— —Q—u—a—l—i—t—y— —S—t—a—t—u—s—"—,— —"—P—a—s—s—e—d—"— —i—f— —c—o—m—p—l—e—t—e—n—e—s—s—_—p—c—t— —>— —9—0— —e—l—s—e— —"—R—e—v—i—e—w— —N—e—e—d—e—d—"—)—
+—
+—w—i—t—h— —s—t—.—e—x—p—a—n—d—e—r—(—"—�—�— —P—r—e—v—i—e—w— —A—c—t—i—v—e— —D—a—t—a—s—e—t— —S—c—h—e—m—a— —&— —D—e—s—c—r—i—p—t—i—v—e— —A—u—d—i—t—"—,— —e—x—p—a—n—d—e—d—=—F—a—l—s—e—)—:—
+— — — — —s—t—.—d—a—t—a—f—r—a—m—e—(—a—c—t—i—v—e—_—d—f—.—h—e—a—d—(—1—0—)—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#—#—#— —C—o—l—u—m—n— —N—u—l—l— —V—a—l—u—e— —B—r—e—a—k—d—o—w—n—"—)—
+— — — — —n—u—l—l—_—s—u—m—m—a—r—y— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—{—
+— — — — — — — — —"—M—i—s—s—i—n—g— —C—o—u—n—t—"—:— —a—c—t—i—v—e—_—d—f—.—i—s—n—u—l—l—(—)—.—s—u—m—(—)—,—
+— — — — — — — — —"—M—i—s—s—i—n—g— —P—e—r—c—e—n—t—a—g—e— —(—%—)—"—:— —(—a—c—t—i—v—e—_—d—f—.—i—s—n—u—l—l—(—)—.—m—e—a—n—(—)— —*— —1—0—0—)—.—r—o—u—n—d—(—2—)—
+— — — — —}—)—
+— — — — —s—t—.—d—a—t—a—f—r—a—m—e—(—n—u—l—l—_—s—u—m—m—a—r—y—[—n—u—l—l—_—s—u—m—m—a—r—y—[—"—M—i—s—s—i—n—g— —C—o—u—n—t—"—]— —>— —0—]—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—r— —s—t—y—l—e—=—'—b—o—r—d—e—r—:—1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b—;— —m—a—r—g—i—n—:— —1—.—5—r—e—m— —0—;—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —M—U—L—T—I—-—T—A—B— —W—O—R—K—S—P—A—C—E— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—e—c—t—i—o—n—_—h—e—a—d—e—r—(—"—⚙—️— —D—a—t—a— —A—u—d—i—t— —&— —R—e—m—e—d—i—a—t—i—o—n— —S—u—i—t—e—"—)—
+—
+—q—u—a—l—i—t—y—_—t—a—b—s— —=— —s—t—.—t—a—b—s—(—[—
+— — — — —"—�—�— —C—o—r—e— —Q—u—a—l—i—t—y— —A—u—d—i—t—"—,—
+— — — — —"—⚠—️— —O—u—t—l—i—e—r— —&— —A—n—o—m—a—l—y— —D—e—t—e—c—t—i—o—n—"—,—
+— — — — —"—�—�— —A—u—t—o—m—a—t—e—d— —D—a—t—a— —C—l—e—a—n—i—n—g—"—,—
+— — — — —"—�—�— —E—x—e—c—u—t—i—v—e— —A—u—d—i—t— —R—e—p—o—r—t—"—
+—]—)—
+—
+—#— —─—─— —T—A—B— —1—:— —C—o—r—e— —Q—u—a—l—i—t—y— —A—u—d—i—t— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —q—u—a—l—i—t—y—_—t—a—b—s—[—0—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —C—o—m—p—r—e—h—e—n—s—i—v—e— —Q—u—a—l—i—t—y— —A—s—s—e—s—s—m—e—n—t— —D—a—s—h—b—o—a—r—d—"—)—
+— — — — —s—t—.—c—a—p—t—i—o—n—(—"—E—x—e—c—u—t—e— —f—u—l—l— —a—u—t—o—m—a—t—e—d— —a—u—d—i—t—i—n—g— —a—c—r—o—s—s— —c—o—m—p—l—e—t—e—n—e—s—s—,— —u—n—i—q—u—e—n—e—s—s—,— —c—o—n—s—i—s—t—e—n—c—y—,— —v—a—l—i—d—i—t—y—,— —a—n—d— —a—c—c—u—r—a—c—y—.—"—)—
+— — — — —r—e—n—d—e—r—_—d—a—t—a—_—q—u—a—l—i—t—y—_—u—i—(—a—c—t—i—v—e—_—d—f—)—
+—
+—#— —─—─— —T—A—B— —2—:— —O—u—t—l—i—e—r— —&— —A—n—o—m—a—l—y— —D—e—t—e—c—t—i—o—n— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —q—u—a—l—i—t—y—_—t—a—b—s—[—1—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —⚠—️— —S—t—a—t—i—s—t—i—c—a—l— —O—u—t—l—i—e—r— —&— —A—n—o—m—a—l—y— —I—d—e—n—t—i—f—i—c—a—t—i—o—n—"—)—
+— — — — —s—t—.—c—a—p—t—i—o—n—(—"—D—e—t—e—c—t— —e—x—t—r—e—m—e— —v—a—l—u—e—s— —a—c—r—o—s—s— —n—u—m—e—r—i—c— —f—e—a—t—u—r—e—s— —u—s—i—n—g— —I—n—t—e—r—q—u—a—r—t—i—l—e— —R—a—n—g—e— —(—I—Q—R—)— —o—r— —Z—-—S—c—o—r—e— —t—h—r—e—s—h—o—l—d—i—n—g—.—"—)—
+—
+— — — — —n—u—m—e—r—i—c—_—c—o—l—s— —=— —l—i—s—t—(—a—c—t—i—v—e—_—d—f—.—s—e—l—e—c—t—_—d—t—y—p—e—s—(—i—n—c—l—u—d—e—=—[—n—p—.—n—u—m—b—e—r—]—)—.—c—o—l—u—m—n—s—)—
+— — — — —i—f— —n—u—m—e—r—i—c—_—c—o—l—s—:—
+— — — — — — — — —c—o—l—_—s—e—l—,— —c—o—l—_—o—p—t— —=— —s—t—.—c—o—l—u—m—n—s—(—[—1—,— —1—]—)—
+— — — — — — — — —w—i—t—h— —c—o—l—_—s—e—l—:—
+— — — — — — — — — — — — —t—a—r—g—e—t—_—o—u—t—l—i—e—r—_—c—o—l— —=— —s—t—.—s—e—l—e—c—t—b—o—x—(—"—S—e—l—e—c—t— —N—u—m—e—r—i—c— —F—e—a—t—u—r—e— —f—o—r— —A—u—d—i—t—"—,— —o—p—t—i—o—n—s—=—n—u—m—e—r—i—c—_—c—o—l—s—,— —k—e—y—=—"—o—u—t—l—i—e—r—_—c—o—l—"—)—
+— — — — — — — — —w—i—t—h— —c—o—l—_—o—p—t—:—
+— — — — — — — — — — — — —o—u—t—l—i—e—r—_—m—e—t—h—o—d— —=— —s—t—.—r—a—d—i—o—(—"—D—e—t—e—c—t—i—o—n— —M—e—t—h—o—d—"—,— —o—p—t—i—o—n—s—=—[—"—I—Q—R— —M—e—t—h—o—d— —(—1—.—5— —x— —I—Q—R—)—"—,— —"—Z—-—S—c—o—r—e— —T—h—r—e—s—h—o—l—d— —(—|—Z—|— —>— —3—.—0—)—"—]—)—
+— — — — — — — — —
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —E—x—e—c—u—t—e— —O—u—t—l—i—e—r— —S—c—a—n—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—:—
+— — — — — — — — — — — — —s—e—r—i—e—s— —=— —a—c—t—i—v—e—_—d—f—[—t—a—r—g—e—t—_—o—u—t—l—i—e—r—_—c—o—l—]—.—d—r—o—p—n—a—(—)—
+— — — — — — — — — — — — —i—f— —"—I—Q—R—"— —i—n— —o—u—t—l—i—e—r—_—m—e—t—h—o—d—:—
+— — — — — — — — — — — — — — — — —q—1—,— —q—3— —=— —n—p—.—p—e—r—c—e—n—t—i—l—e—(—s—e—r—i—e—s—,— —2—5—)—,— —n—p—.—p—e—r—c—e—n—t—i—l—e—(—s—e—r—i—e—s—,— —7—5—)—
+— — — — — — — — — — — — — — — — —i—q—r— —=— —q—3— —-— —q—1—
+— — — — — — — — — — — — — — — — —l—o—w—e—r—_—b—o—u—n—d—,— —u—p—p—e—r—_—b—o—u—n—d— —=— —q—1— —-— —1—.—5— —*— —i—q—r—,— —q—3— —+— —1—.—5— —*— —i—q—r—
+— — — — — — — — — — — — — — — — —o—u—t—l—i—e—r—s— —=— —s—e—r—i—e—s—[—(—s—e—r—i—e—s— —<— —l—o—w—e—r—_—b—o—u—n—d—)— —|— —(—s—e—r—i—e—s— —>— —u—p—p—e—r—_—b—o—u—n—d—)—]—
+— — — — — — — — — — — — —e—l—s—e—:—
+— — — — — — — — — — — — — — — — —m—e—a—n—,— —s—t—d— —=— —n—p—.—m—e—a—n—(—s—e—r—i—e—s—)—,— —n—p—.—s—t—d—(—s—e—r—i—e—s—)—
+— — — — — — — — — — — — — — — — —z—_—s—c—o—r—e—s— —=— —(—s—e—r—i—e—s— —-— —m—e—a—n—)— —/— —s—t—d— —i—f— —s—t—d— —>— —0— —e—l—s—e— —n—p—.—z—e—r—o—s—(—l—e—n—(—s—e—r—i—e—s—)—)—
+— — — — — — — — — — — — — — — — —o—u—t—l—i—e—r—s— —=— —s—e—r—i—e—s—[—n—p—.—a—b—s—(—z—_—s—c—o—r—e—s—)— —>— —3—.—0—]—
+— — — — — — — — — — — — — — — — —
+— — — — — — — — — — — — —o—u—t—l—i—e—r—s—_—c—o—u—n—t— —=— —l—e—n—(—o—u—t—l—i—e—r—s—)—
+— — — — — — — — — — — — —
+— — — — — — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — — — — — — — — — — — — — —f—"—"—"—
+— — — — — — — — — — — — — — — — —<—d—i—v— —c—l—a—s—s—=—'—a—u—d—i—t—-—c—a—r—d—-—h—i—g—h—l—i—g—h—t—'—>—
+— — — — — — — — — — — — — — — — — — — — —<—h—4— —s—t—y—l—e—=—'—m—a—r—g—i—n—-—t—o—p—:—0—;—'—>—�—�— —O—u—t—l—i—e—r— —A—u—d—i—t— —R—e—s—u—l—t—s—:— —<—c—o—d—e—>—{—t—a—r—g—e—t—_—o—u—t—l—i—e—r—_—c—o—l—}—<—/—c—o—d—e—>—<—/—h—4—>—
+— — — — — — — — — — — — — — — — — — — — —<—p— —s—t—y—l—e—=—'—m—a—r—g—i—n—:—0—;—'—>—I—d—e—n—t—i—f—i—e—d— —<—s—t—r—o—n—g—>—{—o—u—t—l—i—e—r—s—_—c—o—u—n—t—}— —a—n—o—m—a—l—o—u—s— —r—e—c—o—r—d—(—s—)—<—/—s—t—r—o—n—g—>— —o—u—t— —o—f— —{—l—e—n—(—s—e—r—i—e—s—)—}— —v—a—l—i—d— —e—n—t—r—i—e—s—.—<—/—p—>—
+— — — — — — — — — — — — — — — — —<—/—d—i—v—>—
+— — — — — — — — — — — — — — — — —"—"—"—,—
+— — — — — — — — — — — — — — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—
+— — — — — — — — — — — — —)—
+— — — — — — — — — — — — —i—f— —o—u—t—l—i—e—r—s—_—c—o—u—n—t— —>— —0—:—
+— — — — — — — — — — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#—#—#— —O—u—t—l—i—e—r— —R—e—c—o—r—d—s— —S—u—m—m—a—r—y—"—)—
+— — — — — — — — — — — — — — — — —s—t—.—d—a—t—a—f—r—a—m—e—(—a—c—t—i—v—e—_—d—f—.—l—o—c—[—o—u—t—l—i—e—r—s—.—i—n—d—e—x—]—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — —e—l—s—e—:—
+— — — — — — — — —s—t—.—w—a—r—n—i—n—g—(—"—N—o— —n—u—m—e—r—i—c— —v—a—r—i—a—b—l—e—s— —a—v—a—i—l—a—b—l—e— —f—o—r— —o—u—t—l—i—e—r— —d—e—t—e—c—t—i—o—n—.—"—)—
+—
+—#— —─—─— —T—A—B— —3—:— —A—u—t—o—m—a—t—e—d— —D—a—t—a— —C—l—e—a—n—i—n—g— —T—o—o—l—s— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —q—u—a—l—i—t—y—_—t—a—b—s—[—2—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —A—u—t—o—m—a—t—e—d— —R—e—m—e—d—i—a—t—i—o—n— —&— —I—m—p—u—t—a—t—i—o—n— —H—u—b—"—)—
+— — — — —s—t—.—c—a—p—t—i—o—n—(—"—F—i—x— —d—a—t—a— —q—u—a—l—i—t—y— —i—s—s—u—e—s— —i—n—s—t—a—n—t—l—y— —w—i—t—h— —a—u—t—o—m—a—t—e—d— —i—m—p—u—t—a—t—i—o—n—,— —w—h—i—t—e—s—p—a—c—e— —s—t—r—i—p—p—i—n—g—,— —a—n—d— —d—u—p—l—i—c—a—t—e— —p—u—r—g—i—n—g—.—"—)—
+—
+— — — — —c—_—c—l—e—a—n—1—,— —c—_—c—l—e—a—n—2— —=— —s—t—.—c—o—l—u—m—n—s—(—2—)—
+— — — — —w—i—t—h— —c—_—c—l—e—a—n—1—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#—#— —M—i—s—s—i—n—g— —V—a—l—u—e— —R—e—m—e—d—i—a—t—i—o—n—"—)—
+— — — — — — — — —i—m—p—u—t—e—_—s—t—r—a—t—e—g—y— —=— —s—t—.—s—e—l—e—c—t—b—o—x—(—
+— — — — — — — — — — — — —"—I—m—p—u—t—a—t—i—o—n— —S—t—r—a—t—e—g—y—"—,— —
+— — — — — — — — — — — — —o—p—t—i—o—n—s—=—[—"—D—o— —N—o—t— —I—m—p—u—t—e—"—,— —"—D—r—o—p— —R—o—w—s— —w—i—t—h— —M—i—s—s—i—n—g— —V—a—l—u—e—s—"—,— —"—I—m—p—u—t—e— —N—u—m—e—r—i—c— —w—i—t—h— —M—e—d—i—a—n—"—,— —"—I—m—p—u—t—e— —N—u—m—e—r—i—c— —w—i—t—h— —M—e—a—n—"—,— —"—F—o—r—w—a—r—d— —F—i—l—l— —/— —B—a—c—k—w—a—r—d— —F—i—l—l—"—]—
+— — — — — — — — —)—
+— — — — —w—i—t—h— —c—_—c—l—e—a—n—2—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#—#— —D—a—t—a— —F—o—r—m—a—t—t—i—n—g— —C—l—e—a—n—u—p—"—)—
+— — — — — — — — —s—t—r—i—p—_—w—s— —=— —s—t—.—c—h—e—c—k—b—o—x—(—"—S—t—r—i—p— —L—e—a—d—i—n—g—/—T—r—a—i—l—i—n—g— —W—h—i—t—e—s—p—a—c—e—s— —f—r—o—m— —S—t—r—i—n—g—s—"—,— —v—a—l—u—e—=—T—r—u—e—)—
+— — — — — — — — —s—n—a—k—e—_—c—a—s—e— —=— —s—t—.—c—h—e—c—k—b—o—x—(—"—S—t—a—n—d—a—r—d—i—z—e— —C—o—l—u—m—n— —H—e—a—d—e—r— —N—a—m—i—n—g— —(—S—n—a—k—e—_—c—a—s—e—)—"—,— —v—a—l—u—e—=—T—r—u—e—)—
+— — — — — — — — —r—e—m—o—v—e—_—d—u—p—e—s— —=— —s—t—.—c—h—e—c—k—b—o—x—(—"—R—e—m—o—v—e— —E—x—a—c—t— —D—u—p—l—i—c—a—t—e— —R—o—w—s— —A—u—t—o—m—a—t—i—c—a—l—l—y—"—,— —v—a—l—u—e—=—F—a—l—s—e—)—
+—
+— — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —E—x—e—c—u—t—e— —A—u—t—o—m—a—t—e—d— —C—l—e—a—n—i—n—g— —P—i—p—e—l—i—n—e—"—,— —t—y—p—e—=—"—p—r—i—m—a—r—y—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—:—
+— — — — — — — — —c—l—e—a—n—e—d—_—d—f— —=— —a—c—t—i—v—e—_—d—f—.—c—o—p—y—(—)—
+— — — — — — — — —
+— — — — — — — — —#— —1—.— —W—h—i—t—e—s—p—a—c—e— —S—t—r—i—p—
+— — — — — — — — —i—f— —s—t—r—i—p—_—w—s—:—
+— — — — — — — — — — — — —s—t—r—_—c—o—l—s— —=— —c—l—e—a—n—e—d—_—d—f—.—s—e—l—e—c—t—_—d—t—y—p—e—s—(—i—n—c—l—u—d—e—=—[—'—o—b—j—e—c—t—'—]—)—.—c—o—l—u—m—n—s—
+— — — — — — — — — — — — —f—o—r— —c—o—l— —i—n— —s—t—r—_—c—o—l—s—:—
+— — — — — — — — — — — — — — — — —c—l—e—a—n—e—d—_—d—f—[—c—o—l—]— —=— —c—l—e—a—n—e—d—_—d—f—[—c—o—l—]—.—a—s—t—y—p—e—(—s—t—r—)—.—s—t—r—.—s—t—r—i—p—(—)—
+— — — — — — — — —
+— — — — — — — — —#— —2—.— —S—n—a—k—e— —C—a—s—e— —H—e—a—d—e—r— —C—o—n—v—e—r—s—i—o—n—
+— — — — — — — — —i—f— —s—n—a—k—e—_—c—a—s—e—:—
+— — — — — — — — — — — — —c—l—e—a—n—e—d—_—d—f—.—c—o—l—u—m—n—s— —=— —[—c—.—s—t—r—i—p—(—)—.—l—o—w—e—r—(—)—.—r—e—p—l—a—c—e—(—'— —'—,— —'—_—'—)—.—r—e—p—l—a—c—e—(—'—-—'—,— —'—_—'—)— —f—o—r— —c— —i—n— —c—l—e—a—n—e—d—_—d—f—.—c—o—l—u—m—n—s—]—
+— — — — — — — — — — — — —
+— — — — — — — — —#— —3—.— —D—u—p—l—i—c—a—t—e— —R—e—m—o—v—a—l—
+— — — — — — — — —i—f— —r—e—m—o—v—e—_—d—u—p—e—s—:—
+— — — — — — — — — — — — —c—l—e—a—n—e—d—_—d—f— —=— —c—l—e—a—n—e—d—_—d—f—.—d—r—o—p—_—d—u—p—l—i—c—a—t—e—s—(—)—
+—
+— — — — — — — — —#— —4—.— —I—m—p—u—t—a—t—i—o—n—
+— — — — — — — — —i—f— —i—m—p—u—t—e—_—s—t—r—a—t—e—g—y— —=—=— —"—D—r—o—p— —R—o—w—s— —w—i—t—h— —M—i—s—s—i—n—g— —V—a—l—u—e—s—"—:—
+— — — — — — — — — — — — —c—l—e—a—n—e—d—_—d—f— —=— —c—l—e—a—n—e—d—_—d—f—.—d—r—o—p—n—a—(—)—
+— — — — — — — — —e—l—i—f— —i—m—p—u—t—e—_—s—t—r—a—t—e—g—y— —=—=— —"—I—m—p—u—t—e— —N—u—m—e—r—i—c— —w—i—t—h— —M—e—d—i—a—n—"—:—
+— — — — — — — — — — — — —n—u—m—_—c—o—l—s— —=— —c—l—e—a—n—e—d—_—d—f—.—s—e—l—e—c—t—_—d—t—y—p—e—s—(—i—n—c—l—u—d—e—=—[—n—p—.—n—u—m—b—e—r—]—)—.—c—o—l—u—m—n—s—
+— — — — — — — — — — — — —c—l—e—a—n—e—d—_—d—f—[—n—u—m—_—c—o—l—s—]— —=— —c—l—e—a—n—e—d—_—d—f—[—n—u—m—_—c—o—l—s—]—.—f—i—l—l—n—a—(—c—l—e—a—n—e—d—_—d—f—[—n—u—m—_—c—o—l—s—]—.—m—e—d—i—a—n—(—)—)—
+— — — — — — — — —e—l—i—f— —i—m—p—u—t—e—_—s—t—r—a—t—e—g—y— —=—=— —"—I—m—p—u—t—e— —N—u—m—e—r—i—c— —w—i—t—h— —M—e—a—n—"—:—
+— — — — — — — — — — — — —n—u—m—_—c—o—l—s— —=— —c—l—e—a—n—e—d—_—d—f—.—s—e—l—e—c—t—_—d—t—y—p—e—s—(—i—n—c—l—u—d—e—=—[—n—p—.—n—u—m—b—e—r—]—)—.—c—o—l—u—m—n—s—
+— — — — — — — — — — — — —c—l—e—a—n—e—d—_—d—f—[—n—u—m—_—c—o—l—s—]— —=— —c—l—e—a—n—e—d—_—d—f—[—n—u—m—_—c—o—l—s—]—.—f—i—l—l—n—a—(—c—l—e—a—n—e—d—_—d—f—[—n—u—m—_—c—o—l—s—]—.—m—e—a—n—(—)—)—
+— — — — — — — — —e—l—i—f— —i—m—p—u—t—e—_—s—t—r—a—t—e—g—y— —=—=— —"—F—o—r—w—a—r—d— —F—i—l—l— —/— —B—a—c—k—w—a—r—d— —F—i—l—l—"—:—
+— — — — — — — — — — — — —c—l—e—a—n—e—d—_—d—f— —=— —c—l—e—a—n—e—d—_—d—f—.—f—f—i—l—l—(—)—.—b—f—i—l—l—(—)—
+—
+— — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—a—c—t—i—v—e—_—d—f—"—]— —=— —c—l—e—a—n—e—d—_—d—f—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — — — — — — — — — —"—"—"—
+— — — — — — — — — — — — —<—d—i—v— —c—l—a—s—s—=—'—a—u—d—i—t—-—c—a—r—d—-—h—i—g—h—l—i—g—h—t—'— —s—t—y—l—e—=—'—t—e—x—t—-—a—l—i—g—n—:—c—e—n—t—e—r—;—'—>—
+— — — — — — — — — — — — — — — — —<—h—4— —s—t—y—l—e—=—'—m—a—r—g—i—n—-—t—o—p—:—0—;—'—>—�—�— —D—a—t—a— —C—l—e—a—n—i—n—g— —P—i—p—e—l—i—n—e— —E—x—e—c—u—t—e—d— —S—u—c—c—e—s—s—f—u—l—l—y—!—<—/—h—4—>—
+— — — — — — — — — — — — — — — — —<—p— —s—t—y—l—e—=—'—m—a—r—g—i—n—:—0—;—'—>—A—c—t—i—v—e— —d—a—t—a—s—e—t— —u—p—d—a—t—e—d— —i—n— —s—e—s—s—i—o—n— —s—t—a—t—e—.—<—/—p—>—
+— — — — — — — — — — — — —<—/—d—i—v—>—
+— — — — — — — — — — — — —"—"—"—,—
+— — — — — — — — — — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—
+— — — — — — — — —)—
+— — — — — — — — —s—t—.—r—e—r—u—n—(—)—
+—
+—#— —─—─— —T—A—B— —4—:— —E—x—e—c—u—t—i—v—e— —Q—u—a—l—i—t—y— —A—u—d—i—t— —R—e—p—o—r—t— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —q—u—a—l—i—t—y—_—t—a—b—s—[—3—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —P—u—b—l—i—c—a—t—i—o—n—-—R—e—a—d—y— —D—a—t—a— —Q—u—a—l—i—t—y— —R—e—p—o—r—t—"—)—
+— — — — —s—t—.—c—a—p—t—i—o—n—(—"—G—e—n—e—r—a—t—e— —e—x—e—c—u—t—i—v—e— —s—u—m—m—a—r—y— —m—e—t—r—i—c—s— —a—n—d— —c—o—m—p—l—i—a—n—c—e— —c—h—e—c—k—l—i—s—t—s— —f—o—r— —r—e—s—e—a—r—c—h— —o—r— —e—n—t—e—r—p—r—i—s—e— —r—e—p—o—r—t—i—n—g—.—"—)—
+—
+— — — — —r—e—p—o—r—t—_—d—a—t—a— —=— —[—
+— — — — — — — — —{—"—A—u—d—i—t— —D—i—m—e—n—s—i—o—n—"—:— —"—C—o—m—p—l—e—t—e—n—e—s—s—"—,— —"—M—e—t—r—i—c—"—:— —f—"—{—c—o—m—p—l—e—t—e—n—e—s—s—_—p—c—t—:—.—1—f—}—%— —v—a—l—i—d— —c—e—l—l—s—"—,— —"—S—t—a—t—u—s—"—:— —"—✅— —O—p—t—i—m—a—l—"— —i—f— —c—o—m—p—l—e—t—e—n—e—s—s—_—p—c—t— —>— —9—0— —e—l—s—e— —"—⚠—️— —R—e—v—i—e—w— —R—e—q—u—i—r—e—d—"—}—,—
+— — — — — — — — —{—"—A—u—d—i—t— —D—i—m—e—n—s—i—o—n—"—:— —"—U—n—i—q—u—e—n—e—s—s—"—,— —"—M—e—t—r—i—c—"—:— —f—"—{—1—0—0— —-— —d—u—p—l—i—c—a—t—e—_—p—c—t—:—.—1—f—}—%— —u—n—i—q—u—e— —r—e—c—o—r—d—s—"—,— —"—S—t—a—t—u—s—"—:— —"—✅— —O—p—t—i—m—a—l—"— —i—f— —d—u—p—l—i—c—a—t—e—_—p—c—t— —=—=— —0— —e—l—s—e— —"—⚠—️— —D—u—p—l—i—c—a—t—e—s— —F—o—u—n—d—"—}—,—
+— — — — — — — — —{—"—A—u—d—i—t— —D—i—m—e—n—s—i—o—n—"—:— —"—C—o—n—s—i—s—t—e—n—c—y—"—,— —"—M—e—t—r—i—c—"—:— —"—S—c—h—e—m—a— —t—y—p—e—s— —v—e—r—i—f—i—e—d—"—,— —"—S—t—a—t—u—s—"—:— —"—✅— —V—e—r—i—f—i—e—d—"—}—,—
+— — — — — — — — —{—"—A—u—d—i—t— —D—i—m—e—n—s—i—o—n—"—:— —"—V—a—l—i—d—i—t—y—"—,— —"—M—e—t—r—i—c—"—:— —"—R—a—n—g—e— —c—o—n—s—t—r—a—i—n—t—s— —c—h—e—c—k—e—d—"—,— —"—S—t—a—t—u—s—"—:— —"—✅— —V—e—r—i—f—i—e—d—"—}—
+— — — — —]—
+— — — — —s—t—.—d—a—t—a—f—r—a—m—e—(—p—d—.—D—a—t—a—F—r—a—m—e—(—r—e—p—o—r—t—_—d—a—t—a—)—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—,— —h—i—d—e—_—i—n—d—e—x—=—T—r—u—e—)—
+— — — — —
+— — — — —c—s—v—_—r—e—p—o—r—t— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—r—e—p—o—r—t—_—d—a—t—a—)—.—t—o—_—c—s—v—(—i—n—d—e—x—=—F—a—l—s—e—)—.—e—n—c—o—d—e—(—'—u—t—f—-—8—'—)—
+— — — — —s—t—.—d—o—w—n—l—o—a—d—_—b—u—t—t—o—n—(—
+— — — — — — — — —"—�—�— —D—o—w—n—l—o—a—d— —Q—u—a—l—i—t—y— —A—u—d—i—t— —R—e—p—o—r—t— —(—C—S—V—)—"—,—
+— — — — — — — — —d—a—t—a—=—c—s—v—_—r—e—p—o—r—t—,—
+— — — — — — — — —f—i—l—e—_—n—a—m—e—=—"—d—a—t—a—_—q—u—a—l—i—t—y—_—a—u—d—i—t—_—r—e—p—o—r—t—.—c—s—v—"—,—
+— — — — — — — — —m—i—m—e—=—"—t—e—x—t—/—c—s—v—"—,—
+— — — — — — — — —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—
+— — — — —)——
+—

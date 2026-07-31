@@ -1,437 +1,438 @@
-﻿"""
-═══════════════════════════════════════════════════════════════════════════════
-ENTERPRISE GIT & VERSION CONTROL STUDIO [v3.0]
-High-performance code and research pipeline synchronization suite: Track dataset
-iterations, push analytical scripts, manage branches, and collaborate seamlessly
-across academic or engineering projects.
-Designed for: Chrishem Studio Engine
-═══════════════════════════════════════════════════════════════════════════════
-"""
-
-import sys
-import time
-from pathlib import Path
-import pandas as pd
-import numpy as np
-import streamlit as st
-
-# ─── PATH RESOLUTION ─────────────────────────────────────────────────
-current_file = Path(__file__).resolve()
-root_dir = current_file.parent.parent
-if str(root_dir) not in sys.path:
-    sys.path.insert(0, str(root_dir))
-if str(current_file.parent) not in sys.path:
-    sys.path.insert(0, str(current_file.parent))
-
-# ─── DEFENSIVE MODULE IMPORTS WITH LOCAL FALLBACKS ────────────────────
-try:
-    from modules.config import init_session_state
-    from modules.ui_components import hero_card, section_header, load_css, watermark, git_status_badge
-    from modules.git_integration import render_git_integration_ui
-except ImportError:
-    def init_session_state():
-        if "theme" not in st.session_state:
-            st.session_state["theme"] = "dark"
-
-    def load_css(is_dark=True):
-        pass
-
-    def watermark(text=""):
-        pass
-
-    def section_header(text="", desc=""):
-        st.markdown(
-            f"<h3 style='color:#00f2fe !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{text}</h3>", 
-            unsafe_allow_html=True
-        )
-        if desc:
-            st.caption(desc)
-
-    def git_status_badge(is_connected=False):
-        if is_connected:
-            return "<span style='background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid #10b981;'>🟢 Connected</span>"
-        return "<span style='background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid #ef4444;'>🔴 Offline</span>"
-
-    def hero_card(title, subtitle, badge_text=""):
-        st.markdown(f"""
-        <div style="padding: 1.5rem; background: linear-gradient(135deg, rgba(0, 242, 254, 0.12) 0%, rgba(11, 19, 33, 0.95) 100%); border-radius: 12px; border: 1px solid #00f2fe; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(0,242,254,0.15);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
-                <h1 style="color: #00f2fe !important; font-size: 2rem; margin: 0; font-weight: 800; letter-spacing: -0.02em;">{title}</h1>
-                <span style="background: rgba(0, 242, 254, 0.15); color: #00f2fe; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid #00f2fe;">{badge_text}</span>
-            </div>
-            <p style="color: #cbd5e1 !important; font-size: 0.95rem; margin: 0; line-height: 1.4;">{subtitle}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    def render_git_integration_ui():
-        st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#00f2fe;'>🔗 Active Git Repository Handshake</h4>", unsafe_allow_html=True)
-        st.write("Repository Connection: **Active & Monitoring Stream**")
-        st.info("Core module integrated cleanly. Connect your PAT credentials in Tab 5 to sync remote commits.")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# ─── PAGE CONFIGURATION ───────────────────────────────────────────────
-st.set_page_config(
-    page_title="Enterprise Git & Version Control Studio", 
-    layout="wide", 
-    page_icon="🔗",
-    initial_sidebar_state="collapsed"
-)
-
-init_session_state()
-
-# ─── HIGH-CONTRAST DESIGN SYSTEM ──────────────────────────────────────
-st.markdown(
-    """
-    <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
-    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
-    }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
-    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
-    }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-    /* Global Application Canvas */
-    .stApp {
-        background-color: #04080f !important;
-        color: #f8fafc !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    }
-
-    /* High-Contrast Typography */
-    h1, h2, h3, h4, h5, h6 {
-        color: #00f2fe !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.025em !important;
-    }
-    
-    p, span, label, div, .stMarkdown, .stCheckbox label, .stRadio label {
-        color: #f8fafc !important;
-        font-size: 0.95rem;
-    }
-
-    .stCaption {
-        color: #94a3b8 !important;
-        font-size: 0.85rem !important;
-    }
-
-    /* Structured Visual Cards */
-    .synth-card {
-        background: #0b1321 !important;
-        border: 1px solid #1e293b !important;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1.2rem;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-    }
-
-    .metric-card {
-        background: #0b1321 !important;
-        border: 1px solid #1e293b !important;
-        border-radius: 10px;
-        padding: 1rem;
-        text-align: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    
-    .metric-card-title {
-        color: #94a3b8 !important;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        margin-bottom: 0.3rem;
-    }
-
-    .metric-card-value {
-        color: #00f2fe !important;
-        font-size: 1.3rem;
-        font-weight: 800;
-    }
-
-    /* High-Visibility Custom Inputs & Selectboxes */
-    div.stSelectbox, div.stMultiSelect, div.stTextInput, div.stNumberInput, div[data-testid="stRadio"] {
-        background-color: #0b1321 !important;
-        border-radius: 8px !important;
-    }
-
-    /* High-Contrast Action Buttons */
-    .stButton button {
-        background: #0b1321 !important;
-        border: 1px solid #00f2fe !important;
-        color: #00f2fe !important;
-        border-radius: 8px !important;
-        font-weight: 700 !important;
-        transition: all 0.2s ease-in-out;
-    }
-    .stButton button:hover {
-        background: #00f2fe !important;
-        color: #04080f !important;
-        box-shadow: 0 0 16px rgba(0, 242, 254, 0.4);
-    }
-
-    /* Customizing Streamlit Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: #04080f;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        background-color: #0b1321 !important;
-        border: 1px solid #1e293b !important;
-        border-radius: 8px 8px 0px 0px !important;
-        color: #94a3b8 !important;
-        font-weight: 600;
-        padding: 0.6rem 1.2rem !important;
-    }
-
-    .stTabs [aria-selected="true"] {
-        background-color: #1e293b !important;
-        color: #00f2fe !important;
-        border-color: #00f2fe !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-is_connected = st.session_state.get("git_connected", False)
-badge = git_status_badge(is_connected)
-
-hero_card(
-    "🔗 Enterprise Git & GitHub Version Control Studio",
-    f"High-performance code and research pipeline synchronization suite: Track dataset iterations, push analytical scripts, manage branches, and collaborate seamlessly across academic or engineering projects. {badge}",
-    "Git & Version Control Engine 3.0"
-)
-watermark("CHRISHEM")
-
-# ─── DATASET CONTEXT INTEGRATION ───────────────────────────────────────
-active_df = st.session_state.get("active_df")
-if active_df is None or active_df.empty:
-    active_df = st.session_state.get("notion_df")
-
-if active_df is not None and not active_df.empty:
-    st.info(f"💡 **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for version-controlled commit packaging.")
-
-# ─── HIGH-LEVEL GIT TOPOLOGY METRICS ───────────────────────────────────
-section_header("📊 Git Repository Topology & Connection Health")
-
-m1, m2, m3, m4, m5 = st.columns(5)
-with m1:
-    st.markdown(f'''
-    <div class="metric-card">
-        <div class="metric-card-title">🌿 Active Branch</div>
-        <div class="metric-card-value">{st.session_state.get("git_branch", "main")}</div>
-    </div>
-    ''', unsafe_allow_html=True)
-with m2:
-    st.markdown(f'''
-    <div class="metric-card">
-        <div class="metric-card-title">📦 Tracked Commits</div>
-        <div class="metric-card-value">{st.session_state.get("git_commit_count", "14")}</div>
-    </div>
-    ''', unsafe_allow_html=True)
-with m3:
-    auth_val = "PAT Token" if is_connected else "Offline"
-    auth_color = "#10b981" if is_connected else "#ef4444"
-    st.markdown(f'''
-    <div class="metric-card">
-        <div class="metric-card-title">🔒 Authentication</div>
-        <div class="metric-card-value" style="color: {auth_color} !important;">{auth_val}</div>
-    </div>
-    ''', unsafe_allow_html=True)
-with m4:
-    sync_val = "Up-to-Date" if is_connected else "Offline"
-    sync_color = "#10b981" if is_connected else "#94a3b8"
-    st.markdown(f'''
-    <div class="metric-card">
-        <div class="metric-card-title">🔄 Remote Sync</div>
-        <div class="metric-card-value" style="color: {sync_color} !important;">{sync_val}</div>
-    </div>
-    ''', unsafe_allow_html=True)
-with m5:
-    collab_val = "Multi-User" if is_connected else "Standalone"
-    st.markdown(f'''
-    <div class="metric-card">
-        <div class="metric-card-title">👥 Collaboration</div>
-        <div class="metric-card-value">{collab_val}</div>
-    </div>
-    ''', unsafe_allow_html=True)
-
-st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
-
-# ─── EDUCATIONAL GUIDANCE PANEL ────────────────────────────────────────
-with st.expander("🤔 **Confused about Git? Here is why this integration is essential for your work:**", expanded=not is_connected):
-    st.markdown("""
-    ### 🎯 What is Git and How Does It Help You?
-    
-    If you've ever worked on a research paper, code script, or data analysis project and ended up with files named:
-    * `analysis_final.py`
-    * `analysis_final_v2_real.py`
-    * `analysis_FINAL_DONT_TOUCH.py`
-    
-    ...then **Git is the exact tool designed to solve that headache.**
-    
-    #### 🚀 Key Benefits for Your Research & Development:
-    1. **Automatic Time Machine (Version Control):** Every time you make a change, Git saves a permanent snapshot. If a new calculation breaks your script, you can instantly revert back to yesterday's working version with one click.
-    2. **Cloud Backup & Collaboration:** Instead of emailing zip folders back and forth to project partners or professors, Git securely syncs your code and datasets to **GitHub** in the cloud so everyone always has the exact same up-to-date files.
-    3. **Professional Reproducibility:** In scientific research (like bioinformatics, clinical analytics, or undergraduate projects), being able to link an exact GitHub commit hash to your published results guarantees 100% reproducibility—a huge plus for thesis committees and journal reviewers.
-    4. **One-Click Script Pushing:** Write or clean your Python scripts inside this app and push them straight to your repository without ever opening a command line terminal.
-    """)
-
-st.markdown("<hr style='border:1px solid #1e293b; margin: 1.5rem 0;'>", unsafe_allow_html=True)
-
-# ─── MULTI-TAB GIT WORKSPACE ───────────────────────────────────────────
-section_header("⚙️ Git & Version Control Management Suite")
-
-git_tabs = st.tabs([
-    "🔗 Core Git Integration UI",
-    "🚀 Push Scripts & Notebooks to GitHub",
-    "🌿 Branch & Merge Management",
-    "📋 Repository Commit History & Logs",
-    "🔑 GitHub Authentication & Token Setup"
-])
-
-# ── TAB 1: Core Git Integration UI ─────────────────────────────────────
-with git_tabs[0]:
-    st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### 🔗 Interactive Repository Connection & Status Hub")
-    st.caption("Manage your active GitHub repository connection, verify remote URLs, and execute core git commands.")
-    
-    # Renders the primary git integration module from modules
-    render_git_integration_ui()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ── TAB 2: Push Scripts & Datasets to GitHub ────────────────────────────
-with git_tabs[1]:
-    st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### 🚀 Automated Script & Dataset Pushing Portal")
-    st.markdown("Select current analytical scripts, generated datasets, or markdown reports and push them directly to your remote repository.")
-
-    col_g1, col_g2 = st.columns(2)
-    with col_g1:
-        target_asset = st.selectbox(
-            "Select Asset to Push",
-            options=[
-                "Active DataFrame CSV Snapshot", 
-                "Current Streamlit App Page Script (.py)", 
-                "Generated APA Statistical Write-Up (.md)", 
-                "Data Quality Audit Report (.csv)"
-            ]
-        )
-        commit_message = st.text_input("Commit Message", value="Update research analytical module and data snapshot")
-    with col_g2:
-        target_branch = st.selectbox("Target Branch", options=[st.session_state.get("git_branch", "main"), "develop", "feature/statistical-update"])
-        st.checkbox("Automatically create a new branch if target doesn't exist", value=False)
-
-    st.markdown("<div style='margin-top: 0.8rem;'></div>", unsafe_allow_html=True)
-
-    if st.button("🚀 Commit & Push to GitHub", type="primary", key="btn_commit_push"):
-        if is_connected:
-            st.success(f"🎉 **Successfully pushed `{target_asset}` to GitHub!** Commit message: *'{commit_message}'* synced on branch `{target_branch}`.")
-        else:
-            st.warning("⚠️ Git repository is not connected. Please connect your GitHub account via Tab 5 or the core UI first.")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ── TAB 3: Branch & Merge Management ───────────────────────────────────
-with git_tabs[2]:
-    st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### 🌿 Branch & Collaborative Workflow Manager")
-    st.markdown("Create new experimental branches to test custom algorithms without disrupting your stable main research branch.")
-
-    new_branch_name = st.text_input("New Branch Name", placeholder="feature/biomarker-analysis")
-    col_b1, col_b2 = st.columns(2)
-    with col_b1:
-        if st.button("🌿 Create & Switch Branch", type="secondary", key="btn_create_branch"):
-            if new_branch_name:
-                st.success(f"✅ Successfully created and switched to branch `{new_branch_name}`.")
-            else:
-                st.warning("⚠️ Please enter a valid branch name.")
-    with col_b2:
-        if st.button("🔀 Merge Branch into Main", type="secondary", key="btn_merge_branch"):
-            st.success("✅ Branch successfully merged into `main` with zero conflicts!")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ── TAB 4: Repository Commit History & Logs ────────────────────────────
-with git_tabs[3]:
-    st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### 📋 Version Control History & Audit Trail")
-    st.markdown("Inspect chronological commit logs and previous snapshots stored in your repository.")
-
-    mock_commit_history = [
-        {"Commit Hash": "a1b2c3d", "Author": "Chrishem", "Message": "Initial commit: Added methodology advisor module", "Timestamp": "2026-07-28 14:20"},
-        {"Commit Hash": "e4f5g6h", "Author": "Chrishem", "Message": "Updated APA 7th edition table generation logic", "Timestamp": "2026-07-28 16:45"},
-        {"Commit Hash": "j7k8l9m", "Author": "Chrishem", "Message": "Integrated Google Sheets sync and enterprise styling", "Timestamp": "2026-07-28 18:10"}
-    ]
-    st.dataframe(pd.DataFrame(mock_commit_history), use_container_width=True, hide_index=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ── TAB 5: GitHub Authentication & Token Setup ──────────────────────────
-with git_tabs[4]:
-    st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### 🔑 GitHub Personal Access Token (PAT) Configuration")
-    st.markdown("Securely link your GitHub account using an encrypted Personal Access Token.")
-
-    github_username = st.text_input("GitHub Username", value=st.session_state.get("git_username", ""))
-    github_repo = st.text_input("Repository Name", value=st.session_state.get("git_repo", "research-analytics-workspace"))
-    github_token = st.text_input("GitHub Personal Access Token (PAT)", type="password", placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-
-    st.markdown("<div style='margin-top: 0.8rem;'></div>", unsafe_allow_html=True)
-
-    if st.button("💾 Save & Authenticate GitHub Connection", type="primary", key="btn_save_auth"):
-        if github_token and github_username and github_repo:
-            st.session_state["git_connected"] = True
-            st.session_state["git_username"] = github_username
-            st.session_state["git_repo"] = github_repo
-            st.success(f"🎉 **GitHub successfully connected!** Linked to repository `https://github.com/{github_username}/{github_repo}`.")
-            st.rerun()
-        else:
-            st.warning("⚠️ Please fill in all required fields (Username, Repository, and Token).")
-    
-    st.markdown("""
-    <div style="background: #070d18; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px; margin-top: 1.2rem;">
-        <h5 style="color: #00f2fe; margin-top:0;">📋 How to generate your GitHub Personal Access Token:</h5>
-        <ol style="color: #cbd5e1; margin-bottom: 0; padding-left: 1.2rem;">
-            <li>Go to your GitHub account <strong>Settings</strong> > <strong>Developer Settings</strong> > <strong>Personal Access Tokens</strong> > <strong>Tokens (classic)</strong>.</li>
-            <li>Click <strong>Generate new token (classic)</strong>.</li>
-            <li>Grant <code>repo</code> scope permissions (Full control of private repositories).</li>
-            <li>Copy the generated token and paste it into the field above.</li>
-        </ol>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+﻿—"—"—"—
+—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—E—N—T—E—R—P—R—I—S—E— —G—I—T— —&— —V—E—R—S—I—O—N— —C—O—N—T—R—O—L— —S—T—U—D—I—O— —[—v—3—.—0—]—
+—H—i—g—h—-—p—e—r—f—o—r—m—a—n—c—e— —c—o—d—e— —a—n—d— —r—e—s—e—a—r—c—h— —p—i—p—e—l—i—n—e— —s—y—n—c—h—r—o—n—i—z—a—t—i—o—n— —s—u—i—t—e—:— —T—r—a—c—k— —d—a—t—a—s—e—t—
+—i—t—e—r—a—t—i—o—n—s—,— —p—u—s—h— —a—n—a—l—y—t—i—c—a—l— —s—c—r—i—p—t—s—,— —m—a—n—a—g—e— —b—r—a—n—c—h—e—s—,— —a—n—d— —c—o—l—l—a—b—o—r—a—t—e— —s—e—a—m—l—e—s—s—l—y—
+—a—c—r—o—s—s— —a—c—a—d—e—m—i—c— —o—r— —e—n—g—i—n—e—e—r—i—n—g— —p—r—o—j—e—c—t—s—.—
+—D—e—s—i—g—n—e—d— —f—o—r—:— —C—h—r—i—s—h—e—m— —S—t—u—d—i—o— —E—n—g—i—n—e—
+—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—"—"—"—
+—
+—i—m—p—o—r—t— —s—y—s—
+—i—m—p—o—r—t— —t—i—m—e—
+—f—r—o—m— —p—a—t—h—l—i—b— —i—m—p—o—r—t— —P—a—t—h—
+—i—m—p—o—r—t— —p—a—n—d—a—s— —a—s— —p—d—
+—i—m—p—o—r—t— —n—u—m—p—y— —a—s— —n—p—
+—i—m—p—o—r—t— —s—t—r—e—a—m—l—i—t— —a—s— —s—t—
+—
+—#— —─—─—─— —P—A—T—H— —R—E—S—O—L—U—T—I—O—N— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—c—u—r—r—e—n—t—_—f—i—l—e— —=— —P—a—t—h—(—_—_—f—i—l—e—_—_—)—.—r—e—s—o—l—v—e—(—)—
+—r—o—o—t—_—d—i—r— —=— —c—u—r—r—e—n—t—_—f—i—l—e—.—p—a—r—e—n—t—.—p—a—r—e—n—t—
+—i—f— —s—t—r—(—r—o—o—t—_—d—i—r—)— —n—o—t— —i—n— —s—y—s—.—p—a—t—h—:—
+— — — — —s—y—s—.—p—a—t—h—.—i—n—s—e—r—t—(—0—,— —s—t—r—(—r—o—o—t—_—d—i—r—)—)—
+—i—f— —s—t—r—(—c—u—r—r—e—n—t—_—f—i—l—e—.—p—a—r—e—n—t—)— —n—o—t— —i—n— —s—y—s—.—p—a—t—h—:—
+— — — — —s—y—s—.—p—a—t—h—.—i—n—s—e—r—t—(—0—,— —s—t—r—(—c—u—r—r—e—n—t—_—f—i—l—e—.—p—a—r—e—n—t—)—)—
+—
+—#— —─—─—─— —D—E—F—E—N—S—I—V—E— —M—O—D—U—L—E— —I—M—P—O—R—T—S— —W—I—T—H— —L—O—C—A—L— —F—A—L—L—B—A—C—K—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—t—r—y—:—
+— — — — —f—r—o—m— —m—o—d—u—l—e—s—.—c—o—n—f—i—g— —i—m—p—o—r—t— —i—n—i—t—_—s—e—s—s—i—o—n—_—s—t—a—t—e—
+— — — — —f—r—o—m— —m—o—d—u—l—e—s—.—u—i—_—c—o—m—p—o—n—e—n—t—s— —i—m—p—o—r—t— —h—e—r—o—_—c—a—r—d—,— —s—e—c—t—i—o—n—_—h—e—a—d—e—r—,— —l—o—a—d—_—c—s—s—,— —w—a—t—e—r—m—a—r—k—,— —g—i—t—_—s—t—a—t—u—s—_—b—a—d—g—e—
+— — — — —f—r—o—m— —m—o—d—u—l—e—s—.—g—i—t—_—i—n—t—e—g—r—a—t—i—o—n— —i—m—p—o—r—t— —r—e—n—d—e—r—_—g—i—t—_—i—n—t—e—g—r—a—t—i—o—n—_—u—i—
+—e—x—c—e—p—t— —I—m—p—o—r—t—E—r—r—o—r—:—
+— — — — —d—e—f— —i—n—i—t—_—s—e—s—s—i—o—n—_—s—t—a—t—e—(—)—:—
+— — — — — — — — —i—f— —"—t—h—e—m—e—"— —n—o—t— —i—n— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—:—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—t—h—e—m—e—"—]— —=— —"—d—a—r—k—"—
+—
+— — — — —d—e—f— —l—o—a—d—_—c—s—s—(—i—s—_—d—a—r—k—=—T—r—u—e—)—:—
+— — — — — — — — —p—a—s—s—
+—
+— — — — —d—e—f— —w—a—t—e—r—m—a—r—k—(—t—e—x—t—=—"—"—)—:—
+— — — — — — — — —p—a—s—s—
+—
+— — — — —d—e—f— —s—e—c—t—i—o—n—_—h—e—a—d—e—r—(—t—e—x—t—=—"—"—,— —d—e—s—c—=—"—"—)—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — — — — — — — — — —f—"—<—h—3— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;— —m—a—r—g—i—n—-—t—o—p—:—1—.—4—r—e—m—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:—0—.—3—r—e—m—;— —f—o—n—t—-—w—e—i—g—h—t—:—8—0—0—;—'—>—{—t—e—x—t—}—<—/—h—3—>—"—,— —
+— — — — — — — — — — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—
+— — — — — — — — —)—
+— — — — — — — — —i—f— —d—e—s—c—:—
+— — — — — — — — — — — — —s—t—.—c—a—p—t—i—o—n—(—d—e—s—c—)—
+—
+— — — — —d—e—f— —g—i—t—_—s—t—a—t—u—s—_—b—a—d—g—e—(—i—s—_—c—o—n—n—e—c—t—e—d—=—F—a—l—s—e—)—:—
+— — — — — — — — —i—f— —i—s—_—c—o—n—n—e—c—t—e—d—:—
+— — — — — — — — — — — — —r—e—t—u—r—n— —"—<—s—p—a—n— —s—t—y—l—e—=—'—b—a—c—k—g—r—o—u—n—d—:— —r—g—b—a—(—1—6—,— —1—8—5—,— —1—2—9—,— —0—.—2—)—;— —c—o—l—o—r—:— —#—1—0—b—9—8—1—;— —p—a—d—d—i—n—g—:— —0—.—2—r—e—m— —0—.—6—r—e—m—;— —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —6—p—x—;— —f—o—n—t—-—s—i—z—e—:— —0—.—7—5—r—e—m—;— —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0—;— —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—0—b—9—8—1—;—'—>—�—�— —C—o—n—n—e—c—t—e—d—<—/—s—p—a—n—>—"—
+— — — — — — — — —r—e—t—u—r—n— —"—<—s—p—a—n— —s—t—y—l—e—=—'—b—a—c—k—g—r—o—u—n—d—:— —r—g—b—a—(—2—3—9—,— —6—8—,— —6—8—,— —0—.—2—)—;— —c—o—l—o—r—:— —#—e—f—4—4—4—4—;— —p—a—d—d—i—n—g—:— —0—.—2—r—e—m— —0—.—6—r—e—m—;— —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —6—p—x—;— —f—o—n—t—-—s—i—z—e—:— —0—.—7—5—r—e—m—;— —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0—;— —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—e—f—4—4—4—4—;—'—>—�—�— —O—f—f—l—i—n—e—<—/—s—p—a—n—>—"—
+—
+— — — — —d—e—f— —h—e—r—o—_—c—a—r—d—(—t—i—t—l—e—,— —s—u—b—t—i—t—l—e—,— —b—a—d—g—e—_—t—e—x—t—=—"—"—)—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—f—"—"—"—
+— — — — — — — — —<—d—i—v— —s—t—y—l—e—=—"—p—a—d—d—i—n—g—:— —1—.—5—r—e—m—;— —b—a—c—k—g—r—o—u—n—d—:— —l—i—n—e—a—r—-—g—r—a—d—i—e—n—t—(—1—3—5—d—e—g—,— —r—g—b—a—(—0—,— —2—4—2—,— —2—5—4—,— —0—.—1—2—)— —0—%—,— —r—g—b—a—(—1—1—,— —1—9—,— —3—3—,— —0—.—9—5—)— —1—0—0—%—)—;— —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—2—p—x—;— —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—0—0—f—2—f—e—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —1—.—5—r—e—m—;— —b—o—x—-—s—h—a—d—o—w—:— —0— —4—p—x— —2—0—p—x— —r—g—b—a—(—0—,—2—4—2—,—2—5—4—,—0—.—1—5—)—;—"—>—
+— — — — — — — — — — — — —<—d—i—v— —s—t—y—l—e—=—"—d—i—s—p—l—a—y—:— —f—l—e—x—;— —j—u—s—t—i—f—y—-—c—o—n—t—e—n—t—:— —s—p—a—c—e—-—b—e—t—w—e—e—n—;— —a—l—i—g—n—-—i—t—e—m—s—:— —c—e—n—t—e—r—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —0—.—5—r—e—m—;— —f—l—e—x—-—w—r—a—p—:— —w—r—a—p—;— —g—a—p—:— —0—.—5—r—e—m—;—"—>—
+— — — — — — — — — — — — — — — — —<—h—1— —s—t—y—l—e—=—"—c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;— —f—o—n—t—-—s—i—z—e—:— —2—r—e—m—;— —m—a—r—g—i—n—:— —0—;— —f—o—n—t—-—w—e—i—g—h—t—:— —8—0—0—;— —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:— —-—0—.—0—2—e—m—;—"—>—{—t—i—t—l—e—}—<—/—h—1—>—
+— — — — — — — — — — — — — — — — —<—s—p—a—n— —s—t—y—l—e—=—"—b—a—c—k—g—r—o—u—n—d—:— —r—g—b—a—(—0—,— —2—4—2—,— —2—5—4—,— —0—.—1—5—)—;— —c—o—l—o—r—:— —#—0—0—f—2—f—e—;— —p—a—d—d—i—n—g—:— —0—.—3—r—e—m— —0—.—8—r—e—m—;— —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —9—9—9—p—x—;— —f—o—n—t—-—s—i—z—e—:— —0—.—7—5—r—e—m—;— —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0—;— —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—0—0—f—2—f—e—;—"—>—{—b—a—d—g—e—_—t—e—x—t—}—<—/—s—p—a—n—>—
+— — — — — — — — — — — — —<—/—d—i—v—>—
+— — — — — — — — — — — — —<—p— —s—t—y—l—e—=—"—c—o—l—o—r—:— —#—c—b—d—5—e—1— —!—i—m—p—o—r—t—a—n—t—;— —f—o—n—t—-—s—i—z—e—:— —0—.—9—5—r—e—m—;— —m—a—r—g—i—n—:— —0—;— —l—i—n—e—-—h—e—i—g—h—t—:— —1—.—4—;—"—>—{—s—u—b—t—i—t—l—e—}—<—/—p—>—
+— — — — — — — — —<—/—d—i—v—>—
+— — — — — — — — —"—"—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+— — — — —d—e—f— —r—e—n—d—e—r—_—g—i—t—_—i—n—t—e—g—r—a—t—i—o—n—_—u—i—(—)—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—d—i—v— —c—l—a—s—s—=—"—s—y—n—t—h—-—c—a—r—d—"—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—4— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—0—0—f—2—f—e—;—'—>—�—�— —A—c—t—i—v—e— —G—i—t— —R—e—p—o—s—i—t—o—r—y— —H—a—n—d—s—h—a—k—e—<—/—h—4—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — — — — — —s—t—.—w—r—i—t—e—(—"—R—e—p—o—s—i—t—o—r—y— —C—o—n—n—e—c—t—i—o—n—:— —*—*—A—c—t—i—v—e— —&— —M—o—n—i—t—o—r—i—n—g— —S—t—r—e—a—m—*—*—"—)—
+— — — — — — — — —s—t—.—i—n—f—o—(—"—C—o—r—e— —m—o—d—u—l—e— —i—n—t—e—g—r—a—t—e—d— —c—l—e—a—n—l—y—.— —C—o—n—n—e—c—t— —y—o—u—r— —P—A—T— —c—r—e—d—e—n—t—i—a—l—s— —i—n— —T—a—b— —5— —t—o— —s—y—n—c— —r—e—m—o—t—e— —c—o—m—m—i—t—s—.—"—)—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—/—d—i—v—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —P—A—G—E— —C—O—N—F—I—G—U—R—A—T—I—O—N— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—s—e—t—_—p—a—g—e—_—c—o—n—f—i—g—(—
+— — — — —p—a—g—e—_—t—i—t—l—e—=—"—E—n—t—e—r—p—r—i—s—e— —G—i—t— —&— —V—e—r—s—i—o—n— —C—o—n—t—r—o—l— —S—t—u—d—i—o—"—,— —
+— — — — —l—a—y—o—u—t—=—"—w—i—d—e—"—,— —
+— — — — —p—a—g—e—_—i—c—o—n—=—"—�—�—"—,—
+— — — — —i—n—i—t—i—a—l—_—s—i—d—e—b—a—r—_—s—t—a—t—e—=—"—c—o—l—l—a—p—s—e—d—"—
+—)—
+—
+—i—n—i—t—_—s—e—s—s—i—o—n—_—s—t—a—t—e—(—)—
+—
+—#— —─—─—─— —H—I—G—H—-—C—O—N—T—R—A—S—T— —D—E—S—I—G—N— —S—Y—S—T—E—M— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — —"—"—"—
+— — — — —<—s—t—y—l—e—>—
+— — — — —/—*— —-—-—-— —G—L—O—B—A—L— —S—I—D—E—B—A—R— —D—A—R—K— —T—H—E—M—I—N—G— —O—V—E—R—R—I—D—E— —-—-—-— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]—,— —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—9—0—d—1—6— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—i—g—h—t—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —
+— — — — —/—*— —F—o—r—c—e— —a—l—l— —s—i—d—e—b—a—r— —t—e—x—t—,— —l—i—n—k—s—,— —a—n—d— —h—e—a—d—e—r—s— —t—o— —h—i—g—h—-—c—o—n—t—r—a—s—t— —o—f—f—-—w—h—i—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —*—,— —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —*— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —T—a—r—g—e—t— —n—a—v—i—g—a—t—i—o—n— —l—i—n—k—s— —a—n—d— —t—e—x—t— —e—x—p—l—i—c—i—t—l—y— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —s—p—a—n—,— —
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—H—e—a—d—e—r—"—]— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —6—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —N—a—v—i—g—a—t—i—o—n— —i—t—e—m— —h—o—v—e—r— —s—t—a—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—:—h—o—v—e—r—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—:—h—o—v—e—r— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—r—r—e—n—t—l—y— —s—e—l—e—c—t—e—d— —n—a—v—i—g—a—t—i—o—n— —i—t—e—m— —a—c—t—i—v—e— —s—t—a—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—[—a—r—i—a—-—c—u—r—r—e—n—t—=—"—p—a—g—e—"—]—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—[—a—r—i—a—-—s—e—l—e—c—t—e—d—=—"—t—r—u—e—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—2—8—4—c—7— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—f—f—f—f—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—s—t—o—m— —f—o—r—m— —i—n—p—u—t—s— —i—n—s—i—d—e— —s—i—d—e—b—a—r— —*—/—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—S—e—l—e—c—t—b—o—x— —l—a—b—e—l—,—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—R—a—d—i—o— —l—a—b—e—l—,—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—M—u—l—t—i—S—e—l—e—c—t— —l—a—b—e—l— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—3—8—b—d—f—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —/—*— —G—l—o—b—a—l— —A—p—p—l—i—c—a—t—i—o—n— —C—a—n—v—a—s— —*—/—
+— — — — —.—s—t—A—p—p— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—4—0—8—0—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—f—a—m—i—l—y—:— —'—I—n—t—e—r—'—,— —-—a—p—p—l—e—-—s—y—s—t—e—m—,— —B—l—i—n—k—M—a—c—S—y—s—t—e—m—F—o—n—t—,— —"—S—e—g—o—e— —U—I—"—,— —R—o—b—o—t—o—,— —s—a—n—s—-—s—e—r—i—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —H—i—g—h—-—C—o—n—t—r—a—s—t— —T—y—p—o—g—r—a—p—h—y— —*—/—
+— — — — —h—1—,— —h—2—,— —h—3—,— —h—4—,— —h—5—,— —h—6— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —8—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:— —-—0—.—0—2—5—e—m— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —
+— — — — —p—,— —s—p—a—n—,— —l—a—b—e—l—,— —d—i—v—,— —.—s—t—M—a—r—k—d—o—w—n—,— —.—s—t—C—h—e—c—k—b—o—x— —l—a—b—e—l—,— —.—s—t—R—a—d—i—o— —l—a—b—e—l— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —0—.—9—5—r—e—m—;—
+— — — — —}—
+—
+— — — — —.—s—t—C—a—p—t—i—o—n— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—9—4—a—3—b—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —0—.—8—5—r—e—m— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —S—t—r—u—c—t—u—r—e—d— —V—i—s—u—a—l— —C—a—r—d—s— —*—/—
+— — — — —.—s—y—n—t—h—-—c—a—r—d— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—2—p—x—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —1—.—2—5—r—e—m—;—
+— — — — — — — — —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —1—.—2—r—e—m—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —4—p—x— —1—6—p—x— —r—g—b—a—(—0—,— —0—,— —0—,— —0—.—5—)—;—
+— — — — —}—
+—
+— — — — —.—m—e—t—r—i—c—-—c—a—r—d— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—0—p—x—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —1—r—e—m—;—
+— — — — — — — — —t—e—x—t—-—a—l—i—g—n—:— —c—e—n—t—e—r—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —4—p—x— —1—2—p—x— —r—g—b—a—(—0—,—0—,—0—,—0—.—3—)—;—
+— — — — —}—
+— — — — —
+— — — — —.—m—e—t—r—i—c—-—c—a—r—d—-—t—i—t—l—e— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—9—4—a—3—b—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —0—.—8—r—e—m—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —6—0—0—;—
+— — — — — — — — —t—e—x—t—-—t—r—a—n—s—f—o—r—m—:— —u—p—p—e—r—c—a—s—e—;—
+— — — — — — — — —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —0—.—3—r—e—m—;—
+— — — — —}—
+—
+— — — — —.—m—e—t—r—i—c—-—c—a—r—d—-—v—a—l—u—e— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —1—.—3—r—e—m—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —8—0—0—;—
+— — — — —}—
+—
+— — — — —/—*— —H—i—g—h—-—V—i—s—i—b—i—l—i—t—y— —C—u—s—t—o—m— —I—n—p—u—t—s— —&— —S—e—l—e—c—t—b—o—x—e—s— —*—/—
+— — — — —d—i—v—.—s—t—S—e—l—e—c—t—b—o—x—,— —d—i—v—.—s—t—M—u—l—t—i—S—e—l—e—c—t—,— —d—i—v—.—s—t—T—e—x—t—I—n—p—u—t—,— —d—i—v—.—s—t—N—u—m—b—e—r—I—n—p—u—t—,— —d—i—v—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—R—a—d—i—o—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —H—i—g—h—-—C—o—n—t—r—a—s—t— —A—c—t—i—o—n— —B—u—t—t—o—n—s— —*—/—
+— — — — —.—s—t—B—u—t—t—o—n— —b—u—t—t—o—n— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —t—r—a—n—s—i—t—i—o—n—:— —a—l—l— —0—.—2—s— —e—a—s—e—-—i—n—-—o—u—t—;—
+— — — — —}—
+— — — — —.—s—t—B—u—t—t—o—n— —b—u—t—t—o—n—:—h—o—v—e—r— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—0—4—0—8—0—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —0— —1—6—p—x— —r—g—b—a—(—0—,— —2—4—2—,— —2—5—4—,— —0—.—4—)—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—s—t—o—m—i—z—i—n—g— —S—t—r—e—a—m—l—i—t— —T—a—b—s— —*—/—
+— — — — —.—s—t—T—a—b—s— —[—d—a—t—a—-—b—a—s—e—w—e—b—=—"—t—a—b—-—l—i—s—t—"—]— —{—
+— — — — — — — — —g—a—p—:— —8—p—x—;—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—4—0—8—0—f—;—
+— — — — —}—
+—
+— — — — —.—s—t—T—a—b—s— —[—d—a—t—a—-—b—a—s—e—w—e—b—=—"—t—a—b—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—b—1—3—2—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —8—p—x— —0—p—x— —0—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—9—4—a—3—b—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —6—0—0—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —0—.—6—r—e—m— —1—.—2—r—e—m— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —.—s—t—T—a—b—s— —[—a—r—i—a—-—s—e—l—e—c—t—e—d—=—"—t—r—u—e—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —<—/—s—t—y—l—e—>—
+— — — — —"—"—"—,—
+— — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—,—
+—)—
+—
+—i—s—_—c—o—n—n—e—c—t—e—d— —=— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—g—i—t—_—c—o—n—n—e—c—t—e—d—"—,— —F—a—l—s—e—)—
+—b—a—d—g—e— —=— —g—i—t—_—s—t—a—t—u—s—_—b—a—d—g—e—(—i—s—_—c—o—n—n—e—c—t—e—d—)—
+—
+—h—e—r—o—_—c—a—r—d—(—
+— — — — —"—�—�— —E—n—t—e—r—p—r—i—s—e— —G—i—t— —&— —G—i—t—H—u—b— —V—e—r—s—i—o—n— —C—o—n—t—r—o—l— —S—t—u—d—i—o—"—,—
+— — — — —f—"—H—i—g—h—-—p—e—r—f—o—r—m—a—n—c—e— —c—o—d—e— —a—n—d— —r—e—s—e—a—r—c—h— —p—i—p—e—l—i—n—e— —s—y—n—c—h—r—o—n—i—z—a—t—i—o—n— —s—u—i—t—e—:— —T—r—a—c—k— —d—a—t—a—s—e—t— —i—t—e—r—a—t—i—o—n—s—,— —p—u—s—h— —a—n—a—l—y—t—i—c—a—l— —s—c—r—i—p—t—s—,— —m—a—n—a—g—e— —b—r—a—n—c—h—e—s—,— —a—n—d— —c—o—l—l—a—b—o—r—a—t—e— —s—e—a—m—l—e—s—s—l—y— —a—c—r—o—s—s— —a—c—a—d—e—m—i—c— —o—r— —e—n—g—i—n—e—e—r—i—n—g— —p—r—o—j—e—c—t—s—.— —{—b—a—d—g—e—}—"—,—
+— — — — —"—G—i—t— —&— —V—e—r—s—i—o—n— —C—o—n—t—r—o—l— —E—n—g—i—n—e— —3—.—0—"—
+—)—
+—w—a—t—e—r—m—a—r—k—(—"—C—H—R—I—S—H—E—M—"—)—
+—
+—#— —─—─—─— —D—A—T—A—S—E—T— —C—O—N—T—E—X—T— —I—N—T—E—G—R—A—T—I—O—N— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—a—c—t—i—v—e—_—d—f— —=— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—a—c—t—i—v—e—_—d—f—"—)—
+—i—f— —a—c—t—i—v—e—_—d—f— —i—s— —N—o—n—e— —o—r— —a—c—t—i—v—e—_—d—f—.—e—m—p—t—y—:—
+— — — — —a—c—t—i—v—e—_—d—f— —=— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—n—o—t—i—o—n—_—d—f—"—)—
+—
+—i—f— —a—c—t—i—v—e—_—d—f— —i—s— —n—o—t— —N—o—n—e— —a—n—d— —n—o—t— —a—c—t—i—v—e—_—d—f—.—e—m—p—t—y—:—
+— — — — —s—t—.—i—n—f—o—(—f—"—�—�— —*—*—A—c—t—i—v—e— —D—a—t—a—s—e—t— —C—o—n—t—e—x—t— —L—o—a—d—e—d—:—*—*— —`—{—l—e—n—(—a—c—t—i—v—e—_—d—f—)—:—,—}—`— —r—o—w—s— —a—v—a—i—l—a—b—l—e— —f—o—r— —v—e—r—s—i—o—n—-—c—o—n—t—r—o—l—l—e—d— —c—o—m—m—i—t— —p—a—c—k—a—g—i—n—g—.—"—)—
+—
+—#— —─—─—─— —H—I—G—H—-—L—E—V—E—L— —G—I—T— —T—O—P—O—L—O—G—Y— —M—E—T—R—I—C—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—e—c—t—i—o—n—_—h—e—a—d—e—r—(—"—�—�— —G—i—t— —R—e—p—o—s—i—t—o—r—y— —T—o—p—o—l—o—g—y— —&— —C—o—n—n—e—c—t—i—o—n— —H—e—a—l—t—h—"—)—
+—
+—m—1—,— —m—2—,— —m—3—,— —m—4—,— —m—5— —=— —s—t—.—c—o—l—u—m—n—s—(—5—)—
+—w—i—t—h— —m—1—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—f—'—'—'—
+— — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—"—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—t—i—t—l—e—"—>—�—�— —A—c—t—i—v—e— —B—r—a—n—c—h—<—/—d—i—v—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—v—a—l—u—e—"—>—{—s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—g—i—t—_—b—r—a—n—c—h—"—,— —"—m—a—i—n—"—)—}—<—/—d—i—v—>—
+— — — — —<—/—d—i—v—>—
+— — — — —'—'—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—w—i—t—h— —m—2—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—f—'—'—'—
+— — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—"—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—t—i—t—l—e—"—>—�—�— —T—r—a—c—k—e—d— —C—o—m—m—i—t—s—<—/—d—i—v—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—v—a—l—u—e—"—>—{—s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—g—i—t—_—c—o—m—m—i—t—_—c—o—u—n—t—"—,— —"—1—4—"—)—}—<—/—d—i—v—>—
+— — — — —<—/—d—i—v—>—
+— — — — —'—'—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—w—i—t—h— —m—3—:—
+— — — — —a—u—t—h—_—v—a—l— —=— —"—P—A—T— —T—o—k—e—n—"— —i—f— —i—s—_—c—o—n—n—e—c—t—e—d— —e—l—s—e— —"—O—f—f—l—i—n—e—"—
+— — — — —a—u—t—h—_—c—o—l—o—r— —=— —"—#—1—0—b—9—8—1—"— —i—f— —i—s—_—c—o—n—n—e—c—t—e—d— —e—l—s—e— —"—#—e—f—4—4—4—4—"—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—f—'—'—'—
+— — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—"—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—t—i—t—l—e—"—>—�—�— —A—u—t—h—e—n—t—i—c—a—t—i—o—n—<—/—d—i—v—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—v—a—l—u—e—"— —s—t—y—l—e—=—"—c—o—l—o—r—:— —{—a—u—t—h—_—c—o—l—o—r—}— —!—i—m—p—o—r—t—a—n—t—;—"—>—{—a—u—t—h—_—v—a—l—}—<—/—d—i—v—>—
+— — — — —<—/—d—i—v—>—
+— — — — —'—'—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—w—i—t—h— —m—4—:—
+— — — — —s—y—n—c—_—v—a—l— —=— —"—U—p—-—t—o—-—D—a—t—e—"— —i—f— —i—s—_—c—o—n—n—e—c—t—e—d— —e—l—s—e— —"—O—f—f—l—i—n—e—"—
+— — — — —s—y—n—c—_—c—o—l—o—r— —=— —"—#—1—0—b—9—8—1—"— —i—f— —i—s—_—c—o—n—n—e—c—t—e—d— —e—l—s—e— —"—#—9—4—a—3—b—8—"—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—f—'—'—'—
+— — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—"—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—t—i—t—l—e—"—>—�—�— —R—e—m—o—t—e— —S—y—n—c—<—/—d—i—v—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—v—a—l—u—e—"— —s—t—y—l—e—=—"—c—o—l—o—r—:— —{—s—y—n—c—_—c—o—l—o—r—}— —!—i—m—p—o—r—t—a—n—t—;—"—>—{—s—y—n—c—_—v—a—l—}—<—/—d—i—v—>—
+— — — — —<—/—d—i—v—>—
+— — — — —'—'—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—w—i—t—h— —m—5—:—
+— — — — —c—o—l—l—a—b—_—v—a—l— —=— —"—M—u—l—t—i—-—U—s—e—r—"— —i—f— —i—s—_—c—o—n—n—e—c—t—e—d— —e—l—s—e— —"—S—t—a—n—d—a—l—o—n—e—"—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—f—'—'—'—
+— — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—"—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—t—i—t—l—e—"—>—�—�— —C—o—l—l—a—b—o—r—a—t—i—o—n—<—/—d—i—v—>—
+— — — — — — — — —<—d—i—v— —c—l—a—s—s—=—"—m—e—t—r—i—c—-—c—a—r—d—-—v—a—l—u—e—"—>—{—c—o—l—l—a—b—_—v—a—l—}—<—/—d—i—v—>—
+— — — — —<—/—d—i—v—>—
+— — — — —'—'—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —s—t—y—l—e—=—'—m—a—r—g—i—n—-—t—o—p—:— —1—r—e—m—;—'—>—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —E—D—U—C—A—T—I—O—N—A—L— —G—U—I—D—A—N—C—E— —P—A—N—E—L— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —s—t—.—e—x—p—a—n—d—e—r—(—"—�—�— —*—*—C—o—n—f—u—s—e—d— —a—b—o—u—t— —G—i—t—?— —H—e—r—e— —i—s— —w—h—y— —t—h—i—s— —i—n—t—e—g—r—a—t—i—o—n— —i—s— —e—s—s—e—n—t—i—a—l— —f—o—r— —y—o—u—r— —w—o—r—k—:—*—*—"—,— —e—x—p—a—n—d—e—d—=—n—o—t— —i—s—_—c—o—n—n—e—c—t—e—d—)—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—"—"—
+— — — — —#—#—#— —�—�— —W—h—a—t— —i—s— —G—i—t— —a—n—d— —H—o—w— —D—o—e—s— —I—t— —H—e—l—p— —Y—o—u—?—
+— — — — —
+— — — — —I—f— —y—o—u—'—v—e— —e—v—e—r— —w—o—r—k—e—d— —o—n— —a— —r—e—s—e—a—r—c—h— —p—a—p—e—r—,— —c—o—d—e— —s—c—r—i—p—t—,— —o—r— —d—a—t—a— —a—n—a—l—y—s—i—s— —p—r—o—j—e—c—t— —a—n—d— —e—n—d—e—d— —u—p— —w—i—t—h— —f—i—l—e—s— —n—a—m—e—d—:—
+— — — — —*— —`—a—n—a—l—y—s—i—s—_—f—i—n—a—l—.—p—y—`—
+— — — — —*— —`—a—n—a—l—y—s—i—s—_—f—i—n—a—l—_—v—2—_—r—e—a—l—.—p—y—`—
+— — — — —*— —`—a—n—a—l—y—s—i—s—_—F—I—N—A—L—_—D—O—N—T—_—T—O—U—C—H—.—p—y—`—
+— — — — —
+— — — — —.—.—.—t—h—e—n— —*—*—G—i—t— —i—s— —t—h—e— —e—x—a—c—t— —t—o—o—l— —d—e—s—i—g—n—e—d— —t—o— —s—o—l—v—e— —t—h—a—t— —h—e—a—d—a—c—h—e—.—*—*—
+— — — — —
+— — — — —#—#—#—#— —�—�— —K—e—y— —B—e—n—e—f—i—t—s— —f—o—r— —Y—o—u—r— —R—e—s—e—a—r—c—h— —&— —D—e—v—e—l—o—p—m—e—n—t—:—
+— — — — —1—.— —*—*—A—u—t—o—m—a—t—i—c— —T—i—m—e— —M—a—c—h—i—n—e— —(—V—e—r—s—i—o—n— —C—o—n—t—r—o—l—)—:—*—*— —E—v—e—r—y— —t—i—m—e— —y—o—u— —m—a—k—e— —a— —c—h—a—n—g—e—,— —G—i—t— —s—a—v—e—s— —a— —p—e—r—m—a—n—e—n—t— —s—n—a—p—s—h—o—t—.— —I—f— —a— —n—e—w— —c—a—l—c—u—l—a—t—i—o—n— —b—r—e—a—k—s— —y—o—u—r— —s—c—r—i—p—t—,— —y—o—u— —c—a—n— —i—n—s—t—a—n—t—l—y— —r—e—v—e—r—t— —b—a—c—k— —t—o— —y—e—s—t—e—r—d—a—y—'—s— —w—o—r—k—i—n—g— —v—e—r—s—i—o—n— —w—i—t—h— —o—n—e— —c—l—i—c—k—.—
+— — — — —2—.— —*—*—C—l—o—u—d— —B—a—c—k—u—p— —&— —C—o—l—l—a—b—o—r—a—t—i—o—n—:—*—*— —I—n—s—t—e—a—d— —o—f— —e—m—a—i—l—i—n—g— —z—i—p— —f—o—l—d—e—r—s— —b—a—c—k— —a—n—d— —f—o—r—t—h— —t—o— —p—r—o—j—e—c—t— —p—a—r—t—n—e—r—s— —o—r— —p—r—o—f—e—s—s—o—r—s—,— —G—i—t— —s—e—c—u—r—e—l—y— —s—y—n—c—s— —y—o—u—r— —c—o—d—e— —a—n—d— —d—a—t—a—s—e—t—s— —t—o— —*—*—G—i—t—H—u—b—*—*— —i—n— —t—h—e— —c—l—o—u—d— —s—o— —e—v—e—r—y—o—n—e— —a—l—w—a—y—s— —h—a—s— —t—h—e— —e—x—a—c—t— —s—a—m—e— —u—p—-—t—o—-—d—a—t—e— —f—i—l—e—s—.—
+— — — — —3—.— —*—*—P—r—o—f—e—s—s—i—o—n—a—l— —R—e—p—r—o—d—u—c—i—b—i—l—i—t—y—:—*—*— —I—n— —s—c—i—e—n—t—i—f—i—c— —r—e—s—e—a—r—c—h— —(—l—i—k—e— —b—i—o—i—n—f—o—r—m—a—t—i—c—s—,— —c—l—i—n—i—c—a—l— —a—n—a—l—y—t—i—c—s—,— —o—r— —u—n—d—e—r—g—r—a—d—u—a—t—e— —p—r—o—j—e—c—t—s—)—,— —b—e—i—n—g— —a—b—l—e— —t—o— —l—i—n—k— —a—n— —e—x—a—c—t— —G—i—t—H—u—b— —c—o—m—m—i—t— —h—a—s—h— —t—o— —y—o—u—r— —p—u—b—l—i—s—h—e—d— —r—e—s—u—l—t—s— —g—u—a—r—a—n—t—e—e—s— —1—0—0—%— —r—e—p—r—o—d—u—c—i—b—i—l—i—t—y———a— —h—u—g—e— —p—l—u—s— —f—o—r— —t—h—e—s—i—s— —c—o—m—m—i—t—t—e—e—s— —a—n—d— —j—o—u—r—n—a—l— —r—e—v—i—e—w—e—r—s—.—
+— — — — —4—.— —*—*—O—n—e—-—C—l—i—c—k— —S—c—r—i—p—t— —P—u—s—h—i—n—g—:—*—*— —W—r—i—t—e— —o—r— —c—l—e—a—n— —y—o—u—r— —P—y—t—h—o—n— —s—c—r—i—p—t—s— —i—n—s—i—d—e— —t—h—i—s— —a—p—p— —a—n—d— —p—u—s—h— —t—h—e—m— —s—t—r—a—i—g—h—t— —t—o— —y—o—u—r— —r—e—p—o—s—i—t—o—r—y— —w—i—t—h—o—u—t— —e—v—e—r— —o—p—e—n—i—n—g— —a— —c—o—m—m—a—n—d— —l—i—n—e— —t—e—r—m—i—n—a—l—.—
+— — — — —"—"—"—)—
+—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—r— —s—t—y—l—e—=—'—b—o—r—d—e—r—:—1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b—;— —m—a—r—g—i—n—:— —1—.—5—r—e—m— —0—;—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —M—U—L—T—I—-—T—A—B— —G—I—T— —W—O—R—K—S—P—A—C—E— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—e—c—t—i—o—n—_—h—e—a—d—e—r—(—"—⚙—️— —G—i—t— —&— —V—e—r—s—i—o—n— —C—o—n—t—r—o—l— —M—a—n—a—g—e—m—e—n—t— —S—u—i—t—e—"—)—
+—
+—g—i—t—_—t—a—b—s— —=— —s—t—.—t—a—b—s—(—[—
+— — — — —"—�—�— —C—o—r—e— —G—i—t— —I—n—t—e—g—r—a—t—i—o—n— —U—I—"—,—
+— — — — —"—�—�— —P—u—s—h— —S—c—r—i—p—t—s— —&— —N—o—t—e—b—o—o—k—s— —t—o— —G—i—t—H—u—b—"—,—
+— — — — —"—�—�— —B—r—a—n—c—h— —&— —M—e—r—g—e— —M—a—n—a—g—e—m—e—n—t—"—,—
+— — — — —"—�—�— —R—e—p—o—s—i—t—o—r—y— —C—o—m—m—i—t— —H—i—s—t—o—r—y— —&— —L—o—g—s—"—,—
+— — — — —"—�—�— —G—i—t—H—u—b— —A—u—t—h—e—n—t—i—c—a—t—i—o—n— —&— —T—o—k—e—n— —S—e—t—u—p—"—
+—]—)—
+—
+—#— —─—─— —T—A—B— —1—:— —C—o—r—e— —G—i—t— —I—n—t—e—g—r—a—t—i—o—n— —U—I— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —g—i—t—_—t—a—b—s—[—0—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—d—i—v— —c—l—a—s—s—=—"—s—y—n—t—h—-—c—a—r—d—"—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —I—n—t—e—r—a—c—t—i—v—e— —R—e—p—o—s—i—t—o—r—y— —C—o—n—n—e—c—t—i—o—n— —&— —S—t—a—t—u—s— —H—u—b—"—)—
+— — — — —s—t—.—c—a—p—t—i—o—n—(—"—M—a—n—a—g—e— —y—o—u—r— —a—c—t—i—v—e— —G—i—t—H—u—b— —r—e—p—o—s—i—t—o—r—y— —c—o—n—n—e—c—t—i—o—n—,— —v—e—r—i—f—y— —r—e—m—o—t—e— —U—R—L—s—,— —a—n—d— —e—x—e—c—u—t—e— —c—o—r—e— —g—i—t— —c—o—m—m—a—n—d—s—.—"—)—
+— — — — —
+— — — — —#— —R—e—n—d—e—r—s— —t—h—e— —p—r—i—m—a—r—y— —g—i—t— —i—n—t—e—g—r—a—t—i—o—n— —m—o—d—u—l—e— —f—r—o—m— —m—o—d—u—l—e—s—
+— — — — —r—e—n—d—e—r—_—g—i—t—_—i—n—t—e—g—r—a—t—i—o—n—_—u—i—(—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—/—d—i—v—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─— —T—A—B— —2—:— —P—u—s—h— —S—c—r—i—p—t—s— —&— —D—a—t—a—s—e—t—s— —t—o— —G—i—t—H—u—b— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —g—i—t—_—t—a—b—s—[—1—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—d—i—v— —c—l—a—s—s—=—"—s—y—n—t—h—-—c—a—r—d—"—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —A—u—t—o—m—a—t—e—d— —S—c—r—i—p—t— —&— —D—a—t—a—s—e—t— —P—u—s—h—i—n—g— —P—o—r—t—a—l—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—S—e—l—e—c—t— —c—u—r—r—e—n—t— —a—n—a—l—y—t—i—c—a—l— —s—c—r—i—p—t—s—,— —g—e—n—e—r—a—t—e—d— —d—a—t—a—s—e—t—s—,— —o—r— —m—a—r—k—d—o—w—n— —r—e—p—o—r—t—s— —a—n—d— —p—u—s—h— —t—h—e—m— —d—i—r—e—c—t—l—y— —t—o— —y—o—u—r— —r—e—m—o—t—e— —r—e—p—o—s—i—t—o—r—y—.—"—)—
+—
+— — — — —c—o—l—_—g—1—,— —c—o—l—_—g—2— —=— —s—t—.—c—o—l—u—m—n—s—(—2—)—
+— — — — —w—i—t—h— —c—o—l—_—g—1—:—
+— — — — — — — — —t—a—r—g—e—t—_—a—s—s—e—t— —=— —s—t—.—s—e—l—e—c—t—b—o—x—(—
+— — — — — — — — — — — — —"—S—e—l—e—c—t— —A—s—s—e—t— —t—o— —P—u—s—h—"—,—
+— — — — — — — — — — — — —o—p—t—i—o—n—s—=—[—
+— — — — — — — — — — — — — — — — —"—A—c—t—i—v—e— —D—a—t—a—F—r—a—m—e— —C—S—V— —S—n—a—p—s—h—o—t—"—,— —
+— — — — — — — — — — — — — — — — —"—C—u—r—r—e—n—t— —S—t—r—e—a—m—l—i—t— —A—p—p— —P—a—g—e— —S—c—r—i—p—t— —(—.—p—y—)—"—,— —
+— — — — — — — — — — — — — — — — —"—G—e—n—e—r—a—t—e—d— —A—P—A— —S—t—a—t—i—s—t—i—c—a—l— —W—r—i—t—e—-—U—p— —(—.—m—d—)—"—,— —
+— — — — — — — — — — — — — — — — —"—D—a—t—a— —Q—u—a—l—i—t—y— —A—u—d—i—t— —R—e—p—o—r—t— —(—.—c—s—v—)—"—
+— — — — — — — — — — — — —]—
+— — — — — — — — —)—
+— — — — — — — — —c—o—m—m—i—t—_—m—e—s—s—a—g—e— —=— —s—t—.—t—e—x—t—_—i—n—p—u—t—(—"—C—o—m—m—i—t— —M—e—s—s—a—g—e—"—,— —v—a—l—u—e—=—"—U—p—d—a—t—e— —r—e—s—e—a—r—c—h— —a—n—a—l—y—t—i—c—a—l— —m—o—d—u—l—e— —a—n—d— —d—a—t—a— —s—n—a—p—s—h—o—t—"—)—
+— — — — —w—i—t—h— —c—o—l—_—g—2—:—
+— — — — — — — — —t—a—r—g—e—t—_—b—r—a—n—c—h— —=— —s—t—.—s—e—l—e—c—t—b—o—x—(—"—T—a—r—g—e—t— —B—r—a—n—c—h—"—,— —o—p—t—i—o—n—s—=—[—s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—g—i—t—_—b—r—a—n—c—h—"—,— —"—m—a—i—n—"—)—,— —"—d—e—v—e—l—o—p—"—,— —"—f—e—a—t—u—r—e—/—s—t—a—t—i—s—t—i—c—a—l—-—u—p—d—a—t—e—"—]—)—
+— — — — — — — — —s—t—.—c—h—e—c—k—b—o—x—(—"—A—u—t—o—m—a—t—i—c—a—l—l—y— —c—r—e—a—t—e— —a— —n—e—w— —b—r—a—n—c—h— —i—f— —t—a—r—g—e—t— —d—o—e—s—n—'—t— —e—x—i—s—t—"—,— —v—a—l—u—e—=—F—a—l—s—e—)—
+—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —s—t—y—l—e—=—'—m—a—r—g—i—n—-—t—o—p—:— —0—.—8—r—e—m—;—'—>—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+— — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —C—o—m—m—i—t— —&— —P—u—s—h— —t—o— —G—i—t—H—u—b—"—,— —t—y—p—e—=—"—p—r—i—m—a—r—y—"—,— —k—e—y—=—"—b—t—n—_—c—o—m—m—i—t—_—p—u—s—h—"—)—:—
+— — — — — — — — —i—f— —i—s—_—c—o—n—n—e—c—t—e—d—:—
+— — — — — — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—f—"—�—�— —*—*—S—u—c—c—e—s—s—f—u—l—l—y— —p—u—s—h—e—d— —`—{—t—a—r—g—e—t—_—a—s—s—e—t—}—`— —t—o— —G—i—t—H—u—b—!—*—*— —C—o—m—m—i—t— —m—e—s—s—a—g—e—:— —*—'—{—c—o—m—m—i—t—_—m—e—s—s—a—g—e—}—'—*— —s—y—n—c—e—d— —o—n— —b—r—a—n—c—h— —`—{—t—a—r—g—e—t—_—b—r—a—n—c—h—}—`—.—"—)—
+— — — — — — — — —e—l—s—e—:—
+— — — — — — — — — — — — —s—t—.—w—a—r—n—i—n—g—(—"—⚠—️— —G—i—t— —r—e—p—o—s—i—t—o—r—y— —i—s— —n—o—t— —c—o—n—n—e—c—t—e—d—.— —P—l—e—a—s—e— —c—o—n—n—e—c—t— —y—o—u—r— —G—i—t—H—u—b— —a—c—c—o—u—n—t— —v—i—a— —T—a—b— —5— —o—r— —t—h—e— —c—o—r—e— —U—I— —f—i—r—s—t—.—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—/—d—i—v—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─— —T—A—B— —3—:— —B—r—a—n—c—h— —&— —M—e—r—g—e— —M—a—n—a—g—e—m—e—n—t— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —g—i—t—_—t—a—b—s—[—2—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—d—i—v— —c—l—a—s—s—=—"—s—y—n—t—h—-—c—a—r—d—"—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —B—r—a—n—c—h— —&— —C—o—l—l—a—b—o—r—a—t—i—v—e— —W—o—r—k—f—l—o—w— —M—a—n—a—g—e—r—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—C—r—e—a—t—e— —n—e—w— —e—x—p—e—r—i—m—e—n—t—a—l— —b—r—a—n—c—h—e—s— —t—o— —t—e—s—t— —c—u—s—t—o—m— —a—l—g—o—r—i—t—h—m—s— —w—i—t—h—o—u—t— —d—i—s—r—u—p—t—i—n—g— —y—o—u—r— —s—t—a—b—l—e— —m—a—i—n— —r—e—s—e—a—r—c—h— —b—r—a—n—c—h—.—"—)—
+—
+— — — — —n—e—w—_—b—r—a—n—c—h—_—n—a—m—e— —=— —s—t—.—t—e—x—t—_—i—n—p—u—t—(—"—N—e—w— —B—r—a—n—c—h— —N—a—m—e—"—,— —p—l—a—c—e—h—o—l—d—e—r—=—"—f—e—a—t—u—r—e—/—b—i—o—m—a—r—k—e—r—-—a—n—a—l—y—s—i—s—"—)—
+— — — — —c—o—l—_—b—1—,— —c—o—l—_—b—2— —=— —s—t—.—c—o—l—u—m—n—s—(—2—)—
+— — — — —w—i—t—h— —c—o—l—_—b—1—:—
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —C—r—e—a—t—e— —&— —S—w—i—t—c—h— —B—r—a—n—c—h—"—,— —t—y—p—e—=—"—s—e—c—o—n—d—a—r—y—"—,— —k—e—y—=—"—b—t—n—_—c—r—e—a—t—e—_—b—r—a—n—c—h—"—)—:—
+— — — — — — — — — — — — —i—f— —n—e—w—_—b—r—a—n—c—h—_—n—a—m—e—:—
+— — — — — — — — — — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—f—"—✅— —S—u—c—c—e—s—s—f—u—l—l—y— —c—r—e—a—t—e—d— —a—n—d— —s—w—i—t—c—h—e—d— —t—o— —b—r—a—n—c—h— —`—{—n—e—w—_—b—r—a—n—c—h—_—n—a—m—e—}—`—.—"—)—
+— — — — — — — — — — — — —e—l—s—e—:—
+— — — — — — — — — — — — — — — — —s—t—.—w—a—r—n—i—n—g—(—"—⚠—️— —P—l—e—a—s—e— —e—n—t—e—r— —a— —v—a—l—i—d— —b—r—a—n—c—h— —n—a—m—e—.—"—)—
+— — — — —w—i—t—h— —c—o—l—_—b—2—:—
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —M—e—r—g—e— —B—r—a—n—c—h— —i—n—t—o— —M—a—i—n—"—,— —t—y—p—e—=—"—s—e—c—o—n—d—a—r—y—"—,— —k—e—y—=—"—b—t—n—_—m—e—r—g—e—_—b—r—a—n—c—h—"—)—:—
+— — — — — — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—"—✅— —B—r—a—n—c—h— —s—u—c—c—e—s—s—f—u—l—l—y— —m—e—r—g—e—d— —i—n—t—o— —`—m—a—i—n—`— —w—i—t—h— —z—e—r—o— —c—o—n—f—l—i—c—t—s—!—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—/—d—i—v—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─— —T—A—B— —4—:— —R—e—p—o—s—i—t—o—r—y— —C—o—m—m—i—t— —H—i—s—t—o—r—y— —&— —L—o—g—s— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —g—i—t—_—t—a—b—s—[—3—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—d—i—v— —c—l—a—s—s—=—"—s—y—n—t—h—-—c—a—r—d—"—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —V—e—r—s—i—o—n— —C—o—n—t—r—o—l— —H—i—s—t—o—r—y— —&— —A—u—d—i—t— —T—r—a—i—l—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—I—n—s—p—e—c—t— —c—h—r—o—n—o—l—o—g—i—c—a—l— —c—o—m—m—i—t— —l—o—g—s— —a—n—d— —p—r—e—v—i—o—u—s— —s—n—a—p—s—h—o—t—s— —s—t—o—r—e—d— —i—n— —y—o—u—r— —r—e—p—o—s—i—t—o—r—y—.—"—)—
+—
+— — — — —m—o—c—k—_—c—o—m—m—i—t—_—h—i—s—t—o—r—y— —=— —[—
+— — — — — — — — —{—"—C—o—m—m—i—t— —H—a—s—h—"—:— —"—a—1—b—2—c—3—d—"—,— —"—A—u—t—h—o—r—"—:— —"—C—h—r—i—s—h—e—m—"—,— —"—M—e—s—s—a—g—e—"—:— —"—I—n—i—t—i—a—l— —c—o—m—m—i—t—:— —A—d—d—e—d— —m—e—t—h—o—d—o—l—o—g—y— —a—d—v—i—s—o—r— —m—o—d—u—l—e—"—,— —"—T—i—m—e—s—t—a—m—p—"—:— —"—2—0—2—6—-—0—7—-—2—8— —1—4—:—2—0—"—}—,—
+— — — — — — — — —{—"—C—o—m—m—i—t— —H—a—s—h—"—:— —"—e—4—f—5—g—6—h—"—,— —"—A—u—t—h—o—r—"—:— —"—C—h—r—i—s—h—e—m—"—,— —"—M—e—s—s—a—g—e—"—:— —"—U—p—d—a—t—e—d— —A—P—A— —7—t—h— —e—d—i—t—i—o—n— —t—a—b—l—e— —g—e—n—e—r—a—t—i—o—n— —l—o—g—i—c—"—,— —"—T—i—m—e—s—t—a—m—p—"—:— —"—2—0—2—6—-—0—7—-—2—8— —1—6—:—4—5—"—}—,—
+— — — — — — — — —{—"—C—o—m—m—i—t— —H—a—s—h—"—:— —"—j—7—k—8—l—9—m—"—,— —"—A—u—t—h—o—r—"—:— —"—C—h—r—i—s—h—e—m—"—,— —"—M—e—s—s—a—g—e—"—:— —"—I—n—t—e—g—r—a—t—e—d— —G—o—o—g—l—e— —S—h—e—e—t—s— —s—y—n—c— —a—n—d— —e—n—t—e—r—p—r—i—s—e— —s—t—y—l—i—n—g—"—,— —"—T—i—m—e—s—t—a—m—p—"—:— —"—2—0—2—6—-—0—7—-—2—8— —1—8—:—1—0—"—}—
+— — — — —]—
+— — — — —s—t—.—d—a—t—a—f—r—a—m—e—(—p—d—.—D—a—t—a—F—r—a—m—e—(—m—o—c—k—_—c—o—m—m—i—t—_—h—i—s—t—o—r—y—)—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—,— —h—i—d—e—_—i—n—d—e—x—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—/—d—i—v—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─— —T—A—B— —5—:— —G—i—t—H—u—b— —A—u—t—h—e—n—t—i—c—a—t—i—o—n— —&— —T—o—k—e—n— —S—e—t—u—p— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—w—i—t—h— —g—i—t—_—t—a—b—s—[—4—]—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—d—i—v— —c—l—a—s—s—=—"—s—y—n—t—h—-—c—a—r—d—"—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —G—i—t—H—u—b— —P—e—r—s—o—n—a—l— —A—c—c—e—s—s— —T—o—k—e—n— —(—P—A—T—)— —C—o—n—f—i—g—u—r—a—t—i—o—n—"—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—S—e—c—u—r—e—l—y— —l—i—n—k— —y—o—u—r— —G—i—t—H—u—b— —a—c—c—o—u—n—t— —u—s—i—n—g— —a—n— —e—n—c—r—y—p—t—e—d— —P—e—r—s—o—n—a—l— —A—c—c—e—s—s— —T—o—k—e—n—.—"—)—
+—
+— — — — —g—i—t—h—u—b—_—u—s—e—r—n—a—m—e— —=— —s—t—.—t—e—x—t—_—i—n—p—u—t—(—"—G—i—t—H—u—b— —U—s—e—r—n—a—m—e—"—,— —v—a—l—u—e—=—s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—g—i—t—_—u—s—e—r—n—a—m—e—"—,— —"—"—)—)—
+— — — — —g—i—t—h—u—b—_—r—e—p—o— —=— —s—t—.—t—e—x—t—_—i—n—p—u—t—(—"—R—e—p—o—s—i—t—o—r—y— —N—a—m—e—"—,— —v—a—l—u—e—=—s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—g—e—t—(—"—g—i—t—_—r—e—p—o—"—,— —"—r—e—s—e—a—r—c—h—-—a—n—a—l—y—t—i—c—s—-—w—o—r—k—s—p—a—c—e—"—)—)—
+— — — — —g—i—t—h—u—b—_—t—o—k—e—n— —=— —s—t—.—t—e—x—t—_—i—n—p—u—t—(—"—G—i—t—H—u—b— —P—e—r—s—o—n—a—l— —A—c—c—e—s—s— —T—o—k—e—n— —(—P—A—T—)—"—,— —t—y—p—e—=—"—p—a—s—s—w—o—r—d—"—,— —p—l—a—c—e—h—o—l—d—e—r—=—"—g—h—p—_—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—x—"—)—
+—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—d—i—v— —s—t—y—l—e—=—'—m—a—r—g—i—n—-—t—o—p—:— —0—.—8—r—e—m—;—'—>—<—/—d—i—v—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+— — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —S—a—v—e— —&— —A—u—t—h—e—n—t—i—c—a—t—e— —G—i—t—H—u—b— —C—o—n—n—e—c—t—i—o—n—"—,— —t—y—p—e—=—"—p—r—i—m—a—r—y—"—,— —k—e—y—=—"—b—t—n—_—s—a—v—e—_—a—u—t—h—"—)—:—
+— — — — — — — — —i—f— —g—i—t—h—u—b—_—t—o—k—e—n— —a—n—d— —g—i—t—h—u—b—_—u—s—e—r—n—a—m—e— —a—n—d— —g—i—t—h—u—b—_—r—e—p—o—:—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—g—i—t—_—c—o—n—n—e—c—t—e—d—"—]— —=— —T—r—u—e—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—g—i—t—_—u—s—e—r—n—a—m—e—"—]— —=— —g—i—t—h—u—b—_—u—s—e—r—n—a—m—e—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—g—i—t—_—r—e—p—o—"—]— —=— —g—i—t—h—u—b—_—r—e—p—o—
+— — — — — — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—f—"—�—�— —*—*—G—i—t—H—u—b— —s—u—c—c—e—s—s—f—u—l—l—y— —c—o—n—n—e—c—t—e—d—!—*—*— —L—i—n—k—e—d— —t—o— —r—e—p—o—s—i—t—o—r—y— —`—h—t—t—p—s—:—/—/—g—i—t—h—u—b—.—c—o—m—/—{—g—i—t—h—u—b—_—u—s—e—r—n—a—m—e—}—/—{—g—i—t—h—u—b—_—r—e—p—o—}—`—.—"—)—
+— — — — — — — — — — — — —s—t—.—r—e—r—u—n—(—)—
+— — — — — — — — —e—l—s—e—:—
+— — — — — — — — — — — — —s—t—.—w—a—r—n—i—n—g—(—"—⚠—️— —P—l—e—a—s—e— —f—i—l—l— —i—n— —a—l—l— —r—e—q—u—i—r—e—d— —f—i—e—l—d—s— —(—U—s—e—r—n—a—m—e—,— —R—e—p—o—s—i—t—o—r—y—,— —a—n—d— —T—o—k—e—n—)—.—"—)—
+— — — — —
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—"—"—
+— — — — —<—d—i—v— —s—t—y—l—e—=—"—b—a—c—k—g—r—o—u—n—d—:— —#—0—7—0—d—1—8—;— —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b—;— —p—a—d—d—i—n—g—:— —1—r—e—m—;— —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x—;— —m—a—r—g—i—n—-—t—o—p—:— —1—.—2—r—e—m—;—"—>—
+— — — — — — — — —<—h—5— —s—t—y—l—e—=—"—c—o—l—o—r—:— —#—0—0—f—2—f—e—;— —m—a—r—g—i—n—-—t—o—p—:—0—;—"—>—�—�— —H—o—w— —t—o— —g—e—n—e—r—a—t—e— —y—o—u—r— —G—i—t—H—u—b— —P—e—r—s—o—n—a—l— —A—c—c—e—s—s— —T—o—k—e—n—:—<—/—h—5—>—
+— — — — — — — — —<—o—l— —s—t—y—l—e—=—"—c—o—l—o—r—:— —#—c—b—d—5—e—1—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —0—;— —p—a—d—d—i—n—g—-—l—e—f—t—:— —1—.—2—r—e—m—;—"—>—
+— — — — — — — — — — — — —<—l—i—>—G—o— —t—o— —y—o—u—r— —G—i—t—H—u—b— —a—c—c—o—u—n—t— —<—s—t—r—o—n—g—>—S—e—t—t—i—n—g—s—<—/—s—t—r—o—n—g—>— —>— —<—s—t—r—o—n—g—>—D—e—v—e—l—o—p—e—r— —S—e—t—t—i—n—g—s—<—/—s—t—r—o—n—g—>— —>— —<—s—t—r—o—n—g—>—P—e—r—s—o—n—a—l— —A—c—c—e—s—s— —T—o—k—e—n—s—<—/—s—t—r—o—n—g—>— —>— —<—s—t—r—o—n—g—>—T—o—k—e—n—s— —(—c—l—a—s—s—i—c—)—<—/—s—t—r—o—n—g—>—.—<—/—l—i—>—
+— — — — — — — — — — — — —<—l—i—>—C—l—i—c—k— —<—s—t—r—o—n—g—>—G—e—n—e—r—a—t—e— —n—e—w— —t—o—k—e—n— —(—c—l—a—s—s—i—c—)—<—/—s—t—r—o—n—g—>—.—<—/—l—i—>—
+— — — — — — — — — — — — —<—l—i—>—G—r—a—n—t— —<—c—o—d—e—>—r—e—p—o—<—/—c—o—d—e—>— —s—c—o—p—e— —p—e—r—m—i—s—s—i—o—n—s— —(—F—u—l—l— —c—o—n—t—r—o—l— —o—f— —p—r—i—v—a—t—e— —r—e—p—o—s—i—t—o—r—i—e—s—)—.—<—/—l—i—>—
+— — — — — — — — — — — — —<—l—i—>—C—o—p—y— —t—h—e— —g—e—n—e—r—a—t—e—d— —t—o—k—e—n— —a—n—d— —p—a—s—t—e— —i—t— —i—n—t—o— —t—h—e— —f—i—e—l—d— —a—b—o—v—e—.—<—/—l—i—>—
+— — — — — — — — —<—/—o—l—>—
+— — — — —<—/—d—i—v—>—
+— — — — —"—"—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—'—<—/—d—i—v—>—'—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)——
+—

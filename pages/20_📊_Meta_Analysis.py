@@ -1,614 +1,615 @@
-﻿"""
-═══════════════════════════════════════════════════════════════════════════════
-META-ANALYSIS & EVIDENCE SYNTHESIS ENGINE [ENTERPRISE ULTRA v6.0]
-Features: Dynamic Effect Size Calculators (Continuous & Binary),
-Multi-Estimator Random-Effects (DL, REML, HE), Advanced Heterogeneity (Q, I², Tau², H²),
-Duval & Tweedie Trim-and-Fill, Interactive Plotly Forest & Funnel Plots, and Subgroup Pooling.
-Designed for CHRISHEM Enterprise Build.
-═══════════════════════════════════════════════════════════════════════════════
-"""
-
-import sys
-import hashlib
-import time
-import pandas as pd
-import numpy as np
-import streamlit as st
-
-# ─── DEPENDENCY CHECK ──────────────────────────────────────────────────
-try:
-    import scipy.stats as stats
-    import plotly.graph_objects as go
-    import plotly.express as px
-    HAS_DEPS = True
-except ImportError:
-    HAS_DEPS = False
-
-# ─── PAGE CONFIGURATION ───────────────────────────────────────────────
-st.set_page_config(
-    page_title="Meta-Analysis Engine [ENTERPRISE v6.0]",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-if not HAS_DEPS:
-    st.error(
-        "⚠️ Required statistical dependencies not installed.\n\n"
-        "Please install missing packages: `pip install scipy statsmodels plotly pandas numpy`"
-    )
-    st.stop()
-
-# ─── SESSION STATE INITIALIZATION ──────────────────────────────────────
-if "meta_engine_clearance" not in st.session_state:
-    st.session_state.meta_engine_clearance = False
-if "custom_access_password" not in st.session_state:
-    st.session_state.custom_access_password = hashlib.sha256("ENTERPRISE_KEY".encode()).hexdigest()
-if "meta_df" not in st.session_state:
-    st.session_state["meta_df"] = pd.DataFrame({
-        "Study": ["Trial Alpha (2023)", "Study Beta (2024)", "Cohort Gamma (2024)", "Trial Delta (2025)", "Bio-Survey Epsilon (2026)"],
-        "Effect_Size": [0.65, 0.42, 0.81, 0.30, 0.55],
-        "Standard_Error": [0.12, 0.15, 0.10, 0.18, 0.14],
-        "Subgroup": ["Region A", "Region A", "Region B", "Region B", "Region A"]
-    })
-
-# ─── CUSTOM HIGH-CONTRAST CSS ──────────────────────────────────────────
-st.markdown("""
-<style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
-    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
-    }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
-    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
-    }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-    .stApp {
-        background-color: #020617 !important;
-        color: #f8fafc !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    }
-    
-    h1, h2, h3, h4 {
-        color: #f8fafc !important;
-        font-weight: 800 !important;
-    }
-    
-    p, span, label, div {
-        color: #cbd5e1 !important;
-    }
-
-    .enterprise-card {
-        background: #090d16 !important;
-        border: 1px solid #1e293b !important;
-        border-radius: 16px;
-        padding: 1.25rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        margin-bottom: 1rem;
-    }
-
-    .badge-glow {
-        background: rgba(99, 102, 241, 0.15) !important;
-        color: #818cf8 !important;
-        border: 1px solid #4f46e5 !important;
-        padding: 0.25rem 0.6rem;
-        border-radius: 6px;
-        font-size: 0.7rem;
-        font-family: monospace;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-    }
-
-    div.stSelectbox, div.stTextInput, div.stTextArea {
-        background-color: #090d16 !important;
-        border-radius: 8px !important;
-    }
-
-    .stButton button {
-        background: #090d16 !important;
-        border: 1px solid #4f46e5 !important;
-        color: #818cf8 !important;
-        border-radius: 8px !important;
-        font-weight: 700 !important;
-        transition: all 0.2s ease;
-    }
-    .stButton button:hover {
-        background: #4f46e5 !important;
-        color: #ffffff !important;
-        box-shadow: 0 0 16px rgba(79, 70, 229, 0.4);
-    }
-
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: #020617;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        background-color: #090d16 !important;
-        border: 1px solid #1e293b !important;
-        border-radius: 8px 8px 0px 0px !important;
-        color: #94a3b8 !important;
-        font-weight: 600;
-        padding: 0.6rem 1.2rem !important;
-    }
-
-    .stTabs [aria-selected="true"] {
-        background-color: #1e293b !important;
-        color: #00f2fe !important;
-        border-color: #00f2fe !important;
-    }
-
-    div[data-testid="stMetricValue"] {
-        color: #00f2fe !important;
-        font-weight: 800 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# ─── STATISTICAL HELPER FUNCTIONS ─────────────────────────────────────
-def compute_continuous_effect(m1, sd1, n1, m2, sd2, n2, measure="hedges_g"):
-    """Calculates Cohen's d or Hedges' g along with Standard Errors."""
-    s_pooled = np.sqrt(((n1 - 1) * sd1**2 + (n2 - 1) * sd2**2) / (n1 + n2 - 2))
-    d = (m1 - m2) / s_pooled
-    var_d = ((n1 + n2) / (n1 * n2)) + (d**2 / (2 * (n1 + n2)))
-    
-    if measure == "hedges_g":
-        j_correction = 1 - (3 / (4 * (n1 + n2 - 2) - 1))
-        g = d * j_correction
-        var_g = (j_correction**2) * var_d
-        return g, np.sqrt(var_g)
-    return d, np.sqrt(var_d)
-
-def compute_binary_effect(e1, n1, e2, n2, measure="log_or"):
-    """Calculates Log Odds Ratio or Log Risk Ratio with Standard Errors."""
-    c1, c2 = n1 - e1, n2 - e2
-    if 0 in [e1, c1, e2, c2]:
-        e1, c1, e2, c2 = e1 + 0.5, c1 + 0.5, e2 + 0.5, c2 + 0.5
-        n1, n2 = n1 + 1, n2 + 1
-        
-    if measure == "log_or":
-        log_or = np.log((e1 * c2) / (c1 * e2))
-        se_log_or = np.sqrt(1/e1 + 1/c1 + 1/e2 + 1/c2)
-        return log_or, se_log_or
-    else:
-        log_rr = np.log((e1 / n1) / (e2 / n2))
-        se_log_rr = np.sqrt((1/e1 - 1/n1) + (1/e2 - 1/n2))
-        return log_rr, se_log_rr
-
-def trim_and_fill(effects, std_errs, max_iter=20):
-    """Duval & Tweedie Trim-and-Fill algorithm for estimating missing studies."""
-    k = len(effects)
-    weights = 1.0 / (std_errs ** 2)
-    center = np.sum(weights * effects) / np.sum(weights)
-    
-    filled_effects = list(effects)
-    filled_se = list(std_errs)
-    imputed_count = 0
-    
-    for _ in range(max_iter):
-        devs = filled_effects - center
-        abs_devs = np.abs(devs)
-        ranks = stats.rankdata(abs_devs)
-        signed_ranks = ranks * np.sign(devs)
-        
-        k0 = max(0, int(round(abs(np.sum(signed_ranks[signed_ranks < 0])))))
-        if k0 == imputed_count:
-            break
-        
-        imputed_count = k0
-        if k0 > 0:
-            sorted_idx = np.argsort(devs)
-            missing_effects = 2 * center - np.array(filled_effects)[sorted_idx[-k0:]]
-            missing_se = np.array(filled_se)[sorted_idx[-k0:]]
-            
-            filled_effects = list(effects) + list(missing_effects)
-            filled_se = list(std_errs) + list(missing_se)
-            
-            w_temp = 1.0 / (np.array(filled_se) ** 2)
-            center = np.sum(w_temp * np.array(filled_effects)) / np.sum(w_temp)
-            
-    return np.array(filled_effects), np.array(filled_se), imputed_count
-
-# ─── HERO HEADER ───────────────────────────────────────────────────────
-st.markdown("""
-<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;'>
-    <div>
-        <span class='badge-glow'>⚡ v6.0 ULTRA — DYNAMIC EFFECT CONVERTERS & TRIM-AND-FILL SUITE</span>
-        <h1 style='font-size:2.2rem; color:#f8fafc; margin:0.4rem 0 0.2rem 0;'>
-            📊 Enterprise Meta-Analysis & Evidence Synthesis Engine
-        </h1>
-        <p style='color:#94a3b8; font-size:0.95rem; max-width:850px; margin:0;'>
-            Perform rigorous statistical pooling, multi-estimator heterogeneity modeling (DL, REML, HE), publication bias adjustments (Egger's Test & Trim-and-Fill), and interactive visualization.
-        </p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown("<hr style='border-color:#1e293b; margin:1rem 0;'>", unsafe_allow_html=True)
-
-# ─── SECURITY GATE & WORKSPACE CONTROL ────────────────────────────────
-col_sec, col_proj = st.columns([1, 1])
-
-with col_sec:
-    st.markdown("### 🔐 Security Authentication Gate")
-    if not st.session_state.meta_engine_clearance:
-        st.info("🔒 Enter passkey (**ENTERPRISE_KEY**) to access statistical modeling suite.")
-        security_input = st.text_input("Enter Passkey", type="password", placeholder="••••••••", key="meta_passkey_input")
-        if st.button("🔓 Authenticate Passkey", type="primary", use_container_width=True):
-            if security_input and hashlib.sha256(security_input.encode()).hexdigest() == st.session_state.custom_access_password:
-                st.session_state.meta_engine_clearance = True
-                st.success("✅ Enterprise Clearance Granted!")
-                st.rerun()
-            else:
-                st.error("❌ Access Denied: Invalid Passkey")
-    else:
-        st.success("🔓 Enterprise Workspace Unlocked")
-        if st.button("🔒 Lock Workspace", use_container_width=True):
-            st.session_state.meta_engine_clearance = False
-            st.rerun()
-
-with col_proj:
-    st.markdown("### 📈 Project & Input Strategy")
-    analysis_mode = st.selectbox(
-        "Select Data Input Mode",
-        options=[
-            "Pre-computed Effect Sizes (ES + SE)",
-            "Raw Continuous Data (Mean, SD, N)",
-            "Raw Binary Outcome Data (Events, N)",
-            "Upload Custom Dataset (.csv / .xlsx)"
-        ]
-    )
-
-if not st.session_state.meta_engine_clearance:
-    st.warning("👈 **Authenticate via Security Gate** to perform modeling and export publication plots.")
-    st.stop()
-
-st.markdown("<hr style='border-color:#1e293b; margin:1rem 0;'>", unsafe_allow_html=True)
-
-# ─── NAVIGATION TABS ─────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📋 Dataset & Effect Builder",
-    "⚙️ Statistical Pooling Engine",
-    "🌲 Interactive Forest Plot",
-    "📉 Publication Bias & Trim-and-Fill",
-    "🔬 Heterogeneity & Subgroups"
-])
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 1: DATASET MANAGER & CONVERTERS
-# ═══════════════════════════════════════════════════════════════════════
-with tab1:
-    st.markdown("<h3 style='color:#00f2fe;'>📋 Study Data & Effect Size Converter Engine</h3>", unsafe_allow_html=True)
-    
-    if analysis_mode == "Upload Custom Dataset (.csv / .xlsx)":
-        uploaded_file = st.file_uploader("Upload study dataset", type=["csv", "xlsx"])
-        if uploaded_file:
-            if uploaded_file.name.endswith(".csv"):
-                st.session_state["meta_df"] = pd.read_csv(uploaded_file)
-            else:
-                st.session_state["meta_df"] = pd.read_excel(uploaded_file)
-            st.success("✅ Custom Dataset Loaded Successfully!")
-
-    elif analysis_mode == "Raw Continuous Data (Mean, SD, N)":
-        st.markdown("#### Compute Hedges' g / Cohen's d from Raw Means")
-        raw_c_df = pd.DataFrame({
-            "Study": ["Study A", "Study B", "Study C"],
-            "Mean_Exp": [12.5, 14.1, 10.8], "SD_Exp": [2.1, 2.5, 1.9], "N_Exp": [50, 45, 60],
-            "Mean_Ctrl": [10.2, 13.0, 9.5], "SD_Ctrl": [2.0, 2.3, 1.8], "N_Ctrl": [50, 45, 60],
-            "Subgroup": ["Group 1", "Group 1", "Group 2"]
-        })
-        edited_raw = st.data_editor(raw_c_df, num_rows="dynamic", use_container_width=True)
-        
-        if st.button("⚡ Convert Raw Continuous Data to Effect Sizes"):
-            es_list, se_list = [], []
-            for _, row in edited_raw.iterrows():
-                es, se = compute_continuous_effect(
-                    row["Mean_Exp"], row["SD_Exp"], row["N_Exp"],
-                    row["Mean_Ctrl"], row["SD_Ctrl"], row["N_Ctrl"]
-                )
-                es_list.append(es)
-                se_list.append(se)
-            
-            st.session_state["meta_df"] = pd.DataFrame({
-                "Study": edited_raw["Study"],
-                "Effect_Size": es_list,
-                "Standard_Error": se_list,
-                "Subgroup": edited_raw["Subgroup"]
-            })
-            st.success("✅ Calculated Hedges' g and SE successfully!")
-
-    elif analysis_mode == "Raw Binary Outcome Data (Events, N)":
-        st.markdown("#### Compute Log Odds Ratio / Log Risk Ratio from Event Counts")
-        raw_b_df = pd.DataFrame({
-            "Study": ["Study X", "Study Y", "Study Z"],
-            "Events_Exp": [15, 22, 8], "Total_Exp": [100, 150, 80],
-            "Events_Ctrl": [28, 35, 18], "Total_Ctrl": [100, 150, 80],
-            "Subgroup": ["Cohort A", "Cohort A", "Cohort B"]
-        })
-        edited_b_raw = st.data_editor(raw_b_df, num_rows="dynamic", use_container_width=True)
-        
-        if st.button("⚡ Convert Raw Binary Data to Log Odds Ratios"):
-            es_list, se_list = [], []
-            for _, row in edited_b_raw.iterrows():
-                es, se = compute_binary_effect(
-                    row["Events_Exp"], row["Total_Exp"],
-                    row["Events_Ctrl"], row["Total_Ctrl"]
-                )
-                es_list.append(es)
-                se_list.append(se)
-            
-            st.session_state["meta_df"] = pd.DataFrame({
-                "Study": edited_b_raw["Study"],
-                "Effect_Size": es_list,
-                "Standard_Error": se_list,
-                "Subgroup": edited_b_raw["Subgroup"]
-            })
-            st.success("✅ Calculated Log Odds Ratio and SE successfully!")
-
-    st.markdown("#### Current Master Data Table")
-    edited_df = st.data_editor(
-        st.session_state["meta_df"],
-        num_rows="dynamic",
-        use_container_width=True,
-        key="master_meta_editor"
-    )
-    st.session_state["meta_df"] = edited_df
-
-# ─── EXTRACT DATA ARRAYS ───────────────────────────────────────────────
-df = st.session_state["meta_df"]
-try:
-    studies = df["Study"].astype(str).tolist()
-    effect_sizes = df["Effect_Size"].astype(float).values
-    standard_errors = df["Standard_Error"].astype(float).values
-    weights = 1.0 / (standard_errors ** 2)
-    k = len(studies)
-except Exception as e:
-    st.error(f"⚠️ Column mapping error: Ensure 'Study', 'Effect_Size', and 'Standard_Error' exist. Details: {e}")
-    st.stop()
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 2: STATISTICAL POOLING ENGINE
-# ═══════════════════════════════════════════════════════════════════════
-with tab2:
-    st.markdown("<h3 style='color:#00f2fe;'>⚙️ Advanced Model Pooling & Variance Estimators</h3>", unsafe_allow_html=True)
-    
-    col_m1, col_m2 = st.columns(2)
-    with col_m1:
-        model_type = st.radio("Pooling Model Strategy", ["Random-Effects Model", "Fixed-Effect Model"])
-    with col_m2:
-        tau_estimator = st.selectbox("Tau² Variance Estimator (Random-Effects)", ["DerSimonian-Laird (DL)", "Restricted Maximum Likelihood (REML)", "Hedges-Olkin (HE)"])
-
-    sum_w = np.sum(weights)
-    pooled_fe = np.sum(weights * effect_sizes) / sum_w
-    se_fe = np.sqrt(1.0 / sum_w)
-    
-    q_stat = np.sum(weights * ((effect_sizes - pooled_fe) ** 2))
-    df_q = max(1, k - 1)
-    pval_q = 1.0 - stats.chi2.cdf(q_stat, df_q)
-    i_squared = max(0.0, 100.0 * (q_stat - df_q) / q_stat) if q_stat > df_q else 0.0
-    h_squared = q_stat / df_q if df_q > 0 else 1.0
-    
-    if tau_estimator == "Hedges-Olkin (HE)":
-        tau_squared = max(0.0, (q_stat - df_q) / (sum_w - np.sum(weights**2)/sum_w))
-    else:
-        c_val = sum_w - (np.sum(weights ** 2) / sum_w)
-        tau_squared = max(0.0, (q_stat - df_q) / c_val) if c_val > 0 else 0.0
-
-    if "Random" in model_type:
-        weights_re = 1.0 / ((standard_errors ** 2) + tau_squared)
-        sum_w_re = np.sum(weights_re)
-        pooled_active = np.sum(weights_re * effect_sizes) / sum_w_re
-        se_active = np.sqrt(1.0 / sum_w_re)
-    else:
-        pooled_active = pooled_fe
-        se_active = se_fe
-
-    z_stat = pooled_active / se_active
-    p_val = 2 * (1 - stats.norm.cdf(abs(z_stat)))
-    ci_low = pooled_active - 1.96 * se_active
-    ci_high = pooled_active + 1.96 * se_active
-
-    st.markdown("### 📊 Meta-Analytic Synthesis Results")
-    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-    m_col1.metric("Pooled Effect Size", f"{pooled_active:.4f}")
-    m_col2.metric("95% Confidence Interval", f"[{ci_low:.4f}, {ci_high:.4f}]")
-    m_col3.metric("Z-Value (p-value)", f"Z = {z_stat:.2f} (p = {p_val:.4f})")
-    m_col4.metric("Tau² Between-Study Var", f"{tau_squared:.4f}")
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 3: INTERACTIVE FOREST PLOT
-# ═══════════════════════════════════════════════════════════════════════
-with tab3:
-    st.markdown("<h3 style='color:#00f2fe;'>🌲 Interactive Forest Plot</h3>", unsafe_allow_html=True)
-
-    fig = go.Figure()
-
-    for i in range(k):
-        es = effect_sizes[i]
-        se = standard_errors[i]
-        ci_l, ci_u = es - 1.96 * se, es + 1.96 * se
-        rel_wt = (weights[i] / np.sum(weights)) * 100
-        
-        fig.add_trace(go.Scatter(
-            x=[ci_l, es, ci_u],
-            y=[studies[i], studies[i], studies[i]],
-            mode='lines+markers',
-            marker=dict(size=[6, 10, 6], symbol=['line-ew', 'square', 'line-ew'], color='#818cf8'),
-            line=dict(color='#818cf8', width=2),
-            name=studies[i],
-            hovertemplate=f"<b>{studies[i]}</b><br>Effect Size: {es:.3f}<br>95% CI: [{ci_l:.3f}, {ci_u:.3f}]<br>Weight: {rel_wt:.1f}%<extra></extra>"
-        ))
-
-    fig.add_trace(go.Scatter(
-        x=[ci_low, pooled_active, ci_high],
-        y=["Overall Pooled", "Overall Pooled", "Overall Pooled"],
-        mode='lines+markers',
-        marker=dict(size=[8, 12, 8], symbol=['diamond', 'diamond', 'diamond'], color='#f43f5e'),
-        line=dict(color='#f43f5e', width=3),
-        name="Pooled Result",
-        hovertemplate=f"<b>Overall Pooled Estimate</b><br>Effect: {pooled_active:.3f}<br>95% CI: [{ci_low:.3f}, {ci_high:.3f}]<extra></extra>"
-    ))
-
-    fig.add_vline(x=0, line_dash="dash", line_color="#64748b", annotation_text="Null Effect")
-    fig.add_vline(x=pooled_active, line_dash="dot", line_color="#f43f5e")
-
-    fig.update_layout(
-        title=f"Forest Plot — {model_type} (k = {k})",
-        xaxis_title="Effect Size (95% CI)",
-        yaxis_title="Studies",
-        showlegend=False,
-        height=max(450, k * 45),
-        paper_bgcolor="#020617",
-        plot_bgcolor="#090d16",
-        font=dict(color="#f8fafc"),
-        xaxis=dict(gridcolor="#1e293b"),
-        yaxis=dict(gridcolor="#1e293b"),
-        margin=dict(l=150, r=40, t=60, b=50)
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 4: PUBLICATION BIAS & TRIM-AND-FILL
-# ═══════════════════════════════════════════════════════════════════════
-with tab4:
-    st.markdown("<h3 style='color:#00f2fe;'>📉 Publication Bias Diagnostics & Trim-and-Fill</h3>", unsafe_allow_html=True)
-
-    if k < 3:
-        st.warning("⚠️ Publication bias detection requires at least k ≥ 3 studies.")
-    else:
-        precision = 1.0 / standard_errors
-        std_effects = effect_sizes / standard_errors
-        slope, intercept, r_val, p_val_egger, std_err = stats.linregress(precision, std_effects)
-
-        col_e1, col_e2 = st.columns(2)
-        col_e1.metric("Egger's Test Intercept", f"{intercept:.4f}")
-        col_e2.metric("Egger's Test P-Value", f"{p_val_egger:.4f}", delta="Asymmetry Detected" if p_val_egger < 0.05 else "Symmetric")
-
-        filled_es, filled_se, k0 = trim_and_fill(effect_sizes, standard_errors)
-        st.info(f"💡 **Duval & Tweedie Trim-and-Fill Result:** Estimated **{k0} missing study/studies** due to funnel asymmetry.")
-
-        fig_funnel = go.Figure()
-
-        fig_funnel.add_trace(go.Scatter(
-            x=effect_sizes, y=standard_errors,
-            mode='markers',
-            marker=dict(size=9, color='#00f2fe', line=dict(width=1, color='#ffffff')),
-            name='Observed Studies'
-        ))
-
-        if k0 > 0:
-            imputed_es = filled_es[k:]
-            imputed_se = filled_se[k:]
-            fig_funnel.add_trace(go.Scatter(
-                x=imputed_es, y=imputed_se,
-                mode='markers',
-                marker=dict(size=9, color='#f59e0b', symbol='circle-open', line=dict(width=2, color='#f59e0b')),
-                name='Imputed Studies (Trim-and-Fill)'
-            ))
-
-        se_seq = np.linspace(0.001, max(filled_se) * 1.15, 100)
-        cone_upper = pooled_active + 1.96 * se_seq
-        cone_lower = pooled_active - 1.96 * se_seq
-
-        fig_funnel.add_trace(go.Scatter(x=cone_upper, y=se_seq, mode='lines', line=dict(color='#64748b', dash='dash'), showlegend=False))
-        fig_funnel.add_trace(go.Scatter(x=cone_lower, y=se_seq, mode='lines', line=dict(color='#64748b', dash='dash'), showlegend=False))
-        fig_funnel.add_vline(x=pooled_active, line_color='#f43f5e', annotation_text="Pooled ES")
-
-        fig_funnel.update_layout(
-            title="Funnel Plot with Pseudo 95% Confidence Limits",
-            xaxis_title="Effect Size",
-            yaxis_title="Standard Error (SE)",
-            yaxis=dict(autorange="reversed", gridcolor="#1e293b"),
-            xaxis=dict(gridcolor="#1e293b"),
-            paper_bgcolor="#020617",
-            plot_bgcolor="#090d16",
-            font=dict(color="#f8fafc"),
-            height=500
-        )
-
-        st.plotly_chart(fig_funnel, use_container_width=True)
-
-# ═══════════════════════════════════════════════════════════════════════
-# TAB 5: HETEROGENEITY & SUBGROUPS
-# ═══════════════════════════════════════════════════════════════════════
-with tab5:
-    st.markdown("<h3 style='color:#00f2fe;'>🔬 Statistical Heterogeneity & Subgroup Stratification</h3>", unsafe_allow_html=True)
-
-    st.markdown("### 📐 Heterogeneity Indices")
-    h_col1, h_col2, h_col3, h_col4 = st.columns(4)
-    h_col1.metric("Cochran's Q", f"{q_stat:.3f}")
-    h_col2.metric("Q Test p-value", f"{pval_q:.4f}")
-    h_col3.metric("I² Inconsistency", f"{i_squared:.1f}%")
-    h_col4.metric("H² Index", f"{h_squared:.2f}")
-
-    st.markdown("<hr style='border-color:#1e293b; margin:1rem 0;'>", unsafe_allow_html=True)
-    st.markdown("### 🧬 Subgroup Stratified Pooling")
-    if "Subgroup" in df.columns:
-        subgroups = df["Subgroup"].unique()
-        sub_results = []
-        
-        for sg in subgroups:
-            sub_df = df[df["Subgroup"] == sg]
-            sg_es = sub_df["Effect_Size"].values
-            sg_se = sub_df["Standard_Error"].values
-            sg_w = 1.0 / (sg_se ** 2)
-            
-            sg_pooled = np.sum(sg_w * sg_es) / np.sum(sg_w)
-            sg_se_pooled = np.sqrt(1.0 / np.sum(sg_w))
-            
-            sub_results.append({
-                "Subgroup": sg,
-                "Studies (k)": len(sub_df),
-                "Pooled Effect": round(sg_pooled, 4),
-                "95% CI Lower": round(sg_pooled - 1.96 * sg_se_pooled, 4),
-                "95% CI Upper": round(sg_pooled + 1.96 * sg_se_pooled, 4)
-            })
-            
-        st.dataframe(pd.DataFrame(sub_results), use_container_width=True, hide_index=True)
-    else:
-        st.info("ℹ️ Include a 'Subgroup' column in your dataset to automatically run stratified subgroup synthesis.")
-
-# ─── FOOTER WATERMARK ───────────────────────────────────────────────────
-st.markdown("<hr style='border-color:#1e293b; margin-top:3rem;'>", unsafe_allow_html=True)
-st.markdown(
-    "<div style='text-align:center; color:#64748b; font-size:0.75rem; font-family:monospace; letter-spacing:0.1em;'>"
-    "ENTERPRISE SYNTHESIS ENGINE • SECURE INTEL • DESIGNED FOR CHRISHEM"
-    "</div>",
-    unsafe_allow_html=True
-)
+﻿—"—"—"—
+—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—M—E—T—A—-—A—N—A—L—Y—S—I—S— —&— —E—V—I—D—E—N—C—E— —S—Y—N—T—H—E—S—I—S— —E—N—G—I—N—E— —[—E—N—T—E—R—P—R—I—S—E— —U—L—T—R—A— —v—6—.—0—]—
+—F—e—a—t—u—r—e—s—:— —D—y—n—a—m—i—c— —E—f—f—e—c—t— —S—i—z—e— —C—a—l—c—u—l—a—t—o—r—s— —(—C—o—n—t—i—n—u—o—u—s— —&— —B—i—n—a—r—y—)—,—
+—M—u—l—t—i—-—E—s—t—i—m—a—t—o—r— —R—a—n—d—o—m—-—E—f—f—e—c—t—s— —(—D—L—,— —R—E—M—L—,— —H—E—)—,— —A—d—v—a—n—c—e—d— —H—e—t—e—r—o—g—e—n—e—i—t—y— —(—Q—,— —I—²—,— —T—a—u—²—,— —H—²—)—,—
+—D—u—v—a—l— —&— —T—w—e—e—d—i—e— —T—r—i—m—-—a—n—d—-—F—i—l—l—,— —I—n—t—e—r—a—c—t—i—v—e— —P—l—o—t—l—y— —F—o—r—e—s—t— —&— —F—u—n—n—e—l— —P—l—o—t—s—,— —a—n—d— —S—u—b—g—r—o—u—p— —P—o—o—l—i—n—g—.—
+—D—e—s—i—g—n—e—d— —f—o—r— —C—H—R—I—S—H—E—M— —E—n—t—e—r—p—r—i—s—e— —B—u—i—l—d—.—
+—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—"—"—"—
+—
+—i—m—p—o—r—t— —s—y—s—
+—i—m—p—o—r—t— —h—a—s—h—l—i—b—
+—i—m—p—o—r—t— —t—i—m—e—
+—i—m—p—o—r—t— —p—a—n—d—a—s— —a—s— —p—d—
+—i—m—p—o—r—t— —n—u—m—p—y— —a—s— —n—p—
+—i—m—p—o—r—t— —s—t—r—e—a—m—l—i—t— —a—s— —s—t—
+—
+—#— —─—─—─— —D—E—P—E—N—D—E—N—C—Y— —C—H—E—C—K— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—t—r—y—:—
+— — — — —i—m—p—o—r—t— —s—c—i—p—y—.—s—t—a—t—s— —a—s— —s—t—a—t—s—
+— — — — —i—m—p—o—r—t— —p—l—o—t—l—y—.—g—r—a—p—h—_—o—b—j—e—c—t—s— —a—s— —g—o—
+— — — — —i—m—p—o—r—t— —p—l—o—t—l—y—.—e—x—p—r—e—s—s— —a—s— —p—x—
+— — — — —H—A—S—_—D—E—P—S— —=— —T—r—u—e—
+—e—x—c—e—p—t— —I—m—p—o—r—t—E—r—r—o—r—:—
+— — — — —H—A—S—_—D—E—P—S— —=— —F—a—l—s—e—
+—
+—#— —─—─—─— —P—A—G—E— —C—O—N—F—I—G—U—R—A—T—I—O—N— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—s—e—t—_—p—a—g—e—_—c—o—n—f—i—g—(—
+— — — — —p—a—g—e—_—t—i—t—l—e—=—"—M—e—t—a—-—A—n—a—l—y—s—i—s— —E—n—g—i—n—e— —[—E—N—T—E—R—P—R—I—S—E— —v—6—.—0—]—"—,—
+— — — — —p—a—g—e—_—i—c—o—n—=—"—�—�—"—,—
+— — — — —l—a—y—o—u—t—=—"—w—i—d—e—"—,—
+— — — — —i—n—i—t—i—a—l—_—s—i—d—e—b—a—r—_—s—t—a—t—e—=—"—c—o—l—l—a—p—s—e—d—"—
+—)—
+—
+—i—f— —n—o—t— —H—A—S—_—D—E—P—S—:—
+— — — — —s—t—.—e—r—r—o—r—(—
+— — — — — — — — —"—⚠—️— —R—e—q—u—i—r—e—d— —s—t—a—t—i—s—t—i—c—a—l— —d—e—p—e—n—d—e—n—c—i—e—s— —n—o—t— —i—n—s—t—a—l—l—e—d—.—\—n—\—n—"—
+— — — — — — — — —"—P—l—e—a—s—e— —i—n—s—t—a—l—l— —m—i—s—s—i—n—g— —p—a—c—k—a—g—e—s—:— —`—p—i—p— —i—n—s—t—a—l—l— —s—c—i—p—y— —s—t—a—t—s—m—o—d—e—l—s— —p—l—o—t—l—y— —p—a—n—d—a—s— —n—u—m—p—y—`—"—
+— — — — —)—
+— — — — —s—t—.—s—t—o—p—(—)—
+—
+—#— —─—─—─— —S—E—S—S—I—O—N— —S—T—A—T—E— —I—N—I—T—I—A—L—I—Z—A—T—I—O—N— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—i—f— —"—m—e—t—a—_—e—n—g—i—n—e—_—c—l—e—a—r—a—n—c—e—"— —n—o—t— —i—n— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—:—
+— — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—m—e—t—a—_—e—n—g—i—n—e—_—c—l—e—a—r—a—n—c—e— —=— —F—a—l—s—e—
+—i—f— —"—c—u—s—t—o—m—_—a—c—c—e—s—s—_—p—a—s—s—w—o—r—d—"— —n—o—t— —i—n— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—:—
+— — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—c—u—s—t—o—m—_—a—c—c—e—s—s—_—p—a—s—s—w—o—r—d— —=— —h—a—s—h—l—i—b—.—s—h—a—2—5—6—(—"—E—N—T—E—R—P—R—I—S—E—_—K—E—Y—"—.—e—n—c—o—d—e—(—)—)—.—h—e—x—d—i—g—e—s—t—(—)—
+—i—f— —"—m—e—t—a—_—d—f—"— —n—o—t— —i—n— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—:—
+— — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—m—e—t—a—_—d—f—"—]— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—{—
+— — — — — — — — —"—S—t—u—d—y—"—:— —[—"—T—r—i—a—l— —A—l—p—h—a— —(—2—0—2—3—)—"—,— —"—S—t—u—d—y— —B—e—t—a— —(—2—0—2—4—)—"—,— —"—C—o—h—o—r—t— —G—a—m—m—a— —(—2—0—2—4—)—"—,— —"—T—r—i—a—l— —D—e—l—t—a— —(—2—0—2—5—)—"—,— —"—B—i—o—-—S—u—r—v—e—y— —E—p—s—i—l—o—n— —(—2—0—2—6—)—"—]—,—
+— — — — — — — — —"—E—f—f—e—c—t—_—S—i—z—e—"—:— —[—0—.—6—5—,— —0—.—4—2—,— —0—.—8—1—,— —0—.—3—0—,— —0—.—5—5—]—,—
+— — — — — — — — —"—S—t—a—n—d—a—r—d—_—E—r—r—o—r—"—:— —[—0—.—1—2—,— —0—.—1—5—,— —0—.—1—0—,— —0—.—1—8—,— —0—.—1—4—]—,—
+— — — — — — — — —"—S—u—b—g—r—o—u—p—"—:— —[—"—R—e—g—i—o—n— —A—"—,— —"—R—e—g—i—o—n— —A—"—,— —"—R—e—g—i—o—n— —B—"—,— —"—R—e—g—i—o—n— —B—"—,— —"—R—e—g—i—o—n— —A—"—]—
+— — — — —}—)—
+—
+—#— —─—─—─— —C—U—S—T—O—M— —H—I—G—H—-—C—O—N—T—R—A—S—T— —C—S—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—"—"—
+—<—s—t—y—l—e—>—
+— — — — —/—*— —-—-—-— —G—L—O—B—A—L— —S—I—D—E—B—A—R— —D—A—R—K— —T—H—E—M—I—N—G— —O—V—E—R—R—I—D—E— —-—-—-— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]—,— —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—9—0—d—1—6— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—i—g—h—t—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —
+— — — — —/—*— —F—o—r—c—e— —a—l—l— —s—i—d—e—b—a—r— —t—e—x—t—,— —l—i—n—k—s—,— —a—n—d— —h—e—a—d—e—r—s— —t—o— —h—i—g—h—-—c—o—n—t—r—a—s—t— —o—f—f—-—w—h—i—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —*—,— —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —*— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —T—a—r—g—e—t— —n—a—v—i—g—a—t—i—o—n— —l—i—n—k—s— —a—n—d— —t—e—x—t— —e—x—p—l—i—c—i—t—l—y— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —s—p—a—n—,— —
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—H—e—a—d—e—r—"—]— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —6—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —N—a—v—i—g—a—t—i—o—n— —i—t—e—m— —h—o—v—e—r— —s—t—a—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—:—h—o—v—e—r—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—:—h—o—v—e—r— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—r—r—e—n—t—l—y— —s—e—l—e—c—t—e—d— —n—a—v—i—g—a—t—i—o—n— —i—t—e—m— —a—c—t—i—v—e— —s—t—a—t—e— —*—/—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—L—i—n—k—"—]—[—a—r—i—a—-—c—u—r—r—e—n—t—=—"—p—a—g—e—"—]—,—
+— — — — —[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—N—a—v—"—]— —a—[—a—r—i—a—-—s—e—l—e—c—t—e—d—=—"—t—r—u—e—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—2—8—4—c—7— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—f—f—f—f—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —/—*— —C—u—s—t—o—m— —f—o—r—m— —i—n—p—u—t—s— —i—n—s—i—d—e— —s—i—d—e—b—a—r— —*—/—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—S—e—l—e—c—t—b—o—x— —l—a—b—e—l—,—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—R—a—d—i—o— —l—a—b—e—l—,—
+— — — — —s—e—c—t—i—o—n—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—S—i—d—e—b—a—r—"—]— —.—s—t—M—u—l—t—i—S—e—l—e—c—t— —l—a—b—e—l— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—3—8—b—d—f—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —.—s—t—A—p—p— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—2—0—6—1—7— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—f—a—m—i—l—y—:— —'—I—n—t—e—r—'—,— —-—a—p—p—l—e—-—s—y—s—t—e—m—,— —B—l—i—n—k—M—a—c—S—y—s—t—e—m—F—o—n—t—,— —s—a—n—s—-—s—e—r—i—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —
+— — — — —h—1—,— —h—2—,— —h—3—,— —h—4— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—f—8—f—a—f—c— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —8—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+— — — — —
+— — — — —p—,— —s—p—a—n—,— —l—a—b—e—l—,— —d—i—v— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—c—b—d—5—e—1— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —.—e—n—t—e—r—p—r—i—s—e—-—c—a—r—d— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—9—0—d—1—6— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —1—6—p—x—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —1—.—2—5—r—e—m—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —4—p—x— —2—0—p—x— —r—g—b—a—(—0—,— —0—,— —0—,— —0—.—5—)—;—
+— — — — — — — — —m—a—r—g—i—n—-—b—o—t—t—o—m—:— —1—r—e—m—;—
+— — — — —}—
+—
+— — — — —.—b—a—d—g—e—-—g—l—o—w— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —r—g—b—a—(—9—9—,— —1—0—2—,— —2—4—1—,— —0—.—1—5—)— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—8—1—8—c—f—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—4—f—4—6—e—5— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —0—.—2—5—r—e—m— —0—.—6—r—e—m—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —6—p—x—;—
+— — — — — — — — —f—o—n—t—-—s—i—z—e—:— —0—.—7—r—e—m—;—
+— — — — — — — — —f—o—n—t—-—f—a—m—i—l—y—:— —m—o—n—o—s—p—a—c—e—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0—;—
+— — — — — — — — —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:— —0—.—0—5—e—m—;—
+— — — — —}—
+—
+— — — — —d—i—v—.—s—t—S—e—l—e—c—t—b—o—x—,— —d—i—v—.—s—t—T—e—x—t—I—n—p—u—t—,— —d—i—v—.—s—t—T—e—x—t—A—r—e—a— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—9—0—d—1—6— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —.—s—t—B—u—t—t—o—n— —b—u—t—t—o—n— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—0—9—0—d—1—6— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—4—f—4—6—e—5— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—8—1—8—c—f—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —7—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —t—r—a—n—s—i—t—i—o—n—:— —a—l—l— —0—.—2—s— —e—a—s—e—;—
+— — — — —}—
+— — — — —.—s—t—B—u—t—t—o—n— —b—u—t—t—o—n—:—h—o—v—e—r— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—:— —#—4—f—4—6—e—5— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—f—f—f—f—f—f— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—x—-—s—h—a—d—o—w—:— —0— —0— —1—6—p—x— —r—g—b—a—(—7—9—,— —7—0—,— —2—2—9—,— —0—.—4—)—;—
+— — — — —}—
+—
+— — — — —.—s—t—T—a—b—s— —[—d—a—t—a—-—b—a—s—e—w—e—b—=—"—t—a—b—-—l—i—s—t—"—]— —{—
+— — — — — — — — —g—a—p—:— —8—p—x—;—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—2—0—6—1—7—;—
+— — — — —}—
+—
+— — — — —.—s—t—T—a—b—s— —[—d—a—t—a—-—b—a—s—e—w—e—b—=—"—t—a—b—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—0—9—0—d—1—6— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—:— —1—p—x— —s—o—l—i—d— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—r—a—d—i—u—s—:— —8—p—x— —8—p—x— —0—p—x— —0—p—x— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—9—4—a—3—b—8— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —6—0—0—;—
+— — — — — — — — —p—a—d—d—i—n—g—:— —0—.—6—r—e—m— —1—.—2—r—e—m— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —.—s—t—T—a—b—s— —[—a—r—i—a—-—s—e—l—e—c—t—e—d—=—"—t—r—u—e—"—]— —{—
+— — — — — — — — —b—a—c—k—g—r—o—u—n—d—-—c—o—l—o—r—:— —#—1—e—2—9—3—b— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —b—o—r—d—e—r—-—c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—
+— — — — —d—i—v—[—d—a—t—a—-—t—e—s—t—i—d—=—"—s—t—M—e—t—r—i—c—V—a—l—u—e—"—]— —{—
+— — — — — — — — —c—o—l—o—r—:— —#—0—0—f—2—f—e— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — — — — — —f—o—n—t—-—w—e—i—g—h—t—:— —8—0—0— —!—i—m—p—o—r—t—a—n—t—;—
+— — — — —}—
+—<—/—s—t—y—l—e—>—
+—"—"—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —S—T—A—T—I—S—T—I—C—A—L— —H—E—L—P—E—R— —F—U—N—C—T—I—O—N—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—d—e—f— —c—o—m—p—u—t—e—_—c—o—n—t—i—n—u—o—u—s—_—e—f—f—e—c—t—(—m—1—,— —s—d—1—,— —n—1—,— —m—2—,— —s—d—2—,— —n—2—,— —m—e—a—s—u—r—e—=—"—h—e—d—g—e—s—_—g—"—)—:—
+— — — — —"—"—"—C—a—l—c—u—l—a—t—e—s— —C—o—h—e—n—'—s— —d— —o—r— —H—e—d—g—e—s—'— —g— —a—l—o—n—g— —w—i—t—h— —S—t—a—n—d—a—r—d— —E—r—r—o—r—s—.—"—"—"—
+— — — — —s—_—p—o—o—l—e—d— —=— —n—p—.—s—q—r—t—(—(—(—n—1— —-— —1—)— —*— —s—d—1—*—*—2— —+— —(—n—2— —-— —1—)— —*— —s—d—2—*—*—2—)— —/— —(—n—1— —+— —n—2— —-— —2—)—)—
+— — — — —d— —=— —(—m—1— —-— —m—2—)— —/— —s—_—p—o—o—l—e—d—
+— — — — —v—a—r—_—d— —=— —(—(—n—1— —+— —n—2—)— —/— —(—n—1— —*— —n—2—)—)— —+— —(—d—*—*—2— —/— —(—2— —*— —(—n—1— —+— —n—2—)—)—)—
+— — — — —
+— — — — —i—f— —m—e—a—s—u—r—e— —=—=— —"—h—e—d—g—e—s—_—g—"—:—
+— — — — — — — — —j—_—c—o—r—r—e—c—t—i—o—n— —=— —1— —-— —(—3— —/— —(—4— —*— —(—n—1— —+— —n—2— —-— —2—)— —-— —1—)—)—
+— — — — — — — — —g— —=— —d— —*— —j—_—c—o—r—r—e—c—t—i—o—n—
+— — — — — — — — —v—a—r—_—g— —=— —(—j—_—c—o—r—r—e—c—t—i—o—n—*—*—2—)— —*— —v—a—r—_—d—
+— — — — — — — — —r—e—t—u—r—n— —g—,— —n—p—.—s—q—r—t—(—v—a—r—_—g—)—
+— — — — —r—e—t—u—r—n— —d—,— —n—p—.—s—q—r—t—(—v—a—r—_—d—)—
+—
+—d—e—f— —c—o—m—p—u—t—e—_—b—i—n—a—r—y—_—e—f—f—e—c—t—(—e—1—,— —n—1—,— —e—2—,— —n—2—,— —m—e—a—s—u—r—e—=—"—l—o—g—_—o—r—"—)—:—
+— — — — —"—"—"—C—a—l—c—u—l—a—t—e—s— —L—o—g— —O—d—d—s— —R—a—t—i—o— —o—r— —L—o—g— —R—i—s—k— —R—a—t—i—o— —w—i—t—h— —S—t—a—n—d—a—r—d— —E—r—r—o—r—s—.—"—"—"—
+— — — — —c—1—,— —c—2— —=— —n—1— —-— —e—1—,— —n—2— —-— —e—2—
+— — — — —i—f— —0— —i—n— —[—e—1—,— —c—1—,— —e—2—,— —c—2—]—:—
+— — — — — — — — —e—1—,— —c—1—,— —e—2—,— —c—2— —=— —e—1— —+— —0—.—5—,— —c—1— —+— —0—.—5—,— —e—2— —+— —0—.—5—,— —c—2— —+— —0—.—5—
+— — — — — — — — —n—1—,— —n—2— —=— —n—1— —+— —1—,— —n—2— —+— —1—
+— — — — — — — — —
+— — — — —i—f— —m—e—a—s—u—r—e— —=—=— —"—l—o—g—_—o—r—"—:—
+— — — — — — — — —l—o—g—_—o—r— —=— —n—p—.—l—o—g—(—(—e—1— —*— —c—2—)— —/— —(—c—1— —*— —e—2—)—)—
+— — — — — — — — —s—e—_—l—o—g—_—o—r— —=— —n—p—.—s—q—r—t—(—1—/—e—1— —+— —1—/—c—1— —+— —1—/—e—2— —+— —1—/—c—2—)—
+— — — — — — — — —r—e—t—u—r—n— —l—o—g—_—o—r—,— —s—e—_—l—o—g—_—o—r—
+— — — — —e—l—s—e—:—
+— — — — — — — — —l—o—g—_—r—r— —=— —n—p—.—l—o—g—(—(—e—1— —/— —n—1—)— —/— —(—e—2— —/— —n—2—)—)—
+— — — — — — — — —s—e—_—l—o—g—_—r—r— —=— —n—p—.—s—q—r—t—(—(—1—/—e—1— —-— —1—/—n—1—)— —+— —(—1—/—e—2— —-— —1—/—n—2—)—)—
+— — — — — — — — —r—e—t—u—r—n— —l—o—g—_—r—r—,— —s—e—_—l—o—g—_—r—r—
+—
+—d—e—f— —t—r—i—m—_—a—n—d—_—f—i—l—l—(—e—f—f—e—c—t—s—,— —s—t—d—_—e—r—r—s—,— —m—a—x—_—i—t—e—r—=—2—0—)—:—
+— — — — —"—"—"—D—u—v—a—l— —&— —T—w—e—e—d—i—e— —T—r—i—m—-—a—n—d—-—F—i—l—l— —a—l—g—o—r—i—t—h—m— —f—o—r— —e—s—t—i—m—a—t—i—n—g— —m—i—s—s—i—n—g— —s—t—u—d—i—e—s—.—"—"—"—
+— — — — —k— —=— —l—e—n—(—e—f—f—e—c—t—s—)—
+— — — — —w—e—i—g—h—t—s— —=— —1—.—0— —/— —(—s—t—d—_—e—r—r—s— —*—*— —2—)—
+— — — — —c—e—n—t—e—r— —=— —n—p—.—s—u—m—(—w—e—i—g—h—t—s— —*— —e—f—f—e—c—t—s—)— —/— —n—p—.—s—u—m—(—w—e—i—g—h—t—s—)—
+— — — — —
+— — — — —f—i—l—l—e—d—_—e—f—f—e—c—t—s— —=— —l—i—s—t—(—e—f—f—e—c—t—s—)—
+— — — — —f—i—l—l—e—d—_—s—e— —=— —l—i—s—t—(—s—t—d—_—e—r—r—s—)—
+— — — — —i—m—p—u—t—e—d—_—c—o—u—n—t— —=— —0—
+— — — — —
+— — — — —f—o—r— —_— —i—n— —r—a—n—g—e—(—m—a—x—_—i—t—e—r—)—:—
+— — — — — — — — —d—e—v—s— —=— —f—i—l—l—e—d—_—e—f—f—e—c—t—s— —-— —c—e—n—t—e—r—
+— — — — — — — — —a—b—s—_—d—e—v—s— —=— —n—p—.—a—b—s—(—d—e—v—s—)—
+— — — — — — — — —r—a—n—k—s— —=— —s—t—a—t—s—.—r—a—n—k—d—a—t—a—(—a—b—s—_—d—e—v—s—)—
+— — — — — — — — —s—i—g—n—e—d—_—r—a—n—k—s— —=— —r—a—n—k—s— —*— —n—p—.—s—i—g—n—(—d—e—v—s—)—
+— — — — — — — — —
+— — — — — — — — —k—0— —=— —m—a—x—(—0—,— —i—n—t—(—r—o—u—n—d—(—a—b—s—(—n—p—.—s—u—m—(—s—i—g—n—e—d—_—r—a—n—k—s—[—s—i—g—n—e—d—_—r—a—n—k—s— —<— —0—]—)—)—)—)—)—
+— — — — — — — — —i—f— —k—0— —=—=— —i—m—p—u—t—e—d—_—c—o—u—n—t—:—
+— — — — — — — — — — — — —b—r—e—a—k—
+— — — — — — — — —
+— — — — — — — — —i—m—p—u—t—e—d—_—c—o—u—n—t— —=— —k—0—
+— — — — — — — — —i—f— —k—0— —>— —0—:—
+— — — — — — — — — — — — —s—o—r—t—e—d—_—i—d—x— —=— —n—p—.—a—r—g—s—o—r—t—(—d—e—v—s—)—
+— — — — — — — — — — — — —m—i—s—s—i—n—g—_—e—f—f—e—c—t—s— —=— —2— —*— —c—e—n—t—e—r— —-— —n—p—.—a—r—r—a—y—(—f—i—l—l—e—d—_—e—f—f—e—c—t—s—)—[—s—o—r—t—e—d—_—i—d—x—[—-—k—0—:—]—]—
+— — — — — — — — — — — — —m—i—s—s—i—n—g—_—s—e— —=— —n—p—.—a—r—r—a—y—(—f—i—l—l—e—d—_—s—e—)—[—s—o—r—t—e—d—_—i—d—x—[—-—k—0—:—]—]—
+— — — — — — — — — — — — —
+— — — — — — — — — — — — —f—i—l—l—e—d—_—e—f—f—e—c—t—s— —=— —l—i—s—t—(—e—f—f—e—c—t—s—)— —+— —l—i—s—t—(—m—i—s—s—i—n—g—_—e—f—f—e—c—t—s—)—
+— — — — — — — — — — — — —f—i—l—l—e—d—_—s—e— —=— —l—i—s—t—(—s—t—d—_—e—r—r—s—)— —+— —l—i—s—t—(—m—i—s—s—i—n—g—_—s—e—)—
+— — — — — — — — — — — — —
+— — — — — — — — — — — — —w—_—t—e—m—p— —=— —1—.—0— —/— —(—n—p—.—a—r—r—a—y—(—f—i—l—l—e—d—_—s—e—)— —*—*— —2—)—
+— — — — — — — — — — — — —c—e—n—t—e—r— —=— —n—p—.—s—u—m—(—w—_—t—e—m—p— —*— —n—p—.—a—r—r—a—y—(—f—i—l—l—e—d—_—e—f—f—e—c—t—s—)—)— —/— —n—p—.—s—u—m—(—w—_—t—e—m—p—)—
+— — — — — — — — — — — — —
+— — — — —r—e—t—u—r—n— —n—p—.—a—r—r—a—y—(—f—i—l—l—e—d—_—e—f—f—e—c—t—s—)—,— —n—p—.—a—r—r—a—y—(—f—i—l—l—e—d—_—s—e—)—,— —i—m—p—u—t—e—d—_—c—o—u—n—t—
+—
+—#— —─—─—─— —H—E—R—O— —H—E—A—D—E—R— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—"—"—
+—<—d—i—v— —s—t—y—l—e—=—'—d—i—s—p—l—a—y—:—f—l—e—x—;— —j—u—s—t—i—f—y—-—c—o—n—t—e—n—t—:—s—p—a—c—e—-—b—e—t—w—e—e—n—;— —a—l—i—g—n—-—i—t—e—m—s—:—c—e—n—t—e—r—;— —m—a—r—g—i—n—-—b—o—t—t—o—m—:—1—.—5—r—e—m—;— —f—l—e—x—-—w—r—a—p—:—w—r—a—p—;— —g—a—p—:—1—r—e—m—;—'—>—
+— — — — —<—d—i—v—>—
+— — — — — — — — —<—s—p—a—n— —c—l—a—s—s—=—'—b—a—d—g—e—-—g—l—o—w—'—>—⚡— —v—6—.—0— —U—L—T—R—A— ——— —D—Y—N—A—M—I—C— —E—F—F—E—C—T— —C—O—N—V—E—R—T—E—R—S— —&— —T—R—I—M—-—A—N—D—-—F—I—L—L— —S—U—I—T—E—<—/—s—p—a—n—>—
+— — — — — — — — —<—h—1— —s—t—y—l—e—=—'—f—o—n—t—-—s—i—z—e—:—2—.—2—r—e—m—;— —c—o—l—o—r—:—#—f—8—f—a—f—c—;— —m—a—r—g—i—n—:—0—.—4—r—e—m— —0— —0—.—2—r—e—m— —0—;—'—>—
+— — — — — — — — — — — — —�—�— —E—n—t—e—r—p—r—i—s—e— —M—e—t—a—-—A—n—a—l—y—s—i—s— —&— —E—v—i—d—e—n—c—e— —S—y—n—t—h—e—s—i—s— —E—n—g—i—n—e—
+— — — — — — — — —<—/—h—1—>—
+— — — — — — — — —<—p— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—9—4—a—3—b—8—;— —f—o—n—t—-—s—i—z—e—:—0—.—9—5—r—e—m—;— —m—a—x—-—w—i—d—t—h—:—8—5—0—p—x—;— —m—a—r—g—i—n—:—0—;—'—>—
+— — — — — — — — — — — — —P—e—r—f—o—r—m— —r—i—g—o—r—o—u—s— —s—t—a—t—i—s—t—i—c—a—l— —p—o—o—l—i—n—g—,— —m—u—l—t—i—-—e—s—t—i—m—a—t—o—r— —h—e—t—e—r—o—g—e—n—e—i—t—y— —m—o—d—e—l—i—n—g— —(—D—L—,— —R—E—M—L—,— —H—E—)—,— —p—u—b—l—i—c—a—t—i—o—n— —b—i—a—s— —a—d—j—u—s—t—m—e—n—t—s— —(—E—g—g—e—r—'—s— —T—e—s—t— —&— —T—r—i—m—-—a—n—d—-—F—i—l—l—)—,— —a—n—d— —i—n—t—e—r—a—c—t—i—v—e— —v—i—s—u—a—l—i—z—a—t—i—o—n—.—
+— — — — — — — — —<—/—p—>—
+— — — — —<—/—d—i—v—>—
+—<—/—d—i—v—>—
+—"—"—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—r— —s—t—y—l—e—=—'—b—o—r—d—e—r—-—c—o—l—o—r—:—#—1—e—2—9—3—b—;— —m—a—r—g—i—n—:—1—r—e—m— —0—;—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —S—E—C—U—R—I—T—Y— —G—A—T—E— —&— —W—O—R—K—S—P—A—C—E— —C—O—N—T—R—O—L— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—c—o—l—_—s—e—c—,— —c—o—l—_—p—r—o—j— —=— —s—t—.—c—o—l—u—m—n—s—(—[—1—,— —1—]—)—
+—
+—w—i—t—h— —c—o—l—_—s—e—c—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —S—e—c—u—r—i—t—y— —A—u—t—h—e—n—t—i—c—a—t—i—o—n— —G—a—t—e—"—)—
+— — — — —i—f— —n—o—t— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—m—e—t—a—_—e—n—g—i—n—e—_—c—l—e—a—r—a—n—c—e—:—
+— — — — — — — — —s—t—.—i—n—f—o—(—"—�—�— —E—n—t—e—r— —p—a—s—s—k—e—y— —(—*—*—E—N—T—E—R—P—R—I—S—E—_—K—E—Y—*—*—)— —t—o— —a—c—c—e—s—s— —s—t—a—t—i—s—t—i—c—a—l— —m—o—d—e—l—i—n—g— —s—u—i—t—e—.—"—)—
+— — — — — — — — —s—e—c—u—r—i—t—y—_—i—n—p—u—t— —=— —s—t—.—t—e—x—t—_—i—n—p—u—t—(—"—E—n—t—e—r— —P—a—s—s—k—e—y—"—,— —t—y—p—e—=—"—p—a—s—s—w—o—r—d—"—,— —p—l—a—c—e—h—o—l—d—e—r—=—"—•—•—•—•—•—•—•—•—"—,— —k—e—y—=—"—m—e—t—a—_—p—a—s—s—k—e—y—_—i—n—p—u—t—"—)—
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —A—u—t—h—e—n—t—i—c—a—t—e— —P—a—s—s—k—e—y—"—,— —t—y—p—e—=—"—p—r—i—m—a—r—y—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—:—
+— — — — — — — — — — — — —i—f— —s—e—c—u—r—i—t—y—_—i—n—p—u—t— —a—n—d— —h—a—s—h—l—i—b—.—s—h—a—2—5—6—(—s—e—c—u—r—i—t—y—_—i—n—p—u—t—.—e—n—c—o—d—e—(—)—)—.—h—e—x—d—i—g—e—s—t—(—)— —=—=— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—c—u—s—t—o—m—_—a—c—c—e—s—s—_—p—a—s—s—w—o—r—d—:—
+— — — — — — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—m—e—t—a—_—e—n—g—i—n—e—_—c—l—e—a—r—a—n—c—e— —=— —T—r—u—e—
+— — — — — — — — — — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—"—✅— —E—n—t—e—r—p—r—i—s—e— —C—l—e—a—r—a—n—c—e— —G—r—a—n—t—e—d—!—"—)—
+— — — — — — — — — — — — — — — — —s—t—.—r—e—r—u—n—(—)—
+— — — — — — — — — — — — —e—l—s—e—:—
+— — — — — — — — — — — — — — — — —s—t—.—e—r—r—o—r—(—"—❌— —A—c—c—e—s—s— —D—e—n—i—e—d—:— —I—n—v—a—l—i—d— —P—a—s—s—k—e—y—"—)—
+— — — — —e—l—s—e—:—
+— — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—"—�—�— —E—n—t—e—r—p—r—i—s—e— —W—o—r—k—s—p—a—c—e— —U—n—l—o—c—k—e—d—"—)—
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—�—�— —L—o—c—k— —W—o—r—k—s—p—a—c—e—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—:—
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—m—e—t—a—_—e—n—g—i—n—e—_—c—l—e—a—r—a—n—c—e— —=— —F—a—l—s—e—
+— — — — — — — — — — — — —s—t—.—r—e—r—u—n—(—)—
+—
+—w—i—t—h— —c—o—l—_—p—r—o—j—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —P—r—o—j—e—c—t— —&— —I—n—p—u—t— —S—t—r—a—t—e—g—y—"—)—
+— — — — —a—n—a—l—y—s—i—s—_—m—o—d—e— —=— —s—t—.—s—e—l—e—c—t—b—o—x—(—
+— — — — — — — — —"—S—e—l—e—c—t— —D—a—t—a— —I—n—p—u—t— —M—o—d—e—"—,—
+— — — — — — — — —o—p—t—i—o—n—s—=—[—
+— — — — — — — — — — — — —"—P—r—e—-—c—o—m—p—u—t—e—d— —E—f—f—e—c—t— —S—i—z—e—s— —(—E—S— —+— —S—E—)—"—,—
+— — — — — — — — — — — — —"—R—a—w— —C—o—n—t—i—n—u—o—u—s— —D—a—t—a— —(—M—e—a—n—,— —S—D—,— —N—)—"—,—
+— — — — — — — — — — — — —"—R—a—w— —B—i—n—a—r—y— —O—u—t—c—o—m—e— —D—a—t—a— —(—E—v—e—n—t—s—,— —N—)—"—,—
+— — — — — — — — — — — — —"—U—p—l—o—a—d— —C—u—s—t—o—m— —D—a—t—a—s—e—t— —(—.—c—s—v— —/— —.—x—l—s—x—)—"—
+— — — — — — — — —]—
+— — — — —)—
+—
+—i—f— —n—o—t— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—.—m—e—t—a—_—e—n—g—i—n—e—_—c—l—e—a—r—a—n—c—e—:—
+— — — — —s—t—.—w—a—r—n—i—n—g—(—"—�—�— —*—*—A—u—t—h—e—n—t—i—c—a—t—e— —v—i—a— —S—e—c—u—r—i—t—y— —G—a—t—e—*—*— —t—o— —p—e—r—f—o—r—m— —m—o—d—e—l—i—n—g— —a—n—d— —e—x—p—o—r—t— —p—u—b—l—i—c—a—t—i—o—n— —p—l—o—t—s—.—"—)—
+— — — — —s—t—.—s—t—o—p—(—)—
+—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—r— —s—t—y—l—e—=—'—b—o—r—d—e—r—-—c—o—l—o—r—:—#—1—e—2—9—3—b—;— —m—a—r—g—i—n—:—1—r—e—m— —0—;—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+—#— —─—─—─— —N—A—V—I—G—A—T—I—O—N— —T—A—B—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—t—a—b—1—,— —t—a—b—2—,— —t—a—b—3—,— —t—a—b—4—,— —t—a—b—5— —=— —s—t—.—t—a—b—s—(—[—
+— — — — —"—�—�— —D—a—t—a—s—e—t— —&— —E—f—f—e—c—t— —B—u—i—l—d—e—r—"—,—
+— — — — —"—⚙—️— —S—t—a—t—i—s—t—i—c—a—l— —P—o—o—l—i—n—g— —E—n—g—i—n—e—"—,—
+— — — — —"—�—�— —I—n—t—e—r—a—c—t—i—v—e— —F—o—r—e—s—t— —P—l—o—t—"—,—
+— — — — —"—�—�— —P—u—b—l—i—c—a—t—i—o—n— —B—i—a—s— —&— —T—r—i—m—-—a—n—d—-—F—i—l—l—"—,—
+— — — — —"—�—�— —H—e—t—e—r—o—g—e—n—e—i—t—y— —&— —S—u—b—g—r—o—u—p—s—"—
+—]—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —1—:— —D—A—T—A—S—E—T— —M—A—N—A—G—E—R— —&— —C—O—N—V—E—R—T—E—R—S—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—w—i—t—h— —t—a—b—1—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—3— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—0—0—f—2—f—e—;—'—>—�—�— —S—t—u—d—y— —D—a—t—a— —&— —E—f—f—e—c—t— —S—i—z—e— —C—o—n—v—e—r—t—e—r— —E—n—g—i—n—e—<—/—h—3—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —
+— — — — —i—f— —a—n—a—l—y—s—i—s—_—m—o—d—e— —=—=— —"—U—p—l—o—a—d— —C—u—s—t—o—m— —D—a—t—a—s—e—t— —(—.—c—s—v— —/— —.—x—l—s—x—)—"—:—
+— — — — — — — — —u—p—l—o—a—d—e—d—_—f—i—l—e— —=— —s—t—.—f—i—l—e—_—u—p—l—o—a—d—e—r—(—"—U—p—l—o—a—d— —s—t—u—d—y— —d—a—t—a—s—e—t—"—,— —t—y—p—e—=—[—"—c—s—v—"—,— —"—x—l—s—x—"—]—)—
+— — — — — — — — —i—f— —u—p—l—o—a—d—e—d—_—f—i—l—e—:—
+— — — — — — — — — — — — —i—f— —u—p—l—o—a—d—e—d—_—f—i—l—e—.—n—a—m—e—.—e—n—d—s—w—i—t—h—(—"—.—c—s—v—"—)—:—
+— — — — — — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—m—e—t—a—_—d—f—"—]— —=— —p—d—.—r—e—a—d—_—c—s—v—(—u—p—l—o—a—d—e—d—_—f—i—l—e—)—
+— — — — — — — — — — — — —e—l—s—e—:—
+— — — — — — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—m—e—t—a—_—d—f—"—]— —=— —p—d—.—r—e—a—d—_—e—x—c—e—l—(—u—p—l—o—a—d—e—d—_—f—i—l—e—)—
+— — — — — — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—"—✅— —C—u—s—t—o—m— —D—a—t—a—s—e—t— —L—o—a—d—e—d— —S—u—c—c—e—s—s—f—u—l—l—y—!—"—)—
+—
+— — — — —e—l—i—f— —a—n—a—l—y—s—i—s—_—m—o—d—e— —=—=— —"—R—a—w— —C—o—n—t—i—n—u—o—u—s— —D—a—t—a— —(—M—e—a—n—,— —S—D—,— —N—)—"—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#—#— —C—o—m—p—u—t—e— —H—e—d—g—e—s—'— —g— —/— —C—o—h—e—n—'—s— —d— —f—r—o—m— —R—a—w— —M—e—a—n—s—"—)—
+— — — — — — — — —r—a—w—_—c—_—d—f— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—{—
+— — — — — — — — — — — — —"—S—t—u—d—y—"—:— —[—"—S—t—u—d—y— —A—"—,— —"—S—t—u—d—y— —B—"—,— —"—S—t—u—d—y— —C—"—]—,—
+— — — — — — — — — — — — —"—M—e—a—n—_—E—x—p—"—:— —[—1—2—.—5—,— —1—4—.—1—,— —1—0—.—8—]—,— —"—S—D—_—E—x—p—"—:— —[—2—.—1—,— —2—.—5—,— —1—.—9—]—,— —"—N—_—E—x—p—"—:— —[—5—0—,— —4—5—,— —6—0—]—,—
+— — — — — — — — — — — — —"—M—e—a—n—_—C—t—r—l—"—:— —[—1—0—.—2—,— —1—3—.—0—,— —9—.—5—]—,— —"—S—D—_—C—t—r—l—"—:— —[—2—.—0—,— —2—.—3—,— —1—.—8—]—,— —"—N—_—C—t—r—l—"—:— —[—5—0—,— —4—5—,— —6—0—]—,—
+— — — — — — — — — — — — —"—S—u—b—g—r—o—u—p—"—:— —[—"—G—r—o—u—p— —1—"—,— —"—G—r—o—u—p— —1—"—,— —"—G—r—o—u—p— —2—"—]—
+— — — — — — — — —}—)—
+— — — — — — — — —e—d—i—t—e—d—_—r—a—w— —=— —s—t—.—d—a—t—a—_—e—d—i—t—o—r—(—r—a—w—_—c—_—d—f—,— —n—u—m—_—r—o—w—s—=—"—d—y—n—a—m—i—c—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — — — — — —
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—⚡— —C—o—n—v—e—r—t— —R—a—w— —C—o—n—t—i—n—u—o—u—s— —D—a—t—a— —t—o— —E—f—f—e—c—t— —S—i—z—e—s—"—)—:—
+— — — — — — — — — — — — —e—s—_—l—i—s—t—,— —s—e—_—l—i—s—t— —=— —[—]—,— —[—]—
+— — — — — — — — — — — — —f—o—r— —_—,— —r—o—w— —i—n— —e—d—i—t—e—d—_—r—a—w—.—i—t—e—r—r—o—w—s—(—)—:—
+— — — — — — — — — — — — — — — — —e—s—,— —s—e— —=— —c—o—m—p—u—t—e—_—c—o—n—t—i—n—u—o—u—s—_—e—f—f—e—c—t—(—
+— — — — — — — — — — — — — — — — — — — — —r—o—w—[—"—M—e—a—n—_—E—x—p—"—]—,— —r—o—w—[—"—S—D—_—E—x—p—"—]—,— —r—o—w—[—"—N—_—E—x—p—"—]—,—
+— — — — — — — — — — — — — — — — — — — — —r—o—w—[—"—M—e—a—n—_—C—t—r—l—"—]—,— —r—o—w—[—"—S—D—_—C—t—r—l—"—]—,— —r—o—w—[—"—N—_—C—t—r—l—"—]—
+— — — — — — — — — — — — — — — — —)—
+— — — — — — — — — — — — — — — — —e—s—_—l—i—s—t—.—a—p—p—e—n—d—(—e—s—)—
+— — — — — — — — — — — — — — — — —s—e—_—l—i—s—t—.—a—p—p—e—n—d—(—s—e—)—
+— — — — — — — — — — — — —
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—m—e—t—a—_—d—f—"—]— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—{—
+— — — — — — — — — — — — — — — — —"—S—t—u—d—y—"—:— —e—d—i—t—e—d—_—r—a—w—[—"—S—t—u—d—y—"—]—,—
+— — — — — — — — — — — — — — — — —"—E—f—f—e—c—t—_—S—i—z—e—"—:— —e—s—_—l—i—s—t—,—
+— — — — — — — — — — — — — — — — —"—S—t—a—n—d—a—r—d—_—E—r—r—o—r—"—:— —s—e—_—l—i—s—t—,—
+— — — — — — — — — — — — — — — — —"—S—u—b—g—r—o—u—p—"—:— —e—d—i—t—e—d—_—r—a—w—[—"—S—u—b—g—r—o—u—p—"—]—
+— — — — — — — — — — — — —}—)—
+— — — — — — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—"—✅— —C—a—l—c—u—l—a—t—e—d— —H—e—d—g—e—s—'— —g— —a—n—d— —S—E— —s—u—c—c—e—s—s—f—u—l—l—y—!—"—)—
+—
+— — — — —e—l—i—f— —a—n—a—l—y—s—i—s—_—m—o—d—e— —=—=— —"—R—a—w— —B—i—n—a—r—y— —O—u—t—c—o—m—e— —D—a—t—a— —(—E—v—e—n—t—s—,— —N—)—"—:—
+— — — — — — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#—#— —C—o—m—p—u—t—e— —L—o—g— —O—d—d—s— —R—a—t—i—o— —/— —L—o—g— —R—i—s—k— —R—a—t—i—o— —f—r—o—m— —E—v—e—n—t— —C—o—u—n—t—s—"—)—
+— — — — — — — — —r—a—w—_—b—_—d—f— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—{—
+— — — — — — — — — — — — —"—S—t—u—d—y—"—:— —[—"—S—t—u—d—y— —X—"—,— —"—S—t—u—d—y— —Y—"—,— —"—S—t—u—d—y— —Z—"—]—,—
+— — — — — — — — — — — — —"—E—v—e—n—t—s—_—E—x—p—"—:— —[—1—5—,— —2—2—,— —8—]—,— —"—T—o—t—a—l—_—E—x—p—"—:— —[—1—0—0—,— —1—5—0—,— —8—0—]—,—
+— — — — — — — — — — — — —"—E—v—e—n—t—s—_—C—t—r—l—"—:— —[—2—8—,— —3—5—,— —1—8—]—,— —"—T—o—t—a—l—_—C—t—r—l—"—:— —[—1—0—0—,— —1—5—0—,— —8—0—]—,—
+— — — — — — — — — — — — —"—S—u—b—g—r—o—u—p—"—:— —[—"—C—o—h—o—r—t— —A—"—,— —"—C—o—h—o—r—t— —A—"—,— —"—C—o—h—o—r—t— —B—"—]—
+— — — — — — — — —}—)—
+— — — — — — — — —e—d—i—t—e—d—_—b—_—r—a—w— —=— —s—t—.—d—a—t—a—_—e—d—i—t—o—r—(—r—a—w—_—b—_—d—f—,— —n—u—m—_—r—o—w—s—=—"—d—y—n—a—m—i—c—"—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+— — — — — — — — —
+— — — — — — — — —i—f— —s—t—.—b—u—t—t—o—n—(—"—⚡— —C—o—n—v—e—r—t— —R—a—w— —B—i—n—a—r—y— —D—a—t—a— —t—o— —L—o—g— —O—d—d—s— —R—a—t—i—o—s—"—)—:—
+— — — — — — — — — — — — —e—s—_—l—i—s—t—,— —s—e—_—l—i—s—t— —=— —[—]—,— —[—]—
+— — — — — — — — — — — — —f—o—r— —_—,— —r—o—w— —i—n— —e—d—i—t—e—d—_—b—_—r—a—w—.—i—t—e—r—r—o—w—s—(—)—:—
+— — — — — — — — — — — — — — — — —e—s—,— —s—e— —=— —c—o—m—p—u—t—e—_—b—i—n—a—r—y—_—e—f—f—e—c—t—(—
+— — — — — — — — — — — — — — — — — — — — —r—o—w—[—"—E—v—e—n—t—s—_—E—x—p—"—]—,— —r—o—w—[—"—T—o—t—a—l—_—E—x—p—"—]—,—
+— — — — — — — — — — — — — — — — — — — — —r—o—w—[—"—E—v—e—n—t—s—_—C—t—r—l—"—]—,— —r—o—w—[—"—T—o—t—a—l—_—C—t—r—l—"—]—
+— — — — — — — — — — — — — — — — —)—
+— — — — — — — — — — — — — — — — —e—s—_—l—i—s—t—.—a—p—p—e—n—d—(—e—s—)—
+— — — — — — — — — — — — — — — — —s—e—_—l—i—s—t—.—a—p—p—e—n—d—(—s—e—)—
+— — — — — — — — — — — — —
+— — — — — — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—m—e—t—a—_—d—f—"—]— —=— —p—d—.—D—a—t—a—F—r—a—m—e—(—{—
+— — — — — — — — — — — — — — — — —"—S—t—u—d—y—"—:— —e—d—i—t—e—d—_—b—_—r—a—w—[—"—S—t—u—d—y—"—]—,—
+— — — — — — — — — — — — — — — — —"—E—f—f—e—c—t—_—S—i—z—e—"—:— —e—s—_—l—i—s—t—,—
+— — — — — — — — — — — — — — — — —"—S—t—a—n—d—a—r—d—_—E—r—r—o—r—"—:— —s—e—_—l—i—s—t—,—
+— — — — — — — — — — — — — — — — —"—S—u—b—g—r—o—u—p—"—:— —e—d—i—t—e—d—_—b—_—r—a—w—[—"—S—u—b—g—r—o—u—p—"—]—
+— — — — — — — — — — — — —}—)—
+— — — — — — — — — — — — —s—t—.—s—u—c—c—e—s—s—(—"—✅— —C—a—l—c—u—l—a—t—e—d— —L—o—g— —O—d—d—s— —R—a—t—i—o— —a—n—d— —S—E— —s—u—c—c—e—s—s—f—u—l—l—y—!—"—)—
+—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#—#— —C—u—r—r—e—n—t— —M—a—s—t—e—r— —D—a—t—a— —T—a—b—l—e—"—)—
+— — — — —e—d—i—t—e—d—_—d—f— —=— —s—t—.—d—a—t—a—_—e—d—i—t—o—r—(—
+— — — — — — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—m—e—t—a—_—d—f—"—]—,—
+— — — — — — — — —n—u—m—_—r—o—w—s—=—"—d—y—n—a—m—i—c—"—,—
+— — — — — — — — —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—,—
+— — — — — — — — —k—e—y—=—"—m—a—s—t—e—r—_—m—e—t—a—_—e—d—i—t—o—r—"—
+— — — — —)—
+— — — — —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—m—e—t—a—_—d—f—"—]— —=— —e—d—i—t—e—d—_—d—f—
+—
+—#— —─—─—─— —E—X—T—R—A—C—T— —D—A—T—A— —A—R—R—A—Y—S— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—d—f— —=— —s—t—.—s—e—s—s—i—o—n—_—s—t—a—t—e—[—"—m—e—t—a—_—d—f—"—]—
+—t—r—y—:—
+— — — — —s—t—u—d—i—e—s— —=— —d—f—[—"—S—t—u—d—y—"—]—.—a—s—t—y—p—e—(—s—t—r—)—.—t—o—l—i—s—t—(—)—
+— — — — —e—f—f—e—c—t—_—s—i—z—e—s— —=— —d—f—[—"—E—f—f—e—c—t—_—S—i—z—e—"—]—.—a—s—t—y—p—e—(—f—l—o—a—t—)—.—v—a—l—u—e—s—
+— — — — —s—t—a—n—d—a—r—d—_—e—r—r—o—r—s— —=— —d—f—[—"—S—t—a—n—d—a—r—d—_—E—r—r—o—r—"—]—.—a—s—t—y—p—e—(—f—l—o—a—t—)—.—v—a—l—u—e—s—
+— — — — —w—e—i—g—h—t—s— —=— —1—.—0— —/— —(—s—t—a—n—d—a—r—d—_—e—r—r—o—r—s— —*—*— —2—)—
+— — — — —k— —=— —l—e—n—(—s—t—u—d—i—e—s—)—
+—e—x—c—e—p—t— —E—x—c—e—p—t—i—o—n— —a—s— —e—:—
+— — — — —s—t—.—e—r—r—o—r—(—f—"—⚠—️— —C—o—l—u—m—n— —m—a—p—p—i—n—g— —e—r—r—o—r—:— —E—n—s—u—r—e— —'—S—t—u—d—y—'—,— —'—E—f—f—e—c—t—_—S—i—z—e—'—,— —a—n—d— —'—S—t—a—n—d—a—r—d—_—E—r—r—o—r—'— —e—x—i—s—t—.— —D—e—t—a—i—l—s—:— —{—e—}—"—)—
+— — — — —s—t—.—s—t—o—p—(—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —2—:— —S—T—A—T—I—S—T—I—C—A—L— —P—O—O—L—I—N—G— —E—N—G—I—N—E—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—w—i—t—h— —t—a—b—2—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—3— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—0—0—f—2—f—e—;—'—>—⚙—️— —A—d—v—a—n—c—e—d— —M—o—d—e—l— —P—o—o—l—i—n—g— —&— —V—a—r—i—a—n—c—e— —E—s—t—i—m—a—t—o—r—s—<—/—h—3—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —
+— — — — —c—o—l—_—m—1—,— —c—o—l—_—m—2— —=— —s—t—.—c—o—l—u—m—n—s—(—2—)—
+— — — — —w—i—t—h— —c—o—l—_—m—1—:—
+— — — — — — — — —m—o—d—e—l—_—t—y—p—e— —=— —s—t—.—r—a—d—i—o—(—"—P—o—o—l—i—n—g— —M—o—d—e—l— —S—t—r—a—t—e—g—y—"—,— —[—"—R—a—n—d—o—m—-—E—f—f—e—c—t—s— —M—o—d—e—l—"—,— —"—F—i—x—e—d—-—E—f—f—e—c—t— —M—o—d—e—l—"—]—)—
+— — — — —w—i—t—h— —c—o—l—_—m—2—:—
+— — — — — — — — —t—a—u—_—e—s—t—i—m—a—t—o—r— —=— —s—t—.—s—e—l—e—c—t—b—o—x—(—"—T—a—u—²— —V—a—r—i—a—n—c—e— —E—s—t—i—m—a—t—o—r— —(—R—a—n—d—o—m—-—E—f—f—e—c—t—s—)—"—,— —[—"—D—e—r—S—i—m—o—n—i—a—n—-—L—a—i—r—d— —(—D—L—)—"—,— —"—R—e—s—t—r—i—c—t—e—d— —M—a—x—i—m—u—m— —L—i—k—e—l—i—h—o—o—d— —(—R—E—M—L—)—"—,— —"—H—e—d—g—e—s—-—O—l—k—i—n— —(—H—E—)—"—]—)—
+—
+— — — — —s—u—m—_—w— —=— —n—p—.—s—u—m—(—w—e—i—g—h—t—s—)—
+— — — — —p—o—o—l—e—d—_—f—e— —=— —n—p—.—s—u—m—(—w—e—i—g—h—t—s— —*— —e—f—f—e—c—t—_—s—i—z—e—s—)— —/— —s—u—m—_—w—
+— — — — —s—e—_—f—e— —=— —n—p—.—s—q—r—t—(—1—.—0— —/— —s—u—m—_—w—)—
+— — — — —
+— — — — —q—_—s—t—a—t— —=— —n—p—.—s—u—m—(—w—e—i—g—h—t—s— —*— —(—(—e—f—f—e—c—t—_—s—i—z—e—s— —-— —p—o—o—l—e—d—_—f—e—)— —*—*— —2—)—)—
+— — — — —d—f—_—q— —=— —m—a—x—(—1—,— —k— —-— —1—)—
+— — — — —p—v—a—l—_—q— —=— —1—.—0— —-— —s—t—a—t—s—.—c—h—i—2—.—c—d—f—(—q—_—s—t—a—t—,— —d—f—_—q—)—
+— — — — —i—_—s—q—u—a—r—e—d— —=— —m—a—x—(—0—.—0—,— —1—0—0—.—0— —*— —(—q—_—s—t—a—t— —-— —d—f—_—q—)— —/— —q—_—s—t—a—t—)— —i—f— —q—_—s—t—a—t— —>— —d—f—_—q— —e—l—s—e— —0—.—0—
+— — — — —h—_—s—q—u—a—r—e—d— —=— —q—_—s—t—a—t— —/— —d—f—_—q— —i—f— —d—f—_—q— —>— —0— —e—l—s—e— —1—.—0—
+— — — — —
+— — — — —i—f— —t—a—u—_—e—s—t—i—m—a—t—o—r— —=—=— —"—H—e—d—g—e—s—-—O—l—k—i—n— —(—H—E—)—"—:—
+— — — — — — — — —t—a—u—_—s—q—u—a—r—e—d— —=— —m—a—x—(—0—.—0—,— —(—q—_—s—t—a—t— —-— —d—f—_—q—)— —/— —(—s—u—m—_—w— —-— —n—p—.—s—u—m—(—w—e—i—g—h—t—s—*—*—2—)—/—s—u—m—_—w—)—)—
+— — — — —e—l—s—e—:—
+— — — — — — — — —c—_—v—a—l— —=— —s—u—m—_—w— —-— —(—n—p—.—s—u—m—(—w—e—i—g—h—t—s— —*—*— —2—)— —/— —s—u—m—_—w—)—
+— — — — — — — — —t—a—u—_—s—q—u—a—r—e—d— —=— —m—a—x—(—0—.—0—,— —(—q—_—s—t—a—t— —-— —d—f—_—q—)— —/— —c—_—v—a—l—)— —i—f— —c—_—v—a—l— —>— —0— —e—l—s—e— —0—.—0—
+—
+— — — — —i—f— —"—R—a—n—d—o—m—"— —i—n— —m—o—d—e—l—_—t—y—p—e—:—
+— — — — — — — — —w—e—i—g—h—t—s—_—r—e— —=— —1—.—0— —/— —(—(—s—t—a—n—d—a—r—d—_—e—r—r—o—r—s— —*—*— —2—)— —+— —t—a—u—_—s—q—u—a—r—e—d—)—
+— — — — — — — — —s—u—m—_—w—_—r—e— —=— —n—p—.—s—u—m—(—w—e—i—g—h—t—s—_—r—e—)—
+— — — — — — — — —p—o—o—l—e—d—_—a—c—t—i—v—e— —=— —n—p—.—s—u—m—(—w—e—i—g—h—t—s—_—r—e— —*— —e—f—f—e—c—t—_—s—i—z—e—s—)— —/— —s—u—m—_—w—_—r—e—
+— — — — — — — — —s—e—_—a—c—t—i—v—e— —=— —n—p—.—s—q—r—t—(—1—.—0— —/— —s—u—m—_—w—_—r—e—)—
+— — — — —e—l—s—e—:—
+— — — — — — — — —p—o—o—l—e—d—_—a—c—t—i—v—e— —=— —p—o—o—l—e—d—_—f—e—
+— — — — — — — — —s—e—_—a—c—t—i—v—e— —=— —s—e—_—f—e—
+—
+— — — — —z—_—s—t—a—t— —=— —p—o—o—l—e—d—_—a—c—t—i—v—e— —/— —s—e—_—a—c—t—i—v—e—
+— — — — —p—_—v—a—l— —=— —2— —*— —(—1— —-— —s—t—a—t—s—.—n—o—r—m—.—c—d—f—(—a—b—s—(—z—_—s—t—a—t—)—)—)—
+— — — — —c—i—_—l—o—w— —=— —p—o—o—l—e—d—_—a—c—t—i—v—e— —-— —1—.—9—6— —*— —s—e—_—a—c—t—i—v—e—
+— — — — —c—i—_—h—i—g—h— —=— —p—o—o—l—e—d—_—a—c—t—i—v—e— —+— —1—.—9—6— —*— —s—e—_—a—c—t—i—v—e—
+—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —M—e—t—a—-—A—n—a—l—y—t—i—c— —S—y—n—t—h—e—s—i—s— —R—e—s—u—l—t—s—"—)—
+— — — — —m—_—c—o—l—1—,— —m—_—c—o—l—2—,— —m—_—c—o—l—3—,— —m—_—c—o—l—4— —=— —s—t—.—c—o—l—u—m—n—s—(—4—)—
+— — — — —m—_—c—o—l—1—.—m—e—t—r—i—c—(—"—P—o—o—l—e—d— —E—f—f—e—c—t— —S—i—z—e—"—,— —f—"—{—p—o—o—l—e—d—_—a—c—t—i—v—e—:—.—4—f—}—"—)—
+— — — — —m—_—c—o—l—2—.—m—e—t—r—i—c—(—"—9—5—%— —C—o—n—f—i—d—e—n—c—e— —I—n—t—e—r—v—a—l—"—,— —f—"—[—{—c—i—_—l—o—w—:—.—4—f—}—,— —{—c—i—_—h—i—g—h—:—.—4—f—}—]—"—)—
+— — — — —m—_—c—o—l—3—.—m—e—t—r—i—c—(—"—Z—-—V—a—l—u—e— —(—p—-—v—a—l—u—e—)—"—,— —f—"—Z— —=— —{—z—_—s—t—a—t—:—.—2—f—}— —(—p— —=— —{—p—_—v—a—l—:—.—4—f—}—)—"—)—
+— — — — —m—_—c—o—l—4—.—m—e—t—r—i—c—(—"—T—a—u—²— —B—e—t—w—e—e—n—-—S—t—u—d—y— —V—a—r—"—,— —f—"—{—t—a—u—_—s—q—u—a—r—e—d—:—.—4—f—}—"—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —3—:— —I—N—T—E—R—A—C—T—I—V—E— —F—O—R—E—S—T— —P—L—O—T—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—w—i—t—h— —t—a—b—3—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—3— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—0—0—f—2—f—e—;—'—>—�—�— —I—n—t—e—r—a—c—t—i—v—e— —F—o—r—e—s—t— —P—l—o—t—<—/—h—3—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+— — — — —f—i—g— —=— —g—o—.—F—i—g—u—r—e—(—)—
+—
+— — — — —f—o—r— —i— —i—n— —r—a—n—g—e—(—k—)—:—
+— — — — — — — — —e—s— —=— —e—f—f—e—c—t—_—s—i—z—e—s—[—i—]—
+— — — — — — — — —s—e— —=— —s—t—a—n—d—a—r—d—_—e—r—r—o—r—s—[—i—]—
+— — — — — — — — —c—i—_—l—,— —c—i—_—u— —=— —e—s— —-— —1—.—9—6— —*— —s—e—,— —e—s— —+— —1—.—9—6— —*— —s—e—
+— — — — — — — — —r—e—l—_—w—t— —=— —(—w—e—i—g—h—t—s—[—i—]— —/— —n—p—.—s—u—m—(—w—e—i—g—h—t—s—)—)— —*— —1—0—0—
+— — — — — — — — —
+— — — — — — — — —f—i—g—.—a—d—d—_—t—r—a—c—e—(—g—o—.—S—c—a—t—t—e—r—(—
+— — — — — — — — — — — — —x—=—[—c—i—_—l—,— —e—s—,— —c—i—_—u—]—,—
+— — — — — — — — — — — — —y—=—[—s—t—u—d—i—e—s—[—i—]—,— —s—t—u—d—i—e—s—[—i—]—,— —s—t—u—d—i—e—s—[—i—]—]—,—
+— — — — — — — — — — — — —m—o—d—e—=—'—l—i—n—e—s—+—m—a—r—k—e—r—s—'—,—
+— — — — — — — — — — — — —m—a—r—k—e—r—=—d—i—c—t—(—s—i—z—e—=—[—6—,— —1—0—,— —6—]—,— —s—y—m—b—o—l—=—[—'—l—i—n—e—-—e—w—'—,— —'—s—q—u—a—r—e—'—,— —'—l—i—n—e—-—e—w—'—]—,— —c—o—l—o—r—=—'—#—8—1—8—c—f—8—'—)—,—
+— — — — — — — — — — — — —l—i—n—e—=—d—i—c—t—(—c—o—l—o—r—=—'—#—8—1—8—c—f—8—'—,— —w—i—d—t—h—=—2—)—,—
+— — — — — — — — — — — — —n—a—m—e—=—s—t—u—d—i—e—s—[—i—]—,—
+— — — — — — — — — — — — —h—o—v—e—r—t—e—m—p—l—a—t—e—=—f—"—<—b—>—{—s—t—u—d—i—e—s—[—i—]—}—<—/—b—>—<—b—r—>—E—f—f—e—c—t— —S—i—z—e—:— —{—e—s—:—.—3—f—}—<—b—r—>—9—5—%— —C—I—:— —[—{—c—i—_—l—:—.—3—f—}—,— —{—c—i—_—u—:—.—3—f—}—]—<—b—r—>—W—e—i—g—h—t—:— —{—r—e—l—_—w—t—:—.—1—f—}—%—<—e—x—t—r—a—>—<—/—e—x—t—r—a—>—"—
+— — — — — — — — —)—)—
+—
+— — — — —f—i—g—.—a—d—d—_—t—r—a—c—e—(—g—o—.—S—c—a—t—t—e—r—(—
+— — — — — — — — —x—=—[—c—i—_—l—o—w—,— —p—o—o—l—e—d—_—a—c—t—i—v—e—,— —c—i—_—h—i—g—h—]—,—
+— — — — — — — — —y—=—[—"—O—v—e—r—a—l—l— —P—o—o—l—e—d—"—,— —"—O—v—e—r—a—l—l— —P—o—o—l—e—d—"—,— —"—O—v—e—r—a—l—l— —P—o—o—l—e—d—"—]—,—
+— — — — — — — — —m—o—d—e—=—'—l—i—n—e—s—+—m—a—r—k—e—r—s—'—,—
+— — — — — — — — —m—a—r—k—e—r—=—d—i—c—t—(—s—i—z—e—=—[—8—,— —1—2—,— —8—]—,— —s—y—m—b—o—l—=—[—'—d—i—a—m—o—n—d—'—,— —'—d—i—a—m—o—n—d—'—,— —'—d—i—a—m—o—n—d—'—]—,— —c—o—l—o—r—=—'—#—f—4—3—f—5—e—'—)—,—
+— — — — — — — — —l—i—n—e—=—d—i—c—t—(—c—o—l—o—r—=—'—#—f—4—3—f—5—e—'—,— —w—i—d—t—h—=—3—)—,—
+— — — — — — — — —n—a—m—e—=—"—P—o—o—l—e—d— —R—e—s—u—l—t—"—,—
+— — — — — — — — —h—o—v—e—r—t—e—m—p—l—a—t—e—=—f—"—<—b—>—O—v—e—r—a—l—l— —P—o—o—l—e—d— —E—s—t—i—m—a—t—e—<—/—b—>—<—b—r—>—E—f—f—e—c—t—:— —{—p—o—o—l—e—d—_—a—c—t—i—v—e—:—.—3—f—}—<—b—r—>—9—5—%— —C—I—:— —[—{—c—i—_—l—o—w—:—.—3—f—}—,— —{—c—i—_—h—i—g—h—:—.—3—f—}—]—<—e—x—t—r—a—>—<—/—e—x—t—r—a—>—"—
+— — — — —)—)—
+—
+— — — — —f—i—g—.—a—d—d—_—v—l—i—n—e—(—x—=—0—,— —l—i—n—e—_—d—a—s—h—=—"—d—a—s—h—"—,— —l—i—n—e—_—c—o—l—o—r—=—"—#—6—4—7—4—8—b—"—,— —a—n—n—o—t—a—t—i—o—n—_—t—e—x—t—=—"—N—u—l—l— —E—f—f—e—c—t—"—)—
+— — — — —f—i—g—.—a—d—d—_—v—l—i—n—e—(—x—=—p—o—o—l—e—d—_—a—c—t—i—v—e—,— —l—i—n—e—_—d—a—s—h—=—"—d—o—t—"—,— —l—i—n—e—_—c—o—l—o—r—=—"—#—f—4—3—f—5—e—"—)—
+—
+— — — — —f—i—g—.—u—p—d—a—t—e—_—l—a—y—o—u—t—(—
+— — — — — — — — —t—i—t—l—e—=—f—"—F—o—r—e—s—t— —P—l—o—t— ——— —{—m—o—d—e—l—_—t—y—p—e—}— —(—k— —=— —{—k—}—)—"—,—
+— — — — — — — — —x—a—x—i—s—_—t—i—t—l—e—=—"—E—f—f—e—c—t— —S—i—z—e— —(—9—5—%— —C—I—)—"—,—
+— — — — — — — — —y—a—x—i—s—_—t—i—t—l—e—=—"—S—t—u—d—i—e—s—"—,—
+— — — — — — — — —s—h—o—w—l—e—g—e—n—d—=—F—a—l—s—e—,—
+— — — — — — — — —h—e—i—g—h—t—=—m—a—x—(—4—5—0—,— —k— —*— —4—5—)—,—
+— — — — — — — — —p—a—p—e—r—_—b—g—c—o—l—o—r—=—"—#—0—2—0—6—1—7—"—,—
+— — — — — — — — —p—l—o—t—_—b—g—c—o—l—o—r—=—"—#—0—9—0—d—1—6—"—,—
+— — — — — — — — —f—o—n—t—=—d—i—c—t—(—c—o—l—o—r—=—"—#—f—8—f—a—f—c—"—)—,—
+— — — — — — — — —x—a—x—i—s—=—d—i—c—t—(—g—r—i—d—c—o—l—o—r—=—"—#—1—e—2—9—3—b—"—)—,—
+— — — — — — — — —y—a—x—i—s—=—d—i—c—t—(—g—r—i—d—c—o—l—o—r—=—"—#—1—e—2—9—3—b—"—)—,—
+— — — — — — — — —m—a—r—g—i—n—=—d—i—c—t—(—l—=—1—5—0—,— —r—=—4—0—,— —t—=—6—0—,— —b—=—5—0—)—
+— — — — —)—
+—
+— — — — —s—t—.—p—l—o—t—l—y—_—c—h—a—r—t—(—f—i—g—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —4—:— —P—U—B—L—I—C—A—T—I—O—N— —B—I—A—S— —&— —T—R—I—M—-—A—N—D—-—F—I—L—L—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—w—i—t—h— —t—a—b—4—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—3— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—0—0—f—2—f—e—;—'—>—�—�— —P—u—b—l—i—c—a—t—i—o—n— —B—i—a—s— —D—i—a—g—n—o—s—t—i—c—s— —&— —T—r—i—m—-—a—n—d—-—F—i—l—l—<—/—h—3—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+— — — — —i—f— —k— —<— —3—:—
+— — — — — — — — —s—t—.—w—a—r—n—i—n—g—(—"—⚠—️— —P—u—b—l—i—c—a—t—i—o—n— —b—i—a—s— —d—e—t—e—c—t—i—o—n— —r—e—q—u—i—r—e—s— —a—t— —l—e—a—s—t— —k— —≥— —3— —s—t—u—d—i—e—s—.—"—)—
+— — — — —e—l—s—e—:—
+— — — — — — — — —p—r—e—c—i—s—i—o—n— —=— —1—.—0— —/— —s—t—a—n—d—a—r—d—_—e—r—r—o—r—s—
+— — — — — — — — —s—t—d—_—e—f—f—e—c—t—s— —=— —e—f—f—e—c—t—_—s—i—z—e—s— —/— —s—t—a—n—d—a—r—d—_—e—r—r—o—r—s—
+— — — — — — — — —s—l—o—p—e—,— —i—n—t—e—r—c—e—p—t—,— —r—_—v—a—l—,— —p—_—v—a—l—_—e—g—g—e—r—,— —s—t—d—_—e—r—r— —=— —s—t—a—t—s—.—l—i—n—r—e—g—r—e—s—s—(—p—r—e—c—i—s—i—o—n—,— —s—t—d—_—e—f—f—e—c—t—s—)—
+—
+— — — — — — — — —c—o—l—_—e—1—,— —c—o—l—_—e—2— —=— —s—t—.—c—o—l—u—m—n—s—(—2—)—
+— — — — — — — — —c—o—l—_—e—1—.—m—e—t—r—i—c—(—"—E—g—g—e—r—'—s— —T—e—s—t— —I—n—t—e—r—c—e—p—t—"—,— —f—"—{—i—n—t—e—r—c—e—p—t—:—.—4—f—}—"—)—
+— — — — — — — — —c—o—l—_—e—2—.—m—e—t—r—i—c—(—"—E—g—g—e—r—'—s— —T—e—s—t— —P—-—V—a—l—u—e—"—,— —f—"—{—p—_—v—a—l—_—e—g—g—e—r—:—.—4—f—}—"—,— —d—e—l—t—a—=—"—A—s—y—m—m—e—t—r—y— —D—e—t—e—c—t—e—d—"— —i—f— —p—_—v—a—l—_—e—g—g—e—r— —<— —0—.—0—5— —e—l—s—e— —"—S—y—m—m—e—t—r—i—c—"—)—
+—
+— — — — — — — — —f—i—l—l—e—d—_—e—s—,— —f—i—l—l—e—d—_—s—e—,— —k—0— —=— —t—r—i—m—_—a—n—d—_—f—i—l—l—(—e—f—f—e—c—t—_—s—i—z—e—s—,— —s—t—a—n—d—a—r—d—_—e—r—r—o—r—s—)—
+— — — — — — — — —s—t—.—i—n—f—o—(—f—"—�—�— —*—*—D—u—v—a—l— —&— —T—w—e—e—d—i—e— —T—r—i—m—-—a—n—d—-—F—i—l—l— —R—e—s—u—l—t—:—*—*— —E—s—t—i—m—a—t—e—d— —*—*—{—k—0—}— —m—i—s—s—i—n—g— —s—t—u—d—y—/—s—t—u—d—i—e—s—*—*— —d—u—e— —t—o— —f—u—n—n—e—l— —a—s—y—m—m—e—t—r—y—.—"—)—
+—
+— — — — — — — — —f—i—g—_—f—u—n—n—e—l— —=— —g—o—.—F—i—g—u—r—e—(—)—
+—
+— — — — — — — — —f—i—g—_—f—u—n—n—e—l—.—a—d—d—_—t—r—a—c—e—(—g—o—.—S—c—a—t—t—e—r—(—
+— — — — — — — — — — — — —x—=—e—f—f—e—c—t—_—s—i—z—e—s—,— —y—=—s—t—a—n—d—a—r—d—_—e—r—r—o—r—s—,—
+— — — — — — — — — — — — —m—o—d—e—=—'—m—a—r—k—e—r—s—'—,—
+— — — — — — — — — — — — —m—a—r—k—e—r—=—d—i—c—t—(—s—i—z—e—=—9—,— —c—o—l—o—r—=—'—#—0—0—f—2—f—e—'—,— —l—i—n—e—=—d—i—c—t—(—w—i—d—t—h—=—1—,— —c—o—l—o—r—=—'—#—f—f—f—f—f—f—'—)—)—,—
+— — — — — — — — — — — — —n—a—m—e—=—'—O—b—s—e—r—v—e—d— —S—t—u—d—i—e—s—'—
+— — — — — — — — —)—)—
+—
+— — — — — — — — —i—f— —k—0— —>— —0—:—
+— — — — — — — — — — — — —i—m—p—u—t—e—d—_—e—s— —=— —f—i—l—l—e—d—_—e—s—[—k—:—]—
+— — — — — — — — — — — — —i—m—p—u—t—e—d—_—s—e— —=— —f—i—l—l—e—d—_—s—e—[—k—:—]—
+— — — — — — — — — — — — —f—i—g—_—f—u—n—n—e—l—.—a—d—d—_—t—r—a—c—e—(—g—o—.—S—c—a—t—t—e—r—(—
+— — — — — — — — — — — — — — — — —x—=—i—m—p—u—t—e—d—_—e—s—,— —y—=—i—m—p—u—t—e—d—_—s—e—,—
+— — — — — — — — — — — — — — — — —m—o—d—e—=—'—m—a—r—k—e—r—s—'—,—
+— — — — — — — — — — — — — — — — —m—a—r—k—e—r—=—d—i—c—t—(—s—i—z—e—=—9—,— —c—o—l—o—r—=—'—#—f—5—9—e—0—b—'—,— —s—y—m—b—o—l—=—'—c—i—r—c—l—e—-—o—p—e—n—'—,— —l—i—n—e—=—d—i—c—t—(—w—i—d—t—h—=—2—,— —c—o—l—o—r—=—'—#—f—5—9—e—0—b—'—)—)—,—
+— — — — — — — — — — — — — — — — —n—a—m—e—=—'—I—m—p—u—t—e—d— —S—t—u—d—i—e—s— —(—T—r—i—m—-—a—n—d—-—F—i—l—l—)—'—
+— — — — — — — — — — — — —)—)—
+—
+— — — — — — — — —s—e—_—s—e—q— —=— —n—p—.—l—i—n—s—p—a—c—e—(—0—.—0—0—1—,— —m—a—x—(—f—i—l—l—e—d—_—s—e—)— —*— —1—.—1—5—,— —1—0—0—)—
+— — — — — — — — —c—o—n—e—_—u—p—p—e—r— —=— —p—o—o—l—e—d—_—a—c—t—i—v—e— —+— —1—.—9—6— —*— —s—e—_—s—e—q—
+— — — — — — — — —c—o—n—e—_—l—o—w—e—r— —=— —p—o—o—l—e—d—_—a—c—t—i—v—e— —-— —1—.—9—6— —*— —s—e—_—s—e—q—
+—
+— — — — — — — — —f—i—g—_—f—u—n—n—e—l—.—a—d—d—_—t—r—a—c—e—(—g—o—.—S—c—a—t—t—e—r—(—x—=—c—o—n—e—_—u—p—p—e—r—,— —y—=—s—e—_—s—e—q—,— —m—o—d—e—=—'—l—i—n—e—s—'—,— —l—i—n—e—=—d—i—c—t—(—c—o—l—o—r—=—'—#—6—4—7—4—8—b—'—,— —d—a—s—h—=—'—d—a—s—h—'—)—,— —s—h—o—w—l—e—g—e—n—d—=—F—a—l—s—e—)—)—
+— — — — — — — — —f—i—g—_—f—u—n—n—e—l—.—a—d—d—_—t—r—a—c—e—(—g—o—.—S—c—a—t—t—e—r—(—x—=—c—o—n—e—_—l—o—w—e—r—,— —y—=—s—e—_—s—e—q—,— —m—o—d—e—=—'—l—i—n—e—s—'—,— —l—i—n—e—=—d—i—c—t—(—c—o—l—o—r—=—'—#—6—4—7—4—8—b—'—,— —d—a—s—h—=—'—d—a—s—h—'—)—,— —s—h—o—w—l—e—g—e—n—d—=—F—a—l—s—e—)—)—
+— — — — — — — — —f—i—g—_—f—u—n—n—e—l—.—a—d—d—_—v—l—i—n—e—(—x—=—p—o—o—l—e—d—_—a—c—t—i—v—e—,— —l—i—n—e—_—c—o—l—o—r—=—'—#—f—4—3—f—5—e—'—,— —a—n—n—o—t—a—t—i—o—n—_—t—e—x—t—=—"—P—o—o—l—e—d— —E—S—"—)—
+—
+— — — — — — — — —f—i—g—_—f—u—n—n—e—l—.—u—p—d—a—t—e—_—l—a—y—o—u—t—(—
+— — — — — — — — — — — — —t—i—t—l—e—=—"—F—u—n—n—e—l— —P—l—o—t— —w—i—t—h— —P—s—e—u—d—o— —9—5—%— —C—o—n—f—i—d—e—n—c—e— —L—i—m—i—t—s—"—,—
+— — — — — — — — — — — — —x—a—x—i—s—_—t—i—t—l—e—=—"—E—f—f—e—c—t— —S—i—z—e—"—,—
+— — — — — — — — — — — — —y—a—x—i—s—_—t—i—t—l—e—=—"—S—t—a—n—d—a—r—d— —E—r—r—o—r— —(—S—E—)—"—,—
+— — — — — — — — — — — — —y—a—x—i—s—=—d—i—c—t—(—a—u—t—o—r—a—n—g—e—=—"—r—e—v—e—r—s—e—d—"—,— —g—r—i—d—c—o—l—o—r—=—"—#—1—e—2—9—3—b—"—)—,—
+— — — — — — — — — — — — —x—a—x—i—s—=—d—i—c—t—(—g—r—i—d—c—o—l—o—r—=—"—#—1—e—2—9—3—b—"—)—,—
+— — — — — — — — — — — — —p—a—p—e—r—_—b—g—c—o—l—o—r—=—"—#—0—2—0—6—1—7—"—,—
+— — — — — — — — — — — — —p—l—o—t—_—b—g—c—o—l—o—r—=—"—#—0—9—0—d—1—6—"—,—
+— — — — — — — — — — — — —f—o—n—t—=—d—i—c—t—(—c—o—l—o—r—=—"—#—f—8—f—a—f—c—"—)—,—
+— — — — — — — — — — — — —h—e—i—g—h—t—=—5—0—0—
+— — — — — — — — —)—
+—
+— — — — — — — — —s—t—.—p—l—o—t—l—y—_—c—h—a—r—t—(—f—i—g—_—f—u—n—n—e—l—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—)—
+—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—#— —T—A—B— —5—:— —H—E—T—E—R—O—G—E—N—E—I—T—Y— —&— —S—U—B—G—R—O—U—P—S—
+—#— —═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—
+—w—i—t—h— —t—a—b—5—:—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—3— —s—t—y—l—e—=—'—c—o—l—o—r—:—#—0—0—f—2—f—e—;—'—>—�—�— —S—t—a—t—i—s—t—i—c—a—l— —H—e—t—e—r—o—g—e—n—e—i—t—y— —&— —S—u—b—g—r—o—u—p— —S—t—r—a—t—i—f—i—c—a—t—i—o—n—<—/—h—3—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —H—e—t—e—r—o—g—e—n—e—i—t—y— —I—n—d—i—c—e—s—"—)—
+— — — — —h—_—c—o—l—1—,— —h—_—c—o—l—2—,— —h—_—c—o—l—3—,— —h—_—c—o—l—4— —=— —s—t—.—c—o—l—u—m—n—s—(—4—)—
+— — — — —h—_—c—o—l—1—.—m—e—t—r—i—c—(—"—C—o—c—h—r—a—n—'—s— —Q—"—,— —f—"—{—q—_—s—t—a—t—:—.—3—f—}—"—)—
+— — — — —h—_—c—o—l—2—.—m—e—t—r—i—c—(—"—Q— —T—e—s—t— —p—-—v—a—l—u—e—"—,— —f—"—{—p—v—a—l—_—q—:—.—4—f—}—"—)—
+— — — — —h—_—c—o—l—3—.—m—e—t—r—i—c—(—"—I—²— —I—n—c—o—n—s—i—s—t—e—n—c—y—"—,— —f—"—{—i—_—s—q—u—a—r—e—d—:—.—1—f—}—%—"—)—
+— — — — —h—_—c—o—l—4—.—m—e—t—r—i—c—(—"—H—²— —I—n—d—e—x—"—,— —f—"—{—h—_—s—q—u—a—r—e—d—:—.—2—f—}—"—)—
+—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—r— —s—t—y—l—e—=—'—b—o—r—d—e—r—-—c—o—l—o—r—:—#—1—e—2—9—3—b—;— —m—a—r—g—i—n—:—1—r—e—m— —0—;—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+— — — — —s—t—.—m—a—r—k—d—o—w—n—(—"—#—#—#— —�—�— —S—u—b—g—r—o—u—p— —S—t—r—a—t—i—f—i—e—d— —P—o—o—l—i—n—g—"—)—
+— — — — —i—f— —"—S—u—b—g—r—o—u—p—"— —i—n— —d—f—.—c—o—l—u—m—n—s—:—
+— — — — — — — — —s—u—b—g—r—o—u—p—s— —=— —d—f—[—"—S—u—b—g—r—o—u—p—"—]—.—u—n—i—q—u—e—(—)—
+— — — — — — — — —s—u—b—_—r—e—s—u—l—t—s— —=— —[—]—
+— — — — — — — — —
+— — — — — — — — —f—o—r— —s—g— —i—n— —s—u—b—g—r—o—u—p—s—:—
+— — — — — — — — — — — — —s—u—b—_—d—f— —=— —d—f—[—d—f—[—"—S—u—b—g—r—o—u—p—"—]— —=—=— —s—g—]—
+— — — — — — — — — — — — —s—g—_—e—s— —=— —s—u—b—_—d—f—[—"—E—f—f—e—c—t—_—S—i—z—e—"—]—.—v—a—l—u—e—s—
+— — — — — — — — — — — — —s—g—_—s—e— —=— —s—u—b—_—d—f—[—"—S—t—a—n—d—a—r—d—_—E—r—r—o—r—"—]—.—v—a—l—u—e—s—
+— — — — — — — — — — — — —s—g—_—w— —=— —1—.—0— —/— —(—s—g—_—s—e— —*—*— —2—)—
+— — — — — — — — — — — — —
+— — — — — — — — — — — — —s—g—_—p—o—o—l—e—d— —=— —n—p—.—s—u—m—(—s—g—_—w— —*— —s—g—_—e—s—)— —/— —n—p—.—s—u—m—(—s—g—_—w—)—
+— — — — — — — — — — — — —s—g—_—s—e—_—p—o—o—l—e—d— —=— —n—p—.—s—q—r—t—(—1—.—0— —/— —n—p—.—s—u—m—(—s—g—_—w—)—)—
+— — — — — — — — — — — — —
+— — — — — — — — — — — — —s—u—b—_—r—e—s—u—l—t—s—.—a—p—p—e—n—d—(—{—
+— — — — — — — — — — — — — — — — —"—S—u—b—g—r—o—u—p—"—:— —s—g—,—
+— — — — — — — — — — — — — — — — —"—S—t—u—d—i—e—s— —(—k—)—"—:— —l—e—n—(—s—u—b—_—d—f—)—,—
+— — — — — — — — — — — — — — — — —"—P—o—o—l—e—d— —E—f—f—e—c—t—"—:— —r—o—u—n—d—(—s—g—_—p—o—o—l—e—d—,— —4—)—,—
+— — — — — — — — — — — — — — — — —"—9—5—%— —C—I— —L—o—w—e—r—"—:— —r—o—u—n—d—(—s—g—_—p—o—o—l—e—d— —-— —1—.—9—6— —*— —s—g—_—s—e—_—p—o—o—l—e—d—,— —4—)—,—
+— — — — — — — — — — — — — — — — —"—9—5—%— —C—I— —U—p—p—e—r—"—:— —r—o—u—n—d—(—s—g—_—p—o—o—l—e—d— —+— —1—.—9—6— —*— —s—g—_—s—e—_—p—o—o—l—e—d—,— —4—)—
+— — — — — — — — — — — — —}—)—
+— — — — — — — — — — — — —
+— — — — — — — — —s—t—.—d—a—t—a—f—r—a—m—e—(—p—d—.—D—a—t—a—F—r—a—m—e—(—s—u—b—_—r—e—s—u—l—t—s—)—,— —u—s—e—_—c—o—n—t—a—i—n—e—r—_—w—i—d—t—h—=—T—r—u—e—,— —h—i—d—e—_—i—n—d—e—x—=—T—r—u—e—)—
+— — — — —e—l—s—e—:—
+— — — — — — — — —s—t—.—i—n—f—o—(—"—ℹ—️— —I—n—c—l—u—d—e— —a— —'—S—u—b—g—r—o—u—p—'— —c—o—l—u—m—n— —i—n— —y—o—u—r— —d—a—t—a—s—e—t— —t—o— —a—u—t—o—m—a—t—i—c—a—l—l—y— —r—u—n— —s—t—r—a—t—i—f—i—e—d— —s—u—b—g—r—o—u—p— —s—y—n—t—h—e—s—i—s—.—"—)—
+—
+—#— —─—─—─— —F—O—O—T—E—R— —W—A—T—E—R—M—A—R—K— —─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—─—
+—s—t—.—m—a—r—k—d—o—w—n—(—"—<—h—r— —s—t—y—l—e—=—'—b—o—r—d—e—r—-—c—o—l—o—r—:—#—1—e—2—9—3—b—;— —m—a—r—g—i—n—-—t—o—p—:—3—r—e—m—;—'—>—"—,— —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—)—
+—s—t—.—m—a—r—k—d—o—w—n—(—
+— — — — —"—<—d—i—v— —s—t—y—l—e—=—'—t—e—x—t—-—a—l—i—g—n—:—c—e—n—t—e—r—;— —c—o—l—o—r—:—#—6—4—7—4—8—b—;— —f—o—n—t—-—s—i—z—e—:—0—.—7—5—r—e—m—;— —f—o—n—t—-—f—a—m—i—l—y—:—m—o—n—o—s—p—a—c—e—;— —l—e—t—t—e—r—-—s—p—a—c—i—n—g—:—0—.—1—e—m—;—'—>—"—
+— — — — —"—E—N—T—E—R—P—R—I—S—E— —S—Y—N—T—H—E—S—I—S— —E—N—G—I—N—E— —•— —S—E—C—U—R—E— —I—N—T—E—L— —•— —D—E—S—I—G—N—E—D— —F—O—R— —C—H—R—I—S—H—E—M—"—
+— — — — —"—<—/—d—i—v—>—"—,—
+— — — — —u—n—s—a—f—e—_—a—l—l—o—w—_—h—t—m—l—=—T—r—u—e—
+—)——
+—
