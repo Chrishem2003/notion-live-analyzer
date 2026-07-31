@@ -1,4 +1,4 @@
-﻿import os
+import os
 import ast
 
 project_dir = r"."
