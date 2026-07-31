@@ -994,7 +994,7 @@ class ExportEngine:
     def get_markdown_download_link(content: str, filename: str, label: str = "Download") -> str:
         """Generate a base64 download link for markdown content."""
         b64 = base64.b64encode(content.encode()).decode()
-        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">?? {label}</a>'
+        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">🔍 {label}</a>'
 
     @staticmethod
     def get_html_download_link(content_md: str, filename: str, label: str = "Download HTML") -> str:
@@ -1016,7 +1016,7 @@ class ExportEngine:
         html_lines.append("</body></html>")
         full_html = "\n".join(html_lines)
         b64 = base64.b64encode(full_html.encode()).decode()
-        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">?? {label}</a>'
+        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">🔍 {label}</a>'
 
     @staticmethod
     def render_sidebar_styles():
@@ -1045,13 +1045,13 @@ class ExportEngine:
     def get_txt_download_link(content: str, filename: str, label: str = "Download TXT") -> str:
         """Generate a base64 download link for plain text."""
         b64 = base64.b64encode(content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">?? Download .BIB</a>'
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">🔍 Download .BIB</a>'
 
     @staticmethod
     def get_bib_download_link(bib_content: str, filename: str) -> str:
         """Generate a download link for .bib file."""
         b64 = base64.b64encode(bib_content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">?? Download .BIB</a>'
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">🔍 Download .BIB</a>'
 
     @staticmethod
     def get_copy_js(text: str, button_label: str = "' Copy to Clipboard") -> str:
@@ -1073,7 +1073,7 @@ class ExportEngine:
         escaped = html.escape(report_text[:5000])  # Limit to 5000 chars for performance
         return f"""
         <div style="padding:12px;background:#f0f4ff;border-radius:8px;border:1px solid #dbeafe;">
-    <p style="margin:0 0 8px 0;font-weight:600;">?? Push to Notion</p>
+    <p style="margin:0 0 8px 0;font-weight:600;">🔍 Push to Notion</p>
             <p style="font-size:0.85rem;color:#475569;">Copy this content and paste it into a new Notion page:</p>
             <pre style="background:white;padding:12px;border-radius:6px;font-size:0.8rem;max-height:200px;overflow:auto;white-space:pre-wrap;">{escaped}</pre>
             {ExportEngine.get_copy_js(report_text, "' Copy for Notion")}'
@@ -1085,7 +1085,7 @@ class ExportEngine:
         """Generate a styled link to open Google Drive for manual upload."""
         return """
         <a href="https://drive.google.com/drive/u/0/my-drive" target="_blank" 
-           style="display:inline-block;padding:10px 20px;background:#4285F4;color:white;border-radius:8px;text-decoration:none;font-weight:600;"?? Open Google Drive
+           style="display:inline-block;padding:10px 20px;background:#4285F4;color:white;border-radius:8px;text-decoration:none;font-weight:600;"🔍 Open Google Drive
         </a>
         <p style="font-size:0.8rem;color:#64748b;margin-top:4px;">Download the file above, then upload it to your Drive</p>
         """
@@ -1379,16 +1379,16 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
 
         with col2:
             # Show cited badge if this paper has been used in the report
-            cited_badge = " ?? Cited" if paper.get("is_cited") else ""
+            cited_badge = " 🔍 Cited" if paper.get("is_cited") else ""
             meta_parts = []
             if paper.get("authors"):
-                meta_parts.append(f"?? {paper['authors']}")
+                meta_parts.append(f"🔍 {paper['authors']}")
             if paper.get("year"):
-                meta_parts.append(f"?? {paper['year']}")
+                meta_parts.append(f"🔍 {paper['year']}")
             if paper.get("citations"):
-                meta_parts.append(f"?? {paper['citations']:,} citations")
+                meta_parts.append(f"🔍 {paper['citations']:,} citations")
             if paper.get("journal"):
-                meta_parts.append(f"?? {paper['journal']}")
+                meta_parts.append(f"🔍 {paper['journal']}")
             if paper.get("doi"):
             meta_parts.append(f"' DOI: {paper['doi']}")'
 
@@ -1533,7 +1533,7 @@ def render_report_builder(sections, bibliography, db, project_id):
         st.markdown(exporter.get_copy_js(report_text, "' Copy Report to Clipboard"), unsafe_allow_html=True)'
 
         # Notion push
-    <p style="margin:0 0 8px 0;font-weight:600;">?? Push to Notion</p>
+    <p style="margin:0 0 8px 0;font-weight:600;">🔍 Push to Notion</p>
         st.markdown(exporter.get_notion_push_html(report_text, style), unsafe_allow_html=True)
 
         # Google Drive

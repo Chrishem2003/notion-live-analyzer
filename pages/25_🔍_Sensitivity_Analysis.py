@@ -1,6 +1,6 @@
 """
 ═══════════════════════════════════════════════════════════════════════════════
-�� ADVANCED SENSITIVITY, ROBUSTNESS & MULTIVERSE ANALYSIS ENGINE (v3.0 ENTERPRISE)
+🔍 ADVANCED SENSITIVITY, ROBUSTNESS & MULTIVERSE ANALYSIS ENGINE (v3.0 ENTERPRISE)
 Autonomous Research Operating System  Sensitivity & Diagnostics Module
 Features live Cook's distance, specification curves, combinatorial multiverse p-values,
 E-value confounding calculations, and jackknife coefficient stability.
@@ -22,7 +22,7 @@ if PROJECT_ROOT not in sys.path:
 # ─── PAGE CONFIG ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Sensitivity & Multiverse Analysis Engine",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -137,7 +137,7 @@ if "sens_active_tab" not in st.session_state:
 
 # ─── HERO HEADER ──────────────────────────────────────────────────────────────
 dep_status_color = "#10b981" if (HAS_SCIPY and HAS_STATSMODELS) else "#f59e0b"
-dep_status_text = "�� Scipy & Statsmodels Engine Active" if (HAS_SCIPY and HAS_STATSMODELS) else "⚠️ Math Simulation Mode (Dependencies Missing)"
+dep_status_text = "🔍 Scipy & Statsmodels Engine Active" if (HAS_SCIPY and HAS_STATSMODELS) else "⚠️ Math Simulation Mode (Dependencies Missing)"
 
 st.markdown(f"""
 <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;'>
@@ -167,7 +167,7 @@ with st.sidebar:
     noise_level = st.slider("Data Variance Noise (σ)", 0.1, 5.0, 1.0, 0.1, key="sens_noise")
     
     st.markdown("<hr style='border-color:#1e293b; margin:1rem 0;'>", unsafe_allow_html=True)
-    st.markdown("### ��️ Diagnostic Safeguards")
+    st.markdown("### 🔍 ️ Diagnostic Safeguards")
     st.toggle("Auto-Flag Outliers > 3SD", value=True, key="sens_outlier_toggle")
     st.toggle("Apply Heteroskedasticity Robust SE (HC3)", value=True, key="sens_hc3_toggle")
 
@@ -192,11 +192,11 @@ df_data = generate_sens_dataset(sample_size, seed_value, noise_level)
 
 # ─── NAVIGATION TABS ──────────────────────────────────────────────────────────
 sens_tabs = {
-    "influence": "�� Influence & Leverage Diagnostics",
-    "specification": "�� Specification Curve Analysis",
-    "multiverse": "�� Combinatorial Multiverse Engine",
+    "influence": "🔍 Influence & Leverage Diagnostics",
+    "specification": "🔍 Specification Curve Analysis",
+    "multiverse": "🔍 Combinatorial Multiverse Engine",
     "evalue": "⚖️ E-Values & Unobserved Confounding",
-    "leaveout": "�� Leave-One-Out (Jackknife) Stability"
+    "leaveout": "🔍 Leave-One-Out (Jackknife) Stability"
 }
 
 cols = st.columns(len(sens_tabs))
@@ -213,7 +213,7 @@ active_sens_tab = st.session_state["sens_active_tab"]
 # TAB 1: INFLUENCE & LEVERAGE DIAGNOSTICS
 # ═══════════════════════════════════════════════════════════════════════════════
 if active_sens_tab == "influence":
-    st.markdown("### �� Influence Diagnostics, Cook's Distance & DFFITS")
+    st.markdown("### 🔍 Influence Diagnostics, Cook's Distance & DFFITS")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Detect high-leverage data points and influential outliers that disproportionately drive parameter estimates or skew standard errors.</p>", unsafe_allow_html=True)
     
     col_i1, col_i2 = st.columns([4, 6])
@@ -248,7 +248,7 @@ if active_sens_tab == "influence":
         
     with col_i2:
         st.markdown("<div class='sens-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>�� Cook's Distance Outlier Scatter Map</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>🔍 Cook's Distance Outlier Scatter Map</h4>", unsafe_allow_html=True)
         
         df_inf = pd.DataFrame({
             "Observation Index": range(len(df_data)),
@@ -280,7 +280,7 @@ if active_sens_tab == "influence":
 # TAB 2: SPECIFICATION CURVE ANALYSIS
 # ═══════════════════════════════════════════════════════════════════════════════
 elif active_sens_tab == "specification":
-    st.markdown("### �� Specification Curve Analysis (All Combinations)")
+    st.markdown("### 🔍 Specification Curve Analysis (All Combinations)")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Display all plausible model specifications simultaneously to test whether scientific conclusions depend on arbitrary researcher degrees of freedom.</p>", unsafe_allow_html=True)
     
     col_s1, col_s2 = st.columns([4, 6])
@@ -322,7 +322,7 @@ elif active_sens_tab == "specification":
         
     with col_s2:
         st.markdown("<div class='sens-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>�� Ranked Specification Curve (Point Estimates & 95% CIs)</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>🔍 Ranked Specification Curve (Point Estimates & 95% CIs)</h4>", unsafe_allow_html=True)
         
         if HAS_PLOTLY and not df_specs.empty:
             fig = px.scatter(
@@ -349,7 +349,7 @@ elif active_sens_tab == "specification":
 # TAB 3: COMBINATORIAL MULTIVERSE ENGINE
 # ═══════════════════════════════════════════════════════════════════════════════
 elif active_sens_tab == "multiverse":
-    st.markdown("### �� Combinatorial Multiverse Analysis")
+    st.markdown("### 🔍 Combinatorial Multiverse Analysis")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Execute hundreds of parallel data preprocessing and modeling pipelines to map the full distribution of resulting statistical inferences.</p>", unsafe_allow_html=True)
     
     col_m1, col_m2 = st.columns([4, 6])
@@ -363,7 +363,7 @@ elif active_sens_tab == "multiverse":
         
     with col_m2:
         st.markdown("<div class='sens-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>�� Multiverse P-Value Distribution Across Universes</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>🔍 Multiverse P-Value Distribution Across Universes</h4>", unsafe_allow_html=True)
         
         np.random.seed(seed_value)
         # Generate realistic p-value distribution (mostly significant with slight noise)
@@ -406,7 +406,7 @@ elif active_sens_tab == "evalue":
         
     with col_e2:
         st.markdown("<div class='sens-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>�� Computed E-Value Robustness Bounds</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>🔍 Computed E-Value Robustness Bounds</h4>", unsafe_allow_html=True)
         
         col_m1, col_m2 = st.columns(2)
         with col_m1:
@@ -414,14 +414,14 @@ elif active_sens_tab == "evalue":
         with col_m2:
             st.metric("E-Value (Lower CI Bound)", f"{e_lower:.2f}", delta="Robust to Zero")
             
-        st.info(f"�� **Interpretation:** An unobserved confounder would need to be associated with **both** the treatment and outcome by a Risk Ratio of at least **{e_point:.2f}-fold each** to explain away the observed effect. Weaker confounding cannot account for the finding.")
+        st.info(f"🔍 **Interpretation:** An unobserved confounder would need to be associated with **both** the treatment and outcome by a Risk Ratio of at least **{e_point:.2f}-fold each** to explain away the observed effect. Weaker confounding cannot account for the finding.")
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 5: LEAVE-ONE-OUT (JACKKNIFE) STABILITY
 # ═══════════════════════════════════════════════════════════════════════════════
 elif active_sens_tab == "leaveout":
-    st.markdown("### �� Leave-One-Out (Jackknife) Parameter Stability")
+    st.markdown("### 🔍 Leave-One-Out (Jackknife) Parameter Stability")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Assess model stability by sequentially dropping observations to check for localized coefficient distortion.</p>", unsafe_allow_html=True)
     
     col_l1, col_l2 = st.columns([4, 6])
@@ -452,7 +452,7 @@ elif active_sens_tab == "leaveout":
         
     with col_l2:
         st.markdown("<div class='sens-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>�� Jackknife Parameter Bounds</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f8fafc; font-size:0.95rem; margin-top:0;'>🔍 Jackknife Parameter Bounds</h4>", unsafe_allow_html=True)
         
         st.code(f"""
 Jackknife Summary Metrics:

@@ -1,5 +1,5 @@
 """
-��️ Variable View Page  Advanced SPSS-Style Metadata Editor & Codebook Studio
+🔍 ️ Variable View Page  Advanced SPSS-Style Metadata Editor & Codebook Studio
 Complete standalone edition featuring high-contrast layout, metadata editing, 
 batch transforms, APA codebook exports, and schema JSON synchronization.
 Designed for: Kula Chris (Chrishem)
@@ -14,7 +14,7 @@ import numpy as np
 st.set_page_config(
     page_title="Variable View Studio", 
     layout="wide", 
-    page_icon="��️",
+    page_icon="🔍 ️",
     initial_sidebar_state="expanded"
 )
 
@@ -190,7 +190,7 @@ if active_df is None or active_df.empty:
     )
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("�� Generate Sample Research Cohort Data", type="primary", use_container_width=True):
+        if st.button("🔍 Generate Sample Research Cohort Data", type="primary", use_container_width=True):
             np.random.seed(42)
             demo_data = pd.DataFrame({
                 "Subject_ID": [f"SUBJ_{1000+i}" for i in range(100)],
@@ -204,7 +204,7 @@ if active_df is None or active_df.empty:
             st.session_state["active_df"] = demo_data
             st.rerun()
     with col_b:
-        st.info("�� Load standard CSV/XLSX files using the File Analyzer or connect to a Notion Database workspace.")
+        st.info("🔍 Load standard CSV/XLSX files using the File Analyzer or connect to a Notion Database workspace.")
     st.stop()
 
 # ─── 4. HERO HEADER ─────────────────────────────────────────────────────
@@ -213,7 +213,7 @@ st.markdown(
 <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
     <div>
         <span class='badge-primary'>SPSS METADATA ENGINE & CODEBOOK STUDIO</span>
-        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>��️ Variable View Page</h1>
+        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 ️ Variable View Page</h1>
         <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
             Define variable metadata, construct value labels, configure missing value codes, audit measurement levels, and export publication-ready codebooks.
         </p>
@@ -221,7 +221,7 @@ st.markdown(
     <div style='text-align: right;'>
         <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
             <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Studio Brand</div>
-            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>�� CHRISHEM METADATA ENGINE</div>
+            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>🔍 CHRISHEM METADATA ENGINE</div>
         </div>
     </div>
 </div>
@@ -230,41 +230,41 @@ st.markdown(
 )
 
 # ─── 5. SCHEMA METRICS METADATA BAR ──────────────────────────────────────
-st.markdown("<h3 style='margin-bottom:0.5rem;'>�� Metadata Health & Schema Metrics</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-bottom:0.5rem;'>🔍 Metadata Health & Schema Metrics</h3>", unsafe_allow_html=True)
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("�� Total Rows", f"{len(active_df):,}")
+    st.metric("🔍 Total Rows", f"{len(active_df):,}")
     st.markdown("</div>", unsafe_allow_html=True)
 with m2:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("�� Variables", f"{len(active_df.columns):,}")
+    st.metric("🔍 Variables", f"{len(active_df.columns):,}")
     st.markdown("</div>", unsafe_allow_html=True)
 with m3:
     num_cols = len(active_df.select_dtypes(include=[np.number]).columns)
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("�� Continuous (Scale)", num_cols)
+    st.metric("🔍 Continuous (Scale)", num_cols)
     st.markdown("</div>", unsafe_allow_html=True)
 with m4:
     cat_cols = len(active_df.select_dtypes(include=["object", "category"]).columns)
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("��️ Nominal / Ordinal", cat_cols)
+    st.metric("🔍 ️ Nominal / Ordinal", cat_cols)
     st.markdown("</div>", unsafe_allow_html=True)
 with m5:
     memory_mb = active_df.memory_usage(deep=True).sum() / (1024 * 1024)
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("�� Memory Footprint", f"{memory_mb:.2f} MB")
+    st.metric("🔍 Memory Footprint", f"{memory_mb:.2f} MB")
     st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
 # ─── 6. WORKSPACE TABS ───────────────────────────────────────────────────
 tab_editor, tab_batch, tab_codebook, tab_template = st.tabs([
-    "��️ SPSS Metadata Editor", 
+    "🔍 ️ SPSS Metadata Editor", 
     "⚡ Batch Operations & Quick Rules", 
-    "�� Publication Codebook", 
-    "��/�� Metadata Schema Sync"
+    "🔍 Publication Codebook", 
+    "🔍 /🔍 Metadata Schema Sync"
 ])
 
 # ── TAB 1: Main Interactive Metadata Editor ─────────────────────────────
@@ -311,7 +311,7 @@ with tab_batch:
     
     with col1:
         st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.subheader("��️ Bulk Measurement Level Assignment")
+        st.subheader("🔍 ️ Bulk Measurement Level Assignment")
         target_cols = st.multiselect("Select Variables to Modify", options=list(active_df.columns))
         new_measure = st.selectbox("Assign Measurement Level", options=["Scale (Continuous)", "Nominal (Categorical)", "Ordinal (Ordered)", "Flag / Binary"])
         
@@ -324,10 +324,10 @@ with tab_batch:
 
     with col2:
         st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.subheader("�� Automated Metadata Inference")
+        st.subheader("🔍 Automated Metadata Inference")
         st.markdown("Scan dataset distributions to auto-assign scales and detect potential identifier columns.")
         
-        if st.button("�� Auto-Detect Measurement Levels & Roles", use_container_width=True):
+        if st.button("🔍 Auto-Detect Measurement Levels & Roles", use_container_width=True):
             inferred = {}
             for col in active_df.columns:
                 unique_ratio = active_df[col].nunique() / len(active_df)
@@ -342,12 +342,12 @@ with tab_batch:
                     inferred[col] = "Nominal (Categorical)"
             
             st.json(inferred)
-            st.info("�� Auto-detection complete. Adjust specific fields in Tab 1 if needed.")
+            st.info("🔍 Auto-detection complete. Adjust specific fields in Tab 1 if needed.")
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ── TAB 3: Publication Codebook ─────────────────────────────────────────
 with tab_codebook:
-    st.markdown("### �� APA / SPSS Style Data Dictionary")
+    st.markdown("### 🔍 APA / SPSS Style Data Dictionary")
     st.markdown("Generated summary documentation of dataset variables for research reporting.")
 
     codebook_data = []
@@ -373,7 +373,7 @@ with tab_codebook:
     # Download codebook CSV
     csv_codebook = codebook_df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        "�� Download Publication Codebook (CSV)",
+        "🔍 Download Publication Codebook (CSV)",
         data=csv_codebook,
         file_name="dataset_publication_codebook.csv",
         mime="text/csv",
@@ -381,14 +381,14 @@ with tab_codebook:
 
 # ── TAB 4: Metadata Export & Import Sync ────────────────────────────────
 with tab_template:
-    st.markdown("### ��/�� Metadata Schema Sync")
+    st.markdown("### 🔍 /🔍 Metadata Schema Sync")
     st.markdown("Export your variable metadata schema (labels, value mappings, missing rules) to reuse across similar data cohorts.")
 
     col_exp, col_imp = st.columns(2)
     
     with col_exp:
         st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.subheader("�� Export Schema Template")
+        st.subheader("🔍 Export Schema Template")
         schema = {
             "columns": list(active_df.columns),
             "types": {col: str(active_df[col].dtype) for col in active_df.columns},
@@ -397,7 +397,7 @@ with tab_template:
         }
         json_schema = json.dumps(schema, indent=4)
         st.download_button(
-            "�� Download Metadata Schema (.json)",
+            "🔍 Download Metadata Schema (.json)",
             data=json_schema,
             file_name="variable_metadata_schema.json",
             mime="application/json",
@@ -407,7 +407,7 @@ with tab_template:
 
     with col_imp:
         st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.subheader("�� Import Schema Template")
+        st.subheader("🔍 Import Schema Template")
         uploaded_schema = st.file_uploader("Upload Metadata Schema (.json)", type=["json"])
         if uploaded_schema is not None:
             try:
@@ -419,23 +419,23 @@ with tab_template:
 
 # ─── 7. EXECUTION & SESSION STATE PERSISTENCE ───────────────────────────
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
-st.markdown("### �� Apply Metadata & Update Active Dataset")
+st.markdown("### 🔍 Apply Metadata & Update Active Dataset")
 
 col_save, col_clear = st.columns([3, 1])
 
 with col_save:
-    if st.button("�� Apply Variable Metadata & Re-code Dataset", type="primary", use_container_width=True):
+    if st.button("🔍 Apply Variable Metadata & Re-code Dataset", type="primary", use_container_width=True):
         with st.spinner("Processing metadata mappings and recoding missing values..."):
             # Update session state dataset
             st.session_state["active_df"] = active_df
             
-        st.success("�� **Metadata applied successfully!** Dataset updated across all active analytical sessions.")
+        st.success("🔍 **Metadata applied successfully!** Dataset updated across all active analytical sessions.")
         
-        with st.expander("�� View Updated Dataset Preview (First 10 Rows)", expanded=True):
+        with st.expander("🔍 View Updated Dataset Preview (First 10 Rows)", expanded=True):
             st.dataframe(active_df.head(10), use_container_width=True)
 
 with col_clear:
-    if st.button("�� Reset View", use_container_width=True):
+    if st.button("🔍 Reset View", use_container_width=True):
         st.rerun()
 
 # ─── 8. FOOTER ──────────────────────────────────────────────────────────
@@ -443,7 +443,7 @@ st.markdown("<hr style='border:1px solid #1e293b; margin-top:2rem;'>", unsafe_al
 st.markdown(
     """
 <div style='display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; font-family: monospace;'>
-    <div>��️ SPSS VARIABLE VIEW & DATA DICTIONARY STUDIO</div>
+    <div>🔍 ️ SPSS VARIABLE VIEW & DATA DICTIONARY STUDIO</div>
     <div>DEVELOPER: KULA CHRIS (CHRISHEM)</div>
     <div>SYSTEM STATUS: ACTIVE SESSION</div>
 </div>

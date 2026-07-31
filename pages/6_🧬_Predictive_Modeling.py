@@ -58,10 +58,10 @@ except ImportError:
         st.success("⚡ Model Orchestrator Initialized: Target variable and feature matrices ready for automated training.")
         numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
         if numeric_cols:
-            target_var = st.selectbox("�� Select Target Variable for Training", options=df.columns)
+            target_var = st.selectbox("🔍 Select Target Variable for Training", options=df.columns)
             features = [c for c in df.columns if c != target_var]
             st.markdown(f"**Selected Predictors ({len(features)}):** `{', '.join(features[:6])}`" + ("..." if len(features) > 6 else ""))
-            if st.button("�� Run Automated Baseline Models", type="primary"):
+            if st.button("🔍 Run Automated Baseline Models", type="primary"):
                 st.info("Cross-validating baseline algorithm ensemble (Random Forest, XGBoost, LightGBM)...")
                 st.markdown(
                     """
@@ -77,7 +77,7 @@ except ImportError:
 st.set_page_config(
     page_title="Advanced Predictive Modeling", 
     layout="wide", 
-    page_icon="��",
+    page_icon="🔍 ",
     initial_sidebar_state="expanded"
 )
 
@@ -211,7 +211,7 @@ st.markdown(
 )
 
 hero_card(
-    "�� Enterprise Predictive Modeling & AutoML Suite",
+    "🔍 Enterprise Predictive Modeling & AutoML Suite",
     "High-throughput automated machine learning pipelines: Real-time algorithm benchmarking, hyperparameter grid-search, cross-validation, and diagnostic evaluation.",
     "AutoML Engine 3.0"
 )
@@ -233,7 +233,7 @@ if active_df is None or active_df.empty:
     
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("�� Load Synthetic Biological Dataset", type="primary", use_container_width=True):
+        if st.button("🔍 Load Synthetic Biological Dataset", type="primary", use_container_width=True):
             np.random.seed(42)
             sim_df = pd.DataFrame({
                 "Gene_Expression_A": np.random.normal(12.5, 2.1, 120),
@@ -247,7 +247,7 @@ if active_df is None or active_df.empty:
             st.session_state["working_df"] = sim_df
             st.rerun()
     with col_b:
-        if st.button("�� Generate Multi-Class Cohort", use_container_width=True):
+        if st.button("🔍 Generate Multi-Class Cohort", use_container_width=True):
             np.random.seed(101)
             sim_df = pd.DataFrame({
                 "Feature_1": np.random.randn(150),
@@ -261,24 +261,24 @@ if active_df is None or active_df.empty:
     st.stop()
 
 # ── Advanced Header Dashboard Metrics ────────────────────────────────
-section_header("�� Dataset Topology & Machine Learning Readiness")
+section_header("🔍 Dataset Topology & Machine Learning Readiness")
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    st.metric("�� Total Observations", f"{len(active_df):,}")
+    st.metric("🔍 Total Observations", f"{len(active_df):,}")
 with m2:
-    st.metric("�� Total Features", f"{len(active_df.columns):,}")
+    st.metric("🔍 Total Features", f"{len(active_df.columns):,}")
 with m3:
     numeric_cols_count = len(active_df.select_dtypes(include=[np.number]).columns)
-    st.metric("�� Numeric Predictors", numeric_cols_count)
+    st.metric("🔍 Numeric Predictors", numeric_cols_count)
 with m4:
     categorical_cols_count = len(active_df.select_dtypes(include=['object', 'category']).columns)
-    st.metric("��️ Categorical Features", categorical_cols_count)
+    st.metric("🔍 ️ Categorical Features", categorical_cols_count)
 with m5:
     missing_cells_pct = (active_df.isnull().sum().sum() / (active_df.shape[0] * active_df.shape[1])) * 100
     st.metric("⚠️ Missing Data Density", f"{missing_cells_pct:.1f}%")
 
-with st.expander("�� Preview Active Dataset Schema & Descriptive Statistics", expanded=False):
+with st.expander("🔍 Preview Active Dataset Schema & Descriptive Statistics", expanded=False):
     st.dataframe(active_df.head(10), use_container_width=True)
     st.markdown("##### Feature Type Distribution")
     st.write(active_df.dtypes.astype(str))
@@ -289,25 +289,25 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 section_header("⚙️ Automated Machine Learning Pipeline Controller")
 
 tabs = st.tabs([
-    "�� Supervised Classification", 
-    "�� Advanced Regression", 
-    "�� Unsupervised Clustering", 
+    "🔍 Supervised Classification", 
+    "🔍 Advanced Regression", 
+    "🔍 Unsupervised Clustering", 
     "⏳ Time-Series Forecasting",
     "⚙️ Hyperparameter Configuration"
 ])
 
 with tabs[0]:
-    st.markdown("### �� Automated Classification Suite")
+    st.markdown("### 🔍 Automated Classification Suite")
     st.markdown("Train, benchmark, and cross-validate multi-class and binary classification algorithms (Random Forest, XGBoost, LightGBM, SVM, Logistic Regression).")
     render_predictive_modeling_ui(active_df)
 
 with tabs[1]:
-    st.markdown("### �� Automated Regression Suite")
+    st.markdown("### 🔍 Automated Regression Suite")
     st.markdown("Model continuous targets with automated residual analysis, RMSE, MAE, and $R^2$ performance metrics optimization.")
-    st.info("�� **Tip:** Select a continuous target metric containing float or integer values within the modeling panel.")
+    st.info("🔍 **Tip:** Select a continuous target metric containing float or integer values within the modeling panel.")
 
 with tabs[2]:
-    st.markdown("### �� Unsupervised Clustering & Dimensionality Reduction")
+    st.markdown("### 🔍 Unsupervised Clustering & Dimensionality Reduction")
     st.markdown("Discover latent groupings via K-Means, DBSCAN, and Hierarchical Agglomerative Clustering backed by PCA spatial visualization.")
 
 with tabs[3]:
@@ -324,6 +324,6 @@ with tabs[4]:
         st.selectbox("Imputation Strategy for Missing Values", options=["Median / Mode (Robust)", "Mean / Constant", "KNN Imputer", "Drop Missing Rows"])
         st.toggle("Enable Automated Feature Scaling (StandardScaler / MinMaxScaler)", value=True)
     
-    if st.button("�� Save Pipeline Configuration Settings", type="primary"):
+    if st.button("🔍 Save Pipeline Configuration Settings", type="primary"):
         st.success("✅ AutoML global hyperparameters updated successfully across session states!")
 

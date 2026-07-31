@@ -1,5 +1,5 @@
 """
-�� Global Language & Academic Register  Localization Engine (Enterprise Edition v4.0)
+🔍 Global Language & Academic Register  Localization Engine (Enterprise Edition v4.0)
 Complete application UI, AI synthesis, and neural audio localization
 with comprehensive world language support and formal academic precision.
 Designed for: Kula Chris (Chrishem)
@@ -11,7 +11,7 @@ import pandas as pd
 # ─── 1. PAGE CONFIGURATION ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Global Localization Engine",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -154,115 +154,115 @@ st.markdown(
 # ─── 3. COMPREHENSIVE WORLD LANGUAGE DATA ───────────────────────────────
 EXTENDED_LANGUAGES = [
     # ─── Africa ─────────────────────────────────────────────────
-    {"code": "sw", "name": "Swahili", "nativeName": "Kiswahili (Rasmi)", "flag": "����",
+    {"code": "sw", "name": "Swahili", "nativeName": "Kiswahili (Rasmi)", "flag": "🔍 ",
      "accentVariants": ["East African Academic", "Tanzanian Sanifu", "Congolese Swahili"],
      "description": "Official language of the East African Community. Formal Kiswahili for research and policy.",
      "region": "Africa"},
-    {"code": "ha", "name": "Hausa", "nativeName": "Hausa (Harshen Makaranta)", "flag": "����",
+    {"code": "ha", "name": "Hausa", "nativeName": "Hausa (Harshen Makaranta)", "flag": "🔍 ",
      "accentVariants": ["Kano Academic", "Niamey Formal", "Katsina Professional"],
      "description": "Major West African lingua franca. Formal Hausa for academic publishing.",
      "region": "Africa"},
-    {"code": "yo", "name": "Yoruba", "nativeName": "Yorùbá (Èdè Ìjìnlẹ̀)", "flag": "����",
+    {"code": "yo", "name": "Yoruba", "nativeName": "Yorùbá (Èdè Ìjìnlẹ̀)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "Ibadan Formal"],
      "description": "Formal Yoruba for academic research and scientific discourse.",
      "region": "Africa"},
-    {"code": "ig", "name": "Igbo", "nativeName": "Igbo (Asụsụ Ọ̀hà)", "flag": "����",
+    {"code": "ig", "name": "Igbo", "nativeName": "Igbo (Asụsụ Ọ̀hà)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "Central Igbo"],
      "description": "Standardized Igbo for academic and professional communication.",
      "region": "Africa"},
-    {"code": "am", "name": "Amharic", "nativeName": "አማርኛ (አካዳሚክ)", "flag": "����",
+    {"code": "am", "name": "Amharic", "nativeName": "አማርኛ (አካዳሚክ)", "flag": "🔍 ",
      "accentVariants": ["Addis Ababa Academic", "Gondar Formal"],
      "description": "Official working language of Ethiopia. Formal Amharic for research.",
      "region": "Africa"},
-    {"code": "so", "name": "Somali", "nativeName": "Soomaali (Heerka Akademiyada)", "flag": "����",
+    {"code": "so", "name": "Somali", "nativeName": "Soomaali (Heerka Akademiyada)", "flag": "🔍 ",
      "accentVariants": ["Mogadishu Academic", "Northern Somali"],
      "description": "Official language of Somalia. Formal Somali for academic use.",
      "region": "Africa"},
-    {"code": "zu", "name": "Zulu", "nativeName": "isiZulu (Oluqondile)", "flag": "����",
+    {"code": "zu", "name": "Zulu", "nativeName": "isiZulu (Oluqondile)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "KwaZulu-Natal Formal"],
      "description": "One of South Africa's 11 official languages. Formal isiZulu for academic contexts.",
      "region": "Africa"},
-    {"code": "xh", "name": "Xhosa", "nativeName": "isiXhosa (Oluqondile)", "flag": "����",
+    {"code": "xh", "name": "Xhosa", "nativeName": "isiXhosa (Oluqondile)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "Eastern Cape"],
      "description": "Official South African language. Formal isiXhosa for academic communication.",
      "region": "Africa"},
-    {"code": "af", "name": "Afrikaans", "nativeName": "Afrikaans (Akademies)", "flag": "����",
+    {"code": "af", "name": "Afrikaans", "nativeName": "Afrikaans (Akademies)", "flag": "🔍 ",
      "accentVariants": ["South African Academic", "Namibian Formal"],
      "description": "Official language of South Africa and Namibia. Formal Afrikaans for publishing.",
      "region": "Africa"},
-    {"code": "om", "name": "Oromo", "nativeName": "Afaan Oromoo (Akademik)", "flag": "����",
+    {"code": "om", "name": "Oromo", "nativeName": "Afaan Oromoo (Akademik)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "Western Oromo"],
      "description": "Major Cushitic language of Ethiopia. Formal Afaan Oromoo for education.",
      "region": "Africa"},
-    {"code": "rw", "name": "Kinyarwanda", "nativeName": "Ikinyarwanda (Isomo)", "flag": "����",
+    {"code": "rw", "name": "Kinyarwanda", "nativeName": "Ikinyarwanda (Isomo)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "Rwandan Formal"],
      "description": "Official language of Rwanda. Formal Kinyarwanda for government.",
      "region": "Africa"},
-    {"code": "lg", "name": "Luganda", "nativeName": "Luganda (Olutongole)", "flag": "����",
+    {"code": "lg", "name": "Luganda", "nativeName": "Luganda (Olutongole)", "flag": "🔍 ",
      "accentVariants": ["Central Academic", "Kampala Formal"],
      "description": "Official academic and professional register of Uganda.",
      "region": "Africa"},
-    {"code": "ny", "name": "Chichewa", "nativeName": "Chichewa (Chilankhulo)", "flag": "����",
+    {"code": "ny", "name": "Chichewa", "nativeName": "Chichewa (Chilankhulo)", "flag": "🔍 ",
      "accentVariants": ["Malawian Academic", "Zambian Chichewa"],
      "description": "National language of Malawi. Formal Chichewa for education.",
      "region": "Africa"},
-    {"code": "sn", "name": "Shona", "nativeName": "chiShona (Chidzidzo)", "flag": "����",
+    {"code": "sn", "name": "Shona", "nativeName": "chiShona (Chidzidzo)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "Zimbabwean Formal"],
      "description": "Major Bantu language of Zimbabwe. Formal chiShona for academic contexts.",
      "region": "Africa"},
-    {"code": "st", "name": "Sesotho", "nativeName": "Sesotho (Sekolo)", "flag": "����",
+    {"code": "st", "name": "Sesotho", "nativeName": "Sesotho (Sekolo)", "flag": "🔍 ",
      "accentVariants": ["Lesotho Academic", "South African Sesotho"],
      "description": "Official language of Lesotho and South Africa. Formal Sesotho for education.",
      "region": "Africa"},
 
     # ─── Middle East & North Africa ────────────────────────────
-    {"code": "ar", "name": "Arabic", "nativeName": "العربية (الفصحى الحديثة)", "flag": "����",
+    {"code": "ar", "name": "Arabic", "nativeName": "العربية (الفصحى الحديثة)", "flag": "🔍 ",
      "accentVariants": ["Modern Standard", "Maghrebi Formal", "Levantine Academic", "Gulf Academic"],
      "description": "MSA for academic publishing and research across the Arab world.",
      "region": "Middle East & North Africa", "rtl": True},
-    {"code": "he", "name": "Hebrew", "nativeName": "עברית (אקדמית)", "flag": "����",
+    {"code": "he", "name": "Hebrew", "nativeName": "עברית (אקדמית)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "Modern Israeli Formal"],
      "description": "Modern Hebrew for academic research and scientific publishing.",
      "region": "Middle East & North Africa", "rtl": True},
-    {"code": "fa", "name": "Persian (Farsi)", "nativeName": "فارسی (دانشگاهی)", "flag": "����",
+    {"code": "fa", "name": "Persian (Farsi)", "nativeName": "فارسی (دانشگاهی)", "flag": "🔍 ",
      "accentVariants": ["Tehran Academic", "Dari Formal", "Tajik Academic"],
      "description": "Formal Persian for academic and scientific discourse across Iran, Afghanistan, Tajikistan.",
      "region": "Middle East & North Africa", "rtl": True},
 
     # ─── Europe ────────────────────────────────────────────────
-    {"code": "en", "name": "English", "nativeName": "English (International)", "flag": "����",
+    {"code": "en", "name": "English", "nativeName": "English (International)", "flag": "🔍 ",
      "accentVariants": ["Academic US", "Academic UK", "International Scientific", "East African Academic"],
      "description": "Global standard for academic publishing and scientific research.",
      "region": "Europe"},
-    {"code": "fr", "name": "French", "nativeName": "Français (Académique)", "flag": "����",
+    {"code": "fr", "name": "French", "nativeName": "Français (Académique)", "flag": "🔍 ",
      "accentVariants": ["Parisian Academic", "West African Academic", "Canadian Academic", "Belgian Formal"],
      "description": "Formal French for academic publishing and scientific research worldwide.",
      "region": "Europe"},
-    {"code": "es", "name": "Spanish", "nativeName": "Español (Profesional)", "flag": "����",
+    {"code": "es", "name": "Spanish", "nativeName": "Español (Profesional)", "flag": "🔍 ",
      "accentVariants": ["Castilian Academic", "Latin American Academic", "Mexican Formal", "Argentinian Academic"],
      "description": "Professional Spanish for academic research across 20+ countries.",
      "region": "Europe"},
-    {"code": "de", "name": "German", "nativeName": "Deutsch (Wissenschaftlich)", "flag": "����",
+    {"code": "de", "name": "German", "nativeName": "Deutsch (Wissenschaftlich)", "flag": "🔍 ",
      "accentVariants": ["Standard Hochdeutsch", "Austrian Academic", "Swiss Formal"],
      "description": "Scientific German register for formal publication and research.",
      "region": "Europe"},
 
     # ─── South Asia ─────────────────────────────────────────────
-    {"code": "hi", "name": "Hindi", "nativeName": "हिन्दी (अकादमिक)", "flag": "����",
+    {"code": "hi", "name": "Hindi", "nativeName": "हिन्दी (अकादमिक)", "flag": "🔍 ",
      "accentVariants": ["Standard Academic", "Scientific Register", "Delhi Formal"],
      "description": "Official language of India. Formal Hindi for scientific research.",
      "region": "South Asia"},
-    {"code": "bn", "name": "Bengali", "nativeName": "বাংলা (একাডেমিক)", "flag": "����",
+    {"code": "bn", "name": "Bengali", "nativeName": "বাংলা (একাডেমিক)", "flag": "🔍 ",
      "accentVariants": ["Dhaka Academic", "Kolkata Formal"],
      "description": "Official language of Bangladesh. Formal Bengali for academic research.",
      "region": "South Asia"},
 
     # ─── East Asia ──────────────────────────────────────────────
-    {"code": "zh", "name": "Chinese (Mandarin)", "nativeName": "中文 (学术)", "flag": "����",
+    {"code": "zh", "name": "Chinese (Mandarin)", "nativeName": "中文 (学术)", "flag": "🔍 ",
      "accentVariants": ["Mandarin Academic (Simplified)", "Taiwan Academic (Traditional)", "HK Formal"],
      "description": "Standard academic Mandarin with verified scientific terminology.",
      "region": "East Asia"},
-    {"code": "ja", "name": "Japanese", "nativeName": "日本語 (学術)", "flag": "����",
+    {"code": "ja", "name": "Japanese", "nativeName": "日本語 (学術)", "flag": "🔍 ",
      "accentVariants": ["Tokyo Academic", "Kyoto Formal", "Osaka Professional"],
      "description": "Formal Japanese for academic publishing and technical documentation.",
      "region": "East Asia"},
@@ -311,7 +311,7 @@ st.markdown(
 <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
     <div>
         <span class='badge-primary'>NEURAL SYNTHESIS & LOCALIZATION ENGINE v4.0</span>
-        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>�� Global Language & Academic Register</h1>
+        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 Global Language & Academic Register</h1>
         <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
             Complete Application UI, AI Synthesis, and Neural Audio Localization with World Language Support & Academic Precision.
         </p>
@@ -319,7 +319,7 @@ st.markdown(
     <div style='text-align: right;'>
         <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
             <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Engine Lead</div>
-            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>�� KULA CHRIS (CHRISHEM)</div>
+            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>🔍 KULA CHRIS (CHRISHEM)</div>
         </div>
     </div>
 </div>
@@ -337,7 +337,7 @@ with m1:
     region_opts = ["All Regions"] + REGIONS
     cur_reg = st.session_state["loc_region_filter"]
     idx = region_opts.index(cur_reg) if cur_reg in region_opts else 0
-    sel_region = st.selectbox("�� Filter Regions", region_opts, index=idx, key="loc_region_select")
+    sel_region = st.selectbox("🔍 Filter Regions", region_opts, index=idx, key="loc_region_select")
     st.session_state["loc_region_filter"] = sel_region
 
 with m2:
@@ -370,7 +370,7 @@ st.markdown(
                 {' <span class="badge-primary">RTL LAYOUT</span>' if current_lang.get("rtl") else ''}
             </div>
             <div style='color:#34d399; font-size:0.85rem; font-weight:600; font-family:monospace;'>
-                ��️ ACTIVE GLOSSARY: {active_glossary["name"].upper()} ({active_glossary["termsLocked"]:,} TERMS LOCKED)
+                🔍 ️ ACTIVE GLOSSARY: {active_glossary["name"].upper()} ({active_glossary["termsLocked"]:,} TERMS LOCKED)
             </div>
         </div>
     </div>
@@ -385,9 +385,9 @@ st.markdown(
 
 # ─── 8. MAIN WORKSPACE TABS ──────────────────────────────────────────────
 tab_select, tab_accent, tab_glossary, tab_preview = st.tabs([
-    "�� Locale Selection",
-    "��️ Voice Accent Matrix",
-    "�� Domain Glossaries",
+    "🔍 Locale Selection",
+    "🔍 ️ Voice Accent Matrix",
+    "🔍 Domain Glossaries",
     "⚡ Synthesis Live Preview",
 ])
 
@@ -397,7 +397,7 @@ with tab_select:
     
     with c_left:
         st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.markdown("### �� Select Working Language Locale")
+        st.markdown("### 🔍 Select Working Language Locale")
         
         filtered_langs = get_langs_by_region(st.session_state["loc_region_filter"])
         lang_options = {f"{l['flag']} {l['name']} ({l['nativeName']})": l['code'] for l in filtered_langs}
@@ -424,12 +424,12 @@ with tab_select:
 # ── TAB 2: VOICE ACCENT MATRIX ──
 with tab_accent:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.markdown(f"### ��️ Available Neural Audio Accents for {current_lang['name']}")
+    st.markdown(f"### 🔍 ️ Available Neural Audio Accents for {current_lang['name']}")
     
     for acc in current_lang.get("accentVariants", ["Standard Academic"]):
         a1, a2 = st.columns([8, 4])
         with a1:
-            st.markdown(f"�� **{acc}**  Optimized for academic research synthesis & podcast generation.")
+            st.markdown(f"🔍 **{acc}**  Optimized for academic research synthesis & podcast generation.")
         with a2:
             st.button(f"Preview {acc}", key=f"prev_{acc}")
             
@@ -438,7 +438,7 @@ with tab_accent:
 # ── TAB 3: DOMAIN GLOSSARIES ──
 with tab_glossary:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.markdown("### �� Select Domain-Specific Terminology Bank")
+    st.markdown("### 🔍 Select Domain-Specific Terminology Bank")
     
     glossary_opts = {g['name']: g['id'] for g in DOMAIN_GLOSSARIES}
     selected_g_label = st.selectbox(
@@ -464,7 +464,7 @@ with tab_preview:
         height=100
     )
     
-    if st.button("�� Synthesize & Align Register"):
+    if st.button("🔍 Synthesize & Align Register"):
         st.success("✅ Register aligned and localized successfully.")
         st.info(f"Target Output [{current_lang['code'].upper()}]: {sample_text}")
     st.markdown("</div>", unsafe_allow_html=True)
@@ -474,7 +474,7 @@ st.markdown("<hr style='border:1px solid #1e293b; margin-top:2.5rem;'>", unsafe_
 st.markdown(
     """
 <div style='display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; font-family: monospace;'>
-    <div>�� GLOBAL LANGUAGE & ACADEMIC REGISTER ENGINE</div>
+    <div>🔍 GLOBAL LANGUAGE & ACADEMIC REGISTER ENGINE</div>
     <div>DEVELOPER: CHRISHEM</div>
     <div>SYSTEM STATUS: ONLINE</div>
 </div>

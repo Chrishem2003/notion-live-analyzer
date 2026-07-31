@@ -92,13 +92,13 @@ except ImportError:
 
 class VaultCategory(str, Enum):
 
-    DOCUMENTS = "�� Documents"
+    DOCUMENTS = "🔍 Documents"
 
-    IMAGES = "�� Images"
+    IMAGES = "🔍 Images"
 
-    AUDIO = "��️ Audio Notes"
+    AUDIO = "🔍 ️ Audio Notes"
 
-    DATASETS = "�� Datasets & Code"
+    DATASETS = "🔍 Datasets & Code"
 
 
 
@@ -124,13 +124,13 @@ CATEGORY_EXTENSIONS: Dict[VaultCategory, List[str]] = {
 
 CATEGORY_ICONS: Dict[VaultCategory, str] = {
 
-    VaultCategory.DOCUMENTS: "��",
+    VaultCategory.DOCUMENTS: "🔍 ",
 
-    VaultCategory.IMAGES: "��",
+    VaultCategory.IMAGES: "🔍 ",
 
-    VaultCategory.AUDIO: "��️",
+    VaultCategory.AUDIO: "🔍 ️",
 
-    VaultCategory.DATASETS: "��",
+    VaultCategory.DATASETS: "🔍 ",
 
 }
 
@@ -744,7 +744,7 @@ class VaultFile:
 
             "category": self.category.value,
 
-            "category_icon": CATEGORY_ICONS.get(self.category, "��"),
+            "category_icon": CATEGORY_ICONS.get(self.category, "🔍 "),
 
             "tags": self.tags,
 
@@ -1136,7 +1136,7 @@ class SecurePersonalVault:
 
             if remaining_attempts <= 0:
 
-                return False, "�� Account locked. Try again in 5 minutes."
+                return False, "🔍 Account locked. Try again in 5 minutes."
 
             return False, f"❌ Invalid passcode. {remaining_attempts} attempt(s) remaining."
 
@@ -2185,7 +2185,7 @@ def render_secure_vault_ui():
 
         <div class="vault-gate">
 
-            <div class="vault-gate-icon">��</div>
+            <div class="vault-gate-icon">🔍 </div>
 
             <h2>Secure Personal Vault</h2>
 
@@ -2201,13 +2201,13 @@ def render_secure_vault_ui():
 
         with col2:
 
-            setup_mode = st.toggle("�� First time? Set up new vault", value=vault is None, key="vault_setup_toggle")
+            setup_mode = st.toggle("🔍 First time? Set up new vault", value=vault is None, key="vault_setup_toggle")
 
 
 
             if setup_mode:
 
-                st.markdown("### �� Create New Vault")
+                st.markdown("### 🔍 Create New Vault")
 
                 with st.form("vault_setup_form"):
 
@@ -2227,7 +2227,7 @@ def render_secure_vault_ui():
 
                     with col_a:
 
-                        submitted = st.form_submit_button("�� Create Vault", type="primary", use_container_width=True)
+                        submitted = st.form_submit_button("🔍 Create Vault", type="primary", use_container_width=True)
 
                     with col_b:
 
@@ -2281,7 +2281,7 @@ def render_secure_vault_ui():
 
                     totp_info = v.get_totp_setup_info()
 
-                    st.markdown("### �� Set Up Your Authenticator")
+                    st.markdown("### 🔍 Set Up Your Authenticator")
 
                     st.info(
 
@@ -2315,7 +2315,7 @@ def render_secure_vault_ui():
 
             else:
 
-                st.markdown("### �� Unlock Vault")
+                st.markdown("### 🔍 Unlock Vault")
 
                 with st.form("vault_unlock_form"):
 
@@ -2327,7 +2327,7 @@ def render_secure_vault_ui():
 
                                                placeholder="000000", key="vault_unlock_totp")
 
-                    submitted = st.form_submit_button("�� Unlock Vault", type="primary", use_container_width=True)
+                    submitted = st.form_submit_button("🔍 Unlock Vault", type="primary", use_container_width=True)
 
                     if submitted:
 
@@ -2375,7 +2375,7 @@ def render_secure_vault_ui():
 
         st.session_state["vault_unlocked"] = False
 
-        st.warning("�� Auto-locked due to inactivity.")
+        st.warning("🔍 Auto-locked due to inactivity.")
 
         st.rerun()
 
@@ -2403,7 +2403,7 @@ def render_secure_vault_ui():
 
             <div>
 
-                <h1>�� Secure Personal Vault {duress_badge}</h1>
+                <h1>🔍 Secure Personal Vault {duress_badge}</h1>
 
                 <p>Zero-knowledge encrypted · AES-256-GCM · Vault ID: {vault.vault_id[:16]}…</p>
 
@@ -2431,7 +2431,7 @@ def render_secure_vault_ui():
 
     with action_col1:
 
-        if st.button("�� Lock Vault", use_container_width=True):
+        if st.button("🔍 Lock Vault", use_container_width=True):
 
             vault.lock()
 
@@ -2481,7 +2481,7 @@ def render_secure_vault_ui():
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
 
-            <span style="color:#94a3b8;font-size:0.85rem;">�� Storage</span>
+            <span style="color:#94a3b8;font-size:0.85rem;">🔍 Storage</span>
 
             <span style="color:#cbd5e1;font-size:0.9rem;font-weight:700;">
 
@@ -2547,7 +2547,7 @@ def render_secure_vault_ui():
 
     with search_col1:
 
-        search_query = st.text_input("�� Search files...", value=st.session_state["vault_search_query"],
+        search_query = st.text_input("🔍 Search files...", value=st.session_state["vault_search_query"],
 
                                       placeholder="Search by name, tag, or notes...",
 
@@ -2569,7 +2569,7 @@ def render_secure_vault_ui():
 
     with search_col3:
 
-        include_trash = st.checkbox("��️ Include trash", value=False, key="vault_show_trash")
+        include_trash = st.checkbox("🔍 ️ Include trash", value=False, key="vault_show_trash")
 
 
 
@@ -2637,7 +2637,7 @@ def render_secure_vault_ui():
 
         <div class="vault-card" style="text-align:center;padding:2rem;">
 
-            <div style="font-size:3rem;margin-bottom:0.5rem;">��</div>
+            <div style="font-size:3rem;margin-bottom:0.5rem;">🔍 </div>
 
             <div style="color:#94a3b8;font-size:0.95rem;">No files found</div>
 
@@ -2649,13 +2649,13 @@ def render_secure_vault_ui():
 
     else:
 
-        st.markdown(f"<div class='vault-section-title'>�� {len(files)} file(s)</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='vault-section-title'>🔍 {len(files)} file(s)</div>", unsafe_allow_html=True)
 
         for vf in files:
 
             cat_color = CATEGORY_COLORS.get(vf.category, "#64748b")
 
-            cat_icon = CATEGORY_ICONS.get(vf.category, "��")
+            cat_icon = CATEGORY_ICONS.get(vf.category, "🔍 ")
 
             badge_class = {
 
@@ -2709,7 +2709,7 @@ def render_secure_vault_ui():
 
             with col_view:
 
-                if st.button("��️", key=f"vault_view_{vf.id}", use_container_width=True, help="Preview file"):
+                if st.button("🔍 ️", key=f"vault_view_{vf.id}", use_container_width=True, help="Preview file"):
 
                     st.session_state["vault_preview_file"] = vf.id
 
@@ -2719,11 +2719,11 @@ def render_secure_vault_ui():
 
             with col_share:
 
-                if st.button("��", key=f"vault_share_{vf.id}", use_container_width=True, help="Generate share link"):
+                if st.button("🔍 ", key=f"vault_share_{vf.id}", use_container_width=True, help="Generate share link"):
 
                     link = vf.generate_share_link(expires_in_hours=1, max_downloads=1)
 
-                    st.info(f"�� Share link: `{link['url']}`  expires in 1h / 1 download")
+                    st.info(f"🔍 Share link: `{link['url']}`  expires in 1h / 1 download")
 
 
 
@@ -2739,7 +2739,7 @@ def render_secure_vault_ui():
 
                 else:
 
-                    if st.button("��️", key=f"vault_del_{vf.id}", use_container_width=True, help="Move to trash"):
+                    if st.button("🔍 ️", key=f"vault_del_{vf.id}", use_container_width=True, help="Move to trash"):
 
                         vault.delete_file(vf.id)
 
@@ -2777,7 +2777,7 @@ def render_secure_vault_ui():
 
                 with title_col:
 
-                    cat_icon = CATEGORY_ICONS.get(vf.category, "��")
+                    cat_icon = CATEGORY_ICONS.get(vf.category, "🔍 ")
 
                     st.markdown(f"### {cat_icon} {vf.name}")
 
@@ -2829,17 +2829,17 @@ def render_secure_vault_ui():
 
                         except UnicodeDecodeError:
 
-                            st.info("�� Binary file  download to view")
+                            st.info("🔍 Binary file  download to view")
 
                     else:
 
-                        st.info(f"�� File type `{ext}`  download to view")
+                        st.info(f"🔍 File type `{ext}`  download to view")
 
 
 
                 # File metadata
 
-                with st.expander("�� File Details", expanded=False):
+                with st.expander("🔍 File Details", expanded=False):
 
                     meta_col1, meta_col2 = st.columns(2)
 
@@ -2881,7 +2881,7 @@ def render_secure_vault_ui():
 
                     st.download_button(
 
-                        "�� Download Decrypted File",
+                        "🔍 Download Decrypted File",
 
                         data=decoded_data,
 
@@ -2903,7 +2903,7 @@ def render_secure_vault_ui():
 
     # ── Upload Section ──────────────────────────────────────────────
 
-    with st.expander("�� Upload Files to Vault", expanded=False):
+    with st.expander("🔍 Upload Files to Vault", expanded=False):
 
         st.markdown('<div class="vault-upload-zone">', unsafe_allow_html=True)
 
@@ -2971,7 +2971,7 @@ def render_secure_vault_ui():
 
 
 
-            if st.button("�� Encrypt & Upload", type="primary", use_container_width=True):
+            if st.button("🔍 Encrypt & Upload", type="primary", use_container_width=True):
 
                 try:
 
@@ -3005,7 +3005,7 @@ def render_secure_vault_ui():
 
     # ── Share Links Management ──────────────────────────────────────
 
-    with st.expander("�� Active Share Links", expanded=False):
+    with st.expander("🔍 Active Share Links", expanded=False):
 
         active_links = []
 
@@ -3039,7 +3039,7 @@ def render_secure_vault_ui():
 
                 <div class="vault-file-row">
 
-                    <span>��</span>
+                    <span>🔍 </span>
 
                     <div style="flex:1;">
 
@@ -3059,13 +3059,13 @@ def render_secure_vault_ui():
 
         else:
 
-            st.info("No active share links. Select a file and click �� to generate one.")
+            st.info("No active share links. Select a file and click 🔍 to generate one.")
 
 
 
     # ── Vault Audit Log ─────────────────────────────────────────────
 
-    with st.expander("�� Audit Log", expanded=False):
+    with st.expander("🔍 Audit Log", expanded=False):
 
         log_entries = vault.get_audit_log(limit=30)
 
@@ -3121,9 +3121,9 @@ def render_secure_vault_ui():
 
     <div style="margin-top:1.5rem;padding:0.75rem;border-top:1px solid #1e293b;display:flex;justify-content:space-between;">
 
-        <span style="color:#475569;font-size:0.7rem;">�� AES-256-GCM Encrypted</span>
+        <span style="color:#475569;font-size:0.7rem;">🔍 AES-256-GCM Encrypted</span>
 
-        <span style="color:#475569;font-size:0.7rem;">��️ Zero-knowledge architecture</span>
+        <span style="color:#475569;font-size:0.7rem;">🔍 ️ Zero-knowledge architecture</span>
 
         <span style="color:#475569;font-size:0.7rem;">⏱️ Auto-lock: {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity</span>
 

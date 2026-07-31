@@ -1,5 +1,5 @@
 """
-�� World-Class One-Click Grant & Journal Transpiler
+🔍 World-Class One-Click Grant & Journal Transpiler
 Enterprise-grade academic publishing and funding proposal transformation engine featuring automated
 guideline compliance parsing, multi-journal style mapping, tone adaptation, and structural gap analysis pipelines.
 """
@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 st.set_page_config(
     page_title="One-Click Grant & Journal Transpiler",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -143,7 +143,7 @@ with st.sidebar:
     st.session_state["target_output_profile"] = output_profile
 
     st.markdown("---")
-    st.markdown("### ��️ Optimization & Controls")
+    st.markdown("### 🔍 ️ Optimization & Controls")
     word_limit = st.selectbox(
         "Strict Word Count Constraint",
         ["Unbounded (Full Draft)", "Strict 3,000 Words", "Strict 5,000 Words", "Strict 10,000 Words", "Custom Abstract Limit (250 Words)"],
@@ -156,7 +156,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### ��️ Automated Transformation Guards")
+    st.markdown("### 🔍 ️ Automated Transformation Guards")
     st.toggle("Author Guidelines Compliance Check", value=True, key="grant_guidelines_toggle")
     st.toggle("Automated Section Restructuring", value=True, key="grant_restructure_toggle")
     st.toggle("Impact Metric & Broader Context Framing", value=True, key="grant_impact_toggle")
@@ -166,7 +166,7 @@ with st.sidebar:
 # 4. MAIN WORKSPACE & HEADER
 # ==========================================
 st.markdown("<span class='badge'>TRANSFORMATION ENGINE v2.0</span>", unsafe_allow_html=True)
-st.title("�� One-Click Grant & Journal Transpiler")
+st.title("🔍 One-Click Grant & Journal Transpiler")
 st.caption("Automated academic publishing alignment, tone adaptation, and structural compliance engine.")
 
 # Quick Metric Highlights
@@ -196,7 +196,7 @@ else:
     st.warning(f"Could not load `modules.grant_formatter`. Check that `modules/grant_formatter.py` exists and has no syntax errors.\n\n**Error Details:** `{import_error_message}`")
     
     # Fallback Workspace Preview
-    st.subheader("�� Workspace Preview Mode")
+    st.subheader("🔍 Workspace Preview Mode")
     st.info("The UI controls on the sidebar are active. Once the underlying module path is verified, full processing will automatically resume.")
     
     uploaded_file = st.file_uploader("Upload Manuscript or Proposal Draft", type=["docx", "tex", "md", "pdf"])

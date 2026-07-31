@@ -22,7 +22,7 @@ if PROJECT_ROOT not in sys.path:
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Network Science & Graph Analytics",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -212,13 +212,13 @@ if "G" not in st.session_state:
 G = st.session_state["G"]
 
 # ─── HERO HEADER ───────────────────────────────────────────────────────
-louvain_status = "�� Louvain Modularity Engine Active" if HAS_COMMUNITY else "�� Default Modularity Fallback"
+louvain_status = "🔍 Louvain Modularity Engine Active" if HAS_COMMUNITY else "🔍 Default Modularity Fallback"
 st.markdown(f"""
 <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;'>
     <div>
         <span class='badge-net'>⚡ v3.0 ULTRA  TOPOLOGICAL GRAPH ANALYTICS ENGINE</span>
         <h1 style='font-size:2.2rem; color:#f8fafc; margin:0.4rem 0 0.2rem 0;'>
-            �� Advanced Network Science & Topology Lab
+            🔍 Advanced Network Science & Topology Lab
         </h1>
         <p style='color:#94a3b8; font-size:0.95rem; max-width:850px; margin:0;'>
             Construct dynamic correlation networks, evaluate node centralities, run modularity-based community detection algorithms, map influence pathways, and stress-test graph resilience.
@@ -237,18 +237,18 @@ st.markdown("<hr style='border-color:#1e293b; margin:1rem 0;'>", unsafe_allow_ht
 
 # ─── NAVIGATION TABS ───────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "�� Correlation & Edge Thresholding",
-    "�� Centrality & Node Importance",
-    "�� Community Detection & Modularity",
+    "🔍 Correlation & Edge Thresholding",
+    "🔍 Centrality & Node Importance",
+    "🔍 Community Detection & Modularity",
     "⚡ Shortest Paths & Flow Routing",
-    "�� Graph Metrics & Resilience"
+    "🔍 Graph Metrics & Resilience"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════
 # TAB 1: CORRELATION & PARTIAL NETWORKS
 # ═══════════════════════════════════════════════════════════════════════
 with tab1:
-    st.markdown("<h3 style='color:#38bdf8;'>�� Correlation Networks & Edge Thresholding</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#38bdf8;'>🔍 Correlation Networks & Edge Thresholding</h3>", unsafe_allow_html=True)
     st.markdown("Transform multivariate datasets into thresholded, weighted graph topologies.")
 
     col_c1, col_c2 = st.columns([4, 6])
@@ -258,7 +258,7 @@ with tab1:
         threshold = st.slider("Edge Weight Threshold (|r| ≥)", 0.30, 0.95, 0.45, step=0.05)
         remove_isolated = st.checkbox("Remove Isolated Nodes (Degree = 0)", value=True)
         
-        if st.button("�� Rebuild Correlation Network", use_container_width=True):
+        if st.button("🔍 Rebuild Correlation Network", use_container_width=True):
             raw_G = generate_synthetic_graph(num_nodes=20, edge_prob=0.40, seed=int(threshold * 100))
             filtered_G = nx.Graph()
             for u, v, d in raw_G.edges(data=True):
@@ -280,7 +280,7 @@ with tab1:
 
     with col_c2:
         st.markdown("<div class='net-card'>", unsafe_allow_html=True)
-        st.markdown("#### �� Current Graph Topology Summary")
+        st.markdown("#### 🔍 Current Graph Topology Summary")
         
         cur_G = st.session_state["G"]
         n_nodes = cur_G.number_of_nodes()
@@ -310,7 +310,7 @@ Clustering Coefficient: {clustering_coeff:.3f}
 # TAB 2: CENTRALITY & NODE IMPORTANCE
 # ═══════════════════════════════════════════════════════════════════════
 with tab2:
-    st.markdown("<h3 style='color:#38bdf8;'>�� Multi-Metric Centrality & Node Importance</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#38bdf8;'>🔍 Multi-Metric Centrality & Node Importance</h3>", unsafe_allow_html=True)
 
     col_cn1, col_cn2 = st.columns([4, 6])
     with col_cn1:
@@ -321,7 +321,7 @@ with tab2:
 
     with col_cn2:
         st.markdown("<div class='net-card'>", unsafe_allow_html=True)
-        st.markdown(f"#### �� Top Nodes Ranked by {cent_choice}")
+        st.markdown(f"#### 🔍 Top Nodes Ranked by {cent_choice}")
         
         cur_G = st.session_state["G"]
         if cur_G.number_of_nodes() > 0:
@@ -361,7 +361,7 @@ with tab2:
 # TAB 3: COMMUNITY DETECTION & MODULARITY
 # ═══════════════════════════════════════════════════════════════════════
 with tab3:
-    st.markdown("<h3 style='color:#38bdf8;'>�� Community Detection & Modularity Optimization</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#38bdf8;'>🔍 Community Detection & Modularity Optimization</h3>", unsafe_allow_html=True)
 
     col_cm1, col_cm2 = st.columns([4, 6])
     with col_cm1:
@@ -372,7 +372,7 @@ with tab3:
 
     with col_cm2:
         st.markdown("<div class='net-card'>", unsafe_allow_html=True)
-        st.markdown("#### �� Partition Modularity & Network Map")
+        st.markdown("#### 🔍 Partition Modularity & Network Map")
         
         cur_G = st.session_state["G"]
         if cur_G.number_of_nodes() > 0:
@@ -450,7 +450,7 @@ with tab4:
 
     with col_p2:
         st.markdown("<div class='net-card'>", unsafe_allow_html=True)
-        st.markdown("#### �� Causal Transmission Cascade Route")
+        st.markdown("#### 🔍 Causal Transmission Cascade Route")
         if src_node and tgt_node and nx.has_path(cur_G, src_node, tgt_node):
             path = nx.shortest_path(cur_G, source=src_node, target=tgt_node)
             path_len = len(path) - 1
@@ -466,18 +466,18 @@ with tab4:
 # TAB 5: GRAPH METRICS & RESILIENCE
 # ═══════════════════════════════════════════════════════════════════════
 with tab5:
-    st.markdown("<h3 style='color:#38bdf8;'>�� Global Graph Metrics & Structural Resilience</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#38bdf8;'>🔍 Global Graph Metrics & Structural Resilience</h3>", unsafe_allow_html=True)
 
     col_g1, col_g2 = st.columns([4, 6])
     with col_g1:
         st.markdown("<div class='net-card'>", unsafe_allow_html=True)
-        st.markdown("#### �� Resilience Stress Simulator")
+        st.markdown("#### 🔍 Resilience Stress Simulator")
         attack_type = st.selectbox("Simulated Attack Strategy", ["Targeted Hub Removal (Betweenness)", "Random Node Failure"])
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_g2:
         st.markdown("<div class='net-card'>", unsafe_allow_html=True)
-        st.markdown("#### �� Giant Component Decay Curve")
+        st.markdown("#### 🔍 Giant Component Decay Curve")
         
         cur_G = st.session_state["G"].copy()
         if cur_G.number_of_nodes() > 0:

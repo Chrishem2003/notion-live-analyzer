@@ -1,5 +1,5 @@
 """
-�� Advanced Publication-Ready Table Generator & APA Formatting Suite (Enterprise Edition)
+🔍 Advanced Publication-Ready Table Generator & APA Formatting Suite (Enterprise Edition)
 Autonomous Research Operating System v3.0  Table Generation Module
 """
 import streamlit as st
@@ -9,7 +9,7 @@ import numpy as np
 # ─── Page Config ───────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Publication-Ready Tables & APA Suite",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -144,7 +144,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#0f172a; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>Formatting Kernel</div>
-            <div style='color:#fb923c; font-size:0.85rem; font-weight:800;'>�� APA 7 & LaTeX Active</div>
+            <div style='color:#fb923c; font-size:0.85rem; font-weight:800;'>🔍 APA 7 & LaTeX Active</div>
         </div>
     </div>
 </div>
@@ -152,11 +152,11 @@ st.markdown("""
 
 # ─── Navigation Tabs ───────────────────────────────────────────────────
 table_tabs = {
-    "apa7": "�� APA 7th Descriptive Tables",
-    "correlation": "�� Correlation Matrices (APA)",
-    "regression": "�� Regression Coefficient Tables",
-    "summary": "�� Summary & Custom Metrics",
-    "export": "�� LaTeX & Document Export"
+    "apa7": "🔍 APA 7th Descriptive Tables",
+    "correlation": "🔍 Correlation Matrices (APA)",
+    "regression": "🔍 Regression Coefficient Tables",
+    "summary": "🔍 Summary & Custom Metrics",
+    "export": "🔍 LaTeX & Document Export"
 }
 
 cols = st.columns(len(table_tabs))
@@ -175,7 +175,7 @@ active_table_tab = st.session_state["table_active_tab"]
 # TAB 1: APA 7TH DESCRIPTIVE TABLES
 # ═══════════════════════════════════════════════════════════════════════
 if active_table_tab == "apa7":
-    st.markdown("### �� APA 7th Edition Descriptive Statistics Tables")
+    st.markdown("### 🔍 APA 7th Edition Descriptive Statistics Tables")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Format means, standard deviations, skews, and kurtosis adhering strictly to APA formatting guidelines (horizontal borders only, italicized headers).</p>", unsafe_allow_html=True)
     
     col_t1, col_t2 = st.columns([4, 6])
@@ -184,12 +184,12 @@ if active_table_tab == "apa7":
         st.text_input("Table Title Number", value="Table 1")
         st.text_input("Table Caption", value="Descriptive Statistics and Intercorrelations for Study Variables")
         st.multiselect("Metrics to Include", ["Mean ($M$)", "Standard Deviation ($SD$)", "Median", "IQR", "Skewness", "Kurtosis"], default=["Mean ($M$)", "Standard Deviation ($SD$)", "Skewness", "Kurtosis"])
-        st.button("�� Render APA Descriptive Table", use_container_width=True)
+        st.button("🔍 Render APA Descriptive Table", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_t2:
         st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Manuscript Table Preview (APA Style)</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Manuscript Table Preview (APA Style)</h4>", unsafe_allow_html=True)
         
         # HTML preview simulating strict APA lines
         st.markdown("""
@@ -221,7 +221,7 @@ if active_table_tab == "apa7":
 # TAB 2: CORRELATION MATRICES (APA)
 # ═══════════════════════════════════════════════════════════════════════
 elif active_table_tab == "correlation":
-    st.markdown("### �� APA-Style Correlation Matrices")
+    st.markdown("### 🔍 APA-Style Correlation Matrices")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Generate lower-triangular Pearson correlation matrices complete with asterisk significance markers ($*p < .05, **p < .01$).</p>", unsafe_allow_html=True)
     
     col_c1, col_c2 = st.columns([4, 6])
@@ -235,7 +235,7 @@ elif active_table_tab == "correlation":
         
     with col_c2:
         st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Correlation Matrix Grid</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Correlation Matrix Grid</h4>", unsafe_allow_html=True)
         st.code("""
 Table 2
 Bivariate Correlations Among Primary Research Variables
@@ -255,7 +255,7 @@ Note. *p < .05, **p < .01 (two-tailed). N = 250.
 # TAB 3: REGRESSION COEFFICIENT TABLES
 # ═══════════════════════════════════════════════════════════════════════
 elif active_table_tab == "regression":
-    st.markdown("### �� Multiple Regression Coefficient Tables")
+    st.markdown("### 🔍 Multiple Regression Coefficient Tables")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Format unstandardized coefficients ($B$), standard errors ($SE$), standardized betas ($\beta$), $t$-statistics, and confidence intervals for publication.</p>", unsafe_allow_html=True)
     
     col_r1, col_r2 = st.columns([4, 6])
@@ -269,7 +269,7 @@ elif active_table_tab == "regression":
         
     with col_r2:
         st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Regression Output Matrix</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Regression Output Matrix</h4>", unsafe_allow_html=True)
         st.code("""
 Table 3
 Multiple Regression Analysis Predicting Ecosystem Yield Index
@@ -289,19 +289,19 @@ Model Summary: R² = .624, Adjusted R² = .619, F(3, 246) = 43.21, p < .001
 # TAB 4: SUMMARY & CUSTOM METRICS
 # ═══════════════════════════════════════════════════════════════════════
 elif active_table_tab == "summary":
-    st.markdown("### �� Custom Metric & Model Comparison Tables")
+    st.markdown("### 🔍 Custom Metric & Model Comparison Tables")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Construct custom model selection tables comparing AIC, BIC, LOO, and R-squared across alternative specifications.</p>", unsafe_allow_html=True)
     
     col_s1, col_s2 = st.columns([4, 6])
     with col_s1:
         st.markdown("<div class='table-card'>", unsafe_allow_html=True)
         st.multiselect("Comparison Criteria", ["AIC", "BIC", "Log-Likelihood", "R²", "Adjusted R²", "RMSE", "WAIC"], default=["AIC", "BIC", "R²", "RMSE"])
-        st.button("�� Generate Comparison Summary", use_container_width=True)
+        st.button("🔍 Generate Comparison Summary", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_s2:
         st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Model Comparison Grid</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Model Comparison Grid</h4>", unsafe_allow_html=True)
         st.code("""
 Table 4
 Model Fit and Information Criteria Comparison
@@ -320,7 +320,7 @@ Note. Lower AIC and BIC values indicate superior parsimony and fit.
 # TAB 5: LATEX & DOCUMENT EXPORT
 # ═══════════════════════════════════════════════════════════════════════
 elif active_table_tab == "export":
-    st.markdown("### �� LaTeX Source Code & Document Export")
+    st.markdown("### 🔍 LaTeX Source Code & Document Export")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Export tables directly into production-ready LaTeX environments (`booktabs` package) or copy CSV/Markdown formats.</p>", unsafe_allow_html=True)
     
     col_e1, col_e2 = st.columns([4, 6])
@@ -328,12 +328,12 @@ elif active_table_tab == "export":
         st.markdown("<div class='table-card'>", unsafe_allow_html=True)
         st.selectbox("Export Format", ["LaTeX (booktabs package)", "Markdown Table", "CSV Format", "HTML Snippet"])
         st.checkbox("Include Table Environment Wrapper", value=True)
-        st.button("�� Generate Export Code", use_container_width=True)
+        st.button("🔍 Generate Export Code", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_e2:
         st.markdown("<div class='table-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� LaTeX Source Code</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 LaTeX Source Code</h4>", unsafe_allow_html=True)
         st.code(r"""
 \begin{table}[!htbp]
 \centering

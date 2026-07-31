@@ -1,5 +1,5 @@
 """
-�� Advanced Bayesian Inference & Probabilistic Programming Engine (Enterprise Edition)
+🔍 Advanced Bayesian Inference & Probabilistic Programming Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0  Bayesian Module
 """
 import streamlit as st
@@ -9,7 +9,7 @@ import numpy as np
 # ─── Page Config ───────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Bayesian Inference & Probabilistic Engine",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -120,7 +120,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#0f172a; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>MCMC Backend</div>
-            <div style='color:#c084fc; font-size:0.85rem; font-weight:800;'>�� {'PyMC (NUTS) Active' if HAS_PYMC else 'SciPy/Pingouin Fallback'}</div>
+            <div style='color:#c084fc; font-size:0.85rem; font-weight:800;'>🔍 {'PyMC (NUTS) Active' if HAS_PYMC else 'SciPy/Pingouin Fallback'}</div>
         </div>
     </div>
 </div>
@@ -128,9 +128,9 @@ st.markdown("""
 
 # ─── Navigation Tabs ───────────────────────────────────────────────────
 bayes_tabs = {
-    "ttest": "�� Bayesian t-Test & Effect Size",
-    "anova": "�� Hierarchical Bayesian ANOVA",
-    "regression": "�� Bayesian GLM & Regression",
+    "ttest": "🔍 Bayesian t-Test & Effect Size",
+    "anova": "🔍 Hierarchical Bayesian ANOVA",
+    "regression": "🔍 Bayesian GLM & Regression",
     "bf": "⚖️ Bayes Factors & Model Selection",
     "mcmc": "⚙️ MCMC Diagnostics & Convergence"
 }
@@ -151,7 +151,7 @@ active_bayes_tab = st.session_state["bayes_active_tab"]
 # TAB 1: BAYESIAN T-TEST & EFFECT SIZE
 # ═══════════════════════════════════════════════════════════════════════
 if active_bayes_tab == "ttest":
-    st.markdown("### �� Bayesian Estimation Supersedes the t-Test (BEST)")
+    st.markdown("### 🔍 Bayesian Estimation Supersedes the t-Test (BEST)")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Estimate full posterior distributions of group means, differences, and effect sizes without assuming normality or equal variances.</p>", unsafe_allow_html=True)
     
     col_t1, col_t2 = st.columns([4, 6])
@@ -161,12 +161,12 @@ if active_bayes_tab == "ttest":
         st.selectbox("Binary Grouping Variable", ["Satellite_Intervention", "Treatment_Cohort"])
         st.slider("Prior Width (Cauchy Scale)", 0.5, 2.0, 0.707)
         st.slider("MCMC Draws / Samples", 1000, 10000, 4000, step=1000)
-        st.button("�� Run Bayesian t-Test Sampling", use_container_width=True)
+        st.button("🔍 Run Bayesian t-Test Sampling", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_t2:
         st.markdown("<div class='bayes-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Posterior Difference Distribution ($\mu_1 - \mu_2$)</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Posterior Difference Distribution ($\mu_1 - \mu_2$)</h4>", unsafe_allow_html=True)
         st.metric(label="Posterior Mean Difference", value="+2.415 units", delta="95% HDI: [1.82, 3.01]")
         
         if HAS_PLOTLY:
@@ -186,7 +186,7 @@ if active_bayes_tab == "ttest":
 # TAB 2: HIERARCHICAL BAYESIAN ANOVA
 # ═══════════════════════════════════════════════════════════════════════
 elif active_bayes_tab == "anova":
-    st.markdown("### �� Hierarchical Bayesian ANOVA & Partial Pooling")
+    st.markdown("### 🔍 Hierarchical Bayesian ANOVA & Partial Pooling")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Model multi-level categorical groups using hyperpriors to achieve regularized parameter estimates and account for group-level variance.</p>", unsafe_allow_html=True)
     
     col_a1, col_a2 = st.columns([4, 6])
@@ -200,7 +200,7 @@ elif active_bayes_tab == "anova":
         
     with col_a2:
         st.markdown("<div class='bayes-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Group-Level Posterior Estimates (Shrinkage Plot)</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Group-Level Posterior Estimates (Shrinkage Plot)</h4>", unsafe_allow_html=True)
         if HAS_PLOTLY:
             df_shrink = pd.DataFrame({
                 "Group": [f"District {chr(65+i)}" for i in range(8)],
@@ -216,7 +216,7 @@ elif active_bayes_tab == "anova":
 # TAB 3: BAYESIAN GLM & REGRESSION
 # ═══════════════════════════════════════════════════════════════════════
 elif active_bayes_tab == "regression":
-    st.markdown("### �� Bayesian Generalized Linear Models (GLM)")
+    st.markdown("### 🔍 Bayesian Generalized Linear Models (GLM)")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Perform robust regression analysis with student-t error distributions to naturally handle outliers and quantify parameter uncertainty.</p>", unsafe_allow_html=True)
     
     col_r1, col_r2 = st.columns([4, 6])
@@ -229,7 +229,7 @@ elif active_bayes_tab == "regression":
         
     with col_r2:
         st.markdown("<div class='bayes-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Posterior Coefficient Summary (Highest Density Intervals)</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Posterior Coefficient Summary (Highest Density Intervals)</h4>", unsafe_allow_html=True)
         st.code("""
 =================================================================
 Parameter           Mean     SD     hdi_3%   hdi_97%   ESS    R_hat
@@ -255,12 +255,12 @@ elif active_bayes_tab == "bf":
         st.checkbox("Model 1: Full Covariate Model", value=True)
         st.checkbox("Model 2: Reduced Environmental Model", value=True)
         st.selectbox("Information Criterion", ["LOO (Leave-One-Out CV)", "WAIC (Watanabe-Akaike)", "Bayes Factor (Savage-Dickey)"])
-        st.button("�� Compute Model Comparison", use_container_width=True)
+        st.button("🔍 Compute Model Comparison", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_b2:
         st.markdown("<div class='bayes-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Cross-Validation & Evidence Matrix</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Cross-Validation & Evidence Matrix</h4>", unsafe_allow_html=True)
         st.metric(label="Bayes Factor (Model 1 vs Model 2)", value="BF10 = 24.8", delta="Strong Evidence for Model 1")
         st.code("""
 Model Comparison Results (Ordered by LOO Score):
@@ -285,12 +285,12 @@ elif active_bayes_tab == "mcmc":
         st.markdown("<div class='bayes-card'>", unsafe_allow_html=True)
         st.slider("Number of Chains", 2, 8, 4)
         st.slider("Target Accept Probability", 0.80, 0.99, 0.90, step=0.01)
-        st.button("�� Rerun Diagnostics Suite", use_container_width=True)
+        st.button("🔍 Rerun Diagnostics Suite", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_m2:
         st.markdown("<div class='bayes-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Chain Convergence Health Check</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Chain Convergence Health Check</h4>", unsafe_allow_html=True)
         st.success("✅ **$\hat{R}$ Diagnostic:** All parameters exhibit $\hat{R} < 1.01$ (Excellent convergence across all chains).")
         st.success("✅ **Effective Sample Size (ESS):** Bulk-ESS > 3500 and Tail-ESS > 2800 for all primary coefficients.")
         st.info("ℹ️ **Divergences:** Zero divergent transitions detected after warmup phase.")

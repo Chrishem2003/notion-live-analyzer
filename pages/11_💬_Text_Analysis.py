@@ -58,7 +58,7 @@ except ImportError:
         st.success("⚡ NLP Text Analysis Engine Initialized: Ready for frequency mapping & qualitative extraction.")
         text_cols = list(df.select_dtypes(include=['object', 'string']).columns)
         if text_cols:
-            selected_col = st.selectbox("�� Target Text Column for Primary Mining", options=text_cols)
+            selected_col = st.selectbox("🔍 Target Text Column for Primary Mining", options=text_cols)
             st.markdown(f"**Sample Observations in `{selected_col}`:**")
             for idx, text_val in enumerate(df[selected_col].dropna().head(5), 1):
                 st.markdown(f"> **{idx}.** *{text_val}*")
@@ -69,7 +69,7 @@ except ImportError:
 st.set_page_config(
     page_title="Advanced Text & NLP Analytics Studio", 
     layout="wide", 
-    page_icon="��",
+    page_icon="🔍 ",
     initial_sidebar_state="collapsed"
 )
 
@@ -218,7 +218,7 @@ st.markdown(
 )
 
 hero_card(
-    "�� Enterprise Qualitative & Natural Language Processing (NLP) Studio", 
+    "🔍 Enterprise Qualitative & Natural Language Processing (NLP) Studio", 
     "High-throughput text mining engine: Automated polarity sentiment auditing, interactive word clouds, frequency matrix extraction, bi-gram/tri-gram token mining, and qualitative theme categorization.", 
     "NLP & Text Analytics Engine 3.0"
 )
@@ -240,7 +240,7 @@ if active_df is None or active_df.empty:
     
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("�� Load Synthetic Qualitative Research Data", type="primary", use_container_width=True):
+        if st.button("🔍 Load Synthetic Qualitative Research Data", type="primary", use_container_width=True):
             sim_df = pd.DataFrame({
                 "Record_ID": [f"REC-{i:03d}" for i in range(1, 21)],
                 "Feedback_Text": [
@@ -270,7 +270,7 @@ if active_df is None or active_df.empty:
             st.session_state["active_df"] = sim_df
             st.rerun()
     with col_b:
-        if st.button("�� Generate Customer Support Dataset", use_container_width=True):
+        if st.button("🔍 Generate Customer Support Dataset", use_container_width=True):
             sim_df = pd.DataFrame({
                 "Ticket_ID": [f"TCK-{i:04d}" for i in range(101, 121)],
                 "User_Comment": [f"Support ticket example feedback observation {i} for NLP testing." for i in range(1, 21)],
@@ -281,24 +281,24 @@ if active_df is None or active_df.empty:
     st.stop()
 
 # ─── High-Level Text Corpus Topology Metrics ─────────────────────────────
-section_header("�� Text Corpus Topology & NLP Readiness")
+section_header("🔍 Text Corpus Topology & NLP Readiness")
 
 # Identify text/string columns
 text_columns = list(active_df.select_dtypes(include=['object', 'string']).columns)
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    st.metric("�� Total Observations", f"{len(active_df):,}")
+    st.metric("🔍 Total Observations", f"{len(active_df):,}")
 with m2:
-    st.metric("�� Text-Bearing Fields", len(text_columns))
+    st.metric("🔍 Text-Bearing Fields", len(text_columns))
 with m3:
-    st.metric("�� Token Processing", "Regex & SpaCy", help="Advanced tokenization engines")
+    st.metric("🔍 Token Processing", "Regex & SpaCy", help="Advanced tokenization engines")
 with m4:
-    st.metric("�� Sentiment Models", "VADER / Polarity", help="Emotional valence scoring")
+    st.metric("🔍 Sentiment Models", "VADER / Polarity", help="Emotional valence scoring")
 with m5:
-    st.metric("��️ N-Gram Depth", "Unigram to Tri-gram")
+    st.metric("🔍 ️ N-Gram Depth", "Unigram to Tri-gram")
 
-with st.expander("�� Preview Active Corpus & Available Text Columns", expanded=False):
+with st.expander("🔍 Preview Active Corpus & Available Text Columns", expanded=False):
     st.dataframe(active_df.head(10), use_container_width=True)
     st.markdown("##### Detected String / Text Columns:")
     if text_columns:
@@ -312,16 +312,16 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 section_header("⚙️ Natural Language Processing & Qualitative Suite")
 
 nlp_tabs = st.tabs([
-    "�� Core Text Analysis UI",
-    "�� Batch Sentiment Scoring",
-    "�� N-Gram & Keyword Extraction",
+    "🔍 Core Text Analysis UI",
+    "🔍 Batch Sentiment Scoring",
+    "🔍 N-Gram & Keyword Extraction",
     "☁️ Advanced Word Cloud Generator",
-    "�� Qualitative Coding Summary"
+    "🔍 Qualitative Coding Summary"
 ])
 
 # ── TAB 1: Core Text Analysis UI ────────────────────────────────────────
 with nlp_tabs[0]:
-    st.markdown("### �� Interactive Text Analytics & Frequency Studio")
+    st.markdown("### 🔍 Interactive Text Analytics & Frequency Studio")
     st.caption("Perform comprehensive qualitative extraction, sentiment evaluation, and frequency counts on selected text columns.")
     
     # Renders the primary text analyzer module
@@ -329,35 +329,35 @@ with nlp_tabs[0]:
 
 # ── TAB 2: Batch Sentiment Scoring ──────────────────────────────────────
 with nlp_tabs[1]:
-    st.markdown("### �� Automated Sentiment Polarity Auditing")
+    st.markdown("### 🔍 Automated Sentiment Polarity Auditing")
     st.caption("Classify text records into Positive, Neutral, or Negative emotional valence using lexicon-driven algorithms.")
 
     if text_columns:
         target_text_col = st.selectbox("Select Target Text Column for Sentiment Analysis", options=text_columns, key="sent_col")
-        if st.button("�� Run Batch Sentiment Audit", type="primary", use_container_width=True):
+        if st.button("🔍 Run Batch Sentiment Audit", type="primary", use_container_width=True):
             st.success(f"✅ Sentiment analysis completed successfully on column `{target_text_col}`! Polarity distribution indices mapped.")
             
             st.markdown(
                 """
                 <div class='contrast-card'>
-                    <h4 style='margin-top:0; color:#00f2fe;'>�� Polarity Valence Distribution Index</h4>
+                    <h4 style='margin-top:0; color:#00f2fe;'>🔍 Polarity Valence Distribution Index</h4>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
             sc1, sc2, sc3 = st.columns(3)
             with sc1:
-                st.metric("�� Positive Valence", "64.2%")
+                st.metric("🔍 Positive Valence", "64.2%")
             with sc2:
                 st.metric("⚪ Neutral Valence", "22.5%")
             with sc3:
-                st.metric("�� Negative Valence", "13.3%")
+                st.metric("🔍 Negative Valence", "13.3%")
     else:
         st.warning("No text columns available in the active dataset for sentiment scoring.")
 
 # ── TAB 3: N-Gram & Keyword Extraction ──────────────────────────────────
 with nlp_tabs[2]:
-    st.markdown("### �� Bi-Gram & Tri-Gram Phrase Mining")
+    st.markdown("### 🔍 Bi-Gram & Tri-Gram Phrase Mining")
     st.caption("Extract recurring multi-word phrases and key noun combinations across the qualitative corpus.")
 
     col_n1, col_n2 = st.columns(2)
@@ -366,11 +366,11 @@ with nlp_tabs[2]:
     with col_n2:
         top_n_limit = st.slider("Top Results Limit", min_value=5, max_value=50, value=15)
 
-    if st.button("�� Extract Key Phrases", use_container_width=True):
+    if st.button("🔍 Extract Key Phrases", use_container_width=True):
         st.markdown(
             f"""
             <div class='contrast-card'>
-                <h4 style='margin-top:0; color:#00f2fe;'>�� Top Extracted Patterns ({ngram_range})</h4>
+                <h4 style='margin-top:0; color:#00f2fe;'>🔍 Top Extracted Patterns ({ngram_range})</h4>
                 <p style='margin:0;'>1. System performance (Freq: 24)<br>2. User interface (Freq: 18)<br>3. Reference range (Freq: 14)<br>4. Dynamic word cloud (Freq: 11)<br>5. High throughput (Freq: 9)</p>
             </div>
             """,
@@ -390,7 +390,7 @@ with nlp_tabs[3]:
         remove_stopwords = st.checkbox("Automatically Remove English Stopwords", value=True)
         custom_stopwords = st.text_input("Additional Custom Stopwords (comma separated)", value="")
 
-    if st.button("�� Render Dynamic Word Cloud", type="primary", use_container_width=True):
+    if st.button("🔍 Render Dynamic Word Cloud", type="primary", use_container_width=True):
         st.markdown(
             """
             <div class='contrast-card' style='text-align:center;'>
@@ -403,7 +403,7 @@ with nlp_tabs[3]:
 
 # ── TAB 5: Qualitative Coding Summary ───────────────────────────────────
 with nlp_tabs[4]:
-    st.markdown("### �� Qualitative Thematic Coding Matrix")
+    st.markdown("### 🔍 Qualitative Thematic Coding Matrix")
     st.caption("Summarize thematic frequency codes and qualitative category distributions for research documentation.")
     
     dummy_themes = [

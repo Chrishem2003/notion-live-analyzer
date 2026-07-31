@@ -1,5 +1,5 @@
 """
-�� Advanced Natural Language Data Query & Conversational Analytics Engine (Enterprise Edition)
+🔍 Advanced Natural Language Data Query & Conversational Analytics Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0  Natural Language Query Module
 """
 import streamlit as st
@@ -9,7 +9,7 @@ import numpy as np
 # ─── Page Config ───────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Natural Language Data Query & Conversational Analytics",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -146,7 +146,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#0f172a; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>NL Core</div>
-            <div style='color:#ec4899; font-size:0.85rem; font-weight:800;'>�� LLM Text-to-Code Active</div>
+            <div style='color:#ec4899; font-size:0.85rem; font-weight:800;'>🔍 LLM Text-to-Code Active</div>
         </div>
     </div>
 </div>
@@ -154,11 +154,11 @@ st.markdown("""
 
 # ─── Navigation Tabs ───────────────────────────────────────────────────
 nl_tabs = {
-    "chat": "�� Conversational Query Console",
-    "prompts": "�� Smart Prompt Library & Templates",
+    "chat": "🔍 Conversational Query Console",
+    "prompts": "🔍 Smart Prompt Library & Templates",
     "codegen": "⚡ Generated Pandas/SQL Code Inspector",
-    "visualizer": "�� NL-Driven Automated Plotting",
-    "export": "�� Export Conversation & Insights"
+    "visualizer": "🔍 NL-Driven Automated Plotting",
+    "export": "🔍 Export Conversation & Insights"
 }
 
 cols = st.columns(len(nl_tabs))
@@ -177,26 +177,26 @@ active_nl_tab = st.session_state["nl_active_tab"]
 # TAB 1: CONVERSATIONAL QUERY CONSOLE
 # ═══════════════════════════════════════════════════════════════════════
 if active_nl_tab == "chat":
-    st.markdown("### �� Conversational Data Query Console")
+    st.markdown("### 🔍 Conversational Data Query Console")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Type natural language questions to filter, aggregate, describe, or correlate your active dataset.</p>", unsafe_allow_html=True)
     
     col_c1, col_c2 = st.columns([7, 3])
     
     with col_c1:
         st.markdown("<div class='nl-card' style='height:450px; overflow-y:auto;'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem; margin-bottom:1rem;'>�� Chat History & Execution Stream</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem; margin-bottom:1rem;'>🔍 Chat History & Execution Stream</h4>", unsafe_allow_html=True)
         
         for msg in st.session_state["chat_history"]:
             if msg["role"] == "user":
-                st.markdown(f"<div class='chat-bubble-user'><b>�� You:</b> {msg['content']}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='chat-bubble-user'><b>🔍 You:</b> {msg['content']}</div>", unsafe_allow_html=True)
             else:
-                st.markdown(f"<div class='chat-bubble-ai'><b>�� AI Engine:</b> {msg['content']}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='chat-bubble-ai'><b>🔍 AI Engine:</b> {msg['content']}</div>", unsafe_allow_html=True)
                 
         st.markdown("</div>", unsafe_allow_html=True)
         
         # User input box
         user_query = st.text_input("Ask a question about your data...", placeholder="e.g., What is the correlation between soil moisture and yield index?", key="nl_user_input")
-        if st.button("�� Send Query", use_container_width=True) and user_query:
+        if st.button("🔍 Send Query", use_container_width=True) and user_query:
             st.session_state["chat_history"].append({"role": "user", "content": user_query})
             # Simulated intelligent response
             ai_reply = f"Analyzed your active dataset for query: *'{user_query}'*. Computed Pearson correlation coefficient $r = 0.68$ ($p < .001$), indicating a strong positive association."
@@ -205,7 +205,7 @@ if active_nl_tab == "chat":
 
     with col_c2:
         st.markdown("<div class='nl-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Dataset Metadata State</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Dataset Metadata State</h4>", unsafe_allow_html=True)
         if df is not None:
             st.success(f"✅ Active Dataframe Loaded: {df.shape[0]} rows, {df.shape[1]} columns.")
             st.dataframe(df.head(3), use_container_width=True)
@@ -218,7 +218,7 @@ if active_nl_tab == "chat":
 # TAB 2: SMART PROMPT LIBRARY & TEMPLATES
 # ═══════════════════════════════════════════════════════════════════════
 elif active_nl_tab == "prompts":
-    st.markdown("### �� Smart Prompt Library & Query Templates")
+    st.markdown("### 🔍 Smart Prompt Library & Query Templates")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Quickly execute pre-configured analytical queries designed for scientific and quantitative data exploration.</p>", unsafe_allow_html=True)
     
     col_p1, col_p2 = st.columns([4, 6])
@@ -230,7 +230,7 @@ elif active_nl_tab == "prompts":
         
     with col_p2:
         st.markdown("<div class='nl-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Recommended Prompt Suggestions</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Recommended Prompt Suggestions</h4>", unsafe_allow_html=True)
         st.markdown("""
         * **"Describe data"**  Generates complete central tendency and dispersion metrics.
         * **"Compare yield index by moisture quartile"**  Performs subgroup ANOVA.
@@ -251,12 +251,12 @@ elif active_nl_tab == "codegen":
     with col_g1:
         st.markdown("<div class='nl-card'>", unsafe_allow_html=True)
         st.selectbox("Target Execution Language", ["Pandas Python Code", "SQL Query", "SciPy Statistical Command"])
-        st.button("�� Regenerate Executable Script", use_container_width=True)
+        st.button("🔍 Regenerate Executable Script", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_g2:
         st.markdown("<div class='nl-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Executable Python/Pandas Script</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Executable Python/Pandas Script</h4>", unsafe_allow_html=True)
         st.code("""
 # Auto-generated Pandas execution snippet for NL query:
 # "What is the correlation between soil moisture and yield index?"
@@ -278,7 +278,7 @@ print(f"Pearson r: {r_val:.4f}, p-value: {p_val:.4e}")
 # TAB 4: NL-DRIVEN AUTOMATED PLOTTING
 # ═══════════════════════════════════════════════════════════════════════
 elif active_nl_tab == "visualizer":
-    st.markdown("### �� NL-Driven Automated Plotting & Visualizations")
+    st.markdown("### 🔍 NL-Driven Automated Plotting & Visualizations")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Instruct the system in plain English to build custom charts, scatter regression plots, or violin distribution diagrams.</p>", unsafe_allow_html=True)
     
     col_v1, col_v2 = st.columns([4, 6])
@@ -286,12 +286,12 @@ elif active_nl_tab == "visualizer":
         st.markdown("<div class='nl-card'>", unsafe_allow_html=True)
         st.text_input("Visualization Prompt", value="Create a scatter plot of Yield Index vs Soil Moisture with regression line")
         st.selectbox("Plot Engine", ["Plotly Interactive", "Seaborn Publication Style"])
-        st.button("�� Render NL Visualization", use_container_width=True)
+        st.button("🔍 Render NL Visualization", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_v2:
         st.markdown("<div class='nl-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Rendered Plot Preview</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Rendered Plot Preview</h4>", unsafe_allow_html=True)
         
         if HAS_PLOTLY:
             np.random.seed(42)
@@ -309,7 +309,7 @@ elif active_nl_tab == "visualizer":
 # TAB 5: EXPORT CONVERSATION & INSIGHTS
 # ═══════════════════════════════════════════════════════════════════════
 elif active_nl_tab == "export":
-    st.markdown("### �� Export Conversation & Analytical Insights")
+    st.markdown("### 🔍 Export Conversation & Analytical Insights")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Export your entire conversational analytics log, generated queries, and insights into Markdown, JSON, or PDF reports.</p>", unsafe_allow_html=True)
     
     col_e1, col_e2 = st.columns([4, 6])
@@ -317,12 +317,12 @@ elif active_nl_tab == "export":
         st.markdown("<div class='nl-card'>", unsafe_allow_html=True)
         st.selectbox("Export Format", ["Markdown Document (.md)", "JSON Log Structure", "HTML Report Snippet"])
         st.checkbox("Include Code Execution Snippets", value=True)
-        st.button("�� Generate Download Package", use_container_width=True)
+        st.button("🔍 Generate Download Package", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_e2:
         st.markdown("<div class='nl-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Export Preview</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Export Preview</h4>", unsafe_allow_html=True)
         st.code("""
 # Conversational Analytics Session Report
 Generated by Autonomous Research Operating System v3.0

@@ -1,5 +1,5 @@
 """
-�� World-Class Visual Chart Data Extractor & CSV Re-Synthesizer
+🔍 World-Class Visual Chart Data Extractor & CSV Re-Synthesizer
 Enterprise-grade computer vision and multimodal OCR analytics engine featuring deep-learning
 plot vectorization, intelligent axis calibration, adaptive multi-format tabular reconstruction, and robust batch CSV export pipelines.
 """
@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 st.set_page_config(
     page_title="Visual Chart Data Extractor & CSV Re-Synthesizer",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -157,7 +157,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.markdown("### ��️ Calibration & Parsing Parameters")
+    st.markdown("### 🔍 ️ Calibration & Parsing Parameters")
     confidence_threshold = st.slider("OCR Confidence Threshold (%)", 50, 99, 92, 1, key="extractor_confidence")
     interpolation_method = st.selectbox(
         "Axis Interpolation Algorithm",
@@ -177,7 +177,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.markdown("### ��️ Automated Re-Synthesis Safeguards")
+    st.markdown("### 🔍 ️ Automated Re-Synthesis Safeguards")
     st.toggle("Auto-Detect Axis Units & Scales", value=True, key="extractor_units_toggle")
     st.toggle("Multi-Series Color Segmentation", value=True, key="extractor_segmentation_toggle")
     st.toggle("Direct CSV Schema Validation", value=True, key="extractor_schema_toggle")
@@ -188,7 +188,7 @@ with st.sidebar:
 # ==========================================
 
 st.markdown("<span class='extractor-badge'>VISION EXTRACTION ENGINE v2.5</span>", unsafe_allow_html=True)
-st.title("�� Visual Chart Data Extractor & CSV Re-Synthesizer")
+st.title("🔍 Visual Chart Data Extractor & CSV Re-Synthesizer")
 st.caption("Deep-learning plot vectorization, adaptive axis calibration, and multi-format tabular reconstruction.")
 
 # Strategic Metric Highlights
@@ -220,7 +220,7 @@ else:
     st.error("⚠️ **Module Resolution Warning**")
     st.info(f"The module `modules.chart_data_extractor` could not be loaded directly. Running in **Native Fallback Vision Workspace Mode**.\n\n`Error Details: {import_error_msg}`")
     
-    st.subheader("��️ Vision Upload & Tabular Extraction Studio")
+    st.subheader("🔍 ️ Vision Upload & Tabular Extraction Studio")
     
     # Native Vision File Upload Preview
     uploaded_image = st.file_uploader("Upload Chart, Plot, or Graph Image", type=["png", "jpg", "jpeg", "webp", "pdf"])
@@ -230,7 +230,7 @@ else:
         with col_img:
             st.image(uploaded_image, caption="Target Image Source", use_container_width=True)
         with col_data:
-            st.markdown("### �� Re-Synthesized Vector Data (Preview)")
+            st.markdown("### 🔍 Re-Synthesized Vector Data (Preview)")
             sample_extracted_df = {
                 "X_Axis (Time)": [0.0, 1.5, 3.0, 4.5, 6.0],
                 "Series_1 (Observed)": [12.4, 18.2, 25.1, 31.0, 42.8],
@@ -238,7 +238,7 @@ else:
                 "Confidence": ["98.2%", "96.5%", "99.1%", "97.4%", "98.9%"]
             }
             st.dataframe(sample_extracted_df, use_container_width=True)
-            st.download_button("�� Export Re-Synthesized CSV", data="X_Axis,Series_1,Series_2\n0.0,12.4,11.8\n1.5,18.2,17.9", file_name="extracted_chart_data.csv", mime="text/csv")
+            st.download_button("🔍 Export Re-Synthesized CSV", data="X_Axis,Series_1,Series_2\n0.0,12.4,11.8\n1.5,18.2,17.9", file_name="extracted_chart_data.csv", mime="text/csv")
 
     st.success("✅ Path guard applied. Ensure `modules/chart_data_extractor.py` exists in your root repository to link full backend execution.")
 

@@ -1,5 +1,5 @@
 """
-�� Methodology Advisor Page  Advanced Research Design, Statistical Test Selector, & Power Analysis Studio.
+🔍 Methodology Advisor Page  Advanced Research Design, Statistical Test Selector, & Power Analysis Studio.
 """
 import streamlit as st
 import pandas as pd
@@ -8,7 +8,7 @@ import numpy as np
 st.set_page_config(
     page_title="Methodology Advisor Studio", 
     layout="wide", 
-    page_icon="��"
+    page_icon="🔍 "
 )
 
 from modules.config import init_session_state
@@ -19,7 +19,7 @@ init_session_state()
 load_css(is_dark=st.session_state.get("theme", "light") == "dark")
 
 hero_card(
-    "�� Enterprise Research Methodology & Statistical Advisor", 
+    "🔍 Enterprise Research Methodology & Statistical Advisor", 
     "AI-powered expert system for rigorous study design formulation, automated statistical test selection, a priori sample size estimation, and statistical power analysis.", 
     "Research Methods & Power Engine 3.0"
 )
@@ -31,20 +31,20 @@ if active_df is None or active_df.empty:
     active_df = st.session_state.get("notion_df")
 
 if active_df is not None and not active_df.empty:
-    st.info(f"�� **Active Dataset Context Loaded:** `{len(active_df):,}` rows × `{len(active_df.columns)}` columns available for methodology mapping.")
+    st.info(f"🔍 **Active Dataset Context Loaded:** `{len(active_df):,}` rows × `{len(active_df.columns)}` columns available for methodology mapping.")
 
 # ─── High-Level Methodology Overview Metrics ───────────────────────────
-section_header("�� Research Design Parameters & Framework Readiness")
+section_header("🔍 Research Design Parameters & Framework Readiness")
 
 m1, m2, m3, m4 = st.columns(4)
 with m1:
-    st.metric("�� Standard Alpha (α)", "0.05", help="Conventional significance threshold")
+    st.metric("🔍 Standard Alpha (α)", "0.05", help="Conventional significance threshold")
 with m2:
     st.metric("⚡ Target Power (1-β)", "0.80", help="Standard statistical power benchmark")
 with m3:
-    st.metric("�� Supported Test Suites", "25+", help="Parametric, non-parametric, and multivariate models")
+    st.metric("🔍 Supported Test Suites", "25+", help="Parametric, non-parametric, and multivariate models")
 with m4:
-    st.metric("�� Effect Size Engines", "Cohen's d, Eta², Cramer's V")
+    st.metric("🔍 Effect Size Engines", "Cohen's d, Eta², Cramer's V")
 
 st.markdown("---")
 
@@ -52,15 +52,15 @@ st.markdown("---")
 section_header("⚙️ Research Advisor Interactive Suite")
 
 advisor_tabs = st.tabs([
-    "�� Interactive Advisor Engine",
-    "�� A Priori Sample Size & Power Calculator",
-    "�� Decision Tree Test Selector",
-    "�� APA Reporting Template Generator"
+    "🔍 Interactive Advisor Engine",
+    "🔍 A Priori Sample Size & Power Calculator",
+    "🔍 Decision Tree Test Selector",
+    "🔍 APA Reporting Template Generator"
 ])
 
 # ── TAB 1: Core Methodology Advisor ─────────────────────────────────────
 with advisor_tabs[0]:
-    st.markdown("### �� Intelligent Research Design & Test Recommendation")
+    st.markdown("### 🔍 Intelligent Research Design & Test Recommendation")
     st.caption("Input your research questions, variable types, and distribution shapes to receive expert methodological guidance.")
     
     # Renders the core advisor UI from modules
@@ -68,7 +68,7 @@ with advisor_tabs[0]:
 
 # ── TAB 2: Sample Size & Power Calculator ───────────────────────────────
 with advisor_tabs[1]:
-    st.markdown("### �� Statistical Power & Sample Size Estimation")
+    st.markdown("### 🔍 Statistical Power & Sample Size Estimation")
     st.markdown("Calculate the minimum sample size required to detect specific effect sizes with adequate statistical power.")
 
     col_p1, col_p2 = st.columns(2)
@@ -85,14 +85,14 @@ with advisor_tabs[1]:
         alpha_level = st.selectbox("Significance Level (Alpha)", options=[0.01, 0.05, 0.10], index=1)
         target_power = st.slider("Target Statistical Power (1 - Beta)", min_value=0.70, max_value=0.99, value=0.80, step=0.05)
 
-    if st.button("�� Calculate Required Sample Size", type="primary"):
+    if st.button("🔍 Calculate Required Sample Size", type="primary"):
         # Simulated robust calculation display based on standard power equations
         simulated_n = 128 if "t-Test" in test_category else (156 if "ANOVA" in test_category else 200)
-        st.success(f"�� **Estimated Minimum Sample Size Required:** Approximately **{simulated_n} total participants/observations** (based on Alpha = {alpha_level}, Power = {target_power}).")
+        st.success(f"🔍 **Estimated Minimum Sample Size Required:** Approximately **{simulated_n} total participants/observations** (based on Alpha = {alpha_level}, Power = {target_power}).")
 
 # ── TAB 3: Decision Tree Test Selector ──────────────────────────────────
 with advisor_tabs[2]:
-    st.markdown("### �� Step-by-Step Statistical Test Matrix")
+    st.markdown("### 🔍 Step-by-Step Statistical Test Matrix")
     st.markdown("Quick reference guide matching data characteristics to optimal analytical procedures.")
 
     matrix_data = [
@@ -107,7 +107,7 @@ with advisor_tabs[2]:
 
 # ── TAB 4: APA Reporting Templates ─────────────────────────────────────
 with advisor_tabs[3]:
-    st.markdown("### �� APA 7th Edition Result Write-Up Templates")
+    st.markdown("### 🔍 APA 7th Edition Result Write-Up Templates")
     st.markdown("Copy standardized academic sentence structures formatted according to American Psychological Association guidelines.")
 
     test_type_template = st.selectbox(

@@ -1,5 +1,5 @@
 """
-�� Advanced Automated Literature Context & Meta-Analytic Synthesis Engine (Enterprise Edition)
+🔍 Advanced Automated Literature Context & Meta-Analytic Synthesis Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0  Literature Context Module
 """
 import streamlit as st
@@ -9,7 +9,7 @@ import numpy as np
 # ─── Page Config ───────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Literature Context & Meta-Analytic Synthesis",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -123,7 +123,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#0f172a; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>Synthesis Kernel</div>
-            <div style='color:#eab308; font-size:0.85rem; font-weight:800;'>�� NumPy & Plotly Active</div>
+            <div style='color:#eab308; font-size:0.85rem; font-weight:800;'>🔍 NumPy & Plotly Active</div>
         </div>
     </div>
 </div>
@@ -131,11 +131,11 @@ st.markdown("""
 
 # ─── Navigation Tabs ───────────────────────────────────────────────────
 lit_tabs = {
-    "effects": "�� Effect Size Benchmarking",
-    "citations": "�� Automated Citation & Gap Analysis",
+    "effects": "🔍 Effect Size Benchmarking",
+    "citations": "🔍 Automated Citation & Gap Analysis",
     "samplesize": "⚖️ Sample Size & Power Benchmarks",
-    "forest": "�� Meta-Analytic Forest Plots",
-    "bias": "�� Publication Bias & Funnel Plots"
+    "forest": "🔍 Meta-Analytic Forest Plots",
+    "bias": "🔍 Publication Bias & Funnel Plots"
 }
 
 cols = st.columns(len(lit_tabs))
@@ -154,7 +154,7 @@ active_lit_tab = st.session_state["lit_active_tab"]
 # TAB 1: EFFECT SIZE BENCHMARKING
 # ═══════════════════════════════════════════════════════════════════════
 if active_lit_tab == "effects":
-    st.markdown("### �� Effect Size Benchmarking & Meta-Analytic Comparison")
+    st.markdown("### 🔍 Effect Size Benchmarking & Meta-Analytic Comparison")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Compare observed study effect sizes ($d$, $r$, $\eta^2$) against empirical distributions from large-scale published literature meta-analyses.</p>", unsafe_allow_html=True)
     
     col_e1, col_e2 = st.columns([4, 6])
@@ -163,12 +163,12 @@ if active_lit_tab == "effects":
         st.selectbox("Research Domain / Field", ["Biological & Environmental Sciences", "Quantitative Ecology & Yield", "Biomedical & Clinical Trials", "Behavioral Analytics"])
         st.number_input("Observed Effect Size ($d$ or $r$)", value=0.45, step=0.05)
         st.selectbox("Effect Metric Type", ["Cohen's d (Mean Difference)", "Pearson r (Correlation)", "Odds Ratio (OR)"])
-        st.button("�� Benchmark Against Literature", use_container_width=True)
+        st.button("🔍 Benchmark Against Literature", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_e2:
         st.markdown("<div class='lit-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Literature Percentile Ranking</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Literature Percentile Ranking</h4>", unsafe_allow_html=True)
         st.metric(label="Meta-Analytic Percentile", value="78th Percentile", delta="Larger than typical published effect")
         
         if HAS_PLOTLY:
@@ -188,7 +188,7 @@ if active_lit_tab == "effects":
 # TAB 2: AUTOMATED CITATION & GAP ANALYSIS
 # ═══════════════════════════════════════════════════════════════════════
 elif active_lit_tab == "citations":
-    st.markdown("### �� Intelligent Citation Suggestions & Literature Gap Analysis")
+    st.markdown("### 🔍 Intelligent Citation Suggestions & Literature Gap Analysis")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Identify missing foundational references, detect thematic gaps in the current manuscript, and suggest seminal papers for theoretical grounding.</p>", unsafe_allow_html=True)
     
     col_c1, col_c2 = st.columns([4, 6])
@@ -201,7 +201,7 @@ elif active_lit_tab == "citations":
         
     with col_c2:
         st.markdown("<div class='lit-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Recommended Foundational Citations</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Recommended Foundational Citations</h4>", unsafe_allow_html=True)
         st.code("""
 Suggested Seminal References:
 =================================================================
@@ -232,7 +232,7 @@ elif active_lit_tab == "samplesize":
         
     with col_s2:
         st.markdown("<div class='lit-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Power & Sample Benchmarking Report</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Power & Sample Benchmarking Report</h4>", unsafe_allow_html=True)
         st.success("✅ **Adequate Sample Size:** N = 250 exceeds the field median (N = 142) and achieves > 92% power for medium effect sizes ($d = 0.40$).")
         st.code("""
 Sample Size Benchmarking Summary:
@@ -249,7 +249,7 @@ Required N for 90% Power (d = 0.45): N = 210
 # TAB 4: META-ANALYTIC FOREST PLOTS
 # ═══════════════════════════════════════════════════════════════════════
 elif active_lit_tab == "forest":
-    st.markdown("### �� Meta-Analytic Forest Plots & Literature Pooling")
+    st.markdown("### 🔍 Meta-Analytic Forest Plots & Literature Pooling")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Synthesize prior literature findings into a unified meta-analytic estimate with confidence intervals and heterogeneity statistics ($I^2$).</p>", unsafe_allow_html=True)
     
     col_f1, col_f2 = st.columns([4, 6])
@@ -257,12 +257,12 @@ elif active_lit_tab == "forest":
         st.markdown("<div class='lit-card'>", unsafe_allow_html=True)
         st.selectbox("Meta-Analysis Pooling Model", ["Random-Effects Model (DerSimonian-Laird)", "Fixed-Effects Model", "Bayesian Hierarchical Meta-Analysis"])
         st.slider("Significance Alpha Level", 0.01, 0.10, 0.05, step=0.01)
-        st.button("�� Generate Forest Synthesis", use_container_width=True)
+        st.button("🔍 Generate Forest Synthesis", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_f2:
         st.markdown("<div class='lit-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Pooled Effect Summary ($I^2$ Heterogeneity)</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Pooled Effect Summary ($I^2$ Heterogeneity)</h4>", unsafe_allow_html=True)
         st.metric(label="Pooled Meta-Analytic Effect (ES)", value="0.38 [0.31, 0.45]", delta="Moderate Heterogeneity (I² = 42%)")
         st.code("""
 Meta-Analytic Heterogeneity Metrics:
@@ -278,19 +278,19 @@ Overall Pooled Effect Size: 0.38 (95% CI: [0.31, 0.45], p < .001)
 # TAB 5: PUBLICATION BIAS & FUNNEL PLOTS
 # ═══════════════════════════════════════════════════════════════════════
 elif active_lit_tab == "bias":
-    st.markdown("### �� Publication Bias Diagnostics & Funnel Plot Symmetry")
+    st.markdown("### 🔍 Publication Bias Diagnostics & Funnel Plot Symmetry")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Assess funnel plot asymmetry, run Egger's regression test, and compute fail-safe N numbers to evaluate file-drawer publication bias.</p>", unsafe_allow_html=True)
     
     col_b1, col_b2 = st.columns([4, 6])
     with col_b1:
         st.markdown("<div class='lit-card'>", unsafe_allow_html=True)
         st.selectbox("Bias Detection Method", ["Egger's Regression Test", "Trim-and-Fill Analysis", "Fail-Safe N (Orwin's Method)"])
-        st.button("�� Run Publication Bias Diagnostic", use_container_width=True)
+        st.button("🔍 Run Publication Bias Diagnostic", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_b2:
         st.markdown("<div class='lit-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Publication Bias Assessment Report</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Publication Bias Assessment Report</h4>", unsafe_allow_html=True)
         st.success("✅ **Low Bias Risk:** Egger's test indicates no statistically significant funnel plot asymmetry ($p = .184$). Literature appears balanced.")
         st.code("""
 Publication Bias Diagnostics:

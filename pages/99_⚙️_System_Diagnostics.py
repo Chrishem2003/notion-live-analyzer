@@ -27,7 +27,7 @@ except ImportError:
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="System Diagnostics & Health Hub",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -203,11 +203,11 @@ with st.sidebar:
     
     st.divider()
     st.subheader("Operational Actions")
-    if st.button("?? Run Garbage Collector", use_container_width=True):
+    if st.button("🔍 Run Garbage Collector", use_container_width=True):
         freed = execute_garbage_collection()
         st.toast(f"Garbage collection executed! Freed {freed} objects.", icon="?")
         
-    if st.button("?? Inject Test Error Trace", use_container_width=True):
+    if st.button("🔍 Inject Test Error Trace", use_container_width=True):
         try:
             # Intentional Error for Diagnostics Verification
             _ = 1 / 0
@@ -215,7 +215,7 @@ with st.sidebar:
             import traceback
             error_msg = f"[{datetime.now(timezone.utc).isoformat()}] Simulated Test Failure: {str(e)}\n{traceback.format_exc()}"
             st.session_state.setdefault("error_logs", []).append(error_msg)
-            st.toast("Simulated diagnostic exception logged!", icon="??")
+            st.toast("Simulated diagnostic exception logged!", icon="🔍 ")
             st.rerun()
 
     if st.button("🔍 Reset All Exception Logs", use_container_width=True):
@@ -230,7 +230,7 @@ with st.sidebar:
 # -----------------------------------------------------------------------------
 # MAIN DASHBOARD CONTENT
 # -----------------------------------------------------------------------------
-st.title("?? System Diagnostics & Health Hub")
+st.title("🔍 System Diagnostics & Health Hub")
 st.markdown("Real-time telemetry, memory analytics, integration state monitoring, and operational error tracing.")
 
 # Diagnostic Top Bar System Metrics Highlights
@@ -251,10 +251,10 @@ st.divider()
 
 # Diagnostic Operations Dashboard Tabs
 tab_overview, tab_telemetry, tab_errors, tab_integrations, tab_state = st.tabs([
-    "?? System Overview", 
-    "?? Resource Telemetry", 
-    "?? Captured Exceptions", 
-    "?? Integration Status",
+    "🔍 System Overview", 
+    "🔍 Resource Telemetry", 
+    "🔍 Captured Exceptions", 
+    "🔍 Integration Status",
     "🔍 Session State Explorer"
 ])
 
@@ -296,7 +296,7 @@ with tab_overview:
 # TAB 2: RESOURCE TELEMETRY
 # -----------------------------------------------------------------------------
 with tab_telemetry:
-    st.subheader("?? Live Hardware Performance Tracking")
+    st.subheader("🔍 Live Hardware Performance Tracking")
     
     if st.session_state.telemetry_history:
         chart_df = pd.DataFrame(st.session_state.telemetry_history)
@@ -323,13 +323,13 @@ with tab_telemetry:
 # TAB 3: CAPTURED EXCEPTIONS
 # -----------------------------------------------------------------------------
 with tab_errors:
-    st.subheader("?? Session Exception Logs & Diagnostics")
+    st.subheader("🔍 Session Exception Logs & Diagnostics")
     error_logs = st.session_state.get("error_logs", [])
     
     if not error_logs:
         st.success("? Operational status nominal: No runtime exceptions or errors caught during this session.")
     else:
-        filter_term = st.text_input("?? Filter stack traces by keyword...", "")
+        filter_term = st.text_input("🔍 Filter stack traces by keyword...", "")
         
         filtered_logs = [log for log in error_logs if filter_term.lower() in log.lower()] if filter_term else error_logs
         
@@ -337,7 +337,7 @@ with tab_errors:
         
         for idx, log in enumerate(reversed(filtered_logs)):
             original_idx = len(error_logs) - idx
-            with st.expander(f"?? Exception Log Record #{original_idx}"):
+            with st.expander(f"🔍 Exception Log Record #{original_idx}"):
                 st.code(log, language="python")
                 
         err_col1, err_col2 = st.columns([1, 4])
@@ -347,7 +347,7 @@ with tab_errors:
                 st.rerun()
         with err_col2:
             st.download_button(
-                label="?? Export Logs (JSON)",
+                label="🔍 Export Logs (JSON)",
                 data=json.dumps(error_logs, indent=2),
                 file_name=f"system_logs_{int(time.time())}.json",
                 mime="application/json"
@@ -357,7 +357,7 @@ with tab_errors:
 # TAB 4: INTEGRATION STATUS
 # -----------------------------------------------------------------------------
 with tab_integrations:
-    st.subheader("?? Environment & Integration Health Audit")
+    st.subheader("🔍 Environment & Integration Health Audit")
     
     notion_token_set = check_secret_key("NOTION_API_KEY")
     is_cloud_env = os.path.exists("/mount/src")
@@ -367,13 +367,13 @@ with tab_integrations:
             "Integration Component": "Notion API Token",
             "Target Endpoint / Key": "NOTION_API_KEY",
             "Type": "External Service Auth",
-            "Status": "? Configured" if notion_token_set else "?? Missing/Not Set"
+            "Status": "? Configured" if notion_token_set else "🔍 Missing/Not Set"
         },
         {
             "Integration Component": "Streamlit Cloud Container",
             "Target Endpoint / Key": "/mount/src",
             "Type": "Deployment Runtime",
-            "Status": "? Cloud Instance" if is_cloud_env else "?? Local Desktop Mode"
+            "Status": "? Cloud Instance" if is_cloud_env else "🔍 Local Desktop Mode"
         },
         {
             "Integration Component": "Local Cache Subsystem",
@@ -385,7 +385,7 @@ with tab_integrations:
             "Integration Component": "System Middleware Interceptor",
             "Target Endpoint / Key": "modules.system_middleware",
             "Type": "Internal Middleware",
-            "Status": "? Active & Initialized" if st.session_state.get("app_initialized") else "?? Degraded/Uninitialized"
+            "Status": "? Active & Initialized" if st.session_state.get("app_initialized") else "🔍 Degraded/Uninitialized"
         }
     ]
     

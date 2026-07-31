@@ -64,7 +64,7 @@ except ImportError:
 st.set_page_config(
     page_title="Enterprise Data Quality Studio", 
     layout="wide", 
-    page_icon="��",
+    page_icon="🔍 ",
     initial_sidebar_state="collapsed"
 )
 
@@ -213,7 +213,7 @@ st.markdown(
 )
 
 hero_card(
-    "�� Enterprise Data Quality & Anomaly Audit Suite", 
+    "🔍 Enterprise Data Quality & Anomaly Audit Suite", 
     "High-precision data validation engine: Comprehensive auditing across completeness, uniqueness, consistency, validity, accuracy, outlier identification, and automated remediation pipelines.", 
     "Data Quality Engine 3.0"
 )
@@ -234,7 +234,7 @@ if active_df is None or active_df.empty:
     )
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("�� Generate Benchmark Audit Dataset", type="primary", use_container_width=True):
+        if st.button("🔍 Generate Benchmark Audit Dataset", type="primary", use_container_width=True):
             np.random.seed(42)
             n_rows = 100
             sim_df = pd.DataFrame({
@@ -249,7 +249,7 @@ if active_df is None or active_df.empty:
             st.session_state["active_df"] = sim_df
             st.rerun()
     with col_b:
-        if st.button("�� Load Standard Sample Dataset", use_container_width=True):
+        if st.button("🔍 Load Standard Sample Dataset", use_container_width=True):
             sim_df = pd.DataFrame({
                 "ID": list(range(1, 21)),
                 "Value_A": [10.5, 12.1, np.nan, 14.8, 15.2] * 4,
@@ -260,7 +260,7 @@ if active_df is None or active_df.empty:
     st.stop()
 
 # ─── High-Level Data Quality Health Metrics ─────────────────────────────
-section_header("�� Data Health Index & Core Audit Summary")
+section_header("🔍 Data Health Index & Core Audit Summary")
 
 total_cells = active_df.shape[0] * active_df.shape[1]
 missing_cells = active_df.isnull().sum().sum()
@@ -270,17 +270,17 @@ duplicate_pct = (duplicate_rows / len(active_df) * 100) if len(active_df) > 0 el
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    st.metric("�� Total Observations", f"{len(active_df):,}")
+    st.metric("🔍 Total Observations", f"{len(active_df):,}")
 with m2:
-    st.metric("�� Total Attributes", f"{len(active_df.columns):,}")
+    st.metric("🔍 Total Attributes", f"{len(active_df.columns):,}")
 with m3:
     st.metric("✨ Overall Completeness", f"{completeness_pct:.1f}%")
 with m4:
-    st.metric("�� Duplicate Rows", f"{duplicate_rows:,} ({duplicate_pct:.1f}%)")
+    st.metric("🔍 Duplicate Rows", f"{duplicate_rows:,} ({duplicate_pct:.1f}%)")
 with m5:
-    st.metric("��️ Quality Status", "Passed" if completeness_pct > 90 else "Review Needed")
+    st.metric("🔍 ️ Quality Status", "Passed" if completeness_pct > 90 else "Review Needed")
 
-with st.expander("�� Preview Active Dataset Schema & Descriptive Audit", expanded=False):
+with st.expander("🔍 Preview Active Dataset Schema & Descriptive Audit", expanded=False):
     st.dataframe(active_df.head(10), use_container_width=True)
     st.markdown("##### Column Null Value Breakdown")
     null_summary = pd.DataFrame({
@@ -295,15 +295,15 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 section_header("⚙️ Data Audit & Remediation Suite")
 
 quality_tabs = st.tabs([
-    "�� Core Data Quality Audit",
+    "🔍 Core Data Quality Audit",
     "⚠️ Outlier & Anomaly Detection",
-    "�� Automated Data Cleaning Tools",
-    "�� Executive Quality Audit Report"
+    "🔍 Automated Data Cleaning Tools",
+    "🔍 Executive Quality Audit Report"
 ])
 
 # ── TAB 1: Core Data Quality Audit ─────────────────────────────────────
 with quality_tabs[0]:
-    st.markdown("### �� Comprehensive Quality Assessment Dashboard")
+    st.markdown("### 🔍 Comprehensive Quality Assessment Dashboard")
     st.caption("Execute full automated auditing across completeness, uniqueness, consistency, validity, and accuracy.")
     
     # Renders primary data quality module
@@ -319,7 +319,7 @@ with quality_tabs[1]:
         target_outlier_col = st.selectbox("Select Numeric Feature for Outlier Audit", options=numeric_cols, key="outlier_col")
         outlier_method = st.radio("Detection Method", options=["IQR Method (1.5 x IQR)", "Z-Score Threshold (|Z| > 3.0)"])
         
-        if st.button("�� Scan for Anomalies", use_container_width=True):
+        if st.button("🔍 Scan for Anomalies", use_container_width=True):
             series = active_df[target_outlier_col].dropna()
             q1, q3 = np.percentile(series, 25), np.percentile(series, 75)
             iqr = q3 - q1
@@ -328,7 +328,7 @@ with quality_tabs[1]:
             st.markdown(
                 f"""
                 <div class='contrast-card'>
-                    <h4 style='margin-top:0; color:#00f2fe;'>�� Outlier Scan Summary for `{target_outlier_col}`</h4>
+                    <h4 style='margin-top:0; color:#00f2fe;'>🔍 Outlier Scan Summary for `{target_outlier_col}`</h4>
                     <p style='margin:0; color:#cbd5e1;'>Identified <strong>{outliers_count} potential outlier record(s)</strong> based on the selected criteria ({outlier_method}).</p>
                 </div>
                 """,
@@ -339,7 +339,7 @@ with quality_tabs[1]:
 
 # ── TAB 3: Automated Data Cleaning Tools ───────────────────────────────
 with quality_tabs[2]:
-    st.markdown("### �� Automated Remediation & Imputation Hub")
+    st.markdown("### 🔍 Automated Remediation & Imputation Hub")
     st.caption("Fix data quality issues instantly with automated imputation, whitespace stripping, and duplicate purging.")
 
     c_clean1, c_clean2 = st.columns(2)
@@ -352,11 +352,11 @@ with quality_tabs[2]:
         st.checkbox("Standardize Column Header Naming (Snake_case)", value=True)
         st.checkbox("Remove Exact Duplicate Rows Automatically", value=False)
 
-    if st.button("�� Execute Automated Cleaning Pipeline", type="primary", use_container_width=True):
+    if st.button("🔍 Execute Automated Cleaning Pipeline", type="primary", use_container_width=True):
         st.markdown(
             """
             <div class='contrast-card' style='text-align:center;'>
-                <h4 style='color:#00f2fe; margin-top:0;'>�� Data Cleaning Pipeline Executed Successfully!</h4>
+                <h4 style='color:#00f2fe; margin-top:0;'>🔍 Data Cleaning Pipeline Executed Successfully!</h4>
                 <p style='color:#cbd5e1; margin:0;'>Selected imputation and formatting transformations have been applied to the active dataset.</p>
             </div>
             """,
@@ -365,7 +365,7 @@ with quality_tabs[2]:
 
 # ── TAB 4: Executive Quality Audit Report ──────────────────────────────
 with quality_tabs[3]:
-    st.markdown("### �� Publication-Ready Data Quality Report")
+    st.markdown("### 🔍 Publication-Ready Data Quality Report")
     st.caption("Generate executive summary metrics and compliance checklists for research or enterprise reporting.")
 
     report_data = [
@@ -378,7 +378,7 @@ with quality_tabs[3]:
     
     csv_report = pd.DataFrame(report_data).to_csv(index=False).encode('utf-8')
     st.download_button(
-        "�� Download Quality Audit Report (CSV)",
+        "🔍 Download Quality Audit Report (CSV)",
         data=csv_report,
         file_name="data_quality_audit_report.csv",
         mime="text/csv",

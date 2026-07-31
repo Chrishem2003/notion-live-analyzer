@@ -1,5 +1,5 @@
 """
-�� Advanced Active Bias & Methodological Flaw Detector (Enterprise Edition v4.0)
+🔍 Advanced Active Bias & Methodological Flaw Detector (Enterprise Edition v4.0)
 Comprehensive research audit engine featuring real-time statistical power analysis,
 confounding variable stress-testing, Bayesian bias correction, and automated remediation pipelines.
 Designed for: Kula Chris
@@ -13,7 +13,7 @@ import streamlit as st
 # ─── 1. PAGE CONFIGURATION ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Active Bias & Methodological Flaw Detector",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -168,7 +168,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### ��️ Sensitivity Parameters")
+    st.markdown("### 🔍 ️ Sensitivity Parameters")
     alpha_threshold = st.slider(
         r"Alpha Significance Level ($\alpha$)",
         0.001,
@@ -193,7 +193,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### ��️ Automated Safeguards")
+    st.markdown("### 🔍 ️ Automated Safeguards")
     enable_confounder = st.toggle(
         "Real-time Confounder Flagging", value=True, key="auditor_confounder_toggle"
     )
@@ -210,7 +210,7 @@ st.markdown(
 <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
     <div>
         <span class='badge-primary'>ENTERPRISE AUDIT SUITE v4.0</span>
-        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>�� Active Bias & Methodological Flaw Detector</h1>
+        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 Active Bias & Methodological Flaw Detector</h1>
         <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
             Real-time Statistical Power Analysis, Confounding Variable Stress-Testing, Bayesian Bias Correction & Automated Remediation.
         </p>
@@ -218,7 +218,7 @@ st.markdown(
     <div style='text-align: right;'>
         <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
             <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Lead Auditor</div>
-            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>�� KULA CHRIS</div>
+            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>🔍 KULA CHRIS</div>
         </div>
     </div>
 </div>
@@ -228,10 +228,10 @@ st.markdown(
 
 # ─── 5. AUDIT WORKSPACE TABS ─────────────────────────────────────────────
 tab_overview, tab_power, tab_bayesian, tab_remediation = st.tabs([
-    "�� Executive Summary",
+    "🔍 Executive Summary",
     "⚡ Monte Carlo Power Engine",
-    "�� Bayesian Bias Correction",
-    "��️ Automated Remediation Pipeline",
+    "🔍 Bayesian Bias Correction",
+    "🔍 ️ Automated Remediation Pipeline",
 ])
 
 # ── TAB 1: EXECUTIVE SUMMARY ──
@@ -257,11 +257,11 @@ with tab_overview:
     c1, c2 = st.columns([6, 4])
     with c1:
         st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.markdown("### �� Real-Time Methodological Diagnostics")
+        st.markdown("### 🔍 Real-Time Methodological Diagnostics")
         
-        status_fdr = "�� ACTIVE" if enable_fdr else "�� INACTIVE"
-        status_bayesian = "�� ACTIVE" if enable_bayesian else "�� INACTIVE"
-        status_confounder = "�� ACTIVE" if enable_confounder else "�� INACTIVE"
+        status_fdr = "🔍 ACTIVE" if enable_fdr else "🔍 INACTIVE"
+        status_bayesian = "🔍 ACTIVE" if enable_bayesian else "🔍 INACTIVE"
+        status_confounder = "🔍 ACTIVE" if enable_confounder else "🔍 INACTIVE"
         
         st.markdown(f"- **False Discovery Rate (FDR) Guard:** {status_fdr}")
         st.markdown(f"- **Bayesian Prior Adjustment:** {status_bayesian}")
@@ -274,7 +274,7 @@ with tab_overview:
 
     with c2:
         st.markdown("<div class='contrast-card-emerald'>", unsafe_allow_html=True)
-        st.markdown("### ��️ Active Safeguards Summary")
+        st.markdown("### 🔍 ️ Active Safeguards Summary")
         st.success("✅ Protocol parameters verified.")
         st.markdown(f"Currently simulating under **{audit_mode}** constraints.")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -300,7 +300,7 @@ with tab_power:
 # ── TAB 3: BAYESIAN BIAS CORRECTION ──
 with tab_bayesian:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.markdown("### �� Bayesian Prior Bias Adjustment Engine")
+    st.markdown("### 🔍 Bayesian Prior Bias Adjustment Engine")
     st.markdown("Adjust observed p-values against prior probability of true hypothesis ($P(H_1)$).")
     
     prior_h1 = st.slider("Prior Probability of True Effect $P(H_1)$", 0.01, 0.90, 0.20, 0.01)
@@ -315,7 +315,7 @@ with tab_bayesian:
 # ── TAB 4: AUTOMATED REMEDIATION ──
 with tab_remediation:
     st.markdown("<div class='contrast-card-emerald'>", unsafe_allow_html=True)
-    st.markdown("### ��️ Automated Methodological Remediation Pipeline")
+    st.markdown("### 🔍 ️ Automated Methodological Remediation Pipeline")
     st.markdown("Recommended protocol modifications based on active audit settings:")
     st.markdown("1. **Increase Sample Size:** Expand arm allocation to achieve target power threshold.")
     st.markdown("2. **Pre-Registration:** Lock secondary outcome hypotheses prior to secondary data pass.")
@@ -327,7 +327,7 @@ st.markdown("<hr style='border:1px solid #1e293b; margin-top:2.5rem;'>", unsafe_
 st.markdown(
     """
 <div style='display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; font-family: monospace;'>
-    <div>�� ACTIVE BIAS & METHODOLOGICAL FLAW DETECTOR</div>
+    <div>🔍 ACTIVE BIAS & METHODOLOGICAL FLAW DETECTOR</div>
     <div>DESIGNED FOR: KULA CHRIS</div>
     <div>SYSTEM STATUS: ACTIVE</div>
 </div>

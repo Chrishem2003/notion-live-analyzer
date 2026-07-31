@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("�� Public Health & Healthcare Preparedness Suite")
+st.title("🔍 Public Health & Healthcare Preparedness Suite")
 st.caption("ICU Triage Forecasting, Supply-Chain Exhaustion, and Genomic Mutation Tracking")
 
 col1, col2, col3 = st.columns(3)

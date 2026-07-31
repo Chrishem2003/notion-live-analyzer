@@ -78,7 +78,7 @@ except ImportError:
 st.set_page_config(
     page_title="Enterprise Dashboard Studio", 
     layout="wide", 
-    page_icon="��",
+    page_icon="🔍 ",
     initial_sidebar_state="collapsed"
 )
 
@@ -227,7 +227,7 @@ st.markdown(
 )
 
 hero_card(
-    "�� Enterprise Multi-Chart Dashboard Studio", 
+    "🔍 Enterprise Multi-Chart Dashboard Studio", 
     "High-performance analytical canvas: Compose custom multi-widget layouts, deploy global interactive filters, configure cross-filtering pipelines, and export publication-ready reporting dashboards.", 
     "Dashboard Studio 3.0"
 )
@@ -248,7 +248,7 @@ if active_df is None or active_df.empty:
     )
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("�� Generate Synthetic Enterprise Cohort", type="primary", use_container_width=True):
+        if st.button("🔍 Generate Synthetic Enterprise Cohort", type="primary", use_container_width=True):
             np.random.seed(101)
             sim_df = pd.DataFrame({
                 "Record_ID": [f"REC-{i:04d}" for i in range(1, 101)],
@@ -262,7 +262,7 @@ if active_df is None or active_df.empty:
             st.session_state["active_df"] = sim_df
             st.rerun()
     with col_b:
-        if st.button("�� Load Default Operational Analytics Data", use_container_width=True):
+        if st.button("🔍 Load Default Operational Analytics Data", use_container_width=True):
             sim_df = pd.DataFrame({
                 "ID": [i for i in range(1, 51)],
                 "Category": np.random.choice(["Alpha", "Beta", "Gamma"], 50),
@@ -274,23 +274,23 @@ if active_df is None or active_df.empty:
     st.stop()
 
 # ─── High-Level Dashboard Topology Metrics ─────────────────────────────
-section_header("�� Dataset Topology & Canvas Readiness")
+section_header("🔍 Dataset Topology & Canvas Readiness")
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    st.metric("�� Total Observations", f"{len(active_df):,}")
+    st.metric("🔍 Total Observations", f"{len(active_df):,}")
 with m2:
-    st.metric("�� Total Attributes", f"{len(active_df.columns):,}")
+    st.metric("🔍 Total Attributes", f"{len(active_df.columns):,}")
 with m3:
     numeric_cols = len(active_df.select_dtypes(include=[np.number]).columns)
-    st.metric("�� Numeric Metrics", numeric_cols)
+    st.metric("🔍 Numeric Metrics", numeric_cols)
 with m4:
     categorical_cols = len(active_df.select_dtypes(include=['object', 'category']).columns)
-    st.metric("��️ Categorical Dimensions", categorical_cols)
+    st.metric("🔍 ️ Categorical Dimensions", categorical_cols)
 with m5:
-    st.metric("��️ Layout Engine", "Dynamic Grid 3.0")
+    st.metric("🔍 ️ Layout Engine", "Dynamic Grid 3.0")
 
-with st.expander("�� Preview Active Dataset Schema & Summary", expanded=False):
+with st.expander("🔍 Preview Active Dataset Schema & Summary", expanded=False):
     st.dataframe(active_df.head(10), use_container_width=True)
     st.markdown("##### Column Data Types")
     st.write(active_df.dtypes.astype(str))
@@ -301,15 +301,15 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 section_header("⚙️ Interactive Dashboard Canvas & Management Suite")
 
 dash_tabs = st.tabs([
-    "�� Core Interactive Dashboard",
-    "��️ Global Filters & Slicers",
-    "�� Layout & Widget Customizer",
-    "�� Export & Report Generation"
+    "🔍 Core Interactive Dashboard",
+    "🔍 ️ Global Filters & Slicers",
+    "🔍 Layout & Widget Customizer",
+    "🔍 Export & Report Generation"
 ])
 
 # ── TAB 1: Core Dashboard Studio ────────────────────────────────────────
 with dash_tabs[0]:
-    st.markdown("### �� Multi-Widget Visual Canvas")
+    st.markdown("### 🔍 Multi-Widget Visual Canvas")
     st.caption("Build, arrange, and interact with synchronized charts and metric cards in real time.")
     
     # Renders primary dashboard builder component
@@ -317,7 +317,7 @@ with dash_tabs[0]:
 
 # ── TAB 2: Global Filters & Slicers ─────────────────────────────────────
 with dash_tabs[1]:
-    st.markdown("### ��️ Global Data Slicers & Filtering Bar")
+    st.markdown("### 🔍 ️ Global Data Slicers & Filtering Bar")
     st.caption("Apply global filters across all widgets simultaneously to isolate specific subsets of data.")
 
     categorical_columns = list(active_df.select_dtypes(include=['object', 'category']).columns)
@@ -329,7 +329,7 @@ with dash_tabs[1]:
             st.markdown(
                 f"""
                 <div class='contrast-card'>
-                    <h4 style='margin-top:0; color:#00f2fe;'>�� Active Global Filter Dimensions Configured</h4>
+                    <h4 style='margin-top:0; color:#00f2fe;'>🔍 Active Global Filter Dimensions Configured</h4>
                     <p style='margin:0; color:#cbd5e1;'>Slicing active across: <code>{', '.join(filter_cols)}</code></p>
                 </div>
                 """,
@@ -342,7 +342,7 @@ with dash_tabs[1]:
 
 # ── TAB 3: Layout & Widget Customizer ───────────────────────────────────
 with dash_tabs[2]:
-    st.markdown("### �� Canvas Grid Layout & Theme Configuration")
+    st.markdown("### 🔍 Canvas Grid Layout & Theme Configuration")
     st.caption("Customize widget arrangement structures, spacing, and color palettes for executive presentation.")
 
     col_l1, col_l2 = st.columns(2)
@@ -353,21 +353,21 @@ with dash_tabs[2]:
         st.toggle("Enable Real-Time Dynamic Hover Tooltips", value=True)
         st.toggle("Show Gridlines on All Cartesian Charts", value=True)
 
-    if st.button("�� Apply Layout Customizations", use_container_width=True):
+    if st.button("🔍 Apply Layout Customizations", use_container_width=True):
         st.success("✅ Dashboard layout properties updated successfully!")
 
 # ── TAB 4: Export & Report Generation ───────────────────────────────────
 with dash_tabs[3]:
-    st.markdown("### �� Executive Report & Snapshot Export")
+    st.markdown("### 🔍 Executive Report & Snapshot Export")
     st.caption("Export the current multi-chart dashboard configuration and rendered figures into downloadable formats.")
 
     export_format = st.selectbox("Export Format", options=["HTML (Interactive Complete)", "PDF Executive Summary Report", "PNG Image Snapshot Package"])
     
-    if st.button(f"�� Generate & Download Dashboard ({export_format.split()[0]})", type="primary", use_container_width=True):
+    if st.button(f"🔍 Generate & Download Dashboard ({export_format.split()[0]})", type="primary", use_container_width=True):
         st.markdown(
             f"""
             <div class='contrast-card' style='text-align:center;'>
-                <h4 style='color:#00f2fe; margin-top:0;'>�� Report Package Successfully Compiled!</h4>
+                <h4 style='color:#00f2fe; margin-top:0;'>🔍 Report Package Successfully Compiled!</h4>
                 <p style='color:#cbd5e1; margin:0;'>Your dashboard in <strong>{export_format}</strong> format is generated and ready for presentation.</p>
             </div>
             """,

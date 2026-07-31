@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 
-st.title("�� Live Data Ingestion & Telemetry Center")
+st.title("🔍 Live Data Ingestion & Telemetry Center")
 st.caption("Central Bank APIs, WHO Outbreak Trackers, and Satellite Earth Observation")
 
 c1, c2, c3 = st.columns(3)

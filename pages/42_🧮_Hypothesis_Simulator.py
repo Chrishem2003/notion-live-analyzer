@@ -1,5 +1,5 @@
 """
-�� World-Class Dynamic Hypothesis & Parameter Simulator
+🔍 World-Class Dynamic Hypothesis & Parameter Simulator
 Enterprise-grade computational modeling and exploratory simulation engine featuring real-time
 Monte Carlo parameter sweeps, stochastic differential equation (SDE) solver integration, sensitivity heatmaps, and Bayesian updating loops.
 """
@@ -16,7 +16,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 st.set_page_config(
     page_title="Dynamic Hypothesis & Parameter Simulator",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -160,7 +160,7 @@ with st.sidebar:
     st.session_state["sim_engine_mode"] = sim_mode
 
     st.markdown("---")
-    st.markdown("### ��️ Sample Size & Iterations")
+    st.markdown("### 🔍 ️ Sample Size & Iterations")
     sim_iterations = st.select_slider(
         "Simulation Iteration Scale",
         options=[500, 1000, 5000, 10000, 50000, 100000],
@@ -170,7 +170,7 @@ with st.sidebar:
     confidence_bound = st.slider("Confidence Interval Boundary (%)", 90, 99, 95, 1, key="sim_confidence_bound")
 
     st.markdown("---")
-    st.markdown("### ��️ Advanced Diagnostics & Constraints")
+    st.markdown("### 🔍 ️ Advanced Diagnostics & Constraints")
     sobol_opt = st.toggle("Real-Time Global Sensitivity Analysis (Sobol)", value=True, key="sim_sobol_toggle")
     param_opt = st.toggle("Dynamic Parameter Space Optimization", value=True, key="sim_optimization_toggle")
     st.toggle("Automated Outlier Shock Absorbers", value=True, key="sim_shock_toggle")
@@ -181,7 +181,7 @@ with st.sidebar:
 # ==========================================
 
 st.markdown("<span class='sim-badge'>COMPUTATIONAL ENGINE v2.5</span>", unsafe_allow_html=True)
-st.title("�� Dynamic Hypothesis & Parameter Simulator")
+st.title("🔍 Dynamic Hypothesis & Parameter Simulator")
 st.caption("Stochastic parameter sweeps, differential equation solvers, and Bayesian uncertainty estimation.")
 
 # High-Performance Metrics Bar
@@ -212,7 +212,7 @@ else:
     st.info(f"The `modules.hypothesis_simulator` file could not be imported directly. Running in **Native Fallback Simulation Mode**.\n\n`Error Details: {import_error_msg}`")
     
     # Native Monte Carlo Fallback Visualization
-    st.subheader(f"�� Live Simulation: {sim_mode}")
+    st.subheader(f"🔍 Live Simulation: {sim_mode}")
     
     # Generate live Monte Carlo sample for visual representation
     np.random.seed(42)

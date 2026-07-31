@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import plotly.express as px
 
-st.title("�� Advanced Machine Learning & Predictive Modeling Core")
+st.title("🔍 Advanced Machine Learning & Predictive Modeling Core")
 st.caption("Neural ODEs, PINNs, Graph Neural Networks, and BSTS Forecasting")
 
 col1, col2, col3 = st.columns(3)

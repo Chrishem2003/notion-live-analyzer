@@ -145,13 +145,13 @@ except ImportError:
             return None
 
     def get_chart_download_link(fig, filename, format_type):
-        return f"<span style='color:#00f2fe;'>�� [Download {filename}.{format_type} ready]</span>"
+        return f"<span style='color:#00f2fe;'>🔍 [Download {filename}.{format_type} ready]</span>"
 
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Visuals Studio [SECURE]",
     layout="wide",
-    page_icon="��",
+    page_icon="🔍 ",
     initial_sidebar_state="collapsed",
 )
 
@@ -287,13 +287,13 @@ st.markdown(
 )
 
 hero_card(
-    "�� World-Class Advanced Visualization Studio [CLASSIFIED]",
+    "🔍 World-Class Advanced Visualization Studio [CLASSIFIED]",
     (
         "18+ interactive chart types with CHRISHEM-powered auto-recommendation,"
         " live dataset filtering, statistical aggregation, custom templates, and"
         " publication-ready exports."
     ),
-    badge_text="�� v5.0  Enterprise Chart Studio & Analytics Engine",
+    badge_text="🔍 v5.0  Enterprise Chart Studio & Analytics Engine",
 )
 watermark("CHRISHEM")
 
@@ -313,7 +313,7 @@ if active_df is None or active_df.empty:
     
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("�� Load Synthetic Biological Dataset", type="primary", use_container_width=True):
+        if st.button("🔍 Load Synthetic Biological Dataset", type="primary", use_container_width=True):
             np.random.seed(42)
             sim_df = pd.DataFrame({
                 "Gene_Expression_A": np.random.normal(12.5, 2.1, 120),
@@ -326,7 +326,7 @@ if active_df is None or active_df.empty:
             st.session_state["active_df"] = sim_df
             st.rerun()
     with col_b:
-        if st.button("�� Generate Multi-Metric Dataset", use_container_width=True):
+        if st.button("🔍 Generate Multi-Metric Dataset", use_container_width=True):
             np.random.seed(101)
             sim_df = pd.DataFrame({
                 "Metric_Alpha": np.random.randn(150),
@@ -345,7 +345,7 @@ cat_cols = [c for c in all_columns if col_types.get(c) in ("categorical", "strin
 temporal_cols = [c for c in all_columns if col_types.get(c) == "temporal"]
 
 # ─── Global Dataset Filter & Transformation Controls ──────────────────
-with st.expander("��️ Optional: Dataset Row Filtering & Slice Controls", expanded=False):
+with st.expander("🔍 ️ Optional: Dataset Row Filtering & Slice Controls", expanded=False):
     col_f1, col_f2 = st.columns(2)
     with col_f1:
         filter_col = st.selectbox(
@@ -380,17 +380,17 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
 # ─── Main Navigation Tabs ─────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
-    "�� Auto-Recommend AI",
-    "�� Pro Custom Builder",
-    "�� Semantic Chart Search",
-    "�� Multi-Chart Dashboard",
+    "🔍 Auto-Recommend AI",
+    "🔍 Pro Custom Builder",
+    "🔍 Semantic Chart Search",
+    "🔍 Multi-Chart Dashboard",
 ])
 
 # ───────────────────────────────────────────────────────────────────────
 # TAB 1: AUTO-RECOMMEND ENGINE
 # ───────────────────────────────────────────────────────────────────────
 with tab1:
-    section_header("�� CHRISHEM-Powered Automated Chart Studio")
+    section_header("🔍 CHRISHEM-Powered Automated Chart Studio")
     st.caption(
         "Select columns below to let the automated recommendation engine compute"
         " and render the highest-impact visual configurations."
@@ -423,7 +423,7 @@ with tab1:
                     with col_exp:
                         st.markdown(explain_chart_recommendation(rec))
                         chart_type = rec["chart"]
-                        st.caption(f"�� Architecture: `{chart_type.replace('_', ' ').title()}`")
+                        st.caption(f"🔍 Architecture: `{chart_type.replace('_', ' ').title()}`")
 
                         chart_kwargs = {
                             k: rec[k]
@@ -442,15 +442,15 @@ with tab1:
                         else:
                             st.info(f"⚠️ Could not build `{chart_type}` with the selected column parameters.")
         else:
-            st.info("�� No recommendations available for this exact column combination. Try selecting a mix of numeric and categorical variables.")
+            st.info("🔍 No recommendations available for this exact column combination. Try selecting a mix of numeric and categorical variables.")
     else:
-        st.info("�� Please select at least one column above to trigger automated chart recommendations.")
+        st.info("🔍 Please select at least one column above to trigger automated chart recommendations.")
 
 # ───────────────────────────────────────────────────────────────────────
 # TAB 2: PRO CUSTOM CHART BUILDER
 # ───────────────────────────────────────────────────────────────────────
 with tab2:
-    section_header("�� Enterprise Custom Chart Builder")
+    section_header("🔍 Enterprise Custom Chart Builder")
     st.caption("Full parameter control over chart geometry, mapping axes, color palettes, and dimensions.")
 
     col1, col2, col3 = st.columns(3)
@@ -541,7 +541,7 @@ with tab2:
     chart_kwargs["palette"] = palette
     chart_kwargs["height"] = height
 
-    if st.button("�� Render Custom Chart Studio Output", type="primary", use_container_width=True):
+    if st.button("🔍 Render Custom Chart Studio Output", type="primary", use_container_width=True):
         if not x_col and not y_col:
             st.warning("⚠️ Please select at least an X-axis or Y-axis column to build the visualization.")
         else:
@@ -551,7 +551,7 @@ with tab2:
                     st.plotly_chart(fig, use_container_width=True)
 
                     st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
-                    section_header("�� Export High-Resolution Visual")
+                    section_header("🔍 Export High-Resolution Visual")
                     col_ex1, col_ex2 = st.columns(2)
                     with col_ex1:
                         png_link = get_chart_download_link(fig, f"custom_{chart_type}", "png")
@@ -568,7 +568,7 @@ with tab2:
 # TAB 3: SEMANTIC CHART SEARCH
 # ───────────────────────────────────────────────────────────────────────
 with tab3:
-    section_header("�� Semantic Chart Search by Analytical Purpose")
+    section_header("🔍 Semantic Chart Search by Analytical Purpose")
     st.caption("Describe your analytical objective (e.g., 'distribution', 'correlation', 'comparison'), and the engine will map the optimal chart type.")
 
     search_query = st.text_input(
@@ -583,7 +583,7 @@ with tab3:
             st.markdown(f"**Found {len(results)} matching chart architecture(s)**")
             for chart_type, desc in results:
                 with st.container():
-                    st.markdown(f"### �� {chart_type.replace('_', ' ').title()}")
+                    st.markdown(f"### 🔍 {chart_type.replace('_', ' ').title()}")
                     st.caption(desc)
 
                     recs = auto_recommend_chart(active_df)
@@ -604,16 +604,16 @@ with tab3:
         else:
             st.warning(f"⚠️ No matching chart type found for '{search_query}'. Try keywords like: distribution, comparison, correlation.")
 
-    st.markdown("### �� Quick-Access Standard Visualizations")
+    st.markdown("### 🔍 Quick-Access Standard Visualizations")
     quick_charts = {
-        "�� Distribution": "histogram",
-        "�� Trend Over Time": "line",
-        "�� Category Comparison": "bar",
-        "�� Scatter Correlation": "scatter",
-        "�� Proportional Composition": "pie",
-        "�� Statistical Box Plot": "box",
-        "�� Multi-Dimension Matrix": "parallel_coordinates",
-        "�� Hierarchical Treemap": "treemap",
+        "🔍 Distribution": "histogram",
+        "🔍 Trend Over Time": "line",
+        "🔍 Category Comparison": "bar",
+        "🔍 Scatter Correlation": "scatter",
+        "🔍 Proportional Composition": "pie",
+        "🔍 Statistical Box Plot": "box",
+        "🔍 Multi-Dimension Matrix": "parallel_coordinates",
+        "🔍 Hierarchical Treemap": "treemap",
     }
 
     q_cols = st.columns(4)
@@ -639,7 +639,7 @@ with tab3:
 # TAB 4: MULTI-CHART DASHBOARD VIEW
 # ───────────────────────────────────────────────────────────────────────
 with tab4:
-    section_header("�� Multi-Chart Executive Dashboard")
+    section_header("🔍 Multi-Chart Executive Dashboard")
     st.markdown("Simultaneous side-by-side rendering of key dataset metrics and distributions.")
 
     if len(numeric_cols) >= 2:

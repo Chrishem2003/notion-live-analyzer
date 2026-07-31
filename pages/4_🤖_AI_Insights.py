@@ -16,7 +16,7 @@ import streamlit as st
 # ─── 1. PAGE CONFIGURATION & STYLING ────────────────────────────────────
 st.set_page_config(
     page_title="AI Insights & Executive Reporting",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -214,7 +214,7 @@ def auto_generate_report(df: pd.DataFrame, source_name: str = "dataset.csv") -> 
         </head>
         <body>
             <div class="container">
-                <h1>�� Executive Data Intelligence Report</h1>
+                <h1>🔍 Executive Data Intelligence Report</h1>
                 <p><strong>Source Document:</strong> {source_name}</p>
                 
                 <div class="metrics-grid">
@@ -236,7 +236,7 @@ def auto_generate_report(df: pd.DataFrame, source_name: str = "dataset.csv") -> 
                     </div>
                 </div>
 
-                <h2>�� Statistical Profile Matrix</h2>
+                <h2>🔍 Statistical Profile Matrix</h2>
                 {summary_stats}
 
                 <div class="footer">
@@ -261,7 +261,7 @@ def render_ai_insights_page():
         <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
             <div>
                 <span class='badge-primary'>AUTOMATED DIAGNOSTICS & REPORTING</span>
-                <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>�� AI Intelligence Engine</h1>
+                <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 AI Intelligence Engine</h1>
                 <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
                     Deep dataset auditing, anomaly detection, automated correlation mapping, and executive HTML report compilation.
                 </p>
@@ -269,7 +269,7 @@ def render_ai_insights_page():
             <div style='text-align: right;'>
                 <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
                     <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Engine Brand</div>
-                    <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>�� CHRISHEM INSIGHTS</div>
+                    <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>🔍 CHRISHEM INSIGHTS</div>
                 </div>
             </div>
         </div>
@@ -291,7 +291,7 @@ def render_ai_insights_page():
             """,
             unsafe_allow_html=True
         )
-        if st.button("�� Load Synthetic Research Dataset", type="primary", use_container_width=True):
+        if st.button("🔍 Load Synthetic Research Dataset", type="primary", use_container_width=True):
             np.random.seed(42)
             demo_data = pd.DataFrame({
                 "Patient_ID": [f"PID-{1000+i}" for i in range(120)],
@@ -319,7 +319,7 @@ def render_ai_insights_page():
     missing_count = int(df.isnull().sum().sum())
     missing_pct = (missing_count / total_cells) * 100
 
-    insights.append(f"�� <b>Structural Scope</b>: Dataset contains <b>{rows:,} rows</b> and <b>{cols} columns</b>, forming a total matrix of <b>{total_cells:,} observations</b>.")
+    insights.append(f"🔍 <b>Structural Scope</b>: Dataset contains <b>{rows:,} rows</b> and <b>{cols} columns</b>, forming a total matrix of <b>{total_cells:,} observations</b>.")
 
     if missing_count > 0:
         worst_col = df.isnull().sum().idxmax()
@@ -343,17 +343,17 @@ def render_ai_insights_page():
                     
         if high_corrs:
             c1, c2, val = high_corrs[0]
-            insights.append(f"�� <b>High Collinearity Detected</b>: Strong linear correlation (r = <b>{val:.2f}</b>) observed between <b>'{c1}'</b> and <b>'{c2}'</b>.")
+            insights.append(f"🔍 <b>High Collinearity Detected</b>: Strong linear correlation (r = <b>{val:.2f}</b>) observed between <b>'{c1}'</b> and <b>'{c2}'</b>.")
 
     # Variance and Skewness Check
     if not numeric_df.empty:
         skew_series = numeric_df.skew()
         highly_skewed = skew_series[abs(skew_series) > 1.5].index.tolist()
         if highly_skewed:
-            insights.append(f"�� <b>Distribution Skewness</b>: Features <b>{', '.join(highly_skewed[:3])}</b> exhibit significant skewness (|skew| > 1.5), indicating standard normalization or log scaling may be required.")
+            insights.append(f"🔍 <b>Distribution Skewness</b>: Features <b>{', '.join(highly_skewed[:3])}</b> exhibit significant skewness (|skew| > 1.5), indicating standard normalization or log scaling may be required.")
 
     # Display Analytical Finding Cards
-    st.markdown("### �� Key Analytical Findings")
+    st.markdown("### 🔍 Key Analytical Findings")
     for idx, insight in enumerate(insights, 1):
         st.markdown(
             f"""
@@ -368,7 +368,7 @@ def render_ai_insights_page():
     st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
     # ── 2. Executive HTML Report Generator ──
-    st.markdown("### �� Executive HTML Report Generator")
+    st.markdown("### 🔍 Executive HTML Report Generator")
     st.caption("Compile dataset metrics, structural profiles, and descriptive statistics into a standalone professional HTML document.")
 
     col_rep1, col_rep2 = st.columns([2, 1])

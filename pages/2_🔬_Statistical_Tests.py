@@ -12,7 +12,7 @@ import streamlit as st
 # 1. Page Configuration & Professional Theme Integration
 st.set_page_config(
     page_title="Statistical Tests | Notion Live Analyzer",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
 )
 
@@ -84,7 +84,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("�� Advanced Statistical Testing Suite")
+st.title("🔍 Advanced Statistical Testing Suite")
 st.markdown(
     "Perform parametric and non-parametric hypothesis tests, regression modeling, and diagnostic evaluations with publication-ready output."
 )
@@ -211,7 +211,7 @@ def assumption_badge(passed: bool, text: str):
     )
 
 
-def copy_to_clipboard_button(text: str, label: str = "�� Copy Code"):
+def copy_to_clipboard_button(text: str, label: str = "🔍 Copy Code"):
   if st.button(label, key=f"copy_{hash(text)}"):
     st.toast("Copied to clipboard successfully!", icon="✅")
 
@@ -298,7 +298,7 @@ if test_name == "One-Way ANOVA":
           "⚠️ Data appears non-normal. Consider using **Kruskal-Wallis H**"
           " instead."
       )
-      if st.button("�� Switch to Kruskal-Wallis H", type="secondary"):
+      if st.button("🔍 Switch to Kruskal-Wallis H", type="secondary"):
         st.session_state.selected_test_override = (
             "Non-Parametric Tests → Kruskal-Wallis H"
         )
@@ -520,7 +520,7 @@ elif test_name == "Correlation Matrix":
     method = st.radio("Method", ["Pearson", "Spearman"], horizontal=True)
 
     if selected_cols and st.button(
-        "�� Show Correlation Matrix", type="primary"
+        "🔍 Show Correlation Matrix", type="primary"
     ):
       corr_res = active_df[selected_cols].corr(
           method=method.lower()

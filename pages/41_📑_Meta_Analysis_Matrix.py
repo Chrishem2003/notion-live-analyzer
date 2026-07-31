@@ -1,5 +1,5 @@
 """
-�� World-Class Multi-Paper Meta-Analysis Matrix Synthesizer
+🔍 World-Class Multi-Paper Meta-Analysis Matrix Synthesizer
 Enterprise-grade systematic review and evidence synthesis engine featuring automated effect-size extraction,
 heterogeneity modeling ($I^2$, Cochran's Q), publication bias Egger's regression testing, and forest plot generation pipelines.
 """
@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 st.set_page_config(
     page_title="Multi-Paper Meta-Analysis Matrix Synthesizer",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -159,7 +159,7 @@ with st.sidebar:
     st.session_state["meta_model_type"] = model_type
 
     st.markdown("---")
-    st.markdown("### �� Effect Size & Metric Parameters")
+    st.markdown("### 🔍 Effect Size & Metric Parameters")
     effect_metric = st.selectbox(
         "Primary Effect Metric",
         ["Odds Ratio (OR)", "Relative Risk (RR)", "Risk Difference (RD)", "Standardized Mean Difference (SMD)", "Pearson's Correlation (r)"],
@@ -168,7 +168,7 @@ with st.sidebar:
     confidence_level = st.slider("Confidence Interval (%)", 90, 99, 95, 1, key="meta_confidence_level")
 
     st.markdown("---")
-    st.markdown("### ��️ Bias Detection & Heterogeneity")
+    st.markdown("### 🔍 ️ Bias Detection & Heterogeneity")
     eggers_opt = st.toggle("Egger's Test for Publication Bias", value=True, key="meta_eggers_toggle")
     st.toggle("Fail-Safe N Calculation (Rosenthal)", value=True, key="meta_failsafe_toggle")
     st.toggle("Leave-One-Out Sensitivity Analysis", value=True, key="meta_sensitivity_toggle")
@@ -179,7 +179,7 @@ with st.sidebar:
 # ==========================================
 
 st.markdown("<span class='meta-badge'>SYNTHESIS ENGINE v2.5</span>", unsafe_allow_html=True)
-st.title("�� Multi-Paper Meta-Analysis Matrix Synthesizer")
+st.title("🔍 Multi-Paper Meta-Analysis Matrix Synthesizer")
 st.caption("Automated systematic review, effect-size extraction, heterogeneity modeling, and publication bias analytics.")
 
 # Strategic Metric Highlights
@@ -209,7 +209,7 @@ else:
     st.error("⚠️ **Module Resolution Error**")
     st.info(f"The module `modules.meta_analysis_matrix` could not be loaded directly. Reverting to **Native Workspace Mode**.\n\n`Error Details: {import_error_msg}`")
     
-    st.subheader("�� Synthesis Matrix Preview")
+    st.subheader("🔍 Synthesis Matrix Preview")
     
     # Native Matrix Preview Mock Data
     sample_data = {

@@ -1,5 +1,5 @@
 """
-�� Presentation Deck Builder Page  Advanced Enterprise Slide Deck Generator, Interactive Multi-Slide Canvas, & Executive Export Studio.
+🔍 Presentation Deck Builder Page  Advanced Enterprise Slide Deck Generator, Interactive Multi-Slide Canvas, & Executive Export Studio.
 """
 import streamlit as st
 import pandas as pd
@@ -8,7 +8,7 @@ import numpy as np
 st.set_page_config(
     page_title="Enterprise Presentation Deck Studio", 
     layout="wide", 
-    page_icon="��"
+    page_icon="🔍 "
 )
 
 from modules.config import init_session_state
@@ -19,7 +19,7 @@ init_session_state()
 load_css(is_dark=st.session_state.get("theme", "light") == "dark")
 
 hero_card(
-    "�� Enterprise Presentation Deck & Executive Slide Studio",
+    "🔍 Enterprise Presentation Deck & Executive Slide Studio",
     "High-performance presentation generator: Compile analytical charts, AI insights, statistical results, data tables, and custom narrative cards into professional, interactive slide decks with multi-format export capabilities.",
     "Deck Builder & Publishing Engine 3.0"
 )
@@ -34,22 +34,22 @@ statistical_results = st.session_state.get("statistical_results", [])
 ai_insights = st.session_state.get("ai_insights", ["Positive correlation observed between primary variables.", "Low missingness detected across key demographic features."])
 
 if active_df is not None and not active_df.empty:
-    st.info(f"�� **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for automated slide metric injection.")
+    st.info(f"🔍 **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for automated slide metric injection.")
 
 # ─── High-Level Presentation Topology Metrics ──────────────────────────
-section_header("�� Slide Deck Topology & Canvas Readiness")
+section_header("🔍 Slide Deck Topology & Canvas Readiness")
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    st.metric("�� Default Slide Count", "6 Slides", help="Standard executive deck layout")
+    st.metric("🔍 Default Slide Count", "6 Slides", help="Standard executive deck layout")
 with m2:
-    st.metric("�� Integrated Visuals", f"{len(statistical_results) + 3} Elements", help="Charts and tables ready for presentation")
+    st.metric("🔍 Integrated Visuals", f"{len(statistical_results) + 3} Elements", help="Charts and tables ready for presentation")
 with m3:
-    st.metric("�� Template Style", "Modern Executive Dark/Light", help="Adaptive styling framework")
+    st.metric("🔍 Template Style", "Modern Executive Dark/Light", help="Adaptive styling framework")
 with m4:
-    st.metric("�� AI Summaries", f"{len(ai_insights)} Insights Ready", help="Automated narrative generation")
+    st.metric("🔍 AI Summaries", f"{len(ai_insights)} Insights Ready", help="Automated narrative generation")
 with m5:
-    st.metric("�� Export Formats", "HTML, PDF, PowerPoint", help="Multi-format delivery engine")
+    st.metric("🔍 Export Formats", "HTML, PDF, PowerPoint", help="Multi-format delivery engine")
 
 st.markdown("---")
 
@@ -57,16 +57,16 @@ st.markdown("---")
 section_header("⚙️ Interactive Slide Deck & Export Studio")
 
 deck_tabs = st.tabs([
-    "�� Core Deck Builder Canvas",
-    "�� Slide-by-Slide Content Customizer",
-    "�� Theme & Visual Styling Suite",
-    "�� AI Executive Narrative Generator",
-    "�� Export & Download Package"
+    "🔍 Core Deck Builder Canvas",
+    "🔍 Slide-by-Slide Content Customizer",
+    "🔍 Theme & Visual Styling Suite",
+    "🔍 AI Executive Narrative Generator",
+    "🔍 Export & Download Package"
 ])
 
 # ── TAB 1: Core Deck Builder Canvas ─────────────────────────────────────
 with deck_tabs[0]:
-    st.markdown("### �� Interactive Presentation Slide Deck Viewer")
+    st.markdown("### 🔍 Interactive Presentation Slide Deck Viewer")
     st.caption("Navigate through generated slides, inspect embedded charts, and preview your executive presentation in real time.")
     
     # Renders the primary deck builder module from modules
@@ -74,7 +74,7 @@ with deck_tabs[0]:
 
 # ── TAB 2: Slide-by-Slide Content Customizer ────────────────────────────
 with deck_tabs[1]:
-    st.markdown("### �� Modular Slide Structure & Content Editor")
+    st.markdown("### 🔍 Modular Slide Structure & Content Editor")
     st.markdown("Customize individual slide titles, bullet points, embedded metrics, and visual attachments.")
 
     slide_selection = st.selectbox(
@@ -102,12 +102,12 @@ with deck_tabs[1]:
         height=150
     )
 
-    if st.button("�� Save Slide Modifications", type="secondary"):
+    if st.button("🔍 Save Slide Modifications", type="secondary"):
         st.success(f"✅ Successfully updated **{slide_selection}** content and layout properties!")
 
 # ── TAB 3: Theme & Visual Styling Suite ─────────────────────────────────
 with deck_tabs[2]:
-    st.markdown("### �� Presentation Styling & Color Palette Studio")
+    st.markdown("### 🔍 Presentation Styling & Color Palette Studio")
     st.markdown("Tailor the visual aesthetic of your presentation deck for academic conferences or executive boardrooms.")
 
     col_t1, col_t2 = st.columns(2)
@@ -118,17 +118,17 @@ with deck_tabs[2]:
         st.color_picker("Primary Accent Color", value="#1f77b4")
         st.color_picker("Background Canvas Color", value="#ffffff")
 
-    if st.button("�� Apply Styling to Entire Deck", type="primary"):
-        st.success(f"�� Presentation theme successfully updated to **{deck_theme_mode}**!")
+    if st.button("🔍 Apply Styling to Entire Deck", type="primary"):
+        st.success(f"🔍 Presentation theme successfully updated to **{deck_theme_mode}**!")
 
 # ── TAB 4: AI Executive Narrative Generator ─────────────────────────────
 with deck_tabs[3]:
-    st.markdown("### �� Automated AI Executive Summary Generator")
+    st.markdown("### 🔍 Automated AI Executive Summary Generator")
     st.markdown("Leverage integrated AI analytics to auto-generate professional presentation talking points and speaker notes.")
 
     tone_option = st.selectbox("Narrative Tone", options=["Academic / Scholarly", "Executive Boardroom", "Concise Bullet Points", "Persuasive Pitch"])
 
-    if st.button("�� Generate AI Presentation Speaker Notes", type="secondary"):
+    if st.button("🔍 Generate AI Presentation Speaker Notes", type="secondary"):
         st.success("✅ AI speaker notes and slide summaries generated successfully!")
         st.code(f"""
 SPEAKER NOTES ({tone_option.upper()}):
@@ -141,7 +141,7 @@ SPEAKER NOTES ({tone_option.upper()}):
 
 # ── TAB 5: Export & Download Package ────────────────────────────────────
 with deck_tabs[4]:
-    st.markdown("### �� Multi-Format Presentation Export Suite")
+    st.markdown("### 🔍 Multi-Format Presentation Export Suite")
     st.markdown("Export your completed presentation deck into professional delivery formats instantly.")
 
     export_format_choice = st.selectbox(
@@ -162,5 +162,5 @@ with deck_tabs[4]:
         st.checkbox("Include Watermark (CHRISHEM)", value=True)
         st.checkbox("High-Resolution Chart Rendering", value=True)
 
-    if st.button(f"�� Compile & Download Presentation ({export_format_choice.split()[0]})", type="primary"):
-        st.success(f"�� **Presentation successfully compiled in {export_format_choice}!** Ready for presentation delivery.")
+    if st.button(f"🔍 Compile & Download Presentation ({export_format_choice.split()[0]})", type="primary"):
+        st.success(f"🔍 **Presentation successfully compiled in {export_format_choice}!** Ready for presentation delivery.")

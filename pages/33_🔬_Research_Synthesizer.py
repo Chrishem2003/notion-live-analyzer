@@ -62,7 +62,7 @@ except ImportError:
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Research Synthesizer | Intelligence Hub", 
-    page_icon="��", 
+    page_icon="🔍 ", 
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -234,7 +234,7 @@ st.markdown(
 )
 
 hero_card(
-    "�� Advanced Research Synthesizer & Audio Intelligence Hub",
+    "🔍 Advanced Research Synthesizer & Audio Intelligence Hub",
     "Autonomous multimodal architecture for vector extraction, cross-lingual research synthesis, verified ground-truth auditing, and real-time prior-art knowledge graph mapping.",
     badge_text="⚡ Enterprise-Grade v4.2"
 )
@@ -357,9 +357,9 @@ def _build_audio_style_options():
     """Render audio briefing style selection with clear visual indicators."""
     col1, col2, col3 = st.columns(3)
     styles = [
-        ("podcast_dialogue", "��️ 2-Host Podcast", "Conversational Deep-Dive"),
-        ("executive", "�� Solo Executive", "Concise High-Yield Brief"),
-        ("academic", "�� Peer Reviewer", "Critical Critique")
+        ("podcast_dialogue", "🔍 ️ 2-Host Podcast", "Conversational Deep-Dive"),
+        ("executive", "🔍 Solo Executive", "Concise High-Yield Brief"),
+        ("academic", "🔍 Peer Reviewer", "Critical Critique")
     ]
     for i, (stype, label, desc) in enumerate(styles):
         is_active = st.session_state["synth_audio_style"] == stype
@@ -390,7 +390,7 @@ def _build_citation_card(cit, idx):
                 {cit['summaryText']}
             </div>
             <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 0.4rem;">
-                �� {cit['sourceType']} ({cit['sourceLocation']})
+                🔍 {cit['sourceType']} ({cit['sourceLocation']})
             </div>
         </div>
         """,
@@ -423,14 +423,14 @@ with st.sidebar:
     )
     
     st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
-    section_header("�� Export & Integration")
+    section_header("🔍 Export & Integration")
     
     st.session_state["synth_export_format"] = st.selectbox(
         "Export Format",
         options=["Markdown (.md)", "Structured JSON", "BibTeX + Summary", "Interactive HTML Bundle"]
     )
     
-    if st.button("�� Export Synthesized Artifacts", use_container_width=True):
+    if st.button("🔍 Export Synthesized Artifacts", use_container_width=True):
         st.success(f"Generated package in {st.session_state['synth_export_format']}!")
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -442,7 +442,7 @@ col_lang_top, col_toggle_top = st.columns([1, 2])
 languages = ["English", "French", "Spanish", "German", "Chinese", "Japanese", "Swahili", "Arabic"]
 with col_lang_top:
     selected_lang = st.selectbox(
-        "�� Target Translation Language",
+        "🔍 Target Translation Language",
         options=languages,
         index=languages.index(st.session_state["synth_target_language"]),
         key="synth_lang_select_top"
@@ -451,7 +451,7 @@ with col_lang_top:
         st.session_state["synth_target_language"] = selected_lang
         st.rerun()
 
-input_types = ["�� PDF / Raw Text", "�� Academic URL / DOI", "�� Lecture / Video Feed"]
+input_types = ["🔍 PDF / Raw Text", "🔍 Academic URL / DOI", "🔍 Lecture / Video Feed"]
 with col_toggle_top:
     current_input_label = st.radio(
         "Multimodal Input Channel",
@@ -460,7 +460,7 @@ with col_toggle_top:
         horizontal=True,
         key="synth_input_type_radio_top"
     )
-    mapping = {"�� PDF / Raw Text": "text", "�� Academic URL / DOI": "url", "�� Lecture / Video Feed": "video"}
+    mapping = {"🔍 PDF / Raw Text": "text", "🔍 Academic URL / DOI": "url", "🔍 Lecture / Video Feed": "video"}
     new_in_type = mapping[current_input_label]
     if new_in_type != st.session_state["synth_input_type"]:
         st.session_state["synth_input_type"] = new_in_type
@@ -479,7 +479,7 @@ col_input, col_output = st.columns([4, 8])
 # ──────────────────────────────────────────────────────────────────────
 with col_input:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("<h4 style='margin-top:0; color:#00f2fe;'>�� Ingestion Portal</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='margin-top:0; color:#00f2fe;'>🔍 Ingestion Portal</h4>", unsafe_allow_html=True)
 
     in_type = st.session_state["synth_input_type"]
 
@@ -515,7 +515,7 @@ with col_input:
             st.success(f"Loaded: {uploaded.name} ({uploaded.size:,} bytes)")
 
     st.markdown("<div style='margin-top: 0.8rem;'></div>", unsafe_allow_html=True)
-    st.markdown('<label style="font-size:0.8rem;font-weight:600;color:#cbd5e1;">�� Audio Briefing Style</label>', unsafe_allow_html=True)
+    st.markdown('<label style="font-size:0.8rem;font-weight:600;color:#cbd5e1;">🔍 Audio Briefing Style</label>', unsafe_allow_html=True)
     _build_audio_style_options()
 
     st.markdown("<div style='margin-top: 1.25rem;'></div>", unsafe_allow_html=True)
@@ -534,7 +534,7 @@ with col_output:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
 
     if st.session_state["synth_is_processing"]:
-        with st.spinner("�� Running Vector Extraction & Cross-Lingual Synthesis..."):
+        with st.spinner("🔍 Running Vector Extraction & Cross-Lingual Synthesis..."):
             prog = st.progress(0)
             for p in range(0, 101, 25):
                 time.sleep(0.2)
@@ -575,7 +575,7 @@ with col_output:
             st.markdown(
                 """
                 <div class="rigor-badge">
-                    <span>��️</span>
+                    <span>🔍 ️</span>
                     <div>
                         <div style="color:#10b981; font-weight:800; font-size:0.85rem;">Rigor: 9.4/10</div>
                         <div style="color: #6ee7b7; font-size: 0.65rem;">Zero-Hallucination</div>
@@ -593,7 +593,7 @@ with col_output:
             <div class="audio-player-bar">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <div style="font-size: 0.9rem; font-weight: 800; color: #00f2fe;">
-                        �� {active_style_label}
+                        🔍 {active_style_label}
                     </div>
                     <div style="font-size: 0.75rem; color: #cbd5e1;">
                         Voice: <strong>{st.session_state['synth_voice_profile']}</strong> | Duration: 04:15
@@ -618,7 +618,7 @@ with col_output:
             )
         with p_col3:
             st.download_button(
-                "�� Download Audio",
+                "🔍 Download Audio",
                 data=b"Simulated_Audio_Bytes",
                 file_name="research_briefing.mp3",
                 mime="audio/mp3",
@@ -631,12 +631,12 @@ with col_output:
         col_ins, col_insp = st.columns(2)
 
         with col_ins:
-            st.markdown("#### �� Key Grounded Insights")
+            st.markdown("#### 🔍 Key Grounded Insights")
             for idx, cit in enumerate(ENHANCED_CITATIONS):
                 _build_citation_card(cit, idx)
 
         with col_insp:
-            st.markdown("#### ��️ Source Grounding Inspector")
+            st.markdown("#### 🔍 ️ Source Grounding Inspector")
             st.markdown(
                 f"""
                 <div class="inspector-panel">
@@ -663,7 +663,7 @@ with col_output:
         st.markdown("<hr style='border:1px solid #1e293b; margin: 1.2rem 0;'>", unsafe_allow_html=True)
 
         # Prior Art & Literature Knowledge Graph
-        st.markdown("#### �� Prior Art & Literature Mapping")
+        st.markdown("#### 🔍 Prior Art & Literature Mapping")
         for work in ENHANCED_RELATED_WORKS:
             rel_color = "#f59e0b" if work["relation"] == "Conflicting" else ("#10b981" if work["relation"] == "Collaborative" else "#00f2fe")
             st.markdown(

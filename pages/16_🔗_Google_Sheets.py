@@ -60,7 +60,7 @@ except ImportError:
 
     def render_google_sheets_ui(df):
         st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#00f2fe;'>�� Active Google Sheets Stream Connection</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe;'>🔍 Active Google Sheets Stream Connection</h4>", unsafe_allow_html=True)
         st.write("Live connection status: **Connected & Synchronized**")
         if df is not None and not df.empty:
             st.dataframe(df.head(15), use_container_width=True)
@@ -72,7 +72,7 @@ except ImportError:
 st.set_page_config(
     page_title="Enterprise Google Sheets Studio", 
     layout="wide", 
-    page_icon="��",
+    page_icon="🔍 ",
     initial_sidebar_state="collapsed"
 )
 
@@ -229,7 +229,7 @@ st.markdown(
 )
 
 hero_card(
-    "�� Enterprise Google Sheets Cloud Sync & Data Pipeline Studio", 
+    "🔍 Enterprise Google Sheets Cloud Sync & Data Pipeline Studio", 
     "High-performance cloud connector: Seamless bidirectional synchronization, automated credential management via Service Accounts, live spreadsheet ingestion, append pipelines, and versioned cloud exports.", 
     "Cloud Sync & Integration Engine 3.0"
 )
@@ -251,7 +251,7 @@ if active_df is None or active_df.empty:
     })
 
 # ─── HIGH-LEVEL CLOUD SYNC TOPOLOGY METRICS ─────────────────────────────
-section_header("�� Cloud Connection Topology & Pipeline Status")
+section_header("🔍 Cloud Connection Topology & Pipeline Status")
 
 has_active_data = active_df is not None and not active_df.empty
 row_count = len(active_df) if has_active_data else 0
@@ -261,14 +261,14 @@ m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
     st.markdown(f'''
     <div class="metric-card">
-        <div class="metric-card-title">�� Active Stored Rows</div>
+        <div class="metric-card-title">🔍 Active Stored Rows</div>
         <div class="metric-card-value">{row_count:,}</div>
     </div>
     ''', unsafe_allow_html=True)
 with m2:
     st.markdown(f'''
     <div class="metric-card">
-        <div class="metric-card-title">�� Active Attributes</div>
+        <div class="metric-card-title">🔍 Active Attributes</div>
         <div class="metric-card-value">{col_count:,}</div>
     </div>
     ''', unsafe_allow_html=True)
@@ -282,14 +282,14 @@ with m3:
 with m4:
     st.markdown('''
     <div class="metric-card">
-        <div class="metric-card-title">�� Sync Mode</div>
+        <div class="metric-card-title">🔍 Sync Mode</div>
         <div class="metric-card-value" style="color: #10b981 !important;">Bidirectional</div>
     </div>
     ''', unsafe_allow_html=True)
 with m5:
     st.markdown('''
     <div class="metric-card">
-        <div class="metric-card-title">�� Credentials</div>
+        <div class="metric-card-title">🔍 Credentials</div>
         <div class="metric-card-value" style="color: #f59e0b !important;">Encrypted</div>
     </div>
     ''', unsafe_allow_html=True)
@@ -297,10 +297,10 @@ with m5:
 st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 
 if has_active_data:
-    with st.expander("�� Preview Active Dataset Ready for Cloud Sync", expanded=False):
+    with st.expander("🔍 Preview Active Dataset Ready for Cloud Sync", expanded=False):
         st.dataframe(active_df.head(10), use_container_width=True)
 else:
-    st.info("�� **Tip:** No active dataset currently in session memory. You can still connect and read spreadsheets directly from Google Sheets into your workspace.")
+    st.info("🔍 **Tip:** No active dataset currently in session memory. You can still connect and read spreadsheets directly from Google Sheets into your workspace.")
 
 st.markdown("<hr style='border:1px solid #1e293b; margin: 1.5rem 0;'>", unsafe_allow_html=True)
 
@@ -308,17 +308,17 @@ st.markdown("<hr style='border:1px solid #1e293b; margin: 1.5rem 0;'>", unsafe_a
 section_header("⚙️ Google Sheets Integration & Management Suite")
 
 sheets_tabs = st.tabs([
-    "�� Core Google Sheets UI",
-    "�� Import Spreadsheet from URL / ID",
-    "�� Export Active DataFrame to Google Sheet",
-    "�� API Authentication & Secrets Setup",
+    "🔍 Core Google Sheets UI",
+    "🔍 Import Spreadsheet from URL / ID",
+    "🔍 Export Active DataFrame to Google Sheet",
+    "🔍 API Authentication & Secrets Setup",
     "⚡ Automated Sync & Polling Pipeline"
 ])
 
 # ── TAB 1: Core Google Sheets UI ────────────────────────────────────────
 with sheets_tabs[0]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� Interactive Google Sheets Bridge")
+    st.markdown("### 🔍 Interactive Google Sheets Bridge")
     st.caption("Manage live connection streams, verify sheet permissions, and sync data frames directly with Google Workspace.")
     
     # Renders the primary google sheets module from modules
@@ -328,7 +328,7 @@ with sheets_tabs[0]:
 # ── TAB 2: Import Spreadsheet from URL / ID ─────────────────────────────
 with sheets_tabs[1]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� Direct Cloud Ingestion Portal")
+    st.markdown("### 🔍 Direct Cloud Ingestion Portal")
     st.markdown("Import any public or shared Google Spreadsheet directly into your active analytical session.")
 
     sheet_url_input = st.text_input(
@@ -337,7 +337,7 @@ with sheets_tabs[1]:
     )
     worksheet_name = st.text_input("Worksheet / Tab Name (Optional)", value="Sheet1")
 
-    if st.button("�� Ingest Google Sheet into Session", type="primary", key="btn_ingest"):
+    if st.button("🔍 Ingest Google Sheet into Session", type="primary", key="btn_ingest"):
         if sheet_url_input:
             st.success(f"✅ Successfully connected to Google Sheet! Data stream initialized from `{worksheet_name}`.")
         else:
@@ -347,7 +347,7 @@ with sheets_tabs[1]:
 # ── TAB 3: Export Active DataFrame to Google Sheet ──────────────────────
 with sheets_tabs[2]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� Cloud Export & Append Studio")
+    st.markdown("### 🔍 Cloud Export & Append Studio")
     st.markdown("Push your current session dataframe or modified analytics tables directly to a designated Google Sheet.")
 
     if has_active_data:
@@ -360,8 +360,8 @@ with sheets_tabs[2]:
             options=["Overwrite Existing Sheet / Range", "Append Rows to Existing Sheet", "Create New Google Sheet Tab"]
         )
 
-        if st.button("�� Push Data to Google Sheets", key="btn_push"):
-            st.success(f"�� **Data successfully pushed to Google Sheets!** `{row_count:,}` records synced via `{export_mode}`.")
+        if st.button("🔍 Push Data to Google Sheets", key="btn_push"):
+            st.success(f"🔍 **Data successfully pushed to Google Sheets!** `{row_count:,}` records synced via `{export_mode}`.")
     else:
         st.warning("⚠️ No active dataset available in session memory to export. Load a dataset first.")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -369,7 +369,7 @@ with sheets_tabs[2]:
 # ── TAB 4: API Authentication & Secrets Setup ────────────────────────────
 with sheets_tabs[3]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� Google Cloud Service Account Authentication")
+    st.markdown("### 🔍 Google Cloud Service Account Authentication")
     st.markdown("Configure your JSON service account credentials to grant secure programmatic access to private Google Sheets.")
 
     uploaded_creds = st.file_uploader("Upload Google Service Account JSON Key File", type=["json"])
@@ -379,7 +379,7 @@ with sheets_tabs[3]:
     
     st.markdown("""
     <div style="background: #070d18; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-        <h5 style="color: #00f2fe; margin-top:0;">�� Setup Instructions:</h5>
+        <h5 style="color: #00f2fe; margin-top:0;">🔍 Setup Instructions:</h5>
         <ol style="color: #cbd5e1; margin-bottom: 0; padding-left: 1.2rem;">
             <li>Go to the <a href="https://console.cloud.google.com/" target="_blank" style="color:#00f2fe;">Google Cloud Console</a>.</li>
             <li>Create a Service Account and generate a JSON key file.</li>
@@ -405,7 +405,7 @@ with sheets_tabs[4]:
         options=["Latest Timestamp Wins", "Local Changes Overwrite Cloud", "Cloud Changes Overwrite Local"]
     )
 
-    if st.button("�� Save Pipeline Configuration", type="primary", key="btn_save_pipeline"):
+    if st.button("🔍 Save Pipeline Configuration", type="primary", key="btn_save_pipeline"):
         st.success(f"✅ Automated cloud sync schedule updated: `{sync_frequency}`.")
     st.markdown('</div>', unsafe_allow_html=True)
 

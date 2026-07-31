@@ -1,5 +1,5 @@
 """
-�� Advanced Causal Inference & Econometric Decision Engine (Enterprise Edition)
+🔍 Advanced Causal Inference & Econometric Decision Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0  Causal Module
 """
 import streamlit as st
@@ -10,7 +10,7 @@ import time
 # ─── Page Config ───────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Causal Inference & Econometric Engine",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -130,7 +130,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#0f172a; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>Inference Engine</div>
-            <div style='color:#34d399; font-size:0.85rem; font-weight:800;'>�� {'CausalML Active' if HAS_CAUSALML else 'Scikit-Learn Fallback'}</div>
+            <div style='color:#34d399; font-size:0.85rem; font-weight:800;'>🔍 {'CausalML Active' if HAS_CAUSALML else 'Scikit-Learn Fallback'}</div>
         </div>
     </div>
 </div>
@@ -138,11 +138,11 @@ st.markdown("""
 
 # ─── Navigation Tabs ───────────────────────────────────────────────────
 causal_tabs = {
-    "dag": "�� Structural DAGs & Confounders",
+    "dag": "🔍 Structural DAGs & Confounders",
     "psm": "⚖️ Propensity Score Matching",
-    "did": "�� Difference-in-Differences",
+    "did": "🔍 Difference-in-Differences",
     "iv": "⚓ Instrumental Variables (2SLS)",
-    "cate": "�� CATE / Heterogeneous Effects"
+    "cate": "🔍 CATE / Heterogeneous Effects"
 }
 
 cols = st.columns(len(causal_tabs))
@@ -163,7 +163,7 @@ active_causal_tab = st.session_state["causal_active_tab"]
 # TAB 1: STRUCTURAL DAGS & CONFOUNDER IDENTIFICATION
 # ═══════════════════════════════════════════════════════════════════════
 if active_causal_tab == "dag":
-    st.markdown("### �� Structural Causal Models & Directed Acyclic Graphs (DAGs)")
+    st.markdown("### 🔍 Structural Causal Models & Directed Acyclic Graphs (DAGs)")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Map causal pathways, identify backdoor paths, and isolate conditional independencies prior to econometric modeling.</p>", unsafe_allow_html=True)
     
     col_l, col_r = st.columns([5, 5])
@@ -186,7 +186,7 @@ if active_causal_tab == "dag":
         
     with col_r:
         st.markdown("<div class='causal-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Backdoor Criterion Check</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Backdoor Criterion Check</h4>", unsafe_allow_html=True)
         st.success("✅ **Identification Status:** Fully identified. Controlling for `Regional_Climate` and `Baseline_Infrastructure` blocks all backdoor paths.")
         st.info("ℹ️ **Collider Alert:** Do not condition on `Economic_Activity` as it acts as a mediator/collider on the causal chain.")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -203,12 +203,12 @@ elif active_causal_tab == "psm":
         st.markdown("<div class='causal-card'>", unsafe_allow_html=True)
         st.selectbox("Matching Algorithm", ["Nearest Neighbor (1:1)", "Kernel Matching", "Optimal Caliper Matching"], key="psm_algo")
         st.slider("Caliper Width (Logit Std Dev)", 0.01, 0.50, 0.10, key="psm_caliper")
-        st.button("�� Run Propensity Score Estimation", use_container_width=True)
+        st.button("🔍 Run Propensity Score Estimation", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_p2:
         st.markdown("<div class='causal-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Average Treatment Effect (ATE / ATT)</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Average Treatment Effect (ATE / ATT)</h4>", unsafe_allow_html=True)
         st.metric(label="Estimated Average Treatment Effect on the Treated (ATT)", value="+14.28 units", delta="p < 0.001 (Statistically Significant)")
         
         if HAS_PLOTLY:
@@ -226,7 +226,7 @@ elif active_causal_tab == "psm":
 # TAB 3: DIFFERENCE-IN-DIFFERENCES (DiD)
 # ═══════════════════════════════════════════════════════════════════════
 elif active_causal_tab == "did":
-    st.markdown("### �� Difference-in-Differences (DiD) & Parallel Trends")
+    st.markdown("### 🔍 Difference-in-Differences (DiD) & Parallel Trends")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Evaluate policy or intervention impacts by comparing pre/post outcome trajectories between treatment and control cohorts.</p>", unsafe_allow_html=True)
     
     col_d1, col_d2 = st.columns([4, 6])
@@ -240,7 +240,7 @@ elif active_causal_tab == "did":
         
     with col_d2:
         st.markdown("<div class='causal-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� DiD Regression Output</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 DiD Regression Output</h4>", unsafe_allow_html=True)
         st.code("""
 =================================================================
 Dependent Variable: Ecosystem_Yield_Index
@@ -271,7 +271,7 @@ elif active_causal_tab == "iv":
         
     with col_i2:
         st.markdown("<div class='causal-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� First-Stage & Weak Instrument Diagnostics</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 First-Stage & Weak Instrument Diagnostics</h4>", unsafe_allow_html=True)
         st.metric(label="First-Stage F-Statistic", value="42.85", delta="> 10 (Strong Instrument Criteria Met)")
         st.metric(label="Durbin-Wu-Hausman Endogeneity Test", value="p = 0.003", delta="Endogeneity confirmed; OLS biased")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -280,7 +280,7 @@ elif active_causal_tab == "iv":
 # TAB 5: CATE & HETEROGENEOUS TREATMENT EFFECTS
 # ═══════════════════════════════════════════════════════════════════════
 elif active_causal_tab == "cate":
-    st.markdown("### �� CATE & Heterogeneous Treatment Effects (Causal Forest)")
+    st.markdown("### 🔍 CATE & Heterogeneous Treatment Effects (Causal Forest)")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Discover how treatment effects vary across sub-populations using machine learning causal trees and forests.</p>", unsafe_allow_html=True)
     
     col_c1, col_c2 = st.columns([4, 6])
@@ -288,12 +288,12 @@ elif active_causal_tab == "cate":
         st.markdown("<div class='causal-card'>", unsafe_allow_html=True)
         st.slider("Tree Depth", 2, 10, 4)
         st.slider("Minimum Sample Leaf", 10, 100, 20)
-        st.button("�� Train Causal Forest Model", use_container_width=True)
+        st.button("🔍 Train Causal Forest Model", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_c2:
         st.markdown("<div class='causal-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Feature Importance for Heterogeneity</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Feature Importance for Heterogeneity</h4>", unsafe_allow_html=True)
         if HAS_PLOTLY:
             df_feat = pd.DataFrame({
                 "Feature": ["Soil Moisture Index", "Elevation Profile", "Baseline Temperature", "Proximity to Urban Center"],

@@ -1,5 +1,5 @@
 """
-�� World-Class Enterprise Application Pipeline, Document Vault & Real-Time Currency Intelligence
+🔍 World-Class Enterprise Application Pipeline, Document Vault & Real-Time Currency Intelligence
 High-performance operational workflow engine featuring automated multi-stage applicant tracking,
 zero-knowledge document document vaults, dynamic currency exchange rate conversions, and predictive risk scoring pipelines.
 """
@@ -7,7 +7,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="Application Pipeline, Document Vault & Currency Module",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -44,7 +44,7 @@ load_pipeline_stylesheet(is_dark=st.session_state.get("theme", "light") == "dark
 # ==========================================
 
 with st.sidebar:
-    st.markdown("### ��️ Pipeline Operational Mode")
+    st.markdown("### 🔍 ️ Pipeline Operational Mode")
     pipeline_mode = st.selectbox(
         "Workflow Architecture",
         [
@@ -58,7 +58,7 @@ with st.sidebar:
     st.session_state["pipeline_active_tab"] = pipeline_mode
 
     st.markdown("---")
-    st.markdown("### �� Real-Time Currency Intelligence")
+    st.markdown("### 🔍 Real-Time Currency Intelligence")
     base_currency = st.selectbox(
         "Base Financial Denomination",
         ["USD ($)", "EUR (€)", "GBP (£)", "UGX (USh)", "JPY (¥)", "CAD ($)"],
@@ -69,13 +69,13 @@ with st.sidebar:
     st.toggle("Multi-Currency Tax & Fee Calculations", value=True, key="currency_tax_toggle")
 
     st.markdown("---")
-    st.markdown("### �� Secure Document Vault Hub")
+    st.markdown("### 🔍 Secure Document Vault Hub")
     st.toggle("Client-Side Zero-Knowledge Encryption", value=True, key="vault_zk_toggle")
     st.toggle("Automated OCR & Data Extraction", value=True, key="vault_ocr_toggle")
     st.toggle("Immutable Audit Trail & Version Control", value=True, key="vault_audit_toggle")
 
     st.markdown("---")
-    st.markdown("### ��️ AI Risk & Compliance Gates")
+    st.markdown("### 🔍 ️ AI Risk & Compliance Gates")
     st.toggle("Automated AML / KYC Verification Screening", value=True, key="pipeline_aml_toggle")
     st.toggle("Predictive Dropout & Rejection Risk Modeling", value=True, key="pipeline_risk_toggle")
 

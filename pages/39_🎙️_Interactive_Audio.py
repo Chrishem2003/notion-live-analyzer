@@ -1,5 +1,5 @@
 """
-��️ World-Class Hands-Free Interactive Audio Engine
+🔍 ️ World-Class Hands-Free Interactive Audio Engine
 Enterprise-grade real-time voice synthesis and speech-to-text pipeline featuring neural audio streaming,
 bi-directional conversational streaming, voice activity detection (VAD), and low-latency WebRTC audio routing.
 """
@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 st.set_page_config(
     page_title="Hands-Free Interactive Audio Engine",
-    page_icon="��️",
+    page_icon="🔍 ️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -147,7 +147,7 @@ if MODULES_LOADED:
 # ==========================================
 
 with st.sidebar:
-    st.markdown("### ��️ Neural Audio Settings")
+    st.markdown("### 🔍 ️ Neural Audio Settings")
     voice_profile = st.selectbox(
         "Voice Synthesis Model",
         [
@@ -161,7 +161,7 @@ with st.sidebar:
     st.session_state["voice_model_profile"] = voice_profile
 
     st.markdown("---")
-    st.markdown("### ��️ Voice Activity Detection (VAD)")
+    st.markdown("### 🔍 ️ Voice Activity Detection (VAD)")
     vad_sensitivity = st.slider("VAD Threshold (Sensitivity)", 0.1, 0.9, 0.65, 0.05, key="audio_vad_threshold")
     noise_suppression = st.selectbox(
         "Background Noise Suppression",
@@ -170,7 +170,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### �� Output Routing & Playback")
+    st.markdown("### 🔍 Output Routing & Playback")
     output_sample_rate = st.selectbox("Audio Sample Rate", ["24 kHz (Standard HD)", "48 kHz (Studio Grade)", "16 kHz (Optimized Low-Bandwidth)"], key="audio_sample_rate")
     autoplay_opt = st.toggle("Auto-Play Incoming Audio Streams", value=True, key="audio_autoplay_toggle")
     webrtc_opt = st.toggle("Buffered Chunk Streaming (WebRTC)", value=True, key="audio_webrtc_toggle")
@@ -180,7 +180,7 @@ with st.sidebar:
 # ==========================================
 
 st.markdown("<span class='audio-badge'>NEURAL AUDIO ENGINE v2.5</span>", unsafe_allow_html=True)
-st.title("��️ World-Class Hands-Free Interactive Audio Engine")
+st.title("🔍 ️ World-Class Hands-Free Interactive Audio Engine")
 st.caption("Real-time voice synthesis, bidirectional speech-to-text, VAD noise isolation, and WebRTC streaming.")
 
 # High-Performance Metrics Display
@@ -211,7 +211,7 @@ else:
     st.error("⚠️ **Module Resolution Warning**")
     st.info(f"The module `modules.interactive_audio_engine` could not be loaded directly. Running in **Native Fallback Audio Mode**.\n\n`Error Details: {import_error_msg}`")
     
-    st.subheader("��️ Interactive Voice Studio Preview")
+    st.subheader("🔍 ️ Interactive Voice Studio Preview")
     
     # Native Audio Recorder Component
     audio_input = st.audio_input("Record Voice Query / Dictation")

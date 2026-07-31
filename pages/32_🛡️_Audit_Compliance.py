@@ -28,7 +28,7 @@ if str(current_file.parent) not in sys.path:
 # ─── PAGE CONFIGURATION ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Audit & Compliance Hub | Enterprise v4.0",
-    page_icon="��️",
+    page_icon="🔍 ️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -209,7 +209,7 @@ st.markdown(
 <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
     <div>
         <span class='badge-classified'>CLASSIFIED AUDIT ENGINE v4.0</span>
-        <h1 style='font-size: 2.3rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>��️ Audit & Compliance Hub</h1>
+        <h1 style='font-size: 2.3rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 ️ Audit & Compliance Hub</h1>
         <p style='color: #cbd5e1; margin: 0; font-size: 1rem;'>
             Forensic Text Scanners, Cryptographic Proofs, Statistical QRP Audits, HIPAA/GDPR Compliance Gates & Automated Peer-Review Verification.
         </p>
@@ -217,7 +217,7 @@ st.markdown(
     <div style='text-align: right;'>
         <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.8rem 1.2rem; border-radius: 10px;'>
             <div style='font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Principal Lead</div>
-            <div style='color: #10b981; font-size: 1.1rem; font-weight: 900;'>�� KULA CHRIS</div>
+            <div style='color: #10b981; font-size: 1.1rem; font-weight: 900;'>🔍 KULA CHRIS</div>
         </div>
     </div>
 </div>
@@ -230,7 +230,7 @@ sec_col1, sec_col2 = st.columns([1, 1])
 
 with sec_col1:
   st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-  st.markdown("### �� Security Clearance Gate")
+  st.markdown("### 🔍 Security Clearance Gate")
   passkey = st.text_input(
       "Enter Admin Security Passkey",
       type="password",
@@ -271,7 +271,7 @@ with sec_col1:
 
 with sec_col2:
   st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-  st.markdown("### �� Ingestion Vector & Target Source")
+  st.markdown("### 🔍 Ingestion Vector & Target Source")
   ingest_mode = st.radio(
       "Select Document Source Vector",
       [
@@ -302,7 +302,7 @@ tabs = st.tabs([
 # TAB 1: MODULES 1 - 10 (Statistical Integrity & QRP Diagnostics)
 # ───────────────────────────────────────────────────────────────────────
 with tabs[0]:
-  st.markdown("### �� Statistical Integrity & Questionable Research Practices (QRP)")
+  st.markdown("### 🔍 Statistical Integrity & Questionable Research Practices (QRP)")
   c1, c2 = st.columns(2)
   
   with c1:
@@ -364,7 +364,7 @@ with tabs[0]:
 # TAB 2: MODULES 11 - 20 (Forensic NLP, Plagiarism & AI Generation)
 # ───────────────────────────────────────────────────────────────────────
 with tabs[1]:
-  st.markdown("### �� Forensic NLP, Plagiarism & Artificial Intelligence Scanners")
+  st.markdown("### 🔍 Forensic NLP, Plagiarism & Artificial Intelligence Scanners")
   c1, c2 = st.columns(2)
 
   with c1:
@@ -423,7 +423,7 @@ with tabs[1]:
 # TAB 3: MODULES 21 - 30 (Privacy, HIPAA, GDPR & Ethics)
 # ───────────────────────────────────────────────────────────────────────
 with tabs[2]:
-  st.markdown("### �� Privacy, Anonymization, GDPR & Clinical Data Governance")
+  st.markdown("### 🔍 Privacy, Anonymization, GDPR & Clinical Data Governance")
   c1, c2 = st.columns(2)
 
   with c1:
@@ -482,7 +482,7 @@ with tabs[2]:
 # TAB 4: MODULES 31 - 40 (Cryptographic Proofs & Blockchain Ledger)
 # ───────────────────────────────────────────────────────────────────────
 with tabs[3]:
-  st.markdown("### �� Cryptographic Provenance & Immutable Blockchain Audit")
+  st.markdown("### 🔍 Cryptographic Provenance & Immutable Blockchain Audit")
   
   st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
   st.markdown("#### 31. SHA-256 Cryptographic Block Ledgering")
@@ -500,7 +500,7 @@ with tabs[3]:
         "hash": block_hash,
         "auditor": "Kula Chris"
     })
-    st.toast("New Cryptographic Block Sealed!", icon="��")
+    st.toast("New Cryptographic Block Sealed!", icon="🔍 ")
 
   if st.session_state.blockchain_ledger:
     st.table(pd.DataFrame(st.session_state.blockchain_ledger))
@@ -560,7 +560,7 @@ with tabs[3]:
 # TAB 5: MODULES 41 - 50 (Compliance Reports, Export & Monitoring)
 # ───────────────────────────────────────────────────────────────────────
 with tabs[4]:
-  st.markdown("### �� Executive Reporting, Peer-Review & Automated Clearance")
+  st.markdown("### 🔍 Executive Reporting, Peer-Review & Automated Clearance")
   
   c1, c2 = st.columns(2)
   with c1:
@@ -608,8 +608,8 @@ with tabs[4]:
 
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
     st.markdown("#### 49. Comprehensive Executive Forensic Certificate Exporter")
-    if st.button("�� Export Official Cryptographic Compliance Certificate", use_container_width=True):
-      st.toast("Certificate exported successfully as PDF/JSON!", icon="��")
+    if st.button("🔍 Export Official Cryptographic Compliance Certificate", use_container_width=True):
+      st.toast("Certificate exported successfully as PDF/JSON!", icon="🔍 ")
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
@@ -622,7 +622,7 @@ st.markdown("<hr style='border:1px solid #1e293b; margin-top:3rem;'>", unsafe_al
 st.markdown(
     """
 <div style='display: flex; justify-content: space-between; align-items: center; color: #94a3b8; font-size: 0.8rem; font-family: monospace;'>
-    <div>��️ CLASSIFIED RESEARCH AUDIT SYSTEM • HIGH-CONTRAST EDITION</div>
+    <div>🔍 ️ CLASSIFIED RESEARCH AUDIT SYSTEM • HIGH-CONTRAST EDITION</div>
     <div>DESIGNED FOR: KULA CHRIS</div>
     <div>SYSTEM TIME: 2026-07-31 EAT</div>
 </div>

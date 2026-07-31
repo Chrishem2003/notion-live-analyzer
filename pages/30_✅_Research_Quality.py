@@ -127,7 +127,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#0f172a; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>Integrity Kernel</div>
-            <div style='color:#2dd4bf; font-size:0.85rem; font-weight:800;'>�� SciPy Audit Active</div>
+            <div style='color:#2dd4bf; font-size:0.85rem; font-weight:800;'>🔍 SciPy Audit Active</div>
         </div>
     </div>
 </div>
@@ -135,11 +135,11 @@ st.markdown("""
 
 # ─── Navigation Tabs ───────────────────────────────────────────────────
 quality_tabs = {
-    "phacking": "�� p-Hacking & p-Curve Analysis",
-    "qrps": "�� QRP & Optional Stopping Detection",
-    "statcheck": "�� StatCheck & Internal Consistency",
-    "reproducibility": "�� Computational Reproducibility Check",
-    "audit": "�� Comprehensive Integrity Report"
+    "phacking": "🔍 p-Hacking & p-Curve Analysis",
+    "qrps": "🔍 QRP & Optional Stopping Detection",
+    "statcheck": "🔍 StatCheck & Internal Consistency",
+    "reproducibility": "🔍 Computational Reproducibility Check",
+    "audit": "🔍 Comprehensive Integrity Report"
 }
 
 cols = st.columns(len(quality_tabs))
@@ -158,7 +158,7 @@ active_quality_tab = st.session_state["quality_active_tab"]
 # TAB 1: P-HACKING & P-CURVE ANALYSIS
 # ═══════════════════════════════════════════════════════════════════════
 if active_quality_tab == "phacking":
-    st.markdown("### �� p-Hacking Detection & p-Curve Distribution Analysis")
+    st.markdown("### 🔍 p-Hacking Detection & p-Curve Distribution Analysis")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Analyze the distribution of significant $p$-values ($p < .05$) to test for evidential value versus selective reporting (p-hacking).</p>", unsafe_allow_html=True)
     
     col_p1, col_p2 = st.columns([4, 6])
@@ -166,12 +166,12 @@ if active_quality_tab == "phacking":
         st.markdown("<div class='quality-card'>", unsafe_allow_html=True)
         st.selectbox("Analysis Scope", ["Active Session Test Results", "Custom Uploaded p-value Vector", "Simulated Manuscript Batch"])
         st.slider("Alpha Significance Threshold ($\alpha$)", 0.01, 0.10, 0.05, step=0.01)
-        st.button("�� Run p-Curve Audit", use_container_width=True)
+        st.button("🔍 Run p-Curve Audit", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_p2:
         st.markdown("<div class='quality-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� p-Curve Diagnostic Plot</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 p-Curve Diagnostic Plot</h4>", unsafe_allow_html=True)
         st.success("✅ **Evidential Value Present:** p-curve is right-skewed (excess of low $p$-values like $p < .01$), indicating genuine underlying effects rather than selective reporting.")
         
         if HAS_PLOTLY:
@@ -190,7 +190,7 @@ if active_quality_tab == "phacking":
 # TAB 2: QRP & OPTIONAL STOPPING DETECTION
 # ═══════════════════════════════════════════════════════════════════════
 elif active_quality_tab == "qrps":
-    st.markdown("### �� Questionable Research Practices (QRP) & Optional Stopping Audit")
+    st.markdown("### 🔍 Questionable Research Practices (QRP) & Optional Stopping Audit")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Detect indicators of optional stopping, data peeking, and selective covariate inclusion across model specifications.</p>", unsafe_allow_html=True)
     
     container_data = df if df is not None else pd.DataFrame(np.random.randn(100, 4), columns=["Yield", "Moisture", "Temp", "Elevation"])
@@ -206,7 +206,7 @@ elif active_quality_tab == "qrps":
         
     with col_q2:
         st.markdown("<div class='quality-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� QRP Risk Assessment Matrix</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 QRP Risk Assessment Matrix</h4>", unsafe_allow_html=True)
         st.code("""
 QRP Diagnostic Assessment:
 =================================================================
@@ -222,7 +222,7 @@ QRP Diagnostic Assessment:
 # TAB 3: STATCHECK & INTERNAL CONSISTENCY
 # ═══════════════════════════════════════════════════════════════════════
 elif active_quality_tab == "statcheck":
-    st.markdown("### �� StatCheck & Statistical Reporting Consistency Audit")
+    st.markdown("### 🔍 StatCheck & Statistical Reporting Consistency Audit")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Verify whether reported test statistics ($t$, $F$, $\chi^2$) mathematically match their reported $p$-values to catch reporting errors.</p>", unsafe_allow_html=True)
     
     col_s1, col_s2 = st.columns([4, 6])
@@ -234,7 +234,7 @@ elif active_quality_tab == "statcheck":
         
     with col_s2:
         st.markdown("<div class='quality-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� StatCheck Verification Report</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 StatCheck Verification Report</h4>", unsafe_allow_html=True)
         st.success("✅ **All Checksums Passed:** 3 of 3 reported statistical test strings are mathematically consistent. Zero gross reporting inconsistencies detected.")
         st.code("""
 StatCheck Audit Breakdown:
@@ -250,7 +250,7 @@ StatCheck Audit Breakdown:
 # TAB 4: COMPUTATIONAL REPRODUCIBILITY CHECK
 # ═══════════════════════════════════════════════════════════════════════
 elif active_quality_tab == "reproducibility":
-    st.markdown("### �� Computational Reproducibility & Environment Audit")
+    st.markdown("### 🔍 Computational Reproducibility & Environment Audit")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Validate random seed locking, package version pinning, and pipeline deterministic execution parameters.</p>", unsafe_allow_html=True)
     
     col_r1, col_r2 = st.columns([4, 6])
@@ -258,12 +258,12 @@ elif active_quality_tab == "reproducibility":
         st.markdown("<div class='quality-card'>", unsafe_allow_html=True)
         st.selectbox("Reproducibility Tier", ["Strict Docker / Containerized", "Python Script Determinism", "Session State Continuity"])
         st.checkbox("Verify Random Seed Initialization (np.random.seed)", value=True)
-        st.button("�� Run Full Pipeline Replay", use_container_width=True)
+        st.button("🔍 Run Full Pipeline Replay", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_r2:
         st.markdown("<div class='quality-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Reproducibility Verification Report</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Reproducibility Verification Report</h4>", unsafe_allow_html=True)
         st.code("""
 Computational Reproducibility Audit:
 =================================================================
@@ -279,7 +279,7 @@ Reproducibility Index: 100% (Gold Standard)
 # TAB 5: COMPREHENSIVE INTEGRITY REPORT
 # ═══════════════════════════════════════════════════════════════════════
 elif active_quality_tab == "audit":
-    st.markdown("### �� Comprehensive Research Integrity & Quality Report")
+    st.markdown("### 🔍 Comprehensive Research Integrity & Quality Report")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Generate an exhaustive publication-ready audit certificate summarizing p-curve integrity, StatCheck, and reproducibility.</p>", unsafe_allow_html=True)
     
     col_a1, col_a2 = st.columns([4, 6])
@@ -287,12 +287,12 @@ elif active_quality_tab == "audit":
         st.markdown("<div class='quality-card'>", unsafe_allow_html=True)
         st.text_input("Manuscript Identifier", value="MS-2026-ECO-042")
         st.text_input("Lead Auditor Name", value="Chrishem (Autonomous Systems)")
-        st.button("�� Generate Formal Audit Certificate", use_container_width=True)
+        st.button("🔍 Generate Formal Audit Certificate", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_a2:
         st.markdown("<div class='quality-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Formal Integrity Certificate</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Formal Integrity Certificate</h4>", unsafe_allow_html=True)
         st.code(r"""
 =================================================================
 AUTONOMOUS RESEARCH OPERATING SYSTEM  AUDIT CERTIFICATE

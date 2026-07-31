@@ -27,7 +27,7 @@ except ImportError:
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Meta-Analysis Engine [ENTERPRISE v6.0]",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -250,7 +250,7 @@ st.markdown("""
     <div>
         <span class='badge-glow'>⚡ v6.0 ULTRA  DYNAMIC EFFECT CONVERTERS & TRIM-AND-FILL SUITE</span>
         <h1 style='font-size:2.2rem; color:#f8fafc; margin:0.4rem 0 0.2rem 0;'>
-            �� Enterprise Meta-Analysis & Evidence Synthesis Engine
+            🔍 Enterprise Meta-Analysis & Evidence Synthesis Engine
         </h1>
         <p style='color:#94a3b8; font-size:0.95rem; max-width:850px; margin:0;'>
             Perform rigorous statistical pooling, multi-estimator heterogeneity modeling (DL, REML, HE), publication bias adjustments (Egger's Test & Trim-and-Fill), and interactive visualization.
@@ -265,11 +265,11 @@ st.markdown("<hr style='border-color:#1e293b; margin:1rem 0;'>", unsafe_allow_ht
 col_sec, col_proj = st.columns([1, 1])
 
 with col_sec:
-    st.markdown("### �� Security Authentication Gate")
+    st.markdown("### 🔍 Security Authentication Gate")
     if not st.session_state.meta_engine_clearance:
-        st.info("�� Enter passkey (**ENTERPRISE_KEY**) to access statistical modeling suite.")
+        st.info("🔍 Enter passkey (**ENTERPRISE_KEY**) to access statistical modeling suite.")
         security_input = st.text_input("Enter Passkey", type="password", placeholder="••••••••", key="meta_passkey_input")
-        if st.button("�� Authenticate Passkey", type="primary", use_container_width=True):
+        if st.button("🔍 Authenticate Passkey", type="primary", use_container_width=True):
             if security_input and hashlib.sha256(security_input.encode()).hexdigest() == st.session_state.custom_access_password:
                 st.session_state.meta_engine_clearance = True
                 st.success("✅ Enterprise Clearance Granted!")
@@ -277,13 +277,13 @@ with col_sec:
             else:
                 st.error("❌ Access Denied: Invalid Passkey")
     else:
-        st.success("�� Enterprise Workspace Unlocked")
-        if st.button("�� Lock Workspace", use_container_width=True):
+        st.success("🔍 Enterprise Workspace Unlocked")
+        if st.button("🔍 Lock Workspace", use_container_width=True):
             st.session_state.meta_engine_clearance = False
             st.rerun()
 
 with col_proj:
-    st.markdown("### �� Project & Input Strategy")
+    st.markdown("### 🔍 Project & Input Strategy")
     analysis_mode = st.selectbox(
         "Select Data Input Mode",
         options=[
@@ -295,25 +295,25 @@ with col_proj:
     )
 
 if not st.session_state.meta_engine_clearance:
-    st.warning("�� **Authenticate via Security Gate** to perform modeling and export publication plots.")
+    st.warning("🔍 **Authenticate via Security Gate** to perform modeling and export publication plots.")
     st.stop()
 
 st.markdown("<hr style='border-color:#1e293b; margin:1rem 0;'>", unsafe_allow_html=True)
 
 # ─── NAVIGATION TABS ─────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "�� Dataset & Effect Builder",
+    "🔍 Dataset & Effect Builder",
     "⚙️ Statistical Pooling Engine",
-    "�� Interactive Forest Plot",
-    "�� Publication Bias & Trim-and-Fill",
-    "�� Heterogeneity & Subgroups"
+    "🔍 Interactive Forest Plot",
+    "🔍 Publication Bias & Trim-and-Fill",
+    "🔍 Heterogeneity & Subgroups"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════
 # TAB 1: DATASET MANAGER & CONVERTERS
 # ═══════════════════════════════════════════════════════════════════════
 with tab1:
-    st.markdown("<h3 style='color:#00f2fe;'>�� Study Data & Effect Size Converter Engine</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#00f2fe;'>🔍 Study Data & Effect Size Converter Engine</h3>", unsafe_allow_html=True)
     
     if analysis_mode == "Upload Custom Dataset (.csv / .xlsx)":
         uploaded_file = st.file_uploader("Upload study dataset", type=["csv", "xlsx"])
@@ -443,7 +443,7 @@ with tab2:
     ci_low = pooled_active - 1.96 * se_active
     ci_high = pooled_active + 1.96 * se_active
 
-    st.markdown("### �� Meta-Analytic Synthesis Results")
+    st.markdown("### 🔍 Meta-Analytic Synthesis Results")
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
     m_col1.metric("Pooled Effect Size", f"{pooled_active:.4f}")
     m_col2.metric("95% Confidence Interval", f"[{ci_low:.4f}, {ci_high:.4f}]")
@@ -454,7 +454,7 @@ with tab2:
 # TAB 3: INTERACTIVE FOREST PLOT
 # ═══════════════════════════════════════════════════════════════════════
 with tab3:
-    st.markdown("<h3 style='color:#00f2fe;'>�� Interactive Forest Plot</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#00f2fe;'>🔍 Interactive Forest Plot</h3>", unsafe_allow_html=True)
 
     fig = go.Figure()
 
@@ -507,7 +507,7 @@ with tab3:
 # TAB 4: PUBLICATION BIAS & TRIM-AND-FILL
 # ═══════════════════════════════════════════════════════════════════════
 with tab4:
-    st.markdown("<h3 style='color:#00f2fe;'>�� Publication Bias Diagnostics & Trim-and-Fill</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#00f2fe;'>🔍 Publication Bias Diagnostics & Trim-and-Fill</h3>", unsafe_allow_html=True)
 
     if k < 3:
         st.warning("⚠️ Publication bias detection requires at least k ≥ 3 studies.")
@@ -521,7 +521,7 @@ with tab4:
         col_e2.metric("Egger's Test P-Value", f"{p_val_egger:.4f}", delta="Asymmetry Detected" if p_val_egger < 0.05 else "Symmetric")
 
         filled_es, filled_se, k0 = trim_and_fill(effect_sizes, standard_errors)
-        st.info(f"�� **Duval & Tweedie Trim-and-Fill Result:** Estimated **{k0} missing study/studies** due to funnel asymmetry.")
+        st.info(f"🔍 **Duval & Tweedie Trim-and-Fill Result:** Estimated **{k0} missing study/studies** due to funnel asymmetry.")
 
         fig_funnel = go.Figure()
 
@@ -568,9 +568,9 @@ with tab4:
 # TAB 5: HETEROGENEITY & SUBGROUPS
 # ═══════════════════════════════════════════════════════════════════════
 with tab5:
-    st.markdown("<h3 style='color:#00f2fe;'>�� Statistical Heterogeneity & Subgroup Stratification</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#00f2fe;'>🔍 Statistical Heterogeneity & Subgroup Stratification</h3>", unsafe_allow_html=True)
 
-    st.markdown("### �� Heterogeneity Indices")
+    st.markdown("### 🔍 Heterogeneity Indices")
     h_col1, h_col2, h_col3, h_col4 = st.columns(4)
     h_col1.metric("Cochran's Q", f"{q_stat:.3f}")
     h_col2.metric("Q Test p-value", f"{pval_q:.4f}")
@@ -578,7 +578,7 @@ with tab5:
     h_col4.metric("H² Index", f"{h_squared:.2f}")
 
     st.markdown("<hr style='border-color:#1e293b; margin:1rem 0;'>", unsafe_allow_html=True)
-    st.markdown("### �� Subgroup Stratified Pooling")
+    st.markdown("### 🔍 Subgroup Stratified Pooling")
     if "Subgroup" in df.columns:
         subgroups = df["Subgroup"].unique()
         sub_results = []

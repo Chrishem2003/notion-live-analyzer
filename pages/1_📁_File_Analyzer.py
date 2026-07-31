@@ -105,7 +105,7 @@ except ImportError:
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced File Analyzer [SECURE]",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -234,7 +234,7 @@ st.markdown(
 )
 
 hero_card(
-    "�� Advanced File Analyzer & Explorer Engine",
+    "🔍 Advanced File Analyzer & Explorer Engine",
     "Universal multi-format data ingestion for CSV, Excel, SPSS (.sav), SAS, STATA, JSON, and binary formats with automated profiling, data-quality scoring, and anomaly diagnostics.",
     badge_text="v6.2 Enterprise  High Intelligence Pipeline",
 )
@@ -384,7 +384,7 @@ def generate_intelligent_insights(df: pd.DataFrame) -> list:
     
     # 1. Dataset Shape and Volume
     rows, cols = df.shape
-    insights.append(f"�� <b>Structural Scope</b>: Dataset contains <b>{rows:,} records</b> across <b>{cols} features</b>, providing an optimal matrix dimension for evaluation.")
+    insights.append(f"🔍 <b>Structural Scope</b>: Dataset contains <b>{rows:,} records</b> across <b>{cols} features</b>, providing an optimal matrix dimension for evaluation.")
 
     # 2. Missing Value Vulnerabilities
     total_nulls = df.isnull().sum().sum()
@@ -410,7 +410,7 @@ def generate_intelligent_insights(df: pd.DataFrame) -> list:
                     
         if high_corrs:
             c1, c2, val = high_corrs[0]
-            insights.append(f"�� <b>Strong Collinearity Detected</b>: High correlation coefficient (r = <b>{val:.2f}</b>) observed between <b>'{c1}'</b> and <b>'{c2}'</b>.")
+            insights.append(f"🔍 <b>Strong Collinearity Detected</b>: High correlation coefficient (r = <b>{val:.2f}</b>) observed between <b>'{c1}'</b> and <b>'{c2}'</b>.")
 
     # 4. Outlier Diagnostics via IQR
     outlier_summary = []
@@ -426,7 +426,7 @@ def generate_intelligent_insights(df: pd.DataFrame) -> list:
     if outlier_summary:
         outlier_summary.sort(key=lambda x: x[1], reverse=True)
         top_outlier_col, top_outlier_count = outlier_summary[0]
-        insights.append(f"�� <b>Distribution Skew / Outliers</b>: Feature <b>'{top_outlier_col}'</b> contains <b>{top_outlier_count} outlier observations</b> beyond standard interquartile bounds.")
+        insights.append(f"🔍 <b>Distribution Skew / Outliers</b>: Feature <b>'{top_outlier_col}'</b> contains <b>{top_outlier_count} outlier observations</b> beyond standard interquartile bounds.")
 
     return insights
 
@@ -435,8 +435,8 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 ingestion_mode = st.radio(
     "Select Data Ingestion Channel",
     options=[
-        "�� Direct File Uploader (Standard)",
-        "�� Local Server / Directory Explorer",
+        "🔍 Direct File Uploader (Standard)",
+        "🔍 Local Server / Directory Explorer",
     ],
     horizontal=True,
 )
@@ -444,8 +444,8 @@ ingestion_mode = st.radio(
 active_df = None
 active_source_name = None
 
-if ingestion_mode == "�� Direct File Uploader (Standard)":
-    section_header("�� Upload Data File")
+if ingestion_mode == "🔍 Direct File Uploader (Standard)":
+    section_header("🔍 Upload Data File")
     st.caption("Supported formats: CSV, Excel, SPSS (.sav), SAS (.sas7bdat), STATA (.dta), JSON, Parquet, Feather, Pickle.")
 
     uploaded_file = st.file_uploader(
@@ -463,8 +463,8 @@ if ingestion_mode == "�� Direct File Uploader (Standard)":
             active_source_name = uploaded_file.name
 
 else:
-    section_header("�� Local Server & Directory Explorer")
-    st.info("�� Sandboxed securely to workspace directory. External paths restricted.")
+    section_header("🔍 Local Server & Directory Explorer")
+    st.info("🔍 Sandboxed securely to workspace directory. External paths restricted.")
 
     target_dir_raw = st.text_input(
         "Directory Path to Scan",
@@ -493,18 +493,18 @@ else:
                     found_files.append(os.path.join(r, f))
 
         if found_files:
-            st.success(f"�� Discovered {len(found_files)} readable data file(s).")
+            st.success(f"🔍 Discovered {len(found_files)} readable data file(s).")
             selected_local_file = st.selectbox(
                 "Select Data File from Directory",
                 options=found_files,
                 format_func=lambda x: os.path.relpath(x, target_dir),
             )
-            if st.button("�� Load and Analyze Selected File", type="primary", use_container_width=True):
+            if st.button("🔍 Load and Analyze Selected File", type="primary", use_container_width=True):
                 with st.spinner(f"Reading '{os.path.basename(selected_local_file)}'..."):
                     active_df = robust_parse_file(selected_local_file)
                     active_source_name = os.path.basename(selected_local_file)
         else:
-            st.info("�� No compatible data files found in this directory.")
+            st.info("🔍 No compatible data files found in this directory.")
 
 # ── SESSION STATE PERSISTENCE ─────────────────────────────────────────
 if active_df is not None and not active_df.empty:
@@ -530,7 +530,7 @@ if working_df is None or working_df.empty:
         """,
         unsafe_allow_html=True
     )
-    if st.button("�� Generate Sample Research Dataset", type="primary"):
+    if st.button("🔍 Generate Sample Research Dataset", type="primary"):
         np.random.seed(42)
         demo_data = pd.DataFrame({
             "Subject_ID": [f"SUBJ-{2000+i}" for i in range(150)],
@@ -554,24 +554,24 @@ if working_df is not None and not working_df.empty:
     dataset_hash = hashlib.sha256(dataset_bytes).hexdigest()
 
     st.caption(
-        f"�� **Active Dataset SHA-256 Checksum:** `{dataset_hash[:24]}...` | "
+        f"🔍 **Active Dataset SHA-256 Checksum:** `{dataset_hash[:24]}...` | "
         f"Records: **{working_df.shape[0]:,}** | Features: **{working_df.shape[1]}**"
     )
 
     tabs = st.tabs([
-        "�� Overview",
-        "�� Data Quality & Intelligence",
-        "��️ Preview & Filter",
-        "��️ Transform",
-        "�� Visualize",
-        "�� Aggregate",
-        "�� Export & Code",
-        "�� Merge",
+        "🔍 Overview",
+        "🔍 Data Quality & Intelligence",
+        "🔍 ️ Preview & Filter",
+        "🔍 ️ Transform",
+        "🔍 Visualize",
+        "🔍 Aggregate",
+        "🔍 Export & Code",
+        "🔍 Merge",
     ])
 
     # ── Tab 0: Overview ──
     with tabs[0]:
-        section_header("�� Dataset Overview & Statistical Summary")
+        section_header("🔍 Dataset Overview & Statistical Summary")
         profile = profile_dataset(working_df)
 
         c1, c2, c3, c4, c5 = st.columns(5)
@@ -582,7 +582,7 @@ if working_df is not None and not working_df.empty:
         mem_mb = working_df.memory_usage(deep=True).sum() / (1024 ** 2)
         c5.metric("Memory Footprint", f"{mem_mb:.2f} MB")
 
-        section_header("�� Automated AI Intelligence Insights")
+        section_header("🔍 Automated AI Intelligence Insights")
         insights = generate_intelligent_insights(working_df)
         for idx, ins in enumerate(insights, 1):
             st.markdown(
@@ -594,7 +594,7 @@ if working_df is not None and not working_df.empty:
                 unsafe_allow_html=True
             )
 
-        section_header("�� Column Metadata & Data Types")
+        section_header("🔍 Column Metadata & Data Types")
         col_types = infer_column_types(working_df)
         type_df = pd.DataFrame([
             {
@@ -611,7 +611,7 @@ if working_df is not None and not working_df.empty:
 
     # ── Tab 1: Data Quality & Intelligence ──
     with tabs[1]:
-        section_header("�� Data Quality Scoring & Diagnostics")
+        section_header("🔍 Data Quality Scoring & Diagnostics")
         dq = compute_data_quality(working_df)
         
         q_col1, q_col2, q_col3, q_col4 = st.columns(4)
@@ -620,7 +620,7 @@ if working_df is not None and not working_df.empty:
         q_col3.metric("Duplicate Rows", f"{dq['duplicate_rows']:,} ({dq['duplicate_pct']}%)")
         q_col4.metric("Whitespace Mismatches", f"{dq['whitespace_issues']:,}")
 
-        section_header("�� Statistical Dispersion & Variance Analysis")
+        section_header("🔍 Statistical Dispersion & Variance Analysis")
         numeric_sub = working_df.select_dtypes(include=np.number)
         if not numeric_sub.empty:
             desc_stats = numeric_sub.describe().T[['mean', 'std', 'min', '50%', 'max']]
@@ -632,11 +632,11 @@ if working_df is not None and not working_df.empty:
 
     # ── Tab 2: Preview & Filter ──
     with tabs[2]:
-        section_header("��️ Interactive Dataset Explorer")
+        section_header("🔍 ️ Interactive Dataset Explorer")
         st.dataframe(working_df, use_container_width=True)
 
     # ── Remaining Tabs Placeholder Framework ──
     for t_idx in range(3, 8):
         with tabs[t_idx]:
-            st.info("�� Active pipeline module running within CHRISHEM Enterprise Framework.")
+            st.info("🔍 Active pipeline module running within CHRISHEM Enterprise Framework.")
 

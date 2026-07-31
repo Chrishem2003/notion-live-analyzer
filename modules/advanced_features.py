@@ -169,7 +169,7 @@ class GeoManager:
         "02-14": "💕 Valentine's Day",
         "03-08": "🌸 International Women's Day",
         "04-21": "Easter Sunday",
-        "05-01": "�國際 Labour Day",
+        "05-01": "🔍 國際 Labour Day",
         "07-10": "Eid al-Fitr (estimated)",
         "12-25": "🎄 Christmas Day",
         "12-26": "🎁 Boxing Day",

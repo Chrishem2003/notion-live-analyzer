@@ -219,7 +219,7 @@ st.markdown(
     <div style='text-align: right;'>
         <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
             <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Privilege Role</div>
-            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>�� SUPERUSER (ROOT)</div>
+            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>🔍 SUPERUSER (ROOT)</div>
         </div>
     </div>
 </div>
@@ -228,7 +228,7 @@ st.markdown(
 )
 
 # ─── 5. AUTONOMOUS DEPENDENCY CHECK & SELF-HEALING ──────────────────────
-st.markdown("### �� Autonomous Dependency Management & Self-Healing")
+st.markdown("### 🔍 Autonomous Dependency Management & Self-Healing")
 st.caption("The system automatically detects and resolves missing dependencies in real-time without requiring manual clicks.")
 
 tracked_packages = ["streamlit", "pandas", "numpy", "plotly", "scipy", "statsmodels", "scikit-learn"]
@@ -247,7 +247,7 @@ pct = int(installed_count / total * 100)
 col_m1, col_m2, col_m3 = st.columns(3)
 with col_m1:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("�� Tracked System Packages", total)
+    st.metric("🔍 Tracked System Packages", total)
     st.markdown("</div>", unsafe_allow_html=True)
 with col_m2:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
@@ -259,16 +259,16 @@ with col_m3:
     st.markdown("</div>", unsafe_allow_html=True)
 
 if not missing_pkgs:
-    st.success("�� **All core environment dependencies are fully synchronized and operational!**")
+    st.success("🔍 **All core environment dependencies are fully synchronized and operational!**")
 else:
     st.warning(f"⚠️ **{len(missing_pkgs)} packages** are currently missing from the runtime environment.")
 
 st.progress(pct, text=f"Environment health score: {pct}% complete")
 
 # Manual Override & Package Hot-Loader Expander
-with st.expander("��️ Manual Package Hot-Loader & Status Inspector"):
+with st.expander("🔍 ️ Manual Package Hot-Loader & Status Inspector"):
     custom_pkg_input = st.text_input("PyPI Package Name", placeholder="e.g., scikit-image, openpyxl, statsmodels")
-    if st.button("�� Hot-Install Package Instantly", type="primary"):
+    if st.button("🔍 Hot-Install Package Instantly", type="primary"):
         if custom_pkg_input.strip():
             with st.spinner(f"Installing {custom_pkg_input.strip()}..."):
                 success, msg = robust_install_package(custom_pkg_input.strip())
@@ -283,7 +283,7 @@ with st.expander("��️ Manual Package Hot-Loader & Status Inspector"):
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
 # ─── 6. THEME & APPEARANCE SETTINGS ──────────────────────────────────────
-st.markdown("### �� Visual Theme & Accent Palette Controls")
+st.markdown("### 🔍 Visual Theme & Accent Palette Controls")
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -318,7 +318,7 @@ with col3:
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
 # ─── 7. MODULE INFORMATION MATRIX ───────────────────────────────────────
-st.markdown("### �� System Modules & Health Status Matrix")
+st.markdown("### 🔍 System Modules & Health Status Matrix")
 
 st.markdown("""
 <table class="styled-table">
@@ -330,15 +330,15 @@ st.markdown("""
     </tr>
   </thead>
   <tbody>
-    <tr><td>�� <b>File Analyzer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Upload CSV, Excel, SPSS, SAS, STATA, JSON files</td></tr>
-    <tr><td>��️ <b>Variable View</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS-style variable metadata editor and dictionary builder</td></tr>
-    <tr><td>�� <b>Statistical Tests</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>20+ SPSS-level hypothesis testing procedures</td></tr>
-    <tr><td>�� <b>Advanced Visuals</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>18+ interactive chart generation canvases</td></tr>
-    <tr><td>�� <b>Predictive Modeling</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>AutoML classification, regression, and clustering algorithms</td></tr>
-    <tr><td>�� <b>CHRISHEM Insights</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Automated analytical and statistical summaries</td></tr>
-    <tr><td>�� <b>Data Transformer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS Compute, Recode, Rank, and Binning utilities</td></tr>
-    <tr><td>�� <b>Methodology Advisor</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Study design evaluation and test recommendation engine</td></tr>
-    <tr><td>�� <b>Clinical Analytics</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>BMI, clinical reference intervals, and health risk matrices</td></tr>
+    <tr><td>🔍 <b>File Analyzer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Upload CSV, Excel, SPSS, SAS, STATA, JSON files</td></tr>
+    <tr><td>🔍 ️ <b>Variable View</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS-style variable metadata editor and dictionary builder</td></tr>
+    <tr><td>🔍 <b>Statistical Tests</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>20+ SPSS-level hypothesis testing procedures</td></tr>
+    <tr><td>🔍 <b>Advanced Visuals</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>18+ interactive chart generation canvases</td></tr>
+    <tr><td>🔍 <b>Predictive Modeling</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>AutoML classification, regression, and clustering algorithms</td></tr>
+    <tr><td>🔍 <b>CHRISHEM Insights</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Automated analytical and statistical summaries</td></tr>
+    <tr><td>🔍 <b>Data Transformer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS Compute, Recode, Rank, and Binning utilities</td></tr>
+    <tr><td>🔍 <b>Methodology Advisor</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Study design evaluation and test recommendation engine</td></tr>
+    <tr><td>🔍 <b>Clinical Analytics</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>BMI, clinical reference intervals, and health risk matrices</td></tr>
     <tr><td>⚙️ <b>Settings & Admin</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Autonomous theme management and self-healing engine</td></tr>
   </tbody>
 </table>
@@ -347,7 +347,7 @@ st.markdown("""
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
 # ─── 8. CREDENTIAL SETTINGS ──────────────────────────────────────────────
-st.markdown("### �� Vault Key & API Integration Credentials")
+st.markdown("### 🔍 Vault Key & API Integration Credentials")
 
 with st.expander("Manage API Access Tokens & Vault Keys", expanded=False):
     token_input = st.text_input(
@@ -364,7 +364,7 @@ with st.expander("Manage API Access Tokens & Vault Keys", expanded=False):
 
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("�� Save Credentials Securely", type="primary", use_container_width=True):
+        if st.button("🔍 Save Credentials Securely", type="primary", use_container_width=True):
             if token_input.strip():
                 st.session_state["user_NOTION_TOKEN"] = token_input.strip()
                 st.session_state["user_DATABASE_ID"] = db_input.strip()
@@ -374,7 +374,7 @@ with st.expander("Manage API Access Tokens & Vault Keys", expanded=False):
             else:
                 st.error("Please supply a valid token.")
     with c2:
-        if st.button("�� Reset Credentials", use_container_width=True):
+        if st.button("🔍 Reset Credentials", use_container_width=True):
             st.session_state["user_NOTION_TOKEN"] = ""
             st.session_state["user_DATABASE_ID"] = ""
             clear_cache()
@@ -384,7 +384,7 @@ with st.expander("Manage API Access Tokens & Vault Keys", expanded=False):
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
 # ─── 9. DATA MANAGEMENT & CACHE LIFECYCLE ────────────────────────────────
-st.markdown("### �� Data Lifecycle & Storage Management")
+st.markdown("### 🔍 Data Lifecycle & Storage Management")
 
 col_d1, col_d2, col_d3 = st.columns(3)
 with col_d1:
@@ -402,7 +402,7 @@ with col_d3:
     st.metric("Uploaded File Rows", len(uploaded_df) if uploaded_df is not None else 0)
     st.markdown("</div>", unsafe_allow_html=True)
 
-if st.button("��️ Purge Local Cache & Clear Active Datasets", type="secondary"):
+if st.button("🔍 ️ Purge Local Cache & Clear Active Datasets", type="secondary"):
     clear_cache()
     for key in ["notion_df", "uploaded_df", "merged_df", "active_df"]:
         if key in st.session_state:

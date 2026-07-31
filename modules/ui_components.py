@@ -294,7 +294,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-weight: 700 !important;
         }}
         
-        /* ─── Charts ────────────────────────────────────────────────────�� */
+        /* ─── Charts ────────────────────────────────────────────────────🔍 */
         .stPlotlyChart > div {{
             border-radius: 18px;
             overflow: hidden;

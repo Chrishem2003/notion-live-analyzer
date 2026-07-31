@@ -66,7 +66,7 @@ except ImportError:
 st.set_page_config(
     page_title="Clinical Analytics Studio", 
     layout="wide", 
-    page_icon="��",
+    page_icon="🔍 ",
     initial_sidebar_state="collapsed"
 )
 
@@ -215,7 +215,7 @@ st.markdown(
 )
 
 hero_card(
-    "�� Enterprise Clinical & Biometric Analytics Studio", 
+    "🔍 Enterprise Clinical & Biometric Analytics Studio", 
     "High-precision medical informatics suite: Automated BMI and body composition profiling, standardized pediatric/adult Z-scores, clinical reference range validation, and cardiovascular disease risk stratification.", 
     "Clinical Informatics Engine 3.0"
 )
@@ -225,10 +225,10 @@ watermark("CHRISHEM")
 active_df = st.session_state.get("active_df") or st.session_state.get("notion_df")
 
 if active_df is not None and not active_df.empty:
-    st.info(f"�� **Active Clinical Dataset Context Loaded:** `{len(active_df):,}` patient records / observations available for clinical batch auditing.")
+    st.info(f"🔍 **Active Clinical Dataset Context Loaded:** `{len(active_df):,}` patient records / observations available for clinical batch auditing.")
 else:
-    with st.expander("�� Optional: Generate Synthetic Clinical Data Cohort", expanded=False):
-        if st.button("�� Build Simulated 100-Patient Cohort", use_container_width=True):
+    with st.expander("🔍 Optional: Generate Synthetic Clinical Data Cohort", expanded=False):
+        if st.button("🔍 Build Simulated 100-Patient Cohort", use_container_width=True):
             np.random.seed(42)
             sim_patients = pd.DataFrame({
                 "Patient_ID": [f"PT-{i:04d}" for i in range(1, 101)],
@@ -244,19 +244,19 @@ else:
             st.rerun()
 
 # ─── High-Level Clinical Topology Metrics ──────────────────────────────
-section_header("�� Clinical Metrics & Diagnostic Standards")
+section_header("🔍 Clinical Metrics & Diagnostic Standards")
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    st.metric("�� Biometric Models", "BMI, WHR, BSA", help="Body Mass Index, Waist-to-Hip, Body Surface Area")
+    st.metric("🔍 Biometric Models", "BMI, WHR, BSA", help="Body Mass Index, Waist-to-Hip, Body Surface Area")
 with m2:
-    st.metric("�� Z-Score Standards", "WHO / CDC Growth", help="Standardized anthropometric deviation scores")
+    st.metric("🔍 Z-Score Standards", "WHO / CDC Growth", help="Standardized anthropometric deviation scores")
 with m3:
     st.metric("❤️ Cardiovascular Risk", "Framingham / ASCVD", help="10-year risk stratification")
 with m4:
-    st.metric("�� Lab Ref Ranges", "Pathology Standards", help="Automated abnormal value flagging")
+    st.metric("🔍 Lab Ref Ranges", "Pathology Standards", help="Automated abnormal value flagging")
 with m5:
-    st.metric("�� Data Compliance", "HIPAA Aligned", help="Local encrypted data handling")
+    st.metric("🔍 Data Compliance", "HIPAA Aligned", help="Local encrypted data handling")
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
@@ -264,15 +264,15 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 section_header("⚙️ Clinical Decision Support & Biometric Suite")
 
 clinical_tabs = st.tabs([
-    "�� Core Clinical Analytics UI",
-    "�� Individual Patient Biometric Calculator",
-    "�� Pathological Reference Range Auditor",
+    "🔍 Core Clinical Analytics UI",
+    "🔍 Individual Patient Biometric Calculator",
+    "🔍 Pathological Reference Range Auditor",
     "❤️ Cardiovascular & Metabolic Risk Scoring"
 ])
 
 # ── TAB 1: Core Clinical Analytics UI ──────────────────────────────────
 with clinical_tabs[0]:
-    st.markdown("### �� Interactive Clinical Dashboard & Batch Analyzer")
+    st.markdown("### 🔍 Interactive Clinical Dashboard & Batch Analyzer")
     st.caption("Execute full-suite clinical calculations and batch risk evaluations on active patient data.")
     
     # Renders the core clinical module
@@ -280,7 +280,7 @@ with clinical_tabs[0]:
 
 # ── TAB 2: Individual Patient Biometric Calculator ─────────────────────
 with clinical_tabs[1]:
-    st.markdown("### �� Individual Patient Biometric Profiler")
+    st.markdown("### 🔍 Individual Patient Biometric Profiler")
     st.caption("Calculate precise anthropometric indices, body surface area (BSA), and adjusted body weight.")
 
     col_b1, col_b2 = st.columns(2)
@@ -293,7 +293,7 @@ with clinical_tabs[1]:
         waist_cm = st.number_input("Waist Circumference (cm)", min_value=30.0, max_value=200.0, value=85.0)
         hip_cm = st.number_input("Hip Circumference (cm)", min_value=30.0, max_value=200.0, value=95.0)
 
-    if st.button("�� Calculate Patient Biometrics", type="primary", use_container_width=True):
+    if st.button("🔍 Calculate Patient Biometrics", type="primary", use_container_width=True):
         height_m = height_cm / 100.0
         bmi = weight_kg / (height_m ** 2)
         whr = waist_cm / hip_cm
@@ -312,7 +312,7 @@ with clinical_tabs[1]:
         st.markdown(
             f"""
             <div class='contrast-card'>
-                <h4 style='margin-top:0;'>�� Diagnostic Profile: {gender_sel}, Age {age_years}</h4>
+                <h4 style='margin-top:0;'>🔍 Diagnostic Profile: {gender_sel}, Age {age_years}</h4>
             </div>
             """,
             unsafe_allow_html=True
@@ -327,7 +327,7 @@ with clinical_tabs[1]:
 
 # ── TAB 3: Pathological Reference Range Auditor ─────────────────────────
 with clinical_tabs[2]:
-    st.markdown("### �� Laboratory Value Reference Range Auditor")
+    st.markdown("### 🔍 Laboratory Value Reference Range Auditor")
     st.caption("Quick lookup table for standard clinical pathology reference intervals.")
 
     ref_ranges = [
@@ -354,7 +354,7 @@ with clinical_tabs[3]:
         hypertension_meds = st.checkbox("On Hypertension Treatment Medication")
         diabetes_status = st.checkbox("Diagnosed Diabetes Mellitus")
 
-    if st.button("�� Estimate 10-Year Cardiovascular Risk", use_container_width=True):
+    if st.button("🔍 Estimate 10-Year Cardiovascular Risk", use_container_width=True):
         # Simulated risk estimation algorithm logic
         risk_score = 4.5 if not smoker_status else 11.2
         if diabetes_status:
@@ -365,7 +365,7 @@ with clinical_tabs[3]:
         st.markdown(
             f"""
             <div class='contrast-card'>
-                <h4 style='margin-top:0; color:#00f2fe;'>�� Estimated 10-Year ASCVD Risk Score</h4>
+                <h4 style='margin-top:0; color:#00f2fe;'>🔍 Estimated 10-Year ASCVD Risk Score</h4>
                 <p style='font-size: 1.2rem; margin:0;'>Calculated Risk Vector: <strong>{risk_score:.1f}%</strong>  <span style='color:#38bdf8;'>{risk_category}</span></p>
             </div>
             """,

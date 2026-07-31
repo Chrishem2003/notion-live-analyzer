@@ -49,8 +49,8 @@ except ImportError:
 
     def git_status_badge(is_connected=False):
         if is_connected:
-            return "<span style='background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid #10b981;'>�� Connected</span>"
-        return "<span style='background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid #ef4444;'>�� Offline</span>"
+            return "<span style='background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid #10b981;'>🔍 Connected</span>"
+        return "<span style='background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid #ef4444;'>🔍 Offline</span>"
 
     def hero_card(title, subtitle, badge_text=""):
         st.markdown(f"""
@@ -65,7 +65,7 @@ except ImportError:
 
     def render_git_integration_ui():
         st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#00f2fe;'>�� Active Git Repository Handshake</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe;'>🔍 Active Git Repository Handshake</h4>", unsafe_allow_html=True)
         st.write("Repository Connection: **Active & Monitoring Stream**")
         st.info("Core module integrated cleanly. Connect your PAT credentials in Tab 5 to sync remote commits.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -74,7 +74,7 @@ except ImportError:
 st.set_page_config(
     page_title="Enterprise Git & Version Control Studio", 
     layout="wide", 
-    page_icon="��",
+    page_icon="🔍 ",
     initial_sidebar_state="collapsed"
 )
 
@@ -234,7 +234,7 @@ is_connected = st.session_state.get("git_connected", False)
 badge = git_status_badge(is_connected)
 
 hero_card(
-    "�� Enterprise Git & GitHub Version Control Studio",
+    "🔍 Enterprise Git & GitHub Version Control Studio",
     f"High-performance code and research pipeline synchronization suite: Track dataset iterations, push analytical scripts, manage branches, and collaborate seamlessly across academic or engineering projects. {badge}",
     "Git & Version Control Engine 3.0"
 )
@@ -246,23 +246,23 @@ if active_df is None or active_df.empty:
     active_df = st.session_state.get("notion_df")
 
 if active_df is not None and not active_df.empty:
-    st.info(f"�� **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for version-controlled commit packaging.")
+    st.info(f"🔍 **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for version-controlled commit packaging.")
 
 # ─── HIGH-LEVEL GIT TOPOLOGY METRICS ───────────────────────────────────
-section_header("�� Git Repository Topology & Connection Health")
+section_header("🔍 Git Repository Topology & Connection Health")
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
     st.markdown(f'''
     <div class="metric-card">
-        <div class="metric-card-title">�� Active Branch</div>
+        <div class="metric-card-title">🔍 Active Branch</div>
         <div class="metric-card-value">{st.session_state.get("git_branch", "main")}</div>
     </div>
     ''', unsafe_allow_html=True)
 with m2:
     st.markdown(f'''
     <div class="metric-card">
-        <div class="metric-card-title">�� Tracked Commits</div>
+        <div class="metric-card-title">🔍 Tracked Commits</div>
         <div class="metric-card-value">{st.session_state.get("git_commit_count", "14")}</div>
     </div>
     ''', unsafe_allow_html=True)
@@ -271,7 +271,7 @@ with m3:
     auth_color = "#10b981" if is_connected else "#ef4444"
     st.markdown(f'''
     <div class="metric-card">
-        <div class="metric-card-title">�� Authentication</div>
+        <div class="metric-card-title">🔍 Authentication</div>
         <div class="metric-card-value" style="color: {auth_color} !important;">{auth_val}</div>
     </div>
     ''', unsafe_allow_html=True)
@@ -280,7 +280,7 @@ with m4:
     sync_color = "#10b981" if is_connected else "#94a3b8"
     st.markdown(f'''
     <div class="metric-card">
-        <div class="metric-card-title">�� Remote Sync</div>
+        <div class="metric-card-title">🔍 Remote Sync</div>
         <div class="metric-card-value" style="color: {sync_color} !important;">{sync_val}</div>
     </div>
     ''', unsafe_allow_html=True)
@@ -288,7 +288,7 @@ with m5:
     collab_val = "Multi-User" if is_connected else "Standalone"
     st.markdown(f'''
     <div class="metric-card">
-        <div class="metric-card-title">�� Collaboration</div>
+        <div class="metric-card-title">🔍 Collaboration</div>
         <div class="metric-card-value">{collab_val}</div>
     </div>
     ''', unsafe_allow_html=True)
@@ -296,9 +296,9 @@ with m5:
 st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 
 # ─── EDUCATIONAL GUIDANCE PANEL ────────────────────────────────────────
-with st.expander("�� **Confused about Git? Here is why this integration is essential for your work:**", expanded=not is_connected):
+with st.expander("🔍 **Confused about Git? Here is why this integration is essential for your work:**", expanded=not is_connected):
     st.markdown("""
-    ### �� What is Git and How Does It Help You?
+    ### 🔍 What is Git and How Does It Help You?
     
     If you've ever worked on a research paper, code script, or data analysis project and ended up with files named:
     * `analysis_final.py`
@@ -307,7 +307,7 @@ with st.expander("�� **Confused about Git? Here is why this integration is e
     
     ...then **Git is the exact tool designed to solve that headache.**
     
-    #### �� Key Benefits for Your Research & Development:
+    #### 🔍 Key Benefits for Your Research & Development:
     1. **Automatic Time Machine (Version Control):** Every time you make a change, Git saves a permanent snapshot. If a new calculation breaks your script, you can instantly revert back to yesterday's working version with one click.
     2. **Cloud Backup & Collaboration:** Instead of emailing zip folders back and forth to project partners or professors, Git securely syncs your code and datasets to **GitHub** in the cloud so everyone always has the exact same up-to-date files.
     3. **Professional Reproducibility:** In scientific research (like bioinformatics, clinical analytics, or undergraduate projects), being able to link an exact GitHub commit hash to your published results guarantees 100% reproducibilitya huge plus for thesis committees and journal reviewers.
@@ -320,17 +320,17 @@ st.markdown("<hr style='border:1px solid #1e293b; margin: 1.5rem 0;'>", unsafe_a
 section_header("⚙️ Git & Version Control Management Suite")
 
 git_tabs = st.tabs([
-    "�� Core Git Integration UI",
-    "�� Push Scripts & Notebooks to GitHub",
-    "�� Branch & Merge Management",
-    "�� Repository Commit History & Logs",
-    "�� GitHub Authentication & Token Setup"
+    "🔍 Core Git Integration UI",
+    "🔍 Push Scripts & Notebooks to GitHub",
+    "🔍 Branch & Merge Management",
+    "🔍 Repository Commit History & Logs",
+    "🔍 GitHub Authentication & Token Setup"
 ])
 
 # ── TAB 1: Core Git Integration UI ─────────────────────────────────────
 with git_tabs[0]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� Interactive Repository Connection & Status Hub")
+    st.markdown("### 🔍 Interactive Repository Connection & Status Hub")
     st.caption("Manage your active GitHub repository connection, verify remote URLs, and execute core git commands.")
     
     # Renders the primary git integration module from modules
@@ -340,7 +340,7 @@ with git_tabs[0]:
 # ── TAB 2: Push Scripts & Datasets to GitHub ────────────────────────────
 with git_tabs[1]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� Automated Script & Dataset Pushing Portal")
+    st.markdown("### 🔍 Automated Script & Dataset Pushing Portal")
     st.markdown("Select current analytical scripts, generated datasets, or markdown reports and push them directly to your remote repository.")
 
     col_g1, col_g2 = st.columns(2)
@@ -361,9 +361,9 @@ with git_tabs[1]:
 
     st.markdown("<div style='margin-top: 0.8rem;'></div>", unsafe_allow_html=True)
 
-    if st.button("�� Commit & Push to GitHub", type="primary", key="btn_commit_push"):
+    if st.button("🔍 Commit & Push to GitHub", type="primary", key="btn_commit_push"):
         if is_connected:
-            st.success(f"�� **Successfully pushed `{target_asset}` to GitHub!** Commit message: *'{commit_message}'* synced on branch `{target_branch}`.")
+            st.success(f"🔍 **Successfully pushed `{target_asset}` to GitHub!** Commit message: *'{commit_message}'* synced on branch `{target_branch}`.")
         else:
             st.warning("⚠️ Git repository is not connected. Please connect your GitHub account via Tab 5 or the core UI first.")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -371,26 +371,26 @@ with git_tabs[1]:
 # ── TAB 3: Branch & Merge Management ───────────────────────────────────
 with git_tabs[2]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� Branch & Collaborative Workflow Manager")
+    st.markdown("### 🔍 Branch & Collaborative Workflow Manager")
     st.markdown("Create new experimental branches to test custom algorithms without disrupting your stable main research branch.")
 
     new_branch_name = st.text_input("New Branch Name", placeholder="feature/biomarker-analysis")
     col_b1, col_b2 = st.columns(2)
     with col_b1:
-        if st.button("�� Create & Switch Branch", type="secondary", key="btn_create_branch"):
+        if st.button("🔍 Create & Switch Branch", type="secondary", key="btn_create_branch"):
             if new_branch_name:
                 st.success(f"✅ Successfully created and switched to branch `{new_branch_name}`.")
             else:
                 st.warning("⚠️ Please enter a valid branch name.")
     with col_b2:
-        if st.button("�� Merge Branch into Main", type="secondary", key="btn_merge_branch"):
+        if st.button("🔍 Merge Branch into Main", type="secondary", key="btn_merge_branch"):
             st.success("✅ Branch successfully merged into `main` with zero conflicts!")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ── TAB 4: Repository Commit History & Logs ────────────────────────────
 with git_tabs[3]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� Version Control History & Audit Trail")
+    st.markdown("### 🔍 Version Control History & Audit Trail")
     st.markdown("Inspect chronological commit logs and previous snapshots stored in your repository.")
 
     mock_commit_history = [
@@ -404,7 +404,7 @@ with git_tabs[3]:
 # ── TAB 5: GitHub Authentication & Token Setup ──────────────────────────
 with git_tabs[4]:
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
-    st.markdown("### �� GitHub Personal Access Token (PAT) Configuration")
+    st.markdown("### 🔍 GitHub Personal Access Token (PAT) Configuration")
     st.markdown("Securely link your GitHub account using an encrypted Personal Access Token.")
 
     github_username = st.text_input("GitHub Username", value=st.session_state.get("git_username", ""))
@@ -413,19 +413,19 @@ with git_tabs[4]:
 
     st.markdown("<div style='margin-top: 0.8rem;'></div>", unsafe_allow_html=True)
 
-    if st.button("�� Save & Authenticate GitHub Connection", type="primary", key="btn_save_auth"):
+    if st.button("🔍 Save & Authenticate GitHub Connection", type="primary", key="btn_save_auth"):
         if github_token and github_username and github_repo:
             st.session_state["git_connected"] = True
             st.session_state["git_username"] = github_username
             st.session_state["git_repo"] = github_repo
-            st.success(f"�� **GitHub successfully connected!** Linked to repository `https://github.com/{github_username}/{github_repo}`.")
+            st.success(f"🔍 **GitHub successfully connected!** Linked to repository `https://github.com/{github_username}/{github_repo}`.")
             st.rerun()
         else:
             st.warning("⚠️ Please fill in all required fields (Username, Repository, and Token).")
     
     st.markdown("""
     <div style="background: #070d18; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px; margin-top: 1.2rem;">
-        <h5 style="color: #00f2fe; margin-top:0;">�� How to generate your GitHub Personal Access Token:</h5>
+        <h5 style="color: #00f2fe; margin-top:0;">🔍 How to generate your GitHub Personal Access Token:</h5>
         <ol style="color: #cbd5e1; margin-bottom: 0; padding-left: 1.2rem;">
             <li>Go to your GitHub account <strong>Settings</strong> > <strong>Developer Settings</strong> > <strong>Personal Access Tokens</strong> > <strong>Tokens (classic)</strong>.</li>
             <li>Click <strong>Generate new token (classic)</strong>.</li>

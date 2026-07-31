@@ -1,5 +1,5 @@
 """
-�� Advanced Real-Time Citation Integrity & Retraction Inspector
+🔍 Advanced Real-Time Citation Integrity & Retraction Inspector
 Enterprise-grade reference auditing and scholarly validation engine featuring automated DOI cross-referencing,
 live retraction database synchronization, predatory journal identification, and cryptographic citation health scoring.
 """
@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 st.set_page_config(
     page_title="Citation Integrity & Retraction Inspector",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -161,14 +161,14 @@ with st.sidebar:
     st.session_state["inspector_strictness_profile"] = strictness_profile
 
     st.markdown("---")
-    st.markdown("### �� Live Database APIs & Feeds")
+    st.markdown("### 🔍 Live Database APIs & Feeds")
     crossref_opt = st.toggle("Crossref DOI Metadata Verification", value=True, key="citation_crossref_toggle")
     retract_opt = st.toggle("Retraction Watch Database Sync", value=True, key="citation_retraction_toggle")
     st.toggle("Predatory Journal / Hijacked Publisher Guard", value=True, key="citation_predatory_toggle")
     st.toggle("Self-Citation & Circular Ring Detector", value=True, key="citation_circular_toggle")
 
     st.markdown("---")
-    st.markdown("### �� Threshold & Alert Triggers")
+    st.markdown("### 🔍 Threshold & Alert Triggers")
     min_integrity_score = st.slider(
         "Minimum Acceptable Integrity Score (%)",
         min_value=50,
@@ -188,7 +188,7 @@ with st.sidebar:
 # ==========================================
 
 st.markdown("<span class='inspect-badge'>FORENSIC CITATION ENGINE v2.5</span>", unsafe_allow_html=True)
-st.title("�� Real-Time Citation Integrity & Retraction Inspector")
+st.title("🔍 Real-Time Citation Integrity & Retraction Inspector")
 st.caption("Automated DOI cross-referencing, live retraction database verification, and predatory journal detection.")
 
 # Strategic Metric Highlights
@@ -218,7 +218,7 @@ else:
     st.error("⚠️ **Module Resolution Warning**")
     st.info(f"The module `modules.citation_inspector` could not be loaded directly. Running in **Native Fallback Inspection Mode**.\n\n`Error Details: {import_error_msg}`")
     
-    st.subheader("�� Citation Audit Preview Workspace")
+    st.subheader("🔍 Citation Audit Preview Workspace")
     
     # Input Area
     input_citations = st.text_area(
@@ -227,7 +227,7 @@ else:
         placeholder="e.g., 10.1038/s41586-020-2649-2\n10.1016/j.cell.2021.01.001"
     )
     
-    if st.button("�� Run Integrity Audit Scan", type="primary"):
+    if st.button("🔍 Run Integrity Audit Scan", type="primary"):
         if input_citations.strip():
             st.success("Scan Complete: 0 Retractions Detected | 2 Verified DOIs | Integrity Score: 100%")
         else:

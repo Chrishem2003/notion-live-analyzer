@@ -1,5 +1,5 @@
 """
-�� Advanced Theoretical-to-Practical Protocol Transpiler (Enterprise Edition v4.0)
+🔍 Advanced Theoretical-to-Practical Protocol Transpiler (Enterprise Edition v4.0)
 High-performance computational laboratory workflow engine featuring automated stoichiometry mapping,
 real-time biosafety compliance auditing, thermo-kinetic parameter optimization, and multi-format export pipelines.
 """
@@ -11,7 +11,7 @@ import numpy as np
 # ─── 1. PAGE CONFIGURATION ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Theoretical-to-Practical Protocol Transpiler",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -166,7 +166,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### ��️ Kinetic & Environmental Parameters")
+    st.markdown("### 🔍 ️ Kinetic & Environmental Parameters")
     temp_target = st.slider(
         "Target Incubation Temperature (°C)",
         4.0,
@@ -193,7 +193,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### ��️ Compliance & Safety Flags")
+    st.markdown("### 🔍 ️ Compliance & Safety Flags")
     enable_bsl = st.toggle(
         "Biosafety Level (BSL) Automated Check",
         value=True,
@@ -216,7 +216,7 @@ st.markdown(
 <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
     <div>
         <span class='badge-primary'>LABORATORY AUTOMATION & TRANSPILATION SUITE v4.0</span>
-        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>�� Theoretical-to-Practical Protocol Transpiler</h1>
+        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 Theoretical-to-Practical Protocol Transpiler</h1>
         <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
             Automated Stoichiometry Mapping, Real-time Biosafety Auditing, Thermo-Kinetic Parameter Optimization & Execution Pipelines.
         </p>
@@ -224,7 +224,7 @@ st.markdown(
     <div style='text-align: right;'>
         <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
             <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Lead Developer</div>
-            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>�� KULA CHRIS</div>
+            <div style='color: #10b981; font-size: 1rem; font-weight: 900;'>🔍 KULA CHRIS</div>
         </div>
     </div>
 </div>
@@ -234,16 +234,16 @@ st.markdown(
 
 # ─── 5. MAIN WORKSPACE TABS ──────────────────────────────────────────────
 tab_protocol, tab_stoich, tab_kinetics, tab_export = st.tabs([
-    "�� Transpiled Executable Protocol",
+    "🔍 Transpiled Executable Protocol",
     "⚖️ Stoichiometry & Reagents",
-    "��️ Thermo-Kinetics & BSL HUD",
-    "�� Multi-Format Pipeline Export",
+    "🔍 ️ Thermo-Kinetics & BSL HUD",
+    "🔍 Multi-Format Pipeline Export",
 ])
 
 # ── TAB 1: EXECUTION PROTOCOL ──
 with tab_protocol:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.markdown("### �� Theoretical Input Definition")
+    st.markdown("### 🔍 Theoretical Input Definition")
     raw_protocol = st.text_area(
         "Paste Theoretical Method / Academic Literature Abstract:",
         value="Incubate target protein substrate (50 mM Tris-HCl, pH 7.4) with 5 uL restriction enzyme at 37°C for 60 minutes under 250 RPM agitation. Neutralize with 10% EDTA stop solution.",
@@ -308,27 +308,27 @@ with tab_kinetics:
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='contrast-card-emerald'>", unsafe_allow_html=True)
-    st.markdown("### ��️ Real-Time Biosafety & Compliance Audit")
+    st.markdown("### 🔍 ️ Real-Time Biosafety & Compliance Audit")
     
-    bsl_status = "�� BSL-1 (Low Risk - General Academic / Benchtop)" if enable_bsl else "�� Unaudited"
+    bsl_status = "🔍 BSL-1 (Low Risk - General Academic / Benchtop)" if enable_bsl else "🔍 Unaudited"
     st.markdown(f"- **Biosafety Level Assessment:** **{bsl_status}**")
-    st.markdown(f"- **Reagent Stoichiometry Auto-Correction:** **{'�� ENABLED' if enable_stoich else '�� DISABLED'}**")
-    st.markdown(f"- **Waste Neutralization Protocol:** **{'�� GENERATED' if enable_waste else '�� DISABLED'}**")
+    st.markdown(f"- **Reagent Stoichiometry Auto-Correction:** **{'🔍 ENABLED' if enable_stoich else '🔍 DISABLED'}**")
+    st.markdown(f"- **Waste Neutralization Protocol:** **{'🔍 GENERATED' if enable_waste else '🔍 DISABLED'}**")
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ── TAB 4: EXPORT PIPELINE ──
 with tab_export:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.markdown("### �� Multi-Format Protocol Export Pipeline")
+    st.markdown("### 🔍 Multi-Format Protocol Export Pipeline")
     st.markdown("Select desired transpiled protocol format for downstream execution:")
     
     e1, e2, e3 = st.columns(3)
     with e1:
-        st.button("�� Export as Automation JSON (Opentrons/Tecan)", use_container_width=True)
+        st.button("🔍 Export as Automation JSON (Opentrons/Tecan)", use_container_width=True)
     with e2:
-        st.button("�� Export as ISO-Compliant Lab PDF", use_container_width=True)
+        st.button("🔍 Export as ISO-Compliant Lab PDF", use_container_width=True)
     with e3:
-        st.button("�� Export as Markdown Step-by-Step Guide", use_container_width=True)
+        st.button("🔍 Export as Markdown Step-by-Step Guide", use_container_width=True)
         
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -337,7 +337,7 @@ st.markdown("<hr style='border:1px solid #1e293b; margin-top:2.5rem;'>", unsafe_
 st.markdown(
     """
 <div style='display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; font-family: monospace;'>
-    <div>�� THEORETICAL-TO-PRACTICAL PROTOCOL TRANSPILER</div>
+    <div>🔍 THEORETICAL-TO-PRACTICAL PROTOCOL TRANSPILER</div>
     <div>DESIGNED FOR: KULA CHRIS</div>
     <div>SYSTEM STATUS: ACTIVE</div>
 </div>

@@ -1,5 +1,5 @@
 """
-�� Advanced Resampling, Permutation Testing & Validation Engine (Enterprise Edition)
+🔍 Advanced Resampling, Permutation Testing & Validation Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0  Resampling Module
 """
 import streamlit as st
@@ -9,7 +9,7 @@ import numpy as np
 # ─── Page Config ───────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Resampling, Bootstrap & Validation Engine",
-    page_icon="��",
+    page_icon="🔍 ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -129,7 +129,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#0f172a; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px;'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>Validation Kernel</div>
-            <div style='color:#34d399; font-size:0.85rem; font-weight:800;'>�� SciPy & Scikit-Learn Active</div>
+            <div style='color:#34d399; font-size:0.85rem; font-weight:800;'>🔍 SciPy & Scikit-Learn Active</div>
         </div>
     </div>
 </div>
@@ -137,11 +137,11 @@ st.markdown("""
 
 # ─── Navigation Tabs ───────────────────────────────────────────────────
 resamp_tabs = {
-    "bootstrap": "�� Non-Parametric Bootstrap",
-    "permutation": "�� Exact Permutation Tests",
-    "cv": "�� Cross-Validation & Splitting",
-    "montecarlo": "�� Monte Carlo Simulation",
-    "jackknife": "�� Jackknife Bias & Variance"
+    "bootstrap": "🔍 Non-Parametric Bootstrap",
+    "permutation": "🔍 Exact Permutation Tests",
+    "cv": "🔍 Cross-Validation & Splitting",
+    "montecarlo": "🔍 Monte Carlo Simulation",
+    "jackknife": "🔍 Jackknife Bias & Variance"
 }
 
 cols = st.columns(len(resamp_tabs))
@@ -160,7 +160,7 @@ active_resamp_tab = st.session_state["resamp_active_tab"]
 # TAB 1: NON-PARAMETRIC BOOTSTRAP
 # ═══════════════════════════════════════════════════════════════════════
 if active_resamp_tab == "bootstrap":
-    st.markdown("### �� Non-Parametric Bootstrap & Confidence Intervals")
+    st.markdown("### 🔍 Non-Parametric Bootstrap & Confidence Intervals")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Compute distribution-free bootstrap confidence intervals (Percentile, BCa) for complex sample statistics without normality assumptions.</p>", unsafe_allow_html=True)
     
     col_b1, col_b2 = st.columns([4, 6])
@@ -169,12 +169,12 @@ if active_resamp_tab == "bootstrap":
         st.selectbox("Target Statistical Estimator", ["Median", "Mean", "Pearson Correlation r", "Gini Coefficient"])
         st.slider("Bootstrap Replications (B)", 1000, 10000, 5000, step=1000)
         st.selectbox("Confidence Interval Method", ["Percentile (percentile)", "Bias-Corrected and Accelerated (BCa)", "Standard Normal approximation"])
-        st.button("�� Run Bootstrap Resampling", use_container_width=True)
+        st.button("🔍 Run Bootstrap Resampling", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_b2:
         st.markdown("<div class='resamp-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Bootstrap Sampling Distribution</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Bootstrap Sampling Distribution</h4>", unsafe_allow_html=True)
         st.metric(label="Bootstrap Estimate (Mean)", value="12.418 units", delta="95% BCa CI: [11.82, 13.04]")
         
         if HAS_PLOTLY:
@@ -195,7 +195,7 @@ if active_resamp_tab == "bootstrap":
 # TAB 2: EXACT PERMUTATION TESTS
 # ═══════════════════════════════════════════════════════════════════════
 elif active_resamp_tab == "permutation":
-    st.markdown("### �� Exact Permutation Hypothesis Testing")
+    st.markdown("### 🔍 Exact Permutation Hypothesis Testing")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Test group differences non-parametrically by shuffling class labels across thousands of random permutations to build an empirical null distribution.</p>", unsafe_allow_html=True)
     
     col_p1, col_p2 = st.columns([4, 6])
@@ -208,7 +208,7 @@ elif active_resamp_tab == "permutation":
         
     with col_p2:
         st.markdown("<div class='resamp-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Empirical Null Distribution & P-Value</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Empirical Null Distribution & P-Value</h4>", unsafe_allow_html=True)
         st.metric(label="Exact Permutation P-Value", value="p = 0.0004", delta="Significant Group Difference")
         if HAS_PLOTLY:
             np.random.seed(42)
@@ -227,7 +227,7 @@ elif active_resamp_tab == "permutation":
 # TAB 3: CROSS-VALIDATION & SPLITTING
 # ═══════════════════════════════════════════════════════════════════════
 elif active_resamp_tab == "cv":
-    st.markdown("### �� Advanced Cross-Validation & Data Splitting")
+    st.markdown("### 🔍 Advanced Cross-Validation & Data Splitting")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Implement robust cross-validation schemes including Stratified K-Fold, Repeated K-Fold, and Time-Series Walk-Forward splitting.</p>", unsafe_allow_html=True)
     
     col_c1, col_c2 = st.columns([4, 6])
@@ -241,7 +241,7 @@ elif active_resamp_tab == "cv":
         
     with col_c2:
         st.markdown("<div class='resamp-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Cross-Validation Performance Summary</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Cross-Validation Performance Summary</h4>", unsafe_allow_html=True)
         st.metric(label="Mean Cross-Validated R² / Accuracy", value="0.842 ± 0.034", delta="Stable Model Generalization")
         st.code("""
 Cross-Validation Fold Metrics:
@@ -259,7 +259,7 @@ Fold 5: Score = 0.863 | RMSE = 1.09
 # TAB 4: MONTE CARLO SIMULATION
 # ═══════════════════════════════════════════════════════════════════════
 elif active_resamp_tab == "montecarlo":
-    st.markdown("### �� Monte Carlo Simulation & Risk Propagation")
+    st.markdown("### 🔍 Monte Carlo Simulation & Risk Propagation")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Simulate system parameter variations under specified probability distributions to quantify output uncertainty and failure risk.</p>", unsafe_allow_html=True)
     
     col_m1, col_m2 = st.columns([4, 6])
@@ -267,12 +267,12 @@ elif active_resamp_tab == "montecarlo":
         st.markdown("<div class='resamp-card'>", unsafe_allow_html=True)
         st.slider("Monte Carlo Trials", 1000, 50000, 10000, step=1000)
         st.selectbox("Primary Distribution Profile", ["Gaussian Normal", "Log-Normal (Skewed)", "Uniform Bounded", "Beta Process"])
-        st.button("�� Run Monte Carlo Engine", use_container_width=True)
+        st.button("🔍 Run Monte Carlo Engine", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_m2:
         st.markdown("<div class='resamp-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Monte Carlo Output Probability Density</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Monte Carlo Output Probability Density</h4>", unsafe_allow_html=True)
         st.metric(label="Probability of Threshold Breach (> 15.0)", value="4.2%", delta="Low Operational Risk")
         if HAS_PLOTLY:
             np.random.seed(42)
@@ -290,19 +290,19 @@ elif active_resamp_tab == "montecarlo":
 # TAB 5: JACKKNIFE BIAS & VARIANCE
 # ═══════════════════════════════════════════════════════════════════════
 elif active_resamp_tab == "jackknife":
-    st.markdown("### �� Jackknife Estimator Bias & Variance Correction")
+    st.markdown("### 🔍 Jackknife Estimator Bias & Variance Correction")
     st.markdown("<p style='color:#94a3b8; font-size:0.85rem;'>Compute leave-one-out jackknife estimates to correct estimator bias and evaluate standard error stability.</p>", unsafe_allow_html=True)
     
     col_j1, col_j2 = st.columns([4, 6])
     with col_j1:
         st.markdown("<div class='resamp-card'>", unsafe_allow_html=True)
         st.selectbox("Jackknife Configuration", ["Standard Leave-One-Out", "Delete-d Jackknife", "Grouped Jackknife Clusters"])
-        st.button("�� Compute Jackknife Correction", use_container_width=True)
+        st.button("🔍 Compute Jackknife Correction", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_j2:
         st.markdown("<div class='resamp-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>�� Jackknife Diagnostic Report</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Jackknife Diagnostic Report</h4>", unsafe_allow_html=True)
         st.success("✅ **Bias Correction Complete:** Estimated estimator bias is < 0.012 (Negligible finite-sample distortion).")
         st.code("""
 Jackknife Diagnostic Metrics:

@@ -22,7 +22,7 @@ except ImportError:
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Global Research Radar & Satellite Intelligence",
-    page_icon="��️",
+    page_icon="🔍 ️",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -301,7 +301,7 @@ st.markdown("""
     <div style='text-align:right;'>
         <div style='background:#090d16; border:1px solid #1e293b; padding:0.8rem 1.2rem; border-radius:14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);'>
             <div style='font-size:0.65rem; color:#64748b; text-transform:uppercase; font-weight:700;'>Telemetry Link</div>
-            <div style='color:#10b981; font-size:0.9rem; font-weight:800;'>�� 24 Satellites Active</div>
+            <div style='color:#10b981; font-size:0.9rem; font-weight:800;'>🔍 24 Satellites Active</div>
         </div>
     </div>
 </div>
@@ -309,12 +309,12 @@ st.markdown("""
 
 # ─── MAIN INTERACTIVE TABS ─────────────────────────────────────────────
 tab_radar, tab_matrix, tab_trigger, tab_claims, tab_synth, tab_telemetry = st.tabs([
-    "��️ Intelligence Radar",
-    "�� Impact Matrix",
+    "🔍 ️ Intelligence Radar",
+    "🔍 Impact Matrix",
     "⚡ Trigger Engine",
-    "�� Ownership Vault",
+    "🔍 Ownership Vault",
     "✨ AI Synthesizer",
-    "�� Live STAC Telemetry"
+    "🔍 Live STAC Telemetry"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -324,7 +324,7 @@ with tab_radar:
     col_l, col_r = st.columns([4, 6])
     
     with col_l:
-        st.markdown("<h3 style='font-size:1.1rem; color:#00f2fe;'>�� Research Roadblocks</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-size:1.1rem; color:#00f2fe;'>🔍 Research Roadblocks</h3>", unsafe_allow_html=True)
         search_q = st.text_input("Filter Bottlenecks", key="radar_search_term", placeholder="Search title, domain...")
         sev_filter = st.selectbox("Severity Level", ["All"] + SEVERITIES, key="radar_selected_severity")
         
@@ -351,7 +351,7 @@ with tab_radar:
                 <p style='color:#94a3b8; font-size:0.8rem; margin:0 0 0.5rem 0;'>{pt['summary'][:90]}...</p>
                 <div style='display:flex; justify-content:space-between; font-size:0.7rem; color:#64748b; border-top:1px solid #1e293b; padding-top:0.4rem;'>
                     <span>{pt['domain']}</span>
-                    <span style='color:#00f2fe;'>��️ {len(pt['satellite_feeds'])} Feeds</span>
+                    <span style='color:#00f2fe;'>🔍 ️ {len(pt['satellite_feeds'])} Feeds</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -377,7 +377,7 @@ with tab_radar:
             </div>
             <hr style='border-color:#1e293b; margin:0.8rem 0;'>
             
-            <h4 style='color:#00f2fe; font-size:0.8rem; text-transform:uppercase;'>�� Target Impact KPI</h4>
+            <h4 style='color:#00f2fe; font-size:0.8rem; text-transform:uppercase;'>🔍 Target Impact KPI</h4>
             <div style='background:#020617; border:1px solid #1e293b; padding:0.7rem 1rem; border-radius:8px; color:#10b981; font-size:0.85rem; font-weight:600;'>
                 {act_pt['target_kpi']}
             </div>
@@ -387,7 +387,7 @@ with tab_radar:
                 {act_pt['actionable_directive']}
             </div>
             
-            <h4 style='color:#00f2fe; font-size:0.8rem; text-transform:uppercase; margin-top:1rem;'>��️ Linked Satellite Feeds (STAC / CMR)</h4>
+            <h4 style='color:#00f2fe; font-size:0.8rem; text-transform:uppercase; margin-top:1rem;'>🔍 ️ Linked Satellite Feeds (STAC / CMR)</h4>
         """, unsafe_allow_html=True)
         
         for sat in act_pt["satellite_feeds"]:
@@ -407,7 +407,7 @@ with tab_radar:
 # TAB 2: IMPACT VS FEASIBILITY MATRIX
 # ═══════════════════════════════════════════════════════════════════════
 with tab_matrix:
-    st.markdown("### �� Impact vs. Feasibility Multi-Dimensional Matrix")
+    st.markdown("### 🔍 Impact vs. Feasibility Multi-Dimensional Matrix")
     st.markdown("Strategic prioritization scatter plot mapping research roadblocks across global urgency and technical execution probability.")
     
     pts = st.session_state["radar_pain_points"]
@@ -461,14 +461,14 @@ with tab_trigger:
         
         is_active_trig = st.checkbox("Enable Live Autonomous Trigger Dispatcher", key="radar_trigger_active")
         if is_active_trig:
-            st.success("�� Trigger Engine active and listening to STAC data streams.")
+            st.success("🔍 Trigger Engine active and listening to STAC data streams.")
         else:
             st.warning("⚪ Trigger Engine is currently in stand-by mode.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_2:
         st.markdown("<div class='enterprise-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#00f2fe; font-size:0.95rem;'>�� Real-time Dispatch Log</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe; font-size:0.95rem;'>🔍 Real-time Dispatch Log</h4>", unsafe_allow_html=True)
         st.code("""
 [08:08:20 UTC] STAC Stream connected: Sentinel-5P TROPOMI
 [08:06:12 UTC] Threshold check passed: CH4 plume stable (1420 ppb)
@@ -480,7 +480,7 @@ with tab_trigger:
 # TAB 4: LOOPHOLE OWNERSHIP & ACCOUNTABILITY VAULT
 # ═══════════════════════════════════════════════════════════════════════
 with tab_claims:
-    st.markdown("### �� Decentralized Loophole Ownership & Verification Vault")
+    st.markdown("### 🔍 Decentralized Loophole Ownership & Verification Vault")
     st.markdown("Claim ownership of unresolved research loopholes, generate cryptographic verification hashes, and prevent duplicated global efforts.")
     
     for pt in st.session_state["radar_pain_points"]:
@@ -514,7 +514,7 @@ with tab_synth:
     with col_b:
         db = st.selectbox("Discipline B (Catalyst Domain)", ["Neural Radiance Fields (NeRF)", "Quantum Annealing Optimization", "CRISPR Gene Drive Telemetry", "Graph Neural Networks"], key="radar_synth_domain_b")
         
-    if st.button("�� Synthesize Novel Hypothesis", use_container_width=True):
+    if st.button("🔍 Synthesize Novel Hypothesis", use_container_width=True):
         with st.spinner("Synthesizing multi-disciplinary model..."):
             time.sleep(0.6)
             st.session_state["radar_synth_output"] = f"Applying principles from **{db}** to real-time spatial bottlenecks in **{da}** enables sub-surface continuous gradient modeling without physical sensor deployment, reducing data collection latency by 94%."
@@ -531,20 +531,20 @@ with tab_synth:
 # TAB 6: LIVE STAC TELEMETRY STREAM
 # ═══════════════════════════════════════════════════════════════════════
 with tab_telemetry:
-    st.markdown("### �� Live STAC / CMR API Telemetry Diagnostics")
+    st.markdown("### 🔍 Live STAC / CMR API Telemetry Diagnostics")
     st.markdown("Direct health check and live payload inspection for connected satellite constellation endpoints.")
     
     col_t1, col_t2 = st.columns(2)
     with col_t1:
         st.markdown("<div class='enterprise-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#00f2fe; font-size:0.95rem;'>�� Endpoint Status Dashboard</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe; font-size:0.95rem;'>🔍 Endpoint Status Dashboard</h4>", unsafe_allow_html=True)
         api_statuses = {"STAC API": "Operational (99.9%)", "CMR Gateway": "Operational", "Webhook Dispatcher": "Standby"}
         for k, v in api_statuses.items():
             st.markdown(f"<div style='display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid #1e293b;'><span style='color:#cbd5e1; font-size:0.85rem;'>{k}</span><span style='color:#10b981; font-size:0.85rem; font-weight:700;'>{v}</span></div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
     with col_t2:
         st.markdown("<div class='enterprise-card'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#00f2fe; font-size:0.95rem;'>�� STAC Item Metadata Sample</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe; font-size:0.95rem;'>🔍 STAC Item Metadata Sample</h4>", unsafe_allow_html=True)
         st.code("""
 {
   "type": "Feature",

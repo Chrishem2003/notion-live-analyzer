@@ -122,7 +122,7 @@ except ImportError:
 
         st.markdown('<div class="synth-card">', unsafe_allow_html=True)
 
-        st.markdown("<h4 style='color:#00f2fe;'>?? APA 7th Edition Statistical Results Repository</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe;'>🔍 APA 7th Edition Statistical Results Repository</h4>", unsafe_allow_html=True)
 
         if results:
 
@@ -150,7 +150,7 @@ except ImportError:
 
         st.markdown('<div class="synth-card">', unsafe_allow_html=True)
 
-        st.markdown("<h4 style='color:#00f2fe;'>?? Instant APA Statistical Sentence Builder</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#00f2fe;'>🔍 Instant APA Statistical Sentence Builder</h4>", unsafe_allow_html=True)
 
         
 
@@ -200,9 +200,9 @@ except ImportError:
 
             
 
-            eta_val = st.number_input("Partial Eta Squared (?�p)", value=0.22, step=0.01)
+            eta_val = st.number_input("Partial Eta Squared (?🔍 p)", value=0.22, step=0.01)
 
-            sentence = f"*F*({df_between}, {df_within}) = {f_val:.2f}, *p* {p_val}, ?�p = {eta_val:.2f}"
+            sentence = f"*F*({df_between}, {df_within}) = {f_val:.2f}, *p* {p_val}, ?🔍 p = {eta_val:.2f}"
 
 
 
@@ -234,7 +234,7 @@ except ImportError:
 
             with col_q2:
 
-                chi_val = st.number_input("?� Statistic", value=14.82, step=0.01)
+                chi_val = st.number_input("?🔍 Statistic", value=14.82, step=0.01)
 
             with col_q3:
 
@@ -242,7 +242,7 @@ except ImportError:
 
             v_val = st.number_input("Cramer's V", value=0.31, step=0.01)
 
-            sentence = f"?�({df_val}, *N* = {n_val}) = {chi_val:.2f}, *p* = {p_val}, *V* = {v_val:.2f}"
+            sentence = f"?🔍 ({df_val}, *N* = {n_val}) = {chi_val:.2f}, *p* = {p_val}, *V* = {v_val:.2f}"
 
 
 
@@ -264,7 +264,7 @@ st.set_page_config(
 
     layout="wide", 
 
-    page_icon="��",
+    page_icon="🔍 ",
 
     initial_sidebar_state="collapsed"
 
@@ -680,7 +680,7 @@ st.markdown(
 
 hero_card(
 
-    "?? Enterprise APA 7th Edition Publication Studio", 
+    "🔍 Enterprise APA 7th Edition Publication Studio", 
 
     "High-precision academic reporting engine: Automated statistical write-ups, APA 7th edition compliance checking, effect size formatting, table generation, and manuscript export tools.", 
 
@@ -704,7 +704,7 @@ if active_df is None or active_df.empty:
 
 if active_df is not None and not active_df.empty:
 
-    st.info(f"?? **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for automated APA statistical result compilation.")
+    st.info(f"🔍 **Active Dataset Context Loaded:** `{len(active_df):,}` rows available for automated APA statistical result compilation.")
 
 
 
@@ -716,7 +716,7 @@ statistical_results = st.session_state.get("statistical_results", [])
 
 # --- HIGH-LEVEL APA REPORTING TOPOLOGY METRICS -------------------------
 
-section_header("?? APA Compliance & Result Stream Status")
+section_header("🔍 APA Compliance & Result Stream Status")
 
 
 
@@ -728,7 +728,7 @@ with m1:
 
     <div class="metric-card">
 
-        <div class="metric-card-title">?? Active Stored Results</div>
+        <div class="metric-card-title">🔍 Active Stored Results</div>
 
         <div class="metric-card-value">{len(statistical_results)}</div>
 
@@ -742,7 +742,7 @@ with m2:
 
     <div class="metric-card">
 
-        <div class="metric-card-title">?? Edition Standard</div>
+        <div class="metric-card-title">🔍 Edition Standard</div>
 
         <div class="metric-card-value" style="color: #10b981 !important;">APA 7th</div>
 
@@ -756,7 +756,7 @@ with m3:
 
     <div class="metric-card">
 
-        <div class="metric-card-title">?? Test Categories</div>
+        <div class="metric-card-title">🔍 Test Categories</div>
 
         <div class="metric-card-value">Parametric</div>
 
@@ -770,9 +770,9 @@ with m4:
 
     <div class="metric-card">
 
-        <div class="metric-card-title">?? Effect Sizes</div>
+        <div class="metric-card-title">🔍 Effect Sizes</div>
 
-        <div class="metric-card-value" style="color: #10b981 !important;">Cohen's d / ?�</div>
+        <div class="metric-card-value" style="color: #10b981 !important;">Cohen's d / ?🔍 </div>
 
     </div>
 
@@ -784,7 +784,7 @@ with m5:
 
     <div class="metric-card">
 
-        <div class="metric-card-title">?? Export Formats</div>
+        <div class="metric-card-title">🔍 Export Formats</div>
 
         <div class="metric-card-value">Docx / LaTeX</div>
 
@@ -802,19 +802,19 @@ st.markdown("<hr style='border:1px solid #1e293b; margin: 1.5rem 0;'>", unsafe_a
 
 # --- MULTI-TAB APA REPORTING WORKSPACE ---------------------------------
 
-section_header("?? Academic Manuscript & APA Generation Suite")
+section_header("🔍 Academic Manuscript & APA Generation Suite")
 
 
 
 apa_tabs = st.tabs([
 
-    "?? Formatted Statistical Results",
+    "🔍 Formatted Statistical Results",
 
-    "?? Quick APA Result Formatter",
+    "🔍 Quick APA Result Formatter",
 
-    "?? APA Table Generator (Table 1 / 7th Edition)",
+    "🔍 APA Table Generator (Table 1 / 7th Edition)",
 
-    "?? Complete Manuscript Write-Up Generator"
+    "🔍 Complete Manuscript Write-Up Generator"
 
 ])
 
@@ -842,7 +842,7 @@ with apa_tabs[2]:
 
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
 
-    st.markdown("### ��️ APA 7th Edition Table Generator")
+    st.markdown("### 🔍 ️ APA 7th Edition Table Generator")
 
     st.markdown("Construct perfectly formatted APA Table 1 descriptive statistics or inferential models with clean horizontal borders.")
 
@@ -864,7 +864,7 @@ with apa_tabs[2]:
 
         "Group B Mean (SD)": ["25.1 (3.0)", "44.8 (4.9)", "52.1 (5.4)", "81.0%"],
 
-        "t / ?�": ["1.12", "0.45", "14.92*", "6.34*"],
+        "t / ?🔍 ": ["1.12", "0.45", "14.92*", "6.34*"],
 
         "p": [".266", ".654", "< .001", ".012"],
 
@@ -876,7 +876,7 @@ with apa_tabs[2]:
 
     st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 
-    st.markdown("#### ��️? APA 7th Edition Rendered Preview")
+    st.markdown("#### 🔍 ️? APA 7th Edition Rendered Preview")
 
     
 
@@ -902,7 +902,7 @@ with apa_tabs[2]:
 
                     <th>Group B Mean (SD)</th>
 
-                    <th><i>t</i> / ?�</th>
+                    <th><i>t</i> / ?🔍 </th>
 
                     <th><i>p</i></th>
 
@@ -914,7 +914,7 @@ with apa_tabs[2]:
 
             <tbody>
 
-                {''.join([f"<tr><td>{row['Variable']}</td><td>{row['Group A Mean (SD)']}</td><td>{row['Group B Mean (SD)']}</td><td>{row['t / ?�']}</td><td>{row['p']}</td><td>{row['Effect Size']}</td></tr>" for _, row in demo_table_data.iterrows()])}
+                {''.join([f"<tr><td>{row['Variable']}</td><td>{row['Group A Mean (SD)']}</td><td>{row['Group B Mean (SD)']}</td><td>{row['t / ?🔍 ']}</td><td>{row['p']}</td><td>{row['Effect Size']}</td></tr>" for _, row in demo_table_data.iterrows()])}
 
             </tbody>
 
@@ -938,11 +938,11 @@ with apa_tabs[2]:
 
     with col_t1:
 
-        st.button("?? Export Table to Word (.docx)", key="btn_exp_docx", use_container_width=True)
+        st.button("🔍 Export Table to Word (.docx)", key="btn_exp_docx", use_container_width=True)
 
     with col_t2:
 
-        st.button("?? Copy LaTeX Table Source", key="btn_exp_latex", use_container_width=True)
+        st.button("🔍 Copy LaTeX Table Source", key="btn_exp_latex", use_container_width=True)
 
 
 
@@ -956,7 +956,7 @@ with apa_tabs[3]:
 
     st.markdown('<div class="synth-card">', unsafe_allow_html=True)
 
-    st.markdown("### ��️ Automated Results Section Write-Up Generator")
+    st.markdown("### 🔍 ️ Automated Results Section Write-Up Generator")
 
     st.markdown("Synthesize raw statistical outputs into a complete, publication-ready APA 7th Edition Results Section.")
 
@@ -988,11 +988,11 @@ with apa_tabs[3]:
 
 
 
-    if st.button("?? Compile Full APA Results Section", type="primary", key="btn_compile_manuscript", use_container_width=True):
+    if st.button("🔍 Compile Full APA Results Section", type="primary", key="btn_compile_manuscript", use_container_width=True):
 
         st.markdown("<hr style='border:1px solid #1e293b; margin: 1.2rem 0;'>", unsafe_allow_html=True)
 
-        st.markdown("#### ��️ Draft Results Section (APA 7th Edition)")
+        st.markdown("#### 🔍 ️ Draft Results Section (APA 7th Edition)")
 
         
 
@@ -1010,7 +1010,7 @@ A total sample of N = 120 participants was evaluated across two treatment arms. 
 
 #### Primary Hypothesis Testing
 
-To evaluate the primary hypothesis�*{study_hypothesis}*�an independent-samples t-test was conducted. As predicted, participants in Group A ($M = 68.40, SD = 4.80$) achieved significantly higher performance scores than participants in Group B ($M = 52.10, SD = 5.40$), $t(118) = 14.92, p < .001, d = 3.18, 95\\%\\text{ CI } [14.10, 18.50]$. 
+To evaluate the primary hypothesis🔍 *{study_hypothesis}*🔍 an independent-samples t-test was conducted. As predicted, participants in Group A ($M = 68.40, SD = 4.80$) achieved significantly higher performance scores than participants in Group B ($M = 52.10, SD = 5.40$), $t(118) = 14.92, p < .001, d = 3.18, 95\\%\\text{ CI } [14.10, 18.50]$. 
 
 
 
@@ -1022,7 +1022,7 @@ Furthermore, a chi-square test of independence revealed a significant difference
 
         st.download_button(
 
-            "?? Download Manuscript Write-Up (.md)",
+            "🔍 Download Manuscript Write-Up (.md)",
 
             data=manuscript_draft,
 
