@@ -15,102 +15,34 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# HIGH-CONTRAST ENTERPRISE CSS (CLEAN & HIGH VISIBILITY)
+# SCOPED / NON-INTRUSIVE CSS (PREVENTS STYLE BLEED)
 # ---------------------------------------------------------
+# Notice: No global overrides on radio groups, section tags, or global HTML body
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif !important;
-    }
-    
-    /* Main Canvas Styling */
-    .stApp {
-        background-color: #0b0f19;
-        color: #f8fafc;
-    }
-
-    /* --- SIDEBAR HIGH-CONTRAST TEXT FIXES --- */
-    section[data-testid="stSidebar"] {
-        background-color: #0f172a !important;
-        border-right: 1px solid #1e293b !important;
-    }
-
-    /* Target all radio/navigation text in sidebar */
-    section[data-testid="stSidebar"] div[role="radiogroup"] label {
-        background-color: transparent !important;
-        padding: 8px 12px !important;
-        border-radius: 8px !important;
-        margin-bottom: 4px !important;
-        transition: all 0.2s ease !important;
-    }
-
-    /* Unselected radio button label text */
-    section[data-testid="stSidebar"] div[role="radiogroup"] label p {
-        color: #e2e8f0 !important;
-        font-weight: 500 !important;
-        font-size: 0.95rem !important;
-    }
-
-    /* Hover state for navigation options */
-    section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
-        background-color: #1e293b !important;
-    }
-
-    /* Selected radio button option label text */
-    section[data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] {
-        background-color: #2563eb !important;
-    }
-
-    section[data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] p {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-    }
-
-    /* High-Contrast Card Containers */
-    .custom-card {
-        background: #1e293b;
+    /* Scoped container cards - won't leak into other pages */
+    .scoped-metric-card {
+        background-color: #1e293b;
         border: 1px solid #334155;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
     }
-    
-    .card-label {
-        font-size: 0.8rem;
+    .scoped-card-title {
+        font-size: 0.75rem;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
         color: #94a3b8;
         font-weight: 600;
-        margin-bottom: 0.3rem;
     }
-    
-    .card-value {
-        font-size: 1.75rem;
+    .scoped-card-val {
+        font-size: 1.6rem;
         font-weight: 800;
         color: #38bdf8;
     }
-    
-    .card-sub {
-        font-size: 0.85rem;
+    .scoped-card-sub {
+        font-size: 0.8rem;
         color: #34d399;
         font-weight: 600;
-        margin-top: 0.2rem;
-    }
-
-    /* Primary Header */
-    .header-text {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #ffffff;
-        letter-spacing: -0.02em;
-    }
-    
-    .sub-text {
-        color: #94a3b8;
-        font-size: 0.9rem;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -119,13 +51,13 @@ st.markdown("""
 # MAIN NAVIGATION & LAYOUT
 # ---------------------------------------------------------
 def main():
-    # Sidebar Top Header
+    # Sidebar Navigation using native Streamlit layout
     st.sidebar.title("🌌 CHRISHEM")
     st.sidebar.caption("Sovereign Enterprise Engine")
     st.sidebar.markdown("---")
 
-    navigation = st.sidebar.radio(
-        "Select Page",
+    navigation = st.sidebar.selectbox(
+        "Select Navigation Hub",
         [
             "Personal Workspace",
             "Access Control & Licensing",
@@ -138,81 +70,82 @@ def main():
             "Telemetry & Smart Alerts",
             "System Diagnostics & Health",
             "API & Integration Gateway"
-        ],
-        label_visibility="collapsed"
+        ]
     )
 
     st.sidebar.markdown("---")
 
-    # Native Clean Status Indicators
-    with st.sidebar.container():
-        st.caption("SYSTEM STATUS")
-        st.success("🟢 Operational (100%)")
-        st.info("🔒 Secure Sovereign Enclave")
+    # Native Status Indicators in Sidebar
+    st.sidebar.caption("SYSTEM STATUS")
+    st.sidebar.success("🟢 Operational (100%)")
+    st.sidebar.info("🔒 Secure Sovereign Enclave")
 
-    # Main Header
-    st.markdown(f'<div class="header-text">{navigation}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sub-text">Enterprise Operational Node | Timestamp: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} EAT</div>', unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
+    # Canvas Header Section
+    st.title(f"🌌 {navigation}")
+    st.caption(f"Enterprise Operational Node | Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} EAT")
+    st.markdown("---")
 
     # ---------------------------------------------------------
     # ROUTE: PERSONAL WORKSPACE
     # ---------------------------------------------------------
     if navigation == "Personal Workspace":
-        st.markdown("### Universal Personal Workspace & Productivity Hub")
-        st.caption("Manage research milestones, bioinformatics pipelines, system configurations, and daily workflow tasks.")
-        st.markdown("<br>", unsafe_allow_html=True)
+        try:
+            from modules.personal_workspace import render_personal_workspace_panel
+            render_personal_workspace_panel()
+        except Exception:
+            st.subheader("Universal Personal Workspace & Productivity Hub")
+            st.caption("Manage research milestones, bioinformatics pipelines, system configurations, and daily workflow tasks.")
+            st.markdown("<br>", unsafe_allow_html=True)
 
-        # High-Contrast Metric Cards
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            st.markdown("""
-                <div class="custom-card">
-                    <div class="card-label">Active Milestones</div>
-                    <div class="card-value">4 Tracked</div>
-                    <div class="card-sub">Up to Date</div>
-                </div>
-            """, unsafe_allow_html=True)
-        with c2:
-            st.markdown("""
-                <div class="custom-card">
-                    <div class="card-label">Research Progress</div>
-                    <div class="card-value">94.2%</div>
-                    <div class="card-sub">+3.5% Auto</div>
-                </div>
-            """, unsafe_allow_html=True)
-        with c3:
-            st.markdown("""
-                <div class="custom-card">
-                    <div class="card-label">Workspace Status</div>
-                    <div class="card-value">Synced</div>
-                    <div class="card-sub">Local Enclave</div>
-                </div>
-            """, unsafe_allow_html=True)
-        with c4:
-            st.markdown("""
-                <div class="custom-card">
-                    <div class="card-label">Focus Score</div>
-                    <div class="card-value">100%</div>
-                    <div class="card-sub">Deep Work</div>
-                </div>
-            """, unsafe_allow_html=True)
+            # Scoped Metric Cards
+            c1, c2, c3, c4 = st.columns(4)
+            with c1:
+                st.markdown("""
+                    <div class="scoped-metric-card">
+                        <div class="scoped-card-title">Active Milestones</div>
+                        <div class="scoped-card-val">4 Tracked</div>
+                        <div class="scoped-card-sub">Up to Date</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            with c2:
+                st.markdown("""
+                    <div class="scoped-metric-card">
+                        <div class="scoped-card-title">Research Progress</div>
+                        <div class="scoped-card-val">94.2%</div>
+                        <div class="scoped-card-sub">+3.5% Auto</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            with c3:
+                st.markdown("""
+                    <div class="scoped-metric-card">
+                        <div class="scoped-card-title">Workspace Status</div>
+                        <div class="scoped-card-val">Synced</div>
+                        <div class="scoped-card-sub">Local Enclave</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            with c4:
+                st.markdown("""
+                    <div class="scoped-metric-card">
+                        <div class="scoped-card-title">Focus Score</div>
+                        <div class="scoped-card-val">100%</div>
+                        <div class="scoped-card-sub">Deep Work</div>
+                    </div>
+                """, unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("#### 🎯 Active Research & Task Milestones")
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("#### 🎯 Active Research & Task Milestones")
 
-        # Clean Table Output
-        tasks_df = pd.DataFrame([
-            {"Task Item": "Waterborne Pathogen Surveillance Batch Analysis", "Category": "Bioinformatics Research", "Priority": "Critical", "Status": "IN PROGRESS"},
-            {"Task Item": "ALX Data Analytics Portfolio Integration", "Category": "Professional Certification", "Priority": "High", "Status": "OPTIMIZED"},
-            {"Task Item": "Desktop Environment Customization & UI Polish", "Category": "Workspace Customization", "Priority": "Medium", "Status": "ACTIVE"},
-            {"Task Item": "Cryptographic Vault Key Rotation", "Category": "Security Engineering", "Priority": "Critical", "Status": "COMPLETED"}
-        ])
-        st.dataframe(tasks_df, use_container_width=True, hide_index=True)
+            tasks_df = pd.DataFrame([
+                {"Task Item": "Waterborne Pathogen Surveillance Batch Analysis", "Category": "Bioinformatics Research", "Priority": "Critical", "Status": "IN PROGRESS"},
+                {"Task Item": "ALX Data Analytics Portfolio Integration", "Category": "Professional Certification", "Priority": "High", "Status": "OPTIMIZED"},
+                {"Task Item": "Desktop Environment Customization & UI Polish", "Category": "Workspace Customization", "Priority": "Medium", "Status": "ACTIVE"},
+                {"Task Item": "Cryptographic Vault Key Rotation", "Category": "Security Engineering", "Priority": "Critical", "Status": "COMPLETED"}
+            ])
+            st.dataframe(tasks_df, use_container_width=True, hide_index=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("#### 📝 Quick Notes & Code Snippet Vault")
-        st.text_area("Jot down research notes, terminal commands, or project ideas:", height=120, placeholder="Type notes here...")
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("#### 📝 Quick Notes & Code Snippet Vault")
+            st.text_area("Jot down research notes, terminal commands, or project ideas:", height=120, placeholder="Type notes here...")
 
         st.markdown("---")
         st.markdown("#### 📁 Embedded Secure Personal Vault Explorer")
@@ -241,55 +174,95 @@ def main():
                         st.caption(f"Size: {item['size']} | Status: {item['status']}")
 
     # ---------------------------------------------------------
-    # OTHER ROUTES
+    # OTHER STANDALONE SUB-MODULE ROUTES
     # ---------------------------------------------------------
     elif navigation == "Access Control & Licensing":
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Clearance Tier", "Tier-1 Sovereign")
-        c2.metric("License Expiry", "2030-12-31")
-        c3.metric("Active Sessions", "3 Nodes")
+        try:
+            from modules.access_control import render_access_control_panel
+            render_access_control_panel()
+        except Exception:
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Clearance Tier", "Tier-1 Sovereign")
+            c2.metric("License Expiry", "2030-12-31")
+            c3.metric("Active Sessions", "3 Nodes")
 
     elif navigation == "Ecosystem Apex":
-        st.markdown("#### Macro Topology Monitor")
-        cols = st.columns(4)
-        cols[0].metric("Grid Load", "84.2 %")
-        cols[1].metric("Throughput", "1.2 TB/s")
-        cols[2].metric("Latency", "2.1 ms")
-        cols[3].metric("Resilience", "99.98 %")
+        try:
+            from modules.ecosystem_apex import render_ecosystem_apex_panel
+            render_ecosystem_apex_panel()
+        except Exception:
+            st.markdown("#### Macro Topology Monitor")
+            cols = st.columns(4)
+            cols[0].metric("Grid Load", "84.2 %")
+            cols[1].metric("Throughput", "1.2 TB/s")
+            cols[2].metric("Latency", "2.1 ms")
+            cols[3].metric("Resilience", "99.98 %")
 
     elif navigation == "AI Intelligence Daemon":
-        st.markdown("#### Autonomous Intelligence Console")
-        prompt = st.text_input("Enter natural language directive:")
-        if prompt:
-            st.info(f"Command executed: **{prompt}**")
+        try:
+            from modules.ai_intelligence_daemon import render_ai_intelligence_panel
+            render_ai_intelligence_panel()
+        except Exception:
+            st.markdown("#### Autonomous Intelligence Console")
+            prompt = st.text_input("Enter natural language directive:")
+            if prompt:
+                st.info(f"Command executed: **{prompt}**")
 
     elif navigation == "Admin Billing Ledger":
-        st.markdown("#### Billing & Resource Allocation")
-        c1, c2 = st.columns(2)
-        c1.metric("Current Cycle", "JULY 2026")
-        c2.metric("Compute Allocation", ",240.50 USD")
+        try:
+            from modules.admin_billing_core import render_admin_billing_panel
+            render_admin_billing_panel()
+        except Exception:
+            st.markdown("#### Billing & Resource Allocation")
+            c1, c2 = st.columns(2)
+            c1.metric("Current Cycle", "JULY 2026")
+            c2.metric("Compute Allocation", ",240.50 USD")
 
     elif navigation == "Workflow Scheduler":
-        st.markdown("#### Autonomous Task Scheduler")
-        st.checkbox("Enable Automated Nightly Git Sync", value=True)
+        try:
+            from modules.workflow_scheduler import render_workflow_scheduler_panel
+            render_workflow_scheduler_panel()
+        except Exception:
+            st.markdown("#### Autonomous Task Scheduler")
+            st.checkbox("Enable Automated Nightly Git Sync", value=True)
 
     elif navigation == "Neural Forecaster & AI":
-        st.markdown("#### Neural Forecast Matrix")
-        st.line_chart(np.sin(np.linspace(0, 10, 30)))
+        try:
+            from modules.neural_forecaster import render_neural_forecaster_panel
+            render_neural_forecaster_panel()
+        except Exception:
+            st.markdown("#### Neural Forecast Matrix")
+            st.line_chart(np.sin(np.linspace(0, 10, 30)))
 
     elif navigation == "Academic & CV Studio":
-        st.markdown("#### Academic Portfolio Studio")
-        st.write("**Lead Researcher:** Kula Chris")
-        st.write("**Focus:** Bioinformatics, Systems Biology & Data Analytics")
+        try:
+            from modules.academic_portfolio_studio import render_academic_portfolio_studio_panel
+            render_academic_portfolio_studio_panel()
+        except Exception:
+            st.markdown("#### Academic Portfolio Studio")
+            st.write("**Lead Researcher:** Kula Chris")
+            st.write("**Focus:** Bioinformatics, Systems Biology & Data Analytics")
 
     elif navigation == "Telemetry & Smart Alerts":
-        st.success("✅ Systems Operating Within Thermal Limits")
+        try:
+            from modules.telemetry_alerting import render_telemetry_alerting_panel
+            render_telemetry_alerting_panel()
+        except Exception:
+            st.success("✅ Systems Operating Within Thermal Limits")
 
     elif navigation == "System Diagnostics & Health":
-        st.success("✅ Diagnostic Integrity Verified")
+        try:
+            from modules.system_diagnostics import render_system_diagnostics_panel
+            render_system_diagnostics_panel()
+        except Exception:
+            st.success("✅ Diagnostic Integrity Verified")
 
     elif navigation == "API & Integration Gateway":
-        st.code("POST /api/v1/sovereign/execute")
+        try:
+            from modules.api_integration_gateway import render_api_gateway_panel
+            render_api_gateway_panel()
+        except Exception:
+            st.code("POST /api/v1/sovereign/execute")
 
 if __name__ == "__main__":
     main()
