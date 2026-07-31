@@ -1,6 +1,6 @@
-﻿# ═══════════════════════════════════════════════════════════════════════════════
+# -------------------------------------------------------------------------------
 # AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.5]
-# ═══════════════════════════════════════════════════════════════════════════════
+# -------------------------------------------------------------------------------
 
 import datetime
 import json
@@ -16,7 +16,7 @@ from streamlit_webrtc import RTCConfiguration, WebRtcMode, webrtc_streamer
 # Page Config
 st.set_page_config(
     page_title="Autonomous Collaboration & Research Suite",
-    page_icon="🎯",
+    page_icon="??",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -110,7 +110,7 @@ if "current_active_speaker" not in st.session_state:
       "name": "Chris Shem",
       "badge_type": "gold",
       "role": "Host / Operator",
-      "status": "Speaking 🎙️",
+      "status": "Speaking ???",
       "db": "84 dB",
   }
 
@@ -146,7 +146,7 @@ if "is_stream_paused" not in st.session_state:
   st.session_state["is_stream_paused"] = False
 if "pause_message" not in st.session_state:
   st.session_state["pause_message"] = (
-      "⏸️ Host paused the live stream. We'll be right back!"
+      "?? Host paused the live stream. We'll be right back!"
   )
 if "quick_vault" not in st.session_state:
   st.session_state["quick_vault"] = [
@@ -161,6 +161,49 @@ if "audit_reports" not in st.session_state:
 st.markdown(
     """
 <style>
+    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        background-color: #090d16 !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Target navigation links and text explicitly */
+    [data-testid="stSidebarNav"] span, 
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stSidebarHeader"] {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Navigation item hover state */
+    [data-testid="stSidebarNavLink"]:hover,
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+    }
+
+    /* Currently selected navigation item active state */
+    [data-testid="stSidebarNavLink"][aria-current="page"],
+    [data-testid="stSidebarNav"] a[aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Custom form inputs inside sidebar */
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stMultiSelect label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }
     .stApp { background-color: #0b0f19; color: #f8fafc; font-family: -apple-system, sans-serif; }
     input, textarea, select {
         background-color: #111827 !important;
@@ -292,7 +335,7 @@ if not st.session_state["in_session"]:
   st.markdown(
       """
         <div class="hero-banner">
-            <div style="font-size:3.5rem;margin-bottom:0.75rem;">🎯</div>
+            <div style="font-size:3.5rem;margin-bottom:0.75rem;">??</div>
             <h1 style="color:#f1f5f9;font-size:2.2rem;font-weight:800;margin-bottom:0.75rem;">
                 Autonomous Collaboration & Research Suite
             </h1>
@@ -341,7 +384,7 @@ if not st.session_state["in_session"]:
     c_act1, c_act2, c_act3 = st.columns(3)
     with c_act1:
       if st.button(
-          "🚀 Launch Room", type="primary", use_container_width=True
+          "?? Launch Room", type="primary", use_container_width=True
       ):
         st.session_state["room_id"] = str(uuid.uuid4())[:8].upper()
         st.session_state["in_session"] = True
@@ -350,7 +393,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
-                "status": "Speaking 🎙️",
+                "status": "Speaking ???",
                 "badge_type": st.session_state["host_badge_type"],
                 "anonymous": False,
                 "allow_cam": True,
@@ -358,7 +401,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["participant_name"],
                 "role": "Verified Co-Host",
-                "status": "Presenting 📊",
+                "status": "Presenting ??",
                 "badge_type": "blue",
                 "anonymous": False,
                 "allow_cam": True,
@@ -366,7 +409,7 @@ if not st.session_state["in_session"]:
         ]
         st.rerun()
     with c_act2:
-      if st.button("🔗 Join Room", use_container_width=True):
+      if st.button("?? Join Room", use_container_width=True):
         st.session_state["room_id"] = room_input
         st.session_state["in_session"] = True
         st.session_state["session_start_time"] = datetime.datetime.now()
@@ -374,7 +417,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
-                "status": "Speaking 🎙️",
+                "status": "Speaking ???",
                 "badge_type": st.session_state["host_badge_type"],
                 "anonymous": False,
                 "allow_cam": True,
@@ -382,7 +425,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["participant_name"],
                 "role": "Verified Co-Host",
-                "status": "Listening 🟢",
+                "status": "Listening ??",
                 "badge_type": "blue",
                 "anonymous": False,
                 "allow_cam": True,
@@ -390,7 +433,7 @@ if not st.session_state["in_session"]:
         ]
         st.rerun()
     with c_act3:
-      if st.button("🧪 Test VIP Tour", use_container_width=True):
+      if st.button("?? Test VIP Tour", use_container_width=True):
         st.session_state["room_id"] = "VERIFIED-2026"
         st.session_state["in_session"] = True
         st.session_state["session_start_time"] = datetime.datetime.now()
@@ -398,7 +441,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["host_name"],
                 "role": "Host (Operator)",
-                "status": "Speaking 🎙️",
+                "status": "Speaking ???",
                 "badge_type": "gold",
                 "anonymous": False,
                 "allow_cam": True,
@@ -406,7 +449,7 @@ if not st.session_state["in_session"]:
             {
                 "name": st.session_state["participant_name"],
                 "role": "Verified Co-Host",
-                "status": "Presenting 📊",
+                "status": "Presenting ??",
                 "badge_type": "blue",
                 "anonymous": False,
                 "allow_cam": True,
@@ -414,7 +457,7 @@ if not st.session_state["in_session"]:
             {
                 "name": "Dr. Nsubuga",
                 "role": "Celebrity Guest VIP",
-                "status": "Listening 🟢",
+                "status": "Listening ??",
                 "badge_type": "gold",
                 "anonymous": False,
                 "allow_cam": True,
@@ -422,20 +465,20 @@ if not st.session_state["in_session"]:
             {
                 "name": "Agent Ghost (Encrypted)",
                 "role": "Stealth Contributor",
-                "status": "Speaking (Audio Only) 🔒",
+                "status": "Speaking (Audio Only) ??",
                 "badge_type": "none",
                 "anonymous": True,
                 "allow_cam": False,
             },
         ]
         st.toast(
-            "🧪 Initialized Suite with Plagiarism Audit Engine & Badges!",
-            icon="🎯",
+            "?? Initialized Suite with Plagiarism Audit Engine & Badges!",
+            icon="??",
         )
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("##### 📅 Recurring Enterprise Calendar Preview")
+    st.markdown("##### ?? Recurring Enterprise Calendar Preview")
     for cal in st.session_state["calendar_schedule"]:
       st.markdown(
           f"- **{cal['day']}s at {cal['time']}**: `{cal['title']}` *(Room:"
@@ -454,7 +497,7 @@ else:
 
   if remaining_seconds <= 0:
     st.session_state["in_session"] = False
-    st.warning("🛑 Session time expired. Automatically terminated.")
+    st.warning("?? Session time expired. Automatically terminated.")
     st.rerun()
 
   rem_minutes, rem_secs = divmod(max(0, remaining_seconds), 60)
@@ -471,7 +514,7 @@ else:
   st.markdown(
       f"""
         <div class="floating-pip-hud">
-            <div style="font-size:0.7rem;color:#38bdf8;margin-bottom:2px;font-weight:bold;">🎙️ LIVE SPEAKER HUD</div>
+            <div style="font-size:0.7rem;color:#38bdf8;margin-bottom:2px;font-weight:bold;">??? LIVE SPEAKER HUD</div>
             <div style="font-size:0.95rem;font-weight:bold;color:#f8fafc;">{curr_spk['name']} {curr_badge_html}</div>
             <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:6px;">{curr_spk['role']}</div>
             <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#34d399;">
@@ -486,7 +529,7 @@ else:
   # Top Navigation & Telemetry Hub with Dashboard Escape Hatch
   h1, h2, h3, h4, h5 = st.columns([1.5, 1.5, 1.6, 1.4, 1.2])
   with h1:
-    st.markdown(f"### 🟢 Room: `{st.session_state['room_id']}`")
+    st.markdown(f"### ?? Room: `{st.session_state['room_id']}`")
     host_badge_class = st.session_state.get("host_badge_type", "gold")
     st.markdown(
         f"Host: **{st.session_state['host_name']}** <span"
@@ -500,7 +543,7 @@ else:
     st.markdown(
         f"""
             <div class="telemetry-card">
-                <div style="color:#94a3b8;font-size:0.75rem;">⏳ COUNTDOWN</div>
+                <div style="color:#94a3b8;font-size:0.75rem;">? COUNTDOWN</div>
                 <div style="color:{timer_color};font-size:1.05rem;font-weight:bold;font-family:monospace;">{countdown_str}</div>
             </div>
             """,
@@ -510,18 +553,18 @@ else:
   with h3:
     shareable_link = f"https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
     st.markdown(
-        f'<div class="link-display" style="font-size:0.75rem;overflow:hidden;text-overflow:ellipsis;">🔗 {shareable_link}</div>',
+        f'<div class="link-display" style="font-size:0.75rem;overflow:hidden;text-overflow:ellipsis;">?? {shareable_link}</div>',
         unsafe_allow_html=True,
     )
 
   with h4:
-    if st.button("➕ Extend", type="secondary", use_container_width=True):
+    if st.button("? Extend", type="secondary", use_container_width=True):
       st.session_state["session_duration_minutes"] += 15
-      st.toast("⏱️ Session extended by 15 minutes!", icon="🚀")
+      st.toast("?? Session extended by 15 minutes!", icon="??")
       st.rerun()
 
   with h5:
-    if st.button("🏠 Dashboard", type="primary", use_container_width=True):
+    if st.button("?? Dashboard", type="primary", use_container_width=True):
       st.session_state["in_session"] = False
       st.rerun()
 
@@ -541,20 +584,20 @@ else:
       tab_transcript,
       tab_playback,
   ) = st.tabs([
-      "🎥 WebRTC HD Video Feeds",
-      "🛡️ Plagiarism & AI Audit Suite",
-      "📅 Recurring Calendar & Scheduler",
-      "🚀 Omni-Share & Asset Vault",
-      "⭐ VIP & Celebrity Badges",
-      "📤 Bulk WhatsApp & Invites",
-      "💬 Audience & Chat",
-      "📋 Shared Whiteboard",
-      "👑 Host Controls & Stealth",
-      "🤖 AI Intelligent Minutes",
-      "📼 Record & Playback",
+      "?? WebRTC HD Video Feeds",
+      "??? Plagiarism & AI Audit Suite",
+      "?? Recurring Calendar & Scheduler",
+      "?? Omni-Share & Asset Vault",
+      "? VIP & Celebrity Badges",
+      "?? Bulk WhatsApp & Invites",
+      "?? Audience & Chat",
+      "?? Shared Whiteboard",
+      "?? Host Controls & Stealth",
+      "?? AI Intelligent Minutes",
+      "?? Record & Playback",
   ])
 
-  # ── Tab 1: WebRTC HD Video Feeds ──
+  # -- Tab 1: WebRTC HD Video Feeds --
   with tab_video_mesh:
     st.markdown(
         "#### High-Grade WebRTC Live Video Mesh & Active Speaker Spotlight"
@@ -563,9 +606,9 @@ else:
     pause_col1, pause_col2, pause_col3 = st.columns([1.2, 2.5, 1])
     with pause_col1:
       if st.button(
-          "▶️ Resume Stream"
+          "?? Resume Stream"
           if st.session_state["is_stream_paused"]
-          else "⏸️ Pause Stream (Notice)",
+          else "?? Pause Stream (Notice)",
           type="primary" if st.session_state["is_stream_paused"] else "secondary",
           use_container_width=True,
       ):
@@ -585,13 +628,13 @@ else:
     with pause_col3:
       if st.session_state["is_stream_paused"]:
         st.markdown(
-            '<span style="color:#f87171;font-weight:bold;">⏸️ Stream'
+            '<span style="color:#f87171;font-weight:bold;">?? Stream'
             " Paused</span>",
             unsafe_allow_html=True,
         )
       else:
         st.markdown(
-            '<span style="color:#34d399;font-weight:bold;">🟢 Broadcast'
+            '<span style="color:#34d399;font-weight:bold;">?? Broadcast'
             " Live</span>",
             unsafe_allow_html=True,
         )
@@ -607,7 +650,7 @@ else:
       mirror_feed = st.toggle("Mirror Video Stream", value=True)
 
     filter_mode = st.selectbox(
-        "🎨 Cinematic Filters (Apple-Grade FX - Select anytime)",
+        "?? Cinematic Filters (Apple-Grade FX - Select anytime)",
         [
             "Standard HD",
             "Cinematic Contrast",
@@ -645,7 +688,7 @@ else:
     with col_self:
       h_badge_cls = st.session_state.get("host_badge_type", "gold")
       st.markdown(
-          f"##### 🪞 Verified Host View: `{st.session_state['host_name']}`"
+          f"##### ?? Verified Host View: `{st.session_state['host_name']}`"
           f' <span class="verified-badge-{h_badge_cls}"'
           ' title="Verified"></span>',
           unsafe_allow_html=True,
@@ -655,10 +698,10 @@ else:
         st.markdown(
             f"""
                 <div class="pause-overlay">
-                    <div style="font-size:3rem;margin-bottom:0.5rem;">⏸️</div>
+                    <div style="font-size:3rem;margin-bottom:0.5rem;">??</div>
                     <h3 style="color:#f8fafc;margin-bottom:0.5rem;">Stream Paused by Host</h3>
                     <p style="color:#cbd5e1;font-size:1.05rem;">{st.session_state['pause_message']}</p>
-                    <div style="margin-top:1rem;color:#a5b4fc;font-size:0.85rem;">Stand by — session will resume shortly.</div>
+                    <div style="margin-top:1rem;color:#a5b4fc;font-size:0.85rem;">Stand by � session will resume shortly.</div>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -687,24 +730,24 @@ else:
 
     with col_participants:
       st.markdown(
-          "##### 🎙️ Active Speaker Spotlight & Telemetry Roster"
+          "##### ??? Active Speaker Spotlight & Telemetry Roster"
       )
 
       speaker_options = [a["name"] for a in st.session_state["active_attendees"]]
       selected_spk = st.selectbox(
           "Set Active Speaker for Floating HUD", speaker_options
       )
-      if st.button("🎙️ Assign as Active Speaker"):
+      if st.button("??? Assign as Active Speaker"):
         for a in st.session_state["active_attendees"]:
           if a["name"] == selected_spk:
             st.session_state["current_active_speaker"] = {
                 "name": a["name"],
                 "badge_type": a.get("badge_type", "blue"),
                 "role": a["role"],
-                "status": "Speaking 🎙️",
+                "status": "Speaking ???",
                 "db": "86 dB",
             }
-            st.success(f"✅ Active speaker updated to **{a['name']}**!")
+            st.success(f"? Active speaker updated to **{a['name']}**!")
             st.rerun()
 
       attendee_cards_html = ""
@@ -713,8 +756,8 @@ else:
         b_type = att.get("badge_type", "blue")
 
         if is_anon:
-          disp_name = f"🕵️ Anonymous Contributor #{idx+1}"
-          badge_tag = '<span class="stealth-badge">🔒 Encrypted Voice</span>'
+          disp_name = f"??? Anonymous Contributor #{idx+1}"
+          badge_tag = '<span class="stealth-badge">?? Encrypted Voice</span>'
           cam_status = (
               '<span style="color:#94a3b8;font-size:0.75rem;">No Camera'
               " (Strict Anonymity)</span>"
@@ -750,9 +793,9 @@ else:
           unsafe_allow_html=True,
       )
 
-  # ── Tab 2: Plagiarism & AI Content Audit Suite (HOST & CO-HOST EXCLUSIVE) ──
+  # -- Tab 2: Plagiarism & AI Content Audit Suite (HOST & CO-HOST EXCLUSIVE) --
   with tab_plag_audit:
-    st.markdown("#### 🛡️ Advanced Host & Co-Host Exclusive Plagiarism & AI Audit Suite")
+    st.markdown("#### ??? Advanced Host & Co-Host Exclusive Plagiarism & AI Audit Suite")
     st.caption(
         "Restricted exclusively to Verified Hosts and Co-Hosts. Scan ongoing"
         " presented documents or active transcripts for lexical originality,"
@@ -780,7 +823,7 @@ else:
       st.markdown(
           """
             <div style="background:#1f2937;border:1px solid #f87171;border-radius:12px;padding:2rem;text-align:center;margin-top:2rem;">
-                <div style="font-size:3rem;margin-bottom:0.5rem;">🔒</div>
+                <div style="font-size:3rem;margin-bottom:0.5rem;">??</div>
                 <h3 style="color:#f87171;margin-bottom:0.5rem;">Restricted Access Area</h3>
                 <p style="color:#94a3b8;font-size:1rem;">The Plagiarism & AI Content Audit Suite is strictly available to Verified Hosts and Co-Hosts.</p>
             </div>
@@ -792,7 +835,7 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### ⚙️ Audit Scan Configuration & Temporal Duration")
+      st.markdown("##### ?? Audit Scan Configuration & Temporal Duration")
 
       audit_col1, audit_col2, audit_col3 = st.columns(3)
       with audit_col1:
@@ -826,7 +869,7 @@ else:
         )
 
       if st.button(
-          "🚀 Execute Plagiarism & AI Content Audit Now",
+          "?? Execute Plagiarism & AI Content Audit Now",
           type="primary",
           use_container_width=True,
       ):
@@ -870,8 +913,8 @@ else:
           }
           st.session_state["audit_reports"].insert(0, new_report)
           st.toast(
-              "🛡️ Plagiarism and AI Content Audit completed successfully!",
-              icon="🎯",
+              "??? Plagiarism and AI Content Audit completed successfully!",
+              icon="??",
           )
           st.rerun()
       st.markdown("</div>", unsafe_allow_html=True)
@@ -884,7 +927,7 @@ else:
             '<div class="omni-share-card">', unsafe_allow_html=True
         )
         st.markdown(
-            f"##### 📊 Audit Results & Graphical Breakdown [ID: `{latest['id']}`]"
+            f"##### ?? Audit Results & Graphical Breakdown [ID: `{latest['id']}`]"
         )
         st.caption(
             f"Scanned at {latest['timestamp']} | Duration Window:"
@@ -895,7 +938,7 @@ else:
         m_col1, m_col2, m_col3 = st.columns(3)
         with m_col1:
           st.metric(
-              label="🤖 AI Generation Probability",
+              label="?? AI Generation Probability",
               value=f"{latest['ai_score']}%",
               delta=(
                   "+4.2% (High Neural Signature)"
@@ -906,7 +949,7 @@ else:
           )
         with m_col2:
           st.metric(
-              label="📚 Plagiarism & Match Rate",
+              label="?? Plagiarism & Match Rate",
               value=f"{latest['plag_score']}%",
               delta=(
                   "+2.1% (Web Cross-Matches)"
@@ -917,7 +960,7 @@ else:
           )
         with m_col3:
           st.metric(
-              label="✨ Originality Index",
+              label="? Originality Index",
               value=f"{latest['original_score']}%",
               delta="High Integrity",
               delta_color="normal",
@@ -932,13 +975,13 @@ else:
 
         # Detailed Source Matches & Breakdown
         st.markdown("---")
-        st.markdown("##### 🔍 Granular Source & Neural Pattern Inspection")
+        st.markdown("##### ?? Granular Source & Neural Pattern Inspection")
         col_det1, col_det2 = st.columns(2)
         with col_det1:
           st.markdown(
               f"""
                 <div style="background:#0d1117;border:1px solid #30363d;padding:12px;border-radius:8px;">
-                    <div style="color:#38bdf8;font-weight:bold;margin-bottom:6px;">🤖 AI Content Indicators</div>
+                    <div style="color:#38bdf8;font-weight:bold;margin-bottom:6px;">?? AI Content Indicators</div>
                     <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:#94a3b8;">
                         <li>Perplexity score: <b>{'Low (Predictable)' if latest['ai_score'] > 50 else 'High (Natural)'}</b></li>
                         <li>Burstiness variation: <b>{'Uniform sentence structure' if latest['ai_score'] > 50 else 'Dynamic rhythm'}</b></li>
@@ -952,7 +995,7 @@ else:
           st.markdown(
               f"""
                 <div style="background:#0d1117;border:1px solid #30363d;padding:12px;border-radius:8px;">
-                    <div style="color:#38bdf8;font-weight:bold;margin-bottom:6px;">📚 Plagiarism Database Matches</div>
+                    <div style="color:#38bdf8;font-weight:bold;margin-bottom:6px;">?? Plagiarism Database Matches</div>
                     <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:#94a3b8;">
                         <li>Academic repositories: <b>{'3 potential matches found' if latest['plag_score'] > 15 else 'No matches'}</b></li>
                         <li>Web index crawl: <b>{'Clean' if latest['plag_score'] < 10 else 'Partial overlap detected'}</b></li>
@@ -965,7 +1008,7 @@ else:
 
         # Download Report Option
         st.markdown("---")
-        report_download_text = f"""# 🛡️ Official Plagiarism & AI Content Audit Report
+        report_download_text = f"""# ??? Official Plagiarism & AI Content Audit Report
 **Audit ID:** `{latest['id']}`  
 **Room Identifier:** `{st.session_state['room_id']}`  
 **Authorized Auditor:** `{st.session_state['host_name']}`  
@@ -974,12 +1017,12 @@ else:
 
 ---
 
-## 📊 Summary Metrics
+## ?? Summary Metrics
 - **Originality Score:** `{latest['original_score']}%`
 - **AI Generation Probability:** `{latest['ai_score']}%`
 - **Plagiarism Match Rate:** `{latest['plag_score']}%`
 
-## 📝 Analyzed Content Snippet
+## ?? Analyzed Content Snippet
 > {latest['snippet']}
 
 ---
@@ -987,7 +1030,7 @@ else:
 """
 
         st.download_button(
-            label="⬇️ Download Official Audit Report (.md)",
+            label="?? Download Official Audit Report (.md)",
             data=report_download_text,
             file_name=f"Plagiarism_AI_Audit_{latest['id']}.md",
             mime="text/markdown",
@@ -1001,9 +1044,9 @@ else:
             " run a scan above."
         )
 
-  # ── Tab 3: Recurring Enterprise Calendar & Scheduler ──
+  # -- Tab 3: Recurring Enterprise Calendar & Scheduler --
   with tab_calendar:
-    st.markdown("#### 📅 Automated Recurring Enterprise Calendar Scheduler")
+    st.markdown("#### ?? Automated Recurring Enterprise Calendar Scheduler")
     st.caption(
         "Configure recurring meeting schedules by day of the week, time, and"
         " research agenda. Automatically spawns dedicated rooms."
@@ -1015,7 +1058,7 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### ➕ Schedule New Recurring Session")
+      st.markdown("##### ? Schedule New Recurring Session")
       with st.form("new_calendar_form", clear_on_submit=True):
         new_day = st.selectbox(
             "Day of the Week",
@@ -1037,7 +1080,7 @@ else:
             "Room Code", value=f"ROOM-{str(uuid.uuid4())[:4].upper()}"
         )
 
-        if st.form_submit_button("📅 Save to Calendar", type="primary"):
+        if st.form_submit_button("?? Save to Calendar", type="primary"):
           if new_time and new_title:
             st.session_state["calendar_schedule"].append({
                 "day": new_day,
@@ -1046,7 +1089,7 @@ else:
                 "room": new_room,
             })
             st.success(
-                f"✅ Successfully scheduled **{new_title}** every **{new_day}s"
+                f"? Successfully scheduled **{new_title}** every **{new_day}s"
                 f" at {new_time}**!"
             )
             st.rerun()
@@ -1056,12 +1099,12 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 📋 Active Master Schedule & Quick Launch")
+      st.markdown("##### ?? Active Master Schedule & Quick Launch")
       for idx, schedule in enumerate(st.session_state["calendar_schedule"]):
         sc_col1, sc_col2 = st.columns([3, 1])
         with sc_col1:
           st.markdown(
-              f"🗓️ **{schedule['day']}s @ {schedule['time']}**<br>`{schedule['title']}`"
+              f"??? **{schedule['day']}s @ {schedule['time']}**<br>`{schedule['title']}`"
               f" *(Room: `{schedule['room']}`)*"
           )
         with sc_col2:
@@ -1070,21 +1113,21 @@ else:
             st.session_state["in_session"] = True
             st.session_state["session_start_time"] = datetime.datetime.now()
             st.toast(
-                f"🚀 Launched scheduled room: {schedule['room']}", icon="🎯"
+                f"?? Launched scheduled room: {schedule['room']}", icon="??"
             )
             st.rerun()
         st.markdown("---")
 
-      if st.button("🗑️ Clear Custom Calendar Schedule"):
+      if st.button("??? Clear Custom Calendar Schedule"):
         st.session_state["calendar_schedule"] = []
         st.success("Calendar cleared.")
         st.rerun()
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 4: Omni-Share & Quick Asset Vault ──
+  # -- Tab 4: Omni-Share & Quick Asset Vault --
   with tab_omni_share:
     st.markdown(
-        "#### 🚀 Omni-Share, Multi-Source Media Vault & Live Annotation Studio"
+        "#### ?? Omni-Share, Multi-Source Media Vault & Live Annotation Studio"
     )
     st.caption(
         "Seamlessly broadcast local computer files, stream YouTube tutorials,"
@@ -1097,7 +1140,7 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 📥 Multi-Source Media Source Selector")
+      st.markdown("##### ?? Multi-Source Media Source Selector")
       media_source_type = st.radio(
           "Select Source Type",
           [
@@ -1112,7 +1155,7 @@ else:
         for item in st.session_state["quick_vault"]:
           va_col1, va_col2 = st.columns([3, 1])
           with va_col1:
-            st.markdown(f"📄 **{item['name']}** `({item['type']})`")
+            st.markdown(f"?? **{item['name']}** `({item['type']})`")
           with va_col2:
             if st.button("Present", key=f"vault_btn_{item['name']}"):
               st.session_state["active_presentation"] = {
@@ -1120,7 +1163,7 @@ else:
                   "source": item["name"],
                   "content": f"Vault Asset content for {item['name']} covering waterborne pathogen surveillance.",
               }
-              st.success(f"✅ Now broadcasting **{item['name']}** on stage!")
+              st.success(f"? Now broadcasting **{item['name']}** on stage!")
               st.rerun()
 
       elif media_source_type == "Computer Local Files":
@@ -1147,7 +1190,7 @@ else:
             files_in_dir if files_in_dir else ["None"],
         )
         if st.button(
-            "🚀 Broadcast Local File to Stage",
+            "?? Broadcast Local File to Stage",
             type="primary",
             use_container_width=True,
         ):
@@ -1156,7 +1199,7 @@ else:
               "source": selected_file,
               "content": f"Content extracted from local file {selected_file} regarding genomic sequence pipeline integration.",
           }
-          st.success(f"✅ Broadcasting computer file: **{selected_file}**")
+          st.success(f"? Broadcasting computer file: **{selected_file}**")
           st.rerun()
 
       else:  # YouTube Video Stream
@@ -1166,7 +1209,7 @@ else:
             placeholder="Paste YouTube link here...",
         )
         if st.button(
-            "▶️ Stream YouTube Video to Stage",
+            "?? Stream YouTube Video to Stage",
             type="primary",
             use_container_width=True,
         ):
@@ -1176,7 +1219,7 @@ else:
                 "source": yt_url,
                 "content": f"Transcript extracted from streamed video {yt_url}.",
             }
-            st.success("✅ YouTube media stream initialized on stage!")
+            st.success("? YouTube media stream initialized on stage!")
             st.rerun()
 
       st.markdown("</div>", unsafe_allow_html=True)
@@ -1185,13 +1228,13 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 🖥️ Active Stage Preview & Live Highlighting Suite")
+      st.markdown("##### ??? Active Stage Preview & Live Highlighting Suite")
 
       current_pres = st.session_state["active_presentation"]
       st.markdown(
           f"""
             <div style="background:#0d1117;border:1px solid #30363d;padding:16px;border-radius:10px;margin-bottom:15px;">
-                <div style="font-size:0.8rem;color:#38bdf8;margin-bottom:6px;">📡 CURRENT STAGE FEED STATUS</div>
+                <div style="font-size:0.8rem;color:#38bdf8;margin-bottom:6px;">?? CURRENT STAGE FEED STATUS</div>
                 <div style="font-size:1.05rem;font-weight:bold;color:#f8fafc;margin-bottom:4px;">Mode: {current_pres['mode']}</div>
                 <div style="color:#34d399;font-family:monospace;font-size:0.85rem;">Source: {current_pres['source']}</div>
             </div>
@@ -1200,7 +1243,7 @@ else:
       )
 
       # Live Highlight & Markup Section
-      st.markdown("##### ✏️ Live Presentation Markup & Highlight Notes")
+      st.markdown("##### ?? Live Presentation Markup & Highlight Notes")
       markup_input = st.text_input(
           "Type highlight note or correction edit...",
           placeholder="e.g., Emphasize paragraph 3 on antimicrobial resistance...",
@@ -1208,13 +1251,13 @@ else:
       markup_color = st.selectbox(
           "Highlight Level",
           [
-              "🟡 General Note",
-              "🔴 Critical Correction / Edit",
-              "🟢 Approved Action Item",
+              "?? General Note",
+              "?? Critical Correction / Edit",
+              "?? Approved Action Item",
           ],
       )
 
-      if st.button("📌 Pin Highlight to Stage Feed", use_container_width=True):
+      if st.button("?? Pin Highlight to Stage Feed", use_container_width=True):
         if markup_input:
           st.session_state["stage_highlights"].append(
               f"[{markup_color}] {st.session_state['host_name']}: {markup_input}"
@@ -1233,16 +1276,16 @@ else:
         for h_idx, hl in enumerate(st.session_state["stage_highlights"]):
           st.markdown(f"- `{h_idx+1}`. {hl}")
         st.markdown("</div>", unsafe_allow_html=True)
-        if st.button("🗑️ Clear Stage Highlights"):
+        if st.button("??? Clear Stage Highlights"):
           st.session_state["stage_highlights"] = []
           st.rerun()
 
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 5: VIP & Celebrity Badges & Permissions Manager ──
+  # -- Tab 5: VIP & Celebrity Badges & Permissions Manager --
   with tab_vip_guest:
     st.markdown(
-        "#### ⭐ Multi-Tier Social Media Verified Badges & VIP Celebrity Manager"
+        "#### ? Multi-Tier Social Media Verified Badges & VIP Celebrity Manager"
     )
     st.caption(
         "Manage verified badges (TikTok / Instagram / X style) for Co-Hosts,"
@@ -1256,7 +1299,7 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 🏅 Issue Verified Badge / Celebrity Status")
+      st.markdown("##### ?? Issue Verified Badge / Celebrity Status")
       with st.form("badge_issuer_form", clear_on_submit=True):
         target_attendee = st.selectbox(
             "Select Room Participant",
@@ -1271,21 +1314,21 @@ else:
             ],
         )
 
-        if st.form_submit_button("✨ Apply Verified Status", type="primary"):
+        if st.form_submit_button("? Apply Verified Status", type="primary"):
           for a in st.session_state["active_attendees"]:
             if a["name"] == target_attendee:
               if "Gold" in badge_selection:
                 a["badge_type"] = "gold"
                 a["role"] = "Celebrity VIP / Keynote"
                 st.success(
-                    f"✨ **{target_attendee}** upgraded to Gold VIP Celebrity"
+                    f"? **{target_attendee}** upgraded to Gold VIP Celebrity"
                     " status!"
                 )
               elif "Blue" in badge_selection:
                 a["badge_type"] = "blue"
                 a["role"] = "Verified Co-Host / Presenter"
                 st.success(
-                    f"✅ **{target_attendee}** verified with Blue Pro badge!"
+                    f"? **{target_attendee}** verified with Blue Pro badge!"
                 )
               else:
                 a["badge_type"] = "none"
@@ -1297,7 +1340,7 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 👥 Current Verified Roster & Perks Status")
+      st.markdown("##### ?? Current Verified Roster & Perks Status")
       for att in st.session_state["active_attendees"]:
         b_type = att.get("badge_type", "none")
         badge_markup = (
@@ -1307,14 +1350,14 @@ else:
             "</span>"
         )
         st.markdown(
-            f"**{att['name']}** {badge_markup} — *{att['role']}*<br>"
+            f"**{att['name']}** {badge_markup} � *{att['role']}*<br>"
             f"<small style='color:#94a3b8;'>Status: `{att['status']}` |"
             f" Camera: `{'On' if att.get('allow_cam', True) else 'Disabled (Stealth)'}`</small>"
         )
         st.markdown("---")
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 6: Automated Bulk WhatsApp & Email Invites ──
+  # -- Tab 6: Automated Bulk WhatsApp & Email Invites --
   with tab_auto_inv:
     st.markdown("#### Automated List Dispatcher (WhatsApp & Email Support)")
     inv_type = st.radio(
@@ -1335,12 +1378,12 @@ else:
           "Paste Email addresses (comma separated)",
           placeholder="colleague1@uni.edu, colleague2@uni.edu",
       )
-      if st.button("🚀 Dispatch via Mail Provider", type="primary"):
+      if st.button("?? Dispatch via Mail Provider", type="primary"):
         if raw_email_list:
           emails = [e.strip() for e in raw_email_list.split(",")]
           subject = f"Invitation: {topic_desc}"
           body = f"Dear Colleague,\n\nYou are invited by Verified Host {st.session_state['host_name']} to join our research session.\nAccess Link: {shareable_link}"
-          st.success(f"✅ Successfully prepared {len(emails)} invitations!")
+          st.success(f"? Successfully prepared {len(emails)} invitations!")
           for mail in emails:
             m_link = f"mailto:{mail}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body)}"
             st.markdown(f"- **{mail}**: [Open Link]({m_link})")
@@ -1349,52 +1392,52 @@ else:
           "Paste WhatsApp numbers (comma separated)",
           placeholder="+256700000001, +256700000002",
       )
-      if st.button("🚀 Queue & Send Automated WhatsApp Invites", type="primary"):
+      if st.button("?? Queue & Send Automated WhatsApp Invites", type="primary"):
         if raw_wa_list:
           numbers = [n.strip() for n in raw_wa_list.split(",")]
           msg_body = f"Hello! Verified Host {st.session_state['host_name']} invites you to *{topic_desc}*.\nJoin Room: {shareable_link}"
-          st.success(f"✅ Queued {len(numbers)} WhatsApp alerts!")
+          st.success(f"? Queued {len(numbers)} WhatsApp alerts!")
           for num in numbers:
             encoded = urllib.parse.quote(msg_body)
             link = f"https://wa.me/{num.replace('+', '')}?text={encoded}"
             st.markdown(f"- **{num}**: [Send Alert]({link})")
 
-  # ── Tab 7: Audience, Reply with Mention (@) & Chat ──
+  # -- Tab 7: Audience, Reply with Mention (@) & Chat --
   with tab_audience:
     st.markdown("#### Audience Engagement Hub & Mention Direct Replies")
 
     col_act_a, col_act_b = st.columns(2)
     with col_act_a:
-      st.markdown("##### ⚡ Live Reactions")
+      st.markdown("##### ? Live Reactions")
       r1, r2, r3, r4, r5 = st.columns(5)
-      if r1.button("🔥"):
-        st.toast("Sent reaction: 🔥")
-      if r2.button("💡"):
-        st.toast("Sent reaction: 💡")
-      if r3.button("👏"):
-        st.toast("Sent reaction: 👏")
-      if r4.button("🧬"):
-        st.toast("Sent reaction: 🧬")
-      if r5.button("🚀"):
-        st.toast("Sent reaction: 🚀")
+      if r1.button("??"):
+        st.toast("Sent reaction: ??")
+      if r2.button("??"):
+        st.toast("Sent reaction: ??")
+      if r3.button("??"):
+        st.toast("Sent reaction: ??")
+      if r4.button("??"):
+        st.toast("Sent reaction: ??")
+      if r5.button("??"):
+        st.toast("Sent reaction: ??")
 
     with col_act_b:
-      st.markdown("##### ✋ Hand Raising Queue")
+      st.markdown("##### ? Hand Raising Queue")
       user_handle = st.text_input(
           "Your Handle", value=st.session_state["host_name"]
       )
       h_col1, h_col2 = st.columns(2)
-      if h_col1.button("Raise Hand ✋", type="primary"):
+      if h_col1.button("Raise Hand ?", type="primary"):
         if user_handle not in st.session_state["raised_hands"]:
           st.session_state["raised_hands"].append(user_handle)
           st.success("Hand raised!")
-      if h_col2.button("Lower Hand 🫳"):
+      if h_col2.button("Lower Hand ??"):
         if user_handle in st.session_state["raised_hands"]:
           st.session_state["raised_hands"].remove(user_handle)
           st.info("Hand lowered.")
 
     st.markdown("---")
-    st.markdown("##### 💬 Q&A Stream with @Mention Reply")
+    st.markdown("##### ?? Q&A Stream with @Mention Reply")
 
     chat_html = "".join(
         [f"<b>{c['user']}</b>: {c['msg']}<br>" for c in st.session_state["room_chat"]]
@@ -1438,13 +1481,13 @@ else:
         })
         st.rerun()
 
-  # ── Tab 8: Shared Whiteboard ──
+  # -- Tab 8: Shared Whiteboard --
   with tab_whiteboard:
     st.markdown("#### Real-Time Collaborative Whiteboard & Notes Canvas")
     wb_input = st.text_input(
         "Add sticky note / snippet...", key="wb_text_input"
     )
-    if st.button("📌 Pin Note to Board", type="primary"):
+    if st.button("?? Pin Note to Board", type="primary"):
       if wb_input:
         st.session_state["whiteboard_notes"].append(
             f"{st.session_state['host_name']}: {wb_input}"
@@ -1461,10 +1504,10 @@ else:
           unsafe_allow_html=True,
       )
 
-  # ── Tab 9: Master Host Controls & Stealth Mode (Anonymous No-Cam Voice Channels) ──
+  # -- Tab 9: Master Host Controls & Stealth Mode (Anonymous No-Cam Voice Channels) --
   with tab_privileges:
     st.markdown(
-        "#### 👑 Verified Host Master Moderation & Stealth Anonymous Channels"
+        "#### ?? Verified Host Master Moderation & Stealth Anonymous Channels"
     )
     st.caption(
         "Enable anonymous participants to contribute via secure voice and chat"
@@ -1477,22 +1520,22 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 🕵️ Stealth Mode & Anonymous Contributor Mode")
+      st.markdown("##### ??? Stealth Mode & Anonymous Contributor Mode")
       with st.form("stealth_form"):
         anon_name = st.text_input(
             "Add Anonymous Contributor Alias", value="Anonymous Researcher #X"
         )
-        if st.form_submit_button("🔒 Spawn Stealth Voice Seat", type="primary"):
+        if st.form_submit_button("?? Spawn Stealth Voice Seat", type="primary"):
           st.session_state["active_attendees"].append({
               "name": anon_name,
               "role": "Stealth Contributor",
-              "status": "Speaking (Audio Only) 🔒",
+              "status": "Speaking (Audio Only) ??",
               "badge_type": "none",
               "anonymous": True,
               "allow_cam": False,
           })
           st.success(
-              f"✅ Stealth participant **{anon_name}** added with camera"
+              f"? Stealth participant **{anon_name}** added with camera"
               " disabled!"
           )
           st.rerun()
@@ -1502,7 +1545,7 @@ else:
       st.markdown(
           '<div class="omni-share-card">', unsafe_allow_html=True
       )
-      st.markdown("##### 🥾 Participant Removal (Kick Control)")
+      st.markdown("##### ?? Participant Removal (Kick Control)")
       attendee_names = [a["name"] for a in st.session_state["active_attendees"]]
       if attendee_names:
         kick_target = st.selectbox(
@@ -1510,7 +1553,7 @@ else:
             attendee_names,
             key="kick_target_select",
         )
-        if st.button("🥾 Kick Participant Out", type="primary"):
+        if st.button("?? Kick Participant Out", type="primary"):
           st.session_state["active_attendees"] = [
               a
               for a in st.session_state["active_attendees"]
@@ -1522,10 +1565,10 @@ else:
         st.info("No participants in room.")
       st.markdown("</div>", unsafe_allow_html=True)
 
-  # ── Tab 10: AI Intelligent Minutes & Autonomous Summarizer ──
+  # -- Tab 10: AI Intelligent Minutes & Autonomous Summarizer --
   with tab_transcript:
     st.markdown(
-        "#### 🤖 Intelligent AI Minute-Taker & Autonomous Meeting Summarizer"
+        "#### ?? Intelligent AI Minute-Taker & Autonomous Meeting Summarizer"
     )
     st.caption(
         "Automatically aggregates dialogue turns, speaker contributions, and"
@@ -1537,7 +1580,7 @@ else:
         set([item["speaker"] for item in st.session_state["live_transcript"]])
     )
 
-    summary_markdown = f"""# 📝 Official Meeting Minutes & Summary Report
+    summary_markdown = f"""# ?? Official Meeting Minutes & Summary Report
 **Room Identifier:** `{st.session_state['room_id']}`  
 **Verified Host:** `{st.session_state['host_name']}`  
 **Allocated Duration:** `{st.session_state['session_duration_minutes']} minutes`  
@@ -1547,10 +1590,10 @@ else:
 
 ---
 
-## 📌 Executive Summary & Key Discussions
+## ?? Executive Summary & Key Discussions
 The session successfully tracked and recorded core collaborative discourse. All primary participants contributed to the agenda items regarding genomic sequence analysis, data pipelines, and peer review schedules.
 
-## 🗣️ Chronological Speaker Attribution Log
+## ??? Chronological Speaker Attribution Log
 """
     for item in st.session_state["live_transcript"]:
       summary_markdown += f"- **[{item['time']}] {item['speaker']}**: {item['text']}\n"
@@ -1566,13 +1609,13 @@ The session successfully tracked and recorded core collaborative discourse. All 
     )
 
     st.markdown("---")
-    st.markdown("##### 📥 Export Dossier in Fully Downloadable Formats")
+    st.markdown("##### ?? Export Dossier in Fully Downloadable Formats")
 
     exp_col1, exp_col2, exp_col3 = st.columns(3)
 
     with exp_col1:
       st.download_button(
-          label="⬇️ Download Markdown (.md)",
+          label="?? Download Markdown (.md)",
           data=summary_markdown,
           file_name=f"Meeting_Minutes_{st.session_state['room_id']}.md",
           mime="text/markdown",
@@ -1591,7 +1634,7 @@ The session successfully tracked and recorded core collaborative discourse. All 
           indent=4,
       )
       st.download_button(
-          label="⬇️ Download JSON Data (.json)",
+          label="?? Download JSON Data (.json)",
           data=json_export_data,
           file_name=f"Meeting_Data_{st.session_state['room_id']}.json",
           mime="application/json",
@@ -1603,17 +1646,17 @@ The session successfully tracked and recorded core collaborative discourse. All 
           summary_markdown.replace("#", "").replace("**", "").replace("---", "")
       )
       st.download_button(
-          label="⬇️ Download Text Report (.txt)",
+          label="?? Download Text Report (.txt)",
           data=plain_text_report,
           file_name=f"Meeting_Report_{st.session_state['room_id']}.txt",
           mime="text/plain",
           use_container_width=True,
       )
 
-  # ── Tab 11: Session Recordings ──
+  # -- Tab 11: Session Recordings --
   with tab_playback:
     st.markdown("#### Session Recordings & Lesson Archival")
-    if st.button("🎥 Save & Archive Current Session Recording", type="primary"):
+    if st.button("?? Save & Archive Current Session Recording", type="primary"):
       record_entry = {
           "id": st.session_state["room_id"],
           "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -1621,4 +1664,4 @@ The session successfully tracked and recorded core collaborative discourse. All 
           "host": st.session_state["host_name"],
       }
       st.session_state["session_recordings"].append(record_entry)
-      st.success("✅ Session and video recording archived successfully!")
+      st.success("? Session and video recording archived successfully!")

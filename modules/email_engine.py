@@ -162,6 +162,49 @@ VERIFICATION_EMAIL_TEMPLATE = """
 <html>
 <head>
     <style>
+    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        background-color: #090d16 !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Target navigation links and text explicitly */
+    [data-testid="stSidebarNav"] span, 
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stSidebarHeader"] {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Navigation item hover state */
+    [data-testid="stSidebarNavLink"]:hover,
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+    }
+
+    /* Currently selected navigation item active state */
+    [data-testid="stSidebarNavLink"][aria-current="page"],
+    [data-testid="stSidebarNav"] a[aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Custom form inputs inside sidebar */
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stMultiSelect label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }
         body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }}
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
         .header {{ background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
@@ -213,6 +256,49 @@ AUDIT_REPORT_TEMPLATE = """
 <html>
 <head>
     <style>
+    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        background-color: #090d16 !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Target navigation links and text explicitly */
+    [data-testid="stSidebarNav"] span, 
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stSidebarHeader"] {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Navigation item hover state */
+    [data-testid="stSidebarNavLink"]:hover,
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+    }
+
+    /* Currently selected navigation item active state */
+    [data-testid="stSidebarNavLink"][aria-current="page"],
+    [data-testid="stSidebarNav"] a[aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Custom form inputs inside sidebar */
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stMultiSelect label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }
         body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }}
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
         .header {{ background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
@@ -281,6 +367,49 @@ WELCOME_EMAIL_TEMPLATE = """
 <html>
 <head>
     <style>
+    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        background-color: #090d16 !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Target navigation links and text explicitly */
+    [data-testid="stSidebarNav"] span, 
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stSidebarHeader"] {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Navigation item hover state */
+    [data-testid="stSidebarNavLink"]:hover,
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+    }
+
+    /* Currently selected navigation item active state */
+    [data-testid="stSidebarNavLink"][aria-current="page"],
+    [data-testid="stSidebarNav"] a[aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Custom form inputs inside sidebar */
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stMultiSelect label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }
         body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }}
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
         .header {{ background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}

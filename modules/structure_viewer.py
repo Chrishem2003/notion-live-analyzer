@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import streamlit.components.v1 as components
 import requests
 
@@ -12,6 +12,49 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
     <head>
         <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
         <style>
+    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        background-color: #090d16 !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Target navigation links and text explicitly */
+    [data-testid="stSidebarNav"] span, 
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stSidebarHeader"] {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Navigation item hover state */
+    [data-testid="stSidebarNavLink"]:hover,
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+    }
+
+    /* Currently selected navigation item active state */
+    [data-testid="stSidebarNavLink"][aria-current="page"],
+    [data-testid="stSidebarNav"] a[aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Custom form inputs inside sidebar */
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stMultiSelect label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }
             body {{ margin: 0; padding: 0; overflow: hidden; background-color: #0e1117; }}
             #mol-container {{ width: 100vw; height: {height}px; position: relative; }}
         </style>
@@ -58,7 +101,7 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
     return html_code
 
 def render_structure_viewer_tab():
-    st.subheader("🧬 3D Macromolecular Structure WebGL Viewer")
+    st.subheader("?? 3D Macromolecular Structure WebGL Viewer")
     st.caption("Interactive WebGL viewport powered by 3Dmol.js for structural proteomics.")
 
     col1, col2 = st.columns([1, 2.5])
@@ -112,6 +155,7 @@ def render_structure_viewer_tab():
                 height=viewer_height
             )
             components.html(html_content, height=viewer_height + 20)
-            st.info("💡 **Controls:** Click + Drag to rotate | Scroll to zoom | Right-Click + Drag to pan")
+            st.info("?? **Controls:** Click + Drag to rotate | Scroll to zoom | Right-Click + Drag to pan")
         else:
             st.warning("Enter a valid PDB ID or upload a structure file to render.")
+

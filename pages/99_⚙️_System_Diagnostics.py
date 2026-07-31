@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import sys
 import os
 import time
@@ -27,7 +27,7 @@ except ImportError:
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="System Diagnostics & Health Hub",
-    page_icon="⚙️",
+    page_icon="??",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -35,6 +35,49 @@ st.set_page_config(
 # Custom CSS Injecting Modern Aesthetics, Colors & Responsive Styles
 CUSTOM_CSS = """
 <style>
+    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        background-color: #090d16 !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Target navigation links and text explicitly */
+    [data-testid="stSidebarNav"] span, 
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stSidebarHeader"] {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Navigation item hover state */
+    [data-testid="stSidebarNavLink"]:hover,
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+    }
+
+    /* Currently selected navigation item active state */
+    [data-testid="stSidebarNavLink"][aria-current="page"],
+    [data-testid="stSidebarNav"] a[aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Custom form inputs inside sidebar */
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stMultiSelect label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }
     /* Global Color Palette Definitions */
     :root {
         --bg-base: #0E1117;
@@ -151,7 +194,7 @@ if len(st.session_state.telemetry_history) > 30:
 # SIDEBAR CONTROLS & UTILITIES
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.title("🛡️ Admin Console")
+    st.title("??? Admin Console")
     st.markdown("System Control Panel & Actions")
     
     st.subheader("Telemetry Controls")
@@ -160,11 +203,11 @@ with st.sidebar:
     
     st.divider()
     st.subheader("Operational Actions")
-    if st.button("🧹 Run Garbage Collector", use_container_width=True):
+    if st.button("?? Run Garbage Collector", use_container_width=True):
         freed = execute_garbage_collection()
-        st.toast(f"Garbage collection executed! Freed {freed} objects.", icon="✅")
+        st.toast(f"Garbage collection executed! Freed {freed} objects.", icon="?")
         
-    if st.button("🔥 Inject Test Error Trace", use_container_width=True):
+    if st.button("?? Inject Test Error Trace", use_container_width=True):
         try:
             # Intentional Error for Diagnostics Verification
             _ = 1 / 0
@@ -172,12 +215,12 @@ with st.sidebar:
             import traceback
             error_msg = f"[{datetime.now(timezone.utc).isoformat()}] Simulated Test Failure: {str(e)}\n{traceback.format_exc()}"
             st.session_state.setdefault("error_logs", []).append(error_msg)
-            st.toast("Simulated diagnostic exception logged!", icon="⚠️")
+            st.toast("Simulated diagnostic exception logged!", icon="??")
             st.rerun()
 
-    if st.button("🗑️ Reset All Exception Logs", use_container_width=True):
+    if st.button("??? Reset All Exception Logs", use_container_width=True):
         st.session_state.error_logs = []
-        st.toast("Error log history completely cleared.", icon="✨")
+        st.toast("Error log history completely cleared.", icon="?")
         st.rerun()
         
     st.divider()
@@ -187,7 +230,7 @@ with st.sidebar:
 # -----------------------------------------------------------------------------
 # MAIN DASHBOARD CONTENT
 # -----------------------------------------------------------------------------
-st.title("⚙️ System Diagnostics & Health Hub")
+st.title("?? System Diagnostics & Health Hub")
 st.markdown("Real-time telemetry, memory analytics, integration state monitoring, and operational error tracing.")
 
 # Diagnostic Top Bar System Metrics Highlights
@@ -208,18 +251,18 @@ st.divider()
 
 # Diagnostic Operations Dashboard Tabs
 tab_overview, tab_telemetry, tab_errors, tab_integrations, tab_state = st.tabs([
-    "📊 System Overview", 
-    "📈 Resource Telemetry", 
-    "📋 Captured Exceptions", 
-    "🔌 Integration Status",
-    "🗄️ Session State Explorer"
+    "?? System Overview", 
+    "?? Resource Telemetry", 
+    "?? Captured Exceptions", 
+    "?? Integration Status",
+    "??? Session State Explorer"
 ])
 
 # -----------------------------------------------------------------------------
 # TAB 1: SYSTEM OVERVIEW
 # -----------------------------------------------------------------------------
 with tab_overview:
-    st.subheader("🖥️ Server Resource Footprint")
+    st.subheader("??? Server Resource Footprint")
     
     ov_col1, ov_col2, ov_col3, ov_col4 = st.columns(4)
     
@@ -253,7 +296,7 @@ with tab_overview:
 # TAB 2: RESOURCE TELEMETRY
 # -----------------------------------------------------------------------------
 with tab_telemetry:
-    st.subheader("📈 Live Hardware Performance Tracking")
+    st.subheader("?? Live Hardware Performance Tracking")
     
     if st.session_state.telemetry_history:
         chart_df = pd.DataFrame(st.session_state.telemetry_history)
@@ -280,13 +323,13 @@ with tab_telemetry:
 # TAB 3: CAPTURED EXCEPTIONS
 # -----------------------------------------------------------------------------
 with tab_errors:
-    st.subheader("📋 Session Exception Logs & Diagnostics")
+    st.subheader("?? Session Exception Logs & Diagnostics")
     error_logs = st.session_state.get("error_logs", [])
     
     if not error_logs:
-        st.success("✨ Operational status nominal: No runtime exceptions or errors caught during this session.")
+        st.success("? Operational status nominal: No runtime exceptions or errors caught during this session.")
     else:
-        filter_term = st.text_input("🔍 Filter stack traces by keyword...", "")
+        filter_term = st.text_input("?? Filter stack traces by keyword...", "")
         
         filtered_logs = [log for log in error_logs if filter_term.lower() in log.lower()] if filter_term else error_logs
         
@@ -294,17 +337,17 @@ with tab_errors:
         
         for idx, log in enumerate(reversed(filtered_logs)):
             original_idx = len(error_logs) - idx
-            with st.expander(f"🚨 Exception Log Record #{original_idx}"):
+            with st.expander(f"?? Exception Log Record #{original_idx}"):
                 st.code(log, language="python")
                 
         err_col1, err_col2 = st.columns([1, 4])
         with err_col1:
-            if st.button("🗑️ Clear Log History", key="clear_logs_tab"):
+            if st.button("??? Clear Log History", key="clear_logs_tab"):
                 st.session_state.error_logs = []
                 st.rerun()
         with err_col2:
             st.download_button(
-                label="📥 Export Logs (JSON)",
+                label="?? Export Logs (JSON)",
                 data=json.dumps(error_logs, indent=2),
                 file_name=f"system_logs_{int(time.time())}.json",
                 mime="application/json"
@@ -314,7 +357,7 @@ with tab_errors:
 # TAB 4: INTEGRATION STATUS
 # -----------------------------------------------------------------------------
 with tab_integrations:
-    st.subheader("🔌 Environment & Integration Health Audit")
+    st.subheader("?? Environment & Integration Health Audit")
     
     notion_token_set = check_secret_key("NOTION_API_KEY")
     is_cloud_env = os.path.exists("/mount/src")
@@ -324,25 +367,25 @@ with tab_integrations:
             "Integration Component": "Notion API Token",
             "Target Endpoint / Key": "NOTION_API_KEY",
             "Type": "External Service Auth",
-            "Status": "✅ Configured" if notion_token_set else "⚠️ Missing/Not Set"
+            "Status": "? Configured" if notion_token_set else "?? Missing/Not Set"
         },
         {
             "Integration Component": "Streamlit Cloud Container",
             "Target Endpoint / Key": "/mount/src",
             "Type": "Deployment Runtime",
-            "Status": "✅ Cloud Instance" if is_cloud_env else "💻 Local Desktop Mode"
+            "Status": "? Cloud Instance" if is_cloud_env else "?? Local Desktop Mode"
         },
         {
             "Integration Component": "Local Cache Subsystem",
             "Target Endpoint / Key": ".streamlit/cache",
             "Type": "Disk Storage Subsystem",
-            "Status": "✅ Operational"
+            "Status": "? Operational"
         },
         {
             "Integration Component": "System Middleware Interceptor",
             "Target Endpoint / Key": "modules.system_middleware",
             "Type": "Internal Middleware",
-            "Status": "✅ Active & Initialized" if st.session_state.get("app_initialized") else "⚠️ Degraded/Uninitialized"
+            "Status": "? Active & Initialized" if st.session_state.get("app_initialized") else "?? Degraded/Uninitialized"
         }
     ]
     
@@ -353,7 +396,7 @@ with tab_integrations:
 # TAB 5: SESSION STATE EXPLORER
 # -----------------------------------------------------------------------------
 with tab_state:
-    st.subheader("🗄️ In-Memory Session State Inspection")
+    st.subheader("??? In-Memory Session State Inspection")
     st.markdown("Live diagnostic breakdown of variables retained within `st.session_state`.")
     
     state_dict = {key: str(value) for key, value in st.session_state.items()}

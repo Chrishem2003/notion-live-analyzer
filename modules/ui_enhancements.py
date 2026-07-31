@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 from datetime import datetime
 import zoneinfo
 
@@ -22,6 +22,49 @@ def render_ui_enhancements():
     st.markdown(
         """
         <style>
+    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        background-color: #090d16 !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Target navigation links and text explicitly */
+    [data-testid="stSidebarNav"] span, 
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stSidebarHeader"] {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Navigation item hover state */
+    [data-testid="stSidebarNavLink"]:hover,
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+    }
+
+    /* Currently selected navigation item active state */
+    [data-testid="stSidebarNavLink"][aria-current="page"],
+    [data-testid="stSidebarNav"] a[aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Custom form inputs inside sidebar */
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stMultiSelect label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }
         /* Clean, highly readable typography & standard dark theme background */
         .stApp {
             background-color: #0e1117;
@@ -56,7 +99,7 @@ def render_ui_enhancements():
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background-color: #161b22; border: 1px solid #30363d; border-left: 4px solid #58a6ff; border-radius: 6px; margin-bottom: 15px;">
             <div>
                 <span style="font-weight: 600; font-size: 1rem; color: #58a6ff;">{greeting}, Kula Chris</span>
-                <span style="font-size: 0.85rem; color: #8b949e; margin-left: 10px;">• Autonomous Research Intelligence Suite</span>
+                <span style="font-size: 0.85rem; color: #8b949e; margin-left: 10px;">� Autonomous Research Intelligence Suite</span>
             </div>
             <div style="font-family: monospace; font-size: 0.85rem; color: #8b949e;">
                 {current_time.strftime('%Y-%m-%d %H:%M:%S')} EAT
@@ -65,3 +108,4 @@ def render_ui_enhancements():
         """,
         unsafe_allow_html=True
     )
+

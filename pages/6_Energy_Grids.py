@@ -1,17 +1,60 @@
-﻿import streamlit as st
+import streamlit as st
 
-# ─── 1. PAGE CONFIGURATION ──────────────────────────────────────────────
+# --- 1. PAGE CONFIGURATION ----------------------------------------------
 st.set_page_config(
     page_title="Energy Grids & Infrastructure Resiliency",
-    page_icon="⚡",
+    page_icon="?",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ─── 2. HIGH-CONTRAST & ULTRA-LEGIBLE COLOR STYLING ───────────────────────
+# --- 2. HIGH-CONTRAST & ULTRA-LEGIBLE COLOR STYLING -----------------------
 st.markdown(
     """
     <style>
+    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
+        background-color: #090d16 !important;
+        border-right: 1px solid #1e293b !important;
+    }
+    
+    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Target navigation links and text explicitly */
+    [data-testid="stSidebarNav"] span, 
+    [data-testid="stSidebarNav"] a,
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stSidebarHeader"] {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Navigation item hover state */
+    [data-testid="stSidebarNavLink"]:hover,
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+    }
+
+    /* Currently selected navigation item active state */
+    [data-testid="stSidebarNavLink"][aria-current="page"],
+    [data-testid="stSidebarNav"] a[aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Custom form inputs inside sidebar */
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stMultiSelect label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+    }
     /* Global Background & Base Font */
     .stApp {
         background-color: #060b13 !important;
@@ -82,12 +125,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ─── 3. HERO HEADER SECTION ─────────────────────────────────────────────
+# --- 3. HERO HEADER SECTION ---------------------------------------------
 st.markdown(
     """
 <div style='background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
     <span class='badge-primary'>INFRASTRUCTURE TELEMETRY & SIMULATION</span>
-    <h1 style='font-size: 2.2rem; margin: 0.5rem 0 0.2rem 0; color: #00f2fe;'>⚡ Energy Grids & Infrastructure Resiliency</h1>
+    <h1 style='font-size: 2.2rem; margin: 0.5rem 0 0.2rem 0; color: #00f2fe;'>? Energy Grids & Infrastructure Resiliency</h1>
     <p style='color: #cbd5e1; margin: 0; font-size: 0.98rem;'>
         Cascading Grid Failure Simulation, Reservoir Strain Analysis, and Intermittent Renewable Limits Monitoring.
     </p>
@@ -96,7 +139,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ─── 4. METRICS & STATUS CARDS ──────────────────────────────────────────
+# --- 4. METRICS & STATUS CARDS ------------------------------------------
 col1, col2 = st.columns(2)
 
 with col1:
@@ -119,11 +162,11 @@ with col2:
     )
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ─── 5. HIGH-VISIBILITY STATUS ALERT ───────────────────────────────────
+# --- 5. HIGH-VISIBILITY STATUS ALERT -----------------------------------
 st.markdown(
     """
 <div class='status-card-success'>
-    <span style='font-size: 1.4rem;'>⚡</span>
+    <span style='font-size: 1.4rem;'>?</span>
     <div>
         <strong style='color: #34d399;'>Renewable Grid Penetration Threshold Safe:</strong><br>
         Current load operating at <span style='color: #ffffff; font-weight: 800;'>32%</span> / Maximum tolerance threshold is <span style='color: #ffffff; font-weight: 800;'>45%</span>.
