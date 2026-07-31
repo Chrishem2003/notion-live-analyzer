@@ -1,9 +1,9 @@
-﻿\"\"\"
+﻿"""
 🔒 World-Class Secure Personal Vault & Enterprise Cloud Workspace Suite (Master Build v2.0)
 Enterprise-grade zero-trust cloud storage engine featuring client-side AES-256-GCM / Post-Quantum encryption,
 Argon2id key derivation, GCP KMS/HSM integration, Google Drive file explorer, Google Workspace suite,
 Docker container orchestration, local AI RAG search, multi-cloud S3 mirroring, P2P bridges, and steganography.
-\"\"\"
+"""
 
 import streamlit as st
 import datetime
