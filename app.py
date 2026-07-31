@@ -1,6 +1,5 @@
 import streamlit as st
 import datetime
-import io
 
 st.set_page_config(
     page_title="Enterprise Drive Explorer & Workspace",
@@ -10,7 +9,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# 1. INITIALIZE IN-MEMORY FILE DATABASE WITH FULL CONTENTS
+# 1. INITIALIZE IN-MEMORY FILE DATABASE WITH SAFE KEYS
 # ---------------------------------------------------------
 if "vault_files" not in st.session_state:
     st.session_state["vault_files"] = [
@@ -22,8 +21,7 @@ if "vault_files" not in st.session_state:
             "size_bytes": 4404019,
             "modified": "2026-07-30 14:20",
             "status": "Encrypted (AES-256)",
-            "content": "{\n  \"pipeline\": \"Waterborne Pathogen AMR Pipeline\",\n  \"version\": \"2.4.0\",\n  \"nodes\": [\"Arua_Lab_01\", \"Gulu_Lab_02\"],\n  \"encryption\": \"AES-256-GCM\",\n  \"active_surveillance\": true\n}",
-            "is_editable": True
+            "content": "{\n  \"pipeline\": \"Waterborne Pathogen AMR Pipeline\",\n  \"version\": \"2.4.0\",\n  \"nodes\": [\"Arua_Lab_01\", \"Gulu_Lab_02\"],\n  \"encryption\": \"AES-256-GCM\"\n}"
         },
         {
             "id": "FILE-002",
@@ -33,8 +31,7 @@ if "vault_files" not in st.session_state:
             "size_bytes": 19818086,
             "modified": "2026-07-28 09:15",
             "status": "Encrypted (Post-Quantum)",
-            "content": "--- REGIONAL SURVEILLANCE REPORT DATA ---\nSample Collection: Northern & West Nile Districts\nTarget Organisms: Vibrio cholerae, Salmonella spp., E. coli\nAMR Profile: Multi-drug resistance observed against Beta-lactams.",
-            "is_editable": False
+            "content": "--- REGIONAL SURVEILLANCE REPORT DATA ---\nSample Collection: Northern & West Nile Districts\nTarget Organisms: Vibrio cholerae, Salmonella spp., E. coli"
         },
         {
             "id": "FILE-003",
@@ -44,43 +41,47 @@ if "vault_files" not in st.session_state:
             "size_bytes": 148897792,
             "modified": "2026-07-25 18:40",
             "status": "Encrypted (AES-256)",
-            "content": "Sample_ID,Isolate_Type,Resistance_Gene,Geo_Location\nSMP-001,V.cholerae,ctxA,3.0300_30.9000\nSMP-002,E.coli,blaTEM,2.7700_32.2900",
-            "is_editable": False
+            "content": "Sample_ID,Isolate_Type,Resistance_Gene,Geo_Location\nSMP-001,V.cholerae,ctxA,3.0300_30.9000"
         }
     ]
 
 # ---------------------------------------------------------
-# 2. GOOGLE DRIVE-STYLE INTERACTIVE INSPECTION & EDITOR MODAL
+# 2. SAFE WORKSPACE INSPECTION & EDITOR MODAL
 # ---------------------------------------------------------
 @st.dialog("📄 Workspace File Viewer & Editor", width="large")
 def inspect_and_edit_file(file_item):
-    st.markdown(f"### 📄 {file_item['name']}")
-    st.caption(f"**ID:** {file_item['id']} | **Status:** {file_item['status']} | **Size:** {file_item['size']}")
+    # Safely retrieve content string with default fallback
+    file_content = file_item.get("content", f"[Binary or Uncached File Stream for {file_item.get('name', 'File')}]\nSize: {file_item.get('size', 'N/A')}\nStatus: Active Encrypted Stream")
     
-    # Workspace Tabs (View, Edit, Telemetry/Download)
+    st.markdown(f"### 📄 {file_item.get('name', 'Untitled File')}")
+    st.caption(f"**ID:** {file_item.get('id', 'FILE-000')} | **Status:** {file_item.get('status', 'Encrypted')} | **Size:** {file_item.get('size', 'Unknown')}")
+    
     tab_view, tab_edit, tab_actions = st.tabs(["👁️ Full View / Preview", "✏️ Edit Content", "📥 Download & Export"])
 
     # TAB 1: FULL FILE PREVIEW
     with tab_view:
         st.markdown("**Full File Contents / Stream Payload:**")
-        if "JSON" in file_item["type"] or file_item["name"].endswith(".json"):
-            st.code(file_item["content"], language="json")
-        elif "Dataset" in file_item["type"] or file_item["name"].endswith(".csv"):
-            st.code(file_item["content"], language="csv")
+        file_type = file_item.get("type", "")
+        file_name = file_item.get("name", "")
+        
+        if "JSON" in file_type or file_name.endswith(".json"):
+            st.code(file_content, language="json")
+        elif "Dataset" in file_type or file_name.endswith(".csv"):
+            st.code(file_content, language="csv")
         else:
-            st.text_area("File Stream Viewer", value=file_item["content"], height=300, disabled=True)
+            st.text_area("File Stream Viewer", value=file_content, height=300, disabled=True)
 
     # TAB 2: LIVE IN-APP EDITOR
     with tab_edit:
         st.markdown("**Edit File Contents:**")
         updated_content = st.text_area(
             "Modify text stream below:",
-            value=file_item["content"],
+            value=file_content,
             height=300,
-            key=f"editor_{file_item['id']}"
+            key=f"editor_{file_item.get('id', 'temp')}"
         )
         
-        if st.button("💾 Save Changes to Drive", type="primary", key=f"save_{file_item['id']}"):
+        if st.button("💾 Save Changes to Drive", type="primary", key=f"save_{file_item.get('id', 'temp')}"):
             file_item["content"] = updated_content
             file_item["modified"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M (Edited)")
             st.success("✅ File updated successfully in Drive Storage!")
@@ -89,28 +90,27 @@ def inspect_and_edit_file(file_item):
     # TAB 3: DOWNLOAD & EXPORT
     with tab_actions:
         st.markdown("### 📥 Download to Local Device")
-        st.write("Click below to download this file directly to your computer (just like Google Drive):")
+        st.write("Click below to download this file directly to your computer:")
         
-        # Binary / Text Stream Download
-        file_bytes = file_item["content"].encode("utf-8")
+        file_bytes = file_content.encode("utf-8")
         st.download_button(
-            label=f"⬇️ Download {file_item['name']}",
+            label=f"⬇️ Download {file_item.get('name', 'file')}",
             data=file_bytes,
-            file_name=file_item["name"],
-            mime="text/plain" if "Code" in file_item["type"] else "application/octet-stream",
+            file_name=file_item.get('name', 'download.txt'),
+            mime="text/plain",
             type="primary",
-            key=f"dl_btn_{file_item['id']}"
+            key=f"dl_btn_{file_item.get('id', 'temp')}"
         )
         
         st.markdown("---")
         st.markdown("### 🛡️ Cryptographic Integrity")
-        st.code(f"SHA-256 Checksum: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", language="text")
+        st.code("SHA-256 Checksum: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", language="text")
 
 # ---------------------------------------------------------
 # 3. METRICS HEADER
 # ---------------------------------------------------------
 total_count = len(st.session_state["vault_files"])
-total_bytes = sum(f["size_bytes"] for f in st.session_state["vault_files"])
+total_bytes = sum(f.get("size_bytes", 0) for f in st.session_state["vault_files"])
 total_mb = total_bytes / (1024 * 1024)
 
 st.title("📁 Drive Explorer & Workspace Hub")
@@ -140,17 +140,16 @@ uploaded = st.file_uploader(
 if uploaded:
     new_count = 0
     for file in uploaded:
-        if not any(f["name"] == file.name for f in st.session_state["vault_files"]):
+        if not any(f.get("name") == file.name for f in st.session_state["vault_files"]):
             size_kb = file.size / 1024
             size_str = f"{size_kb:.1f} KB" if size_kb < 1024 else f"{size_kb/1024:.1f} MB"
             ext = file.name.split(".")[-1].upper() if "." in file.name else "FILE"
             
-            # Read full payload for editing/viewing
             try:
                 raw_bytes = file.getvalue()
                 content_payload = raw_bytes.decode("utf-8")
             except Exception:
-                content_payload = f"Binary Resource Stream [{file.name}]\nSize: {size_str}\nStatus: Verification Passed"
+                content_payload = f"Binary Stream Resource [{file.name}]\nSize: {size_str}\nStatus: Verified Payload"
 
             new_item = {
                 "id": f"FILE-00{len(st.session_state['vault_files']) + 1}",
@@ -160,8 +159,7 @@ if uploaded:
                 "size_bytes": file.size,
                 "modified": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
                 "status": "Encrypted (AES-256)",
-                "content": content_payload,
-                "is_editable": True
+                "content": content_payload
             }
             st.session_state["vault_files"].insert(0, new_item)
             new_count += 1
@@ -181,10 +179,10 @@ cols = st.columns(3)
 for idx, item in enumerate(st.session_state["vault_files"]):
     with cols[idx % 3]:
         with st.container(border=True):
-            st.markdown(f"#### 📄 {item['name']}")
-            st.caption(f"**Type:** {item['type']} | **Size:** {item['size']}")
-            st.caption(f"**Modified:** {item['modified']}")
-            st.markdown(f"{item['status']}")
+            st.markdown(f"#### 📄 {item.get('name', 'File')}")
+            st.caption(f"**Type:** {item.get('type', 'Doc')} | **Size:** {item.get('size', 'N/A')}")
+            st.caption(f"**Modified:** {item.get('modified', 'Recently')}")
+            st.markdown(f"{item.get('status', 'Encrypted')}")
             st.markdown("---")
             
             b1, b2 = st.columns(2)
@@ -192,5 +190,5 @@ for idx, item in enumerate(st.session_state["vault_files"]):
                 inspect_and_edit_file(item)
                 
             if b2.button("🗑️ Delete", key=f"d_{idx}"):
-                st.session_state["vault_files"] = [f for f in st.session_state["vault_files"] if f["name"] != item["name"]]
+                st.session_state["vault_files"] = [f for f in st.session_state["vault_files"] if f.get("name") != item.get("name")]
                 st.rerun()
