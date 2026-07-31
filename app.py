@@ -9,7 +9,7 @@ from datetime import datetime
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="CHRISHEM Sovereign Engine",
-    page_icon="🌌",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -18,7 +18,7 @@ st.set_page_config(
 # MAIN NAVIGATION & LAYOUT
 # ---------------------------------------------------------
 def main():
-    st.sidebar.title("🌌 CHRISHEM")
+    st.sidebar.title("⚡ CHRISHEM")
     st.sidebar.caption("Sovereign Enterprise Engine")
     st.sidebar.markdown("---")
 
@@ -44,7 +44,7 @@ def main():
     st.sidebar.success("🟢 Operational (100%)")
     st.sidebar.info("🔒 Secure Sovereign Enclave")
 
-    # Header
+    # Canvas Header
     st.title(navigation)
     st.caption(f"Enterprise Operational Node | Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} EAT")
     st.markdown("---")
@@ -55,31 +55,31 @@ def main():
             from modules.personal_workspace import render_personal_workspace_panel
             render_personal_workspace_panel()
         except Exception:
-            st.subheader("Universal Personal Workspace & Productivity Hub")
+            st.subheader("🚀 Universal Personal Workspace & Productivity Hub")
             st.caption("Manage research milestones, bioinformatics pipelines, system configurations, and daily workflow tasks.")
             
-            # Metric Cards using native Streamlit containers
+            # Metric Cards
             c1, c2, c3, c4 = st.columns(4)
             with c1:
                 with st.container(border=True):
                     st.caption("ACTIVE MILESTONES")
-                    st.subheader("4 Tracked")
+                    st.subheader("🎯 4 Tracked")
                     st.caption("🟢 Up to Date")
             with c2:
                 with st.container(border=True):
                     st.caption("RESEARCH PROGRESS")
-                    st.subheader("94.2%")
+                    st.subheader("📊 94.2%")
                     st.caption("📈 +3.5% Auto")
             with c3:
                 with st.container(border=True):
                     st.caption("WORKSPACE STATUS")
-                    st.subheader("Synced")
+                    st.subheader("⚡ Synced")
                     st.caption("🔒 Local Enclave")
             with c4:
                 with st.container(border=True):
                     st.caption("FOCUS SCORE")
-                    st.subheader("100%")
-                    st.caption("⚡ Deep Work")
+                    st.subheader("🧠 100%")
+                    st.caption("🔥 Deep Work")
 
             st.markdown("#### 🎯 Active Research & Task Milestones")
 
