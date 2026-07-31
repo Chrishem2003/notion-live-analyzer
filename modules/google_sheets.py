@@ -1,5 +1,5 @@
-﻿"""
-Google Sheets Integration — live read/write sync with Google Sheets.
+"""
+Google Sheets Integration  live read/write sync with Google Sheets.
 Requires Google service account or OAuth2 credentials.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -44,7 +44,7 @@ except ImportError:
                 logger.warning(
                     "gspread/oauth2client still not importable after auto-install", exc_info=True
                 )
-                st.warning("⚠️ Google Sheets packages installed but still not importable — restart the app.")
+                st.warning("⚠️ Google Sheets packages installed but still not importable  restart the app.")
         else:
             logger.error("Google Sheets dependency auto-install failed: %s", result.stderr[:500])
             st.warning(f"⚠️ Auto-install failed: {result.stderr[:200]}")

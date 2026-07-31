@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -86,7 +86,7 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         
         if selected_sub:
             sub_detail = next(item for item in mock_submissions if item["id"] == selected_sub)
-            st.info(f"Inspecting **{selected_sub}** — Candidate: **{sub_detail['student']}** | File: **{sub_detail['paper']}**")
+            st.info(f"Inspecting **{selected_sub}**  Candidate: **{sub_detail['student']}** | File: **{sub_detail['paper']}**")
             
             c1, c2 = st.columns(2)
             with c1:
@@ -130,7 +130,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             if matching_file and matching_file.type == "text/plain":
                 default_draft_text = matching_file.read().decode("utf-8", errors="ignore")
             elif matching_file:
-                default_draft_text = f"[Bulk Parsed Content from: {matching_file.name}] — Unlimited word capacity loaded successfully for advanced academic humanization and compliance rewriting."
+                default_draft_text = f"[Bulk Parsed Content from: {matching_file.name}]  Unlimited word capacity loaded successfully for advanced academic humanization and compliance rewriting."
 
         col_txt1, col_txt2 = st.columns(2)
         
@@ -171,7 +171,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                         )
                         if not humanized_output.endswith("."):
                             humanized_output += "."
-                        humanized_output += f"\n\n[Aidify Compliance Verified — Total Words Processed: {word_count:,}]"
+                        humanized_output += f"\n\n[Aidify Compliance Verified  Total Words Processed: {word_count:,}]"
                         
                         st.success("✨ Text successfully humanized at scale!")
                         st.text_area("Humanized Output Text:", value=humanized_output, height=180, key="humanized_result_box_unlimited")

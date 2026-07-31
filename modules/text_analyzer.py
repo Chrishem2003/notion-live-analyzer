@@ -1,5 +1,5 @@
-﻿"""
-Text Analyzer — qualitative text analysis with sentiment analysis,
+"""
+Text Analyzer  qualitative text analysis with sentiment analysis,
 word clouds, theme extraction, and frequency analysis.
 """
 from typing import Dict, List, Any, Optional, Tuple

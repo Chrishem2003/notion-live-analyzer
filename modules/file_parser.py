@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 import json
 
 def parse_uploaded_document(uploaded_file):

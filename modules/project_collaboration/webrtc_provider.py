@@ -1,5 +1,5 @@
-﻿"""
-WebRTC Provider — Enhanced Audio/Video Engine with Spatial Audio & Denoising
+"""
+WebRTC Provider  Enhanced Audio/Video Engine with Spatial Audio & Denoising
 Production-grade WebRTC session management with:
   - Adaptive HD video streaming with low-latency WebRTC simulation
   - AI Noise Suppression / Background Denoising (Krisp SDK integration pattern)
@@ -64,7 +64,7 @@ SAMPLE_RATE = 48000  # Hz
 FFT_SIZE = 2048
 NOISE_FLOOR_DB = -50
 SPEECH_THRESHOLD_DB = -30
-MAX_SPATIAL_DISTANCE = 1200  # pixels — beyond this, audio is fully panned
+MAX_SPATIAL_DISTANCE = 1200  # pixels  beyond this, audio is fully panned
 SPATIAL_PAN_RANGE = 0.8  # max pan amount (0-1)
 
 
@@ -98,7 +98,7 @@ class AudioSpatialPosition:
         distance = math.sqrt(dx**2 + dy**2)
 
         if distance < 10:
-            return 0.0  # Too close — center
+            return 0.0  # Too close  center
 
         # Calculate horizontal pan (left/right based on X axis)
         pan = max(-1.0, min(1.0, dx / MAX_SPATIAL_DISTANCE))
@@ -342,7 +342,7 @@ class NoiseSuppressionEngine:
         #   clean_audio = np.fft.irfft(clean_spectrum)
         time.sleep(0.0001)  # ~0.1ms processing delay
 
-        # Return processed audio (simulated — in production, returns denoised samples)
+        # Return processed audio (simulated  in production, returns denoised samples)
         return audio_frame
 
     def get_state(self) -> Dict[str, Any]:
@@ -510,7 +510,7 @@ class Participant:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# WEBRTC PROVIDER — Main Session Manager
+# WEBRTC PROVIDER  Main Session Manager
 # ═══════════════════════════════════════════════════════════════════════
 
 class WebRTCProvider:

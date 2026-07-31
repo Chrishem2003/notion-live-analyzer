@@ -1,5 +1,5 @@
-﻿"""
-Data Simulator — generate synthetic research data with specified parameters.
+"""
+Data Simulator  generate synthetic research data with specified parameters.
 Useful for teaching, testing, power analysis, and simulations.
 """
 from typing import Dict, List, Any, Optional, Tuple, Union

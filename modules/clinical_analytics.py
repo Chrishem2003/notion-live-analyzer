@@ -1,5 +1,5 @@
-﻿"""
-Clinical & Health Analytics — BMI calculator, clinical reference ranges,
+"""
+Clinical & Health Analytics  BMI calculator, clinical reference ranges,
 Z-scores, growth percentiles, and health indicator analysis.
 """
 from typing import Dict, List, Any, Optional, Tuple, Union
@@ -85,7 +85,7 @@ def calculate_bmi_for_age(
     bmi = bmi_result["bmi"]
 
     # Simplified percentile estimation (log-normal distribution)
-    # Mean and SD vary by age and sex — using simplified reference tables
+    # Mean and SD vary by age and sex  using simplified reference tables
     if sex.lower() == "male":
         if age_years < 18:
             mean_bmi = 15.5 + age_years * 0.45
@@ -385,7 +385,7 @@ def render_clinical_analytics_ui():
                     z = result.get("z_score", 0)
                     pct = result.get("percentile", 50)
                     status = result.get("status_for_age", "")
-                    st.info(f"**BMI-for-age**: Z-score = {z:.2f}, Percentile = {pct:.1f}% — **{status}**")
+                    st.info(f"**BMI-for-age**: Z-score = {z:.2f}, Percentile = {pct:.1f}%  **{status}**")
 
         # BMI Category reference
         with st.expander("📖 WHO BMI Classification Reference"):

@@ -1,5 +1,5 @@
-﻿"""
-CHRISHEM Analyzer — automated data analysis, profiling, and insight generation.
+"""
+CHRISHEM Analyzer  automated data analysis, profiling, and insight generation.
 Provides smart test recommendations and natural language insights.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -62,7 +62,7 @@ class CHRISHEMAnalyzer:
         ]
 
         for dtype, cols in type_summary.items():
-            summary_lines.append(f"  • **{dtype}**: {len(cols)} columns — {', '.join(cols[:5])}{'...' if len(cols) > 5 else ''}")
+            summary_lines.append(f"  • **{dtype}**: {len(cols)} columns  {', '.join(cols[:5])}{'...' if len(cols) > 5 else ''}")
 
         return {
             "raw": profile,
@@ -93,10 +93,10 @@ class CHRISHEMAnalyzer:
 
         suggestions = []
         if severity == "high":
-            suggestions.append("⚠️ High missing rate — consider removing or imputing affected columns")
+            suggestions.append("⚠️ High missing rate  consider removing or imputing affected columns")
         for _, row in missing_df.iterrows():
             if row["Percentage"] > 50:
-                suggestions.append(f"  • `{row['Column']}` is {row['Percentage']}% missing — consider dropping")
+                suggestions.append(f"  • `{row['Column']}` is {row['Percentage']}% missing  consider dropping")
 
         return {
             "has_missing": True,
@@ -321,15 +321,15 @@ class CHRISHEMAnalyzer:
 
         # Dataset size insight
         if profile["rows"] > 10000:
-            insights.append(f"📏 Large dataset: **{profile['rows']:,}** rows — consider using sampling for faster visualizations")
+            insights.append(f"📏 Large dataset: **{profile['rows']:,}** rows  consider using sampling for faster visualizations")
         elif profile["rows"] < 30:
-            insights.append(f"📏 Small dataset: **{profile['rows']}** rows — statistical tests may have limited power")
+            insights.append(f"📏 Small dataset: **{profile['rows']}** rows  statistical tests may have limited power")
 
         # Missing data insight
         if profile["missing_pct"] > 10:
-            insights.append(f"⬜ **{profile['missing_pct']}%** of cells are missing — consider imputation or removal")
+            insights.append(f"⬜ **{profile['missing_pct']}%** of cells are missing  consider imputation or removal")
         elif profile["missing_pct"] > 0:
-            insights.append(f"⬜ Minimal missing data ({profile['missing_pct']}%) — data quality is good")
+            insights.append(f"⬜ Minimal missing data ({profile['missing_pct']}%)  data quality is good")
 
         # Skewness insights
         numeric_cols = profile.get("numeric_columns", [])
@@ -339,7 +339,7 @@ class CHRISHEMAnalyzer:
                     skew = df[col].skew()
                     if abs(skew) > 1:
                         direction = "positively" if skew > 0 else "negatively"
-                        insights.append(f"📊 **{col}** is {direction} skewed ({skew:.2f}) — consider log transformation")
+                        insights.append(f"📊 **{col}** is {direction} skewed ({skew:.2f})  consider log transformation")
                 except Exception:
                     logger.warning("Skewness insight failed for column %r", col, exc_info=True)
 
@@ -368,7 +368,7 @@ class CHRISHEMAnalyzer:
                     logger.warning("Temporal insight failed for column %r", col, exc_info=True)
 
         if not insights:
-            insights.append("✅ No notable patterns detected — data appears clean and simple")
+            insights.append("✅ No notable patterns detected  data appears clean and simple")
 
         return insights
 

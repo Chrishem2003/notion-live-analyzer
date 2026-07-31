@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 
 class NeuralODEEngine:
     """Continuous-time Neural ODE framework for latent dynamics prediction."""

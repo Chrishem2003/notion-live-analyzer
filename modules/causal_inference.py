@@ -1,5 +1,5 @@
-﻿"""
-Causal Inference Engine — Estimate causal effects from observational data.
+"""
+Causal Inference Engine  Estimate causal effects from observational data.
 Provides propensity score matching, difference-in-differences, instrumental variable
 regression, regression discontinuity, DAG specification, and ATE/ATT/CATE estimation.
 """
@@ -504,7 +504,7 @@ def render_causal_inference_ui():
     import plotly.express as px
 
     st.markdown("## 🔬 Causal Inference Engine")
-    st.markdown("*Estimate causal effects from observational data — PSM, DiD, IV, RDD, IPW, CATE*")
+    st.markdown("*Estimate causal effects from observational data  PSM, DiD, IV, RDD, IPW, CATE*")
 
     df = st.session_state.get("active_df")
     if df is None or df.empty:

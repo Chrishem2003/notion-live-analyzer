@@ -1,5 +1,5 @@
-﻿"""
-Automated Literature Context — Effect size comparison against published norms,
+"""
+Automated Literature Context  Effect size comparison against published norms,
 auto citation suggestions, field-specific benchmarks, sample size benchmarking.
 """
 from __future__ import annotations
@@ -271,7 +271,7 @@ class LiteratureContext:
 
         lines.append("### Suggested Citations")
         for i, s in enumerate(citation_suggestions, 1):
-            lines.append(f"{i}. {s['citation']} — *{s['context']}*")
+            lines.append(f"{i}. {s['citation']}  *{s['context']}*")
 
         return "\n".join(lines)
 

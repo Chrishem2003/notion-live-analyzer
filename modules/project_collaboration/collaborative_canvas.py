@@ -1,4 +1,4 @@
-﻿"""
+"""
 Collaborative Canvas & Viewport Sync Engine (Yjs / CRDTs)
 Production-grade CRDT-based collaborative workspace with:
   - Real-time collaborative project canvas with multi-user presence cursors
@@ -260,7 +260,7 @@ class CRDTElement:
         # Increment state vector for updater
         self.state_vector[updater_id] = self.state_vector.get(updater_id, 0) + 1
 
-        # Apply updates (LWW — last writer wins per field)
+        # Apply updates (LWW  last writer wins per field)
         for key, value in updates.items():
             if hasattr(self, key) and key not in ("id", "owner_id", "created_at", "state_vector"):
                 setattr(self, key, value)
@@ -288,7 +288,7 @@ class CRDTElement:
         elif other.last_write_time > self.last_write_time:
             return other
         else:
-            # Same timestamp — use deterministic tiebreaker (higher ID wins)
+            # Same timestamp  use deterministic tiebreaker (higher ID wins)
             return self if self.id > other.id else other
 
     def to_dict(self) -> Dict[str, Any]:
@@ -316,7 +316,7 @@ class CRDTElement:
 
 class GhostStage:
     """
-    Ghost Stage Mode — Private workspace sandbox for co-hosts.
+    Ghost Stage Mode  Private workspace sandbox for co-hosts.
     
     Co-hosts can:
       - Edit content in an isolated branch
@@ -461,7 +461,7 @@ class GhostStage:
                     main_elements[eid].delete(self.cohost_id)
                     deleted += 1
             elif eid in main_elements:
-                # Merge — LWW wins
+                # Merge  LWW wins
                 winner = ghost_elem.resolve_conflict(main_elements[eid])
                 main_elements[eid] = winner
                 updated += 1
@@ -559,7 +559,7 @@ class CanvasSnapshot:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# COLLABORATIVE CANVAS — Main Engine
+# COLLABORATIVE CANVAS  Main Engine
 # ═══════════════════════════════════════════════════════════════════════
 
 class CollaborativeCanvas:

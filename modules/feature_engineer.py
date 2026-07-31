@@ -1,5 +1,5 @@
-﻿"""
-Automated Feature Engineering — Interaction term discovery, polynomial features,
+"""
+Automated Feature Engineering  Interaction term discovery, polynomial features,
 binning, text extraction, date decomposition, and auto feature selection.
 """
 from __future__ import annotations

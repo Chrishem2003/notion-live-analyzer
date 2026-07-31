@@ -1,5 +1,5 @@
-﻿"""
-Notion Bi-Directional Sync Engine — enables writing insights, tags, and cleaned data
+"""
+Notion Bi-Directional Sync Engine  enables writing insights, tags, and cleaned data
 back to Notion pages and databases via the Notion API.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -53,14 +53,14 @@ class NotionSyncEngine:
             if response.status_code == 200:
                 return True, f"✅ Updated '{property_name}' on page {page_id[:8]}..."
             elif response.status_code == 401:
-                return False, "❌ Invalid token — please re-connect your Notion integration"
+                return False, "❌ Invalid token  please re-connect your Notion integration"
             elif response.status_code == 404:
-                return False, f"❌ Page {page_id[:8]}... not found — it may have been deleted"
+                return False, f"❌ Page {page_id[:8]}... not found  it may have been deleted"
             else:
                 return False, f"❌ API Error {response.status_code}: {response.text[:200]}"
         except requests.exceptions.Timeout:
             logger.warning("Timeout updating property %r on Notion page %s", property_name, page_id)
-            return False, "⏱️ Request timed out — check your network"
+            return False, "⏱️ Request timed out  check your network"
         except Exception as e:
             logger.exception("Failed to update property %r on Notion page %s", property_name, page_id)
             return False, f"❌ Sync error: {str(e)}"
@@ -118,7 +118,7 @@ class NotionSyncEngine:
                 return True, "✅ Comment added to page"
             else:
                 logger.error(
-                    "Failed to add comment to Notion page %s: %s — %s",
+                    "Failed to add comment to Notion page %s: %s  %s",
                     page_id, response.status_code, response.text[:200],
                 )
                 return False, f"❌ Failed to add comment: {response.status_code}"
@@ -156,7 +156,7 @@ class NotionSyncEngine:
             notion_properties.update(payload)
 
         if not notion_properties:
-            return False, f"❌ No valid properties to write — {'; '.join(rejected)}", None
+            return False, f"❌ No valid properties to write  {'; '.join(rejected)}", None
 
         payload = {
             "parent": {"database_id": db_id},
@@ -170,14 +170,14 @@ class NotionSyncEngine:
                 new_id = data.get("id", "")
                 message = "✅ New entry created in Notion database"
                 if rejected:
-                    message += f" — skipped invalid properties: {'; '.join(rejected)}"
+                    message += f"  skipped invalid properties: {'; '.join(rejected)}"
                 return True, message, new_id
             else:
                 logger.error(
-                    "Failed to create entry in Notion database %s: %s — %s",
+                    "Failed to create entry in Notion database %s: %s  %s",
                     db_id, response.status_code, response.text[:200],
                 )
-                return False, f"❌ Failed to create entry: {response.status_code} — {response.text[:200]}", None
+                return False, f"❌ Failed to create entry: {response.status_code}  {response.text[:200]}", None
         except Exception as e:
             logger.exception("Error creating entry in Notion database %s", db_id)
             return False, f"❌ Create error: {str(e)}", None
@@ -284,7 +284,7 @@ class NotionSyncEngine:
 
         return {
             "success": synced > 0,
-            "message": f"Synced '{column_name}' to '{target}' — {synced} updated, {failed} failed",
+            "message": f"Synced '{column_name}' to '{target}'  {synced} updated, {failed} failed",
             "synced": synced,
             "failed": failed,
         }
@@ -300,7 +300,7 @@ class NotionSyncEngine:
             if response.status_code == 200:
                 return response.json()
             logger.error(
-                "Failed to read content of Notion page %s: %s — %s",
+                "Failed to read content of Notion page %s: %s  %s",
                 page_id, response.status_code, response.text[:200],
             )
             return None
@@ -325,7 +325,7 @@ class NotionSyncEngine:
             if response.status_code == 200:
                 return True, f"✅ Block appended to page {page_id[:8]}..."
             logger.error(
-                "Failed to append %s block to Notion page %s: %s — %s",
+                "Failed to append %s block to Notion page %s: %s  %s",
                 block_type, page_id, response.status_code, response.text[:200],
             )
             return False, f"❌ Failed: {response.status_code}"
@@ -337,7 +337,7 @@ class NotionSyncEngine:
 # ─── UI ──────────────────────────────────────────────────────────────
 
 def render_notion_sync_ui(df: pd.DataFrame):
-    """Render the Notion sync UI — embeddable in other pages."""
+    """Render the Notion sync UI  embeddable in other pages."""
     st.markdown("### 🔄 Notion Bi-Directional Sync")
     st.caption("Push insights, tags, and cleaned data back to your Notion database.")
 
@@ -346,7 +346,7 @@ def render_notion_sync_ui(df: pd.DataFrame):
     if not has_page_ids:
         st.info(
             "💡 **Bi-directional sync requires data sourced from Notion.** "
-            "The `_page_id` column is missing — load data from a Notion database first."
+            "The `_page_id` column is missing  load data from a Notion database first."
         )
         return
 
@@ -441,7 +441,7 @@ def render_notion_sync_ui(df: pd.DataFrame):
                 stype = entry.get("type", "").replace("_", " ").title()
                 result = entry.get("result", {})
                 status = "✅" if result.get("success") else "❌"
-                st.markdown(f"{status} **{ts}** — {stype}: {result.get('message', '')}")
+                st.markdown(f"{status} **{ts}**  {stype}: {result.get('message', '')}")
         else:
             st.info("No sync history yet.")
 

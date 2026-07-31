@@ -1,7 +1,7 @@
-﻿"""
-Audit Portal — CHRISHEM Encrypted Submission & Analytics System
+"""
+Audit Portal  CHRISHEM Encrypted Submission & Analytics System
 Provides:
-  1. CHRISHEMSubmissionSystem — Fernet-encrypted student submissions with SQLite
+  1. CHRISHEMSubmissionSystem  Fernet-encrypted student submissions with SQLite
 """
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def decrypt_text(ciphertext: str, password: str) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 1. SUBMISSION SYSTEM — Encrypted Student → Professor Workflow
+# 1. SUBMISSION SYSTEM  Encrypted Student → Professor Workflow
 # ═══════════════════════════════════════════════════════════════════════
 class CHRISHEMSubmissionSystem:
     """SQLite-backed encrypted submission system with blockchain audit trail."""

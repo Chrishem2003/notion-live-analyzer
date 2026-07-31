@@ -1,4 +1,4 @@
-﻿import os
+import os
 import streamlit as st
 
 def generate_report(data):

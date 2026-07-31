@@ -1,4 +1,4 @@
-﻿import requests
+import requests
 from datetime import datetime
 
 def fetch_field_site_telemetry(lat: float, lon: float) -> dict:

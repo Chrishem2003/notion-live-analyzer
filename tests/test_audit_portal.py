@@ -1,4 +1,4 @@
-﻿"""Unit tests for modules.audit_portal."""
+"""Unit tests for modules.audit_portal."""
 import pytest
 
 from modules import audit_portal

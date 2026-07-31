@@ -1,4 +1,4 @@
-﻿"""Notion Module — Template Duplication & Embedded Workspace."""
+"""Notion Module  Template Duplication & Embedded Workspace."""
 import os
 import time
 import hashlib

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Hands-Free 'Pause & Interrupt' Conversational Audio Engine
 Upgrades audio briefings into an interactive, voice-controlled learning space.
 Users can interrupt via voice or tap, ask clarifying questions, and resume.

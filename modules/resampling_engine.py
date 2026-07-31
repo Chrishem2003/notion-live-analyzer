@@ -1,5 +1,5 @@
-﻿"""
-Advanced Resampling & Validation — Bootstrap confidence intervals, permutation tests,
+"""
+Advanced Resampling & Validation  Bootstrap confidence intervals, permutation tests,
 cross-validation, Monte Carlo simulations.
 """
 from __future__ import annotations
@@ -351,7 +351,7 @@ def render_resampling_ui():
         if st.button("⚡ Estimate Power", type="primary"):
             result = engine.monte_carlo_power(es, int(n), n_sim, 0.05, test)
             st.metric("Estimated Power", f"{result['estimated_power']:.3f}")
-            st.info(f"Power = {result['estimated_power']:.2%} — {result['interpretation']}")
+            st.info(f"Power = {result['estimated_power']:.2%}  {result['interpretation']}")
 
     with tab5:
         st.subheader("📈 Bootstrap Hypothesis Test")

@@ -1,5 +1,5 @@
-﻿"""
-Academic Integrations — Zotero, Mendeley, Grant Finder, LaTeX Exporter.
+"""
+Academic Integrations  Zotero, Mendeley, Grant Finder, LaTeX Exporter.
 """
 import os
 import json

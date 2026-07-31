@@ -1,4 +1,4 @@
-﻿"""File Analyzer — Local File Parser & Fallback Analytics."""
+"""File Analyzer  Local File Parser & Fallback Analytics."""
 import pandas as pd
 import streamlit as st
 from typing import Optional

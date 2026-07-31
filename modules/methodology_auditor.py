@@ -1,5 +1,5 @@
-﻿"""
-Active Bias & Methodological Flaw Detector — AI-driven "Peer Reviewer"
+"""
+Active Bias & Methodological Flaw Detector  AI-driven "Peer Reviewer"
 Critically audits research methodology sections, sample sizes, experimental setups.
 Flags small sample sizes, unaddressed confounding variables, statistical over-claims,
 p-hacking risks, selection bias, and assigns overall "Methodological Rigor Score" (0–100%).
@@ -218,7 +218,7 @@ STUDY_DESIGNS = {
 # ═══════════════════════════════════════════════════════════════════════
 class MethodologyAuditor:
     """
-    Full methodology audit engine — scans research text for methodological flaws,
+    Full methodology audit engine  scans research text for methodological flaws,
     assigns rigor scores, generates detailed audit reports with evidence citations.
 
     Usage:
@@ -299,7 +299,7 @@ class MethodologyAuditor:
                 if is_present:
                     findings.append({
                         "type": flaw_key,
-                        "label": f"✅ {flaw_def['label']} — Present",
+                        "label": f"✅ {flaw_def['label']}  Present",
                         "detail": "Power analysis or sample size justification was found.",
                         "severity": "good",
                         "recommendation": None,
@@ -307,7 +307,7 @@ class MethodologyAuditor:
                 else:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"❌ {flaw_def['label']} — Missing",
+                        "label": f"❌ {flaw_def['label']}  Missing",
                         "detail": "No power analysis or sample size justification detected.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -317,7 +317,7 @@ class MethodologyAuditor:
                 if not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"❌ {flaw_def['label']} — Not Addressed",
+                        "label": f"❌ {flaw_def['label']}  Not Addressed",
                         "detail": "No mention of confounding variables or covariate adjustment.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -327,7 +327,7 @@ class MethodologyAuditor:
                 if is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"⚠️ {flaw_def['label']} — Possible Indicators",
+                        "label": f"⚠️ {flaw_def['label']}  Possible Indicators",
                         "detail": "Text contains phrases associated with p-hacking (multiple tests, data-driven, subgroup analyses without correction).",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -337,7 +337,7 @@ class MethodologyAuditor:
                 if is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"⚠️ {flaw_def['label']} — Possible Indicators",
+                        "label": f"⚠️ {flaw_def['label']}  Possible Indicators",
                         "detail": "Text mentions sampling or selection methods that may introduce bias.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -347,7 +347,7 @@ class MethodologyAuditor:
                 if design_detected in ("RCT", "Experimental") and not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"❌ {flaw_def['label']} — Required but Not Mentioned",
+                        "label": f"❌ {flaw_def['label']}  Required but Not Mentioned",
                         "detail": f"Study design '{design_detected}' requires randomization, but no randomization procedures are described.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -357,7 +357,7 @@ class MethodologyAuditor:
                 if design_detected in ("RCT", "Experimental") and not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"⚠️ {flaw_def['label']} — Not Mentioned",
+                        "label": f"⚠️ {flaw_def['label']}  Not Mentioned",
                         "detail": f"Study design '{design_detected}' typically benefits from blinding, but no blinding procedures are described.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -658,7 +658,7 @@ class MethodologyAuditor:
             f"Generated: {audit_results.get('audited_at', 'N/A')}",
             "═" * 70,
             "",
-            f"OVERALL RIGOR SCORE: {audit_results.get('rigor_score', 0)}/100 — "
+            f"OVERALL RIGOR SCORE: {audit_results.get('rigor_score', 0)}/100  "
             f"{audit_results.get('rigor_label', 'N/A')}",
             f"Study Design: {audit_results.get('design_detected', 'Unknown')}",
             f"Sample Size: {audit_results.get('detected_sample_size', 'Not detected')}",
@@ -716,7 +716,7 @@ def render_methodology_auditor_ui():
     import streamlit as st
 
     st.markdown("## 🔬 Active Bias & Methodological Flaw Detector")
-    st.markdown("*AI-driven 'Peer Reviewer' that critically audits research methodology — flags flaws, assigns Rigor Score*")
+    st.markdown("*AI-driven 'Peer Reviewer' that critically audits research methodology  flags flaws, assigns Rigor Score*")
 
     tab1, tab2, tab3 = st.tabs([
         "📝 Input & Audit",
@@ -757,13 +757,13 @@ def render_methodology_auditor_ui():
             col1, col2 = st.columns(2)
             with col1:
                 detected_design = st.selectbox(
-                    "Study design (optional — auto-detect if blank)",
+                    "Study design (optional  auto-detect if blank)",
                     options=[""] + list(STUDY_DESIGNS.keys()),
                     key="audit_design_select",
                 ) or None
             with col2:
                 detected_n = st.number_input(
-                    "Sample size (optional — auto-extract if blank)",
+                    "Sample size (optional  auto-extract if blank)",
                     min_value=0, max_value=100000, value=0, step=10,
                     key="audit_n_input",
                 )
@@ -780,7 +780,7 @@ def render_methodology_auditor_ui():
                     selected_project = st.selectbox(
                         "Select project",
                         options=projects,
-                        format_func=lambda p: f"{p.get('name', 'Untitled')} — {p.get('topic', '')}",
+                        format_func=lambda p: f"{p.get('name', 'Untitled')}  {p.get('topic', '')}",
                         key="audit_project_select",
                     )
                     if selected_project:
@@ -796,7 +796,7 @@ def render_methodology_auditor_ui():
                                 if sec.get("content", "").strip():
                                     text_to_audit = sec.get("content", "")
                                     break
-                        st.info(f"Loaded from project '{selected_project.get('name', '')}' — {len(text_to_audit)} characters")
+                        st.info(f"Loaded from project '{selected_project.get('name', '')}'  {len(text_to_audit)} characters")
                 else:
                     st.info("No projects found. Use the Literature Engine first.")
             except Exception as e:
@@ -821,7 +821,7 @@ def render_methodology_auditor_ui():
                 st.error(results["error"])
             else:
                 st.session_state["_last_audit_results"] = results
-                st.success(f"✅ Audit complete! Rigor Score: {results['rigor_score']}/100 — {results['rigor_label']}")
+                st.success(f"✅ Audit complete! Rigor Score: {results['rigor_score']}/100  {results['rigor_label']}")
                 st.rerun()
 
         elif run_audit:
@@ -836,7 +836,7 @@ def render_methodology_auditor_ui():
             <div style="text-align:center;padding:1rem;border-radius:14px;
                         border:2px solid {color};background:{color}10;margin:0.5rem 0;">
                 <span style="font-size:2.5rem;font-weight:900;color:{color};">{score}</span>
-                <span style="font-size:1.1rem;color:{color};">/100 — {results['rigor_label']}</span>
+                <span style="font-size:1.1rem;color:{color};">/100  {results['rigor_label']}</span>
                 <br>
                 <span style="font-size:0.9rem;color:#64748b;">
                     🔴 {results.get('critical_flaws', 0)} critical | 🟡 {results.get('moderate_flaws', 0)} moderate | 🟠 {results.get('low_flaws', 0)} minor
@@ -864,7 +864,7 @@ def render_methodology_auditor_ui():
                 <div style="font-size:4rem;font-weight:900;color:{color};">{score}</div>
                 <div style="font-size:1.5rem;font-weight:700;color:{color};">{results['rigor_label']}</div>
                 <div style="font-size:0.9rem;color:#64748b;margin-top:0.5rem;">
-                    Methodological Rigor Score — {score}/100
+                    Methodological Rigor Score  {score}/100
                 </div>
             """, unsafe_allow_html=True)
 

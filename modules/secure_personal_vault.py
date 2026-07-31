@@ -1,4 +1,4 @@
-﻿"""
+"""
 Secure Personal Vault
 Zero-knowledge encrypted personal storage vault with 2FA authentication,
 AES-GCM-256 client-side encryption, duress PIN support, categorized file
@@ -37,7 +37,7 @@ try:
     HAS_CRYPTO = True
 except ImportError:
     HAS_CRYPTO = False
-    logger.warning("cryptography package unavailable — vault falls back to a reduced crypto path")
+    logger.warning("cryptography package unavailable  vault falls back to a reduced crypto path")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -238,7 +238,7 @@ class CryptoEngine:
             if plaintext is not None and expected_hash:
                 actual_hash = hashlib.sha256(plaintext).hexdigest()
                 if not hmac.compare_digest(actual_hash, expected_hash):
-                    logger.error("Vault file integrity check failed — content hash mismatch")
+                    logger.error("Vault file integrity check failed  content hash mismatch")
                     return None
             return plaintext
         except Exception:
@@ -413,7 +413,7 @@ class VaultFile:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# SECURE PERSONAL VAULT — Main Class
+# SECURE PERSONAL VAULT  Main Class
 # ═══════════════════════════════════════════════════════════════════════
 
 class SecurePersonalVault:
@@ -578,7 +578,7 @@ class SecurePersonalVault:
         self.last_activity_time = time.time()
         self._log("vault_unlocked", f"Vault {'(duress mode)' if is_duress else ''}unlocked")
         if is_duress:
-            return True, "⚠️ DUress mode active — showing limited vault."
+            return True, "⚠️ DUress mode active  showing limited vault."
         return True, "✅ Vault unlocked successfully."
 
     def lock(self) -> None:
@@ -1107,7 +1107,7 @@ def render_secure_vault_ui():
     vault = st.session_state["secure_vault"]
 
     # ═══════════════════════════════════════════════════════════════
-    # GATE — Authentication Screen
+    # GATE  Authentication Screen
     # ═══════════════════════════════════════════════════════════════
     if vault is None or (vault.is_locked and not st.session_state["vault_unlocked"]):
 
@@ -1130,7 +1130,7 @@ def render_secure_vault_ui():
                                               placeholder="Enter your master passcode...", key="vault_setup_pass")
                     passcode2 = st.text_input("Confirm Master Passcode", type="password",
                                                placeholder="Confirm passcode...", key="vault_setup_pass2")
-                    duress_pass = st.text_input("Duress PIN (optional — triggers dummy vault)", type="password",
+                    duress_pass = st.text_input("Duress PIN (optional  triggers dummy vault)", type="password",
                                                  placeholder="Alternate passcode for coercion...", key="vault_setup_duress")
                     col_a, col_b = st.columns(2)
                     with col_a:
@@ -1200,7 +1200,7 @@ def render_secure_vault_ui():
             st.stop()
 
     # ═══════════════════════════════════════════════════════════════
-    # VAULT — Main Interface
+    # VAULT  Main Interface
     # ═══════════════════════════════════════════════════════════════
 
     vault = st.session_state["secure_vault"]
@@ -1382,7 +1382,7 @@ def render_secure_vault_ui():
             with col_share:
                 if st.button("🔗", key=f"vault_share_{vf.id}", use_container_width=True, help="Generate share link"):
                     link = vf.generate_share_link(expires_in_hours=1, max_downloads=1)
-                    st.info(f"🔗 Share link: `{link['url']}` — expires in 1h / 1 download")
+                    st.info(f"🔗 Share link: `{link['url']}`  expires in 1h / 1 download")
 
             with col_del:
                 if vf.is_deleted:
@@ -1435,9 +1435,9 @@ def render_secure_vault_ui():
                             text = data.decode("utf-8")
                             st.code(text, language="python" if ext == ".py" else "markdown" if ext == ".md" else "json" if ext == ".json" else "csv" if ext == ".csv" else "plain")
                         except UnicodeDecodeError:
-                            st.info("📄 Binary file — download to view")
+                            st.info("📄 Binary file  download to view")
                     else:
-                        st.info(f"📄 File type `{ext}` — download to view")
+                        st.info(f"📄 File type `{ext}`  download to view")
 
                 # File metadata
                 with st.expander("📋 File Details", expanded=False):
@@ -1574,7 +1574,7 @@ def render_secure_vault_ui():
         <div class="vault-card" style="border:1px solid #92400e;background:rgba(245,158,11,0.05);text-align:center;padding:1rem;">
             <span style="color:#fbbf24;font-size:1.5rem;">⚠️</span>
             <div style="color:#fbbf24;font-weight:700;">DUress Mode Active</div>
-            <div style="color:#d97706;font-size:0.85rem;">Limited vault view — only dummy files visible</div>
+            <div style="color:#d97706;font-size:0.85rem;">Limited vault view  only dummy files visible</div>
         </div>
         """, unsafe_allow_html=True)
 

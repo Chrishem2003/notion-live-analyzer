@@ -1,5 +1,5 @@
-﻿"""
-UI Components — reusable Streamlit UI elements for consistent design.
+"""
+UI Components  reusable Streamlit UI elements for consistent design.
 Unified stunning styling system for all pages.
 """
 from typing import Optional, Dict, Any, List, Callable
@@ -148,7 +148,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         font-weight: 700 !important;
     }
         /* ═══════════════════════════════════════════════════════════════════
-           UNIFIED STUNNING DESIGN SYSTEM — All Pages
+           UNIFIED STUNNING DESIGN SYSTEM  All Pages
         ═══════════════════════════════════════════════════════════════════ */
         
         /* ─── Base ───────────────────────────────────────────────────────── */
@@ -715,17 +715,17 @@ def render_onboarding_tour():
             st.markdown("""
             ### 👋 Welcome to the Advanced Research Data Analyzer!
 
-            This powerful tool replaces **SPSS, Tableau, and Power BI** — all in one free, Notion-connected platform.
+            This powerful tool replaces **SPSS, Tableau, and Power BI**  all in one free, Notion-connected platform.
 
             **📍 Quick Navigation:**
-            - **📊 Live Dashboard** — Real-time sync with your Notion database
-            - **📁 File Analyzer** — Upload CSV, Excel, SPSS, SAS, STATA files
-            - **🔬 Statistical Tests** — T-tests, ANOVA, Correlation, Regression, and more
-            - **📈 Advanced Visuals** — 18+ chart types with auto-recommendation
-            - **🤖 CHRISHEM Insights** — Automated data analysis and smart recommendations
-            - **🔗 Git Integration** — Connect GitHub for data version control
-            - **📊 Presentation Deck** — Build interactive slide decks
-            - **⚙️ Settings** — Theme, credentials, keep-alive configuration
+            - **📊 Live Dashboard**  Real-time sync with your Notion database
+            - **📁 File Analyzer**  Upload CSV, Excel, SPSS, SAS, STATA files
+            - **🔬 Statistical Tests**  T-tests, ANOVA, Correlation, Regression, and more
+            - **📈 Advanced Visuals**  18+ chart types with auto-recommendation
+            - **🤖 CHRISHEM Insights**  Automated data analysis and smart recommendations
+            - **🔗 Git Integration**  Connect GitHub for data version control
+            - **📊 Presentation Deck**  Build interactive slide decks
+            - **⚙️ Settings**  Theme, credentials, keep-alive configuration
 
             **💡 Tips:**
             - Connect your Notion workspace OR upload a file to get started

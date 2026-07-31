@@ -1,5 +1,5 @@
-﻿"""
-Statistical Engine — SPSS-level statistical analysis suite.
+"""
+Statistical Engine  SPSS-level statistical analysis suite.
 Replaces SPSS, STATA, and SAS for common research analyses.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -240,7 +240,7 @@ class StatisticalEngine:
                 "Significant": tukey.reject,
             })
         except Exception:
-            posthoc_df = pd.DataFrame({"Note": ["Post-hoc failed — try with more data"]})
+            posthoc_df = pd.DataFrame({"Note": ["Post-hoc failed  try with more data"]})
         return {
             "test": "One-Way ANOVA",
             "num_groups": len(groups_data),
@@ -437,7 +437,7 @@ class StatisticalEngine:
 
     # ─── POWER ANALYSIS ─────────────────────────────────────────────
     def power_ttest(self, effect_size: float = 0.5, alpha: float = 0.05, power: float = 0.8, ratio: float = 1.0) -> Dict[str, Any]:
-        """Power analysis for t-test — estimate required sample size."""
+        """Power analysis for t-test  estimate required sample size."""
         err = self._require_statsmodels()
         if err:
             return {"error": err}

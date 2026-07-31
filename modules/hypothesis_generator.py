@@ -1,5 +1,5 @@
-﻿"""
-Automated Hypothesis Generator — discovers patterns, formulates research hypotheses,
+"""
+Automated Hypothesis Generator  discovers patterns, formulates research hypotheses,
 and prioritizes them by statistical support and novelty.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -333,11 +333,11 @@ class HypothesisGenerator:
                     novelty_score = 20  # Low novelty
                 elif es > lit_es * 1.5:
                     gap_type = "novel_larger"
-                    gap_label = "🔬 Novel finding — larger than reported"
+                    gap_label = "🔬 Novel finding  larger than reported"
                     novelty_score = 85
                 elif es < lit_es * 0.5:
                     gap_type = "novel_smaller"
-                    gap_label = "🔬 Novel finding — smaller than reported"
+                    gap_label = "🔬 Novel finding  smaller than reported"
                     novelty_score = 75
                 else:
                     gap_type = "inconsistent"
@@ -368,10 +368,10 @@ class HypothesisGenerator:
                 h["priority_label"] = self._score_to_label(adjusted)
 
             else:
-                # No literature match — this is a potential knowledge gap
+                # No literature match  this is a potential knowledge gap
                 gap_analysis["literature_comparison"] = {
                     "type": "knowledge_gap",
-                    "label": "💡 Potential knowledge gap — no literature comparison found",
+                    "label": "💡 Potential knowledge gap  no literature comparison found",
                     "novelty_score": 70,
                     "literature_effect": None,
                     "your_effect": round(es, 3),
@@ -427,7 +427,7 @@ class HypothesisGenerator:
             direction = "larger" if gap_type == "novel_larger" else "smaller"
             return base_narrative + f" 🔬 This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
         elif gap_type == "knowledge_gap":
-            return base_narrative + " 💡 This pattern has not been found in the literature review — potential knowledge gap worth exploring."
+            return base_narrative + " 💡 This pattern has not been found in the literature review  potential knowledge gap worth exploring."
         elif gap_type == "inconsistent":
             return base_narrative + f" ⚠️ This finding diverges from published literature (d_lit={gap.get('literature_effect', 0):.2f}). Consider contextual or methodological factors."
         return base_narrative
@@ -544,7 +544,7 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
 
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.info(f"📊 Dataset: {len(df)} rows × {len(df.columns)} columns — ready for hypothesis discovery")
+        st.info(f"📊 Dataset: {len(df)} rows × {len(df.columns)} columns  ready for hypothesis discovery")
     with col2:
         if st.button("🚀 Run Hypothesis Discovery", type="primary", use_container_width=True):
             with st.spinner("🔍 Discovering patterns and formulating hypotheses..."):
@@ -566,11 +566,11 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
         ### 🔍 How It Works
         The hypothesis generator systematically tests:
 
-        1. **Mean Differences** — Does a categorical variable predict differences in a numeric outcome?
-        2. **Correlations** — Are two numeric variables linearly related?
-        3. **Associations** — Are two categorical variables related?
-        4. **Trends** — Does a variable change systematically over time?
-        5. **Group Differences** — Do multiple groups differ on a numeric measure?
+        1. **Mean Differences**  Does a categorical variable predict differences in a numeric outcome?
+        2. **Correlations**  Are two numeric variables linearly related?
+        3. **Associations**  Are two categorical variables related?
+        4. **Trends**  Does a variable change systematically over time?
+        5. **Group Differences**  Do multiple groups differ on a numeric measure?
 
         Each hypothesis is scored by: significance, effect size, p-value precision, and type.
         """)
@@ -646,7 +646,7 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
     if st.button("📋 Copy All as Markdown"):
         lines = ["# Generated Hypotheses", f"**Generated**: {datetime.now():%Y-%m-%d %H:%M:%S}", ""]
         for h in filtered:
-            lines.append(f"### {h.get('id', '')} — {h.get('priority_label', '')}")
+            lines.append(f"### {h.get('id', '')}  {h.get('priority_label', '')}")
             lines.append(h.get('narrative', ''))
             lines.append(f"*Test: {h.get('test', '')} | Type: {h.get('type', '')} | Score: {h.get('priority_score', 0)}*")
             lines.append("")

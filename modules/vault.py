@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import hashlib
 import time
 from modules.database import log_backend_event

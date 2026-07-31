@@ -1,5 +1,5 @@
-﻿"""
-Network Analysis Engine — Correlation networks, social network analysis,
+"""
+Network Analysis Engine  Correlation networks, social network analysis,
 co-occurrence networks, centrality metrics, community detection.
 """
 from __future__ import annotations

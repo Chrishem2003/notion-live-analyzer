@@ -1,4 +1,4 @@
-﻿"""
+"""
 Theoretical-to-Practical Protocol Transpiler
 Converts dense paper methodology into actionable step-by-step laboratory,
 computational, or data analysis protocols.
@@ -118,7 +118,7 @@ class ProtocolTranspiler:
 
     def transpile(self, text: str, protocol_title: str = "") -> Dict[str, Any]:
         """
-        Full transpilation pipeline — extracts all parameters and builds protocol.
+        Full transpilation pipeline  extracts all parameters and builds protocol.
 
         Args:
             text: Methodology text to transpile
@@ -538,7 +538,7 @@ class ProtocolTranspiler:
             lines.append("TEMPERATURE CONDITIONS")
             lines.append("─" * 40)
             for t in temps:
-                lines.append(f"  • {t['value']} — {t['context']}")
+                lines.append(f"  • {t['value']}  {t['context']}")
             lines.append("")
 
         # Durations

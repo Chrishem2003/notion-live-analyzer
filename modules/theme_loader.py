@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 
 def apply_custom_theme():
     """

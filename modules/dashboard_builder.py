@@ -1,5 +1,5 @@
-﻿"""
-Dashboard Builder — interactive drag-and-drop dashboard creation tool.
+"""
+Dashboard Builder  interactive drag-and-drop dashboard creation tool.
 Create custom multi-chart dashboards with cross-filtering.
 """
 from typing import Dict, List, Any, Optional, Tuple

@@ -1,4 +1,4 @@
-﻿"""Unit tests for modules.keepalive."""
+"""Unit tests for modules.keepalive."""
 import json
 
 import pytest

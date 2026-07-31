@@ -1,4 +1,4 @@
-﻿"""Unit tests for modules.notion_client."""
+"""Unit tests for modules.notion_client."""
 import hashlib
 
 import pandas as pd

@@ -1,4 +1,4 @@
-﻿import time
+import time
 import os
 import streamlit as st
 from datetime import datetime

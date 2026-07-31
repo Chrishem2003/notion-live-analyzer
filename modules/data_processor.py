@@ -1,5 +1,5 @@
-﻿"""
-Data Processor — handles data type inference, cleaning, aggregation, and merging.
+"""
+Data Processor  handles data type inference, cleaning, aggregation, and merging.
 Includes provenance tracking integration for full lineage logging.
 """
 import warnings

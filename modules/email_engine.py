@@ -1,4 +1,4 @@
-﻿"""Email Engine — SMTP/SendGrid Integration for Reports."""
+"""Email Engine  SMTP/SendGrid Integration for Reports."""
 import os
 import io
 import base64
@@ -243,7 +243,7 @@ VERIFICATION_EMAIL_TEMPLATE = """
             </p>
         </div>
         <div class="footer">
-            <p>Bio-Research Platform — Accelerating Academic Research</p>
+            <p>Bio-Research Platform  Accelerating Academic Research</p>
             <p>© 2024 Bio-Research Platform. All rights reserved.</p>
         </div>
     </div>
@@ -354,7 +354,7 @@ AUDIT_REPORT_TEMPLATE = """
             </p>
         </div>
         <div class="footer">
-            <p>Bio-Research Platform — Academic Integrity Tools</p>
+            <p>Bio-Research Platform  Academic Integrity Tools</p>
             <p>© 2024 Bio-Research Platform. All rights reserved.</p>
         </div>
     </div>
@@ -428,7 +428,7 @@ WELCOME_EMAIL_TEMPLATE = """
         <div class="content">
             <p>Hello <strong>{user_name}</strong>!</p>
             
-            <p>Welcome to the Bio-Research Platform — your comprehensive toolkit for academic research and literature analysis.</p>
+            <p>Welcome to the Bio-Research Platform  your comprehensive toolkit for academic research and literature analysis.</p>
             
             <h3>Your Account</h3>
             <ul class="features">
@@ -447,7 +447,7 @@ WELCOME_EMAIL_TEMPLATE = """
             </p>
         </div>
         <div class="footer">
-            <p>Bio-Research Platform — Accelerating Academic Research</p>
+            <p>Bio-Research Platform  Accelerating Academic Research</p>
             <p>© 2024 Bio-Research Platform. All rights reserved.</p>
         </div>
     </div>

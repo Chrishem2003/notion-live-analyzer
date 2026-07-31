@@ -1,5 +1,5 @@
-﻿"""
-Data Quality Module — automated data quality assessment, reporting, and improvement suggestions.
+"""
+Data Quality Module  automated data quality assessment, reporting, and improvement suggestions.
 Like SPSS Data Audit and Quality Assurance.
 """
 from typing import Dict, List, Any, Optional, Tuple, Union
@@ -92,7 +92,7 @@ class DataQualityReport:
             recommendations.append("Investigate causes of missing data")
             recommendations.append("Consider imputation strategies")
         elif missing_pct > 0:
-            recommendations.append("Low missing rate — monitor for future increases")
+            recommendations.append("Low missing rate  monitor for future increases")
 
         # Flag columns with high missing
         high_missing = col_missing[col_missing / len(self.df) > 0.3]
@@ -176,7 +176,7 @@ class DataQualityReport:
 
         if mixed_types:
             issues.append(f"Mixed types detected: {', '.join(mixed_types[:5])}")
-            recommendations.append("Clean mixed-type columns — convert to appropriate type")
+            recommendations.append("Clean mixed-type columns  convert to appropriate type")
 
         # Check date consistency
         date_issues = []
@@ -226,7 +226,7 @@ class DataQualityReport:
         }
 
     def assess_validity(self) -> Dict[str, Any]:
-        """Assess value validity — out-of-range, impossible values."""
+        """Assess value validity  out-of-range, impossible values."""
         issues = []
         recommendations = []
 
@@ -258,7 +258,7 @@ class DataQualityReport:
         if invalid_values:
             for col, info in invalid_values.items():
                 issues.append(f"'{col}': {info['count']} values ({info['pct']}%) outside expected range {info['range']}")
-            recommendations.append("Review extreme values — check for data entry errors")
+            recommendations.append("Review extreme values  check for data entry errors")
             recommendations.append("Consider winsorizing or transforming extreme values")
 
         # Check for negative values where impossible
@@ -303,7 +303,7 @@ class DataQualityReport:
         constant_cols = [col for col in self.df.columns if self.df[col].nunique() <= 1]
         if constant_cols:
             issues.append(f"Constant columns (no variance): {', '.join(constant_cols[:5])}")
-            recommendations.append("Remove constant columns — they add no predictive value")
+            recommendations.append("Remove constant columns  they add no predictive value")
 
         # Check for columns with all NaN
         all_nan = [col for col in self.df.columns if self.df[col].isna().all()]
@@ -374,7 +374,7 @@ class DataQualityReport:
 def render_data_quality_ui(df: pd.DataFrame):
     """Render the data quality dashboard."""
     st.markdown("## 🔍 Data Quality Assessment")
-    st.markdown("*Automated data quality audit — completeness, uniqueness, consistency, validity, accuracy*")
+    st.markdown("*Automated data quality audit  completeness, uniqueness, consistency, validity, accuracy*")
 
     if df is None or df.empty:
         st.warning("No data available. Load data first.")

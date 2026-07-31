@@ -1,5 +1,5 @@
-﻿"""
-Data Provenance Tracker — Immutable lineage logging for DataFrame operations
+"""
+Data Provenance Tracker  Immutable lineage logging for DataFrame operations
 Records every transformation applied to a DataFrame with full context:
   - Operation type, parameters, input/output shapes
   - Timestamp and execution order
@@ -301,7 +301,7 @@ class ProvenanceDatabase:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 2. PROVENANCE TRACKER — Context Manager
+# 2. PROVENANCE TRACKER  Context Manager
 # ═══════════════════════════════════════════════════════════════════════
 class ProvenanceTracker:
     """
@@ -498,7 +498,7 @@ class _ProvenanceContext:
         """Capture the input DataFrame before transformation."""
         self._start_time = time.time()
         # The input DataFrame is whatever is currently assigned
-        # We cannot capture it automatically — must be assigned explicitly
+        # We cannot capture it automatically  must be assigned explicitly
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -521,7 +521,7 @@ class _ProvenanceContext:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 3. DATAFRAME WRAPPER — Auto-Logging Proxy
+# 3. DATAFRAME WRAPPER  Auto-Logging Proxy
 # ═══════════════════════════════════════════════════════════════════════
 class TrackedDataFrame:
     """
@@ -533,7 +533,7 @@ class TrackedDataFrame:
         tdf = tdf[tdf["age"] > 18]  # Auto-logged
         result = tdf.groupby("group").mean()  # Auto-logged
 
-    Still in early access — wraps the most common operations.
+    Still in early access  wraps the most common operations.
     """
 
     def __init__(self, df: pd.DataFrame, tracker: ProvenanceTracker, label: str = ""):
@@ -592,7 +592,7 @@ class TrackedDataFrame:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 4. PROVENANCE VISUALIZER — Plotly Directed Graph
+# 4. PROVENANCE VISUALIZER  Plotly Directed Graph
 # ═══════════════════════════════════════════════════════════════════════
 class ProvenanceVisualizer:
     """
@@ -656,13 +656,13 @@ class ProvenanceVisualizer:
 
             # Determine color
             if row_change > 0:
-                color = "#2ecc71"  # Green — expansion
+                color = "#2ecc71"  # Green  expansion
             elif row_change < 0:
-                color = "#e74c3c"  # Red — reduction
+                color = "#e74c3c"  # Red  reduction
             elif cols_added or cols_removed:
-                color = "#3498db"  # Blue — column changes
+                color = "#3498db"  # Blue  column changes
             else:
-                color = "#95a5a6"  # Gray — no change
+                color = "#95a5a6"  # Gray  no change
 
             nodes.append({
                 "label": label,
@@ -886,7 +886,7 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
         checkpoints = summary.get("checkpoints", [])
         if checkpoints:
             for cp in checkpoints:
-                st.info(f"📍 **{cp['label']}** — Operation: {cp['operation_id']}")
+                st.info(f"📍 **{cp['label']}**  Operation: {cp['operation_id']}")
         else:
             st.caption("No checkpoints created yet.")
 

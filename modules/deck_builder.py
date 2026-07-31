@@ -1,5 +1,5 @@
-﻿"""
-Presentation Deck Builder — allows users to select generated charts and
+"""
+Presentation Deck Builder  allows users to select generated charts and
 compile them into an interactive presentation deck view with export options.
 """
 from typing import Dict, List, Any, Optional
@@ -277,7 +277,7 @@ def render_deck_builder_ui():
                 df = st.session_state.get("active_df")
                 if df is not None and not df.empty:
                     deck.add_data_slide(
-                        f"Data Overview — {df.shape[0]} rows × {df.shape[1]} cols",
+                        f"Data Overview  {df.shape[0]} rows × {df.shape[1]} cols",
                         df.head(50),
                         f"First {min(50, len(df))} rows of the dataset"
                     )
@@ -317,7 +317,7 @@ def render_deck_builder_ui():
         insights = st.session_state.get("generated_hypotheses", [])
         if insights:
             for h in insights[:5]:
-                if st.button(f"➕ Add: {h.get('id', 'Hypothesis')} — {h.get('narrative', '')[:60]}...", key=f"add_hyp_{h.get('id', '')}"):
+                if st.button(f"➕ Add: {h.get('id', 'Hypothesis')}  {h.get('narrative', '')[:60]}...", key=f"add_hyp_{h.get('id', '')}"):
                     deck.add_slide(
                         f"Finding {h.get('id', '')}: {h.get('type', '').replace('_', ' ').title()}",
                         h.get('narrative', ''),

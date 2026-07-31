@@ -1,5 +1,5 @@
-﻿"""
-APA Formatter — formats statistical results in APA 7th edition style.
+"""
+APA Formatter  formats statistical results in APA 7th edition style.
 Provides publication-ready output for all statistical tests.
 """
 from typing import Dict, List, Any, Optional, Union, Tuple

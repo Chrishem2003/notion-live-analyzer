@@ -1,5 +1,5 @@
-﻿"""
-Notion API Client — handles all interactions with the Notion API.
+"""
+Notion API Client  handles all interactions with the Notion API.
 Supports all 20+ property types and automatic database detection.
 Includes caching and rate-limiting to improve performance.
 """
@@ -202,7 +202,7 @@ def get_database_options(token: str) -> List[Dict]:
             response = _rate_limited_request("POST", url, json=request_payload, headers=headers)
             if response.status_code != 200:
                 logger.error(
-                    "Notion database search failed (page %s): %s — %s",
+                    "Notion database search failed (page %s): %s  %s",
                     page_count + 1, response.status_code, response.text[:200],
                 )
                 if not _handle_api_error(response, token):
@@ -333,10 +333,10 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
 
             if response.status_code != 200:
                 logger.error(
-                    "Notion query failed for database %s: %s — %s",
+                    "Notion query failed for database %s: %s  %s",
                     db_id, response.status_code, response.text[:200],
                 )
-                st.error(f"Notion API Error: {response.status_code} — {response.text[:200]}")
+                st.error(f"Notion API Error: {response.status_code}  {response.text[:200]}")
                 fetch_attempts += 1
                 continue
 
@@ -372,7 +372,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
             fetch_attempts = 0  # Reset on success
 
         except requests.exceptions.Timeout:
-            logger.warning("Timeout querying Notion database %s — retrying", db_id)
+            logger.warning("Timeout querying Notion database %s  retrying", db_id)
             st.warning("⏱️ Notion API timeout. Retrying...")
             fetch_attempts += 1
             time.sleep(1)
@@ -412,7 +412,7 @@ def get_database_schema(token: str, db_id: str) -> Dict:
             data = response.json()
             return data.get("properties", {})
         logger.error(
-            "Failed to fetch schema for Notion database %s: %s — %s",
+            "Failed to fetch schema for Notion database %s: %s  %s",
             db_id, response.status_code, response.text[:200],
         )
         return {}

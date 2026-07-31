@@ -1,5 +1,5 @@
-﻿"""
-Research Quality & Reproducibility Checker — detects p-hacking, QRPs,
+"""
+Research Quality & Reproducibility Checker  detects p-hacking, QRPs,
 assesses reproducibility, and provides transparency checks.
 """
 from typing import Dict, List, Any, Optional, Tuple

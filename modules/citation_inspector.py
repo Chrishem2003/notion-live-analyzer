@@ -1,4 +1,4 @@
-﻿"""
+"""
 Real-Time Citation Integrity & Retraction Inspector
 Audits paper bibliographies against live databases to protect researchers
 from citing discredited work. Cross-checks references for retractions,
@@ -182,7 +182,7 @@ def render_citation_inspector_ui():
                     sev_color = "#e74c3c" if flag["severity"] == "critical" else "#e67e22" if flag["severity"] == "high" else "#f1c40f"
                     st.markdown(f'<div style="padding:0.6rem;border-left:4px solid {sev_color};background:{sev_color}08;margin:0.3rem 0;border-radius:6px;">⚠️ <strong>{flag["message"]}</strong></div>', unsafe_allow_html=True)
             if not result["flags"]:
-                st.success("✅ No issues detected — citation appears healthy")
+                st.success("✅ No issues detected  citation appears healthy")
             with st.expander("📋 Raw check data"):
                 st.json(result)
 

@@ -1,5 +1,5 @@
-﻿"""
-Executive Auto-Insight Storyteller — automatically runs statistical test batteries
+"""
+Executive Auto-Insight Storyteller  automatically runs statistical test batteries
 on data load and generates a beautifully formatted executive summary,
 risk assessment, and core takeaways.
 """
@@ -290,13 +290,13 @@ class ExecutiveStoryteller:
         n_rows = profile.get("rows", 0)
         if n_rows < 30:
             quality["score"] -= 15
-            quality["issues"].append(f"⚠️ Small sample size (N={n_rows}) — results may be unstable")
+            quality["issues"].append(f"⚠️ Small sample size (N={n_rows})  results may be unstable")
         elif n_rows < 100:
             quality["warnings"].append(f"📋 Moderate sample size (N={n_rows})")
 
         numeric_cols = profile.get("numeric_columns", [])
         if len(numeric_cols) < 2:
-            quality["warnings"].append("📋 Few numeric variables — limited statistical analysis available")
+            quality["warnings"].append("📋 Few numeric variables  limited statistical analysis available")
 
         quality["score"] = max(0, quality["score"])
         quality["grade"] = "A" if quality["score"] >= 90 else "B" if quality["score"] >= 75 else "C" if quality["score"] >= 60 else "D"
@@ -374,7 +374,7 @@ class ExecutiveStoryteller:
         # Statistical risks
         if test_battery.get("tests_run") == 0:
             lines.append(f"### 🔬 Statistical Limitations")
-            lines.append(f"- No significant statistical findings — data may lack power or structure")
+            lines.append(f"- No significant statistical findings  data may lack power or structure")
             lines.append(f"")
 
         lines.append(f"### 💡 Recommendations")
@@ -426,7 +426,7 @@ class ExecutiveStoryteller:
                 "type": "anomaly",
                 "severity": anomalies.get("severity", "low"),
                 "icon": "📊",
-                "text": f"{anomalies['total_outliers']} anomalous data points detected — review before modeling",
+                "text": f"{anomalies['total_outliers']} anomalous data points detected  review before modeling",
             })
 
         # Data size takeaways
@@ -436,14 +436,14 @@ class ExecutiveStoryteller:
                 "type": "scale",
                 "severity": "low",
                 "icon": "📏",
-                "text": f"Large dataset ({n:,} rows) — consider sampling for faster iterative analysis",
+                "text": f"Large dataset ({n:,} rows)  consider sampling for faster iterative analysis",
             })
         elif n < 50:
             takeaways.append({
                 "type": "scale",
                 "severity": "high",
                 "icon": "📏",
-                "text": f"Small dataset ({n} rows) — interpret results with caution, consider Bayesian methods",
+                "text": f"Small dataset ({n} rows)  interpret results with caution, consider Bayesian methods",
             })
 
         # Sort by severity
@@ -492,7 +492,7 @@ def render_executive_storyteller_ui():
             {'🟢 LOW RISK' if severity == 'low' else '🟡 MODERATE RISK' if severity == 'medium' else '🔴 HIGH RISK'}
         </span>
         <span style="color:#64748b;margin-left:1rem;">
-            Overall Assessment — Generated {report.get('generated_at', '')}
+            Overall Assessment  Generated {report.get('generated_at', '')}
         </span>
     </div>
     """, unsafe_allow_html=True)

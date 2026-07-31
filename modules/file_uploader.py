@@ -1,4 +1,4 @@
-﻿"""
+"""
 File Uploader â€” handles file uploads in multiple formats (CSV, Excel, SPSS, SAS, STATA, JSON).
 """
 from typing import Optional, Dict, Any, List
@@ -122,7 +122,7 @@ def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
     if df is not None and not df.empty:
         # Clean column names
         df.columns = [str(col).strip() for col in df.columns]
-        st.success(f"âœ… Loaded '{uploaded_file.name}' â€” {len(df)} rows Ã— {len(df.columns)} columns")
+        st.success(f"âœ… Loaded '{uploaded_file.name}' â€” {len(df)} rows Ã {len(df.columns)} columns")
         return df
 
     return None
@@ -181,7 +181,7 @@ def manual_data_entry() -> pd.DataFrame:
 
     if st.button("âœ… Create Dataset", type="primary"):
         df = pd.DataFrame(data)
-        st.success(f"Created dataset: {len(df)} rows Ã— {len(df.columns)} columns")
+        st.success(f"Created dataset: {len(df)} rows Ã {len(df.columns)} columns")
         return df
     return pd.DataFrame()
 

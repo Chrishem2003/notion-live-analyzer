@@ -1,4 +1,4 @@
-﻿"""Unit tests for modules.pandas_compat and its use across the app."""
+"""Unit tests for modules.pandas_compat and its use across the app."""
 import pandas as pd
 
 from modules.data_processor import infer_column_type
@@ -13,7 +13,7 @@ class TestIsTextDtype:
         assert is_text_dtype(object_series(["a", "b"])) is True
 
     def test_inferred_text_dtype(self):
-        # pandas 3 infers `str`; pandas 2 keeps `object` — both are text.
+        # pandas 3 infers `str`; pandas 2 keeps `object`  both are text.
         assert is_text_dtype(pd.Series(["a", "b"])) is True
 
     def test_numeric_strings_are_text(self):

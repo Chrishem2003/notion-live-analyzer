@@ -1,4 +1,4 @@
-﻿"""Enhanced UI Styles — Visual Design System."""
+"""Enhanced UI Styles  Visual Design System."""
 import streamlit as st
 
 def apply_enhanced_styles():

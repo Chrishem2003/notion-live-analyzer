@@ -1,5 +1,5 @@
-﻿"""
-Configuration module — manages secrets, session state, and app-wide constants.
+"""
+Configuration module  manages secrets, session state, and app-wide constants.
 """
 import os
 import base64
@@ -225,7 +225,7 @@ def init_session_state():
 
 # ─── Secret Resolution ────────────────────────────────────────────────
 def get_secret(name: str) -> Optional[str]:
-    """Resolve a secret value — session override > st.secrets > env var."""
+    """Resolve a secret value  session override > st.secrets > env var."""
     session_key = f"user_{name}"
     if session_key in st.session_state and st.session_state[session_key]:
         return st.session_state[session_key]
@@ -233,7 +233,7 @@ def get_secret(name: str) -> Optional[str]:
         if name in st.secrets:
             return st.secrets[name]
     except Exception:
-        # No secrets.toml (or it is unreadable) — fall back to the environment.
+        # No secrets.toml (or it is unreadable)  fall back to the environment.
         logger.debug("Could not read secret %r from st.secrets", name, exc_info=True)
     return os.environ.get(name)
 

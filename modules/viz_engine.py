@@ -1,5 +1,5 @@
-﻿"""
-Visualization Engine — intelligent auto-chart recommendation and selection.
+"""
+Visualization Engine  intelligent auto-chart recommendation and selection.
 Analyzes data types and suggests the best visualization automatically.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -20,32 +20,32 @@ CHART_CATEGORIES = {
 }
 
 CHART_DESCRIPTIONS = {
-    "histogram": "Histogram with optional KDE — shows distribution of a numeric variable",
-    "box": "Box plot — shows median, quartiles, and outliers",
-    "violin": "Violin plot — combines box plot with density distribution",
-    "density": "Density plot — smooth distribution estimate",
-    "bar": "Bar chart — compare values across categories",
-    "grouped_bar": "Grouped bar chart — compare multiple series across categories",
-    "stacked_bar": "Stacked bar chart — show composition across categories",
-    "horizontal_bar": "Horizontal bar chart — good for many categories",
-    "line": "Line chart — show trends over time or ordered categories",
-    "area": "Area chart — emphasize magnitude of change",
-    "stacked_area": "Stacked area chart — show composition over time",
-    "scatter": "Scatter plot — relationship between two numeric variables",
-    "bubble": "Bubble chart — scatter with 3rd dimension as bubble size",
-    "heatmap": "Heatmap — color-coded matrix of values",
-    "correlation_matrix": "Correlation matrix — strength of relationships",
-    "pie": "Pie chart — proportions of a whole (limited categories recommended)",
-    "donut": "Donut chart — pie chart with center hole",
-    "treemap": "Treemap — hierarchical data as nested rectangles",
-    "sunburst": "Sunburst — hierarchical data as concentric rings",
-    "funnel": "Funnel chart — progressive reduction through stages",
-    "scatter_3d": "3D Scatter plot — three numeric dimensions",
-    "parallel_coordinates": "Parallel coordinates — multi-dimensional comparison",
-    "radar": "Radar / Spider chart — multi-dimensional profiles",
-    "waterfall": "Waterfall chart — sequential contribution to total",
-    "gauge": "Gauge chart — single value against a target range",
-    "icicle": "Icicle chart — hierarchical data as cascading rectangles",
+    "histogram": "Histogram with optional KDE  shows distribution of a numeric variable",
+    "box": "Box plot  shows median, quartiles, and outliers",
+    "violin": "Violin plot  combines box plot with density distribution",
+    "density": "Density plot  smooth distribution estimate",
+    "bar": "Bar chart  compare values across categories",
+    "grouped_bar": "Grouped bar chart  compare multiple series across categories",
+    "stacked_bar": "Stacked bar chart  show composition across categories",
+    "horizontal_bar": "Horizontal bar chart  good for many categories",
+    "line": "Line chart  show trends over time or ordered categories",
+    "area": "Area chart  emphasize magnitude of change",
+    "stacked_area": "Stacked area chart  show composition over time",
+    "scatter": "Scatter plot  relationship between two numeric variables",
+    "bubble": "Bubble chart  scatter with 3rd dimension as bubble size",
+    "heatmap": "Heatmap  color-coded matrix of values",
+    "correlation_matrix": "Correlation matrix  strength of relationships",
+    "pie": "Pie chart  proportions of a whole (limited categories recommended)",
+    "donut": "Donut chart  pie chart with center hole",
+    "treemap": "Treemap  hierarchical data as nested rectangles",
+    "sunburst": "Sunburst  hierarchical data as concentric rings",
+    "funnel": "Funnel chart  progressive reduction through stages",
+    "scatter_3d": "3D Scatter plot  three numeric dimensions",
+    "parallel_coordinates": "Parallel coordinates  multi-dimensional comparison",
+    "radar": "Radar / Spider chart  multi-dimensional profiles",
+    "waterfall": "Waterfall chart  sequential contribution to total",
+    "gauge": "Gauge chart  single value against a target range",
+    "icicle": "Icicle chart  hierarchical data as cascading rectangles",
 }
 
 ALL_CHART_TYPES = list(CHART_DESCRIPTIONS.keys())
@@ -195,7 +195,7 @@ def explain_chart_recommendation(rec: Dict[str, Any]) -> str:
     score = rec.get("score", 0)
 
     confidence = "🔵 Highly Recommended" if score >= 90 else "🟢 Recommended" if score >= 80 else "🟡 Suggested"
-    return f"{confidence} — **{chart_name}**: {reason}"
+    return f"{confidence}  **{chart_name}**: {reason}"
 
 
 def get_chart_search_results(query: str) -> List[Tuple[str, str]]:

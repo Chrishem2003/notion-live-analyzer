@@ -1,4 +1,4 @@
-﻿import datetime
+import datetime
 import io
 import json
 import sqlite3
@@ -76,7 +76,7 @@ db_conn = init_db()
 # ============================================================================
 st.set_page_config(
     page_title="Sovereign Real-Time Decision & Risk Engine",
-    page_icon="??",
+    page_icon="🌐",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -314,7 +314,7 @@ if "Decision & Action" in user_role:
     st.plotly_chart(fig, use_container_width=True)
 
 elif "Chat Command" in user_role:
-    st.markdown("### ?? Natural Language Command Core")
+    st.markdown("### 💬 Natural Language Command Core")
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])

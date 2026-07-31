@@ -1,4 +1,4 @@
-﻿import re
+import re
 
 def validate_fasta(sequence_str: str) -> bool:
     """Validates basic DNA/RNA FASTA input formatting."""

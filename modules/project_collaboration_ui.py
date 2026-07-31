@@ -1,4 +1,4 @@
-﻿"""
+"""
 Unified Split-Screen Collaboration Shell UI
 Production-grade Tailwind-styled (custom CSS) split-screen collaboration interface featuring:
   - Main Panel: Interactive Yjs research canvas with viewport sync
@@ -55,7 +55,7 @@ from modules.project_collaboration import (
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# CSS — Dark Theme Split-Screen Layout
+# CSS  Dark Theme Split-Screen Layout
 # ═══════════════════════════════════════════════════════════════════════
 
 COLLAB_CSS = """
@@ -579,7 +579,7 @@ def render_collaboration_shell():
 
         st.markdown(f"""
         <div class="collab-ghost-banner">
-            <span>{state_icon} Ghost Stage Active — <strong>{ghost_stage.display_name}</strong></span>
+            <span>{state_icon} Ghost Stage Active  <strong>{ghost_stage.display_name}</strong></span>
             <span style="color:#94a3b8;">{ghost_stage.state.value.replace('_', ' ').title()} · {len(ghost_stage.elements)} elements staged</span>
         </div>
         """, unsafe_allow_html=True)
@@ -647,7 +647,7 @@ def _render_connection_gate(auth: ProjectAuthManager,
 
                 # Initialize AI Researcher
                 ai = AIResearcher(project_id, user_id)
-                ai.start_meeting(f"Research Sync — {project_id[:12]}")
+                ai.start_meeting(f"Research Sync  {project_id[:12]}")
                 st.session_state["collab_ai"] = ai
 
                 st.rerun()
@@ -681,7 +681,7 @@ def _render_connection_gate(auth: ProjectAuthManager,
                         st.session_state["collab_canvas"] = canvas
 
                         ai = AIResearcher(payload.project_id, payload.sub)
-                        ai.start_meeting(f"Research Sync — {payload.project_id[:12]}")
+                        ai.start_meeting(f"Research Sync  {payload.project_id[:12]}")
                         st.session_state["collab_ai"] = ai
                         st.rerun()
                     else:
@@ -954,7 +954,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
             if ai_researcher:
                 ai_researcher.generate_note(
                     title=f"Reaction: {r['label']}",
-                    content=f"**{r['label']}** — {local.name if local else 'Someone'} reacted with {r['emoji']}",
+                    content=f"**{r['label']}**  {local.name if local else 'Someone'} reacted with {r['emoji']}",
                     category=NoteCategory.GENERAL,
                     tags=["reaction", r['id']],
                 )
@@ -972,7 +972,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
             if ai_researcher:
                 ai_researcher.generate_note(
                     title=f"Reaction: {r['label']}",
-                    content=f"**{r['label']}** — {local.name if local else 'Someone'} reacted",
+                    content=f"**{r['label']}**  {local.name if local else 'Someone'} reacted",
                     category=NoteCategory.GENERAL,
                     tags=["reaction", r['id']],
                 )
@@ -1343,7 +1343,7 @@ def setup_demo_session():
 
     # Create demo AI Researcher
     ai = AIResearcher("demo_research_project", "host_001")
-    ai.start_meeting("Research Sync — AI in Clinical Outcomes")
+    ai.start_meeting("Research Sync  AI in Clinical Outcomes")
     ai.add_participant("host_001", "Dr. Sarah Chen")
     ai.add_participant("cohost_001", "Prof. Miller")
     ai.add_participant("researcher_001", "Dr. Watson")

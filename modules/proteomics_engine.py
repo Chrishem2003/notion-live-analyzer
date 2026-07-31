@@ -1,4 +1,4 @@
-﻿import requests
+import requests
 
 def translate_dna_to_protein(dna_seq: str) -> dict:
     """Translates a DNA sequence into amino acids using the standard genetic code."""

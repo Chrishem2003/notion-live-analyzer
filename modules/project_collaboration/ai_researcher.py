@@ -1,4 +1,4 @@
-﻿"""
+"""
 AI Co-Researcher & Automation Layer
 Intelligent research assistant that processes meeting transcripts in real-time,
 auto-detects action items, and generates live meeting notes appended to the project state.
@@ -905,7 +905,7 @@ class ActionItemDetector:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# AI RESEARCHER — Main Engine
+# AI RESEARCHER  Main Engine
 # ═══════════════════════════════════════════════════════════════════════
 
 class AIResearcher:
@@ -1416,7 +1416,7 @@ def render_ai_researcher_panel():
         with col1:
             if st.button("⏹️ End Meeting", use_container_width=True):
                 result = researcher.end_meeting()
-                st.success(f"✅ Meeting ended — {result['duration_display']}")
+                st.success(f"✅ Meeting ended  {result['duration_display']}")
                 st.rerun()
         with col2:
             if st.button("🧹 Clear Notes", use_container_width=True):
@@ -1511,7 +1511,7 @@ def render_ai_researcher_panel():
 
             st.markdown("### Integration Hooks")
             for hook_name, active in ctx["integration_hooks"].items():
-                st.markdown(f"{'✅' if active else '❌'} `{hook_name}` — {'Connected' if active else 'Not connected'}")
+                st.markdown(f"{'✅' if active else '❌'} `{hook_name}`  {'Connected' if active else 'Not connected'}")
 
             st.info("💡 Connect hooks from Literature Engine, Hypothesis Generator, and AI Analyzer for enriched meeting intelligence.")
 

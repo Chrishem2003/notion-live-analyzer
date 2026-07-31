@@ -1,5 +1,5 @@
-﻿"""
-Sensitivity & Robustness Analysis Engine — Influence diagnostics, subgroup analysis,
+"""
+Sensitivity & Robustness Analysis Engine  Influence diagnostics, subgroup analysis,
 specification curve analysis, multiverse analysis, and robustness value analysis.
 """
 from __future__ import annotations
@@ -87,7 +87,7 @@ class SensitivityEngine:
         controls: List[str],
     ) -> Dict[str, Any]:
         """
-        Specification curve analysis — run all possible model specifications
+        Specification curve analysis  run all possible model specifications
         and show how the treatment coefficient changes.
         """
         if not HAS_STATSMODELS:
@@ -263,7 +263,7 @@ class SensitivityEngine:
         exclusion_rules: Optional[List[Dict]] = None,
     ) -> Dict[str, Any]:
         """
-        Multiverse analysis — estimate the same model across many reasonable
+        Multiverse analysis  estimate the same model across many reasonable
         analytic choices simultaneously.
         """
         if not HAS_STATSMODELS:

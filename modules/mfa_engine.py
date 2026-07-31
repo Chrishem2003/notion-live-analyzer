@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pyotp
 import qrcode
 import io

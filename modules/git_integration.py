@@ -1,5 +1,5 @@
-﻿"""
-Native Git/Repository Integration — connects to GitHub repositories,
+"""
+Native Git/Repository Integration  connects to GitHub repositories,
 enables data version control, script pushing, and collaborative analysis.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -471,7 +471,7 @@ def render_git_integration_ui():
             for f in files:
                 icon = "📁" if f["type"] == "dir" else "📄"
                 size_str = f" ({f['size'] / 1024:.1f} KB)" if f["type"] == "file" else ""
-                st.markdown(f"{icon} **{f['name']}**{size_str} — `{f['path']}`")
+                st.markdown(f"{icon} **{f['name']}**{size_str}  `{f['path']}`")
         else:
             st.info("No files found at this path")
 
@@ -495,7 +495,7 @@ def render_git_integration_ui():
                         st.session_state["uploaded_df"] = pulled_df
                         st.session_state["active_df"] = pulled_df
                         st.session_state["data_source"] = "github"
-                        st.success(f"✅ Loaded '{file_to_pull['name']}' — {len(pulled_df)} rows × {len(pulled_df.columns)} columns")
+                        st.success(f"✅ Loaded '{file_to_pull['name']}'  {len(pulled_df)} rows × {len(pulled_df.columns)} columns")
                         st.dataframe(pulled_df.head(20), use_container_width=True, hide_index=True)
             else:
                 st.info("No supported data files found in the current directory. Navigate to a different path.")
@@ -568,7 +568,7 @@ def render_git_integration_ui():
                             border-left:3px solid #1d4ed8;background:rgba(0,0,0,0.02);">
                     <span style="font-weight:600;">{c['message'][:80]}</span><br>
                     <span style="font-size:0.8rem;color:#64748b;">
-                        {c['sha']} — {c['author']} — {c['date']}
+                        {c['sha']}  {c['author']}  {c['date']}
                     </span>
                 </div>
                 """, unsafe_allow_html=True)

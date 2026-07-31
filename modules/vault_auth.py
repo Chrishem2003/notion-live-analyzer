@@ -1,4 +1,4 @@
-﻿import io
+import io
 import pyotp
 import qrcode
 import streamlit as st
@@ -59,7 +59,7 @@ def render_secure_vault_auth():
 
     if st.session_state.get("vault_unlocked", False):
         st.markdown("---")
-        st.success("🟢 Vault Status: UNLOCKED — Encrypted Session Active")
+        st.success("🟢 Vault Status: UNLOCKED  Encrypted Session Active")
         st.json({
             "vault_id": account_name,
             "security_status": "Authenticated",

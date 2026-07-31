@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 from datetime import datetime
 from modules.database import log_backend_event
@@ -164,7 +164,7 @@ This study investigates regional environmental sample distributions using {metho
 
 I am writing to express my strong interest in the {position_applied} position. As an undergraduate student in biological sciences and data analytics at Muni University, I have cultivated a strong foundation in automated data pipeline management, research reporting, and quantitative analysis.
 
-My academic projects and technical implementations—ranging from molecular sequence tracking to secure local workspace architecture—demonstrate my capability to deliver rigorous, high-quality results. I am eager to bring my dedication, technical aptitude, and analytical skills to your esteemed organization.
+My academic projects and technical implementationsranging from molecular sequence tracking to secure local workspace architecturedemonstrate my capability to deliver rigorous, high-quality results. I am eager to bring my dedication, technical aptitude, and analytical skills to your esteemed organization.
 
 Thank you for your time and consideration. I look forward to discussing how my background aligns with your institutional goals.
 

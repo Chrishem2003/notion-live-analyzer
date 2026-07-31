@@ -1,5 +1,5 @@
-﻿"""
-Data Transformation Engine — SPSS-like Compute, Recode, Rank, Count, Shift, and Binning.
+"""
+Data Transformation Engine  SPSS-like Compute, Recode, Rank, Count, Shift, and Binning.
 Provides a UI for transforming variables with full SPSS compatibility.
 """
 from typing import Dict, List, Any, Optional, Tuple, Union
@@ -597,7 +597,7 @@ def render_select_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("▶️ Select Cases", type="primary") and condition:
         result_df = select_cases(df, condition, mode="filter" if "filter" in mode.lower() else "indicator")
-        st.success(f"✅ Applied selection — {len(result_df)} cases remaining")
+        st.success(f"✅ Applied selection  {len(result_df)} cases remaining")
         return result_df
     return df
 
@@ -618,7 +618,7 @@ def render_weight_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("▶️ Weight Cases", type="primary"):
         result_df = weight_cases(df, weight_col)
-        st.success(f"✅ Weighted — {len(result_df)} cases after weighting (was {len(df)})")
+        st.success(f"✅ Weighted  {len(result_df)} cases after weighting (was {len(df)})")
         return result_df
     return df
 

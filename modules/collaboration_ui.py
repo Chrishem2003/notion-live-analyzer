@@ -1,4 +1,4 @@
-﻿"""Collaboration UI — Streamlit Interface for Research Command Center."""
+"""Collaboration UI  Streamlit Interface for Research Command Center."""
 import time
 import json
 from datetime import datetime, timedelta
@@ -358,7 +358,7 @@ def render_command_center():
     ">
         <h1 style="margin:0; color: white;">🎯 Research Command Center</h1>
         <p style="color: #94a3b8; margin-top: 0.5rem;">
-            Unified collaboration hub — Video, Chat, Tasks, & AI Assistant
+            Unified collaboration hub  Video, Chat, Tasks, & AI Assistant
         </p>
     </div>
     """, unsafe_allow_html=True)

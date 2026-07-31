@@ -1,4 +1,4 @@
-﻿"""
+"""
 Centralised logging setup for the app.
 
 Modules should use ``get_logger(__name__)`` instead of silently discarding

@@ -1,5 +1,5 @@
-﻿"""
-Research Command Center — Unified Collaboration Hub.
+"""
+Research Command Center  Unified Collaboration Hub.
 Combines video conferencing, real-time collaboration, chat, 
 task management, and AI-powered research assistant into one platform.
 """

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Dynamic Hypothesis & Parameter Simulator
 Converts mathematical formulas and statistical relationships described in papers
 into interactive visual sliders. Users can vary parameters like sample size,
@@ -162,7 +162,7 @@ def render_hypothesis_simulator_ui():
     import plotly.express as px
 
     st.markdown("## 🧮 Dynamic Hypothesis & Parameter Simulator")
-    st.markdown("*Interactive mathematical modeler — vary parameters to see predicted outcomes*")
+    st.markdown("*Interactive mathematical modeler  vary parameters to see predicted outcomes*")
 
     sim = HypothesisSimulator()
 

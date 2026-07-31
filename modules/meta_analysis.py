@@ -1,5 +1,5 @@
-﻿"""
-Meta-Analysis Engine — Combine effect sizes across studies, assess heterogeneity,
+"""
+Meta-Analysis Engine  Combine effect sizes across studies, assess heterogeneity,
 detect publication bias, and generate publication-ready forest/funnel plots.
 
 Core capabilities:
@@ -122,8 +122,8 @@ class MetaAnalysisEngine:
 
         Parameters
         ----------
-        effects : List[float] — effect sizes (e.g., Cohen's d, log OR)
-        variances : List[float] — variance of each effect size
+        effects : List[float]  effect sizes (e.g., Cohen's d, log OR)
+        variances : List[float]  variance of each effect size
 
         Returns
         -------
@@ -163,8 +163,8 @@ class MetaAnalysisEngine:
 
         Parameters
         ----------
-        effects : List[float] — effect sizes
-        variances : List[float] — variance of each effect size
+        effects : List[float]  effect sizes
+        variances : List[float]  variance of each effect size
 
         Returns
         -------
@@ -237,10 +237,10 @@ class MetaAnalysisEngine:
 
         Parameters
         ----------
-        effects : List[float] — effect sizes
-        variances : List[float] — variance of each effect
-        study_labels : List[str], optional — labels for each study
-        method : str — "random", "fixed", or "both"
+        effects : List[float]  effect sizes
+        variances : List[float]  variance of each effect
+        study_labels : List[str], optional  labels for each study
+        method : str  "random", "fixed", or "both"
 
         Returns
         -------
@@ -342,7 +342,7 @@ class MetaAnalysisEngine:
     @staticmethod
     def fail_safe_n(effects: List[float], p_values: List[float], alpha: float = 0.05) -> Dict[str, Any]:
         """
-        Rosenthal's Fail-Safe N — number of null studies needed to nullify the overall effect.
+        Rosenthal's Fail-Safe N  number of null studies needed to nullify the overall effect.
         """
         if not effects or not p_values:
             return {"error": "Need effect sizes and p-values"}
@@ -453,10 +453,10 @@ class MetaAnalysisEngine:
             "h2": round(float(h2), 4),
             "heterogeneity": re.get("heterogeneity"),
             "interpretation": {
-                "i2_low": "I² < 25% — Low heterogeneity",
-                "i2_moderate": "I² 25-50% — Moderate heterogeneity",
-                "i2_substantial": "I² 50-75% — Substantial heterogeneity",
-                "i2_high": "I² > 75% — High heterogeneity",
+                "i2_low": "I² < 25%  Low heterogeneity",
+                "i2_moderate": "I² 25-50%  Moderate heterogeneity",
+                "i2_substantial": "I² 50-75%  Substantial heterogeneity",
+                "i2_high": "I² > 75%  High heterogeneity",
             },
         }
 
@@ -469,7 +469,7 @@ class MetaAnalysisEngine:
         study_labels: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Perform subgroup meta-analysis — separate random-effects models per subgroup.
+        Perform subgroup meta-analysis  separate random-effects models per subgroup.
         """
         from collections import OrderedDict
         if len(effects) != len(subgroups):
@@ -520,7 +520,7 @@ class MetaAnalysisEngine:
         study_labels: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Cumulative meta-analysis — add studies one by one in specified order.
+        Cumulative meta-analysis  add studies one by one in specified order.
         Shows how pooled estimate evolves as evidence accumulates.
         """
         if not effects:
@@ -579,7 +579,7 @@ class MetaAnalysisEngine:
         study_labels: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Leave-one-out sensitivity analysis — re-run meta-analysis omitting one study at a time.
+        Leave-one-out sensitivity analysis  re-run meta-analysis omitting one study at a time.
         """
         if not effects or len(effects) < 3:
             return {"error": "Need at least 3 studies"}
@@ -639,7 +639,7 @@ class MetaAnalysisEngine:
         moderator_names: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Simple meta-regression — weighted regression of effect on moderators.
+        Simple meta-regression  weighted regression of effect on moderators.
         Uses inverse-variance weights.
         """
         if not effects or not variances or not moderators:
@@ -702,7 +702,7 @@ class MetaAnalysisEngine:
             }
 
         except np.linalg.LinAlgError:
-            return {"error": "Singular matrix — moderators may be collinear"}
+            return {"error": "Singular matrix  moderators may be collinear"}
         except Exception as e:
             return {"error": f"Meta-regression failed: {str(e)}"}
 
@@ -1019,7 +1019,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 st.markdown(f"""
                 <div style="padding:0.8rem;border-radius:12px;border:1px solid {het_color}40;
                             background:{het_color}08;margin:0.5rem 0;">
-                    <span style="font-weight:600;">I² = {het.get('i2', 0):.1f}%</span> — {het.get('heterogeneity', 'unknown').title()}
+                    <span style="font-weight:600;">I² = {het.get('i2', 0):.1f}%</span>  {het.get('heterogeneity', 'unknown').title()}
                     <span style="margin-left:1rem;color:#64748b;">Q({het.get('q_df', 0)}) = {het.get('q_statistic', 0):.2f}, p = {het.get('q_p_value', 1):.4f}</span>
                     <span style="margin-left:1rem;color:#64748b;">τ² = {het.get('tau2', 0):.4f}</span>
                 </div>
@@ -1470,7 +1470,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         st.markdown(f"**{group_name}** (k = {group_res.get('k', 0)})")
                         st.markdown(f"Pooled (RE): {re.get('pooled_effect', 'N/A'):.3f} "
                                    f"[{re.get('ci_lower', 0):.3f}, {re.get('ci_upper', 0):.3f}]"
-                                   f" — I² = {re.get('i2', 0):.1f}%")
+                                   f"  I² = {re.get('i2', 0):.1f}%")
                 elif subgroup_names and len(subgroup_names) != n_studies:
                     st.error(f"Expected {n_studies} subgroup labels, got {len(subgroup_names)}")
 

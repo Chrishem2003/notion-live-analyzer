@@ -1,5 +1,5 @@
-﻿"""
-Keep-Alive System — multi-layer approach to prevent app sleep.
+"""
+Keep-Alive System  multi-layer approach to prevent app sleep.
 5 layers: Client JS + Server Thread + Streamlit Config + Cron + Auto-Restart
 """
 import os
@@ -39,7 +39,7 @@ def inject_client_keepalive(interval_sec: int = 300):
         // Visibility change: re-enable keep-alive when tab becomes visible
         document.addEventListener('visibilitychange', function() {{
             if (!document.hidden && !window._ka_interval) {{
-                console.log('[Keep-Alive] Tab visible — re-establishing heartbeat');
+                console.log('[Keep-Alive] Tab visible  re-establishing heartbeat');
                 window._ka_interval = setInterval(function() {{
                     fetch(window.location.href, {{ method: 'HEAD', cache: 'no-store' }})
                         .then(r => console.log('[Keep-Alive] Ping OK @', new Date().toISOString()))
@@ -48,7 +48,7 @@ def inject_client_keepalive(interval_sec: int = 300):
             }}
         }});
 
-        console.log('[Keep-Alive] Heartbeat started — interval: {keep_alive_ms}ms');
+        console.log('[Keep-Alive] Heartbeat started  interval: {keep_alive_ms}ms');
     }})();
     </script>
     """
@@ -72,7 +72,7 @@ class ServerKeepAliveThread:
         self._running = True
         self._thread = threading.Thread(target=self._run, daemon=True, name="keepalive-server")
         self._thread.start()
-        logger.info(f"[Keep-Alive Layer 2] Server thread started — pinging {self.app_url} every {self.interval}s")
+        logger.info(f"[Keep-Alive Layer 2] Server thread started  pinging {self.app_url} every {self.interval}s")
 
     def stop(self):
         """Stop the background keep-alive thread."""
@@ -120,7 +120,7 @@ def get_health_check_html() -> str:
     <html>
     <head><title>Health Check</title></head>
     <body style="font-family: monospace; padding: 2rem;">
-        <h1>✅ Notion Live Analyzer — Healthy</h1>
+        <h1>✅ Notion Live Analyzer  Healthy</h1>
         <pre>{json.dumps(health_data, indent=2)}</pre>
         <p>Time: {time.ctime()}</p>
     </body>

@@ -1,5 +1,5 @@
-﻿"""
-Bayesian Analysis Engine — Bayesian hypothesis testing and parameter estimation.
+"""
+Bayesian Analysis Engine  Bayesian hypothesis testing and parameter estimation.
 Provides Bayesian t-tests, ANOVA, correlation, regression with Bayes factors,
 prior predictive checks, and posterior visualization.
 """
@@ -88,10 +88,10 @@ class BayesianEngine:
 
         Parameters
         ----------
-        x : array — First group (or paired differences)
-        y : array, optional — Second group (independent test)
-        paired : bool — Paired test?
-        prior_scale : float — Cauchy prior scale (default 0.707 = √2/2)
+        x : array  First group (or paired differences)
+        y : array, optional  Second group (independent test)
+        paired : bool  Paired test?
+        prior_scale : float  Cauchy prior scale (default 0.707 = √2/2)
         """
         if HAS_PINGOUIN:
             try:
@@ -344,7 +344,7 @@ def render_bayesian_analysis_ui():
     import plotly.express as px
 
     st.markdown("## 🧠 Bayesian Analysis Engine")
-    st.markdown("*Bayesian hypothesis testing with Bayes factors — t-tests, ANOVA, correlation, regression*")
+    st.markdown("*Bayesian hypothesis testing with Bayes factors  t-tests, ANOVA, correlation, regression*")
 
     df = st.session_state.get("active_df")
     if df is None or df.empty:
@@ -361,7 +361,7 @@ def render_bayesian_analysis_ui():
     ])
 
     with tab1:
-        st.subheader("🧪 Bayesian T-Test — BF₁₀")
+        st.subheader("🧪 Bayesian T-Test  BF₁₀")
         test_type = st.radio("Test type", ["Independent", "Paired", "One Sample"], horizontal=True, key="bf_test_type")
         col1, col2 = st.columns(2)
 
@@ -411,7 +411,7 @@ def render_bayesian_analysis_ui():
                 """, unsafe_allow_html=True)
 
     with tab2:
-        st.subheader("📊 Bayesian Correlation — BF₁₀")
+        st.subheader("📊 Bayesian Correlation  BF₁₀")
         col1, col2 = st.columns(2)
         with col1:
             corr_x = st.selectbox("Variable X", options=numeric_cols, key="bf_corr_x")
@@ -442,7 +442,7 @@ def render_bayesian_analysis_ui():
             st.plotly_chart(fig, use_container_width=True)
 
     with tab3:
-        st.subheader("📐 Bayesian ANOVA — BF₁₀")
+        st.subheader("📐 Bayesian ANOVA  BF₁₀")
         col1, col2 = st.columns(2)
         with col1:
             anova_dv = st.selectbox("Dependent variable", options=numeric_cols, key="bf_anova_dv")
@@ -470,7 +470,7 @@ def render_bayesian_analysis_ui():
                 """, unsafe_allow_html=True)
 
     with tab4:
-        st.subheader("📈 Bayesian Regression — BF₁₀")
+        st.subheader("📈 Bayesian Regression  BF₁₀")
         col1, col2 = st.columns(2)
         with col1:
             reg_target = st.selectbox("Target variable", options=numeric_cols, key="bf_reg_target")

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Project Collaboration & Meeting System
 A world-class, hybrid project collaboration & live meeting platform
 combining Zoom, Figma, and Google Classroom capabilities.

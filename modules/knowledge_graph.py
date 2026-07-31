@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 
 def build_research_knowledge_graph(entities: list, output_html: str = "graph.html"):

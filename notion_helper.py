@@ -1,4 +1,4 @@
-﻿from notion_client import Client
+from notion_client import Client
 import streamlit as st
 
 def auto_detect_database_ids(notion_token: str, required_titles: list) -> dict:

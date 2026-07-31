@@ -1,5 +1,5 @@
-﻿"""
-Chart Builder — builds 18+ interactive chart types using Plotly.
+"""
+Chart Builder  builds 18+ interactive chart types using Plotly.
 Handles all configuration, theming, and rendering.
 Research-grade publication-ready visualizations.
 """
@@ -13,7 +13,7 @@ from modules.config import RESEARCH_PALETTES, PUBLICATION_CONFIG
 
 # ─── Research Color Palette Loading ───────────────────────────────────
 def get_color_palette(palette_name: str = "Plotly") -> list:
-    """Get a color palette by name — includes research journal palettes."""
+    """Get a color palette by name  includes research journal palettes."""
     palettes = {
         "Plotly": px.colors.qualitative.Plotly,
         "Set2": px.colors.qualitative.Set2,
@@ -160,7 +160,7 @@ def dark_theme_overrides():
 
 def apply_theme(fig: go.Figure, is_dark: bool = False, publication: bool = True,
                 journal: str = None, title: str = None) -> go.Figure:
-    """Apply consistent theming — optionally with publication-grade styling."""
+    """Apply consistent theming  optionally with publication-grade styling."""
     if publication:
         fig = apply_publication_theme(fig, title=title)
         if journal:
@@ -174,7 +174,7 @@ def apply_theme(fig: go.Figure, is_dark: bool = False, publication: bool = True,
 # ─── Chart Builder Functions ──────────────────────────────────────────
 
 def build_bar(df, x=None, y=None, color=None, barmode="group", orientation="v", **kwargs):
-    """Bar chart — grouped, stacked, or horizontal."""
+    """Bar chart  grouped, stacked, or horizontal."""
     if x and y:
         fig = px.bar(
             df, x=x, y=y, color=color,

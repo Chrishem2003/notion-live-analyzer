@@ -1,5 +1,5 @@
-﻿"""
-Dependency Manager — auto-detect, auto-install, and verify all required Python packages.
+"""
+Dependency Manager  auto-detect, auto-install, and verify all required Python packages.
 Provides a one-click Streamlit UI for non-technical users to fix dependency issues.
 """
 import sys
@@ -240,7 +240,7 @@ def render_dependency_ui():
         icon = CATEGORY_ICONS.get(cat, "📦")
 
         with st.expander(
-            f"{icon} **{cat}** — {cat_data['installed']}/{cat_data['total']} installed",
+            f"{icon} **{cat}**  {cat_data['installed']}/{cat_data['total']} installed",
             expanded=cat_data["missing"] > 0,
         ):
             cols = st.columns(2)
@@ -256,7 +256,7 @@ def render_dependency_ui():
                     st.markdown("**❌ Missing:**")
                     for name in cat_data["missing_names"]:
                         pkg = next((p for p in all_pkgs if p.pip_name == name), None)
-                        desc = f" — {pkg.description}" if pkg else ""
+                        desc = f"  {pkg.description}" if pkg else ""
                         st.markdown(f"- ❌ {name}{desc}")
                 else:
                     st.markdown("**✅ All installed!**")
@@ -345,7 +345,7 @@ def auto_fix_missing_critical(quiet: bool = False) -> int:
             else:
                 logger.error("Auto-install of %s failed: %s", pkg.pip_name, msg)
                 if not quiet:
-                    print(f"⚠️ Failed: {pkg.pip_name} — {msg}")
+                    print(f"⚠️ Failed: {pkg.pip_name}  {msg}")
         except Exception as e:
             logger.exception("Auto-install of %s raised an error", pkg.pip_name)
             if not quiet:

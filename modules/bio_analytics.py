@@ -1,4 +1,4 @@
-﻿import re
+import re
 from collections import Counter
 
 def analyze_sequence_variants(dna_seq: str):

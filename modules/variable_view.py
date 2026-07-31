@@ -1,5 +1,5 @@
-﻿"""
-SPSS Variable View Editor — manage variable labels, value labels, measurement levels,
+"""
+SPSS Variable View Editor  manage variable labels, value labels, measurement levels,
 missing values, and column properties like SPSS Variable View.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -182,13 +182,13 @@ def render_variable_view_editor(df: pd.DataFrame):
         html.append(f'<td><select onchange="this.form.submit()" name="role_{col}">{role_options}</select></td>')
         # Missing
         missing_str = ", ".join(str(m) for m in meta.get("missing_values", []))
-        html.append(f'<td style="max-width:80px;overflow:hidden;text-overflow:ellipsis">{missing_str or "—"}</td>')
+        html.append(f'<td style="max-width:80px;overflow:hidden;text-overflow:ellipsis">{missing_str or ""}</td>')
         # Value labels
         vl = meta.get("value_labels", {})
         vl_str = ", ".join(f"{k}={v}" for k, v in list(vl.items())[:2])
         if len(vl) > 2:
             vl_str += "..."
-        html.append(f'<td style="max-width:80px;overflow:hidden">{vl_str or "—"}</td>')
+        html.append(f'<td style="max-width:80px;overflow:hidden">{vl_str or ""}</td>')
         # Alignment
         align_val = st.session_state.get(f"align_{col}", meta["align"])
         align_options = "".join(
@@ -207,7 +207,7 @@ def render_variable_view_editor(df: pd.DataFrame):
     val_label_col = st.selectbox("Select variable to edit value labels", options=list(metadata.keys()))
     if val_label_col:
         meta = metadata[val_label_col]
-        st.caption(f"Editing value labels for: **{val_label_col}** — {meta.get('measurement_level', 'Scale')}")
+        st.caption(f"Editing value labels for: **{val_label_col}**  {meta.get('measurement_level', 'Scale')}")
 
         existing_labels = meta.get("value_labels", {})
         col1, col2 = st.columns([1, 3])

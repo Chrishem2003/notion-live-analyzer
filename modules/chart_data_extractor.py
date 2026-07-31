@@ -1,4 +1,4 @@
-﻿"""
+"""
 Visual Chart Data Extractor & CSV Re-Synthesizer
 A vision pipeline that extracts buried quantitative data from static PDF charts,
 bar graphs, scatter plots, and reconstructs raw numerical data points.
@@ -242,7 +242,7 @@ def render_chart_data_extractor_ui():
     import plotly.express as px
 
     st.markdown("## 📊 Visual Chart Data Extractor & CSV Re-Synthesizer")
-    st.markdown("*Extract numerical data from charts and figures — reconstruct raw datasets from static images*")
+    st.markdown("*Extract numerical data from charts and figures  reconstruct raw datasets from static images*")
 
     tab1, tab2, tab3 = st.tabs(["📤 Extract from Image", "✏️ Manual Description", "📋 Export Data"])
 

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Novelty & Unexplored Research Gap Finder
 A cross-synthesis engine that analyzes clusters of papers to identify unaddressed
 questions, conflicting findings, and unexplored hypotheses. Auto-drafts research proposals.
@@ -454,7 +454,7 @@ def render_research_gap_finder_ui():
         with col4: st.metric("Hypotheses", len(results.get("unexplored_hypotheses",[])))
 
         novelty = results.get("novelty_scores", {})
-        st.markdown(f"**Novelty Score:** {novelty.get('overall_novelty',0)}/100 — {novelty.get('label','N/A')}")
+        st.markdown(f"**Novelty Score:** {novelty.get('overall_novelty',0)}/100  {novelty.get('label','N/A')}")
         st.progress(novelty.get("overall_novelty",0)/100)
 
         st.subheader(" Identified Research Gaps")

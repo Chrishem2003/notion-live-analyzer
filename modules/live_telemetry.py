@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import psutil
 import time
 import pandas as pd
