@@ -60,31 +60,31 @@ html, body, [class*="css"]  {{ font-family: 'Space Grotesk', sans-serif; }}
 code, pre {{ font-family: 'JetBrains Mono', monospace !important; }}
 
 .nv-header {{
-    #     #     # [Fixed by launcher]     background: linear-gradient(120deg, #1e1e2f 0%, #2b2f45 60%, #3a3050 100%);
-    #     #     border-radius: 18px; padding: 26px 30px; color: white; margin-bottom: 18px;
-    #     border: 1px solid rgba(201,154,58,0.28); box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    # [Auto-Purged]:     #     #     # [Fixed by launcher]     background: linear-gradient(120deg, #1e1e2f 0%, #2b2f45 60%, #3a3050 100%);
+    # [Auto-Purged]:     #     #     border-radius: 18px; padding: 26px 30px; color: white; margin-bottom: 18px;
+    # [Auto-Purged]:     #     border: 1px solid rgba(201,154,58,0.28); box-shadow: 0 10px 30px rgba(0,0,0,0.25);
 }}
-    # .nv-header h1 {{ margin: 0; font-size: 1.7rem; font-weight: 800; }}
-    # .nv-header p {{ margin: 6px 0 0 0; opacity: 0.78; font-size: 0.92rem; }}
+    # [Auto-Purged]:     # .nv-header h1 {{ margin: 0; font-size: 1.7rem; font-weight: 800; }}
+    # [Auto-Purged]:     # .nv-header p {{ margin: 6px 0 0 0; opacity: 0.78; font-size: 0.92rem; }}
 
 .nv-card {{
-    #     #     background: rgba(255,255,255,0.035); backdrop-filter: blur(10px);
-    #     border: 1px solid rgba(201,154,58,0.20); border-radius: 14px; padding: 16px 18px;
+    # [Auto-Purged]:     #     #     background: rgba(255,255,255,0.035); backdrop-filter: blur(10px);
+    # [Auto-Purged]:     #     border: 1px solid rgba(201,154,58,0.20); border-radius: 14px; padding: 16px 18px;
 }}
-    # .nv-card-title {{ font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: {BRASS}; }}
-    # .nv-card-value {{ font-size: 1.5rem; font-weight: 800; margin-top: 4px; }}
+    # [Auto-Purged]:     # .nv-card-title {{ font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: {BRASS}; }}
+    # [Auto-Purged]:     # .nv-card-value {{ font-size: 1.5rem; font-weight: 800; margin-top: 4px; }}
 
 .stButton>button {{
-    # [Fixed by launcher]     background: linear-gradient(120deg, #1e1e2f 0%, #2b2f45 60%, #3a3050 100%);
-    border-radius: 9px; font-weight: 700; transition: all .15s ease; box-shadow: 0 3px 10px rgba(201,154,58,0.25);
+    # [Auto-Purged]:     # [Fixed by launcher]     background: linear-gradient(120deg, #1e1e2f 0%, #2b2f45 60%, #3a3050 100%);
+    # [Auto-Purged]:     border-radius: 9px; font-weight: 700; transition: all .15s ease; box-shadow: 0 3px 10px rgba(201,154,58,0.25);
 }}
-.stButton>button:hover {{ transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201,154,58,0.35); }}
+    # [Auto-Purged]: .stButton>button:hover {{ transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201,154,58,0.35); }}
 
-.nv-badge {{ display:inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight:700; }}
-.nv-badge-live {{ background:#D1FAE5; color:#065F46; }}
-.nv-badge-demo {{ background:#F1F5F9; color:#475569; }}
-.nv-badge-role {{ background: rgba(201,154,58,0.15); color: {BRASS}; border: 1px solid rgba(201,154,58,0.35); }}
-.nv-empty {{ text-align:center; padding: 40px 10px; color:#94A3B8; }}
+    # [Auto-Purged]: .nv-badge {{ display:inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight:700; }}
+    # [Auto-Purged]: .nv-badge-live {{ background:#D1FAE5; color:#065F46; }}
+    # [Auto-Purged]: .nv-badge-demo {{ background:#F1F5F9; color:#475569; }}
+    # [Auto-Purged]: .nv-badge-role {{ background: rgba(201,154,58,0.15); color: {BRASS}; border: 1px solid rgba(201,154,58,0.35); }}
+    # [Auto-Purged]: .nv-empty {{ text-align:center; padding: 40px 10px; color:#94A3B8; }}
 </style>
 """, unsafe_allow_html=True)
 
