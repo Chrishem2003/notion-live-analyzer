@@ -1,5 +1,3 @@
-
-
 import datetime
 import io
 import json
@@ -77,11 +75,11 @@ def init_db():
 db_conn = init_db()
 
 # ============================================================================
-# PAGE CONFIG  HIGH-CONTRAST PREMIUM GLASSMORPHISM STYLES
+# PAGE CONFIG & PREMIUM GLASSMORPHISM STYLES
 # ============================================================================
 st.set_page_config(
     page_title="Global Sovereign Nonlinear Systems & Resilience Engine",
-    page_icon="🔍 ",
+    page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -89,48 +87,12 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
         border-right: 1px solid #1e293b !important;
     }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
         color: #f8fafc !important;
-    }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
     }
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrainsMono:wght@400;500&display=swap');
 
@@ -144,7 +106,6 @@ st.markdown(
         background-attachment: fixed;
     }
 
-    /* --- High-Contrast Glassmorphism Cards --- */
     .glass-container {
         background: rgba(15, 23, 42, 0.85);
         backdrop-filter: blur(20px);
@@ -154,29 +115,16 @@ st.markdown(
         padding: 1.5rem;
         margin-bottom: 1rem;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         color: #F8FAFC !important;
     }
-    .glass-container:hover {
-        border-color: rgba(59, 130, 246, 0.5);
-        box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.8);
-        transform: translateY(-1px);
-    }
 
-    /* --- Metric Cards --- */
     .metric-card {
         background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 16px;
         padding: 1.2rem;
         text-align: center;
-        backdrop-filter: blur(10px);
         box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        transition: all 0.3s ease;
-    }
-    .metric-card:hover {
-        border-color: rgba(59, 130, 246, 0.6);
-        transform: scale(1.02);
     }
     .metric-value {
         font-size: 2rem;
@@ -184,7 +132,6 @@ st.markdown(
         background: linear-gradient(90deg, #60A5FA, #A78BFA);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
     .metric-label {
         font-size: 0.85rem;
@@ -195,80 +142,20 @@ st.markdown(
         font-weight: 600;
     }
 
-    /* --- Status Indicators --- */
     .status-indicator {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.6rem 1.2rem;
+        padding: 0.4rem 1rem;
         border-radius: 9999px;
         font-weight: 700;
-        font-size: 0.9rem;
-        backdrop-filter: blur(10px);
+        font-size: 0.85rem;
         border: 1px solid;
     }
-    .status-stable {
-        background: rgba(22, 101, 52, 0.4);
-        border-color: rgba(74, 222, 128, 0.6);
-        color: #4ADE80 !important;
-        animation: pulse-green 2.5s infinite;
-    }
-    .status-borderline {
-        background: rgba(133, 77, 14, 0.4);
-        border-color: rgba(250, 204, 21, 0.6);
-        color: #FACC15 !important;
-        animation: pulse-yellow 2.5s infinite;
-    }
-    .status-critical {
-        background: rgba(153, 27, 27, 0.4);
-        border-color: rgba(248, 113, 113, 0.6);
-        color: #F87171 !important;
-        animation: pulse-red 2.5s infinite;
-    }
+    .status-stable { background: rgba(22, 101, 52, 0.4); border-color: rgba(74, 222, 128, 0.6); color: #4ADE80 !important; }
+    .status-borderline { background: rgba(133, 77, 14, 0.4); border-color: rgba(250, 204, 21, 0.6); color: #FACC15 !important; }
+    .status-critical { background: rgba(153, 27, 27, 0.4); border-color: rgba(248, 113, 113, 0.6); color: #F87171 !important; }
 
-    @keyframes pulse-green {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
-        50% { box-shadow: 0 0 0 12px rgba(74, 222, 128, 0); }
-    }
-    @keyframes pulse-yellow {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.4); }
-        50% { box-shadow: 0 0 0 12px rgba(250, 204, 21, 0); }
-    }
-    @keyframes pulse-red {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4); }
-        50% { box-shadow: 0 0 0 12px rgba(248, 113, 113, 0); }
-    }
-
-    /* --- Tabs --- */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background: rgba(15, 23, 42, 0.8);
-        padding: 6px;
-        border-radius: 12px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    .stTabs [data-baseweb="tab"] {
-        background: transparent;
-        border-radius: 8px;
-        padding: 10px 18px;
-        font-weight: 600;
-        color: #CBD5E1 !important;
-        border: 1px solid transparent;
-        transition: all 0.2s ease;
-    }
-    .stTabs [data-baseweb="tab"]:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #FFFFFF !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #3B82F6, #8B5CF6) !important;
-        color: #FFFFFF !important;
-        border-color: rgba(255, 255, 255, 0.3) !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-    }
-
-    /* --- Buttons --- */
     .stButton > button {
         background: linear-gradient(135deg, #3B82F6, #8B5CF6) !important;
         color: #FFFFFF !important;
@@ -276,147 +163,23 @@ st.markdown(
         border-radius: 12px !important;
         padding: 0.6rem 1.5rem !important;
         font-weight: 700 !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
     }
-    .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5) !important;
-        filter: brightness(1.15) !important;
-    }
-
-    /* --- Inputs --- */
-    .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea,
-    .stNumberInput > div > div > input {
-        background: rgba(15, 23, 42, 0.9) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 10px !important;
-        color: #F8FAFC !important;
-        font-family: 'Inter', sans-serif !important;
-        font-weight: 500 !important;
-    }
-    .stTextInput > div > div > input:focus,
-    .stTextArea > div > div > textarea:focus {
-        border-color: #60A5FA !important;
-        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25) !important;
-    }
-
-    /* --- Selectbox & Multiselect --- */
-    .stSelectbox > div > div,
-    .stMultiSelect > div > div {
-        background: rgba(15, 23, 42, 0.9) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 10px !important;
-        color: #F8FAFC !important;
-    }
-
-    /* --- Sidebar --- */
-    section[data-testid="stSidebar"] {
-        background: rgba(7, 11, 20, 0.95) !important;
-        backdrop-filter: blur(24px) !important;
-        -webkit-backdrop-filter: blur(24px) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-    section[data-testid="stSidebar"] .block-container {
-        padding-top: 2rem;
-    }
-    section[data-testid="stSidebar"] label {
-        color: #E2E8F0 !important;
-        font-weight: 600 !important;
-    }
-
-    /* --- Dataframes --- */
-    .stDataFrame {
-        border-radius: 12px !important;
-        overflow: hidden !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    }
-
-    /* --- Chat Messages --- */
-    .stChatMessage {
-        background: rgba(15, 23, 42, 0.85) !important;
-        backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 16px !important;
-        margin-bottom: 0.8rem !important;
-        color: #F8FAFC !important;
-    }
-
-    /* --- Expander --- */
-    .streamlit-expanderHeader {
-        background: rgba(15, 23, 42, 0.8) !important;
-        border-radius: 12px !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        font-weight: 700 !important;
-        color: #F8FAFC !important;
-    }
-
-    /* --- Scrollbar --- */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: rgba(7, 11, 20, 0.8); }
-    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.7); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.9); }
-
-    /* --- Headers --- */
-    h1, h2, h3, h4, h5, h6 {
-        color: #FFFFFF !important;
-        font-weight: 700 !important;
-        letter-spacing: -0.02em !important;
-    }
-
-    /* --- Main Header Glow --- */
-    .main-header-glow {
-        background: linear-gradient(90deg, #60A5FA, #A78BFA, #F472B6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 2.4rem;
-        font-weight: 800;
-        letter-spacing: -1px;
-        text-shadow: 0 0 40px rgba(96, 165, 250, 0.2);
-    }
-    .sub-header-glow {
-        color: #E2E8F0 !important;
-        font-size: 1.05rem;
-        font-weight: 500;
-    }
-
-    /* --- Research Cards --- */
-    .research-card {
-        background: rgba(15, 23, 42, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 16px;
-        padding: 1.5rem;
-        height: 100%;
-        transition: all 0.3s ease;
-    }
-    .research-card:hover {
-        background: rgba(30, 41, 59, 0.95);
-        border-color: rgba(59, 130, 246, 0.5);
-        transform: translateY(-3px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-    }
-    .research-card-title { font-size: 1.1rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.3rem; }
-    .research-card-desc { font-size: 0.9rem; color: #CBD5E1 !important; line-height: 1.4; }
-
-    /* --- Dividers --- */
+    
     .glass-divider {
         height: 1px;
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
         margin: 1.5rem 0;
     }
 
-    /* --- File Uploader --- */
-    .stFileUploader > div > div {
-        background: rgba(15, 23, 42, 0.85) !important;
-        border: 2px dashed rgba(255, 255, 255, 0.25) !important;
-        border-radius: 16px !important;
+    .main-header-glow {
+        background: linear-gradient(90deg, #60A5FA, #A78BFA, #F472B6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -1px;
     }
-    .stFileUploader > div > div:hover {
-        border-color: #60A5FA !important;
-        background: rgba(59, 130, 246, 0.1) !important;
-    }
+    .sub-header-glow { color: #E2E8F0 !important; font-size: 1rem; font-weight: 500; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -447,32 +210,30 @@ def _load_any(uploaded_file):
 # ============================================================================
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [
-        {"role": "assistant", "content": "Sovereign Intelligence Core online. "
-                                         "Ask about status, shock impact, bifurcation, "
-                                         "or type 'help' for a command list."}
+        {"role": "assistant", "content": "Sovereign Intelligence Core online. Ask about status, shock impact, bifurcation, or type 'help' for guidance."}
     ]
 
 if "session_start_time" not in st.session_state:
     st.session_state.session_start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # ============================================================================
-# SIDEBAR 🔍 PRIVILEGES, METADATA, JURISDICTION, SECTOR, PARAMETERS
+# SIDEBAR CONFIGURATION
 # ============================================================================
-st.sidebar.markdown("## 🔍 ️ Global Sovereign Command Hub")
+st.sidebar.markdown("## 🛡️ Global Sovereign Command Hub")
 
-with st.sidebar.expander("🔍 Institutional & Analyst Details", expanded=True):
+with st.sidebar.expander("📊 Institutional & Analyst Details", expanded=True):
     user_role = st.selectbox(
-        "Privilege tier",
+        "Privilege tier / View",
         [
-            "🔍 Chat Command Core",
-            "🔍 Executive Storyboard",
-            "🔍 Policy Comparison Matrix",
-            "🔍 ️ Technocrat Operations",
-            "🔍 Research Scientist (full engine)",
-            "🔍 Data Import / Export Center",
-            "🔍 System Self-Test & Diagnostics",
-            "⚡ Sector Automation Hub",
-            "🔍 Institutional Contacts & Directory",
+            "Chat Command Core",
+            "Executive Storyboard",
+            "Policy Comparison Matrix",
+            "Technocrat Operations",
+            "Research Scientist (Full Engine)",
+            "Data Import / Export Center",
+            "System Self-Test & Diagnostics",
+            "Sector Automation Hub",
+            "Institutional Contacts & Directory",
         ],
     )
     author_name = st.text_input("Author / Analyst Name", "Kula Chris")
@@ -481,34 +242,32 @@ with st.sidebar.expander("🔍 Institutional & Analyst Details", expanded=True):
     secure_vault_token = st.text_input("Secure Vault Passkey", type="password", value="SOV-999-KEY")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown("### 🔍 Jurisdiction & Domain")
+st.sidebar.markdown("### 🌐 Jurisdiction & Domain")
 
 PRESET_COUNTRIES = [
-    "🔍 Uganda", "🔍 Kenya", "🔍 Rwanda", "🔍 Nigeria", "🔍 South Africa",
-    "🔍 Ghana", "🔍 Ethiopia", "🔍 Tanzania", "🔍 Egypt",
-    "🔍 United States", "🔍 United Kingdom", "🔍 France", "🔍 Germany",
-    "🔍 Japan", "🔍 China", "🔍 India", "🔍 Brazil", "🔍 Canada",
-    "🔍 Australia", "🔍 Global / Multi-State Aggregate",
+    "Uganda", "Kenya", "Rwanda", "Nigeria", "South Africa",
+    "Ghana", "Ethiopia", "Tanzania", "Egypt",
+    "United States", "United Kingdom", "France", "Germany",
+    "Japan", "China", "India", "Brazil", "Canada",
+    "Australia", "Global / Multi-State Aggregate",
 ]
 
-region_mode = st.sidebar.radio(
-    "Jurisdiction scope", ["Choose from list", "Type any country / region"], horizontal=True
-)
+region_mode = st.sidebar.radio("Jurisdiction scope", ["Choose from list", "Type any country / region"], horizontal=True)
 if region_mode == "Choose from list":
     target_country = st.sidebar.selectbox("Country / Territory", PRESET_COUNTRIES, index=0)
 else:
     target_country = st.sidebar.text_input("Type any country, city, or region", "e.g. Vietnam")
 
 PRESET_SECTORS = {
-    "🔍 Economics & Finance (Huang-Li model)": ("a", "Savings / growth rate", "b", "Investment cost", "c", "Market elasticity"),
-    "🔍 Healthcare: Hospital surge & capacity": ("a", "Patient influx rate", "b", "ICU bed burnout", "c", "Staff fatigue decay"),
-    "🔍 Epidemiology: Outbreak dynamics": ("a", "Transmission rate", "b", "Recovery rate", "c", "Waning immunity"),
-    "🔍 Education: Tuition & institutional cashflow": ("a", "Tuition collection speed", "b", "Operational overhead", "c", "Reserve depletion"),
-    "🔍 Agriculture: Food security & yield risk": ("a", "Climate stress index", "b", "Supply-chain friction", "c", "Reserve depletion"),
-    "🔍 Bioinformatics: Gene regulatory networks": ("a", "Expression drive", "b", "Feedback damping", "c", "Mutation pressure"),
-    "🔍 Treasury: Fiscal deficit & contagion": ("a", "Stress multiplier", "b", "Structural friction", "c", "Damping coefficient"),
-    "? Infrastructure: Power / grid reliability": ("a", "Demand surge", "b", "Load friction", "c", "Buffer capacity"),
-    "🔍 Environmental: Predator-prey / hydrology": ("a", "Growth rate", "b", "Consumption rate", "c", "Recovery rate"),
+    "Economics & Finance (Huang-Li model)": ("a", "Savings / growth rate", "b", "Investment cost", "c", "Market elasticity"),
+    "Healthcare: Hospital surge & capacity": ("a", "Patient influx rate", "b", "ICU bed burnout", "c", "Staff fatigue decay"),
+    "Epidemiology: Outbreak dynamics": ("a", "Transmission rate", "b", "Recovery rate", "c", "Waning immunity"),
+    "Education: Tuition & institutional cashflow": ("a", "Tuition collection speed", "b", "Operational overhead", "c", "Reserve depletion"),
+    "Agriculture: Food security & yield risk": ("a", "Climate stress index", "b", "Supply-chain friction", "c", "Reserve depletion"),
+    "Bioinformatics: Gene regulatory networks": ("a", "Expression drive", "b", "Feedback damping", "c", "Mutation pressure"),
+    "Treasury: Fiscal deficit & contagion": ("a", "Stress multiplier", "b", "Structural friction", "c", "Damping coefficient"),
+    "Infrastructure: Power / grid reliability": ("a", "Demand surge", "b", "Load friction", "c", "Buffer capacity"),
+    "Environmental: Predator-prey / hydrology": ("a", "Growth rate", "b", "Consumption rate", "c", "Recovery rate"),
 }
 
 sector_mode = st.sidebar.radio("Sector scope", ["Choose from list", "Type any custom sector"], horizontal=True)
@@ -516,44 +275,44 @@ if sector_mode == "Choose from list":
     sector = st.sidebar.selectbox("Institutional sector / problem domain", list(PRESET_SECTORS.keys()))
     a_label, a_desc, b_label, b_desc, c_label, c_desc = PRESET_SECTORS[sector]
 else:
-    sector = st.sidebar.text_input("Describe any sector in your own words", "e.g. Satellite orbital telemetry")
+    sector = st.sidebar.text_input("Describe any sector in your own words", "e.g. Satellite telemetry")
     a_label, a_desc, b_label, b_desc, c_label, c_desc = "a", "Growth / drive term", "b", "Friction / damping term", "c", "Buffer / decay term"
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown(f"### ⚙️ Parameters 🔍 {sector}")
-a = st.sidebar.slider(f"{a_label} 🔍 {a_desc}", 0.1, 5.0, 1.5, 0.1)
-b = st.sidebar.slider(f"{b_label} 🔍 {b_desc}", 0.0, 3.0, 0.9, 0.1)
-c = st.sidebar.slider(f"{c_label} 🔍 {c_desc}", 0.0, 3.0, 1.0, 0.1)
+st.sidebar.markdown(f"### ⚙️ Parameters: {sector}")
+a = st.sidebar.slider(f"{a_label} ({a_desc})", 0.1, 5.0, 1.5, 0.1)
+b = st.sidebar.slider(f"{b_label} ({b_desc})", 0.0, 3.0, 0.9, 0.1)
+c = st.sidebar.slider(f"{c_label} ({c_desc})", 0.0, 3.0, 1.0, 0.1)
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown("### 🔍 Initial conditions & shock")
+st.sidebar.markdown("### ⚡ Initial Conditions & Shock")
 x0 = st.sidebar.number_input("Initial x0", value=0.10, format="%.3f")
 y0 = st.sidebar.number_input("Initial y0", value=0.10, format="%.3f")
 z0 = st.sidebar.number_input("Initial z0", value=0.10, format="%.3f")
-policy_shock = st.sidebar.slider("Inject shock magnitude at t🔍 mid-run", -3.0, 3.0, 0.0, 0.1)
+policy_shock = st.sidebar.slider("Inject shock magnitude at mid-run", -3.0, 3.0, 0.0, 0.1)
 t_max = st.sidebar.slider("Simulation horizon (steps)", 50, 500, 200, 10)
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-use_custom_ode = st.sidebar.checkbox("✏️ Use custom ODE equations instead of the default model")
+use_custom_ode = st.sidebar.checkbox("✏️ Use custom ODE equations")
 custom_dx = custom_dy = custom_dz = ""
 if use_custom_ode:
     st.sidebar.caption("Variables available: x, y, z, a, b, c, shock, t, np")
-    custom_dx = st.sidebar.text_input("dx/dt =", "x - z - (y - a) * x  shock")
+    custom_dx = st.sidebar.text_input("dx/dt =", "x - z - (y - a) * x + shock")
     custom_dy = st.sidebar.text_input("dy/dt =", "1 - b * y - x**2")
     custom_dz = st.sidebar.text_input("dz/dt =", "x - c * z")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-pss_slice_z = st.sidebar.slider("🔍 Poincaréé🔍 cut plane (Z threshold)", float(z0 - 2.0), float(z0  2.0), float(z0), 0.05)
+pss_slice_z = st.sidebar.slider("Poincaré cut plane (Z threshold)", float(z0 - 2.0), float(z0 + 2.0), float(z0), 0.05)
 
 # ============================================================================
-# MODEL CORE
+# MODEL CORE & SOLVER
 # ============================================================================
 SAFE_NP_NAMES = {k: getattr(np, k) for k in ["sin", "cos", "tan", "exp", "log", "sqrt", "abs", "tanh", "pi"]}
 
 def default_ode(state, t, a, b, c, shock_val):
     x, y, z = state
     shock = shock_val if (0.45 * t_max <= t <= 0.55 * t_max) else 0.0
-    dxdt = x - z - (y - a) * x  shock
+    dxdt = x - z - (y - a) * x + shock
     dydt = 1 - b * y - x ** 2
     dzdt = x - c * z
     return [dxdt, dydt, dzdt]
@@ -587,18 +346,18 @@ solution = _solve(system_ode, initial_state, t, args=(a, b, c, policy_shock))
 if use_custom_ode and custom_dx and custom_dy and custom_dz:
     probe = system_ode(initial_state, 0.0, a, b, c, policy_shock)
     if not np.all(np.isfinite(probe)):
-        st.warning("Custom equations produced a non-numeric result 🔍 falling back to the default model.")
+        st.warning("Custom equations produced non-numeric outputs — falling back to default model.")
         solution = _solve(default_ode, initial_state, t, args=(a, b, c, policy_shock))
 
 x_traj, y_traj, z_traj = solution[:, 0], solution[:, 1], solution[:, 2]
 
-perturbation_growth = np.abs(np.gradient(x_traj))  1e-5
-mlce_heuristic = float(np.mean(np.log(perturbation_growth  1e-5)) / (t[1] - t[0]))
+perturbation_growth = np.abs(np.gradient(x_traj)) + 1e-5
+mlce_heuristic = float(np.mean(np.log(perturbation_growth + 1e-5)) / (t[1] - t[0]))
 
 window = 20
-rolling_variance = [float(np.var(x_traj[max(0, i - window):i])) for i in range(1, len(x_traj)  1)]
+rolling_variance = [float(np.var(x_traj[max(0, i - window):i])) for i in range(1, len(x_traj) + 1)]
 rolling_ac = []
-for i in range(1, len(x_traj)  1):
+for i in range(1, len(x_traj) + 1):
     seg = x_traj[max(0, i - window):i]
     if len(seg) > 1:
         ac = np.corrcoef(seg[:-1], seg[1:])[0, 1]
@@ -609,7 +368,7 @@ for i in range(1, len(x_traj)  1):
 STATE_LABEL = "STABLE" if mlce_heuristic < 0 else ("BORDERLINE" if mlce_heuristic < 0.2 else "CRITICAL")
 
 # ============================================================================
-# PLOTLY HELPER FUNCTIONS 🔍 High-Contrast Dark Charts
+# PLOTLY HELPER FUNCTIONS
 # ============================================================================
 def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     fig = go.Figure(data=[go.Scatter3d(
@@ -628,7 +387,7 @@ def plotly_3d_phase(x, y, z, title="3D Phase Space Trajectory"):
     )
     return fig
 
-def plotly_pss(x, y, z, z_cut=0.0, title="Poincaréé🔍 Section"):
+def plotly_pss(x, y, z, z_cut=0.0, title="Poincaré Section"):
     mask = abs(z - z_cut) < 0.05
     x_sec = x[mask] if hasattr(x, '__getitem__') else []
     y_sec = y[mask] if hasattr(y, '__getitem__') else []
@@ -639,7 +398,6 @@ def plotly_pss(x, y, z, z_cut=0.0, title="Poincaréé🔍 Section"):
         marker=dict(size=4, color='#60A5FA', opacity=0.8),
         name='Section Hits'
     )])
-
     fig.update_layout(
         title_text=f"{title} (Z = {z_cut:.2f})",
         paper_bgcolor='rgba(0,0,0,0)',
@@ -656,7 +414,6 @@ def plotly_bifurcation(b_pts, peaks, x_label="Parameter (b)", title="Automated B
         marker=dict(size=1.5, color='#60A5FA', opacity=0.6),
         name='Bifurcation Points'
     )])
-
     fig.update_layout(
         title_text=title,
         paper_bgcolor='rgba(0,0,0,0)',
@@ -665,124 +422,69 @@ def plotly_bifurcation(b_pts, peaks, x_label="Parameter (b)", title="Automated B
         margin=dict(l=0, r=0, t=50, b=0)
     )
     fig.update_xaxes(title_text=x_label, gridcolor='rgba(255,255,255,0.2)')
-    fig.update_yaxes(title_text="Local Maxima / Minima", gridcolor='rgba(255,255,255,0.2)')
+    fig.update_yaxes(title_text="Local Extrema", gridcolor='rgba(255,255,255,0.2)')
     return fig
 
-def plotly_ews(t, rolling_variance, rolling_ac, title="Early Warning Signals (EWS)"):
+def plotly_ews(t_arr, var_arr, ac_arr, title="Early Warning Signals (EWS)"):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=("Variance (Critical Slowing Down)", "Autocorrelation (Lag-1)"))
-
-    fig.add_trace(go.Scatter(x=t, y=rolling_variance, mode='lines', name='Rolling Variance', line=dict(color='#F59E0B', width=2)), row=1, col=1)
-    fig.add_trace(go.Scatter(x=t, y=rolling_ac, mode='lines', name='Rolling Autocorrelation', line=dict(color='#EC4899', width=2)), row=2, col=1)
-
-    fig.update_xaxes(gridcolor='rgba(255,255,255,0.2)', title_text="Time", row=2, col=1)
-    fig.update_yaxes(gridcolor='rgba(255,255,255,0.2)', title_text="Variance", row=1, col=1)
-    fig.update_yaxes(gridcolor='rgba(255,255,255,0.2)', title_text="Autocorrelation", row=2, col=1)
-
-    fig.update_layout(
-        title_text=title,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=500,
-        margin=dict(l=0, r=0, t=50, b=0)
-    )
+    fig.add_trace(go.Scatter(x=t_arr, y=var_arr, mode='lines', name='Rolling Variance', line=dict(color='#F59E0B', width=2)), row=1, col=1)
+    fig.add_trace(go.Scatter(x=t_arr, y=ac_arr, mode='lines', name='Rolling Autocorrelation', line=dict(color='#EC4899', width=2)), row=2, col=1)
+    fig.update_layout(title_text=title, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=500, margin=dict(l=0, r=0, t=50, b=0))
     return fig
 
-def plotly_monte_carlo(t, mc_runs, n_runs):
+def plotly_monte_carlo(t_arr, mc_runs, n_runs):
     fig = go.Figure()
-    if hasattr(mc_runs, 'shape'):
-        for i in range(min(n_runs, getattr(mc_runs, 'shape', [0, 0])[1] if len(getattr(mc_runs, 'shape', [])) > 1 else 1)):
-            run_data = mc_runs[:, i] if len(mc_runs.shape) > 1 else mc_runs
+    if hasattr(mc_runs, 'shape') and mc_runs.size > 0:
+        for i in range(min(n_runs, mc_runs.shape[1])):
             fig.add_trace(go.Scatter(
-                x=t, y=run_data,
+                x=t_arr, y=mc_runs[:, i],
                 mode='lines',
                 line=dict(width=0.8, color='rgba(96, 165, 250, 0.25)'),
                 showlegend=False
             ))
-
-    fig.update_layout(
-        title_text=f"Monte Carlo Uncertainty Envelope ({n_runs} runs)",
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=450,
-        margin=dict(l=0, r=0, t=50, b=0)
-    )
-    fig.update_xaxes(title_text="Time", gridcolor='rgba(255,255,255,0.2)')
-    fig.update_yaxes(title_text="State Variable Range", gridcolor='rgba(255,255,255,0.2)')
+    fig.update_layout(title_text=f"Monte Carlo Uncertainty Envelope ({n_runs} runs)", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, margin=dict(l=0, r=0, t=50, b=0))
     return fig
 
-def plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, country, sector):
-    y_base = sol_base[:, 0] if getattr(sol_base, 'ndim', 1) > 1 else sol_base
-    y_sub  = sol_sub[:, 0]  if getattr(sol_sub, 'ndim', 1) > 1 else sol_sub
-    y_ref  = sol_ref[:, 0]  if getattr(sol_ref, 'ndim', 1) > 1 else sol_ref
+def plotly_policy_comparison(t_arr, sol_base, sol_sub, sol_ref, country, sector_name):
+    y_base = sol_base[:, 0] if sol_base.ndim > 1 else sol_base
+    y_sub  = sol_sub[:, 0]  if sol_sub.ndim > 1 else sol_sub
+    y_ref  = sol_ref[:, 0]  if sol_ref.ndim > 1 else sol_ref
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=t, y=y_base, mode='lines', name='Baseline Strategy', line=dict(color='#60A5FA', width=2)))
-    fig.add_trace(go.Scatter(x=t, y=y_sub, mode='lines', name='Sub-optimal Strategy', line=dict(color='#F87171', width=2, dash='dash')))
-    fig.add_trace(go.Scatter(x=t, y=y_ref, mode='lines', name='Reformed Strategy', line=dict(color='#34D399', width=2)))
-    
-    fig.update_layout(
-        title_text=f"Strategy Comparison - {country} / {sector}",
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=450,
-        margin=dict(l=0, r=0, t=50, b=0)
-    )
+    fig.add_trace(go.Scatter(x=t_arr, y=y_base, mode='lines', name='Baseline Strategy', line=dict(color='#60A5FA', width=2)))
+    fig.add_trace(go.Scatter(x=t_arr, y=y_sub, mode='lines', name='Sub-optimal Strategy', line=dict(color='#F87171', width=2, dash='dash')))
+    fig.add_trace(go.Scatter(x=t_arr, y=y_ref, mode='lines', name='Reformed Strategy', line=dict(color='#34D399', width=2)))
+    fig.update_layout(title_text=f"Strategy Comparison - {country} / {sector_name}", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, margin=dict(l=0, r=0, t=50, b=0))
     return fig
 
-def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_label="A", b_label="B"):
-    x_axis = A_mat[0, :] if getattr(A_mat, 'ndim', 1) > 1 else A_mat
-    y_axis = B_mat[:, 0] if getattr(B_mat, 'ndim', 1) > 1 else B_mat
-
+def plotly_sensitivity_heatmap(A_mat, B_mat, Z, a_lbl="A", b_lbl="B"):
     fig = go.Figure(data=go.Contour(
-        z=Z, x=x_axis, y=y_axis,
+        z=Z, x=A_mat[0, :], y=B_mat[:, 0],
         colorscale='Viridis',
         contours=dict(coloring='heatmap', showlabels=True),
-        colorbar=dict(title_text="Max X"),
-        hovertemplate=f'{a_label}: %{{x:.3f}}<br>{b_label}: %{{y:.3f}}<br>Max X: %{{z:.4f}}<extra></extra>'
+        colorbar=dict(title_text="Max X")
     ))
-
-    fig.update_layout(
-        title_text=f"Sensitivity Landscape: {a_label} vs {b_label}",
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=500,
-        margin=dict(l=0, r=0, t=50, b=0)
-    )
-    fig.update_xaxes(title_text=a_label, gridcolor='rgba(255,255,255,0.2)')
-    fig.update_yaxes(title_text=b_label, gridcolor='rgba(255,255,255,0.2)')
+    fig.update_layout(title_text=f"Sensitivity Landscape: {a_lbl} vs {b_lbl}", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=500, margin=dict(l=0, r=0, t=50, b=0))
     return fig
 
-def plotly_cross_coupling(t, x_traj, sec_sol, title="Cross-Sectoral Contagion & Shock Propagation"):
+def plotly_cross_coupling(t_arr, x_traj_data, sec_sol, title="Cross-Sectoral Contagion Propagation"):
     fig = go.Figure()
-
-    y_prim = x_traj[:, 0] if getattr(x_traj, 'ndim', 1) > 1 else x_traj
-    y_sec  = sec_sol[:, 0] if getattr(sec_sol, 'ndim', 1) > 1 else sec_sol
-
-    fig.add_trace(go.Scatter(x=t, y=y_prim, mode='lines', name='Primary Dynamics', line=dict(color='#60A5FA', width=2)))
-    fig.add_trace(go.Scatter(x=t, y=y_sec, mode='lines', name='Coupled Sector Spillover', line=dict(color='#F59E0B', width=2, dash='dot')))
-
-    fig.update_layout(
-        title_text=title,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=450,
-        margin=dict(l=0, r=0, t=50, b=0)
-    )
-    fig.update_xaxes(title_text="Time", gridcolor='rgba(255,255,255,0.2)')
-    fig.update_yaxes(title_text="Amplitude / Impact", gridcolor='rgba(255,255,255,0.2)')
+    fig.add_trace(go.Scatter(x=t_arr, y=x_traj_data[:, 0], mode='lines', name='Primary Dynamics', line=dict(color='#60A5FA', width=2)))
+    fig.add_trace(go.Scatter(x=t_arr, y=sec_sol[:, 0], mode='lines', name='Coupled Sector Spillover', line=dict(color='#F59E0B', width=2, dash='dot')))
+    fig.update_layout(title_text=title, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=450, margin=dict(l=0, r=0, t=50, b=0))
     return fig
 
 # ============================================================================
 # DATABASE RECORDING LOGIC
 # ============================================================================
-def save_sim_to_db(conn, author, email, jurisdiction, sector, role, mlce, state_lbl, p_dict, notes=""):
+def save_sim_to_db(conn, author, email, jurisdiction, sector_name, role, mlce, state_lbl, p_dict, notes=""):
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO simulations (timestamp, author, org_email, jurisdiction, sector, role, mlce_heuristic, state_label, params, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        author, email, jurisdiction, sector, role,
+        author, email, jurisdiction, sector_name, role,
         float(mlce), state_lbl, json.dumps(p_dict), notes
     ))
     conn.commit()
@@ -794,9 +496,9 @@ st.markdown(f'<div class="main-header-glow">Global Sovereign Nonlinear Systems &
 st.markdown(f'<div class="sub-header-glow">Jurisdiction: <b>{target_country}</b> &nbsp;|&nbsp; Sector: <b>{sector}</b> &nbsp;|&nbsp; Analyst: <b>{author_name}</b></div>', unsafe_allow_html=True)
 st.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
 
-if "Chat Command" in user_role:
-    st.markdown("### 🔍 Natural Language Command Core")
-    st.markdown('<div class="research-card"><div class="research-card-title">Sovereign Intelligent Assistant</div><div class="research-card-desc">Type commands or ask questions about the running system parameters, stability states, or policy interventions.</div></div>', unsafe_allow_html=True)
+if user_role == "Chat Command Core":
+    st.markdown("### 💬 Natural Language Command Core")
+    st.markdown('<div class="glass-container"><b>Sovereign Intelligent Assistant:</b> Ask questions or enter commands regarding the running simulation parameters, stability states, or policy interventions.</div>', unsafe_allow_html=True)
     
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
@@ -809,20 +511,20 @@ if "Chat Command" in user_role:
             
         p_lower = prompt.lower()
         if "status" in p_lower or "health" in p_lower:
-            reply = f"System status in {target_country} ({sector}): State is **{STATE_LABEL}** with Lyapunov exponent mLCE ≈🔍 {mlce_heuristic:.4f}."
+            reply = f"System status in {target_country} ({sector}): State is **{STATE_LABEL}** with Lyapunov exponent mLCE ≈ {mlce_heuristic:.4f}."
         elif "help" in p_lower:
             reply = "Available commands: 'status', 'shock', 'bifurcation', 'reset', or ask general questions about nonlinear stability."
         elif "shock" in p_lower:
-            reply = f"Current active shock magnitude is set to {policy_shock}. You can adjust this in the sidebar parameter panel."
+            reply = f"Current active shock magnitude is set to {policy_shock}. You can adjust this in the sidebar."
         else:
-            reply = f"Command interpreted by Sovereign Core for {target_country}. Running system maintains a {STATE_LABEL.lower()} trajectory under parameter configuration (a={a}, b={b}, c={c})."
+            reply = f"Command interpreted by Sovereign Core for {target_country}. Running system maintains a {STATE_LABEL.lower()} trajectory under parameters (a={a}, b={b}, c={c})."
             
         st.session_state.chat_history.append({"role": "assistant", "content": reply})
         with st.chat_message("assistant"):
             st.markdown(reply)
 
-elif "Executive Storyboard" in user_role:
-    st.markdown("### 🔍 Executive Decision Storyboard")
+elif user_role == "Executive Storyboard":
+    st.markdown("### 📊 Executive Decision Storyboard")
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -844,198 +546,124 @@ elif "Executive Storyboard" in user_role:
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-value"><span class="status-indicator {status_class}">{STATE_LABEL}</span></div>
-            <div class="metric-label">System Resilience State</div>
+            <div class="metric-label">Resilience State</div>
         </div>
         """, unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### High-Level Executive Summary")
     st.markdown(f"""
     <div class="glass-container">
     <b>Strategic Assessment for {target_country} ({sector}):</b><br><br>
-    The sovereign risk model indicates that the current operational trajectory is categorized as <b>{STATE_LABEL}</b>. 
-    With an institutional driver parameter <i>a = {a}</i>, friction <i>b = {b}</i>, and buffer decay <i>c = {c}</i>, 
-    the system exhibits non-linear feedback dynamics typical of complex socioeconomic infrastructure. 
-    <br><br>
-    <i>Key Recommendation:</i> Maintain structural oversight and monitor variance thresholds for early warning signals of critical transitions.
+    The sovereign risk model indicates that current operational trajectory is categorized as <b>{STATE_LABEL}</b>. 
+    With driver parameter <i>a = {a}</i>, friction <i>b = {b}</i>, and buffer decay <i>c = {c}</i>, 
+    the system exhibits non-linear feedback dynamics typical of complex socioeconomic infrastructure.
     </div>
     """, unsafe_allow_html=True)
     
-    fig = plotly_3d_phase(x_traj, y_traj, z_traj, title=f"Executive 3D Phase Portrait 🔍 {target_country}")
+    fig = plotly_3d_phase(x_traj, y_traj, z_traj, title=f"Executive 3D Phase Portrait - {target_country}")
     st.plotly_chart(fig, use_container_width=True)
 
-elif "Policy Comparison" in user_role:
-    st.markdown("### 🔍 Multi-Strategy Policy Comparison Matrix")
+elif user_role == "Policy Comparison Matrix":
+    st.markdown("### ⚖️ Multi-Strategy Policy Comparison Matrix")
     st.markdown("Simulating competing policy interventions under identical initial stress conditions.")
     
     sol_base = _solve(system_ode, initial_state, t, args=(a, b, c, 0.0))
     sol_sub = _solve(system_ode, initial_state, t, args=(max(0.1, a - 0.5), b, c, policy_shock * 0.5))
-    sol_ref = _solve(system_ode, initial_state, t, args=(a, b  0.5, c  0.2, policy_shock * 0.1))
+    sol_ref = _solve(system_ode, initial_state, t, args=(a, b - 0.2, c - 0.1, policy_shock * 0.1))
     
     fig_pol = plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, target_country, sector)
     st.plotly_chart(fig_pol, use_container_width=True)
 
-elif "Technocrat Operations" in user_role:
-    st.markdown("### 🔍 ️ Technocrat Operations & Phase Analysis")
-    
-    tab1, tab2, tab3 = st.tabs(["3D Phase Space", "Poincaréé🔍 Section", "Early Warning Signals"])
-    
+elif user_role == "Technocrat Operations":
+    st.markdown("### 🛠️ Technocrat Operations & Phase Analysis")
+    tab1, tab2, tab3 = st.tabs(["3D Phase Space", "Poincaré Section", "Early Warning Signals"])
     with tab1:
-        fig_3d = plotly_3d_phase(x_traj, y_traj, z_traj)
-        st.plotly_chart(fig_3d, use_container_width=True)
+        st.plotly_chart(plotly_3d_phase(x_traj, y_traj, z_traj), use_container_width=True)
     with tab2:
-        fig_pss = plotly_pss(x_traj, y_traj, z_traj, pss_slice_z)
-        st.plotly_chart(fig_pss, use_container_width=True)
+        st.plotly_chart(plotly_pss(x_traj, y_traj, z_traj, pss_slice_z), use_container_width=True)
     with tab3:
-        fig_ews = plotly_ews(t, rolling_variance, rolling_ac)
-        st.plotly_chart(fig_ews, use_container_width=True)
+        st.plotly_chart(plotly_ews(t, rolling_variance, rolling_ac), use_container_width=True)
 
-elif "Research Scientist" in user_role:
-    st.markdown("### 🔍 Advanced Research Scientist Engine")
-    
+elif user_role == "Research Scientist (Full Engine)":
+    st.markdown("### 🔬 Advanced Research Scientist Engine")
     tab_bif, tab_mc, tab_sens, tab_cc = st.tabs(["Bifurcation Analysis", "Monte Carlo Ensembles", "Sensitivity Heatmap", "Cross-Coupling"])
     
     with tab_bif:
-        st.markdown("#### Automated Bifurcation Diagram")
         b_range = np.linspace(0.2, 2.8, 40)
-        peaks = []
-        b_pts = []
+        peaks, b_pts = [], []
         for b_val in b_range:
             sol_b = _solve(system_ode, initial_state, t, args=(a, b_val, c, 0.0))[:, 0]
             local_maxima = sol_b[np.r_[False, sol_b[1:] > sol_b[:-1]] & np.r_[sol_b[:-1] > sol_b[1:], False]]
             for mx in local_maxima[-10:]:
                 peaks.append(mx)
                 b_pts.append(b_val)
-        fig_bif = plotly_bifurcation(b_pts, peaks, f"Parameter {b_label} (b)")
-        st.plotly_chart(fig_bif, use_container_width=True)
+        st.plotly_chart(plotly_bifurcation(b_pts, peaks, f"Parameter {b_label} (b)"), use_container_width=True)
         
     with tab_mc:
-        st.markdown("#### Stochastic Monte Carlo Ensemble Simulation")
         n_mc = st.slider("Ensemble runs", 10, 100, 30, 10)
         mc_runs = []
         np.random.seed(42)
         for _ in range(n_mc):
-            noise_state = [x0  np.random.normal(0, 0.05), y0  np.random.normal(0, 0.05), z0  np.random.normal(0, 0.05)]
-            run_sol = _solve(system_ode, noise_state, t, args=(a, b, c, policy_shock))[:, 0]
-            mc_runs.append(run_sol)
-        fig_mc = plotly_monte_carlo(t, np.array(mc_runs).T if mc_runs else np.array([]), n_mc)
-        st.plotly_chart(fig_mc, use_container_width=True)
+            noise_state = [x0 + np.random.normal(0, 0.05), y0 + np.random.normal(0, 0.05), z0 + np.random.normal(0, 0.05)]
+            mc_runs.append(_solve(system_ode, noise_state, t, args=(a, b, c, policy_shock))[:, 0])
+        st.plotly_chart(plotly_monte_carlo(t, np.array(mc_runs).T, n_mc), use_container_width=True)
         
     with tab_sens:
-        st.markdown("#### 2-Parameter Sensitivity Matrix")
         a_grid = np.linspace(0.5, 3.0, 15)
         b_grid = np.linspace(0.2, 2.0, 15)
         A_m, B_m = np.meshgrid(a_grid, b_grid)
         Z_m = np.zeros_like(A_m)
         for i in range(A_m.shape[0]):
             for j in range(A_m.shape[1]):
-                s_test = _solve(system_ode, initial_state, t, args=(A_m[i,j], B_m[i,j], c, 0.0))[:, 0]
-                Z_m[i,j] = np.max(s_test)
-        fig_sens = plotly_sensitivity_heatmap(A_m, B_m, Z_m, a_label, b_label)
-        st.plotly_chart(fig_sens, use_container_width=True)
+                Z_m[i,j] = np.max(_solve(system_ode, initial_state, t, args=(A_m[i,j], B_m[i,j], c, 0.0))[:, 0])
+        st.plotly_chart(plotly_sensitivity_heatmap(A_m, B_m, Z_m, a_label, b_label), use_container_width=True)
         
     with tab_cc:
-        st.markdown("#### Cross-Sectoral Contagion Propagation")
         sec_sol = _solve(system_ode, [y0, x0, z0], t, args=(b, a, c, policy_shock * 1.2))
-        fig_cc = plotly_cross_coupling(t, solution, sec_sol)
-        st.plotly_chart(fig_cc, use_container_width=True)
+        st.plotly_chart(plotly_cross_coupling(t, solution, sec_sol), use_container_width=True)
 
-elif "Data Import / Export Center" in user_role:
-    st.markdown("### 🔍 Data Import & Sovereign Export Center")
-    
+elif user_role == "Data Import / Export Center":
+    st.markdown("### 📥 Data Import & Sovereign Export Center")
     col_up, col_down = st.columns(2)
     with col_up:
-        st.markdown("#### Import External Dataset")
         up_file = st.file_uploader("Upload CSV, JSON, Excel, or TXT", type=["csv", "json", "xlsx", "xls", "txt"])
         if up_file:
             df_loaded = _load_any(up_file)
             if df_loaded is not None:
-                st.success(f"Successfully loaded `{up_file.name}` ({len(df_loaded)} rows, {len(df_loaded.columns)} columns).")
+                st.success(f"Successfully loaded `{up_file.name}` ({len(df_loaded)} rows).")
                 st.dataframe(df_loaded.head(10), use_container_width=True)
-                
     with col_down:
-        st.markdown("#### Export Simulation Data")
         export_df = pd.DataFrame({"Time": t, "X": x_traj, "Y": y_traj, "Z": z_traj, "Variance": rolling_variance, "Autocorrelation": rolling_ac})
-        csv_data = export_df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Download Simulation Results (CSV)",
-            data=csv_data,
-            file_name=f"sovereign_simulation_{target_country.replace(' ', '_')}.csv",
-            mime="text/csv",
-        )
-        
-        if st.button("🔍 Commit Simulation to SQLite Database"):
-            p_dict = {"a": a, "b": b, "c": c, "x0": x0, "y0": y0, "z0": z0, "shock": policy_shock}
-            save_sim_to_db(db_conn, author_name, org_email, target_country, sector, user_role, mlce_heuristic, STATE_LABEL, p_dict, notes="Committed via Data Center")
-            st.success("Simulation parameters and state successfully committed to `sovereign_engine.db`!")
+        st.download_button("Download Simulation Results (CSV)", export_df.to_csv(index=False).encode('utf-8'), file_name=f"sovereign_sim_{target_country}.csv", mime="text/csv")
+        if st.button("Commit Simulation to SQLite"):
+            save_sim_to_db(db_conn, author_name, org_email, target_country, sector, user_role, mlce_heuristic, STATE_LABEL, {"a": a, "b": b, "c": c})
+            st.success("Successfully committed simulation parameters to database!")
 
-elif "System Self-Test & Diagnostics" in user_role:
-    st.markdown("### 🔍 System Self-Test & Diagnostics Hub")
-    st.markdown("Running real-time diagnostic checks across numerical solvers, database connectivity, and UI rendering layers.")
-    
-    diag_results = [
+elif user_role == "System Self-Test & Diagnostics":
+    st.markdown("### 🩺 System Self-Test & Diagnostics Hub")
+    st.dataframe(pd.DataFrame([
         {"Component": "SQLite Persistent Store", "Status": "ONLINE", "Latency": "1.2 ms"},
-        {"Component": "ODE Integration Engine (SciPy odeint)", "Status": "OPERATIONAL", "Latency": "4.8 ms"},
-        {"Component": "Plotly WebGL Rendering Pipeline", "Status": "ACTIVE", "Latency": "2.1 ms"},
-        {"Component": "Custom Equation Safe Evaluator", "Status": "SECURE", "Latency": "0.5 ms"},
-        {"Component": "Glassmorphism CSS Injector", "Status": "LOADED", "Latency": "0.1 ms"},
-    ]
-    st.dataframe(pd.DataFrame(diag_results), use_container_width=True)
-    
-    if st.button("Run Full Diagnostic Suite"):
-        st.success("All systems nominal. Numerical stability verified across simulation horizon.")
+        {"Component": "ODE Integration Engine (SciPy)", "Status": "OPERATIONAL", "Latency": "4.8 ms"},
+        {"Component": "Plotly WebGL Renderer", "Status": "ACTIVE", "Latency": "2.1 ms"},
+        {"Component": "Safe Custom AST Evaluator", "Status": "SECURE", "Latency": "0.5 ms"},
+    ]), use_container_width=True)
 
-elif "Sector Automation Hub" in user_role:
+elif user_role == "Sector Automation Hub":
     st.markdown("### ⚡ Sector Automation & Preset Hub")
-    st.markdown("Manage custom dynamical presets and automated batch workflows.")
-    
-    preset_name_input = st.text_input("New Preset Name", "Custom Regional Crisis Model")
+    preset_name_input = st.text_input("New Preset Name", "Custom Regional Model")
     if st.button("Save Current Parameters as Preset"):
         cursor = db_conn.cursor()
-        try:
-            cursor.execute("""
-                INSERT OR REPLACE INTO custom_presets (preset_name, sector, custom_dx, custom_dy, custom_dz)
-                VALUES (?, ?, ?, ?, ?)
-            """, (preset_name_input, sector, custom_dx, custom_dy, custom_dz))
-            db_conn.commit()
-            st.success(f"Preset `{preset_name_input}` successfully saved to database!")
-        except Exception as e:
-            st.error(f"Error saving preset: {e}")
-            
+        cursor.execute("INSERT OR REPLACE INTO custom_presets (preset_name, sector, custom_dx, custom_dy, custom_dz) VALUES (?, ?, ?, ?, ?)", (preset_name_input, sector, custom_dx, custom_dy, custom_dz))
+        db_conn.commit()
+        st.success(f"Preset `{preset_name_input}` saved successfully!")
+    
     cursor = db_conn.cursor()
     cursor.execute("SELECT preset_name, sector FROM custom_presets")
-    presets = cursor.fetchall()
-    if presets:
-        st.markdown("#### Saved Custom Presets")
+    if presets := cursor.fetchall():
         st.dataframe(pd.DataFrame(presets, columns=["Preset Name", "Sector"]), use_container_width=True)
 
-elif "Institutional Contacts" in user_role:
-    st.markdown("### 🔍 Institutional Contacts & Analyst Directory")
-    st.markdown("Manage institutional clearances, analyst profiles, and contact registries.")
-    
+elif user_role == "Institutional Contacts & Directory":
+    st.markdown("### 📇 Institutional Contacts & Analyst Directory")
     cursor = db_conn.cursor()
     cursor.execute("SELECT id, analyst_name, org_email, contact_phone, clearance_level, primary_sector FROM analyst_contacts")
-    contacts = cursor.fetchall()
-    
-    df_contacts = pd.DataFrame(contacts, columns=["ID", "Analyst Name", "Email", "Phone", "Clearance", "Primary Domain"])
-    st.dataframe(df_contacts, use_container_width=True)
-    
-    st.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-    st.markdown("#### Register / Update Analyst Profile")
-    col_c1, col_c2 = st.columns(2)
-    with col_c1:
-        c_name = st.text_input("Analyst Name", author_name)
-        c_email = st.text_input("Institutional Email", org_email)
-        c_phone = st.text_input("Direct Phone", contact_phone)
-    with col_c2:
-        c_clearance = st.selectbox("Clearance Tier", ["Tier-1 Lead Architect", "Chief Scientific Director", "Senior Policy Analyst", "Technocrat Observer"])
-        c_domain = st.text_input("Primary Domain", sector)
-        
-    if st.button("🔍 Register / Update Profile in Registry"):
-        v_hash = f"HASH-{c_name.replace(' ', '').upper()}-{np.random.randint(100, 999)}"
-        cursor.execute("""
-            INSERT OR REPLACE INTO analyst_contacts (analyst_name, org_email, contact_phone, clearance_level, primary_sector, vault_hash)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (c_name, c_email, c_phone, c_clearance, c_domain, v_hash))
-        db_conn.commit()
-        st.success(f"Analyst profile for `{c_name}` successfully registered with security hash `{v_hash}`!")
+    st.dataframe(pd.DataFrame(cursor.fetchall(), columns=["ID", "Name", "Email", "Phone", "Clearance", "Domain"]), use_container_width=True)
