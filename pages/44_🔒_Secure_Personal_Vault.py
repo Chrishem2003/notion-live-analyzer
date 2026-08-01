@@ -349,7 +349,6 @@ async def read_secure_data(token: str = Depends(oauth2_scheme)):
     return {"message": "Access Granted to Secure Vault", "token_used": token}
 # Add these imports to frontend_advanced.py
 import numpy as np
-from ydata_profiling import ProfileReport
 from streamlit_pandas_profiling import st_profile_report
 
 # ... (Keep your existing tabs setup, and add a fourth tab) ...
