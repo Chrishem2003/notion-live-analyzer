@@ -60,7 +60,7 @@ html, body, [class*="css"]  {{ font-family: 'Space Grotesk', sans-serif; }}
 code, pre {{ font-family: 'JetBrains Mono', monospace !important; }}
 
 .nv-header {{
-    background: linear-gradient(120deg, {INK} 0%, #2b2f45 60%, #3a3050 100%);
+    background: linear-gradient(120deg, #1e1e2f 0%, #2b2f45 60%, #3a3050 100%);
     border-radius: 18px; padding: 26px 30px; color: white; margin-bottom: 18px;
     border: 1px solid rgba(201,154,58,0.28); box-shadow: 0 10px 30px rgba(0,0,0,0.25);
 }}
@@ -75,7 +75,7 @@ code, pre {{ font-family: 'JetBrains Mono', monospace !important; }}
 .nv-card-value {{ font-size: 1.5rem; font-weight: 800; margin-top: 4px; }}
 
 .stButton>button {{
-    background: linear-gradient(120deg, {INK} 0%, #2b2f45 60%, #3a3050 100%);
+    background: linear-gradient(120deg, #1e1e2f 0%, #2b2f45 60%, #3a3050 100%);
     border-radius: 9px; font-weight: 700; transition: all .15s ease; box-shadow: 0 3px 10px rgba(201,154,58,0.25);
 }}
 .stButton>button:hover {{ transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201,154,58,0.35); }}
