@@ -200,7 +200,7 @@ def render_nonlinear_chaos_engine():
     sol = np.nan_to_num(sol, nan=0.0, posinf=1e4, neginf=-1e4)
     x_traj, y_traj, z_traj = sol[:, 0], sol[:, 1], sol[:, 2]
 
-    growth = np.abs(np.gradient(x_traj))  1e-5
+    growth = np.abs(np.gradient(x_traj)) * 1e-5
     mlce = float(np.mean(np.log(growth)) / (t_arr[1] - t_arr[0]))
     status = "STABLE" if mlce < 0 else "CRITICAL / CHAOTIC"
 
