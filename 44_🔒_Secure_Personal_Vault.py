@@ -1,4 +1,18 @@
-﻿import streamlit as st
+
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+st.sidebar.markdown("---")
+if os.path.exists("assets/author_photo.jpg"):
+    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
+else:
+    st.sidebar.image("assets/images/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
+
+st.sidebar.markdown("### **CHRISHEM**")
+st.sidebar.markdown("*App Creator & Lead Developer*")
+st.sidebar.markdown("Innovative software engineer bringing ideas to life through code.")
+# -------------------------------------
+
+import streamlit as st
 import pandas as pd
 import numpy as np
 
@@ -11,7 +25,7 @@ except ImportError:
     def st_profile_report(profile):
         st.components.v1.html(profile.to_html(), height=1000, scrolling=True)
 
-st.header("🔬 Automated Data Profiling Engine")
+st.header("?? Automated Data Profiling Engine")
 st.caption("One-click statistical analysis and correlation mapping.")
 
 if st.button("Generate Environmental Data Profile"):
@@ -35,3 +49,4 @@ if st.button("Generate Environmental Data Profile"):
         
         st.write("### Comprehensive Analysis")
         st_profile_report(pr)
+
