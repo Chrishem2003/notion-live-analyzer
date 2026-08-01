@@ -745,3 +745,4 @@ elif active == "📋 Admin Audit Log":
     conn.close()
     st.dataframe(pd.DataFrame([dict(r) for r in logs]), use_container_width=True, hide_index=True)
 
+
