@@ -21,3 +21,14 @@ passlib==1.7.4
 bcrypt==4.0.1
 python-jose
 sqlalchemy
+streamlit>=1.30.0
+ydata-profiling
+opencv-python-headless
+psutil
+networkx
+python-louvain
+plotly
+pandas
+numpy
+passlib==1.7.4
+bcrypt==4.0.1
