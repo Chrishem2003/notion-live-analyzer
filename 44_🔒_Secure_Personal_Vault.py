@@ -1,25 +1,23 @@
-
-
-
 # --- CHRISHEM AUTHOR PROFILE BLOCK ---
 import os
+import streamlit as st
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ?? App Author")
-
-# Multiple fallback paths for Streamlit Cloud deployment
-if os.path.exists("author_photo.jpg"):
-    st.sidebar.image("author_photo.jpg", caption="CHRISHEM", use_container_width=True)
+if os.path.exists("background.jpg"):
+    st.sidebar.image("background.jpg", caption="CHRISHEM", use_container_width=True)
 elif os.path.exists("assets/author_photo.jpg"):
     st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
-elif os.path.exists("assets/images/author_photo.jpg"):
-    st.sidebar.image("assets/images/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
-else:
-    st.sidebar.warning("Author photo file missing from repo bundle.")
 
 st.sidebar.markdown("**CHRISHEM**")
 st.sidebar.markdown("*Data Analyst & Lead Developer*")
 st.sidebar.markdown("---")
 # -------------------------------------
+
+
+
+
+
 
 import streamlit as st
 import pandas as pd
@@ -58,6 +56,7 @@ if st.button("Generate Environmental Data Profile"):
         
         st.write("### Comprehensive Analysis")
         st_profile_report(pr)
+
 
 
 
