@@ -184,7 +184,7 @@ def render_nonlinear_chaos_engine():
     def system_ode(state, t, a, b, c, shock_val):
         x, y, z = state
         sk = shock_val if (0.45 * t_max <= t <= 0.55 * t_max) else 0.0
-        dxdt = x - z - (y - a) * x  sk
+        dxdt = x - z - (y - a) * x
         dydt = 1 - b * y - x**2
         dzdt = x - c * z
         return [dxdt, dydt, dzdt]
