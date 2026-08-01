@@ -558,7 +558,7 @@ elif active == "🎞️ Slides":
             for s in slides:
                 st.markdown(f"""<div style="background:{INK};color:white;border:1px solid {BRASS}44;border-radius:12px;padding:26px;margin-bottom:10px;text-align:center;">
                 <h3 style="color:{BRASS};margin:0;">{s.get('title','')}</h3>
-                <p style="white-space:pre-line;opacity:0.85;">{s.get('body','')}</p></div>""", unsafe_allow_html=True)
+                st.markdown(f"""<p style="white-space:pre-line;opacity:0.85;">{s.get("body","")}</p></div>""", unsafe_allow_html=True)
         else:
             st.markdown('<div class="nv-empty">🎞️ Select or create a deck on the left.</div>', unsafe_allow_html=True)
 
