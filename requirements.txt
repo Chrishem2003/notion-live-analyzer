@@ -21,3 +21,4 @@ pydantic
 sqlalchemy
 passlib
 python-jose[cryptography]
+bcrypt
