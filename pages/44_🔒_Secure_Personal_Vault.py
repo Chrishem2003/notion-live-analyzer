@@ -60,15 +60,15 @@ html, body, [class*="css"]  {{ font-family: 'Space Grotesk', sans-serif; }}
 code, pre {{ font-family: 'JetBrains Mono', monospace !important; }}
 
 .nv-header {{
-    #     # [Fixed by launcher]     background: linear-gradient(120deg, #1e1e2f 0%, #2b2f45 60%, #3a3050 100%);
-    #     border-radius: 18px; padding: 26px 30px; color: white; margin-bottom: 18px;
-    border: 1px solid rgba(201,154,58,0.28); box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    #     #     # [Fixed by launcher]     background: linear-gradient(120deg, #1e1e2f 0%, #2b2f45 60%, #3a3050 100%);
+    #     #     border-radius: 18px; padding: 26px 30px; color: white; margin-bottom: 18px;
+    #     border: 1px solid rgba(201,154,58,0.28); box-shadow: 0 10px 30px rgba(0,0,0,0.25);
 }}
     # .nv-header h1 {{ margin: 0; font-size: 1.7rem; font-weight: 800; }}
     # .nv-header p {{ margin: 6px 0 0 0; opacity: 0.78; font-size: 0.92rem; }}
 
 .nv-card {{
-    #     background: rgba(255,255,255,0.035); backdrop-filter: blur(10px);
+    #     #     background: rgba(255,255,255,0.035); backdrop-filter: blur(10px);
     #     border: 1px solid rgba(201,154,58,0.20); border-radius: 14px; padding: 16px 18px;
 }}
     # .nv-card-title {{ font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: {BRASS}; }}
