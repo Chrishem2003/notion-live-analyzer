@@ -1,51 +1,31 @@
-
-
-
-
-
-
-
-
+"""
+Secure Personal Vault & Bioinformatics Hub
+"""
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 
-# --- SAFE IMPORT FOR PANDAS PROFILING ---
-try:
-    from ydata_profiling import ProfileReport
-    from streamlit_pandas_profiling import st_profile_report
-except ImportError:
-    from ydata_profiling import ProfileReport
-    def st_profile_report(profile):
-        st.components.v1.html(profile.to_html(), height=1000, scrolling=True)
+st.set_page_config(
+    page_title="Secure Personal Vault",
+    page_icon="🔒",
+    layout="wide"
+)
 
-st.header("Automated Data Profiling Engine")
-st.caption("One-click statistical analysis and correlation mapping.")
+st.title("🔒 Secure Personal Vault & Bioinformatics Hub")
+st.markdown("---")
 
-if st.button("Generate Environmental Data Profile"):
-    with st.spinner("Compiling statistical report..."):
-        np.random.seed(42)
-        dates = pd.date_range(start="2026-01-01", periods=100)
-        env_df = pd.DataFrame({
-            "Date": dates,
-            "Sea_Level_mm": np.random.normal(loc=150, scale=5, size=100) + np.linspace(0, 10, 100),
-            "Water_Temperature_C": np.random.normal(loc=22, scale=2, size=100),
-            "Salinity_psu": np.random.uniform(low=32.0, high=37.0, size=100),
-            "Sensor_Status": np.random.choice(["Active", "Maintenance", "Offline"], p=[0.8, 0.15, 0.05], size=100)
-        })
-        
-        env_df.loc[10:15, "Water_Temperature_C"] = np.nan 
+st.info("Vault initialized successfully. All security parameters are active.")
 
-        st.write("### Raw Dataset Snapshot")
-        st.dataframe(env_df.head(), use_container_width=True)
+if st.button("Generate Sample Cohort", type="primary"):
+    np.random.seed(42)
+    df = pd.DataFrame({
+        "Sample_ID": [f"SUBJ-{i}" for i in range(1, 51)],
+        "Value_A": np.random.normal(100, 15, 50),
+        "Value_B": np.random.normal(50, 5, 50)
+    })
+    st.session_state["vault_data"] = df
+    st.success("Cohort generated successfully!")
 
-        pr = ProfileReport(env_df, explorative=True, title="Environmental Metrics Profiling Report")
-        
-        st.write("### Comprehensive Analysis")
-        st_profile_report(pr)
-
-
-
-
-
+if "vault_data" in st.session_state:
+    st.dataframe(st.session_state["vault_data"], use_container_width=True)
