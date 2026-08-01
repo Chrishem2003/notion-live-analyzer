@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Email Engine  SMTP/SendGrid Integration for Reports."""
 import os
 import io
@@ -131,7 +140,7 @@ def send_email(
     msg["Subject"] = subject
     msg["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
     msg["To"] = to_email
-    msg["Date"] = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S +0000")
+    msg["Date"] = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S 0000")
     
     msg.attach(MIMEText(plain_body, "plain"))
     msg.attach(MIMEText(html_body, "html"))
@@ -496,7 +505,7 @@ def send_audit_report(
         sentence_count=profile.get("sentences", "N/A"),
         burstiness=profile.get("burstiness", "N/A"),
         vocabulary=profile.get("vocabulary_richness", "N/A"),
-        session_id=report_data.get("session_id", "N/A")[:20] + "...",
+        session_id=report_data.get("session_id", "N/A")[:20]  "...",
         report_attachments="<p>📎 Full PDF report attached.</p>" if pdf_content else "",
         app_url=os.environ.get("APP_URL", "https://your-app.streamlit.app"),
     )
@@ -516,7 +525,7 @@ def send_welcome_email(email: str, tier: str = "Free") -> bool:
     features = {
         "Free": """
             <li>🔍 Basic Literature Search</li>
-            <li>📊 Data Visualization Tools</li>
+            <li> Data Visualization Tools</li>
             <li>📁 File Analysis (CSV, Excel)</li>
             <li>📜 Audit Compliance Tools</li>
         """,
@@ -532,7 +541,7 @@ def send_welcome_email(email: str, tier: str = "Free") -> bool:
             <li>🔬 Deep Research Synthesis</li>
             <li>📧 Automated Email Reports</li>
             <li>📋 Notion Workspace Integration</li>
-            <li>👑 Priority Support</li>
+            <li> Priority Support</li>
         """,
     }
     

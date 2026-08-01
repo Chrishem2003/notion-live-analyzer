@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Cross-version pandas helpers.
 
 pandas 3 infers a dedicated ``str`` dtype for text columns that used to land on

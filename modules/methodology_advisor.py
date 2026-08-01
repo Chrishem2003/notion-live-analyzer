@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Research Methodology Advisor  CHRISHEM-powered expert system that recommends
 study designs, statistical tests, sample sizes, and research methodologies
@@ -34,7 +43,7 @@ STUDY_DESIGNS = {
         "description": "Examine relationships between variables without manipulation",
         "best_for": "Exploring associations between naturally occurring variables",
         "statistical_tests": ["Pearson Correlation", "Spearman Correlation", "Multiple Regression", "Factor Analysis"],
-        "sample_size_formula": "N ≥ 50 + 8 × predictors (for regression)",
+        "sample_size_formula": "N ≥ 50  8 × predictors (for regression)",
         "pros": ["Can study many variables", "High external validity"],
         "cons": ["Cannot establish causality", "Directionality problem"],
         "when_to_use": "When you cannot or should not manipulate variables",
@@ -217,33 +226,33 @@ def recommend_study_design(
         # Keyword matching
         if any(kw in rq_lower for kw in ["difference", "effect", "impact", "cause", "influence"]):
             if "experimental" in name.lower():
-                score += 3
+                score = 3
             if "quasi" in name.lower():
-                score += 2
+                score = 2
         if any(kw in rq_lower for kw in ["relationship", "association", "correlation", "predict"]):
             if "correlational" in name.lower() or "regression" in design["description"].lower():
-                score += 3
+                score = 3
         if any(kw in rq_lower for kw in ["change", "over time", "develop", "growth", "trend"]):
             if "longitudinal" in name.lower():
-                score += 3
+                score = 3
         if any(kw in rq_lower for kw in ["prevalence", "frequency", "rate", "how many", "survey"]):
             if "cross-sectional" in name.lower() or "survey" in name.lower():
-                score += 3
+                score = 3
         if any(kw in rq_lower for kw in ["interview", "experience", "perception", "meaning", "qualitative"]):
             if "qualitative" in name.lower():
-                score += 3
+                score = 3
 
         # Parameter matching
         if has_random_assignment is True and "experimental" in name.lower():
-            score += 2
+            score = 2
         if has_random_assignment is False and "quasi" in name.lower():
-            score += 2
+            score = 2
         if has_control_group and "control" in design["description"].lower():
-            score += 1
+            score = 1
         if is_longitudinal and "longitudinal" in name.lower():
-            score += 2
+            score = 2
         if data_type == "qualitative" and "qualitative" in name.lower():
-            score += 3
+            score = 3
 
         scores[name] = score
 
@@ -337,7 +346,7 @@ def recommend_statistical_test(
                 "confidence": 90,
             })
 
-    # Three+ groups
+    # Three groups
     elif n_groups >= 3:
         if dv_type == "numeric":
             if is_paired:
@@ -473,7 +482,7 @@ def estimate_sample_size(
         # Fisher's z transformation
         z = np.arctanh(effect_size)
         se = 1 / np.sqrt(3)
-        n = ((stats.norm.ppf(1 - alpha/2) + stats.norm.ppf(power)) / (z / se)) ** 2 + 3
+        n = ((stats.norm.ppf(1 - alpha/2)  stats.norm.ppf(power)) / (z / se)) ** 2  3
         results["total_n"] = int(np.ceil(n))
         results["n_per_group"] = int(np.ceil(n))
         results["formula"] = "Correlation power analysis (Fisher's z)"
@@ -500,7 +509,7 @@ def estimate_sample_size(
         n = (z**2 * p * (1-p)) / (e**2)
         # Finite population correction
         N = 10000  # Assumed population
-        n_adj = n / (1 + (n - 1) / N)
+        n_adj = n / (1  (n - 1) / N)
         results["total_n"] = int(np.ceil(n_adj))
         results["n_per_group"] = int(np.ceil(n_adj))
         results["formula"] = "Survey sample size (Cochran's formula)"
@@ -607,7 +616,7 @@ def render_methodology_advisor_ui():
 
             for i, rec in enumerate(recommendations):
                 with st.container():
-                    st.markdown(f"### {i+1}. **{rec['design']}**")
+                    st.markdown(f"### {i1}. **{rec['design']}**")
                     st.markdown(f"*{rec['description']}*")
                     st.markdown(f"**Best for:** {rec['best_for']}")
                     st.markdown(f"**When to use:** {rec['when_to_use']}")
@@ -685,7 +694,7 @@ def render_methodology_advisor_ui():
         else:
             n_groups_ss = 2
 
-        if st.button("📊 Calculate Sample Size", type="primary"):
+        if st.button(" Calculate Sample Size", type="primary"):
             result = estimate_sample_size(design_type, effect_size, alpha, power, n_groups=n_groups_ss)
             st.success(result.get("interpretation", ""))
 

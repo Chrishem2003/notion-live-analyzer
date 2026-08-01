@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 GENOMIC & ENTERPRISE PREDICTIVE MODELING / AUTOML SUITE [v3.0 ENTERPRISE]
@@ -60,7 +69,7 @@ except ImportError:
         if numeric_cols:
             target_var = st.selectbox("🔍 Select Target Variable for Training", options=df.columns)
             features = [c for c in df.columns if c != target_var]
-            st.markdown(f"**Selected Predictors ({len(features)}):** `{', '.join(features[:6])}`" + ("..." if len(features) > 6 else ""))
+            st.markdown(f"**Selected Predictors ({len(features)}):** `{', '.join(features[:6])}`"  ("..." if len(features) > 6 else ""))
             if st.button("🔍 Run Automated Baseline Models", type="primary"):
                 st.info("Cross-validating baseline algorithm ensemble (Random Forest, XGBoost, LightGBM)...")
                 st.markdown(

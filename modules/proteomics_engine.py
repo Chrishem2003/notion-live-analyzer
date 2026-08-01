@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import requests
 
 def translate_dna_to_protein(dna_seq: str) -> dict:
@@ -23,7 +32,7 @@ def translate_dna_to_protein(dna_seq: str) -> dict:
     seq = dna_seq.upper().replace(" ", "").replace("\n", "")
     protein = []
     for i in range(0, len(seq) - len(seq) % 3, 3):
-        codon = seq[i:i+3]
+        codon = seq[i:i3]
         protein.append(codon_table.get(codon, '?'))
         
     protein_seq = "".join(protein)

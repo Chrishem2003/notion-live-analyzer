@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 ENTERPRISE DATA QUALITY AUDIT & ANOMALY SUITE [v3.1]
@@ -248,7 +257,7 @@ if active_df is None or active_df.empty:
             np.random.seed(42)
             n_rows = 120
             sim_df = pd.DataFrame({
-                "Subject_ID": [f"SUBJ-{i:03d}" for i in range(1, n_rows + 1)],
+                "Subject_ID": [f"SUBJ-{i:03d}" for i in range(1, n_rows  1)],
                 "Age": np.random.choice([22, 29, 34, np.nan, 45, 52, 110, 31], n_rows),
                 "Blood_Glucose_mg_dL": np.random.choice([95.4, 110.2, 140.5, np.nan, 450.0, 102.1, 98.6], n_rows),
                 "Category": np.random.choice(["Control", "Treatment", "Placebo", "  Treatment  "], n_rows),
@@ -335,7 +344,7 @@ with quality_tabs[1]:
             if "IQR" in outlier_method:
                 q1, q3 = np.percentile(series, 25), np.percentile(series, 75)
                 iqr = q3 - q1
-                lower_bound, upper_bound = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+                lower_bound, upper_bound = q1 - 1.5 * iqr, q3  1.5 * iqr
                 outliers = series[(series < lower_bound) | (series > upper_bound)]
             else:
                 mean, std = np.mean(series), np.std(series)

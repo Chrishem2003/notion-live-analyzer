@@ -1,6 +1,15 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Keep-Alive System  multi-layer approach to prevent app sleep.
-5 layers: Client JS + Server Thread + Streamlit Config + Cron + Auto-Restart
+5 layers: Client JS  Server Thread  Streamlit Config  Cron  Auto-Restart
 """
 import os
 import time

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Global Language & Academic Register  Localization Engine (Enterprise Edition v4.0)
 Complete application UI, AI synthesis, and neural audio localization
@@ -240,7 +249,7 @@ EXTENDED_LANGUAGES = [
      "region": "Europe"},
     {"code": "es", "name": "Spanish", "nativeName": "Español (Profesional)", "flag": "🔍 ",
      "accentVariants": ["Castilian Academic", "Latin American Academic", "Mexican Formal", "Argentinian Academic"],
-     "description": "Professional Spanish for academic research across 20+ countries.",
+     "description": "Professional Spanish for academic research across 20 countries.",
      "region": "Europe"},
     {"code": "de", "name": "German", "nativeName": "Deutsch (Wissenschaftlich)", "flag": "🔍 ",
      "accentVariants": ["Standard Hochdeutsch", "Austrian Academic", "Swiss Formal"],
@@ -334,7 +343,7 @@ tot_accents = sum(len(l["accentVariants"]) for l in EXTENDED_LANGUAGES)
 m1, m2, m3, m4 = st.columns([3, 2, 2, 2])
 
 with m1:
-    region_opts = ["All Regions"] + REGIONS
+    region_opts = ["All Regions"]  REGIONS
     cur_reg = st.session_state["loc_region_filter"]
     idx = region_opts.index(cur_reg) if cur_reg in region_opts else 0
     sel_region = st.selectbox("🔍 Filter Regions", region_opts, index=idx, key="loc_region_select")
@@ -456,7 +465,7 @@ with tab_glossary:
 with tab_preview:
     st.markdown("<div class='contrast-card-emerald'>", unsafe_allow_html=True)
     st.markdown("### ⚡ Live AI Synthesis Preview")
-    st.markdown(f"Current configuration: **{current_lang['name']}** + **{active_glossary['name']}**")
+    st.markdown(f"Current configuration: **{current_lang['name']}**  **{active_glossary['name']}**")
     
     sample_text = st.text_area(
         "Input text for neural synthesis & academic register alignment:",

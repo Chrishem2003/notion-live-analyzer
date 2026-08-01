@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 AI Co-Researcher & Automation Layer
 Intelligent research assistant that processes meeting transcripts in real-time,
@@ -13,7 +22,7 @@ Features:
 
 Architecture:
   - Pipeline-based transcript processing with configurable stages
-  - Rule-based + ML-light action item extraction
+  - Rule-based  ML-light action item extraction
   - Context window management for coherent note generation
   - Integration hooks for existing modules (literature_engine, ai_analyzer, etc.)
 """
@@ -376,16 +385,16 @@ class TranscriptProcessor:
         # Action item trigger patterns
         self._action_item_patterns = [
             # Direct assignments
-            r"(?:can|could|will|shall)\s+(?:you|we|someone)\s+(?:please\s+)?(\w[\w\s]+)",
-            r"(?:i\'?ll|we\'?ll)\s+(\w[\w\s]+)",
-            r"(?:assigned?|responsible for|tasked with)\s+(\w[\w\s]+)",
-            r"(?:need to|have to|must|should)\s+(\w[\w\s]+)",
+            r"(?:can|could|will|shall)\s(?:you|we|someone)\s(?:please\s)?(\w[\w\s])",
+            r"(?:i\'?ll|we\'?ll)\s(\w[\w\s])",
+            r"(?:assigned?|responsible for|tasked with)\s(\w[\w\s])",
+            r"(?:need to|have to|must|should)\s(\w[\w\s])",
             # Follow-up triggers
-            r"(?:follow up|check|review|update|prepare|create|write|submit|send)\s+(?:on|the|a|an)?\s*(\w[\w\s]+)",
-            r"(?:next steps?|action items?|to-do|todo|todos?):?\s*(.+)$",
+            r"(?:follow up|check|review|update|prepare|create|write|submit|send)\s(?:on|the|a|an)?\s*(\w[\w\s])",
+            r"(?:next steps?|action items?|to-do|todo|todos?):?\s*(.)$",
             # Decision indicators
-            r"(?:decided?|agreed?|consensus|concluded?)\s+(?:that|to|on)?\s*(\w[\w\s]+)",
-            r"let\s+(\w[\w\s]+)",
+            r"(?:decided?|agreed?|consensus|concluded?)\s(?:that|to|on)?\s*(\w[\w\s])",
+            r"let\s(\w[\w\s])",
         ]
 
     def ingest(self, text: str, speaker_id: str, speaker_name: str,
@@ -409,8 +418,8 @@ class TranscriptProcessor:
                 "last_seen": time.time(),
             }
         session = self.speaker_sessions[speaker_id]
-        session["segment_count"] += 1
-        session["total_words"] += segment.word_count
+        session["segment_count"] = 1
+        session["total_words"] = segment.word_count
         session["last_seen"] = time.time()
 
         # Process the segment (async in production)
@@ -438,7 +447,7 @@ class TranscriptProcessor:
 
         # Update topic frequencies
         for topic in segment.processed_topics:
-            self._topic_frequencies[topic] += 1
+            self._topic_frequencies[topic] = 1
 
         # Stage 3: Extract action items
         action_items = self._extract_action_items(cleaned_text, segment.id)
@@ -447,7 +456,7 @@ class TranscriptProcessor:
             segment.extracted_action_items = action_items
 
         # Accumulate for summary
-        self._accumulated_text += " " + cleaned_text
+        self._accumulated_text = " "  cleaned_text
 
         # Check if we should generate a summary
         if len(self.segments) - self._last_summary_index >= SUMMARIZATION_INTERVAL:
@@ -467,15 +476,15 @@ class TranscriptProcessor:
         text = " ".join(cleaned)
 
         # Normalize whitespace
-        text = re.sub(r'\s+', ' ', text).strip()
+        text = re.sub(r'\s', ' ', text).strip()
 
         # Fix common punctuation issues
-        text = re.sub(r'\s+([.,!?;:])', r'\1', text)
+        text = re.sub(r'\s([.,!?;:])', r'\1', text)
         text = re.sub(r'\.{2,}', '.', text)
 
         # Capitalize first letter
         if text and text[0].islower():
-            text = text[0].upper() + text[1:]
+            text = text[0].upper()  text[1:]
 
         return text
 
@@ -530,7 +539,7 @@ class TranscriptProcessor:
         words = set(w.lower().rstrip(".,!?;:") for w in text.split())
         pos_count = sum(1 for w in words if w in positive_words)
         neg_count = sum(1 for w in words if w in negative_words)
-        total = pos_count + neg_count
+        total = pos_count  neg_count
 
         if total == 0:
             return 0.0
@@ -631,7 +640,7 @@ class TranscriptProcessor:
                 assignee_id = None
                 assignee_name = None
                 assignee_match = re.search(
-                    r'(?:assign\s+(?:it\s+)?to\s+|for\s+)(@?\w[\w\s]+)',
+                    r'(?:assign\s(?:it\s)?to\s|for\s)(@?\w[\w\s])',
                     text, re.IGNORECASE
                 )
                 if assignee_match:
@@ -741,20 +750,20 @@ class TranscriptProcessor:
         active_speakers = [s for s in speaker_stats.values() if s["segments"] > 0]
 
         summary = (
-            f"📊 **Meeting Summary**\n\n"
+            f" **Meeting Summary**\n\n"
             f"**Overview:** {total_segments} segments · {total_words} words · "
             f"{len(active_speakers)} active speakers\n\n"
         )
 
         if top_topics:
-            summary += "**Key Topics:**\n"
+            summary = "**Key Topics:**\n"
             for t in top_topics[:5]:
-                summary += f"  • {t['topic']} ({t['frequency']} mentions)\n"
+                summary = f"  • {t['topic']} ({t['frequency']} mentions)\n"
 
         if active_speakers:
-            summary += "\n**Speaker Participation:**\n"
+            summary = "\n**Speaker Participation:**\n"
             for s in sorted(active_speakers, key=lambda x: x["segments"], reverse=True)[:5]:
-                summary += f"  • {s['name']}: {s['segments']} segments ({s['participation_pct']}%)\n"
+                summary = f"  • {s['name']}: {s['segments']} segments ({s['participation_pct']}%)\n"
 
         return summary
 
@@ -773,25 +782,25 @@ class ActionItemDetector:
     def __init__(self):
         # High-confidence patterns (direct assignments/commitments)
         self._direct_patterns = [
-            r"(?:i\'?ll|we\'?ll)\s+(\w[\w\s,;]+)",
-            r"(?:can|will)\s+you\s+(\w[\w\s,;]+)",
-            r"please\s+(\w[\w\s,;]+)",
-            r"your\s+(?:task|action|responsibility)\s+(?:is|:)\s*(\w[\w\s,;]+)",
+            r"(?:i\'?ll|we\'?ll)\s(\w[\w\s,;])",
+            r"(?:can|will)\syou\s(\w[\w\s,;])",
+            r"please\s(\w[\w\s,;])",
+            r"your\s(?:task|action|responsibility)\s(?:is|:)\s*(\w[\w\s,;])",
         ]
 
         # Medium-confidence patterns (suggestions/needs)
         self._suggestion_patterns = [
-            r"(?:we\s+)?(?:should|need to|have to|must)\s+(\w[\w\s,;]+)",
-            r"(?:next steps?|action items?):?\s*(.+)",
-            r"(?:don\'t|do not)\s+forget\s+to\s+(\w[\w\s,;]+)",
-            r"remind\s+(?:me|us|everyone)\s+to\s+(\w[\w\s,;]+)",
+            r"(?:we\s)?(?:should|need to|have to|must)\s(\w[\w\s,;])",
+            r"(?:next steps?|action items?):?\s*(.)",
+            r"(?:don\'t|do not)\sforget\sto\s(\w[\w\s,;])",
+            r"remind\s(?:me|us|everyone)\sto\s(\w[\w\s,;])",
         ]
 
         # Low-confidence patterns (general obligations)
         self._obligation_patterns = [
-            r"(?:it\'?s\s+)?(?:important|crucial|essential|vital)\s+(?:that\s+)?(?:we|you)\s+(\w[\w\s,;]+)",
-            r"(?:make\s+sure|ensure|verify|confirm)\s+(?:that\s+)?(\w[\w\s,;]+)",
-            r"(?:follow up|check back|update)\s+(?:on|with)\s+(\w[\w\s,;]+)",
+            r"(?:it\'?s\s)?(?:important|crucial|essential|vital)\s(?:that\s)?(?:we|you)\s(\w[\w\s,;])",
+            r"(?:make\ssure|ensure|verify|confirm)\s(?:that\s)?(\w[\w\s,;])",
+            r"(?:follow up|check back|update)\s(?:on|with)\s(\w[\w\s,;])",
         ]
 
     def extract(self, text: str, segment_id: str) -> List[ActionItem]:
@@ -810,7 +819,7 @@ class ActionItemDetector:
                     source_segment_id=segment_id,
                     priority=ActionItemPriority.HIGH,
                 )
-                item.confidence = 0.85 + (hash(action_text) % 10) / 100  # 0.85-0.95
+                item.confidence = 0.85  (hash(action_text) % 10) / 100  # 0.85-0.95
                 item.extraction_method = "pattern_direct"
                 items.append(item)
 
@@ -827,7 +836,7 @@ class ActionItemDetector:
                         source_segment_id=segment_id,
                         priority=ActionItemPriority.MEDIUM,
                     )
-                    item.confidence = 0.65 + (hash(action_text) % 15) / 100  # 0.65-0.80
+                    item.confidence = 0.65  (hash(action_text) % 15) / 100  # 0.65-0.80
                     item.extraction_method = "pattern_suggestion"
                     items.append(item)
 
@@ -843,7 +852,7 @@ class ActionItemDetector:
                         source_segment_id=segment_id,
                         priority=ActionItemPriority.LOW,
                     )
-                    item.confidence = 0.45 + (hash(action_text) % 15) / 100  # 0.45-0.60
+                    item.confidence = 0.45  (hash(action_text) % 15) / 100  # 0.45-0.60
                     item.extraction_method = "pattern_obligation"
                     items.append(item)
 
@@ -859,29 +868,29 @@ class ActionItemDetector:
         # Length bonus (longer, more specific action items are more reliable)
         word_count = len(action_text.split())
         if word_count > 8:
-            confidence += 0.1
+            confidence = 0.1
         elif word_count > 5:
-            confidence += 0.05
+            confidence = 0.05
 
         # Contains a verb (action-oriented)
         verb_indicators = {"create", "update", "review", "submit", "send",
                            "prepare", "build", "fix", "check", "implement"}
         if any(v in action_text.lower() for v in verb_indicators):
-            confidence += 0.1
+            confidence = 0.1
 
         # Has an assignee mention
-        if re.search(r'@?\w+', action_text):
-            confidence += 0.1
+        if re.search(r'@?\w', action_text):
+            confidence = 0.1
 
         # Context has urgency
         urgency = self._analyze_urgency_simple(context)
-        confidence += urgency * 0.1
+        confidence = urgency * 0.1
 
         # Contains time reference
         time_refs = {"by", "before", "after", "until", "within", "tomorrow",
                      "today", "next week", "by end of", "deadline"}
         if any(ref in action_text.lower() for ref in time_refs):
-            confidence += 0.05
+            confidence = 0.05
 
         return min(1.0, confidence)
 
@@ -1097,7 +1106,7 @@ class AIResearcher:
             generated_by=self.researcher_id,
             source_segment_ids=[action_item.source_segment_id],
         )
-        note.tags = ["action_item"] + action_item.tags
+        note.tags = ["action_item"]  action_item.tags
 
         self.notes[note.id] = note
         self._emit("note_generated", note.to_dict())
@@ -1120,7 +1129,7 @@ class AIResearcher:
 
     def _generate_periodic_summary(self):
         """Generate a periodic summary of the meeting."""
-        self._summary_count += 1
+        self._summary_count = 1
         summary = self.transcript_processor.generate_summary()
 
         note = MeetingNote(
@@ -1426,7 +1435,7 @@ def render_ai_researcher_panel():
 
         # Tabs for different views
         tab1, tab2, tab3, tab4 = st.tabs([
-            "📋 Action Items", "📝 Meeting Notes", "📊 Analytics", "🔬 Research Context"
+            "📋 Action Items", "📝 Meeting Notes", " Analytics", "🔬 Research Context"
         ])
 
         with tab1:
@@ -1443,7 +1452,7 @@ def render_ai_researcher_panel():
                         </div>
                         <div style="color:#64748b;font-size:0.8rem;margin-top:0.25rem;">
                             Priority: {item.priority.value.upper()} · Status: {item.status.value}
-                            {' · 👤 ' + item.assignee_name if item.assignee_name else ''}
+                            {' · 👤 '  item.assignee_name if item.assignee_name else ''}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1454,7 +1463,7 @@ def render_ai_researcher_panel():
             st.markdown(f"### Meeting Notes ({len(researcher.notes)})")
             categories = list(NoteCategory)
             selected_cat = st.selectbox("Filter by category",
-                                         options=["All"] + [c.value for c in categories],
+                                         options=["All"]  [c.value for c in categories],
                                          key="ai_note_filter")
 
             for note in sorted(researcher.notes.values(),

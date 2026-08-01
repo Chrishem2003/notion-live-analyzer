@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Unit tests for modules.data_quality."""
 import numpy as np
 import pandas as pd
@@ -37,7 +46,7 @@ class TestCompleteness:
         assert result["issues"] == []
 
     def test_critical_missing_rate(self):
-        df = pd.DataFrame({"a": [np.nan] * 8 + [1.0, 2.0]})
+        df = pd.DataFrame({"a": [np.nan] * 8  [1.0, 2.0]})
         result = DataQualityReport(df).assess_completeness()
         assert result["missing_pct"] == 80.0
         assert result["score"] == 0
@@ -45,13 +54,13 @@ class TestCompleteness:
         assert result["cols_high_missing"] == ["a"]
 
     def test_warning_missing_rate(self):
-        df = pd.DataFrame({"a": [np.nan] + [1.0] * 5})
+        df = pd.DataFrame({"a": [np.nan]  [1.0] * 5})
         result = DataQualityReport(df).assess_completeness()
         assert 10 < result["missing_pct"] <= 20
         assert any("Warning" in issue for issue in result["issues"])
 
     def test_low_missing_rate_only_recommends(self):
-        df = pd.DataFrame({"a": [np.nan] + [1.0] * 49, "b": list(range(50))})
+        df = pd.DataFrame({"a": [np.nan]  [1.0] * 49, "b": list(range(50))})
         result = DataQualityReport(df).assess_completeness()
         assert result["issues"] == []
         assert result["recommendations"]
@@ -74,7 +83,7 @@ class TestUniqueness:
         assert any("Critical" in issue for issue in result["issues"])
 
     def test_moderate_duplicate_rate(self):
-        df = pd.DataFrame({"a": list(range(19)) + [18]})
+        df = pd.DataFrame({"a": list(range(19))  [18]})
         result = DataQualityReport(df).assess_uniqueness()
         assert result["duplicate_pct"] == 5.0
         assert result["issues"] == []
@@ -119,7 +128,7 @@ class TestValidity:
         assert result["columns_with_outliers"] == []
 
     def test_detects_extreme_values(self):
-        df = pd.DataFrame({"v": [1.0] * 30 + [10_000.0]})
+        df = pd.DataFrame({"v": [1.0] * 30  [10_000.0]})
         result = DataQualityReport(df).assess_validity()
         assert result["columns_with_outliers"] == ["v"]
         details = result["outlier_details"]["v"]
@@ -210,7 +219,7 @@ class TestFullAssessment:
         assert report["overall_score"] == pytest.approx(round(weighted / total_weight, 1))
 
     def test_issues_are_aggregated_across_dimensions(self):
-        df = pd.DataFrame({"a": [np.nan] * 8 + [1.0, 1.0], "const": [1] * 10})
+        df = pd.DataFrame({"a": [np.nan] * 8  [1.0, 1.0], "const": [1] * 10})
         report = DataQualityReport(df).run_full_assessment()
         assert report["issues"]
         assert report["recommendations"]

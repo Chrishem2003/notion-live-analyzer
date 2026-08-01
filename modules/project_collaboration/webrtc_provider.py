@@ -1,9 +1,18 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 WebRTC Provider  Enhanced Audio/Video Engine with Spatial Audio & Denoising
 Production-grade WebRTC session management with:
   - Adaptive HD video streaming with low-latency WebRTC simulation
   - AI Noise Suppression / Background Denoising (Krisp SDK integration pattern)
-  - Dual-Track Publishing: Camera + Presentation overlay streams
+  - Dual-Track Publishing: Camera  Presentation overlay streams
   - Spatial Audio Positioning: Pan audio tracks based on participant cursor distances
   - Participant grid management with role-based video layout
 
@@ -11,7 +20,7 @@ Architecture:
   - Session-based participant management
   - Spatial audio engine using 2D coordinate panning (L/R channels)
   - Noise suppression via spectral gating simulation
-  - Dual-track: video (camera) + presentation (screen share overlay)
+  - Dual-track: video (camera)  presentation (screen share overlay)
 """
 from __future__ import annotations
 
@@ -95,7 +104,7 @@ class AudioSpatialPosition:
         """
         dx = remote_x - local_x
         dy = remote_y - local_y
-        distance = math.sqrt(dx**2 + dy**2)
+        distance = math.sqrt(dx**2  dy**2)
 
         if distance < 10:
             return 0.0  # Too close  center
@@ -120,7 +129,7 @@ class AudioSpatialPosition:
         """
         dx = remote_x - local_x
         dy = remote_y - local_y
-        distance = math.sqrt(dx**2 + dy**2)
+        distance = math.sqrt(dx**2  dy**2)
 
         if distance < 10:
             return 1.0  # Max volume
@@ -142,7 +151,7 @@ class AudioSpatialPosition:
         return {
             "pan": pan,           # -1.0 (L) to 1.0 (R)
             "volume": volume,      # 0.0 to 1.0
-            "distance": math.sqrt((remote_x - local_x)**2 + (remote_y - local_y)**2),
+            "distance": math.sqrt((remote_x - local_x)**2  (remote_y - local_y)**2),
             "azimuth": math.degrees(math.atan2(remote_y - local_y, remote_x - local_x)),
         }
 
@@ -308,7 +317,7 @@ class NoiseSuppressionEngine:
             "speech_threshold_db": self._speech_threshold_db,
             "learned_at": datetime.now().isoformat(),
             "sample_count": len(self._noise_samples),
-            "estimated_snr_db": 15.0 + (self.suppression_strength * 10.0),
+            "estimated_snr_db": 15.0  (self.suppression_strength * 10.0),
             "algorithm": "spectral_gating_v2",
             "frequency_bands": {
                 "low": {"cutoff_hz": 300, "suppression": self.suppression_strength * 0.5},
@@ -408,9 +417,9 @@ class ParticipantTrack:
                      bytes_sent: int = 0, jitter_ms: float = 0,
                      rtt_ms: float = 0, frame_rate: float = 0):
         """Update track statistics."""
-        self.stats["packets_sent"] += packets_sent
-        self.stats["packets_lost"] += packets_lost
-        self.stats["bytes_sent"] += bytes_sent
+        self.stats["packets_sent"] = packets_sent
+        self.stats["packets_lost"] = packets_lost
+        self.stats["bytes_sent"] = bytes_sent
         self.stats["jitter_ms"] = jitter_ms
         self.stats["rtt_ms"] = rtt_ms
         self.stats["frame_rate"] = frame_rate
@@ -521,7 +530,7 @@ class WebRTCProvider:
     Features:
       - Adaptive HD video streaming with quality presets
       - AI Noise Suppression integration (Krisp SDK pattern)
-      - Dual-track publishing: camera + presentation overlay
+      - Dual-track publishing: camera  presentation overlay
       - Spatial audio positioning engine
       - Participant grid management with role-based layouts
       - Connection state lifecycle management
@@ -838,11 +847,11 @@ class WebRTCProvider:
 
         for participant in self.participants.values():
             for track in participant.tracks.values():
-                total_packets += track.stats["packets_sent"]
-                total_lost += track.stats["packets_lost"]
-                total_bytes += track.stats["bytes_sent"]
-                avg_jitter += track.stats["jitter_ms"]
-                avg_rtt += track.stats["rtt_ms"]
+                total_packets = track.stats["packets_sent"]
+                total_lost = track.stats["packets_lost"]
+                total_bytes = track.stats["bytes_sent"]
+                avg_jitter = track.stats["jitter_ms"]
+                avg_rtt = track.stats["rtt_ms"]
 
         loss_rate = (total_lost / total_packets * 100) if total_packets > 0 else 0
 
@@ -1141,7 +1150,7 @@ def render_webrtc_panel():
                 az = params["azimuth"]
 
                 # Visual pan indicator
-                pan_pct = ((pan + 1.0) / 2.0) * 100  # -1..1 -> 0..100
+                pan_pct = ((pan  1.0) / 2.0) * 100  # -1..1 -> 0..100
                 vol_pct = vol * 100
 
                 with cols[idx % 4]:
@@ -1170,7 +1179,7 @@ def render_webrtc_panel():
         col1, col2 = st.columns(2)
         with col1:
             if not provider._presentation_active:
-                if st.button("📊 Start Presentation Overlay", use_container_width=True):
+                if st.button(" Start Presentation Overlay", use_container_width=True):
                     provider.start_presentation(local.id)
                     st.rerun()
             else:
@@ -1183,7 +1192,7 @@ def render_webrtc_panel():
                 local.is_hand_raised = not local.is_hand_raised
 
         # ── Network Stats ───────────────────────────────────────────
-        with st.expander("📊 Network Statistics", expanded=False):
+        with st.expander(" Network Statistics", expanded=False):
             stats = provider.get_network_stats()
             net_cols = st.columns(4)
             with net_cols[0]:
@@ -1216,7 +1225,7 @@ def render_webrtc_panel():
                         </div>
                         <div>
                             {'🤚' if p.is_hand_raised else ''}
-                            {'📊' if p.is_presenting else ''}
+                            {'' if p.is_presenting else ''}
                         </div>
                     </div>
                 </div>

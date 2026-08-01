@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Enhanced Security, Geolocation, and Advanced Features."""
 import os
@@ -79,13 +88,13 @@ class SecurityManager:
                 if data.get("status") == "success":
                     # Check for mobile/proxy
                     if data.get("mobile"):
-                        result["risk_score"] += 20
+                        result["risk_score"] = 20
                         result["details"].append("Mobile network")
                     
                     if data.get("proxy"):
                         result["is_proxy"] = True
                         result["is_vpn"] = True
-                        result["risk_score"] += 60
+                        result["risk_score"] = 60
                         result["details"].append("Known proxy/VPN")
                     
                     # High risk if organization looks like hosting provider
@@ -95,7 +104,7 @@ class SecurityManager:
                     for provider in ["Hosting", "Data Center", "Cloud", "VPN", "DigitalOcean", 
                                     "AWS", "Azure", "GCP", "Linode", "Vultr"]:
                         if provider.lower() in org.lower() or provider.lower() in isp.lower():
-                            result["risk_score"] += 30
+                            result["risk_score"] = 30
                             result["details"].append(f"Hosting provider: {isp}")
                             break
         except Exception:

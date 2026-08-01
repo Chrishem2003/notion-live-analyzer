@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 World-Class Enterprise Application Pipeline, Document Vault & Real-Time Currency Intelligence
 High-performance operational workflow engine featuring automated multi-stage applicant tracking,

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Executive Auto-Insight Storyteller  automatically runs statistical test batteries
 on data load and generates a beautifully formatted executive summary,
@@ -96,9 +105,9 @@ class ExecutiveStoryteller:
             try:
                 result = self.stats.one_sample_ttest(df, col, 0)
                 if "error" not in result:
-                    battery["tests_run"] += 1
+                    battery["tests_run"] = 1
                     if result.get("significant"):
-                        battery["significant_findings"] += 1
+                        battery["significant_findings"] = 1
                         battery["tests"].append({
                             "type": "one_sample_ttest",
                             "variable": col,
@@ -117,8 +126,8 @@ class ExecutiveStoryteller:
                     if n_groups == 2:
                         result = self.stats.independent_ttest(df, cat, num)
                         if "error" not in result and result.get("significant"):
-                            battery["tests_run"] += 1
-                            battery["significant_findings"] += 1
+                            battery["tests_run"] = 1
+                            battery["significant_findings"] = 1
                             battery["tests"].append({
                                 "type": "independent_ttest",
                                 "group_var": cat,
@@ -130,8 +139,8 @@ class ExecutiveStoryteller:
                     elif n_groups >= 3:
                         result = self.stats.anova_one_way(df, cat, num)
                         if "error" not in result and result.get("significant"):
-                            battery["tests_run"] += 1
-                            battery["significant_findings"] += 1
+                            battery["tests_run"] = 1
+                            battery["significant_findings"] = 1
                             battery["tests"].append({
                                 "type": "anova",
                                 "group_var": cat,
@@ -145,12 +154,12 @@ class ExecutiveStoryteller:
 
         # Chi-square tests
         for i, cat1 in enumerate(cat_cols[:4]):
-            for cat2 in cat_cols[i+1:4]:
+            for cat2 in cat_cols[i1:4]:
                 try:
                     result = self.stats.chi_square_test(df, cat1, cat2)
                     if "error" not in result and result.get("significant"):
-                        battery["tests_run"] += 1
-                        battery["significant_findings"] += 1
+                        battery["tests_run"] = 1
+                        battery["significant_findings"] = 1
                         battery["tests"].append({
                             "type": "chi_square",
                             "var1": cat1,
@@ -166,13 +175,13 @@ class ExecutiveStoryteller:
         if len(numeric_cols) >= 2:
             strong_corrs = []
             for i, col1 in enumerate(numeric_cols[:6]):
-                for col2 in numeric_cols[i+1:6]:
+                for col2 in numeric_cols[i1:6]:
                     try:
                         result = self.stats.pearson_correlation(df, col1, col2)
                         if "error" not in result and result.get("significant") and abs(result.get("r", 0)) > 0.3:
-                            battery["tests_run"] += 1
+                            battery["tests_run"] = 1
                             if abs(result.get("r", 0)) > 0.5:
-                                battery["significant_findings"] += 1
+                                battery["significant_findings"] = 1
                                 strong_corrs.append({
                                     "var1": col1, "var2": col2,
                                     "r": result.get("r", 0),
@@ -192,8 +201,8 @@ class ExecutiveStoryteller:
                         from scipy import stats as scipy_stats
                         r, p = scipy_stats.spearmanr(temp_ord.dropna(), df[num].dropna())
                         if not np.isnan(r) and p < 0.05 and abs(r) > 0.3:
-                            battery["tests_run"] += 1
-                            battery["significant_findings"] += 1
+                            battery["tests_run"] = 1
+                            battery["significant_findings"] = 1
                             direction = "increasing" if r > 0 else "decreasing"
                             battery["tests"].append({
                                 "type": "temporal_trend",
@@ -222,11 +231,11 @@ class ExecutiveStoryteller:
                 q3 = series.quantile(0.75)
                 iqr = q3 - q1
                 lower = q1 - 1.5 * iqr
-                upper = q3 + 1.5 * iqr
+                upper = q3  1.5 * iqr
                 outliers = series[(series < lower) | (series > upper)]
                 if len(outliers) > 0:
-                    anomalies["columns_with_outliers"] += 1
-                    anomalies["total_outliers"] += len(outliers)
+                    anomalies["columns_with_outliers"] = 1
+                    anomalies["total_outliers"] = len(outliers)
                     anomalies["details"].append({
                         "column": col,
                         "outlier_count": int(len(outliers)),
@@ -252,7 +261,7 @@ class ExecutiveStoryteller:
         corr_matrix = df[numeric_cols].corr()
         strong_pairs = []
         for i in range(len(numeric_cols)):
-            for j in range(i + 1, len(numeric_cols)):
+            for j in range(i  1, len(numeric_cols)):
                 r = corr_matrix.iloc[i, j]
                 if abs(r) >= 0.5:
                     strong_pairs.append({
@@ -306,7 +315,7 @@ class ExecutiveStoryteller:
                                      test_battery: Dict, correlations: Dict) -> str:
         """Generate a formatted executive summary."""
         lines = []
-        lines.append(f"## 📊 Executive Data Summary")
+        lines.append(f"##  Executive Data Summary")
         lines.append(f"")
         lines.append(f"**Dataset**: {profile['rows']:,} observations × {profile['columns']} variables")
         lines.append(f"**Analysis Time**: {datetime.now():%Y-%m-%d %H:%M}")
@@ -330,7 +339,7 @@ class ExecutiveStoryteller:
         if test_battery.get("tests"):
             lines.append(f"### 🏆 Top Statistical Findings")
             for i, test in enumerate(test_battery["tests"][:5]):
-                lines.append(f"{i+1}. {test.get('narrative', '')}")
+                lines.append(f"{i1}. {test.get('narrative', '')}")
             lines.append(f"")
 
         if strong_corrs > 0:
@@ -425,7 +434,7 @@ class ExecutiveStoryteller:
             takeaways.append({
                 "type": "anomaly",
                 "severity": anomalies.get("severity", "low"),
-                "icon": "📊",
+                "icon": "",
                 "text": f"{anomalies['total_outliers']} anomalous data points detected  review before modeling",
             })
 
@@ -456,13 +465,13 @@ class ExecutiveStoryteller:
         """Compute overall severity level."""
         risks = 0
         if quality.get("score", 100) < 70:
-            risks += 2
+            risks = 2
         if anomalies.get("severity") == "high":
-            risks += 2
+            risks = 2
         elif anomalies.get("severity") == "medium":
-            risks += 1
+            risks = 1
         if test_battery.get("significant_findings", 0) == 0 and test_battery.get("tests_run", 0) > 3:
-            risks += 1
+            risks = 1
 
         if risks >= 3:
             return "high"
@@ -501,7 +510,7 @@ def render_executive_storyteller_ui():
     ds = report.get("dataset", {})
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("📊 Rows", f"{ds.get('rows', 0):,}")
+        st.metric(" Rows", f"{ds.get('rows', 0):,}")
     with col2:
         st.metric("📋 Columns", ds.get("columns", 0))
     with col3:

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ⚡ Advanced Automated Feature Engineering & Transformation Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0  Feature Engineering Module
@@ -169,7 +178,7 @@ if active_feat_tab == "interactions":
     with col_i2:
         st.markdown("<div class='feat-card'>", unsafe_allow_html=True)
         st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Generated Feature Matrix Summary</h4>", unsafe_allow_html=True)
-        st.metric(label="Expanded Feature Count", value="45 features", delta="+37 generated variables")
+        st.metric(label="Expanded Feature Count", value="45 features", delta="37 generated variables")
         st.code("""
 Feature Expansion Pipeline Output:
 =================================================================

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """African Student Verification  Automated ID Verification Pipeline."""
 import io
 import hashlib
@@ -214,22 +223,22 @@ def process_document(file, doc_type: str) -> Tuple[str, float]:
 def extract_name_from_text(text: str) -> List[str]:
     """Extract potential names from OCR text using pattern matching."""
     # Common name patterns (2-4 capitalized words)
-    name_pattern = r'\b[A-Z][a-z]+ (?:\w+ )?[A-Z][a-z]+\b'
+    name_pattern = r'\b[A-Z][a-z] (?:\w )?[A-Z][a-z]\b'
     names = re.findall(name_pattern, text)
     
     # Also look for "Name:" patterns
-    name_label_pattern = r'(?:Name|Student|Name\s*[:\-])\s*([A-Za-z\s]+)'
+    name_label_pattern = r'(?:Name|Student|Name\s*[:\-])\s*([A-Za-z\s])'
     labeled_names = re.findall(name_label_pattern, text, re.IGNORECASE)
     
-    return names + [n.strip() for n in labeled_names]
+    return names  [n.strip() for n in labeled_names]
 
 def extract_university_from_text(text: str) -> List[str]:
     """Extract potential university names from text."""
     # Common patterns for universities
     uni_patterns = [
-        r'(?:University|College|Institute|Academy)\s+of\s+[A-Za-z\s]+',
-        r'[A-Z][a-z]+(?:University|College|Institute)',
-        r'(?:University|Univ\.?)\s+[A-Z][a-z]+',
+        r'(?:University|College|Institute|Academy)\sof\s[A-Za-z\s]',
+        r'[A-Z][a-z](?:University|College|Institute)',
+        r'(?:University|Univ\.?)\s[A-Z][a-z]',
     ]
     
     universities = []
@@ -244,7 +253,7 @@ def extract_date_from_text(text: str) -> List[str]:
     date_patterns = [
         r'\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}',
         r'\d{4}[/\-\.]\d{1,2}[/\-\.]\d{1,2}',
-        r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4}',
+        r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2},?\s\d{4}',
     ]
     
     dates = []
@@ -280,31 +289,31 @@ def verify_student_id(
         results["checks"]["domain_eligible"] = domain_eligible
         results["details"]["domain"] = domain
         if domain_eligible:
-            score += 40
-        total_checks += 1
+            score = 40
+        total_checks = 1
     
     # Check 2: GeoIP country eligibility
     if ip_country and ip_country in DEVELOPING_REGION_CODES:
         results["checks"]["geoip_eligible"] = True
         results["details"]["country"] = ip_country
-        score += 30
+        score = 30
     elif ip_country:
         results["checks"]["geoip_eligible"] = False
         results["details"]["country"] = ip_country
     else:
         results["checks"]["geoip_eligible"] = None
-    total_checks += 1
+    total_checks = 1
     
     # Check 3: Name extraction from ID document
     id_names = extract_name_from_text(id_text)
     results["details"]["extracted_names"] = id_names[:3]  # Limit for display
     
     if id_names and len(id_text) > 50:
-        score += 15
+        score = 15
         results["checks"]["name_found"] = True
     else:
         results["checks"]["name_found"] = bool(id_names)
-    total_checks += 1
+    total_checks = 1
     
     # Check 4: University name from student ID
     uni_names = extract_university_from_text(student_id_text)
@@ -315,22 +324,22 @@ def verify_student_id(
         email_domain = email.split("@")[-1].lower()
         for uni in uni_names:
             if any(part.lower() in email_domain for part in uni.split()):
-                score += 10
+                score = 10
                 results["checks"]["university_match"] = True
                 break
     
     if uni_names:
-        score += 10
-    total_checks += 1
+        score = 10
+    total_checks = 1
     
     # Check 5: Expiry date (if present)
     id_dates = extract_date_from_text(id_text)
     student_dates = extract_date_from_text(student_id_text)
-    results["details"]["extracted_dates"] = id_dates + student_dates
+    results["details"]["extracted_dates"] = id_dates  student_dates
     
     if id_dates or student_dates:
         # Parse dates and check if expired
-        all_dates = id_dates + student_dates
+        all_dates = id_dates  student_dates
         try:
             for date_str in all_dates:
                 # Simple year extraction
@@ -338,17 +347,17 @@ def verify_student_id(
                 if years:
                     year = int(years[0])
                     if year >= datetime.now().year:
-                        score += 5
+                        score = 5
                         results["checks"]["document_valid"] = True
                         break
         except Exception:
             pass
-    total_checks += 1
+    total_checks = 1
     
     # Calculate final score
     results["score"] = min(100, round(score, 1))
     
-    # Verification threshold: 50+ for auto-approve, 30-49 for manual review
+    # Verification threshold: 50 for auto-approve, 30-49 for manual review
     if results["score"] >= 50:
         results["verified"] = True
         results["status"] = "auto_approved"
@@ -504,11 +513,11 @@ def render_verification_ui():
             # Debug: Show extracted text (collapsible)
             with st.expander("🔧 Verification Details (Debug)"):
                 st.write("**ID Document Text:**")
-                st.text(id_text[:500] + "..." if len(id_text) > 500 else id_text)
+                st.text(id_text[:500]  "..." if len(id_text) > 500 else id_text)
                 st.write(f"Confidence: {id_confidence}")
                 
                 st.write("**Student ID Text:**")
-                st.text(student_text[:500] + "..." if len(student_text) > 500 else student_text)
+                st.text(student_text[:500]  "..." if len(student_text) > 500 else student_text)
                 st.write(f"Confidence: {student_confidence}")
                 
                 st.write("**Checks:**", result["checks"])
@@ -587,7 +596,7 @@ def render_tier_selector():
     
     with col3:
         st.markdown("""
-        **👑 Premium**
+        ** Premium**
         - Everything in Standard
         - Deep Research Synthesis
         - Email Reports
@@ -600,8 +609,8 @@ def render_tier_selector():
                 import streamlit as st
                 url = create_stripe_checkout_session(
                     Tier.PREMIUM,
-                    success_url=st.query_params.get("url", "") + "?success=true",
-                    cancel_url=st.query_params.get("url", "") + "?canceled=true",
+                    success_url=st.query_params.get("url", "")  "?success=true",
+                    cancel_url=st.query_params.get("url", "")  "?canceled=true",
                 )
                 if url:
                     st.markdown(f'<script>window.location.href = "{url}"</script>', unsafe_allow_html=True)

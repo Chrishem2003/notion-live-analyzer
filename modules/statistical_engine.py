@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Statistical Engine  SPSS-level statistical analysis suite.
 Replaces SPSS, STATA, and SAS for common research analyses.
@@ -147,7 +156,7 @@ class StatisticalEngine:
         # Cohen's d
         n1, n2 = len(group1), len(group2)
         s1, s2 = group1.std(), group2.std()
-        pooled_std = np.sqrt(((n1 - 1) * s1**2 + (n2 - 1) * s2**2) / (n1 + n2 - 2))
+        pooled_std = np.sqrt(((n1 - 1) * s1**2  (n2 - 1) * s2**2) / (n1  n2 - 2))
         cohens_d = (group1.mean() - group2.mean()) / pooled_std if pooled_std != 0 else 0
         return {
             "test": "Independent Samples T-Test",
@@ -449,7 +458,7 @@ class StatisticalEngine:
             "alpha": alpha,
             "desired_power": power,
             "required_n_per_group": int(np.ceil(n)),
-            "total_n": int(np.ceil(n * (1 + ratio))),
+            "total_n": int(np.ceil(n * (1  ratio))),
         }
 
     # ─── RELIABILITY ANALYSIS ───────────────────────────────────────

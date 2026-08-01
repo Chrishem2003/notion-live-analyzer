@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Advanced Theoretical-to-Practical Protocol Transpiler (Enterprise Edition v4.0)
 High-performance computational laboratory workflow engine featuring automated stoichiometry mapping,
@@ -160,7 +169,7 @@ with st.sidebar:
             "Microfluidic High-Throughput (µL)",
             "Benchtop Standard (mL - L)",
             "Pilot Bioreactor (10L - 100L)",
-            "Industrial Fermentation (kL+)",
+            "Industrial Fermentation (kL)",
         ],
         key="transpiler_scale_profile",
     )

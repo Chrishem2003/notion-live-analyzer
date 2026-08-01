@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 ️ World-Class Hands-Free Interactive Audio Engine
 Enterprise-grade real-time voice synthesis and speech-to-text pipeline featuring neural audio streaming,

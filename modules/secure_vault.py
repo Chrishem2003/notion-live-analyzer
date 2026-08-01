@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import io
 import pandas as pd
@@ -27,13 +36,13 @@ def render_vault_ui():
         for f in uploaded_files:
             if not any(x["name"] == f.name for x in st.session_state["vault_files"]):
                 st.session_state["vault_files"].insert(0, {
-                    "id": f"FILE-{len(st.session_state['vault_files']) + 1}",
+                    "id": f"FILE-{len(st.session_state['vault_files'])  1}",
                     "name": f.name,
                     "bytes": f.getvalue(),
                     "size": f"{f.size / 1024:.1f} KB" if f.size < 1048576 else f"{f.size / 1048576:.1f} MB",
                     "status": "Verified Encrypted Stream"
                 })
-                added_count += 1
+                added_count = 1
         if added_count > 0:
             st.success(f"Successfully loaded {added_count} workspace file(s)!")
             st.rerun()
@@ -76,7 +85,7 @@ def show_document_dialog(item):
             if HAS_PYPDF and raw_bytes:
                 try:
                     reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
-                    extracted_text = "\n\n".join([f"--- Page {i+1} ---\n" + (p.extract_text() or "") for i, p in enumerate(reader.pages)])
+                    extracted_text = "\n\n".join([f"--- Page {i1} ---\n"  (p.extract_text() or "") for i, p in enumerate(reader.pages)])
                     st.text_area("Extracted PDF Document Content", value=extracted_text, height=350)
                 except Exception as e:
                     st.warning(f"Could not parse PDF text: {e}")
@@ -84,7 +93,7 @@ def show_document_dialog(item):
                 st.info("PDF binary stream loaded into memory.")
         
         elif name.endswith((".csv", ".xlsx")):
-            st.markdown("#### 📊 Spreadsheet View (Google Sheets Mode)")
+            st.markdown("####  Spreadsheet View (Google Sheets Mode)")
             try:
                 df = pd.read_csv(io.BytesIO(raw_bytes))
                 st.dataframe(df, use_container_width=True)
@@ -96,7 +105,7 @@ def show_document_dialog(item):
 
     with tab_edit:
         if name.endswith((".csv", ".xlsx")):
-            st.markdown("#### 📊 Interactive Sheet Grid Editor")
+            st.markdown("####  Interactive Sheet Grid Editor")
             try:
                 df = pd.read_csv(io.BytesIO(raw_bytes))
                 edited_df = st.data_editor(df, num_rows="dynamic", key=f"edit_grid_{item['name']}")

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Dashboard Builder  interactive drag-and-drop dashboard creation tool.
 Create custom multi-chart dashboards with cross-filtering.
@@ -51,7 +60,7 @@ class DashboardBuilder:
     ) -> Dict[str, Any]:
         """Add a chart to the dashboard."""
         chart_config = {
-            "id": f"chart_{len(dashboard['charts']) + 1}_{datetime.now().timestamp():.0f}",
+            "id": f"chart_{len(dashboard['charts'])  1}_{datetime.now().timestamp():.0f}",
             "type": chart_type,
             "title": title,
             "params": params,
@@ -92,7 +101,7 @@ class DashboardBuilder:
     ) -> Dict[str, Any]:
         """Add a global filter to the dashboard."""
         filter_config = {
-            "id": f"filter_{len(dashboard['filters']) + 1}",
+            "id": f"filter_{len(dashboard['filters'])  1}",
             "column": column,
             "type": filter_type,
             "value": None,
@@ -152,7 +161,7 @@ class DashboardBuilder:
 
 def render_dashboard_builder_ui(df: pd.DataFrame):
     """Render the interactive dashboard builder UI."""
-    st.markdown("## 📊 Interactive Dashboard Builder")
+    st.markdown("##  Interactive Dashboard Builder")
     st.markdown("*Create custom multi-chart dashboards with global filters*")
 
     if df is None or df.empty:
@@ -218,11 +227,11 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
     # Axis selections
     col1, col2, col3 = st.columns(3)
     with col1:
-        x_col = st.selectbox("X-axis", options=[""] + all_cols, key="dash_x")
+        x_col = st.selectbox("X-axis", options=[""]  all_cols, key="dash_x")
     with col2:
-        y_col = st.selectbox("Y-axis", options=[""] + all_cols, key="dash_y")
+        y_col = st.selectbox("Y-axis", options=[""]  all_cols, key="dash_y")
     with col3:
-        color_col = st.selectbox("Color by", options=[""] + all_cols, key="dash_color")
+        color_col = st.selectbox("Color by", options=[""]  all_cols, key="dash_color")
 
     if st.button("➕ Add to Dashboard", type="primary", use_container_width=True):
         params = {}
@@ -238,7 +247,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
     st.markdown("---")
     st.subheader("🔍 Global Filters")
 
-    filter_col = st.selectbox("Add filter column", options=[""] + all_cols, key="dash_filter_col")
+    filter_col = st.selectbox("Add filter column", options=[""]  all_cols, key="dash_filter_col")
     if filter_col and st.button("➕ Add Filter", use_container_width=True):
         DashboardBuilder.add_filter(dashboard, filter_col)
         st.rerun()
@@ -254,7 +263,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
                 if col in df.columns:
                     unique_vals = df[col].dropna().unique().tolist()
                     if len(unique_vals) <= 20:
-                        selected = st.selectbox("", options=["All"] + sorted([str(v) for v in unique_vals]),
+                        selected = st.selectbox("", options=["All"]  sorted([str(v) for v in unique_vals]),
                                                 key=f"dash_filter_{i}")
                         f["value"] = None if selected == "All" else selected
                     else:
@@ -268,7 +277,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
 
     # ─── Render Dashboard ─────────────────────────────────────────
     st.markdown("---")
-    st.subheader(f"📊 {dashboard.get('name', 'My Dashboard')}")
+    st.subheader(f" {dashboard.get('name', 'My Dashboard')}")
 
     # Apply filters
     active_filters = dashboard.get("filters", [])
@@ -311,7 +320,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         chart_idx = 0
         for n_cols in cols_per_row:
             while chart_idx < len(charts):
-                row_charts = charts[chart_idx:chart_idx + n_cols]
+                row_charts = charts[chart_idx:chart_idx  n_cols]
                 if not row_charts:
                     break
 
@@ -343,7 +352,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
                                 DashboardBuilder.remove_chart(dashboard, chart_config.get("id", ""))
                                 st.rerun()
 
-                chart_idx += n_cols
+                chart_idx = n_cols
                 if chart_idx >= len(charts):
                     break
 

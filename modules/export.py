@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Export Module  handles exporting charts and data to various formats.
 PNG, SVG, PDF for charts. CSV, Excel, JSON, Parquet for data.
@@ -46,7 +55,7 @@ def get_chart_download_link(fig, filename: str = "chart", format: str = "png") -
         mime = "image/png"
     elif format == "svg":
         data = export_chart_as_svg(fig)
-        mime = "image/svg+xml"
+        mime = "image/svgxml"
     else:
         return None
 

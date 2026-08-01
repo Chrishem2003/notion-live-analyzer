@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Google Sheets Integration  live read/write sync with Google Sheets.
 Requires Google service account or OAuth2 credentials.
@@ -183,12 +192,12 @@ class GoogleSheetsClient:
                 ws = sh.worksheet(worksheet_name)
                 if overwrite:
                     sh.del_worksheet(ws)
-                    ws = sh.add_worksheet(title=worksheet_name, rows=len(df) + 1, cols=len(df.columns))
+                    ws = sh.add_worksheet(title=worksheet_name, rows=len(df)  1, cols=len(df.columns))
             except Exception:
-                ws = sh.add_worksheet(title=worksheet_name, rows=len(df) + 1, cols=len(df.columns))
+                ws = sh.add_worksheet(title=worksheet_name, rows=len(df)  1, cols=len(df.columns))
 
-            # Write header + data
-            cell_list = [df.columns.tolist()] + df.values.tolist()
+            # Write header  data
+            cell_list = [df.columns.tolist()]  df.values.tolist()
             ws.update(cell_list)
 
             return True
@@ -346,7 +355,7 @@ def render_google_sheets_ui(df: pd.DataFrame):
                             st.dataframe(read_df.head(50), use_container_width=True, hide_index=True)
 
                             # Option to use as active data
-                            if st.button("📊 Use This Data for Analysis", use_container_width=True):
+                            if st.button(" Use This Data for Analysis", use_container_width=True):
                                 st.session_state["active_df"] = read_df
                                 st.session_state["data_source"] = "google_sheets"
                                 st.success("✅ Data loaded! Go to other pages to analyze.")

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import datetime
 import io
 import json
@@ -65,9 +74,9 @@ def init_db():
     cursor.execute("""
         INSERT OR IGNORE INTO analyst_contacts (analyst_name, org_email, contact_phone, clearance_level, primary_sector, vault_hash)
         VALUES 
-        ('Kula Chris', 'chrishem@sovereign.org', '+256 700 000000', 'Tier-1 Lead Architect', 'Economics & Sovereign Risk', 'HASH-SOV-999'),
-        ('Dr. Matsiko', 'matsiko@muni.ac.ug', '+256 772 111222', 'Chief Scientific Director', 'Bioinformatics & Systems', 'HASH-SCI-888'),
-        ('Ocircan Darius', 'darius@sovereign.org', '+256 750 333444', 'Senior Policy Analyst', 'Infrastructure & Grid', 'HASH-POL-777')
+        ('Kula Chris', 'chrishem@sovereign.org', '256 700 000000', 'Tier-1 Lead Architect', 'Economics & Sovereign Risk', 'HASH-SOV-999'),
+        ('Dr. Matsiko', 'matsiko@muni.ac.ug', '256 772 111222', 'Chief Scientific Director', 'Bioinformatics & Systems', 'HASH-SCI-888'),
+        ('Ocircan Darius', 'darius@sovereign.org', '256 750 333444', 'Senior Policy Analyst', 'Infrastructure & Grid', 'HASH-POL-777')
     """)
     conn.commit()
     return conn
@@ -75,7 +84,7 @@ def init_db():
 db_conn = init_db()
 
 # ============================================================================
-# PAGE CONFIG + HIGH-CONTRAST PREMIUM GLASSMORPHISM STYLES
+# PAGE CONFIG  HIGH-CONTRAST PREMIUM GLASSMORPHISM STYLES
 # ============================================================================
 st.set_page_config(
     page_title="Global Sovereign Nonlinear Systems & Resilience Engine",
@@ -130,7 +139,7 @@ st.markdown(
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrainsMono:wght@400;500&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
@@ -475,7 +484,7 @@ with st.sidebar.expander("🔍 Institutional & Analyst Details", expanded=True):
     )
     author_name = st.text_input("Author / Analyst Name", "Kula Chris")
     org_email = st.text_input("Organization Email", "chrishem@sovereign.org")
-    contact_phone = st.text_input("Contact Phone", "+256 700 000000")
+    contact_phone = st.text_input("Contact Phone", "256 700 000000")
     secure_vault_token = st.text_input("Secure Vault Passkey", type="password", value="SOV-999-KEY")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
@@ -536,12 +545,12 @@ use_custom_ode = st.sidebar.checkbox("✏️ Use custom ODE equations instead of
 custom_dx = custom_dy = custom_dz = ""
 if use_custom_ode:
     st.sidebar.caption("Variables available: x, y, z, a, b, c, shock, t, np")
-    custom_dx = st.sidebar.text_input("dx/dt =", "x - z - (y - a) * x + shock")
+    custom_dx = st.sidebar.text_input("dx/dt =", "x - z - (y - a) * x  shock")
     custom_dy = st.sidebar.text_input("dy/dt =", "1 - b * y - x**2")
     custom_dz = st.sidebar.text_input("dz/dt =", "x - c * z")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-pss_slice_z = st.sidebar.slider("🔍 Poincaréé🔍 cut plane (Z threshold)", float(z0 - 2.0), float(z0 + 2.0), float(z0), 0.05)
+pss_slice_z = st.sidebar.slider("🔍 Poincaréé🔍 cut plane (Z threshold)", float(z0 - 2.0), float(z0  2.0), float(z0), 0.05)
 
 # ============================================================================
 # MODEL CORE
@@ -551,7 +560,7 @@ SAFE_NP_NAMES = {k: getattr(np, k) for k in ["sin", "cos", "tan", "exp", "log", 
 def default_ode(state, t, a, b, c, shock_val):
     x, y, z = state
     shock = shock_val if (0.45 * t_max <= t <= 0.55 * t_max) else 0.0
-    dxdt = x - z - (y - a) * x + shock
+    dxdt = x - z - (y - a) * x  shock
     dydt = 1 - b * y - x ** 2
     dzdt = x - c * z
     return [dxdt, dydt, dzdt]
@@ -590,13 +599,13 @@ if use_custom_ode and custom_dx and custom_dy and custom_dz:
 
 x_traj, y_traj, z_traj = solution[:, 0], solution[:, 1], solution[:, 2]
 
-perturbation_growth = np.abs(np.gradient(x_traj)) + 1e-5
-mlce_heuristic = float(np.mean(np.log(perturbation_growth + 1e-5)) / (t[1] - t[0]))
+perturbation_growth = np.abs(np.gradient(x_traj))  1e-5
+mlce_heuristic = float(np.mean(np.log(perturbation_growth  1e-5)) / (t[1] - t[0]))
 
 window = 20
-rolling_variance = [float(np.var(x_traj[max(0, i - window):i])) for i in range(1, len(x_traj) + 1)]
+rolling_variance = [float(np.var(x_traj[max(0, i - window):i])) for i in range(1, len(x_traj)  1)]
 rolling_ac = []
-for i in range(1, len(x_traj) + 1):
+for i in range(1, len(x_traj)  1):
     seg = x_traj[max(0, i - window):i]
     if len(seg) > 1:
         ac = np.corrcoef(seg[:-1], seg[1:])[0, 1]
@@ -868,7 +877,7 @@ elif "Policy Comparison" in user_role:
     
     sol_base = _solve(system_ode, initial_state, t, args=(a, b, c, 0.0))
     sol_sub = _solve(system_ode, initial_state, t, args=(max(0.1, a - 0.5), b, c, policy_shock * 0.5))
-    sol_ref = _solve(system_ode, initial_state, t, args=(a, b + 0.5, c + 0.2, policy_shock * 0.1))
+    sol_ref = _solve(system_ode, initial_state, t, args=(a, b  0.5, c  0.2, policy_shock * 0.1))
     
     fig_pol = plotly_policy_comparison(t, sol_base, sol_sub, sol_ref, target_country, sector)
     st.plotly_chart(fig_pol, use_container_width=True)
@@ -913,7 +922,7 @@ elif "Research Scientist" in user_role:
         mc_runs = []
         np.random.seed(42)
         for _ in range(n_mc):
-            noise_state = [x0 + np.random.normal(0, 0.05), y0 + np.random.normal(0, 0.05), z0 + np.random.normal(0, 0.05)]
+            noise_state = [x0  np.random.normal(0, 0.05), y0  np.random.normal(0, 0.05), z0  np.random.normal(0, 0.05)]
             run_sol = _solve(system_ode, noise_state, t, args=(a, b, c, policy_shock))[:, 0]
             mc_runs.append(run_sol)
         fig_mc = plotly_monte_carlo(t, np.array(mc_runs).T if mc_runs else np.array([]), n_mc)

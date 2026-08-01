@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Meta-Analysis Engine  Combine effect sizes across studies, assess heterogeneity,
 detect publication bias, and generate publication-ready forest/funnel plots.
@@ -50,7 +59,7 @@ class EffectSizeConverter:
     @staticmethod
     def cohens_d_from_means(m1: float, m2: float, sd1: float, sd2: float, n1: int, n2: int) -> float:
         """Cohen's d from group means and SDs."""
-        pooled_sd = math.sqrt(((n1 - 1) * sd1**2 + (n2 - 1) * sd2**2) / (n1 + n2 - 2))
+        pooled_sd = math.sqrt(((n1 - 1) * sd1**2  (n2 - 1) * sd2**2) / (n1  n2 - 2))
         if pooled_sd == 0:
             return 0.0
         return (m1 - m2) / pooled_sd
@@ -58,7 +67,7 @@ class EffectSizeConverter:
     @staticmethod
     def cohens_d_from_t(t_stat: float, n1: int, n2: int) -> float:
         """Cohen's d from independent t-test statistic."""
-        return t_stat * math.sqrt(1/n1 + 1/n2)
+        return t_stat * math.sqrt(1/n1  1/n2)
 
     @staticmethod
     def cohens_d_from_r(r: float) -> float:
@@ -68,7 +77,7 @@ class EffectSizeConverter:
     @staticmethod
     def r_from_cohens_d(d: float) -> float:
         """Pearson r from Cohen's d."""
-        return d / math.sqrt(d**2 + 4)
+        return d / math.sqrt(d**2  4)
 
     @staticmethod
     def odds_ratio_from_d(d: float) -> float:
@@ -83,7 +92,7 @@ class EffectSizeConverter:
     @staticmethod
     def variance_of_d(n1: int, n2: int, d: float = 0) -> float:
         """Approximate variance of Cohen's d."""
-        return (n1 + n2) / (n1 * n2) + d**2 / (2 * (n1 + n2))
+        return (n1  n2) / (n1 * n2)  d**2 / (2 * (n1  n2))
 
     @staticmethod
     def se_from_ci(ci_lower: float, ci_upper: float, z: float = 1.96) -> float:
@@ -93,7 +102,7 @@ class EffectSizeConverter:
     @staticmethod
     def hedges_g(d: float, n1: int, n2: int) -> float:
         """Convert Cohen's d to Hedges' g (small sample correction)."""
-        df = n1 + n2 - 2
+        df = n1  n2 - 2
         correction = 1 - 3 / (4 * df - 1)
         return d * correction
 
@@ -139,7 +148,7 @@ class MetaAnalysisEngine:
         z = pooled / se if se > 0 else 0
         p = 2 * (1 - norm.cdf(abs(z)))
         ci_lower = pooled - 1.96 * se
-        ci_upper = pooled + 1.96 * se
+        ci_upper = pooled  1.96 * se
 
         return {
             "model": "Fixed Effects",
@@ -192,14 +201,14 @@ class MetaAnalysisEngine:
         i2 = max(0, (q - df) / q * 100) if q > 0 else 0
 
         # Step 5: Random effects weights
-        re_weights = [1 / (v + tau2) for v in variances]
+        re_weights = [1 / (v  tau2) for v in variances]
         re_total_weight = sum(re_weights)
         re_pooled = sum(w * e for w, e in zip(re_weights, effects)) / re_total_weight
         re_se = math.sqrt(1 / re_total_weight)
         re_z = re_pooled / re_se if re_se > 0 else 0
         re_p = 2 * (1 - norm.cdf(abs(re_z)))
         re_ci_lower = re_pooled - 1.96 * re_se
-        re_ci_upper = re_pooled + 1.96 * re_se
+        re_ci_upper = re_pooled  1.96 * re_se
 
         # Step 6: Q-test p-value
         q_p = 1 - chi2.cdf(q, df) if chi2 else 1.0
@@ -251,7 +260,7 @@ class MetaAnalysisEngine:
 
         k = len(effects)
         if study_labels is None:
-            study_labels = [f"Study {i+1}" for i in range(k)]
+            study_labels = [f"Study {i1}" for i in range(k)]
 
         results = {"k": k, "method": method, "study_labels": study_labels}
 
@@ -275,9 +284,9 @@ class MetaAnalysisEngine:
                 "se": se_i,
                 "variance": v,
                 "ci_lower": e - 1.96 * se_i,
-                "ci_upper": e + 1.96 * se_i,
+                "ci_upper": e  1.96 * se_i,
                 "weight_fe": (1 / v) if v > 0 else 0,
-                "weight_re": (1 / (v + results.get("random", {}).get("tau2", 0))) if v > 0 else 0,
+                "weight_re": (1 / (v  results.get("random", {}).get("tau2", 0))) if v > 0 else 0,
             })
 
         results["forest_data"] = forest_data
@@ -302,7 +311,7 @@ class MetaAnalysisEngine:
         y = [e / s for e, s in zip(effects, se)]  # Standard normal deviate
         x = [1.0 / s for s in se]  # Precision
 
-        # OLS regression: y = b0 + b1 * x
+        # OLS regression: y = b0  b1 * x
         if HAS_STATSMODELS and OLS is not None:
             x_with_const = add_constant(x)
             model = OLS(y, x_with_const).fit()
@@ -319,9 +328,9 @@ class MetaAnalysisEngine:
             slope = sum((xi - x_mean) * (yi - y_mean) for xi, yi in zip(x, y)) / \
                     sum((xi - x_mean)**2 for xi in x) if sum((xi - x_mean)**2 for xi in x) > 0 else 0
             intercept = y_mean - slope * x_mean
-            residuals = [yi - (intercept + slope * xi) for xi, yi in zip(x, y)]
+            residuals = [yi - (intercept  slope * xi) for xi, yi in zip(x, y)]
             resid_var = sum(r**2 for r in residuals) / (n - 2) if n > 2 else 0
-            intercept_se = math.sqrt(resid_var * (1/n + x_mean**2 / sum((xi - x_mean)**2 for xi in x))) \
+            intercept_se = math.sqrt(resid_var * (1/n  x_mean**2 / sum((xi - x_mean)**2 for xi in x))) \
                 if sum((xi - x_mean)**2 for xi in x) > 0 else 0
             intercept_t = intercept / intercept_se if intercept_se > 0 else 0
             intercept_p = 2 * (1 - norm.cdf(abs(intercept_t)))
@@ -366,8 +375,8 @@ class MetaAnalysisEngine:
         n_fs = (sum_z / 1.645)**2 - k if sum_z > 0 else 0
         n_fs = max(0, int(math.ceil(n_fs)))
 
-        # Tolerance: 5k + 10 (Rosenthal's rule of thumb)
-        tolerance = 5 * k + 10
+        # Tolerance: 5k  10 (Rosenthal's rule of thumb)
+        tolerance = 5 * k  10
 
         return {
             "test": "Rosenthal's Fail-Safe N",
@@ -411,7 +420,7 @@ class MetaAnalysisEngine:
         for i in range(min(n_missing, k // 2)):
             # Mirror around median
             if side == "left":
-                imputed_effects.append(median_effect + (median_effect - missing_candidates[i]))
+                imputed_effects.append(median_effect  (median_effect - missing_candidates[i]))
             else:
                 imputed_effects.append(median_effect - (missing_candidates[i] - median_effect))
             imputed_variances.append(statistics.median(variances))
@@ -483,7 +492,7 @@ class MetaAnalysisEngine:
             indices = [i for i, g in enumerate(subgroups) if g == group]
             group_effects = [effects[i] for i in indices]
             group_variances = [variances[i] for i in indices]
-            group_labels = [f"{study_labels[i]} ({group})" if study_labels else f"Study {i+1} ({group})"
+            group_labels = [f"{study_labels[i]} ({group})" if study_labels else f"Study {i1} ({group})"
                           for i in indices]
 
             engine = MetaAnalysisEngine()
@@ -536,7 +545,7 @@ class MetaAnalysisEngine:
         cumulative = []
         engine = MetaAnalysisEngine()
 
-        for i in range(1, k + 1):
+        for i in range(1, k  1):
             indices = sorted_indices[:i]
             cum_effects = [effects[j] for j in indices]
             cum_variances = [variances[j] for j in indices]
@@ -551,7 +560,7 @@ class MetaAnalysisEngine:
                     "pooled": cum_effects[0],
                     "se": se_i,
                     "ci_lower": cum_effects[0] - 1.96 * se_i,
-                    "ci_upper": cum_effects[0] + 1.96 * se_i,
+                    "ci_upper": cum_effects[0]  1.96 * se_i,
                     "k": 1,
                     "i2": 0,
                 })
@@ -586,7 +595,7 @@ class MetaAnalysisEngine:
 
         k = len(effects)
         if study_labels is None:
-            study_labels = [f"Study {i+1}" for i in range(k)]
+            study_labels = [f"Study {i1}" for i in range(k)]
 
         engine = MetaAnalysisEngine()
         results = []
@@ -651,10 +660,10 @@ class MetaAnalysisEngine:
 
         n_mods = len(moderators)
         if moderator_names is None:
-            moderator_names = [f"Moderator {i+1}" for i in range(n_mods)]
+            moderator_names = [f"Moderator {i1}" for i in range(n_mods)]
 
         # Build design matrix (including intercept)
-        X = np.column_stack([[1.0] * k] + moderators)
+        X = np.column_stack([[1.0] * k]  moderators)
         y = np.array(effects)
         w = 1.0 / np.array(variances)  # Inverse-variance weights
         W = np.diag(w)
@@ -680,7 +689,7 @@ class MetaAnalysisEngine:
             r2 = 1 - ss_res / ss_total if ss_total > 0 else 0
 
             coefficients = []
-            for i in range(n_mods + 1):
+            for i in range(n_mods  1):
                 name = "Intercept" if i == 0 else moderator_names[i - 1]
                 coefficients.append({
                     "variable": name,
@@ -730,8 +739,8 @@ class MetaPlotData:
                 "Effect": e,
                 "SE": se_i,
                 "CI Lower": e - 1.96 * se_i,
-                "CI Upper": e + 1.96 * se_i,
-                "Weight (RE)": round(1 / (v + pooled_re.get("tau2", 0)), 2),
+                "CI Upper": e  1.96 * se_i,
+                "Weight (RE)": round(1 / (v  pooled_re.get("tau2", 0)), 2),
                 "Weight (FE)": round(1 / v, 2),
                 "Type": "Study",
             })
@@ -777,12 +786,12 @@ def render_meta_analysis_ui():
     """Render the Meta-Analysis page in Streamlit."""
     import streamlit as st
 
-    st.markdown("## 📊 Meta-Analysis Engine")
+    st.markdown("##  Meta-Analysis Engine")
     st.markdown("*Combine effect sizes across studies, assess heterogeneity, detect publication bias*")
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📥 Input Studies",
-        "📊 Meta-Analysis Results",
+        " Meta-Analysis Results",
         "📈 Forest Plot",
         "🕳️ Publication Bias",
         "🔬 Advanced",
@@ -869,7 +878,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         if s["study"] not in existing_names:
                             st.session_state["meta_studies"].append(s)
                             existing_names.add(s["study"])
-                            new_count += 1
+                            new_count = 1
                     st.success(f"✅ Added {new_count} new studies ({len(studies) - new_count} duplicates skipped)")
 
         elif input_method == "📁 Load from Data":
@@ -880,7 +889,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 if len(numeric_cols) >= 2:
                     es_col = st.selectbox("Effect size column", options=numeric_cols, key="meta_es_col")
                     var_col = st.selectbox("Variance/SE column", options=[c for c in numeric_cols if c != es_col], key="meta_var_col")
-                    label_col = st.selectbox("Study label column (optional)", options=[""] + df.columns.tolist(), key="meta_label_col")
+                    label_col = st.selectbox("Study label column (optional)", options=[""]  df.columns.tolist(), key="meta_label_col")
 
                     if st.button("📥 Load from Data", type="primary"):
                         studies = []
@@ -888,7 +897,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             es_val = row[es_col]
                             var_val = row[var_col]
                             if pd.notna(es_val) and pd.notna(var_val) and var_val > 0:
-                                label = str(row[label_col]) if label_col else f"Study {len(studies) + 1}"
+                                label = str(row[label_col]) if label_col else f"Study {len(studies)  1}"
                                 studies.append({
                                     "study": label,
                                     "effect": float(es_val),
@@ -899,7 +908,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             st.session_state["meta_studies"] = studies
                             st.success(f"✅ Loaded {len(studies)} studies")
                 else:
-                    st.warning("Need at least 2 numeric columns (effect size + variance/SE)")
+                    st.warning("Need at least 2 numeric columns (effect size  variance/SE)")
             else:
                 st.warning("No data loaded. Upload a file or connect a data source first.")
 
@@ -968,7 +977,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         if not results:
             st.info("Run a meta-analysis first in the **Input Studies** tab.")
         else:
-            st.subheader("📊 Meta-Analysis Results")
+            st.subheader(" Meta-Analysis Results")
 
             # ─── Model Comparison ──────────────────────────────────
             col1, col2 = st.columns(2)
@@ -1042,7 +1051,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 st.dataframe(pd.DataFrame(detail_rows), use_container_width=True, hide_index=True)
 
             # ─── Key Stats ─────────────────────────────────────────
-            st.subheader("📊 Key Statistics")
+            st.subheader(" Key Statistics")
             re_stats = results.get("random", {})
             fe_stats = results.get("fixed", {})
 
@@ -1113,11 +1122,11 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         summary_y = -1  # Below all studies
                         # Diamond as scatter
                         diamond_x = [sd["effect"], sd["ci_upper"], sd["effect"], sd["ci_lower"], sd["effect"]]
-                        diamond_y = [summary_y, summary_y + 0.3, summary_y + 0.6, summary_y + 0.3, summary_y]
+                        diamond_y = [summary_y, summary_y  0.3, summary_y  0.6, summary_y  0.3, summary_y]
                         fig.add_trace(go.Scatter(
                             x=diamond_x,
                             y=diamond_y,
-                            mode="lines+markers",
+                            mode="linesmarkers",
                             fill="toself",
                             fillcolor="rgba(29,78,216,0.3)",
                             line=dict(color="#1d4ed8", width=2),
@@ -1134,12 +1143,12 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     title="Forest Plot",
                     xaxis_title="Effect Size",
                     yaxis=dict(
-                        tickvals=y_positions + ([-1] if summary_data else []),
-                        ticktext=y_labels + ([s["study"] for s in summary_data] if summary_data else []),
+                        tickvals=y_positions  ([-1] if summary_data else []),
+                        ticktext=y_labels  ([s["study"] for s in summary_data] if summary_data else []),
                         autorange="reversed",
                         tickfont=dict(size=11),
                     ),
-                    height=max(400, 50 + 40 * len(study_data)),
+                    height=max(400, 50  40 * len(study_data)),
                     margin=dict(l=150, r=50, t=50, b=50),
                     hovermode="y unified",
                 )
@@ -1199,7 +1208,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         <h4>Rosenthal's Fail-Safe N</h4>
                         <div style="font-size:1.5rem;font-weight:700;color:{fs_color};">{fail_safe.get('fail_safe_n', 0)}</div>
                         <div style="font-size:0.85rem;color:#64748b;">
-                            {'✅ Robust (N > tolerance of ' + str(fail_safe.get('tolerance', 0)) + ')' if fs_robust else '⚠️ Below tolerance'}
+                            {'✅ Robust (N > tolerance of '  str(fail_safe.get('tolerance', 0))  ')' if fs_robust else '⚠️ Below tolerance'}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1215,7 +1224,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     st.metric("Adjusted CI", f"[{trim_fill.get('adjusted_ci_lower', 0):.3f}, {trim_fill.get('adjusted_ci_upper', 0):.3f}]")
 
             # ─── Funnel Plot ───────────────────────────────────────
-            st.subheader("📊 Funnel Plot")
+            st.subheader(" Funnel Plot")
             effects = results.get("raw_effects", [])
             variances = results.get("raw_variances", [])
 
@@ -1240,7 +1249,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         line=dict(color="white", width=1),
                     ),
                     name="Studies",
-                    text=results.get("raw_labels", [f"Study {i+1}" for i in range(len(effects))]),
+                    text=results.get("raw_labels", [f"Study {i1}" for i in range(len(effects))]),
                     hovertemplate="<b>%{text}</b><br>Effect: %{x:.3f}<br>SE: %{y:.4f}<extra></extra>",
                 ))
 
@@ -1258,10 +1267,10 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     (2.58, "rgba(0,0,0,0.08)", "99% CI"),
                 ]:
                     lower = pooled - z_val * se_range
-                    upper = pooled + z_val * se_range
+                    upper = pooled  z_val * se_range
                     fig.add_trace(go.Scatter(
-                        x=list(lower) + list(upper)[::-1],
-                        y=list(se_range) + list(se_range)[::-1],
+                        x=list(lower)  list(upper)[::-1],
+                        y=list(se_range)  list(se_range)[::-1],
                         fill="toself",
                         fillcolor=color,
                         line=dict(color="rgba(0,0,0,0)", width=0),
@@ -1278,7 +1287,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     hoverinfo="skip",
                 ))
                 fig.add_trace(go.Scatter(
-                    x=[pooled + 1.96 * s for s in se_range],
+                    x=[pooled  1.96 * s for s in se_range],
                     y=se_range,
                     mode="lines",
                     line=dict(color="rgba(0,0,0,0.3)", width=1, dash="dot"),
@@ -1338,7 +1347,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 else:
                     sort_by = [1 / math.sqrt(v) for v in raw_variances]
 
-                if st.button("📊 Run Cumulative Analysis", use_container_width=True):
+                if st.button(" Run Cumulative Analysis", use_container_width=True):
                     cumul = engine.cumulative_meta_analysis(
                         raw_effects, raw_variances, sort_by, raw_labels
                     )
@@ -1358,7 +1367,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         fig.add_trace(go.Scatter(
                             x=steps,
                             y=pooled,
-                            mode="lines+markers",
+                            mode="linesmarkers",
                             line=dict(color="#1d4ed8", width=2),
                             marker=dict(size=8, color="#1d4ed8"),
                             error_y=dict(
@@ -1415,7 +1424,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 fig.add_trace(go.Scatter(
                                     x=[r["random_pooled"]],
                                     y=[r["omitted_study"][:40]],
-                                    mode="markers+lines",
+                                    mode="markerslines",
                                     marker=dict(size=10, color="#e67e22"),
                                     error_x=dict(
                                         type="data",
@@ -1461,7 +1470,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 )
                 subgroup_names = [s.strip() for s in subgroup_input.split(",") if s.strip()]
 
-                if st.button("📊 Run Subgroup Analysis") and len(subgroup_names) == n_studies:
+                if st.button(" Run Subgroup Analysis") and len(subgroup_names) == n_studies:
                     sg = engine.subgroup_analysis(raw_effects, raw_variances, subgroup_names, raw_labels)
                     sg_groups = sg.get("groups", {})
 

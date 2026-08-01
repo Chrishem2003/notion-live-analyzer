@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -15,7 +24,7 @@ def render_advanced_analytics():
     np.random.seed(42)
     sample_size = 50
     df_telemetry = pd.DataFrame({
-        "Sample_ID": [f"BIO-SEQ-{i:03d}" for i in range(1, sample_size + 1)],
+        "Sample_ID": [f"BIO-SEQ-{i:03d}" for i in range(1, sample_size  1)],
         "GC_Content_Pct": np.random.uniform(40.0, 65.0, sample_size),
         "Sequencing_Depth": np.random.randint(100, 1500, sample_size),
         "Marker_Status": np.random.choice(["Validated", "Anomaly Detected", "Pending Review"], sample_size, p=[0.7, 0.1, 0.2])

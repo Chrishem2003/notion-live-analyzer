@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Sensitivity & Robustness Analysis Engine  Influence diagnostics, subgroup analysis,
 specification curve analysis, multiverse analysis, and robustness value analysis.
@@ -44,7 +53,7 @@ class SensitivityEngine:
         """
         if not HAS_STATSMODELS:
             return {"error": "statsmodels required"}
-        data = df[[outcome] + predictors].dropna()
+        data = df[[outcome]  predictors].dropna()
         y = data[outcome].values
         X = sm.add_constant(data[predictors].values)
         model = sm.OLS(y, X).fit()
@@ -57,7 +66,7 @@ class SensitivityEngine:
         studentized_residuals = influence.resid_studentized_internal
 
         n = len(data)
-        k = len(predictors) + 1
+        k = len(predictors)  1
 
         # Flag influential observations
         cooks_threshold = 4 / (n - k - 1)
@@ -93,7 +102,7 @@ class SensitivityEngine:
         if not HAS_STATSMODELS:
             return {"error": "statsmodels required"}
 
-        data = df[[outcome, treatment] + controls].dropna()
+        data = df[[outcome, treatment]  controls].dropna()
         results = []
 
         # Generate all subsets of controls (limit to 5 controls to avoid explosion)
@@ -101,10 +110,10 @@ class SensitivityEngine:
         selected_controls = controls[:max_controls]
         n_controls = len(selected_controls)
 
-        for r in range(1, n_controls + 1):
+        for r in range(1, n_controls  1):
             from itertools import combinations
             for combo in combinations(selected_controls, r):
-                X = sm.add_constant(data[[treatment] + list(combo)].values)
+                X = sm.add_constant(data[[treatment]  list(combo)].values)
                 y = data[outcome].values
                 try:
                     model = sm.OLS(y, X).fit()
@@ -112,9 +121,9 @@ class SensitivityEngine:
                     se = model.bse[1]
                     p_val = model.pvalues[1]
                     ci_lower = coef - 1.96 * se
-                    ci_upper = coef + 1.96 * se
+                    ci_upper = coef  1.96 * se
                     results.append({
-                        "controls": "+".join(combo),
+                        "controls": "".join(combo),
                         "n_controls": len(combo),
                         "coefficient": round(float(coef), 4),
                         "se": round(float(se), 4),
@@ -160,9 +169,9 @@ class SensitivityEngine:
         if not HAS_STATSMODELS:
             return {"error": "statsmodels required"}
 
-        data = df[[outcome, treatment] + controls].dropna()
+        data = df[[outcome, treatment]  controls].dropna()
         y = data[outcome].values
-        X_list = [treatment] + controls
+        X_list = [treatment]  controls
         X = sm.add_constant(data[X_list].values)
         model = sm.OLS(y, X).fit()
 
@@ -175,7 +184,7 @@ class SensitivityEngine:
 
         # Impact threshold for confounding (Frank, 2000)
         if beta != 0:
-            r_yz = math.sqrt(t_val**2 / (t_val**2 + n - k - 1))
+            r_yz = math.sqrt(t_val**2 / (t_val**2  n - k - 1))
             r_xz = r_yz
             impact = r_yz * r_xz
         else:
@@ -183,7 +192,7 @@ class SensitivityEngine:
 
         # Robustness of inference to replacement (RIR)
         if beta > 0:
-            rir = math.ceil((n - k - 1) * (beta / se)**2 / ((beta / se)**2 + (n - k - 1)))
+            rir = math.ceil((n - k - 1) * (beta / se)**2 / ((beta / se)**2  (n - k - 1)))
             rir_pct = rir / n * 100 if n > 0 else 0
         else:
             rir = 0
@@ -220,10 +229,10 @@ class SensitivityEngine:
         results = []
 
         for subgroup in subgroups:
-            sub = df[df[subgroup_col] == subgroup][[outcome, treatment] + controls].dropna()
-            if len(sub) < len(controls) + 5:
+            sub = df[df[subgroup_col] == subgroup][[outcome, treatment]  controls].dropna()
+            if len(sub) < len(controls)  5:
                 continue
-            X = sm.add_constant(sub[treatment].values if not controls else sub[[treatment] + controls].values)
+            X = sm.add_constant(sub[treatment].values if not controls else sub[[treatment]  controls].values)
             y = sub[outcome].values
             try:
                 model = sm.OLS(y, X).fit()
@@ -234,7 +243,7 @@ class SensitivityEngine:
                     "se": round(float(model.bse[1]), 4),
                     "p_value": round(float(model.pvalues[1]), 4),
                     "ci_lower": round(float(model.params[1] - 1.96 * model.bse[1]), 4),
-                    "ci_upper": round(float(model.params[1] + 1.96 * model.bse[1]), 4),
+                    "ci_upper": round(float(model.params[1]  1.96 * model.bse[1]), 4),
                     "significant": model.pvalues[1] < 0.05,
                 })
             except Exception:
@@ -271,14 +280,14 @@ class SensitivityEngine:
 
         base_specs = [
             {"controls": controls[:i], "name": f"Controls_{i}"}
-            for i in range(len(controls) + 1)
+            for i in range(len(controls)  1)
         ]
         specs = base_specs[:]  # Limit to base specs for performance
 
         results = []
         for spec in specs:
-            preds = [treatment] + spec["controls"]
-            data = df[[outcome] + preds].dropna()
+            preds = [treatment]  spec["controls"]
+            data = df[[outcome]  preds].dropna()
             X = sm.add_constant(data[preds].values)
             y = data[outcome].values
             try:
@@ -291,7 +300,7 @@ class SensitivityEngine:
                     "se": round(float(model.bse[1]), 4),
                     "p_value": round(float(model.pvalues[1]), 4),
                     "ci_lower": round(float(model.params[1] - 1.96 * model.bse[1]), 4),
-                    "ci_upper": round(float(model.params[1] + 1.96 * model.bse[1]), 4),
+                    "ci_upper": round(float(model.params[1]  1.96 * model.bse[1]), 4),
                     "significant": model.pvalues[1] < 0.05,
                 })
             except Exception:
@@ -329,18 +338,18 @@ def render_sensitivity_analysis_ui():
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 Influence Diagnostics", "📐 Spec Curve",
+        " Influence Diagnostics", "📐 Spec Curve",
         "🛡️ Robustness Value", "📂 Subgroup Analysis", "🌌 Multiverse"
     ])
 
     with tab1:
-        st.subheader("📊 Influence Diagnostics (Cook's D, DFBETAS, DFFITS)")
+        st.subheader(" Influence Diagnostics (Cook's D, DFBETAS, DFFITS)")
         col1, col2 = st.columns(2)
         with col1:
             inf_outcome = st.selectbox("Outcome", options=numeric_cols, key="inf_outcome")
             inf_preds = st.multiselect("Predictors", options=[c for c in numeric_cols if c != inf_outcome], key="inf_preds")
 
-        if st.button("📊 Compute Diagnostics", type="primary", use_container_width=True) and inf_preds:
+        if st.button(" Compute Diagnostics", type="primary", use_container_width=True) and inf_preds:
             result = engine.influence_diagnostics(df, inf_outcome, inf_preds)
             if "error" in result:
                 st.error(result["error"])

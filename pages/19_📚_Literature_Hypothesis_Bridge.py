@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Global Literature Aggregator & Auto-Drafting Engine [SECURE v5.0 ENTERPRISE-PRO]
 Features: Async Multi-API Harvesting, Local Vector Embeddings (Chroma/FAISS),
@@ -182,7 +191,7 @@ with col_proj:
                                 db.delete_project(pid)
                             elif hasattr(db, "hard_delete_project"):
                                 db.hard_delete_project(pid)
-                            deleted_count += 1
+                            deleted_count = 1
                         except Exception as e:
                             st.error(f"Failed to purge ID {pid}: {e}")
                     
@@ -205,7 +214,7 @@ with col_proj:
                                 db.delete_project(p["id"])
                             elif hasattr(db, "hard_delete_project"):
                                 db.hard_delete_project(p["id"])
-                            purged_count += 1
+                            purged_count = 1
                         except Exception as e:
                             st.error(f"Error purging duplicate ID {p['id']}: {e}")
                     else:
@@ -316,7 +325,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
 ])
 
 # ───────────────────────────────────────────────────────────────────────
-# TAB 1: ASYNCHRONOUS PAPER HARVESTER (API + Local Device Browser)
+# TAB 1: ASYNCHRONOUS PAPER HARVESTER (API  Local Device Browser)
 # ───────────────────────────────────────────────────────────────────────
 with tab1:
     if not st.session_state.lit_engine_clearance:
@@ -402,7 +411,7 @@ with tab1:
         total_pages = max(0, (total - 1) // per_page)
 
         if papers:
-            st.caption(f"Displaying records {page * per_page + 1}–{min((page + 1) * per_page, total)} of {total} total papers")
+            st.caption(f"Displaying records {page * per_page  1}–{min((page  1) * per_page, total)} of {total} total papers")
             for paper in papers:
                 render_paper_table_row(paper, db)
         else:

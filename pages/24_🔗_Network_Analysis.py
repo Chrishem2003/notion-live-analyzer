@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 ADVANCED NETWORK SCIENCE & TOPOLOGICAL GRAPH ANALYTICS ENGINE [ENTERPRISE v3.0]
@@ -409,7 +418,7 @@ with tab3:
                     node_text.append(f"Node: {node}<br>Community: {partition.get(node, 0)}")
 
                 node_trace = go.Scatter(
-                    x=node_x, y=node_y, mode='markers+text', text=[n for n in cur_G.nodes()],
+                    x=node_x, y=node_y, mode='markerstext', text=[n for n in cur_G.nodes()],
                     textposition="top center", hoverinfo='text', hovertext=node_text,
                     marker=dict(showscale=True, colorscale='Turbo', color=node_colors, size=16, line_width=2)
                 )

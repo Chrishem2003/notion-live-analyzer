@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -39,7 +48,7 @@ def render_admin_billing_panel():
     with c1:
         st.metric(label="Active Admins", value="4 Enrolled", delta="Secured MFA")
     with c2:
-        st.metric(label="Monthly Billing Volume", value=",040.00", delta="+12.4% Auto")
+        st.metric(label="Monthly Billing Volume", value=",040.00", delta="12.4% Auto")
     with c3:
         st.metric(label="Auto-Settlement Rate", value="98.5%", delta="Fully Automated")
     with c4:

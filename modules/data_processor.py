@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Data Processor  handles data type inference, cleaning, aggregation, and merging.
 Includes provenance tracking integration for full lineage logging.
@@ -214,7 +223,7 @@ def detect_outliers_iqr(df: pd.DataFrame, col: str, multiplier: float = 1.5) -> 
     q3 = df[col].quantile(0.75)
     iqr = q3 - q1
     lower = q1 - multiplier * iqr
-    upper = q3 + multiplier * iqr
+    upper = q3  multiplier * iqr
     return (df[col] < lower) | (df[col] > upper)
 
 def detect_outliers_zscore(df: pd.DataFrame, col: str, threshold: float = 3.0) -> pd.Series:

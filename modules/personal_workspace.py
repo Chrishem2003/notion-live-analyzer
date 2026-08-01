@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 
@@ -16,8 +25,8 @@ def render_personal_workspace_panel():
     with c2:
         with st.container(border=True):
             st.caption("RESEARCH PROGRESS")
-            st.subheader("📊 94.2%")
-            st.caption("📈 +3.5% Auto")
+            st.subheader(" 94.2%")
+            st.caption("📈 3.5% Auto")
     with c3:
         with st.container(border=True):
             st.caption("WORKSPACE STATUS")

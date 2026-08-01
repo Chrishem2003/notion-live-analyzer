@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Methodology Advisor Page  Advanced Research Design, Statistical Test Selector, & Power Analysis Studio.
 """
@@ -42,7 +51,7 @@ with m1:
 with m2:
     st.metric("⚡ Target Power (1-β)", "0.80", help="Standard statistical power benchmark")
 with m3:
-    st.metric("🔍 Supported Test Suites", "25+", help="Parametric, non-parametric, and multivariate models")
+    st.metric("🔍 Supported Test Suites", "25", help="Parametric, non-parametric, and multivariate models")
 with m4:
     st.metric("🔍 Effect Size Engines", "Cohen's d, Eta², Cramer's V")
 
@@ -98,7 +107,7 @@ with advisor_tabs[2]:
     matrix_data = [
         {"Research Question": "Compare means between 2 independent groups", "Data Type": "Continuous (Normal)", "Recommended Test": "Independent Samples t-Test", "SPSS Command": "T-TEST GROUPS"},
         {"Research Question": "Compare means between 2 paired observations", "Data Type": "Continuous (Normal)", "Recommended Test": "Paired Samples t-Test", "SPSS Command": "T-TEST PAIRS"},
-        {"Research Question": "Compare means across 3+ groups", "Data Type": "Continuous (Normal)", "Recommended Test": "One-Way ANOVA", "SPSS Command": "ONEWAY"},
+        {"Research Question": "Compare means across 3 groups", "Data Type": "Continuous (Normal)", "Recommended Test": "One-Way ANOVA", "SPSS Command": "ONEWAY"},
         {"Research Question": "Examine association between 2 categorical variables", "Data Type": "Categorical (Nominal)", "Recommended Test": "Chi-Square Test of Independence", "SPSS Command": "CROSSTABS"},
         {"Research Question": "Predict continuous outcome from multiple predictors", "Data Type": "Continuous Mix", "Recommended Test": "Multiple Linear Regression", "SPSS Command": "REGRESSION"}
     ]

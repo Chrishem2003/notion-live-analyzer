@@ -48,7 +48,7 @@ if st.button("Generate Environmental Data Profile"):
         dates = pd.date_range(start="2026-01-01", periods=100)
         env_df = pd.DataFrame({
             "Date": dates,
-            "Sea_Level_mm": np.random.normal(loc=150, scale=5, size=100) + np.linspace(0, 10, 100),
+            "Sea_Level_mm": np.random.normal(loc=150, scale=5, size=100)  np.linspace(0, 10, 100),
             "Water_Temperature_C": np.random.normal(loc=22, scale=2, size=100),
             "Salinity_psu": np.random.uniform(low=32.0, high=37.0, size=100),
             "Sensor_Status": np.random.choice(["Active", "Maintenance", "Offline"], p=[0.8, 0.15, 0.05], size=100)

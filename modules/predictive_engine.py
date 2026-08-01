@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Predictive Engine â€” AutoML for classification, regression, clustering, and time series forecasting.
 Provides automated model selection, training, evaluation, and prediction.
@@ -449,17 +458,17 @@ class PredictiveEngine:
                 "changepoints": model.changepoints.tolist() if hasattr(model, 'changepoints') else [],
             }
         else:
-            # Fallback: simple moving average + linear trend
+            # Fallback: simple moving average  linear trend
             ts_df['ma'] = ts_df['y'].rolling(window=min(7, len(ts_df)), min_periods=1).mean()
             last_val = ts_df['ma'].iloc[-1]
             trend = (ts_df['y'].iloc[-1] - ts_df['y'].iloc[0]) / max(len(ts_df), 1)
 
             future_dates = pd.date_range(
-                start=ts_df['ds'].iloc[-1] + timedelta(days=1),
+                start=ts_df['ds'].iloc[-1]  timedelta(days=1),
                 periods=periods,
                 freq=freq
             )
-            forecast_values = [last_val + trend * i for i in range(1, periods + 1)]
+            forecast_values = [last_val  trend * i for i in range(1, periods  1)]
 
             forecast_df = pd.DataFrame({
                 'ds': future_dates,
@@ -470,7 +479,7 @@ class PredictiveEngine:
 
             return {
                 "type": "forecast",
-                "method": "Moving Average + Trend (Prophet not installed)",
+                "method": "Moving Average  Trend (Prophet not installed)",
                 "historical": ts_df[['ds', 'y']],
                 "forecast": forecast_df,
                 "components": ['trend'],
@@ -737,7 +746,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                     fig = go.Figure()
                     fig.add_trace(go.Scatter(x=hist['ds'], y=hist['y'], mode='lines', name='Historical'))
                     fig.add_trace(go.Scatter(
-                        x=fore['ds'], y=fore['yhat'], mode='lines+markers',
+                        x=fore['ds'], y=fore['yhat'], mode='linesmarkers',
                         name='Forecast', line=dict(color='red', dash='dash')
                     ))
                     if 'yhat_lower' in fore.columns and 'yhat_upper' in fore.columns:

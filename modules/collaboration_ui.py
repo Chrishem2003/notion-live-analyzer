@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Collaboration UI  Streamlit Interface for Research Command Center."""
 import time
 import json
@@ -480,7 +489,7 @@ def render_lobby():
             RoomType.VIDEO_CALL: ("📹 Video Call", "room-type-video"),
             RoomType.CHAT_ROOM: ("💬 Chat Room", "room-type-chat"),
             RoomType.WHITEBOARD: ("🎨 Whiteboard", "room-type-whiteboard"),
-            RoomType.RESEARCH_PANEL: ("📊 Research Panel", "room-type-panel"),
+            RoomType.RESEARCH_PANEL: (" Research Panel", "room-type-panel"),
             RoomType.WEBINAR: ("🎓 Webinar", "room-type-webinar"),
         }
         badge_text, badge_class = type_badges.get(room.room_type, ("📌", ""))
@@ -949,7 +958,7 @@ def render_automations():
     templates = [
         ("🔔 Meeting Reminders", "Send reminders 15 min before meetings"),
         ("👋 Welcome New Members", "Auto-greet new room participants"),
-        ("📊 Weekly Summary", "Generate weekly activity reports"),
+        (" Weekly Summary", "Generate weekly activity reports"),
         ("🎯 Task Follow-up", "Remind about overdue tasks"),
         ("📰 Paper Alerts", "Notify relevant new publications"),
         ("💬 Message Auto-reply", "Respond to common questions"),
@@ -990,7 +999,7 @@ def render_file_sharing_sidebar():
     st.markdown("**Recent Files:**")
     demo_files = [
         ("📄 research_notes.pdf", "2.4 MB"),
-        ("📊 data_analysis.xlsx", "1.1 MB"),
+        (" data_analysis.xlsx", "1.1 MB"),
         ("🖼️ diagram.png", "450 KB"),
     ]
     

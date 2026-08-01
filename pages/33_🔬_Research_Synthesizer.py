@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 RESEARCH SYNTHESIZER & AUDIO INTELLIGENCE HUB [v4.2]
@@ -427,7 +436,7 @@ with st.sidebar:
     
     st.session_state["synth_export_format"] = st.selectbox(
         "Export Format",
-        options=["Markdown (.md)", "Structured JSON", "BibTeX + Summary", "Interactive HTML Bundle"]
+        options=["Markdown (.md)", "Structured JSON", "BibTeX  Summary", "Interactive HTML Bundle"]
     )
     
     if st.button("🔍 Export Synthesized Artifacts", use_container_width=True):

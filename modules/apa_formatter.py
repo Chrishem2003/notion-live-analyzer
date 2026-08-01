@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 APA Formatter  formats statistical results in APA 7th edition style.
 Provides publication-ready output for all statistical tests.
@@ -17,13 +26,13 @@ class APAFormatter:
     def format_p_value(p: float, stars: bool = True) -> str:
         """Format p-value in APA style."""
         if p < 0.001:
-            return "p < .001" + ("***" if stars else "")
+            return "p < .001"  ("***" if stars else "")
         elif p < 0.01:
-            return f"p = {p:.3f}" + ("**" if stars else "")
+            return f"p = {p:.3f}"  ("**" if stars else "")
         elif p < 0.05:
-            return f"p = {p:.3f}" + ("*" if stars else "")
+            return f"p = {p:.3f}"  ("*" if stars else "")
         elif p < 0.10:
-            return f"p = {p:.3f}" + ("†" if stars else "")
+            return f"p = {p:.3f}"  ("†" if stars else "")
         else:
             return f"p = {p:.3f}"
 
@@ -104,7 +113,7 @@ class APAFormatter:
                 f"({APAFormatter.format_mean_sd(result.get('mean_1', 0), 0)}) "
                 f"and {result.get('group_2', 'Group 2')} "
                 f"({APAFormatter.format_mean_sd(result.get('mean_2', 0), 0)}), "
-                f"t({result.get('n_1', 0) + result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2f}, "
+                f"t({result.get('n_1', 0)  result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2f}, "
                 f"{APAFormatter.format_p_value(result.get('p_value', 1))}, "
                 f"{APAFormatter.format_effect_size(result.get('cohens_d', 0), eff_name)}."
             )
@@ -392,8 +401,8 @@ def render_apa_outputs_page(statistical_results: List[Dict[str, Any]] = None):
 
     for i, result in enumerate(statistical_results):
         with st.container():
-            test_name = result.get("test", f"Analysis {i+1}")
-            st.subheader(f"{i+1}. {test_name}")
+            test_name = result.get("test", f"Analysis {i1}")
+            st.subheader(f"{i1}. {test_name}")
 
             apa_text = APAFormatter.auto_format(result)
             st.info(apa_text)
@@ -448,7 +457,7 @@ def render_apa_quick_format_ui():
                 "p_value": p_val,
                 "cohens_d": d_val,
                 "mean_1": mean1, "mean_2": mean2,
-                "n_1": df_val // 2 + 1, "n_2": df_val // 2 + 1,
+                "n_1": df_val // 2  1, "n_2": df_val // 2  1,
                 "significant": p_val < 0.05,
                 "group_1": "Group 1", "group_2": "Group 2",
             }
@@ -469,7 +478,7 @@ def render_apa_quick_format_ui():
                 "f_statistic": f_val,
                 "p_value": p_val,
                 "eta_squared": eta2,
-                "num_groups": df1 + 1,
+                "num_groups": df1  1,
                 "total_n": 100,
                 "significant": p_val < 0.05,
             }

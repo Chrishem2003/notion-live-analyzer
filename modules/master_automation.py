@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import json
 import sqlite3
@@ -52,7 +61,7 @@ def render_master_automation_control_center():
             st.balloons()
 
     with col2:
-        st.markdown("### 📊 Real-Time Autonomous Audit Log")
+        st.markdown("###  Real-Time Autonomous Audit Log")
         log_df = pd.read_sql_query("SELECT trigger_id, source_module, action_executed, status, timestamp FROM automated_pipeline_logs ORDER BY timestamp DESC", conn)
         if not log_df.empty:
             st.dataframe(log_df, use_container_width=True)

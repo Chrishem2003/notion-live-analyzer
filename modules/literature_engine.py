@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Global Literature Aggregator & Auto-Drafting Engine
 Zero-loss SQLite persistence, factual paper harvesting from Semantic Scholar,
@@ -172,7 +181,7 @@ class LiteratureDatabase:
             return False
         updates["updated_at"] = datetime.now().isoformat()
         set_clause = ", ".join(f"{k} = ?" for k in updates.keys())
-        values = list(updates.values()) + [project_id]
+        values = list(updates.values())  [project_id]
         conn = self._get_conn()
         try:
             conn.execute(f"UPDATE projects SET {set_clause} WHERE id = ?", values)
@@ -245,7 +254,7 @@ class LiteratureDatabase:
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                         (project_id, title, authors, year, journal, citations, doi, url, abstract),
                     )
-                    saved += 1
+                    saved = 1
             conn.commit()
         finally:
             conn.close()
@@ -310,7 +319,7 @@ class LiteratureDatabase:
             where = "project_id = ?"
             params = [project_id]
             if checked_only:
-                where += " AND is_checked = 1"
+                where = " AND is_checked = 1"
 
             count_row = conn.execute(
                 f"SELECT COUNT(*) as cnt FROM fetched_papers WHERE {where}", params
@@ -320,7 +329,7 @@ class LiteratureDatabase:
             offset = page * per_page
             rows = conn.execute(
                 f"SELECT * FROM fetched_papers WHERE {where} ORDER BY is_cited DESC, citations DESC, year DESC LIMIT ? OFFSET ?",
-                params + [per_page, offset],
+                params  [per_page, offset],
             ).fetchall()
             return [dict(r) for r in rows], total
         finally:
@@ -420,16 +429,16 @@ class LiteratureDatabase:
         try:
             if after_order is not None:
                 conn.execute(
-                    "UPDATE report_sections SET section_order = section_order + 1 WHERE project_id = ? AND section_order > ?",
+                    "UPDATE report_sections SET section_order = section_order  1 WHERE project_id = ? AND section_order > ?",
                     (project_id, after_order),
                 )
-                new_order = after_order + 1
+                new_order = after_order  1
             else:
                 max_row = conn.execute(
                     "SELECT MAX(section_order) as mx FROM report_sections WHERE project_id = ?",
                     (project_id,),
                 ).fetchone()
-                new_order = (max_row["mx"] or -1) + 1
+                new_order = (max_row["mx"] or -1)  1
             cursor = conn.execute(
                 "INSERT INTO report_sections (project_id, section_order, section_title, content) VALUES (?, ?, ?, '')",
                 (project_id, new_order, title),
@@ -524,7 +533,7 @@ class PaperHarvester:
         papers = []
         batch_size = 100  # API max
         offset = 0
-        max_pages = (limit // batch_size) + 2
+        max_pages = (limit // batch_size)  2
 
         try:
             for page_num in range(max_pages):
@@ -556,7 +565,7 @@ class PaperHarvester:
                     if entry and entry.get("title"):
                         papers.append(entry)
 
-                offset += len(results)
+                offset = len(results)
                 if progress_callback:
                     progress_callback(len(papers), limit)
 
@@ -593,7 +602,7 @@ class PaperHarvester:
                         authors_list.append(name)
             authors_str = ", ".join(authors_list[:10])
             if len(authors_list) > 10:
-                authors_str += " et al."
+                authors_str = " et al."
 
             external_ids = paper.get("externalIds", {}) or {}
             doi = external_ids.get("DOI", "")
@@ -685,7 +694,7 @@ class PaperHarvester:
                     authors_list.append(family)
             authors_str = ", ".join(authors_list[:10])
             if len(authors_list) > 10:
-                authors_str += " et al."
+                authors_str = " et al."
 
             date_parts = item.get("issued", {}).get("date-parts", [[]])
             year = date_parts[0][0] if date_parts and date_parts[0] else None
@@ -743,7 +752,7 @@ class PaperHarvester:
             country_papers = self.search_semantic_scholar(country_query, limit=30)
             if country_papers:
                 country_dois = {p.get("doi", "") for p in country_papers if p.get("doi")}
-                deduped = [p for p in country_papers if p.get("doi") not in country_dois] + deduped
+                deduped = [p for p in country_papers if p.get("doi") not in country_dois]  deduped
 
         return deduped[:limit]
 
@@ -813,7 +822,7 @@ class ReferenceFormatter:
 
         csl_items = []
         for i, paper in enumerate(papers):
-            csl_item = self._paper_to_csl_json(paper, i + 1)
+            csl_item = self._paper_to_csl_json(paper, i  1)
             if csl_item:
                 csl_items.append(csl_item)
 
@@ -863,7 +872,7 @@ class ReferenceFormatter:
     def _format_manual(self, papers: List[Dict], style: str) -> str:
         references = []
         for i, paper in enumerate(papers):
-            ref = self._format_one_manual(paper, style, i + 1)
+            ref = self._format_one_manual(paper, style, i  1)
             if ref:
                 references.append(ref)
         return "\n\n".join(references) if references else "No references to format."
@@ -882,47 +891,47 @@ class ReferenceFormatter:
         if style == "apa":
             ref = f"{authors} {year_str}. {title}."
             if journal:
-                ref += f" *{journal}*."
+                ref = f" *{journal}*."
             if doi:
-                ref += f" https://doi.org/{doi}"
+                ref = f" https://doi.org/{doi}"
             elif url:
-                ref += f" {url}"
+                ref = f" {url}"
         elif style == "harvard":
             ref = f"{authors} {year_str}, '{title}-,"
             if journal:
-                ref += f" *{journal}*,"
+                ref = f" *{journal}*,"
             if doi:
-                ref += f" doi:{doi}"
+                ref = f" doi:{doi}"
             elif url:
-                ref += f" Available at: {url}"
+                ref = f" Available at: {url}"
         elif style == "chicago":
             ref = f"{authors}. {year_str}. \"{title}.\""
             if journal:
-                ref += f" *{journal}*."
+                ref = f" *{journal}*."
             if doi:
-                ref += f" https://doi.org/{doi}"
+                ref = f" https://doi.org/{doi}"
             elif url:
-                ref += f" {url}"
+                ref = f" {url}"
         elif style == "mla":
             ref = f"{authors}. \"{title}.\""
             if journal:
-                ref += f" *{journal}*,"
-            ref += f" {year_str}."
+                ref = f" *{journal}*,"
+            ref = f" {year_str}."
             if doi:
-                ref += f" doi:{doi}"
+                ref = f" doi:{doi}"
         elif style == "vancouver":
             ref = f"{index}. {authors}. {title}."
             if journal:
-                ref += f" {journal}."
-            ref += f" {year_str}."
+                ref = f" {journal}."
+            ref = f" {year_str}."
             if doi:
-                ref += f" DOI: {doi}"
+                ref = f" DOI: {doi}"
         else:
             ref = f"{authors} {year_str}. {title}."
             if journal:
-                ref += f" {journal}."
+                ref = f" {journal}."
             if doi:
-                ref += f" doi:{doi}"
+                ref = f" doi:{doi}"
         return ref.strip()
 
     def generate_bibtex(self, papers: List[Dict]) -> str:
@@ -935,7 +944,7 @@ class ReferenceFormatter:
         ]
         for i, paper in enumerate(papers):
             doi = paper.get("doi", "")
-            cite_key = self._generate_cite_key(paper, doi, i + 1)
+            cite_key = self._generate_cite_key(paper, doi, i  1)
             title = paper.get("title", "").strip()
             authors = paper.get("authors", "")
             year = paper.get("year")
@@ -1110,37 +1119,37 @@ class EffectSizeExtractor:
     # Regex patterns for common effect size reporting formats
     EFFECT_PATTERNS = {
         "cohens_d": [
-            r"(?:Cohens?\s*[dD]|[dD]\s*=)\s*([-+]?\d+\.?\d*)",
-            r"[dD]\s*=\s*([-+]?\d+\.?\d*)",
-            r"effect\s+size\s*(?:of\s*)?([-+]?\d+\.?\d*)",
+            r"(?:Cohens?\s*[dD]|[dD]\s*=)\s*([-]?\d\.?\d*)",
+            r"[dD]\s*=\s*([-]?\d\.?\d*)",
+            r"effect\ssize\s*(?:of\s*)?([-]?\d\.?\d*)",
         ],
         "pearson_r": [
-            r"(?:Pearson\s*)?[rR]\s*=\s*([-+]?\d+\.?\d*)",
-            r"correlation\s*(?:of\s*)?([-+]?\d+\.?\d*)",
-            r"[rR]\s*=\s*([-+]?\d+\.?\d*)",
+            r"(?:Pearson\s*)?[rR]\s*=\s*([-]?\d\.?\d*)",
+            r"correlation\s*(?:of\s*)?([-]?\d\.?\d*)",
+            r"[rR]\s*=\s*([-]?\d\.?\d*)",
         ],
         "odds_ratio": [
-            r"(?:odds\s*ratio|OR)\s*(?:=\s*)?([-+]?\d+\.?\d*)",
-            r"OR\s*=\s*([-+]?\d+\.?\d*)",
+            r"(?:odds\s*ratio|OR)\s*(?:=\s*)?([-]?\d\.?\d*)",
+            r"OR\s*=\s*([-]?\d\.?\d*)",
         ],
         "eta_squared": [
-            r"(?:eta[\s-]*squared|''|\u03b7')\s*(?:=\s*)?([-+]?\d+\.?\d*)",
-            r"\u03b7\s*=\s*([-+]?\d+\.?\d*)",
+            r"(?:eta[\s-]*squared|''|\u03b7')\s*(?:=\s*)?([-]?\d\.?\d*)",
+            r"\u03b7\s*=\s*([-]?\d\.?\d*)",
         ],
         "f_statistic": [
-            r"[Ff]\s*\([^)]+\)\s*=\s*([-+]?\d+\.?\d*)",
+            r"[Ff]\s*\([^)]\)\s*=\s*([-]?\d\.?\d*)",
         ],
         "t_statistic": [
-            r"[Tt]\s*\([^)]+\)\s*=\s*([-+]?\d+\.?\d*)",
+            r"[Tt]\s*\([^)]\)\s*=\s*([-]?\d\.?\d*)",
         ],
         "beta_coeff": [
-            r"['\u03b2]\s*=\s*([-+]?\d+\.?\d*)",
-            r"beta\s*=\s*([-+]?\d+\.?\d*)",
+            r"['\u03b2]\s*=\s*([-]?\d\.?\d*)",
+            r"beta\s*=\s*([-]?\d\.?\d*)",
         ],
         "sample_size": [
-            r"[Nn]\s*=\s*(\d+)",
-            r"[nN]\s*=\s*(\d+)",
-            r"(?:total|overall)\s*[Nn]\s*=\s*(\d+)",
+            r"[Nn]\s*=\s*(\d)",
+            r"[nN]\s*=\s*(\d)",
+            r"(?:total|overall)\s*[Nn]\s*=\s*(\d)",
         ],
     }
 
@@ -1354,7 +1363,7 @@ class DraftingEngine:
         if bibliography:
             parts.append("## References\n\n")
             ref_text = formatter.format_references(bibliography, style)
-            parts.append(ref_text + "\n")
+            parts.append(ref_text  "\n")
 
         parts.append("\n---\n## Appendices\n*Add supplementary materials here.*")
         return "\n".join(parts)

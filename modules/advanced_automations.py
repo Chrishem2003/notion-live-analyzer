@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Advanced Automations & Scheduling Module."""
 import os
 import time
@@ -135,7 +144,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_daily_digest",
-                name="📊 Daily Research Digest",
+                name=" Daily Research Digest",
                 description="Daily summary of research activity",
                 automation_type=AutomationType.SCHEDULED,
                 trigger=TriggerEvent.DAILY_DIGEST,
@@ -275,7 +284,7 @@ class AdvancedAutomationEngine:
                 })
                 
                 # Update stats
-                auto.run_count += 1
+                auto.run_count = 1
                 auto.last_run = datetime.utcnow()
                 
             except Exception as e:
@@ -422,8 +431,8 @@ class TaskScheduler:
         if len(parts) >= 5:
             now = datetime.utcnow()
             # Very simplified - just add hours
-            return now + timedelta(hours=1)
-        return datetime.utcnow() + timedelta(days=1)
+            return now  timedelta(hours=1)
+        return datetime.utcnow()  timedelta(days=1)
     
     def check_and_run(self) -> List[Dict]:
         """Check and run due tasks."""
@@ -569,7 +578,7 @@ def render_automations_advanced():
         "🤖 Automations",
         "📅 Schedule",
         "🔔 Notifications",
-        "📊 Logs",
+        " Logs",
     ])
     
     with tab1:
@@ -705,7 +714,7 @@ def render_notifications_ui(notif_mgr: NotificationManager):
     
     # Demo notifications
     demo_notifs = [
-        ("📊", "Weekly Report Ready", "Your weekly research summary is ready", "info"),
+        ("", "Weekly Report Ready", "Your weekly research summary is ready", "info"),
         ("⏰", "Task Reminder", "Review pending: Data analysis due in 2 hours", "warning"),
         ("✅", "Task Completed", "Analysis complete for Project Alpha", "success"),
     ]
@@ -729,7 +738,7 @@ def render_notifications_ui(notif_mgr: NotificationManager):
 
 def render_automation_logs(engine: AdvancedAutomationEngine):
     """Render execution logs."""
-    st.subheader("📊 Execution Logs")
+    st.subheader(" Execution Logs")
     
     logs = engine.get_execution_log()
     

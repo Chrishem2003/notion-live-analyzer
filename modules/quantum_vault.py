@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 import hashlib
@@ -9,7 +18,7 @@ def get_vault_enclave_status() -> pd.DataFrame:
     Returns active cryptographic keys, secure enclave bindings, and hardware token statuses.
     """
     enclave_data = [
-        {"Key_ID": "Q-VAULT-ROOT-01", "Algorithm": "AES-256-GCM + SHA3", "Scope": "Master Database Vault", "Status": "SEALED & ACTIVE"},
+        {"Key_ID": "Q-VAULT-ROOT-01", "Algorithm": "AES-256-GCM  SHA3", "Scope": "Master Database Vault", "Status": "SEALED & ACTIVE"},
         {"Key_ID": "Q-VAULT-BIO-02", "Algorithm": "RSA-4096 / Ed25519", "Scope": "Bioinformatics Pipelines", "Status": "ARMED"},
         {"Key_ID": "Q-VAULT-JWT-03", "Algorithm": "HMAC-SHA512", "Scope": "Session Authentication", "Status": "ROTATING"},
         {"Key_ID": "Q-VAULT-IOT-04", "Algorithm": "ChaCha20-Poly1305", "Scope": "Edge Node Telemetry", "Status": "ENCRYPTED"}

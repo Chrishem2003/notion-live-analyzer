@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Audit Portal  CHRISHEM Encrypted Submission & Analytics System
 Provides:
@@ -33,7 +42,7 @@ CHRISHEM_SALT = b"CHRISHEM_AUDIT_PORTAL_SALT_2024"
 def derive_fernet_key(password: str) -> bytes:
     """Derive a 32-byte Fernet key from a password."""
     if not HAS_CRYPTOGRAPHY:
-        return hashlib.sha256(password.encode() + CHRISHEM_SALT).digest()
+        return hashlib.sha256(password.encode()  CHRISHEM_SALT).digest()
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -178,15 +187,15 @@ class CHRISHEMSubmissionSystem:
         query = "SELECT * FROM portal_submissions WHERE 1=1"
         params = []
         if project_id:
-            query += " AND project_id = ?"
+            query = " AND project_id = ?"
             params.append(project_id)
         if student_name:
-            query += " AND student_name = ?"
+            query = " AND student_name = ?"
             params.append(student_name)
         if status:
-            query += " AND status = ?"
+            query = " AND status = ?"
             params.append(status)
-        query += " ORDER BY submitted_at DESC"
+        query = " ORDER BY submitted_at DESC"
 
         with self._get_conn() as conn:
             rows = conn.execute(query, params).fetchall()

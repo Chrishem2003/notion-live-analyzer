@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Theoretical-to-Practical Protocol Transpiler
 Converts dense paper methodology into actionable step-by-step laboratory,
@@ -26,24 +35,24 @@ import pandas as pd
 
 EXTRACTION_PATTERNS = {
     "chemicals_reagents": [
-        r"(\d+(?:\.\d+)?)\s*(?:mM|mM|µM|nM|mM|M|mg/mL|g/L|%)\s+(?:of\s+)?([A-Za-z0-9\s\-]+?)(?=[,.;])",
-        r"([A-Za-z0-9\s\-]+?)\s*\((\d+(?:\.\d+)?)\s*(?:mM|mM|µM|nM|mM|M|mg/mL|g/L|%)\)",
+        r"(\d(?:\.\d)?)\s*(?:mM|mM|µM|nM|mM|M|mg/mL|g/L|%)\s(?:of\s)?([A-Za-z0-9\s\-]?)(?=[,.;])",
+        r"([A-Za-z0-9\s\-]?)\s*\((\d(?:\.\d)?)\s*(?:mM|mM|µM|nM|mM|M|mg/mL|g/L|%)\)",
         r"\b(DMSO|PBS|TBS|SDS|EDTA|EGTA|HEPES|Tris|NaCl|KCl|MgCl2|CaCl2|NaOH|HCl|H2SO4|EtOH|MeOH|IPA|DTT|BME|BSA|FBS|RPMI|DMEM|PFA|TBST)\b",
     ],
     "temperatures": [
-        r"(\d+(?:\.\d+)?)\s*°[Cc]",
-        r"(\d+(?:\.\d+)?)\s*°[Ff]",
-        r"(?:at|to|for)\s+(\d+(?:\.\d+)?)\s*°",
-        r"(?:incubat|heat|cool|warm|maintain)\s+(?:at|to|for)\s+(\d+(?:\.\d+)?)\s*°",
+        r"(\d(?:\.\d)?)\s*°[Cc]",
+        r"(\d(?:\.\d)?)\s*°[Ff]",
+        r"(?:at|to|for)\s(\d(?:\.\d)?)\s*°",
+        r"(?:incubat|heat|cool|warm|maintain)\s(?:at|to|for)\s(\d(?:\.\d)?)\s*°",
     ],
     "time_durations": [
-        r"(\d+)\s*(?:min|minute|minutes|h|hour|hours|sec|second|seconds|d|day|days)",
-        r"(?:for|after|during)\s+(\d+)\s*(?:min|h|sec|d)",
-        r"(?:incubat|centrifug|spin|heat|treat)\s+(?:for\s+)?(\d+)\s*(?:min|h|sec)",
+        r"(\d)\s*(?:min|minute|minutes|h|hour|hours|sec|second|seconds|d|day|days)",
+        r"(?:for|after|during)\s(\d)\s*(?:min|h|sec|d)",
+        r"(?:incubat|centrifug|spin|heat|treat)\s(?:for\s)?(\d)\s*(?:min|h|sec)",
     ],
     "centrifugation": [
-        r"(\d+(?:,\d{3})?)\s*(?:×?\s*g|g|rpm|RPM|x\s*g)\s+(?:for\s+)?(\d+)\s*(?:min|h)",
-        r"(?:centrifug|spin|pellet)\s+(?:at\s+)?(\d+(?:,\d{3})?)\s*(?:g|rpm)",
+        r"(\d(?:,\d{3})?)\s*(?:×?\s*g|g|rpm|RPM|x\s*g)\s(?:for\s)?(\d)\s*(?:min|h)",
+        r"(?:centrifug|spin|pellet)\s(?:at\s)?(\d(?:,\d{3})?)\s*(?:g|rpm)",
     ],
     "gene_accessions": [
         r"\b(NM_\d{6,9})\b",
@@ -57,7 +66,7 @@ EXTRACTION_PATTERNS = {
         r"\b(ENST\d{11})\b",
         r"\b(ENSP\d{11})\b",
         r"\b(UniProt[:\s]*[A-Z0-9]{6,10})\b",
-        r"\b(GeneID[:\s]*\d+)\b",
+        r"\b(GeneID[:\s]*\d)\b",
         r"\b(GSE\d{4,6})\b",
         r"\b(GSM\d{4,6})\b",
         r"\b(GPL\d{4,6})\b",
@@ -67,28 +76,28 @@ EXTRACTION_PATTERNS = {
         r"\b(PRJEB\d{6,10})\b",
     ],
     "software_tools": [
-        r"\b(?:using|with|via|by)\s+([A-Z][a-zA-Z0-9]+(?:[-\s][A-Z][a-zA-Z0-9]+)*)\s+(?:software|package|tool|pipeline|version)",
-        r"\b([A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*)\s+v(?:\d+\.\d+(?:\.\d+)?)",
+        r"\b(?:using|with|via|by)\s([A-Z][a-zA-Z0-9](?:[-\s][A-Z][a-zA-Z0-9])*)\s(?:software|package|tool|pipeline|version)",
+        r"\b([A-Za-z0-9](?:[-_][A-Za-z0-9])*)\sv(?:\d\.\d(?:\.\d)?)",
         r"\b(BLAST|Bowtie|STAR|HISAT2|Salmon|Kallisto|DESeq2|edgeR|limma|Seurat|Scanpy|CellRanger|SPAdes|MEGAHIT|Trimmomatic|FastQC|MultiQC|Samtools|Bamtools|GATK|BCFtools|VCFtools|PLINK|PAUP|RAxML|MrBayes|BEAST|MEGA|IQ[- ]TREE|MAFFT|Clustal[O,W]|MUSCLE|T-Coffee)\b",
-        r"\b(Python|R|MATLAB|Perl|Julia|Bash|C\+\+|Java)\s+(?:script|code|program|implementation)",
+        r"\b(Python|R|MATLAB|Perl|Julia|Bash|C\\|Java)\s(?:script|code|program|implementation)",
     ],
     "hardware": [
-        r"(?:using|with|on|via)\s+(?:an?\s+)?([A-Z][a-zA-Z0-9\s\-]+(?:microscope|sequencer|centrifuge|incubator|PCR|thermocycler|spectrophotometer|plate\s*reader|chromatograph))",
-        r"\b(Illumina|PacBio|Oxford\s+Nanopore|454|Ion\s+Torrent|HiSeq|MiSeq|NovaSeq|NextSeq|MinION|PromethION)\b",
-        r"\b(?:flow\s+cytometer|FACS|HPLC|LC-MS|GC-MS|NMR|MRI|CT\s+scan|X-ray)\b",
+        r"(?:using|with|on|via)\s(?:an?\s)?([A-Z][a-zA-Z0-9\s\-](?:microscope|sequencer|centrifuge|incubator|PCR|thermocycler|spectrophotometer|plate\s*reader|chromatograph))",
+        r"\b(Illumina|PacBio|Oxford\sNanopore|454|Ion\sTorrent|HiSeq|MiSeq|NovaSeq|NextSeq|MinION|PromethION)\b",
+        r"\b(?:flow\scytometer|FACS|HPLC|LC-MS|GC-MS|NMR|MRI|CT\sscan|X-ray)\b",
     ],
     "statistical_params": [
-        r"(?:α|alpha)\s*=\s*(\d+\.?\d*)",
-        r"(?:β|beta)\s*=\s*(\d+\.?\d*)",
-        r"power\s*=\s*(\d+\.?\d*)",
-        r"effect\s+size\s*=\s*(\d+\.?\d*)",
-        r"(?:FDR|q-value|adjusted\s+p)\s*[<≤]\s*(\d+\.?\d*)",
-        r"(?:p\s*[<≤]\s*(\d+\.?\d*))",
+        r"(?:α|alpha)\s*=\s*(\d\.?\d*)",
+        r"(?:β|beta)\s*=\s*(\d\.?\d*)",
+        r"power\s*=\s*(\d\.?\d*)",
+        r"effect\ssize\s*=\s*(\d\.?\d*)",
+        r"(?:FDR|q-value|adjusted\sp)\s*[<≤]\s*(\d\.?\d*)",
+        r"(?:p\s*[<≤]\s*(\d\.?\d*))",
     ],
     "concentrations": [
-        r"(\d+(?:\.\d+)?)\s*(?:µg|ng|mg|g)\s*/?\s*(?:mL|µL|L)",
-        r"(\d+(?:\.\d+)?)\s*(?:mM|µM|nM|pM|M)\s+[A-Za-z]",
-        r"(?:concentration|dose|dosage)\s+(?:of\s+)?(\d+(?:\.\d+)?)\s*(?:µg|ng|mg|g|mM|µM|nM)",
+        r"(\d(?:\.\d)?)\s*(?:µg|ng|mg|g)\s*/?\s*(?:mL|µL|L)",
+        r"(\d(?:\.\d)?)\s*(?:mM|µM|nM|pM|M)\s[A-Za-z]",
+        r"(?:concentration|dose|dosage)\s(?:of\s)?(\d(?:\.\d)?)\s*(?:µg|ng|mg|g|mM|µM|nM)",
     ],
 }
 
@@ -153,7 +162,7 @@ class ProtocolTranspiler:
         results["summary"] = {
             "total_reagents": len(results["reagents"]),
             "total_steps": len(results["steps"]),
-            "total_tools": len(results["software"]) + len(results["hardware"]),
+            "total_tools": len(results["software"])  len(results["hardware"]),
             "has_code": len(results["code_blocks"]) > 0,
             "has_safety": len(results["safety_notes"]) > 0,
         }
@@ -280,7 +289,7 @@ class ProtocolTranspiler:
     def _generate_steps(self, text: str) -> List[Dict[str, Any]]:
         """Generate actionable protocol steps from methodology text."""
         # Split text into sentences and categorize
-        sentences = re.split(r'[.!?]\s+', text)
+        sentences = re.split(r'[.!?]\s', text)
         steps = []
         step_num = 0
 
@@ -292,7 +301,7 @@ class ProtocolTranspiler:
             # Categorize the step
             category = self._categorize_sentence(sent)
             if category:
-                step_num += 1
+                step_num = 1
                 steps.append({
                     "step_number": step_num,
                     "instruction": sent,
@@ -341,11 +350,11 @@ class ProtocolTranspiler:
     def _estimate_duration(self, sentence: str) -> Optional[str]:
         """Estimate step duration from sentence."""
         duration_patterns = [
-            (r"(\d+)\s*(?:h|hour)s?\s+(\d+)\s*(?:min|minute)", lambda m: f"{m.group(1)}h {m.group(2)}min"),
-            (r"(\d+)\s*(?:h|hour)s?", lambda m: f"{m.group(1)} hours"),
-            (r"(\d+)\s*(?:min|minute)s?", lambda m: f"{m.group(1)} min"),
-            (r"(\d+)\s*(?:sec|second)s?", lambda m: f"{m.group(1)} sec"),
-            (r"(\d+)\s*(?:d|day)s?", lambda m: f"{m.group(1)} days"),
+            (r"(\d)\s*(?:h|hour)s?\s(\d)\s*(?:min|minute)", lambda m: f"{m.group(1)}h {m.group(2)}min"),
+            (r"(\d)\s*(?:h|hour)s?", lambda m: f"{m.group(1)} hours"),
+            (r"(\d)\s*(?:min|minute)s?", lambda m: f"{m.group(1)} min"),
+            (r"(\d)\s*(?:sec|second)s?", lambda m: f"{m.group(1)} sec"),
+            (r"(\d)\s*(?:d|day)s?", lambda m: f"{m.group(1)} days"),
         ]
         for pattern, formatter in duration_patterns:
             m = re.search(pattern, sentence, re.IGNORECASE)
@@ -405,11 +414,11 @@ class ProtocolTranspiler:
 
         # Python/R/bash code patterns
         code_patterns = [
-            (r"```(\w+)?\n(.*?)```", re.DOTALL),
-            (r"`([^`]+)`", 0),
-            (r"(?:command|code|script|syntax)[:\s]+([^\n]+)", 0),
-            (r"(?:pip install|conda install|git clone|wget|curl|docker|singularity)\s+\S+", 0),
-            (r"(?:library\(|import\s+\w+|require\(|using\s+\w+)", 0),
+            (r"```(\w)?\n(.*?)```", re.DOTALL),
+            (r"`([^`])`", 0),
+            (r"(?:command|code|script|syntax)[:\s]([^\n])", 0),
+            (r"(?:pip install|conda install|git clone|wget|curl|docker|singularity)\s\S", 0),
+            (r"(?:library\(|import\s\w|require\(|using\s\w)", 0),
         ]
 
         for pattern, flags in code_patterns:
@@ -432,9 +441,9 @@ class ProtocolTranspiler:
         """Extract in-text citations."""
         citations = []
         patterns = [
-            r"\([A-Z][a-z]+(?:\s+et\s+al\.?)?,\s*\d{4}[^)]*\)",
-            r"[A-Z][a-z]+(?:\s+et\s+al\.?)?\s*\(\d{4}\)",
-            r"\[\d+(?:[,–]\d+)*\]",
+            r"\([A-Z][a-z](?:\set\sal\.?)?,\s*\d{4}[^)]*\)",
+            r"[A-Z][a-z](?:\set\sal\.?)?\s*\(\d{4}\)",
+            r"\[\d(?:[,–]\d)*\]",
         ]
         for pattern in patterns:
             matches = re.findall(pattern, text)
@@ -444,12 +453,12 @@ class ProtocolTranspiler:
     def _extract_safety_notes(self, text: str) -> List[str]:
         """Extract safety-related information."""
         safety_phrases = [
-            r"(?:wear|use|put\s+on)\s+(?:gloves|goggles|lab\s+coat|PPE|face\s+shield|mask)",
-            r"(?:handle|work)\s+(?:with|in)\s+(?:carefully|cautiously|fume\s+hood|biosafety)",
+            r"(?:wear|use|put\son)\s(?:gloves|goggles|lab\scoat|PPE|face\sshield|mask)",
+            r"(?:handle|work)\s(?:with|in)\s(?:carefully|cautiously|fume\shood|biosafety)",
             r"(?:toxic|carcinogen|hazardous|flammable|corrosive|biohazard|radioactive)",
-            r"(?:dispose|discard|waste)\s+(?:properly|according|safely|in\s+appropriate)",
-            r"(?:autoclave|steriliz|decontaminat|bleach|ethanol\s+70)",
-            r"(?:MSDS|SDS|safety\s+data\s+sheet|biosafety\s+level|BSL-\d)",
+            r"(?:dispose|discard|waste)\s(?:properly|according|safely|in\sappropriate)",
+            r"(?:autoclave|steriliz|decontaminat|bleach|ethanol\s70)",
+            r"(?:MSDS|SDS|safety\sdata\ssheet|biosafety\slevel|BSL-\d)",
         ]
         notes = []
         for pattern in safety_phrases:
@@ -465,8 +474,8 @@ class ProtocolTranspiler:
             notes.append("⚠️ Handle hazardous material with appropriate PPE")
         if re.search(r"centrifug|high\s*speed|ultracentrifug", sentence, re.IGNORECASE):
             notes.append("⚠️ Balance tubes before centrifugation")
-        if re.search(r"(heat|incubat)\s+(?:to\s+)?(\d+)", sentence, re.IGNORECASE):
-            temp_match = re.search(r"(\d+)", sentence)
+        if re.search(r"(heat|incubat)\s(?:to\s)?(\d)", sentence, re.IGNORECASE):
+            temp_match = re.search(r"(\d)", sentence)
             if temp_match and int(temp_match.group(1)) > 60:
                 notes.append("⚠️ Use heat-resistant gloves for hot equipment")
         if re.search(r"(electrophoresis|gel|voltage|current)", sentence, re.IGNORECASE):
@@ -503,12 +512,12 @@ class ProtocolTranspiler:
     def _get_context(self, text: str, pos: int, window: int = 60) -> str:
         """Get surrounding context for a match."""
         start = max(0, pos - window)
-        end = min(len(text), pos + window)
+        end = min(len(text), pos  window)
         context = text[start:end].strip()
         if start > 0:
-            context = "..." + context
+            context = "..."  context
         if end < len(text):
-            context = context + "..."
+            context = context  "..."
         return context
 
     def format_protocol_text(self, protocol: Dict[str, Any]) -> str:
@@ -802,7 +811,7 @@ def render_lab_protocol_transpiler_ui():
             if code_blocks:
                 for i, cb in enumerate(code_blocks):
                     lang = cb.get("language", "text")
-                    with st.expander(f"Code Block {i+1} [{lang}]", expanded=(i == 0)):
+                    with st.expander(f"Code Block {i1} [{lang}]", expanded=(i == 0)):
                         st.code(cb["code"], language=lang if lang != "unknown" else "text")
             else:
                 st.info("No code blocks detected in the methodology text.")

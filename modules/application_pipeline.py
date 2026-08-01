@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Application Pipeline & Document Vault Module
 """
@@ -22,7 +31,7 @@ def render_pipeline_ui(operational_mode: str = "Kanban Board & Stage Analytics",
     st.title("📋 Enterprise Application Pipeline & Document Vault")
     st.markdown(f"**Current Operational Mode:** `{operational_mode}` | **Active Financial Denomination:** `{base_currency}`")
     
-    tab1, tab2, tab3 = st.tabs(["📊 Pipeline Records", "📁 Document Vault", "⚙️ Analytics & Risk Gates"])
+    tab1, tab2, tab3 = st.tabs([" Pipeline Records", "📁 Document Vault", "⚙️ Analytics & Risk Gates"])
     
     with tab1:
         st.subheader("Active Application Tracking")
@@ -53,7 +62,7 @@ def render_pipeline_ui(operational_mode: str = "Kanban Board & Stage Analytics",
 
     with tab3:
         st.subheader("AI Risk & Compliance Scoring Matrix")
-        st.metric(label="Overall System Compliance Score", value="94.2%", delta="+3.1%")
+        st.metric(label="Overall System Compliance Score", value="94.2%", delta="3.1%")
         st.progress(0.94)
         st.write("Automated AML / KYC verification screening completed with zero anomalies detected.")
 

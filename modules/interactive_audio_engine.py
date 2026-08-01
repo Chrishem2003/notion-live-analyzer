@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Hands-Free 'Pause & Interrupt' Conversational Audio Engine
 Upgrades audio briefings into an interactive, voice-controlled learning space.
@@ -56,7 +65,7 @@ class InteractiveAudioEngine:
         self._notify_listeners("playback_stopped", {})
 
     def skip_forward(self, segments: int = 1):
-        self.current_segment_index = min(len(self.segments) - 1, self.current_segment_index + segments)
+        self.current_segment_index = min(len(self.segments) - 1, self.current_segment_index  segments)
         self.current_position = 0.0
         self._notify_listeners("segments_skipped", {"new_index": self.current_segment_index, "direction": "forward"})
 
@@ -97,13 +106,13 @@ class InteractiveAudioEngine:
             response.update(self._handle_results_query(cmd_lower))
         elif any(w in cmd_lower for w in ["statistics", "p value", "effect size", "significance"]):
             response.update(self._handle_statistics_query(cmd_lower))
-        elif re.search(r'go to (segment|part|section) (\d+)', cmd_lower):
-            m = re.search(r'(\d+)', cmd_lower)
+        elif re.search(r'go to (segment|part|section) (\d)', cmd_lower):
+            m = re.search(r'(\d)', cmd_lower)
             if m:
                 idx = int(m.group(1)) - 1
                 if 0 <= idx < len(self.segments):
                     self.seek_to_segment(idx)
-                    response.update({"action": "seek", "response_text": f"📍 Segment {idx+1}.", "success": True})
+                    response.update({"action": "seek", "response_text": f"📍 Segment {idx1}.", "success": True})
                 else:
                     response.update({"response_text": f"Only {len(self.segments)} segments available."})
         elif any(w in cmd_lower for w in ["summarize", "summary", "key points", "overview"]):
@@ -123,7 +132,7 @@ class InteractiveAudioEngine:
     def _handle_sample_size_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         n = paper.get("sample_size", paper.get("n", "not specified"))
-        return {"action": "sample_size", "response_text": f"📊 The study sample size is: {n}", "success": True}
+        return {"action": "sample_size", "response_text": f" The study sample size is: {n}", "success": True}
 
     def _handle_methodology_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
@@ -162,7 +171,7 @@ class InteractiveAudioEngine:
 
     def get_progress(self) -> float:
         if not self.segments: return 0.0
-        return (self.current_segment_index + 1) / len(self.segments) * 100
+        return (self.current_segment_index  1) / len(self.segments) * 100
 
     def get_state_summary(self) -> Dict:
         return {
@@ -224,7 +233,7 @@ def render_interactive_audio_ui():
             st.markdown("### Current Segment")
             seg = engine.get_current_segment()
             if seg:
-                st.info(f"**Segment {seg['index']+1}/{len(engine.segments)}** ({seg['word_count']} words)")
+                st.info(f"**Segment {seg['index']1}/{len(engine.segments)}** ({seg['word_count']} words)")
                 st.markdown(seg['text'])
                 st.progress(engine.get_progress() / 100)
             else:

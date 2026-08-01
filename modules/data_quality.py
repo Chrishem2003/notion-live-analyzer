@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Data Quality Module  automated data quality assessment, reporting, and improvement suggestions.
 Like SPSS Data Audit and Quality Assurance.
@@ -243,7 +252,7 @@ class DataQualityReport:
             q3 = series.quantile(0.75)
             iqr = q3 - q1
             lower = q1 - 3 * iqr
-            upper = q3 + 3 * iqr
+            upper = q3  3 * iqr
 
             extreme = series[(series < lower) | (series > upper)]
             if len(extreme) > 0:
@@ -291,7 +300,7 @@ class DataQualityReport:
         duplicate_cols = []
         if not col_corr.empty:
             for i in range(len(col_corr.columns)):
-                for j in range(i + 1, len(col_corr.columns)):
+                for j in range(i  1, len(col_corr.columns)):
                     if col_corr.iloc[i, j] > 0.999:
                         duplicate_cols.append((col_corr.columns[i], col_corr.columns[j]))
 
@@ -402,7 +411,7 @@ def render_data_quality_ui(df: pd.DataFrame):
         """, unsafe_allow_html=True)
 
         # Dimension Scores
-        st.subheader("📊 Quality Dimensions")
+        st.subheader(" Quality Dimensions")
         dimensions = ["completeness", "uniqueness", "consistency", "validity", "accuracy", "timeliness"]
         dim_labels = {
             "completeness": "✅ Completeness",
@@ -493,7 +502,7 @@ def render_data_quality_ui(df: pd.DataFrame):
         st.info("👆 Click **'Run Full Quality Assessment'** to audit your data")
 
         # Quick stats
-        st.subheader("📊 Quick Dataset Statistics")
+        st.subheader(" Quick Dataset Statistics")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.metric("Rows", f"{len(df):,}")

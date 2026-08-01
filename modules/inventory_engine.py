@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 
@@ -43,7 +52,7 @@ def render_inventory_tab():
         rxn_count = st.number_input("Number of Reactions", min_value=1, max_value=384, value=10, step=1)
         waste_pct = st.slider("Excess Margin (%)", min_value=0, max_value=20, value=10, step=5)
         
-        effective_rxns = rxn_count * (1 + (waste_pct / 100.0))
+        effective_rxns = rxn_count * (1  (waste_pct / 100.0))
         
         buffer_vol = round(5.0 * effective_rxns, 2)
         dntp_vol = round(1.0 * effective_rxns, 2)
@@ -53,13 +62,13 @@ def render_inventory_tab():
         water_vol = round(15.75 * effective_rxns, 2)
         
         mm_df = pd.DataFrame([
-            {"Component": "Nuclease-Free Water", "Per Rxn (uL)": 15.75, f"Total ({rxn_count} rxns + {waste_pct}%)": water_vol},
-            {"Component": "10x Reaction Buffer", "Per Rxn (uL)": 5.00, f"Total ({rxn_count} rxns + {waste_pct}%)": buffer_vol},
-            {"Component": "dNTP Mix (10mM)", "Per Rxn (uL)": 1.00, f"Total ({rxn_count} rxns + {waste_pct}%)": dntp_vol},
-            {"Component": "Forward Primer (10uM)", "Per Rxn (uL)": 1.00, f"Total ({rxn_count} rxns + {waste_pct}%)": primer_f_vol},
-            {"Component": "Reverse Primer (10uM)", "Per Rxn (uL)": 1.00, f"Total ({rxn_count} rxns + {waste_pct}%)": primer_r_vol},
-            {"Component": "Taq DNA Polymerase", "Per Rxn (uL)": 0.25, f"Total ({rxn_count} rxns + {waste_pct}%)": taq_vol},
-            {"Component": "Total Master Mix Volume", "Per Rxn (uL)": 24.00, f"Total ({rxn_count} rxns + {waste_pct}%)": round(24.0 * effective_rxns, 2)}
+            {"Component": "Nuclease-Free Water", "Per Rxn (uL)": 15.75, f"Total ({rxn_count} rxns  {waste_pct}%)": water_vol},
+            {"Component": "10x Reaction Buffer", "Per Rxn (uL)": 5.00, f"Total ({rxn_count} rxns  {waste_pct}%)": buffer_vol},
+            {"Component": "dNTP Mix (10mM)", "Per Rxn (uL)": 1.00, f"Total ({rxn_count} rxns  {waste_pct}%)": dntp_vol},
+            {"Component": "Forward Primer (10uM)", "Per Rxn (uL)": 1.00, f"Total ({rxn_count} rxns  {waste_pct}%)": primer_f_vol},
+            {"Component": "Reverse Primer (10uM)", "Per Rxn (uL)": 1.00, f"Total ({rxn_count} rxns  {waste_pct}%)": primer_r_vol},
+            {"Component": "Taq DNA Polymerase", "Per Rxn (uL)": 0.25, f"Total ({rxn_count} rxns  {waste_pct}%)": taq_vol},
+            {"Component": "Total Master Mix Volume", "Per Rxn (uL)": 24.00, f"Total ({rxn_count} rxns  {waste_pct}%)": round(24.0 * effective_rxns, 2)}
         ])
         
         st.table(mm_df)

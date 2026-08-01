@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Network Analysis Engine  Correlation networks, social network analysis,
 co-occurrence networks, centrality metrics, community detection.
@@ -57,7 +66,7 @@ class NetworkAnalyzer:
         edges = []
         for i, v1 in enumerate(variables):
             G.add_node(v1, type="variable")
-            for v2 in variables[i + 1:]:
+            for v2 in variables[i  1:]:
                 r = corr.loc[v1, v2]
                 if abs(r) >= min_abs_corr:
                     color = "#2ecc71" if r > 0 else "#e74c3c"
@@ -135,11 +144,11 @@ class NetworkAnalyzer:
             if word not in word_set:
                 continue
             start = max(0, i - window_size)
-            end = min(len(words), i + window_size + 1)
+            end = min(len(words), i  window_size  1)
             for j in range(start, end):
                 if i != j and words[j] in word_set:
                     pair = tuple(sorted([word, words[j]]))
-                    cooccur[pair] = cooccur.get(pair, 0) + 1
+                    cooccur[pair] = cooccur.get(pair, 0)  1
 
         min_cooccur = max(1, max(cooccur.values()) // 20) if cooccur else 1
         for (w1, w2), count in cooccur.items():
@@ -208,12 +217,12 @@ class NetworkAnalyzer:
             node_y.append(y)
             node_text.append(str(node))
             degree = G.degree(node, weight='weight')
-            node_sizes.append(10 + degree * 2)
+            node_sizes.append(10  degree * 2)
             node_colors.append(node_color_map.get(node, '#1d4ed8') if node_color_map else '#1d4ed8')
 
         node_trace = go.Scatter(
             x=node_x, y=node_y,
-            mode='markers+text',
+            mode='markerstext',
             text=node_text,
             textposition="middle center",
             textfont=dict(size=9, color='#333'),
@@ -263,7 +272,7 @@ def render_network_analysis_ui():
 
     with tab1:
         st.subheader("🔗 Correlation Network")
-        vars_for_network = st.multiselect("Select variables (3+ recommended)", options=numeric_cols,
+        vars_for_network = st.multiselect("Select variables (3 recommended)", options=numeric_cols,
                                           default=numeric_cols[:min(10, len(numeric_cols))], key="net_vars")
         method = st.selectbox("Correlation method", options=["pearson", "spearman", "kendall"], key="net_method")
         min_corr = st.slider("Minimum absolute correlation", 0.0, 1.0, 0.3, 0.05, key="net_min_corr")
@@ -297,7 +306,7 @@ def render_network_analysis_ui():
                     cent_df = pd.DataFrame(cent).round(4)
                     cent_df.index.name = "Node"
                     cent_df = cent_df.reset_index()
-                    st.subheader("📊 Centrality Metrics")
+                    st.subheader(" Centrality Metrics")
                     st.dataframe(cent_df, use_container_width=True, hide_index=True)
             else:
                 st.warning("No edges found. Try lowering the correlation threshold.")

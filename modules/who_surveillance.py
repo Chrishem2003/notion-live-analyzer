@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import sqlite3
 import json
 import pandas as pd
@@ -47,7 +56,7 @@ def render_who_surveillance_tab():
                 st.rerun()
 
     with col2:
-        st.markdown("### 📊 Active WHO Surveillance Telemetry")
+        st.markdown("###  Active WHO Surveillance Telemetry")
         surv_df = pd.read_sql_query("SELECT * FROM who_surveillance_logs ORDER BY logged_at DESC", conn)
         if not surv_df.empty:
             st.dataframe(surv_df, use_container_width=True)

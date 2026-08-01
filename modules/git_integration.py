@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Native Git/Repository Integration  connects to GitHub repositories,
 enables data version control, script pushing, and collaborative analysis.
@@ -324,7 +333,7 @@ print(corr_matrix)
 # Find strong correlations
 strong = []
 for i in range(len(numeric_cols)):
-    for j in range(i+1, len(numeric_cols)):
+    for j in range(i1, len(numeric_cols)):
         r = corr_matrix.iloc[i, j]
         if abs(r) > 0.5:
             strong.append({{"var1": numeric_cols[i], "var2": numeric_cols[j], "r": r}})
@@ -508,7 +517,7 @@ def render_git_integration_ui():
 
         active_df = st.session_state.get("active_df")
         if active_df is not None and not active_df.empty:
-            st.info(f"📊 Current active dataset: {len(active_df)} rows × {len(active_df.columns)} columns")
+            st.info(f" Current active dataset: {len(active_df)} rows × {len(active_df.columns)} columns")
 
             col1, col2 = st.columns(2)
             with col1:

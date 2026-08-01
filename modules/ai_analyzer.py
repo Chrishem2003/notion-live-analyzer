@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 CHRISHEM Analyzer  automated data analysis, profiling, and insight generation.
 Provides smart test recommendations and natural language insights.
@@ -55,7 +64,7 @@ class CHRISHEMAnalyzer:
             type_summary[ctype].append(col)
 
         summary_lines = [
-            f"📊 **Dataset Overview**: {profile['rows']:,} rows × {profile['columns']} columns",
+            f" **Dataset Overview**: {profile['rows']:,} rows × {profile['columns']} columns",
             f"📦 **Memory Usage**: {profile['memory_usage'] / 1024:.1f} KB",
             f"⬜ **Missing Values**: {profile['missing_cells']:,} ({profile['missing_pct']}%)",
             f"🔁 **Duplicate Rows**: {profile['duplicate_rows']:,}",
@@ -185,7 +194,7 @@ class CHRISHEMAnalyzer:
         strong_pairs = []
 
         for i in range(len(corr_matrix.columns)):
-            for j in range(i + 1, len(corr_matrix.columns)):
+            for j in range(i  1, len(corr_matrix.columns)):
                 val = corr_matrix.iloc[i, j]
                 if val >= threshold:
                     strong_pairs.append({
@@ -200,7 +209,7 @@ class CHRISHEMAnalyzer:
         if len(strong_pairs) == 0:
             weakest = []
             for i in range(min(5, len(corr_matrix.columns))):
-                for j in range(i + 1, min(5, len(corr_matrix.columns))):
+                for j in range(i  1, min(5, len(corr_matrix.columns))):
                     val = abs(corr_matrix.iloc[i, j])
                     weakest.append({
                         "var1": corr_matrix.columns[i],
@@ -257,7 +266,7 @@ class CHRISHEMAnalyzer:
                         "test": "One-Way ANOVA",
                         "variables": [cat, numeric_cols[0]],
                         "description": f"Compare **{numeric_cols[0]}** across {n_groups} groups of **{cat}**",
-                        "when_to_use": f"Compare {numeric_cols[0]} across 3+ groups",
+                        "when_to_use": f"Compare {numeric_cols[0]} across 3 groups",
                         "prerequisites": "Normality within groups, equal variances",
                     })
 
@@ -339,7 +348,7 @@ class CHRISHEMAnalyzer:
                     skew = df[col].skew()
                     if abs(skew) > 1:
                         direction = "positively" if skew > 0 else "negatively"
-                        insights.append(f"📊 **{col}** is {direction} skewed ({skew:.2f})  consider log transformation")
+                        insights.append(f" **{col}** is {direction} skewed ({skew:.2f})  consider log transformation")
                 except Exception:
                     logger.warning("Skewness insight failed for column %r", col, exc_info=True)
 

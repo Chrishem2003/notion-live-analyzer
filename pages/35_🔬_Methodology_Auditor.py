@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Advanced Active Bias & Methodological Flaw Detector (Enterprise Edition v4.0)
 Comprehensive research audit engine featuring real-time statistical power analysis,
@@ -268,8 +277,8 @@ with tab_overview:
         st.markdown(f"- **Confounder Stress-Test Pipeline:** {status_confounder}")
         
         st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
-        st.markdown(r"**Selected Significance Constraint:** $\alpha = " + str(alpha_threshold) + r"$")
-        st.markdown(r"**Target Statistical Power Constraint:** $1 - \beta = " + str(power_target) + r"$")
+        st.markdown(r"**Selected Significance Constraint:** $\alpha = "  str(alpha_threshold)  r"$")
+        st.markdown(r"**Target Statistical Power Constraint:** $1 - \beta = "  str(power_target)  r"$")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with c2:
@@ -291,7 +300,7 @@ with tab_power:
     # Calculate estimated power approximation
     z_alpha = 1.96
     z_beta = (effect_size * math.sqrt(sample_size / 2)) - z_alpha
-    est_power = min(max(0.05, 1 / (1 + math.exp(-z_beta))), 0.999)
+    est_power = min(max(0.05, 1 / (1  math.exp(-z_beta))), 0.999)
     
     st.metric(label="Estimated Achieved Power", value=f"{est_power:.3f}", delta=f"{'Target Met' if est_power >= power_target else 'Below Target'}")
     st.progress(float(est_power))
@@ -307,7 +316,7 @@ with tab_bayesian:
     observed_p = st.number_input("Observed Sample p-value", value=0.045, min_value=0.0001, max_value=0.9999, step=0.001)
     
     # False Positive Risk (FPR) Calculation
-    fpr = (alpha_threshold * (1 - prior_h1)) / ((alpha_threshold * (1 - prior_h1)) + (power_target * prior_h1))
+    fpr = (alpha_threshold * (1 - prior_h1)) / ((alpha_threshold * (1 - prior_h1))  (power_target * prior_h1))
     
     st.metric(label="False Positive Risk (FPR)", value=f"{fpr * 100:.2f}%", delta="Probability that H1 is a false positive")
     st.markdown("</div>", unsafe_allow_html=True)

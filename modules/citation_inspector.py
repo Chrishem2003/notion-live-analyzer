@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Real-Time Citation Integrity & Retraction Inspector
 Audits paper bibliographies against live databases to protect researchers
@@ -121,9 +130,9 @@ class CitationInspector:
             r["paper_id"] = paper.get("id")
             r["paper_title"] = paper.get("title", "")
             results.append(r)
-            if r["status"] == "retracted": retracted_count += 1
-            elif r["status"] != "clean": flagged_count += 1
-            else: clean_count += 1
+            if r["status"] == "retracted": retracted_count = 1
+            elif r["status"] != "clean": flagged_count = 1
+            else: clean_count = 1
         return {
             "total_checked": len(papers),
             "clean": clean_count, "flagged": flagged_count, "retracted": retracted_count,
@@ -151,7 +160,7 @@ def render_citation_inspector_ui():
     st.markdown("## 🚨 Citation Integrity & Retraction Inspector")
     st.markdown("*Audits references against live databases to protect against citing discredited work*")
 
-    tab1, tab2, tab3 = st.tabs(["🔍 Single Citation Check", "📚 Bibliography Audit", "📊 Dashboard"])
+    tab1, tab2, tab3 = st.tabs(["🔍 Single Citation Check", "📚 Bibliography Audit", " Dashboard"])
 
     inspector = CitationInspector()
 
@@ -241,7 +250,7 @@ def render_citation_inspector_ui():
                         """, unsafe_allow_html=True)
 
     with tab3:
-        st.subheader("📊 Citation Health Dashboard")
+        st.subheader(" Citation Health Dashboard")
         audit = st.session_state.get("citation_audit")
         if audit and audit.get("results"):
             results = audit["results"]

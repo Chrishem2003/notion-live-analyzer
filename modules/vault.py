@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import hashlib
 import time
@@ -38,7 +47,7 @@ def render_secure_vault():
                 st.success("Vault access granted.")
                 st.rerun()
             else:
-                st.session_state.failed_attempts += 1
+                st.session_state.failed_attempts = 1
                 log_backend_event("WARN", f"Failed vault unlock attempt ({st.session_state.failed_attempts}/3).")
                 if st.session_state.failed_attempts >= 3:
                     st.session_state.lockout_time = time.time()

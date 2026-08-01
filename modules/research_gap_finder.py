@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Novelty & Unexplored Research Gap Finder
 A cross-synthesis engine that analyzes clusters of papers to identify unaddressed
@@ -28,20 +37,20 @@ class ResearchGapFinder:
 
     GAP_INDICATORS = [
         r"(?:however|nevertheless|nonetheless|yet|but|although|despite)",
-        r"(?:limited|insufficient|inadequate|scarce|sparse|lacking)\s+(?:research|evidence|studies|data|knowledge)",
-        r"(?:further|future|additional|more)\s+(?:research|studies|investigation|examination|exploration)",
-        r"(?:unclear|unknown|not\s+well\s+understood|poorly\s+understood|remains\s+elusive)",
-        r"(?:warrant|require|need|calls?\s+for)\s+(?:further|future|additional)\s+(?:research|study|investigation)",
-        r"(?:has\s+not\s+been\s+(?:examined|studied|explored|investigated|addressed))",
-        r"(?:open\s+question|unanswered\s+question|outstanding\s+question|research\s+gap)",
-        r"(?:little\s+is\s+known|not\s+much\s+is\s+known|remains\s+to\s+be\s+determined)",
+        r"(?:limited|insufficient|inadequate|scarce|sparse|lacking)\s(?:research|evidence|studies|data|knowledge)",
+        r"(?:further|future|additional|more)\s(?:research|studies|investigation|examination|exploration)",
+        r"(?:unclear|unknown|not\swell\sunderstood|poorly\sunderstood|remains\selusive)",
+        r"(?:warrant|require|need|calls?\sfor)\s(?:further|future|additional)\s(?:research|study|investigation)",
+        r"(?:has\snot\sbeen\s(?:examined|studied|explored|investigated|addressed))",
+        r"(?:open\squestion|unanswered\squestion|outstanding\squestion|research\sgap)",
+        r"(?:little\sis\sknown|not\smuch\sis\sknown|remains\sto\sbe\sdetermined)",
     ]
 
     CONTRADICTION_PHRASES = [
-        r"(?:in\s+contrast|contrary|conflicting|contradict|discrepancy|inconsistent)",
-        r"(?:however|conversely|on\s+the\s+other\s+hand|yet)",
-        r"(?:while\s+some|whereas|although)",
-        r"(?:differ(?:ent|ing)|divergent|disparate)\s+(?:results?|findings?|conclusions?|outcomes?)",
+        r"(?:in\scontrast|contrary|conflicting|contradict|discrepancy|inconsistent)",
+        r"(?:however|conversely|on\sthe\sother\shand|yet)",
+        r"(?:while\ssome|whereas|although)",
+        r"(?:differ(?:ent|ing)|divergent|disparate)\s(?:results?|findings?|conclusions?|outcomes?)",
         r"(?:debate|controversy|disagreement|unresolved)",
     ]
 
@@ -115,7 +124,7 @@ class ResearchGapFinder:
         all_domains = {}
         for paper in corpus:
             domain = paper.get("domain", "general")
-            all_domains[domain] = all_domains.get(domain, 0) + 1
+            all_domains[domain] = all_domains.get(domain, 0)  1
         return dict(sorted(all_domains.items(), key=lambda x: -x[1]))
 
     def _identify_gaps(self, corpus: List[Dict]) -> List[Dict]:
@@ -125,7 +134,7 @@ class ResearchGapFinder:
 
         for paper in corpus:
             text = paper["text"]
-            sentences = re.split(r'[.!?]\s+', text)
+            sentences = re.split(r'[.!?]\s', text)
 
             for sent in sentences:
                 sent_lower = sent.lower().strip()
@@ -152,11 +161,11 @@ class ResearchGapFinder:
     def _generate_gap_label(self, text: str) -> str:
         """Generate a concise label for a research gap."""
         patterns = [
-            r"(?:role|effect|impact|relationship|association|mechanism)\s+of\s+([^,;]+)",
-            r"(?:limited|insufficient|lack of)\s+(?:research|evidence|studies|data|knowledge)\s+on\s+([^,;]+)",
-            r"(?:further|more)\s+(?:research|studies)\s+(?:is\s+)?(?:needed|required|warranted)\s+(?:to\s+)?(?:understand|examine|determine|investigate|elucidate|clarify)\s+([^,;]+)",
-            r"(?:unknown|unclear|not well understood)\s+(?:are|is|the)\s+([^,;]+)",
-            r"(?:how|what|whether|why)\s+([^,;?]+)",
+            r"(?:role|effect|impact|relationship|association|mechanism)\sof\s([^,;])",
+            r"(?:limited|insufficient|lack of)\s(?:research|evidence|studies|data|knowledge)\son\s([^,;])",
+            r"(?:further|more)\s(?:research|studies)\s(?:is\s)?(?:needed|required|warranted)\s(?:to\s)?(?:understand|examine|determine|investigate|elucidate|clarify)\s([^,;])",
+            r"(?:unknown|unclear|not well understood)\s(?:are|is|the)\s([^,;])",
+            r"(?:how|what|whether|why)\s([^,;?])",
         ]
         for pattern in patterns:
             m = re.search(pattern, text)
@@ -184,12 +193,12 @@ class ResearchGapFinder:
     def _estimate_gap_confidence(self, text: str) -> float:
         """Estimate confidence that this is a genuine research gap (0-1)."""
         score = 0.5
-        if re.search(r"(?:research\s+gap|unanswered\s+question|has\s+not\s+been)", text):
-            score += 0.3
-        if re.search(r"(?:warrant|require|need|calls?\s+for)\s+(?:further|future)", text):
-            score += 0.2
-        if re.search(r"(?:unknown|unclear|poorly\s+understood)", text):
-            score += 0.15
+        if re.search(r"(?:research\sgap|unanswered\squestion|has\snot\sbeen)", text):
+            score = 0.3
+        if re.search(r"(?:warrant|require|need|calls?\sfor)\s(?:further|future)", text):
+            score = 0.2
+        if re.search(r"(?:unknown|unclear|poorly\sunderstood)", text):
+            score = 0.15
         return min(1.0, round(score, 2))
 
     def _detect_conflicts(self, corpus: List[Dict]) -> List[Dict]:
@@ -231,12 +240,12 @@ class ResearchGapFinder:
     def _extract_findings(self, text: str) -> List[str]:
         """Extract key findings from text."""
         findings = []
-        sentences = re.split(r'[.!?]\s+', text)
+        sentences = re.split(r'[.!?]\s', text)
         finding_indicators = [
             r"\b(found|observed|discovered|demonstrated|showed|revealed|identified|detected|reported)\b",
             r"\b(significant|significantly|increased|decreased|associated|correlated|predicted)\b",
-            r"\b(results?\s+(?:indicate|suggest|demonstrate|show|reveal))\b",
-            r"\b(these\s+(?:data|findings|results|observations)\s+(?:indicate|suggest|demonstrate))\b",
+            r"\b(results?\s(?:indicate|suggest|demonstrate|show|reveal))\b",
+            r"\b(these\s(?:data|findings|results|observations)\s(?:indicate|suggest|demonstrate))\b",
         ]
         for sent in sentences:
             sent_lower = sent.lower().strip()
@@ -267,18 +276,18 @@ class ResearchGapFinder:
             has_pos2 = bool(re.search(pos_pattern, finding2, re.IGNORECASE))
             has_neg2 = bool(re.search(neg_pattern, finding2, re.IGNORECASE))
             if (has_pos1 and has_neg2) or (has_neg1 and has_pos2):
-                score += 0.3
+                score = 0.3
         for phrase in self.CONTRADICTION_PHRASES:
             if re.search(phrase, finding1, re.IGNORECASE) or re.search(phrase, finding2, re.IGNORECASE):
-                score += 0.2
+                score = 0.2
                 break
         return min(1.0, score)
 
     def _suggest_resolution(self, finding1: str, finding2: str) -> str:
         """Suggest how to resolve conflicting findings."""
         suggestions = []
-        if re.search(r"\b(mice|rats|animal|in\s+vitro)\b", finding1) and \
-           re.search(r"\b(human|patient|in\s+vivo|clinical)\b", finding2):
+        if re.search(r"\b(mice|rats|animal|in\svitro)\b", finding1) and \
+           re.search(r"\b(human|patient|in\svivo|clinical)\b", finding2):
             suggestions.append("Model system differences (in vitro vs in vivo / animal vs human)")
         if not suggestions:
             suggestions.append("Consider a systematic review or meta-analysis to reconcile findings")
@@ -336,7 +345,7 @@ class ResearchGapFinder:
         gap_score = min(1.0, n_gaps * 0.1)
         conflict_score = min(1.0, n_conflicts * 0.15)
         hypothesis_score = min(1.0, n_hypotheses * 0.08)
-        overall = round((gap_score * 0.4 + conflict_score * 0.35 + hypothesis_score * 0.25) * 100, 1)
+        overall = round((gap_score * 0.4  conflict_score * 0.35  hypothesis_score * 0.25) * 100, 1)
         label = "Highly Novel" if overall >= 75 else "Novel" if overall >= 50 else "Moderately Novel" if overall >= 25 else "Low Novelty"
         return {"overall_novelty": overall, "label": label, "gap_density": round(gap_score*100,1),
                 "conflict_density": round(conflict_score*100,1), "hypothesis_potential": round(hypothesis_score*100,1)}
@@ -359,7 +368,7 @@ class ResearchGapFinder:
              "key_gaps": [g.get("label","") for g in gaps[:3]], "word_count": 300},
             {"title": "Research Questions & Hypotheses",
              "prompt": "Based on identified gaps, the following research questions are proposed:",
-             "questions": [f"RQ{i+1}: {h.get('hypothesis','')[:100]}" for i, h in enumerate(unexplored[:3])],
+             "questions": [f"RQ{i1}: {h.get('hypothesis','')[:100]}" for i, h in enumerate(unexplored[:3])],
              "word_count": 200},
             {"title": "Methodology",
              "prompt": self._suggest_approach(domain),
@@ -460,16 +469,16 @@ def render_research_gap_finder_ui():
         st.subheader(" Identified Research Gaps")
         for i, gap in enumerate(results.get("gaps",[])):
             conf_pct = int(gap.get("confidence",0.5)*100)
-            st.info(f"**Gap {i+1}: {gap.get('label','')}** (Conf: {conf_pct}% | Cat: {gap.get('category','theoretical')})\n\n{gap.get('evidence','')[:200]}")
+            st.info(f"**Gap {i1}: {gap.get('label','')}** (Conf: {conf_pct}% | Cat: {gap.get('category','theoretical')})\n\n{gap.get('evidence','')[:200]}")
 
         st.subheader(" Conflicting Findings")
         for i, c in enumerate(results.get("conflicting_findings",[])):
-            st.warning(f"**Conflict {i+1}** - {c.get('source_1','')} vs {c.get('source_2','')}\n\n{c.get('finding_1','')[:100]}...\n\n{c.get('finding_2','')[:100]}...\n\n*Resolution: {c.get('resolution_needed','')}*")
+            st.warning(f"**Conflict {i1}** - {c.get('source_1','')} vs {c.get('source_2','')}\n\n{c.get('finding_1','')[:100]}...\n\n{c.get('finding_2','')[:100]}...\n\n*Resolution: {c.get('resolution_needed','')}*")
 
         st.subheader(" Unexplored Hypotheses")
         for i, h in enumerate(results.get("unexplored_hypotheses",[])[:8]):
             conf_pct = int(h.get("confidence",0.5)*100)
-            st.info(f"**H{i+1}:** {h.get('hypothesis','')[:200]}\n\n*Approach: {h.get('proposed_approach','')[:150]}*")
+            st.info(f"**H{i1}:** {h.get('hypothesis','')[:200]}\n\n*Approach: {h.get('proposed_approach','')[:150]}*")
 
     with tab3:
         results = st.session_state.get("_gap_analysis_results")

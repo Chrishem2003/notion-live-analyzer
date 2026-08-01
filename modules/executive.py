@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -12,8 +21,8 @@ def render_executive_summary():
 
     # Executive KPIs
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("System Uptime", "99.99%", "+0.01%")
-    col2.metric("Active Sessions", "14", "+3")
+    col1.metric("System Uptime", "99.99%", "0.01%")
+    col2.metric("Active Sessions", "14", "3")
     col3.metric("Vault Security", "AES-256", "Protected")
     col4.metric("Threat Mitigation", "0 Breaches", "100% Secure")
 

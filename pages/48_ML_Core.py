@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import numpy as np
 import plotly.express as px
@@ -11,7 +20,7 @@ col2.metric("PINN Energy Residual", "0.000412")
 col3.metric("BSTS Uncertainty Envelope", "±2.4%")
 
 t = np.linspace(0, 10, 100)
-trajectory = np.sin(t) * np.exp(-0.1 * t) + np.random.normal(0, 0.05, 100)
+trajectory = np.sin(t) * np.exp(-0.1 * t)  np.random.normal(0, 0.05, 100)
 fig = px.line(x=t, y=trajectory, labels={'x': 'Time Horizon', 'y': 'Latent State'}, title="Continuous-Time Neural ODE Trajectory")
 fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 st.plotly_chart(fig, use_container_width=True)

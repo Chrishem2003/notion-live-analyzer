@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Automated Feature Engineering  Interaction term discovery, polynomial features,
 binning, text extraction, date decomposition, and auto feature selection.
@@ -53,7 +62,7 @@ class FeatureEngineer:
         y = df[target].fillna(df[target].median())
 
         for i, v1 in enumerate(top_vars):
-            for v2 in top_vars[i + 1:]:
+            for v2 in top_vars[i  1:]:
                 interaction = df[v1] * df[v2]
                 valid = interaction.notna()
                 if valid.sum() < 10:
@@ -91,7 +100,7 @@ class FeatureEngineer:
         """Generate polynomial features up to specified degree."""
         result = df.copy()
         for col in columns:
-            for degree in range(2, max_degree + 1):
+            for degree in range(2, max_degree  1):
                 new_col = f"{col}^{degree}"
                 result[new_col] = df[col] ** degree
         return result
@@ -234,7 +243,7 @@ def render_feature_engineering_ui():
     cat_cols = text_columns(df)
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "🔗 Interactions", "📐 Polynomials", "📊 Binning",
+        "🔗 Interactions", "📐 Polynomials", " Binning",
         "📅 Date Features", "🎯 Feature Selection"
     ])
 
@@ -262,11 +271,11 @@ def render_feature_engineering_ui():
             st.dataframe(result[new_features].head(10), use_container_width=True)
 
     with tab3:
-        st.subheader("📊 Binning / Discretization")
+        st.subheader(" Binning / Discretization")
         bin_col = st.selectbox("Column to bin", options=numeric_cols, key="fe_bin_col")
         bin_method = st.selectbox("Binning method", options=["quantile", "uniform", "entropy"], key="fe_bin_method")
         n_bins = st.slider("Number of bins", 2, 10, 4, key="fe_n_bins")
-        if st.button("📊 Apply Binning", type="primary", use_container_width=True):
+        if st.button(" Apply Binning", type="primary", use_container_width=True):
             binned = engine.auto_bin(df, bin_col, bin_method, n_bins)
             st.success(f"✅ Binned into {binned.nunique()} bins")
             st.dataframe(binned.value_counts().reset_index(), use_container_width=True)
@@ -274,7 +283,7 @@ def render_feature_engineering_ui():
     with tab4:
         st.subheader("📅 Date Feature Extraction")
         date_cols = [c for c in df.columns if 'date' in c.lower() or 'time' in c.lower()]
-        date_col = st.selectbox("Date column", options=date_cols + [c for c in df.columns], key="fe_date_col")
+        date_col = st.selectbox("Date column", options=date_cols  [c for c in df.columns], key="fe_date_col")
         if st.button("📅 Extract Date Features", type="primary", use_container_width=True):
             result = engine.extract_date_features(df, date_col)
             new_features = [c for c in result.columns if c not in df.columns and date_col in c]

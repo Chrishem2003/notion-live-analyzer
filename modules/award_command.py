@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 import random
@@ -26,7 +35,7 @@ def render_award_command_panel():
     # Metric Banners
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric(label="System Health", value="100.0%", delta="+0.02%")
+        st.metric(label="System Health", value="100.0%", delta="0.02%")
     with col2:
         st.metric(label="Active Nodes", value="4 Global", delta="Synchronized")
     with col3:

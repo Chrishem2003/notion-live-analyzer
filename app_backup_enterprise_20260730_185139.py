@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import datetime
 import io
 import json
@@ -62,9 +71,9 @@ def init_db():
     cursor.execute("""
         INSERT OR IGNORE INTO analyst_contacts (analyst_name, org_email, contact_phone, clearance_level, primary_sector, vault_hash)
         VALUES 
-        ('Kula Chris', 'chrishem@sovereign.org', '+256 700 000000', 'Tier-1 Lead Architect', 'Economics & Sovereign Risk', 'HASH-SOV-999'),
-        ('Dr. Matsiko', 'matsiko@muni.ac.ug', '+256 772 111222', 'Chief Scientific Director', 'Bioinformatics & Systems', 'HASH-SCI-888'),
-        ('Ocircan Darius', 'darius@sovereign.org', '+256 750 333444', 'Senior Policy Analyst', 'Infrastructure & Grid', 'HASH-POL-777')
+        ('Kula Chris', 'chrishem@sovereign.org', '256 700 000000', 'Tier-1 Lead Architect', 'Economics & Sovereign Risk', 'HASH-SOV-999'),
+        ('Dr. Matsiko', 'matsiko@muni.ac.ug', '256 772 111222', 'Chief Scientific Director', 'Bioinformatics & Systems', 'HASH-SCI-888'),
+        ('Ocircan Darius', 'darius@sovereign.org', '256 750 333444', 'Senior Policy Analyst', 'Infrastructure & Grid', 'HASH-POL-777')
     """)
     conn.commit()
     return conn
@@ -126,7 +135,7 @@ st.markdown("""
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrainsMono:wght@400;500&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; color: #F8FAFC !important; }
     .stApp { background: linear-gradient(135deg, #070B14 0%, #0F172A 50%, #070B14 100%); background-attachment: fixed; }
     .glass-container {
@@ -224,7 +233,7 @@ t_max = st.sidebar.slider("Forecast Horizon (Steps)", 50, 500, 200, 10)
 def default_ode(state, t, a, b, c, shock_val):
     x, y, z = state
     shock = shock_val if (0.45 * t_max <= t <= 0.55 * t_max) else 0.0
-    dxdt = x - z - (y - a) * x + shock
+    dxdt = x - z - (y - a) * x  shock
     dydt = 1 - b * y - x ** 2
     dzdt = x - c * z
     return [dxdt, dydt, dzdt]
@@ -243,10 +252,10 @@ solution = _solve(default_ode, initial_state, t, args=(a, b, c, policy_shock))
 x_traj, y_traj, z_traj = solution[:, 0], solution[:, 1], solution[:, 2]
 
 # Numerical Stability Metrics
-perturbation_growth = np.abs(np.gradient(x_traj)) + 1e-5
-mlce_heuristic = float(np.mean(np.log(perturbation_growth + 1e-5)) / (t[1] - t[0]))
+perturbation_growth = np.abs(np.gradient(x_traj))  1e-5
+mlce_heuristic = float(np.mean(np.log(perturbation_growth  1e-5)) / (t[1] - t[0]))
 max_volatility = float(np.std(x_traj))
-risk_score = min(100.0, max(0.0, (mlce_heuristic + 0.5) * 40 + max_volatility * 15))
+risk_score = min(100.0, max(0.0, (mlce_heuristic  0.5) * 40  max_volatility * 15))
 
 # Decision Recommendation Engine
 if risk_score < 35.0:

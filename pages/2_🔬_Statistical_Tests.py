@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # STATISTICAL TESTS WORKSPACE (WORLD-CLASS ENTERPRISE EDITION)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -440,7 +449,7 @@ elif test_name == "Fisher's Exact Test":
     st.warning("Need at least 2 categorical variables.")
 
 elif test_name == "McNemar's Test":
-  available = binary_cats + bool_cols
+  available = binary_cats  bool_cols
   if len(available) >= 2:
     before = st.selectbox("Before / Condition 1", options=available)
     after = st.selectbox(
@@ -548,7 +557,7 @@ elif test_name == "Linear Regression":
     )
 
     if features and st.button("▶️ Run Linear Regression", type="primary"):
-      sub = active_df[[target] + features].dropna()
+      sub = active_df[[target]  features].dropna()
       X = sm_add_constant = sub[features]
       y = sub[target]
 
@@ -692,7 +701,7 @@ elif test_name == "Wilcoxon Signed-Rank":
 elif test_name == "Friedman Test":
   if len(numeric_cols) >= 3:
     measures = st.multiselect(
-        "Select 3+ related samples",
+        "Select 3 related samples",
         options=numeric_cols,
         default=numeric_cols[: min(3, len(numeric_cols))],
     )

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 World-Class Dynamic Hypothesis & Parameter Simulator
 Enterprise-grade computational modeling and exploratory simulation engine featuring real-time
@@ -224,7 +233,7 @@ else:
         drift = 0.05
         volatility = 0.2
         stochastic_shocks = np.random.normal(0, 1, 100)
-        paths[:, i] = np.exp((drift - 0.5 * volatility**2) * time_steps + volatility * np.sqrt(time_steps) * stochastic_shocks)
+        paths[:, i] = np.exp((drift - 0.5 * volatility**2) * time_steps  volatility * np.sqrt(time_steps) * stochastic_shocks)
     
     st.line_chart(paths)
     

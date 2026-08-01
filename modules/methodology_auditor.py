@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Active Bias & Methodological Flaw Detector  AI-driven "Peer Reviewer"
 Critically audits research methodology sections, sample sizes, experimental setups.
@@ -40,11 +49,11 @@ METHODOLOGY_FLAWS = {
         "severity": "high",
         "weight": 25,
         "patterns": [
-            r"\b[NSn]\s*=\s*(\d+)\b",
-            r"\bsample\s+(?:size|n)\s*(?::|was|of|indicated)?\s*(\d+)",
-            r"\b(n|N)\s*=\s*(\d+)\b",
-            r"\bparticipants?\s*\(?\s*[NSn]\s*=\s*(\d+)",
-            r"\btotal\s+(?:of\s+)?(\d+)\s+(?:participants?|subjects?|patients?|samples?)",
+            r"\b[NSn]\s*=\s*(\d)\b",
+            r"\bsample\s(?:size|n)\s*(?::|was|of|indicated)?\s*(\d)",
+            r"\b(n|N)\s*=\s*(\d)\b",
+            r"\bparticipants?\s*\(?\s*[NSn]\s*=\s*(\d)",
+            r"\btotal\s(?:of\s)?(\d)\s(?:participants?|subjects?|patients?|samples?)",
         ],
         "recommendation": "Consider power analysis to justify sample size. Small samples (N < 30 per group) may produce unstable estimates and low statistical power.",
     },
@@ -53,10 +62,10 @@ METHODOLOGY_FLAWS = {
         "severity": "medium",
         "weight": 15,
         "patterns": [
-            r"\bpower\s+(?:analysis|calculation|estimation)",
-            r"\bsample\s+size\s+(?:justification|determination|calculation)",
-            r"\bstatistical\s+power\b",
-            r"\bpost[- ]?hoc\s+power\b",
+            r"\bpower\s(?:analysis|calculation|estimation)",
+            r"\bsample\ssize\s(?:justification|determination|calculation)",
+            r"\bstatistical\spower\b",
+            r"\bpost[- ]?hoc\spower\b",
         ],
         "recommendation": "Report an a priori power analysis to justify sample size. Include expected effect size, alpha, power (typically 0.80), and calculated N.",
     },
@@ -65,11 +74,11 @@ METHODOLOGY_FLAWS = {
         "severity": "high",
         "weight": 20,
         "patterns": [
-            r"\bconfound(?:ing)?\s+(?:variable|factor|effect)",
+            r"\bconfound(?:ing)?\s(?:variable|factor|effect)",
             r"\bcovariate\b",
-            r"\bcontrolling\s+for\b",
-            r"\badjusted\s+for\b",
-            r"\bpropensity\s+score\b",
+            r"\bcontrolling\sfor\b",
+            r"\badjusted\sfor\b",
+            r"\bpropensity\sscore\b",
             r"\bmatching\b",
         ],
         "recommendation": "Identify and measure potential confounders. Use multivariate methods (ANCOVA, multiple regression, propensity scores) to control for confounding.",
@@ -79,12 +88,12 @@ METHODOLOGY_FLAWS = {
         "severity": "high",
         "weight": 25,
         "patterns": [
-            r"\bmultiple\s+(?:comparisons?|tests?|analyses)",
+            r"\bmultiple\s(?:comparisons?|tests?|analyses)",
             r"\bdata[- ]?driven\b",
-            r"\bexploratory\s+(?:analysis|findings)",
-            r"\bpost[- ]?hoc\s+(?:analysis|comparisons)",
-            r"\bsubgroup\s+(?:analysis|analyses)",
-            r"\bstepwise\s+(?:regression|selection)",
+            r"\bexploratory\s(?:analysis|findings)",
+            r"\bpost[- ]?hoc\s(?:analysis|comparisons)",
+            r"\bsubgroup\s(?:analysis|analyses)",
+            r"\bstepwise\s(?:regression|selection)",
         ],
         "recommendation": "Preregister analyses. Apply multiple comparison corrections (Bonferroni, FDR). Clearly distinguish confirmatory vs exploratory analyses.",
     },
@@ -93,13 +102,13 @@ METHODOLOGY_FLAWS = {
         "severity": "medium",
         "weight": 18,
         "patterns": [
-            r"\bconvenience\s+sample\b",
+            r"\bconvenience\ssample\b",
             r"\bself[- ]?selected?\b",
-            r"\bvolunteer\s+(?:bias|sample)",
-            r"\bnon[- ]?random\s+(?:assignment|selection|sampling)",
+            r"\bvolunteer\s(?:bias|sample)",
+            r"\bnon[- ]?random\s(?:assignment|selection|sampling)",
             r"\battrition\b",
-            r"\bloss\s+to\s+follow[- ]?up\b",
-            r"\bexclusion\s+(?:criteria|criterion)",
+            r"\bloss\sto\sfollow[- ]?up\b",
+            r"\bexclusion\s(?:criteria|criterion)",
         ],
         "recommendation": "Describe sampling strategy and inclusion/exclusion criteria. Discuss potential selection biases and their direction of effect on results.",
     },
@@ -108,10 +117,10 @@ METHODOLOGY_FLAWS = {
         "severity": "high",
         "weight": 22,
         "patterns": [
-            r"\brandom(?:ly|ization|ized|ly\s+assigned|ly\s+allocated)?",
-            r"\brandom\s+(?:assignment|allocation|selection|sampling)",
+            r"\brandom(?:ly|ization|ized|ly\sassigned|ly\sallocated)?",
+            r"\brandom\s(?:assignment|allocation|selection|sampling)",
             r"\bRCT\b",
-            r"\brandomized\s+controlled\s+trial\b",
+            r"\brandomized\scontrolled\strial\b",
         ],
         "recommendation": "Use random assignment to groups to control for unknown confounders. If randomization is not possible, acknowledge limitations and consider quasi-experimental designs.",
     },
@@ -124,7 +133,7 @@ METHODOLOGY_FLAWS = {
             r"\bmask(?:ed|ing)?\b",
             r"\bdouble[- ]?blin(?:d|ded)\b",
             r"\bsingle[- ]?blin(?:d|ded)\b",
-            r"\bplacebo\s+(?:controlled|group)",
+            r"\bplacebo\s(?:controlled|group)",
         ],
         "recommendation": "Implement blinding where possible (single-blind, double-blind). If not feasible, discuss potential observer/participant bias.",
     },
@@ -136,9 +145,9 @@ METHODOLOGY_FLAWS = {
             r"\b(?:Cohens?\s*[dD]|[dD]\s*=)",
             r"\beta[- ]?squared\b",
             r"\b(?:\u03b7|\u03b7)²\b",
-            r"\bpartial\s+\u03b7²\b",
-            r"\b(?:odds\s+ratio|OR|risk\s+ratio|RR|hazards?\s+ratio|HR)",
-            r"\beffect\s+size\b",
+            r"\bpartial\s\u03b7²\b",
+            r"\b(?:odds\sratio|OR|risk\sratio|RR|hazards?\sratio|HR)",
+            r"\beffect\ssize\b",
         ],
         "recommendation": "Report effect sizes with confidence intervals for all primary analyses (Cohen's d, η², r, OR, etc.) as recommended by APA 7th edition.",
     },
@@ -147,11 +156,11 @@ METHODOLOGY_FLAWS = {
         "severity": "low",
         "weight": 8,
         "patterns": [
-            r"\b(?:normality|normal\s+distribution)\s+(?:test|check|assumpt|verified)",
+            r"\b(?:normality|normal\sdistribution)\s(?:test|check|assumpt|verified)",
             r"\bShapiro[- ]?Wilk\b",
             r"\bKolmogorov[- ]?Smirnov\b",
-            r"\bQ[- ]?Q\s+plot\b",
-            r"\bskewness\s+(?:and\s+)?kurtosis\b",
+            r"\bQ[- ]?Q\splot\b",
+            r"\bskewness\s(?:and\s)?kurtosis\b",
         ],
         "recommendation": "Test parametric assumptions (normality, homoscedasticity) and report results. If violated, use robust alternatives or transformations.",
     },
@@ -163,10 +172,10 @@ METHODOLOGY_FLAWS = {
             r"\bBonferroni\b",
             r"\bFDR\b",
             r"\bHolm(?:[- ]Bonferroni)?\b",
-            r"\bTukey(?:['\u2019]s?\s+HSD)?\b",
+            r"\bTukey(?:['\u2019]s?\sHSD)?\b",
             r"\bSidak\b",
             r"\bBenjamini[- ]?Hochberg\b",
-            r"\bmultiple\s+(?:comparison|testing|test)\s+(?:correction|adjustment)",
+            r"\bmultiple\s(?:comparison|testing|test)\s(?:correction|adjustment)",
         ],
         "recommendation": "Apply correction for multiple comparisons (Bonferroni, FDR, Tukey HSD). Report both adjusted and unadjusted results transparently.",
     },
@@ -175,11 +184,11 @@ METHODOLOGY_FLAWS = {
         "severity": "medium",
         "weight": 14,
         "patterns": [
-            r"\b(?:attrition|dropout|withdrawal|completion)\s+rate\b",
-            r"\blost\s+to\s+follow[- ]?up\b",
-            r"\b(?:number\s+of\s+)?completers?\b",
-            r"\b(?:retention|completion)\s+rate\b",
-            r"\b(?:excluded|removed)\s+\d+\s+participants?\b",
+            r"\b(?:attrition|dropout|withdrawal|completion)\srate\b",
+            r"\blost\sto\sfollow[- ]?up\b",
+            r"\b(?:number\sof\s)?completers?\b",
+            r"\b(?:retention|completion)\srate\b",
+            r"\b(?:excluded|removed)\s\d\sparticipants?\b",
         ],
         "recommendation": "Report attrition rates and reasons for dropout. Conduct sensitivity analysis comparing completers vs non-completers.",
     },
@@ -188,11 +197,11 @@ METHODOLOGY_FLAWS = {
         "severity": "low",
         "weight": 10,
         "patterns": [
-            r"\b(?:data|code|materials?)\s+(?:availability|shared|available|repository)",
-            r"\b(?:open\s+science|preregist(?:er|ration)|registered\s+report)",
+            r"\b(?:data|code|materials?)\s(?:availability|shared|available|repository)",
+            r"\b(?:open\sscience|preregist(?:er|ration)|registered\sreport)",
             r"\bOSF\b",
             r"\bGitHub\b",
-            r"\bsupplementary\s+(?:material|data|code)",
+            r"\bsupplementary\s(?:material|data|code)",
         ],
         "recommendation": "Share data, analysis code, and materials in a public repository. Preregister study design and analysis plan.",
     },
@@ -457,16 +466,16 @@ class MethodologyAuditor:
     def _detect_study_design(self, text: str) -> Tuple[str, Dict]:
         """Detect study design from text keywords."""
         design_keywords = {
-            "RCT": [r"\brandomized\s+controlled\s+trial\b", r"\bRCT\b"],
-            "Meta-Analysis": [r"\bmeta[- ]?analysis\b", r"\bsystematic\s+review\b"],
+            "RCT": [r"\brandomized\scontrolled\strial\b", r"\bRCT\b"],
+            "Meta-Analysis": [r"\bmeta[- ]?analysis\b", r"\bsystematic\sreview\b"],
             "Longitudinal": [r"\blongitudinal\b", r"\bfollow[- ]?up\b", r"\bcohort\b", r"\bprospective\b"],
-            "Case-Control": [r"\bcase[- ]?control\b", r"\bcase\s+control\b"],
+            "Case-Control": [r"\bcase[- ]?control\b", r"\bcase\scontrol\b"],
             "Cross-Sectional": [r"\bcross[- ]?sectional\b", r"\bcross-sectional\b"],
-            "Cohort": [r"\bcohort\s+study\b", r"\bprospective\s+cohort\b", r"\bretrospective\s+cohort\b"],
+            "Cohort": [r"\bcohort\sstudy\b", r"\bprospective\scohort\b", r"\bretrospective\scohort\b"],
             "Survey": [r"\bsurvey\b", r"\bquestionnaire\b", r"\bself[- ]?report\b"],
             "Quasi-Experimental": [r"\bquasi[- ]?experimental\b", r"\bquasi-experimental\b"],
-            "Qualitative": [r"\bqualitative\b", r"\binterview\b", r"\bfocus\s+group\b", r"\bthematic\s+analysis\b"],
-            "Case Study": [r"\bcase\s+study\b", r"\bcase\s+report\b"],
+            "Qualitative": [r"\bqualitative\b", r"\binterview\b", r"\bfocus\sgroup\b", r"\bthematic\sanalysis\b"],
+            "Case Study": [r"\bcase\sstudy\b", r"\bcase\sreport\b"],
         }
 
         for design, patterns in design_keywords.items():
@@ -543,11 +552,11 @@ class MethodologyAuditor:
         # Pattern: claiming causality from correlational data
         causality_patterns = [
             r"\bcause[sd]?\b",
-            r"\beffect\s+of\b",
-            r"\bimpact\s+of\b",
+            r"\beffect\sof\b",
+            r"\bimpact\sof\b",
             r"\binfluence[sd]?\b",
             r"\bproves?\b",
-            r"\bdemonstrates?\s+causal(?:ity|l)?\b",
+            r"\bdemonstrates?\scausal(?:ity|l)?\b",
         ]
         has_causal_language = any(re.search(p, text) for p in causality_patterns)
         no_randomization = not re.search(r"\brandom(?:ly|ized|ization)?", text)
@@ -564,12 +573,12 @@ class MethodologyAuditor:
 
         # Pattern: overgeneralization
         generalization_patterns = [
-            r"\ball\s+(?:people|participants|subjects|patients|populations?)\b",
+            r"\ball\s(?:people|participants|subjects|patients|populations?)\b",
             r"\buniversally\b",
             r"\balways\b",
             r"\bnever\b",
             r"\beveryone\b",
-            r"\bproved?\s+(?:that|to be)\b",
+            r"\bproved?\s(?:that|to be)\b",
         ]
         if any(re.search(p, text) for p in generalization_patterns):
             overclaims.append({
@@ -582,7 +591,7 @@ class MethodologyAuditor:
 
         # Pattern: significance without effect size
         if re.search(r"\b(?:significant|p\s*[<≤]\s*0\.0\d)\b", text) and \
-           not re.search(r"\b(?:d\s*=|η²|eta[\s-]squared|Cram[eè]r|odds\s+ratio|cohen)", text):
+           not re.search(r"\b(?:d\s*=|η²|eta[\s-]squared|Cram[eè]r|odds\sratio|cohen)", text):
             overclaims.append({
                 "label": "Statistical Significance Without Effect Size",
                 "detail": "Statistical significance is mentioned but no effect sizes are reported to indicate practical significance.",
@@ -616,7 +625,7 @@ class MethodologyAuditor:
         # Bonus for good methodology practices
         for flaw in flaws:
             if flaw["severity"] == "good":
-                score += 5
+                score = 5
 
         # Ensure 0-100 range
         return max(0, min(100, int(round(score))))
@@ -720,7 +729,7 @@ def render_methodology_auditor_ui():
 
     tab1, tab2, tab3 = st.tabs([
         "📝 Input & Audit",
-        "📊 Rigor Score Dashboard",
+        " Rigor Score Dashboard",
         "📄 Audit Report",
     ])
 
@@ -758,7 +767,7 @@ def render_methodology_auditor_ui():
             with col1:
                 detected_design = st.selectbox(
                     "Study design (optional  auto-detect if blank)",
-                    options=[""] + list(STUDY_DESIGNS.keys()),
+                    options=[""]  list(STUDY_DESIGNS.keys()),
                     key="audit_design_select",
                 ) or None
             with col2:
@@ -852,7 +861,7 @@ def render_methodology_auditor_ui():
         if not results:
             st.info("Run an audit first in the **Input & Audit** tab.")
         else:
-            st.subheader("📊 Methodological Rigor Score")
+            st.subheader(" Methodological Rigor Score")
             score = results["rigor_score"]
             color = "#2ecc71" if score >= 75 else "#e67e22" if score >= 50 else "#e74c3c"
 

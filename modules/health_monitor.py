@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import os
 import psutil
@@ -31,7 +40,7 @@ def render_health_monitor():
     # Display Metrics in Columns
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("CPU Load", f"{cpu_usage}%", "-1.2%")
-    col2.metric("Memory Usage", f"{memory_usage}%", "+0.4%")
+    col2.metric("Memory Usage", f"{memory_usage}%", "0.4%")
     col3.metric("Disk Utilization", f"{disk_usage}%", "Stable")
     col4.metric("SQLite DB Size", f"{db_size_kb:.1f} KB", "Optimized")
 

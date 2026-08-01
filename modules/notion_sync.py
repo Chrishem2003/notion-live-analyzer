@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Notion Bi-Directional Sync Engine  enables writing insights, tags, and cleaned data
 back to Notion pages and databases via the Notion API.
@@ -170,7 +179,7 @@ class NotionSyncEngine:
                 new_id = data.get("id", "")
                 message = "✅ New entry created in Notion database"
                 if rejected:
-                    message += f"  skipped invalid properties: {'; '.join(rejected)}"
+                    message = f"  skipped invalid properties: {'; '.join(rejected)}"
                 return True, message, new_id
             else:
                 logger.error(
@@ -205,7 +214,7 @@ class NotionSyncEngine:
         for idx, row in df.iterrows():
             page_id = row.get("_page_id")
             if not page_id or page_id == "unknown":
-                failed += 1
+                failed = 1
                 continue
 
             # Find matching insight
@@ -221,9 +230,9 @@ class NotionSyncEngine:
                     page_id, target_property, insight_text, "rich_text"
                 )
                 if success:
-                    synced += 1
+                    synced = 1
                 else:
-                    failed += 1
+                    failed = 1
                     errors.append(msg)
 
                 # Also add as a comment
@@ -260,7 +269,7 @@ class NotionSyncEngine:
         for idx, row in df.iterrows():
             page_id = row.get("_page_id")
             if not page_id:
-                failed += 1
+                failed = 1
                 continue
 
             value = row.get(column_name)
@@ -277,9 +286,9 @@ class NotionSyncEngine:
 
             success, msg = self.update_page_property(page_id, target, value, ptype)
             if success:
-                synced += 1
+                synced = 1
             else:
-                failed += 1
+                failed = 1
             time.sleep(0.35)
 
         return {
@@ -360,7 +369,7 @@ def render_notion_sync_ui(df: pd.DataFrame):
 
         insights = st.session_state.get("generated_hypotheses", [])
         if insights:
-            st.info(f"📊 {len(insights)} insights available for sync")
+            st.info(f" {len(insights)} insights available for sync")
             insight_text = st.text_area(
                 "Insight to sync (edit as needed)",
                 value=insights[0].get("narrative", str(insights[0])) if insights else "",

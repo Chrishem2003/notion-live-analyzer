@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Publication-Ready Table Generator  APA-style tables, journal-specific formats,
 descriptive statistics tables, correlation matrices, regression tables.
@@ -124,7 +133,7 @@ class TableGenerator:
         Format regression results as a publication-ready table.
         """
         if model_names is None:
-            model_names = [f"Model {i+1}" for i in range(len(models))]
+            model_names = [f"Model {i1}" for i in range(len(models))]
 
         rows = []
         for i, model in enumerate(models):
@@ -196,17 +205,17 @@ class TableGenerator:
             r"\centering",
             rf"\caption{{{caption}}}",
             rf"\label{{{label}}}",
-            r"\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "}",
+            r"\begin{tabular}{"  "l"  "r" * (len(df.columns) - 1)  "}",
             r"\toprule",
-            " & ".join(df.columns) + r" \\",
+            " & ".join(df.columns)  r" \\",
             r"\midrule",
         ]
         for _, row in df.iterrows():
-            lines.append(" & ".join(str(v) for v in row.values) + r" \\")
+            lines.append(" & ".join(str(v) for v in row.values)  r" \\")
         lines.append(r"\bottomrule")
         footnote = df.attrs.get("footnote", "")
         if footnote:
-            lines.append(r"\multicolumn{" + str(len(df.columns)) + r"}{l}{\footnotesize " + footnote + "}")
+            lines.append(r"\multicolumn{"  str(len(df.columns))  r"}{l}{\footnotesize "  footnote  "}")
         lines.append(r"\end{tabular}")
         lines.append(r"\end{table}")
         return "\n".join(lines)
@@ -217,10 +226,10 @@ class TableGenerator:
         lines = [f"**{title}**", ""]
         footnote = df.attrs.get("footnote", "")
         # Header
-        lines.append("| " + " | ".join(str(c) for c in df.columns) + " |")
-        lines.append("| " + " | ".join("---" for _ in df.columns) + " |")
+        lines.append("| "  " | ".join(str(c) for c in df.columns)  " |")
+        lines.append("| "  " | ".join("---" for _ in df.columns)  " |")
         for _, row in df.iterrows():
-            lines.append("| " + " | ".join(str(v) for v in row.values) + " |")
+            lines.append("| "  " | ".join(str(v) for v in row.values)  " |")
         if footnote:
             lines.append("")
             lines.append(f"*Note.* {footnote}")
@@ -243,19 +252,19 @@ def render_table_generator_ui():
     st.info("Generate publication-ready tables from your data. Copy to clipboard or download as Markdown/LaTeX.")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📊 Descriptive Stats", "🔗 Correlation Matrix",
+        " Descriptive Stats", "🔗 Correlation Matrix",
         "📐 Regression Table", "📋 Frequency Table"
     ])
 
     with tab1:
-        st.subheader("📊 Descriptive Statistics Table")
+        st.subheader(" Descriptive Statistics Table")
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         cols = st.multiselect("Variables", options=numeric_cols, default=numeric_cols[:min(5, len(numeric_cols))], key="tb_desc_cols")
-        group_col = st.selectbox("Group by (optional)", options=["None"] + df.columns.tolist(), key="tb_desc_group")
+        group_col = st.selectbox("Group by (optional)", options=["None"]  df.columns.tolist(), key="tb_desc_group")
         include = st.multiselect("Include", options=["N", "Mean", "SD", "Min", "Max", "Median", "Skewness", "Kurtosis", "SE", "IQR"],
                                  default=["N", "Mean", "SD", "Min", "Max"], key="tb_desc_include")
 
-        if st.button("📊 Generate Table", type="primary") and cols:
+        if st.button(" Generate Table", type="primary") and cols:
             gcol = None if group_col == "None" else group_col
             result = TableGenerator.descriptive_stats_table(df, cols, gcol, include)
             if not result.empty:

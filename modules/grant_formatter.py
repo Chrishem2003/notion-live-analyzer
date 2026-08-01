@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 One-Click Grant & Journal Transpiler
 Instantly reformats summaries, bibliographies, and proposal drafts into
@@ -113,12 +122,12 @@ class GrantFormatter:
     def _nature_format(self, content: str, title: str, authors: str) -> str:
         para = re.sub(r'\n\s*\n', '\n\n', content.strip())
         max_chars = 2000
-        return f"# {title}\n" + (f"**{authors}**\n\n" if authors else "") + para[:max_chars] + "\n\n*Nature format: ~2000-character limit for main text*"
+        return f"# {title}\n"  (f"**{authors}**\n\n" if authors else "")  para[:max_chars]  "\n\n*Nature format: ~2000-character limit for main text*"
 
     def _science_format(self, content: str, title: str, authors: str) -> str:
         para = re.sub(r'\n\s*\n', '\n\n', content.strip())
         max_chars = 3000
-        return f"# {title}\n" + (f"*{authors}*\n\n" if authors else "") + para[:max_chars] + "\n\n*Science format: ~3000-character limit*"
+        return f"# {title}\n"  (f"*{authors}*\n\n" if authors else "")  para[:max_chars]  "\n\n*Science format: ~3000-character limit*"
 
     def _ieee_format(self, content: str, title: str, authors: str) -> str:
         return f"# {title}\n{content.strip()[:4000]}\n\n*IEEE format: ~4000-word limit*"
@@ -130,21 +139,21 @@ class GrantFormatter:
         max_pages = fmt_info.get("max_pages", 12)
 
         proposal = f"# {grant_type}: {title}\n"
-        if authors: proposal += f"**PI(s):** {authors}\n"
-        proposal += f"**Date:** {datetime.now().strftime('%B %d, %Y')}\n\n"
+        if authors: proposal = f"**PI(s):** {authors}\n"
+        proposal = f"**Date:** {datetime.now().strftime('%B %d, %Y')}\n\n"
 
         abstract_text = abstract or "**Abstract:** [Write a compelling summary of your proposal]"
-        proposal += f"## Abstract\n{abstract_text}\n\n"
+        proposal = f"## Abstract\n{abstract_text}\n\n"
 
         words = content.split()
         para_size = max(50, len(words) // max(1, len(sections) - 1))
         for i, section in enumerate(sections):
             start = i * para_size
-            end = min(len(words), (i + 1) * para_size) if i < len(sections) - 1 else len(words)
+            end = min(len(words), (i  1) * para_size) if i < len(sections) - 1 else len(words)
             section_text = " ".join(words[start:end]) if words else "[Add content here]"
-            proposal += f"## {section}\n{section_text}\n\n"
+            proposal = f"## {section}\n{section_text}\n\n"
 
-        proposal += f"\n*{grant_type} format: max {max_pages} pages*"
+        proposal = f"\n*{grant_type} format: max {max_pages} pages*"
         return {"format": grant_type, "content": proposal, "word_count": len(words), "formatting_notes": fmt_info}
 
     def format_references(self, papers: List[Dict], format_name: str = "APA 7") -> str:
@@ -171,9 +180,9 @@ class GrantFormatter:
         guide = f"## 📋 {info.get('name', format_name)} Formatting Guide\n\n"
         for key, val in info.items():
             if key not in ("name", "citation_style", "sections"):
-                guide += f"- **{key.replace('_', ' ').title()}**: {val}\n"
+                guide = f"- **{key.replace('_', ' ').title()}**: {val}\n"
         if "sections" in info:
-            guide += "- **Required Sections**:\n" + "\n".join(f"  - {s}" for s in info["sections"])
+            guide = "- **Required Sections**:\n"  "\n".join(f"  - {s}" for s in info["sections"])
         return guide
 
 

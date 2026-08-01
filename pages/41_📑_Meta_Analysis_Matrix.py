@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 World-Class Multi-Paper Meta-Analysis Matrix Synthesizer
 Enterprise-grade systematic review and evidence synthesis engine featuring automated effect-size extraction,

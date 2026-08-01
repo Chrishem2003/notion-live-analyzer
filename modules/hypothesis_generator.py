@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Automated Hypothesis Generator  discovers patterns, formulates research hypotheses,
 and prioritizes them by statistical support and novelty.
@@ -54,13 +63,13 @@ class HypothesisGenerator:
 
         # 2. Correlation hypotheses (numeric → numeric)
         for i, num1 in enumerate(num_cols[:6]):
-            for num2 in num_cols[i+1:6]:
+            for num2 in num_cols[i1:6]:
                 hyps = self._test_correlation(df, num1, num2)
                 hypotheses.extend(hyps)
 
         # 3. Association hypotheses (categorical → categorical)
         for i, cat1 in enumerate(cat_cols[:5]):
-            for cat2 in cat_cols[i+1:5]:
+            for cat2 in cat_cols[i1:5]:
                 hyps = self._test_association(df, cat1, cat2)
                 hypotheses.extend(hyps)
 
@@ -85,7 +94,7 @@ class HypothesisGenerator:
 
         # Assign IDs and generate narrative
         for i, h in enumerate(hypotheses):
-            h["id"] = f"H{i+1:03d}"
+            h["id"] = f"H{i1:03d}"
             h["narrative"] = self._generate_narrative(h)
 
         self.generated_hypotheses = hypotheses
@@ -359,9 +368,9 @@ class HypothesisGenerator:
                 # Adjust priority score with novelty
                 current_score = h.get("priority_score", 50)
                 if gap_type == "novel_larger" or gap_type == "novel_smaller":
-                    adjusted = min(100, current_score + 15)
+                    adjusted = min(100, current_score  15)
                 elif gap_type == "replication":
-                    adjusted = min(100, current_score + 5)
+                    adjusted = min(100, current_score  5)
                 else:
                     adjusted = max(0, current_score - 10)
                 h["priority_score"] = adjusted
@@ -381,7 +390,7 @@ class HypothesisGenerator:
                     "source": None,
                 }
                 # Boost score for unexplored patterns
-                h["priority_score"] = min(100, h.get("priority_score", 50) + 10)
+                h["priority_score"] = min(100, h.get("priority_score", 50)  10)
                 h["priority_label"] = self._score_to_label(h["priority_score"])
 
             h["gap_analysis"] = gap_analysis
@@ -407,7 +416,7 @@ class HypothesisGenerator:
             return (effect_size * 0.5, effect_size * 1.5)
         se = math.sqrt((1 - effect_size**2) / (n - 2)) if abs(effect_size) < 1 else 1.0 / math.sqrt(n - 2)
         z = scipy_stats.norm.ppf(1 - alpha / 2)
-        return (effect_size - z * se, effect_size + z * se)
+        return (effect_size - z * se, effect_size  z * se)
 
     def _score_to_label(self, score: int) -> str:
         if score >= 80: return "Critical"
@@ -422,14 +431,14 @@ class HypothesisGenerator:
         gap_type = gap.get("type", "")
 
         if gap_type == "replication":
-            return base_narrative + f" ✅ This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
+            return base_narrative  f" ✅ This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
         elif gap_type in ("novel_larger", "novel_smaller"):
             direction = "larger" if gap_type == "novel_larger" else "smaller"
-            return base_narrative + f" 🔬 This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
+            return base_narrative  f" 🔬 This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
         elif gap_type == "knowledge_gap":
-            return base_narrative + " 💡 This pattern has not been found in the literature review  potential knowledge gap worth exploring."
+            return base_narrative  " 💡 This pattern has not been found in the literature review  potential knowledge gap worth exploring."
         elif gap_type == "inconsistent":
-            return base_narrative + f" ⚠️ This finding diverges from published literature (d_lit={gap.get('literature_effect', 0):.2f}). Consider contextual or methodological factors."
+            return base_narrative  f" ⚠️ This finding diverges from published literature (d_lit={gap.get('literature_effect', 0):.2f}). Consider contextual or methodological factors."
         return base_narrative
 
     def _score_hypotheses(self, hypotheses: List[Dict]) -> List[Dict]:
@@ -439,33 +448,33 @@ class HypothesisGenerator:
 
             # Significance
             if h.get("significant"):
-                score += 40
+                score = 40
 
             # Effect size magnitude
             es = abs(h.get("effect_size", h.get("r", h.get("cramers_v", h.get("rho", 0)))))
             if es >= 0.8:
-                score += 30
+                score = 30
             elif es >= 0.5:
-                score += 20
+                score = 20
             elif es >= 0.2:
-                score += 10
+                score = 10
 
             # P-value precision
             p = h.get("p_value", 1)
             if p < 0.001:
-                score += 20
+                score = 20
             elif p < 0.01:
-                score += 15
+                score = 15
             elif p < 0.05:
-                score += 10
+                score = 10
 
             # Type bonus (causal-sounding hypotheses score higher)
             if h.get("type") in ("mean_difference", "group_difference"):
-                score += 5  # More actionable
+                score = 5  # More actionable
             elif h.get("type") == "trend":
-                score += 8  # Temporal patterns are valuable
+                score = 8  # Temporal patterns are valuable
             elif h.get("type") == "correlation":
-                score += 3
+                score = 3
 
             h["priority_score"] = min(score, 100)
             h["priority_label"] = "Critical" if score >= 80 else "High" if score >= 60 else "Medium" if score >= 40 else "Low"
@@ -544,7 +553,7 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
 
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.info(f"📊 Dataset: {len(df)} rows × {len(df.columns)} columns  ready for hypothesis discovery")
+        st.info(f" Dataset: {len(df)} rows × {len(df.columns)} columns  ready for hypothesis discovery")
     with col2:
         if st.button("🚀 Run Hypothesis Discovery", type="primary", use_container_width=True):
             with st.spinner("🔍 Discovering patterns and formulating hypotheses..."):
@@ -626,7 +635,7 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
                         border:1px solid {priority_color}40;background:{priority_color}08;
                         border-left:4px solid {priority_color};">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-weight:600;font-size:1rem;">{h.get('id', f'H{i+1}')}</span>
+                    <span style="font-weight:600;font-size:1rem;">{h.get('id', f'H{i1}')}</span>
                     <span style="background:{priority_color};color:white;padding:0.15rem 0.6rem;
                               border-radius:999px;font-size:0.75rem;font-weight:700;">
                         {priority_label} ({priority_score})

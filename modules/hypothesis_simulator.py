@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Dynamic Hypothesis & Parameter Simulator
 Converts mathematical formulas and statistical relationships described in papers
@@ -51,9 +60,9 @@ class HypothesisSimulator:
                                   noise_level: float = 0.05) -> Dict[str, Any]:
         """Simulate a dose-response curve using the Hill equation."""
         doses = np.linspace(0, max_dose, 50)
-        responses = base_effect + (1 - base_effect) / (1 + (ec50 / (doses + 1e-10)) ** hill_coefficient)
+        responses = base_effect  (1 - base_effect) / (1  (ec50 / (doses  1e-10)) ** hill_coefficient)
         noise = np.random.normal(0, noise_level, len(doses))
-        noisy_responses = responses + noise
+        noisy_responses = responses  noise
 
         curve_data = [{"dose": float(d), "response": float(r), "noisy_response": float(nr)}
                       for d, r, nr in zip(doses, responses, noisy_responses)]
@@ -62,7 +71,7 @@ class HypothesisSimulator:
             "type": "Dose-Response",
             "parameters": {"base_effect": base_effect, "max_dose": max_dose, "ec50": ec50, "hill_coefficient": hill_coefficient},
             "curve_data": curve_data,
-            "ec50_effect": float(base_effect + (1 - base_effect) / 2),
+            "ec50_effect": float(base_effect  (1 - base_effect) / 2),
             "interpretation": f"EC50 = {ec50} (half-maximal effect at dose {ec50})",
         }
 
@@ -103,7 +112,7 @@ class HypothesisSimulator:
                              noise_sd: float = 1.0) -> Dict[str, Any]:
         """Simulate simple linear regression data."""
         X = np.random.normal(0, 1, n)
-        y = beta_0 + beta_1 * X + np.random.normal(0, noise_sd, n)
+        y = beta_0  beta_1 * X  np.random.normal(0, noise_sd, n)
         df = pd.DataFrame({"X": X, "Y": y})
         from scipy import stats as scipy_stats
         slope, intercept, r_val, p_val, std_err = scipy_stats.linregress(X, y)
@@ -116,7 +125,7 @@ class HypothesisSimulator:
             "estimated_intercept": round(float(intercept), 3),
             "r_squared": round(float(r2), 3),
             "p_value": round(float(p_val), 4),
-            "interpretation": f"Simulated Y = {beta_0} + {beta_1}·X + ε. Estimated slope = {slope:.3f} (p={p_val:.4f}), R² = {r2:.3f}",
+            "interpretation": f"Simulated Y = {beta_0}  {beta_1}·X  ε. Estimated slope = {slope:.3f} (p={p_val:.4f}), R² = {r2:.3f}",
         }
 
     def simulate_bias_impact(self, true_effect: float = 0.5, bias_strength: float = 0.2,
@@ -128,9 +137,9 @@ class HypothesisSimulator:
         for i in range(n_studies):
             se = np.random.uniform(0.1, 0.5)
             bias = np.random.normal(bias_strength, 0.1)
-            observed = np.random.normal(true_effect + bias, se)
+            observed = np.random.normal(true_effect  bias, se)
             p_value = 2 * (1 - __import__('scipy').stats.norm.cdf(abs(observed) / se))
-            study = {"study": f"Study {i+1}", "observed_effect": round(float(observed), 3),
+            study = {"study": f"Study {i1}", "observed_effect": round(float(observed), 3),
                      "se": round(float(se), 3), "p_value": round(float(p_value), 4),
                      "significant": p_value < 0.05}
             studies.append(study)
@@ -151,7 +160,7 @@ class HypothesisSimulator:
             "bias_impact": round(float(pub_mean - true_effect), 3),
             "studies": studies,
             "published_only": published_only,
-            "interpretation": f"True effect={true_effect}. Published mean={pub_mean:.3f}" + (f" (bias: {pub_mean-true_effect:+.3f})" if publication_bias else ""),
+            "interpretation": f"True effect={true_effect}. Published mean={pub_mean:.3f}"  (f" (bias: {pub_mean-true_effect:.3f})" if publication_bias else ""),
         }
 
 
@@ -167,12 +176,12 @@ def render_hypothesis_simulator_ui():
     sim = HypothesisSimulator()
 
     sim_type = st.radio("Select simulation type", [
-        "📊 Power Analysis", "💊 Dose-Response", "🔗 Correlation",
+        " Power Analysis", "💊 Dose-Response", "🔗 Correlation",
         "📐 Confidence Intervals", "📈 Regression", "⚠️ Bias Impact"
     ], horizontal=True, key="sim_type_hyp")
 
-    if sim_type == "📊 Power Analysis":
-        st.subheader("📊 Statistical Power Analysis Simulator")
+    if sim_type == " Power Analysis":
+        st.subheader(" Statistical Power Analysis Simulator")
         col1, col2 = st.columns(2)
         with col1:
             es = st.slider("Effect size (Cohen's d)", 0.1, 2.0, 0.5, 0.05, key="sim_power_es")
@@ -263,7 +272,7 @@ def render_hypothesis_simulator_ui():
         if st.button("▶️ Generate Regression Data", type="primary"):
             result = sim.simulate_regression(n_reg, b0, b1, noise)
             df_reg = result["simulated_data"]
-            fig = px.scatter(df_reg, x="X", y="Y", trendline="ols", title=f"True: Y = {b0} + {b1}X | Estimated: slope = {result['estimated_slope']:.3f}")
+            fig = px.scatter(df_reg, x="X", y="Y", trendline="ols", title=f"True: Y = {b0}  {b1}X | Estimated: slope = {result['estimated_slope']:.3f}")
             st.plotly_chart(fig, use_container_width=True)
             col1, col2, col3 = st.columns(3)
             with col1: st.metric("Estimated Slope", f"{result['estimated_slope']:.3f}")
@@ -288,6 +297,6 @@ def render_hypothesis_simulator_ui():
             with col2: st.metric("All Studies Mean", f"{result['all_studies_mean']:.3f}")
             with col3: st.metric("Published Mean", f"{result['published_mean']:.3f}")
             if pub_bias:
-                st.warning(f"⚠️ Publication bias inflates estimate by {result['bias_impact']:+.3f}")
+                st.warning(f"⚠️ Publication bias inflates estimate by {result['bias_impact']:.3f}")
             st.info(result["interpretation"])
 

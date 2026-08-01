@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 ️ Variable View Page  Advanced SPSS-Style Metadata Editor & Codebook Studio
 Complete standalone edition featuring high-contrast layout, metadata editing, 
@@ -193,7 +202,7 @@ if active_df is None or active_df.empty:
         if st.button("🔍 Generate Sample Research Cohort Data", type="primary", use_container_width=True):
             np.random.seed(42)
             demo_data = pd.DataFrame({
-                "Subject_ID": [f"SUBJ_{1000+i}" for i in range(100)],
+                "Subject_ID": [f"SUBJ_{1000i}" for i in range(100)],
                 "Age": np.random.randint(18, 65, size=100),
                 "Gender": np.random.choice(["Male", "Female", "Non-Binary"], size=100),
                 "Treatment_Group": np.random.choice(["Control", "Dosage_A", "Dosage_B"], size=100),

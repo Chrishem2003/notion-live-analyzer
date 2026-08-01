@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Secure Personal Vault
 Zero-knowledge encrypted personal storage vault with 2FA authentication,
@@ -5,7 +14,7 @@ AES-GCM-256 client-side encryption, duress PIN support, categorized file
 management, self-destruct share links, and an interactive media previewer.
 
 Architecture:
-  - Security Layer: Master passcode + TOTP 2FA gate, duress PIN, auto-lock
+  - Security Layer: Master passcode  TOTP 2FA gate, duress PIN, auto-lock
   - Crypto Engine: AES-GCM-256 (simulated via cryptography library)
   - Storage: Categorized vault with unlimited object store integration pattern
   - UI: High-density dark-mode with slate-950/indigo/emerald/amber/cyan accents
@@ -48,7 +57,7 @@ class VaultCategory(str, Enum):
     DOCUMENTS = "📄 Documents"
     IMAGES = "📷 Images"
     AUDIO = "🎙️ Audio Notes"
-    DATASETS = "📊 Datasets & Code"
+    DATASETS = " Datasets & Code"
 
 
 CATEGORY_EXTENSIONS: Dict[VaultCategory, List[str]] = {
@@ -64,7 +73,7 @@ CATEGORY_ICONS: Dict[VaultCategory, str] = {
     VaultCategory.DOCUMENTS: "📄",
     VaultCategory.IMAGES: "📷",
     VaultCategory.AUDIO: "🎙️",
-    VaultCategory.DATASETS: "📊",
+    VaultCategory.DATASETS: "",
 }
 
 CATEGORY_COLORS: Dict[VaultCategory, str] = {
@@ -94,7 +103,7 @@ def _generate_totp(secret: str, interval: int = TOTP_INTERVAL) -> str:
         counter = struct.pack(">Q", int(time.time()) // interval)
         hmac_hash = hmac.new(key, counter, hashlib.sha1).digest()
         offset = hmac_hash[-1] & 0x0F
-        truncated = struct.unpack(">I", hmac_hash[offset:offset+4])[0] & 0x7FFFFFFF
+        truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0x7FFFFFFF
         return f"{truncated % 1000000:06d}"
     except Exception:
         return "000000"
@@ -105,8 +114,8 @@ def _verify_totp(secret: str, code: str, interval: int = TOTP_INTERVAL, window: 
     if not code or len(code) != 6 or not code.isdigit():
         return False
     current = int(time.time()) // interval
-    for offset in range(-window, window + 1):
-        expected = _generate_totp_for_counter(secret, current + offset)
+    for offset in range(-window, window  1):
+        expected = _generate_totp_for_counter(secret, current  offset)
         if hmac.compare_digest(expected, code):
             return True
     return False
@@ -120,7 +129,7 @@ def _generate_totp_for_counter(secret: str, counter: int) -> str:
         packed = struct.pack(">Q", counter)
         hmac_hash = hmac.new(key, packed, hashlib.sha1).digest()
         offset = hmac_hash[-1] & 0x0F
-        truncated = struct.unpack(">I", hmac_hash[offset:offset+4])[0] & 0x7FFFFFFF
+        truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0x7FFFFFFF
         return f"{truncated % 1000000:06d}"
     except Exception:
         return "000000"
@@ -170,15 +179,15 @@ class CryptoEngine:
     def encrypt(plaintext: bytes, key: bytes, associated_data: Optional[bytes] = None) -> bytes:
         """
         Encrypt plaintext with AES-GCM-256.
-        Returns: nonce (12 bytes) + ciphertext + tag (16 bytes)
+        Returns: nonce (12 bytes)  ciphertext  tag (16 bytes)
         """
         if HAS_CRYPTO:
             aesgcm = AESGCM(key)
             nonce = os.urandom(12)
             ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data or b"")
-            return nonce + ciphertext
+            return nonce  ciphertext
         else:
-            # Fallback: XOR + HMAC (MUST use real AES-GCM in production)
+            # Fallback: XOR  HMAC (MUST use real AES-GCM in production)
             nonce = os.urandom(12)
             from cryptography.hazmat.primitives.ciphers.algorithms import AES
             from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -186,14 +195,14 @@ class CryptoEngine:
             encryptor = cipher.encryptor()
             if associated_data:
                 encryptor.authenticate_additional_data(associated_data)
-            ciphertext = encryptor.update(plaintext) + encryptor.finalize()
-            return nonce + ciphertext + encryptor.tag
+            ciphertext = encryptor.update(plaintext)  encryptor.finalize()
+            return nonce  ciphertext  encryptor.tag
 
     @staticmethod
     def decrypt(ciphertext_with_nonce: bytes, key: bytes, associated_data: Optional[bytes] = None) -> Optional[bytes]:
         """
         Decrypt AES-GCM-256 ciphertext.
-        Input: nonce (12 bytes) + ciphertext + tag (16 bytes)
+        Input: nonce (12 bytes)  ciphertext  tag (16 bytes)
         """
         if len(ciphertext_with_nonce) < 28:
             return None
@@ -211,14 +220,14 @@ class CryptoEngine:
                 decryptor = cipher.decryptor()
                 if associated_data:
                     decryptor.authenticate_additional_data(associated_data)
-                return decryptor.update(ciphertext) + decryptor.finalize()
+                return decryptor.update(ciphertext)  decryptor.finalize()
         except Exception:
             logger.warning("AES-GCM decryption failed (wrong key or tampered ciphertext)", exc_info=True)
             return None
 
     @staticmethod
     def encrypt_file(file_bytes: bytes, key: bytes) -> Dict[str, Any]:
-        """Encrypt a file and return metadata + ciphertext."""
+        """Encrypt a file and return metadata  ciphertext."""
         file_hash = hashlib.sha256(file_bytes).hexdigest()
         ciphertext = CryptoEngine.encrypt(file_bytes, key, associated_data=file_hash.encode())
         return {
@@ -301,7 +310,7 @@ class VaultFile:
             ".jpeg": "image/jpeg",
             ".gif": "image/gif",
             ".webp": "image/webp",
-            ".svg": "image/svg+xml",
+            ".svg": "image/svgxml",
             ".mp3": "audio/mpeg",
             ".wav": "audio/wav",
             ".ogg": "audio/ogg",
@@ -312,13 +321,13 @@ class VaultFile:
             ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             ".py": "text/x-python",
             ".r": "text/x-r-source",
-            ".ipynb": "application/x-ipynb+json",
+            ".ipynb": "application/x-ipynbjson",
         }
         return mime_map.get(self.extension, "application/octet-stream")
 
     def decrypt(self) -> Optional[bytes]:
         """Decrypt and return the original file bytes."""
-        self.access_count += 1
+        self.access_count = 1
         self.last_accessed = datetime.now()
         return CryptoEngine.decrypt_file(self.ciphertext_b64, self.encryption_key, self.original_hash)
 
@@ -331,7 +340,7 @@ class VaultFile:
             "file_id": self.id,
             "file_name": self.name,
             "created_at": now.isoformat(),
-            "expires_at": (now + timedelta(hours=expires_in_hours)).isoformat(),
+            "expires_at": (now  timedelta(hours=expires_in_hours)).isoformat(),
             "max_downloads": max_downloads,
             "download_count": 0,
             "is_expired": False,
@@ -353,7 +362,7 @@ class VaultFile:
                 if link["download_count"] >= link["max_downloads"]:
                     link["is_expired"] = True
                     return False, None, "❌ Maximum downloads reached. Link self-destructed."
-                link["download_count"] += 1
+                link["download_count"] = 1
                 data = self.decrypt()
                 if data is None:
                     return False, None, "❌ Failed to decrypt file."
@@ -421,7 +430,7 @@ class SecurePersonalVault:
     Zero-knowledge encrypted personal storage vault.
 
     Features:
-      - 2FA gate: Master passcode + TOTP authenticator code
+      - 2FA gate: Master passcode  TOTP authenticator code
       - Duress PIN: Shows dummy vault under pressure
       - Auto-lock: Session locks after inactivity timeout
       - AES-GCM-256: All files encrypted client-side before storage
@@ -546,9 +555,9 @@ class SecurePersonalVault:
                 return True, True
 
         # Failed attempt
-        self.failed_login_attempts += 1
+        self.failed_login_attempts = 1
         if self.failed_login_attempts >= self.max_failed_attempts:
-            self.locked_until = time.time() + 300  # 5 min lockout
+            self.locked_until = time.time()  300  # 5 min lockout
             self._log("account_locked", f"Locked for 5 min after {self.max_failed_attempts} failed attempts")
         return False, False
 
@@ -560,7 +569,7 @@ class SecurePersonalVault:
 
     def unlock(self, passcode: str, totp_code: str) -> Tuple[bool, str]:
         """
-        Attempt to unlock the vault with passcode + TOTP.
+        Attempt to unlock the vault with passcode  TOTP.
         Returns: (success: bool, message: str)
         """
         authenticated, is_duress = self.verify_passcode(passcode)
@@ -638,7 +647,7 @@ class SecurePersonalVault:
 
         # Check quota
         used = self.get_storage_used()
-        if used + len(file_bytes) > self.quota_bytes:
+        if used  len(file_bytes) > self.quota_bytes:
             raise ValueError("Storage quota exceeded.")
 
         # Determine category
@@ -813,7 +822,7 @@ def _create_dummy_vault() -> SecurePersonalVault:
     # Add some fake files
     dummy_files = [
         ("notes.txt", b"This is a personal note.", VaultCategory.DOCUMENTS),
-        ("photo.jpg", b"\xff\xd8\xff\xe0" + b"\x00" * 100, VaultCategory.IMAGES),
+        ("photo.jpg", b"\xff\xd8\xff\xe0"  b"\x00" * 100, VaultCategory.IMAGES),
         ("todo.md", b"# TODO\n- Buy groceries\n- Call dentist", VaultCategory.DOCUMENTS),
     ]
     for name, content, cat in dummy_files:
@@ -1308,7 +1317,7 @@ def render_secure_vault_ui():
         include_trash = st.checkbox("🗑️ Include trash", value=False, key="vault_show_trash")
 
     # ── Category Tabs ───────────────────────────────────────────────
-    tab_options = ["All"] + [cat.value for cat in VaultCategory]
+    tab_options = ["All"]  [cat.value for cat in VaultCategory]
     active_tab = st.session_state.get("vault_active_tab", "All")
 
     tab_cols = st.columns(len(tab_options))

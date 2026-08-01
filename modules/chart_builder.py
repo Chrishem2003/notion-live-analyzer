@@ -1,5 +1,14 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
-Chart Builder  builds 18+ interactive chart types using Plotly.
+Chart Builder  builds 18 interactive chart types using Plotly.
 Handles all configuration, theming, and rendering.
 Research-grade publication-ready visualizations.
 """
@@ -246,7 +255,7 @@ def build_pie(df, names=None, values=None, **kwargs):
         )
     else:
         return None
-    fig.update_traces(textposition="inside", textinfo="percent+label")
+    fig.update_traces(textposition="inside", textinfo="percentlabel")
     fig.update_layout(
         title=kwargs.get("title", None),
         legend=dict(orientation="h", yanchor="bottom", y=-0.2),
@@ -402,7 +411,7 @@ def build_treemap(df, path=None, values=None, color=None, **kwargs):
         color_continuous_scale=kwargs.get("colorscale", "Viridis"),
         height=kwargs.get("height", 500),
     )
-    fig.update_traces(textinfo="label+value+percent root")
+    fig.update_traces(textinfo="labelvaluepercent root")
     fig.update_layout(title=kwargs.get("title", "Treemap"))
     return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
@@ -416,7 +425,7 @@ def build_sunburst(df, path=None, values=None, color=None, **kwargs):
         color_continuous_scale=kwargs.get("colorscale", "Viridis"),
         height=kwargs.get("height", 500),
     )
-    fig.update_traces(textinfo="label+value+percent root")
+    fig.update_traces(textinfo="labelvaluepercent root")
     fig.update_layout(title=kwargs.get("title", "Sunburst"))
     return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
@@ -484,7 +493,7 @@ def build_waterfall(df, x=None, y=None, **kwargs):
     fig = go.Figure(go.Waterfall(
         x=df[x],
         y=df[y],
-        text=[f"{v:+,}" if "<change>" in str(k) else str(v) for k, v in zip(df[x], df[y])],
+        text=[f"{v:,}" if "<change>" in str(k) else str(v) for k, v in zip(df[x], df[y])],
         textposition="outside",
         connector={"line": {"color": "rgb(63, 63, 63)"}},
     ))
@@ -507,7 +516,7 @@ def build_funnel(df, x=None, y=None, **kwargs):
         color_discrete_sequence=get_color_palette(kwargs.get("palette", "Plotly")),
         height=kwargs.get("height", 430),
     )
-    fig.update_traces(textinfo="value+percent previous")
+    fig.update_traces(textinfo="valuepercent previous")
     fig.update_layout(title=kwargs.get("title", "Funnel Chart"))
     return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
@@ -521,7 +530,7 @@ def build_gauge(df, value_col=None, **kwargs):
         title = kwargs.get("title", f"Average {value_col}")
 
     fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta",
+        mode="gaugenumberdelta",
         value=value,
         delta={"reference": kwargs.get("reference", 0)},
         gauge={

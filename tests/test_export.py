@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Unit tests for modules.export."""
 import base64
 import io
@@ -60,7 +69,7 @@ class TestChartExport:
 
     def test_chart_download_link_svg(self):
         link = export.get_chart_download_link(FakeFigure(b"<svg/>"), "c", "svg")
-        assert "data:image/svg+xml;base64," in link
+        assert "data:image/svgxml;base64," in link
 
     def test_chart_download_link_unknown_format(self):
         assert export.get_chart_download_link(FakeFigure(), "c", "pdf") is None

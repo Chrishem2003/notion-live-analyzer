@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Collaborative Canvas & Viewport Sync Engine (Yjs / CRDTs)
 Production-grade CRDT-based collaborative workspace with:
@@ -176,9 +185,9 @@ class ViewportState:
             self.zoom = self._target_zoom
             return False
 
-        self.x += dx * factor
-        self.y += dy * factor
-        self.zoom += dz * factor
+        self.x = dx * factor
+        self.y = dy * factor
+        self.zoom = dz * factor
         return True
 
     def get_bounding_box(self) -> Dict[str, float]:
@@ -187,17 +196,17 @@ class ViewportState:
         half_h = (self.height / 2) / self.zoom
         return {
             "left": self.x - half_w,
-            "right": self.x + half_w,
+            "right": self.x  half_w,
             "top": self.y - half_h,
-            "bottom": self.y + half_h,
+            "bottom": self.y  half_h,
         }
 
     def is_visible(self, element_x: float, element_y: float,
                    margin: float = 100) -> bool:
         """Check if a point is visible in the current viewport."""
         bbox = self.get_bounding_box()
-        return (bbox["left"] - margin <= element_x <= bbox["right"] + margin and
-                bbox["top"] - margin <= element_y <= bbox["bottom"] + margin)
+        return (bbox["left"] - margin <= element_x <= bbox["right"]  margin and
+                bbox["top"] - margin <= element_y <= bbox["bottom"]  margin)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary."""
@@ -258,7 +267,7 @@ class CRDTElement:
             return False
 
         # Increment state vector for updater
-        self.state_vector[updater_id] = self.state_vector.get(updater_id, 0) + 1
+        self.state_vector[updater_id] = self.state_vector.get(updater_id, 0)  1
 
         # Apply updates (LWW  last writer wins per field)
         for key, value in updates.items():
@@ -268,7 +277,7 @@ class CRDTElement:
         self.last_writer = updater_id
         self.last_write_time = time.time_ns()
         self.last_modified = time.time()
-        self.version += 1
+        self.version = 1
         return True
 
     def delete(self, deleter_id: str):
@@ -432,7 +441,7 @@ class GhostStage:
             "additions": len(additions),
             "modifications": len(modifications),
             "deletions": len(deletions),
-            "total_changes": len(additions) + len(modifications) + len(deletions),
+            "total_changes": len(additions)  len(modifications)  len(deletions),
             "additions_detail": additions[:10],  # Limit to 10 for display
             "modifications_detail": modifications[:10],
             "deletions_detail": deletions[:10],
@@ -459,16 +468,16 @@ class GhostStage:
             if ghost_elem.is_deleted:
                 if eid in main_elements:
                     main_elements[eid].delete(self.cohost_id)
-                    deleted += 1
+                    deleted = 1
             elif eid in main_elements:
                 # Merge  LWW wins
                 winner = ghost_elem.resolve_conflict(main_elements[eid])
                 main_elements[eid] = winner
-                updated += 1
+                updated = 1
             else:
                 # New element
                 main_elements[eid] = ghost_elem
-                added += 1
+                added = 1
 
         self.state = GhostStageState.MERGED
 
@@ -476,11 +485,11 @@ class GhostStage:
             "added": added,
             "updated": updated,
             "deleted": deleted,
-            "total": added + updated + deleted,
+            "total": added  updated  deleted,
             "merged_at": datetime.now().isoformat(),
         }
 
-        self._log("merged", f"Merged to main: +{added} ~{updated} -{deleted}")
+        self._log("merged", f"Merged to main: {added} ~{updated} -{deleted}")
         return result
 
     def discard(self):
@@ -800,9 +809,9 @@ class CollaborativeCanvas:
         """Get all elements visible in a given viewport."""
         bbox = viewport.get_bounding_box()
         bbox["left"] -= margin
-        bbox["right"] += margin
+        bbox["right"] = margin
         bbox["top"] -= margin
-        bbox["bottom"] += margin
+        bbox["bottom"] = margin
 
         visible = []
         for element in self.elements.values():
@@ -900,7 +909,7 @@ class CollaborativeCanvas:
         type_counts: Dict[str, int] = {}
         for elem in active_elements:
             t = elem.type.value
-            type_counts[t] = type_counts.get(t, 0) + 1
+            type_counts[t] = type_counts.get(t, 0)  1
 
         return {
             "project_id": self.project_id,

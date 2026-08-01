@@ -1,4 +1,13 @@
-﻿import base64
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
+import base64
 import datetime
 import hashlib
 import io
@@ -43,7 +52,7 @@ except ImportError:
 
 
 # ============================================================================
-# PAGE CONFIG + THEME  ("Vault Ledger": ink + brass, clean paper canvas)
+# PAGE CONFIG  THEME  ("Vault Ledger": ink  brass, clean paper canvas)
 # ============================================================================
 st.set_page_config(page_title=APP_TITLE, page_icon="🔒", layout="wide", initial_sidebar_state="expanded")
 
@@ -53,7 +62,7 @@ INK = "#14161F"
 
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Source+Serif+4:wght@400;600&family=JetBrains+Mono:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=SpaceGrotesk:wght@500;600;700;800&family=SourceSerif4:wght@400;600&family=JetBrainsMono:wght@500&display=swap');
 html, body, [class*="css"]  {{ font-family: 'Space Grotesk', sans-serif; }}
 code, pre {{ font-family: 'JetBrains Mono', monospace !important; }}
 
@@ -186,7 +195,7 @@ def log_audit(actor, action, status="OK"):
 
 
 # ============================================================================
-# PASSWORD HASHING — stdlib only (hashlib + secrets), no extra install needed
+# PASSWORD HASHING — stdlib only (hashlib  secrets), no extra install needed
 # ============================================================================
 def hash_password(password: str) -> str:
     salt = secrets.token_hex(16)
@@ -207,7 +216,7 @@ init_db()
 
 
 # ============================================================================
-# SESSION STATE + LOGIN GATE
+# SESSION STATE  LOGIN GATE
 # ============================================================================
 for key, default in {"logged_in": False, "username": None, "role": None,
                       "active_doc_id": None, "active_sheet_id": None, "active_deck_id": None,
@@ -250,7 +259,7 @@ with st.sidebar:
         st.session_state["logged_in"] = False
         st.rerun()
     st.markdown("---")
-    nav_options = ["🏠 Home", "📁 Drive", "📄 Docs", "📊 Sheets", "🎞️ Slides", "✉️ Mail",
+    nav_options = ["🏠 Home", "📁 Drive", "📄 Docs", " Sheets", "🎞️ Slides", "✉️ Mail",
                     "🎥 Meetings", "⚙️ Automations", "🛡️ Security", "☁️ Storage & Backup"]
     if st.session_state["role"] == "Admin":
         nav_options.append("📋 Admin Audit Log")
@@ -403,8 +412,8 @@ elif active == "📄 Docs":
 # ============================================================================
 # SHEETS
 # ============================================================================
-elif active == "📊 Sheets":
-    st.subheader("📊 Sheets")
+elif active == " Sheets":
+    st.subheader(" Sheets")
     conn = get_conn()
     sheets = conn.execute("SELECT * FROM sheets WHERE deleted=0 ORDER BY modified_at DESC").fetchall()
     conn.close()
@@ -478,7 +487,7 @@ elif active == "📊 Sheets":
                 x_axis = edited.columns[0]
                 (st.bar_chart if chart_type == "Bar" else st.line_chart)(edited.set_index(x_axis)[target])
         else:
-            st.markdown('<div class="nv-empty">📊 Select or create a sheet on the left.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="nv-empty"> Select or create a sheet on the left.</div>', unsafe_allow_html=True)
 
 # ============================================================================
 # SLIDES
@@ -514,8 +523,8 @@ elif active == "🎞️ Slides":
             slides = json.loads(deck["slides_json"])
             for i, s in enumerate(slides):
                 with st.container(border=True):
-                    s["title"] = st.text_input(f"Slide {i+1} title", value=s.get("title", ""), key=f"st_{deck['id']}_{i}")
-                    s["body"] = st.text_area(f"Slide {i+1} body", value=s.get("body", ""), key=f"sb_{deck['id']}_{i}", height=80)
+                    s["title"] = st.text_input(f"Slide {i1} title", value=s.get("title", ""), key=f"st_{deck['id']}_{i}")
+                    s["body"] = st.text_area(f"Slide {i1} body", value=s.get("body", ""), key=f"sb_{deck['id']}_{i}", height=80)
 
             c1, c2, c3, c4, c5 = st.columns(5)
             if c1.button("➕ Add slide"):

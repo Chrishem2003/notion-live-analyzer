@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Project Collaboration & Meeting System
 A world-class, hybrid project collaboration & live meeting platform
@@ -5,7 +14,7 @@ combining Zoom, Figma, and Google Classroom capabilities.
 
 Modules:
   - project_auth.py           JWT Token Generator & Role-Based Access Control
-  - webrtc_provider.py        WebRTC + Spatial Audio + Denoising Engine
+  - webrtc_provider.py        WebRTC  Spatial Audio  Denoising Engine
   - collaborative_canvas.py   Yjs/CRDT Canvas & Viewport Sync Engine
   - ai_researcher.py          AI Co-Researcher & Action-Item Detection
 
@@ -14,7 +23,7 @@ Architecture:
   - Real-time project synchronization via CRDTs
   - AI-assisted research with speech-to-text and action-item detection
   - Role-based controls: Host, Co-Host, Researcher, Student/Viewer
-  - Dual-track publishing: camera + presentation overlay streams
+  - Dual-track publishing: camera  presentation overlay streams
   - Spatial audio positioning based on participant cursor distances
 """
 

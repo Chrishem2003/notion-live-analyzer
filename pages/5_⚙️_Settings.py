@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ⚙️ World-Class Advanced Settings, Administration & Autonomous Dependency Engine
 Enterprise-grade systems administration console featuring background package installation,
@@ -332,8 +341,8 @@ st.markdown("""
   <tbody>
     <tr><td>🔍 <b>File Analyzer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Upload CSV, Excel, SPSS, SAS, STATA, JSON files</td></tr>
     <tr><td>🔍 ️ <b>Variable View</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS-style variable metadata editor and dictionary builder</td></tr>
-    <tr><td>🔍 <b>Statistical Tests</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>20+ SPSS-level hypothesis testing procedures</td></tr>
-    <tr><td>🔍 <b>Advanced Visuals</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>18+ interactive chart generation canvases</td></tr>
+    <tr><td>🔍 <b>Statistical Tests</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>20 SPSS-level hypothesis testing procedures</td></tr>
+    <tr><td>🔍 <b>Advanced Visuals</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>18 interactive chart generation canvases</td></tr>
     <tr><td>🔍 <b>Predictive Modeling</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>AutoML classification, regression, and clustering algorithms</td></tr>
     <tr><td>🔍 <b>CHRISHEM Insights</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Automated analytical and statistical summaries</td></tr>
     <tr><td>🔍 <b>Data Transformer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS Compute, Recode, Rank, and Binning utilities</td></tr>

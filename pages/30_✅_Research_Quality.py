@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ✅ Advanced Research Quality, Reproducibility & QRP Auditing Suite (Enterprise Edition)
 Autonomous Research Operating System v3.0  Research Quality Module
@@ -306,7 +315,7 @@ Auditor: Autonomous Research Quality Kernel v3.0
 3. StatCheck Consistency: PASSED (100% mathematical match)
 4. Computational Reproducibility: PASSED (Seed locked, deterministic)
 
-OVERALL RESEARCH INTEGRITY RATING: GRADE A+ (FULLY REPRODUCIBLE)
+OVERALL RESEARCH INTEGRITY RATING: GRADE A (FULLY REPRODUCIBLE)
 =================================================================
         """, language="text")
         st.markdown("</div>", unsafe_allow_html=True)

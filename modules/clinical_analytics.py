@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Clinical & Health Analytics  BMI calculator, clinical reference ranges,
 Z-scores, growth percentiles, and health indicator analysis.
@@ -88,17 +97,17 @@ def calculate_bmi_for_age(
     # Mean and SD vary by age and sex  using simplified reference tables
     if sex.lower() == "male":
         if age_years < 18:
-            mean_bmi = 15.5 + age_years * 0.45
-            sd_bmi = 1.2 + age_years * 0.08
+            mean_bmi = 15.5  age_years * 0.45
+            sd_bmi = 1.2  age_years * 0.08
         else:
-            mean_bmi = 22.5 + (age_years - 18) * 0.05
+            mean_bmi = 22.5  (age_years - 18) * 0.05
             sd_bmi = 2.5
     else:  # female
         if age_years < 18:
-            mean_bmi = 15.0 + age_years * 0.50
-            sd_bmi = 1.3 + age_years * 0.09
+            mean_bmi = 15.0  age_years * 0.50
+            sd_bmi = 1.3  age_years * 0.09
         else:
-            mean_bmi = 21.5 + (age_years - 18) * 0.06
+            mean_bmi = 21.5  (age_years - 18) * 0.06
             sd_bmi = 2.8
 
     # Z-score
@@ -128,7 +137,7 @@ def calculate_bmi_for_age(
 
 def normal_cdf(x: float) -> float:
     """Standard normal CDF approximation."""
-    return 0.5 * (1 + np.sign(x) * np.sqrt(1 - np.exp(-2 * x**2 / np.pi)))
+    return 0.5 * (1  np.sign(x) * np.sqrt(1 - np.exp(-2 * x**2 / np.pi)))
 
 
 # ─── Clinical Reference Ranges ──────────────────────────────────────
@@ -265,30 +274,30 @@ def assess_cardiovascular_risk(
 
     # Age points
     if sex.lower() == "male":
-        if age >= 30: risk_score += 1
-        if age >= 40: risk_score += 1
-        if age >= 50: risk_score += 2
-        if age >= 60: risk_score += 2
-        if age >= 70: risk_score += 2
+        if age >= 30: risk_score = 1
+        if age >= 40: risk_score = 1
+        if age >= 50: risk_score = 2
+        if age >= 60: risk_score = 2
+        if age >= 70: risk_score = 2
     else:
-        if age >= 40: risk_score += 1
-        if age >= 50: risk_score += 2
-        if age >= 60: risk_score += 2
-        if age >= 70: risk_score += 3
+        if age >= 40: risk_score = 1
+        if age >= 50: risk_score = 2
+        if age >= 60: risk_score = 2
+        if age >= 70: risk_score = 3
 
     # Blood pressure
-    if systolic_bp > 140: risk_score += 2
-    elif systolic_bp > 130: risk_score += 1
+    if systolic_bp > 140: risk_score = 2
+    elif systolic_bp > 130: risk_score = 1
 
     # Cholesterol
     total_hdl_ratio = total_cholesterol / hdl_cholesterol if hdl_cholesterol > 0 else 10
-    if total_hdl_ratio > 5: risk_score += 2
-    elif total_hdl_ratio > 4: risk_score += 1
+    if total_hdl_ratio > 5: risk_score = 2
+    elif total_hdl_ratio > 4: risk_score = 1
 
     # Risk factors
-    if smoker: risk_score += 2
-    if diabetic: risk_score += 2
-    if hypertensive: risk_score += 1
+    if smoker: risk_score = 2
+    if diabetic: risk_score = 2
+    if hypertensive: risk_score = 1
 
     # Risk category
     if risk_score <= 3:
@@ -330,7 +339,7 @@ def render_clinical_analytics_ui():
     st.markdown("*BMI calculator, clinical reference ranges, Z-scores, and health risk assessment*")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "⚖️ BMI Calculator", "🔬 Clinical Reference", "📊 Z-Score Calculator", "❤️ Health Risk"
+        "⚖️ BMI Calculator", "🔬 Clinical Reference", " Z-Score Calculator", "❤️ Health Risk"
     ])
 
     with tab1:
@@ -443,7 +452,7 @@ def render_clinical_analytics_ui():
             st.dataframe(ref_df, use_container_width=True, hide_index=True)
 
     with tab3:
-        st.subheader("📊 Z-Score & Percentile Calculator")
+        st.subheader(" Z-Score & Percentile Calculator")
         st.caption("Calculate Z-scores and percentiles for any measurement")
 
         col1, col2, col3 = st.columns(3)
@@ -454,7 +463,7 @@ def render_clinical_analytics_ui():
         with col3:
             z_sd = st.number_input("Standard deviation (σ)", value=15.0, min_value=0.01, step=1.0, key="z_sd")
 
-        if st.button("📊 Calculate Z-Score", type="primary"):
+        if st.button(" Calculate Z-Score", type="primary"):
             z = calculate_z_score(z_value, z_mean, z_sd)
             pct = calculate_percentile_from_z(z)
 
@@ -489,9 +498,9 @@ def render_clinical_analytics_ui():
             st.markdown("""
             | Z-Score Range | Percentile Range | Interpretation |
             |--------------|-----------------|----------------|
-            | +2.0 to +3.0 | 97.7–99.9% | Significantly above average |
-            | +1.0 to +2.0 | 84.1–97.7% | Above average |
-            | -1.0 to +1.0 | 15.9–84.1% | Average range |
+            | 2.0 to 3.0 | 97.7–99.9% | Significantly above average |
+            | 1.0 to 2.0 | 84.1–97.7% | Above average |
+            | -1.0 to 1.0 | 15.9–84.1% | Average range |
             | -2.0 to -1.0 | 2.3–15.9% | Below average |
             | -3.0 to -2.0 | 0.1–2.3% | Significantly below average |
             """)

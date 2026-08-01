@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 ADVANCED AI INSIGHTS & EXECUTIVE REPORT GENERATOR [ENTERPRISE MODULE v6.3]
@@ -294,7 +303,7 @@ def render_ai_insights_page():
         if st.button("🔍 Load Synthetic Research Dataset", type="primary", use_container_width=True):
             np.random.seed(42)
             demo_data = pd.DataFrame({
-                "Patient_ID": [f"PID-{1000+i}" for i in range(120)],
+                "Patient_ID": [f"PID-{1000i}" for i in range(120)],
                 "Age": np.random.randint(20, 75, size=120),
                 "BMI": np.round(np.random.normal(26.5, 4.5, size=120), 1),
                 "Systolic_BP": np.random.randint(110, 160, size=120),

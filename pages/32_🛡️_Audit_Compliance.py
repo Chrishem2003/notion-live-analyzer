@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # AUDIT & COMPLIANCE HUB  ADVANCED HIGH-CONTRAST ENTERPRISE SUITE (v4.0)
 # Lead Researcher: Kula Chris
@@ -488,7 +497,7 @@ with tabs[3]:
   st.markdown("#### 31. SHA-256 Cryptographic Block Ledgering")
   
   if st.button("⚡ Generate New SHA-256 Immutable Proof Block"):
-    block_id = len(st.session_state.blockchain_ledger) + 1
+    block_id = len(st.session_state.blockchain_ledger)  1
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     prev_hash = st.session_state.blockchain_ledger[-1]["hash"] if st.session_state.blockchain_ledger else "0000000000000000"
     block_hash = hashlib.sha256(f"{block_id}{timestamp}{prev_hash}KULA_CHRIS".encode()).hexdigest()
@@ -496,7 +505,7 @@ with tabs[3]:
     st.session_state.blockchain_ledger.append({
         "block": block_id,
         "timestamp": timestamp,
-        "prev_hash": prev_hash[:12] + "...",
+        "prev_hash": prev_hash[:12]  "...",
         "hash": block_hash,
         "auditor": "Kula Chris"
     })

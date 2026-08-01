@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Research Quality & Reproducibility Checker  detects p-hacking, QRPs,
 assesses reproducibility, and provides transparency checks.
@@ -304,7 +313,7 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                     """, unsafe_allow_html=True)
 
             # Summary stats
-            st.markdown("### 📊 Results Summary")
+            st.markdown("###  Results Summary")
             n_sig = sum(1 for r in statistical_results if r.get("significant"))
             n_total = len(statistical_results)
             st.metric("Total Tests", n_total)

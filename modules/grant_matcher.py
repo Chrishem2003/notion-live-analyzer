@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import sqlite3
 import json
 import re
@@ -47,8 +56,8 @@ def fetch_and_index_grants():
 
 def compute_similarity_score(project_tags: str, grant_keywords: str) -> float:
     """Calculates keyword match coefficient."""
-    proj_tokens = set(re.findall(r'\w+', project_tags.lower()))
-    grant_tokens = set(re.findall(r'\w+', grant_keywords.lower()))
+    proj_tokens = set(re.findall(r'\w', project_tags.lower()))
+    grant_tokens = set(re.findall(r'\w', grant_keywords.lower()))
     
     if not proj_tokens or not grant_tokens:
         return 0.0
@@ -122,7 +131,7 @@ def render_grant_matcher_tab():
         ''', conn)
         
         if not matches.empty:
-            st.markdown("### 📊 Ranked Active Opportunities")
+            st.markdown("###  Ranked Active Opportunities")
             st.dataframe(matches, use_container_width=True)
         else:
             st.info("Click above to run the grant matching engine.")

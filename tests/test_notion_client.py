@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Unit tests for modules.notion_client."""
 import hashlib
 
@@ -125,7 +134,7 @@ class TestCachingDecorator:
             return value
 
         counted(5)
-        now[0] += 11
+        now[0] = 11
         counted(5)
         assert calls == [5, 5]
 

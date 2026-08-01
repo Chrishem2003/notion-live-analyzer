@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 CLINICAL ANALYTICS & BIOMETRIC STUDIO [ENTERPRISE EDITION v3.0]
@@ -358,7 +367,7 @@ with clinical_tabs[3]:
         # Simulated risk estimation algorithm logic
         risk_score = 4.5 if not smoker_status else 11.2
         if diabetes_status:
-            risk_score += 3.5
+            risk_score = 3.5
         
         risk_category = "Low Risk (< 5%)" if risk_score < 5 else ("Borderline / Intermediate Risk" if risk_score < 10 else "High Risk (≥ 10%)")
         

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import re
 import streamlit as st
 
@@ -9,7 +18,7 @@ def sanitize_payload(user_input: str) -> str:
         return str(user_input)
     
     # Detect potential SQLi or script injection signatures
-    sql_patterns = re.compile(r"(--|;|UNION|SELECT|DROP|INSERT|DELETE|UPDATE|OR\s+1=1)", re.IGNORECASE)
+    sql_patterns = re.compile(r"(--|;|UNION|SELECT|DROP|INSERT|DELETE|UPDATE|OR\s1=1)", re.IGNORECASE)
     xss_patterns = re.compile(r"(<script>|javascript:|onerror=|onload=)", re.IGNORECASE)
     
     if sql_patterns.search(user_input) or xss_patterns.search(user_input):

@@ -1,6 +1,15 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Notion API Client  handles all interactions with the Notion API.
-Supports all 20+ property types and automatic database detection.
+Supports all 20 property types and automatic database detection.
 Includes caching and rate-limiting to improve performance.
 """
 import hashlib
@@ -35,7 +44,7 @@ def _cached_request(cache_key: str, ttl: int = 60):
             if kwargs.pop("force_refresh", False):
                 return func(*args, **kwargs)
             
-            full_key = f"{cache_key}:{hash(str(args) + str(kwargs))}"
+            full_key = f"{cache_key}:{hash(str(args)  str(kwargs))}"
             now = time.time()
             
             if full_key in _request_cache:
@@ -71,7 +80,7 @@ class RateLimiter:
         self.calls = [t for t in self.calls if now - t < self.per_seconds]
         
         if len(self.calls) >= self.max_calls:
-            sleep_time = self.calls[0] + self.per_seconds - now
+            sleep_time = self.calls[0]  self.per_seconds - now
             if sleep_time > 0:
                 time.sleep(sleep_time)
         
@@ -203,7 +212,7 @@ def get_database_options(token: str) -> List[Dict]:
             if response.status_code != 200:
                 logger.error(
                     "Notion database search failed (page %s): %s  %s",
-                    page_count + 1, response.status_code, response.text[:200],
+                    page_count  1, response.status_code, response.text[:200],
                 )
                 if not _handle_api_error(response, token):
                     st.error(
@@ -222,14 +231,14 @@ def get_database_options(token: str) -> List[Dict]:
                 })
             has_more = data.get("has_more", False)
             next_cursor = data.get("next_cursor")
-            page_count += 1
+            page_count = 1
     except Exception as e:
         logger.exception("Error fetching Notion databases")
         st.error(f"Error fetching databases: {str(e)}")
     return databases
 
 def fingerprint_database(properties: dict) -> str:
-    """Create a unique SHA-256 fingerprint from property names + types."""
+    """Create a unique SHA-256 fingerprint from property names  types."""
     schema_items = []
     for name, prop in sorted(properties.items()):
         if isinstance(prop, dict):
@@ -268,16 +277,16 @@ def discover_database_id(token: str) -> Optional[str]:
         property_types = {p.get("type") for p in props.values() if isinstance(p, dict)}
         score = 0
         if "title" in property_types:
-            score += 5
+            score = 5
         if "number" in property_types:
-            score += 5
+            score = 5
         if "date" in property_types:
-            score += 4
+            score = 4
         if {"select", "status"}.intersection(property_types):
-            score += 5
+            score = 5
         if "multi_select" in property_types:
-            score += 3
-        score += len(property_types)  # More diverse types = richer schema
+            score = 3
+        score = len(property_types)  # More diverse types = richer schema
         if score > best_score:
             best_score = score
             best_match = db["id"]
@@ -337,7 +346,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
                     db_id, response.status_code, response.text[:200],
                 )
                 st.error(f"Notion API Error: {response.status_code}  {response.text[:200]}")
-                fetch_attempts += 1
+                fetch_attempts = 1
                 continue
 
             data = response.json()
@@ -374,12 +383,12 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
         except requests.exceptions.Timeout:
             logger.warning("Timeout querying Notion database %s  retrying", db_id)
             st.warning("⏱️ Notion API timeout. Retrying...")
-            fetch_attempts += 1
+            fetch_attempts = 1
             time.sleep(1)
         except Exception as e:
             logger.exception("Error fetching rows from Notion database %s", db_id)
             st.error(f"Error fetching data: {str(e)}")
-            fetch_attempts += 1
+            fetch_attempts = 1
             time.sleep(0.5)
 
     if not rows:

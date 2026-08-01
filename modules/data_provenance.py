@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Data Provenance Tracker  Immutable lineage logging for DataFrame operations
 Records every transformation applied to a DataFrame with full context:
@@ -133,7 +142,7 @@ class ProvenanceDatabase:
                 "SELECT MAX(execution_order) as mx FROM data_provenance WHERE session_id = ?",
                 (session_id,),
             ).fetchone()
-            execution_order = (row["mx"] or 0) + 1
+            execution_order = (row["mx"] or 0)  1
 
             params_json = json.dumps(parameters or {})
             input_cols_json = json.dumps(input_columns or [])
@@ -628,8 +637,8 @@ class ProvenanceVisualizer:
         links = []
 
         for i, step in enumerate(lineage):
-            op_name = step.get("operation_name", f"Step {i+1}")
-            exec_order = step.get("execution_order", i + 1)
+            op_name = step.get("operation_name", f"Step {i1}")
+            exec_order = step.get("execution_order", i  1)
             input_shape = step.get("input_shape")
             output_shape = step.get("output_shape")
             row_change = step.get("row_count_change", 0)
@@ -646,13 +655,13 @@ class ProvenanceVisualizer:
 
             col_info = ""
             if cols_added:
-                col_info += f" +{len(cols_added)} cols"
+                col_info = f" {len(cols_added)} cols"
             if cols_removed:
-                col_info += f" -{len(cols_removed)} cols"
+                col_info = f" -{len(cols_removed)} cols"
 
             label = f"{op_name}{shape_info}{col_info}"
             if duration > 0:
-                label += f"\n{duration:.0f}ms"
+                label = f"\n{duration:.0f}ms"
 
             # Determine color
             if row_change > 0:
@@ -676,7 +685,7 @@ class ProvenanceVisualizer:
             if i < len(lineage) - 1:
                 links.append({
                     "source": i,
-                    "target": i + 1,
+                    "target": i  1,
                     "value": 1,
                 })
 
@@ -685,9 +694,9 @@ class ProvenanceVisualizer:
         for node in nodes:
             # Vary y position based on row change magnitude
             y_offset = min(max(node["row_change"], -10), 10) / 10.0
-            y_positions.append(0.5 + y_offset * 0.3)
+            y_positions.append(0.5  y_offset * 0.3)
 
-        # Create Plotly figure using scatter for nodes + lines for edges
+        # Create Plotly figure using scatter for nodes  lines for edges
         fig = go.Figure()
 
         # Draw edges (horizontal lines with arrows)
@@ -700,7 +709,7 @@ class ProvenanceVisualizer:
             fig.add_trace(go.Scatter(
                 x=[x0, x1],
                 y=[y0, y1],
-                mode="lines+markers",
+                mode="linesmarkers",
                 line=dict(color="rgba(100,100,100,0.3)", width=1),
                 marker=dict(size=3, color="rgba(100,100,100,0.5)"),
                 showlegend=False,
@@ -716,12 +725,12 @@ class ProvenanceVisualizer:
         # Node sizes based on duration
         durations = [n["duration"] for n in nodes]
         max_dur = max(durations) if durations else 1
-        sizes = [15 + (d / max_dur) * 20 if max_dur > 0 else 20 for d in durations]
+        sizes = [15  (d / max_dur) * 20 if max_dur > 0 else 20 for d in durations]
 
         fig.add_trace(go.Scatter(
             x=node_x,
             y=node_y,
-            mode="markers+text",
+            mode="markerstext",
             marker=dict(
                 size=sizes,
                 color=node_colors,
@@ -733,7 +742,7 @@ class ProvenanceVisualizer:
             textfont=dict(size=9, color="#333"),
             hovertext=[
                 f"<b>{n['label'].split(chr(10))[0]}</b><br>"
-                f"Row change: {n['row_change']:+d}<br>"
+                f"Row change: {n['row_change']:d}<br>"
                 f"Duration: {n['duration']:.0f}ms"
                 for n in nodes
             ],
@@ -756,7 +765,7 @@ class ProvenanceVisualizer:
                 showgrid=False,
                 range=[-0.2, 1.2],
             ),
-            height=max(300, 80 + len(nodes) * 30),
+            height=max(300, 80  len(nodes) * 30),
             margin=dict(l=20, r=250, t=50, b=50),
             plot_bgcolor="rgba(0,0,0,0)",
             hovermode="x",
@@ -772,11 +781,11 @@ class ProvenanceVisualizer:
             input_shape = step.get("input_shape")
             output_shape = step.get("output_shape")
             rows.append({
-                "#": step.get("execution_order", i + 1),
+                "#": step.get("execution_order", i  1),
                 "Operation": step.get("operation_name", ""),
                 "Input Shape": f"{input_shape[0]}×{input_shape[1]}" if input_shape else "-",
                 "Output Shape": f"{output_shape[0]}×{output_shape[1]}" if output_shape else "-",
-                "Rows Δ": f"{step.get('row_count_change', 0):+d}",
+                "Rows Δ": f"{step.get('row_count_change', 0):d}",
                 "Cols Added": ", ".join(step.get("columns_added", [])[:3]) or "-",
                 "Cols Removed": ", ".join(step.get("columns_removed", [])[:3]) or "-",
                 "Duration (ms)": f"{step.get('duration_ms', 0):.1f}",
@@ -871,7 +880,7 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
     # ─── Lineage Graph ──────────────────────────────────────────────
     lineage = tracker.get_lineage()
     if lineage:
-        st.subheader("📊 Transformation Lineage")
+        st.subheader(" Transformation Lineage")
 
         fig = ProvenanceVisualizer.render_lineage_graph(lineage)
         st.plotly_chart(fig, use_container_width=True)
@@ -932,8 +941,8 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
         # ─── Detailed Row Viewer ────────────────────────────────────
         with st.expander("🔍 Detailed Operation Inspector"):
             for i, step in enumerate(lineage):
-                op_name = step.get("operation_name", f"Step {i+1}")
-                exec_order = step.get("execution_order", i + 1)
+                op_name = step.get("operation_name", f"Step {i1}")
+                exec_order = step.get("execution_order", i  1)
                 with st.container():
                     st.markdown(f"""
                     <div style="padding:0.5rem;margin:0.3rem 0;border-radius:8px;
@@ -952,7 +961,7 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
                         st.caption(f"Input: {shape_in[0]}×{shape_in[1] if shape_in else '?'} → "
                                   f"Output: {shape_out[0]}×{shape_out[1] if shape_out else '?'}")
                     with col2:
-                        st.caption(f"Rows: {step.get('row_count_change', 0):+d}")
+                        st.caption(f"Rows: {step.get('row_count_change', 0):d}")
                     with col3:
                         st.caption(f"Duration: {step.get('duration_ms', 0):.1f}ms")
 

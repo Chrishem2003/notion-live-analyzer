@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 SPSS Variable View Editor  manage variable labels, value labels, measurement levels,
 missing values, and column properties like SPSS Variable View.
@@ -146,7 +155,7 @@ def render_variable_view_editor(df: pd.DataFrame):
         col_type_short = "numeric" if "float" in ctype or "int" in ctype else "string"
 
         html.append(f"<tr>")
-        html.append(f"<td>{idx+1}</td>")
+        html.append(f"<td>{idx1}</td>")
         # Delete checkbox
         checked = "checked" if st.session_state.get(f"del_{col}") else ""
         html.append(f'<td><input type="checkbox" {"onchange" if not checked else ""} '
@@ -187,7 +196,7 @@ def render_variable_view_editor(df: pd.DataFrame):
         vl = meta.get("value_labels", {})
         vl_str = ", ".join(f"{k}={v}" for k, v in list(vl.items())[:2])
         if len(vl) > 2:
-            vl_str += "..."
+            vl_str = "..."
         html.append(f'<td style="max-width:80px;overflow:hidden">{vl_str or ""}</td>')
         # Alignment
         align_val = st.session_state.get(f"align_{col}", meta["align"])
@@ -254,7 +263,7 @@ def render_variable_view_editor(df: pd.DataFrame):
 
     # Summary
     st.markdown("---")
-    st.subheader("📊 Variable Summary")
+    st.subheader(" Variable Summary")
     summary_data = []
     for col, meta in metadata.items():
         summary_data.append({

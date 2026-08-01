@@ -57,7 +57,7 @@ st.set_page_config(
 # ---------------------------------------------------------
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=PlusJakartaSans:wght@300;400;500;600;700;800&family=JetBrainsMono:wght@400;500;700&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', sans-serif;
@@ -184,7 +184,7 @@ def render_nonlinear_chaos_engine():
     def system_ode(state, t, a, b, c, shock_val):
         x, y, z = state
         sk = shock_val if (0.45 * t_max <= t <= 0.55 * t_max) else 0.0
-        dxdt = x - z - (y - a) * x + sk
+        dxdt = x - z - (y - a) * x  sk
         dydt = 1 - b * y - x**2
         dzdt = x - c * z
         return [dxdt, dydt, dzdt]
@@ -200,7 +200,7 @@ def render_nonlinear_chaos_engine():
     sol = np.nan_to_num(sol, nan=0.0, posinf=1e4, neginf=-1e4)
     x_traj, y_traj, z_traj = sol[:, 0], sol[:, 1], sol[:, 2]
 
-    growth = np.abs(np.gradient(x_traj)) + 1e-5
+    growth = np.abs(np.gradient(x_traj))  1e-5
     mlce = float(np.mean(np.log(growth)) / (t_arr[1] - t_arr[0]))
     status = "STABLE" if mlce < 0 else "CRITICAL / CHAOTIC"
 

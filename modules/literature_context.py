@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Automated Literature Context  Effect size comparison against published norms,
 auto citation suggestions, field-specific benchmarks, sample size benchmarking.
@@ -138,7 +147,7 @@ class LiteratureContext:
             from scipy.stats import norm
             return float(norm.cdf(z) * 100)
         except ImportError:
-            return 50 + z * 15  # Approximate
+            return 50  z * 15  # Approximate
 
     # ─── Sample Size Benchmarking ─────────────────────────────────
     def benchmark_sample_size(
@@ -287,10 +296,10 @@ def render_literature_context_ui():
     st.info("This tool helps you contextualize your findings within the broader literature. "
             "Enter your effect sizes to get benchmarks, sample size comparisons, and citation suggestions.")
 
-    tab1, tab2, tab3 = st.tabs(["📊 Effect Size Comparison", "📏 Sample Size Benchmarking", "📚 Full Report"])
+    tab1, tab2, tab3 = st.tabs([" Effect Size Comparison", "📏 Sample Size Benchmarking", "📚 Full Report"])
 
     with tab1:
-        st.subheader("📊 Effect Size Comparison")
+        st.subheader(" Effect Size Comparison")
         col1, col2 = st.columns(2)
         with col1:
             es = st.number_input("Your effect size", value=0.5, step=0.01, format="%.3f", key="lc_es")
@@ -299,7 +308,7 @@ def render_literature_context_ui():
             discipline = st.selectbox("Discipline", options=list(FIELD_BENCHMARKS.keys()), key="lc_discipline")
             n = st.number_input("Sample size (optional)", value=0, min_value=0, step=10, key="lc_n")
 
-        if st.button("📊 Compare", type="primary"):
+        if st.button(" Compare", type="primary"):
             lc = LiteratureContext(discipline)
             result = lc.compare_effect_size(es, es_type, n if n > 0 else None)
             st.metric("Effect Size Label", result["label"].title())

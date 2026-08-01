@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Data Transformation Engine  SPSS-like Compute, Recode, Rank, Count, Shift, and Binning.
 Provides a UI for transforming variables with full SPSS compatibility.
@@ -18,7 +27,7 @@ def compute_variable(
 ) -> pd.DataFrame:
     """
     Compute a new variable using a Python expression.
-    Supports: +, -, *, /, **, %, log(), sqrt(), abs(), round(), 
+    Supports: , -, *, /, **, %, log(), sqrt(), abs(), round(), 
     mean(), sum(), min(), max(), ifelse(), recode()
     """
     df = df.copy()
@@ -311,7 +320,7 @@ def render_compute_ui(df: pd.DataFrame) -> pd.DataFrame:
     # Expression builder helpers
     st.markdown("**Insert column:**")
     expr_cols = st.multiselect("Select columns to include", options=cols, key="compute_cols", label_visibility="collapsed")
-    expr_preview = " + ".join(expr_cols) if expr_cols else ""
+    expr_preview = "  ".join(expr_cols) if expr_cols else ""
 
     expression = st.text_area(
         "Expression (Python syntax, use column names directly)",
@@ -350,9 +359,9 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
         for i in range(int(num_mappings)):
             c1, c2, c3 = st.columns(3)
             with c1:
-                old_val = st.text_input(f"Old value {i+1}", key=f"rec_old_{i}")
+                old_val = st.text_input(f"Old value {i1}", key=f"rec_old_{i}")
             with c2:
-                new_val = st.text_input(f"New value {i+1}", key=f"rec_new_{i}")
+                new_val = st.text_input(f"New value {i1}", key=f"rec_new_{i}")
             with c3:
                 st.caption("→")
             if old_val:
@@ -390,9 +399,9 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
         for i in range(int(num_mappings)):
             c1, c2 = st.columns(2)
             with c1:
-                old_val = st.text_input(f"Old value {i+1}", key=f"rec_dold_{i}")
+                old_val = st.text_input(f"Old value {i1}", key=f"rec_dold_{i}")
             with c2:
-                new_val = st.text_input(f"New value {i+1}", key=f"rec_dnew_{i}")
+                new_val = st.text_input(f"New value {i1}", key=f"rec_dnew_{i}")
             if old_val:
                 try:
                     old_converted = float(old_val) if "." in old_val else int(old_val)
@@ -419,11 +428,11 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
         for i in range(int(num_ranges)):
             c1, c2, c3 = st.columns(3)
             with c1:
-                lower = st.number_input(f"Lower bound {i+1}", value=float('-inf') if i == 0 else 0.0, key=f"rng_low_{i}", format="%f")
+                lower = st.number_input(f"Lower bound {i1}", value=float('-inf') if i == 0 else 0.0, key=f"rng_low_{i}", format="%f")
             with c2:
-                upper = st.number_input(f"Upper bound {i+1}", value=float('inf') if i == int(num_ranges)-1 else 100.0, key=f"rng_high_{i}", format="%f")
+                upper = st.number_input(f"Upper bound {i1}", value=float('inf') if i == int(num_ranges)-1 else 100.0, key=f"rng_high_{i}", format="%f")
             with c3:
-                new_val = st.text_input(f"New value {i+1}", value=str(i+1), key=f"rng_val_{i}")
+                new_val = st.text_input(f"New value {i1}", value=str(i1), key=f"rng_val_{i}")
             try:
                 new_val_converted = float(new_val) if "." in new_val else int(new_val)
             except ValueError:
@@ -455,7 +464,7 @@ def render_rank_ui(df: pd.DataFrame) -> pd.DataFrame:
         help="Average=mean of tied ranks, Lowest=min rank, Highest=max rank, Sequential=first seen first, Dense=no gaps"
     )
     ascending = st.checkbox("Ascending order (lowest gets rank 1)", value=True, key="rank_asc")
-    group_col = st.selectbox("Group by (optional)", options=[""] + cols, key="rank_group")
+    group_col = st.selectbox("Group by (optional)", options=[""]  cols, key="rank_group")
     new_col = st.text_input("Rank variable name", value=f"{col}_rank", key="rank_new")
 
     if st.button("▶️ Rank Cases", type="primary"):
@@ -494,7 +503,7 @@ def render_shift_ui(df: pd.DataFrame) -> pd.DataFrame:
     cols = df.columns.tolist()
     col = st.selectbox("Variable to shift", options=cols, key="shift_col")
     periods = st.number_input("Periods (positive=lag, negative=lead)", value=1, key="shift_periods")
-    group_col = st.selectbox("Group by (optional for panel data)", options=[""] + cols, key="shift_group")
+    group_col = st.selectbox("Group by (optional for panel data)", options=[""]  cols, key="shift_group")
     new_col = st.text_input("New variable name", value=f"{col}_lag{abs(periods)}", key="shift_new")
 
     if st.button("▶️ Create Shift", type="primary"):
@@ -506,7 +515,7 @@ def render_shift_ui(df: pd.DataFrame) -> pd.DataFrame:
 
 def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Visual Binning UI."""
-    st.subheader("📊 Visual Binning")
+    st.subheader(" Visual Binning")
     st.caption("Bin/discretize numeric variables (like SPSS Visual Binning)")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -523,7 +532,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
         n_bins = st.slider("Number of bins", min_value=2, max_value=20, value=4, key="bin_n")
         label_type = st.radio("Labels", ["Integer labels", "Range labels"], horizontal=True, key="bin_labels")
         if label_type == "Integer labels":
-            labels = [str(i+1) for i in range(n_bins)]
+            labels = [str(i1) for i in range(n_bins)]
         else:
             labels = None
 
@@ -539,7 +548,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
         max_val = float(series.max())
         cut_points_str = st.text_input(
             "Cut points (comma-separated, e.g.: 0, 10, 20, 30)",
-            value=f"{min_val:.1f}, {(max_val-min_val)/3+min_val:.1f}, {2*(max_val-min_val)/3+min_val:.1f}, {max_val:.1f}",
+            value=f"{min_val:.1f}, {(max_val-min_val)/3min_val:.1f}, {2*(max_val-min_val)/3min_val:.1f}, {max_val:.1f}",
             key="bin_cuts"
         )
         labels_str = st.text_input("Labels (comma-separated)", value="Low, Medium, High", key="bin_clabels")
@@ -635,9 +644,9 @@ def render_rename_ui(df: pd.DataFrame) -> pd.DataFrame:
     for i in range(int(num_renames)):
         c1, c2, c3 = st.columns(3)
         with c1:
-            old_name = st.selectbox(f"Current name {i+1}", options=cols, key=f"ren_old_{i}")
+            old_name = st.selectbox(f"Current name {i1}", options=cols, key=f"ren_old_{i}")
         with c2:
-            new_name = st.text_input(f"New name {i+1}", value=old_name, key=f"ren_new_{i}")
+            new_name = st.text_input(f"New name {i1}", value=old_name, key=f"ren_new_{i}")
         with c3:
             st.caption("→")
         if old_name and new_name and old_name != new_name:
@@ -663,7 +672,7 @@ def render_transformer_panel(df: pd.DataFrame) -> pd.DataFrame:
 
     tabs = st.tabs([
         "🧮 Compute", "🔄 Recode", "🏆 Rank", "🔢 Count",
-        "⏳ Shift/Lag", "📊 Binning", "🔀 Sort", "🔍 Select",
+        "⏳ Shift/Lag", " Binning", "🔀 Sort", "🔍 Select",
         "⚖️ Weight", "✏️ Rename"
     ])
 

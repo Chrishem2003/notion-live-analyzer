@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 UI Components  reusable Streamlit UI elements for consistent design.
 Unified stunning styling system for all pages.
@@ -658,7 +667,7 @@ def notion_embed_container():
     embed_mode = st.session_state.get("notion_embed_mode", False)
     classes = "notion-embed-container"
     if compact:
-        classes += " notion-compact"
+        classes = " notion-compact"
     st.markdown(f'<div class="{classes}">', unsafe_allow_html=True)
     return True  # For context manager usage
 
@@ -718,20 +727,20 @@ def render_onboarding_tour():
             This powerful tool replaces **SPSS, Tableau, and Power BI**  all in one free, Notion-connected platform.
 
             **📍 Quick Navigation:**
-            - **📊 Live Dashboard**  Real-time sync with your Notion database
+            - ** Live Dashboard**  Real-time sync with your Notion database
             - **📁 File Analyzer**  Upload CSV, Excel, SPSS, SAS, STATA files
             - **🔬 Statistical Tests**  T-tests, ANOVA, Correlation, Regression, and more
-            - **📈 Advanced Visuals**  18+ chart types with auto-recommendation
+            - **📈 Advanced Visuals**  18 chart types with auto-recommendation
             - **🤖 CHRISHEM Insights**  Automated data analysis and smart recommendations
             - **🔗 Git Integration**  Connect GitHub for data version control
-            - **📊 Presentation Deck**  Build interactive slide decks
+            - ** Presentation Deck**  Build interactive slide decks
             - **⚙️ Settings**  Theme, credentials, keep-alive configuration
 
             **💡 Tips:**
             - Connect your Notion workspace OR upload a file to get started
             - CHRISHEM will automatically recommend the best analysis for your data
             - Enable Keep-Alive in Settings for 24/7 operation
-            - Push cleaned data + analysis scripts back to GitHub
+            - Push cleaned data  analysis scripts back to GitHub
             """)
             if st.button("✅ Got it! Hide this tour"):
                 st.session_state["show_onboarding"] = False

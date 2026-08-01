@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Multi-Paper Meta-Analysis Matrix Synthesizer
 Automatically constructs side-by-side comparative matrices across multiple studies.
@@ -30,18 +39,18 @@ class MetaAnalysisMatrix:
             r"(?:sample|cohort)\s*(?:size|of)?\s*(\d[\d,]*)",
         ],
         "p_value": [
-            r"[pP]\s*[<>=]\s*(\d+\.?\d*)",
-            r"[pP]\s*=\s*(\d+\.?\d*)",
+            r"[pP]\s*[<>=]\s*(\d\.?\d*)",
+            r"[pP]\s*=\s*(\d\.?\d*)",
             r"[pP]\s*[<]\s*0\.001",
             r"[pP]\s*[<]\s*0\.01",
             r"[pP]\s*[<]\s*0\.05",
         ],
         "effect_size": [
-            r"(?:Cohen'?s?\s*[dD])\s*=\s*([-+]?\d+\.?\d*)",
-            r"[dD]\s*=\s*([-+]?\d+\.?\d*)",
-            r"[rR]\s*=\s*([-+]?\d+\.?\d*)",
-            r"(?:odds\s*ratio|OR)\s*=\s*([-+]?\d+\.?\d*)",
-            r"(?:Hedges'?[sg])\s*=\s*([-+]?\d+\.?\d*)",
+            r"(?:Cohen'?s?\s*[dD])\s*=\s*([-]?\d\.?\d*)",
+            r"[dD]\s*=\s*([-]?\d\.?\d*)",
+            r"[rR]\s*=\s*([-]?\d\.?\d*)",
+            r"(?:odds\s*ratio|OR)\s*=\s*([-]?\d\.?\d*)",
+            r"(?:Hedges'?[sg])\s*=\s*([-]?\d\.?\d*)",
         ],
         "model_organism": [
             r"(human|mouse|rat|zebrafish|drosophila|yeast|worm|c. elegans|primate|monkey|pig|rabbit|dog|cat)",
@@ -142,7 +151,7 @@ class MetaAnalysisMatrix:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 start = max(0, match.start() - 50)
-                end = min(len(text), match.end() + 100)
+                end = min(len(text), match.end()  100)
                 context = text[start:end].replace("\n", " ").strip()
                 return context[:200]
         return ""
@@ -150,11 +159,11 @@ class MetaAnalysisMatrix:
     def _extract_outcome(self, text: str) -> str:
         """Extract the primary outcome/finding from text."""
         patterns = [
-            r"(?:found|showed|demonstrated|revealed|indicated|observed)\s+that\s+(.*?)[.;]",
-            r"(?:primary|main|key)\s+(?:outcome|finding|result)\s+(?:was|is)\s+(.*?)[.;]",
-            r"(?:conclude|concluded|conclusion)\s+(?:that\s+)?(.*?)[.;]",
-            r"(?:result|results)\s+(?:show|showed|demonstrate|demonstrated|indicate|indicated)\s+(?:that\s+)?(.*?)[.;]",
-            r"(?:significant|significantly)\s+(.*?)[.;]",
+            r"(?:found|showed|demonstrated|revealed|indicated|observed)\sthat\s(.*?)[.;]",
+            r"(?:primary|main|key)\s(?:outcome|finding|result)\s(?:was|is)\s(.*?)[.;]",
+            r"(?:conclude|concluded|conclusion)\s(?:that\s)?(.*?)[.;]",
+            r"(?:result|results)\s(?:show|showed|demonstrate|demonstrated|indicate|indicated)\s(?:that\s)?(.*?)[.;]",
+            r"(?:significant|significantly)\s(.*?)[.;]",
         ]
         for pattern in patterns:
             match = re.search(pattern, text, re.IGNORECASE)
@@ -175,7 +184,7 @@ class MetaAnalysisMatrix:
             return "✅ Yes"
         if "p >" in p_lower or "p =" in p_lower or "p=" in p_lower:
             # Extract the actual p-value
-            nums = re.findall(r"(\d+\.?\d*)", p_value)
+            nums = re.findall(r"(\d\.?\d*)", p_value)
             if nums and float(nums[0]) < 0.05:
                 return "✅ Yes"
             elif nums:
@@ -189,15 +198,15 @@ class MetaAnalysisMatrix:
             nums = re.findall(r"\d[\d,]*", row["Sample Size (N)"])
             if nums:
                 n = int(nums[0].replace(",", ""))
-                if n >= 1000: score += 20
-                elif n >= 100: score += 10
-                elif n >= 30: score += 5
-        if row.get("Effect Size"): score += 10
+                if n >= 1000: score = 20
+                elif n >= 100: score = 10
+                elif n >= 30: score = 5
+        if row.get("Effect Size"): score = 10
         if row.get("Methodology"):
             if "RCT" in row["Methodology"] or "meta-analysis" in row["Methodology"]:
-                score += 15
-            elif "systematic" in row["Methodology"]: score += 10
-        if row.get("DOI"): score += 5
+                score = 15
+            elif "systematic" in row["Methodology"]: score = 10
+        if row.get("DOI"): score = 5
         if row.get("Limitations"): score -= 5  # Self-awareness of limitations
         return max(0, min(100, score))
 
@@ -285,7 +294,7 @@ def render_meta_analysis_matrix_ui():
         st.session_state["meta_matrix"] = MetaAnalysisMatrix()
     matrix_engine = st.session_state["meta_matrix"]
 
-    tab1, tab2, tab3 = st.tabs(["📥 Build Matrix", "📊 Matrix View", "📈 Summary"])
+    tab1, tab2, tab3 = st.tabs(["📥 Build Matrix", " Matrix View", "📈 Summary"])
 
     with tab1:
         st.subheader("📥 Build Comparative Matrix")
@@ -334,7 +343,7 @@ def render_meta_analysis_matrix_ui():
     with tab2:
         df = st.session_state.get("meta_matrix_df")
         if df is not None and not df.empty:
-            st.subheader(f"📊 Comparative Matrix ({len(df)} papers)")
+            st.subheader(f" Comparative Matrix ({len(df)} papers)")
 
             col1, col2, col3 = st.columns(3)
             with col1:

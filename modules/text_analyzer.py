@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Text Analyzer  qualitative text analysis with sentiment analysis,
 word clouds, theme extraction, and frequency analysis.
@@ -45,9 +54,9 @@ class TextAnalyzer:
         if not isinstance(text, str):
             return ""
         text = text.lower()
-        text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
+        text = re.sub(r'http\S|www\S|https\S', '', text, flags=re.MULTILINE)
         text = re.sub(r'[^\w\s]', ' ', text)
-        text = re.sub(r'\s+', ' ', text).strip()
+        text = re.sub(r'\s', ' ', text).strip()
         return text
 
     @staticmethod
@@ -100,7 +109,7 @@ class TextAnalyzer:
 
         df = pd.DataFrame(most_common, columns=['Word', 'Frequency'])
         df['Percentage'] = round(df['Frequency'] / df['Frequency'].sum() * 100, 2)
-        df['Rank'] = range(1, len(df) + 1)
+        df['Rank'] = range(1, len(df)  1)
         return df
 
     @staticmethod
@@ -150,7 +159,7 @@ class TextAnalyzer:
                 pos_count = len(words & positive_words)
                 neg_count = len(words & negative_words)
                 polarity = (pos_count - neg_count) / max(len(words), 1)
-                subjectivity = (pos_count + neg_count) / max(len(words), 1)
+                subjectivity = (pos_count  neg_count) / max(len(words), 1)
 
                 if polarity > 0.1:
                     sentiment = 'Positive'
@@ -240,15 +249,15 @@ class TextAnalyzer:
             words = set(cleaned.split())
             for word in words:
                 if len(word) >= 3 and word not in stop_words:
-                    word_doc_freq[word] += 1
+                    word_doc_freq[word] = 1
             for word in cleaned.split():
                 if len(word) >= 3 and word not in stop_words:
-                    word_total_freq[word] += 1
+                    word_total_freq[word] = 1
 
         tfidf_scores = {}
         for word, total_freq in word_total_freq.most_common(top_n * 3):
             tf = total_freq
-            idf = np.log((doc_count + 1) / (word_doc_freq.get(word, 0) + 1)) + 1
+            idf = np.log((doc_count  1) / (word_doc_freq.get(word, 0)  1))  1
             tfidf_scores[word] = tf * idf
 
         top_keywords = sorted(tfidf_scores.items(), key=lambda x: x[1], reverse=True)[:top_n]
@@ -311,12 +320,12 @@ def render_text_analysis_ui(df: pd.DataFrame):
     st.info(f"**Analyzing**: {len(texts)} text entries from '{text_col}'")
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 Summary", "😊 Sentiment", "📈 Word Frequency",
+        " Summary", "😊 Sentiment", "📈 Word Frequency",
         "☁️ Word Cloud", "🔤 N-Grams"
     ])
 
     with tab1:
-        st.subheader("📊 Corpus Summary")
+        st.subheader(" Corpus Summary")
         if st.button("Generate Summary", type="primary"):
             summary = TextAnalyzer.text_summary(texts)
             if "error" not in summary:

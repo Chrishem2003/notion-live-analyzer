@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Notion Module  Template Duplication & Embedded Workspace."""
 import os
 import time
@@ -209,7 +218,7 @@ def render_notion_duplication():
                 ### Bio-Research Enterprise Research Planner
                 
                 A comprehensive research planning tool including:
-                - 📊 Project Timeline & Milestones
+                -  Project Timeline & Milestones
                 - 📚 Literature Review Tracker
                 - 🔬 Methodology Framework
                 - 📝 Research Journal
@@ -243,7 +252,7 @@ def render_notion_duplication():
         **Bio-Research Enterprise Research Planner** template.
         
         This template includes:
-        - 📊 Project Timeline & Milestones
+        -  Project Timeline & Milestones
         - 📚 Literature Review Tracker  
         - 🔬 Methodology Framework
         - 📝 Research Journal

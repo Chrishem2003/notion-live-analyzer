@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Natural Language Data Query Engine  allows users to ask questions in plain English
 and get automatic analysis, visualizations, and insights.
@@ -104,7 +113,7 @@ class NaturalLanguageQueryEngine:
                     "result": result,
                     "chart_type": "box",
                     "chart_params": {"x": target_cat, "y": target_num},
-                    "narrative": f"Comparing **{target_num}** by **{target_cat}**: t({result.get('n_1', 0) + result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, d = {result.get('cohens_d', 0):.2f}",
+                    "narrative": f"Comparing **{target_num}** by **{target_cat}**: t({result.get('n_1', 0)  result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, d = {result.get('cohens_d', 0):.2f}",
                     "confidence": 95,
                 }
         elif len(groups) >= 3:
@@ -287,7 +296,7 @@ class NaturalLanguageQueryEngine:
             q3 = df[col].quantile(0.75)
             iqr = q3 - q1
             lower = q1 - 1.5 * iqr
-            upper = q3 + 1.5 * iqr
+            upper = q3  1.5 * iqr
             outliers = df[(df[col] < lower) | (df[col] > upper)][col]
             n_outliers = len(outliers)
             if n_outliers > 0:
@@ -297,7 +306,7 @@ class NaturalLanguageQueryEngine:
                     "lower_bound": round(lower, 2),
                     "upper_bound": round(upper, 2),
                 }
-                total_outliers += n_outliers
+                total_outliers = n_outliers
 
         return {
             "type": "outliers",

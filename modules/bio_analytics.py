@@ -1,18 +1,27 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import re
 from collections import Counter
 
 def analyze_sequence_variants(dna_seq: str):
     """Calculates GC content, sequence length, and codon distribution."""
-    seq = re.sub(r'\s+', '', dna_seq).upper()
+    seq = re.sub(r'\s', '', dna_seq).upper()
     length = len(seq)
     if length == 0:
         return None
     
-    gc_count = seq.count('G') + seq.count('C')
+    gc_count = seq.count('G')  seq.count('C')
     gc_percentage = round((gc_count / length) * 100, 2)
     
     # Codon frequencies
-    codons = [seq[i:i+3] for i in range(0, length - length % 3, 3)]
+    codons = [seq[i:i3] for i in range(0, length - length % 3, 3)]
     codon_counts = dict(Counter(codons))
     
     return {

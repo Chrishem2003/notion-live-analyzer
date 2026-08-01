@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Data Transformer Page  Advanced SPSS-Style Data Transformation & Feature Engineering Studio.
 """
@@ -93,7 +102,7 @@ with transform_tabs[1]:
     col_c1, col_c2 = st.columns(2)
     with col_c1:
         new_col_name = st.text_input("New Variable Name", value="computed_index")
-        expression = st.text_input("Mathematical Expression", value="col1 + col2", help="Use standard column names and mathematical operators (+, -, *, /, np.log, etc.)")
+        expression = st.text_input("Mathematical Expression", value="col1  col2", help="Use standard column names and mathematical operators (, -, *, /, np.log, etc.)")
     with col_c2:
         st.markdown("##### Available Columns:")
         st.code(", ".join(list(active_df.columns)), language="text")

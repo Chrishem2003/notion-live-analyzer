@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import os
 import ast
 
@@ -19,7 +28,7 @@ for root, dirs, files in os.walk(project_dir):
             rel_path = os.path.relpath(full_path, project_dir)
 
             try:
-                # Read with utf-8-sig to catch and strip U+FEFF Byte Order Mark
+                # Read with utf-8-sig to catch and strip UFEFF Byte Order Mark
                 with open(full_path, "r", encoding="utf-8-sig") as f:
                     content = f.read()
 

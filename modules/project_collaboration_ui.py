@@ -1,8 +1,17 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Unified Split-Screen Collaboration Shell UI
 Production-grade Tailwind-styled (custom CSS) split-screen collaboration interface featuring:
   - Main Panel: Interactive Yjs research canvas with viewport sync
-  - Floating Dock: Live participant video grid + secondary presentation player
+  - Floating Dock: Live participant video grid  secondary presentation player
   - Interactive Bar: Professional reactions, Ghost Stage toggle, and AI Action-Item feed
   - Role-based UI controls adapted to user permissions
 
@@ -447,7 +456,7 @@ COLLAB_CSS = """
 PROFESSIONAL_REACTIONS = [
     {"emoji": "✅", "label": "Approve", "id": "approve"},
     {"emoji": "🤔", "label": "Clarify", "id": "clarify"},
-    {"emoji": "📊", "label": "Data Verify", "id": "data_verify"},
+    {"emoji": "", "label": "Data Verify", "id": "data_verify"},
     {"emoji": "✋", "label": "Raise Hand", "id": "raise_hand"},
     {"emoji": "💡", "label": "Suggestion", "id": "suggestion"},
     {"emoji": "🔬", "label": "Methodology", "id": "methodology"},
@@ -478,7 +487,7 @@ def render_collaboration_shell():
       │                      │   stage)             │
       │                      │                      │
       ├──────────────────────┴──────────────────────┤
-      │  Floating Dock (Video Grid + Presentation)  │
+      │  Floating Dock (Video Grid  Presentation)  │
       ├─────────────────────────────────────────────┤
       │  Interactive Bar (Reactions, Controls, AI)  │
       └─────────────────────────────────────────────┘
@@ -519,7 +528,7 @@ def render_collaboration_shell():
         "researcher": "collab-badge-researcher",
     }.get(local.role if local else "viewer", "collab-badge-viewer")
 
-    role_icons = {"host": "👑", "co_host": "🤝", "researcher": "🔬", "viewer": "👁️"}
+    role_icons = {"host": "", "co_host": "🤝", "researcher": "🔬", "viewer": "👁️"}
 
     st.markdown(f"""
     <div class="collab-topbar">
@@ -729,14 +738,14 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
             elem = canvas.add_element(
                 CanvasElementType.STICKY,
                 local.id if local else "unknown",
-                x=100 + len(canvas.elements) * 30,
-                y=100 + len(canvas.elements) * 30,
+                x=100  len(canvas.elements) * 30,
+                y=100  len(canvas.elements) * 30,
                 width=220, height=150,
                 content={"text": "New research note...", "color": "#1e293b"},
             )
             st.rerun()
     with tool_cols[2]:
-        if st.button("📊 Add Chart", key="canvas_add_chart", use_container_width=True,
+        if st.button(" Add Chart", key="canvas_add_chart", use_container_width=True,
                     disabled=not can_edit):
             canvas.add_element(
                 CanvasElementType.DATA_VIEW,
@@ -756,7 +765,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
                 st.rerun()
     with tool_cols[4]:
         sync_mode = canvas.viewport_sync_mode
-        mode_label = {"free": "🔄 Free", "follow_host": "👑 Follow", "follow_cohost": "🤝 Follow"}.get(sync_mode.value, "Free")
+        mode_label = {"free": "🔄 Free", "follow_host": " Follow", "follow_cohost": "🤝 Follow"}.get(sync_mode.value, "Free")
         if st.button(mode_label, key="canvas_sync_mode", use_container_width=True):
             if sync_mode == ViewportSyncMode.FREE:
                 canvas.set_presenter(local.id if local else "")
@@ -781,7 +790,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
             type_icons = {
                 CanvasElementType.STICKY: "📝",
                 CanvasElementType.TEXT_NOTE: "📄",
-                CanvasElementType.DATA_VIEW: "📊",
+                CanvasElementType.DATA_VIEW: "",
                 CanvasElementType.CHART: "📈",
                 CanvasElementType.IMAGE: "🖼️",
                 CanvasElementType.CODE_BLOCK: "💻",
@@ -847,15 +856,15 @@ def _render_floating_dock(webrtc: Optional[WebRTCProvider],
             active_class = " active" if p.id == webrtc.local_participant_id else ""
             initials = p.name[0].upper() if p.name else "?"
             mic_icon = "🎤" if p.is_audio_on else "🔇"
-            role_icon = "👑" if p.role == "host" else "🤝" if p.role == "co_host" else ""
+            role_icon = "" if p.role == "host" else "🤝" if p.role == "co_host" else ""
             # Kept on one line: indented lines would be rendered as a markdown code block.
-            video_html += (
+            video_html = (
                 f'<div class="collab-dock-video{speaking_class}{active_class}">'
                 f'<span style="font-size:1.5rem;font-weight:700;color:#475569;">{initials}</span>'
                 f'<div class="collab-dock-video-label">{p.name[:12]} {mic_icon} {role_icon}</div>'
                 '</div>'
             )
-        video_html += "</div>"
+        video_html = "</div>"
         st.markdown(video_html, unsafe_allow_html=True)
 
     # ── Presentation Player ────────────────────────────────────
@@ -1004,7 +1013,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
                 webrtc.stop_presentation(local.id)
                 st.rerun()
         else:
-            if st.button("📊 Present", key="ibar_start_pres", help="Start presentation overlay"):
+            if st.button(" Present", key="ibar_start_pres", help="Start presentation overlay"):
                 webrtc.start_presentation(local.id)
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -1029,7 +1038,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
             if st.button("👻 Merge", key="ibar_ghost_merge", help="Push staged changes live"):
                 if ghost_stage:
                     result = ghost_stage.merge_to_main(canvas.elements)
-                    st.success(f"Merged: +{result['added']} ~{result['updated']} -{result['deleted']}")
+                    st.success(f"Merged: {result['added']} ~{result['updated']} -{result['deleted']}")
                     st.session_state["collab_ghost_active"] = False
                     st.session_state["collab_ghost_stage"] = None
                     st.rerun()
@@ -1078,8 +1087,8 @@ def _render_sidebar(active_tab: str, webrtc: Optional[WebRTCProvider],
     tab_html = '<div class="collab-sb-tabs">'
     for t in tabs:
         active = " active" if active_tab == t["id"] else ""
-        tab_html += f'<div class="collab-sb-tab{active}" onclick="alert(\'tab\')">{t["label"]}</div>'
-    tab_html += '</div>'
+        tab_html = f'<div class="collab-sb-tab{active}" onclick="alert(\'tab\')">{t["label"]}</div>'
+    tab_html = '</div>'
     st.markdown(tab_html, unsafe_allow_html=True)
 
     # Use Streamlit tabs for actual functionality
@@ -1199,7 +1208,7 @@ def _render_tools_tab(canvas: Optional[CollaborativeCanvas],
                               content={"text": "Enter text here..."})
             st.rerun()
     with col2:
-        if st.button("📊 Chart", key="tool_chart", disabled=not can_edit):
+        if st.button(" Chart", key="tool_chart", disabled=not can_edit):
             canvas.add_element(CanvasElementType.DATA_VIEW, "user", 400, 200,
                               content={"type": "line", "title": "Data View"})
             st.rerun()
@@ -1236,7 +1245,7 @@ def _render_participants_tab(webrtc: Optional[WebRTCProvider],
     for pid, p in webrtc.participants.items():
         is_local = pid == webrtc.local_participant_id
         role_icons = {
-            "host": "👑", "co_host": "🤝", "researcher": "🔬", "viewer": "👁️",
+            "host": "", "co_host": "🤝", "researcher": "🔬", "viewer": "👁️",
         }
         role_icon = role_icons.get(p.role, "👤")
         local_tag = " (You)" if is_local else ""

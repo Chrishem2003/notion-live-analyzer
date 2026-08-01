@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -32,7 +41,7 @@ def render_telemetry_alerting_panel():
     with c2:
         st.metric(label="Memory Allocation", value="54.8GB / 128GB", delta="Stable")
     with c3:
-        st.metric(label="Network Bandwidth", value="312.4 MB/s", delta="+14.2%")
+        st.metric(label="Network Bandwidth", value="312.4 MB/s", delta="14.2%")
     with c4:
         st.metric(label="Active Alerts", value="0 Unresolved", delta="Secure")
 

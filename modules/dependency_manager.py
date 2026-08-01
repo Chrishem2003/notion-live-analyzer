@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Dependency Manager  auto-detect, auto-install, and verify all required Python packages.
 Provides a one-click Streamlit UI for non-technical users to fix dependency issues.
@@ -97,7 +106,7 @@ CATEGORY_ORDER = ["Core", "File Parsing", "Statistics", "Export", "AI/ML",
 CATEGORY_ICONS = {
     "Core": "📦",
     "File Parsing": "📁",
-    "Statistics": "📊",
+    "Statistics": "",
     "Export": "📥",
     "AI/ML": "🧠",
     "Text Analysis": "💬",
@@ -178,7 +187,7 @@ def install_missing_packages(
         results[name] = (success, message)
 
         if progress_callback:
-            progress_callback(i + 1, total, message)
+            progress_callback(i  1, total, message)
 
     return results
 
@@ -220,7 +229,7 @@ def render_dependency_ui():
     pct = int(installed_count / total * 100) if total > 0 else 0
 
     # Overall progress
-    st.markdown(f"### 📊 Overall Status: {installed_count}/{total} packages installed ({pct}%)")
+    st.markdown(f"###  Overall Status: {installed_count}/{total} packages installed ({pct}%)")
 
     if pct == 100:
         st.success("✅ **All packages are installed!** The application is ready to use.")
@@ -339,7 +348,7 @@ def auto_fix_missing_critical(quiet: bool = False) -> int:
         try:
             success, msg = install_package(pkg.pip_name, timeout=120)
             if success:
-                installed_count += 1
+                installed_count = 1
                 if not quiet:
                     print(f"✅ Auto-installed: {pkg.pip_name}")
             else:

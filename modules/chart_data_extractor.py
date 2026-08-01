@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Visual Chart Data Extractor & CSV Re-Synthesizer
 A vision pipeline that extracts buried quantitative data from static PDF charts,
@@ -148,8 +157,8 @@ class ChartDataExtractor:
         return [{
             "x_pixel": p["x_pixel"],
             "y_pixel": p["y_pixel"],
-            "x_value": round(float(x_slope * p["x_pixel"] + x_intercept), 4),
-            "y_value": round(float(y_slope * p["y_pixel"] + y_intercept), 4),
+            "x_value": round(float(x_slope * p["x_pixel"]  x_intercept), 4),
+            "y_value": round(float(y_slope * p["y_pixel"]  y_intercept), 4),
         } for p in calibration_points]
 
     def _generate_sample_data(self, chart_type: str) -> pd.DataFrame:
@@ -157,7 +166,7 @@ class ChartDataExtractor:
         np.random.seed(42)
 
         if chart_type == "bar":
-            categories = [f"Group {chr(65+i)}" for i in range(6)]
+            categories = [f"Group {chr(65i)}" for i in range(6)]
             values = np.random.normal(50, 15, 6)
             errors = np.random.uniform(2, 8, 6)
             return pd.DataFrame({
@@ -168,21 +177,21 @@ class ChartDataExtractor:
 
         elif chart_type == "line":
             x = np.linspace(0, 10, 20)
-            y = 5 + 2 * x + np.random.normal(0, 1, 20)
+            y = 5  2 * x  np.random.normal(0, 1, 20)
             return pd.DataFrame({"X": x.round(2), "Y": y.round(2)})
 
         elif chart_type == "scatter":
             x = np.random.normal(50, 15, 50)
-            y = 0.6 * x + np.random.normal(10, 5, 50)
+            y = 0.6 * x  np.random.normal(10, 5, 50)
             return pd.DataFrame({"X": x.round(2), "Y": y.round(2)})
 
         elif chart_type == "pie":
-            labels = [f"Category {chr(65+i)}" for i in range(5)]
+            labels = [f"Category {chr(65i)}" for i in range(5)]
             values = np.random.dirichlet(np.ones(5)) * 100
             return pd.DataFrame({"Label": labels, "Percentage": values.round(1)})
 
         elif chart_type == "horizontal_bar":
-            items = [f"Item {chr(65+i)}" for i in range(6)]
+            items = [f"Item {chr(65i)}" for i in range(6)]
             values = np.random.normal(50, 20, 6)
             return pd.DataFrame({"Item": items, "Value": values.round(1)})
 
@@ -203,14 +212,14 @@ class ChartDataExtractor:
 
         for line in lines:
             # Try pattern: "Label: X, Y" or "Label: Value" or "X, Y"
-            parts = re.split(r"[,:\t|;]+", line)
+            parts = re.split(r"[,:\t|;]", line)
             parts = [p.strip() for p in parts if p.strip()]
 
             if len(parts) >= 2:
                 try:
                     if len(parts) == 2:
                         value = float(parts[1])
-                        data_rows.append({"Label": parts[0], "Value": value, "X": len(data_rows) + 1, "Y": value})
+                        data_rows.append({"Label": parts[0], "Value": value, "X": len(data_rows)  1, "Y": value})
                     elif len(parts) >= 3:
                         x_val = float(parts[1])
                         y_val = float(parts[2])
@@ -241,7 +250,7 @@ def render_chart_data_extractor_ui():
     import streamlit as st
     import plotly.express as px
 
-    st.markdown("## 📊 Visual Chart Data Extractor & CSV Re-Synthesizer")
+    st.markdown("##  Visual Chart Data Extractor & CSV Re-Synthesizer")
     st.markdown("*Extract numerical data from charts and figures  reconstruct raw datasets from static images*")
 
     tab1, tab2, tab3 = st.tabs(["📤 Extract from Image", "✏️ Manual Description", "📋 Export Data"])
@@ -316,7 +325,7 @@ def render_chart_data_extractor_ui():
             result = st.session_state.get("_extracted_chart_data")
             if result and result.get("reconstructed_df") is not None:
                 df = result["reconstructed_df"]
-                st.subheader("📊 Reconstructed Data")
+                st.subheader(" Reconstructed Data")
                 st.dataframe(df, use_container_width=True, hide_index=True)
 
                 chart_tab1, chart_tab2 = st.columns(2)
@@ -362,7 +371,7 @@ Point 3, 4.0, 6.1""",
             key="desc_chart_type",
         )
 
-        if st.button("📊 Parse Description", type="primary", use_container_width=True) and description.strip():
+        if st.button(" Parse Description", type="primary", use_container_width=True) and description.strip():
             with st.spinner("Parsing description..."):
                 df = extractor.extract_from_description(description, desc_chart_type)
 
@@ -399,7 +408,7 @@ Point 3, 4.0, 6.1""",
             df = desc_df
 
         if df is not None and not df.empty:
-            st.subheader("📊 Current Dataset")
+            st.subheader(" Current Dataset")
             st.dataframe(df, use_container_width=True, hide_index=True)
 
             st.subheader("📥 Export Options")
@@ -426,7 +435,7 @@ Point 3, 4.0, 6.1""",
                 )
 
             with col3:
-                if st.button("📊 Use for Analysis", use_container_width=True):
+                if st.button(" Use for Analysis", use_container_width=True):
                     st.session_state["active_df"] = df
                     st.session_state["data_source"] = "chart_extracted"
                     st.success("✅ Loaded into active dataset! Navigate to other pages to analyze.")

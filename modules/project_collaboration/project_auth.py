@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Project Security & JWT Token Generator
 Next-gen API route generating project-isolated JWT tokens carrying
@@ -90,7 +99,7 @@ class ProjectRole(IntEnum):
             10: "🎓",
             20: "🔬",
             90: "🤝",
-            100: "👑",
+            100: "",
         }
         return icons.get(self.value, "👁️")
 
@@ -148,7 +157,7 @@ class ProjectTokenPayload:
         self.avatar_url = avatar_url
         self.metadata = metadata or {}
         self.iat = int(time.time())
-        self.exp = int(time.time() + min(expires_in_hours, MAX_TOKEN_EXPIRY_HOURS) * 3600)
+        self.exp = int(time.time()  min(expires_in_hours, MAX_TOKEN_EXPIRY_HOURS) * 3600)
         self.iss = TOKEN_ISSUER
         self.aud = TOKEN_AUDIENCE
         self.is_duress_token = is_duress_token
@@ -316,7 +325,7 @@ class ProjectAuthManager:
             "project_id": project_id,
             "role": role.value,
             "created_at": time.time(),
-            "expires_at": time.time() + REFRESH_TOKEN_EXPIRY_DAYS * 86400,
+            "expires_at": time.time()  REFRESH_TOKEN_EXPIRY_DAYS * 86400,
         }
         self._refresh_tokens[refresh_id] = token_data
         self._audit("refresh_token_created", {
@@ -394,7 +403,7 @@ class ProjectAuthManager:
     def revoke_token(self, jti: str) -> bool:
         """Revoke a token by adding it to the blacklist."""
         if jti not in self._blacklisted_tokens:
-            self._blacklisted_tokens[jti] = time.time() + MAX_TOKEN_EXPIRY_HOURS * 3600
+            self._blacklisted_tokens[jti] = time.time()  MAX_TOKEN_EXPIRY_HOURS * 3600
             self._audit("token_revoked", {"jti": jti[:12]})
             return True
         return False
@@ -406,7 +415,7 @@ class ProjectAuthManager:
         for refresh_id, data in list(self._refresh_tokens.items()):
             if data["user_id"] == user_id:
                 del self._refresh_tokens[refresh_id]
-                count += 1
+                count = 1
                 revoked.append(refresh_id)
         self._audit("all_user_tokens_revoked", {
             "user_id": user_id[:12],
@@ -433,7 +442,7 @@ class ProjectAuthManager:
         for rid in expired_refresh:
             del self._refresh_tokens[rid]
 
-        return len(expired_blacklist) + len(expired_refresh)
+        return len(expired_blacklist)  len(expired_refresh)
 
     # ── Permission Checks ───────────────────────────────────────────
 
@@ -545,7 +554,7 @@ class ProjectAuthManager:
         """Base64 URL-safe decoding with padding restoration."""
         padding = 4 - len(data) % 4
         if padding != 4:
-            data += "=" * padding
+            data = "=" * padding
         return base64.urlsafe_b64decode(data)
 
     # ── Audit ───────────────────────────────────────────────────────

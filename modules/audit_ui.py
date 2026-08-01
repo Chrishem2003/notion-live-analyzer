@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -35,7 +44,7 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         [
             "🔬 Professor & Evaluator Command Center", 
             "🎓 Student Workspace & Advanced Humanizer", 
-            "📊 Analytics, Graphs & Forensic Traceback", 
+            " Analytics, Graphs & Forensic Traceback", 
             "⚡ Automated Compliance Dispatcher"
         ],
         key="audit_portal_main_mode"
@@ -49,11 +58,11 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         
         active_queue_len = 4
         if local_sources:
-            active_queue_len += len(local_sources)
+            active_queue_len = len(local_sources)
             st.info(f"📁 **Active Direct Ingestion Stream**: {len(local_sources)} local file(s) queued for deep parsing.")
 
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-        col_m1.metric("📥 Total Submissions", str(active_queue_len), "+3 today")
+        col_m1.metric("📥 Total Submissions", str(active_queue_len), "3 today")
         col_m2.metric("🚨 High Risk / Flagged", "4", "Action Required")
         col_m3.metric("⏱️ Avg. Completion Time", "4h 18m", "-24m baseline")
         col_m4.metric("🛡️ Auto-Dispatched Reports", "38", "100% success")
@@ -70,7 +79,7 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         if local_sources:
             for idx, file_obj in enumerate(local_sources):
                 mock_submissions.insert(0, {
-                    "id": f"BYPASS-{100+idx}", 
+                    "id": f"BYPASS-{100idx}", 
                     "student": "Local Browser User", 
                     "paper": file_obj.name, 
                     "copying_pct": f"{random.randint(5, 88)}%", 
@@ -145,7 +154,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             )
             
             word_count = len(student_draft.split()) if student_draft else 0
-            st.caption(f"📊 Total Word Count: {word_count:,} words | Status: **Unlimited Capacity Active**")
+            st.caption(f" Total Word Count: {word_count:,} words | Status: **Unlimited Capacity Active**")
 
         with col_txt2:
             st.markdown("#### ✨ High-Grade Humanizer Engine")
@@ -170,8 +179,8 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                             .replace("In conclusion", "Taken together, these findings suggest")
                         )
                         if not humanized_output.endswith("."):
-                            humanized_output += "."
-                        humanized_output += f"\n\n[Aidify Compliance Verified  Total Words Processed: {word_count:,}]"
+                            humanized_output = "."
+                        humanized_output = f"\n\n[Aidify Compliance Verified  Total Words Processed: {word_count:,}]"
                         
                         st.success("✨ Text successfully humanized at scale!")
                         st.text_area("Humanized Output Text:", value=humanized_output, height=180, key="humanized_result_box_unlimited")
@@ -183,8 +192,8 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                             mime="text/plain"
                         )
 
-    elif portal_tab == "📊 Analytics, Graphs & Forensic Traceback":
-        st.markdown("### 📊 Advanced Visualizations & Forensic Tracebacks")
+    elif portal_tab == " Analytics, Graphs & Forensic Traceback":
+        st.markdown("###  Advanced Visualizations & Forensic Tracebacks")
         st.markdown("Visualizing candidate session times, copying percentages, and cryptographic blockchain logs.")
         
         tab_g1, tab_g2, tab_g3 = st.tabs(["📈 Session Time vs Copying %", "🧬 Source Plagiarism Breakdown", "🔗 Blockchain Audit Trail"])

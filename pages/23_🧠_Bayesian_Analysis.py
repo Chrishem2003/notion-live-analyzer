@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Advanced Bayesian Inference & Probabilistic Programming Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0  Bayesian Module
@@ -167,7 +176,7 @@ if active_bayes_tab == "ttest":
     with col_t2:
         st.markdown("<div class='bayes-card'>", unsafe_allow_html=True)
         st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Posterior Difference Distribution ($\mu_1 - \mu_2$)</h4>", unsafe_allow_html=True)
-        st.metric(label="Posterior Mean Difference", value="+2.415 units", delta="95% HDI: [1.82, 3.01]")
+        st.metric(label="Posterior Mean Difference", value="2.415 units", delta="95% HDI: [1.82, 3.01]")
         
         if HAS_PLOTLY:
             np.random.seed(42)
@@ -203,7 +212,7 @@ elif active_bayes_tab == "anova":
         st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Group-Level Posterior Estimates (Shrinkage Plot)</h4>", unsafe_allow_html=True)
         if HAS_PLOTLY:
             df_shrink = pd.DataFrame({
-                "Group": [f"District {chr(65+i)}" for i in range(8)],
+                "Group": [f"District {chr(65i)}" for i in range(8)],
                 "Estimate": np.random.normal(10, 3, 8),
                 "Error": np.random.uniform(0.5, 1.5, 8)
             })
@@ -223,7 +232,7 @@ elif active_bayes_tab == "regression":
     with col_r1:
         st.markdown("<div class='bayes-card'>", unsafe_allow_html=True)
         st.selectbox("Family / Likelihood", ["Gaussian (Normal)", "Student-T (Robust)", "Poisson (Counts)", "Bernoulli (Logistic)"])
-        st.text_input("Formula", value="Yield ~ Moisture + Elevation + Temperature")
+        st.text_input("Formula", value="Yield ~ Moisture  Elevation  Temperature")
         st.button("⚡ Sample Bayesian Regression", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         

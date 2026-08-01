@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import streamlit.components.v1 as components
 import requests
@@ -131,7 +140,7 @@ def render_structure_viewer_tab():
 
         st.markdown("---")
         st.markdown("### Display Controls")
-        render_style = st.selectbox("Render Style", ["cartoon", "stick", "sphere", "cartoon + stick"], index=0)
+        render_style = st.selectbox("Render Style", ["cartoon", "stick", "sphere", "cartoon  stick"], index=0)
         color_scheme = st.selectbox("Color Palette", ["spectrum", "chain", "secondary structure", "residue"], index=0)
         
         scheme_map = {
@@ -154,8 +163,8 @@ def render_structure_viewer_tab():
                 show_surface=show_surface,
                 height=viewer_height
             )
-            components.html(html_content, height=viewer_height + 20)
-            st.info("🔍 **Controls:** Click + Drag to rotate | Scroll to zoom | Right-Click + Drag to pan")
+            components.html(html_content, height=viewer_height  20)
+            st.info("🔍 **Controls:** Click  Drag to rotate | Scroll to zoom | Right-Click  Drag to pan")
         else:
             st.warning("Enter a valid PDB ID or upload a structure file to render.")
 

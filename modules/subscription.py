@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Subscription Engine  Stripe Integration & Tier Management."""
 import os
 import hashlib
@@ -123,14 +132,14 @@ TIER_PAGE_ACCESS = {
         "9_📋_Methodology_Advisor",
         "10_🏥_Clinical_Analytics",
         "11_💬_Text_Analysis",
-        "12_📊_Dashboard_Builder",
+        "12__Dashboard_Builder",
         "13_🔍_Data_Quality",
         "14_🎲_Data_Simulator",
         "15_📑_APA_Outputs",
         "16_🔗_Google_Sheets",
-        "18_📊_Presentation_Deck",
+        "18__Presentation_Deck",
         "19_📚_Literature_Engine",
-        "20_📊_Meta_Analysis",
+        "20__Meta_Analysis",
     ],
     # PREMIUM TIER - Everything
     Tier.PREMIUM: [],  # All pages accessible
@@ -191,7 +200,7 @@ def increment_billingCounter(limit_type: str):
     """Increment usage counter for a billing limit type."""
     usage_key = f"{limit_type}_used"
     current = st.session_state.get(usage_key, 0)
-    st.session_state[usage_key] = current + 1
+    st.session_state[usage_key] = current  1
 
 def render_limit_warning(limit_type: str):
     """Render a warning when user approaches their limit."""
@@ -391,7 +400,7 @@ def increment_usage():
         st.session_state["last_usage_date"] = today
     
     current = st.session_state["daily_usage"].get("queries", 0)
-    st.session_state["daily_usage"]["queries"] = current + 1
+    st.session_state["daily_usage"]["queries"] = current  1
 
 # ═══════════════════════════════════════════════════════════════════════
 # STRIPE CHECKOUT
@@ -500,7 +509,7 @@ def handle_stripe_webhook(event: dict):
 
 def start_trial(tier: Tier = Tier.STANDARD) -> datetime:
     """Start free trial for specified tier."""
-    trial_end = datetime.utcnow() + timedelta(days=STRIPE_FREE_TRIAL_DAYS)
+    trial_end = datetime.utcnow()  timedelta(days=STRIPE_FREE_TRIAL_DAYS)
     st.session_state["trial_end_date"] = trial_end.isoformat()
     st.session_state["subscription_status"] = "trial"
     st.session_state["user_tier"] = tier.value
@@ -532,7 +541,7 @@ def is_trial_active() -> bool:
         return False
     
     try:
-        end_date = datetime.fromisoformat(trial_end.replace("Z", "+00:00"))
+        end_date = datetime.fromisoformat(trial_end.replace("Z", "00:00"))
         return datetime.utcnow() < end_date
     except Exception:
         return False
@@ -544,7 +553,7 @@ def get_trial_days_remaining() -> int:
         return 0
     
     try:
-        end_date = datetime.fromisoformat(trial_end.replace("Z", "+00:00"))
+        end_date = datetime.fromisoformat(trial_end.replace("Z", "00:00"))
         remaining = (end_date - datetime.utcnow()).days
         return max(0, remaining)
     except Exception:

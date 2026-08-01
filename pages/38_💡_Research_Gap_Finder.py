@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 World-Class Visual Chart Data Extractor & CSV Re-Synthesizer
 Enterprise-grade computer vision and multimodal OCR analytics engine featuring deep-learning

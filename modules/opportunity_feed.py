@@ -1,9 +1,18 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Live Verified Opportunity Feed Engine
 Real-time scholarship, grant, and fellowship discovery module for the
 Application Pipeline. Features:
 
-  - 200+ curated global opportunities across 50+ countries
+  - 200 curated global opportunities across 50 countries
   - Verification scoring (0-100) based on source authority
   - Geo-prioritization: user country -> region -> global
   - Multi-dimensional filtering (type, amount, field, deadline)
@@ -15,7 +24,7 @@ Architecture:
   - VerificationScorer: Computes trust scores from source metadata
   - GeoPrioritizer: Ranks opportunities by geographic relevance
   - OpportunityFeedEngine: High-level orchestrator combining all systems
-  - seed_opportunity_catalog(): Populates DB with 200+ curated listings
+  - seed_opportunity_catalog(): Populates DB with 200 curated listings
 
 Data Model (SQLite, new 'opportunities' table):
   - id (UUID TEXT PK)
@@ -284,18 +293,18 @@ class VerificationScorer:
             "NGO": 32,
             "AGGREGATOR": 25,
         }
-        score += authority_scores.get(source_authority, 25)
+        score = authority_scores.get(source_authority, 25)
 
         # 2. Amount clarity (0-15 points)
         if amount_min is not None and amount_max is not None:
             if amount_max > 0:
-                score += 15
+                score = 15
             elif amount_min > 0:
-                score += 10
+                score = 10
         elif amount_min is not None and amount_min > 0:
-            score += 10
+            score = 10
         else:
-            score += 3
+            score = 3
 
         # 3. Deadline proximity (0-15 points)
         if deadline_str:
@@ -304,41 +313,41 @@ class VerificationScorer:
                 today = date.today()
                 days_until = (deadline_date - today).days
                 if days_until > 60:
-                    score += 15  # Ample time
+                    score = 15  # Ample time
                 elif days_until > 30:
-                    score += 12
+                    score = 12
                 elif days_until > 14:
-                    score += 8
+                    score = 8
                 elif days_until > 7:
-                    score += 5
+                    score = 5
                 elif days_until >= 0:
-                    score += 2
+                    score = 2
                 else:
                     score -= 5  # Past deadline
             except (ValueError, TypeError):
-                score += 5  # Has deadline but unparseable
+                score = 5  # Has deadline but unparseable
         else:
-            score += 2  # No deadline specified
+            score = 2  # No deadline specified
 
         # 4. Description completeness (0-20 points)
         if description:
             desc_len = len(description)
             if desc_len > 500:
-                score += 20
+                score = 20
             elif desc_len > 200:
-                score += 15
+                score = 15
             elif desc_len > 100:
-                score += 10
+                score = 10
             elif desc_len > 50:
-                score += 5
+                score = 5
             else:
-                score += 2
+                score = 2
 
         # 5. Eligibility present (bonus 5 points)
         if eligibility and len(eligibility) > 30:
-            score += 5
+            score = 5
         elif eligibility:
-            score += 2
+            score = 2
 
         # Clamp to 0-100
         return max(0.0, min(100.0, score))
@@ -603,7 +612,7 @@ class OpportunityDatabase:
             # Fetch
             rows = conn.execute(
                 f"SELECT * FROM opportunities WHERE {where_clause} ORDER BY verification_score DESC LIMIT ? OFFSET ?",
-                params + [limit, offset],
+                params  [limit, offset],
             ).fetchall()
 
             return [dict(r) for r in rows], total
@@ -768,10 +777,10 @@ class OpportunityFeedEngine:
         ranked = self.prioritizer.rank(results, user_country)
 
         # Paginate
-        total_pages = max(1, (len(ranked) + per_page - 1) // per_page)
+        total_pages = max(1, (len(ranked)  per_page - 1) // per_page)
         page = min(page, total_pages - 1)
         start = page * per_page
-        end = start + per_page
+        end = start  per_page
         page_results = ranked[start:end]
 
         return {
@@ -780,7 +789,7 @@ class OpportunityFeedEngine:
             "page": page,
             "per_page": per_page,
             "total_pages": total_pages,
-            "has_next": page + 1 < total_pages,
+            "has_next": page  1 < total_pages,
             "has_prev": page > 0,
         }
 
@@ -820,7 +829,7 @@ class OpportunityFeedEngine:
             f"Source: {opp.get('source_authority', '')}"
         )
         if opp.get("source_url"):
-            notes += f"\nURL: {opp['source_url']}"
+            notes = f"\nURL: {opp['source_url']}"
 
         # Use opportunity ID as opportunity_id for traceability
         opportunity_id = f"feed_{opp_id[:12]}"
@@ -839,12 +848,12 @@ class OpportunityFeedEngine:
 
 
 # ======================================================================
-# OPPORTUNITY CATALOG (200+ Curated Opportunities)
+# OPPORTUNITY CATALOG (200 Curated Opportunities)
 # ======================================================================
 
 def seed_opportunity_catalog(db: Optional[OpportunityDatabase] = None) -> OpportunityDatabase:
     """
-    Seed the database with 200+ curated real-world scholarships, grants,
+    Seed the database with 200 curated real-world scholarships, grants,
     fellowships, internships, and awards across all regions.
     Returns the OpportunityDatabase instance.
     """
@@ -866,11 +875,11 @@ def seed_opportunity_catalog(db: Optional[OpportunityDatabase] = None) -> Opport
 def _build_opportunity_catalog() -> List[Dict[str, Any]]:
     """Build the curated opportunity catalog."""
     now = datetime.now()
-    three_months = (now + timedelta(days=90)).isoformat()
-    six_months = (now + timedelta(days=180)).isoformat()
-    one_month = (now + timedelta(days=30)).isoformat()
-    two_months = (now + timedelta(days=60)).isoformat()
-    two_weeks = (now + timedelta(days=14)).isoformat()
+    three_months = (now  timedelta(days=90)).isoformat()
+    six_months = (now  timedelta(days=180)).isoformat()
+    one_month = (now  timedelta(days=30)).isoformat()
+    two_months = (now  timedelta(days=60)).isoformat()
+    two_weeks = (now  timedelta(days=14)).isoformat()
 
     # Helper to create opportunities with auto-scored verification
     def make_opp(
@@ -927,7 +936,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "All Fields",
         "Full-cost scholarship for African students at partner universities worldwide. "
         "Covers tuition, accommodation, living expenses, and leadership development. "
-        "Partners include University of Toronto, UC Berkeley, Cambridge, and 30+ institutions.",
+        "Partners include University of Toronto, UC Berkeley, Cambridge, and 30 institutions.",
         "African citizen under 35. Demonstrated academic excellence and leadership potential. "
         "Commitment to giving back to your community.",
         "FOUNDATION", "https://mastercardfdn.org/scholars/"
@@ -1279,7 +1288,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "All Fields",
         "Japanese Government (MEXT) scholarship for international research students. "
         "Full tuition, monthly allowance, travel, and accommodation. "
-        "Available at 100+ Japanese universities.",
+        "Available at 100 Japanese universities.",
         "Non-Japanese citizen. Bachelor's degree or equivalent. Age under 35. "
         "Academic excellence. Japanese or English proficiency.",
         "GOVERNMENT", "https://www.mext.go.jp/"
@@ -1517,7 +1526,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "UK Government's global scholarship program. Full tuition, living expenses, "
         "airfare, and exclusive networking at top UK universities. "
         "One-year Master's degree at any UK university.",
-        "Citizen of Chevening-eligible country. 2+ years work experience. "
+        "Citizen of Chevening-eligible country. 2 years work experience. "
         "Strong academic background. Leadership potential. Return to home country.",
         "GOVERNMENT", "https://www.chevening.org/"
     ))
@@ -1580,7 +1589,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "Full Masters or PhD funding at German universities. "
         "Monthly stipend of 934 euros plus travel and health insurance.",
         "Non-German citizen. Bachelor's degree (Masters) or Master's (PhD). "
-        "2+ years professional experience preferred. German not required for English programs.",
+        "2 years professional experience preferred. German not required for English programs.",
         "GOVERNMENT", "https://www.daad.de/"
     ))
     catalog.append(make_opp(
@@ -1661,7 +1670,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "Development Studies",
         "Dutch Ministry of Foreign Affairs scholarship for professionals from developing countries. "
         "Full Masters or short course funding at Dutch universities.",
-        "Citizen of NFP-eligible country. Professional with 3+ years experience. "
+        "Citizen of NFP-eligible country. Professional with 3 years experience. "
         "Commitment to return to home country.",
         "GOVERNMENT", "https://www.nuffic.nl/"
     ))
@@ -1693,7 +1702,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "All Fields",
         "Swedish Government scholarship for Master's programs at Swedish universities. "
         "Tuition, living expenses, travel grant, and networking.",
-        "Citizen of SI-eligible country. 3,000+ hours work experience. "
+        "Citizen of SI-eligible country. 3,000 hours work experience. "
         "Strong academic background and leadership potential.",
         "GOVERNMENT", "https://si.se/"
     ))
@@ -1820,7 +1829,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "All Fields",
         "Full EU-funded scholarship for joint Master's programs across European universities. "
         "Tuition, travel, installation costs, and monthly allowance. "
-        "Study at 2+ European universities.",
+        "Study at 2 European universities.",
         "Non-EU citizen. Bachelor's degree. Strong academic record. "
         "English proficiency. Under 35 preferred.",
         "GOVERNMENT", "https://erasmus-plus.ec.europa.eu/"
@@ -1870,7 +1879,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "Public Policy & Development",
         "Mid-career professional fellowship for non-degree study at US universities. "
         "Full funding for 10-month professional development program.",
-        "Citizen of Humphrey-eligible country. 5+ years professional experience. "
+        "Citizen of Humphrey-eligible country. 5 years professional experience. "
         "Under 45. Commitment to public service.",
         "GOVERNMENT", "https://www.humphreyfellowship.org/"
     ))
@@ -2144,7 +2153,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "World Bank scholarship for graduate studies in development-related fields. "
         "Full tuition, living expenses, and travel at partner universities.",
         "Citizen of World Bank member developing country. "
-        "Bachelor's degree. 3+ years development experience. "
+        "Bachelor's degree. 3 years development experience. "
         "Commitment to return to home country.",
         "GOVERNMENT", "https://www.worldbank.org/"
     ))
@@ -2265,7 +2274,7 @@ def _build_opportunity_catalog() -> List[Dict[str, Any]]:
         "3-year WEF fellowship for exceptional early-career professionals. "
         "Rotations in Geneva, New York, and Beijing. "
         "Leadership development and global network.",
-        "Under 32. Master's degree with 3+ years experience. "
+        "Under 32. Master's degree with 3 years experience. "
         "Fluency in English. Global mindset.",
         "FOUNDATION", "https://www.weforum.org/"
     ))

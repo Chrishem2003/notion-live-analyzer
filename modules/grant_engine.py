@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 
 def generate_grant_sections(topic: str, agency: str, background_context: str, specific_goals: str) -> dict:
@@ -50,7 +59,7 @@ def render_grant_engine_tab():
             for section_name, section_content in draft.items():
                 with st.expander(section_name, expanded=True):
                     st.markdown(section_content)
-                full_text += f"{section_content}\n\n---\n\n"
+                full_text = f"{section_content}\n\n---\n\n"
 
             st.download_button(
                 label="📥 Download Proposal (.MD)",

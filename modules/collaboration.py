@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Research Command Center  Unified Collaboration Hub.
 Combines video conferencing, real-time collaboration, chat, 
@@ -146,7 +155,7 @@ class RoomManager:
             ),
             ResearchRoom(
                 id="room_data_team", 
-                name="📊 Data Team Sync",
+                name=" Data Team Sync",
                 room_type=RoomType.RESEARCH_PANEL,
                 host_id="user2",
                 description="Data analysis and visualization discussions",
@@ -313,7 +322,7 @@ class ChatSystem:
                     poll = json.loads(msg.content)
                     if option in poll["options"] and user_id not in poll["options"][option]:
                         poll["options"][option].append(user_id)
-                        poll["total_votes"] += 1
+                        poll["total_votes"] = 1
                         msg.content = json.dumps(poll)
                 except:
                     pass
@@ -389,7 +398,7 @@ class TaskManager:
         stats = {"todo": 0, "in_progress": 0, "review": 0, "done": 0}
         for task in tasks:
             if task.status in stats:
-                stats[task.status] += 1
+                stats[task.status] = 1
         return stats
 
 @st.cache_resource
@@ -461,7 +470,7 @@ class ResearchAssistant:
     def suggest_experts(self, topic: str, count: int = 5) -> List[Dict]:
         """Suggest experts for collaboration."""
         return [
-            {"name": f"Prof. {i+1}", "affiliation": "University", "expertise": topic, "h_index": 45-i*3}
+            {"name": f"Prof. {i1}", "affiliation": "University", "expertise": topic, "h_index": 45-i*3}
             for i in range(count)
         ]
     
@@ -675,7 +684,7 @@ class FileManager:
             return False
         
         file = self._files[file_id]
-        file.version += 1
+        file.version = 1
         file.versions.append({
             "version": file.version,
             "uploaded_by": uploader_id,

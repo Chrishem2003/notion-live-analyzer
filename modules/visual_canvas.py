@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import streamlit.components.v1 as components
 import json
@@ -9,7 +18,7 @@ def render_hybrid_visual_canvas():
     # 1. AVIATION-GRADE STATUS RIBBON (HUD STYLE)
     st.markdown("### ✈️ System Synthetic Flight Director (HUD Telemetry)")
     hud_col1, hud_col2, hud_col3, hud_col4 = st.columns(4)
-    hud_col1.metric("System Vector State", "NOMINAL [OK]", delta="+0.04% latency")
+    hud_col1.metric("System Vector State", "NOMINAL [OK]", delta="0.04% latency")
     hud_col2.metric("Data Pipeline Load", "1.2 GB/s", delta="Stable")
     hud_col3.metric("Active Compliance Hash", "SHA-256 Verified", delta="Immutable")
     hud_col4.metric("Grant Deadline Alert", "3 Active Calls", delta="7 Days Left", delta_color="inverse")

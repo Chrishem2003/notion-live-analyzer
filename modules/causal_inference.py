@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Causal Inference Engine  Estimate causal effects from observational data.
 Provides propensity score matching, difference-in-differences, instrumental variable
@@ -67,7 +76,7 @@ class CausalInferenceEngine:
         3. Compare outcomes within matched pairs
         """
         # Prepare data
-        data = df[[treatment_col, outcome_col] + covariates].dropna()
+        data = df[[treatment_col, outcome_col]  covariates].dropna()
         if len(data) < 10:
             return {"error": "Need at least 10 complete observations"}
 
@@ -138,8 +147,8 @@ class CausalInferenceEngine:
             treated_vals = data.iloc[[p[0] for p in matched_pairs]][cov].values
             control_vals = data.iloc[[p[1] for p in matched_pairs]][cov].values
             smd = (np.mean(treated_vals) - np.mean(control_vals)) / \
-                  np.sqrt((np.var(treated_vals) + np.var(control_vals)) / 2) if \
-                  (np.var(treated_vals) + np.var(control_vals)) > 0 else 0
+                  np.sqrt((np.var(treated_vals)  np.var(control_vals)) / 2) if \
+                  (np.var(treated_vals)  np.var(control_vals)) > 0 else 0
             balance[cov] = round(float(abs(smd)), 4)
 
         return {
@@ -170,7 +179,7 @@ class CausalInferenceEngine:
         """
         Difference-in-Differences estimation.
         Requires: pre/post time periods, treated/control groups.
-        y = β₀ + β₁*Treat + β₂*Post + β₃*(Treat×Post) + ε
+        y = β₀  β₁*Treat  β₂*Post  β₃*(Treat×Post)  ε
         """
         if not HAS_STATSMODELS:
             return {"error": "statsmodels required for DiD. Install: pip install statsmodels"}
@@ -229,18 +238,18 @@ class CausalInferenceEngine:
         if not HAS_STATSMODELS:
             return {"error": "statsmodels required for IV regression"}
 
-        data = df[[outcome_col, treatment_col, instrument_col] + (covariates or [])].dropna()
+        data = df[[outcome_col, treatment_col, instrument_col]  (covariates or [])].dropna()
 
         try:
             # First stage: regress treatment on instrument
-            X1 = data[[instrument_col] + (covariates or [])]
+            X1 = data[[instrument_col]  (covariates or [])]
             X1 = sm.add_constant(X1)
             y1 = data[treatment_col]
             first_stage = sm.OLS(y1, X1).fit()
             data['treatment_hat'] = first_stage.fittedvalues
 
             # Second stage: regress outcome on predicted treatment
-            X2 = data[['treatment_hat'] + (covariates or [])]
+            X2 = data[['treatment_hat']  (covariates or [])]
             X2 = sm.add_constant(X2)
             y2 = data[outcome_col]
             second_stage = sm.OLS(y2, X2).fit()
@@ -298,7 +307,7 @@ class CausalInferenceEngine:
             bandwidth = h_ik
 
         # Focus on observations within bandwidth
-        mask = (x >= cutoff - bandwidth) & (x <= cutoff + bandwidth)
+        mask = (x >= cutoff - bandwidth) & (x <= cutoff  bandwidth)
         x_local = x[mask]
         y_local = y[mask]
         t_local = (x_local >= cutoff).astype(float)
@@ -310,7 +319,7 @@ class CausalInferenceEngine:
         x_centered = x_local - cutoff
 
         # Build polynomial features
-        X_poly = np.column_stack([x_centered ** (i + 1) for i in range(polynomial_order)])
+        X_poly = np.column_stack([x_centered ** (i  1) for i in range(polynomial_order)])
         X_design = np.column_stack([np.ones(len(x_local)), t_local, X_poly, t_local[:, None] * X_poly])
 
         model = sm.OLS(y_local, X_design).fit()
@@ -355,7 +364,7 @@ class CausalInferenceEngine:
         P(T=1|X) estimated via logistic regression.
         ATE = E[Y * T / e(X) - Y * (1-T) / (1-e(X))]
         """
-        data = df[[treatment_col, outcome_col] + covariates].dropna()
+        data = df[[treatment_col, outcome_col]  covariates].dropna()
 
         model = LogisticRegression(max_iter=1000, random_state=42)
         model.fit(data[covariates], data[treatment_col])
@@ -414,7 +423,7 @@ class CausalInferenceEngine:
         adjustment_set = [c for c in confounders if c not in mediators and c not in colliders]
 
         # Variables to NOT adjust for
-        dont_adjust = mediators + colliders + [treatment, outcome]
+        dont_adjust = mediators  colliders  [treatment, outcome]
 
         return {
             "treatment": treatment,
@@ -445,7 +454,7 @@ class CausalInferenceEngine:
         Estimate Conditional Average Treatment Effects (CATE).
         Uses DR-learner: doubly robust estimation for heterogeneous effects.
         """
-        data = df[[treatment_col, outcome_col] + covariates].dropna()
+        data = df[[treatment_col, outcome_col]  covariates].dropna()
         T = data[treatment_col].values
         Y = data[outcome_col].values
         X = data[covariates].values
@@ -473,7 +482,7 @@ class CausalInferenceEngine:
         mu0 = mu0_model.predict(X)
 
         # Doubly robust scores
-        dr_scores = mu1 - mu0 + \
+        dr_scores = mu1 - mu0  \
                     T * (Y - mu1) / pscores - \
                     (1 - T) * (Y - mu0) / (1 - pscores)
 
@@ -515,7 +524,7 @@ def render_causal_inference_ui():
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "🎯 Propensity Score Matching",
-        "📊 Diff-in-Diff",
+        " Diff-in-Diff",
         "📐 IV Regression",
         "✂️ RDD",
         "⚖️ IPW",
@@ -563,7 +572,7 @@ def render_causal_inference_ui():
                     st.plotly_chart(fig, use_container_width=True)
 
     with tab2:
-        st.subheader("📊 Difference-in-Differences (DiD)")
+        st.subheader(" Difference-in-Differences (DiD)")
         st.info("Requires: treatment column (0/1), time column (0=pre, 1=post), outcome column")
         col1, col2 = st.columns(2)
         with col1:
@@ -572,7 +581,7 @@ def render_causal_inference_ui():
         with col2:
             did_outcome = st.selectbox("Outcome", options=numeric_cols, key="did_outcome")
 
-        if st.button("📊 Run DiD", type="primary", use_container_width=True):
+        if st.button(" Run DiD", type="primary", use_container_width=True):
             with st.spinner("Running difference-in-differences..."):
                 result = engine.difference_in_differences(df, did_treat, did_time, did_outcome)
             if "error" in result:

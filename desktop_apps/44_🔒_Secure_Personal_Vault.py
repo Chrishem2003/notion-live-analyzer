@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 #!/usr/bin/env python3
 """
 OmniVault — Vault Ledger Desktop Suite
@@ -37,19 +46,19 @@ import pandas as pd
 def col_to_num(col: str) -> int:
     n = 0
     for c in col.upper():
-        n = n * 26 + (ord(c) - 64)
+        n = n * 26  (ord(c) - 64)
     return n
 
 def num_to_col(n: int) -> str:
     s = ""
     while n > 0:
         r = (n - 1) % 26
-        s = chr(65 + r) + s
+        s = chr(65  r)  s
         n = (n - 1) // 26
     return s
 
 def parse_ref(ref: str) -> Optional[Dict[str, Any]]:
-    m = re.match(r"^([A-Z]+)(\d+)$", ref.upper())
+    m = re.match(r"^([A-Z])(\d)$", ref.upper())
     return {"col": m.group(1), "row": int(m.group(2))} if m else None
 
 def expand_range(start: str, end: str) -> List[str]:
@@ -59,7 +68,7 @@ def expand_range(start: str, end: str) -> List[str]:
     c1, c2 = col_to_num(s["col"]), col_to_num(e["col"])
     r1, r2 = min(s["row"], e["row"]), max(s["row"], e["row"])
     min_c, max_c = min(c1, c2), max(c1, c2)
-    return [f"{num_to_col(c)}{r}" for r in range(r1, r2 + 1) for c in range(min_c, max_c + 1)]
+    return [f"{num_to_col(c)}{r}" for r in range(r1, r2  1) for c in range(min_c, max_c  1)]
 
 def resolve_cell(ref: str, grid: Dict[str, str], seen: set) -> Any:
     if ref in seen:
@@ -107,10 +116,10 @@ def vlookup(lookup_val: Any, range_str: str, col_idx: int, grid: Dict[str, str],
         if not s or not e:
             return "#N/A"
         c1, c2 = col_to_num(s["col"]), col_to_num(e["col"])
-        target_col = c1 + col_idx - 1
+        target_col = c1  col_idx - 1
         if target_col > c2:
             return "#REF!"
-        for r in range(min(s["row"], e["row"]), max(s["row"], e["row"]) + 1):
+        for r in range(min(s["row"], e["row"]), max(s["row"], e["row"])  1):
             key = f"{num_to_col(c1)}{r}"
             val = resolve_cell(key, grid, seen)
             if str(val).strip().lower() == str(lookup_val).strip().lower():
@@ -139,21 +148,21 @@ def evaluate_formula(raw: str, grid: Dict[str, str], seen: set = None) -> Any:
         res = vlookup(lookup_val, rng, idx, grid, seen)
         return f'"{res}"' if isinstance(res, str) else str(res)
 
-    expr = re.sub(r"VLOOKUP\(\s*([^,]+),\s*([A-Z]+\d+:[A-Z]+\d+)\s*,\s*(\d+)\s*\)", _vlookup_sub, expr, flags=re.IGNORECASE)
+    expr = re.sub(r"VLOOKUP\(\s*([^,]),\s*([A-Z]\d:[A-Z]\d)\s*,\s*(\d)\s*\)", _vlookup_sub, expr, flags=re.IGNORECASE)
 
     def _range_sub(match):
         fn, a, b = match.group(1), match.group(2), match.group(3)
         res = range_fn(fn, expand_range(a.upper(), b.upper()), grid, seen)
         return f'"{res}"' if isinstance(res, str) else str(res)
 
-    expr = re.sub(r"(SUM|AVERAGE|AVG|MIN|MAX|COUNT|COUNTA|CONCAT)\(\s*([A-Z]+\d+)\s*:\s*([A-Z]+\d+)\s*\)", _range_sub, expr, flags=re.IGNORECASE)
+    expr = re.sub(r"(SUM|AVERAGE|AVG|MIN|MAX|COUNT|COUNTA|CONCAT)\(\s*([A-Z]\d)\s*:\s*([A-Z]\d)\s*\)", _range_sub, expr, flags=re.IGNORECASE)
 
     def _cell_sub(match):
         ref = match.group(0).upper()
         val = resolve_cell(ref, grid, seen)
         return f'"{val}"' if isinstance(val, str) else str(val)
 
-    expr = re.sub(r"\b[A-Z]+\d+\b", _cell_sub, expr)
+    expr = re.sub(r"\b[A-Z]\d\b", _cell_sub, expr)
 
     def _if_sub(match):
         inner = match.group(1)
@@ -408,7 +417,7 @@ class PagesModule(QWidget):
         self.tree.itemClicked.connect(self.on_page_selected)
         s_layout.addWidget(self.tree)
 
-        btn_add_page = QPushButton("+ Add Page")
+        btn_add_page = QPushButton(" Add Page")
         btn_add_page.setObjectName("BrassButton")
         btn_add_page.clicked.connect(self.add_root_page)
         s_layout.addWidget(btn_add_page)
@@ -432,13 +441,13 @@ class PagesModule(QWidget):
 
         # Block Control Toolbar
         block_bar = QHBoxLayout()
-        b_text = QPushButton("+ Text Block")
+        b_text = QPushButton(" Text Block")
         b_text.clicked.connect(lambda: self.add_block("text"))
-        b_heading = QPushButton("+ Heading")
+        b_heading = QPushButton(" Heading")
         b_heading.clicked.connect(lambda: self.add_block("heading"))
-        b_todo = QPushButton("+ To-Do")
+        b_todo = QPushButton(" To-Do")
         b_todo.clicked.connect(lambda: self.add_block("todo"))
-        b_callout = QPushButton("+ Callout")
+        b_callout = QPushButton(" Callout")
         b_callout.clicked.connect(lambda: self.add_block("callout"))
 
         block_bar.addWidget(b_text)
@@ -573,7 +582,7 @@ class DriveModule(QWidget):
         self.folder_list.itemClicked.connect(self.filter_folder)
         s_layout.addWidget(self.folder_list)
         
-        add_folder_btn = QPushButton("+ New Folder")
+        add_folder_btn = QPushButton(" New Folder")
         add_folder_btn.clicked.connect(self.create_folder)
         s_layout.addWidget(add_folder_btn)
         
@@ -606,7 +615,7 @@ class DriveModule(QWidget):
 
     def refresh(self):
         self.folder_list.clear()
-        folders = ["All"] + list(set(f.get("folder", "Uploads") for f in self.hub["files"]))
+        folders = ["All"]  list(set(f.get("folder", "Uploads") for f in self.hub["files"]))
         for f in folders:
             self.folder_list.addItem(f)
             
@@ -684,7 +693,7 @@ class DocsModule(QWidget):
         sidebar.setFixedWidth(200)
         s_layout = QVBoxLayout(sidebar)
         
-        new_doc_btn = QPushButton("+ New Document")
+        new_doc_btn = QPushButton(" New Document")
         new_doc_btn.setObjectName("BrassButton")
         new_doc_btn.clicked.connect(self.create_doc)
         s_layout.addWidget(new_doc_btn)
@@ -741,7 +750,7 @@ class DocsModule(QWidget):
     def create_doc(self):
         doc_obj = {
             "id": f"d_{uuid.uuid4().hex[:6]}",
-            "name": f"Document {len(self.hub['docs']) + 1}",
+            "name": f"Document {len(self.hub['docs'])  1}",
             "html": "<h2>New Section</h2><p>Start drafting notes here...</p>",
             "kind": "doc"
         }
@@ -817,20 +826,20 @@ class SheetsModule(QWidget):
 
     def on_cell_selected(self, row, col):
         if row >= 0 and col >= 0:
-            ref = f"{num_to_col(col + 1)}{row + 1}"
+            ref = f"{num_to_col(col  1)}{row  1}"
             raw = self.grid_data.get(ref, "")
             self.fx_input.setText(raw)
 
     def apply_formula(self):
         r, c = self.table.currentRow(), self.table.currentColumn()
         if r >= 0 and c >= 0:
-            ref = f"{num_to_col(c + 1)}{r + 1}"
+            ref = f"{num_to_col(c  1)}{r  1}"
             text = self.fx_input.text()
             self.grid_data[ref] = text
             self.reevaluate_grid()
 
     def on_cell_changed(self, row, col):
-        ref = f"{num_to_col(col + 1)}{row + 1}"
+        ref = f"{num_to_col(col  1)}{row  1}"
         item = self.table.item(row, col)
         if item:
             val = item.text()
@@ -842,7 +851,7 @@ class SheetsModule(QWidget):
         self.table.blockSignals(True)
         for r in range(self.table.rowCount()):
             for c in range(self.table.columnCount()):
-                ref = f"{num_to_col(c + 1)}{r + 1}"
+                ref = f"{num_to_col(c  1)}{r  1}"
                 raw = self.grid_data.get(ref, "")
                 if raw.startswith("="):
                     res = evaluate_formula(raw, self.grid_data)
@@ -879,7 +888,7 @@ class SlidesModule(QWidget):
         thumb_sidebar.setFixedWidth(160)
         t_layout = QVBoxLayout(thumb_sidebar)
         
-        add_slide_btn = QPushButton("+ New Slide")
+        add_slide_btn = QPushButton(" New Slide")
         add_slide_btn.setObjectName("BrassButton")
         add_slide_btn.clicked.connect(self.add_slide)
         t_layout.addWidget(add_slide_btn)
@@ -921,7 +930,7 @@ class SlidesModule(QWidget):
     def add_slide(self):
         s_obj = {
             "id": f"s_{uuid.uuid4().hex[:6]}",
-            "title": f"Slide {len(self.hub['slides']) + 1}",
+            "title": f"Slide {len(self.hub['slides'])  1}",
             "body": "Click to customize presentation parameters.",
             "kind": "slide"
         }

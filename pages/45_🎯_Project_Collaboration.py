@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 # -------------------------------------------------------------------------------
 # AUTONOMOUS ENTERPRISE COLLABORATION & RESEARCH SUITE [GLOBAL OMNI v20.5]
 # -------------------------------------------------------------------------------
@@ -33,7 +42,7 @@ if "host_name" not in st.session_state:
 if "host_email" not in st.session_state:
   st.session_state["host_email"] = "kula.chris@muni.ac.ug"
 if "host_phone" not in st.session_state:
-  st.session_state["host_phone"] = "+256700000000"
+  st.session_state["host_phone"] = "256700000000"
 if "participant_name" not in st.session_state:
   st.session_state["participant_name"] = "Ocircan Darius"
 if "active_attendees" not in st.session_state:
@@ -258,8 +267,8 @@ st.markdown(
         width: 15px;
         height: 15px;
         background-color: #1d9bf0;
-        mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center;
-        -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center;
+        mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center;
+        -webkit-mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center;
         vertical-align: middle;
         margin-left: 4px;
     }
@@ -268,8 +277,8 @@ st.markdown(
         width: 15px;
         height: 15px;
         background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-        mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>') no-repeat center;
-        -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>') no-repeat center;
+        mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>') no-repeat center;
+        -webkit-mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>') no-repeat center;
         vertical-align: middle;
         margin-left: 4px;
     }
@@ -559,7 +568,7 @@ else:
 
   with h4:
     if st.button("? Extend", type="secondary", use_container_width=True):
-      st.session_state["session_duration_minutes"] += 15
+      st.session_state["session_duration_minutes"] = 15
       st.toast("🔍 Session extended by 15 minutes!", icon="🔍 ")
       st.rerun()
 
@@ -756,7 +765,7 @@ else:
         b_type = att.get("badge_type", "blue")
 
         if is_anon:
-          disp_name = f"🔍 Anonymous Contributor #{idx+1}"
+          disp_name = f"🔍 Anonymous Contributor #{idx1}"
           badge_tag = '<span class="stealth-badge">🔍 Encrypted Voice</span>'
           cam_status = (
               '<span style="color:#94a3b8;font-size:0.75rem;">No Camera'
@@ -774,7 +783,7 @@ else:
               " Enabled</span>"
           )
 
-        attendee_cards_html += f"""
+        attendee_cards_html = f"""
                 <div style="background:#0d1117;border:1px solid #30363d;padding:8px 12px;border-radius:6px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
                     <div>
                         <span style="color:#38bdf8;font-weight:bold;">{disp_name}</span> {badge_tag}
@@ -893,13 +902,13 @@ else:
               94.5,
               max(
                   12.0,
-                  (text_len % 73) + (15 if strictness_mode[0] == "H" else 5),
+                  (text_len % 73)  (15 if strictness_mode[0] == "H" else 5),
               ),
           )
           plag_prob = min(
-              88.0, max(3.5, (text_len % 41) + (10 if text_len < 200 else 2))
+              88.0, max(3.5, (text_len % 41)  (10 if text_len < 200 else 2))
           )
-          original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
+          original_score = max(5.0, 100.0 - (ai_prob  plag_prob) / 2)
 
           new_report = {
               "id": str(uuid.uuid4())[:6].upper(),
@@ -909,7 +918,7 @@ else:
               "ai_score": round(ai_prob, 1),
               "plag_score": round(plag_prob, 1),
               "original_score": round(original_score, 1),
-              "snippet": source_content[:180] + "...",
+              "snippet": source_content[:180]  "...",
           }
           st.session_state["audit_reports"].insert(0, new_report)
           st.toast(
@@ -941,7 +950,7 @@ else:
               label="🔍 AI Generation Probability",
               value=f"{latest['ai_score']}%",
               delta=(
-                  "+4.2% (High Neural Signature)"
+                  "4.2% (High Neural Signature)"
                   if latest["ai_score"] > 50
                   else "-12.5% (Human Crafted)"
               ),
@@ -952,7 +961,7 @@ else:
               label="🔍 Plagiarism & Match Rate",
               value=f"{latest['plag_score']}%",
               delta=(
-                  "+2.1% (Web Cross-Matches)"
+                  "2.1% (Web Cross-Matches)"
                   if latest["plag_score"] > 20
                   else "0.0% (Clean Unique)"
               ),
@@ -1274,7 +1283,7 @@ else:
             "**Active Highlights & Edits on Current Presentation:**"
         )
         for h_idx, hl in enumerate(st.session_state["stage_highlights"]):
-          st.markdown(f"- `{h_idx+1}`. {hl}")
+          st.markdown(f"- `{h_idx1}`. {hl}")
         st.markdown("</div>", unsafe_allow_html=True)
         if st.button("🔍 Clear Stage Highlights"):
           st.session_state["stage_highlights"] = []
@@ -1390,7 +1399,7 @@ else:
     else:
       raw_wa_list = st.text_area(
           "Paste WhatsApp numbers (comma separated)",
-          placeholder="+256700000001, +256700000002",
+          placeholder="256700000001, 256700000002",
       )
       if st.button("🔍 Queue & Send Automated WhatsApp Invites", type="primary"):
         if raw_wa_list:
@@ -1399,7 +1408,7 @@ else:
           st.success(f"? Queued {len(numbers)} WhatsApp alerts!")
           for num in numbers:
             encoded = urllib.parse.quote(msg_body)
-            link = f"https://wa.me/{num.replace('+', '')}?text={encoded}"
+            link = f"https://wa.me/{num.replace('', '')}?text={encoded}"
             st.markdown(f"- **{num}**: [Send Alert]({link})")
 
   # -- Tab 7: Audience, Reply with Mention (@) & Chat --
@@ -1452,7 +1461,7 @@ else:
         mention_target = st.selectbox(
             "Mention (@User)",
             ["Broadcast to All"]
-            + [a["name"] for a in st.session_state["active_attendees"]],
+             [a["name"] for a in st.session_state["active_attendees"]],
         )
       with c_reply2:
         chat_input = st.text_input("Message...")
@@ -1498,7 +1507,7 @@ else:
       st.markdown(
           f"""
             <div style="background:#111827;border:1px solid #374151;border-left:4px solid #38bdf8;padding:12px 16px;border-radius:8px;margin-bottom:10px;">
-                <b>Note #{idx+1}</b><br>{note}
+                <b>Note #{idx1}</b><br>{note}
             </div>
             """,
           unsafe_allow_html=True,
@@ -1596,9 +1605,9 @@ The session successfully tracked and recorded core collaborative discourse. All 
 ## 🔍 ️? Chronological Speaker Attribution Log
 """
     for item in st.session_state["live_transcript"]:
-      summary_markdown += f"- **[{item['time']}] {item['speaker']}**: {item['text']}\n"
+      summary_markdown = f"- **[{item['time']}] {item['speaker']}**: {item['text']}\n"
 
-    summary_markdown += """
+    summary_markdown = """
 ---
 *Certified Autonomous Dossier by Autonomous Enterprise Collaboration Suite.*
 """

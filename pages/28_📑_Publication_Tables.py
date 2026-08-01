@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Advanced Publication-Ready Table Generator & APA Formatting Suite (Enterprise Edition)
 Autonomous Research Operating System v3.0  Table Generation Module

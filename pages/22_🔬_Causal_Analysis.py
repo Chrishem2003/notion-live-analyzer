@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Advanced Causal Inference & Econometric Decision Engine (Enterprise Edition)
 Autonomous Research Operating System v3.0  Causal Module
@@ -178,7 +187,7 @@ if active_causal_tab == "dag":
         
         st.markdown("<h5 style='color:#cbd5e1; font-size:0.8rem; margin-top:1rem;'>Identified Causal Paths:</h5>", unsafe_allow_html=True)
         st.code("""
-[Treatment: Satellite Feed] ──(+)──> [Outcome: Ecosystem Yield]
+[Treatment: Satellite Feed] ──()──> [Outcome: Ecosystem Yield]
 [Confounder: Regional Climate] ──> [Treatment] & [Outcome] (Backdoor Path)
 [Instrument: Solar Flux] ──> [Treatment] (Valid IV)
         """, language="text")
@@ -209,13 +218,13 @@ elif active_causal_tab == "psm":
     with col_p2:
         st.markdown("<div class='causal-card'>", unsafe_allow_html=True)
         st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Average Treatment Effect (ATE / ATT)</h4>", unsafe_allow_html=True)
-        st.metric(label="Estimated Average Treatment Effect on the Treated (ATT)", value="+14.28 units", delta="p < 0.001 (Statistically Significant)")
+        st.metric(label="Estimated Average Treatment Effect on the Treated (ATT)", value="14.28 units", delta="p < 0.001 (Statistically Significant)")
         
         if HAS_PLOTLY:
             np.random.seed(42)
             df_psm = pd.DataFrame({
                 "Propensity Score": np.concatenate([np.random.beta(2, 5, 500), np.random.beta(5, 2, 500)]),
-                "Group": ["Control"] * 500 + ["Treated"] * 500
+                "Group": ["Control"] * 500  ["Treated"] * 500
             })
             fig = px.histogram(df_psm, x="Propensity Score", color="Group", barmode="overlay", nbins=40, color_discrete_map={"Control": "#64748b", "Treated": "#4f46e5"})
             fig.update_layout(paper_bgcolor="#020617", plot_bgcolor="#090d16", font=dict(color="#f1f5f9"), margin=dict(t=20, b=20, l=20, r=20))
@@ -250,7 +259,7 @@ Method: Two-Way Fixed Effects (TWFE)
 -----------------------------------------------------------------
 Treatment * Post      8.4120     1.120     7.510   0.000     6.215   10.609
 =================================================================
-DiD Estimator (ATT): +8.41 units (Robust SE clustered at regional level)
+DiD Estimator (ATT): 8.41 units (Robust SE clustered at regional level)
         """, language="text")
         st.markdown("</div>", unsafe_allow_html=True)
 

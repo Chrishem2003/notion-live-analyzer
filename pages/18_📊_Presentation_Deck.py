@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 🔍 Presentation Deck Builder Page  Advanced Enterprise Slide Deck Generator, Interactive Multi-Slide Canvas, & Executive Export Studio.
 """
@@ -43,7 +52,7 @@ m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
     st.metric("🔍 Default Slide Count", "6 Slides", help="Standard executive deck layout")
 with m2:
-    st.metric("🔍 Integrated Visuals", f"{len(statistical_results) + 3} Elements", help="Charts and tables ready for presentation")
+    st.metric("🔍 Integrated Visuals", f"{len(statistical_results)  3} Elements", help="Charts and tables ready for presentation")
 with m3:
     st.metric("🔍 Template Style", "Modern Executive Dark/Light", help="Adaptive styling framework")
 with m4:
@@ -94,7 +103,7 @@ with deck_tabs[1]:
         custom_slide_title = st.text_input("Slide Title", value=slide_selection.split(": ")[1])
         custom_subtitle = st.text_input("Slide Subtitle / Category", value="Enterprise Analytics Report")
     with col_s2:
-        layout_template = st.selectbox("Slide Layout Template", options=["Hero Metric + Bullet Points", "Split-Screen Chart & Summary", "Full-Width Data Table", "3-Column Grid Cards"])
+        layout_template = st.selectbox("Slide Layout Template", options=["Hero Metric  Bullet Points", "Split-Screen Chart & Summary", "Full-Width Data Table", "3-Column Grid Cards"])
 
     slide_body_text = st.text_area(
         "Slide Bullet Points / Narrative Text",

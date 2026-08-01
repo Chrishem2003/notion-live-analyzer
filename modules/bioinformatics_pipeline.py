@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import pandas as pd
 from collections import Counter
 from modules.database import log_backend_event
@@ -34,7 +43,7 @@ def calculate_gc_content(sequence: str) -> float:
     if not sequence:
         return 0.0
     
-    gc_count = sequence.count('G') + sequence.count('C')
+    gc_count = sequence.count('G')  sequence.count('C')
     total_bases = len(sequence)
     return round((gc_count / total_bases) * 100, 2)
 

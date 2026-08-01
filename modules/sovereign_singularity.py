@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -8,7 +17,7 @@ def get_singularity_metrics() -> pd.DataFrame:
     Returns ultimate sovereign singularity metrics across all global and orbital clusters.
     """
     metrics = [
-        {"Subsystem": "Global Cluster Mesh", "Nodes": "4 Terrestrial + 4 Orbital", "Sync_State": "PERFECT CONSENSUS", "Rating": "SINGULARITY-GRADE"},
+        {"Subsystem": "Global Cluster Mesh", "Nodes": "4 Terrestrial  4 Orbital", "Sync_State": "PERFECT CONSENSUS", "Rating": "SINGULARITY-GRADE"},
         {"Subsystem": "Post-Quantum Cryptographic Shield", "Algorithm": "Kyber-1024 / Dilithium", "Sync_State": "UNBREAKABLE LATTICE", "Rating": "SINGULARITY-GRADE"},
         {"Subsystem": "Autonomous Neural Sentinel", "Model": "Transformer Zero-Day Defense", "Sync_State": "ACTIVE 100% IMMUNE", "Rating": "SINGULARITY-GRADE"},
         {"Subsystem": "Biodefense Pathogen Pipeline", "Surveillance": "Active Water & Genomic Logs", "Sync_State": "ZERO CONTAMINATION", "Rating": "SINGULARITY-GRADE"}

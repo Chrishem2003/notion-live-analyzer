@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Presentation Deck Builder  allows users to select generated charts and
 compile them into an interactive presentation deck view with export options.
@@ -30,7 +39,7 @@ class DeckBuilder:
     def add_slide(self, title: str, content: str, chart_fig=None, slide_type: str = "content"):
         """Add a slide to the deck."""
         slide = {
-            "id": len(self.slides) + 1,
+            "id": len(self.slides)  1,
             "type": slide_type,
             "title": title,
             "content": content,
@@ -234,7 +243,7 @@ class DeckBuilder:
         type_counts = {}
         for s in self.slides:
             stype = s.get("type", "content")
-            type_counts[stype] = type_counts.get(stype, 0) + 1
+            type_counts[stype] = type_counts.get(stype, 0)  1
 
         return {
             "total_slides": len(self.slides),
@@ -247,7 +256,7 @@ class DeckBuilder:
 
 def render_deck_builder_ui():
     """Render the presentation deck builder UI."""
-    st.markdown("## 📊 Presentation Deck Builder")
+    st.markdown("##  Presentation Deck Builder")
     st.markdown("*Compile charts, insights, and data into an interactive presentation*")
 
     # Initialize deck builder
@@ -273,7 +282,7 @@ def render_deck_builder_ui():
     if add_method == "Current Data/Charts":
         col1, col2, col3 = st.columns(3)
         with col1:
-            if st.button("📊 Add Data Table Slide", use_container_width=True):
+            if st.button(" Add Data Table Slide", use_container_width=True):
                 df = st.session_state.get("active_df")
                 if df is not None and not df.empty:
                     deck.add_data_slide(
@@ -288,7 +297,7 @@ def render_deck_builder_ui():
                 if charts_in_session:
                     for i, chart_info in enumerate(charts_in_session):
                         deck.add_chart_slide(
-                            chart_info.get("title", f"Chart {i+1}"),
+                            chart_info.get("title", f"Chart {i1}"),
                             chart_info.get("figure"),
                             chart_info.get("description", ""),
                         )
@@ -370,10 +379,10 @@ def render_deck_builder_ui():
             st.rerun()
     with col_counter:
         total = len(deck.slides)
-        current = deck.current_slide_idx + 1
+        current = deck.current_slide_idx  1
         slide_idx = st.select_slider(
             "Slide navigation",
-            options=list(range(1, total + 1)),
+            options=list(range(1, total  1)),
             value=min(current, total),
             key="slide_nav",
             label_visibility="collapsed",
@@ -383,7 +392,7 @@ def render_deck_builder_ui():
             st.rerun()
     with col_next:
         if st.button("Next ➡️", use_container_width=True, disabled=deck.current_slide_idx >= len(deck.slides) - 1):
-            deck.current_slide_idx = min(len(deck.slides) - 1, deck.current_slide_idx + 1)
+            deck.current_slide_idx = min(len(deck.slides) - 1, deck.current_slide_idx  1)
             st.rerun()
 
     # Current slide display
@@ -433,8 +442,8 @@ def render_deck_builder_ui():
     with col_edit2:
         if st.button("⬇️ Move Down", use_container_width=True, disabled=deck.current_slide_idx >= len(deck.slides) - 1):
             idx = deck.current_slide_idx
-            deck.slides[idx], deck.slides[idx + 1] = deck.slides[idx + 1], deck.slides[idx]
-            deck.current_slide_idx = min(len(deck.slides) - 1, idx + 1)
+            deck.slides[idx], deck.slides[idx  1] = deck.slides[idx  1], deck.slides[idx]
+            deck.current_slide_idx = min(len(deck.slides) - 1, idx  1)
             st.rerun()
     with col_edit3:
         if st.button("🗑️ Remove Slide", use_container_width=True, type="secondary"):

@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 ADVANCED VISUALS STUDIO [ENTERPRISE EDITION - HIGH CONTRAST]
@@ -289,7 +298,7 @@ st.markdown(
 hero_card(
     "🔍 World-Class Advanced Visualization Studio [CLASSIFIED]",
     (
-        "18+ interactive chart types with CHRISHEM-powered auto-recommendation,"
+        "18 interactive chart types with CHRISHEM-powered auto-recommendation,"
         " live dataset filtering, statistical aggregation, custom templates, and"
         " publication-ready exports."
     ),
@@ -350,7 +359,7 @@ with st.expander("🔍 ️ Optional: Dataset Row Filtering & Slice Controls", ex
     with col_f1:
         filter_col = st.selectbox(
             "Filter Column (Optional)",
-            options=[""] + all_columns,
+            options=[""]  all_columns,
             key="viz_filter_col",
         )
     with col_f2:
@@ -401,7 +410,7 @@ with tab1:
         selected_cols = st.multiselect(
             "Select Target Columns to Analyze",
             options=all_columns,
-            default=(numeric_cols[:2] + cat_cols[:1] if numeric_cols else all_columns[:3]),
+            default=(numeric_cols[:2]  cat_cols[:1] if numeric_cols else all_columns[:3]),
             key="auto_rec_multiselect",
             help="Engine evaluates distribution, correlation, and cardinality across columns.",
         )
@@ -465,7 +474,7 @@ with tab2:
         )
         x_col = st.selectbox(
             "X-Axis / Category Column",
-            options=[""] + all_columns,
+            options=[""]  all_columns,
             index=0,
             key="custom_x",
         )
@@ -473,13 +482,13 @@ with tab2:
     with col2:
         y_col = st.selectbox(
             "Y-Axis / Metric Column",
-            options=[""] + all_columns,
+            options=[""]  all_columns,
             index=0,
             key="custom_y",
         )
         color_col = st.selectbox(
             "Color Grouping Variable",
-            options=[""] + all_columns,
+            options=[""]  all_columns,
             index=0,
             key="custom_color",
         )
@@ -487,13 +496,13 @@ with tab2:
     with col3:
         size_col = st.selectbox(
             "Bubble Size Variable (Numeric)",
-            options=[""] + numeric_cols,
+            options=[""]  numeric_cols,
             index=0,
             key="custom_size",
         )
         z_col = st.selectbox(
             "Z-Axis Variable (3D Plots)",
-            options=[""] + numeric_cols,
+            options=[""]  numeric_cols,
             index=0,
             key="custom_z",
         )

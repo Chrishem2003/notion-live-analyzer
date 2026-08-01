@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 # ==============================================================================
 # CHRISHEM Bulletproof PDF Engine (Zero-Dependency Fallback)
 # Owner: Kula Chris (CHRISHEM)

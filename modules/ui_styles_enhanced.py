@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Enhanced UI Styles  Visual Design System."""
 import streamlit as st
 
@@ -387,7 +396,7 @@ def render_tier_badge(tier: str):
     tier_names = {
         "free": "🆓 Free",
         "standard": "📘 Standard",
-        "premium": "👑 Premium",
+        "premium": " Premium",
     }
     
     cls = tier_classes.get(tier.lower(), "tier-free")

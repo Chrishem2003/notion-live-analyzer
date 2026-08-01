@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Academic Integrations  Zotero, Mendeley, Grant Finder, LaTeX Exporter.
 """
@@ -55,7 +64,7 @@ class ZoteroClient:
         params = {"limit": limit, "format": "json"}
         
         if collection_id:
-            url += f"/collections/{collection_id}"
+            url = f"/collections/{collection_id}"
         
         try:
             response = requests.get(url, headers=self._headers(), params=params, timeout=10)
@@ -95,7 +104,7 @@ class ZoteroClient:
                 "abstractNote": paper.get("abstract", ""),
             }
             if self.create_item(item):
-                synced += 1
+                synced = 1
         return synced
 
 @st.cache_resource(ttl=3600)
@@ -243,7 +252,7 @@ class GrantFinder:
             relevance_score = 0
             for focus in grant["focus"]:
                 if focus in topic_lower:
-                    relevance_score += 1
+                    relevance_score = 1
             
             if relevance_score == 0:
                 continue

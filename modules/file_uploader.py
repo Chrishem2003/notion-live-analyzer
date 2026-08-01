@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 File Uploader â€” handles file uploads in multiple formats (CSV, Excel, SPSS, SAS, STATA, JSON).
 """
@@ -169,7 +178,7 @@ def manual_data_entry() -> pd.DataFrame:
 
     col_names = []
     for i in range(n_cols):
-        col_names.append(st.text_input(f"Column {i+1} name", value=f"Variable_{i+1}", key=f"man_col_{i}"))
+        col_names.append(st.text_input(f"Column {i1} name", value=f"Variable_{i1}", key=f"man_col_{i}"))
 
     data = {col: [] for col in col_names}
     for row_idx in range(n_rows):

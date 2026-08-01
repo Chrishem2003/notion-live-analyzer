@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Advanced Resampling & Validation  Bootstrap confidence intervals, permutation tests,
 cross-validation, Monte Carlo simulations.
@@ -62,8 +71,8 @@ class ResamplingEngine:
                 acc = np.sum((np.mean(jackknife) - jackknife)**3) / (6 * np.sum((np.mean(jackknife) - jackknife)**2)**1.5)
             else:
                 acc = 0
-            a1 = scipy_stats.norm.cdf(z0 + (z0 + scipy_stats.norm.ppf(alpha / 2)) / (1 - acc * (z0 + scipy_stats.norm.ppf(alpha / 2))))
-            a2 = scipy_stats.norm.cdf(z0 + (z0 + scipy_stats.norm.ppf(1 - alpha / 2)) / (1 - acc * (z0 + scipy_stats.norm.ppf(1 - alpha / 2))))
+            a1 = scipy_stats.norm.cdf(z0  (z0  scipy_stats.norm.ppf(alpha / 2)) / (1 - acc * (z0  scipy_stats.norm.ppf(alpha / 2))))
+            a2 = scipy_stats.norm.cdf(z0  (z0  scipy_stats.norm.ppf(1 - alpha / 2)) / (1 - acc * (z0  scipy_stats.norm.ppf(1 - alpha / 2))))
             ci_lower = np.percentile(bootstrap_stats, a1 * 100)
             ci_upper = np.percentile(bootstrap_stats, a2 * 100)
         elif method == "basic":
@@ -71,7 +80,7 @@ class ResamplingEngine:
             z = scipy_stats.norm.ppf(1 - alpha / 2)
             point_est = statistic(data)
             ci_lower = point_est - z * se
-            ci_upper = point_est + z * se
+            ci_upper = point_est  z * se
         else:
             ci_lower = np.percentile(bootstrap_stats, alpha / 2 * 100)
             ci_upper = np.percentile(bootstrap_stats, (1 - alpha / 2) * 100)
@@ -178,7 +187,7 @@ class ResamplingEngine:
             "mean_score": round(float(np.mean(scores)), 4),
             "std_score": round(float(np.std(scores)), 4),
             "ci_lower": round(float(np.mean(scores) - 1.96 * np.std(scores) / np.sqrt(n_folds)), 4),
-            "ci_upper": round(float(np.mean(scores) + 1.96 * np.std(scores) / np.sqrt(n_folds)), 4),
+            "ci_upper": round(float(np.mean(scores)  1.96 * np.std(scores) / np.sqrt(n_folds)), 4),
         }
 
     @staticmethod
@@ -205,7 +214,7 @@ class ResamplingEngine:
                 _, p = scipy_stats.ttest_ind(group1, group2)
             elif test_type == "correlation":
                 x = rng.normal(0, 1, size=sample_size)
-                y = effect_size * x + np.sqrt(1 - effect_size**2) * rng.normal(0, 1, size=sample_size)
+                y = effect_size * x  np.sqrt(1 - effect_size**2) * rng.normal(0, 1, size=sample_size)
                 _, p = scipy_stats.pearsonr(x, y)
             else:
                 group1 = rng.normal(0, 1, size=sample_size)
@@ -213,7 +222,7 @@ class ResamplingEngine:
                 _, p = scipy_stats.ttest_ind(group1, group2)
 
             if p < alpha:
-                significant += 1
+                significant = 1
 
         power = significant / n_simulations
 
@@ -243,7 +252,7 @@ class ResamplingEngine:
         bootstrap_diffs = []
 
         for _ in range(n_bootstrap):
-            sample = rng.choice(combined, size=n1 + n2, replace=True)
+            sample = rng.choice(combined, size=n1  n2, replace=True)
             b1 = sample[:n1]
             b2 = sample[n1:]
             bootstrap_diffs.append(np.mean(b1) - np.mean(b2))
@@ -276,7 +285,7 @@ def render_resampling_ui():
     engine = ResamplingEngine()
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "🎲 Bootstrap CI", "🔄 Permutation Test", "📊 Cross-Validation",
+        "🎲 Bootstrap CI", "🔄 Permutation Test", " Cross-Validation",
         "⚡ Monte Carlo Power", "📈 Bootstrap Hypothesis Test"
     ])
 
@@ -323,14 +332,14 @@ def render_resampling_ui():
             st.warning("No data loaded.")
 
     with tab3:
-        st.subheader("📊 Cross-Validation")
+        st.subheader(" Cross-Validation")
         st.info("Cross-validation requires scikit-learn. Load data and select features/target.")
         if df is not None:
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             target = st.selectbox("Target", options=numeric_cols, key="cv_target")
             features = st.multiselect("Features", options=[c for c in numeric_cols if c != target], key="cv_features")
             n_folds = st.slider("Number of folds", 2, 10, 5, key="cv_folds")
-            if st.button("📊 Run CV", type="primary") and features and HAS_SKLEARN:
+            if st.button(" Run CV", type="primary") and features and HAS_SKLEARN:
                 from sklearn.linear_model import LinearRegression
                 X = df[features].fillna(0).values
                 y = df[target].fillna(0).values

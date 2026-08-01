@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """Admin Portal  Developer Management Console."""
 import os
 import hashlib
@@ -128,7 +137,7 @@ def create_promo_code(code: str, discount: int, expires_days: int) -> Dict:
     promo_data = {
         "code": code.upper(),
         "discount_percent": discount,
-        "expires_at": (datetime.utcnow() + timedelta(days=expires_days)).isoformat(),
+        "expires_at": (datetime.utcnow()  timedelta(days=expires_days)).isoformat(),
         "created_at": datetime.utcnow().isoformat(),
         "uses": 0,
         "max_uses": 100,
@@ -186,14 +195,14 @@ def get_analytics() -> Dict[str, Any]:
     for user in users:
         tier = user.get("tier", "free")
         if tier in tier_counts:
-            tier_counts[tier] += 1
+            tier_counts[tier] = 1
         if user.get("african_verified"):
-            verified_students += 1
+            verified_students = 1
         if user.get("notion_claimed"):
-            notion_claimed += 1
+            notion_claimed = 1
     
     # Calculate MRR (simplified)
-    mrr = tier_counts["standard"] * 15 + tier_counts["premium"] * 49  # $15/$49/month
+    mrr = tier_counts["standard"] * 15  tier_counts["premium"] * 49  # $15/$49/month
     
     return {
         "total_users": total_users,
@@ -234,7 +243,7 @@ def render_admin_portal():
     st.markdown("---")
     
     # Analytics overview
-    st.subheader("📊 Platform Analytics")
+    st.subheader(" Platform Analytics")
     
     analytics = get_analytics()
     

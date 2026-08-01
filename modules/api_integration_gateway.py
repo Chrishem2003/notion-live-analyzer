@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -26,7 +35,7 @@ def render_api_gateway_panel():
     with c1:
         st.metric(label="Active Endpoints", value="4 Connected", delta="100% Uptime")
     with c2:
-        st.metric(label="Requests Today", value="1.42M", delta="+18.4%")
+        st.metric(label="Requests Today", value="1.42M", delta="18.4%")
     with c3:
         st.metric(label="Latency Average", value="14ms", delta="Optimal")
     with c4:

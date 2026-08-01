@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Visualization Engine  intelligent auto-chart recommendation and selection.
 Analyzes data types and suggests the best visualization automatically.
@@ -88,7 +97,7 @@ def auto_recommend_chart(
              "reason": f"Distribution density of {numeric_cols[0]}", "score": 80},
         ])
 
-    # 2. Categorical + Numeric → Bar/comparison charts
+    # 2. Categorical  Numeric → Bar/comparison charts
     if cat_cols and numeric_cols:
         for cat in cat_cols[:2]:
             for num in numeric_cols[:2]:
@@ -118,7 +127,7 @@ def auto_recommend_chart(
                  "reason": f"Hierarchy of {cat}", "score": 75},
             ])
 
-    # 4. Temporal + Numeric → Trend charts
+    # 4. Temporal  Numeric → Trend charts
     if temporal_cols and numeric_cols:
         for temp in temporal_cols[:1]:
             for num in numeric_cols[:2]:
@@ -141,7 +150,7 @@ def auto_recommend_chart(
              "reason": "Correlation heatmap of numeric variables", "score": 80},
         ])
 
-    # 6. Three+ numeric columns → Multi-dimensional
+    # 6. Three numeric columns → Multi-dimensional
     if len(numeric_cols) >= 3:
         recommendations.append(
             {"chart": "scatter_3d", "x": numeric_cols[0], "y": numeric_cols[1], "z": numeric_cols[2],
@@ -153,7 +162,7 @@ def auto_recommend_chart(
              "reason": "Multi-dimensional parallel coordinates", "score": 78}
         )
 
-    # 7. Categorical + Temporal → Stacked area
+    # 7. Categorical  Temporal → Stacked area
     if cat_cols and temporal_cols and numeric_cols:
         recommendations.append(
             {"chart": "stacked_area", "x": temporal_cols[0], "y": numeric_cols[0], "color": cat_cols[0],

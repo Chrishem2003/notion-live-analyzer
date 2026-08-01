@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """
 Configuration module  manages secrets, session state, and app-wide constants.
 """
@@ -266,7 +275,7 @@ def image_to_data_url(path: Path) -> str:
         "jpeg": "image/jpeg",
         "webp": "image/webp",
         "gif": "image/gif",
-        "svg": "image/svg+xml",
+        "svg": "image/svgxml",
     }
     mime = mime_map.get(ext, "application/octet-stream")
     b64 = base64.b64encode(path.read_bytes()).decode("utf-8")

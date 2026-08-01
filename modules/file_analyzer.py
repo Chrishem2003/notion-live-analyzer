@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 """File Analyzer  Local File Parser & Fallback Analytics."""
 import pandas as pd
 import streamlit as st
@@ -104,7 +113,7 @@ def render_file_analyzer_page():
             st.session_state["uploaded_df"] = df
             
             # Show data preview
-            with st.expander("📊 Data Preview", expanded=True):
+            with st.expander(" Data Preview", expanded=True):
                 st.dataframe(df.head(50), use_container_width=True)
             
             # Column statistics

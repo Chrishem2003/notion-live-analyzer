@@ -1,3 +1,12 @@
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+import os
+import streamlit as st
+
+st.markdown("# **Notion Live Analyzer**")
+st.markdown("### **Creator: CHRISHEM**")
+st.markdown("---")
+# -------------------------------------
+
 import time
 import sys
 import os
@@ -26,7 +35,7 @@ def main():
             
             log_backend_event("INFO", f"Autonomous background cycle #{cycle} executed successfully. All enclaves secure.")
             
-            cycle += 1
+            cycle = 1
             time.sleep(60)
     except KeyboardInterrupt:
         print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Continuous Intelligence Daemon stopped by user.")
