@@ -4,3 +4,4 @@ fpdf2
 python-pptx
 cryptography
 scipy
+plotly
