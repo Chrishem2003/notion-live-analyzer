@@ -1,53 +1,13 @@
 ﻿av>=11.0.0
 matplotlib>=3.7.0
 numpy>=1.24.0
-opencv-python-headless>=4.8.0
-openpyxl>=3.1.0
 pandas>=2.0.0
 plotly>=5.18.0
-reportlab>=4.0.0
 requests>=2.31.0
 scikit-learn
-scipy>=1.10.0
 streamlit>=1.32.0
-streamlit-webrtc>=0.47.0
-psutil
-pyarrow
-pypdf
-networkx
-statsmodels
 fastapi
 pydantic
 sqlalchemy
-passlib
-python-jose[cryptography]
-bcrypt==4.0.1
-fpdf2
 notion-client
 langchain
-langchain-community
-langchain-openai
-chromadb
-sentence-transformers
-beautifulsoup4
-cryptography
-httpx
-```[cite: 2]
-
-### Step 2: Fix the Python Runtime Version
-Ensure your `runtime.txt` explicitly locks the Python version to a stable release to avoid C-extension or compilation crashes on cloud hosts:
-
-```text
-python-3.11.11
-```[cite: 2]
-
-### Step 3: Verify Your Frontend Entrypoint File
-1. Check your GitHub repository root to ensure the primary script defined in your Streamlit Cloud dashboard matches the file you actually pushed (e.g., `frontend_advanced.py` or your consolidated suite file).
-2. Ensure there are no broken syntax blocks, unclosed multi-line strings, or truncated functions at the bottom of your file. 
-
-### Step 4: Handle Local vs. Cloud Backend URLs
-If your FastAPI backend is running locally, your public Streamlit app won't be able to reach `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. 
-* **For Local Testing:** Run both services locally:
-  * Terminal 1: `uvicorn backend_advanced:app --reload`[cite: 2]
-  * Terminal 2: `streamlit run frontend_advanced.py`[cite: 2]
-* **For Cloud Deployment:** Deploy your FastAPI backend to a host like Render, Railway, or Hugging Face Spaces, and update your `BACKEND_URL` variable in your Streamlit script to point to your live backend endpoint instead of `127.0.0.1`.
