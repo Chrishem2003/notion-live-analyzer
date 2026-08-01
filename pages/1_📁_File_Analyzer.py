@@ -421,7 +421,7 @@ def generate_intelligent_insights(df: pd.DataFrame) -> list:
         q3 = numeric_df[col].quantile(0.75)
         iqr = q3 - q1
         if iqr > 0:
-            outliers = numeric_df[(numeric_df[col] < q1 - 1.5 * iqr) | (numeric_df[col] > q3  1.5 * iqr)]
+            outliers = numeric_df[(numeric_df[col] < q1 - 1.5 * iqr) | (numeric_df[col] > q3 + 1.5 * iqr)]
             if len(outliers) > 0:
                 outlier_summary.append((col, len(outliers)))
     
@@ -535,7 +535,7 @@ if working_df is None or working_df.empty:
     if st.button("🔍 Generate Sample Research Dataset", type="primary"):
         np.random.seed(42)
         demo_data = pd.DataFrame({
-            "Subject_ID": [f"SUBJ-{2000i}" for i in range(150)],
+            "Subject_ID": [f"SUBJ-{2000 + i}" for i in range(150)],
             "Age": np.random.randint(18, 70, size=150),
             "Cholesterol": np.round(np.random.normal(190.0, 30.0, size=150), 1),
             "Blood_Glucose": np.round(np.random.normal(98.0, 15.0, size=150), 1),
