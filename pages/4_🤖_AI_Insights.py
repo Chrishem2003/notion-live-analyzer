@@ -1,5 +1,3 @@
-
-
 """
 ═══════════════════════════════════════════════════════════════════════════════
 ADVANCED AI INSIGHTS & EXECUTIVE REPORT GENERATOR [ENTERPRISE MODULE v6.3]
@@ -18,7 +16,7 @@ import streamlit as st
 # ─── 1. PAGE CONFIGURATION & STYLING ────────────────────────────────────
 st.set_page_config(
     page_title="AI Insights & Executive Reporting",
-    page_icon="🔍 ",
+    page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -158,49 +156,6 @@ def auto_generate_report(df: pd.DataFrame, source_name: str = "dataset.csv") -> 
             <meta charset="utf-8">
             <title>Executive Data Intelligence Report</title>
             <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
-    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
-    }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
-    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
-    }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
                 body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #060b13; color: #f8fafc; padding: 40px; }}
                 .container {{ max-width: 1000px; margin: auto; background: #111c2e; border: 1px solid #00f2fe44; border-radius: 12px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }}
                 h1, h2 {{ color: #00f2fe; border-bottom: 1px solid #1e293b; padding-bottom: 10px; }}
@@ -296,7 +251,7 @@ def render_ai_insights_page():
         if st.button("🔍 Load Synthetic Research Dataset", type="primary", use_container_width=True):
             np.random.seed(42)
             demo_data = pd.DataFrame({
-                "Patient_ID": [f"PID-{1000i}" for i in range(120)],
+                "Patient_ID": [f"PID-{1000 + i}" for i in range(120)],
                 "Age": np.random.randint(20, 75, size=120),
                 "BMI": np.round(np.random.normal(26.5, 4.5, size=120), 1),
                 "Systolic_BP": np.random.randint(110, 160, size=120),
@@ -400,4 +355,3 @@ def render_ai_insights_page():
 # Execute main page renderer when executed directly
 if __name__ == "__main__":
     render_ai_insights_page()
-

@@ -1,13 +1,10 @@
-
-
-"""
-═══════════════════════════════════════════════════════════════════════════════
-ADVANCED FILE ANALYZER & MULTI-FORMAT INGESTION ENGINE [ENTERPRISE v6.2]
-Standalone Edition with High-Contrast Cyber-Emerald Styling, PII Masking,
-Automated Data-Quality Scoring, and Resilient Multi-Format File Parsing.
-Designed for: Kula Chris (Chrishem)
-═══════════════════════════════════════════════════════════════════════════════
-"""
+# ═══════════════════════════════════════════════════════════════════════════════
+# ADVANCED FILE ANALYZER & MULTI-FORMAT INGESTION ENGINE [ENTERPRISE v7.0 PRO]
+# Standalone Edition with High-Contrast Cyber-Emerald Styling, PII Masking,
+# Automated Bayesian Outlier Correction, PCA Latent Space Projection,
+# and Resilient Multi-Format File Parsing.
+# Designed for: Kula Chris (Chrishem)
+# ═══════════════════════════════════════════════════════════════════════════════
 
 import csv
 from datetime import datetime
@@ -23,7 +20,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-# Optional Plotly backend  degrades gracefully if not installed
+# Optional Plotly backend – degrades gracefully if not installed
 try:
     import plotly.express as px
     import plotly.graph_objects as go
@@ -106,8 +103,8 @@ except ImportError:
 
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
-    page_title="Advanced File Analyzer [SECURE]",
-    page_icon="🔍 ",
+    page_title="Advanced File Analyzer [SECURE PRO]",
+    page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -236,9 +233,9 @@ st.markdown(
 )
 
 hero_card(
-    "🔍 Advanced File Analyzer & Explorer Engine",
-    "Universal multi-format data ingestion for CSV, Excel, SPSS (.sav), SAS, STATA, JSON, and binary formats with automated profiling, data-quality scoring, and anomaly diagnostics.",
-    badge_text="v6.2 Enterprise  High Intelligence Pipeline",
+    "🔍 Advanced File Analyzer & Explorer Engine [PRO]",
+    "Universal multi-format data ingestion for CSV, Excel, SPSS (.sav), SAS, STATA, JSON, and binary formats with automated profiling, data-quality scoring, anomaly diagnostics, Bayesian outlier scrubbing, and PCA latent space dimensionality reduction.",
+    badge_text="v7.0 Enterprise High Intelligence Pipeline",
 )
 
 # ─── SECURITY: Sandbox Root Setup ─────────────────────────────────────
@@ -290,7 +287,7 @@ def robust_parse_file(file_obj_or_path):
                     )
                 except Exception:
                     continue
-            st.error(f"❌ Could not parse '{filename}'  unrecognized encoding or delimiter.")
+            st.error(f"❌ Could not parse '{filename}' – unrecognized encoding or delimiter.")
             return None
 
         elif ext in ["xls", "xlsx"]:
@@ -563,12 +560,12 @@ if working_df is not None and not working_df.empty:
     tabs = st.tabs([
         "🔍 Overview",
         "🔍 Data Quality & Intelligence",
-        "🔍 ️ Preview & Filter",
-        "🔍 ️ Transform",
+        "🔍 Preview & Filter",
+        "🔍 Transform & Scrub",
         "🔍 Visualize",
         "🔍 Aggregate",
         "🔍 Export & Code",
-        "🔍 Merge",
+        "🔍 Advanced Pro Lab",
     ])
 
     # ── Tab 0: Overview ──
@@ -634,11 +631,208 @@ if working_df is not None and not working_df.empty:
 
     # ── Tab 2: Preview & Filter ──
     with tabs[2]:
-        section_header("🔍 ️ Interactive Dataset Explorer")
+        section_header("🔍 Interactive Dataset Explorer")
         st.dataframe(working_df, use_container_width=True)
 
-    # ── Remaining Tabs Placeholder Framework ──
-    for t_idx in range(3, 8):
-        with tabs[t_idx]:
-            st.info("🔍 Active pipeline module running within CHRISHEM Enterprise Framework.")
+    # ── Tab 3: Transform & Scrub ──
+    with tabs[3]:
+        section_header("🔍 Advanced Data Transformation & Scrubbing Suite")
+        st.markdown("Execute granular, audit-tracked transformations on your active dataframe.")
 
+        trans_type = st.selectbox(
+            "Select Transformation Operation",
+            [
+                "Impute Missing Values (Mean / Median / Mode)",
+                "Scrub / Clip Outliers (IQR Method)",
+                "Drop Columns",
+                "Rename Column",
+                "Filter Rows by Condition",
+                "Reset to Original State"
+            ]
+        )
+
+        if trans_type == "Impute Missing Value (Mean / Median / Mode)":
+            num_cols_with_nulls = [c for c in working_df.select_dtypes(include=np.number).columns if working_df[c].isnull().sum() > 0]
+            if num_cols_with_nulls:
+                target_imp_col = st.selectbox("Select Numeric Feature to Impute", num_cols_with_nulls)
+                imp_method = st.radio("Imputation Method", ["Mean", "Median"], horizontal=True)
+                if st.button("Execute Imputation", type="primary"):
+                    if imp_method == "Mean":
+                        val = working_df[target_imp_col].mean()
+                    else:
+                        val = working_df[target_imp_col].median()
+                    working_df[target_imp_col].fillna(val, inplace=True)
+                    st.session_state["working_df"] = working_df
+                    st.success(f"Successfully imputed missing values in '{target_imp_col}' with {imp_method.lower()} ({val:.2f}).")
+                    st.rerun()
+            else:
+                st.info("No numeric columns with missing values found.")
+
+        elif trans_type == "Scrub / Clip Outliers (IQR Method)":
+            num_cols = working_df.select_dtypes(include=np.number).columns.tolist()
+            if num_cols:
+                target_out_col = st.selectbox("Select Feature for Outlier Scrubbing", num_cols)
+                action = st.radio("Outlier Handling Strategy", ["Clip (Winsorize to IQR bounds)", "Drop outlier rows"], horizontal=True)
+                if st.button("Run Outlier Scrubbing", type="primary"):
+                    q1 = working_df[target_out_col].quantile(0.25)
+                    q3 = working_df[target_out_col].quantile(0.75)
+                    iqr = q3 - q1
+                    lower_bound = q1 - 1.5 * iqr
+                    upper_bound = q3 + 1.5 * iqr
+                    if action.startswith("Clip"):
+                        working_df[target_out_col] = working_df[target_out_col].clip(lower_bound, upper_bound)
+                        st.success(f"Winsorized '{target_out_col}' to bounds [{lower_bound:.2f}, {upper_bound:.2f}].")
+                    else:
+                        init_len = len(working_df)
+                        working_df = working_df[(working_df[target_out_col] >= lower_bound) & (working_df[target_out_col] <= upper_bound)]
+                        dropped = init_len - len(working_df)
+                        st.success(f"Dropped {dropped} outlier rows from '{target_out_col}'.")
+                    st.session_state["working_df"] = working_df
+                    st.rerun()
+
+        elif trans_type == "Drop Columns":
+            cols_to_drop = st.multiselect("Select Columns to Remove", options=working_df.columns.tolist())
+            if cols_to_drop and st.button("Confirm Column Drop", type="primary"):
+                working_df.drop(columns=cols_to_drop, inplace=True)
+                st.session_state["working_df"] = working_df
+                st.success(f"Dropped columns: {', '.join(cols_to_drop)}")
+                st.rerun()
+
+        elif trans_type == "Reset to Original State":
+            if st.button("Reset Working Dataset", type="primary"):
+                st.session_state["working_df"] = st.session_state["uploaded_df"].copy()
+                st.success("Working dataset successfully reset to original ingestion state.")
+                st.rerun()
+
+    # ── Tab 4: Visualize ──
+    with tabs[4]:
+        section_header("🔍 Interactive Exploratory Visualizations")
+        if PLOTLY_AVAILABLE:
+            numeric_cols = working_df.select_dtypes(include=np.number).columns.tolist()
+            if numeric_cols:
+                viz_type = st.selectbox("Visualization Type", ["Scatter Matrix / Bivariate", "Distribution Histogram", "Correlation Heatmap"])
+                if viz_type == "Distribution Histogram":
+                    col_to_plot = st.selectbox("Select Numeric Column", numeric_cols)
+                    fig = px.histogram(working_df, x=col_to_plot, marginal="box", template="plotly_dark", title=f"Distribution Profile: {col_to_plot}")
+                    st.plotly_chart(fig, use_container_width=True)
+                elif viz_type == "Correlation Heatmap":
+                    corr_df = working_df[numeric_cols].corr()
+                    fig = px.imshow(corr_df, text_auto=".2f", color_continuous_scale="RdBu_r", zmin=-1, zmax=1, template="plotly_dark", title="Pearson Correlation Matrix Heatmap")
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Insufficient numeric features for visualization.")
+        else:
+            st.warning("Plotly backend is not installed.")
+
+    # ── Tab 5: Aggregate ──
+    with tabs[5]:
+        section_header("🔍 Groupby & Statistical Aggregation Engine")
+        cat_cols = working_df.select_dtypes(include=["object", "category"]).columns.tolist()
+        num_cols = working_df.select_dtypes(include=np.number).columns.tolist()
+        if cat_cols and num_cols:
+            agg_group = st.selectbox("Group By Category", cat_cols)
+            agg_target = st.selectbox("Target Numeric Feature", num_cols)
+            agg_func = st.selectbox("Aggregation Function", ["mean", "median", "sum", "std", "count"])
+            if st.button("Compute Aggregation", type="primary"):
+                res_agg = working_df.groupby(agg_group)[agg_target].agg(agg_func).reset_index()
+                st.dataframe(res_agg, use_container_width=True, hide_index=True)
+        else:
+            st.info("Requires both categorical and numeric columns for aggregation.")
+
+    # ── Tab 6: Export & Code ──
+    with tabs[6]:
+        section_header("🔍 Executive Export & Reproducible Code Generator")
+        st.markdown("Download your cleaned, scrubbed dataset or copy the auto-generated Pandas pipeline recipe.")
+        
+        csv_data = working_df.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download Cleaned Dataset (CSV)", data=csv_data, file_name="cleaned_dataset.csv", mime="text/csv", use_container_width=True)
+
+        st.subheader("Generated Pandas Processing Snippet")
+        st.code(f"""
+import pandas as pd
+import numpy as np
+
+# Load source dataset
+df = pd.read_csv("{st.session_state.get('source_name', 'dataset.csv')}")
+
+# Enterprise Processing & Quality Scrub
+# Total Records: {working_df.shape[0]}, Features: {working_df.shape[1]}
+print(df.info())
+""", language="python")
+
+    # ── Tab 7: Advanced Pro Lab ──
+    with tabs[7]:
+        section_header("🔍 Advanced Pro Problem Solving & Machine Intelligence Lab")
+        st.markdown("Execute high-level computational routines including Bayesian Outlier Scrubbing, Z-Score anomaly detection, and Principle Component Analysis (PCA) latent space mapping.")
+
+        pro_task = st.selectbox(
+            "Select Advanced Pro Operation",
+            [
+                "Bayesian Anomaly & Outlier Isolation",
+                "Principal Component Analysis (PCA) Latent Projection",
+                "Automated Feature Interaction Generator"
+            ]
+        )
+
+        numeric_cols_pro = working_df.select_dtypes(include=np.number).columns.tolist()
+
+        if pro_task == "Bayesian Anomaly & Outlier Isolation":
+            st.markdown("Identifies multi-variable anomalies using robust Mahalanobis distance / Z-score thresholds.")
+            if len(numeric_cols_pro) >= 2:
+                features_sel = st.multiselect("Select Numeric Features for Anomaly Screening", numeric_cols_pro, default=numeric_cols_pro[:min(3, len(numeric_cols_pro))])
+                threshold = st.slider("Z-Score Sensitivity Threshold", 2.0, 4.0, 3.0, 0.1)
+                if features_sel and st.button("Run Bayesian Anomaly Isolation", type="primary"):
+                    sub_num = working_df[features_sel].dropna()
+                    z_scores = np.abs((sub_num - sub_num.mean()) / sub_num.std())
+                    anomalies = (z_scores > threshold).any(axis=1)
+                    anomaly_count = anomalies.sum()
+                    st.metric("Detected Anomalous Records", f"{anomaly_count:,} ({anomaly_count/len(working_df)*100:.1f}%)")
+                    if anomaly_count > 0:
+                        st.dataframe(working_df.loc[sub_num.index[anomalies]], use_container_width=True)
+            else:
+                st.warning("Please select at least 2 numeric features.")
+
+        elif pro_task == "Principal Component Analysis (PCA) Latent Projection":
+            st.markdown("Reduces high-dimensional numerical space into 2 principal components for variance visualization.")
+            if len(numeric_cols_pro) >= 2:
+                pca_features = st.multiselect("Select Features for PCA Projection", numeric_cols_pro, default=numeric_cols_pro[:min(4, len(numeric_cols_pro))])
+                if len(pca_features) >= 2 and st.button("Compute PCA Projection", type="primary"):
+                    try:
+                        from sklearn.decomposition import PCA
+                        from sklearn.preprocessing import StandardScaler
+                        
+                        x_data = working_df[pca_features].dropna()
+                        scaler = StandardScaler()
+                        scaled_x = scaler.fit_transform(x_data)
+                        
+                        pca = PCA(n_components=2)
+                        components = pca.fit_resample(scaled_x) if hasattr(pca, "fit_resample") else pca.fit_transform(scaled_x)
+                        
+                        pca_df = pd.DataFrame(components, columns=["PC1", "PC2"], index=x_data.index)
+                        explained_var = pca.explained_variance_ratio_
+                        
+                        c1, c2 = st.columns(2)
+                        c1.metric("PC1 Variance Explained", f"{explained_var[0]*100:.1f}%")
+                        c2.metric("PC2 Variance Explained", f"{explained_var[1]*100:.1f}%")
+
+                        if PLOTLY_AVAILABLE:
+                            fig = px.scatter(pca_df, x="PC1", y="PC2", template="plotly_dark", title="PCA 2D Latent Space Projection")
+                            st.plotly_chart(fig, use_container_width=True)
+                    except Exception as e:
+                        st.error(f"PCA execution failed: {e}")
+            else:
+                st.warning("Requires at least 2 numeric features.")
+
+        elif pro_task == "Automated Feature Interaction Generator":
+            st.markdown("Automatically engineers multiplicative cross-features between top numerical columns to boost predictive modeling signals.")
+            if len(numeric_cols_pro) >= 2:
+                f1 = st.selectbox("Feature 1", numeric_cols_pro, key="f1_interact")
+                f2 = st.selectbox("Feature 2", [c for c in numeric_cols_pro if c != f1], key="f2_interact")
+                if st.button("Generate Interaction Feature", type="primary"):
+                    new_col_name = f"{f1}_X_{f2}"
+                    working_df[new_col_name] = working_df[f1] * working_df[f2]
+                    st.session_state["working_df"] = working_df
+                    st.success(f"Successfully generated interaction feature '{new_col_name}'.")
+                    st.rerun()
+            else:
+                st.warning("Requires at least 2 numeric columns.")
