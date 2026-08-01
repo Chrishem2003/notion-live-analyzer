@@ -1,11 +1,4 @@
-# --- CHRISHEM AUTHOR PROFILE BLOCK ---
-import os
-import streamlit as st
 
-st.markdown("# **Notion Live Analyzer**")
-st.markdown("### **Creator: CHRISHEM**")
-st.markdown("---")
-# -------------------------------------
 
 """
 Visualization Engine  intelligent auto-chart recommendation and selection.

@@ -2,27 +2,19 @@
 import os
 import streamlit as st
 
-# Main dashboard landing page header section where user eyes land first
-st.title("?? Notion Live Analyzer - Dashboard")
-st.markdown("Welcome to your central analytics hub.")
+st.sidebar.markdown("---")
+st.sidebar.markdown("### App Creator")
+if os.path.exists("background.jpg"):
+    st.sidebar.image("background.jpg", caption="CHRISHEM", use_container_width=True)
+elif os.path.exists("assets/author_photo.jpg"):
+    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
 
-col1, col2 = st.columns([1, 3])
-
-with col1:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    img_path = os.path.join(script_dir, "background.jpg")
-    if os.path.exists(img_path):
-        st.image(img_path, caption="CHRISHEM", use_container_width=True)
-    elif os.path.exists("background.jpg"):
-        st.image("background.jpg", caption="CHRISHEM", use_container_width=True)
-
-with col2:
-    st.markdown("### **CHRISHEM**")
-    st.markdown("*App Creator & Lead Developer*")
-    st.markdown("Innovative software engineer and data analyst passionate about building intelligent systems.")
-
-st.markdown("---")
+st.sidebar.markdown("**CHRISHEM**")
+st.sidebar.markdown("*Data Analyst & Lead Developer*")
+st.sidebar.markdown("---")
 # -------------------------------------
+
+
 
 import builtins
 import datetime

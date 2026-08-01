@@ -1,11 +1,4 @@
-# --- CHRISHEM AUTHOR PROFILE BLOCK ---
-import os
-import streamlit as st
 
-st.markdown("# **Notion Live Analyzer**")
-st.markdown("### **Creator: CHRISHEM**")
-st.markdown("---")
-# -------------------------------------
 
 """
 🔍 Presentation Deck Builder Page  Advanced Enterprise Slide Deck Generator, Interactive Multi-Slide Canvas, & Executive Export Studio.

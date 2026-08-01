@@ -1,11 +1,4 @@
-# --- CHRISHEM AUTHOR PROFILE BLOCK ---
-import os
-import streamlit as st
 
-st.markdown("# **Notion Live Analyzer**")
-st.markdown("### **Creator: CHRISHEM**")
-st.markdown("---")
-# -------------------------------------
 
 """
 Global Literature Aggregator & Auto-Drafting Engine [SECURE v5.0 ENTERPRISE-PRO]

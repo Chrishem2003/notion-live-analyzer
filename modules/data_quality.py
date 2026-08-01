@@ -1,11 +1,4 @@
-# --- CHRISHEM AUTHOR PROFILE BLOCK ---
-import os
-import streamlit as st
 
-st.markdown("# **Notion Live Analyzer**")
-st.markdown("### **Creator: CHRISHEM**")
-st.markdown("---")
-# -------------------------------------
 
 """
 Data Quality Module  automated data quality assessment, reporting, and improvement suggestions.

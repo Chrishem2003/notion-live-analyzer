@@ -1,23 +1,4 @@
-# --- CHRISHEM AUTHOR PROFILE BLOCK ---
-import os
-import streamlit as st
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### ?? App Author")
-
-# Use absolute path relative to the script's directory to avoid working directory mismatches
-script_dir = os.path.dirname(os.path.abspath(__file__))
-img_path = os.path.join(script_dir, "background.jpg")
-
-if os.path.exists(img_path):
-    st.sidebar.image(img_path, caption="CHRISHEM", use_container_width=True)
-else:
-    st.sidebar.warning(f"Image not found at: {img_path}")
-
-st.sidebar.markdown("**CHRISHEM**")
-st.sidebar.markdown("*Data Analyst & Lead Developer*")
-st.sidebar.markdown("---")
-# -------------------------------------
 
 
 
@@ -39,7 +20,7 @@ except ImportError:
     def st_profile_report(profile):
         st.components.v1.html(profile.to_html(), height=1000, scrolling=True)
 
-st.header("?? Automated Data Profiling Engine")
+st.header("Automated Data Profiling Engine")
 st.caption("One-click statistical analysis and correlation mapping.")
 
 if st.button("Generate Environmental Data Profile"):
