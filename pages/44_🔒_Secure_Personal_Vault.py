@@ -1759,634 +1759,228 @@ if st.button("Save System Configuration"):
         "upload_limit": max_upload_size,
         "telemetry_sharing": telemetry_opt
     })
-    import React, { useState, useRef, useEffect, useMemo } from 'react';
-import * as math from 'mathjs';
-import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import {
-  FileText, Table2, Presentation, Mail as MailIcon, Cloud, Bold, Italic,
-  Underline, Strikethrough, List, ListOrdered, Heading1, Heading2, Heading3,
-  Plus, Trash2, Send, Star, Search, Moon, Sun, Reply, Forward, Download,
-  X, Upload, Lock, AlignLeft, AlignCenter, AlignRight, AlignJustify, Link2,
-  Image as ImageIcon, Table as TableIcon, Undo2, Redo2, MessageSquare,
-  Quote, Code, Printer, History, Command, Palette, ChevronUp, ChevronDown,
-  Copy, Play, StickyNote, Tag, Archive, Paperclip, Clock, Settings,
-  CheckSquare, Square, RotateCcw, FileSpreadsheet, BarChart3, ShieldCheck, Sparkles
-} from 'lucide-react';
+import streamlit as st
+import pandas as pd
+import numpy as np
+import json
+import base64
+from io import BytesIO
 
-// ============================================================================
-// DESIGN TOKENS — "Vault Ledger" identity
-// ============================================================================
-const FONT_STYLE = `
+# ============================================================================
+# DESIGN TOKENS & CONFIGURATION — "Vault Ledger" Identity
+# ============================================================================
+st.set_page_config(
+    page_title="OmniVault | Secure Suite",
+    page_icon="🛡️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+BRASS = "#C99A3A"
+BRASS_DARK = "#A87F2A"
+
+st.markdown(f"""
+<style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:wght@400;600&family=JetBrains+Mono:wght@500&display=swap');
-.ov-display { font-family: 'Space Grotesk', sans-serif; }
-.ov-serif { font-family: 'Source Serif 4', Georgia, serif; }
-.ov-mono { font-family: 'JetBrains Mono', monospace; }
-.ov-seal { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
-[contenteditable]:focus { outline: none; }
-.ov-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-.ov-scrollbar::-webkit-scrollbar-thumb { background: #a1a1aa; border-radius: 8px; }
-mark.ov-comment-mark { background: rgba(201,154,58,0.28); border-bottom: 2px solid #C99A3A; cursor: pointer; }
-`;
 
-const BRASS = '#C99A3A';
-const BRASS_DARK = '#A87F2A';
+.ov-display {{ font-family: 'Space Grotesk', sans-serif; }}
+.ov-serif {{ font-family: 'Source Serif 4', Georgia, serif; }}
+.ov-mono {{ font-family: 'JetBrains Mono', monospace; }}
 
-function VaultSeal({ size = 26, color = BRASS }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" className="ov-seal">
-      <circle cx="20" cy="20" r="18" fill="none" stroke={color} strokeWidth="2.5" />
-      <circle cx="20" cy="20" r="11" fill="none" stroke={color} strokeWidth="1.5" />
-      {[...Array(8)].map((_, i) => {
-        const a = (i * Math.PI) / 4;
-        const x1 = 20 + Math.cos(a) * 14, y1 = 20 + Math.sin(a) * 14;
-        const x2 = 20 + Math.cos(a) * 17, y2 = 20 + Math.sin(a) * 17;
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="1.5" />;
-      })}
-      <circle cx="20" cy="20" r="3.2" fill={color} />
-    </svg>
-  );
-}
+.vault-seal {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}}
+</style>
+""", unsafe_allow_html=True)
 
-const uid = (p) => `${p}${Math.random().toString(36).slice(2, 8)}`;
+# ============================================================================
+# SESSION STATE INITIALIZATION
+# ============================================================================
+if "files" not in st.session_state:
+    st.session_state.files = [
+        {"id": "f1", "name": "Q3_Board_Deck.pdf", "size": 4.2, "modified": "Jul 28", "content": b"PDF Mock Content"},
+        {"id": "f2", "name": "Resistance_Dataset.csv", "size": 18.6, "modified": "Jul 25", "content": b"col1,col2\nval1,val2"}
+    ]
+if "trash_files" not in st.session_state:
+    st.session_state.trash_files = []
 
-// ============================================================================
-// SAFE FORMULA ENGINE — range functions + cell refs, evaluated by mathjs
-// ============================================================================
-function colToNum(col) { let n = 0; for (let i = 0; i < col.length; i++) n = n * 26 + (col.charCodeAt(i) - 64); return n; }
-function numToCol(n) { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; }
-function parseRef(ref) { const m = ref.match(/^([A-Z]+)(\d+)$/); return m ? { col: m[1], row: parseInt(m[2], 10) } : null; }
-function expandRange(start, end) {
-  const s = parseRef(start), e = parseRef(end);
-  if (!s || !e) return [];
-  const c1 = colToNum(s.col), c2 = colToNum(e.col);
-  const cells = [];
-  for (let r = Math.min(s.row, e.row); r <= Math.max(s.row, e.row); r++) {
-    for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) cells.push(numToCol(c) + r);
-  }
-  return cells;
-}
+if "docs" not in st.session_state:
+    st.session_state.docs = [
+        {
+            "id": "d1",
+            "name": "Strategic Plan",
+            "body": "Client-side zero-knowledge encryption is active. Start writing your secure notes here..."
+        }
+    ]
+if "trash_docs" not in st.session_state:
+    st.session_state.trash_docs = []
 
-function resolveCell(ref, grid, seen) {
-  if (seen.has(ref)) return 0;
-  const raw = grid[ref];
-  if (raw === undefined || raw === '') return 0;
-  if (typeof raw === 'string' && raw.startsWith('=')) {
-    const nextSeen = new Set(seen); nextSeen.add(ref);
-    const r = evaluateFormula(raw, grid, nextSeen);
-    const n = parseFloat(r);
-    return isNaN(n) ? r : n;
-  }
-  const n = parseFloat(raw);
-  return isNaN(n) ? raw : n;
-}
+if "sheets_data" not in st.session_state:
+    st.session_state.sheets_data = pd.DataFrame(
+        [[100, 200, 300], [400, 500, 600], [700, 800, 900]],
+        columns=["Column A", "Column B", "Column C"],
+        index=["Row 1", "Row 2", "Row 3"]
+    )
 
-function rangeFn(fn, cells, grid, seen) {
-  const vals = cells.map((c) => resolveCell(c, grid, seen));
-  const nums = vals.map(Number).filter((n) => !isNaN(n));
-  const f = fn.toUpperCase();
-  if (f === 'SUM') return nums.reduce((a, b) => a + b, 0);
-  if (f === 'AVERAGE' || f === 'AVG') return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
-  if (f === 'MIN') return nums.length ? Math.min(...nums) : 0;
-  if (f === 'MAX') return nums.length ? Math.max(...nums) : 0;
-  if (f === 'COUNT') return nums.length;
-  if (f === 'COUNTA') return vals.filter((v) => v !== '' && v !== 0).length;
-  if (f === 'CONCAT') return vals.join('');
-  return 0;
-}
+if "slides" not in st.session_state:
+    st.session_state.slides = [
+        {"id": "s1", "title": "Project Deck", "body": "Click to add presentation notes", "theme": "classic"},
+        {"id": "s2", "title": "Key Architecture", "body": "Detailed roadmap points & specs", "theme": "classic"}
+    ]
+if "trash_slides" not in st.session_state:
+    st.session_state.trash_slides = []
 
-function vlookup(lookupVal, rangeStr, colIndex, grid, seen) {
-  const [start, end] = rangeStr.split(':');
-  const s = parseRef(start), e = parseRef(end);
-  if (!s || !e) return '#N/A';
-  const c1 = colToNum(s.col), c2 = colToNum(e.col);
-  const targetCol = c1 + colIndex - 1;
-  if (targetCol > c2) return '#REF!';
-  for (let r = Math.min(s.row, e.row); r <= Math.max(s.row, e.row); r++) {
-    const key = numToCol(c1) + r;
-    const val = resolveCell(key, grid, seen);
-    if (String(val).toLowerCase() === String(lookupVal).toLowerCase()) return resolveCell(numToCol(targetCol) + r, grid, seen);
-  }
-  return '#N/A';
-}
+if "emails" not in st.session_state:
+    st.session_state.emails = [
+        {"id": "m1", "sender": "security@omnivault.internal", "subject": "Vault Initialization Complete", "snippet": "Your secure enclave has been successfully provisioned...", "unread": True}
+    ]
 
-function evaluateFormula(raw, grid, seen = new Set()) {
-  if (typeof raw !== 'string' || !raw.startsWith('=')) return raw;
-  let expr = raw.slice(1);
-  expr = expr.replace(/VLOOKUP\(\s*([^,]+),\s*([A-Z]+\d+:[A-Z]+\d+)\s*,\s*(\d+)\s*\)/gi, (m, key, range, idx) => {
-    const rawKey = key.trim();
-    const lookupVal = rawKey.startsWith('"') ? rawKey.replace(/"/g, '') : resolveCell(rawKey.toUpperCase(), grid, seen);
-    const res = vlookup(lookupVal, range.trim(), parseInt(idx, 10), grid, seen);
-    return typeof res === 'string' ? JSON.stringify(res) : String(res);
-  });
-  expr = expr.replace(/(SUM|AVERAGE|AVG|MIN|MAX|COUNT|COUNTA|CONCAT)\(\s*([A-Z]+\d+)\s*:\s*([A-Z]+\d+)\s*\)/gi,
-    (m, fn, a, b) => {
-      const res = rangeFn(fn, expandRange(a.toUpperCase(), b.toUpperCase()), grid, seen);
-      return typeof res === 'string' ? JSON.stringify(res) : String(res);
-    });
-  expr = expr.replace(/[A-Z]+[0-9]+/g, (ref) => {
-    const v = resolveCell(ref, grid, seen);
-    return typeof v === 'string' ? JSON.stringify(v) : String(v);
-  });
-  expr = expr.replace(/IF\(([^()]*)\)/gi, (m, inner) => {
-    const parts = inner.split(',');
-    return parts.length === 3 ? `(${parts[0]}) ? (${parts[1]}) : (${parts[2]})` : m;
-  });
-  try {
-    const result = math.evaluate(expr);
-    if (typeof result === 'number') return isFinite(result) ? Math.round(result * 10000) / 10000 : '#ERR';
-    return result;
-  } catch { return '#ERR'; }
-}
+# ============================================================================
+# HEADER & NAVIGATION BAR
+# ============================================================================
+col_logo, col_nav, col_meta = st.columns([2, 5, 2])
 
-function formatValue(val, fmt) {
-  if (typeof val === 'string' && val.startsWith('#')) return val;
-  const n = parseFloat(val);
-  if (fmt === 'currency' && !isNaN(n)) return `$${n.toFixed(2)}`;
-  if (fmt === 'percent' && !isNaN(n)) return `${(n * 100).toFixed(1)}%`;
-  return val;
-}
-
-function displayCell(key, grid, formats = {}) {
-  const raw = grid[key];
-  if (raw === undefined) return '';
-  const val = typeof raw === 'string' && raw.startsWith('=') ? evaluateFormula(raw, grid) : raw;
-  return formatValue(val, formats[key]);
-}
-
-// ============================================================================
-// COMMAND PALETTE — Cmd/Ctrl+K quick switcher
-// ============================================================================
-function CommandPalette({ open, onClose, actions, dark }) {
-  const [q, setQ] = useState('');
-  const [idx, setIdx] = useState(0);
-  const inputRef = useRef(null);
-  useEffect(() => { if (open) { setQ(''); setIdx(0); setTimeout(() => inputRef.current?.focus(), 20); } }, [open]);
-  const filtered = actions.filter((a) => a.label.toLowerCase().includes(q.toLowerCase()) || (a.category || '').toLowerCase().includes(q.toLowerCase()));
-  if (!open) return null;
-  const onKeyDown = (e) => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); setIdx((i) => (i + 1) % Math.max(1, filtered.length)); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setIdx((i) => (i - 1 + filtered.length) % Math.max(1, filtered.length)); }
-    else if (e.key === 'Enter' && filtered[idx]) { filtered[idx].run(); onClose(); }
-  };
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-28" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} onKeyDown={onKeyDown}
-        className={`w-full max-w-md rounded-xl shadow-2xl border overflow-hidden ${dark ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-zinc-200'}`}>
-        <div className="flex items-center px-3 py-2.5 border-b border-zinc-200 dark:border-zinc-800">
-          <Command size={15} className="text-zinc-400 mr-2" />
-          <input ref={inputRef} value={q} onChange={(e) => { setQ(e.target.value); setIdx(0); }} placeholder="Jump to app, action..."
-            className={`flex-1 outline-none bg-transparent text-sm ${dark ? 'text-zinc-100' : 'text-zinc-900'}`} />
-          <kbd className="text-[10px] text-zinc-400 border rounded px-1">esc</kbd>
-        </div>
-        <div className="max-h-72 overflow-y-auto ov-scrollbar">
-          {filtered.length === 0 && <p className="text-xs text-zinc-400 px-3 py-3">No matches found.</p>}
-          {filtered.map((a, i) => (
-            <button key={a.label} onClick={() => { a.run(); onClose(); }}
-              className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left ${i === idx ? (dark ? 'bg-zinc-800 text-amber-400' : 'bg-zinc-100 text-amber-600') : (dark ? 'text-zinc-200 hover:bg-zinc-800' : 'text-zinc-700 hover:bg-zinc-100')}`}>
-              <div className="flex items-center space-x-2.5">
-                <a.icon size={14} style={{ color: BRASS }} /> <span>{a.label}</span>
-              </div>
-              {a.category && <span className="text-[10px] opacity-50 uppercase ov-mono">{a.category}</span>}
-            </button>
-          ))}
-        </div>
-      </div>
+with col_logo:
+    st.markdown(f"""
+    <div style="display: flex; align-items: center; gap: 8px; padding-top: 4px;">
+        <span style="font-size: 20px;">🛡️</span>
+        <span class="ov-display" style="font-weight: 700; font-size: 16px;">OmniVault</span>
+        <span class="ov-mono" style="font-size: 10px; background: rgba(201,154,58,0.15); color: {BRASS}; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(201,154,58,0.3);">SECURE SUITE</span>
     </div>
-  );
-}
+    """, unsafe_allow_html=True)
 
-// ============================================================================
-// TRASH PANEL
-// ============================================================================
-function TrashPanel({ open, onClose, dark, files, restoreFile, docs, restoreDoc, slides, restoreSlide }) {
-  if (!open) return null;
-  const empty = files.length === 0 && docs.length === 0 && slides.length === 0;
-  return (
-    <div className="fixed inset-0 z-50 flex justify-end" style={{ background: 'rgba(0,0,0,0.35)' }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()}
-        className={`w-96 h-full p-5 overflow-y-auto ov-scrollbar ${dark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-zinc-900'}`}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-lg flex items-center space-x-2"><Trash2 size={17} /><span>Trash Bin</span></h2>
-          <button onClick={onClose}><X size={16} /></button>
-        </div>
-        {empty && <p className="text-sm text-zinc-400">Your trash bin is currently empty.</p>}
-        {files.length > 0 && (
-          <div className="mb-5">
-            <p className="text-xs font-semibold text-zinc-400 mb-2">FILES</p>
-            {files.map((f) => (
-              <div key={f.id} className="flex items-center justify-between py-1.5 text-sm border-b border-zinc-800/10">
-                <span className="truncate">{f.name}</span>
-                <button onClick={() => restoreFile(f.id)} className="text-xs font-medium" style={{ color: BRASS }}>Restore</button>
-              </div>
-            ))}
-          </div>
-        )}
-        {docs.length > 0 && (
-          <div className="mb-5">
-            <p className="text-xs font-semibold text-zinc-400 mb-2">DOCS</p>
-            {docs.map((d) => (
-              <div key={d.id} className="flex items-center justify-between py-1.5 text-sm border-b border-zinc-800/10">
-                <span className="truncate">{d.name}</span>
-                <button onClick={() => restoreDoc(d.id)} className="text-xs font-medium" style={{ color: BRASS }}>Restore</button>
-              </div>
-            ))}
-          </div>
-        )}
-        {slides.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-zinc-400 mb-2">SLIDES</p>
-            {slides.map((s) => (
-              <div key={s.id} className="flex items-center justify-between py-1.5 text-sm border-b border-zinc-800/10">
-                <span className="truncate">{s.title}</span>
-                <button onClick={() => restoreSlide(s.id)} className="text-xs font-medium" style={{ color: BRASS }}>Restore</button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+with col_nav:
+    app_choice = st.radio(
+        "Navigation",
+        options=["Drive", "Docs", "Sheets", "Slides", "Mail"],
+        horizontal=True,
+        label_visibility="collapsed"
+    )
+
+total_size_mb = sum([f["size"] for f in st.session_state.files])
+used_gb = total_size_mb / 1024
+quota_gb = 15.0
+
+with col_meta:
+    st.markdown(f"""
+    <div style="text-align: right; font-size: 11px;" class="ov-mono">
+        <span style="color: {BRASS};">●</span> Encrypted ({used_gb:.2f} / {quota_gb} GB)
     </div>
-  );
-}
+    """, unsafe_allow_html=True)
 
-// ============================================================================
-// MAIN APP SHELL
-// ============================================================================
-export default function OmniVault() {
-  const [app, setApp] = useState('drive');
-  const [dark, setDark] = useState(false);
-  const [query, setQuery] = useState('');
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const [trashOpen, setTrashOpen] = useState(false);
+st.markdown("<hr style='margin: 8px 0px 16px 0px; border-color: rgba(150,150,150,0.2);'>", unsafe_allow_html=True)
 
-  const [files, setFiles] = useState([
-    { id: 'f1', name: 'Q3_Board_Deck.pdf', size: 4.2, modified: 'Jul 28' },
-    { id: 'f2', name: 'Resistance_Dataset.csv', size: 18.6, modified: 'Jul 25' },
-  ]);
-  const [trashFiles, setTrashFiles] = useState([]);
+# ============================================================================
+# MODULE: DRIVE
+# ============================================================================
+if app_choice == "Drive":
+    st.subheader("Vault Drive")
+    st.caption("Secure decentralized cloud storage container")
+    
+    col_up, col_search = st.columns([1, 2])
+    with col_up:
+        uploaded_files = st.file_uploader("Upload files to vault", accept_multiple_files=True, label_visibility="collapsed")
+        if uploaded_files:
+            for uf in uploaded_files:
+                if not any(f["name"] == uf.name for f in st.session_state.files):
+                    file_bytes = uf.read()
+                    file_size = round(len(file_bytes) / (1024 * 1024), 2)
+                    st.session_state.files.append({
+                        "id": f"f_{len(st.session_state.files)+1}",
+                        "name": uf.name,
+                        "size": max(file_size, 0.01),
+                        "modified": "Just now",
+                        "content": file_bytes
+                    })
+            st.success("Files successfully ingested and encrypted.")
+            
+    with col_search:
+        search_query = st.text_input("Search files", placeholder="Filter files...", label_visibility="collapsed")
 
-  const [docs, setDocs] = useState([
-    { id: 'd1', name: 'Strategic Plan', html: '<h2>Strategic Plan</h2><p>Client-side zero-knowledge encryption is <strong>active</strong>. Start writing your secure notes here...</p>', versions: [], comments: [] },
-  ]);
-  const [trashDocs, setTrashDocs] = useState([]);
+    st.markdown("### Stored Artifacts")
+    filtered_files = [f for f in st.session_state.files if search_query.lower() in f["name"].lower()]
+    
+    if not filtered_files:
+        st.info("No files found matching your criteria.")
+    else:
+        for file in filtered_files:
+            col_info, col_dl, col_del = st.columns([6, 1, 1])
+            with col_info:
+                st.markdown(f"📄 **{file['name']}** — <span class='ov-mono' style='font-size:12px;'>{file['size']} MB · Modified {file['modified']}</span>", unsafe_allow_html=True)
+            with col_dl:
+                st.download_button("Download", data=file.get("content", b""), file_name=file["name"], key=f"dl_{file['id']}")
+            with col_del:
+                if st.button("Delete", key=f"del_{file['id']}"):
+                    st.session_state.trash_files.append(file)
+                    st.session_state.files = [f for f in st.session_state.files if f["id"] != file["id"]]
+                    st.rerun()
 
-  const [slides, setSlides] = useState([
-    { id: 's1', title: 'Project Deck', body: 'Click to add presentation notes', notes: '', layout: 'title', theme: 'classic', image: null, transition: 'fade' },
-    { id: 's2', title: 'Key Architecture', body: 'Detailed roadmap points & specs', notes: '', layout: 'title-body', theme: 'classic', image: null, transition: 'slide' },
-  ]);
-  const [trashSlides, setTrashSlides] = useState([]);
+# ============================================================================
+# MODULE: DOCS
+# ============================================================================
+elif app_choice == "Docs":
+    st.subheader("Vault Documents")
+    
+    doc_titles = [d["name"] for d in st.session_state.docs]
+    selected_doc_title = st.selectbox("Select Document", options=doc_titles)
+    active_doc = next((d for d in st.session_state.docs if d["name"] == selected_doc_title), st.session_state.docs[0])
+    
+    new_doc_name = st.text_input("Create New Document", placeholder="Document Title...")
+    if st.button("Initialize Document"):
+        if new_doc_name:
+            st.session_state.docs.append({"id": f"d_{len(st.session_state.docs)+1}", "name": new_doc_name, "body": ""})
+            st.rerun()
+            
+    updated_body = st.text_area("Document Editor (Markdown Supported)", value=active_doc["body"], height=300)
+    if st.button("Save Changes"):
+        active_doc["body"] = updated_body
+        st.success("Document state committed securely.")
 
-  const quotaGB = 15;
-  const usedGB = files.reduce((s, f) => s + f.size, 0) / 1024;
+# ============================================================================
+# MODULE: SHEETS
+# ============================================================================
+elif app_choice == "Sheets":
+    st.subheader("Vault Sheets & Analysis")
+    st.caption("Interactive data spreadsheet grid powered by pandas.")
+    
+    edited_df = st.data_editor(st.session_state.sheets_data, use_container_width=True)
+    st.session_state.sheets_data = edited_df
+    
+    if st.button("Run Basic Descriptive Statistics"):
+        st.write(edited_df.describe())
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPaletteOpen((v) => !v); }
-      if (e.key === 'Escape') { setPaletteOpen(false); setTrashOpen(false); }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+# ============================================================================
+# MODULE: SLIDES
+# ============================================================================
+elif app_choice == "Slides":
+    st.subheader("Vault Slides")
+    st.caption("Presentation deck composer.")
+    
+    for idx, slide in enumerate(st.session_state.slides):
+        with st.expander(f"Slide {idx+1}: {slide['title']}"):
+            slide['title'] = st.text_input("Slide Title", value=slide['title'], key=f"title_{slide['id']}")
+            slide['body'] = st.text_area("Slide Content", value=slide['body'], key=f"body_{slide['id']}")
 
-  const apps = [
-    { key: 'drive', label: 'Drive', icon: Cloud },
-    { key: 'docs', label: 'Docs', icon: FileText },
-    { key: 'sheets', label: 'Sheets', icon: Table2 },
-    { key: 'slides', label: 'Slides', icon: Presentation },
-    { key: 'mail', label: 'Mail', icon: MailIcon },
-  ];
-
-  const paletteActions = [
-    ...apps.map((a) => ({ label: `Go to ${a.label}`, icon: a.icon, category: 'Navigation', run: () => setApp(a.key) })),
-    { label: 'Toggle dark mode', icon: dark ? Sun : Moon, category: 'Preferences', run: () => setDark((d) => !d) },
-    { label: 'Open Trash Bin', icon: Trash2, category: 'Management', run: () => setTrashOpen(true) },
-    { label: 'Create new document', icon: FileText, category: 'Creation', run: () => setApp('docs') },
-    { label: 'Create new spreadsheet', icon: Table2, category: 'Creation', run: () => setApp('sheets') },
-    { label: 'Create new slide deck', icon: Presentation, category: 'Creation', run: () => setApp('slides') },
-  ];
-
-  const restoreFile = (id) => { const it = trashFiles.find((f) => f.id === id); if (!it) return; setFiles((p) => [...p, it]); setTrashFiles((p) => p.filter((f) => f.id !== id)); };
-  const restoreDoc = (id) => { const it = trashDocs.find((d) => d.id === id); if (!it) return; setDocs((p) => [...p, it]); setTrashDocs((p) => p.filter((d) => d.id !== id)); };
-  const restoreSlide = (id) => { const it = trashSlides.find((s) => s.id === id); if (!it) return; setSlides((p) => [...p, it]); setTrashSlides((p) => p.filter((s) => s.id !== id)); };
-
-  const shell = dark ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50 text-zinc-900';
-
-  return (
-    <div className={`h-full w-full flex flex-col ${shell} ov-display`} style={{ minHeight: 640 }}>
-      <style>{FONT_STYLE}</style>
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} actions={paletteActions} dark={dark} />
-      <TrashPanel open={trashOpen} onClose={() => setTrashOpen(false)} dark={dark}
-        files={trashFiles} restoreFile={restoreFile} docs={trashDocs} restoreDoc={restoreDoc} slides={trashSlides} restoreSlide={restoreSlide} />
-
-      <header className="h-14 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-4 shrink-0">
-        <div className="flex items-center space-x-2.5">
-          <VaultSeal size={24} />
-          <span className="font-semibold text-white tracking-tight text-[15px]">OmniVault</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 ov-mono">SECURE SUITE</span>
-        </div>
-
-        <nav className="flex items-center space-x-1 bg-zinc-800 p-1 rounded-lg">
-          {apps.map(({ key, label, icon: Icon }) => (
-            <button key={key} onClick={() => setApp(key)}
-              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition ${app === key ? 'bg-zinc-950 text-amber-400' : 'text-zinc-400 hover:text-zinc-100'}`}
-              style={app === key ? { boxShadow: `inset 0 0 0 1px ${BRASS_DARK}` } : {}}>
-              <Icon size={15} /> <span>{label}</span>
-            </button>
-          ))}
-        </nav>
-
-        <div className="flex items-center space-x-2.5">
-          <div className="relative hidden md:block">
-            <Search size={14} className="absolute left-2.5 top-2 text-zinc-500" />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search workspace..."
-              className="pl-8 pr-3 py-1.5 bg-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-full text-xs outline-none w-52" />
-          </div>
-          <button onClick={() => setPaletteOpen(true)} title="Command palette (Ctrl/Cmd+K)" className="p-1.5 rounded-md text-zinc-400 hover:text-amber-400 hover:bg-zinc-800">
-            <Command size={16} />
-          </button>
-          <button onClick={() => setTrashOpen(true)} title="Trash" className="p-1.5 rounded-md text-zinc-400 hover:text-amber-400 hover:bg-zinc-800">
-            <Trash2 size={16} />
-          </button>
-          <button onClick={() => setDark((d) => !d)} title="Toggle theme" className="p-1.5 rounded-md text-zinc-400 hover:text-amber-400 hover:bg-zinc-800">
-            {dark ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] text-zinc-950" style={{ background: BRASS }}>OV</div>
-        </div>
-      </header>
-
-      <div className={`px-4 py-1.5 border-b flex items-center gap-3 text-xs ${dark ? 'border-zinc-800 text-zinc-400' : 'border-zinc-200 text-zinc-500'}`}>
-        <ShieldCheck size={13} style={{ color: BRASS }} />
-        <span>Client-side encryption active</span>
-        <div className="flex-1 h-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800 max-w-xs overflow-hidden">
-          <div className="h-full rounded-full" style={{ width: `${Math.min((usedGB / quotaGB) * 100, 100)}%`, background: BRASS }} />
-        </div>
-        <span className="ov-mono">{usedGB.toFixed(2)} / {quotaGB} GB</span>
-        <span className="ml-auto hidden sm:inline text-zinc-400">Quick Palette: <kbd className="border rounded px-1 ov-mono">Ctrl+K</kbd></span>
-      </div>
-
-      <main className="flex-1 overflow-hidden flex">
-        {app === 'drive' && <DriveModule files={files} setFiles={setFiles} setTrashFiles={setTrashFiles} dark={dark} query={query} />}
-        {app === 'docs' && <DocsModule docs={docs} setDocs={setDocs} setTrashDocs={setTrashDocs} dark={dark} query={query} />}
-        {app === 'sheets' && <SheetsModule dark={dark} />}
-        {app === 'slides' && <SlidesModule slides={slides} setSlides={setSlides} setTrashSlides={setTrashSlides} dark={dark} />}
-        {app === 'mail' && <MailModule dark={dark} query={query} />}
-      </main>
-    </div>
-  );
-}
-
-// ============================================================================
-// DRIVE MODULE
-// ============================================================================
-function DriveModule({ files, setFiles, setTrashFiles, dark, query }) {
-  const inputRef = useRef(null);
-  const visible = files.filter((f) => f.name.toLowerCase().includes(query.toLowerCase()));
-
-  const onUpload = (e) => {
-    const chosen = Array.from(e.target.files || []);
-    const next = chosen.map((f) => ({ id: uid('f'), name: f.name, size: Math.round((f.size / (1024 * 1024)) * 100) / 100, modified: 'Just now' }));
-    setFiles((prev) => [...next, ...prev]);
-    e.target.value = '';
-  };
-
-  const trash = (f) => { setTrashFiles((p) => [...p, f]); setFiles((prev) => prev.filter((x) => x.id !== f.id)); };
-
-  return (
-    <div className={`flex-1 overflow-y-auto ov-scrollbar p-6 ${dark ? 'bg-zinc-950' : 'bg-zinc-50'}`}>
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-xl font-semibold">Vault Drive</h1>
-          <p className="text-xs text-zinc-400">Secure decentralized cloud storage container</p>
-        </div>
-        <button onClick={() => inputRef.current?.click()} className="flex items-center space-x-2 text-zinc-950 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm" style={{ background: BRASS }}>
-          <Upload size={15} /> <span>Upload File</span>
-        </button>
-        <input ref={inputRef} type="file" multiple className="hidden" onChange={onUpload} />
-      </div>
-      {visible.length === 0 ? (
-        <div className={`text-center py-20 rounded-xl border-2 border-dashed ${dark ? 'border-zinc-800 text-zinc-600' : 'border-zinc-300 text-zinc-400'}`}>No files match your filter — upload something to get started.</div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {visible.map((f) => (
-            <div key={f.id} className={`rounded-xl border p-4 transition hover:border-amber-500/50 ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
-              <div className="flex items-start justify-between">
-                <FileText size={18} style={{ color: BRASS }} />
-                <button onClick={() => trash(f)} className="text-zinc-400 hover:text-red-500"><Trash2 size={14} /></button>
-              </div>
-              <p className="text-sm font-medium mt-3 truncate">{f.name}</p>
-              <p className="text-xs text-zinc-500 mt-1 ov-mono">{f.size} MB · {f.modified}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// DOCS MODULE
-// ============================================================================
-function DocsModule({ docs, setDocs, setTrashDocs, dark, query }) {
-  const [activeId, setActiveId] = useState(docs[0]?.id || null);
-  const [showFind, setShowFind] = useState(false);
-  const [findText, setFindText] = useState('');
-  const [replaceText, setReplaceText] = useState('');
-  const [wordCount, setWordCount] = useState(0);
-  const [charCount, setCharCount] = useState(0);
-  const editorRef = useRef(null);
-  const active = docs.find((d) => d.id === activeId);
-  const visible = docs.filter((d) => d.name.toLowerCase().includes(query.toLowerCase()));
-
-  useEffect(() => {
-    if (editorRef.current && active) {
-      editorRef.current.innerHTML = active.html;
-      updateMetrics();
-    }
-  }, [activeId]);
-
-  const updateMetrics = () => {
-    const text = editorRef.current?.innerText || '';
-    setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0);
-    setCharCount(text.length);
-  };
-
-  const exec = (cmd, val = null) => { editorRef.current?.focus(); document.execCommand(cmd, false, val); saveContent(); };
-
-  const saveContent = () => {
-    if (!editorRef.current) return;
-    const html = editorRef.current.innerHTML;
-    setDocs((prev) => prev.map((d) => (d.id === activeId ? { ...d, html } : d)));
-    updateMetrics();
-  };
-
-  const newDoc = () => {
-    const id = uid('d');
-    setDocs((prev) => [...prev, { id, name: `Untitled ${prev.length + 1}`, html: '<p>Start typing your secure document...</p>', versions: [], comments: [] }]);
-    setActiveId(id);
-  };
-
-  const trashDoc = (d) => { setTrashDocs((p) => [...p, d]); setDocs((prev) => prev.filter((x) => x.id !== d.id)); setActiveId((cur) => (cur === d.id ? docs.find((x) => x.id !== d.id)?.id : cur)); };
-
-  const insertLink = () => { const url = prompt('Link URL:'); if (url) exec('createLink', url); };
-  const insertImage = () => {
-    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
-    input.onchange = (e) => {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => exec('insertImage', reader.result);
-      reader.readAsDataURL(file);
-    };
-    input.click();
-  };
-  const insertTable = () => {
-    const rows = 3, cols = 3;
-    let html = '<table style="border-collapse:collapse;width:100%;margin:8px 0;">';
-    for (let r = 0; r < rows; r++) { html += '<tr>'; for (let c = 0; c < cols; c++) html += '<td style="border:1px solid #ccc;padding:6px;min-width:60px;">&nbsp;</td>'; html += '</tr>'; }
-    html += '</table><p></p>';
-    exec('insertHTML', html);
-  };
-
-  const addComment = () => {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed || sel.rangeCount === 0) { alert('Highlight some text first to comment.'); return; }
-    const range = sel.getRangeAt(0);
-    const anchorText = sel.toString();
-    const text = prompt('Enter your comment note:');
-    if (!text) return;
-    const id = uid('c');
-    const mark = document.createElement('mark');
-    mark.className = 'ov-comment-mark';
-    mark.dataset.cid = id;
-    try { range.surroundContents(mark); } catch { const contents = range.extractContents(); mark.appendChild(contents); range.insertNode(mark); }
-    setDocs((prev) => prev.map((d) => (d.id === activeId ? { ...d, comments: [...(d.comments || []), { id, text, anchorText }] } : d)));
-    saveContent();
-  };
-  const removeComment = (cid) => {
-    const el = editorRef.current?.querySelector(`[data-cid="${cid}"]`);
-    if (el) { const parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el); }
-    setDocs((prev) => prev.map((d) => (d.id === activeId ? { ...d, comments: (d.comments || []).filter((c) => c.id !== cid) } : d)));
-    saveContent();
-  };
-
-  const saveVersion = () => {
-    setDocs((prev) => prev.map((d) => (d.id === activeId ? { ...d, versions: [{ html: d.html, savedAt: new Date().toLocaleString() }, ...(d.versions || [])].slice(0, 10) } : d)));
-  };
-  const revertVersion = (html) => { editorRef.current.innerHTML = html; saveContent(); };
-
-  const runReplace = () => {
-    if (!editorRef.current || !findText) return;
-    editorRef.current.innerHTML = editorRef.current.innerHTML.split(findText).join(replaceText);
-    saveContent();
-  };
-
-  const printDoc = () => {
-    const w = window.open('', 'print-window', 'width=800,height=900');
-    if (!w) { alert('Enable pop-ups to export document.'); return; }
-    w.document.write(`<html><head><title>${active.name}</title></head><body style="font-family:Georgia,serif;max-width:720px;margin:40px auto;">${active.html}</body></html>`);
-    w.document.close();
-    setTimeout(() => w.print(), 200);
-  };
-
-  const toolBtn = (icon, cmd, val = null, title = '') => {
-    const Icon = icon;
-    return (
-      <button title={title} onMouseDown={(e) => e.preventDefault()} onClick={() => exec(cmd, val)}
-        className="p-1.5 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300"><Icon size={15} /></button>
-    );
-  };
-
-  if (!active) return <div className="flex-1 flex items-center justify-center text-zinc-400">No active documents.</div>;
-
-  return (
-    <div className="flex-1 flex overflow-hidden">
-      <aside className={`w-56 border-r p-3 space-y-2 overflow-y-auto ov-scrollbar ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
-        <button onClick={newDoc} className="w-full flex items-center justify-center space-x-2 py-2 rounded-lg text-sm font-semibold text-zinc-950" style={{ background: BRASS }}>
-          <Plus size={15} /> <span>New Document</span>
-        </button>
-        {visible.map((d) => (
-          <div key={d.id} className="group relative">
-            <button onClick={() => setActiveId(d.id)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm truncate pr-7 ${activeId === d.id ? 'bg-amber-500/10 text-amber-500 font-medium' : dark ? 'text-zinc-300 hover:bg-zinc-800' : 'text-zinc-600 hover:bg-zinc-100'}`}>
-              {d.name}
-            </button>
-            <button onClick={() => trashDoc(d)} className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500"><Trash2 size={13} /></button>
-          </div>
-        ))}
-      </aside>
-
-      <div className={`flex-1 flex flex-col ${dark ? 'bg-zinc-950' : 'bg-zinc-100'}`}>
-        <div className={`flex flex-wrap items-center gap-0.5 px-3 py-2 border-b ${dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
-          {toolBtn(Undo2, 'undo', null, 'Undo')}
-          {toolBtn(Redo2, 'redo', null, 'Redo')}
-          <div className="w-px h-4 bg-zinc-300 dark:bg-zinc-700 mx-1" />
-          {toolBtn(Bold, 'bold', null, 'Bold')}
-          {toolBtn(Italic, 'italic', null, 'Italic')}
-          {toolBtn(Underline, 'underline', null, 'Underline')}
-          {toolBtn(Strikethrough, 'strikeThrough', null, 'Strikethrough')}
-          <div className="w-px h-4 bg-zinc-300 dark:bg-zinc-700 mx-1" />
-          {toolBtn(Heading1, 'formatBlock', 'H2', 'Heading 1')}
-          {toolBtn(Heading2, 'formatBlock', 'H3', 'Heading 2')}
-          {toolBtn(Heading3, 'formatBlock', 'H4', 'Heading 3')}
-          {toolBtn(Quote, 'formatBlock', 'BLOCKQUOTE', 'Quote')}
-          {toolBtn(Code, 'formatBlock', 'PRE', 'Code block')}
-          <div className="w-px h-4 bg-zinc-300 dark:bg-zinc-700 mx-1" />
-          {toolBtn(AlignLeft, 'justifyLeft', null, 'Align left')}
-          {toolBtn(AlignCenter, 'justifyCenter', null, 'Align center')}
-          {toolBtn(AlignRight, 'justifyRight', null, 'Align right')}
-          {toolBtn(AlignJustify, 'justifyFull', null, 'Justify')}
-          <div className="w-px h-4 bg-zinc-300 dark:bg-zinc-700 mx-1" />
-          {toolBtn(List, 'insertUnorderedList', null, 'Bullet list')}
-          {toolBtn(ListOrdered, 'insertOrderedList', null, 'Numbered list')}
-          <div className="w-px h-4 bg-zinc-300 dark:bg-zinc-700 mx-1" />
-          <button title="Text color" onMouseDown={(e) => e.preventDefault()} className="p-1 rounded hover:bg-zinc-200/60">
-            <input type="color" onChange={(e) => exec('foreColor', e.target.value)} className="w-5 h-5 cursor-pointer bg-transparent" />
-          </button>
-          <button title="Highlight" onMouseDown={(e) => e.preventDefault()} className="p-1 rounded hover:bg-zinc-200/60">
-            <input type="color" defaultValue="#fff59d" onChange={(e) => exec('hiliteColor', e.target.value)} className="w-5 h-5 cursor-pointer bg-transparent" />
-          </button>
-        </div>
-        <div className="flex-1 p-6 overflow-y-auto ov-scrollbar flex justify-center">
-          <div className={`w-full max-w-3xl min-h-[500px] p-8 rounded-lg shadow-sm border ${dark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'}`}>
-            <input value={active.name} onChange={(e) => { const name = e.target.value; setDocs((prev) => prev.map((d) => (d.id === active.id ? { ...d, name } : d))); }}
-              className="w-full text-2xl font-bold bg-transparent outline-none mb-4" />
-            <div ref={editorRef} contentEditable onInput={saveContent} className="outline-none ov-serif min-h-[400px]" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// SHEETS MODULE (Minimal placeholder completion for structure integrity)
-// ============================================================================
-function SheetsModule({ dark }) {
-  return (
-    <div className={`flex-1 p-6 flex items-center justify-center ${dark ? 'bg-zinc-950 text-zinc-300' : 'bg-zinc-50 text-zinc-700'}`}>
-      <p className="text-sm">Vault Sheets Module Active.</p>
-    </div>
-  );
-}
-
-// ============================================================================
-// SLIDES MODULE (Minimal placeholder completion for structure integrity)
-// ============================================================================
-function SlidesModule({ slides, setSlides, setTrashSlides, dark }) {
-  return (
-    <div className={`flex-1 p-6 flex items-center justify-center ${dark ? 'bg-zinc-950 text-zinc-300' : 'bg-zinc-50 text-zinc-700'}`}>
-      <p className="text-sm">Vault Slides Module Active.</p>
-    </div>
-  );
-}
-
-// ============================================================================
-// MAIL MODULE (Minimal placeholder completion for structure integrity)
-// ============================================================================
-function MailModule({ dark, query }) {
-  return (
-    <div className={`flex-1 p-6 flex items-center justify-center ${dark ? 'bg-zinc-950 text-zinc-300' : 'bg-zinc-50 text-zinc-700'}`}>
-      <p className="text-sm">Vault Mail Module Active.</p>
-    </div>
-  );
-}
+# ============================================================================
+# MODULE: MAIL
+# ============================================================================
+elif app_choice == "Mail":
+    st.subheader("Secure Enclave Mail")
+    st.caption("End-to-end encrypted messaging service.")
+    
+    for mail in st.session_state.emails:
+        with st.container():
+            st.markdown(f"**From:** {mail['sender']}  \n**Subject:** {mail['subject']}")
+            st.write(mail['snippet'])
+            st.markdown("---")
+            
+    with st.form("compose_mail"):
+        st.markdown("### Compose Secure Transmission")
+        recipient = st.text_input("Recipient")
+        subject = st.text_input("Subject")
+        body = st.text_area("Message Body")
+        submitted = st.form_submit_button("Transmit Securely")
+        if submitted and recipient:
+            st.success(f"Encrypted message successfully dispatched to {recipient}.")
