@@ -1,15 +1,21 @@
 
+
 # --- CHRISHEM AUTHOR PROFILE BLOCK ---
 import os
 st.sidebar.markdown("---")
+st.sidebar.markdown("### ?? Author / Creator")
+
+# Check multiple paths to guarantee image loads on Streamlit Cloud
 if os.path.exists("assets/author_photo.jpg"):
     st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
-else:
+elif os.path.exists("assets/images/author_photo.jpg"):
     st.sidebar.image("assets/images/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
+else:
+    st.sidebar.warning("Author photo asset not found in deployment directory.")
 
-st.sidebar.markdown("### **CHRISHEM**")
-st.sidebar.markdown("*App Creator & Lead Developer*")
-st.sidebar.markdown("Innovative software engineer bringing ideas to life through code.")
+st.sidebar.markdown("**CHRISHEM**")
+st.sidebar.markdown("*Data Analyst & Lead Developer*")
+st.sidebar.markdown("---")
 # -------------------------------------
 
 import streamlit as st
@@ -49,4 +55,5 @@ if st.button("Generate Environmental Data Profile"):
         
         st.write("### Comprehensive Analysis")
         st_profile_report(pr)
+
 
