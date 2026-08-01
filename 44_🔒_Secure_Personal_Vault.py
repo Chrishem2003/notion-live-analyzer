@@ -4,15 +4,22 @@ import streamlit as st
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ?? App Author")
-if os.path.exists("background.jpg"):
-    st.sidebar.image("background.jpg", caption="CHRISHEM", use_container_width=True)
-elif os.path.exists("assets/author_photo.jpg"):
-    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
+
+# Use absolute path relative to the script's directory to avoid working directory mismatches
+script_dir = os.path.dirname(os.path.abspath(__file__))
+img_path = os.path.join(script_dir, "background.jpg")
+
+if os.path.exists(img_path):
+    st.sidebar.image(img_path, caption="CHRISHEM", use_container_width=True)
+else:
+    st.sidebar.warning(f"Image not found at: {img_path}")
 
 st.sidebar.markdown("**CHRISHEM**")
 st.sidebar.markdown("*Data Analyst & Lead Developer*")
 st.sidebar.markdown("---")
 # -------------------------------------
+
+
 
 
 
@@ -56,6 +63,7 @@ if st.button("Generate Environmental Data Profile"):
         
         st.write("### Comprehensive Analysis")
         st_profile_report(pr)
+
 
 
 
