@@ -144,46 +144,6 @@ else:
     st.sidebar.markdown("### 📂 System Navigation")
     st.sidebar.info("All workspace modules are active and accessible below.")
 
-    # --- CROSS-PLATFORM DOWNLOAD PORTAL SECTION ---
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📥 Ecosystem Downloads")
-    st.sidebar.markdown("Get the desktop and mobile companion clients:")
-    
-    # Dummy file payload generation for client installers across platforms
-    dummy_client_bytes = b"CHRISHEM_SCIENCE_HUB_CLIENT_BINARY_PAYLOAD"
-    
-    st.sidebar.download_button(
-        label="💻 Download for Windows",
-        data=dummy_client_bytes,
-        file_name="ChrishemHub_Installer.exe",
-        mime="application/octet-stream",
-        use_container_width=True
-    )
-    
-    st.sidebar.download_button(
-        label="🍎 Download for macOS",
-        data=dummy_client_bytes,
-        file_name="ChrishemHub_Installer.dmg",
-        mime="application/octet-stream",
-        use_container_width=True
-    )
-    
-    st.sidebar.download_button(
-        label="🐧 Download for Linux",
-        data=dummy_client_bytes,
-        file_name="ChrishemHub_Installer.AppImage",
-        mime="application/octet-stream",
-        use_container_width=True
-    )
-    
-    st.sidebar.download_button(
-        label="📱 Download for Phones (APK)",
-        data=dummy_client_bytes,
-        file_name="ChrishemHub_Mobile.apk",
-        mime="application/vnd.android.package-archive",
-        use_container_width=True
-    )
-
     st.title("⚡ Chrishem Sovereign Apex Hub")
     st.markdown("---")
     
@@ -193,4 +153,4 @@ else:
     col3.metric("Security Level", "Enclave Verified", delta="Tier-1")
     
     st.markdown("### 🌟 Welcome to the Core Ecosystem")
-    st.write("Authentication verified. Use the sidebar navigation menu to access your complete portfolio of tools, analytical pages, and multi-platform app downloads.")
+    st.write("Authentication verified. Use the sidebar navigation menu to access your complete portfolio of tools and analytical pages.")
