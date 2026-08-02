@@ -9,18 +9,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Robust image loader with multiple path fallbacks
 def get_image_base64(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
             return base64.b64encode(img_file.read()).decode("utf-8")
     return None
 
-img_path = "chrishem.png"
-img_path = "chrishem.png"
-if not os.path.exists(img_path):
-    img_path = "Chrishem.png"
-if not os.path.exists(img_path):
-    img_path = r"C:\Users\Admin\Pictures\chrishem.png"
+img_base64 = None
+for path in ["chrishem.png", "Chrishem.png", r"C:\Users\Admin\Pictures\chrishem.png"]:
+    img_base64 = get_image_base64(path)
+    if img_base64:
+        break
 
 st.markdown("""
 <style>
@@ -55,6 +55,7 @@ html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
 </style>
 """, unsafe_allow_html=True)
 
+# Set custom browser tab icon dynamically using your photo
 if img_base64:
     st.markdown(f"""
         <script>
@@ -168,7 +169,7 @@ def main():
         st.sidebar.markdown("---")
         st.title("🧬 Chrishem Science Hub & Workspace")
         st.success(f"System Operational. Welcome back, **{username}**.")
-        st.markdown("Your workspace is unlocked. **Your multi-page tool suite is fully active in the sidebar navigation menu on the left.** Select any page to navigate to your analytics modules.")
+        st.markdown("Your sovereign workspace is unlocked. **All your connected analysis modules and multi-page tools are listed in the sidebar navigation menu on the left.** Select any page to launch its dashboard.")
 
 if __name__ == "__main__":
     main()
