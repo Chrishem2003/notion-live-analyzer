@@ -19,7 +19,10 @@ def get_image_base64(image_path):
   return None
 
 
-img_path = r"C:\Users\Admin\Pictures\chrishem.png"
+# Use relative pathing so it works locally and on Streamlit Cloud servers
+img_path = "chrishem.png"  # Place chrishem.png in your root directory alongside portal.py
+if not os.path.exists(img_path):
+  img_path = r"C:\Users\Admin\Pictures\chrishem.png"  # Fallback for local PC
 img_base64 = get_image_base64(img_path)
 
 # --- ADVANCED COSMIC STYLING ---
@@ -36,10 +39,6 @@ st.markdown(
         background: radial-gradient(circle at 15% 20%, #0c0f1d 0%, #05070b 85%);
         color: #f3f4f6;
     }
-
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
 
     .landing-container {
         background: rgba(20, 25, 42, 0.75);
@@ -61,7 +60,6 @@ st.markdown(
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 10px;
-        letter-spacing: -0.5px;
     }
 
     .hub-subtitle {
@@ -84,30 +82,18 @@ st.markdown(
         border: 3px solid #38BDF8;
         box-shadow: 0 0 35px rgba(56, 189, 248, 0.6);
     }
-
-    .stButton>button {
-        border-radius: 14px;
-        font-weight: 600;
-        padding: 0.75rem 1rem;
-        transition: all 0.3s ease;
-    }
-    
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(56, 189, 248, 0.4);
-    }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# --- ADVANCED SESSION STATE INITIALIZATION ---
+# --- SESSION STATE ---
 if "portal_unlocked" not in st.session_state:
   st.session_state.portal_unlocked = False
 if "user_identity" not in st.session_state:
   st.session_state.user_identity = {}
 
-# --- FRONT-DOOR GATEWAY SCREEN ---
+# --- GATEWAY SCREEN ---
 if not st.session_state.portal_unlocked:
   st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 
@@ -132,27 +118,18 @@ if not st.session_state.portal_unlocked:
 
     st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
-    # Interactive Authentication & Identity Grabber Hub
     tab_signin, tab_signup = st.tabs(
         ["🔐 Secure Sign In", "📝 First-Time Registration"]
     )
 
     with tab_signin:
-      st.markdown(
-          "<p style='color: #94A3B8; text-align: center; font-size: 0.95rem;"
-          " margin-top: 10px;'>Access your personalized instance across web or"
-          " desktop builds.</p>",
-          unsafe_allow_html=True,
-      )
       si_email = st.text_input(
           "Email Address",
-          placeholder="e.g. chrishem242@gmail.com or analyst@domain.com",
+          placeholder="e.g. chrishem242@gmail.com",
           key="si_email_input",
       )
       si_name = st.text_input(
-          "Full Name / Alias",
-          placeholder="e.g. Chrishem",
-          key="si_name_input",
+          "Full Name / Alias", placeholder="e.g. Chrishem", key="si_name_input"
       )
 
       c_b1, c_b2 = st.columns(2)
@@ -162,8 +139,6 @@ if not st.session_state.portal_unlocked:
               si_email.strip().lower() if si_email else "guest@hub.com"
           )
           entered_name = si_name.strip() if si_name else "Chrishem"
-
-          # Admin Privilege Detection for chrishem242@gmail.com
           is_admin = entered_email == "chrishem242@gmail.com"
 
           st.session_state.portal_unlocked = True
@@ -193,12 +168,6 @@ if not st.session_state.portal_unlocked:
           st.rerun()
 
     with tab_signup:
-      st.markdown(
-          "<p style='color: #94A3B8; text-align: center; font-size: 0.95rem;"
-          " margin-top: 10px;'>Register your profile credentials to lock in"
-          " persistent system recognition.</p>",
-          unsafe_allow_html=True,
-      )
       su_name = st.text_input(
           "Your Preferred Name",
           placeholder="e.g. Chrishem Kula",
@@ -235,20 +204,13 @@ if not st.session_state.portal_unlocked:
         unsafe_allow_html=True,
     )
 
-    # Comprehensive Cross-Platform System Downloads Suite
+    # Downloads Section
     st.markdown(
         "<h4 style='text-align: center; color: #F8FAFC; font-size: 1.1rem;"
         " margin-bottom: 12px;'>📥 Download Complete Portable System"
         " Suite</h4>",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        "<p style='text-align: center; color: #94A3B8; font-size: 0.85rem;"
-        " margin-bottom: 15px;'>Package your local repository into standalone"
-        " executables or native OS bundle files.</p>",
-        unsafe_allow_html=True,
-    )
-
     d_col1, d_col2, d_col3, d_col4 = st.columns(4)
     with d_col1:
       st.download_button(
@@ -280,13 +242,7 @@ if not st.session_state.portal_unlocked:
       )
 
 else:
-  # --- UNLOCKED: RESTORE PAGES FOLDER & LAUNCH PERSONALIZED APP CORE ---
-  hidden_dir = r"D:\notion-live-analyzer\.pages_hidden"
-  active_dir = r"D:\notion-live-analyzer\pages"
-
-  if os.path.exists(hidden_dir) and not os.path.exists(active_dir):
-    os.rename(hidden_dir, active_dir)
-
+  # --- UNLOCKED: LAUNCH APP CORE & REVEAL PAGES ---
   import App
 
   App.main()
