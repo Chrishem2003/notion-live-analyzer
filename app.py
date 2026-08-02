@@ -52,7 +52,7 @@ if not hasattr(builtins, "run_automations"):
     builtins.run_automations = _run_automations_fallback
 
 # ---------------------------------------------------------
-# DATABASE INITIALIZATION (Fully Operational Backend with RBAC & Vault)
+# DATABASE INITIALIZATION
 # ---------------------------------------------------------
 def init_sovereign_db():
     conn = sqlite3.connect("sovereign_apex_engine.db", check_same_thread=False)
@@ -95,7 +95,6 @@ def init_sovereign_db():
             visit_count INTEGER
         )
     """)
-    # Auto-migration safety check: ensure missing columns are added if an older table schema exists
     try:
         cursor.execute("ALTER TABLE user_profiles ADD COLUMN birthday TEXT")
     except Exception:
@@ -373,27 +372,34 @@ def load_dataset(uploaded_file, drop_duplicates=True, handle_missing="Mean Imput
     return df, file_bytes
 
 # ---------------------------------------------------------
-# PDF REPORT GENERATOR HELPER (FIXED FOR FPDF2 COMPATIBILITY)
+# PDF REPORT GENERATOR HELPER (ROBUST & ERROR-FREE)
 # ---------------------------------------------------------
 def generate_pdf_report(title, content):
     if not FPDF_AVAILABLE:
         return None
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(200, 10, txt="CHRISHEM Sovereign Apex Dossier", ln=True, align="C")
-    pdf.set_font("Arial", "I", 10)
-    pdf.cell(200, 10, txt=f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True, align="C")
-    pdf.ln(10)
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(200, 10, txt=f"Title: {title}", ln=True)
-    pdf.set_font("Arial", "", 10)
-    pdf.multi_cell(0, 10, txt=str(content))
-    
-    pdf_output = pdf.output()
-    if isinstance(pdf_output, str):
-        return pdf_output.encode("latin1")
-    return pdf_output
+    try:
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(200, 10, txt="CHRISHEM Sovereign Apex Dossier", ln=True, align="C")
+        pdf.set_font("Arial", "I", 10)
+        pdf.cell(200, 10, txt=f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True, align="C")
+        pdf.ln(10)
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(200, 10, txt=f"Title: {title}", ln=True)
+        pdf.set_font("Arial", "", 10)
+        pdf.multi_cell(0, 10, txt=str(content))
+        
+        pdf_output = pdf.output()
+        if isinstance(pdf_output, str):
+            return pdf_output.encode("latin1")
+        elif isinstance(pdf_output, bytes):
+            return pdf_output
+        elif hasattr(pdf_output, "encode"):
+            return pdf_output.encode("latin1")
+        return bytes(pdf_output)
+    except Exception:
+        return None
 
 # ---------------------------------------------------------
 # NEW MODULE 1: AUTONOMOUS AGENT SWARMS (ASYNC BACKGROUND)
@@ -996,7 +1002,7 @@ def main():
                 
                 if FPDF_AVAILABLE:
                     pdf_bytes = generate_pdf_report(s_title, s_content)
-                    if pdf_bytes:
+                    if pdf_bytes and isinstance(pdf_bytes, bytes):
                         st.download_button(
                             label=f"📥 Download PDF Dossier (#{s_id})",
                             data=pdf_bytes,
@@ -1004,6 +1010,8 @@ def main():
                             mime="application/pdf",
                             key=f"pdf_dl_{s_id}"
                         )
+                    else:
+                        st.warning(f"PDF generation unavailable or failed for Dossier (#{s_id}).")
         else:
             st.info("No saved analyses found in the vault yet.")
 
