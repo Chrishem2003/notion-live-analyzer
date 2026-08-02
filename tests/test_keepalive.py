@@ -1,5 +1,4 @@
 
-
 """Unit tests for modules.keepalive."""
 import json
 

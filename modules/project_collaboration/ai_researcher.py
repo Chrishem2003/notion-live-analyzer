@@ -1,5 +1,4 @@
 
-
 """
 AI Co-Researcher & Automation Layer
 Intelligent research assistant that processes meeting transcripts in real-time,

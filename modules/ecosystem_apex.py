@@ -1,5 +1,4 @@
 
-
 import streamlit as st
 
 def render_ecosystem_apex_panel():

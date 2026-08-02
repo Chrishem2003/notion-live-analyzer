@@ -1,5 +1,4 @@
 
-
 """Admin Portal  Developer Management Console."""
 import os
 import hashlib

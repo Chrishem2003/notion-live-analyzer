@@ -1,5 +1,4 @@
 
-
 """Email Engine  SMTP/SendGrid Integration for Reports."""
 import os
 import io

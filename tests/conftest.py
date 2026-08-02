@@ -1,5 +1,4 @@
 
-
 """Shared fixtures for the unit test suite."""
 import sys
 from pathlib import Path

@@ -1,5 +1,4 @@
 
-
 import pandas as pd
 from collections import Counter
 from modules.database import log_backend_event

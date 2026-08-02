@@ -1,5 +1,4 @@
 
-
 """
 Configuration module  manages secrets, session state, and app-wide constants.
 """

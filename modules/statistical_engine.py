@@ -1,5 +1,4 @@
 
-
 """
 Statistical Engine  SPSS-level statistical analysis suite.
 Replaces SPSS, STATA, and SAS for common research analyses.

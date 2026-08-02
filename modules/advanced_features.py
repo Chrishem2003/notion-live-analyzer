@@ -1,5 +1,4 @@
 
-
 """
 Enhanced Security, Geolocation, and Advanced Features."""
 import os
