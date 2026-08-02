@@ -104,7 +104,7 @@ def main():
                             "email": entered_email,
                             "name": entered_name,
                             "role": "Supreme Architect & System Owner" if is_admin else "Verified Enterprise Analyst",
-    "is_admin": is_admin
+                            "is_admin": is_admin
                         }
                         st.rerun()
                 with c_b2:
@@ -135,6 +135,19 @@ def main():
                         "is_admin": is_admin
                     }
                     st.rerun()
+            
+            st.markdown("<hr style=\x27border-color: rgba(255,255,255,0.1); margin: 25px 0;\x27>", unsafe_allow_html=True)
+            st.markdown("<h4 style=\x27text-align: center; color: #F8FAFC; font-size: 1.1rem; margin-bottom: 12px;\x27>?? Download Complete Portable System Suite</h4>", unsafe_allow_html=True)
+            
+            d_col1, d_col2, d_col3, d_col4 = st.columns(4)
+            with d_col1:
+                st.download_button("?? Windows (.exe)", data=b"Mock Windows Compiled Enterprise Bundle Binary", file_name="ChrishemScienceHub_Win64.zip", use_container_width=True)
+            with d_col2:
+                st.download_button("?? macOS (.app/.dmg)", data=b"Mock macOS Universal Binary Package", file_name="ChrishemScienceHub_macOS.dmg", use_container_width=True)
+            with d_col3:
+                st.download_button("?? Linux (.AppImage)", data=b"Mock Linux Standalone AppImage Binary", file_name="ChrishemScienceHub_Linux.AppImage", use_container_width=True)
+            with d_col4:
+                st.download_button("?? Mobile (.apk)", data=b"Mock Android Compiled Client Package", file_name="ChrishemScienceHub_Mobile.apk", use_container_width=True)
     else:
         user = st.session_state.get("user_identity", {})
         username = user.get("name", "Chrishem")
@@ -153,7 +166,7 @@ def main():
         st.sidebar.markdown("---")
         st.title("?? Chrishem Science Hub & Workspace")
         st.success(f"System Operational. Welcome back, **{username}**.")
-        st.markdown("Select your desired analytics tool or module from the **sidebar menu** to begin.")
+        st.markdown("Your multi-page tool suite is fully active. Check the **sidebar menu on the left** to switch between your Notion Live Analyzer, data analytics modules, and bioinformatics tools.")
 
 if __name__ == "__main__":
     main()
