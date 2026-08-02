@@ -1,0 +1,10 @@
+{
+  "models": [
+    {
+      "title": "Ollama - Llama 3",
+      "provider": "ollama",
+      "model": "llama3:latest",
+      "apiBase": "http://localhost:11434"
+    }
+  ]
+}
