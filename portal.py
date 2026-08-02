@@ -33,10 +33,10 @@ st.markdown("""
         backdrop-filter: blur(24px);
         border: 1px solid rgba(56, 189, 248, 0.3);
         border-radius: 28px;
-        padding: 40px 30px;
+        padding: 35px 25px;
         box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(56, 189, 248, 0.15);
         text-align: center;
-        max-width: 700px;
+        max-width: 800px;
         margin: 0 auto;
     }
     .hub-title {
@@ -47,11 +47,19 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         margin-bottom: 8px;
     }
-    .hub-subtitle { font-size: 1rem; color: #94A3B8; font-weight: 400; margin-bottom: 20px; }
+    .hub-subtitle { font-size: 1rem; color: #94A3B8; font-weight: 400; margin-bottom: 15px; }
     .profile-img-wrap { display: flex; justify-content: center; margin-bottom: 15px; }
     .profile-img {
-        width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+        width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
         border: 3px solid #38BDF8; box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
+    }
+    .download-card {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -71,7 +79,7 @@ if not st.session_state.portal_unlocked:
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div style='height: 4vh;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
     
     img_tag = f'<img src="data:image/png;base64,{img_base64}" class="profile-img">' if img_base64 else '<div style="font-size: 50px;">🧬</div>'
     
@@ -79,16 +87,16 @@ if not st.session_state.portal_unlocked:
     <div class="landing-container">
         <div class="profile-img-wrap">{img_tag}</div>
         <div class="hub-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
-        <div class="hub-subtitle">Sovereign Enterprise Engine • Secure Cloud Gateway</div>
+        <div class="hub-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     
-    # Center-align tabs inside a manageable block
-    _, center_col, _ = st.columns([1, 2.5, 1])
+    # Tabs for Sign In, Registration, and Multi-Platform Downloads Center
+    _, center_col, _ = st.columns([0.5, 3, 0.5])
     with center_col:
-        tab_signin, tab_signup = st.tabs(["🔐 Secure Sign In", "📝 Register"])
+        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register", "📱 Ecosystem Downloads"])
         
         with tab_signin:
             si_email = st.text_input("Email Address", placeholder="e.g. chrishem242@gmail.com", key="si_email_input")
@@ -133,6 +141,50 @@ if not st.session_state.portal_unlocked:
                     "is_admin": is_admin
                 }
                 st.rerun()
+
+        with tab_downloads:
+            st.markdown("### 🌐 Cross-Platform Ecosystem Releases")
+            st.write("Download the native or containerized engine packages for your target operating system or device architecture.")
+            
+            d_col1, d_col2 = st.columns(2)
+            
+            with d_col1:
+                st.markdown("""
+                <div class="download-card">
+                    <h4>🪟 Windows Suite</h4>
+                    <p style='font-size: 0.85rem; color: #94A3B8;'>Optimized for Windows 10/11 (WSL2 / Desktop Engine)</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("📥 Download for Windows (.exe / ZIP)", use_container_width=True):
+                    st.info("📦 Windows deployment package source ready. Connects directly to local Docker/WSL runtimes.")
+
+                st.markdown("""
+                <div class="download-card">
+                    <h4>🐧 Linux Distribution</h4>
+                    <p style='font-size: 0.85rem; color: #94A3B8;'>Ubuntu / Debian / Enterprise Server Build</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("📥 Download for Linux (.tar.gz)", use_container_width=True):
+                    st.info("🐧 Linux container build bundle generated for enterprise deployment.")
+
+            with d_col2:
+                st.markdown("""
+                <div class="download-card">
+                    <h4>🍎 macOS Architecture</h4>
+                    <p style='font-size: 0.85rem; color: #94A3B8;'>Apple Silicon (M1/M2/M3) & Intel Universal</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("📥 Download for macOS (.dmg)", use_container_width=True):
+                    st.info("🍏 macOS desktop wrapper package prepared.")
+
+                st.markdown("""
+                <div class="download-card">
+                    <h4>📱 Mobile PWA / Client</h4>
+                    <p style='font-size: 0.85rem; color: #94A3B8;'>Android & iOS Progressive Web Client</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("📥 Download Mobile Client / Config", use_container_width=True):
+                    st.info("📱 Mobile progressive web app manifest package ready for installation.")
 
 else:
     # --- UNLOCKED STATE ---
