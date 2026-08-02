@@ -1,4 +1,4 @@
-import base64
+﻿import base64
 import os
 import streamlit as st
 
@@ -101,7 +101,7 @@ if not st.session_state.portal_unlocked:
             si_name = st.text_input("Full Name / Alias", placeholder="e.g. Chrishem", key="si_name_input")
             
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            if st.button("🚀 Authenticate Hub", use_container_width=True):
+            if st.button("🚀 Authenticate Hub", width='stretch'):
                 entered_email = si_email.strip().lower() if si_email else "guest@hub.com"
                 entered_name = si_name.strip() if si_name else "Chrishem"
                 is_admin = (entered_email == "chrishem242@gmail.com")
@@ -114,7 +114,7 @@ if not st.session_state.portal_unlocked:
                 }
                 st.rerun()
                 
-            if st.button("🔵 Instant Google Sign-In (Simulated)", use_container_width=True):
+            if st.button("🔵 Instant Google Sign-In (Simulated)", width='stretch'):
                 st.session_state.portal_unlocked = True
                 st.session_state.user_identity = {
                     "email": "chrishem242@gmail.com", "name": "Chrishem",
@@ -127,7 +127,7 @@ if not st.session_state.portal_unlocked:
             su_email = st.text_input("Your Email Address", placeholder="e.g. chrishem242@gmail.com", key="su_email_input")
             
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            if st.button("✨ Register & Launch Engine", use_container_width=True):
+            if st.button("✨ Register & Launch Engine", width='stretch'):
                 reg_name = su_name.strip() if su_name else "Chrishem"
                 reg_email = su_email.strip().lower() if su_email else "guest@hub.com"
                 is_admin = (reg_email == "chrishem242@gmail.com")
@@ -153,7 +153,7 @@ if not st.session_state.portal_unlocked:
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Optimized for Windows 10/11 (WSL2 / Desktop Engine)</p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button("📥 Download for Windows (.zip / .exe)", use_container_width=True):
+                if st.button("📥 Download for Windows (.zip / .exe)", width='stretch'):
                     st.success("🪟 Windows package bundle ready for local execution via PowerShell/Docker.")
 
                 st.markdown("""
@@ -162,7 +162,7 @@ if not st.session_state.portal_unlocked:
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Ubuntu / Debian / Enterprise Server Build</p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button("📥 Download for Linux (.tar.gz)", use_container_width=True):
+                if st.button("📥 Download for Linux (.tar.gz)", width='stretch'):
                     st.success("🐧 Linux container build bundle generated.")
 
             with d_col2:
@@ -172,7 +172,7 @@ if not st.session_state.portal_unlocked:
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Apple Silicon (M1/M2/M3) & Intel Universal</p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button("📥 Download for macOS (.dmg)", use_container_width=True):
+                if st.button("📥 Download for macOS (.dmg)", width='stretch'):
                     st.success("🍏 macOS wrapper package prepared.")
 
                 st.markdown("""
@@ -181,7 +181,7 @@ if not st.session_state.portal_unlocked:
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Android & iOS Progressive Web Client</p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button("📥 Get Mobile PWA Config", use_container_width=True):
+                if st.button("📥 Get Mobile PWA Config", width='stretch'):
                     st.success("📱 Mobile progressive client configuration loaded.")
 
 else:
@@ -191,7 +191,7 @@ else:
     st.sidebar.success(f"🔓 Logged in as: {identity.get('name')}")
     st.sidebar.markdown(f"**Role:** `{identity.get('role')}`")
     
-    if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
+    if st.sidebar.button("🔒 Lock Portal & Sign Out", width='stretch'):
         st.session_state.portal_unlocked = False
         st.rerun()
         
