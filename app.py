@@ -15,9 +15,9 @@ def get_image_base64(image_path):
             return base64.b64encode(img_file.read()).decode("utf-8")
     return None
 
-img_path = "Chrishem.png"
+img_path = r"C:\Users\Admin\Pictures\chrishem.png"
 if not os.path.exists(img_path):
-    img_path = r"C:\Users\Admin\Pictures\Chrishem.png"
+    img_path = "chrishem.png"
 img_base64 = get_image_base64(img_path)
 
 st.markdown("""
@@ -104,7 +104,7 @@ def main():
                             "email": entered_email,
                             "name": entered_name,
                             "role": "Supreme Architect & System Owner" if is_admin else "Verified Enterprise Analyst",
-                            "is_admin": is_admin
+    "is_admin": is_admin
                         }
                         st.rerun()
                 with c_b2:
