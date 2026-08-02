@@ -18,8 +18,6 @@ def get_image_base64(image_path):
     return None
 
 img_path = "chrishem.png"
-if not os.path.exists(img_path):
-    img_path = "chrishem.png"
 img_base64 = get_image_base64(img_path)
 
 # --- COSMIC STYLING ---
@@ -72,7 +70,7 @@ if "user_identity" not in st.session_state:
 
 # --- GATEWAY SCREEN (LOCKED STATE) ---
 if not st.session_state.portal_unlocked:
-    # Hide sidebar completely via CSS
+    # Force hide sidebar completely via CSS when locked
     st.markdown("""
         <style>
             [data-testid="stSidebar"] {display: none;}
@@ -144,7 +142,7 @@ if not st.session_state.portal_unlocked:
 
         with tab_downloads:
             st.markdown("### 🌐 Cross-Platform Ecosystem Releases")
-            st.write("Download or deploy the engine packages across your preferred operating system or device architecture.")
+            st.write("Download or deploy the entire engine package across your preferred operating system or device architecture.")
             
             d_col1, d_col2 = st.columns(2)
             
