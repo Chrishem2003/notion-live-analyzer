@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 
 
 """
@@ -386,4 +389,5 @@ with quality_tabs[3]:
         mime="text/csv",
         use_container_width=True
     )
+
 

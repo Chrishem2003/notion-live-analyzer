@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 ADVANCED MACHINE LEARNING & PREDICTIVE MODELING CORE [ENTERPRISE MODULE v8.0 PRO]

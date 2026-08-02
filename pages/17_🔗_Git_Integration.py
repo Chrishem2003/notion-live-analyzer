@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 
 
 """
@@ -437,4 +440,5 @@ with git_tabs[4]:
     </div>
     """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
+
 

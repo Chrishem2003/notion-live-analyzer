@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 
 
 """
@@ -414,4 +417,5 @@ with nlp_tabs[4]:
         {"Theme Code": "User Experience", "Frequency Count": 67, "Percentage Share": "43.5%", "Representative Sample": "Interface clarity and workflow navigation."}
     ]
     st.dataframe(pd.DataFrame(dummy_themes), use_container_width=True, hide_index=True)
+
 

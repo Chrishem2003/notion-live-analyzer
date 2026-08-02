@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 
 
 """
@@ -410,4 +413,5 @@ with sheets_tabs[4]:
     if st.button("🔍 Save Pipeline Configuration", type="primary", key="btn_save_pipeline"):
         st.success(f"✅ Automated cloud sync schedule updated: `{sync_frequency}`.")
     st.markdown('</div>', unsafe_allow_html=True)
+
 

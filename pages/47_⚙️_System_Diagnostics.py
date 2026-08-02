@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 
 
 import streamlit as st
@@ -410,4 +413,5 @@ with tab_state:
 if auto_refresh:
     time.sleep(refresh_rate)
     st.rerun()
+
 

@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 
 
 """
@@ -328,4 +331,5 @@ with tabs[4]:
     
     if st.button("🔍 Save Pipeline Configuration Settings", type="primary"):
         st.success("✅ AutoML global hyperparameters updated successfully across session states!")
+
 

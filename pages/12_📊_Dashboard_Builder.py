@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 
 
 """
@@ -375,4 +378,5 @@ with dash_tabs[3]:
             """,
             unsafe_allow_html=True
         )
+
 

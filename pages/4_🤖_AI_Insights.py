@@ -1,3 +1,6 @@
+import security_guard
+security_guard.verify_access()
+
 """
 ═══════════════════════════════════════════════════════════════════════════════
 ADVANCED AI INSIGHTS & EXECUTIVE REPORT GENERATOR [ENTERPRISE MODULE v6.3]
