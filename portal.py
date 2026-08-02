@@ -1,41 +1,14 @@
 ﻿import base64
 import os
-import shutil
 import streamlit as st
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="Chrishem Science Hub - Secure Sovereign Gateway",
+    page_title="Chrishem Science Hub - Secure Gateway",
     page_icon="🧬",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-
-# --- FOLDER PATHS FOR DYNAMIC LOCKING ---
-ACTIVE_PAGES_DIR = "pages"
-HIDDEN_PAGES_DIR = ".pages_hidden"
-
-def lock_pages():
-    """Moves all active pages to the hidden directory so they vanish from the sidebar."""
-    if os.path.exists(ACTIVE_PAGES_DIR):
-        if not os.path.exists(HIDDEN_PAGES_DIR):
-            os.makedirs(HIDDEN_PAGES_DIR)
-        for filename in os.listdir(ACTIVE_PAGES_DIR):
-            src = os.path.join(ACTIVE_PAGES_DIR, filename)
-            dst = os.path.join(HIDDEN_PAGES_DIR, filename)
-            if os.path.isfile(src) and not os.path.exists(dst):
-                shutil.move(src, dst)
-
-def unlock_pages():
-    """Restores pages from the hidden directory back into the active pages folder."""
-    if os.path.exists(HIDDEN_PAGES_DIR):
-        if not os.path.exists(ACTIVE_PAGES_DIR):
-            os.makedirs(ACTIVE_PAGES_DIR)
-        for filename in os.listdir(HIDDEN_PAGES_DIR):
-            src = os.path.join(HIDDEN_PAGES_DIR, filename)
-            dst = os.path.join(ACTIVE_PAGES_DIR, filename)
-            if os.path.isfile(src) and not os.path.exists(dst):
-                shutil.move(src, dst)
 
 # --- LOCAL IMAGE LOADER ---
 def get_image_base64(image_path):
@@ -46,10 +19,10 @@ def get_image_base64(image_path):
 
 img_path = "chrishem.png"
 if not os.path.exists(img_path):
-    img_path = r"C:\Users\Admin\Pictures\chrishem.png"
+    img_path = "chrishem.png"
 img_base64 = get_image_base64(img_path)
 
-# --- ADVANCED COSMIC STYLING ---
+# --- COSMIC STYLING ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -89,14 +62,15 @@ if "portal_unlocked" not in st.session_state:
 if "user_identity" not in st.session_state:
     st.session_state.user_identity = {}
 
-# Enforce synchronization: If locked, lock pages. If unlocked, ensure pages are visible.
+# --- GATEWAY SCREEN (LOCKED STATE) ---
 if not st.session_state.portal_unlocked:
-    lock_pages()
-else:
-    unlock_pages()
+    # Hide sidebar entirely when locked
+    st.markdown("""
+        <style>
+            [data-testid="stSidebar"] {display: none;}
+        </style>
+    """, unsafe_allow_html=True)
 
-# --- GATEWAY SCREEN (LOCKED) ---
-if not st.session_state.portal_unlocked:
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 4.5, 1])
     with col2:
@@ -105,7 +79,7 @@ if not st.session_state.portal_unlocked:
         <div class="landing-container">
             <div class="profile-img-wrap">{img_tag}</div>
             <div class="hub-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
-            <div class="hub-subtitle">Sovereign Enterprise Engine • Secure Multi-Page Access Gateway</div>
+            <div class="hub-subtitle">Sovereign Enterprise Engine • Secure Cloud Gateway</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -126,10 +100,9 @@ if not st.session_state.portal_unlocked:
                     st.session_state.portal_unlocked = True
                     st.session_state.user_identity = {
                         "email": entered_email, "name": entered_name,
-                        "role": "Supreme Architect & System Owner" if is_admin else "Verified Enterprise Analyst",
+                        "role": "Supreme Architect & System Owner" if is_admin else "Verified Analyst",
                         "is_admin": is_admin
                     }
-                    unlock_pages()
                     st.rerun()
             with c_b2:
                 if st.button("🔵 Instant Google Sign-In (Simulated)", use_container_width=True):
@@ -138,7 +111,6 @@ if not st.session_state.portal_unlocked:
                         "email": "chrishem242@gmail.com", "name": "Chrishem",
                         "role": "Supreme Architect & System Owner", "is_admin": True
                     }
-                    unlock_pages()
                     st.rerun()
                     
         with tab_signup:
@@ -155,11 +127,10 @@ if not st.session_state.portal_unlocked:
                     "role": "Supreme Architect & System Owner" if is_admin else "Registered Pioneer Analyst",
                     "is_admin": is_admin
                 }
-                unlock_pages()
                 st.rerun()
 
 else:
-    # --- UNLOCKED: DISPLAY DASHBOARD & REVEAL 50+ SIDEBAR PAGES ---
+    # --- UNLOCKED STATE ---
     identity = st.session_state.get("user_identity", {"name": "Chrishem", "role": "Supreme Architect"})
     
     st.sidebar.success(f"🔓 Logged in as: {identity.get('name')}")
@@ -167,21 +138,19 @@ else:
     
     if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
         st.session_state.portal_unlocked = False
-        lock_pages()  # Immediately hide all 50+ pages again
         st.rerun()
         
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 📂 System Navigation")
-    st.sidebar.info("All 50+ workspace modules are unlocked and visible in the menu below.")
+    st.sidebar.info("All workspace modules are active and accessible below.")
 
-    # Main dashboard interface post-login
     st.title("⚡ Chrishem Sovereign Apex Hub")
     st.markdown("---")
     
     col1, col2, col3 = st.columns(3)
     col1.metric("Gateway Status", "Unlocked", delta="Secure Session")
-    col2.metric("Active Session User", identity.get("name"))
-    col3.metric("System Security", "Enclave Verified", delta="Tier-1")
+    col2.metric("Active User", identity.get("name"))
+    col3.metric("Security Level", "Enclave Verified", delta="Tier-1")
     
     st.markdown("### 🌟 Welcome to the Core Ecosystem")
-    st.write("Authentication was successful. Your 50+ pages have been dynamically restored to the sidebar navigation tree. Select any module from the left menu to begin working.")
+    st.write("Authentication verified. Use the sidebar navigation menu to access your complete portfolio of tools and analytical pages.")
