@@ -13,13 +13,13 @@ if not st.session_state.portal_unlocked:
 else:
     # If unlocked, display a clean dashboard hub on the main page 
     # while letting Streamlit show the sidebar pages normally.
-    st.title('? Chrishem Sovereign Apex Hub')
-    st.success('?? Gateway Unlocked: Select any module from the sidebar navigation to begin.')
+    st.title('&#9889; Chrishem Sovereign Apex Hub')
+    st.success('&#128275; Gateway Unlocked: Select any module from the sidebar navigation to begin.')
     
     identity = st.session_state.get('user_identity', {})
     st.info(f"**Active Session:** {identity.get('name', 'Analyst')} ({identity.get('role', 'User')})")
     
-    if st.button('?? Lock Portal & Sign Out'):
+    if st.button('&#128274; Lock Portal & Sign Out'):
         st.session_state.portal_unlocked = False
         st.rerun()
 # --- CHRISHEM AUTHOR PROFILE BLOCK ---
