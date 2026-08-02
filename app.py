@@ -156,7 +156,7 @@ db_conn = init_sovereign_db()
 # PAGE CONFIGURATION
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.0",
+    page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.1",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -373,7 +373,7 @@ def load_dataset(uploaded_file, drop_duplicates=True, handle_missing="Mean Imput
     return df, file_bytes
 
 # ---------------------------------------------------------
-# PDF REPORT GENERATOR HELPER
+# PDF REPORT GENERATOR HELPER (FIXED FOR FPDF2 COMPATIBILITY)
 # ---------------------------------------------------------
 def generate_pdf_report(title, content):
     if not FPDF_AVAILABLE:
@@ -389,7 +389,11 @@ def generate_pdf_report(title, content):
     pdf.cell(200, 10, txt=f"Title: {title}", ln=True)
     pdf.set_font("Arial", "", 10)
     pdf.multi_cell(0, 10, txt=str(content))
-    return pdf.output(dest='S').encode('latin1')
+    
+    pdf_output = pdf.output()
+    if isinstance(pdf_output, str):
+        return pdf_output.encode("latin1")
+    return pdf_output
 
 # ---------------------------------------------------------
 # NEW MODULE 1: AUTONOMOUS AGENT SWARMS (ASYNC BACKGROUND)
@@ -792,7 +796,7 @@ def render_system_diagnostics():
 # ---------------------------------------------------------
 def main():
     st.sidebar.title("CHRISHEM")
-    st.sidebar.caption("Sovereign Enterprise Engine v8.0 (World Apex Edition)")
+    st.sidebar.caption("Sovereign Enterprise Engine v8.1 (World Apex Edition)")
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
     # Multi-Language Selector in Sidebar
