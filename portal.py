@@ -1,6 +1,5 @@
 import base64
 
-# Clean re-generated portal module entrypoint
 def render_portal():
     pass
 
