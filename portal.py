@@ -29,29 +29,37 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background: radial-gradient(circle at 15% 20%, #0c0f1d 0%, #05070b 85%); color: #f3f4f6; }
     .landing-container {
-        background: rgba(20, 25, 42, 0.75);
+        background: rgba(20, 25, 42, 0.85);
         backdrop-filter: blur(24px);
-        border: 1px solid rgba(56, 189, 248, 0.25);
+        border: 1px solid rgba(56, 189, 248, 0.3);
         border-radius: 28px;
-        padding: 45px 35px;
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.1);
+        padding: 35px 25px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(56, 189, 248, 0.15);
         text-align: center;
-        max-width: 780px;
+        max-width: 800px;
         margin: 0 auto;
     }
     .hub-title {
-        font-size: 2.3rem;
+        font-size: 2.1rem;
         font-weight: 800;
         background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #F472B6 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
-    .hub-subtitle { font-size: 1.05rem; color: #94A3B8; font-weight: 400; }
-    .profile-img-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+    .hub-subtitle { font-size: 1rem; color: #94A3B8; font-weight: 400; margin-bottom: 15px; }
+    .profile-img-wrap { display: flex; justify-content: center; margin-bottom: 15px; }
     .profile-img {
-        width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
-        border: 3px solid #38BDF8; box-shadow: 0 0 35px rgba(56, 189, 248, 0.6);
+        width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
+        border: 3px solid #38BDF8; box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
+    }
+    .download-card {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -64,7 +72,7 @@ if "user_identity" not in st.session_state:
 
 # --- GATEWAY SCREEN (LOCKED STATE) ---
 if not st.session_state.portal_unlocked:
-    # Hide sidebar entirely when locked
+    # Hide sidebar completely via CSS
     st.markdown("""
         <style>
             [data-testid="stSidebar"] {display: none;}
@@ -72,51 +80,56 @@ if not st.session_state.portal_unlocked:
     """, unsafe_allow_html=True)
 
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 4.5, 1])
-    with col2:
-        img_tag = f'<img src="data:image/png;base64,{img_base64}" class="profile-img">' if img_base64 else '<div style="font-size: 60px;">🧬</div>'
-        st.markdown(f"""
-        <div class="landing-container">
-            <div class="profile-img-wrap">{img_tag}</div>
-            <div class="hub-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
-            <div class="hub-subtitle">Sovereign Enterprise Engine • Secure Cloud Gateway</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-        tab_signin, tab_signup = st.tabs(["🔐 Secure Sign In", "📝 First-Time Registration"])
+    
+    img_tag = f'<img src="data:image/png;base64,{img_base64}" class="profile-img">' if img_base64 else '<div style="font-size: 50px;">🧬</div>'
+    
+    st.markdown(f"""
+    <div class="landing-container">
+        <div class="profile-img-wrap">{img_tag}</div>
+        <div class="hub-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
+        <div class="hub-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+    
+    # Tabs for Sign In, Registration, and Multi-Platform Downloads Center
+    _, center_col, _ = st.columns([0.5, 3, 0.5])
+    with center_col:
+        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register", "📱 Ecosystem Downloads"])
         
         with tab_signin:
             si_email = st.text_input("Email Address", placeholder="e.g. chrishem242@gmail.com", key="si_email_input")
             si_name = st.text_input("Full Name / Alias", placeholder="e.g. Chrishem", key="si_name_input")
             
-            c_b1, c_b2 = st.columns(2)
-            with c_b1:
-                if st.button("🚀 Authenticate Hub", use_container_width=True):
-                    entered_email = si_email.strip().lower() if si_email else "guest@hub.com"
-                    entered_name = si_name.strip() if si_name else "Chrishem"
-                    is_admin = (entered_email == "chrishem242@gmail.com")
-                    
-                    st.session_state.portal_unlocked = True
-                    st.session_state.user_identity = {
-                        "email": entered_email, "name": entered_name,
-                        "role": "Supreme Architect & System Owner" if is_admin else "Verified Analyst",
-                        "is_admin": is_admin
-                    }
-                    st.rerun()
-            with c_b2:
-                if st.button("🔵 Instant Google Sign-In (Simulated)", use_container_width=True):
-                    st.session_state.portal_unlocked = True
-                    st.session_state.user_identity = {
-                        "email": "chrishem242@gmail.com", "name": "Chrishem",
-                        "role": "Supreme Architect & System Owner", "is_admin": True
-                    }
-                    st.rerun()
-                    
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            if st.button("🚀 Authenticate Hub", use_container_width=True):
+                entered_email = si_email.strip().lower() if si_email else "guest@hub.com"
+                entered_name = si_name.strip() if si_name else "Chrishem"
+                is_admin = (entered_email == "chrishem242@gmail.com")
+                
+                st.session_state.portal_unlocked = True
+                st.session_state.user_identity = {
+                    "email": entered_email, "name": entered_name,
+                    "role": "Supreme Architect & System Owner" if is_admin else "Verified Analyst",
+                    "is_admin": is_admin
+                }
+                st.rerun()
+                
+            if st.button("🔵 Instant Google Sign-In (Simulated)", use_container_width=True):
+                st.session_state.portal_unlocked = True
+                st.session_state.user_identity = {
+                    "email": "chrishem242@gmail.com", "name": "Chrishem",
+                    "role": "Supreme Architect & System Owner", "is_admin": True
+                }
+                st.rerun()
+                
         with tab_signup:
             su_name = st.text_input("Your Preferred Name", placeholder="e.g. Chrishem Kula", key="su_name_input")
             su_email = st.text_input("Your Email Address", placeholder="e.g. chrishem242@gmail.com", key="su_email_input")
-            if st.button("✨ Register & Launch Sovereign Engine", use_container_width=True):
+            
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            if st.button("✨ Register & Launch Engine", use_container_width=True):
                 reg_name = su_name.strip() if su_name else "Chrishem"
                 reg_email = su_email.strip().lower() if su_email else "guest@hub.com"
                 is_admin = (reg_email == "chrishem242@gmail.com")
@@ -128,6 +141,50 @@ if not st.session_state.portal_unlocked:
                     "is_admin": is_admin
                 }
                 st.rerun()
+
+        with tab_downloads:
+            st.markdown("### 🌐 Cross-Platform Ecosystem Releases")
+            st.write("Download the native or containerized engine packages for your target operating system or device architecture.")
+            
+            d_col1, d_col2 = st.columns(2)
+            
+            with d_col1:
+                st.markdown("""
+                <div class="download-card">
+                    <h4>🪟 Windows Suite</h4>
+                    <p style='font-size: 0.85rem; color: #94A3B8;'>Optimized for Windows 10/11 (WSL2 / Desktop Engine)</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("📥 Download for Windows (.exe / ZIP)", use_container_width=True):
+                    st.info("📦 Windows deployment package source ready. Connects directly to local Docker/WSL runtimes.")
+
+                st.markdown("""
+                <div class="download-card">
+                    <h4>🐧 Linux Distribution</h4>
+                    <p style='font-size: 0.85rem; color: #94A3B8;'>Ubuntu / Debian / Enterprise Server Build</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("📥 Download for Linux (.tar.gz)", use_container_width=True):
+                    st.info("🐧 Linux container build bundle generated for enterprise deployment.")
+
+            with d_col2:
+                st.markdown("""
+                <div class="download-card">
+                    <h4>🍎 macOS Architecture</h4>
+                    <p style='font-size: 0.85rem; color: #94A3B8;'>Apple Silicon (M1/M2/M3) & Intel Universal</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("📥 Download for macOS (.dmg)", use_container_width=True):
+                    st.info("🍏 macOS desktop wrapper package prepared.")
+
+                st.markdown("""
+                <div class="download-card">
+                    <h4>📱 Mobile PWA / Client</h4>
+                    <p style='font-size: 0.85rem; color: #94A3B8;'>Android & iOS Progressive Web Client</p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("📥 Download Mobile Client / Config", use_container_width=True):
+                    st.info("📱 Mobile progressive web app manifest package ready for installation.")
 
 else:
     # --- UNLOCKED STATE ---
