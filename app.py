@@ -60,102 +60,97 @@ if "portal_unlocked" not in st.session_state:
 if "user_identity" not in st.session_state:
     st.session_state.user_identity = {}
 
-def home_page():
-    if not st.session_state.portal_unlocked:
-        st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
-        col1, col2, col3 = st.columns([1, 4.5, 1])
-        with col2:
-            img_tag = f"<img src='data:image/png;base64,{img_base64}' class='profile-img'>" if img_base64 else "<div style='font-size: 60px;'>🧬</div>"
+# If NOT logged in, show the custom landing page and stop execution so sidebar modules stay hidden
+if not st.session_state.portal_unlocked:
+    st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 4.5, 1])
+    with col2:
+        img_tag = f"<img src='data:image/png;base64,{img_base64}' class='profile-img'>" if img_base64 else "<div style='font-size: 60px;'>🧬</div>"
+        
+        st.markdown(f"""
+        <div class="landing-container">
+            <div class="profile-img-wrap">{img_tag}</div>
+            <div class="hub-title">CHRISHEM SCIENCE HUB &amp; ECOSYSTEM</div>
+            <div class="hub-subtitle">Sovereign Enterprise Engine &bull; Advanced Analytics &amp; Bioinformatics Gateway</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+        
+        tab_signin, tab_signup = st.tabs(["🔐 Secure Sign In", "📝 First-Time Registration"])
+        
+        with tab_signin:
+            si_email = st.text_input("Email Address", placeholder="e.g. chrishem242@gmail.com", key="si_email_input")
+            si_name = st.text_input("Full Name / Alias", placeholder="e.g. Chrishem", key="si_name_input")
             
-            st.markdown(f"""
-            <div class="landing-container">
-                <div class="profile-img-wrap">{img_tag}</div>
-                <div class="hub-title">CHRISHEM SCIENCE HUB &amp; ECOSYSTEM</div>
-                <div class="hub-subtitle">Sovereign Enterprise Engine &bull; Advanced Analytics &amp; Bioinformatics Gateway</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-            
-            tab_signin, tab_signup = st.tabs(["🔐 Secure Sign In", "📝 First-Time Registration"])
-            
-            with tab_signin:
-                si_email = st.text_input("Email Address", placeholder="e.g. chrishem242@gmail.com", key="si_email_input")
-                si_name = st.text_input("Full Name / Alias", placeholder="e.g. Chrishem", key="si_name_input")
-                
-                c_b1, c_b2 = st.columns(2)
-                with c_b1:
-                    if st.button("🚀 Authenticate Hub", use_container_width=True):
-                        entered_email = si_email.strip().lower() if si_email else "chrishem242@gmail.com"
-                        entered_name = si_name.strip() if si_name else "Chris Shem"
-                        is_admin = True
-                        
-                        st.session_state.portal_unlocked = True
-                        st.session_state.user_identity = {
-                            "email": entered_email,
-                            "name": entered_name,
-                            "role": "Supreme Architect & System Owner",
-                            "is_admin": is_admin
-                        }
-                        st.rerun()
-                with c_b2:
-                    if st.button("🔵 Instant Google Sign-In", use_container_width=True):
-                        st.session_state.portal_unlocked = True
-                        st.session_state.user_identity = {
-                            "email": "chrishem242@gmail.com",
-                            "name": "Chris Shem",
-                            "role": "Supreme Architect & System Owner",
-                            "is_admin": True
-                        }
-                        st.rerun()
-            
-            with tab_signup:
-                su_name = st.text_input("Your Preferred Name", placeholder="e.g. Chris Shem", key="su_name_input")
-                su_email = st.text_input("Your Email Address", placeholder="e.g. chrishem242@gmail.com", key="su_email_input")
-                
-                if st.button("✨ Register & Launch Sovereign Engine", use_container_width=True):
+            c_b1, c_b2 = st.columns(2)
+            with c_b1:
+                if st.button("🚀 Authenticate Hub", use_container_width=True):
                     st.session_state.portal_unlocked = True
                     st.session_state.user_identity = {
-                        "email": su_email.strip().lower() if su_email else "chrishem242@gmail.com",
-                        "name": su_name.strip() if su_name else "Chris Shem",
+                        "email": si_email.strip().lower() if si_email else "chrishem242@gmail.com",
+                        "name": si_name.strip() if si_name else "Chris Shem",
                         "role": "Supreme Architect & System Owner",
                         "is_admin": True
                     }
                     st.rerun()
-    else:
-        user = st.session_state.get("user_identity", {})
-        username = user.get("name", "Chris Shem")
+            with c_b2:
+                if st.button("🔵 Instant Google Sign-In", use_container_width=True):
+                    st.session_state.portal_unlocked = True
+                    st.session_state.user_identity = {
+                        "email": "chrishem242@gmail.com",
+                        "name": "Chris Shem",
+                        "role": "Supreme Architect & System Owner",
+                        "is_admin": True
+                    }
+                    st.rerun()
         
-        st.title("🧬 Chrishem Science Hub & Workspace")
-        st.success(f"System Operational. Welcome back, **{username}**.")
-        st.markdown("""
-        Your sovereign workspace is unlocked and active. 
-        **All 50+ connected analysis modules, tools, and notebooks are now fully populated and accessible in the sidebar navigation menu on the left.** 
+        with tab_signup:
+            su_name = st.text_input("Your Preferred Name", placeholder="e.g. Chris Shem", key="su_name_input")
+            su_email = st.text_input("Your Email Address", placeholder="e.g. chrishem242@gmail.com", key="su_email_input")
+            
+            if st.button("✨ Register & Launch Sovereign Engine", use_container_width=True):
+                st.session_state.portal_unlocked = True
+                st.session_state.user_identity = {
+                    "email": su_email.strip().lower() if su_email else "chrishem242@gmail.com",
+                    "name": su_name.strip() if su_name else "Chris Shem",
+                    "role": "Supreme Architect & System Owner",
+                    "is_admin": True
+                }
+                st.rerun()
         
-        Select any tool or page to launch its corresponding dashboard interface instantly.
-        """)
+        st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 25px 0;'>", unsafe_allow_html=True)
+        st.markdown("<h4 style='text-align: center; color: #F8FAFC; font-size: 1.1rem; margin-bottom: 12px;'>📥 Download Complete Portable System Suite</h4>", unsafe_allow_html=True)
         
-        if st.button("🔒 Lock / Switch Account"):
-            st.session_state.portal_unlocked = False
-            st.rerun()
+        d_col1, d_col2, d_col3, d_col4 = st.columns(4)
+        with d_col1:
+            st.download_button("💻 Windows (.exe)", data=b"Mock Windows Compiled Enterprise Bundle Binary", file_name="ChrishemScienceHub_Win64.zip", use_container_width=True)
+        with d_col2:
+            st.download_button("🍏 macOS (.app/.dmg)", data=b"Mock macOS Universal Binary Package", file_name="ChrishemScienceHub_macOS.dmg", use_container_width=True)
+        with d_col3:
+            st.download_button("🐧 Linux (.AppImage)", data=b"Mock Linux Standalone AppImage Binary", file_name="ChrishemScienceHub_Linux.AppImage", use_container_width=True)
+        with d_col4:
+            st.download_button("📱 Mobile (.apk)", data=b"Mock Android Compiled Client Package", file_name="ChrishemScienceHub_Mobile.apk", use_container_width=True)
+    
+    st.stop() # Stops execution here so locked users never see the main workspace or sidebar pages
 
-# Define navigation structure matching your pages/ directory automatically
-if not st.session_state.portal_unlocked:
-    # While locked, only show the home login entrypoint
-    pg = st.navigation([st.Page(home_page, title="Portal Gateway", icon="🔐")])
-else:
-    # Once unlocked, dynamically pull all secondary modules from your pages/ directory alongside home
-    try:
-        pages_dir = "pages"
-        dynamic_pages = [st.Page(home_page, title="Hub Control Center", icon="🧬")]
-        if os.path.exists(pages_dir):
-            for file in sorted(os.listdir(pages_dir)):
-                if file.endswith(".py"):
-                    file_path = os.path.join(pages_dir, file)
-                    page_title = file[:-3].replace("_", " ").title()
-                    dynamic_pages.append(st.Page(file_path, title=page_title, icon="📊"))
-        pg = st.navigation(dynamic_pages)
-    except Exception:
-        pg = st.navigation([st.Page(home_page, title="Hub Control Center", icon="🧬")])
+# --- ONCE LOGGED IN: Displays the Hub and unlocks the sidebar pages automatically ---
+user = st.session_state.get("user_identity", {})
+username = user.get("name", "Chris Shem")
+role = user.get("role", "Supreme Architect & System Owner")
 
-pg.run()
+st.sidebar.title(f"⚡ Welcome back, {username}!")
+st.sidebar.caption(f"Role: {role}")
+st.sidebar.success("🛡️ Admin Privileges Active")
+
+if st.sidebar.button("🔒 Lock / Switch Account"):
+    st.session_state.portal_unlocked = False
+    st.rerun()
+    
+st.sidebar.markdown("---")
+
+st.title("🧬 Chrishem Science Hub & Workspace")
+st.success(f"System Operational. Welcome back, **{username}**.")
+st.markdown("""
+Your sovereign workspace is fully unlocked. **All your 50+ connected analysis tools and secondary pages are now available in the sidebar navigation menu on the left.** Select any module to launch its dashboard interface.
+""")
