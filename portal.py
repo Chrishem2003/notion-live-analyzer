@@ -144,7 +144,7 @@ if not st.session_state.portal_unlocked:
 
         with tab_downloads:
             st.markdown("### 🌐 Cross-Platform Ecosystem Releases")
-            st.write("Download the native or containerized engine packages for your target operating system or device architecture.")
+            st.write("Download or deploy the engine packages across your preferred operating system or device architecture.")
             
             d_col1, d_col2 = st.columns(2)
             
@@ -155,8 +155,8 @@ if not st.session_state.portal_unlocked:
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Optimized for Windows 10/11 (WSL2 / Desktop Engine)</p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button("📥 Download for Windows (.exe / ZIP)", use_container_width=True):
-                    st.info("📦 Windows deployment package source ready. Connects directly to local Docker/WSL runtimes.")
+                if st.button("📥 Download for Windows (.zip / .exe)", use_container_width=True):
+                    st.success("🪟 Windows package bundle ready for local execution via PowerShell/Docker.")
 
                 st.markdown("""
                 <div class="download-card">
@@ -165,7 +165,7 @@ if not st.session_state.portal_unlocked:
                 </div>
                 """, unsafe_allow_html=True)
                 if st.button("📥 Download for Linux (.tar.gz)", use_container_width=True):
-                    st.info("🐧 Linux container build bundle generated for enterprise deployment.")
+                    st.success("🐧 Linux container build bundle generated.")
 
             with d_col2:
                 st.markdown("""
@@ -175,16 +175,16 @@ if not st.session_state.portal_unlocked:
                 </div>
                 """, unsafe_allow_html=True)
                 if st.button("📥 Download for macOS (.dmg)", use_container_width=True):
-                    st.info("🍏 macOS desktop wrapper package prepared.")
+                    st.success("🍏 macOS wrapper package prepared.")
 
                 st.markdown("""
                 <div class="download-card">
-                    <h4>📱 Mobile PWA / Client</h4>
+                    <h4>📱 Mobile PWA / Phone</h4>
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Android & iOS Progressive Web Client</p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button("📥 Download Mobile Client / Config", use_container_width=True):
-                    st.info("📱 Mobile progressive web app manifest package ready for installation.")
+                if st.button("📥 Get Mobile PWA Config", use_container_width=True):
+                    st.success("📱 Mobile progressive client configuration loaded.")
 
 else:
     # --- UNLOCKED STATE ---
