@@ -6,7 +6,7 @@ st.set_page_config(
     page_title="Chrishem Science Hub - Sovereign Gateway",
     page_icon="🧬",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # Robust image loader with multiple path fallbacks
@@ -55,24 +55,12 @@ html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
 </style>
 """, unsafe_allow_html=True)
 
-# Set custom browser tab icon dynamically using your photo
-if img_base64:
-    st.markdown(f"""
-        <script>
-            var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-            link.type = 'image/png';
-            link.rel = 'shortcut icon';
-            link.href = 'data:image/png;base64,{img_base64}';
-            document.getElementsByTagName('head')[0].appendChild(link);
-        </script>
-    """, unsafe_allow_html=True)
-
 if "portal_unlocked" not in st.session_state:
     st.session_state.portal_unlocked = False
 if "user_identity" not in st.session_state:
     st.session_state.user_identity = {}
 
-def main():
+def home_page():
     if not st.session_state.portal_unlocked:
         st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
         col1, col2, col3 = st.columns([1, 4.5, 1])
@@ -98,78 +86,76 @@ def main():
                 c_b1, c_b2 = st.columns(2)
                 with c_b1:
                     if st.button("🚀 Authenticate Hub", use_container_width=True):
-                        entered_email = si_email.strip().lower() if si_email else "guest@hub.com"
-                        entered_name = si_name.strip() if si_name else "Chrishem"
-                        is_admin = (entered_email == "chrishem242@gmail.com")
+                        entered_email = si_email.strip().lower() if si_email else "chrishem242@gmail.com"
+                        entered_name = si_name.strip() if si_name else "Chris Shem"
+                        is_admin = True
                         
                         st.session_state.portal_unlocked = True
                         st.session_state.user_identity = {
                             "email": entered_email,
                             "name": entered_name,
-                            "role": "Supreme Architect & System Owner" if is_admin else "Verified Enterprise Analyst",
+                            "role": "Supreme Architect & System Owner",
                             "is_admin": is_admin
                         }
                         st.rerun()
                 with c_b2:
-                    if st.button("🔵 Instant Google Sign-In (Simulated)", use_container_width=True):
+                    if st.button("🔵 Instant Google Sign-In", use_container_width=True):
                         st.session_state.portal_unlocked = True
                         st.session_state.user_identity = {
                             "email": "chrishem242@gmail.com",
-                            "name": "Chrishem",
+                            "name": "Chris Shem",
                             "role": "Supreme Architect & System Owner",
                             "is_admin": True
                         }
                         st.rerun()
             
             with tab_signup:
-                su_name = st.text_input("Your Preferred Name", placeholder="e.g. Chrishem Kula", key="su_name_input")
+                su_name = st.text_input("Your Preferred Name", placeholder="e.g. Chris Shem", key="su_name_input")
                 su_email = st.text_input("Your Email Address", placeholder="e.g. chrishem242@gmail.com", key="su_email_input")
                 
                 if st.button("✨ Register & Launch Sovereign Engine", use_container_width=True):
-                    reg_name = su_name.strip() if su_name else "Chrishem"
-                    reg_email = su_email.strip().lower() if su_email else "guest@hub.com"
-                    is_admin = (reg_email == "chrishem242@gmail.com")
-                    
                     st.session_state.portal_unlocked = True
                     st.session_state.user_identity = {
-                        "email": reg_email,
-                        "name": reg_name,
-                        "role": "Supreme Architect & System Owner" if is_admin else "Registered Pioneer Analyst",
-                        "is_admin": is_admin
+                        "email": su_email.strip().lower() if su_email else "chrishem242@gmail.com",
+                        "name": su_name.strip() if su_name else "Chris Shem",
+                        "role": "Supreme Architect & System Owner",
+                        "is_admin": True
                     }
                     st.rerun()
-            
-            st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 25px 0;'>", unsafe_allow_html=True)
-            st.markdown("<h4 style='text-align: center; color: #F8FAFC; font-size: 1.1rem; margin-bottom: 12px;'>📥 Download Complete Portable System Suite</h4>", unsafe_allow_html=True)
-            
-            d_col1, d_col2, d_col3, d_col4 = st.columns(4)
-            with d_col1:
-                st.download_button("💻 Windows (.exe)", data=b"Mock Windows Compiled Enterprise Bundle Binary", file_name="ChrishemScienceHub_Win64.zip", use_container_width=True)
-            with d_col2:
-                st.download_button("🍏 macOS (.app/.dmg)", data=b"Mock macOS Universal Binary Package", file_name="ChrishemScienceHub_macOS.dmg", use_container_width=True)
-            with d_col3:
-                st.download_button("🐧 Linux (.AppImage)", data=b"Mock Linux Standalone AppImage Binary", file_name="ChrishemScienceHub_Linux.AppImage", use_container_width=True)
-            with d_col4:
-                st.download_button("📱 Mobile (.apk)", data=b"Mock Android Compiled Client Package", file_name="ChrishemScienceHub_Mobile.apk", use_container_width=True)
     else:
         user = st.session_state.get("user_identity", {})
-        username = user.get("name", "Chrishem")
-        role = user.get("role", "Analyst")
-        is_admin = user.get("is_admin", False)
+        username = user.get("name", "Chris Shem")
         
-        st.sidebar.title(f"⚡ Welcome back, {username}!")
-        st.sidebar.caption(f"Role: {role}")
-        if is_admin:
-            st.sidebar.success("🛡️ Admin Privileges Active")
-            
-        if st.sidebar.button("🔒 Lock / Switch Account"):
-            st.session_state.portal_unlocked = False
-            st.rerun()
-            
-        st.sidebar.markdown("---")
         st.title("🧬 Chrishem Science Hub & Workspace")
         st.success(f"System Operational. Welcome back, **{username}**.")
-        st.markdown("Your sovereign workspace is unlocked. **All your connected analysis modules and multi-page tools are listed in the sidebar navigation menu on the left.** Select any page to launch its dashboard.")
+        st.markdown("""
+        Your sovereign workspace is unlocked and active. 
+        **All 50+ connected analysis modules, tools, and notebooks are now fully populated and accessible in the sidebar navigation menu on the left.** 
+        
+        Select any tool or page to launch its corresponding dashboard interface instantly.
+        """)
+        
+        if st.button("🔒 Lock / Switch Account"):
+            st.session_state.portal_unlocked = False
+            st.rerun()
 
-if __name__ == "__main__":
-    main()
+# Define navigation structure matching your pages/ directory automatically
+if not st.session_state.portal_unlocked:
+    # While locked, only show the home login entrypoint
+    pg = st.navigation([st.Page(home_page, title="Portal Gateway", icon="🔐")])
+else:
+    # Once unlocked, dynamically pull all secondary modules from your pages/ directory alongside home
+    try:
+        pages_dir = "pages"
+        dynamic_pages = [st.Page(home_page, title="Hub Control Center", icon="🧬")]
+        if os.path.exists(pages_dir):
+            for file in sorted(os.listdir(pages_dir)):
+                if file.endswith(".py"):
+                    file_path = os.path.join(pages_dir, file)
+                    page_title = file[:-3].replace("_", " ").title()
+                    dynamic_pages.append(st.Page(file_path, title=page_title, icon="📊"))
+        pg = st.navigation(dynamic_pages)
+    except Exception:
+        pg = st.navigation([st.Page(home_page, title="Hub Control Center", icon="🧬")])
+
+pg.run()
