@@ -15,9 +15,9 @@ def get_image_base64(image_path):
     with open(image_path, "rb") as img_file:
       return base64.b64encode(img_file.read()).decode("utf-8")
   return None
+img_path = "Chrishem.png"  # Match your exact file capitalization
 
-
-img_path = "chrishem.png"
+st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 if not os.path.exists(img_path):
   img_path = r"C:\Users\Admin\Pictures\chrishem.png"
 img_base64 = get_image_base64(img_path)
