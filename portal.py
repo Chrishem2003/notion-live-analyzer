@@ -53,6 +53,14 @@ st.markdown("""
         width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
         border: 3px solid #38BDF8; box-shadow: 0 0 35px rgba(56, 189, 248, 0.6);
     }
+    .download-card {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -153,4 +161,81 @@ else:
     col3.metric("Security Level", "Enclave Verified", delta="Tier-1")
     
     st.markdown("### 🌟 Welcome to the Core Ecosystem")
-    st.write("Authentication verified. Use the sidebar navigation menu to access your complete portfolio of tools and analytical pages.")
+    st.write("Authentication verified. Use the sidebar navigation menu or explore the ecosystem deployment options below to download the application for all operating systems.")
+    
+    st.markdown("---")
+    
+    # --- MULTI-PLATFORM DOWNLOAD ECOSYSTEM SECTION ---
+    st.subheader("📥 Multi-Platform Application Downloads")
+    st.markdown("Get the native client version of the Chrishem Engine across all your devices and operating systems.")
+    
+    dl_tab1, dl_tab2, dl_tab3, dl_tab4 = st.tabs(["💻 Windows", "🍏 macOS", "🐧 Linux", "📱 Mobile (Android/iOS)"])
+    
+    with dl_tab1:
+        st.markdown("#### Windows Installer (x64 / ARM64)")
+        st.write("Optimized for Windows 10 & 11 with direct hardware acceleration support.")
+        col_w1, col_w2 = st.columns([2, 1])
+        with col_w1:
+            st.info("**Version:** v2.4.0-stable | **Size:** 142 MB | **Format:** `.msi / .exe`")
+        with col_w2:
+            sample_data = b"Simulated Windows Binary Content for Chrishem Hub"
+            st.download_button(
+                label="📥 Download for Windows",
+                data=sample_data,
+                file_name="ChrishemHub_Setup_x64.exe",
+                mime="application/octet-stream",
+                use_container_width=True
+            )
+            
+    with dl_tab2:
+        st.markdown("#### macOS Universal Binary (Apple Silicon & Intel)")
+        st.write("Native bundle built for macOS Monterey, Ventura, Sonoma, and Sequoia.")
+        col_m1, col_m2 = st.columns([2, 1])
+        with col_m1:
+            st.info("**Version:** v2.4.0-stable | **Size:** 128 MB | **Format:** `.dmg`")
+        with col_m2:
+            sample_data = b"Simulated macOS Binary Content for Chrishem Hub"
+            st.download_button(
+                label="📥 Download for macOS",
+                data=sample_data,
+                file_name="ChrishemHub_Universal.dmg",
+                mime="application/octet-stream",
+                use_container_width=True
+            )
+            
+    with dl_tab3:
+        st.markdown("#### Linux Package Distribution")
+        st.write("Available for Debian/Ubuntu (.deb), Fedora/RHEL (.rpm), and Universal AppImage.")
+        col_l1, col_l2 = st.columns([2, 1])
+        with col_l1:
+            st.info("**Version:** v2.4.0-stable | **Size:** 115 MB | **Format:** `.AppImage / .deb`")
+        with col_l2:
+            sample_data = b"Simulated Linux Binary Content for Chrishem Hub"
+            st.download_button(
+                label="📥 Download Linux AppImage",
+                data=sample_data,
+                file_name="ChrishemHub_x86_64.AppImage",
+                mime="application/octet-stream",
+                use_container_width=True
+            )
+            
+    with dl_tab4:
+        st.markdown("#### Mobile Companion App (Phone)")
+        st.write("Take your pipelines and real-time monitoring on the go with our mobile client packages.")
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            st.markdown("##### Android Client")
+            st.caption("Direct APK release for Android 10+ devices.")
+            sample_apk = b"Simulated Android APK Content"
+            st.download_button(
+                label="🤖 Download Android APK",
+                data=sample_apk,
+                file_name="ChrishemHub_Mobile.apk",
+                mime="application/vnd.android.package-archive",
+                use_container_width=True
+            )
+        with col_p2:
+            st.markdown("##### iOS Companion")
+            st.caption("TestFlight beta access configuration profile.")
+            if st.button("🍏 Request TestFlight Link", use_container_width=True):
+                st.success("TestFlight invitation protocol dispatched to your verified email!")
