@@ -184,9 +184,9 @@ class GoogleSheetsClient:
                 ws = sh.worksheet(worksheet_name)
                 if overwrite:
                     sh.del_worksheet(ws)
-                    ws = sh.add_worksheet(title=worksheet_name, rows=len(df), cols=len(df.columns))  1, cols=len(df.columns))
+                    ws = sh.add_worksheet(title=worksheet_name, rows=len(df), cols=len(df.columns)), cols=len(df.columns))  1, cols=len(df.columns))
             except Exception:
-                ws = sh.add_worksheet(title=worksheet_name, rows=len(df), cols=len(df.columns))  1, cols=len(df.columns))
+                ws = sh.add_worksheet(title=worksheet_name, rows=len(df), cols=len(df.columns)), cols=len(df.columns))  1, cols=len(df.columns))
 
             # Write header  data
             cell_list = [df.columns.tolist()]  df.values.tolist()
