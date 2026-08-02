@@ -14,15 +14,55 @@ def get_image_base64(image_path):
   if os.path.exists(image_path):
     with open(image_path, "rb") as img_file:
       return base64.b64encode(img_file.read()).decode("utf-8")
-  return None
-img_path = "Chrishem.png"  # Match your exact file capitalization
-
-st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
+img_path = "Chrishem.png"
 if not os.path.exists(img_path):
-  img_path = r"C:\Users\Admin\Pictures\chrishem.png"
+    img_path = r"C:\Users\Admin\Pictures\Chrishem.png"
 img_base64 = get_image_base64(img_path)
 
-st.markdown(
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
+.stApp { background: radial-gradient(circle at 15% 20%, #0c0f1d 0%, #05070b 85%); color: #f3f4f6; }
+.landing-container {
+    background: rgba(20, 25, 42, 0.75);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 28px;
+    padding: 45px 35px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.1);
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto;
+}
+.hub-title {
+    font-size: 2.3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #F472B6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+}
+.hub-subtitle { font-size: 1.05rem; color: #94A3B8; font-weight: 400; }
+.profile-img-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+.profile-img {
+    width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
+    border: 3px solid #38BDF8; box-shadow: 0 0 35px rgba(56, 189, 248, 0.6);
+}
+</style>
+""", unsafe_allow_html=True)
+
+if "portal_unlocked" not in st.session_state:
+    st.session_state.portal_unlocked = False
+if "user_identity" not in st.session_state:
+    st.session_state.user_identity = {}
+
+def main():
+    if not st.session_state.portal_unlocked:
+        st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 4.5, 1])
+        with col2:
+            img_tag = f"<img src='data:image/png;base64,{img_base64}' class='profile-img'>" if img_base64 else "<div style='font-size: 60px;'>🧬</div>"
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
