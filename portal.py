@@ -1,4 +1,4 @@
-﻿import base64
+import base64
 import os
 import streamlit as st
 
@@ -70,7 +70,6 @@ if "user_identity" not in st.session_state:
 
 # --- GATEWAY SCREEN (LOCKED STATE) ---
 if not st.session_state.portal_unlocked:
-    # Force hide sidebar completely via CSS when locked
     st.markdown("""
         <style>
             [data-testid="stSidebar"] {display: none;}
@@ -91,7 +90,6 @@ if not st.session_state.portal_unlocked:
     
     st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     
-    # Tabs for Sign In, Registration, and Multi-Platform Downloads Center
     _, center_col, _ = st.columns([0.5, 3, 0.5])
     with center_col:
         tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register", "📱 Ecosystem Downloads"])
@@ -185,7 +183,6 @@ if not st.session_state.portal_unlocked:
                     st.success("📱 Mobile progressive client configuration loaded.")
 
 else:
-    # --- UNLOCKED STATE ---
     identity = st.session_state.get("user_identity", {"name": "Chrishem", "role": "Supreme Architect"})
     
     st.sidebar.success(f"🔓 Logged in as: {identity.get('name')}")
