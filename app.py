@@ -23,7 +23,6 @@ import sqlite3
 import urllib.request
 import numpy as np
 import pandas as pd
-from scipy.integrate import odeint
 
 import plotly.graph_objects as go
 import plotly.express as px
@@ -81,6 +80,24 @@ def init_sovereign_db():
             visit_count INTEGER
         )
     """)
+    # Auto-migration safety check: ensure missing columns are added if an older table schema exists
+    try:
+        cursor.execute("ALTER TABLE user_profiles ADD COLUMN birthday TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE user_profiles ADD COLUMN role TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE user_profiles ADD COLUMN last_seen TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE user_profiles ADD COLUMN visit_count INTEGER")
+    except Exception:
+        pass
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS live_chat_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -739,7 +756,7 @@ def main():
     if profile_record:
         last_seen_val, visit_count_val = profile_record
         is_returning = True
-        new_visit_count = visit_count_val + 1
+        new_visit_count = (visit_count_val or 0) + 1
         cursor.execute("UPDATE user_profiles SET role = ?, last_seen = ?, visit_count = ? WHERE username = ?", (user_role, now_dt.isoformat(), new_visit_count, active_analyst_name))
     else:
         new_visit_count = 1
