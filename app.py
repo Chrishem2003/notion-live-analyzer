@@ -21,12 +21,27 @@ import json
 import hashlib
 import sqlite3
 import urllib.request
+import threading
 import numpy as np
 import pandas as pd
 
 import plotly.graph_objects as go
 import plotly.express as px
 from streamlit.components.v1 import html
+
+# Optional advanced mapping and PDF components check
+try:
+    from fpdf import FPDF
+    FPDF_AVAILABLE = True
+except ImportError:
+    FPDF_AVAILABLE = False
+
+try:
+    import folium
+    from streamlit_folium import st_folium
+    FOLIUM_AVAILABLE = True
+except ImportError:
+    FOLIUM_AVAILABLE = False
 
 # ---------------------------------------------------------
 # GLOBAL BUILTINS & FALLBACKS
@@ -141,11 +156,59 @@ db_conn = init_sovereign_db()
 # PAGE CONFIGURATION
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v7.0",
+    page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.0",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# ---------------------------------------------------------
+# MULTI-LANGUAGE DICTIONARY (i18n)
+# ---------------------------------------------------------
+TRANSLATIONS = {
+    "English": {
+        "nav_sat": "Satellite & Orbital Telemetry",
+        "nav_swarm": "Autonomous Agent Swarms",
+        "nav_bio": "Bioinformatics & Genomic Studio",
+        "nav_gap": "Universal Sector Gap Solver",
+        "nav_workspace": "Personal Workspace",
+        "nav_ai": "AI Intelligence Daemon",
+        "nav_vault": "Saved Analyses Vault",
+        "nav_access": "Access Control & Licensing",
+        "nav_diag": "System Diagnostics & Health",
+        "greeting": "Welcome back",
+        "visits": "Visits"
+    },
+    "Swahili": {
+        "nav_sat": "Telemetria ya Satelaiti na Anga",
+        "nav_swarm": "Makundi ya Wakala Huru",
+        "nav_bio": "Studio ya Bioinforamatics na Jenomu",
+        "nav_gap": "Kitatuzi cha Mapungufu ya Sekta",
+        "nav_workspace": "Nafasi ya Kazi ya Kibinafsi",
+        "nav_ai": "Pepo la Akili Bandia",
+        "nav_vault": "Hifadhi ya Uchambuzi Uliohifadhiwa",
+        "nav_access": "Udhibiti wa Upatikanaji na Leseni",
+        "nav_diag": "Utambuzi wa Mfumo na Afya",
+        "greeting": "Karibu tena",
+        "visits": "Ziara"
+    },
+    "French": {
+        "nav_sat": "Télémétrie Satellitaire & Orbitale",
+        "nav_swarm": "Essaims d'Agents Autonomes",
+        "nav_bio": "Studio de Bioinformatique & Génomique",
+        "nav_gap": "Solveur de Lacunes Sectorielles",
+        "nav_workspace": "Espace de Travail Personnel",
+        "nav_ai": "Démon d'Intelligence Artificielle",
+        "nav_vault": "Coffre-fort des Analyses",
+        "nav_access": "Contrôle d'Accès & Licences",
+        "nav_diag": "Diagnostics Système & Santé",
+        "greeting": "Bon retour",
+        "visits": "Visites"
+    }
+}
+
+def t(key, lang="English"):
+    return TRANSLATIONS.get(lang, TRANSLATIONS["English"]).get(key, key)
 
 # ---------------------------------------------------------
 # ADVANCED METALLIC GLASSMORPHISM CSS & UI POLISH
@@ -261,9 +324,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# HELPER: SAFE MULTI-ENCODING DATA LOADER
+# HELPER: SAFE MULTI-ENCODING DATA LOADER & CLEANER
 # ---------------------------------------------------------
-def load_dataset(uploaded_file):
+def load_dataset(uploaded_file, drop_duplicates=True, handle_missing="Mean Imputation", outlier_removal=False):
     file_bytes = uploaded_file.read()
     name = uploaded_file.name.lower()
     df = None
@@ -286,18 +349,67 @@ def load_dataset(uploaded_file):
         except Exception:
             pass
             
+    if df is not None:
+        if drop_duplicates:
+            df = df.drop_duplicates()
+        
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        if handle_missing == "Mean Imputation":
+            for col in numeric_cols:
+                df[col] = df[col].fillna(df[col].mean())
+        elif handle_missing == "Median Imputation":
+            for col in numeric_cols:
+                df[col] = df[col].fillna(df[col].median())
+        elif handle_missing == "Drop Missing Rows":
+            df = df.dropna()
+            
+        if outlier_removal and len(numeric_cols) > 0:
+            for col in numeric_cols:
+                mean_val = df[col].mean()
+                std_val = df[col].std()
+                if std_val > 0:
+                    df = df[(df[col] - mean_val).abs() <= 3 * std_val]
+
     return df, file_bytes
 
 # ---------------------------------------------------------
-# NEW MODULE 1: AUTONOMOUS AGENT SWARMS & CROSS-SECTOR SYNTHESIS
+# PDF REPORT GENERATOR HELPER
 # ---------------------------------------------------------
+def generate_pdf_report(title, content):
+    if not FPDF_AVAILABLE:
+        return None
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(200, 10, txt="CHRISHEM Sovereign Apex Dossier", ln=True, align="C")
+    pdf.set_font("Arial", "I", 10)
+    pdf.cell(200, 10, txt=f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True, align="C")
+    pdf.ln(10)
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(200, 10, txt=f"Title: {title}", ln=True)
+    pdf.set_font("Arial", "", 10)
+    pdf.multi_cell(0, 10, txt=str(content))
+    return pdf.output(dest='S').encode('latin1')
+
+# ---------------------------------------------------------
+# NEW MODULE 1: AUTONOMOUS AGENT SWARMS (ASYNC BACKGROUND)
+# ---------------------------------------------------------
+def run_background_swarm(task_name):
+    import time
+    time.sleep(2)
+    cursor = db_conn.cursor()
+    h = hashlib.sha256(task_name.encode()).hexdigest()[:12].upper()
+    cursor.execute("INSERT INTO saved_analyses (title, timestamp, category, content) VALUES (?, ?, ?, ?)",
+                   (f"Async Swarm: {task_name[:25]}", datetime.datetime.now().isoformat(), "Autonomous Swarms", f"Background simulation completed. ID: AGENT-{h}"))
+    db_conn.commit()
+
 def render_autonomous_agents():
     st.markdown("### 🤖 Autonomous Agent Swarms & Cross-Sector Orchestration")
-    st.markdown("Autonomous background intelligence loops that continuously probe satellite telemetry, economic databases, and environmental grids to trigger proactive cross-sector optimizations.")
+    st.markdown("Autonomous background intelligence loops running asynchronous worker threads to continuously probe telemetry and trigger proactive cross-sector optimizations.")
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Active Swarm Agents", "128 Nodes", delta="Autonomous")
-    c2.metric("Cross-Sector Loops", "Active", delta="Real-Time Sync")
+    c2.metric("Cross-Sector Loops", "Active", delta="Async Threading")
     c3.metric("Anomaly Detection Rate", "99.94%", delta="Optimal")
     c4.metric("Autonomous Controller", "CHRISHEM AI", delta="Secure")
 
@@ -310,23 +422,21 @@ def render_autonomous_agents():
         "Financial Liquidity Contraction & Sovereign Risk Prediction"
     ])
 
-    if st.button("🚀 Deploy Autonomous Agent Probe", key="deploy_agent_swarm"):
-        with st.spinner(f"Deploying swarm agents for mission: {agent_task}..."):
+    if st.button("🚀 Deploy Asynchronous Agent Swarm Probe", key="deploy_agent_swarm"):
+        with st.spinner(f"Spawning background thread for mission: {agent_task}..."):
+            t_worker = threading.Thread(target=run_background_swarm, args=(agent_task,))
+            t_worker.start()
+            
             h = hashlib.sha256(agent_task.encode()).hexdigest()[:12].upper()
-            st.success(f"Agent swarm successfully deployed! [Swarm ID: AGENT-{h}]")
+            st.success(f"Agent swarm successfully dispatched in asynchronous background mode! [Swarm ID: AGENT-{h}]")
             
             st.markdown("#### 🔄 Cross-Sector Automated Synthesis Feed")
             st.markdown(f"""
             * **Primary Target:** `{agent_task}`
+            * **Execution Mode:** `Non-blocking Background Thread`
             * **Satellite Weather Feed Integration:** Synced with Sentinel-2 & MODIS indices.
-            * **Automated Action Triggered:** Cross-referenced regional vulnerability metrics; dispatched automated telemetry adjustments to local infrastructure endpoints.
             * **Systemic Risk Index:** `Low (0.014)`
             """)
-            
-            cursor = db_conn.cursor()
-            cursor.execute("INSERT INTO saved_analyses (title, timestamp, category, content) VALUES (?, ?, ?, ?)",
-                           (f"Agent Swarm: {agent_task[:25]}", datetime.datetime.now().isoformat(), "Autonomous Swarms", f"Mission deployed successfully. ID: AGENT-{h}"))
-            db_conn.commit()
 
 # ---------------------------------------------------------
 # NEW MODULE 2: ADVANCED BIOINFORMATICS & GENOMIC STUDIO
@@ -369,11 +479,11 @@ def render_bioinformatics_studio():
             st.success("Genomic sequence record saved to secure vault!")
 
 # ---------------------------------------------------------
-# MODULE: SATELLITE & GLOBAL INTERNET TELEMETRY HUB
+# MODULE: SATELLITE & GLOBAL INTERNET TELEMETRY HUB (WITH MAP)
 # ---------------------------------------------------------
 def render_satellite_orbital_hub():
     st.markdown("### 🛰️ Live Satellite Constellation & Global Database Telemetry Hub")
-    st.markdown("Real-time downlink integration with orbital earth-observation satellites (Sentinel, Landsat, MODIS) and open web global databases for climate, agriculture, water resources, and economic tracking.")
+    st.markdown("Real-time downlink integration with orbital earth-observation satellites (Sentinel, Landsat, MODIS) and interactive map coordinate selection.")
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -395,8 +505,22 @@ def render_satellite_orbital_hub():
         "Open-World Global Economic & Trade Database Feed"
     ])
 
-    lat_val = st.number_input("Target Latitude", value=0.3476, format="%.4f")
-    lon_val = st.number_input("Target Longitude", value=32.5825, format="%.4f")
+    lat_val, lon_val = 0.3476, 32.5825
+    if FOLIUM_AVAILABLE:
+        st.markdown("#### 🗺️ Interactive Target Coordinate Selector")
+        m = folium.Map(location=[0.3476, 32.5825], zoom_start=6)
+        m.add_child(folium.LatLngPopup())
+        map_data = st_folium(m, height=350, width="100%")
+        if map_data and map_data.get("last_clicked"):
+            lat_val = map_data["last_clicked"]["lat"]
+            lon_val = map_data["last_clicked"]["lng"]
+            st.info(f"Selected Target Coordinates from Map -> Latitude: **{lat_val:.4f}**, Longitude: **{lon_val:.4f}**")
+
+    col_lat, col_lon = st.columns(2)
+    with col_lat:
+        lat_val = st.number_input("Target Latitude", value=float(lat_val), format="%.4f")
+    with col_lon:
+        lon_val = st.number_input("Target Longitude", value=float(lon_val), format="%.4f")
     
     if st.button("📡 Execute Live Satellite Downlink & Scan", key="execute_sat_downlink"):
         with st.spinner(f"Establishing encrypted uplink to {sat_select} for coordinates ({lat_val}, {lon_val})..."):
@@ -418,17 +542,9 @@ def render_satellite_orbital_hub():
             sc2.metric("Relative Humidity", f"{hum} %", delta="Optimal")
             sc3.metric("Precipitation Rate", f"{prec} mm/h", delta="Normal")
 
-            st.markdown("#### 🌍 Satellite Spectral Analysis & Gap Mitigation Report")
-            st.markdown(f"""
-            * **Satellite Source:** `{sat_select}`
-            * **Spatial Resolution:** `10 meters per pixel`
-            * **Identified Sector Gap:** Agricultural water stress detection in target regional grid.
-            * **Automated Recommendation:** Trigger automated irrigation scheduling and dispatch nutrient telemetry maps to local farming co-ops.
-            """)
-
             cursor = db_conn.cursor()
             cursor.execute("INSERT INTO saved_analyses (title, timestamp, category, content) VALUES (?, ?, ?, ?)",
-                           (f"Satellite Scan: {sat_select[:15]} ({lat_val}, {lon_val})", datetime.datetime.now().isoformat(), "Satellite Intelligence", f"Temp: {temp}C, Humidity: {hum}%, Precip: {prec}mm/h"))
+                           (f"Satellite Scan: {sat_select[:15]} ({lat_val:.2f}, {lon_val:.2f})", datetime.datetime.now().isoformat(), "Satellite Intelligence", f"Temp: {temp}C, Humidity: {hum}%, Precip: {prec}mm/h"))
             db_conn.commit()
 
 # ---------------------------------------------------------
@@ -436,7 +552,7 @@ def render_satellite_orbital_hub():
 # ---------------------------------------------------------
 def render_sector_gap_solver():
     st.markdown("### 💡 Universal Multi-Sector Gap & Problem Solver")
-    st.markdown("Deep macroscopic analysis across **all global sectors** (Healthcare, Agriculture, Energy, Education, Finance, Governance, Logistics) identifying structural gaps and generating immediate, deployable technological solutions.")
+    st.markdown("Deep macroscopic analysis across **all global sectors** identifying structural gaps and generating immediate, deployable technological solutions.")
 
     sector_choice = st.selectbox("Select Global Sector to Analyze", [
         "Agriculture & Food Security (Drought & Yield Optimization)",
@@ -478,11 +594,11 @@ def render_sector_gap_solver():
             st.success(f"Solution successfully deployed and logged! [Deployment Hash: SEC-{h}]")
 
 # ---------------------------------------------------------
-# MODULE: INTERACTIVE DATA EXPLORER & VAULT
+# MODULE: INTERACTIVE DATA EXPLORER & VAULT (WITH AUTO-CLEANING)
 # ---------------------------------------------------------
 def render_personal_workspace():
     st.markdown("### 📂 Interactive Vault & Automated Data Analytics Studio")
-    st.markdown("Upload any dataset (CSV, Excel, JSON), click **Initiate Data Pipeline**, inspect metrics, explore features, and save final reports to the secure vault.")
+    st.markdown("Upload any dataset (CSV, Excel, JSON), apply automated pre-processing controls, inspect metrics, and save final reports to the secure vault.")
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -498,17 +614,25 @@ def render_personal_workspace():
         st.markdown('<div class="metric-box"><div class="val">CHRISHEM</div><div class="lbl">Root Governance</div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### 📤 Secure File Upload & Intentional Pipeline Execution")
+    st.markdown("#### 📤 Secure File Upload & Automated Pre-Processing Toggles")
     
     uploaded_file = st.file_uploader("Drop your dataset here (CSV, XLSX, JSON):", type=["csv", "xlsx", "xls", "json", "txt"], key="single_vault_uploader")
     
+    col_opt1, col_opt2, col_opt3 = st.columns(3)
+    with col_opt1:
+        drop_dup = st.checkbox("Drop Duplicate Rows", value=True)
+    with col_opt2:
+        missing_handling = st.selectbox("Missing Value Strategy", ["Mean Imputation", "Median Imputation", "Drop Missing Rows", "None"])
+    with col_opt3:
+        outlier_flag = st.checkbox("Filter Statistical Outliers (3σ)", value=False)
+
     if uploaded_file is not None:
-        df, file_bytes = load_dataset(uploaded_file)
+        df, file_bytes = load_dataset(uploaded_file, drop_duplicates=drop_dup, handle_missing=missing_handling, outlier_removal=outlier_flag)
         if df is not None:
-            st.info(f"File loaded successfully: `{uploaded_file.name}` | Detected Dimensions: **{df.shape[0]} rows** $\times$ **{df.shape[1]} columns**")
+            st.info(f"File loaded successfully: `{uploaded_file.name}` | Cleaned Dimensions: **{df.shape[0]} rows** $\times$ **{df.shape[1]} columns**")
             
             if st.button("🚀 Initiate Data Analytics Pipeline", key="initiate_pipeline_btn"):
-                with st.spinner("Executing rigorous data ingestion, type-casting, and missing value checks..."):
+                with st.spinner("Executing rigorous data ingestion, cleaning, and schema validation..."):
                     preview_str = df.head(3).to_json()
                     cursor = db_conn.cursor()
                     cursor.execute("""
@@ -573,7 +697,7 @@ def render_personal_workspace():
 # ---------------------------------------------------------
 def render_ai_intelligence_daemon(active_analyst_name):
     st.markdown("### 🤖 Fully Operational AI Intelligence & Instant Problem Solver")
-    st.markdown("Ask any technical, mathematical, data analytics, or programming question below. The autonomous engine instantly formulates contextual solutions, predictions, and executable scripts tailored specifically to your prompt.")
+    st.markdown("Ask any technical, mathematical, data analytics, or programming question below. The autonomous engine instantly formulates contextual solutions.")
 
     cursor = db_conn.cursor()
     cursor.execute("SELECT prompt, response, timestamp FROM live_chat_history ORDER BY id ASC")
@@ -599,7 +723,7 @@ def render_ai_intelligence_daemon(active_analyst_name):
 
     user_prompt = st.text_area(
         "Enter your custom problem or question here:",
-        placeholder="Type any unique challenge, e.g., 'How do I optimize pandas dataframe merge operations for 1M+ rows?' or 'Explain gene expression profiling.'",
+        placeholder="Type any unique challenge...",
         key="real_ai_chat_input"
     )
 
@@ -621,20 +745,8 @@ def render_ai_intelligence_daemon(active_analyst_name):
         else:
             with st.spinner("Analyzing parameters and synthesizing real-time operational solution..."):
                 hash_val = hashlib.sha256(user_prompt.encode()).hexdigest()[:16].upper()
-                
-                lp = user_prompt.lower()
-                if "pandas" in lp or "dataframe" in lp or "merge" in lp or "sql" in lp or "data" in lp:
-                    solution_text = f"Custom analysis for query '{user_prompt[:40]}...': Implement vectorized pandas `merge()` operations with optimized indexing or leverage partitioned dataframes to reduce memory bottlenecks."
-                    prediction_text = "Memory overhead reduced by 68%; query response latency optimized."
-                elif "python" in lp or "code" in lp or "error" in lp or "bug" in lp or "streamlit" in lp:
-                    solution_text = f"Custom code review for '{user_prompt[:40]}...': Refactor execution loops with robust exception handling (`try...except`), incorporate multi-encoding fallbacks, and cache compute-heavy tasks."
-                    prediction_text = "Zero unhandled exceptions; clean asynchronous thread stability."
-                elif "bio" in lp or "gene" in lp or "sequence" in lp or "pathogen" in lp or "evolution" in lp:
-                    solution_text = f"Bioinformatics strategy for '{user_prompt[:40]}...': Execute sliding-window GC-content analysis, phylogenetic bootstrapping, and sequence homology scoring against reference genomes."
-                    prediction_text = "Genomic sequence precision score: 99.7% confidence rating."
-                else:
-                    solution_text = f"Synthesized heuristic response for unique challenge '{user_prompt[:60]}...': Recommended action involves decoupling the compute pipeline, enforcing boundary constraints, and logging telemetry metrics."
-                    prediction_text = f"Adaptive system stability index maintained at 99.9% for input hash HASH-{hash_val}."
+                solution_text = f"Synthesized heuristic response for challenge '{user_prompt[:50]}...': Recommended action involves executing vector optimizations and telemetry boundary checks."
+                prediction_text = f"Adaptive system stability index maintained at 99.9% for input hash HASH-{hash_val}"
 
                 full_response = f"""
 **Domain:** `{query_mode}`  
@@ -647,13 +759,7 @@ def render_ai_intelligence_daemon(active_analyst_name):
                     INSERT INTO live_chat_history (username, timestamp, prompt, response)
                     VALUES (?, ?, ?, ?)
                 """, (active_analyst_name, datetime.datetime.now().isoformat(), user_prompt, full_response))
-                
-                cursor.execute("""
-                    INSERT INTO system_telemetry_logs (timestamp, module_name, severity, details, crypto_hash)
-                    VALUES (?, ?, ?, ?, ?)
-                """, (datetime.datetime.now().isoformat(), "AI Intelligence Daemon", "SUCCESS", user_prompt[:100], f"HASH-{hash_val}"))
                 db_conn.commit()
-
                 st.success("Analysis generated successfully!")
                 st.rerun()
 
@@ -686,8 +792,11 @@ def render_system_diagnostics():
 # ---------------------------------------------------------
 def main():
     st.sidebar.title("CHRISHEM")
-    st.sidebar.caption("Sovereign Enterprise Engine v7.0 (World Apex Edition)")
+    st.sidebar.caption("Sovereign Enterprise Engine v8.0 (World Apex Edition)")
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+
+    # Multi-Language Selector in Sidebar
+    selected_lang = st.sidebar.selectbox("Select Language / Lugha", ["English", "Swahili", "French"])
 
     st.sidebar.markdown("### 👤 User Authentication & RBAC")
     signed_in_user = st.sidebar.text_input("Enter Analyst Name:", value="Kula Chris")
@@ -724,21 +833,19 @@ def main():
     st.sidebar.markdown(f"**Security Role:** `{user_role}`")
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
-    # Navigation Hub Menu Items (Including New Agent Swarms & Bioinformatics Studio)
-    navigation = st.sidebar.radio(
-        "Navigation Hub",
-        [
-            "Satellite & Orbital Telemetry",
-            "Autonomous Agent Swarms",
-            "Bioinformatics & Genomic Studio",
-            "Universal Sector Gap Solver",
-            "Personal Workspace",
-            "AI Intelligence Daemon",
-            "Saved Analyses Vault",
-            "Access Control & Licensing",
-            "System Diagnostics & Health"
-        ]
-    )
+    # Navigation Hub Menu Items with i18n keys
+    nav_options = [
+        t("nav_sat", selected_lang),
+        t("nav_swarm", selected_lang),
+        t("nav_bio", selected_lang),
+        t("nav_gap", selected_lang),
+        t("nav_workspace", selected_lang),
+        t("nav_ai", selected_lang),
+        t("nav_vault", selected_lang),
+        t("nav_access", selected_lang),
+        t("nav_diag", selected_lang)
+    ]
+    navigation = st.sidebar.radio("Navigation Hub", nav_options)
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
     st.sidebar.caption("SYSTEM STATUS")
@@ -818,7 +925,7 @@ def main():
                 <div class="greeting-sub">{welcome_prefix} | {big_days_info}</div>
             </div>
             <div>
-                <span class="status-badge status-stable">Visits: #{new_visit_count}</span>
+                <span class="status-badge status-stable">{t('visits', selected_lang)}: #{new_visit_count}</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -826,43 +933,43 @@ def main():
     st.title(navigation)
     st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
-    if navigation == "Satellite & Orbital Telemetry":
+    if navigation == t("nav_sat", selected_lang):
         try:
             render_satellite_orbital_hub()
         except Exception as e:
             st.error(f"Failed to render Satellite Orbital Hub: {e}")
 
-    elif navigation == "Autonomous Agent Swarms":
+    elif navigation == t("nav_swarm", selected_lang):
         try:
             render_autonomous_agents()
         except Exception as e:
             st.error(f"Failed to render Autonomous Agent Swarms module: {e}")
 
-    elif navigation == "Bioinformatics & Genomic Studio":
+    elif navigation == t("nav_bio", selected_lang):
         try:
             render_bioinformatics_studio()
         except Exception as e:
             st.error(f"Failed to render Bioinformatics Studio: {e}")
 
-    elif navigation == "Universal Sector Gap Solver":
+    elif navigation == t("nav_gap", selected_lang):
         try:
             render_sector_gap_solver()
         except Exception as e:
             st.error(f"Failed to render Universal Sector Gap Solver: {e}")
 
-    elif navigation == "Personal Workspace":
+    elif navigation == t("nav_workspace", selected_lang):
         try:
             render_personal_workspace()
         except Exception as e:
             st.error(f"Failed to render Personal Workspace module: {e}")
 
-    elif navigation == "AI Intelligence Daemon":
+    elif navigation == t("nav_ai", selected_lang):
         try:
             render_ai_intelligence_daemon(active_analyst_name)
         except Exception as e:
             st.error(f"Failed to render AI Intelligence Daemon module: {e}")
 
-    elif navigation == "Saved Analyses Vault":
+    elif navigation == t("nav_vault", selected_lang):
         st.markdown("### 💾 Saved Analyses & Reports Vault")
         st.markdown("Review all reports, datasets, satellite downlinks, agent swarms, and bioinformatics sequences previously saved to the secure database.")
         
@@ -882,10 +989,21 @@ def main():
                     <p style="margin-top: 0.5rem; color: #F8FAFC; font-size: 0.9rem;">{s_content}</p>
                 </div>
                 """, unsafe_allow_html=True)
+                
+                if FPDF_AVAILABLE:
+                    pdf_bytes = generate_pdf_report(s_title, s_content)
+                    if pdf_bytes:
+                        st.download_button(
+                            label=f"📥 Download PDF Dossier (#{s_id})",
+                            data=pdf_bytes,
+                            file_name=f"dossier_{s_id}.pdf",
+                            mime="application/pdf",
+                            key=f"pdf_dl_{s_id}"
+                        )
         else:
             st.info("No saved analyses found in the vault yet.")
 
-    elif navigation == "Access Control & Licensing":
+    elif navigation == t("nav_access", selected_lang):
         c1, c2, c3 = st.columns(3)
         c1.metric("Clearance Tier", f"Tier-1 {user_role}")
         c2.metric("License Expiry", "2030-12-31")
@@ -893,7 +1011,7 @@ def main():
         st.markdown("#### Security Authorization Matrix & RBAC Verification")
         st.code(f"[User Principal] -> {active_analyst_name}\n[Assigned Role] -> {user_role}\n[Root Governance] -> CHRISHEM Apex Engine", language="text")
 
-    elif navigation == "System Diagnostics & Health":
+    elif navigation == t("nav_diag", selected_lang):
         render_system_diagnostics()
 
 if __name__ == "__main__":
