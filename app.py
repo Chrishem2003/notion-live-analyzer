@@ -16,9 +16,11 @@ def get_image_base64(image_path):
     return None
 
 img_path = "chrishem.png"
+img_path = "chrishem.png"
+if not os.path.exists(img_path):
+    img_path = "Chrishem.png"
 if not os.path.exists(img_path):
     img_path = r"C:\Users\Admin\Pictures\chrishem.png"
-img_base64 = get_image_base64(img_path)
 
 st.markdown("""
 <style>
