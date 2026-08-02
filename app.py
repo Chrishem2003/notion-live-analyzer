@@ -4,7 +4,7 @@ import base64
 
 st.set_page_config(
     page_title="Chrishem Science Hub - Sovereign Gateway",
-    page_icon="??",
+    page_icon="🧬",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -15,9 +15,9 @@ def get_image_base64(image_path):
             return base64.b64encode(img_file.read()).decode("utf-8")
     return None
 
-img_path = r"C:\Users\Admin\Pictures\chrishem.png"
+img_path = "chrishem.png"
 if not os.path.exists(img_path):
-    img_path = "chrishem.png"
+    img_path = r"C:\Users\Admin\Pictures\chrishem.png"
 img_base64 = get_image_base64(img_path)
 
 st.markdown("""
@@ -56,11 +56,11 @@ html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
 if img_base64:
     st.markdown(f"""
         <script>
-            var link = document.querySelector("link[rel*=\x27icon\x27]") || document.createElement(\x27link\x27);
-            link.type = \x27image/png\x27;
-            link.rel = \x27shortcut icon\x27;
-            link.href = \x27data:image/png;base64,{img_base64}\x27;
-            document.getElementsByTagName(\x27head\x27)[0].appendChild(link);
+            var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+            link.type = 'image/png';
+            link.rel = 'shortcut icon';
+            link.href = 'data:image/png;base64,{img_base64}';
+            document.getElementsByTagName('head')[0].appendChild(link);
         </script>
     """, unsafe_allow_html=True)
 
@@ -71,10 +71,10 @@ if "user_identity" not in st.session_state:
 
 def main():
     if not st.session_state.portal_unlocked:
-        st.markdown("<div style=\x27height: 2vh;\x27></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
         col1, col2, col3 = st.columns([1, 4.5, 1])
         with col2:
-            img_tag = f"<img src=\x27data:image/png;base64,{img_base64}\x27 class=\x27profile-img\x27>" if img_base64 else "<div style=\x27font-size: 60px;\x27>??</div>"
+            img_tag = f"<img src='data:image/png;base64,{img_base64}' class='profile-img'>" if img_base64 else "<div style='font-size: 60px;'>🧬</div>"
             
             st.markdown(f"""
             <div class="landing-container">
@@ -84,9 +84,9 @@ def main():
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown("<div style=\x27height: 20px;\x27></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
             
-            tab_signin, tab_signup = st.tabs(["?? Secure Sign In", "?? First-Time Registration"])
+            tab_signin, tab_signup = st.tabs(["🔐 Secure Sign In", "📝 First-Time Registration"])
             
             with tab_signin:
                 si_email = st.text_input("Email Address", placeholder="e.g. chrishem242@gmail.com", key="si_email_input")
@@ -94,7 +94,7 @@ def main():
                 
                 c_b1, c_b2 = st.columns(2)
                 with c_b1:
-                    if st.button("?? Authenticate Hub", use_container_width=True):
+                    if st.button("🚀 Authenticate Hub", use_container_width=True):
                         entered_email = si_email.strip().lower() if si_email else "guest@hub.com"
                         entered_name = si_name.strip() if si_name else "Chrishem"
                         is_admin = (entered_email == "chrishem242@gmail.com")
@@ -108,7 +108,7 @@ def main():
                         }
                         st.rerun()
                 with c_b2:
-                    if st.button("?? Instant Google Sign-In (Simulated)", use_container_width=True):
+                    if st.button("🔵 Instant Google Sign-In (Simulated)", use_container_width=True):
                         st.session_state.portal_unlocked = True
                         st.session_state.user_identity = {
                             "email": "chrishem242@gmail.com",
@@ -122,7 +122,7 @@ def main():
                 su_name = st.text_input("Your Preferred Name", placeholder="e.g. Chrishem Kula", key="su_name_input")
                 su_email = st.text_input("Your Email Address", placeholder="e.g. chrishem242@gmail.com", key="su_email_input")
                 
-                if st.button("? Register & Launch Sovereign Engine", use_container_width=True):
+                if st.button("✨ Register & Launch Sovereign Engine", use_container_width=True):
                     reg_name = su_name.strip() if su_name else "Chrishem"
                     reg_email = su_email.strip().lower() if su_email else "guest@hub.com"
                     is_admin = (reg_email == "chrishem242@gmail.com")
@@ -136,38 +136,37 @@ def main():
                     }
                     st.rerun()
             
-            st.markdown("<hr style=\x27border-color: rgba(255,255,255,0.1); margin: 25px 0;\x27>", unsafe_allow_html=True)
-            st.markdown("<h4 style=\x27text-align: center; color: #F8FAFC; font-size: 1.1rem; margin-bottom: 12px;\x27>?? Download Complete Portable System Suite</h4>", unsafe_allow_html=True)
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 25px 0;'>", unsafe_allow_html=True)
+            st.markdown("<h4 style='text-align: center; color: #F8FAFC; font-size: 1.1rem; margin-bottom: 12px;'>📥 Download Complete Portable System Suite</h4>", unsafe_allow_html=True)
             
             d_col1, d_col2, d_col3, d_col4 = st.columns(4)
             with d_col1:
-                st.download_button("?? Windows (.exe)", data=b"Mock Windows Compiled Enterprise Bundle Binary", file_name="ChrishemScienceHub_Win64.zip", use_container_width=True)
+                st.download_button("💻 Windows (.exe)", data=b"Mock Windows Compiled Enterprise Bundle Binary", file_name="ChrishemScienceHub_Win64.zip", use_container_width=True)
             with d_col2:
-                st.download_button("?? macOS (.app/.dmg)", data=b"Mock macOS Universal Binary Package", file_name="ChrishemScienceHub_macOS.dmg", use_container_width=True)
+                st.download_button("🍏 macOS (.app/.dmg)", data=b"Mock macOS Universal Binary Package", file_name="ChrishemScienceHub_macOS.dmg", use_container_width=True)
             with d_col3:
-                st.download_button("?? Linux (.AppImage)", data=b"Mock Linux Standalone AppImage Binary", file_name="ChrishemScienceHub_Linux.AppImage", use_container_width=True)
+                st.download_button("🐧 Linux (.AppImage)", data=b"Mock Linux Standalone AppImage Binary", file_name="ChrishemScienceHub_Linux.AppImage", use_container_width=True)
             with d_col4:
-                st.download_button("?? Mobile (.apk)", data=b"Mock Android Compiled Client Package", file_name="ChrishemScienceHub_Mobile.apk", use_container_width=True)
+                st.download_button("📱 Mobile (.apk)", data=b"Mock Android Compiled Client Package", file_name="ChrishemScienceHub_Mobile.apk", use_container_width=True)
     else:
         user = st.session_state.get("user_identity", {})
         username = user.get("name", "Chrishem")
         role = user.get("role", "Analyst")
         is_admin = user.get("is_admin", False)
         
-        st.sidebar.title(f"? Welcome back, {username}!")
+        st.sidebar.title(f"⚡ Welcome back, {username}!")
         st.sidebar.caption(f"Role: {role}")
         if is_admin:
-            st.sidebar.success("??? Admin Privileges Active")
+            st.sidebar.success("🛡️ Admin Privileges Active")
             
-        if st.sidebar.button("?? Lock / Switch Account"):
+        if st.sidebar.button("🔒 Lock / Switch Account"):
             st.session_state.portal_unlocked = False
             st.rerun()
             
         st.sidebar.markdown("---")
-        st.title("?? Chrishem Science Hub & Workspace")
+        st.title("🧬 Chrishem Science Hub & Workspace")
         st.success(f"System Operational. Welcome back, **{username}**.")
-        st.markdown("Your multi-page tool suite is fully active. Check the **sidebar menu on the left** to switch between your Notion Live Analyzer, data analytics modules, and bioinformatics tools.")
+        st.markdown("Your workspace is unlocked. **Your multi-page tool suite is fully active in the sidebar navigation menu on the left.** Select any page to navigate to your analytics modules.")
 
 if __name__ == "__main__":
     main()
-
