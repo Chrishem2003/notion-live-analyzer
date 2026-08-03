@@ -1,20 +1,3 @@
-""
-================================================================================
- GLOBAL SOVEREIGN INTELLIGENCE PLATFORM  |  Unified Command Suite (v9.0)
-================================================================================
-One consolidated Streamlit application merging:
-  - Nonlinear Systems / Chaos Lab      (real ODE integration, SciPy)
-  - ML & Forecasting Core              (real exponential smoothing + AR models)
-  - Live Telemetry Center              (connector framework - demo + pluggable)
-  - Enterprise Security & Governance   (RBAC directory, audit log, KMS view)
-  - Energy & Infrastructure Resiliency (ODE grid-stress simulation)
-  - Food & Agriculture Security        (ODE reserve-depletion simulation)
-  - Financial & Macroeconomic Risk     (ODE debt-sustainability simulation)
-  - Healthcare Command Suite           (SEIR epidemiological simulation)
-  - Data Studio                        (NEW: universal import + real forecasting)
-  - Alert & Watchlist Center           (NEW: cross-module threshold engine)
-
-
 import datetime
 import hashlib
 import io
