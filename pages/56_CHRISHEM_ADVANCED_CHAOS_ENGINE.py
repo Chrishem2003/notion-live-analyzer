@@ -18,7 +18,7 @@ import plotly.express as px
 # runnable standalone (e.g. for local dev / review) even without that module.
 # ---------------------------------------------------------------------------
 try:
-    iiimport security_guard
+import security_guard
     security_guard.verify_access()
 except Exception:
     pass
