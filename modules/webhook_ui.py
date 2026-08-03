@@ -1,4 +1,5 @@
 ﻿import security_guard
+import security_guard
 
 import streamlit as st
 from modules.webhook_manager import send_enterprise_webhook

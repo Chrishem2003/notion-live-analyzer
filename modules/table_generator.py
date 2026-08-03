@@ -1,4 +1,5 @@
 ﻿import security_guard
+import security_guard
 
 """
 Publication-Ready Table Generator  APA-style tables, journal-specific formats,

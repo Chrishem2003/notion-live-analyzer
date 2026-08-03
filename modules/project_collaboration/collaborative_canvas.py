@@ -1,4 +1,5 @@
 ﻿import security_guard
+import security_guard
 
 """
 Collaborative Canvas & Viewport Sync Engine (Yjs / CRDTs)

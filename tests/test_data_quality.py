@@ -1,4 +1,5 @@
 ﻿import security_guard
+import security_guard
 
 """Unit tests for modules.data_quality."""
 import numpy as np

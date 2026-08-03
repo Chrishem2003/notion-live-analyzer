@@ -1,4 +1,5 @@
 ﻿import security_guard
+import security_guard
 
 """Unit tests for modules.audit_portal."""
 import pytest

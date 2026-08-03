@@ -1,4 +1,5 @@
 ﻿import security_guard
+import security_guard
 
 """Unit tests for modules.export."""
 import base64

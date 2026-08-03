@@ -1,4 +1,5 @@
 ﻿import security_guard
+import security_guard
 code = """import streamlit as st
 import os
 import base64

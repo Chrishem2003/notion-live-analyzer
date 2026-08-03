@@ -1,4 +1,5 @@
 ﻿import security_guard
+import security_guard
 
 """
 Centralised logging setup for the app.
