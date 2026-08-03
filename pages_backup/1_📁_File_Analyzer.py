@@ -1,4 +1,4 @@
-﻿import security_guard
+﻿iimport security_guard
 security_guard.verify_access()
 
 # ═══════════════════════════════════════════════════════════════════════════════
