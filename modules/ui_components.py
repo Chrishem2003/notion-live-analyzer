@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 UI Components  reusable Streamlit UI elements for consistent design.

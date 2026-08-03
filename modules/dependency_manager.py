@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Dependency Manager  auto-detect, auto-install, and verify all required Python packages.

@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Global Literature Aggregator & Auto-Drafting Engine

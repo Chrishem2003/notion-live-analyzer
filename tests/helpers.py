@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """Test helpers shared across test modules."""
 import pandas as pd

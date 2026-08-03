@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """Email Engine  SMTP/SendGrid Integration for Reports."""
 import os

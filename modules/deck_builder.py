@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Presentation Deck Builder  allows users to select generated charts and

@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 from notion_client import Client
 import streamlit as st

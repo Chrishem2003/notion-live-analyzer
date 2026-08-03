@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Theoretical-to-Practical Protocol Transpiler

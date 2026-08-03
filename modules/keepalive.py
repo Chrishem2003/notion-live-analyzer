@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Keep-Alive System  multi-layer approach to prevent app sleep.

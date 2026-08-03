@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """Shared fixtures for the unit test suite."""
 import sys

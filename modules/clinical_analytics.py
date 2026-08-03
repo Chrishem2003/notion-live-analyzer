@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Clinical & Health Analytics  BMI calculator, clinical reference ranges,

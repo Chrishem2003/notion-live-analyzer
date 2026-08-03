@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 import requests
 from modules.database import log_backend_event

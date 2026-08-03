@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Network Analysis Engine  Correlation networks, social network analysis,

@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Statistical Engine  SPSS-level statistical analysis suite.

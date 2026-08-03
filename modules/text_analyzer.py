@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Text Analyzer  qualitative text analysis with sentiment analysis,

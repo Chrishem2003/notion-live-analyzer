@@ -1,6 +1,4 @@
 ﻿import security_guard
-import security_guard
-mport pandas as pd
 import numpy as np
 
 def infer_column_types(df: pd.DataFrame) -> dict:

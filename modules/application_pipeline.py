@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Application Pipeline & Document Vault Module

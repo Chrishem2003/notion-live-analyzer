@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Research Methodology Advisor  CHRISHEM-powered expert system that recommends

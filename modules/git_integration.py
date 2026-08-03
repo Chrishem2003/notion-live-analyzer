@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Native Git/Repository Integration  connects to GitHub repositories,

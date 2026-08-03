@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Export Module  handles exporting charts and data to various formats.

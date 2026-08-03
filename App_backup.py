@@ -1,6 +1,4 @@
 ﻿import security_guard
-import security_guard
-mport os
 import shutil
 
 app_path = "App.py"

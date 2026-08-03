@@ -1,5 +1,4 @@
 ﻿import security_guard
-import security_guard
 
 """
 Visual Chart Data Extractor & CSV Re-Synthesizer
