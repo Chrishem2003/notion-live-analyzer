@@ -1,2 +1,2 @@
-﻿
+
 # Sovereign Core Engine Package

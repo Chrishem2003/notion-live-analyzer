@@ -1,4 +1,4 @@
-﻿
+
 """
 Presentation Deck Builder  allows users to select generated charts and
 compile them into an interactive presentation deck view with export options.

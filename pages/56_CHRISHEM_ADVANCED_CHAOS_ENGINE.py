@@ -1,4 +1,4 @@
-﻿import datetime
+import datetime
 import hashlib
 import io
 import json

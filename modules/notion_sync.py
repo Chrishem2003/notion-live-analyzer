@@ -1,4 +1,4 @@
-﻿
+
 """
 Notion Bi-Directional Sync Engine  enables writing insights, tags, and cleaned data
 back to Notion pages and databases via the Notion API.

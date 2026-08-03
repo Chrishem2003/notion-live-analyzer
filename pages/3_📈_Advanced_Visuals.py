@@ -1,4 +1,4 @@
-﻿
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ADVANCED FILE ANALYZER & MULTI-FORMAT INGESTION ENGINE [ENTERPRISE v7.0 PRO]
 # Standalone Edition with High-Contrast Cyber-Emerald Styling, PII Masking,

@@ -1,4 +1,4 @@
-﻿
+
 """
 Project Security & JWT Token Generator
 Next-gen API route generating project-isolated JWT tokens carrying

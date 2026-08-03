@@ -1,4 +1,4 @@
-﻿
+
 """
 File Uploader Ã¢â‚¬â€ handles file uploads in multiple formats (CSV, Excel, SPSS, SAS, STATA, JSON).
 """

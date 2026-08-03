@@ -1,4 +1,4 @@
-﻿
+
 #!/usr/bin/env python3
 """
 OmniVault â€” Vault Ledger Desktop Suite

@@ -1,4 +1,4 @@
-﻿
+
 import time
 import requests
 import logging
