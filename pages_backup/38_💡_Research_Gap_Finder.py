@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 
@@ -246,5 +246,6 @@ else:
             st.download_button("🔍 Export Re-Synthesized CSV", data="X_Axis,Series_1,Series_2\n0.0,12.4,11.8\n1.5,18.2,17.9", file_name="extracted_chart_data.csv", mime="text/csv")
 
     st.success("✅ Path guard applied. Ensure `modules/chart_data_extractor.py` exists in your root repository to link full backend execution.")
+
 
 

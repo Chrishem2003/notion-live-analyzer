@@ -1,4 +1,4 @@
-import security_guard
+﻿iiimport security_guard
 security_guard.verify_access()
 
 
@@ -207,5 +207,7 @@ else:
     uploaded_file = st.file_uploader("Upload Manuscript or Proposal Draft", type=["docx", "tex", "md", "pdf"])
     if uploaded_file:
         st.success(f"File `{uploaded_file.name}` uploaded successfully. Ready for processing.")
+
+
 
 

@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 
@@ -141,3 +141,4 @@ There was a [positive/negative], [weak/moderate/strong] correlation between the 
 A chi-square test of independence was performed to examine the relation between [Variable A] and [Variable B]. 
 The relation between these variables was significant, chi-square(df, N = [XXX]) = [X.XX], p = [.XXX].
         """, language="markdown")
+

@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 
@@ -93,3 +93,4 @@ render_pipeline_ui(
     operational_mode=pipeline_mode,
     base_currency=base_currency
 )
+

@@ -1,4 +1,4 @@
-import security_guard
+﻿iiimport security_guard
 security_guard.verify_access()
 
 
@@ -225,5 +225,7 @@ else:
         st.success("Audio captured successfully. Voice activity processing ready.")
 
     st.success("✅ Path guard applied. Ensure `modules/interactive_audio_engine.py` exists in your root repository to link full backend execution.")
+
+
 
 

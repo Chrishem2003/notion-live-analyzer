@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -859,3 +859,4 @@ elif test_name == "Normality Test":
       st.plotly_chart(fig, use_container_width=True)
   else:
     st.warning("Need at least 1 numeric variable.")
+

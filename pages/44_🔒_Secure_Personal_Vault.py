@@ -1,4 +1,4 @@
-import security_guard
+﻿iiimport security_guard
 security_guard.verify_access()
 
 
@@ -757,3 +757,5 @@ elif active == "📋 Admin Audit Log":
     logs = conn.execute("SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT 200").fetchall()
     conn.close()
     st.dataframe(pd.DataFrame([dict(r) for r in logs]), use_container_width=True, hide_index=True)
+
+

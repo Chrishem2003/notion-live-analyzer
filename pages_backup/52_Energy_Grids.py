@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 import datetime
@@ -320,3 +320,4 @@ elif infra_module == "Emergency Interventions & Grid Restoration Matrix":
     All spinning reserves are synchronized with regional dispatch centers. In the event of a frequency excursion below 49.5 Hz, automated islanding protocols will isolate critical municipal infrastructure within 300 milliseconds.
     </div>
     """, unsafe_allow_html=True)
+

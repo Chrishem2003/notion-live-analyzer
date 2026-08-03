@@ -1,4 +1,4 @@
-import security_guard
+﻿iiimport security_guard
 security_guard.verify_access()
 
 """
@@ -358,3 +358,5 @@ def render_ai_insights_page():
 # Execute main page renderer when executed directly
 if __name__ == "__main__":
     render_ai_insights_page()
+
+

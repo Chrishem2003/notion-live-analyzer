@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 import datetime
@@ -323,3 +323,4 @@ elif agri_module == "Global Food Trade & Regional Resilience Matrix":
         "Strategic Priority": ["Corridor Harmonization", "Buffer Expansion", "Logistics Upgrade", "Input Subsidies"]
     })
     st.dataframe(resilience_df, use_container_width=True)
+

@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 
@@ -228,5 +228,6 @@ else:
     
     st.dataframe(sample_data, use_container_width=True)
     st.success("✅ Path guard applied. Create `modules/meta_analysis_matrix.py` in your root repository to link full backend execution.")
+
 
 

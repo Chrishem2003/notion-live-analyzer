@@ -1,4 +1,4 @@
-import security_guard
+﻿iiimport security_guard
 security_guard.verify_access()
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -839,3 +839,5 @@ print(df.info())
                     st.rerun()
             else:
                 st.warning("Requires at least 2 numeric columns.")
+
+

@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -688,3 +688,4 @@ if working_df is not None and not working_df.empty:
                 st.plotly_chart(build_chart("scatter", working_df, x=numeric_cols[0], y=numeric_cols[1], height=320), use_container_width=True)
         else:
             st.info("Requires at least 2 numeric features.")
+

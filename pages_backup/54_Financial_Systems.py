@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 import datetime
@@ -319,3 +319,4 @@ elif macro_module == "Fiscal Deficit & Liquidity Coverage (LCR)":
     Buffer reserves remain above Basel III minimum thresholds (100%). Short-term domestic debt issuances should be prioritized during periods of high foreign exchange volatility.
     </div>
     """, unsafe_allow_html=True)
+

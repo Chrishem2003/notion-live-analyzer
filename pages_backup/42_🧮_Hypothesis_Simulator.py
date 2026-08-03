@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 
@@ -234,5 +234,6 @@ else:
     st.line_chart(paths)
     
     st.success("✅ Path resolution applied. Ensure `modules/hypothesis_simulator.py` exists in your project repo to restore standard UI hooks.")
+
 
 

@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 
@@ -239,5 +239,6 @@ else:
             st.warning("Please paste citations or DOIs above to execute the scan.")
 
     st.success("✅ Path guard applied. Ensure `modules/citation_inspector.py` exists in your root repository to link full backend execution.")
+
 
 

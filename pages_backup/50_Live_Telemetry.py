@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 import datetime
@@ -301,3 +301,4 @@ elif telemetry_module == "Multi-Source API Stream Orchestrator":
     The telemetry ingestion engine utilizes asynchronous WebSockets and REST polling wrappers to aggregate multi-sector data into unified analytics dataframes in real time.
     </div>
     """, unsafe_allow_html=True)
+

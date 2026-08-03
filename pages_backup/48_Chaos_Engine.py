@@ -1,4 +1,4 @@
-mport security_guard
+﻿import security_guard
 security_guard.verify_access()
 
 import datetime
@@ -670,3 +670,4 @@ elif user_role == "Institutional Contacts & Directory":
     cursor = db_conn.cursor()
     cursor.execute("SELECT id, analyst_name, org_email, contact_phone, clearance_level, primary_sector FROM analyst_contacts")
     st.dataframe(pd.DataFrame(cursor.fetchall(), columns=["ID", "Name", "Email", "Phone", "Clearance", "Domain"]), use_container_width=True)
+
