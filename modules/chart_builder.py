@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Chart Builder  builds 18 interactive chart types using Plotly.
@@ -12,7 +13,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from modules.config import RESEARCH_PALETTES, PUBLICATION_CONFIG
 
-# ─── Research Color Palette Loading ───────────────────────────────────
+# â”€â”€â”€ Research Color Palette Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def get_color_palette(palette_name: str = "Plotly") -> list:
     """Get a color palette by name  includes research journal palettes."""
     palettes = {
@@ -35,7 +36,7 @@ def get_color_palette(palette_name: str = "Plotly") -> list:
     }
     return palettes.get(palette_name, px.colors.qualitative.Plotly)
 
-# ─── Publication-Ready Theming ────────────────────────────────────────
+# â”€â”€â”€ Publication-Ready Theming â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 PC = PUBLICATION_CONFIG
 
 def _spine_style(fig: go.Figure) -> go.Figure:
@@ -143,7 +144,7 @@ def apply_research_theme(fig: go.Figure, journal: str = "Nature") -> go.Figure:
         fig.update_layout(**theme)
     return fig
 
-# ─── Base Theme ───────────────────────────────────────────────────────
+# â”€â”€â”€ Base Theme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 CHART_THEME = {
     "font": dict(family="Inter, -apple-system, BlinkMacSystemFont, sans-serif"),
     "plot_bgcolor": "rgba(0,0,0,0)",
@@ -172,7 +173,7 @@ def apply_theme(fig: go.Figure, is_dark: bool = False, publication: bool = True,
         fig = _clean_grid(fig)
     return fig
 
-# ─── Chart Builder Functions ──────────────────────────────────────────
+# â”€â”€â”€ Chart Builder Functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def build_bar(df, x=None, y=None, color=None, barmode="group", orientation="v", **kwargs):
     """Bar chart  grouped, stacked, or horizontal."""
@@ -547,7 +548,7 @@ def build_gauge(df, value_col=None, **kwargs):
     )
     return apply_theme(fig, is_dark=kwargs.get("is_dark", False), title=kwargs.get("title"), journal=kwargs.get("journal"))
 
-# ─── Chart Factory ────────────────────────────────────────────────────
+# â”€â”€â”€ Chart Factory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 CHART_BUILDERS = {
     "bar": build_bar,
     "grouped_bar": build_bar,

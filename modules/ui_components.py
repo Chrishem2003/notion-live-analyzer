@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 UI Components  reusable Streamlit UI elements for consistent design.
@@ -8,7 +9,7 @@ import streamlit as st
 from pathlib import Path
 from modules.config import find_background_image, image_to_data_url, ASSETS_DIR, APP_DIR
 
-# ─── Unified Stunning Styles (Applied everywhere) ─────────────────────
+# â”€â”€â”€ Unified Stunning Styles (Applied everywhere) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
     """Load unified stunning CSS with vibrant colors and animations."""
     # Try to detect theme
@@ -148,11 +149,11 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-        /* ═══════════════════════════════════════════════════════════════════
+        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
            UNIFIED STUNNING DESIGN SYSTEM  All Pages
-        ═══════════════════════════════════════════════════════════════════ */
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
         
-        /* ─── Base ───────────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .stApp {{
             {background_css}
             background-attachment: fixed;
@@ -198,7 +199,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             max-width: 1320px !important;
         }}
         
-        /* ─── Typography ───────────────────────────────────────────────── */
+        /* â”€â”€â”€ Typography â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         h1, h2, h3 {{
             font-weight: 700 !important;
             letter-spacing: -0.02em !important;
@@ -207,7 +208,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         h2 {{ font-size: 1.75rem !important; color: {text} !important; }}
         h3 {{ font-size: 1.25rem !important; }}
         
-        /* ─── Sidebar ───────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         [data-testid="stSidebar"] {{
             background: {sidebar_bg};
             backdrop-filter: blur(16px);
@@ -221,7 +222,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-size: 1.5rem !important;
         }}
         
-        /* ─── Hero Banner ───────────────────────────────────────────────── */
+        /* â”€â”€â”€ Hero Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .hero-card {{
             background: {hero_gradient};
             border-radius: 20px;
@@ -273,7 +274,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-weight: 700;
         }}
         
-        /* ─── Metrics ───────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Metrics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         [data-testid="stMetric"] {{
             background: {card_bg};
             border: 1px solid {border};
@@ -295,14 +296,14 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-weight: 700 !important;
         }}
         
-        /* ─── Charts ────────────────────────────────────────────────────🔍 */
+        /* â”€â”€â”€ Charts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ðŸ” */
         .stPlotlyChart > div {{
             border-radius: 18px;
             overflow: hidden;
             box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
         }}
         
-        /* ─── DataFrame ─────────────────────────────────────────────────── */
+        /* â”€â”€â”€ DataFrame â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         [data-testid="stDataFrame"] {{
             background: {card_bg};
             border-radius: 16px;
@@ -317,7 +318,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             padding: 1rem !important;
         }}
         
-        /* ─── Buttons ───────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .stButton > button {{
             border-radius: 12px !important;
             font-weight: 600 !important;
@@ -334,7 +335,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4) !important;
         }}
         
-        /* ─── Inputs ────────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Inputs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .stTextInput input, .stTextArea textarea, .stSelectbox {{
             background: {card_bg} !important;
             border: 1px solid {border} !important;
@@ -347,7 +348,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
         }}
         
-        /* ─── Tabs ──────────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .stTabs [data-baseweb="tab-list"] {{
             gap: 0.5rem;
         }}
@@ -366,7 +367,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             color: white !important;
         }}
         
-        /* ─── Sidebar Card ───────────────────────────────────────────────── */
+        /* â”€â”€â”€ Sidebar Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .sidebar-card {{
             background: {side_card_bg};
             border: 1px solid {border};
@@ -380,7 +381,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             color: {text} !important;
         }}
         
-        /* ─── Section Header ────────────────────────────────────────────── */
+        /* â”€â”€â”€ Section Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .section-header {{
             margin-top: 0.25rem;
             margin-bottom: 0.35rem;
@@ -395,7 +396,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-weight: 800 !important;
         }}
         
-        /* ─── Live Badge ───────────────────────────────────────────────── */
+        /* â”€â”€â”€ Live Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .live-badge {{
             display: inline-block;
             padding: 0.35rem 0.8rem;
@@ -407,7 +408,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             margin-top: 0.5rem;
         }}
         
-        /* ─── Insight & Recommendation Cards ───────────────────────────── */
+        /* â”€â”€â”€ Insight & Recommendation Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .insight-card {{
             background: {card_gradient};
             border-left: 4px solid {colors['primary']};
@@ -429,7 +430,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }}
         
-        /* ─── Sync Card ────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Sync Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .sync-card {{
             background: {card_bg};
             border: 1px solid {border};
@@ -440,7 +441,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             backdrop-filter: blur(10px);
         }}
         
-        /* ─── Stat Result Card ─────────────────────────────────────────── */
+        /* â”€â”€â”€ Stat Result Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .stat-result-card {{
             background: {card_bg};
             border-radius: 14px;
@@ -449,7 +450,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             margin: 0.5rem 0;
         }}
         
-        /* ─── Watermark ────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Watermark â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .app-watermark {{
             position: fixed;
             right: 1.2rem;
@@ -465,7 +466,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             text-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
         }}
         
-        /* ─── Status Badges ────────────────────────────────────────────── */
+        /* â”€â”€â”€ Status Badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .badge {{
             display: inline-flex;
             align-items: center;
@@ -493,7 +494,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             color: {colors['primary']};
         }}
         
-        /* ─── Animations ────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Animations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         @keyframes fade-in {{
             from {{ opacity: 0; transform: translateY(10px); }}
             to {{ opacity: 1; transform: translateY(0); }}
@@ -510,7 +511,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             animation: pulse-glow 2s ease-in-out infinite;
         }}
         
-        /* ─── Expanders ─────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Expanders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .streamlit-expanderHeader {{
             background: {card_bg};
             border: 1px solid {border};
@@ -523,7 +524,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             border-color: {colors['primary']};
         }}
         
-        /* ─── Alerts ────────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Alerts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         .stSuccess, .stInfo, .stWarning, .stError {{
             border-radius: 12px !important;
             border: none !important;
@@ -533,7 +534,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         .stWarning {{ background: rgba(245, 158, 11, 0.15) !important; color: {colors['warning']} !important; }}
         .stError {{ background: rgba(239, 68, 68, 0.15) !important; color: {colors['error']} !important; }}
         
-        /* ─── Dividers ──────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Dividers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         hr {{
             border: none;
             height: 1px;
@@ -541,7 +542,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             margin: 2rem 0;
         }}
         
-        /* ─── Responsive ───────────────────────────────────────────────── */
+        /* â”€â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         @media (max-width: 768px) {{
             .hero-card {{ padding: 1.5rem; }}
             .hero-card h1 {{ font-size: 1.75rem !important; }}
@@ -550,7 +551,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             }}
         }}
         
-        /* ─── Print ─────────────────────────────────────────────────────── */
+        /* â”€â”€â”€ Print â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         @media print {{
             .app-watermark {{
                 display: block !important;
@@ -567,7 +568,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         unsafe_allow_html=True,
     )
 
-# ─── Common UI Elements ───────────────────────────────────────────────
+# â”€â”€â”€ Common UI Elements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def hero_card(title: str, subtitle: str, badge_text: str = None):
     """Render a styled hero card at the top of the page."""
@@ -592,7 +593,7 @@ def sync_status_card(database_id: str, source: str, last_sync: str):
     st.markdown(
         f"""
         <div class="sync-card">
-            <div><strong>✅ Connected to Notion database</strong></div>
+            <div><strong>âœ… Connected to Notion database</strong></div>
             <div class="live-badge">{database_id}</div>
             <div style="margin-top: 0.45rem; color: #334155;">Source: {source}</div>
             <div style="margin-top: 0.35rem; color: #475569;">Last sync: {last_sync}</div>
@@ -649,9 +650,9 @@ def watermark(text: str = "CHRISHEM"):
     st.markdown(f'<div class="app-watermark">{text}</div>', unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # NOTION EMBED UI COMPONENTS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def notion_embed_container():
     """Wrap content in a Notion-embed-aware container."""
@@ -693,8 +694,8 @@ def compact_metric(label: str, value, delta=None, help_text: str = None):
 def git_status_badge(connected: bool):
     """Render a Git connection status badge."""
     if connected:
-        return '<span class="git-status-connected">● CONNECTED</span>'
-    return '<span class="git-status-disconnected">○ DISCONNECTED</span>'
+        return '<span class="git-status-connected">â— CONNECTED</span>'
+    return '<span class="git-status-disconnected">â—‹ DISCONNECTED</span>'
 
 
 def execution_card(title: str, content: str, severity: str = "low"):
@@ -712,29 +713,29 @@ def execution_card(title: str, content: str, severity: str = "low"):
 def render_onboarding_tour():
     """First-time user onboarding tour."""
     if st.session_state.get("show_onboarding", True):
-        with st.expander("🎓 Welcome! Take a Quick Tour", expanded=True):
+        with st.expander("ðŸŽ“ Welcome! Take a Quick Tour", expanded=True):
             st.markdown("""
-            ### 👋 Welcome to the Advanced Research Data Analyzer!
+            ### ðŸ‘‹ Welcome to the Advanced Research Data Analyzer!
 
             This powerful tool replaces **SPSS, Tableau, and Power BI**  all in one free, Notion-connected platform.
 
-            **📍 Quick Navigation:**
+            **ðŸ“ Quick Navigation:**
             - ** Live Dashboard**  Real-time sync with your Notion database
-            - **📁 File Analyzer**  Upload CSV, Excel, SPSS, SAS, STATA files
-            - **🔬 Statistical Tests**  T-tests, ANOVA, Correlation, Regression, and more
-            - **📈 Advanced Visuals**  18 chart types with auto-recommendation
-            - **🤖 CHRISHEM Insights**  Automated data analysis and smart recommendations
-            - **🔗 Git Integration**  Connect GitHub for data version control
+            - **ðŸ“ File Analyzer**  Upload CSV, Excel, SPSS, SAS, STATA files
+            - **ðŸ”¬ Statistical Tests**  T-tests, ANOVA, Correlation, Regression, and more
+            - **ðŸ“ˆ Advanced Visuals**  18 chart types with auto-recommendation
+            - **ðŸ¤– CHRISHEM Insights**  Automated data analysis and smart recommendations
+            - **ðŸ”— Git Integration**  Connect GitHub for data version control
             - ** Presentation Deck**  Build interactive slide decks
-            - **⚙️ Settings**  Theme, credentials, keep-alive configuration
+            - **âš™ï¸ Settings**  Theme, credentials, keep-alive configuration
 
-            **💡 Tips:**
+            **ðŸ’¡ Tips:**
             - Connect your Notion workspace OR upload a file to get started
             - CHRISHEM will automatically recommend the best analysis for your data
             - Enable Keep-Alive in Settings for 24/7 operation
             - Push cleaned data  analysis scripts back to GitHub
             """)
-            if st.button("✅ Got it! Hide this tour"):
+            if st.button("âœ… Got it! Hide this tour"):
                 st.session_state["show_onboarding"] = False
                 st.rerun()
 

@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Unit tests for modules.feature_engineer."""
 import numpy as np

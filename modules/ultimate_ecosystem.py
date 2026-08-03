@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import sqlite3
 import json
@@ -6,7 +7,7 @@ import streamlit as st
 from modules.schema_engine import DB_FILE, init_db, log_provenance
 
 def render_ultimate_ecosystem_tab():
-    st.subheader("🌐 ResearchOS Ultimate Ecosystem & Friction Breaker")
+    st.subheader("ðŸŒ ResearchOS Ultimate Ecosystem & Friction Breaker")
     st.caption("Solving polyglot data normalization, decentralized institutional peering, automated pre-review audits, and living protocol lineage.")
 
     init_db()
@@ -37,15 +38,15 @@ def render_ultimate_ecosystem_tab():
     conn.commit()
 
     sub1, sub2, sub3, sub4 = st.tabs([
-        "🔄 Polyglot Data Normalizer", 
-        "🌐 Decentralized Peer Bridge", 
-        "⚖️ Autonomous Pre-Review Audit", 
-        "📜 Living Protocol Vault"
+        "ðŸ”„ Polyglot Data Normalizer", 
+        "ðŸŒ Decentralized Peer Bridge", 
+        "âš–ï¸ Autonomous Pre-Review Audit", 
+        "ðŸ“œ Living Protocol Vault"
     ])
 
     # 1. POLYGLOT DATA NORMALIZER
     with sub1:
-        st.markdown("### 🔄 Universal Polyglot Data & Format Ingestion")
+        st.markdown("### ðŸ”„ Universal Polyglot Data & Format Ingestion")
         st.caption("Instantly map disparate file formats (FASTA, CSV, GeoJSON, PDB) into normalized FAIR schemas.")
         
         uploaded_file = st.file_uploader("Upload Raw Research File (FASTA, CSV, JSON, TXT)", type=["fasta", "csv", "json", "txt"])
@@ -57,7 +58,7 @@ def render_ultimate_ecosystem_tab():
 
     # 2. DECENTRALIZED PEER BRIDGE
     with sub2:
-        st.markdown("### 🌐 Regional & Institutional Knowledge Bridge")
+        st.markdown("### ðŸŒ Regional & Institutional Knowledge Bridge")
         st.caption("Peer-share localized grey literature and regional datasets outside Western-dominated index silos.")
         
         node_url = st.text_input("Peer Institution Node URL", value="https://repository.muni.ac.ug/api/v1")
@@ -70,16 +71,16 @@ def render_ultimate_ecosystem_tab():
 
     # 3. AUTONOMOUS PRE-REVIEW AUDIT
     with sub3:
-        st.markdown("### ⚖️ Autonomous Pre-Review Manuscript Auditor")
+        st.markdown("### âš–ï¸ Autonomous Pre-Review Manuscript Auditor")
         st.caption("Scans drafts for statistical gaps, missing controls, and unverified citations before publication submission.")
         
         manuscript_text = st.text_area("Paste Manuscript Abstract or Draft Text", value="In this study, we analyzed the genomic sequence of BRCA1 using Taq polymerase. Control groups were omitted due to time constraints, and all samples matched reference standards.")
         if st.button("Execute AI Pre-Review Audit"):
             score = 72.5
             findings = [
-                "⚠️ Warning: Control group omission detected in methodology section.",
-                "✅ Sequence formatting matches standard NCBI FASTA guidelines.",
-                "ℹ️ Recommendation: Include statistical confidence intervals for variant metrics."
+                "âš ï¸ Warning: Control group omission detected in methodology section.",
+                "âœ… Sequence formatting matches standard NCBI FASTA guidelines.",
+                "â„¹ï¸ Recommendation: Include statistical confidence intervals for variant metrics."
             ]
             st.metric("Draft Integrity Score", f"{score} / 100")
             for f in findings:
@@ -87,14 +88,14 @@ def render_ultimate_ecosystem_tab():
 
     # 4. LIVING PROTOCOL VAULT
     with sub4:
-        st.markdown("### 📜 Living Protocol & Assistant Lineage Vault")
+        st.markdown("### ðŸ“œ Living Protocol & Assistant Lineage Vault")
         st.caption("Prevents protocol loss when lab personnel transition by locking step-by-step assay guides to physical inventory.")
         
         with st.form("protocol_form"):
             p_id = st.text_input("Protocol ID", value="PROT-PCR-01")
             p_title = st.text_input("Protocol Title", value="Optimized Multiplex PCR Protocol for Environmental DNA")
             p_author = st.text_input("Author / Custodian", value="Kula Chris")
-            p_steps = st.text_area("Step-by-Step Instructions", value="1. Thaw dNTPs and buffer on ice.\n2. Add 25uL master mix.\n3. Run thermocycler at 95°C for 3 mins.")
+            p_steps = st.text_area("Step-by-Step Instructions", value="1. Thaw dNTPs and buffer on ice.\n2. Add 25uL master mix.\n3. Run thermocycler at 95Â°C for 3 mins.")
             sub_proto = st.form_submit_button("Save Living Protocol")
             
             if sub_proto:

@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import streamlit as st
 
@@ -22,7 +23,7 @@ def generate_grant_sections(topic: str, agency: str, background_context: str, sp
         }
 
 def render_grant_engine_tab():
-    st.subheader("📄 Automated AI Grant Proposal Drafter")
+    st.subheader("ðŸ“„ Automated AI Grant Proposal Drafter")
     st.caption("Transform research summaries and data findings into agency-compliant funding proposals.")
 
     col1, col2 = st.columns([1, 1.8])
@@ -36,7 +37,7 @@ def render_grant_engine_tab():
         bg_context = st.text_area("Key Background & Findings", value="Recent research highlights critical structural variations driving functional pathways.", height=100)
         specific_goals = st.text_area("Primary Research Goals", value="Develop an end-to-end computational pipeline for rapid target validation.", height=90)
         
-        generate_btn = st.button("🚀 Draft Proposal Structure", type="primary", use_container_width=True)
+        generate_btn = st.button("ðŸš€ Draft Proposal Structure", type="primary", use_container_width=True)
 
     with col2:
         st.markdown("### Generated Draft Output")
@@ -54,7 +55,7 @@ def render_grant_engine_tab():
                 full_text = f"{section_content}\n\n---\n\n"
 
             st.download_button(
-                label="📥 Download Proposal (.MD)",
+                label="ðŸ“¥ Download Proposal (.MD)",
                 data=full_text,
                 file_name=f"Grant_Proposal_{funding_agency.replace(' ', '_')}.md",
                 mime="text/markdown",

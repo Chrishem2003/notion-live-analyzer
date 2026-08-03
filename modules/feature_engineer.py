@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Automated Feature Engineering  Interaction term discovery, polynomial features,
@@ -69,7 +70,7 @@ class FeatureEngineer:
                     interactions.append({
                         "variable_1": v1,
                         "variable_2": v2,
-                        "interaction": f"{v1} × {v2}",
+                        "interaction": f"{v1} Ã— {v2}",
                         "mutual_info_score": round(score, 4),
                     })
                 except Exception:
@@ -216,13 +217,13 @@ class FeatureEngineer:
         }
 
 
-# ─── UI ─────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def render_feature_engineering_ui():
     """Render the Feature Engineering page."""
     import streamlit as st
     import plotly.express as px
 
-    st.markdown("## ⚡ Automated Feature Engineering")
+    st.markdown("## âš¡ Automated Feature Engineering")
     st.markdown("*Discover interactions, generate polynomials, bin, extract text/date features*")
 
     df = st.session_state.get("active_df")
@@ -235,14 +236,14 @@ def render_feature_engineering_ui():
     cat_cols = text_columns(df)
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "🔗 Interactions", "📐 Polynomials", " Binning",
-        "📅 Date Features", "🎯 Feature Selection"
+        "ðŸ”— Interactions", "ðŸ“ Polynomials", " Binning",
+        "ðŸ“… Date Features", "ðŸŽ¯ Feature Selection"
     ])
 
     with tab1:
-        st.subheader("🔗 Interaction Term Discovery")
+        st.subheader("ðŸ”— Interaction Term Discovery")
         target = st.selectbox("Target variable", options=numeric_cols, key="fe_target")
-        if st.button("🔍 Discover Interactions", type="primary", use_container_width=True):
+        if st.button("ðŸ” Discover Interactions", type="primary", use_container_width=True):
             result = engine.discover_interactions(df, target)
             if "error" in result:
                 st.error(result["error"])
@@ -253,13 +254,13 @@ def render_feature_engineering_ui():
                     st.dataframe(int_df, use_container_width=True, hide_index=True)
 
     with tab2:
-        st.subheader("📐 Polynomial Feature Generation")
+        st.subheader("ðŸ“ Polynomial Feature Generation")
         poly_cols = st.multiselect("Columns to expand", options=numeric_cols, default=numeric_cols[:3], key="fe_poly_cols")
         max_deg = st.slider("Max degree", 2, 5, 3, key="fe_max_deg")
-        if st.button("📐 Generate Polynomials", type="primary", use_container_width=True) and poly_cols:
+        if st.button("ðŸ“ Generate Polynomials", type="primary", use_container_width=True) and poly_cols:
             result = engine.generate_polynomials(df, poly_cols, max_deg)
             new_features = [c for c in result.columns if c not in df.columns]
-            st.success(f"✅ Generated {len(new_features)} new features")
+            st.success(f"âœ… Generated {len(new_features)} new features")
             st.dataframe(result[new_features].head(10), use_container_width=True)
 
     with tab3:
@@ -269,25 +270,25 @@ def render_feature_engineering_ui():
         n_bins = st.slider("Number of bins", 2, 10, 4, key="fe_n_bins")
         if st.button(" Apply Binning", type="primary", use_container_width=True):
             binned = engine.auto_bin(df, bin_col, bin_method, n_bins)
-            st.success(f"✅ Binned into {binned.nunique()} bins")
+            st.success(f"âœ… Binned into {binned.nunique()} bins")
             st.dataframe(binned.value_counts().reset_index(), use_container_width=True)
 
     with tab4:
-        st.subheader("📅 Date Feature Extraction")
+        st.subheader("ðŸ“… Date Feature Extraction")
         date_cols = [c for c in df.columns if 'date' in c.lower() or 'time' in c.lower()]
         date_col = st.selectbox("Date column", options=date_cols  [c for c in df.columns], key="fe_date_col")
-        if st.button("📅 Extract Date Features", type="primary", use_container_width=True):
+        if st.button("ðŸ“… Extract Date Features", type="primary", use_container_width=True):
             result = engine.extract_date_features(df, date_col)
             new_features = [c for c in result.columns if c not in df.columns and date_col in c]
-            st.success(f"✅ Generated {len(new_features)} date features")
+            st.success(f"âœ… Generated {len(new_features)} date features")
             st.dataframe(result[new_features].head(10), use_container_width=True)
 
     with tab5:
-        st.subheader("🎯 Auto Feature Selection")
+        st.subheader("ðŸŽ¯ Auto Feature Selection")
         target2 = st.selectbox("Target variable", options=numeric_cols, key="fe_target2")
         sel_method = st.selectbox("Selection method", options=["mutual_info", "rfe", "lasso"], key="fe_sel_method")
         max_feats = st.slider("Max features to select", 1, 20, 10, key="fe_max_feats")
-        if st.button("🎯 Run Feature Selection", type="primary", use_container_width=True):
+        if st.button("ðŸŽ¯ Run Feature Selection", type="primary", use_container_width=True):
             result = engine.auto_feature_selection(df, target2, sel_method, max_feats)
             if "error" in result:
                 st.error(result["error"])

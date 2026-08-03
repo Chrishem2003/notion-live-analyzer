@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Collaboration UI  Streamlit Interface for Research Command Center."""
 import time
@@ -14,9 +15,9 @@ from modules.collaboration import (
     get_translation_service, get_file_manager,
 )
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CSS STYLES FOR COLLABORATION
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 COLLAB_CSS = """
 <style>
@@ -338,9 +339,9 @@ def render_collaboration_css():
     """Apply collaboration CSS."""
     st.markdown(COLLAB_CSS, unsafe_allow_html=True)
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # MAIN RENDER FUNCTIONS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_command_center():
     """Render the main Research Command Center."""
@@ -357,7 +358,7 @@ def render_command_center():
         margin-bottom: 1.5rem;
         border: 1px solid #334155;
     ">
-        <h1 style="margin:0; color: white;">🎯 Research Command Center</h1>
+        <h1 style="margin:0; color: white;">ðŸŽ¯ Research Command Center</h1>
         <p style="color: #94a3b8; margin-top: 0.5rem;">
             Unified collaboration hub  Video, Chat, Tasks, & AI Assistant
         </p>
@@ -366,12 +367,12 @@ def render_command_center():
     
     # Main tabs
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "🏠 Lobby",
-        "📹 Video Rooms",
-        "💬 Chat",
-        "✅ Tasks",
-        "🤖 AI Assistant",
-        "⚡ Automations",
+        "ðŸ  Lobby",
+        "ðŸ“¹ Video Rooms",
+        "ðŸ’¬ Chat",
+        "âœ… Tasks",
+        "ðŸ¤– AI Assistant",
+        "âš¡ Automations",
     ])
     
     with tab1:
@@ -392,16 +393,16 @@ def render_command_center():
     with tab6:
         render_automations()
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # LOBBY - Room Selection
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_lobby():
     """Render the room lobby."""
-    st.subheader("🚀 Join or Create a Room")
+    st.subheader("ðŸš€ Join or Create a Room")
     
     # User profile setup
-    with st.expander("👤 Your Profile", expanded=not st.session_state.get("collab_user_name")):
+    with st.expander("ðŸ‘¤ Your Profile", expanded=not st.session_state.get("collab_user_name")):
         col1, col2 = st.columns(2)
         with col1:
             st.session_state["collab_user_name"] = st.text_input(
@@ -426,7 +427,7 @@ def render_lobby():
         room_type = st.selectbox("Type", 
             ["Video Call", "Chat Room", "Whiteboard", "Research Panel", "Webinar"])
     
-    if st.button("🚀 Create Room", type="primary") and room_name:
+    if st.button("ðŸš€ Create Room", type="primary") and room_name:
         _room_types = {
             "Video Call": RoomType.VIDEO_CALL,
             "Chat Room": RoomType.CHAT_ROOM,
@@ -446,7 +447,7 @@ def render_lobby():
     st.divider()
     
     # Browse rooms
-    st.subheader("📋 Available Rooms")
+    st.subheader("ðŸ“‹ Available Rooms")
     
     manager = get_room_manager()
     rooms = manager.list_rooms()
@@ -478,13 +479,13 @@ def render_lobby():
     # Render room cards
     for room in rooms:
         type_badges = {
-            RoomType.VIDEO_CALL: ("📹 Video Call", "room-type-video"),
-            RoomType.CHAT_ROOM: ("💬 Chat Room", "room-type-chat"),
-            RoomType.WHITEBOARD: ("🎨 Whiteboard", "room-type-whiteboard"),
+            RoomType.VIDEO_CALL: ("ðŸ“¹ Video Call", "room-type-video"),
+            RoomType.CHAT_ROOM: ("ðŸ’¬ Chat Room", "room-type-chat"),
+            RoomType.WHITEBOARD: ("ðŸŽ¨ Whiteboard", "room-type-whiteboard"),
             RoomType.RESEARCH_PANEL: (" Research Panel", "room-type-panel"),
-            RoomType.WEBINAR: ("🎓 Webinar", "room-type-webinar"),
+            RoomType.WEBINAR: ("ðŸŽ“ Webinar", "room-type-webinar"),
         }
-        badge_text, badge_class = type_badges.get(room.room_type, ("📌", ""))
+        badge_text, badge_class = type_badges.get(room.room_type, ("ðŸ“Œ", ""))
         
         col1, col2 = st.columns([4, 1])
         
@@ -495,8 +496,8 @@ def render_lobby():
                 <h3 style="margin: 10px 0; color: white;">{room.name}</h3>
                 <p style="color: #94a3b8; font-size: 14px;">{room.description or 'No description'}</p>
                 <div style="display: flex; gap: 15px; margin-top: 10px;">
-                    <span style="color: #64748b; font-size: 13px;">👥 {len(room.members)} / {room.max_participants}</span>
-                    <span style="color: #64748b; font-size: 13px;">🕐 {room.created_at.strftime('%H:%M')}</span>
+                    <span style="color: #64748b; font-size: 13px;">ðŸ‘¥ {len(room.members)} / {room.max_participants}</span>
+                    <span style="color: #64748b; font-size: 13px;">ðŸ• {room.created_at.strftime('%H:%M')}</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -507,9 +508,9 @@ def render_lobby():
                 st.session_state["active_room"] = room.id
                 st.rerun()
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VIDEO ROOMS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_video_rooms():
     """Render video conferencing interface."""
@@ -530,20 +531,20 @@ def render_video_rooms():
     # Header
     col1, col2, col3 = st.columns([3, 1, 1])
     with col1:
-        st.subheader(f"📹 {room.name}")
+        st.subheader(f"ðŸ“¹ {room.name}")
     with col2:
-        if st.button("🔒 Lock Room"):
+        if st.button("ðŸ”’ Lock Room"):
             room.is_locked = not room.is_locked
             st.rerun()
     with col3:
-        if st.button("🚪 Leave"):
+        if st.button("ðŸšª Leave"):
             st.session_state["active_room"] = None
             st.rerun()
     
     st.markdown(f"*{room.description or ''}*")
     
     # Video Grid
-    st.subheader("👥 Participants")
+    st.subheader("ðŸ‘¥ Participants")
     
     # Demo participants
     demo_participants = [
@@ -561,7 +562,7 @@ def render_video_rooms():
             st.markdown(f"""
             <div class="video-tile {speaking_class}">
                 <div style="text-align: center;">
-                    <div style="font-size: 40px; margin-bottom: 10px;">👤</div>
+                    <div style="font-size: 40px; margin-bottom: 10px;">ðŸ‘¤</div>
                     <div style="color: white; font-weight: 600;">{participant['name']}</div>
                     <div style="color: #94a3b8; font-size: 12px;">{participant['role']}</div>
                 </div>
@@ -569,11 +570,11 @@ def render_video_rooms():
             """, unsafe_allow_html=True)
     
     # Self view
-    with st.expander("📷 Your Camera"):
+    with st.expander("ðŸ“· Your Camera"):
         st.markdown("""
         <div class="video-tile active">
             <div style="text-align: center;">
-                <div style="font-size: 40px; margin-bottom: 10px;">👤</div>
+                <div style="font-size: 40px; margin-bottom: 10px;">ðŸ‘¤</div>
                 <div style="color: white;">You</div>
             </div>
         </div>
@@ -582,24 +583,24 @@ def render_video_rooms():
         # Media controls
         col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
-            mic_on = st.button("🎤" if st.session_state.get("audio_enabled") else "🔇")
+            mic_on = st.button("ðŸŽ¤" if st.session_state.get("audio_enabled") else "ðŸ”‡")
             st.session_state["audio_enabled"] = not st.session_state.get("audio_enabled", True)
         with col2:
-            cam_on = st.button("📹" if st.session_state.get("video_enabled") else "📷")
+            cam_on = st.button("ðŸ“¹" if st.session_state.get("video_enabled") else "ðŸ“·")
             st.session_state["video_enabled"] = not st.session_state.get("video_enabled", False)
         with col3:
-            st.button("🖥️ Share Screen")
+            st.button("ðŸ–¥ï¸ Share Screen")
         with col4:
-            st.button("💻 Virtual Background")
+            st.button("ðŸ’» Virtual Background")
         with col5:
-            st.button("⏺️ Record")
+            st.button("âºï¸ Record")
     
     # Side panel options
     col_main, col_side = st.columns([3, 1])
     
     with col_main:
         # Screen share area
-        st.subheader("🖥️ Screen Share")
+        st.subheader("ðŸ–¥ï¸ Screen Share")
         st.markdown("""
         <div style="
             background: #0f172a;
@@ -608,7 +609,7 @@ def render_video_rooms():
             text-align: center;
             border: 2px dashed #334155;
         ">
-            <div style="font-size: 50px; margin-bottom: 15px;">🖥️</div>
+            <div style="font-size: 50px; margin-bottom: 15px;">ðŸ–¥ï¸</div>
             <p style="color: #94a3b8;">Click "Share Screen" to present</p>
         </div>
         """, unsafe_allow_html=True)
@@ -621,7 +622,7 @@ def render_video_rooms():
             status_class = f"status-{p['status']}"
             st.markdown(f"""
             <div class="participant-item">
-                <div class="participant-avatar">👤</div>
+                <div class="participant-avatar">ðŸ‘¤</div>
                 <div class="participant-info">
                     <div class="participant-name">{p['name']}</div>
                     <div class="participant-role">{p['role']}</div>
@@ -630,9 +631,9 @@ def render_video_rooms():
             </div>
             """, unsafe_allow_html=True)
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CHAT SYSTEM
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_chat_system():
     """Render chat/messaging interface."""
@@ -656,7 +657,7 @@ def render_chat_system():
     with col1:
         message = st.text_input("Type a message...", key="chat_input")
     with col2:
-        send = st.button("Send ➤")
+        send = st.button("Send âž¤")
     
     if send and message:
         user_name = st.session_state.get("collab_user_name") or "You"
@@ -674,7 +675,7 @@ def render_chat_system():
     st.divider()
     
     # Messages
-    st.subheader("💬 Messages")
+    st.subheader("ðŸ’¬ Messages")
     
     messages = chat.get_messages(selected_room)
     
@@ -693,17 +694,17 @@ def render_chat_system():
             </div>
             <div class="message-content">{msg.content}</div>
             <div class="reaction-picker">
-                <button class="reaction-btn">👍</button>
-                <button class="reaction-btn">❤️</button>
-                <button class="reaction-btn">🎉</button>
-                <button class="reaction-btn">🤔</button>
+                <button class="reaction-btn">ðŸ‘</button>
+                <button class="reaction-btn">â¤ï¸</button>
+                <button class="reaction-btn">ðŸŽ‰</button>
+                <button class="reaction-btn">ðŸ¤”</button>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # TASK MANAGEMENT
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_tasks():
     """Render task management interface."""
@@ -719,7 +720,7 @@ def render_tasks():
     task_mgr = get_task_manager()
     
     # Create task
-    with st.expander("➕ Add New Task", expanded=False):
+    with st.expander("âž• Add New Task", expanded=False):
         col1, col2 = st.columns(2)
         with col1:
             title = st.text_input("Task Title")
@@ -771,19 +772,19 @@ def render_task_list(tasks, task_mgr):
     """Render a list of tasks."""
     for task in tasks:
         priority_class = f"task-priority-{task.priority}"
-        status_emoji = {"todo": "⭕", "in_progress": "🔄", "review": "👀", "done": "✅"}
+        status_emoji = {"todo": "â­•", "in_progress": "ðŸ”„", "review": "ðŸ‘€", "done": "âœ…"}
         
         st.markdown(f"""
         <div class="task-card {priority_class}">
             <div style="display: flex; justify-content: space-between; align-items: start;">
                 <div>
-                    <h4 style="margin: 0; color: white;">{status_emoji.get(task.status, '⬜')} {task.title}</h4>
+                    <h4 style="margin: 0; color: white;">{status_emoji.get(task.status, 'â¬œ')} {task.title}</h4>
                     <p style="color: #94a3b8; font-size: 13px; margin: 5px 0;">
                         {task.description or 'No description'}
                     </p>
                     <span style="color: #64748b; font-size: 12px;">
-                        👤 {task.assignee_name or 'Unassigned'} | 
-                        📅 {task.due_date.strftime('%Y-%m-%d') if task.due_date else 'No due date'}
+                        ðŸ‘¤ {task.assignee_name or 'Unassigned'} | 
+                        ðŸ“… {task.due_date.strftime('%Y-%m-%d') if task.due_date else 'No due date'}
                     </span>
                 </div>
             </div>
@@ -793,25 +794,25 @@ def render_task_list(tasks, task_mgr):
         # Action buttons
         col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
-            if task.status != "todo" and st.button(f"← Todo", key=f"todo_{task.id}"):
+            if task.status != "todo" and st.button(f"â† Todo", key=f"todo_{task.id}"):
                 task_mgr.update_task_status(task.id, "todo")
                 st.rerun()
         with col2:
-            if task.status != "done" and st.button(f"Done ✓", key=f"done_{task.id}"):
+            if task.status != "done" and st.button(f"Done âœ“", key=f"done_{task.id}"):
                 task_mgr.update_task_status(task.id, "done")
                 st.rerun()
         with col3:
-            if st.button(f"🗑️", key=f"del_{task.id}"):
+            if st.button(f"ðŸ—‘ï¸", key=f"del_{task.id}"):
                 st.rerun()
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # AI RESEARCH ASSISTANT
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_ai_assistant():
     """Render AI research assistant."""
     
-    st.subheader("🧠 AI Research Assistant")
+    st.subheader("ðŸ§  AI Research Assistant")
     
     col1, col2 = st.columns([3, 1])
     
@@ -824,7 +825,7 @@ def render_ai_assistant():
         use_web = st.checkbox("Web Search", value=True)
         use_lit = st.checkbox("Literature", value=True)
     
-    if st.button("🔍 Research", type="primary") and query:
+    if st.button("ðŸ” Research", type="primary") and query:
         assistant = get_research_assistant()
         
         with st.spinner("Analyzing research..."):
@@ -838,7 +839,7 @@ def render_ai_assistant():
             # Display response
             st.markdown(f"""
             <div class="ai-chat">
-                <h4 style="color: white; margin: 0;">💡 Research Insight</h4>
+                <h4 style="color: white; margin: 0;">ðŸ’¡ Research Insight</h4>
                 <p style="color: #94a3b8;">{query}</p>
                 <div class="ai-response">
                     <p style="color: #e2e8f0;">{response['answer']}</p>
@@ -848,30 +849,30 @@ def render_ai_assistant():
             
             # Sources
             if response.get("sources"):
-                st.markdown("**📚 Sources:**")
+                st.markdown("**ðŸ“š Sources:**")
                 for source in response["sources"]:
                     st.markdown(f"- [{source['title']}]({source['url']}) ({source['relevance']*100:.0f}%)")
             
             # Follow-up questions
             if response.get("follow_up"):
-                st.markdown("**💭 Follow-up questions:**")
+                st.markdown("**ðŸ’­ Follow-up questions:**")
                 for q in response["follow_up"]:
-                    if st.button(f"❓ {q}"):
+                    if st.button(f"â“ {q}"):
                         st.rerun()
     
     st.divider()
     
     # Quick actions
-    st.subheader("⚡ Quick Actions")
+    st.subheader("âš¡ Quick Actions")
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("📄 Summarize Papers"):
+        if st.button("ðŸ“„ Summarize Papers"):
             st.info("Upload papers to summarize...")
     
     with col2:
-        if st.button("👥 Find Experts"):
+        if st.button("ðŸ‘¥ Find Experts"):
             assistant = get_research_assistant()
             experts = assistant.suggest_experts("machine learning", 5)
             st.write("**Suggested Experts:**")
@@ -879,25 +880,25 @@ def render_ai_assistant():
                 st.markdown(f"- **{exp['name']}** ({exp['affiliation']}) - h-index: {exp['h_index']}")
     
     with col3:
-        if st.button("📋 Generate Brief"):
+        if st.button("ðŸ“‹ Generate Brief"):
             assistant = get_research_assistant()
             brief = assistant.generate_research_brief("AI in healthcare")
             st.json(brief)
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # AUTOMATIONS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_automations():
     """Render automation workflows."""
     
-    st.subheader("⚡ Workflow Automations")
+    st.subheader("âš¡ Workflow Automations")
     
     engine = get_automation_engine()
     automations = engine.list_automations()
     
     # Create new automation
-    with st.expander("➕ Create Automation", expanded=False):
+    with st.expander("âž• Create Automation", expanded=False):
         name = st.text_input("Automation Name")
         trigger = st.selectbox("Trigger", [
             "member_joined",
@@ -923,13 +924,13 @@ def render_automations():
     
     # List automations
     for auto in automations:
-        status = "🟢 Active" if auto.enabled else "🔴 Disabled"
+        status = "ðŸŸ¢ Active" if auto.enabled else "ðŸ”´ Disabled"
         
         col1, col2, col3 = st.columns([3, 2, 1])
         
         with col1:
             st.markdown(f"**{auto.name}**")
-            st.caption(f"Trigger: `{auto.trigger}` → Action: `{auto.action}`")
+            st.caption(f"Trigger: `{auto.trigger}` â†’ Action: `{auto.action}`")
         
         with col2:
             st.markdown(status)
@@ -943,17 +944,17 @@ def render_automations():
     st.divider()
     
     # Automation templates
-    st.subheader("📋 Templates")
+    st.subheader("ðŸ“‹ Templates")
     
     template_cols = st.columns(3)
     
     templates = [
-        ("🔔 Meeting Reminders", "Send reminders 15 min before meetings"),
-        ("👋 Welcome New Members", "Auto-greet new room participants"),
+        ("ðŸ”” Meeting Reminders", "Send reminders 15 min before meetings"),
+        ("ðŸ‘‹ Welcome New Members", "Auto-greet new room participants"),
         (" Weekly Summary", "Generate weekly activity reports"),
-        ("🎯 Task Follow-up", "Remind about overdue tasks"),
-        ("📰 Paper Alerts", "Notify relevant new publications"),
-        ("💬 Message Auto-reply", "Respond to common questions"),
+        ("ðŸŽ¯ Task Follow-up", "Remind about overdue tasks"),
+        ("ðŸ“° Paper Alerts", "Notify relevant new publications"),
+        ("ðŸ’¬ Message Auto-reply", "Respond to common questions"),
     ]
     
     for i, (title, desc) in enumerate(templates):
@@ -961,13 +962,13 @@ def render_automations():
             if st.button(f"**{title}**", key=f"template_{i}"):
                 st.info(f"Adding: {title}")
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # TRANSLATION & FILE SHARING
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_translation_sidebar():
     """Render translation options in sidebar."""
-    st.subheader("🌐 Translation")
+    st.subheader("ðŸŒ Translation")
     
     trans = get_translation_service()
     
@@ -980,7 +981,7 @@ def render_translation_sidebar():
 
 def render_file_sharing_sidebar():
     """Render file sharing in sidebar."""
-    st.subheader("📁 Shared Files")
+    st.subheader("ðŸ“ Shared Files")
     
     uploaded = st.file_uploader("Upload File", type=None)
     
@@ -990,17 +991,17 @@ def render_file_sharing_sidebar():
     # Demo files
     st.markdown("**Recent Files:**")
     demo_files = [
-        ("📄 research_notes.pdf", "2.4 MB"),
+        ("ðŸ“„ research_notes.pdf", "2.4 MB"),
         (" data_analysis.xlsx", "1.1 MB"),
-        ("🖼️ diagram.png", "450 KB"),
+        ("ðŸ–¼ï¸ diagram.png", "450 KB"),
     ]
     
     for name, size in demo_files:
         st.markdown(f"{name} - {size}")
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # INIT FUNCTION
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def init_collaboration_ui():
     """Initialize collaboration UI."""

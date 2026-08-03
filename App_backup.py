@@ -1,3 +1,4 @@
+﻿import security_guard
 mport os
 import shutil
 
@@ -42,7 +43,7 @@ gatekeeper_logic = """
             <div style="display: flex; justify-content: center; margin-bottom: 20px;">
                 <img src="data:image/png;base64,{img_base64}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #38BDF8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);">
             </div>
-            ''' if img_base64 else '<div style="text-align: center; font-size: 40px;">⚡</div>'
+            ''' if img_base64 else '<div style="text-align: center; font-size: 40px;">âš¡</div>'
             
             st.markdown(f'''
             <div style="background: rgba(30, 41, 59, 0.65); backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 20px; padding: 35px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
@@ -57,12 +58,12 @@ gatekeeper_logic = """
             
             g_col1, g_col2 = st.columns(2)
             with g_col1:
-                if st.button("🔵 Sign in with Google", use_container_width=True):
+                if st.button("ðŸ”µ Sign in with Google", use_container_width=True):
                     st.session_state.authenticated = True
                     st.session_state.analyst_name = "Kula Chris"
                     st.rerun()
             with g_col2:
-                if st.button("✉️ Continue with Email", use_container_width=True):
+                if st.button("âœ‰ï¸ Continue with Email", use_container_width=True):
                     st.session_state.authenticated = True
                     st.session_state.analyst_name = "Guest Analyst"
                     st.rerun()
@@ -72,16 +73,16 @@ gatekeeper_logic = """
             
             b_col1, b_col2 = st.columns(2)
             with b_col1:
-                if st.button("🌐 Use in Web Browser", use_container_width=True):
+                if st.button("ðŸŒ Use in Web Browser", use_container_width=True):
                     st.session_state.authenticated = True
                     st.session_state.analyst_name = "Web Explorer"
                     st.rerun()
             with b_col2:
-                with st.popover("📥 Download Full System (PC/Mobile)", use_container_width=True):
+                with st.popover("ðŸ“¥ Download Full System (PC/Mobile)", use_container_width=True):
                     st.markdown("### Choose version package:")
-                    st.download_button("💻 Windows Installer (.exe)", data=b"Mock Windows Binaries", file_name="ChrishemScienceHub_Windows.zip")
-                    st.download_button("🍏 macOS Version", data=b"Mock Mac Binaries", file_name="ChrishemScienceHub_Mac.zip")
-                    st.download_button("📱 Mobile App (.apk)", data=b"Mock APK", file_name="ChrishemScienceHub.apk")
+                    st.download_button("ðŸ’» Windows Installer (.exe)", data=b"Mock Windows Binaries", file_name="ChrishemScienceHub_Windows.zip")
+                    st.download_button("ðŸ macOS Version", data=b"Mock Mac Binaries", file_name="ChrishemScienceHub_Mac.zip")
+                    st.download_button("ðŸ“± Mobile App (.apk)", data=b"Mock APK", file_name="ChrishemScienceHub.apk")
         return
 """
 

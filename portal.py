@@ -1,3 +1,4 @@
+﻿import security_guard
 import base64
 import io
 import os
@@ -7,7 +8,7 @@ import streamlit as st
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Chrishem Science Hub - Secure Gateway",
-    page_icon="🧬",
+    page_icon="ðŸ§¬",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -94,13 +95,13 @@ if not st.session_state.portal_unlocked:
 
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
     
-    img_tag = f'<img src="data:image/png;base64,{img_base64}" class="profile-img">' if img_base64 else '<div style="font-size: 50px;">🧬</div>'
+    img_tag = f'<img src="data:image/png;base64,{img_base64}" class="profile-img">' if img_base64 else '<div style="font-size: 50px;">ðŸ§¬</div>'
     
     st.markdown(f"""
     <div class="landing-container">
         <div class="profile-img-wrap">{img_tag}</div>
         <div class="hub-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
-        <div class="hub-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
+        <div class="hub-subtitle">Sovereign Enterprise Engine â€¢ Secure Multi-Platform Gateway</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -108,14 +109,14 @@ if not st.session_state.portal_unlocked:
     
     _, center_col, _ = st.columns([0.5, 3, 0.5])
     with center_col:
-        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register", "📱 Ecosystem Downloads"])
+        tab_signin, tab_signup, tab_downloads = st.tabs(["ðŸ” Secure Sign In", "ðŸ“ Register", "ðŸ“± Ecosystem Downloads"])
         
         with tab_signin:
             si_email = st.text_input("Email Address", placeholder="e.g. chrishem242@gmail.com", key="si_email_input")
             si_name = st.text_input("Full Name / Alias", placeholder="e.g. Chrishem", key="si_name_input")
             
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            if st.button("🚀 Authenticate Hub", use_container_width=True):
+            if st.button("ðŸš€ Authenticate Hub", use_container_width=True):
                 entered_email = si_email.strip().lower() if si_email else "guest@hub.com"
                 entered_name = si_name.strip() if si_name else "Chrishem"
                 is_admin = (entered_email == "chrishem242@gmail.com")
@@ -128,7 +129,7 @@ if not st.session_state.portal_unlocked:
                 }
                 st.rerun()
                 
-            if st.button("🔵 Instant Google Sign-In (Simulated)", use_container_width=True):
+            if st.button("ðŸ”µ Instant Google Sign-In (Simulated)", use_container_width=True):
                 st.session_state.portal_unlocked = True
                 st.session_state.user_identity = {
                     "email": "chrishem242@gmail.com", "name": "Chrishem",
@@ -141,7 +142,7 @@ if not st.session_state.portal_unlocked:
             su_email = st.text_input("Your Email Address", placeholder="e.g. chrishem242@gmail.com", key="su_email_input")
             
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            if st.button("✨ Register & Launch Engine", use_container_width=True):
+            if st.button("âœ¨ Register & Launch Engine", use_container_width=True):
                 reg_name = su_name.strip() if su_name else "Chrishem"
                 reg_email = su_email.strip().lower() if su_email else "guest@hub.com"
                 is_admin = (reg_email == "chrishem242@gmail.com")
@@ -155,7 +156,7 @@ if not st.session_state.portal_unlocked:
                 st.rerun()
 
         with tab_downloads:
-            st.markdown("### 🌐 Cross-Platform Ecosystem Releases")
+            st.markdown("### ðŸŒ Cross-Platform Ecosystem Releases")
             st.write("Click any bundle below to directly download the installation package to your local system.")
             
             d_col1, d_col2 = st.columns(2)
@@ -163,13 +164,13 @@ if not st.session_state.portal_unlocked:
             with d_col1:
                 st.markdown("""
                 <div class="download-card">
-                    <h4>🪟 Windows Suite</h4>
+                    <h4>ðŸªŸ Windows Suite</h4>
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Optimized for Windows 10/11 (WSL2 / Desktop Engine)</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
                 st.download_button(
-                    label="📥 Download Windows Suite (.zip)",
+                    label="ðŸ“¥ Download Windows Suite (.zip)",
                     data=win_zip,
                     file_name="chrishem_hub_windows.zip",
                     mime="application/zip",
@@ -178,13 +179,13 @@ if not st.session_state.portal_unlocked:
 
                 st.markdown("""
                 <div class="download-card" style="margin-top: 15px;">
-                    <h4>🐧 Linux Distribution</h4>
+                    <h4>ðŸ§ Linux Distribution</h4>
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Ubuntu / Debian / Enterprise Server Build</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
                 st.download_button(
-                    label="📥 Download Linux Build (.zip)",
+                    label="ðŸ“¥ Download Linux Build (.zip)",
                     data=linux_zip,
                     file_name="chrishem_hub_linux.zip",
                     mime="application/zip",
@@ -194,13 +195,13 @@ if not st.session_state.portal_unlocked:
             with d_col2:
                 st.markdown("""
                 <div class="download-card">
-                    <h4>🍎 macOS Architecture</h4>
+                    <h4>ðŸŽ macOS Architecture</h4>
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Apple Silicon (M1/M2/M3) & Intel Universal</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
                 st.download_button(
-                    label="📥 Download macOS Bundle (.zip)",
+                    label="ðŸ“¥ Download macOS Bundle (.zip)",
                     data=mac_zip,
                     file_name="chrishem_hub_macos.zip",
                     mime="application/zip",
@@ -209,13 +210,13 @@ if not st.session_state.portal_unlocked:
 
                 st.markdown("""
                 <div class="download-card" style="margin-top: 15px;">
-                    <h4>📱 Mobile PWA / Phone</h4>
+                    <h4>ðŸ“± Mobile PWA / Phone</h4>
                     <p style='font-size: 0.85rem; color: #94A3B8;'>Android & iOS Progressive Web Client</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
                 st.download_button(
-                    label="📥 Download Mobile PWA Config (.zip)",
+                    label="ðŸ“¥ Download Mobile PWA Config (.zip)",
                     data=pwa_zip,
                     file_name="chrishem_hub_mobile_pwa.zip",
                     mime="application/zip",
@@ -225,18 +226,18 @@ if not st.session_state.portal_unlocked:
 else:
     identity = st.session_state.get("user_identity", {"name": "Chrishem", "role": "Supreme Architect"})
     
-    st.sidebar.success(f"🔓 Logged in as: {identity.get('name')}")
+    st.sidebar.success(f"ðŸ”“ Logged in as: {identity.get('name')}")
     st.sidebar.markdown(f"**Role:** `{identity.get('role')}`")
     
-    if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
+    if st.sidebar.button("ðŸ”’ Lock Portal & Sign Out", use_container_width=True):
         st.session_state.portal_unlocked = False
         st.rerun()
         
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📂 System Navigation")
+    st.sidebar.markdown("### ðŸ“‚ System Navigation")
     st.sidebar.info("All workspace modules are active and accessible below.")
 
-    st.title("⚡ Chrishem Sovereign Apex Hub")
+    st.title("âš¡ Chrishem Sovereign Apex Hub")
     st.markdown("---")
     
     col1, col2, col3 = st.columns(3)
@@ -244,5 +245,5 @@ else:
     col2.metric("Active User", identity.get("name"))
     col3.metric("Security Level", "Enclave Verified", delta="Tier-1")
     
-    st.markdown("### 🌟 Welcome to the Core Ecosystem")
+    st.markdown("### ðŸŒŸ Welcome to the Core Ecosystem")
     st.write("Authentication verified. Use the sidebar navigation menu to access your complete portfolio of tools and analytical pages.")

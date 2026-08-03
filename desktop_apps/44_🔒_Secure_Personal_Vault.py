@@ -1,7 +1,8 @@
+﻿import security_guard
 
 #!/usr/bin/env python3
 """
-OmniVault — Vault Ledger Desktop Suite
+OmniVault â€” Vault Ledger Desktop Suite
 Fully native PyQt6 replacement for the React OmniVault workspace platform.
 Includes Pages module with tree navigation and dynamic block elements.
 """
@@ -32,7 +33,7 @@ from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
 import pandas as pd
 
 # ============================================================================
-# SAFE FORMULA ENGINE — Zero-eval sandbox expression processing
+# SAFE FORMULA ENGINE â€” Zero-eval sandbox expression processing
 # ============================================================================
 
 def col_to_num(col: str) -> int:
@@ -169,7 +170,7 @@ def evaluate_formula(raw: str, grid: Dict[str, str], seen: set = None) -> Any:
     return res
 
 # ============================================================================
-# STYLESHEET MANAGEMENT — Vault Ledger Aesthetic System
+# STYLESHEET MANAGEMENT â€” Vault Ledger Aesthetic System
 # ============================================================================
 
 BRASS = "#C99A3A"
@@ -257,7 +258,7 @@ def get_stylesheet(dark: bool) -> str:
     """
 
 # ============================================================================
-# DIALOGS — Command Palette & Trash
+# DIALOGS â€” Command Palette & Trash
 # ============================================================================
 
 class CommandPaletteDialog(QDialog):
@@ -1017,7 +1018,7 @@ class MailModule(QWidget):
         if 0 <= idx < len(self.messages):
             m = self.messages[idx]
             self.sub_lbl.setText(m["subject"])
-            self.from_lbl.setText(f"From: {m['from']} · {m['date']}")
+            self.from_lbl.setText(f"From: {m['from']} Â· {m['date']}")
             self.body_preview.setText(m["body"])
 
 # ============================================================================
@@ -1065,7 +1066,7 @@ class OmniVault(QMainWindow):
             "trash": []
         }
 
-        self.setWindowTitle("OmniVault — Desktop Ledger Suite")
+        self.setWindowTitle("OmniVault â€” Desktop Ledger Suite")
         self.resize(1150, 750)
 
         self.setup_ui()
@@ -1089,7 +1090,7 @@ class OmniVault(QMainWindow):
 
         top_layout.addStretch()
 
-        btn_cmd = QPushButton("⌘ Command Palette")
+        btn_cmd = QPushButton("âŒ˜ Command Palette")
         btn_cmd.clicked.connect(self.open_command_palette)
         top_layout.addWidget(btn_cmd)
 
@@ -1097,7 +1098,7 @@ class OmniVault(QMainWindow):
         btn_trash.clicked.connect(self.open_trash_dialog)
         top_layout.addWidget(btn_trash)
 
-        btn_theme = QPushButton("🌓 Toggle Theme")
+        btn_theme = QPushButton("ðŸŒ“ Toggle Theme")
         btn_theme.clicked.connect(self.toggle_theme)
         top_layout.addWidget(btn_theme)
 

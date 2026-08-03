@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Executive Auto-Insight Storyteller  automatically runs statistical test batteries
@@ -41,19 +42,19 @@ class ExecutiveStoryteller:
         cat_cols = [c for c, t in col_types.items() if t in ("categorical", "string")]
         temporal_cols = [c for c, t in col_types.items() if t == "temporal"]
 
-        # ─── 1. Automated Statistical Test Battery ─────────────────
+        # â”€â”€â”€ 1. Automated Statistical Test Battery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         test_battery = self._run_test_battery(df, numeric_cols, cat_cols, temporal_cols)
 
-        # ─── 2. Anomaly Detection ──────────────────────────────────
+        # â”€â”€â”€ 2. Anomaly Detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         anomalies = self._detect_anomalies(df, numeric_cols)
 
-        # ─── 3. Correlation Analysis ───────────────────────────────
+        # â”€â”€â”€ 3. Correlation Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         correlations = self._analyze_correlations(df, numeric_cols)
 
-        # ─── 4. Data Quality Assessment ────────────────────────────
+        # â”€â”€â”€ 4. Data Quality Assessment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         quality = self._assess_quality(df, profile)
 
-        # ─── 5. Generate Narrative ─────────────────────────────────
+        # â”€â”€â”€ 5. Generate Narrative â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         executive_summary = self._generate_executive_summary(df, profile, test_battery, correlations)
         risk_assessment = self._generate_risk_assessment(quality, anomalies, test_battery)
         takeaways = self._generate_takeaways(df, test_battery, correlations, anomalies, quality)
@@ -139,7 +140,7 @@ class ExecutiveStoryteller:
                                 "value_var": num,
                                 "result": result,
                                 "narrative": f"**{num}** varies significantly across {n_groups} groups of **{cat}** "
-                                            f"(F = {result.get('f_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, η² = {result.get('eta_squared', 0):.2f})",
+                                            f"(F = {result.get('f_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, Î·Â² = {result.get('eta_squared', 0):.2f})",
                             })
                 except Exception:
                     logger.warning("Group comparison failed for %r by %r", num, cat, exc_info=True)
@@ -158,7 +159,7 @@ class ExecutiveStoryteller:
                             "var2": cat2,
                             "result": result,
                             "narrative": f"**{cat1}** and **{cat2}** are significantly associated "
-                                        f"(χ² = {result.get('chi_square', 0):.2f}, p = {result.get('p_value', 1):.3f}, V = {result.get('cramers_v', 0):.2f})",
+                                        f"(Ï‡Â² = {result.get('chi_square', 0):.2f}, p = {result.get('p_value', 1):.3f}, V = {result.get('cramers_v', 0):.2f})",
                         })
                 except Exception:
                     logger.warning("Chi-square test failed for %r vs %r", cat1, cat2, exc_info=True)
@@ -177,7 +178,7 @@ class ExecutiveStoryteller:
                                 strong_corrs.append({
                                     "var1": col1, "var2": col2,
                                     "r": result.get("r", 0),
-                                    "narrative": f"Strong correlation: **{col1}** ↔ **{col2}** "
+                                    "narrative": f"Strong correlation: **{col1}** â†” **{col2}** "
                                                 f"(r = {result.get('r', 0):.2f}, p = {result.get('p_value', 1):.3f})",
                                 })
                     except Exception:
@@ -203,7 +204,7 @@ class ExecutiveStoryteller:
                                 "rho": round(float(r), 4),
                                 "p_value": round(float(p), 4),
                                 "narrative": f"**{num}** shows a significant {direction} trend over time "
-                                            f"(ρ = {r:.2f}, p = {p:.3f})",
+                                            f"(Ï = {r:.2f}, p = {p:.3f})",
                             })
                     except Exception:
                         logger.warning("Temporal trend test failed for %r over %r", num, temp, exc_info=True)
@@ -276,28 +277,28 @@ class ExecutiveStoryteller:
         missing_pct = profile.get("missing_pct", 0)
         if missing_pct > 20:
             quality["score"] -= 25
-            quality["issues"].append(f"⚠️ High missing data rate ({missing_pct}%)")
+            quality["issues"].append(f"âš ï¸ High missing data rate ({missing_pct}%)")
         elif missing_pct > 10:
             quality["score"] -= 15
-            quality["issues"].append(f"⚠️ Moderate missing data rate ({missing_pct}%)")
+            quality["issues"].append(f"âš ï¸ Moderate missing data rate ({missing_pct}%)")
         elif missing_pct > 0:
-            quality["warnings"].append(f"📋 Minimal missing data ({missing_pct}%)")
+            quality["warnings"].append(f"ðŸ“‹ Minimal missing data ({missing_pct}%)")
 
         duplicates = profile.get("duplicate_rows", 0)
         if duplicates > 0:
             quality["score"] -= 10
-            quality["issues"].append(f"⚠️ {duplicates} duplicate rows detected")
+            quality["issues"].append(f"âš ï¸ {duplicates} duplicate rows detected")
 
         n_rows = profile.get("rows", 0)
         if n_rows < 30:
             quality["score"] -= 15
-            quality["issues"].append(f"⚠️ Small sample size (N={n_rows})  results may be unstable")
+            quality["issues"].append(f"âš ï¸ Small sample size (N={n_rows})  results may be unstable")
         elif n_rows < 100:
-            quality["warnings"].append(f"📋 Moderate sample size (N={n_rows})")
+            quality["warnings"].append(f"ðŸ“‹ Moderate sample size (N={n_rows})")
 
         numeric_cols = profile.get("numeric_columns", [])
         if len(numeric_cols) < 2:
-            quality["warnings"].append("📋 Few numeric variables  limited statistical analysis available")
+            quality["warnings"].append("ðŸ“‹ Few numeric variables  limited statistical analysis available")
 
         quality["score"] = max(0, quality["score"])
         quality["grade"] = "A" if quality["score"] >= 90 else "B" if quality["score"] >= 75 else "C" if quality["score"] >= 60 else "D"
@@ -309,7 +310,7 @@ class ExecutiveStoryteller:
         lines = []
         lines.append(f"##  Executive Data Summary")
         lines.append(f"")
-        lines.append(f"**Dataset**: {profile['rows']:,} observations × {profile['columns']} variables")
+        lines.append(f"**Dataset**: {profile['rows']:,} observations Ã— {profile['columns']} variables")
         lines.append(f"**Analysis Time**: {datetime.now():%Y-%m-%d %H:%M}")
         lines.append(f"")
 
@@ -318,26 +319,26 @@ class ExecutiveStoryteller:
         total_tests = test_battery.get("tests_run", 0)
         strong_corrs = len(correlations.get("strong_pairs", []))
 
-        lines.append(f"### 📈 Key Metrics")
+        lines.append(f"### ðŸ“ˆ Key Metrics")
         lines.append(f"| Metric | Value |")
         lines.append(f"|--------|-------|")
         lines.append(f"| Statistical Tests Run | {total_tests} |")
         lines.append(f"| Significant Findings | {sig_count} |")
-        lines.append(f"| Strong Correlations (|r| ≥ 0.5) | {strong_corrs} |")
+        lines.append(f"| Strong Correlations (|r| â‰¥ 0.5) | {strong_corrs} |")
         lines.append(f"| Data Quality Score | {profile.get('missing_pct', 0):.1f}% missing |")
         lines.append(f"")
 
         # Top findings
         if test_battery.get("tests"):
-            lines.append(f"### 🏆 Top Statistical Findings")
+            lines.append(f"### ðŸ† Top Statistical Findings")
             for i, test in enumerate(test_battery["tests"][:5]):
                 lines.append(f"{i1}. {test.get('narrative', '')}")
             lines.append(f"")
 
         if strong_corrs > 0:
-            lines.append(f"### 🔗 Key Relationships")
+            lines.append(f"### ðŸ”— Key Relationships")
             for pair in correlations["strong_pairs"][:3]:
-                lines.append(f"- **{pair['var1']}** ↔ **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
+                lines.append(f"- **{pair['var1']}** â†” **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
             lines.append(f"")
 
         return "\n".join(lines)
@@ -345,7 +346,7 @@ class ExecutiveStoryteller:
     def _generate_risk_assessment(self, quality: Dict, anomalies: Dict, test_battery: Dict) -> str:
         """Generate risk assessment narrative."""
         lines = []
-        lines.append(f"## ⚠️ Risk Assessment")
+        lines.append(f"## âš ï¸ Risk Assessment")
         lines.append(f"")
 
         quality_grade = quality.get("grade", "N/A")
@@ -367,18 +368,18 @@ class ExecutiveStoryteller:
 
         if anomalies.get("total_outliers", 0) > 0:
             severity = anomalies.get("severity", "low")
-            sev_icon = "🔴" if severity == "high" else "🟡" if severity == "medium" else "🟢"
+            sev_icon = "ðŸ”´" if severity == "high" else "ðŸŸ¡" if severity == "medium" else "ðŸŸ¢"
             lines.append(f"### Outlier Risk {sev_icon}")
             lines.append(f"- {anomalies['total_outliers']} outliers detected across {anomalies['columns_with_outliers']} columns ({severity} severity)")
             lines.append(f"")
 
         # Statistical risks
         if test_battery.get("tests_run") == 0:
-            lines.append(f"### 🔬 Statistical Limitations")
+            lines.append(f"### ðŸ”¬ Statistical Limitations")
             lines.append(f"- No significant statistical findings  data may lack power or structure")
             lines.append(f"")
 
-        lines.append(f"### 💡 Recommendations")
+        lines.append(f"### ðŸ’¡ Recommendations")
         if quality_score < 70:
             lines.append(f"- **Clean your data**: Address missing values and outliers before drawing conclusions")
         if anomalies.get("total_outliers", 0) > 0:
@@ -398,7 +399,7 @@ class ExecutiveStoryteller:
             takeaways.append({
                 "type": "finding",
                 "severity": "high" if test.get("result", {}).get("p_value", 1) < 0.01 else "medium",
-                "icon": "🔬",
+                "icon": "ðŸ”¬",
                 "text": test.get("narrative", "").replace("**", ""),
             })
 
@@ -407,7 +408,7 @@ class ExecutiveStoryteller:
             takeaways.append({
                 "type": "relationship",
                 "severity": "medium",
-                "icon": "🔗",
+                "icon": "ðŸ”—",
                 "text": f"Strong {'positive' if pair['r'] > 0 else 'negative'} relationship between {pair['var1']} and {pair['var2']} (r = {pair['r']:.2f})",
             })
 
@@ -417,8 +418,8 @@ class ExecutiveStoryteller:
                 takeaways.append({
                     "type": "quality",
                     "severity": "high" if "High" in issue else "medium",
-                    "icon": "⚠️",
-                    "text": issue.replace("⚠️ ", ""),
+                    "icon": "âš ï¸",
+                    "text": issue.replace("âš ï¸ ", ""),
                 })
 
         # Anomaly takeaways
@@ -436,14 +437,14 @@ class ExecutiveStoryteller:
             takeaways.append({
                 "type": "scale",
                 "severity": "low",
-                "icon": "📏",
+                "icon": "ðŸ“",
                 "text": f"Large dataset ({n:,} rows)  consider sampling for faster iterative analysis",
             })
         elif n < 50:
             takeaways.append({
                 "type": "scale",
                 "severity": "high",
-                "icon": "📏",
+                "icon": "ðŸ“",
                 "text": f"Small dataset ({n} rows)  interpret results with caution, consider Bayesian methods",
             })
 
@@ -472,25 +473,25 @@ class ExecutiveStoryteller:
         return "low"
 
 
-# ─── UI ──────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_executive_storyteller_ui():
     """Render the executive storyteller report in a beautifully formatted UI."""
     report = st.session_state.get("executive_report")
     if not report:
-        st.info("👆 The executive report will auto-generate when data is loaded.")
+        st.info("ðŸ‘† The executive report will auto-generate when data is loaded.")
         return
 
     severity = report.get("severity", "medium")
     severity_colors = {"low": "#2ecc71", "medium": "#e67e22", "high": "#e74c3c"}
     severity_color = severity_colors.get(severity, "#64748b")
 
-    # ─── Severity Banner ────────────────────────────────────────────
+    # â”€â”€â”€ Severity Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown(f"""
     <div style="text-align:center;padding:0.8rem;border-radius:14px;
                 border:2px solid {severity_color};background:{severity_color}10;margin-bottom:1rem;">
         <span style="font-size:1.1rem;font-weight:700;color:{severity_color};">
-            {'🟢 LOW RISK' if severity == 'low' else '🟡 MODERATE RISK' if severity == 'medium' else '🔴 HIGH RISK'}
+            {'ðŸŸ¢ LOW RISK' if severity == 'low' else 'ðŸŸ¡ MODERATE RISK' if severity == 'medium' else 'ðŸ”´ HIGH RISK'}
         </span>
         <span style="color:#64748b;margin-left:1rem;">
             Overall Assessment  Generated {report.get('generated_at', '')}
@@ -498,29 +499,29 @@ def render_executive_storyteller_ui():
     </div>
     """, unsafe_allow_html=True)
 
-    # ─── Dataset Overview ───────────────────────────────────────────
+    # â”€â”€â”€ Dataset Overview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     ds = report.get("dataset", {})
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric(" Rows", f"{ds.get('rows', 0):,}")
     with col2:
-        st.metric("📋 Columns", ds.get("columns", 0))
+        st.metric("ðŸ“‹ Columns", ds.get("columns", 0))
     with col3:
-        st.metric("🔬 Tests Run", report.get("test_battery", {}).get("tests_run", 0))
+        st.metric("ðŸ”¬ Tests Run", report.get("test_battery", {}).get("tests_run", 0))
     with col4:
-        st.metric("💡 Significant", report.get("test_battery", {}).get("significant_findings", 0))
+        st.metric("ðŸ’¡ Significant", report.get("test_battery", {}).get("significant_findings", 0))
 
-    # ─── Executive Summary ──────────────────────────────────────────
+    # â”€â”€â”€ Executive Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("---")
     st.markdown(report.get("executive_summary", ""), unsafe_allow_html=True)
 
-    # ─── Detailed Tests ─────────────────────────────────────────────
+    # â”€â”€â”€ Detailed Tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     tests = report.get("test_battery", {}).get("tests", [])
     if tests:
-        with st.expander("🔍 View All Statistical Test Results", expanded=False):
+        with st.expander("ðŸ” View All Statistical Test Results", expanded=False):
             for test in tests:
                 p = test.get("result", {}).get("p_value", 1)
-                sig_badge = "✅ Significant" if p < 0.05 else "❌ Not significant"
+                sig_badge = "âœ… Significant" if p < 0.05 else "âŒ Not significant"
                 p_str = f"p = {p:.4f}" if p >= 0.0001 else "p < .0001"
                 st.markdown(f"""
                 <div style="padding:0.6rem;margin:0.3rem 0;border-radius:8px;
@@ -531,20 +532,20 @@ def render_executive_storyteller_ui():
                 </div>
                 """, unsafe_allow_html=True)
 
-    # ─── Strong Correlations ────────────────────────────────────────
+    # â”€â”€â”€ Strong Correlations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     strong_pairs = report.get("correlations", {}).get("strong_pairs", [])
     if strong_pairs:
-        with st.expander("🔗 View Strong Correlations", expanded=False):
+        with st.expander("ðŸ”— View Strong Correlations", expanded=False):
             for pair in strong_pairs:
-                st.markdown(f"- **{pair['var1']}** ↔ **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
+                st.markdown(f"- **{pair['var1']}** â†” **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
 
-    # ─── Risk Assessment ────────────────────────────────────────────
+    # â”€â”€â”€ Risk Assessment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("---")
     st.markdown(report.get("risk_assessment", ""), unsafe_allow_html=True)
 
-    # ─── Core Takeaways ─────────────────────────────────────────────
+    # â”€â”€â”€ Core Takeaways â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("---")
-    st.markdown("## 🎯 Core Takeaways")
+    st.markdown("## ðŸŽ¯ Core Takeaways")
     takeaways = report.get("takeaways", [])
     if takeaways:
         for t in takeaways:
@@ -559,7 +560,7 @@ def render_executive_storyteller_ui():
             </div>
             """, unsafe_allow_html=True)
 
-    # ─── Export ─────────────────────────────────────────────────────
+    # â”€â”€â”€ Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
@@ -575,14 +576,14 @@ def render_executive_storyteller_ui():
 ---
 Generated by CHRISHEM Executive Storyteller
 """
-        if st.button("📋 Copy Report to Clipboard"):
+        if st.button("ðŸ“‹ Copy Report to Clipboard"):
             st.code(report_text, language="markdown")
     with col2:
         import base64
         b64 = base64.b64encode(report_text.encode()).decode()
         st.markdown(
             f'<a href="data:text/markdown;base64,{b64}" download="executive_report_{datetime.now():%Y%m%d}.md">'
-            f'📥 Download Report (Markdown)</a>',
+            f'ðŸ“¥ Download Report (Markdown)</a>',
             unsafe_allow_html=True,
         )
 

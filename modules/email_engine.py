@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Email Engine  SMTP/SendGrid Integration for Reports."""
 import os
@@ -14,9 +15,9 @@ from typing import Optional, List, Dict, Any
 
 import streamlit as st
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # EMAIL CONFIGURATION
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
@@ -154,9 +155,9 @@ def send_email(
     
     return _send_via_smtp(msg)
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # EMAIL TEMPLATES
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 VERIFICATION_EMAIL_TEMPLATE = """
 <!DOCTYPE html>
@@ -218,7 +219,7 @@ VERIFICATION_EMAIL_TEMPLATE = """
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎓 Student Verification Approved</h1>
+            <h1>ðŸŽ“ Student Verification Approved</h1>
         </div>
         <div class="content">
             <p>Congratulations <strong>{user_name}</strong>!</p>
@@ -233,10 +234,10 @@ VERIFICATION_EMAIL_TEMPLATE = """
             
             <p>You now have <strong>FREE Standard Tier</strong> access to:</p>
             <ul>
-                <li>✅ Full Literature Search Engine</li>
-                <li>✅ File Exports (CSV, PDF, Excel)</li>
-                <li>✅ Standard Automation Tools</li>
-                <li>✅ 15-Day Free Trial to Premium</li>
+                <li>âœ… Full Literature Search Engine</li>
+                <li>âœ… File Exports (CSV, PDF, Excel)</li>
+                <li>âœ… Standard Automation Tools</li>
+                <li>âœ… 15-Day Free Trial to Premium</li>
             </ul>
             
             <p style="margin-top: 30px;">
@@ -245,7 +246,7 @@ VERIFICATION_EMAIL_TEMPLATE = """
         </div>
         <div class="footer">
             <p>Bio-Research Platform  Accelerating Academic Research</p>
-            <p>© 2024 Bio-Research Platform. All rights reserved.</p>
+            <p>Â© 2024 Bio-Research Platform. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -316,7 +317,7 @@ AUDIT_REPORT_TEMPLATE = """
 <body>
     <div class="container">
         <div class="header">
-            <h1>📜 Academic Audit Report</h1>
+            <h1>ðŸ“œ Academic Audit Report</h1>
             <p>Generated: {generated_date}</p>
         </div>
         <div class="content">
@@ -356,7 +357,7 @@ AUDIT_REPORT_TEMPLATE = """
         </div>
         <div class="footer">
             <p>Bio-Research Platform  Academic Integrity Tools</p>
-            <p>© 2024 Bio-Research Platform. All rights reserved.</p>
+            <p>Â© 2024 Bio-Research Platform. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -424,7 +425,7 @@ WELCOME_EMAIL_TEMPLATE = """
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔬 Welcome to Bio-Research Platform</h1>
+            <h1>ðŸ”¬ Welcome to Bio-Research Platform</h1>
         </div>
         <div class="content">
             <p>Hello <strong>{user_name}</strong>!</p>
@@ -433,9 +434,9 @@ WELCOME_EMAIL_TEMPLATE = """
             
             <h3>Your Account</h3>
             <ul class="features">
-                <li>📧 Email: {user_email}</li>
-                <li>💳 Tier: {tier}</li>
-                <li>📅 Joined: {join_date}</li>
+                <li>ðŸ“§ Email: {user_email}</li>
+                <li>ðŸ’³ Tier: {tier}</li>
+                <li>ðŸ“… Joined: {join_date}</li>
             </ul>
             
             <h3>Platform Features</h3>
@@ -449,16 +450,16 @@ WELCOME_EMAIL_TEMPLATE = """
         </div>
         <div class="footer">
             <p>Bio-Research Platform  Accelerating Academic Research</p>
-            <p>© 2024 Bio-Research Platform. All rights reserved.</p>
+            <p>Â© 2024 Bio-Research Platform. All rights reserved.</p>
         </div>
     </div>
 </body>
 </html>
 """
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CONVENIENCE FUNCTIONS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def send_verification_approval(email: str, user_name: str, score: int, university: str) -> bool:
     """Send verification approval email."""
@@ -469,7 +470,7 @@ def send_verification_approval(email: str, user_name: str, score: int, universit
         date=datetime.utcnow().strftime("%Y-%m-%d"),
         app_url=os.environ.get("APP_URL", "https://your-app.streamlit.app"),
     )
-    return send_email(email, "🎓 Student Verification Approved", html)
+    return send_email(email, "ðŸŽ“ Student Verification Approved", html)
 
 def send_audit_report(
     email: str,
@@ -498,7 +499,7 @@ def send_audit_report(
         burstiness=profile.get("burstiness", "N/A"),
         vocabulary=profile.get("vocabulary_richness", "N/A"),
         session_id=report_data.get("session_id", "N/A")[:20]  "...",
-        report_attachments="<p>📎 Full PDF report attached.</p>" if pdf_content else "",
+        report_attachments="<p>ðŸ“Ž Full PDF report attached.</p>" if pdf_content else "",
         app_url=os.environ.get("APP_URL", "https://your-app.streamlit.app"),
     )
     
@@ -510,29 +511,29 @@ def send_audit_report(
             "mime_type": "application/pdf",
         }]
     
-    return send_email(email, "📜 Academic Audit Report Ready", html, attachments=attachments)
+    return send_email(email, "ðŸ“œ Academic Audit Report Ready", html, attachments=attachments)
 
 def send_welcome_email(email: str, tier: str = "Free") -> bool:
     """Send welcome email to new users."""
     features = {
         "Free": """
-            <li>🔍 Basic Literature Search</li>
+            <li>ðŸ” Basic Literature Search</li>
             <li> Data Visualization Tools</li>
-            <li>📁 File Analysis (CSV, Excel)</li>
-            <li>📜 Audit Compliance Tools</li>
+            <li>ðŸ“ File Analysis (CSV, Excel)</li>
+            <li>ðŸ“œ Audit Compliance Tools</li>
         """,
         "Standard": """
-            <li>✅ Everything in Free</li>
-            <li>📚 Full Literature Engine</li>
-            <li>📥 Unlimited File Exports</li>
-            <li>⚙️ Standard Automation</li>
-            <li>🎁 15-Day Premium Trial</li>
+            <li>âœ… Everything in Free</li>
+            <li>ðŸ“š Full Literature Engine</li>
+            <li>ðŸ“¥ Unlimited File Exports</li>
+            <li>âš™ï¸ Standard Automation</li>
+            <li>ðŸŽ 15-Day Premium Trial</li>
         """,
         "Premium": """
-            <li>✅ Everything in Standard</li>
-            <li>🔬 Deep Research Synthesis</li>
-            <li>📧 Automated Email Reports</li>
-            <li>📋 Notion Workspace Integration</li>
+            <li>âœ… Everything in Standard</li>
+            <li>ðŸ”¬ Deep Research Synthesis</li>
+            <li>ðŸ“§ Automated Email Reports</li>
+            <li>ðŸ“‹ Notion Workspace Integration</li>
             <li> Priority Support</li>
         """,
     }
@@ -546,26 +547,26 @@ def send_welcome_email(email: str, tier: str = "Free") -> bool:
         app_url=os.environ.get("APP_URL", "https://your-app.streamlit.app"),
     )
     
-    return send_email(email, "🔬 Welcome to Bio-Research Platform!", html)
+    return send_email(email, "ðŸ”¬ Welcome to Bio-Research Platform!", html)
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # EMAIL DELIVERY OPTIONS (UI)
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
     """Render UI for email delivery options."""
-    st.subheader("📧 Deliver Report")
+    st.subheader("ðŸ“§ Deliver Report")
     
     delivery_method = st.radio(
         "Delivery Method",
-        ["📥 Download Now", "📧 Send to Email"],
+        ["ðŸ“¥ Download Now", "ðŸ“§ Send to Email"],
         horizontal=True,
     )
     
-    if delivery_method == "📥 Download Now":
+    if delivery_method == "ðŸ“¥ Download Now":
         if pdf_bytes:
             st.download_button(
-                "📥 Download PDF Report",
+                "ðŸ“¥ Download PDF Report",
                 data=pdf_bytes,
                 file_name=f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
                 mime="application/pdf",
@@ -576,7 +577,7 @@ def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
             orch = get_audit_orchestrator()
             text_report = orch.generate_export_report([report_data])
             st.download_button(
-                "📥 Download Text Report",
+                "ðŸ“¥ Download Text Report",
                 data=text_report,
                 file_name=f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
                 mime="text/plain",
@@ -590,13 +591,13 @@ def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
             )
         with col2:
             st.markdown("#####")
-            if st.button("📤 Send Report"):
+            if st.button("ðŸ“¤ Send Report"):
                 if not email or "@" not in email:
                     st.error("Please enter a valid email")
                 else:
                     with st.spinner("Sending..."):
                         success = send_audit_report(email, report_data, pdf_bytes)
                         if success:
-                            st.success(f"✅ Report sent to {email}")
+                            st.success(f"âœ… Report sent to {email}")
                         else:
                             st.error("Failed to send email. Please try again.")

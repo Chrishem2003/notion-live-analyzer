@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 SPSS Variable View Editor  manage variable labels, value labels, measurement levels,
@@ -109,7 +110,7 @@ def render_variable_view_editor(df: pd.DataFrame):
     # Action buttons
     col1, col2, col3, col4 = st.columns([1, 1, 1, 3])
     with col1:
-        if st.button("➕ Add Variable", use_container_width=True):
+        if st.button("âž• Add Variable", use_container_width=True):
             new_name = f"var_{len(metadata)}"
             df[new_name] = None
             metadata[new_name] = {
@@ -119,14 +120,14 @@ def render_variable_view_editor(df: pd.DataFrame):
             }
             st.rerun()
     with col2:
-        if st.button("✂️ Delete Selected", use_container_width=True):
+        if st.button("âœ‚ï¸ Delete Selected", use_container_width=True):
             for col in list(metadata.keys()):
                 if st.session_state.get(f"del_{col}"):
                     df.drop(columns=[col], inplace=True, errors="ignore")
                     del metadata[col]
                     st.rerun()
     with col3:
-        if st.button("🔄 Reset Metadata", use_container_width=True):
+        if st.button("ðŸ”„ Reset Metadata", use_container_width=True):
             if "variable_metadata" in st.session_state:
                 del st.session_state["variable_metadata"]
             st.rerun()
@@ -204,7 +205,7 @@ def render_variable_view_editor(df: pd.DataFrame):
 
     # Value Labels Editor (selected variable)
     st.markdown("---")
-    st.subheader("🏷️ Value Labels Editor")
+    st.subheader("ðŸ·ï¸ Value Labels Editor")
     val_label_col = st.selectbox("Select variable to edit value labels", options=list(metadata.keys()))
     if val_label_col:
         meta = metadata[val_label_col]
@@ -217,7 +218,7 @@ def render_variable_view_editor(df: pd.DataFrame):
         with col2:
             val_label = st.text_input("Label", placeholder="e.g., Male", key="vl_label")
 
-        if st.button("➕ Add/Update Label"):
+        if st.button("âž• Add/Update Label"):
             if val_key and val_label:
                 existing_labels[val_key] = val_label
                 meta["value_labels"] = existing_labels
@@ -228,16 +229,16 @@ def render_variable_view_editor(df: pd.DataFrame):
             for k, v in existing_labels.items():
                 c1, c2 = st.columns([3, 1])
                 with c1:
-                    st.markdown(f"`{k}` → **{v}**")
+                    st.markdown(f"`{k}` â†’ **{v}**")
                 with c2:
-                    if st.button(f"🗑️", key=f"del_vl_{val_label_col}_{k}"):
+                    if st.button(f"ðŸ—‘ï¸", key=f"del_vl_{val_label_col}_{k}"):
                         del existing_labels[k]
                         meta["value_labels"] = existing_labels
                         st.rerun()
 
     # Missing Values Editor
     st.markdown("---")
-    st.subheader("⬜ Missing Values Editor")
+    st.subheader("â¬œ Missing Values Editor")
     miss_col = st.selectbox("Select variable to define missing values", 
                             options=list(metadata.keys()), key="miss_col_select")
     if miss_col:
@@ -248,7 +249,7 @@ def render_variable_view_editor(df: pd.DataFrame):
             value=", ".join(str(m) for m in current_missing),
             key="miss_input"
         )
-        if st.button("💾 Save Missing Values"):
+        if st.button("ðŸ’¾ Save Missing Values"):
             parsed = [m.strip() for m in miss_input.split(",") if m.strip()]
             meta["missing_values"] = parsed
             st.success(f"Saved missing values for {miss_col}: {parsed}")

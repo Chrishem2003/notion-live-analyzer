@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import sqlite3
 import json
@@ -97,10 +98,10 @@ def run_grant_matching_pipeline():
     return pd.DataFrame(results)
 
 def render_grant_matcher_tab():
-    st.subheader("🎯 Automated Grant Indexer & Relevance Matcher")
+    st.subheader("ðŸŽ¯ Automated Grant Indexer & Relevance Matcher")
     st.caption("Scrapes global funding calls and scores relevance against project domain parameters using vector-keyword similarity.")
 
-    if st.button("🚀 Execute Global Grant Scraping & Matching Pipeline", type="primary"):
+    if st.button("ðŸš€ Execute Global Grant Scraping & Matching Pipeline", type="primary"):
         with st.spinner("Scraping international funding databases and evaluating vector relevance..."):
             df_matches = run_grant_matching_pipeline()
             log_provenance("GRANT_MATCHER", "RUN_PIPELINE", "chief.investigator@lab.org", {"records_matched": len(df_matches)})

@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Native Git/Repository Integration  connects to GitHub repositories,
@@ -11,7 +12,7 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 
-# ─── Graceful Imports ─────────────────────────────────────────────────
+# â”€â”€â”€ Graceful Imports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 try:
     import git
     HAS_GITPYTHON = True
@@ -42,7 +43,7 @@ class GitIntegration:
         self.local_path = None
         self.connected = False
 
-    # ─── Connection ─────────────────────────────────────────────────
+    # â”€â”€â”€ Connection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def connect_github(self, token: str, repo_url: str) -> Tuple[bool, str]:
         """Connect to a GitHub repository using a personal access token."""
@@ -67,7 +68,7 @@ class GitIntegration:
             try:
                 self.repo = self.github_client.get_repo(repo_name)
             except Exception:
-                return False, f"❌ Repository '{repo_name}' not found. Check the URL and your access token."
+                return False, f"âŒ Repository '{repo_name}' not found. Check the URL and your access token."
 
             # Create local temp directory for cloning
             self.local_path = tempfile.mkdtemp(prefix="chrishem_git_")
@@ -78,13 +79,13 @@ class GitIntegration:
                 git.Repo.clone_from(clone_url, self.local_path)
                 self.local_repo = git.Repo(self.local_path)
             except Exception as e:
-                return False, f"❌ Failed to clone repository: {str(e)}"
+                return False, f"âŒ Failed to clone repository: {str(e)}"
 
             self.connected = True
-            return True, f"✅ Connected to {repo_name}"
+            return True, f"âœ… Connected to {repo_name}"
 
         except Exception as e:
-            return False, f"❌ Connection failed: {str(e)}"
+            return False, f"âŒ Connection failed: {str(e)}"
 
     def disconnect(self):
         """Disconnect from GitHub and clean up."""
@@ -97,7 +98,7 @@ class GitIntegration:
             shutil.rmtree(self.local_path, ignore_errors=True)
             self.local_path = None
 
-    # ─── Repository Operations ──────────────────────────────────────
+    # â”€â”€â”€ Repository Operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def list_repo_files(self, path: str = "") -> List[Dict[str, Any]]:
         """List files in the repository at a given path."""
@@ -194,10 +195,10 @@ class GitIntegration:
             origin = self.local_repo.remotes.origin
             origin.push(refspec=f"HEAD:refs/heads/{branch}")
 
-            return True, f"✅ Committed and pushed to {branch}"
+            return True, f"âœ… Committed and pushed to {branch}"
 
         except Exception as e:
-            return False, f"❌ Commit/push failed: {str(e)}"
+            return False, f"âŒ Commit/push failed: {str(e)}"
 
     def push_analysis_script(self, df: pd.DataFrame, analysis_type: str,
                               branch: str = "main") -> Tuple[bool, str]:
@@ -220,7 +221,7 @@ class GitIntegration:
             return self.commit_and_push(script_path, f"Auto-generated {analysis_type} analysis ({timestamp})", branch)
 
         except Exception as e:
-            return False, f"❌ Script generation failed: {str(e)}"
+            return False, f"âŒ Script generation failed: {str(e)}"
 
     def push_cleaned_dataset(self, df: pd.DataFrame, dataset_name: str = None,
                               format: str = "csv", branch: str = "main") -> Tuple[bool, str]:
@@ -256,10 +257,10 @@ class GitIntegration:
             origin = self.local_repo.remotes.origin
             origin.push(refspec=f"HEAD:refs/heads/{branch}")
 
-            return True, f"✅ Pushed {file_name} to {branch}"
+            return True, f"âœ… Pushed {file_name} to {branch}"
 
         except Exception as e:
-            return False, f"❌ Failed to push dataset: {str(e)}"
+            return False, f"âŒ Failed to push dataset: {str(e)}"
 
     def list_commits(self, path: str = None, max_count: int = 20) -> List[Dict[str, Any]]:
         """List commit history for the repo, optionally filtered by file path."""
@@ -308,7 +309,7 @@ print(desc)
 
 # Save results
 desc.to_csv("descriptive_statistics.csv")
-print("✅ Descriptive analysis complete.")
+print("âœ… Descriptive analysis complete.")
 ''',
             "correlation": f'''"""
 Auto-generated Correlation Analysis Script
@@ -352,7 +353,7 @@ if features:
     model = LinearRegression()
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    print(f"R² = {{r2_score(y_test, y_pred):.4f}}")
+    print(f"RÂ² = {{r2_score(y_test, y_pred):.4f}}")
     print(f"RMSE = {{np.sqrt(mean_squared_error(y_test, y_pred)):.4f}}")
 ''',
         }
@@ -378,11 +379,11 @@ print(f"Columns: {cols}")
         }
 
 
-# ─── UI ──────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_git_integration_ui():
     """Render the Git integration UI."""
-    st.markdown("## 🔗 Git Repository Integration")
+    st.markdown("## ðŸ”— Git Repository Integration")
     st.markdown("*Connect your GitHub repository for data version control, script pushing, and collaboration*")
 
     if "git_engine" not in st.session_state:
@@ -390,9 +391,9 @@ def render_git_integration_ui():
 
     engine = st.session_state["git_engine"]
 
-    # ─── Connection Panel ──────────────────────────────────────────
+    # â”€â”€â”€ Connection Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if not engine.connected:
-        st.markdown("### 🔌 Connect to GitHub")
+        st.markdown("### ðŸ”Œ Connect to GitHub")
 
         with st.form("git_connect_form"):
             repo_url = st.text_input(
@@ -404,7 +405,7 @@ def render_git_integration_ui():
                 "GitHub Personal Access Token",
                 type="password",
                 placeholder="ghp_xxxxxxxxxxxxxxxxxxxx",
-                help="Create at: GitHub Settings → Developer Settings → Personal Access Tokens → Fine-grained tokens",
+                help="Create at: GitHub Settings â†’ Developer Settings â†’ Personal Access Tokens â†’ Fine-grained tokens",
             )
 
             col1, col2 = st.columns(2)
@@ -412,9 +413,9 @@ def render_git_integration_ui():
                 default_branch = st.text_input("Default branch", value="main")
             with col2:
                 st.markdown("##### ")
-                st.markdown("🔒 Token stored in session only")
+                st.markdown("ðŸ”’ Token stored in session only")
 
-            submitted = st.form_submit_button("🔗 Connect to GitHub", type="primary", use_container_width=True)
+            submitted = st.form_submit_button("ðŸ”— Connect to GitHub", type="primary", use_container_width=True)
 
             if submitted:
                 if not repo_url or not github_token:
@@ -434,50 +435,50 @@ def render_git_integration_ui():
 
         st.markdown("""
         ---
-        ### 🔑 How to Get a GitHub Token
-        1. Go to [GitHub Settings → Developer Settings](https://github.com/settings/tokens)
+        ### ðŸ”‘ How to Get a GitHub Token
+        1. Go to [GitHub Settings â†’ Developer Settings](https://github.com/settings/tokens)
         2. Click **Generate new token (fine-grained)**
         3. Select repo access: **Contents** (read/write), **Commits** (read)
         4. Copy the token and paste it above
         """)
         return
 
-    # ─── Connected View ────────────────────────────────────────────
+    # â”€â”€â”€ Connected View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     status = engine.status
-    st.success(f"✅ Connected to **{status.get('repo', 'Unknown')}**")
+    st.success(f"âœ… Connected to **{status.get('repo', 'Unknown')}**")
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        if st.button("🔄 Refresh Connection", use_container_width=True):
+        if st.button("ðŸ”„ Refresh Connection", use_container_width=True):
             st.rerun()
     with col2:
         branch = st.text_input("Branch", value=st.session_state.get("git_branch", "main"), key="git_branch_input")
         st.session_state["git_branch"] = branch
     with col3:
-        if st.button("🔌 Disconnect", use_container_width=True, type="secondary"):
+        if st.button("ðŸ”Œ Disconnect", use_container_width=True, type="secondary"):
             engine.disconnect()
             st.session_state["git_connected"] = False
             st.rerun()
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📂 Browse Repo", "📥 Pull Dataset", "📤 Push Data/Scripts", "📋 Commit History"
+        "ðŸ“‚ Browse Repo", "ðŸ“¥ Pull Dataset", "ðŸ“¤ Push Data/Scripts", "ðŸ“‹ Commit History"
     ])
 
     with tab1:
-        st.subheader("📂 Repository Files")
+        st.subheader("ðŸ“‚ Repository Files")
         repo_path = st.text_input("Path (leave empty for root)", value="", key="repo_path")
         files = engine.list_repo_files(repo_path)
 
         if files:
             for f in files:
-                icon = "📁" if f["type"] == "dir" else "📄"
+                icon = "ðŸ“" if f["type"] == "dir" else "ðŸ“„"
                 size_str = f" ({f['size'] / 1024:.1f} KB)" if f["type"] == "file" else ""
                 st.markdown(f"{icon} **{f['name']}**{size_str}  `{f['path']}`")
         else:
             st.info("No files found at this path")
 
     with tab2:
-        st.subheader("📥 Pull Dataset from Repository")
+        st.subheader("ðŸ“¥ Pull Dataset from Repository")
         st.caption("Load a CSV, Excel, or JSON file directly from GitHub into the analyzer.")
 
         if files:
@@ -489,14 +490,14 @@ def render_git_integration_ui():
                     format_func=lambda f: f["name"],
                 )
 
-                if st.button("📥 Pull & Load Dataset", type="primary", use_container_width=True):
+                if st.button("ðŸ“¥ Pull & Load Dataset", type="primary", use_container_width=True):
                     with st.spinner(f"Pulling {file_to_pull['name']}..."):
                         pulled_df = engine.pull_dataset(file_to_pull["path"])
                     if pulled_df is not None:
                         st.session_state["uploaded_df"] = pulled_df
                         st.session_state["active_df"] = pulled_df
                         st.session_state["data_source"] = "github"
-                        st.success(f"✅ Loaded '{file_to_pull['name']}'  {len(pulled_df)} rows × {len(pulled_df.columns)} columns")
+                        st.success(f"âœ… Loaded '{file_to_pull['name']}'  {len(pulled_df)} rows Ã— {len(pulled_df.columns)} columns")
                         st.dataframe(pulled_df.head(20), use_container_width=True, hide_index=True)
             else:
                 st.info("No supported data files found in the current directory. Navigate to a different path.")
@@ -504,16 +505,16 @@ def render_git_integration_ui():
             st.info("Browse to a directory containing data files first.")
 
     with tab3:
-        st.subheader("📤 Push Data & Scripts to GitHub")
+        st.subheader("ðŸ“¤ Push Data & Scripts to GitHub")
         st.caption("Version-control your cleaned datasets and analysis scripts.")
 
         active_df = st.session_state.get("active_df")
         if active_df is not None and not active_df.empty:
-            st.info(f" Current active dataset: {len(active_df)} rows × {len(active_df.columns)} columns")
+            st.info(f" Current active dataset: {len(active_df)} rows Ã— {len(active_df.columns)} columns")
 
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("📤 Push Cleaned Dataset (CSV)", use_container_width=True):
+                if st.button("ðŸ“¤ Push Cleaned Dataset (CSV)", use_container_width=True):
                     with st.spinner("Pushing dataset to GitHub..."):
                         success, msg = engine.push_cleaned_dataset(
                             active_df, "cleaned_data", "csv",
@@ -525,7 +526,7 @@ def render_git_integration_ui():
                         st.error(msg)
 
             with col2:
-                if st.button("📤 Push Analysis Script", use_container_width=True):
+                if st.button("ðŸ“¤ Push Analysis Script", use_container_width=True):
                     analysis_type = st.selectbox(
                         "Script type",
                         options=["descriptive", "correlation", "regression"],
@@ -548,7 +549,7 @@ def render_git_integration_ui():
         dataset_name = st.text_input("Dataset filename (optional)", placeholder="my_cleaned_data")
         push_format = st.selectbox("Format", options=["csv", "xlsx", "json"])
 
-        if st.button("📤 Push Named Dataset", use_container_width=True):
+        if st.button("ðŸ“¤ Push Named Dataset", use_container_width=True):
             if active_df is not None:
                 with st.spinner("Pushing..."):
                     success, msg = engine.push_cleaned_dataset(
@@ -558,7 +559,7 @@ def render_git_integration_ui():
                 st.success(msg) if success else st.error(msg)
 
     with tab4:
-        st.subheader("📋 Commit History")
+        st.subheader("ðŸ“‹ Commit History")
         st.caption("Track version history of data cleaning and analysis steps.")
 
         commits = engine.list_commits(max_count=30)

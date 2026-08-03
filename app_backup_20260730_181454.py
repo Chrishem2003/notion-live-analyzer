@@ -1,3 +1,4 @@
+﻿import security_guard
 
 
 try:
@@ -28,7 +29,7 @@ init_db()
 
 st.set_page_config(
     page_title="CHRISHEM Sovereign Enterprise Intelligence Engine",
-    page_icon="🌌",
+    page_icon="ðŸŒŒ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -37,7 +38,7 @@ st.set_page_config(
 apply_custom_theme()
 
 def main():
-    st.sidebar.title("🌌 CHRISHEM Enterprise")
+    st.sidebar.title("ðŸŒŒ CHRISHEM Enterprise")
     st.sidebar.caption("Sovereign Intelligence & Autonomous Grid")
     
     navigation = st.sidebar.selectbox(
@@ -92,7 +93,7 @@ try:
     from modules.auto_sync import auto_commit_and_push
     success, msg = auto_commit_and_push("auto: routine application sync")
     if success:
-        print(f"🚀 [Auto-Sync] {msg}")
+        print(f"ðŸš€ [Auto-Sync] {msg}")
 except Exception as _sync_err:
     pass
 # -------------------------------------

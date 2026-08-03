@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Data Transformation Engine  SPSS-like Compute, Recode, Rank, Count, Shift, and Binning.
@@ -10,7 +11,7 @@ import re
 import streamlit as st
 from datetime import datetime, timedelta
 
-# ─── Compute Variable ────────────────────────────────────────────────
+# â”€â”€â”€ Compute Variable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def compute_variable(
     df: pd.DataFrame,
@@ -48,7 +49,7 @@ def compute_variable(
         return df
 
 
-# ─── Recode Functions ────────────────────────────────────────────────
+# â”€â”€â”€ Recode Functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def recode_same(
     df: pd.DataFrame,
@@ -97,7 +98,7 @@ def recode_different(
     return df
 
 
-# ─── Rank Cases ──────────────────────────────────────────────────────
+# â”€â”€â”€ Rank Cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def rank_cases(
     df: pd.DataFrame,
@@ -142,7 +143,7 @@ def rank_cases(
     return df
 
 
-# ─── Count Occurrences ──────────────────────────────────────────────
+# â”€â”€â”€ Count Occurrences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def count_occurrences(
     df: pd.DataFrame,
@@ -162,7 +163,7 @@ def count_occurrences(
     return df
 
 
-# ─── Shift / Lag ────────────────────────────────────────────────────
+# â”€â”€â”€ Shift / Lag â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def shift_variable(
     df: pd.DataFrame,
@@ -184,7 +185,7 @@ def shift_variable(
     return df
 
 
-# ─── Binning / Discretization ──────────────────────────────────────
+# â”€â”€â”€ Binning / Discretization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def bin_variable(
     df: pd.DataFrame,
@@ -214,7 +215,7 @@ def bin_variable(
     return df
 
 
-# ─── Rename Variables ──────────────────────────────────────────────
+# â”€â”€â”€ Rename Variables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def rename_variables(df: pd.DataFrame, rename_map: Dict[str, str]) -> pd.DataFrame:
     """Rename multiple variables at once (like SPSS Rename)."""
@@ -233,7 +234,7 @@ def rename_variables(df: pd.DataFrame, rename_map: Dict[str, str]) -> pd.DataFra
     return df
 
 
-# ─── Sort Cases ────────────────────────────────────────────────────
+# â”€â”€â”€ Sort Cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def sort_cases(
     df: pd.DataFrame,
@@ -250,7 +251,7 @@ def sort_cases(
     return df
 
 
-# ─── Select Cases ──────────────────────────────────────────────────
+# â”€â”€â”€ Select Cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def select_cases(
     df: pd.DataFrame,
@@ -274,7 +275,7 @@ def select_cases(
         return df
 
 
-# ─── Weight Cases ──────────────────────────────────────────────────
+# â”€â”€â”€ Weight Cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def weight_cases(df: pd.DataFrame, weight_col: str) -> pd.DataFrame:
     """
@@ -293,11 +294,11 @@ def weight_cases(df: pd.DataFrame, weight_col: str) -> pd.DataFrame:
         return df
 
 
-# ─── UI Renderers ───────────────────────────────────────────────────
+# â”€â”€â”€ UI Renderers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_compute_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Compute Variable UI."""
-    st.subheader("🧮 Compute Variable")
+    st.subheader("ðŸ§® Compute Variable")
     st.caption("Create a new variable based on an expression (like SPSS Compute)")
 
     cols = df.columns.tolist()
@@ -322,11 +323,11 @@ def render_compute_ui(df: pd.DataFrame) -> pd.DataFrame:
         help="Examples: 'salary * 1.1', 'log(income)', 'ifelse(age >= 18, adult, minor)'"
     )
 
-    if st.button("▶️ Compute", type="primary"):
+    if st.button("â–¶ï¸ Compute", type="primary"):
         if expression and new_var:
             result_df = compute_variable(df, expression, new_var)
             if new_var in result_df.columns:
-                st.success(f"✅ Created '{new_var}'")
+                st.success(f"âœ… Created '{new_var}'")
                 return result_df
 
     return df
@@ -334,7 +335,7 @@ def render_compute_ui(df: pd.DataFrame) -> pd.DataFrame:
 
 def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Recode UI."""
-    st.subheader("🔄 Recode Values")
+    st.subheader("ðŸ”„ Recode Values")
     st.caption("Recode values into same or different variable (like SPSS Recode)")
 
     cols = df.columns.tolist()
@@ -344,7 +345,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
         col = st.selectbox("Select variable", options=cols, key="rec_same_col")
         df_result = df.copy()
 
-        st.markdown("**Value mappings (old → new):**")
+        st.markdown("**Value mappings (old â†’ new):**")
         mappings = {}
         num_mappings = st.number_input("Number of mappings", min_value=1, max_value=20, value=3, key="n_rec_same")
 
@@ -355,7 +356,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
             with c2:
                 new_val = st.text_input(f"New value {i1}", key=f"rec_new_{i}")
             with c3:
-                st.caption("→")
+                st.caption("â†’")
             if old_val:
                 try:
                     old_converted = float(old_val) if "." in old_val else int(old_val)
@@ -369,7 +370,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
 
         else_val = st.text_input("Else (value for unmatched)", value="", key="rec_else")
 
-        if st.button("▶️ Recode", type="primary"):
+        if st.button("â–¶ï¸ Recode", type="primary"):
             else_converted = None
             if else_val:
                 try:
@@ -377,7 +378,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
                 except ValueError:
                     else_converted = else_val
             df_result = recode_same(df, col, mappings, else_converted)
-            st.success("✅ Recoded successfully")
+            st.success("âœ… Recoded successfully")
             return df_result
 
     elif recode_type == "Into Different Variable":
@@ -405,9 +406,9 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
                     new_converted = new_val
                 mappings[old_converted] = new_converted
 
-        if st.button("▶️ Recode into Different", type="primary"):
+        if st.button("â–¶ï¸ Recode into Different", type="primary"):
             df_result = recode_same(df, col, mappings, new_var=new_col)
-            st.success(f"✅ Created '{new_col}'")
+            st.success(f"âœ… Created '{new_col}'")
             return df_result
 
     else:  # Into Different Variable (Ranges)
@@ -431,9 +432,9 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
                 new_val_converted = new_val
             ranges.append((lower, upper, new_val_converted))
 
-        if st.button("▶️ Recode Ranges", type="primary"):
+        if st.button("â–¶ï¸ Recode Ranges", type="primary"):
             df_result = recode_different(df, col, new_col, ranges)
-            st.success(f"✅ Created '{new_col}'")
+            st.success(f"âœ… Created '{new_col}'")
             return df_result
 
     return df
@@ -441,7 +442,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
 
 def render_rank_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Rank Cases UI."""
-    st.subheader("🏆 Rank Cases")
+    st.subheader("ðŸ† Rank Cases")
     st.caption("Rank cases by variable (like SPSS Rank Cases)")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -459,20 +460,20 @@ def render_rank_ui(df: pd.DataFrame) -> pd.DataFrame:
     group_col = st.selectbox("Group by (optional)", options=[""]  cols, key="rank_group")
     new_col = st.text_input("Rank variable name", value=f"{col}_rank", key="rank_new")
 
-    if st.button("▶️ Rank Cases", type="primary"):
+    if st.button("â–¶ï¸ Rank Cases", type="primary"):
         result_df = rank_cases(
             df, col, method=method, ascending=ascending,
             group_col=group_col if group_col else None,
             new_col=new_col if new_col else None
         )
-        st.success(f"✅ Created '{new_col}'")
+        st.success(f"âœ… Created '{new_col}'")
         return result_df
     return df
 
 
 def render_count_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Count Occurrences UI."""
-    st.subheader("🔢 Count Occurrences")
+    st.subheader("ðŸ”¢ Count Occurrences")
     st.caption("Count occurrences of a value across variables (like SPSS Count)")
 
     cols = df.columns.tolist()
@@ -480,16 +481,16 @@ def render_count_ui(df: pd.DataFrame) -> pd.DataFrame:
     selected_cols = st.multiselect("Count across variables", options=cols, key="count_cols")
     new_col = st.text_input("Count variable name", value=f"count_{value}", key="count_new")
 
-    if st.button("▶️ Count Occurrences", type="primary"):
+    if st.button("â–¶ï¸ Count Occurrences", type="primary"):
         result_df = count_occurrences(df, value, selected_cols, new_col)
-        st.success(f"✅ Created '{new_col}'")
+        st.success(f"âœ… Created '{new_col}'")
         return result_df
     return df
 
 
 def render_shift_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Shift/Lag UI."""
-    st.subheader("⏳ Create Lag/Lead Variable")
+    st.subheader("â³ Create Lag/Lead Variable")
     st.caption("Shift values forward or backward in time (like SPSS Create Lag)")
 
     cols = df.columns.tolist()
@@ -498,9 +499,9 @@ def render_shift_ui(df: pd.DataFrame) -> pd.DataFrame:
     group_col = st.selectbox("Group by (optional for panel data)", options=[""]  cols, key="shift_group")
     new_col = st.text_input("New variable name", value=f"{col}_lag{abs(periods)}", key="shift_new")
 
-    if st.button("▶️ Create Shift", type="primary"):
+    if st.button("â–¶ï¸ Create Shift", type="primary"):
         result_df = shift_variable(df, col, periods=int(periods), group_col=group_col or None, new_col=new_col)
-        st.success(f"✅ Created '{new_col}'")
+        st.success(f"âœ… Created '{new_col}'")
         return result_df
     return df
 
@@ -528,9 +529,9 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
         else:
             labels = None
 
-        if st.button("▶️ Bin Variable", type="primary"):
+        if st.button("â–¶ï¸ Bin Variable", type="primary"):
             result_df = bin_variable(df, col, bins=n_bins, labels=labels, new_col=new_col)
-            st.success(f"✅ Created '{new_col}'")
+            st.success(f"âœ… Created '{new_col}'")
             # Show distribution
             st.dataframe(result_df[new_col].value_counts().reset_index(), use_container_width=True, hide_index=True)
             return result_df
@@ -545,7 +546,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
         )
         labels_str = st.text_input("Labels (comma-separated)", value="Low, Medium, High", key="bin_clabels")
 
-        if st.button("▶️ Bin with Cut Points", type="primary"):
+        if st.button("â–¶ï¸ Bin with Cut Points", type="primary"):
             try:
                 cuts = [float(c.strip()) for c in cut_points_str.split(",")]
                 if labels_str:
@@ -553,7 +554,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
                 else:
                     labels = None
                 result_df = bin_variable(df, col, bins=cuts, labels=labels, new_col=new_col)
-                st.success(f"✅ Created '{new_col}'")
+                st.success(f"âœ… Created '{new_col}'")
                 st.dataframe(result_df[new_col].value_counts().reset_index(), use_container_width=True, hide_index=True)
                 return result_df
             except Exception as e:
@@ -564,7 +565,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
 
 def render_sort_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Sort Cases UI."""
-    st.subheader("🔀 Sort Cases")
+    st.subheader("ðŸ”€ Sort Cases")
     st.caption("Sort data by one or more variables (like SPSS Sort Cases)")
 
     cols = df.columns.tolist()
@@ -575,16 +576,16 @@ def render_sort_ui(df: pd.DataFrame) -> pd.DataFrame:
             asc = st.checkbox(f"Ascending for {col}", value=True, key=f"sort_asc_{col}")
             sort_keys.append((col, asc))
 
-        if st.button("▶️ Sort Cases", type="primary"):
+        if st.button("â–¶ï¸ Sort Cases", type="primary"):
             result_df = sort_cases(df, sort_keys)
-            st.success(f"✅ Sorted by {', '.join(sort_cols)}")
+            st.success(f"âœ… Sorted by {', '.join(sort_cols)}")
             return result_df
     return df
 
 
 def render_select_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Select Cases UI."""
-    st.subheader("🔍 Select Cases")
+    st.subheader("ðŸ” Select Cases")
     st.caption("Select/filter cases by condition (like SPSS Select Cases)")
 
     cols = df.columns.tolist()
@@ -596,16 +597,16 @@ def render_select_ui(df: pd.DataFrame) -> pd.DataFrame:
     )
     mode = st.radio("Action", ["Filter (remove unselected)", "Create indicator variable"], horizontal=True, key="select_mode")
 
-    if st.button("▶️ Select Cases", type="primary") and condition:
+    if st.button("â–¶ï¸ Select Cases", type="primary") and condition:
         result_df = select_cases(df, condition, mode="filter" if "filter" in mode.lower() else "indicator")
-        st.success(f"✅ Applied selection  {len(result_df)} cases remaining")
+        st.success(f"âœ… Applied selection  {len(result_df)} cases remaining")
         return result_df
     return df
 
 
 def render_weight_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Weight Cases UI."""
-    st.subheader("⚖️ Weight Cases")
+    st.subheader("âš–ï¸ Weight Cases")
     st.caption("Weight cases by frequency variable (like SPSS Weight Cases)")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -617,16 +618,16 @@ def render_weight_ui(df: pd.DataFrame) -> pd.DataFrame:
     st.info(f"Weighting will expand the dataset based on values in '{weight_col}'. "
             f"Larger weights = more replicated cases.")
 
-    if st.button("▶️ Weight Cases", type="primary"):
+    if st.button("â–¶ï¸ Weight Cases", type="primary"):
         result_df = weight_cases(df, weight_col)
-        st.success(f"✅ Weighted  {len(result_df)} cases after weighting (was {len(df)})")
+        st.success(f"âœ… Weighted  {len(result_df)} cases after weighting (was {len(df)})")
         return result_df
     return df
 
 
 def render_rename_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Rename Variables UI."""
-    st.subheader("✏️ Rename Variables")
+    st.subheader("âœï¸ Rename Variables")
     st.caption("Rename one or more variables (like SPSS Rename)")
 
     cols = df.columns.tolist()
@@ -640,22 +641,22 @@ def render_rename_ui(df: pd.DataFrame) -> pd.DataFrame:
         with c2:
             new_name = st.text_input(f"New name {i1}", value=old_name, key=f"ren_new_{i}")
         with c3:
-            st.caption("→")
+            st.caption("â†’")
         if old_name and new_name and old_name != new_name:
             rename_map[old_name] = new_name
 
-    if st.button("▶️ Rename Variables", type="primary") and rename_map:
+    if st.button("â–¶ï¸ Rename Variables", type="primary") and rename_map:
         result_df = rename_variables(df, rename_map)
-        st.success(f"✅ Renamed {len(rename_map)} variables")
+        st.success(f"âœ… Renamed {len(rename_map)} variables")
         return result_df
     return df
 
 
-# ─── Main Transformer UI ────────────────────────────────────────────
+# â”€â”€â”€ Main Transformer UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_transformer_panel(df: pd.DataFrame) -> pd.DataFrame:
     """Render the full data transformer panel with tabs."""
-    st.markdown("## 🔧 Data Transformation Engine")
+    st.markdown("## ðŸ”§ Data Transformation Engine")
     st.markdown("*SPSS-compatible: Compute, Recode, Rank, Count, Shift, Binning, Sort, Select, Weight, Rename*")
 
     if df is None or df.empty:
@@ -663,9 +664,9 @@ def render_transformer_panel(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     tabs = st.tabs([
-        "🧮 Compute", "🔄 Recode", "🏆 Rank", "🔢 Count",
-        "⏳ Shift/Lag", " Binning", "🔀 Sort", "🔍 Select",
-        "⚖️ Weight", "✏️ Rename"
+        "ðŸ§® Compute", "ðŸ”„ Recode", "ðŸ† Rank", "ðŸ”¢ Count",
+        "â³ Shift/Lag", " Binning", "ðŸ”€ Sort", "ðŸ” Select",
+        "âš–ï¸ Weight", "âœï¸ Rename"
     ])
 
     result_df = df.copy()
@@ -692,9 +693,9 @@ def render_transformer_panel(df: pd.DataFrame) -> pd.DataFrame:
         result_df = render_rename_ui(result_df)
 
     st.markdown("---")
-    st.subheader("📋 Transformed Data Preview")
+    st.subheader("ðŸ“‹ Transformed Data Preview")
     st.dataframe(result_df.head(20), use_container_width=True, hide_index=True)
-    st.caption(f"Dataset: {len(result_df)} rows × {len(result_df.columns)} columns")
+    st.caption(f"Dataset: {len(result_df)} rows Ã— {len(result_df.columns)} columns")
 
     return result_df
 

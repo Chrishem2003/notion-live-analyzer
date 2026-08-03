@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Unit tests for modules.notion_client."""
 import hashlib

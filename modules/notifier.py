@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import json
 import logging
@@ -13,7 +14,7 @@ def send_backup_webhook_alert(webhook_url: str, record_count: int, db_id: str, p
     if not webhook_url:
         return False
 
-    title = "💾 Notion Database Backup Completed"
+    title = "ðŸ’¾ Notion Database Backup Completed"
     description = f"Successfully snapshotted Notion DB `{db_id}` with **{record_count} records**."
 
     if "discord.com" in webhook_url:

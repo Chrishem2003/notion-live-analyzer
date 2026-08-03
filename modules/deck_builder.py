@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Presentation Deck Builder  allows users to select generated charts and
@@ -244,7 +245,7 @@ class DeckBuilder:
         }
 
 
-# ─── UI ──────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_deck_builder_ui():
     """Render the presentation deck builder UI."""
@@ -256,19 +257,19 @@ def render_deck_builder_ui():
         st.session_state["deck_builder"] = DeckBuilder()
     deck = st.session_state["deck_builder"]
 
-    # ─── Deck Title ────────────────────────────────────────────────
+    # â”€â”€â”€ Deck Title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     col1, col2 = st.columns([3, 1])
     with col1:
         deck_title = st.text_input("Presentation Title", value=st.session_state.get("deck_title", "Untitled Presentation"))
         st.session_state["deck_title"] = deck_title
     with col2:
-        if st.button("🗑️ Clear Deck", type="secondary", use_container_width=True):
+        if st.button("ðŸ—‘ï¸ Clear Deck", type="secondary", use_container_width=True):
             deck.clear_deck()
             st.session_state["deck_slides"] = []
             st.rerun()
 
-    # ─── Add Content ──────────────────────────────────────────────
-    st.markdown("### ➕ Add Slides")
+    # â”€â”€â”€ Add Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    st.markdown("### âž• Add Slides")
     add_method = st.radio("Add from:", ["Current Data/Charts", "AI Insights", "Statistical Results", "Custom Content"], horizontal=True)
 
     if add_method == "Current Data/Charts":
@@ -278,13 +279,13 @@ def render_deck_builder_ui():
                 df = st.session_state.get("active_df")
                 if df is not None and not df.empty:
                     deck.add_data_slide(
-                        f"Data Overview  {df.shape[0]} rows × {df.shape[1]} cols",
+                        f"Data Overview  {df.shape[0]} rows Ã— {df.shape[1]} cols",
                         df.head(50),
                         f"First {min(50, len(df))} rows of the dataset"
                     )
                     st.rerun()
         with col2:
-            if st.button("📈 Add Chart Slides", use_container_width=True):
+            if st.button("ðŸ“ˆ Add Chart Slides", use_container_width=True):
                 charts_in_session = st.session_state.get("deck_charts", [])
                 if charts_in_session:
                     for i, chart_info in enumerate(charts_in_session):
@@ -297,7 +298,7 @@ def render_deck_builder_ui():
                 else:
                     st.warning("No charts selected. Run visualizations and use 'Add to Deck' buttons.")
         with col3:
-            if st.button("📋 Add Dataset Profile", use_container_width=True):
+            if st.button("ðŸ“‹ Add Dataset Profile", use_container_width=True):
                 df = st.session_state.get("active_df")
                 if df is not None:
                     from modules.data_processor import profile_dataset
@@ -318,7 +319,7 @@ def render_deck_builder_ui():
         insights = st.session_state.get("generated_hypotheses", [])
         if insights:
             for h in insights[:5]:
-                if st.button(f"➕ Add: {h.get('id', 'Hypothesis')}  {h.get('narrative', '')[:60]}...", key=f"add_hyp_{h.get('id', '')}"):
+                if st.button(f"âž• Add: {h.get('id', 'Hypothesis')}  {h.get('narrative', '')[:60]}...", key=f"add_hyp_{h.get('id', '')}"):
                     deck.add_slide(
                         f"Finding {h.get('id', '')}: {h.get('type', '').replace('_', ' ').title()}",
                         h.get('narrative', ''),
@@ -334,8 +335,8 @@ def render_deck_builder_ui():
             for r in results[-5:]:
                 test_name = r.get("test", r.get("test_name", "Statistical Test"))
                 p = r.get("p_value", 1)
-                sig_text = "✅ Significant" if r.get("significant") else "❌ Not significant"
-                if st.button(f"➕ Add: {test_name} ({sig_text}, p={p:.4f})", key=f"add_stat_{test_name}"):
+                sig_text = "âœ… Significant" if r.get("significant") else "âŒ Not significant"
+                if st.button(f"âž• Add: {test_name} ({sig_text}, p={p:.4f})", key=f"add_stat_{test_name}"):
                     content_lines = [f"**Test**: {test_name}"]
                     for k, v in r.items():
                         if k not in ("error", "test") and not isinstance(v, pd.DataFrame):
@@ -350,23 +351,23 @@ def render_deck_builder_ui():
             slide_title = st.text_input("Slide title", placeholder="Enter slide title")
             slide_content = st.text_area("Content (Markdown supported)", placeholder="Enter slide content...", height=150)
             slide_type = st.selectbox("Slide type", options=["content", "section"])
-            submitted = st.form_submit_button("➕ Add Custom Slide", use_container_width=True)
+            submitted = st.form_submit_button("âž• Add Custom Slide", use_container_width=True)
             if submitted and slide_title:
                 deck.add_slide(slide_title, slide_content, slide_type=slide_type)
                 st.rerun()
 
-    # ─── Deck Preview ──────────────────────────────────────────────
+    # â”€â”€â”€ Deck Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("---")
-    st.markdown(f"## 🎬 Deck Preview ({len(deck.slides)} slides)")
+    st.markdown(f"## ðŸŽ¬ Deck Preview ({len(deck.slides)} slides)")
 
     if not deck.slides:
-        st.info("👆 Add slides from the options above to build your presentation.")
+        st.info("ðŸ‘† Add slides from the options above to build your presentation.")
         return
 
     # Slide navigation
     col_prev, col_counter, col_next = st.columns([1, 3, 1])
     with col_prev:
-        if st.button("⬅️ Previous", use_container_width=True, disabled=deck.current_slide_idx <= 0):
+        if st.button("â¬…ï¸ Previous", use_container_width=True, disabled=deck.current_slide_idx <= 0):
             deck.current_slide_idx = max(0, deck.current_slide_idx - 1)
             st.rerun()
     with col_counter:
@@ -383,7 +384,7 @@ def render_deck_builder_ui():
             deck.current_slide_idx = slide_idx - 1
             st.rerun()
     with col_next:
-        if st.button("Next ➡️", use_container_width=True, disabled=deck.current_slide_idx >= len(deck.slides) - 1):
+        if st.button("Next âž¡ï¸", use_container_width=True, disabled=deck.current_slide_idx >= len(deck.slides) - 1):
             deck.current_slide_idx = min(len(deck.slides) - 1, deck.current_slide_idx  1)
             st.rerun()
 
@@ -426,49 +427,49 @@ def render_deck_builder_ui():
     # Slide controls
     col_edit1, col_edit2, col_edit3 = st.columns([1, 1, 1])
     with col_edit1:
-        if st.button("⬆️ Move Up", use_container_width=True, disabled=deck.current_slide_idx == 0):
+        if st.button("â¬†ï¸ Move Up", use_container_width=True, disabled=deck.current_slide_idx == 0):
             idx = deck.current_slide_idx
             deck.slides[idx], deck.slides[idx - 1] = deck.slides[idx - 1], deck.slides[idx]
             deck.current_slide_idx = max(0, idx - 1)
             st.rerun()
     with col_edit2:
-        if st.button("⬇️ Move Down", use_container_width=True, disabled=deck.current_slide_idx >= len(deck.slides) - 1):
+        if st.button("â¬‡ï¸ Move Down", use_container_width=True, disabled=deck.current_slide_idx >= len(deck.slides) - 1):
             idx = deck.current_slide_idx
             deck.slides[idx], deck.slides[idx  1] = deck.slides[idx  1], deck.slides[idx]
             deck.current_slide_idx = min(len(deck.slides) - 1, idx  1)
             st.rerun()
     with col_edit3:
-        if st.button("🗑️ Remove Slide", use_container_width=True, type="secondary"):
+        if st.button("ðŸ—‘ï¸ Remove Slide", use_container_width=True, type="secondary"):
             deck.remove_slide(slide["id"])
             deck.current_slide_idx = min(deck.current_slide_idx, len(deck.slides) - 1)
             st.rerun()
 
-    # ─── Export ─────────────────────────────────────────────────────
+    # â”€â”€â”€ Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("---")
-    st.markdown("### 📥 Export Presentation")
+    st.markdown("### ðŸ“¥ Export Presentation")
 
     col_exp1, col_exp2, col_exp3 = st.columns(3)
     with col_exp1:
-        if st.button("🌐 Export as HTML", use_container_width=True):
+        if st.button("ðŸŒ Export as HTML", use_container_width=True):
             html = deck.export_html(st.session_state.get("deck_title", "Presentation"))
             b64 = base64.b64encode(html.encode()).decode()
             st.markdown(
                 f'<a href="data:text/html;base64,{b64}" download="presentation_{datetime.now():%Y%m%d}.html">'
-                f'📥 Click to Download HTML</a>',
+                f'ðŸ“¥ Click to Download HTML</a>',
                 unsafe_allow_html=True,
             )
     with col_exp2:
-        if st.button("📄 Export as PDF", use_container_width=True):
+        if st.button("ðŸ“„ Export as PDF", use_container_width=True):
             pdf_bytes = deck.export_pdf(st.session_state.get("deck_title", "Presentation"))
             if pdf_bytes:
                 b64 = base64.b64encode(pdf_bytes).decode()
                 st.markdown(
                     f'<a href="data:application/pdf;base64,{b64}" download="presentation_{datetime.now():%Y%m%d}.pdf">'
-                    f'📥 Click to Download PDF</a>',
+                    f'ðŸ“¥ Click to Download PDF</a>',
                     unsafe_allow_html=True,
                 )
     with col_exp3:
-        if st.button("📋 Copy Deck Summary", use_container_width=True):
+        if st.button("ðŸ“‹ Copy Deck Summary", use_container_width=True):
             summary = deck.get_summary()
             st.code(
                 f"Presentation: {st.session_state.get('deck_title', 'Untitled')}\n"

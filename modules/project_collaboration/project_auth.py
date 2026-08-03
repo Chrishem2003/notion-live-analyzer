@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Project Security & JWT Token Generator
@@ -35,9 +36,9 @@ except ImportError:
     logger.warning("PyJWT unavailable  falling back to the manual HMAC-SHA256 JWT implementation")
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CONSTANTS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 DEFAULT_TOKEN_EXPIRY_HOURS = 24
 MAX_TOKEN_EXPIRY_HOURS = 168  # 7 days
@@ -49,9 +50,9 @@ TOKEN_AUDIENCE = "chrishem-collab-api"
 DEFAULT_SIGNING_KEY = "chrishem-collab-signing-key-v1-secure"
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ENUMS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class ProjectRole(IntEnum):
     """Role hierarchy  higher number = more privileges."""
@@ -87,13 +88,13 @@ class ProjectRole(IntEnum):
     @property
     def icon(self) -> str:
         icons = {
-            0: "👁️",
-            10: "🎓",
-            20: "🔬",
-            90: "🤝",
+            0: "ðŸ‘ï¸",
+            10: "ðŸŽ“",
+            20: "ðŸ”¬",
+            90: "ðŸ¤",
             100: "",
         }
-        return icons.get(self.value, "👁️")
+        return icons.get(self.value, "ðŸ‘ï¸")
 
 
 def get_role_hierarchy() -> Dict[str, int]:
@@ -123,9 +124,9 @@ def get_role_permissions(role: ProjectRole) -> Dict[str, bool]:
     return permissions
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # DATA MODELS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class ProjectTokenPayload:
     """Structured JWT payload for project-scoped tokens."""
@@ -215,9 +216,9 @@ class ProjectTokenPayload:
         )
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # JWT TOKEN MANAGER
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class ProjectAuthManager:
     """
@@ -242,7 +243,7 @@ class ProjectAuthManager:
         # Algorithm selection (HS256 for simplicity, RS256 for production)
         self._algorithm = "HS256"
 
-    # ── Token Generation ────────────────────────────────────────────
+    # â”€â”€ Token Generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def create_access_token(
         self,
@@ -340,16 +341,16 @@ class ProjectAuthManager:
         try:
             data = self._decode_jwt(refresh_token)
             if data is None:
-                return None, None, "❌ Invalid refresh token."
+                return None, None, "âŒ Invalid refresh token."
 
             refresh_id = data.get("refresh_id")
             if refresh_id not in self._refresh_tokens:
-                return None, None, "❌ Refresh token has been revoked."
+                return None, None, "âŒ Refresh token has been revoked."
 
             stored = self._refresh_tokens[refresh_id]
             if time.time() > stored["expires_at"]:
                 del self._refresh_tokens[refresh_id]
-                return None, None, "❌ Refresh token expired."
+                return None, None, "âŒ Refresh token expired."
 
             role = ProjectRole(stored["role"])
             new_token, payload = self.create_access_token(
@@ -357,12 +358,12 @@ class ProjectAuthManager:
                 project_id=stored["project_id"],
                 role=role,
             )
-            return new_token, payload, "✅ Token refreshed successfully."
+            return new_token, payload, "âœ… Token refreshed successfully."
 
         except Exception as e:
-            return None, None, f"❌ Token refresh failed: {str(e)}"
+            return None, None, f"âŒ Token refresh failed: {str(e)}"
 
-    # ── Token Validation ────────────────────────────────────────────
+    # â”€â”€ Token Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def validate_token(self, token: str) -> Tuple[bool, Optional[ProjectTokenPayload], str]:
         """
@@ -374,23 +375,23 @@ class ProjectAuthManager:
         try:
             data = self._decode_jwt(token)
             if data is None:
-                return False, None, "❌ Invalid token signature or format."
+                return False, None, "âŒ Invalid token signature or format."
 
             # Check blacklist
             jti = data.get("jti", "")
             if jti in self._blacklisted_tokens:
-                return False, None, "❌ Token has been revoked."
+                return False, None, "âŒ Token has been revoked."
 
             payload = ProjectTokenPayload.from_dict(data)
 
             # Check expiry
             if payload.is_expired():
-                return False, None, "❌ Token has expired."
+                return False, None, "âŒ Token has expired."
 
-            return True, payload, "✅ Token valid."
+            return True, payload, "âœ… Token valid."
 
         except Exception as e:
-            return False, None, f"❌ Token validation error: {str(e)}"
+            return False, None, f"âŒ Token validation error: {str(e)}"
 
     def revoke_token(self, jti: str) -> bool:
         """Revoke a token by adding it to the blacklist."""
@@ -436,7 +437,7 @@ class ProjectAuthManager:
 
         return len(expired_blacklist)  len(expired_refresh)
 
-    # ── Permission Checks ───────────────────────────────────────────
+    # â”€â”€ Permission Checks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def check_permission(
         self,
@@ -454,7 +455,7 @@ class ProjectAuthManager:
         """Check if token's role meets the minimum requirement."""
         return token_payload.can_access(minimum_role)
 
-    # ── JWT Encoding/Decoding ───────────────────────────────────────
+    # â”€â”€ JWT Encoding/Decoding â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def _encode_jwt(self, payload: Dict[str, Any]) -> str:
         """Encode a payload into a JWT token."""
@@ -549,7 +550,7 @@ class ProjectAuthManager:
             data = "=" * padding
         return base64.urlsafe_b64decode(data)
 
-    # ── Audit ───────────────────────────────────────────────────────
+    # â”€â”€ Audit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def _audit(self, action: str, details: Dict[str, Any]) -> None:
         """Record an audit log entry."""
@@ -566,7 +567,7 @@ class ProjectAuthManager:
         """Get recent audit log entries."""
         return self._audit_log[-limit:]
 
-    # ── Stats ───────────────────────────────────────────────────────
+    # â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def get_stats(self) -> Dict[str, Any]:
         """Get token manager statistics."""
@@ -579,9 +580,9 @@ class ProjectAuthManager:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CONVENIENCE FUNCTIONS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 # Global auth manager instance
 _auth_manager = ProjectAuthManager()
@@ -628,9 +629,9 @@ def require_role(minimum_role: ProjectRole):
     return decorator
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # STREAMLIT UI RENDERER (embedded helper)
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
     """
@@ -723,9 +724,9 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("### 🔐 Project Auth Manager")
+    st.markdown("### ðŸ” Project Auth Manager")
 
-    tab1, tab2, tab3 = st.tabs(["🎟️ Generate Token", "✅ Validate Token", "📋 Audit Log"])
+    tab1, tab2, tab3 = st.tabs(["ðŸŽŸï¸ Generate Token", "âœ… Validate Token", "ðŸ“‹ Audit Log"])
 
     with tab1:
         st.markdown('<div class="auth-card">', unsafe_allow_html=True)
@@ -742,9 +743,9 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
                 key="auth_role_select",
             )
             expiry_hours = st.slider("Token Expiry (hours)", 1, 168, 24, key="auth_expiry")
-            is_duress = st.checkbox("⚠️ Duress Mode (limited token)", key="auth_duress")
+            is_duress = st.checkbox("âš ï¸ Duress Mode (limited token)", key="auth_duress")
 
-        if st.button("🎟️ Generate Token", type="primary", use_container_width=True):
+        if st.button("ðŸŽŸï¸ Generate Token", type="primary", use_container_width=True):
             role = ProjectRole.from_string(role_str)
             token, payload = manager.create_access_token(
                 user_id=user_id,
@@ -772,19 +773,19 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
             </div>
             <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
                 <span class="auth-role-badge {badge_class}">{payload.role.icon} {payload.role.label}</span>
-                <span style="color:#64748b;font-size:0.75rem;">⏱️ Expires in {expiry_hours}h</span>
-                <span style="color:#64748b;font-size:0.75rem;">📋 {payload.jti[:12]}...</span>
+                <span style="color:#64748b;font-size:0.75rem;">â±ï¸ Expires in {expiry_hours}h</span>
+                <span style="color:#64748b;font-size:0.75rem;">ðŸ“‹ {payload.jti[:12]}...</span>
             </div>
             """, unsafe_allow_html=True)
 
             if is_duress:
-                st.warning("⚠️ Duress token generated  limited permissions active.")
+                st.warning("âš ï¸ Duress token generated  limited permissions active.")
 
         st.markdown('</div>', unsafe_allow_html=True)
 
         # Show last token details
         if st.session_state.get("auth_last_token"):
-            with st.expander("📝 Last Generated Token Details", expanded=False):
+            with st.expander("ðŸ“ Last Generated Token Details", expanded=False):
                 payload = st.session_state["auth_last_payload"]
                 st.json(payload.to_dict())
                 st.code(st.session_state["auth_last_token"], language="text")
@@ -797,10 +798,10 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
             height=100,
             key="auth_validate_token",
         )
-        if st.button("✅ Validate Token", type="primary", use_container_width=True) and token_to_validate:
+        if st.button("âœ… Validate Token", type="primary", use_container_width=True) and token_to_validate:
             is_valid, payload, message = manager.validate_token(token_to_validate.strip())
             if is_valid and payload:
-                st.success(f"✅ {message}")
+                st.success(f"âœ… {message}")
                 badge_class = {
                     "Host": "auth-role-host",
                     "Co-Host": "auth-role-cohost",
@@ -811,13 +812,13 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
                 st.markdown(f"""
                 <div style="display:flex;gap:0.5rem;align-items:center;">
                     <span class="auth-role-badge {badge_class}">{payload.role.icon} {payload.role.label}</span>
-                    <span style="color:#94a3b8;font-size:0.85rem;">👤 {payload.display_name}</span>
-                    <span style="color:#64748b;font-size:0.75rem;">📁 {payload.project_id[:16]}...</span>
+                    <span style="color:#94a3b8;font-size:0.85rem;">ðŸ‘¤ {payload.display_name}</span>
+                    <span style="color:#64748b;font-size:0.75rem;">ðŸ“ {payload.project_id[:16]}...</span>
                 </div>
                 """, unsafe_allow_html=True)
                 if payload.is_duress_token:
-                    st.warning("⚠️ This is a duress-restricted token.")
-                with st.expander("🔍 Full Payload"):
+                    st.warning("âš ï¸ This is a duress-restricted token.")
+                with st.expander("ðŸ” Full Payload"):
                     st.json(payload.to_dict())
             else:
                 st.error(message)
@@ -843,7 +844,7 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
 
     # Stats
     stats = manager.get_stats()
-    st.caption(f"🔐 Active tokens: {stats['active_tokens']} | "
+    st.caption(f"ðŸ” Active tokens: {stats['active_tokens']} | "
                f"Blacklisted: {stats['blacklisted_tokens']} | "
                f"Algorithm: {stats['algorithm']}")
 

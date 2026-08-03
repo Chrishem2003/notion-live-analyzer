@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -102,7 +103,7 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
     return html_code
 
 def render_structure_viewer_tab():
-    st.subheader("🔍 3D Macromolecular Structure WebGL Viewer")
+    st.subheader("ðŸ” 3D Macromolecular Structure WebGL Viewer")
     st.caption("Interactive WebGL viewport powered by 3Dmol.js for structural proteomics.")
 
     col1, col2 = st.columns([1, 2.5])
@@ -156,7 +157,7 @@ def render_structure_viewer_tab():
                 height=viewer_height
             )
             components.html(html_content, height=viewer_height  20)
-            st.info("🔍 **Controls:** Click  Drag to rotate | Scroll to zoom | Right-Click  Drag to pan")
+            st.info("ðŸ” **Controls:** Click  Drag to rotate | Scroll to zoom | Right-Click  Drag to pan")
         else:
             st.warning("Enter a valid PDB ID or upload a structure file to render.")
 

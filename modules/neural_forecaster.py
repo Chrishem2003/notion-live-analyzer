@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import streamlit as st
 import pandas as pd
@@ -22,7 +23,7 @@ def render_neural_forecaster_panel():
     """
     Renders the Neural Forecaster & Predictive Analytics dashboard inside Streamlit.
     """
-    st.subheader("🧠 Neural Forecaster & Predictive Workload Analytics")
+    st.subheader("ðŸ§  Neural Forecaster & Predictive Workload Analytics")
     st.caption("Advanced AI simulation engine: predicting future workload distributions, anomaly probabilities, and preemptive mitigation paths.")
 
     c1, c2, c3, c4 = st.columns(4)

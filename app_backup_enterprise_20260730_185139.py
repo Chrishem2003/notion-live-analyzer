@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import datetime
 import io
@@ -77,7 +78,7 @@ db_conn = init_db()
 # ============================================================================
 st.set_page_config(
     page_title="Sovereign Real-Time Decision & Risk Engine",
-    page_icon="🌐",
+    page_icon="ðŸŒ",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -174,44 +175,44 @@ if "chat_history" not in st.session_state:
 # ============================================================================
 # SIDEBAR CONTROLS
 # ============================================================================
-st.sidebar.markdown("## 🔍 Sovereign Decision Core")
+st.sidebar.markdown("## ðŸ” Sovereign Decision Core")
 
-with st.sidebar.expander("🔍 Institutional & User Context", expanded=True):
+with st.sidebar.expander("ðŸ” Institutional & User Context", expanded=True):
     user_role = st.selectbox(
         "Module Tier",
         [
             "? Decision & Action Engine",
-            "🔍 Chat Command Core",
-            "🔍 Executive Storyboard",
-            "🔍 Policy Strategy Matrix",
-            "🔍 Sector Operational Risk",
-            "🔍 Research & Nonlinear Analytics",
-            "🔍 Real-Time Data Ingestion",
-            "🔍 Directory & Analyst Contacts"
+            "ðŸ” Chat Command Core",
+            "ðŸ” Executive Storyboard",
+            "ðŸ” Policy Strategy Matrix",
+            "ðŸ” Sector Operational Risk",
+            "ðŸ” Research & Nonlinear Analytics",
+            "ðŸ” Real-Time Data Ingestion",
+            "ðŸ” Directory & Analyst Contacts"
         ],
     )
     author_name = st.text_input("Analyst / Operator", "Kula Chris")
     org_email = st.text_input("Email", "chrishem@sovereign.org")
 
 st.sidebar.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-st.sidebar.markdown("### 🔍 Location & Sector Setup")
+st.sidebar.markdown("### ðŸ” Location & Sector Setup")
 
-PRESET_COUNTRIES = ["🔍 Uganda", "🔍 Kenya", "🔍 Rwanda", "🔍 Nigeria", "🔍 South Africa", "🔍 United States", "🔍 B United Kingdom", "🔍 Global Aggregate"]
+PRESET_COUNTRIES = ["ðŸ” Uganda", "ðŸ” Kenya", "ðŸ” Rwanda", "ðŸ” Nigeria", "ðŸ” South Africa", "ðŸ” United States", "ðŸ” B United Kingdom", "ðŸ” Global Aggregate"]
 target_country = st.sidebar.selectbox("Country / Region", PRESET_COUNTRIES, index=0)
 specific_location = st.sidebar.text_input("Sub-location / Facility (Optional)", "e.g., Kampala Central / Mulago Hospital")
 
 PRESET_SECTORS = {
-    "🔍 Economics & Markets": ("a", "Growth Drive", "b", "Capital Cost / Friction", "c", "Market Reserve Buffer"),
-    "🔍 Healthcare & Hospitals": ("a", "Inflow Rate", "b", "ICU Burnout / Friction", "c", "Resource Reserve"),
-    "🔍 Education & Institutions": ("a", "Enrollment Velocity", "b", "Overhead Cost", "c", "Liquidity Buffer"),
-    "🔍 Agriculture & Food Security": ("a", "Yield Stress Drive", "b", "Supply Friction", "c", "Strategic Reserve"),
+    "ðŸ” Economics & Markets": ("a", "Growth Drive", "b", "Capital Cost / Friction", "c", "Market Reserve Buffer"),
+    "ðŸ” Healthcare & Hospitals": ("a", "Inflow Rate", "b", "ICU Burnout / Friction", "c", "Resource Reserve"),
+    "ðŸ” Education & Institutions": ("a", "Enrollment Velocity", "b", "Overhead Cost", "c", "Liquidity Buffer"),
+    "ðŸ” Agriculture & Food Security": ("a", "Yield Stress Drive", "b", "Supply Friction", "c", "Strategic Reserve"),
     "? Infrastructure & Energy": ("a", "Load Surge Rate", "b", "Grid Resistance", "c", "Capacity Buffer"),
 }
 
 sector_key = st.sidebar.selectbox("Sector Domain", list(PRESET_SECTORS.keys()))
 a_lbl, a_desc, b_lbl, b_desc, c_lbl, c_desc = PRESET_SECTORS[sector_key]
 
-st.sidebar.markdown(f"### 🔍 Dynamics 🔍 {sector_key}")
+st.sidebar.markdown(f"### ðŸ” Dynamics ðŸ” {sector_key}")
 a = st.sidebar.slider(f"{a_lbl} ({a_desc})", 0.1, 5.0, 1.5, 0.1)
 b = st.sidebar.slider(f"{b_lbl} ({b_desc})", 0.0, 3.0, 0.9, 0.1)
 c = st.sidebar.slider(f"{c_lbl} ({c_desc})", 0.0, 3.0, 1.0, 0.1)
@@ -299,9 +300,9 @@ if "Decision & Action" in user_role:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(f"""
     <div class="glass-container">
-        <h4>🔍 Sector Guidance Briefing 🔍 {sector_key}</h4>
+        <h4>ðŸ” Sector Guidance Briefing ðŸ” {sector_key}</h4>
         <p><b>Recommended Action:</b> {ACTION_SUMMARY}</p>
-        <p><b>Location Scope:</b> {target_country} 🔍 {specific_location}</p>
+        <p><b>Location Scope:</b> {target_country} ðŸ” {specific_location}</p>
         <p><b>Primary Vulnerability Drivers:</b> Growth Drive (a={a}), Operational Friction (b={b}), Reserve Depletion Buffer (c={c}).</p>
     </div>
     """, unsafe_allow_html=True)
@@ -315,7 +316,7 @@ if "Decision & Action" in user_role:
     st.plotly_chart(fig, use_container_width=True)
 
 elif "Chat Command" in user_role:
-    st.markdown("### 💬 Natural Language Command Core")
+    st.markdown("### ðŸ’¬ Natural Language Command Core")
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -329,13 +330,13 @@ elif "Chat Command" in user_role:
         with st.chat_message("assistant"): st.markdown(reply)
 
 elif "Executive Storyboard" in user_role:
-    st.markdown("### 🔍 Executive Storyboard")
+    st.markdown("### ðŸ” Executive Storyboard")
     fig3d = go.Figure(data=[go.Scatter3d(x=x_traj, y=y_traj, z=z_traj, mode='lines', line=dict(color='#60A5FA', width=4))])
     fig3d.update_layout(title="3D System Attractor Landscape", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=500)
     st.plotly_chart(fig3d, use_container_width=True)
 
 elif "Real-Time Data Ingestion" in user_role:
-    st.markdown("### 🔍 External Data Ingestion Pipeline")
+    st.markdown("### ðŸ” External Data Ingestion Pipeline")
     up_file = st.file_uploader("Upload CSV, JSON, or Excel Dataset for Sector Calibration", type=["csv", "json", "xlsx", "xls", "txt"])
     if up_file:
         df = _load_any(up_file)
@@ -344,12 +345,12 @@ elif "Real-Time Data Ingestion" in user_role:
             st.dataframe(df.head(10), use_container_width=True)
 
 elif "Directory" in user_role:
-    st.markdown("### 🔍 Institutional Directory")
+    st.markdown("### ðŸ” Institutional Directory")
     cursor = db_conn.cursor()
     cursor.execute("SELECT analyst_name, org_email, contact_phone, clearance_level, primary_sector FROM analyst_contacts")
     st.dataframe(pd.DataFrame(cursor.fetchall(), columns=["Name", "Email", "Phone", "Clearance", "Domain"]), use_container_width=True)
 
 else:
-    st.markdown("### 🔍 Operational Risk & Analytics")
+    st.markdown("### ðŸ” Operational Risk & Analytics")
     st.info(f"System State: {RECOMMENDATION} | Risk Index: {risk_score:.2f} | Stability Index: {mlce_heuristic:.4f}")
 

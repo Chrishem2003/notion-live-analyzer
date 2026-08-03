@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Research Quality & Reproducibility Checker  detects p-hacking, QRPs,
@@ -66,7 +67,7 @@ class ResearchQualityChecker:
                 "type": "reporting",
                 "severity": "medium",
                 "detail": f"{missing_es}/{total_tests} results missing effect sizes. APA 7th edition requires effect sizes for all statistical tests.",
-                "recommendation": "Report and interpret effect sizes for all statistical tests (d, η², r, V, etc.).",
+                "recommendation": "Report and interpret effect sizes for all statistical tests (d, Î·Â², r, V, etc.).",
             })
 
         # Score
@@ -89,7 +90,7 @@ class ResearchQualityChecker:
             "total_tests": total_tests,
             "significant_count": significant,
             "borderline_count": borderline,
-            "summary": f"p-Hacking Risk: {'🟢 Low' if risk == 'low' else '🟡 Moderate' if risk == 'moderate' else '🔴 High'} ({score}/100)",
+            "summary": f"p-Hacking Risk: {'ðŸŸ¢ Low' if risk == 'low' else 'ðŸŸ¡ Moderate' if risk == 'moderate' else 'ðŸ”´ High'} ({score}/100)",
         }
 
     @staticmethod
@@ -174,7 +175,7 @@ class ResearchQualityChecker:
             "n_rows": n,
             "n_cols": len(df.columns),
             "missing_pct": round(float(df.isna().mean().mean() * 100), 1),
-            "summary": f"Reproducibility: {'🟢 Excellent' if quality == 'excellent' else '🟡 Good' if quality == 'good' else '🟠 Fair' if quality == 'fair' else '🔴 Poor'} ({score}/100)",
+            "summary": f"Reproducibility: {'ðŸŸ¢ Excellent' if quality == 'excellent' else 'ðŸŸ¡ Good' if quality == 'good' else 'ðŸŸ  Fair' if quality == 'fair' else 'ðŸ”´ Poor'} ({score}/100)",
         }
 
     @staticmethod
@@ -234,7 +235,7 @@ class ResearchQualityChecker:
             "risk": risk,
             "score": score,
             "findings": findings,
-            "summary": f"QRP Risk: {'🟢 Low' if risk == 'low' else '🟡 Moderate' if risk == 'moderate' else '🔴 High'} ({score}/100)",
+            "summary": f"QRP Risk: {'ðŸŸ¢ Low' if risk == 'low' else 'ðŸŸ¡ Moderate' if risk == 'moderate' else 'ðŸ”´ High'} ({score}/100)",
         }
 
     @staticmethod
@@ -258,28 +259,28 @@ class ResearchQualityChecker:
         ]
 
 
-# ─── UI ─────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
     """Render the research quality checker UI."""
     import streamlit as st
     from modules.ui_components import section_header, insight_card
 
-    st.markdown("## ✅ Research Quality & Reproducibility Checker")
+    st.markdown("## âœ… Research Quality & Reproducibility Checker")
     st.markdown("*Detect p-hacking, QRPs, assess reproducibility, and ensure transparency*")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "🔍 p-Hacking Detection", "📋 Reproducibility", "⚠️ QRP Detection", "📝 Transparency Checklist"
+        "ðŸ” p-Hacking Detection", "ðŸ“‹ Reproducibility", "âš ï¸ QRP Detection", "ðŸ“ Transparency Checklist"
     ])
 
     checker = ResearchQualityChecker()
 
     with tab1:
-        st.subheader("🔍 p-Hacking Detection")
+        st.subheader("ðŸ” p-Hacking Detection")
         st.caption("Analyzes statistical results for signs of p-hacking")
 
         if statistical_results:
-            if st.button("🚀 Run p-Hacking Check", type="primary"):
+            if st.button("ðŸš€ Run p-Hacking Check", type="primary"):
                 result = checker.check_p_hacking(statistical_results)
                 risk = result.get("risk", "unknown")
                 score = result.get("score", 0)
@@ -299,8 +300,8 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                     st.markdown(f"""
                     <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
                         border-left:4px solid {sev_color};background:{sev_color}08;">
-                        <strong style="color:{sev_color};">⚠️ {f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;">💡 {f['recommendation']}</span>
+                        <strong style="color:{sev_color};">âš ï¸ {f['detail']}</strong><br>
+                        <span style="font-size:0.9rem;">ðŸ’¡ {f['recommendation']}</span>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -311,14 +312,14 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
             st.metric("Total Tests", n_total)
             st.metric("Significant", n_sig, delta=f"{n_sig/max(n_total,1):.0%}")
         else:
-            st.info("No statistical results available. Run analyses on the **🔬 Statistical Tests** page first.")
+            st.info("No statistical results available. Run analyses on the **ðŸ”¬ Statistical Tests** page first.")
 
     with tab2:
-        st.subheader("📋 Reproducibility Check")
+        st.subheader("ðŸ“‹ Reproducibility Check")
         st.caption("Assess how reproducible your research is")
 
         if df is not None:
-            if st.button("🔍 Check Reproducibility", type="primary"):
+            if st.button("ðŸ” Check Reproducibility", type="primary"):
                 result = checker.check_reproducibility(df)
                 quality = result.get("quality", "unknown")
                 score = result.get("score", 0)
@@ -339,7 +340,7 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                     <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
                         border-left:4px solid {sev_color};background:{sev_color}08;">
                         <strong>{f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;color:#64748b;">💡 {f['recommendation']}</span>
+                        <span style="font-size:0.9rem;color:#64748b;">ðŸ’¡ {f['recommendation']}</span>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -356,11 +357,11 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
             st.info("Load data first to check reproducibility readiness.")
 
     with tab3:
-        st.subheader("⚠️ Questionable Research Practices (QRP) Detection")
+        st.subheader("âš ï¸ Questionable Research Practices (QRP) Detection")
         st.caption("Detects HARKing, cherry-picking, optional stopping, and other QRPs")
 
         if statistical_results:
-            if st.button("🔍 Check QRPs", type="primary"):
+            if st.button("ðŸ” Check QRPs", type="primary"):
                 result = checker.check_qrps(statistical_results)
                 risk = result.get("risk", "unknown")
                 score = result.get("score", 0)
@@ -381,14 +382,14 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                     <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
                         border-left:4px solid {sev_color};background:{sev_color}08;">
                         <strong>{f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;color:#64748b;">💡 {f['recommendation']}</span>
+                        <span style="font-size:0.9rem;color:#64748b;">ðŸ’¡ {f['recommendation']}</span>
                     </div>
                     """, unsafe_allow_html=True)
         else:
             st.info("No statistical results available. Run analyses first.")
 
     with tab4:
-        st.subheader("📝 Transparency & Reproducibility Checklist")
+        st.subheader("ðŸ“ Transparency & Reproducibility Checklist")
         st.caption("Essential items for transparent, reproducible research")
 
         checklist = checker.generate_transparency_checklist()
@@ -405,11 +406,11 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
             for item in items:
                 checked = st.checkbox(item["item"], key=f"check_{item['item']}")
                 if checked:
-                    st.caption(f"✅ {item['description']}")
+                    st.caption(f"âœ… {item['description']}")
                 else:
-                    st.caption(f"📋 {item['description']}")
+                    st.caption(f"ðŸ“‹ {item['description']}")
 
-        if st.button("📥 Download Checklist"):
+        if st.button("ðŸ“¥ Download Checklist"):
             import base64
             lines = ["# Transparency & Reproducibility Checklist", ""]
             for cat, items in categories.items():
@@ -419,5 +420,5 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                 lines.append("")
             text = "\n".join(lines)
             b64 = base64.b64encode(text.encode()).decode()
-            st.markdown(f'<a href="data:text/markdown;base64,{b64}" download="transparency_checklist.md">📥 Download Checklist</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="data:text/markdown;base64,{b64}" download="transparency_checklist.md">ðŸ“¥ Download Checklist</a>', unsafe_allow_html=True)
 

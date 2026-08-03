@@ -1,3 +1,4 @@
+﻿import security_guard
 
 # ==============================================================================
 # CHRISHEM Bulletproof PDF Engine (Zero-Dependency Fallback)

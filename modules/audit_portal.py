@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Audit Portal  CHRISHEM Encrypted Submission & Analytics System
@@ -14,11 +15,11 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# ─── Paths ────────────────────────────────────────────────────────────
+# â”€â”€â”€ Paths â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 APP_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = APP_DIR / "research_workspace.db"
 
-# ─── Cryptography for Fernet ─────────────────────────────────────────
+# â”€â”€â”€ Cryptography for Fernet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 try:
     from cryptography.fernet import Fernet
     from cryptography.hazmat.primitives import hashes
@@ -63,12 +64,12 @@ def decrypt_text(ciphertext: str, password: str) -> str:
         f = Fernet(derive_fernet_key(password))
         return f.decrypt(ciphertext.encode()).decode()
     except Exception as e:
-        return f"[🔒 Decryption failed: {str(e)}]"
+        return f"[ðŸ”’ Decryption failed: {str(e)}]"
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# 1. SUBMISSION SYSTEM  Encrypted Student → Professor Workflow
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 1. SUBMISSION SYSTEM  Encrypted Student â†’ Professor Workflow
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class CHRISHEMSubmissionSystem:
     """SQLite-backed encrypted submission system with blockchain audit trail."""
 
@@ -166,7 +167,7 @@ class CHRISHEMSubmissionSystem:
         return {
             "id": sub_id,
             "blockchain_hash": block_hash,
-            "message": "✅ Submission encrypted and stored successfully!",
+            "message": "âœ… Submission encrypted and stored successfully!",
         }
 
     def get_submissions(

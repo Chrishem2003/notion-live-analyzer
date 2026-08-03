@@ -1,3 +1,4 @@
+﻿import security_guard
 
 from io import StringIO
 try:
@@ -44,9 +45,9 @@ def generate_simple_newick(names, dist_matrix):
 
 def render_ascii_tree(names):
     """Generates an ASCII visual phylogenetic tree structure."""
-    lines = [" Phylogeny Tree Visualizer", " └─ Root"]
+    lines = [" Phylogeny Tree Visualizer", " â””â”€ Root"]
     for i, name in enumerate(names):
-        prefix = "    ├── " if i < len(names) - 1 else "    └── "
+        prefix = "    â”œâ”€â”€ " if i < len(names) - 1 else "    â””â”€â”€ "
         lines.append(f"{prefix}{name}")
     return "\n".join(lines)
 

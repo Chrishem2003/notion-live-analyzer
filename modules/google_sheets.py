@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Google Sheets Integration  live read/write sync with Google Sheets.
@@ -17,7 +18,7 @@ from modules.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
-# ─── Auto-install Google Sheets dependencies ──────────────────────────
+# â”€â”€â”€ Auto-install Google Sheets dependencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # This allows non-technical users to use Google Sheets without manual pip install
 
 try:
@@ -28,7 +29,7 @@ except ImportError:
     HAS_GSPREAD = False
     # Attempt automatic installation
     try:
-        st.info("🔧 Installing Google Sheets dependencies (gspread, oauth2client, google-auth)...")
+        st.info("ðŸ”§ Installing Google Sheets dependencies (gspread, oauth2client, google-auth)...")
         result = subprocess.run(
             [sys.executable, "-m", "pip", "install", "gspread", "oauth2client", "google-auth"],
             capture_output=True, text=True, timeout=120
@@ -39,19 +40,19 @@ except ImportError:
                 import gspread
                 from oauth2client.service_account import ServiceAccountCredentials
                 HAS_GSPREAD = True
-                st.success("✅ Google Sheets dependencies installed successfully!")
+                st.success("âœ… Google Sheets dependencies installed successfully!")
                 st.rerun()
             except ImportError:
                 logger.warning(
                     "gspread/oauth2client still not importable after auto-install", exc_info=True
                 )
-                st.warning("⚠️ Google Sheets packages installed but still not importable  restart the app.")
+                st.warning("âš ï¸ Google Sheets packages installed but still not importable  restart the app.")
         else:
             logger.error("Google Sheets dependency auto-install failed: %s", result.stderr[:500])
-            st.warning(f"⚠️ Auto-install failed: {result.stderr[:200]}")
+            st.warning(f"âš ï¸ Auto-install failed: {result.stderr[:200]}")
     except Exception as e:
         logger.exception("Google Sheets dependency auto-install raised an error")
-        st.warning(f"⚠️ Could not auto-install: {str(e)}")
+        st.warning(f"âš ï¸ Could not auto-install: {str(e)}")
 
 
 class GoogleSheetsClient:
@@ -238,11 +239,11 @@ class GoogleSheetsClient:
             return []
 
 
-# ─── UI ─────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_google_sheets_ui(df: pd.DataFrame):
     """Render the Google Sheets integration UI."""
-    st.markdown("## 🔗 Google Sheets Integration")
+    st.markdown("## ðŸ”— Google Sheets Integration")
     st.markdown("*Connect, read from, and write to Google Sheets*")
 
     if not HAS_GSPREAD:
@@ -254,10 +255,10 @@ def render_google_sheets_ui(df: pd.DataFrame):
         """)
         return
 
-    tab1, tab2 = st.tabs(["📥 Read from Sheets", "📤 Write to Sheets"])
+    tab1, tab2 = st.tabs(["ðŸ“¥ Read from Sheets", "ðŸ“¤ Write to Sheets"])
 
-    # ─── Connect ──────────────────────────────────────────────────
-    st.sidebar.markdown("### 🔑 Google Sheets Auth")
+    # â”€â”€â”€ Connect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    st.sidebar.markdown("### ðŸ”‘ Google Sheets Auth")
     auth_method = st.sidebar.radio(
         "Auth method",
         options=["Service Account JSON", "Credentials File"],
@@ -272,14 +273,14 @@ def render_google_sheets_ui(df: pd.DataFrame):
             "Paste service account JSON",
             height=150,
             key="gs_sa_json",
-            help="Go to Google Cloud Console → Service Accounts → Create Key → Download JSON"
+            help="Go to Google Cloud Console â†’ Service Accounts â†’ Create Key â†’ Download JSON"
         )
         if sa_json_str:
             try:
                 sa_dict = json.loads(sa_json_str)
                 connected = client.connect_with_service_account(sa_dict)
                 if connected:
-                    st.sidebar.success("✅ Connected to Google Sheets")
+                    st.sidebar.success("âœ… Connected to Google Sheets")
             except json.JSONDecodeError:
                 st.sidebar.error("Invalid JSON format")
     else:
@@ -293,25 +294,25 @@ def render_google_sheets_ui(df: pd.DataFrame):
                 sa_dict = json.loads(creds_file.read())
                 connected = client.connect_with_service_account(sa_dict)
                 if connected:
-                    st.sidebar.success("✅ Connected to Google Sheets")
+                    st.sidebar.success("âœ… Connected to Google Sheets")
             except Exception as e:
                 st.sidebar.error(f"Error: {str(e)}")
 
     if not connected:
-        st.info("🔑 Use the sidebar to connect your Google account or service account.")
+        st.info("ðŸ”‘ Use the sidebar to connect your Google account or service account.")
         st.markdown("""
         ### How to set up Google Sheets access:
         1. Go to [Google Cloud Console](https://console.cloud.google.com)
         2. Create a new project or select existing
         3. Enable **Google Sheets API** and **Google Drive API**
-        4. Create a **Service Account** → Create Key → Download JSON
+        4. Create a **Service Account** â†’ Create Key â†’ Download JSON
         5. Share your Google Sheet with the service account email (viewer/editor)
         6. Paste the JSON in the sidebar
         """)
         return
 
-    # ─── List available sheets ────────────────────────────────────
-    with st.expander("📂 Available Spreadsheets", expanded=False):
+    # â”€â”€â”€ List available sheets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    with st.expander("ðŸ“‚ Available Spreadsheets", expanded=False):
         sheets = client.list_sheets()
         if sheets:
             for s in sheets[:20]:
@@ -321,9 +322,9 @@ def render_google_sheets_ui(df: pd.DataFrame):
         else:
             st.info("No spreadsheets found. Create one first.")
 
-    # ─── TAB 1: Read ──────────────────────────────────────────────
+    # â”€â”€â”€ TAB 1: Read â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     with tab1:
-        st.subheader("📥 Read Data from Google Sheets")
+        st.subheader("ðŸ“¥ Read Data from Google Sheets")
 
         sheet_input = st.text_input(
             "Sheet URL or ID",
@@ -338,30 +339,30 @@ def render_google_sheets_ui(df: pd.DataFrame):
                     ws_name = st.selectbox("Select worksheet", options=worksheet_names, key="gs_read_ws")
                     has_header = st.checkbox("Data has header row", value=True, key="gs_read_header")
 
-                    if st.button("📥 Read from Sheet", type="primary"):
+                    if st.button("ðŸ“¥ Read from Sheet", type="primary"):
                         with st.spinner("Reading data..."):
                             read_df = client.read_sheet(sheet_input, ws_name, header_row=1 if has_header else 0)
 
                         if read_df is not None and not read_df.empty:
-                            st.success(f"✅ Read {len(read_df)} rows × {len(read_df.columns)} columns")
+                            st.success(f"âœ… Read {len(read_df)} rows Ã— {len(read_df.columns)} columns")
                             st.dataframe(read_df.head(50), use_container_width=True, hide_index=True)
 
                             # Option to use as active data
                             if st.button(" Use This Data for Analysis", use_container_width=True):
                                 st.session_state["active_df"] = read_df
                                 st.session_state["data_source"] = "google_sheets"
-                                st.success("✅ Data loaded! Go to other pages to analyze.")
+                                st.success("âœ… Data loaded! Go to other pages to analyze.")
                         else:
                             st.warning("No data found or unable to read sheet.")
             except Exception as e:
                 st.error(f"Error accessing sheet: {str(e)}")
 
-    # ─── TAB 2: Write ─────────────────────────────────────────────
+    # â”€â”€â”€ TAB 2: Write â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     with tab2:
-        st.subheader("📤 Write Data to Google Sheets")
+        st.subheader("ðŸ“¤ Write Data to Google Sheets")
 
         if df is not None and not df.empty:
-            st.info(f"**Data to write**: {len(df)} rows × {len(df.columns)} columns from '{st.session_state.get('data_source', 'active dataset')}'")
+            st.info(f"**Data to write**: {len(df)} rows Ã— {len(df.columns)} columns from '{st.session_state.get('data_source', 'active dataset')}'")
 
             sheet_target = st.text_input(
                 "Target Sheet URL or ID (or leave blank to create new)",
@@ -371,7 +372,7 @@ def render_google_sheets_ui(df: pd.DataFrame):
             ws_target = st.text_input("Worksheet name", value="Sheet1", key="gs_write_ws")
             write_mode = st.radio("Write mode", ["Overwrite", "Append"], horizontal=True, key="gs_write_mode")
 
-            if st.button("📤 Write to Sheet", type="primary"):
+            if st.button("ðŸ“¤ Write to Sheet", type="primary"):
                 with st.spinner("Writing data..."):
                     if write_mode == "Overwrite":
                         success = client.write_sheet(
@@ -382,7 +383,7 @@ def render_google_sheets_ui(df: pd.DataFrame):
                         success = client.append_to_sheet(df, sheet_target, ws_target)
 
                 if success:
-                    st.success("✅ Data written to Google Sheets successfully!")
+                    st.success("âœ… Data written to Google Sheets successfully!")
                 else:
                     st.error("Failed to write data. Check connection and permissions.")
         else:

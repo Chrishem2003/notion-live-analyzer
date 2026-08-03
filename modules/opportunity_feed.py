@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Live Verified Opportunity Feed Engine
@@ -2402,7 +2403,7 @@ FEED_CSS = """
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-/* ── Live Opportunity Feed Styles ───────────────────────────── */
+/* â”€â”€ Live Opportunity Feed Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .feed-container {
     background: #0f172a;
     border: 1px solid #1e293b;

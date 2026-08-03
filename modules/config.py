@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Configuration module  manages secrets, session state, and app-wide constants.
@@ -16,12 +17,12 @@ from modules.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
-# ─── Paths ────────────────────────────────────────────────────────────
+# â”€â”€â”€ Paths â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 APP_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = APP_DIR / "assets"
 CACHE_DIR = APP_DIR / ".cache"
 
-# ─── Defaults ─────────────────────────────────────────────────────────
+# â”€â”€â”€ Defaults â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 DEFAULT_REFRESH_OPTIONS = {
     "Off": 0,
     "30 sec": 30,
@@ -37,7 +38,7 @@ DEFAULT_KEEP_ALIVE_OPTIONS = {
     "15 min": 900,
 }
 
-# ─── Cache ────────────────────────────────────────────────────────────
+# â”€â”€â”€ Cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 DEFAULT_CACHE_TTL = 300  # 5 minutes (was 60s)
 NOTION_API_CACHE_TTL = 600  # 10 minutes for API calls (database list etc.)
 NOTION_DATA_CACHE_TTL = 300  # 5 minutes for Notion data
@@ -55,7 +56,7 @@ CHART_COLOR_PALETTES = {
     "Prism": px.colors.qualitative.Prism,
 }
 
-# ─── Research-Grade Color Palettes ────────────────────────────────────
+# â”€â”€â”€ Research-Grade Color Palettes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 RESEARCH_PALETTES = {
     "Nature":      ["#3B4992", "#EE0000", "#008B45", "#631879", "#008280", "#BB0021", "#5F559B", "#A20056"],
     "Science":     ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B", "#E377C2", "#7F7F7F"],
@@ -70,7 +71,7 @@ RESEARCH_PALETTES = {
 
 RESEARCH_PALETTE_NAMES = list(RESEARCH_PALETTES.keys())
 
-# ─── Publication Theme Config ─────────────────────────────────────────
+# â”€â”€â”€ Publication Theme Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 PUBLICATION_CONFIG = {
     "font_family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     "font_size_axis_title": 14,
@@ -93,7 +94,7 @@ PUBLICATION_CONFIG = {
     "margin_r": 20,
 }
 
-# ─── Session State Initialization ─────────────────────────────────────
+# â”€â”€â”€ Session State Initialization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def init_session_state():
     """Initialize all session state keys with defaults."""
     defaults = {
@@ -158,16 +159,16 @@ def init_session_state():
         # Quality Check
         "quality_report": None,
 
-        # ─── Notion Bi-Directional Sync ────────────────────────────
+        # â”€â”€â”€ Notion Bi-Directional Sync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "notion_sync_queue": [],
         "notion_sync_history": [],
         "notion_page_ids": {},
 
-        # ─── Executive Storyteller ─────────────────────────────────
+        # â”€â”€â”€ Executive Storyteller â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "executive_report": None,
         "executive_report_generated": False,
 
-        # ─── Git Integration ───────────────────────────────────────
+        # â”€â”€â”€ Git Integration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "git_connected": False,
         "git_repo_url": "",
         "git_token": "",
@@ -175,24 +176,24 @@ def init_session_state():
         "git_last_sync": None,
         "git_commit_history": [],
 
-        # ─── Presentation Deck Builder ─────────────────────────────
+        # â”€â”€â”€ Presentation Deck Builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "deck_slides": [],
         "deck_charts": [],
         "deck_current_slide": 0,
         "deck_title": "Untitled Presentation",
 
-        # ─── Notion Embed UI ───────────────────────────────────────
+        # â”€â”€â”€ Notion Embed UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "compact_mode": False,
         "notion_embed_mode": False,
 
-        # ─── Literature Aggregator Engine ──────────────────────────
+        # â”€â”€â”€ Literature Aggregator Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "lit_engine_project_id": None,
         "lit_engine_last_topic": "",
         "lit_engine_last_country": "",
         "lit_engine_fetch_count": 0,
         "lit_engine_generated_report": None,
 
-        # ─── Audit & Compliance Hub ──────────────────────────────
+        # â”€â”€â”€ Audit & Compliance Hub â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "forensic_unlocked": False,
         "_last_audit_results": None,
         "_last_audit_text": "",
@@ -201,7 +202,7 @@ def init_session_state():
         "_last_optimized_stats": None,
         "_export_report": "",
 
-        # ─── Application Pipeline & Document Vault ──────────────
+        # â”€â”€â”€ Application Pipeline & Document Vault â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "pipeline_manager": None,
         "pipeline_selected_app": None,
         "pipeline_active_tab": "kanban",
@@ -209,7 +210,7 @@ def init_session_state():
         "pipeline_documents": [],
         "pipeline_currencies": {},
 
-        # ─── Global Localization Engine ─────────────────────────
+        # â”€â”€â”€ Global Localization Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         "loc_selected_language": "en",
         "loc_selected_accent": "Academic US",
         "loc_selected_glossary": "bio",
@@ -224,7 +225,7 @@ def init_session_state():
         if key not in st.session_state:
             st.session_state[key] = val
 
-# ─── Secret Resolution ────────────────────────────────────────────────
+# â”€â”€â”€ Secret Resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def get_secret(name: str) -> Optional[str]:
     """Resolve a secret value  session override > st.secrets > env var."""
     session_key = f"user_{name}"
@@ -238,7 +239,7 @@ def get_secret(name: str) -> Optional[str]:
         logger.debug("Could not read secret %r from st.secrets", name, exc_info=True)
     return os.environ.get(name)
 
-# ─── Background Image ─────────────────────────────────────────────────
+# â”€â”€â”€ Background Image â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def find_background_image() -> Optional[Path]:
     """Search for a background image in the assets directory."""
     candidates = [
@@ -273,7 +274,7 @@ def image_to_data_url(path: Path) -> str:
     b64 = base64.b64encode(path.read_bytes()).decode("utf-8")
     return f"data:{mime};base64,{b64}"
 
-# ─── Cache Persistence ────────────────────────────────────────────────
+# â”€â”€â”€ Cache Persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def save_cache(key: str, data: Any):
     """Save data to disk cache."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)

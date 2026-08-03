@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Automated Literature Context  Effect size comparison against published norms,
@@ -13,7 +14,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-# ─── Field-specific effect size benchmarks (from large-scale meta-analyses) ─────
+# â”€â”€â”€ Field-specific effect size benchmarks (from large-scale meta-analyses) â”€â”€â”€â”€â”€
 FIELD_BENCHMARKS = {
     "psychology": {
         "small": 0.20, "medium": 0.50, "large": 0.80,
@@ -48,7 +49,7 @@ FIELD_BENCHMARKS = {
     "biology": {
         "small": 0.30, "medium": 0.60, "large": 0.90,
         "typical_r": 0.28, "typical_d": 0.55,
-        "description": "Typical effects in biological/ecological studies (Møller & Jennions, 2002)",
+        "description": "Typical effects in biological/ecological studies (MÃ¸ller & Jennions, 2002)",
     },
     "clinical_psychology": {
         "small": 0.20, "medium": 0.50, "large": 0.80,
@@ -75,7 +76,7 @@ class LiteratureContext:
         self.discipline = discipline
         self.benchmarks = FIELD_BENCHMARKS.get(discipline, FIELD_BENCHMARKS["default"])
 
-    # ─── Effect Size Comparison ───────────────────────────────────
+    # â”€â”€â”€ Effect Size Comparison â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def compare_effect_size(
         self,
         effect_size: float,
@@ -141,7 +142,7 @@ class LiteratureContext:
         except ImportError:
             return 50  z * 15  # Approximate
 
-    # ─── Sample Size Benchmarking ─────────────────────────────────
+    # â”€â”€â”€ Sample Size Benchmarking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def benchmark_sample_size(
         self,
         n: int,
@@ -176,10 +177,10 @@ class LiteratureContext:
             "effect_size_assumed": effect_size,
             "interpretation": f"Your N = {n:,}. Field typical N = {typical_n:,}. "
                               f"Need N = {required_n:,} for 80% power at d = {effect_size:.2f}. "
-                              f"Your sample is {'✅ ' if adequacy == 'adequate' else '⚠️ '}{adequacy}.",
+                              f"Your sample is {'âœ… ' if adequacy == 'adequate' else 'âš ï¸ '}{adequacy}.",
         }
 
-    # ─── Citation Suggestions ─────────────────────────────────────
+    # â”€â”€â”€ Citation Suggestions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def get_citation_suggestions(self, effect_size: float, effect_type: str = "d") -> List[Dict]:
         """Get citation suggestions based on effect size magnitude."""
         suggestions = []
@@ -194,7 +195,7 @@ class LiteratureContext:
         elif d < 0.5:
             suggestions.append({
                 "citation": "Cohen, J. (1988). *Statistical power analysis for the behavioral sciences* (2nd ed.).",
-                "context": "Standard reference for medium effect sizes (d ≈ 0.5)",
+                "context": "Standard reference for medium effect sizes (d â‰ˆ 0.5)",
                 "type": "methodological",
             })
         else:
@@ -207,7 +208,7 @@ class LiteratureContext:
         # Add field-specific citation
         if self.discipline == "psychology":
             suggestions.append({
-                "citation": "Richard, F. D., Bond, C. F., & Stokes-Zoota, J. J. (2003). One hundred years of social psychology quantitatively described. *Review of General Psychology*, 7(4), 331–363.",
+                "citation": "Richard, F. D., Bond, C. F., & Stokes-Zoota, J. J. (2003). One hundred years of social psychology quantitatively described. *Review of General Psychology*, 7(4), 331â€“363.",
                 "context": "Meta-analytic summary of typical effect sizes in social psychology",
                 "type": "field_benchmark",
             })
@@ -226,7 +227,7 @@ class LiteratureContext:
 
         return suggestions
 
-    # ─── Full Context Report ──────────────────────────────────────
+    # â”€â”€â”€ Full Context Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def generate_context_report(
         self,
         effect_size: float,
@@ -243,7 +244,7 @@ class LiteratureContext:
         citation_suggestions = self.get_citation_suggestions(effect_size, effect_type)
 
         lines = [
-            "## 📚 Literature Context Report",
+            "## ðŸ“š Literature Context Report",
             f"**Discipline:** {self.discipline}",
             f"**Effect Type:** {effect_type}",
             f"**Your Effect Size:** {effect_size:.3f}",
@@ -277,18 +278,18 @@ class LiteratureContext:
         return "\n".join(lines)
 
 
-# ─── UI ─────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def render_literature_context_ui():
     """Render the Literature Context page."""
     import streamlit as st
 
-    st.markdown("## 🌐 Automated Literature Context")
+    st.markdown("## ðŸŒ Automated Literature Context")
     st.markdown("*Compare your effect sizes against published norms, get citation suggestions*")
 
     st.info("This tool helps you contextualize your findings within the broader literature. "
             "Enter your effect sizes to get benchmarks, sample size comparisons, and citation suggestions.")
 
-    tab1, tab2, tab3 = st.tabs([" Effect Size Comparison", "📏 Sample Size Benchmarking", "📚 Full Report"])
+    tab1, tab2, tab3 = st.tabs([" Effect Size Comparison", "ðŸ“ Sample Size Benchmarking", "ðŸ“š Full Report"])
 
     with tab1:
         st.subheader(" Effect Size Comparison")
@@ -312,7 +313,7 @@ def render_literature_context_ui():
                 st.metric("Sample Size Adequacy", ss["adequacy"].title())
 
     with tab2:
-        st.subheader("📏 Sample Size Benchmarking")
+        st.subheader("ðŸ“ Sample Size Benchmarking")
         col1, col2 = st.columns(2)
         with col1:
             n_bench = st.number_input("Your N", value=100, step=10, key="lc_n_bench")
@@ -320,7 +321,7 @@ def render_literature_context_ui():
         with col2:
             disc_bench = st.selectbox("Discipline", options=list(FIELD_BENCHMARKS.keys()), key="lc_disc_bench")
 
-        if st.button("📏 Benchmark", type="primary"):
+        if st.button("ðŸ“ Benchmark", type="primary"):
             lc = LiteratureContext(disc_bench)
             result = lc.benchmark_sample_size(n_bench, es_bench, disc_bench)
             col1, col2, col3 = st.columns(3)
@@ -330,7 +331,7 @@ def render_literature_context_ui():
             st.info(result["interpretation"])
 
     with tab3:
-        st.subheader("📚 Full Literature Context Report")
+        st.subheader("ðŸ“š Full Literature Context Report")
         col1, col2 = st.columns(2)
         with col1:
             es_report = st.number_input("Effect size", value=0.5, step=0.01, key="lc_es_report")
@@ -339,9 +340,9 @@ def render_literature_context_ui():
             disc_report = st.selectbox("Discipline", options=list(FIELD_BENCHMARKS.keys()), key="lc_disc_report")
             n_report = st.number_input("N", value=100, step=10, key="lc_n_report")
 
-        if st.button("📚 Generate Report", type="primary"):
+        if st.button("ðŸ“š Generate Report", type="primary"):
             lc = LiteratureContext(disc_report)
             report = lc.generate_context_report(es_report, es_type_report, n_report, disc_report)
             st.markdown(report)
-            if st.button("📋 Copy to Clipboard"):
+            if st.button("ðŸ“‹ Copy to Clipboard"):
                 st.code(report, language="markdown")

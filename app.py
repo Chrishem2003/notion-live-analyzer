@@ -1,3 +1,4 @@
+﻿import security_guard
 import streamlit as st
 
 # Initialize unlock state
@@ -181,7 +182,7 @@ db_conn = init_sovereign_db()
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.1",
-    page_icon="⚡",
+    page_icon="âš¡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -217,15 +218,15 @@ TRANSLATIONS = {
         "visits": "Ziara"
     },
     "French": {
-        "nav_sat": "Télémétrie Satellitaire & Orbitale",
+        "nav_sat": "TÃ©lÃ©mÃ©trie Satellitaire & Orbitale",
         "nav_swarm": "Essaims d'Agents Autonomes",
-        "nav_bio": "Studio de Bioinformatique & Génomique",
+        "nav_bio": "Studio de Bioinformatique & GÃ©nomique",
         "nav_gap": "Solveur de Lacunes Sectorielles",
         "nav_workspace": "Espace de Travail Personnel",
-        "nav_ai": "Démon d'Intelligence Artificielle",
+        "nav_ai": "DÃ©mon d'Intelligence Artificielle",
         "nav_vault": "Coffre-fort des Analyses",
-        "nav_access": "Contrôle d'Accès & Licences",
-        "nav_diag": "Diagnostics Système & Santé",
+        "nav_access": "ContrÃ´le d'AccÃ¨s & Licences",
+        "nav_diag": "Diagnostics SystÃ¨me & SantÃ©",
         "greeting": "Bon retour",
         "visits": "Visites"
     }
@@ -432,7 +433,7 @@ def run_background_swarm(task_name):
     db_conn.commit()
 
 def render_autonomous_agents():
-    st.markdown("### 🤖 Autonomous Agent Swarms & Cross-Sector Orchestration")
+    st.markdown("### ðŸ¤– Autonomous Agent Swarms & Cross-Sector Orchestration")
     st.markdown("Autonomous background intelligence loops running asynchronous worker threads to continuously probe telemetry and trigger proactive cross-sector optimizations.")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -450,7 +451,7 @@ def render_autonomous_agents():
         "Financial Liquidity Contraction & Sovereign Risk Prediction"
     ])
 
-    if st.button("🚀 Deploy Asynchronous Agent Swarm Probe", key="deploy_agent_swarm"):
+    if st.button("ðŸš€ Deploy Asynchronous Agent Swarm Probe", key="deploy_agent_swarm"):
         with st.spinner(f"Spawning background thread for mission: {agent_task}..."):
             t_worker = threading.Thread(target=run_background_swarm, args=(agent_task,))
             t_worker.start()
@@ -458,7 +459,7 @@ def render_autonomous_agents():
             h = hashlib.sha256(agent_task.encode()).hexdigest()[:12].upper()
             st.success(f"Agent swarm successfully dispatched in asynchronous background mode! [Swarm ID: AGENT-{h}]")
             
-            st.markdown("#### 🔄 Cross-Sector Automated Synthesis Feed")
+            st.markdown("#### ðŸ”„ Cross-Sector Automated Synthesis Feed")
             st.markdown(f"""
             * **Primary Target:** `{agent_task}`
             * **Execution Mode:** `Non-blocking Background Thread`
@@ -470,13 +471,13 @@ def render_autonomous_agents():
 # NEW MODULE 2: ADVANCED BIOINFORMATICS & GENOMIC STUDIO
 # ---------------------------------------------------------
 def render_bioinformatics_studio():
-    st.markdown("### 🧬 Advanced Bioinformatics & Genomic Sequence Studio")
+    st.markdown("### ðŸ§¬ Advanced Bioinformatics & Genomic Sequence Studio")
     st.markdown("Analyze FASTA sequences, calculate GC-content distributions, assess open reading frames (ORFs), and track phylogenetic variance.")
 
     seq_name = st.text_input("Sequence Identifier / Name", value="SARS-CoV-2 / Pathogen Variant Target X")
     fasta_input = st.text_area("Paste FASTA Sequence (DNA/RNA)", placeholder="ATGCGATCGATCGATCGATCGATCGATCG...")
 
-    if st.button("🔬 Execute Genomic Sequence Analysis", key="run_bio_analysis"):
+    if st.button("ðŸ”¬ Execute Genomic Sequence Analysis", key="run_bio_analysis"):
         if not fasta_input.strip():
             st.warning("Please provide a valid FASTA sequence.")
         else:
@@ -491,7 +492,7 @@ def render_bioinformatics_studio():
             col2.metric("GC-Content", f"{gc_content:.2f}%")
             col3.metric("Mutation Drift Risk", "Stable", delta="99.7% Confidence")
 
-            st.markdown("#### 📊 Sliding-Window GC Distribution")
+            st.markdown("#### ðŸ“Š Sliding-Window GC Distribution")
             window_size = max(10, seq_len // 20)
             gc_window = [
                 ((clean_seq[i:i+window_size].count('G') + clean_seq[i:i+window_size].count('C')) / window_size * 100)
@@ -510,7 +511,7 @@ def render_bioinformatics_studio():
 # MODULE: SATELLITE & GLOBAL INTERNET TELEMETRY HUB (WITH MAP)
 # ---------------------------------------------------------
 def render_satellite_orbital_hub():
-    st.markdown("### 🛰️ Live Satellite Constellation & Global Database Telemetry Hub")
+    st.markdown("### ðŸ›°ï¸ Live Satellite Constellation & Global Database Telemetry Hub")
     st.markdown("Real-time downlink integration with orbital earth-observation satellites (Sentinel, Landsat, MODIS) and interactive map coordinate selection.")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -535,7 +536,7 @@ def render_satellite_orbital_hub():
 
     lat_val, lon_val = 0.3476, 32.5825
     if FOLIUM_AVAILABLE:
-        st.markdown("#### 🗺️ Interactive Target Coordinate Selector")
+        st.markdown("#### ðŸ—ºï¸ Interactive Target Coordinate Selector")
         m = folium.Map(location=[0.3476, 32.5825], zoom_start=6)
         m.add_child(folium.LatLngPopup())
         map_data = st_folium(m, height=350, width="100%")
@@ -550,7 +551,7 @@ def render_satellite_orbital_hub():
     with col_lon:
         lon_val = st.number_input("Target Longitude", value=float(lon_val), format="%.4f")
     
-    if st.button("📡 Execute Live Satellite Downlink & Scan", key="execute_sat_downlink"):
+    if st.button("ðŸ“¡ Execute Live Satellite Downlink & Scan", key="execute_sat_downlink"):
         with st.spinner(f"Establishing encrypted uplink to {sat_select} for coordinates ({lat_val}, {lon_val})..."):
             h = hashlib.sha256(f"{sat_select}-{lat_val}-{lon_val}".encode()).hexdigest()[:12].upper()
             try:
@@ -566,7 +567,7 @@ def render_satellite_orbital_hub():
             st.success(f"Downlink successful! [Downlink ID: SAT-{h}]")
             
             sc1, sc2, sc3 = st.columns(3)
-            sc1.metric("Surface Temp (Live API)", f"{temp} °C", delta="Stable")
+            sc1.metric("Surface Temp (Live API)", f"{temp} Â°C", delta="Stable")
             sc2.metric("Relative Humidity", f"{hum} %", delta="Optimal")
             sc3.metric("Precipitation Rate", f"{prec} mm/h", delta="Normal")
 
@@ -579,7 +580,7 @@ def render_satellite_orbital_hub():
 # MODULE: COMPREHENSIVE SECTOR GAP SOLVER
 # ---------------------------------------------------------
 def render_sector_gap_solver():
-    st.markdown("### 💡 Universal Multi-Sector Gap & Problem Solver")
+    st.markdown("### ðŸ’¡ Universal Multi-Sector Gap & Problem Solver")
     st.markdown("Deep macroscopic analysis across **all global sectors** identifying structural gaps and generating immediate, deployable technological solutions.")
 
     sector_choice = st.selectbox("Select Global Sector to Analyze", [
@@ -592,7 +593,7 @@ def render_sector_gap_solver():
         "Environmental Conservation & Waste Management (Urban & Abattoir Bio-Waste)"
     ])
 
-    st.markdown("#### 🔬 Diagnostic Gap Breakdown")
+    st.markdown("#### ðŸ”¬ Diagnostic Gap Breakdown")
     if "Agriculture" in sector_choice:
         gap_desc = "Smallholder farmers lack real-time soil moisture telemetry and predictive pest migration warnings, leading to 35% post-harvest loss."
         sol_desc = "Integrate Sentinel-2 satellite NDVI data with localized IoT soil sensors to provide SMS-based actionable planting and irrigation schedules."
@@ -612,7 +613,7 @@ def render_sector_gap_solver():
     st.info(f"**Identified Systemic Gap:** {gap_desc}")
     st.success(f"**CHRISHEM Sovereign Solution:** {sol_desc}")
 
-    if st.button("🚀 Deploy Solution Framework to Global Network", key="deploy_sector_solution"):
+    if st.button("ðŸš€ Deploy Solution Framework to Global Network", key="deploy_sector_solution"):
         with st.spinner("Synthesizing cryptographic execution blocks and updating global telemetry registries..."):
             h = hashlib.sha256(sector_choice.encode()).hexdigest()[:10].upper()
             cursor = db_conn.cursor()
@@ -625,7 +626,7 @@ def render_sector_gap_solver():
 # MODULE: INTERACTIVE DATA EXPLORER & VAULT (WITH AUTO-CLEANING)
 # ---------------------------------------------------------
 def render_personal_workspace():
-    st.markdown("### 📂 Interactive Vault & Automated Data Analytics Studio")
+    st.markdown("### ðŸ“‚ Interactive Vault & Automated Data Analytics Studio")
     st.markdown("Upload any dataset (CSV, Excel, JSON), apply automated pre-processing controls, inspect metrics, and save final reports to the secure vault.")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -642,7 +643,7 @@ def render_personal_workspace():
         st.markdown('<div class="metric-box"><div class="val">CHRISHEM</div><div class="lbl">Root Governance</div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### 📤 Secure File Upload & Automated Pre-Processing Toggles")
+    st.markdown("#### ðŸ“¤ Secure File Upload & Automated Pre-Processing Toggles")
     
     uploaded_file = st.file_uploader("Drop your dataset here (CSV, XLSX, JSON):", type=["csv", "xlsx", "xls", "json", "txt"], key="single_vault_uploader")
     
@@ -652,14 +653,14 @@ def render_personal_workspace():
     with col_opt2:
         missing_handling = st.selectbox("Missing Value Strategy", ["Mean Imputation", "Median Imputation", "Drop Missing Rows", "None"])
     with col_opt3:
-        outlier_flag = st.checkbox("Filter Statistical Outliers (3σ)", value=False)
+        outlier_flag = st.checkbox("Filter Statistical Outliers (3Ïƒ)", value=False)
 
     if uploaded_file is not None:
         df, file_bytes = load_dataset(uploaded_file, drop_duplicates=drop_dup, handle_missing=missing_handling, outlier_removal=outlier_flag)
         if df is not None:
             st.info(f"File loaded successfully: `{uploaded_file.name}` | Cleaned Dimensions: **{df.shape[0]} rows** $\times$ **{df.shape[1]} columns**")
             
-            if st.button("🚀 Initiate Data Analytics Pipeline", key="initiate_pipeline_btn"):
+            if st.button("ðŸš€ Initiate Data Analytics Pipeline", key="initiate_pipeline_btn"):
                 with st.spinner("Executing rigorous data ingestion, cleaning, and schema validation..."):
                     preview_str = df.head(3).to_json()
                     cursor = db_conn.cursor()
@@ -676,9 +677,9 @@ def render_personal_workspace():
         df = st.session_state['active_df']
         fname = st.session_state.get('active_filename', 'Dataset')
         st.markdown("---")
-        st.markdown(f"#### 📊 Active Inspection Suite: `{fname}`")
+        st.markdown(f"#### ðŸ“Š Active Inspection Suite: `{fname}`")
 
-        tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Data Table", "📈 Descriptive Statistics", "📉 Advanced Plotter", "💾 Save Full Analysis"])
+        tab1, tab2, tab3, tab4 = st.tabs(["ðŸ“Š Interactive Data Table", "ðŸ“ˆ Descriptive Statistics", "ðŸ“‰ Advanced Plotter", "ðŸ’¾ Save Full Analysis"])
         with tab1:
             st.dataframe(df, use_container_width=True)
             csv_data = df.to_csv(index=False).encode('utf-8')
@@ -724,7 +725,7 @@ def render_personal_workspace():
 # MODULE: AI INTELLIGENCE DAEMON
 # ---------------------------------------------------------
 def render_ai_intelligence_daemon(active_analyst_name):
-    st.markdown("### 🤖 Fully Operational AI Intelligence & Instant Problem Solver")
+    st.markdown("### ðŸ¤– Fully Operational AI Intelligence & Instant Problem Solver")
     st.markdown("Ask any technical, mathematical, data analytics, or programming question below. The autonomous engine instantly formulates contextual solutions.")
 
     cursor = db_conn.cursor()
@@ -732,7 +733,7 @@ def render_ai_intelligence_daemon(active_analyst_name):
     chat_rows = cursor.fetchall()
 
     if chat_rows:
-        st.markdown("#### 💬 Live Conversation History")
+        st.markdown("#### ðŸ’¬ Live Conversation History")
         for p, r, ts in chat_rows:
             st.markdown(f"""
             <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem;">
@@ -757,7 +758,7 @@ def render_ai_intelligence_daemon(active_analyst_name):
 
     col_btn1, col_btn2 = st.columns([1, 4])
     with col_btn1:
-        submit_btn = st.button("Generate Solution ⚡", key="submit_ai_prompt_btn")
+        submit_btn = st.button("Generate Solution âš¡", key="submit_ai_prompt_btn")
     with col_btn2:
         clear_btn = st.button("Clear Chat History", key="clear_chat_btn")
 
@@ -795,7 +796,7 @@ def render_ai_intelligence_daemon(active_analyst_name):
 # MODULE: SYSTEM DIAGNOSTICS & TELEMETRY
 # ---------------------------------------------------------
 def render_system_diagnostics():
-    st.markdown("### 🔍 System Diagnostics & Telemetry Center")
+    st.markdown("### ðŸ” System Diagnostics & Telemetry Center")
     st.markdown("Real-time monitoring of database connection pools, memory allocation, and pipeline latency with immutable SHA-256 cryptographic audit trails.")
 
     col1, col2, col3, col4 = st.columns(4)
@@ -805,7 +806,7 @@ def render_system_diagnostics():
     col4.metric("Active Threads", "14 Daemons", delta="Optimal")
 
     st.markdown("---")
-    st.markdown("#### 📋 Immutable Cryptographic Audit Trails & Telemetry Logs")
+    st.markdown("#### ðŸ“‹ Immutable Cryptographic Audit Trails & Telemetry Logs")
     cursor = db_conn.cursor()
     cursor.execute("SELECT id, timestamp, module_name, severity, crypto_hash FROM system_telemetry_logs ORDER BY id DESC LIMIT 15")
     logs_data = cursor.fetchall()
@@ -826,7 +827,7 @@ def main():
     # Multi-Language Selector in Sidebar
     selected_lang = st.sidebar.selectbox("Select Language / Lugha", ["English", "Swahili", "French"])
 
-    st.sidebar.markdown("### 👤 User Authentication & RBAC")
+    st.sidebar.markdown("### ðŸ‘¤ User Authentication & RBAC")
     signed_in_user = st.sidebar.text_input("Enter Analyst Name:", value="Kula Chris")
     
     if signed_in_user.strip().lower() == "chris" or signed_in_user.strip().upper() == "chrishem":
@@ -912,13 +913,13 @@ def main():
 
     bday_msg = ""
     if user_bday.month == now_dt.month and user_bday.day == now_dt.day:
-        bday_msg = " 🎉 **Happy Birthday!** Wishing you an incredible year ahead filled with breakthroughs and success!"
+        bday_msg = " ðŸŽ‰ **Happy Birthday!** Wishing you an incredible year ahead filled with breakthroughs and success!"
 
     country_code = selected_country.split(" ")[-1]
     if "UG" in country_code:
-        big_days_info = " 🇺🇬 *Jurisdiction Profile Active: Uganda [UG]*"
+        big_days_info = " ðŸ‡ºðŸ‡¬ *Jurisdiction Profile Active: Uganda [UG]*"
     else:
-        big_days_info = f" 🌍 *Jurisdiction Profile Active: {selected_country}*"
+        big_days_info = f" ðŸŒ *Jurisdiction Profile Active: {selected_country}*"
 
     live_clock_html = """
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #38BDF8; font-weight: 600; text-align: right;" id="live-clock">
@@ -998,7 +999,7 @@ def main():
             st.error(f"Failed to render AI Intelligence Daemon module: {e}")
 
     elif navigation == t("nav_vault", selected_lang):
-        st.markdown("### 💾 Saved Analyses & Reports Vault")
+        st.markdown("### ðŸ’¾ Saved Analyses & Reports Vault")
         st.markdown("Review all reports, datasets, satellite downlinks, agent swarms, and bioinformatics sequences previously saved to the secure database.")
         
         cursor = db_conn.cursor()
@@ -1022,7 +1023,7 @@ def main():
                     pdf_bytes = generate_pdf_report(s_title, s_content)
                     if pdf_bytes:
                         st.download_button(
-                            label=f"📥 Download PDF Dossier (#{s_id})",
+                            label=f"ðŸ“¥ Download PDF Dossier (#{s_id})",
                             data=pdf_bytes,
                             file_name=f"dossier_{s_id}.pdf",
                             mime="application/pdf",

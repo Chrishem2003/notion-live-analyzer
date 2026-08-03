@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import streamlit as st
 from datetime import datetime
@@ -100,7 +101,7 @@ def render_ui_enhancements():
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background-color: #161b22; border: 1px solid #30363d; border-left: 4px solid #58a6ff; border-radius: 6px; margin-bottom: 15px;">
             <div>
                 <span style="font-weight: 600; font-size: 1rem; color: #58a6ff;">{greeting}, Kula Chris</span>
-                <span style="font-size: 0.85rem; color: #8b949e; margin-left: 10px;">🔍 Autonomous Research Intelligence Suite</span>
+                <span style="font-size: 0.85rem; color: #8b949e; margin-left: 10px;">ðŸ” Autonomous Research Intelligence Suite</span>
             </div>
             <div style="font-family: monospace; font-size: 0.85rem; color: #8b949e;">
                 {current_time.strftime('%Y-%m-%d %H:%M:%S')} EAT

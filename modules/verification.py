@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """African Student Verification  Automated ID Verification Pipeline."""
 import io
@@ -15,9 +16,9 @@ import requests
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ELIGIBLE AFRICAN DOMAINS & COUNTRIES
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 ELIGIBLE_ACADEMIC_DOMAINS = {
     # Top-level African university domains
@@ -25,7 +26,7 @@ ELIGIBLE_ACADEMIC_DOMAINS = {
     ".ac.rw", ".ac.na", ".ac.gh", ".ac.et", ".ac.mu", ".ac.mw", ".ac.ls",
     ".edu.ng", ".edu.gh", ".edu.ke", ".edu.za", ".edu.tz", ".edu.ug",
     ".edu.et", ".edu.rw", ".edu.zm", ".edu.na", ".edu.bw", ".edu.mw",
-    ".edu.ls", ".edu.mu", ".学校.cn",  # Chinese students (developing)
+    ".edu.ls", ".edu.mu", ".å­¦æ ¡.cn",  # Chinese students (developing)
     ".edu.in",  # India (developing)
     # Country code TLDs for developing nations
     ".ug", ".ke", ".tz", ".bw", ".zm", ".rw", ".na", ".gh", ".et", 
@@ -51,9 +52,9 @@ DEVELOPING_REGION_CODES = ["AF", "AM", "AO", "BD", "BF", "BI", "BJ", "BT", "BW",
     "TD", "TG", "TL", "TN", "TZ", "UG", "VN", "VU", "WS", "YE", "ZA",
     "ZM", "ZW"]
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ID VERIFICATION CONFIG
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 # Supported ID types
 ID_TYPES = [
@@ -70,9 +71,9 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 # Supported formats
 SUPPORTED_FORMATS = ["jpg", "jpeg", "png", "pdf", "webp"]
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # GEOLOCATION & IP DETECTION
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def get_client_ip() -> str:
     """Extract client IP from request headers."""
@@ -123,9 +124,9 @@ def check_domain_eligibility(email: str) -> Tuple[bool, Optional[str]]:
     
     return False, domain
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # OCR PROCESSING (Tesseract / EasyOCR)
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def extract_text_from_image(file_bytes: bytes, filename: str) -> Tuple[str, float]:
     """
@@ -208,9 +209,9 @@ def process_document(file, doc_type: str) -> Tuple[str, float]:
     else:
         return "", 0.0
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # DOCUMENT VERIFICATION LOGIC
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def extract_name_from_text(text: str) -> List[str]:
     """Extract potential names from OCR text using pattern matching."""
@@ -360,13 +361,13 @@ def verify_student_id(
     
     return results
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # STREAMLIT UI
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_verification_ui():
     """Render the African Student Verification UI."""
-    st.subheader("🎓 African Student Verification")
+    st.subheader("ðŸŽ“ African Student Verification")
     st.markdown("""
     Verify your student status to unlock **Free Standard Tier** access.
     
@@ -377,7 +378,7 @@ def render_verification_ui():
     col1, col2 = st.columns(2)
     with col1:
         email = st.text_input(
-            "📧 Student Email",
+            "ðŸ“§ Student Email",
             help="Use your university email (.ac.za, .edu.ng, etc.)",
             placeholder="student@university.edu.ug"
         )
@@ -386,14 +387,14 @@ def render_verification_ui():
         if email:
             eligible, domain = check_domain_eligibility(email)
             if eligible:
-                st.success(f"✅ Eligible domain: {domain}")
+                st.success(f"âœ… Eligible domain: {domain}")
             else:
-                st.warning(f"⚠️ Domain not recognized: {domain}")
+                st.warning(f"âš ï¸ Domain not recognized: {domain}")
     
     st.divider()
     
     # Document upload section
-    st.markdown("#### 📄 Upload Verification Documents")
+    st.markdown("#### ðŸ“„ Upload Verification Documents")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -411,7 +412,7 @@ def render_verification_ui():
         )
     
     # Process on button click
-    if st.button("🔍 Verify Documents", type="primary", disabled=not (id_file and student_id and email)):
+    if st.button("ðŸ” Verify Documents", type="primary", disabled=not (id_file and student_id and email)):
         if not id_file or not student_id:
             st.error("Please upload both documents")
             return
@@ -441,7 +442,7 @@ def render_verification_ui():
             st.divider()
             
             if result["verified"]:
-                st.success("🎉 **Verification Successful!**")
+                st.success("ðŸŽ‰ **Verification Successful!**")
                 st.balloons()
                 
                 # Auto-upgrade to Standard tier
@@ -468,7 +469,7 @@ def render_verification_ui():
                     logger.error(f"DB update failed: {e}")
                 
                 st.markdown(f"""
-                ### ✅ You now have STANDARD Tier Access!
+                ### âœ… You now have STANDARD Tier Access!
                 
                 - **Verification Score:** {result['score']}%
                 - **Status:** Auto-approved
@@ -478,7 +479,7 @@ def render_verification_ui():
                 """)
             else:
                 if result["status"] == "manual_review":
-                    st.warning("⏳ **Manual Review Required**")
+                    st.warning("â³ **Manual Review Required**")
                     st.markdown(f"""
                     Your documents require manual verification.
                     
@@ -489,7 +490,7 @@ def render_verification_ui():
                     You'll receive an email once verified.
                     """)
                 else:
-                    st.error("❌ **Verification Failed**")
+                    st.error("âŒ **Verification Failed**")
                     st.markdown(f"""
                     We couldn't verify your student status.
                     
@@ -503,7 +504,7 @@ def render_verification_ui():
                     """)
             
             # Debug: Show extracted text (collapsible)
-            with st.expander("🔧 Verification Details (Debug)"):
+            with st.expander("ðŸ”§ Verification Details (Debug)"):
                 st.write("**ID Document Text:**")
                 st.text(id_text[:500]  "..." if len(id_text) > 500 else id_text)
                 st.write(f"Confidence: {id_confidence}")
@@ -518,7 +519,7 @@ def render_verification_ui():
     st.divider()
     
     # Alternative: Manual review request
-    with st.expander("📧 Request Manual Review"):
+    with st.expander("ðŸ“§ Request Manual Review"):
         st.markdown("""
         If automatic verification fails, you can request manual review.
         Our team will verify your documents within 2-3 business days.
@@ -537,7 +538,7 @@ def render_tier_selector():
     
     current = get_current_tier()
     
-    st.markdown("### 💳 Subscription Tier")
+    st.markdown("### ðŸ’³ Subscription Tier")
     
     # Current tier display
     tier_colors = {
@@ -563,7 +564,7 @@ def render_tier_selector():
     
     with col1:
         st.markdown("""
-        **🆓 Free**
+        **ðŸ†“ Free**
         - Basic Literature Search
         - Limited Tools
         """)
@@ -574,7 +575,7 @@ def render_tier_selector():
     
     with col2:
         st.markdown("""
-        **📘 Standard**
+        **ðŸ“˜ Standard**
         - Full Literature Engine
         - File Exports
         - Standard Automation

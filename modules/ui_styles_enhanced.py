@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Enhanced UI Styles  Visual Design System."""
 import streamlit as st
@@ -63,13 +64,13 @@ def apply_enhanced_styles():
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-    /* ─── Base ───────────────────────────────────────────────────────── */
+    /* â”€â”€â”€ Base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .stApp {{
         background-color: {bg_color};
         color: {text_color};
     }}
     
-    /* ─── Background Image with Watermark ───────────────────────────── */
+    /* â”€â”€â”€ Background Image with Watermark â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     [data-testid="stAppViewContainer"] {{
         position: relative;
     }}
@@ -100,7 +101,7 @@ def apply_enhanced_styles():
         z-index: 1000;
     }}
     
-    /* ─── Cards ─────────────────────────────────────────────────────── */
+    /* â”€â”€â”€ Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .metric-card {{
         background: {card_bg};
         border: 1px solid {border_color};
@@ -114,7 +115,7 @@ def apply_enhanced_styles():
         border-color: {accent};
     }}
     
-    /* ─── Breathing Gradient Animation ─────────────────────────────── */
+    /* â”€â”€â”€ Breathing Gradient Animation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @keyframes breathe-gradient {{
         0%, 100% {{
             background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
@@ -146,13 +147,13 @@ def apply_enhanced_styles():
         box-shadow: 0 8px 24px rgba(59,130,246,0.4);
     }}
     
-    /* ─── Sidebar ─────────────────────────────────────────────────── */
+    /* â”€â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     [data-testid="stSidebar"] {{
         background: {card_bg};
         border-right: 1px solid {border_color};
     }}
     
-    /* ─── Status Indicators ────────────────────────────────────────── */
+    /* â”€â”€â”€ Status Indicators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .status-connected, .status-active {{
         display: inline-flex;
         align-items: center;
@@ -198,7 +199,7 @@ def apply_enhanced_styles():
         font-weight: 600;
     }}
     
-    /* ─── Tier Badges ──────────────────────────────────────────────── */
+    /* â”€â”€â”€ Tier Badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .tier-badge {{
         display: inline-block;
         padding: 0.25rem 0.75rem;
@@ -220,7 +221,7 @@ def apply_enhanced_styles():
         color: #8b5cf6;
     }}
     
-    /* ─── Tab Styling ───────────────────────────────────────────────── */
+    /* â”€â”€â”€ Tab Styling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .stTabs [data-baseweb="tab"] {{
         border-radius: 8px 8px 0 0 !important;
         font-weight: 600;
@@ -230,26 +231,26 @@ def apply_enhanced_styles():
         background: rgba(59,130,246,0.1);
     }}
     
-    /* ─── DataFrames & Tables ───────────────────────────────────────── */
+    /* â”€â”€â”€ DataFrames & Tables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     [data-testid="stDataFrame"] {{
         border-radius: 12px;
         border: 1px solid {border_color};
     }}
     
-    /* ─── Input Focus ───────────────────────────────────────────────── */
+    /* â”€â”€â”€ Input Focus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .stTextInput input:focus, .stTextarea textarea:focus {{
         border-color: {accent} !important;
         box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
     }}
     
-    /* ─── Expanders ─────────────────────────────────────────────────── */
+    /* â”€â”€â”€ Expanders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .streamlit-expanderHeader {{
         background: {card_bg};
         border-radius: 12px !important;
         font-weight: 600;
     }}
     
-    /* ─── Hero Section ──────────────────────────────────────────────── */
+    /* â”€â”€â”€ Hero Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .hero-card {{
         background: {accent_gradient};
         color: white;
@@ -266,7 +267,7 @@ def apply_enhanced_styles():
         opacity: 0.9;
     }}
     
-    /* ─── Feature Cards ─────────────────────────────────────────────── */
+    /* â”€â”€â”€ Feature Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .feature-grid {{
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -298,7 +299,7 @@ def apply_enhanced_styles():
         color: {'#94a3b8' if is_dark else '#64748b'};
     }}
     
-    /* ─── Notification Badge ────────────────────────────────────────── */
+    /* â”€â”€â”€ Notification Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .notification-badge {{
         position: absolute;
         top: -5px;
@@ -314,7 +315,7 @@ def apply_enhanced_styles():
         justify-content: center;
     }}
     
-    /* ─── Loading Spinner ───────────────────────────────────────────── */
+    /* â”€â”€â”€ Loading Spinner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @keyframes pulse {{
         0%, 100% {{ opacity: 1; }}
         50% {{ opacity: 0.5; }}
@@ -323,7 +324,7 @@ def apply_enhanced_styles():
         animation: pulse 1.5s ease-in-out infinite;
     }}
     
-    /* ─── Tooltips ──────────────────────────────────────────────────── */
+    /* â”€â”€â”€ Tooltips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .tooltip {{
         position: relative;
         display: inline-block;
@@ -346,7 +347,7 @@ def apply_enhanced_styles():
         visibility: visible;
     }}
     
-    /* ─── Responsive ────────────────────────────────────────────────── */
+    /* â”€â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @media (max-width: 768px) {{
         .block-container {{
             padding-left: 1rem !important;
@@ -360,7 +361,7 @@ def apply_enhanced_styles():
         }}
     }}
     
-    /* ─── Print ─────────────────────────────────────────────────────── */
+    /* â”€â”€â”€ Print â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @media print {{
         .app-watermark {{
             display: block !important;
@@ -386,8 +387,8 @@ def render_tier_badge(tier: str):
         "premium": "tier-premium",
     }
     tier_names = {
-        "free": "🆓 Free",
-        "standard": "📘 Standard",
+        "free": "ðŸ†“ Free",
+        "standard": "ðŸ“˜ Standard",
         "premium": " Premium",
     }
     
@@ -410,7 +411,7 @@ def render_status_indicator(status: str):
     cls = status_classes.get(status.lower(), "status-inactive")
     display = status.replace("_", " ").title()
     
-    st.markdown(f'<span class="{cls}">● {display}</span>', unsafe_allow_html=True)
+    st.markdown(f'<span class="{cls}">â— {display}</span>', unsafe_allow_html=True)
 
 def render_feature_card(icon: str, title: str, description: str):
     """Render a feature card."""
@@ -441,22 +442,22 @@ def render_location_greeting():
     
     # Time-based greeting
     if hour < 12:
-        greeting = "☀️ Good morning"
+        greeting = "â˜€ï¸ Good morning"
     elif hour < 17:
-        greeting = "🌤️ Good afternoon"
+        greeting = "ðŸŒ¤ï¸ Good afternoon"
     else:
-        greeting = "🌙 Good evening"
+        greeting = "ðŸŒ™ Good evening"
     
     # Check for special dates
     special_days = {
-        "01-01": "🎉 Happy New Year!",
-        "07-04": "🇺🇸 Happy Independence Day!",
-        "10-31": "🎃 Happy Halloween!",
-        "12-25": "🎄 Merry Christmas!",
-        "01-01": "🎊 Happy New Year!",
-        "03-08": "🌸 Happy International Women's Day!",
-        "06-12": "🇳🇬 Happy June 12!",
-        "10-01": "🇳🇬 Happy Independence Day!",
+        "01-01": "ðŸŽ‰ Happy New Year!",
+        "07-04": "ðŸ‡ºðŸ‡¸ Happy Independence Day!",
+        "10-31": "ðŸŽƒ Happy Halloween!",
+        "12-25": "ðŸŽ„ Merry Christmas!",
+        "01-01": "ðŸŽŠ Happy New Year!",
+        "03-08": "ðŸŒ¸ Happy International Women's Day!",
+        "06-12": "ðŸ‡³ðŸ‡¬ Happy June 12!",
+        "10-01": "ðŸ‡³ðŸ‡¬ Happy Independence Day!",
     }
     
     date_key = now.strftime("%m-%d")

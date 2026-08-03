@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Notion Module  Template Duplication & Embedded Workspace."""
 import os
@@ -11,9 +12,9 @@ import streamlit as st
 import requests
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CONFIGURATION
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
@@ -34,9 +35,9 @@ def _get_service_headers() -> dict:
         "Content-Type": "application/json",
     }
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # NOTION API CLIENT
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class NotionClient:
     """Client for interacting with Notion API."""
@@ -63,10 +64,10 @@ class NotionClient:
             if response.status_code == 200:
                 return response.json()
             elif response.status_code in (401, 403):
-                st.error("🔐 Invalid Notion token or insufficient permissions.")
+                st.error("ðŸ” Invalid Notion token or insufficient permissions.")
                 return None
             elif response.status_code == 404:
-                st.warning("📄 Notion resource not found.")
+                st.warning("ðŸ“„ Notion resource not found.")
                 return None
             else:
                 st.error(f"Notion API error: {response.status_code}")
@@ -134,9 +135,9 @@ class NotionClient:
         """List all accessible databases."""
         return self.search(query="", filter_type="database")
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # DUPLICATION TRACKING
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def check_notion_claimed(user_id: str = None) -> bool:
     """Check if user has already claimed their Notion duplication."""
@@ -187,35 +188,35 @@ def mark_notion_claimed(user_id: str = None):
     # Update session
     st.session_state["notion_claimed"] = True
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # STREAMLIT UI
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_notion_duplication():
     """Render the Notion template duplication UI."""
     from modules.subscription import check_feature_access, Tier, get_current_tier
     
-    st.subheader("📋 Notion Enterprise Research Planner")
+    st.subheader("ðŸ“‹ Notion Enterprise Research Planner")
     
     # Check premium access
     current_tier = get_current_tier()
     if current_tier != Tier.PREMIUM:
         if not check_feature_access("notion_workspace"):
-            st.warning(f"🔒 Notion Workspace requires **Premium** tier.")
-            st.info("Upgrade at: Settings → Subscription → Premium")
+            st.warning(f"ðŸ”’ Notion Workspace requires **Premium** tier.")
+            st.info("Upgrade at: Settings â†’ Subscription â†’ Premium")
             
             # Show preview
-            with st.expander("👀 Preview the Template"):
+            with st.expander("ðŸ‘€ Preview the Template"):
                 st.markdown(f"""
                 ### Bio-Research Enterprise Research Planner
                 
                 A comprehensive research planning tool including:
                 -  Project Timeline & Milestones
-                - 📚 Literature Review Tracker
-                - 🔬 Methodology Framework
-                - 📝 Research Journal
-                - 📈 Data Analysis Templates
-                - 📋 Grant Application Checklist
+                - ðŸ“š Literature Review Tracker
+                - ðŸ”¬ Methodology Framework
+                - ðŸ“ Research Journal
+                - ðŸ“ˆ Data Analysis Templates
+                - ðŸ“‹ Grant Application Checklist
                 
                 [View Template]({TEMPLATE_URL})
                 """)
@@ -225,14 +226,14 @@ def render_notion_duplication():
     already_claimed = check_notion_claimed()
     
     if already_claimed:
-        st.success("✅ You have already claimed your 1-time Notion workspace duplication!")
+        st.success("âœ… You have already claimed your 1-time Notion workspace duplication!")
         
         st.markdown(f"""
         ### Your Notion Research Planner
         
         Access your duplicated workspace below:
         
-        **[Open in Notion →]({TEMPLATE_URL})**
+        **[Open in Notion â†’]({TEMPLATE_URL})**
         
         *Note: The duplication was created when you first claimed this feature.*
         """)
@@ -245,15 +246,15 @@ def render_notion_duplication():
         
         This template includes:
         -  Project Timeline & Milestones
-        - 📚 Literature Review Tracker  
-        - 🔬 Methodology Framework
-        - 📝 Research Journal
-        - 📈 Data Analysis Templates
-        - 📋 Grant Application Checklist
+        - ðŸ“š Literature Review Tracker  
+        - ðŸ”¬ Methodology Framework
+        - ðŸ“ Research Journal
+        - ðŸ“ˆ Data Analysis Templates
+        - ðŸ“‹ Grant Application Checklist
         """)
         
         # Claim button
-        if st.button("🎁 Claim & Duplicate Workspace", type="primary"):
+        if st.button("ðŸŽ Claim & Duplicate Workspace", type="primary"):
             # Mark as claimed BEFORE opening link
             mark_notion_claimed()
             
@@ -264,7 +265,7 @@ def render_notion_duplication():
             </script>
             ''', unsafe_allow_html=True)
             
-            st.success("✅ Workspace duplication claimed!")
+            st.success("âœ… Workspace duplication claimed!")
             st.info(f"[Click here to open Notion]({TEMPLATE_URL}) if the link didn't open automatically.")
             
             st.rerun()
@@ -273,17 +274,17 @@ def render_notion_embed():
     """Render embedded Notion workspace view."""
     from modules.subscription import check_feature_access, Tier, get_current_tier
     
-    st.subheader("🔗 Live Notion Workspace")
+    st.subheader("ðŸ”— Live Notion Workspace")
     
     # Check premium access
     current_tier = get_current_tier()
     if current_tier != Tier.PREMIUM:
-        st.warning(f"🔒 Notion Workspace requires **Premium** tier.")
+        st.warning(f"ðŸ”’ Notion Workspace requires **Premium** tier.")
         return
     
     # Check if claimed
     if not check_notion_claimed():
-        st.info("⚠️ You need to claim your workspace first!")
+        st.info("âš ï¸ You need to claim your workspace first!")
         if st.button("Go to Claim Page"):
             st.session_state["notion_tab"] = "claim"
             st.rerun()
@@ -307,21 +308,21 @@ def render_notion_embed():
     # Controls
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("🔄 Refresh"):
+        if st.button("ðŸ”„ Refresh"):
             st.rerun()
     with col2:
-        st.markdown(f"[Open Full Screen →]({EMBED_URL})")
+        st.markdown(f"[Open Full Screen â†’]({EMBED_URL})")
     with col3:
-        if st.button("📋 Copy Link"):
+        if st.button("ðŸ“‹ Copy Link"):
             st.code(EMBED_URL)
             st.toast("Link copied to clipboard!")
 
 def render_notion_module():
     """Main render function for the Notion module tab."""
-    st.markdown("## 🔗 Notion Integration")
+    st.markdown("## ðŸ”— Notion Integration")
     
     # Tabs for different Notion features
-    tab1, tab2, tab3 = st.tabs(["📋 Claim Workspace", "🔗 Embedded View", "⚙️ Settings"])
+    tab1, tab2, tab3 = st.tabs(["ðŸ“‹ Claim Workspace", "ðŸ”— Embedded View", "âš™ï¸ Settings"])
     
     with tab1:
         render_notion_duplication()
@@ -330,7 +331,7 @@ def render_notion_module():
         render_notion_embed()
     
     with tab3:
-        st.markdown("### ⚙️ Notion Settings")
+        st.markdown("### âš™ï¸ Notion Settings")
         
         st.write("""
         **Connection Status:**
@@ -340,7 +341,7 @@ def render_notion_module():
         
         # Re-link option
         st.divider()
-        if st.button("🔄 Reset Claim Status (Developer Only)"):
+        if st.button("ðŸ”„ Reset Claim Status (Developer Only)"):
             # Only allow if explicitly set in secrets
             if os.environ.get("ALLOW_NOTION_RESET", "").lower() == "true":
                 user_id = st.session_state.get("user_id")
@@ -359,9 +360,9 @@ def render_notion_module():
             else:
                 st.error("This action is disabled. Contact administrator.")
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CACHED RESOURCES
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @st.cache_resource(ttl=3600)
 def get_notion_client(token: str = None) -> Optional[NotionClient]:

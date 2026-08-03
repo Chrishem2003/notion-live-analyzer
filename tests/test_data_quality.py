@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Unit tests for modules.data_quality."""
 import numpy as np
@@ -142,7 +143,7 @@ class TestAccuracy:
     def test_detects_perfectly_correlated_columns(self):
         df = pd.DataFrame({"a": [1.0, 2.0, 3.0, 4.0], "b": [2.0, 4.0, 6.0, 8.0]})
         result = DataQualityReport(df).assess_accuracy()
-        assert result["duplicate_columns"] == ["a≈b"]
+        assert result["duplicate_columns"] == ["aâ‰ˆb"]
         assert result["score"] == 85
 
     def test_detects_constant_and_empty_columns(self):

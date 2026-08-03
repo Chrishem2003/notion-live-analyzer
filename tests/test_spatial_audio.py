@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Unit tests for modules.project_collaboration.webrtc_provider.SpatialAudioEngine."""
 import pytest

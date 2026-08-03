@@ -1,4 +1,5 @@
-﻿iimport security_guard
+﻿import security_guard
+iimport security_guard
 security_guard.verify_access()
 
 """

@@ -1,3 +1,4 @@
+﻿import security_guard
 
 import streamlit as st
 import numpy as np
@@ -104,20 +105,20 @@ def render_enterprise_master_control_panel(st_instance, conn, mlce_val=0.1, stat
         st_instance.markdown('<div class="metric-card"><div class="metric-value">Online</div><div class="metric-label">SQLite Persistent Store</div></div>', unsafe_allow_html=True)
     
     st_instance.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-    st_instance.info("🔍 All 50 advanced enterprise modules, analytical pipelines, and visualization engines have been fully integrated into the sovereign environment.")
+    st_instance.info("ðŸ” All 50 advanced enterprise modules, analytical pipelines, and visualization engines have been fully integrated into the sovereign environment.")
 
 # Main Application Execution
 def main():
-    st.title("🔍 Sovereign Nonlinear Systems & Resilience Engine v5.0")
+    st.title("ðŸ” Sovereign Nonlinear Systems & Resilience Engine v5.0")
     st.sidebar.title("Navigation & Control")
     
     menu_choice = st.sidebar.selectbox(
         "Select Operation Mode",
         [
             "? Master Dashboard", 
-            "🔍 Analytics & Simulation", 
-            "🔍 Data Import / Export", 
-            "🔍 System Self-Test & Diagnostics"
+            "ðŸ” Analytics & Simulation", 
+            "ðŸ” Data Import / Export", 
+            "ðŸ” System Self-Test & Diagnostics"
         ]
     )
 
@@ -130,19 +131,19 @@ def main():
         chart_data = np.random.randn(50, 3)
         st.line_chart(chart_data)
 
-    elif menu_choice == "🔍 Analytics & Simulation":
+    elif menu_choice == "ðŸ” Analytics & Simulation":
         st.subheader("Advanced Analytical Modules")
         st.write("Execute stochastic differential equations, topological data analysis, and Bayesian MCMC estimation.")
         if st.button("Run Simulation Sweep"):
             st.success("Simulation sequence completed successfully across all 50 operational nodes.")
 
-    elif menu_choice == "🔍 Data Import / Export":
+    elif menu_choice == "ðŸ” Data Import / Export":
         st.subheader("Institutional Data Vault")
         uploaded_file = st.file_uploader("Upload environmental or telemetry dataset (CSV / JSON)", type=["csv", "json"])
         if uploaded_file is not None:
             st.success(f"Successfully ingested file: {uploaded_file.name}")
 
-    elif menu_choice == "🔍 System Self-Test & Diagnostics":
+    elif menu_choice == "ðŸ” System Self-Test & Diagnostics":
         st.subheader("System Integrity Audit")
         if st.button("Execute Integrity Audit"):
             st.metric("NaN Values Detected", "0")

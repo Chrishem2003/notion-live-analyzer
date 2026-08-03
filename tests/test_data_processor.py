@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """Unit tests for modules.data_processor."""
 import numpy as np

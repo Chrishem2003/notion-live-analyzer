@@ -1,3 +1,4 @@
+﻿import security_guard
 
 """
 Keep-Alive System  multi-layer approach to prevent app sleep.
@@ -13,7 +14,7 @@ import streamlit as st
 
 logger = logging.getLogger(__name__)
 
-# ─── Layer 1: Client-Side JS Heartbeat ───────────────────────────────
+# â”€â”€â”€ Layer 1: Client-Side JS Heartbeat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def inject_client_keepalive(interval_sec: int = 300):
     """
     Inject JavaScript that periodically pings the app to keep the session alive.
@@ -56,7 +57,7 @@ def inject_client_keepalive(interval_sec: int = 300):
     return script
 
 
-# ─── Layer 2: Server-Side Background Thread ──────────────────────────
+# â”€â”€â”€ Layer 2: Server-Side Background Thread â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class ServerKeepAliveThread:
     """Background thread that pings the app from inside the server."""
 
@@ -85,7 +86,7 @@ class ServerKeepAliveThread:
         while self._running:
             try:
                 response = requests.head(self.app_url, timeout=10)
-                logger.debug(f"[Keep-Alive] Server ping → {response.status_code}")
+                logger.debug(f"[Keep-Alive] Server ping â†’ {response.status_code}")
             except requests.exceptions.RequestException as e:
                 logger.warning(f"[Keep-Alive] Server ping failed: {e}")
             except Exception as e:
@@ -98,7 +99,7 @@ class ServerKeepAliveThread:
         return self._thread is not None and self._thread.is_alive()
 
 
-# ─── Layer 3: Streamlit Config Heartbeat ─────────────────────────────
+# â”€â”€â”€ Layer 3: Streamlit Config Heartbeat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Handled via .streamlit/config.toml:
 # [server]
 # heartbeatInterval = 5000
@@ -106,7 +107,7 @@ class ServerKeepAliveThread:
 # enableXsrfProtection = false
 
 
-# ─── Layer 4: External Cron / Health Monitor ─────────────────────────
+# â”€â”€â”€ Layer 4: External Cron / Health Monitor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def get_health_check_html() -> str:
     """Return a simple health check response for external monitors."""
     import json
@@ -121,7 +122,7 @@ def get_health_check_html() -> str:
     <html>
     <head><title>Health Check</title></head>
     <body style="font-family: monospace; padding: 2rem;">
-        <h1>✅ Notion Live Analyzer  Healthy</h1>
+        <h1>âœ… Notion Live Analyzer  Healthy</h1>
         <pre>{json.dumps(health_data, indent=2)}</pre>
         <p>Time: {time.ctime()}</p>
     </body>
@@ -135,7 +136,7 @@ def _get_start_time() -> float:
     return _start_time
 
 
-# ─── Layer 5: Auto-Restart Watchdog ──────────────────────────────────
+# â”€â”€â”€ Layer 5: Auto-Restart Watchdog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class Watchdog:
     """
     Monitors the application health and triggers auto-restart if needed.
@@ -160,7 +161,7 @@ class Watchdog:
         self._last_healthy = time.time()
 
 
-# ─── Singleton Instance ───────────────────────────────────────────────
+# â”€â”€â”€ Singleton Instance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 _server_keepalive = ServerKeepAliveThread()
 _watchdog = Watchdog()
 
