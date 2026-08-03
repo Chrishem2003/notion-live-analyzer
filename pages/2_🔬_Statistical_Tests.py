@@ -1,4 +1,3 @@
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # STATISTICAL TESTS WORKSPACE (WORLD-CLASS ENTERPRISE EDITION + PREMIUM ADD-ONS)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -125,23 +124,23 @@ def generate_ai_interpretation(test_name, p_value, effect_size_dict):
   """Synthesizes human-readable professional summary text based on p-value and metrics."""
   is_significant = p_value < 0.05
   sig_text = (
-      "statistically significant ($p < 0.05$)"
+      "statistically significant (p < 0.05)"
       if is_significant
-      else "not statistically significant ($p \\ge 0.05$)"
+      else "not statistically significant (p >= 0.05)"
   )
 
   narrative = f"""
     > **Executive Summary & Inference Engine:** 
-    > The results for **{test_name}** indicate that the observed effects are {sig_text} (recorded $p$-value: **{p_value:.5f}**). 
+    > The results for **{test_name}** indicate that the observed effects are {sig_text} (recorded p-value: **{p_value:.5f}**). 
     """
   if is_significant:
     narrative += (
-        "> **Key Takeaway:** Reject the null hypothesis ($H_0$). There is sufficient evidence "
+        "> **Key Takeaway:** Reject the null hypothesis (H_0). There is sufficient evidence "
         "to suggest a reliable systematic difference or relationship within the population sample."
     )
   else:
     narrative += (
-        "> **Key Takeaway:** Fail to reject the null hypothesis ($H_0$). Insufficient statistical power "
+        "> **Key Takeaway:** Fail to reject the null hypothesis (H_0). Insufficient statistical power "
         "or variance exists to confirm an effect beyond random sampling noise."
     )
   return narrative
@@ -523,7 +522,7 @@ elif test_name == "Fisher's Exact Test":
         st.dataframe(ct, use_container_width=True)
       else:
         st.error(
-            "Fisher's Exact Test requires a 2×2 contingency table configuration."
+            "Fisher's Exact Test requires a 2x2 contingency table configuration."
         )
   else:
     st.warning("Need at least 2 categorical variables.")
@@ -857,5 +856,3 @@ elif test_name == "Normality Test":
       st.plotly_chart(fig, use_container_width=True)
   else:
     st.warning("Need at least 1 numeric variable.")
-
-

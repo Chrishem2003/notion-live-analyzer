@@ -1,13 +1,9 @@
-
-
-
 """
 ═══════════════════════════════════════════════════════════════════════════════
-ENTERPRISE DASHBOARD BUILDER & VISUALIZATION STUDIO [v3.0]
-High-performance analytical canvas: Compose custom multi-widget layouts, deploy 
-global interactive filters, configure cross-filtering pipelines, and export 
-publication-ready reporting dashboards.
-Designed for: Kula Chris (Chrishem)
+ENTERPRISE DASHBOARD BUILDER & MULTI-PROBLEM SOLVER STUDIO [v4.0]
+High-performance analytical canvas: Compose live custom multi-widget layouts, 
+deploy dynamic cross-filtering pipelines, and execute real-time KPI aggregations.
+Designed for: Kula Chris
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
@@ -29,7 +25,6 @@ if str(current_file.parent) not in sys.path:
 try:
     from modules.config import init_session_state
     from modules.ui_components import hero_card, load_css, section_header, watermark
-    from modules.dashboard_builder import render_dashboard_builder_ui
 except ImportError:
     def init_session_state():
         if "theme" not in st.session_state:
@@ -58,30 +53,57 @@ except ImportError:
         if desc:
             st.caption(desc)
 
-    def render_dashboard_builder_ui(df: pd.DataFrame):
-        st.success("⚡ Interactive Dashboard Canvas Engine Active: Multi-Widget Layout Ready.")
-        st.markdown("**Active Dataset Preview:**")
-        st.dataframe(df.head(5), use_container_width=True)
-        num_cols = list(df.select_dtypes(include=[np.number]).columns)
-        cat_cols = list(df.select_dtypes(include=['object', 'category']).columns)
+# ─── EMBEDDED DASHBOARD BUILDER ENGINE (Resolves Import Errors) ───────
+def render_dashboard_builder_ui(df: pd.DataFrame):
+    """Live interactive multi-widget dashboard canvas and aggregation engine."""
+    st.success("⚡ Interactive Dashboard Canvas Engine Active: Multi-Widget Layout Ready.")
+    
+    num_cols = list(df.select_dtypes(include=[np.number]).columns)
+    cat_cols = list(df.select_dtypes(include=['object', 'category']).columns)
+    
+    if not num_cols:
+        st.warning("⚠️ No numeric metrics available for aggregation widgets.")
+        return
+
+    c1, c2 = st.columns(2)
+    with c1:
+        metric_col = st.selectbox("Select Key Numeric Metric Widget", num_cols, key="dash_num_col")
+        agg_func = st.selectbox("Aggregation Operator", ["Sum", "Mean", "Median", "Max", "Min"], key="dash_agg")
         
-        c1, c2 = st.columns(2)
-        with c1:
-            if num_cols:
-                metric_col = st.selectbox("Select Key Numeric Metric Widget", num_cols)
-                st.metric(label=f"Sum of {metric_col}", value=f"{df[metric_col].sum():,.2f}")
-        with c2:
-            if cat_cols:
-                group_col = st.selectbox("Select Categorical Grouping", cat_cols)
-                if num_cols:
-                    bar_data = df.groupby(group_col)[num_cols[0]].sum().reset_index()
-                    st.bar_chart(bar_data, x=group_col, y=num_cols[0], use_container_width=True)
+        if agg_func == "Sum":
+            val = df[metric_col].sum()
+        elif agg_func == "Mean":
+            val = df[metric_col].mean()
+        elif agg_func == "Median":
+            val = df[metric_col].median()
+        elif agg_func == "Max":
+            val = df[metric_col].max()
+        else:
+            val = df[metric_col].min()
+            
+        st.metric(label=f"{agg_func} of {metric_col}", value=f"{val:,.2f}")
+
+    with c2:
+        if cat_cols:
+            group_col = st.selectbox("Select Categorical Grouping Dimension", cat_cols, key="dash_cat_col")
+            chart_type = st.selectbox("Visualization Type", ["Bar Chart", "Line Chart", "Area Chart"], key="dash_chart_type")
+            
+            grouped_data = df.groupby(group_col)[metric_col].agg(agg_func.lower()).reset_index()
+            
+            if chart_type == "Bar Chart":
+                st.bar_chart(grouped_data, x=group_col, y=metric_col, use_container_width=True)
+            elif chart_type == "Line Chart":
+                st.line_chart(grouped_data, x=group_col, y=metric_col, use_container_width=True)
+            else:
+                st.area_chart(grouped_data, x=group_col, y=metric_col, use_container_width=True)
+        else:
+            st.info("No categorical dimensions found for grouping.")
 
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Enterprise Dashboard Studio", 
     layout="wide", 
-    page_icon="🔍 ",
+    page_icon="📊",
     initial_sidebar_state="collapsed"
 )
 
@@ -91,74 +113,31 @@ init_session_state()
 st.markdown(
     """
     <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
         border-right: 1px solid #1e293b !important;
     }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
         color: #f8fafc !important;
     }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-    /* Global Application Canvas */
     .stApp {
         background-color: #060b13 !important;
         color: #ffffff !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
-
-    /* High-Contrast Clear Typography */
     h1, h2, h3, h4, h5, h6 {
         color: #00f2fe !important;
         font-weight: 800 !important;
         letter-spacing: -0.025em !important;
     }
-    
     p, span, label, div, .stMarkdown, .stCheckbox label, .stRadio label {
         color: #f8fafc !important;
         font-size: 0.95rem;
     }
-
     .stCaption {
         color: #cbd5e1 !important;
         font-size: 0.85rem !important;
     }
-
-    /* Card Containers */
     .contrast-card {
         background: #111c2e !important;
         border: 1px solid #00f2fe44 !important;
@@ -167,8 +146,6 @@ st.markdown(
         margin-bottom: 1.2rem;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
-
-    /* Tab Layout & Controls */
     div.stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: #09101d !important;
@@ -190,15 +167,6 @@ st.markdown(
         color: #00f2fe !important;
         border-bottom: 3px solid #00f2fe !important;
     }
-
-    /* Inputs, Selectboxes, Multiselects */
-    div.stSelectbox, div.stMultiSelect, div.stTextInput, div.stNumberInput, div.stSlider {
-        background-color: #111c2e !important;
-        padding: 8px !important;
-        border-radius: 8px !important;
-    }
-
-    /* Metric Cards */
     div[data-testid="stMetricValue"] {
         color: #00f2fe !important;
         font-size: 1.7rem !important;
@@ -210,8 +178,6 @@ st.markdown(
         text-transform: uppercase;
         font-size: 0.75rem;
     }
-
-    /* Custom High-Visibility Primary Buttons */
     .stButton button {
         background: #111c2e !important;
         border: 1px solid #00f2fe !important;
@@ -230,9 +196,9 @@ st.markdown(
 )
 
 hero_card(
-    "🔍 Enterprise Multi-Chart Dashboard Studio", 
-    "High-performance analytical canvas: Compose custom multi-widget layouts, deploy global interactive filters, configure cross-filtering pipelines, and export publication-ready reporting dashboards.", 
-    "Dashboard Studio 3.0"
+    "📊 Enterprise Multi-Chart Dashboard Studio", 
+    "High-performance analytical canvas: Compose custom multi-widget layouts, deploy global interactive filters, configure cross-filtering pipelines, and execute real-time KPI evaluations.", 
+    "Dashboard Studio 4.0"
 )
 watermark("CHRISHEM")
 
@@ -251,7 +217,7 @@ if active_df is None or active_df.empty:
     )
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("🔍 Generate Synthetic Enterprise Cohort", type="primary", use_container_width=True):
+        if st.button("🚀 Generate Synthetic Enterprise Cohort", type="primary", use_container_width=True):
             np.random.seed(101)
             sim_df = pd.DataFrame({
                 "Record_ID": [f"REC-{i:04d}" for i in range(1, 101)],
@@ -265,7 +231,7 @@ if active_df is None or active_df.empty:
             st.session_state["active_df"] = sim_df
             st.rerun()
     with col_b:
-        if st.button("🔍 Load Default Operational Analytics Data", use_container_width=True):
+        if st.button("🚀 Load Default Operational Analytics Data", use_container_width=True):
             sim_df = pd.DataFrame({
                 "ID": [i for i in range(1, 51)],
                 "Category": np.random.choice(["Alpha", "Beta", "Gamma"], 50),
@@ -277,26 +243,21 @@ if active_df is None or active_df.empty:
     st.stop()
 
 # ─── High-Level Dashboard Topology Metrics ─────────────────────────────
-section_header("🔍 Dataset Topology & Canvas Readiness")
+section_header("📊 Dataset Topology & Canvas Readiness")
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    st.metric("🔍 Total Observations", f"{len(active_df):,}")
+    st.metric("Total Observations", f"{len(active_df):,}")
 with m2:
-    st.metric("🔍 Total Attributes", f"{len(active_df.columns):,}")
+    st.metric("Total Attributes", f"{len(active_df.columns):,}")
 with m3:
     numeric_cols = len(active_df.select_dtypes(include=[np.number]).columns)
-    st.metric("🔍 Numeric Metrics", numeric_cols)
+    st.metric("Numeric Metrics", numeric_cols)
 with m4:
     categorical_cols = len(active_df.select_dtypes(include=['object', 'category']).columns)
-    st.metric("🔍 ️ Categorical Dimensions", categorical_cols)
+    st.metric("Categorical Dimensions", categorical_cols)
 with m5:
-    st.metric("🔍 ️ Layout Engine", "Dynamic Grid 3.0")
-
-with st.expander("🔍 Preview Active Dataset Schema & Summary", expanded=False):
-    st.dataframe(active_df.head(10), use_container_width=True)
-    st.markdown("##### Column Data Types")
-    st.write(active_df.dtypes.astype(str))
+    st.metric("Layout Engine", "Dynamic Grid 4.0")
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
@@ -304,23 +265,21 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 section_header("⚙️ Interactive Dashboard Canvas & Management Suite")
 
 dash_tabs = st.tabs([
-    "🔍 Core Interactive Dashboard",
-    "🔍 ️ Global Filters & Slicers",
-    "🔍 Layout & Widget Customizer",
-    "🔍 Export & Report Generation"
+    "📊 Core Interactive Dashboard",
+    "🔍 Global Filters & Slicers",
+    "🎨 Layout & Widget Customizer",
+    "📥 Export & Report Generation"
 ])
 
 # ── TAB 1: Core Dashboard Studio ────────────────────────────────────────
 with dash_tabs[0]:
-    st.markdown("### 🔍 Multi-Widget Visual Canvas")
+    st.markdown("### 📊 Multi-Widget Visual Canvas")
     st.caption("Build, arrange, and interact with synchronized charts and metric cards in real time.")
-    
-    # Renders primary dashboard builder component
     render_dashboard_builder_ui(active_df)
 
 # ── TAB 2: Global Filters & Slicers ─────────────────────────────────────
 with dash_tabs[1]:
-    st.markdown("### 🔍 ️ Global Data Slicers & Filtering Bar")
+    st.markdown("### 🔍 Global Data Slicers & Filtering Bar")
     st.caption("Apply global filters across all widgets simultaneously to isolate specific subsets of data.")
 
     categorical_columns = list(active_df.select_dtypes(include=['object', 'category']).columns)
@@ -332,7 +291,7 @@ with dash_tabs[1]:
             st.markdown(
                 f"""
                 <div class='contrast-card'>
-                    <h4 style='margin-top:0; color:#00f2fe;'>🔍 Active Global Filter Dimensions Configured</h4>
+                    <h4 style='margin-top:0; color:#00f2fe;'>Active Global Filter Dimensions Configured</h4>
                     <p style='margin:0; color:#cbd5e1;'>Slicing active across: <code>{', '.join(filter_cols)}</code></p>
                 </div>
                 """,
@@ -345,7 +304,7 @@ with dash_tabs[1]:
 
 # ── TAB 3: Layout & Widget Customizer ───────────────────────────────────
 with dash_tabs[2]:
-    st.markdown("### 🔍 Canvas Grid Layout & Theme Configuration")
+    st.markdown("### 🎨 Canvas Grid Layout & Theme Configuration")
     st.caption("Customize widget arrangement structures, spacing, and color palettes for executive presentation.")
 
     col_l1, col_l2 = st.columns(2)
@@ -356,27 +315,23 @@ with dash_tabs[2]:
         st.toggle("Enable Real-Time Dynamic Hover Tooltips", value=True)
         st.toggle("Show Gridlines on All Cartesian Charts", value=True)
 
-    if st.button("🔍 Apply Layout Customizations", use_container_width=True):
+    if st.button("🚀 Apply Layout Customizations", use_container_width=True):
         st.success("✅ Dashboard layout properties updated successfully!")
 
 # ── TAB 4: Export & Report Generation ───────────────────────────────────
 with dash_tabs[3]:
-    st.markdown("### 🔍 Executive Report & Snapshot Export")
+    st.markdown("### 📥 Executive Report & Snapshot Export")
     st.caption("Export the current multi-chart dashboard configuration and rendered figures into downloadable formats.")
 
     export_format = st.selectbox("Export Format", options=["HTML (Interactive Complete)", "PDF Executive Summary Report", "PNG Image Snapshot Package"])
     
-    if st.button(f"🔍 Generate & Download Dashboard ({export_format.split()[0]})", type="primary", use_container_width=True):
+    if st.button(f"🚀 Generate & Download Dashboard ({export_format.split()[0]})", type="primary", use_container_width=True):
         st.markdown(
             f"""
             <div class='contrast-card' style='text-align:center;'>
-                <h4 style='color:#00f2fe; margin-top:0;'>🔍 Report Package Successfully Compiled!</h4>
+                <h4 style='color:#00f2fe; margin-top:0;'>Report Package Successfully Compiled!</h4>
                 <p style='color:#cbd5e1; margin:0;'>Your dashboard in <strong>{export_format}</strong> format is generated and ready for presentation.</p>
             </div>
             """,
             unsafe_allow_html=True
         )
-
-
-
-

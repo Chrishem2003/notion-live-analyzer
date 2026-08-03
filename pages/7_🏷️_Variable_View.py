@@ -1,10 +1,7 @@
-
-
-
 """
-🔍 ️ Variable View Page  Advanced SPSS-Style Metadata Editor & Codebook Studio
-Complete standalone edition featuring high-contrast layout, metadata editing, 
-batch transforms, APA codebook exports, and schema JSON synchronization.
+🔍 Variable View Page | Advanced SPSS-Style Metadata Editor & Codebook Studio [v3.0 Enterprise]
+Complete standalone edition featuring high-contrast layout, functional metadata editing, 
+real pandas dtype transformations, APA codebook exports, and schema JSON synchronization.
 Designed for: Kula Chris (Chrishem)
 """
 
@@ -17,26 +14,27 @@ import numpy as np
 st.set_page_config(
     page_title="Variable View Studio", 
     layout="wide", 
-    page_icon="🔍 ️",
+    page_icon="🔍",
     initial_sidebar_state="expanded"
 )
+
+# Initialize Session State Variables
+if "variable_meta_df" not in st.session_state:
+    st.session_state["variable_meta_df"] = None
 
 # ─── 2. HIGH-CONTRAST / ULTRA-LEGIBLE COLOR STYLING ─────────────────────
 st.markdown(
     """
     <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
         border-right: 1px solid #1e293b !important;
     }
     
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
         color: #f8fafc !important;
     }
 
-    /* Target navigation links and text explicitly */
     [data-testid="stSidebarNav"] span, 
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
@@ -45,14 +43,6 @@ st.markdown(
         font-weight: 600 !important;
     }
 
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
         background-color: #0284c7 !important;
@@ -61,21 +51,12 @@ st.markdown(
         border-radius: 8px !important;
     }
 
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-    /* Global Application Canvas */
     .stApp {
         background-color: #060b13 !important;
         color: #ffffff !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
-    /* High-Contrast Headings & Typography */
     h1, h2, h3, h4, h5, h6 {
         color: #00f2fe !important;
         font-weight: 800 !important;
@@ -86,7 +67,6 @@ st.markdown(
         font-size: 0.95rem;
     }
     
-    /* Custom Card Containers */
     .contrast-card {
         background: #111c2e !important;
         border: 1px solid #00f2fe44 !important;
@@ -103,7 +83,6 @@ st.markdown(
         margin-bottom: 1.2rem;
     }
     
-    /* Metric Card Styling */
     div[data-testid="stMetricValue"] {
         color: #00f2fe !important;
         font-size: 1.8rem !important;
@@ -116,7 +95,6 @@ st.markdown(
         font-size: 0.75rem;
     }
     
-    /* Form Control Elements & Inputs */
     .stTextInput input, .stSelectbox div, .stNumberInput input, .stTextArea textarea {
         background-color: #1a2638 !important;
         color: #ffffff !important;
@@ -124,28 +102,7 @@ st.markdown(
         border-radius: 8px !important;
         font-weight: 600 !important;
     }
-    section[data-testid="stSidebar"] {
-        background-color: #09101d !important;
-        border-right: 1px solid #1e293b !important;
-    }
     
-    /* Tabs & Data Tables */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #111c2e !important;
-        border-radius: 8px 8px 0 0 !important;
-        color: #cbd5e1 !important;
-        padding: 10px 16px !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #00f2fe !important;
-        color: #060b13 !important;
-        font-weight: 800 !important;
-    }
-    
-    /* High-contrast Badges */
     .badge-primary {
         background: #172554;
         color: #93c5fd;
@@ -179,7 +136,6 @@ if "active_df" not in st.session_state or st.session_state["active_df"] is None:
 
 active_df = st.session_state.get("active_df")
 
-# Fallback dataset loader if no dataset exists in memory
 if active_df is None or active_df.empty:
     st.markdown(
         """
@@ -196,7 +152,7 @@ if active_df is None or active_df.empty:
         if st.button("🔍 Generate Sample Research Cohort Data", type="primary", use_container_width=True):
             np.random.seed(42)
             demo_data = pd.DataFrame({
-                "Subject_ID": [f"SUBJ_{1000i}" for i in range(100)],
+                "Subject_ID": [f"SUBJ_{1000 + i}" for i in range(100)], # FIXED SYNTAX ERROR HERE
                 "Age": np.random.randint(18, 65, size=100),
                 "Gender": np.random.choice(["Male", "Female", "Non-Binary"], size=100),
                 "Treatment_Group": np.random.choice(["Control", "Dosage_A", "Dosage_B"], size=100),
@@ -215,10 +171,10 @@ st.markdown(
     """
 <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
     <div>
-        <span class='badge-primary'>SPSS METADATA ENGINE & CODEBOOK STUDIO</span>
-        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 ️ Variable View Page</h1>
+        <span class='badge-primary'>SPSS METADATA ENGINE & CODEBOOK STUDIO v3.0</span>
+        <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 Variable View Page</h1>
         <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
-            Define variable metadata, construct value labels, configure missing value codes, audit measurement levels, and export publication-ready codebooks.
+            Define variable metadata, construct value labels, configure missing value codes, audit measurement levels, and cast data types securely.
         </p>
     </div>
     <div style='text-align: right;'>
@@ -238,60 +194,60 @@ st.markdown("<h3 style='margin-bottom:0.5rem;'>🔍 Metadata Health & Schema Met
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("🔍 Total Rows", f"{len(active_df):,}")
+    st.metric("Total Rows", f"{len(active_df):,}")
     st.markdown("</div>", unsafe_allow_html=True)
 with m2:
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("🔍 Variables", f"{len(active_df.columns):,}")
+    st.metric("Variables", f"{len(active_df.columns):,}")
     st.markdown("</div>", unsafe_allow_html=True)
 with m3:
     num_cols = len(active_df.select_dtypes(include=[np.number]).columns)
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("🔍 Continuous (Scale)", num_cols)
+    st.metric("Continuous (Scale)", num_cols)
     st.markdown("</div>", unsafe_allow_html=True)
 with m4:
     cat_cols = len(active_df.select_dtypes(include=["object", "category"]).columns)
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("🔍 ️ Nominal / Ordinal", cat_cols)
+    st.metric("Nominal / Ordinal", cat_cols)
     st.markdown("</div>", unsafe_allow_html=True)
 with m5:
     memory_mb = active_df.memory_usage(deep=True).sum() / (1024 * 1024)
     st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-    st.metric("🔍 Memory Footprint", f"{memory_mb:.2f} MB")
+    st.metric("Memory Footprint", f"{memory_mb:.2f} MB")
     st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
 # ─── 6. WORKSPACE TABS ───────────────────────────────────────────────────
 tab_editor, tab_batch, tab_codebook, tab_template = st.tabs([
-    "🔍 ️ SPSS Metadata Editor", 
+    "🔍 SPSS Metadata Editor", 
     "⚡ Batch Operations & Quick Rules", 
     "🔍 Publication Codebook", 
-    "🔍 /🔍 Metadata Schema Sync"
+    "🔍 Metadata Schema Sync"
 ])
 
 # ── TAB 1: Main Interactive Metadata Editor ─────────────────────────────
 with tab_editor:
     st.markdown("### ✏️ Variable Property Configuration Grid")
-    st.caption("Adjust variable labels, roles, measurement scales (Scale, Nominal, Ordinal), user-defined missing values, and categorical value mappings.")
+    st.caption("Adjust variable labels, measurement scales, and data types. Changes here will be cast to the DataFrame when applied.")
     
-    # Constructing initial metadata DataFrame for the interactive grid
-    meta_records = []
-    for col in active_df.columns:
-        dtype = str(active_df[col].dtype)
-        inferred_measure = "Scale" if pd.api.types.is_numeric_dtype(active_df[col]) and active_df[col].nunique() > 10 else "Nominal"
-        meta_records.append({
-            "Variable Name": col,
-            "Label": f"{col.replace('_', ' ')} Description",
-            "Type": "Numeric" if pd.api.types.is_numeric_dtype(active_df[col]) else "String",
-            "Measurement": inferred_measure,
-            "Missing Values": "999, -99" if pd.api.types.is_numeric_dtype(active_df[col]) else "None",
-            "Role": "Input" if col != active_df.columns[-1] else "Target"
-        })
+    if st.session_state["variable_meta_df"] is None or len(st.session_state["variable_meta_df"]) != len(active_df.columns):
+        meta_records = []
+        for col in active_df.columns:
+            is_num = pd.api.types.is_numeric_dtype(active_df[col])
+            inferred_measure = "Scale" if is_num and active_df[col].nunique() > 10 else "Nominal"
+            meta_records.append({
+                "Variable Name": col,
+                "Label": f"{col.replace('_', ' ')}",
+                "Type": "Numeric" if is_num else "String",
+                "Measurement": inferred_measure,
+                "Role": "Input" if col != active_df.columns[-1] else "Target"
+            })
+        meta_df = pd.DataFrame(meta_records)
+    else:
+        meta_df = st.session_state["variable_meta_df"]
     
-    meta_df = pd.DataFrame(meta_records)
-    
-    # Render interactive data editor with high contrast formatting
+    # Save the output of the data editor directly to session state
     edited_metadata = st.data_editor(
         meta_df,
         use_container_width=True,
@@ -299,63 +255,43 @@ with tab_editor:
         column_config={
             "Variable Name": st.column_config.TextColumn("Variable Name", disabled=True),
             "Measurement": st.column_config.SelectboxColumn("Measurement Level", options=["Scale", "Nominal", "Ordinal"], required=True),
-            "Role": st.column_config.SelectboxColumn("SPSS Variable Role", options=["Input", "Target", "Both", "None", "Partition", "Split"]),
-            "Type": st.column_config.SelectboxColumn("Data Type", options=["Numeric", "String", "Date", "Custom Currency"])
+            "Role": st.column_config.SelectboxColumn("SPSS Variable Role", options=["Input", "Target", "Both", "None", "Partition"]),
+            "Type": st.column_config.SelectboxColumn("Data Type", options=["Numeric", "String", "Category", "Date"])
         },
-        hide_index=True
+        hide_index=True,
+        key="meta_editor"
     )
+    st.session_state["variable_meta_df"] = edited_metadata
 
 # ── TAB 2: Batch Operations ─────────────────────────────────────────────
 with tab_batch:
     st.markdown("### ⚡ Fast Batch Transformations & Auto-Detection")
-    st.markdown("Apply metadata rules across multiple columns simultaneously to streamline setup for high-dimensional datasets.")
-
-    col1, col2 = st.columns(2)
     
+    col1, col2 = st.columns(2)
     with col1:
         st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.subheader("🔍 ️ Bulk Measurement Level Assignment")
-        target_cols = st.multiselect("Select Variables to Modify", options=list(active_df.columns))
-        new_measure = st.selectbox("Assign Measurement Level", options=["Scale (Continuous)", "Nominal (Categorical)", "Ordinal (Ordered)", "Flag / Binary"])
-        
-        if st.button("⚡ Apply Bulk Measurement Level", type="secondary", use_container_width=True):
-            if target_cols:
-                st.success(f"✅ Set **{len(target_cols)}** variables to **{new_measure}**.")
-            else:
-                st.warning("Please select at least one variable.")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with col2:
-        st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
         st.subheader("🔍 Automated Metadata Inference")
-        st.markdown("Scan dataset distributions to auto-assign scales and detect potential identifier columns.")
+        st.markdown("Scan distributions to auto-assign scales and cast datatypes (e.g., String to Category for memory efficiency).")
         
-        if st.button("🔍 Auto-Detect Measurement Levels & Roles", use_container_width=True):
-            inferred = {}
-            for col in active_df.columns:
-                unique_ratio = active_df[col].nunique() / len(active_df)
-                if pd.api.types.is_numeric_dtype(active_df[col]):
-                    if active_df[col].nunique() <= 10:
-                        inferred[col] = "Ordinal / Nominal"
-                    else:
-                        inferred[col] = "Scale (Continuous)"
-                elif unique_ratio > 0.9:
-                    inferred[col] = "Identifier (ID Column)"
-                else:
-                    inferred[col] = "Nominal (Categorical)"
-            
-            st.json(inferred)
-            st.info("🔍 Auto-detection complete. Adjust specific fields in Tab 1 if needed.")
+        if st.button("🔍 Auto-Detect & Optimize Types", use_container_width=True):
+            with st.spinner("Analyzing column cardinalities..."):
+                for col in active_df.columns:
+                    if pd.api.types.is_object_dtype(active_df[col]) and active_df[col].nunique() < (len(active_df) * 0.5):
+                        active_df[col] = active_df[col].astype("category")
+                    
+                st.session_state["active_df"] = active_df
+                # Reset metadata so it rebuilds on next render
+                st.session_state["variable_meta_df"] = None 
+            st.success("✅ Datasets optimized! Strings with low cardinality were converted to Categories.")
+            st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ── TAB 3: Publication Codebook ─────────────────────────────────────────
 with tab_codebook:
     st.markdown("### 🔍 APA / SPSS Style Data Dictionary")
-    st.markdown("Generated summary documentation of dataset variables for research reporting.")
-
+    
     codebook_data = []
     for col in active_df.columns:
-        dtype = str(active_df[col].dtype)
         missing_cnt = active_df[col].isnull().sum()
         missing_pct = (missing_cnt / len(active_df)) * 100
         n_unique = active_df[col].nunique()
@@ -363,17 +299,16 @@ with tab_codebook:
         
         codebook_data.append({
             "Variable": col,
-            "Type": dtype,
+            "Pandas DType": str(active_df[col].dtype),
             "Missing Count": missing_cnt,
             "Missing %": f"{missing_pct:.1f}%",
             "Unique Values": n_unique,
-            "Sample Values": sample_vals
+            "Sample Data": sample_vals
         })
     
     codebook_df = pd.DataFrame(codebook_data)
     st.dataframe(codebook_df, use_container_width=True, hide_index=True)
     
-    # Download codebook CSV
     csv_codebook = codebook_df.to_csv(index=False).encode('utf-8')
     st.download_button(
         "🔍 Download Publication Codebook (CSV)",
@@ -384,41 +319,21 @@ with tab_codebook:
 
 # ── TAB 4: Metadata Export & Import Sync ────────────────────────────────
 with tab_template:
-    st.markdown("### 🔍 /🔍 Metadata Schema Sync")
-    st.markdown("Export your variable metadata schema (labels, value mappings, missing rules) to reuse across similar data cohorts.")
-
-    col_exp, col_imp = st.columns(2)
+    st.markdown("### 🔍 Metadata Schema Sync")
+    st.info("Export your metadata mapping to JSON to enforce standardized typing across similar research cohorts.")
     
-    with col_exp:
-        st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.subheader("🔍 Export Schema Template")
-        schema = {
-            "columns": list(active_df.columns),
-            "types": {col: str(active_df[col].dtype) for col in active_df.columns},
-            "exported_by": "CHRISHEM Variable Studio",
-            "version": "2.0"
-        }
-        json_schema = json.dumps(schema, indent=4)
-        st.download_button(
-            "🔍 Download Metadata Schema (.json)",
-            data=json_schema,
-            file_name="variable_metadata_schema.json",
-            mime="application/json",
-            use_container_width=True
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with col_imp:
-        st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
-        st.subheader("🔍 Import Schema Template")
-        uploaded_schema = st.file_uploader("Upload Metadata Schema (.json)", type=["json"])
-        if uploaded_schema is not None:
-            try:
-                schema_data = json.load(uploaded_schema)
-                st.success(f"✅ Schema loaded successfully! ({len(schema_data.get('columns', []))} columns mapped)")
-            except Exception as e:
-                st.error(f"Error parsing schema file: {e}")
-        st.markdown("</div>", unsafe_allow_html=True)
+    schema = {
+        "columns": list(active_df.columns),
+        "types": {col: str(active_df[col].dtype) for col in active_df.columns},
+        "version": "3.0"
+    }
+    json_schema = json.dumps(schema, indent=4)
+    st.download_button(
+        "🔍 Download Metadata Schema (.json)",
+        data=json_schema,
+        file_name="variable_metadata_schema.json",
+        mime="application/json"
+    )
 
 # ─── 7. EXECUTION & SESSION STATE PERSISTENCE ───────────────────────────
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
@@ -427,18 +342,36 @@ st.markdown("### 🔍 Apply Metadata & Update Active Dataset")
 col_save, col_clear = st.columns([3, 1])
 
 with col_save:
-    if st.button("🔍 Apply Variable Metadata & Re-code Dataset", type="primary", use_container_width=True):
-        with st.spinner("Processing metadata mappings and recoding missing values..."):
-            # Update session state dataset
+    if st.button("🚀 Apply Variable Metadata & Enforce Data Types", type="primary", use_container_width=True):
+        with st.spinner("Enforcing data types and writing changes to global memory..."):
+            meta = st.session_state["variable_meta_df"]
+            
+            # Actively transform dataframe based on editor selections
+            for idx, row in meta.iterrows():
+                col_name = row["Variable Name"]
+                target_type = row["Type"]
+                measure_lvl = row["Measurement"]
+                
+                try:
+                    if target_type == "Numeric":
+                        active_df[col_name] = pd.to_numeric(active_df[col_name], errors='coerce')
+                    elif target_type == "String":
+                        active_df[col_name] = active_df[col_name].astype(str)
+                    elif target_type == "Category" or measure_lvl in ["Nominal", "Ordinal"]:
+                        active_df[col_name] = active_df[col_name].astype("category")
+                except Exception as e:
+                    st.warning(f"Could not convert {col_name} to {target_type}: {e}")
+
             st.session_state["active_df"] = active_df
             
-        st.success("🔍 **Metadata applied successfully!** Dataset updated across all active analytical sessions.")
+        st.success("✅ **Real data types applied successfully!** Dataset is now strictly typed and synchronized across all pages.")
         
-        with st.expander("🔍 View Updated Dataset Preview (First 10 Rows)", expanded=True):
-            st.dataframe(active_df.head(10), use_container_width=True)
+        with st.expander("🔍 View Updated Dataset Memory Status", expanded=True):
+            st.dataframe(active_df.dtypes.astype(str).reset_index().rename(columns={'index': 'Column', 0: 'Data Type'}), use_container_width=True)
 
 with col_clear:
-    if st.button("🔍 Reset View", use_container_width=True):
+    if st.button("🔄 Reset Editor UI", use_container_width=True):
+        st.session_state["variable_meta_df"] = None
         st.rerun()
 
 # ─── 8. FOOTER ──────────────────────────────────────────────────────────
@@ -446,14 +379,10 @@ st.markdown("<hr style='border:1px solid #1e293b; margin-top:2rem;'>", unsafe_al
 st.markdown(
     """
 <div style='display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; font-family: monospace;'>
-    <div>🔍 ️ SPSS VARIABLE VIEW & DATA DICTIONARY STUDIO</div>
+    <div>🔍 SPSS VARIABLE VIEW & DATA DICTIONARY STUDIO v3.0</div>
     <div>DEVELOPER: KULA CHRIS (CHRISHEM)</div>
-    <div>SYSTEM STATUS: ACTIVE SESSION</div>
+    <div>SYSTEM STATUS: ONLINE</div>
 </div>
 """,
     unsafe_allow_html=True,
 )
-
-
-
-

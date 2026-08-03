@@ -1,22 +1,29 @@
-
-
-
 """
-⚙️ World-Class Advanced Settings, Administration & Autonomous Dependency Engine
+⚙️ World-Class Advanced Settings, Administration & Autonomous Dependency Engine [v8.0 Enterprise]
 Enterprise-grade systems administration console featuring background package installation,
-role-based privilege escalation gates, resilient system caching, and multi-layer keep-alive uptime monitoring.
+role-based privilege escalation gates, resilient system caching, live memory monitoring,
+session state snapshots, and multi-layer keep-alive uptime monitoring.
 Designed for: Kula Chris (Chrishem)
 """
 
 import os
 import sys
+import json
+import gc
+import platform
 import subprocess
 import streamlit as st
 import pandas as pd
 
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+
 # ─── 1. PAGE CONFIGURATION ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="Settings, Administration & Autonomous HUD",
+    page_title="Settings, Administration & Autonomous HUD v8.0",
     page_icon="⚙️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -31,6 +38,14 @@ if "theme" not in st.session_state:
     st.session_state["theme"] = "dark"
 if "accent_color" not in st.session_state:
     st.session_state["accent_color"] = "#00f2fe"
+if "admin_logs" not in st.session_state:
+    st.session_state["admin_logs"] = ["[INIT] Enterprise Administration Console v8.0 successfully initialized."]
+
+def log_event(message: str):
+    """Appends an event to the internal administrative audit log."""
+    st.session_state["admin_logs"].insert(0, f"[{pd.Timestamp.now().strftime('%H:%M:%S')}] {message}")
+    if len(st.session_state["admin_logs"]) > 25:
+        st.session_state["admin_logs"].pop()
 
 # ─── 2. HIGH-CONTRAST / ULTRA-LEGIBLE COLOR STYLING ─────────────────────
 st.markdown(
@@ -42,12 +57,10 @@ st.markdown(
         border-right: 1px solid #1e293b !important;
     }
     
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
         color: #f8fafc !important;
     }
 
-    /* Target navigation links and text explicitly */
     [data-testid="stSidebarNav"] span, 
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
@@ -56,14 +69,12 @@ st.markdown(
         font-weight: 600 !important;
     }
 
-    /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
         background-color: #1e293b !important;
         border-radius: 8px !important;
     }
 
-    /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
         background-color: #0284c7 !important;
@@ -72,21 +83,19 @@ st.markdown(
         border-radius: 8px !important;
     }
 
-    /* Custom form inputs inside sidebar */
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-    /* Global Application Canvas */
+
     .stApp {
         background-color: #060b13 !important;
         color: #ffffff !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
-    /* Typography Legibility */
     h1, h2, h3, h4, h5, h6 {
         color: #00f2fe !important;
         font-weight: 800 !important;
@@ -97,7 +106,6 @@ st.markdown(
         font-size: 0.95rem;
     }
     
-    /* Custom Card Structures */
     .contrast-card {
         background: #111c2e !important;
         border: 1px solid #00f2fe44 !important;
@@ -114,7 +122,6 @@ st.markdown(
         margin-bottom: 1.2rem;
     }
     
-    /* Metric Display */
     div[data-testid="stMetricValue"] {
         color: #00f2fe !important;
         font-size: 1.8rem !important;
@@ -127,7 +134,6 @@ st.markdown(
         font-size: 0.75rem;
     }
     
-    /* Input Elements */
     .stTextInput input, .stSelectbox div, .stNumberInput input, .stTextArea textarea {
         background-color: #1a2638 !important;
         color: #ffffff !important;
@@ -135,12 +141,7 @@ st.markdown(
         border-radius: 8px !important;
         font-weight: 600 !important;
     }
-    section[data-testid="stSidebar"] {
-        background-color: #09101d !important;
-        border-right: 1px solid #1e293b !important;
-    }
     
-    /* High-contrast Badges */
     .badge-primary {
         background: #172554;
         color: #93c5fd;
@@ -163,7 +164,6 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* Custom Data Table Styling */
     .styled-table {
         width: 100%;
         border-collapse: collapse;
@@ -182,6 +182,17 @@ st.markdown(
         border: 1px solid #1e293b;
         color: #f8fafc;
     }
+    .console-box {
+        background: #030712;
+        border: 1px solid #1e293b;
+        border-radius: 8px;
+        padding: 12px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: #38bdf8;
+        max-height: 180px;
+        overflow-y: auto;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -198,25 +209,29 @@ def robust_install_package(package_name: str) -> tuple[bool, str]:
             text=True,
             check=True
         )
+        log_event(f"Successfully hot-installed package: {package_name}")
         return True, f"Successfully installed `{package_name}` via subprocess.\n{result.stdout.strip()}"
     except subprocess.CalledProcessError as e:
+        log_event(f"Failed to install package {package_name}: {e.stderr.strip()}")
         return False, f"Installation failed for `{package_name}`: {e.stderr.strip()}"
     except Exception as ex:
+        log_event(f"System execution error on {package_name}: {str(ex)}")
         return False, f"System execution error during installation of `{package_name}`: {str(ex)}"
 
 def clear_cache():
     st.cache_data.clear()
     st.cache_resource.clear()
+    log_event("System cache cleared successfully via Streamlit decorators.")
 
 # ─── 4. HERO HEADER ─────────────────────────────────────────────────────
 st.markdown(
     """
 <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
     <div>
-        <span class='badge-primary'>AUTONOMOUS SYSTEMS HUD & SYSTEM ADMIN</span>
+        <span class='badge-primary'>AUTONOMOUS SYSTEMS HUD & SYSTEM ADMIN v8.0</span>
         <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>⚙️ Enterprise Administration & Configuration</h1>
         <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
-            Manage secure access controls, dynamic package hot-loading, environment resilience, and system states.
+            Manage secure access controls, dynamic package hot-loading, process memory metrics, and live telemetry audit logs.
         </p>
     </div>
     <div style='text-align: right;'>
@@ -230,11 +245,52 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ─── 5. AUTONOMOUS DEPENDENCY CHECK & SELF-HEALING ──────────────────────
+# ─── 5. REAL-TIME SYSTEM TELEMETRY & MEMORY MONITOR ──────────────────────
+st.markdown("### 🖥️ Runtime Telemetry & Process Resource HUD")
+
+col_t1, col_t2, col_t3, col_t4 = st.columns(4)
+with col_t1:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("Python Version", platform.python_version())
+    st.markdown("</div>", unsafe_allow_html=True)
+with col_t2:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    st.metric("Operating Platform", platform.system())
+    st.markdown("</div>", unsafe_allow_html=True)
+with col_t3:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    if PSUTIL_AVAILABLE:
+        mem_rss = round(psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2), 1)
+        st.metric("Process RAM (RSS)", f"{mem_rss} MB")
+    else:
+        st.metric("Process RAM (RSS)", "N/A (psutil)")
+    st.markdown("</div>", unsafe_allow_html=True)
+with col_t4:
+    st.markdown("<div class='contrast-card'>", unsafe_allow_html=True)
+    if PSUTIL_AVAILABLE:
+        cpu_pct = psutil.cpu_percent(interval=None)
+        st.metric("CPU Load", f"{cpu_pct}%")
+    else:
+        st.metric("CPU Load", "N/A")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# Garbage Collection Action Bar
+col_gc1, col_gc2 = st.columns([3, 1])
+with col_gc1:
+    st.caption("Trigger active memory garbage collection to clean unreferenced variables and optimize session responsiveness.")
+with col_gc2:
+    if st.button("🧹 Force Garbage Collection", use_container_width=True):
+        collected = gc.collect()
+        log_event(f"Manual garbage collection triggered. Objects reclaimed: {collected}")
+        st.success(f"Garbage collected successfully ({collected} objects freed).")
+
+st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
+
+# ─── 6. AUTONOMOUS DEPENDENCY CHECK & SELF-HEALING ──────────────────────
 st.markdown("### 🔍 Autonomous Dependency Management & Self-Healing")
 st.caption("The system automatically detects and resolves missing dependencies in real-time without requiring manual clicks.")
 
-tracked_packages = ["streamlit", "pandas", "numpy", "plotly", "scipy", "statsmodels", "scikit-learn"]
+tracked_packages = ["streamlit", "pandas", "numpy", "plotly", "scipy", "statsmodels", "scikit-learn", "psutil"]
 missing_pkgs = []
 
 for pkg in tracked_packages:
@@ -268,7 +324,6 @@ else:
 
 st.progress(pct, text=f"Environment health score: {pct}% complete")
 
-# Manual Override & Package Hot-Loader Expander
 with st.expander("🔍 ️ Manual Package Hot-Loader & Status Inspector"):
     custom_pkg_input = st.text_input("PyPI Package Name", placeholder="e.g., scikit-image, openpyxl, statsmodels")
     if st.button("🔍 Hot-Install Package Instantly", type="primary"):
@@ -285,7 +340,7 @@ with st.expander("🔍 ️ Manual Package Hot-Loader & Status Inspector"):
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
-# ─── 6. THEME & APPEARANCE SETTINGS ──────────────────────────────────────
+# ─── 7. THEME & APPEARANCE SETTINGS ──────────────────────────────────────
 st.markdown("### 🔍 Visual Theme & Accent Palette Controls")
 
 col1, col2, col3 = st.columns(3)
@@ -298,6 +353,7 @@ with col1:
     )
     if theme != st.session_state.get("theme"):
         st.session_state["theme"] = theme
+        log_event(f"Theme updated to: {theme}")
         st.rerun()
 
 with col2:
@@ -308,6 +364,7 @@ with col2:
     )
     if accent_color != st.session_state.get("accent_color"):
         st.session_state["accent_color"] = accent_color
+        log_event(f"Accent color updated to: {accent_color}")
         st.rerun()
 
 with col3:
@@ -320,7 +377,7 @@ with col3:
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
-# ─── 7. MODULE INFORMATION MATRIX ───────────────────────────────────────
+# ─── 8. MODULE INFORMATION MATRIX ───────────────────────────────────────
 st.markdown("### 🔍 System Modules & Health Status Matrix")
 
 st.markdown("""
@@ -342,51 +399,75 @@ st.markdown("""
     <tr><td>🔍 <b>Data Transformer</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>SPSS Compute, Recode, Rank, and Binning utilities</td></tr>
     <tr><td>🔍 <b>Methodology Advisor</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Study design evaluation and test recommendation engine</td></tr>
     <tr><td>🔍 <b>Clinical Analytics</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>BMI, clinical reference intervals, and health risk matrices</td></tr>
-    <tr><td>⚙️ <b>Settings & Admin</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Autonomous theme management and self-healing engine</td></tr>
+    <tr><td>⚙️ <b>Settings & Admin</b></td><td><span class="badge-emerald">ACTIVE</span></td><td>Autonomous theme management and self-healing engine v8.0</td></tr>
   </tbody>
 </table>
 """, unsafe_allow_html=True)
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
-# ─── 8. CREDENTIAL SETTINGS ──────────────────────────────────────────────
-st.markdown("### 🔍 Vault Key & API Integration Credentials")
+# ─── 9. CREDENTIAL SETTINGS & STATE SNAPSHOTTER ──────────────────────────
+st.markdown("### 🔍 Vault Key & Session Snapshot Manager")
 
-with st.expander("Manage API Access Tokens & Vault Keys", expanded=False):
-    token_input = st.text_input(
-        "Notion / External Integration Token",
-        type="password",
-        value=st.session_state.get("user_NOTION_TOKEN", ""),
-        help="Secure private integration token for API data syncing."
-    )
-    db_input = st.text_input(
-        "Database String Identifier (Optional)",
-        value=st.session_state.get("user_DATABASE_ID", ""),
-        help="Target database string identifier."
-    )
+col_snap1, col_snap2 = st.columns(2)
 
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button("🔍 Save Credentials Securely", type="primary", use_container_width=True):
-            if token_input.strip():
-                st.session_state["user_NOTION_TOKEN"] = token_input.strip()
-                st.session_state["user_DATABASE_ID"] = db_input.strip()
+with col_snap1:
+    with st.expander("Manage API Access Tokens & Vault Keys", expanded=False):
+        token_input = st.text_input(
+            "Notion / External Integration Token",
+            type="password",
+            value=st.session_state.get("user_NOTION_TOKEN", ""),
+            help="Secure private integration token for API data syncing."
+        )
+        db_input = st.text_input(
+            "Database String Identifier (Optional)",
+            value=st.session_state.get("user_DATABASE_ID", ""),
+            help="Target database string identifier."
+        )
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("🔍 Save Credentials Securely", type="primary", use_container_width=True):
+                if token_input.strip():
+                    st.session_state["user_NOTION_TOKEN"] = token_input.strip()
+                    st.session_state["user_DATABASE_ID"] = db_input.strip()
+                    clear_cache()
+                    log_event("Secure API vault credentials successfully updated.")
+                    st.success("✅ Integration tokens successfully saved to active session.")
+                    st.rerun()
+                else:
+                    st.error("Please supply a valid token.")
+        with c2:
+            if st.button("🔍 Reset Credentials", use_container_width=True):
+                st.session_state["user_NOTION_TOKEN"] = ""
+                st.session_state["user_DATABASE_ID"] = ""
                 clear_cache()
-                st.success("✅ Integration tokens successfully saved to active session.")
+                log_event("API vault credentials purged.")
+                st.success("Credentials purged.")
                 st.rerun()
-            else:
-                st.error("Please supply a valid token.")
-    with c2:
-        if st.button("🔍 Reset Credentials", use_container_width=True):
-            st.session_state["user_NOTION_TOKEN"] = ""
-            st.session_state["user_DATABASE_ID"] = ""
-            clear_cache()
-            st.success("Credentials purged.")
-            st.rerun()
+
+with col_snap2:
+    with st.expander("📦 Session Backup & State Snapshot", expanded=False):
+        st.caption("Export essential session configurations and metadata as a portable JSON snapshot.")
+        
+        snapshot_data = {
+            "theme": st.session_state.get("theme"),
+            "accent_color": st.session_state.get("accent_color"),
+            "data_source": st.session_state.get("data_source", "none"),
+            "privilege_level": st.session_state.get("admin_privilege_level")
+        }
+        
+        st.download_button(
+            label="⚡ Download JSON State Snapshot",
+            data=json.dumps(snapshot_data, indent=4),
+            file_name="chrishem_admin_snapshot.json",
+            mime="application/json",
+            use_container_width=True
+        )
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
-# ─── 9. DATA MANAGEMENT & CACHE LIFECYCLE ────────────────────────────────
+# ─── 10. DATA MANAGEMENT & CACHE LIFECYCLE ────────────────────────────────
 st.markdown("### 🔍 Data Lifecycle & Storage Management")
 
 col_d1, col_d2, col_d3 = st.columns(3)
@@ -411,12 +492,13 @@ if st.button("🔍 ️ Purge Local Cache & Clear Active Datasets", type="seconda
         if key in st.session_state:
             del st.session_state[key]
     st.session_state["data_source"] = "none"
+    log_event("All active datasets and local cache purged.")
     st.success("✅ System cache completely purged.")
     st.rerun()
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
-# ─── 10. KEEP-ALIVE & 24/7 UPTIME CONTROL ────────────────────────────────
+# ─── 11. KEEP-ALIVE & 24/7 UPTIME CONTROL ────────────────────────────────
 st.markdown("### ⏰ Keep-Alive Loop & 24/7 Uptime Engine")
 
 keep_alive_enabled = st.toggle(
@@ -439,19 +521,24 @@ if keep_alive_enabled:
 else:
     st.session_state["keep_alive_enabled"] = False
 
-# ─── 11. FOOTER & ARCHITECTURE METADATA ─────────────────────────────────
+st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
+
+# ─── 12. LIVE AUDIT LOG CONSOLE ──────────────────────────────────────────
+st.markdown("### 📋 Live Administrative Audit Console")
+st.caption("Real-time stream of administrative actions, configuration adjustments, and dependency checks.")
+
+log_html = "<br>".join([f"<span>{log}</span>" for log in st.session_state.get("admin_logs", [])])
+st.markdown(f'<div class="console-box">{log_html}</div>', unsafe_allow_html=True)
+
+# ─── 13. FOOTER & ARCHITECTURE METADATA ─────────────────────────────────
 st.markdown("<hr style='border:1px solid #1e293b; margin-top:2.5rem;'>", unsafe_allow_html=True)
 st.markdown(
     """
 <div style='display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; font-family: monospace;'>
-    <div>⚙️ SETTINGS & AUTONOMOUS HUD ENGINE</div>
+    <div>⚙️ SETTINGS & AUTONOMOUS HUD ENGINE v8.0</div>
     <div>DEVELOPER: KULA CHRIS (CHRISHEM)</div>
-    <div>SYSTEM STATUS: ONLINE (2.6.0)</div>
+    <div>SYSTEM STATUS: ONLINE (2.8.0)</div>
 </div>
 """,
     unsafe_allow_html=True,
 )
-
-
-
-

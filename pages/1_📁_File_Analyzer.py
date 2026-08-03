@@ -1,10 +1,9 @@
-
 # ═══════════════════════════════════════════════════════════════════════════════
-# ADVANCED FILE ANALYZER & MULTI-FORMAT INGESTION ENGINE [ENTERPRISE v7.0 PRO]
-# Standalone Edition with High-Contrast Cyber-Emerald Styling, PII Masking,
+# ADVANCED FILE ANALYZER & MULTI-FORMAT INGESTION ENGINE [ENTERPRISE v7.1 PRO]
+# High-Contrast Enhanced Edition with Optimized Typography, Modern Icons,
 # Automated Bayesian Outlier Correction, PCA Latent Space Projection,
 # and Resilient Multi-Format File Parsing.
-# Designed for: Kula Chris (Chrishem)
+# Designed for: Kula Chris (Chrishem)[cite: 1]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import csv
@@ -65,10 +64,10 @@ except ImportError:
     def hero_card(title, subtitle, badge_text=""):
         st.markdown(
             f"""
-            <div style='background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
+            <div style='background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.8rem; border-radius: 14px; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(0,242,254,0.15);'>
                 <span class='badge-primary'>{badge_text}</span>
-                <h1 style='color: #00f2fe; font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; font-weight:800;'>{title}</h1>
-                <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>{subtitle}</p>
+                <h1 style='color: #00f2fe; font-size: 2.4rem; margin: 0.5rem 0 0.3rem 0; font-weight:800; letter-spacing:-0.01em;'>{title}</h1>
+                <p style='color: #e2e8f0; margin: 0; font-size: 1.1rem; line-height: 1.5;'>{subtitle}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -78,9 +77,9 @@ except ImportError:
         pass
 
     def section_header(title, desc=""):
-        st.markdown(f"<h3 style='color:#00f2fe; margin-top:1.2rem; margin-bottom:0.3rem;'>{title}</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color:#00f2fe; font-size: 1.4rem; margin-top:1.5rem; margin-bottom:0.4rem; font-weight:700;'>{title}</h3>", unsafe_allow_html=True)
         if desc:
-            st.caption(desc)
+            st.markdown(f"<p style='color:#cbd5e1; font-size: 1.0rem; margin-bottom: 0.8rem;'>{desc}</p>", unsafe_allow_html=True)
 
     def infer_column_types(df):
         types = {}
@@ -105,14 +104,14 @@ except ImportError:
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced File Analyzer [SECURE PRO]",
-    page_icon="🔍",
+    page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 init_session_state()
 
-# ─── HIGH-CONTRAST CUSTOM STYLING & READABILITY ENGINE ───────────────
+# ─── HIGH-CONTRAST CUSTOM STYLING & ENHANCED TYPOGRAPHY ENGINE ───────
 st.markdown(
     """
     <style>
@@ -122,9 +121,10 @@ st.markdown(
         border-right: 1px solid #1e293b !important;
     }
     
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
+    /* Force all sidebar text, links, and headers to high-contrast off-white with larger readable sizes */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
         color: #f8fafc !important;
+        font-size: 1.02rem !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -158,41 +158,44 @@ st.markdown(
     section[data-testid="stSidebar"] .stMultiSelect label {
         color: #38bdf8 !important;
         font-weight: 700 !important;
+        font-size: 1.05rem !important;
     }
-    /* Global Container */
+    
+    /* Global Container & Typography Scaling */
     .stApp {
         background-color: #060b13 !important;
         color: #ffffff !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
-    /* High Contrast Text Elements */
-    h1, h2, h3, h4, h5, h6 {
-        color: #00f2fe !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.02em;
-    }
+    /* High Contrast Headings with Enhanced Font Scale */
+    h1 { color: #00f2fe !important; font-size: 2.3rem !important; font-weight: 800 !important; }
+    h2 { color: #00f2fe !important; font-size: 1.8rem !important; font-weight: 800 !important; }
+    h3 { color: #00f2fe !important; font-size: 1.4rem !important; font-weight: 700 !important; }
+    h4, h5, h6 { color: #38bdf8 !important; font-weight: 700 !important; }
 
-    p, span, label, div, .stMarkdown, .stCaption, .stRadio label, .stCheckbox label {
+    /* Body Text & Labels Boosted for Readability */
+    p, span, label, div, .stMarkdown, .stCaption, .stRadio label, .stCheckbox label, .stSelectbox label {
         color: #f8fafc !important;
-        font-size: 0.95rem;
+        font-size: 1.05rem !important;
+        line-height: 1.6 !important;
     }
 
     /* Container Cards */
     .contrast-card {
         background: #111c2e !important;
-        border: 1px solid #00f2fe44 !important;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1.2rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        border: 1px solid #00f2fe55 !important;
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     /* Input Widgets Customization */
     div.row-widget.stRadio, div.stFileUploader, div.stTextInput, div.stSelectbox {
         background-color: #111c2e !important;
-        padding: 14px !important;
-        border-radius: 10px !important;
+        padding: 16px !important;
+        border-radius: 12px !important;
         border: 1px solid #1e293b !important;
     }
 
@@ -200,20 +203,21 @@ st.markdown(
     .stDataFrame, .stTable {
         background-color: #09101d !important;
         border: 1px solid #1e293b !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
     }
 
     /* Metrics Styling */
     div[data-testid="stMetricValue"] {
         color: #00f2fe !important;
-        font-size: 1.8rem !important;
+        font-size: 2.1rem !important;
         font-weight: 900 !important;
     }
     div[data-testid="stMetricLabel"] {
         color: #cbd5e1 !important;
         font-weight: 700 !important;
         text-transform: uppercase;
-        font-size: 0.75rem;
+        font-size: 0.85rem !important;
+        letter-spacing: 0.05em;
     }
 
     /* Badges */
@@ -221,9 +225,9 @@ st.markdown(
         background: #172554;
         color: #93c5fd;
         border: 1px solid #1d4ed8;
-        padding: 0.25rem 0.65rem;
+        padding: 0.3rem 0.8rem;
         border-radius: 6px;
-        font-size: 0.7rem;
+        font-size: 0.8rem !important;
         font-family: monospace;
         letter-spacing: 0.05em;
         font-weight: 700;
@@ -234,9 +238,9 @@ st.markdown(
 )
 
 hero_card(
-    "🔍 Advanced File Analyzer & Explorer Engine [PRO]",
-    "Universal multi-format data ingestion for CSV, Excel, SPSS (.sav), SAS, STATA, JSON, and binary formats with automated profiling, data-quality scoring, anomaly diagnostics, Bayesian outlier scrubbing, and PCA latent space dimensionality reduction.",
-    badge_text="v7.0 Enterprise High Intelligence Pipeline",
+    "🛡️ Enterprise File Analyzer & Multi-Format Ingestion Engine [PRO v7.1]",
+    "Universal production-grade data ingestion platform for CSV, Excel, SPSS (.sav), SAS, STATA, JSON, and binary formats. Features automated data-quality scoring, anomaly diagnostics, Bayesian outlier scrubbing, and PCA latent space dimensionality reduction.",
+    badge_text="ENTERPRISE INTELLIGENCE PIPELINE",
 )
 
 # ─── SECURITY: Sandbox Root Setup ─────────────────────────────────────
@@ -259,7 +263,7 @@ def detect_delimiter(sample_text: str) -> str:
         return ","
 
 def robust_parse_file(file_obj_or_path):
-    """Robust multi-format research document parser."""
+    """Robust multi-format production document parser."""
     try:
         filename = (
             file_obj_or_path.name
@@ -382,21 +386,18 @@ def generate_intelligent_insights(df: pd.DataFrame) -> list:
     insights = []
     numeric_df = df.select_dtypes(include=np.number)
     
-    # 1. Dataset Shape and Volume
     rows, cols = df.shape
-    insights.append(f"🔍 <b>Structural Scope</b>: Dataset contains <b>{rows:,} records</b> across <b>{cols} features</b>, providing an optimal matrix dimension for evaluation.")
+    insights.append(f"📊 <b>Structural Scope</b>: Dataset contains <b>{rows:,} records</b> across <b>{cols} features</b>, establishing a robust matrix dimension for full evaluation.")
 
-    # 2. Missing Value Vulnerabilities
     total_nulls = df.isnull().sum().sum()
     if total_nulls > 0:
         worst_col = df.isnull().sum().idxmax()
         worst_count = df.isnull().sum()[worst_col]
         worst_pct = (worst_count / rows) * 100
-        insights.append(f"⚠️ <b>Data Completeness Warning</b>: Detected <b>{total_nulls:,} missing values</b> globally. Feature <b>'{worst_col}'</b> exhibits the highest sparsity with <b>{worst_pct:.1f}%</b> missing data.")
+        insights.append(f"⚠️ <b>Data Completeness Alert</b>: Detected <b>{total_nulls:,} missing values</b> globally. Feature <b>'{worst_col}'</b> exhibits highest sparsity with <b>{worst_pct:.1f}%</b> missing data.")
     else:
-        insights.append("✅ <b>High Data Integrity</b>: Zero missing values recorded across all features.")
+        insights.append("✅ <b>High Data Integrity</b>: Zero missing values recorded across all active features.")
 
-    # 3. Correlation & Multicollinearity Analysis
     if not numeric_df.empty and numeric_df.shape[1] >= 2:
         corr_matrix = numeric_df.corr().abs()
         upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
@@ -410,9 +411,8 @@ def generate_intelligent_insights(df: pd.DataFrame) -> list:
                     
         if high_corrs:
             c1, c2, val = high_corrs[0]
-            insights.append(f"🔍 <b>Strong Collinearity Detected</b>: High correlation coefficient (r = <b>{val:.2f}</b>) observed between <b>'{c1}'</b> and <b>'{c2}'</b>.")
+            insights.append(f"🔗 <b>Strong Collinearity Flag</b>: High correlation coefficient (r = <b>{val:.2f}</b>) identified between <b>'{c1}'</b> and <b>'{c2}'</b>.")
 
-    # 4. Outlier Diagnostics via IQR
     outlier_summary = []
     for col in numeric_df.columns:
         q1 = numeric_df[col].quantile(0.25)
@@ -426,7 +426,7 @@ def generate_intelligent_insights(df: pd.DataFrame) -> list:
     if outlier_summary:
         outlier_summary.sort(key=lambda x: x[1], reverse=True)
         top_outlier_col, top_outlier_count = outlier_summary[0]
-        insights.append(f"🔍 <b>Distribution Skew / Outliers</b>: Feature <b>'{top_outlier_col}'</b> contains <b>{top_outlier_count} outlier observations</b> beyond standard interquartile bounds.")
+        insights.append(f"📈 <b>Distribution Skew / Outliers</b>: Feature <b>'{top_outlier_col}'</b> contains <b>{top_outlier_count} outlier observations</b> beyond standard interquartile range bounds.")
 
     return insights
 
@@ -435,8 +435,8 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 ingestion_mode = st.radio(
     "Select Data Ingestion Channel",
     options=[
-        "🔍 Direct File Uploader (Standard)",
-        "🔍 Local Server / Directory Explorer",
+        "📁 Direct File Uploader (Standard)",
+        "🖥️ Local Server / Directory Explorer",
     ],
     horizontal=True,
 )
@@ -444,17 +444,16 @@ ingestion_mode = st.radio(
 active_df = None
 active_source_name = None
 
-if ingestion_mode == "🔍 Direct File Uploader (Standard)":
-    section_header("🔍 Upload Data File")
-    st.caption("Supported formats: CSV, Excel, SPSS (.sav), SAS (.sas7bdat), STATA (.dta), JSON, Parquet, Feather, Pickle.")
-
+if ingestion_mode == "📁 Direct File Uploader (Standard)":
+    section_header("📁 Upload Enterprise Dataset", "Upload multi-format structured files for instant automated verification and deep diagnostic profiling.")
+    
     uploaded_file = st.file_uploader(
         "Choose a data file",
         type=[
             "csv", "xlsx", "xls", "json", "sav",
             "sas7bdat", "dta", "parquet", "feather", "pkl", "txt",
         ],
-        help="Upload dataset for instant profiling, quality checks, and visualization.",
+        help="Upload structured datasets for instant ingestion, quality checks, and visualization.",
     )
 
     if uploaded_file is not None:
@@ -463,8 +462,8 @@ if ingestion_mode == "🔍 Direct File Uploader (Standard)":
             active_source_name = uploaded_file.name
 
 else:
-    section_header("🔍 Local Server & Directory Explorer")
-    st.info("🔍 Sandboxed securely to workspace directory. External paths restricted.")
+    section_header("🖥️ Local Server & Directory Explorer", "Browse and ingest verified files securely from authorized server storage directories.")
+    st.info("🔒 Sandboxed securely to workspace directory. External filesystem paths are restricted.")
 
     target_dir_raw = st.text_input(
         "Directory Path to Scan",
@@ -493,18 +492,18 @@ else:
                     found_files.append(os.path.join(r, f))
 
         if found_files:
-            st.success(f"🔍 Discovered {len(found_files)} readable data file(s).")
+            st.success(f"📂 Discovered {len(found_files)} readable enterprise file(s).")
             selected_local_file = st.selectbox(
                 "Select Data File from Directory",
                 options=found_files,
                 format_func=lambda x: os.path.relpath(x, target_dir),
             )
-            if st.button("🔍 Load and Analyze Selected File", type="primary", use_container_width=True):
+            if st.button("🚀 Load and Analyze Selected File", type="primary", use_container_width=True):
                 with st.spinner(f"Reading '{os.path.basename(selected_local_file)}'..."):
                     active_df = robust_parse_file(selected_local_file)
                     active_source_name = os.path.basename(selected_local_file)
         else:
-            st.info("🔍 No compatible data files found in this directory.")
+            st.info("📂 No compatible data files found in this directory.")
 
 # ── SESSION STATE PERSISTENCE ─────────────────────────────────────────
 if active_df is not None and not active_df.empty:
@@ -524,24 +523,24 @@ if working_df is None or working_df.empty:
     st.markdown(
         """
         <div class='contrast-card'>
-            <h3 style='margin-top:0;'>⚠️ No Active Dataset Loaded</h3>
-            <p style='color:#cbd5e1;'>Upload a file above or generate a sample research dataset to test the profiling suite.</p>
+            <h3 style='margin-top:0; color:#00f2fe;'>⚠️ No Active Enterprise Dataset Loaded</h3>
+            <p style='color:#cbdMi1;'>Upload an active file above or initialize a production-grade sample dataset to test the analytical pipeline.</p>
         </div>
         """,
         unsafe_allow_html=True
     )
-    if st.button("🔍 Generate Sample Research Dataset", type="primary"):
+    if st.button("⚡ Initialize Sample Production Dataset", type="primary"):
         np.random.seed(42)
         demo_data = pd.DataFrame({
-            "Subject_ID": [f"SUBJ-{2000 + i}" for i in range(150)],
-            "Age": np.random.randint(18, 70, size=150),
-            "Cholesterol": np.round(np.random.normal(190.0, 30.0, size=150), 1),
-            "Blood_Glucose": np.round(np.random.normal(98.0, 15.0, size=150), 1),
-            "Risk_Category": np.random.choice(["Low", "Moderate", "High"], size=150)
+            "Subject_ID": [f"SUBJ-{2000 + i}" for i in range(250)],
+            "Age": np.random.randint(18, 75, size=250),
+            "Biomarker_A": np.round(np.random.normal(190.0, 30.0, size=250), 1),
+            "Biomarker_B": np.round(np.random.normal(98.0, 15.0, size=250), 1),
+            "Risk_Category": np.random.choice(["Low", "Moderate", "High"], size=250)
         })
-        demo_data.loc[10:15, "Cholesterol"] = np.nan
+        demo_data.loc[12:20, "Biomarker_A"] = np.nan
         st.session_state["working_df"] = demo_data
-        st.session_state["source_name"] = "sample_research_cohort.csv"
+        st.session_state["source_name"] = "enterprise_production_cohort.csv"
         st.rerun()
 
 working_df = st.session_state.get("working_df")
@@ -553,25 +552,32 @@ if working_df is not None and not working_df.empty:
     dataset_bytes = working_df.to_csv(index=False).encode("utf-8")
     dataset_hash = hashlib.sha256(dataset_bytes).hexdigest()
 
-    st.caption(
-        f"🔍 **Active Dataset SHA-256 Checksum:** `{dataset_hash[:24]}...` | "
-        f"Records: **{working_df.shape[0]:,}** | Features: **{working_df.shape[1]}**"
+    st.markdown(
+        f"""
+        <div style='background:#0b1320; border: 1px solid #1e293b; padding: 0.8rem 1.2rem; border-radius: 8px; margin-bottom: 1rem;'>
+            <span style='color:#38bdf8; font-weight:700;'>🔒 Active Dataset SHA-256 Checksum:</span> 
+            <code style='color:#00f2fe; background:#04070d; padding:2px 6px; border-radius:4px;'>{dataset_hash[:32]}...</code> | 
+            <span style='color:#38bdf8; font-weight:700;'>Records:</span> <b>{working_df.shape[0]:,}</b> | 
+            <span style='color:#38bdf8; font-weight:700;'>Features:</span> <b>{working_df.shape[1]}</b>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
     tabs = st.tabs([
-        "🔍 Overview",
-        "🔍 Data Quality & Intelligence",
-        "🔍 Preview & Filter",
-        "🔍 Transform & Scrub",
-        "🔍 Visualize",
-        "🔍 Aggregate",
-        "🔍 Export & Code",
-        "🔍 Advanced Pro Lab",
+        "📊 Overview",
+        "🔍 Data Quality & Diagnostics",
+        "📋 Preview & Filter",
+        "⚙️ Transform & Scrub",
+        "📈 Visualize",
+        "📐 Aggregate",
+        "📥 Export & Code",
+        "🧬 Advanced Pro Lab",
     ])
 
     # ── Tab 0: Overview ──
     with tabs[0]:
-        section_header("🔍 Dataset Overview & Statistical Summary")
+        section_header("📊 Dataset Overview & Statistical Summary", "High-level inventory of structural dimensions and feature metadata.")
         profile = profile_dataset(working_df)
 
         c1, c2, c3, c4, c5 = st.columns(5)
@@ -582,19 +588,19 @@ if working_df is not None and not working_df.empty:
         mem_mb = working_df.memory_usage(deep=True).sum() / (1024 ** 2)
         c5.metric("Memory Footprint", f"{mem_mb:.2f} MB")
 
-        section_header("🔍 Automated AI Intelligence Insights")
+        section_header("💡 Automated AI Intelligence Insights", "Real-time automated heuristics evaluating structural integrity and statistical skew.")
         insights = generate_intelligent_insights(working_df)
         for idx, ins in enumerate(insights, 1):
             st.markdown(
                 f"""
-                <div style='background:#091a2e; border-left:4px solid #00f2fe; border-top:1px solid #1e293b; border-right:1px solid #1e293b; border-bottom:1px solid #1e293b; border-radius:8px; padding:0.8rem 1rem; margin-bottom:0.6rem;'>
+                <div style='background:#091a2e; border-left:4px solid #00f2fe; border-top:1px solid #1e293b; border-right:1px solid #1e293b; border-bottom:1px solid #1e293b; border-radius:8px; padding:1rem 1.2rem; margin-bottom:0.8rem;'>
                     {ins}
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-        section_header("🔍 Column Metadata & Data Types")
+        section_header("📋 Column Metadata & Inferred Data Types", "Detailed breakdown of schema types, missing value ratios, and uniqueness cardinality.")
         col_types = infer_column_types(working_df)
         type_df = pd.DataFrame([
             {
@@ -609,18 +615,18 @@ if working_df is not None and not working_df.empty:
         ])
         st.dataframe(type_df, use_container_width=True, hide_index=True)
 
-    # ── Tab 1: Data Quality & Intelligence ──
+    # ── Tab 1: Data Quality & Diagnostics ──
     with tabs[1]:
-        section_header("🔍 Data Quality Scoring & Diagnostics")
+        section_header("🔍 Enterprise Data Quality Scoring & Diagnostics", "Quantitative metrics grading completeness, uniqueness, and format cleanliness.")
         dq = compute_data_quality(working_df)
         
         q_col1, q_col2, q_col3, q_col4 = st.columns(4)
-        q_col1.metric("Data Quality Score", f"{dq['score']} / 100")
+        q_col1.metric("Quality Score", f"{dq['score']} / 100")
         q_col2.metric("Missing Cells", f"{dq['missing_cells']:,} ({dq['missing_pct']}%)")
         q_col3.metric("Duplicate Rows", f"{dq['duplicate_rows']:,} ({dq['duplicate_pct']}%)")
-        q_col4.metric("Whitespace Mismatches", f"{dq['whitespace_issues']:,}")
+        q_col4.metric("Whitespace Issues", f"{dq['whitespace_issues']:,}")
 
-        section_header("🔍 Statistical Dispersion & Variance Analysis")
+        section_header("📈 Statistical Dispersion & Variance Profile", "Parametric distribution metrics for all active numeric features.")
         numeric_sub = working_df.select_dtypes(include=np.number)
         if not numeric_sub.empty:
             desc_stats = numeric_sub.describe().T[['mean', 'std', 'min', '50%', 'max']]
@@ -632,13 +638,12 @@ if working_df is not None and not working_df.empty:
 
     # ── Tab 2: Preview & Filter ──
     with tabs[2]:
-        section_header("🔍 Interactive Dataset Explorer")
+        section_header("📋 Interactive Dataset Explorer", "Full tabular inspector for live data validation.")
         st.dataframe(working_df, use_container_width=True)
 
     # ── Tab 3: Transform & Scrub ──
     with tabs[3]:
-        section_header("🔍 Advanced Data Transformation & Scrubbing Suite")
-        st.markdown("Execute granular, audit-tracked transformations on your active dataframe.")
+        section_header("⚙️ Advanced Data Transformation & Scrubbing Suite", "Execute audit-tracked data sanitation, missing value imputation, and outlier clipping.")
 
         trans_type = st.selectbox(
             "Select Transformation Operation",
@@ -646,13 +651,11 @@ if working_df is not None and not working_df.empty:
                 "Impute Missing Values (Mean / Median / Mode)",
                 "Scrub / Clip Outliers (IQR Method)",
                 "Drop Columns",
-                "Rename Column",
-                "Filter Rows by Condition",
                 "Reset to Original State"
             ]
         )
 
-        if trans_type == "Impute Missing Value (Mean / Median / Mode)":
+        if trans_type == "Impute Missing Values (Mean / Median / Mode)":
             num_cols_with_nulls = [c for c in working_df.select_dtypes(include=np.number).columns if working_df[c].isnull().sum() > 0]
             if num_cols_with_nulls:
                 target_imp_col = st.selectbox("Select Numeric Feature to Impute", num_cols_with_nulls)
@@ -696,22 +699,22 @@ if working_df is not None and not working_df.empty:
             if cols_to_drop and st.button("Confirm Column Drop", type="primary"):
                 working_df.drop(columns=cols_to_drop, inplace=True)
                 st.session_state["working_df"] = working_df
-                st.success(f"Dropped columns: {', '.join(cols_to_drop)}")
+                st.success(f"Successfully dropped columns: {', '.join(cols_to_drop)}")
                 st.rerun()
 
         elif trans_type == "Reset to Original State":
             if st.button("Reset Working Dataset", type="primary"):
                 st.session_state["working_df"] = st.session_state["uploaded_df"].copy()
-                st.success("Working dataset successfully reset to original ingestion state.")
+                st.success("Working dataset successfully reset to initial ingestion state.")
                 st.rerun()
 
     # ── Tab 4: Visualize ──
     with tabs[4]:
-        section_header("🔍 Interactive Exploratory Visualizations")
+        section_header("📈 Interactive Exploratory Visualizations", "Inspect distribution profiles and variable correlations.")
         if PLOTLY_AVAILABLE:
             numeric_cols = working_df.select_dtypes(include=np.number).columns.tolist()
             if numeric_cols:
-                viz_type = st.selectbox("Visualization Type", ["Scatter Matrix / Bivariate", "Distribution Histogram", "Correlation Heatmap"])
+                viz_type = st.selectbox("Visualization Type", ["Distribution Histogram", "Correlation Heatmap"])
                 if viz_type == "Distribution Histogram":
                     col_to_plot = st.selectbox("Select Numeric Column", numeric_cols)
                     fig = px.histogram(working_df, x=col_to_plot, marginal="box", template="plotly_dark", title=f"Distribution Profile: {col_to_plot}")
@@ -727,7 +730,7 @@ if working_df is not None and not working_df.empty:
 
     # ── Tab 5: Aggregate ──
     with tabs[5]:
-        section_header("🔍 Groupby & Statistical Aggregation Engine")
+        section_header("📐 Groupby & Statistical Aggregation Engine", "Compute grouped metric summaries across categorical dimensions.")
         cat_cols = working_df.select_dtypes(include=["object", "category"]).columns.tolist()
         num_cols = working_df.select_dtypes(include=np.number).columns.tolist()
         if cat_cols and num_cols:
@@ -742,13 +745,12 @@ if working_df is not None and not working_df.empty:
 
     # ── Tab 6: Export & Code ──
     with tabs[6]:
-        section_header("🔍 Executive Export & Reproducible Code Generator")
-        st.markdown("Download your cleaned, scrubbed dataset or copy the auto-generated Pandas pipeline recipe.")
+        section_header("📥 Executive Export & Reproducible Code Generator", "Download clean processed data or copy reproducible pipeline scripts.")
         
         csv_data = working_df.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Download Cleaned Dataset (CSV)", data=csv_data, file_name="cleaned_dataset.csv", mime="text/csv", use_container_width=True)
+        st.download_button("📥 Download Cleaned Dataset (CSV)", data=csv_data, file_name="cleaned_enterprise_dataset.csv", mime="text/csv", use_container_width=True)
 
-        st.subheader("Generated Pandas Processing Snippet")
+        st.subheader("Generated Pandas Processing Script")
         st.code(f"""
 import pandas as pd
 import numpy as np
@@ -756,15 +758,14 @@ import numpy as np
 # Load source dataset
 df = pd.read_csv("{st.session_state.get('source_name', 'dataset.csv')}")
 
-# Enterprise Processing & Quality Scrub
+# Enterprise Processing & Quality Scrub Pipeline
 # Total Records: {working_df.shape[0]}, Features: {working_df.shape[1]}
 print(df.info())
 """, language="python")
 
     # ── Tab 7: Advanced Pro Lab ──
     with tabs[7]:
-        section_header("🔍 Advanced Pro Problem Solving & Machine Intelligence Lab")
-        st.markdown("Execute high-level computational routines including Bayesian Outlier Scrubbing, Z-Score anomaly detection, and Principle Component Analysis (PCA) latent space mapping.")
+        section_header("🧬 Advanced Pro Problem Solving & Machine Intelligence Lab", "Execute high-level computational routines including anomaly isolation and Principal Component Analysis (PCA).")
 
         pro_task = st.selectbox(
             "Select Advanced Pro Operation",
@@ -778,11 +779,11 @@ print(df.info())
         numeric_cols_pro = working_df.select_dtypes(include=np.number).columns.tolist()
 
         if pro_task == "Bayesian Anomaly & Outlier Isolation":
-            st.markdown("Identifies multi-variable anomalies using robust Mahalanobis distance / Z-score thresholds.")
+            st.markdown("Identifies multi-variable anomalies using robust Z-score distribution thresholds.")
             if len(numeric_cols_pro) >= 2:
                 features_sel = st.multiselect("Select Numeric Features for Anomaly Screening", numeric_cols_pro, default=numeric_cols_pro[:min(3, len(numeric_cols_pro))])
                 threshold = st.slider("Z-Score Sensitivity Threshold", 2.0, 4.0, 3.0, 0.1)
-                if features_sel and st.button("Run Bayesian Anomaly Isolation", type="primary"):
+                if features_sel and st.button("Run Anomaly Isolation", type="primary"):
                     sub_num = working_df[features_sel].dropna()
                     z_scores = np.abs((sub_num - sub_num.mean()) / sub_num.std())
                     anomalies = (z_scores > threshold).any(axis=1)
@@ -807,7 +808,7 @@ print(df.info())
                         scaled_x = scaler.fit_transform(x_data)
                         
                         pca = PCA(n_components=2)
-                        components = pca.fit_resample(scaled_x) if hasattr(pca, "fit_resample") else pca.fit_transform(scaled_x)
+                        components = pca.fit_transform(scaled_x)
                         
                         pca_df = pd.DataFrame(components, columns=["PC1", "PC2"], index=x_data.index)
                         explained_var = pca.explained_variance_ratio_
@@ -825,7 +826,7 @@ print(df.info())
                 st.warning("Requires at least 2 numeric features.")
 
         elif pro_task == "Automated Feature Interaction Generator":
-            st.markdown("Automatically engineers multiplicative cross-features between top numerical columns to boost predictive modeling signals.")
+            st.markdown("Automatically engineers multiplicative cross-features between numerical columns to boost predictive modeling signals.")
             if len(numeric_cols_pro) >= 2:
                 f1 = st.selectbox("Feature 1", numeric_cols_pro, key="f1_interact")
                 f2 = st.selectbox("Feature 2", [c for c in numeric_cols_pro if c != f1], key="f2_interact")
@@ -837,5 +838,3 @@ print(df.info())
                     st.rerun()
             else:
                 st.warning("Requires at least 2 numeric columns.")
-
-

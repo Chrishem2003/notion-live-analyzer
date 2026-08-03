@@ -1,11 +1,8 @@
-
-
-
 """
 ═══════════════════════════════════════════════════════════════════════════════
-GENOMIC & ENTERPRISE PREDICTIVE MODELING / AUTOML SUITE [v3.0 ENTERPRISE]
-Standalone Edition featuring Nordic Cyber-Emerald styling, high-contrast text 
-hierarchy, defensive session handling, and modular AutoML controls.
+GENOMIC & ENTERPRISE PREDICTIVE MODELING / AUTOML SUITE [v4.0 ENTERPRISE]
+Production-grade machine learning engine featuring live scikit-learn model training,
+automated imputation, metric evaluation, and diagnostic visualization.
 Designed for: Kula Chris (Chrishem)
 ═══════════════════════════════════════════════════════════════════════════════
 """
@@ -15,6 +12,18 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+# Scikit-Learn Machine Learning Imports
+try:
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler, LabelEncoder
+    from sklearn.impute import SimpleImputer
+    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+    from sklearn.linear_model import LogisticRegression, LinearRegression
+    from sklearn.metrics import accuracy_score, classification_report, mean_squared_error, r2_score
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
 
 # ─── PATH RESOLUTION ─────────────────────────────────────────────────
 current_file = Path(__file__).resolve()
@@ -28,14 +37,10 @@ if str(current_file.parent) not in sys.path:
 try:
     from modules.config import init_session_state
     from modules.ui_components import hero_card, load_css, section_header, watermark
-    from modules.predictive_engine import render_predictive_modeling_ui
 except ImportError:
     def init_session_state():
         if "theme" not in st.session_state:
             st.session_state.theme = "dark"
-
-    def load_css(is_dark=True):
-        pass
 
     def hero_card(title, subtitle, badge_text=""):
         st.markdown(
@@ -57,30 +62,11 @@ except ImportError:
         if desc:
             st.caption(desc)
 
-    def render_predictive_modeling_ui(df: pd.DataFrame):
-        st.success("⚡ Model Orchestrator Initialized: Target variable and feature matrices ready for automated training.")
-        numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        if numeric_cols:
-            target_var = st.selectbox("🔍 Select Target Variable for Training", options=df.columns)
-            features = [c for c in df.columns if c != target_var]
-            st.markdown(f"**Selected Predictors ({len(features)}):** `{', '.join(features[:6])}`"  ("..." if len(features) > 6 else ""))
-            if st.button("🔍 Run Automated Baseline Models", type="primary"):
-                st.info("Cross-validating baseline algorithm ensemble (Random Forest, XGBoost, LightGBM)...")
-                st.markdown(
-                    """
-                    | Model Algorithm | Accuracy / R² | CV Score (k=5) | Training Time |
-                    | :--- | :--- | :--- | :--- |
-                    | **Random Forest Classifier** | 0.924 | 0.912 ± 0.02 | 1.24s |
-                    | **Gradient Boosting (XGBoost)** | 0.941 | 0.935 ± 0.01 | 1.85s |
-                    | **Logistic Regression** | 0.865 | 0.858 ± 0.03 | 0.42s |
-                    """
-                )
-
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Advanced Predictive Modeling", 
     layout="wide", 
-    page_icon="🔍 ",
+    page_icon="🔍",
     initial_sidebar_state="expanded"
 )
 
@@ -90,69 +76,27 @@ init_session_state()
 st.markdown(
     """
     <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
         border-right: 1px solid #1e293b !important;
     }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
         color: #f8fafc !important;
     }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-    /* Global Container */
     .stApp {
         background-color: #060b13 !important;
         color: #ffffff !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    
-    /* High-Contrast Headings and Labels */
     h1, h2, h3, h4, h5, h6 {
         color: #00f2fe !important;
         font-weight: 800 !important;
         letter-spacing: -0.02em;
     }
-
-    p, span, label, div, .stMarkdown, .stCaption, .stRadio label, .stCheckbox label {
+    p, span, label, div, .stMarkdown, .stCaption {
         color: #f8fafc !important;
         font-size: 0.95rem;
     }
-
-    /* Container Cards */
     .contrast-card {
         background: #111c2e !important;
         border: 1px solid #00f2fe44 !important;
@@ -161,8 +105,6 @@ st.markdown(
         margin-bottom: 1.2rem;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
-
-    /* Metric Cards */
     div[data-testid="stMetricValue"] {
         color: #00f2fe !important;
         font-size: 1.8rem !important;
@@ -174,29 +116,6 @@ st.markdown(
         text-transform: uppercase;
         font-size: 0.75rem;
     }
-
-    /* Interactive Inputs & Sliders */
-    div.stSelectbox, div.stSlider, div.stToggle {
-        background-color: #111c2e !important;
-        padding: 12px !important;
-        border-radius: 10px !important;
-        border: 1px solid #1e293b !important;
-    }
-
-    /* Tabs Styling */
-    button[data-baseweb="tab"] {
-        color: #cbd5e1 !important;
-        font-weight: 700 !important;
-        background-color: #09101d !important;
-        border-radius: 6px 6px 0 0 !important;
-        padding: 8px 16px !important;
-    }
-    button[aria-selected="true"] {
-        color: #00f2fe !important;
-        border-bottom: 3px solid #00f2fe !important;
-    }
-
-    /* Badges */
     .badge-primary {
         background: #172554;
         color: #93c5fd;
@@ -215,10 +134,14 @@ st.markdown(
 
 hero_card(
     "🔍 Enterprise Predictive Modeling & AutoML Suite",
-    "High-throughput automated machine learning pipelines: Real-time algorithm benchmarking, hyperparameter grid-search, cross-validation, and diagnostic evaluation.",
-    "AutoML Engine 3.0"
+    "Production-ready automated machine learning pipelines: Live training, feature scaling, model benchmarking, and performance evaluation.",
+    "AutoML Engine 4.0"
 )
 watermark("CHRISHEM")
+
+if not SKLEARN_AVAILABLE:
+    st.error("⚠️ `scikit-learn` is required for this module. Please ensure it is installed in your python environment.")
+    st.stop()
 
 # ── Data Acquisition & Fallback Validation ───────────────────────────
 active_df = st.session_state.get("active_df") or st.session_state.get("working_df") or st.session_state.get("notion_df")
@@ -228,7 +151,7 @@ if active_df is None or active_df.empty:
         """
         <div class='contrast-card'>
             <h3 style='margin-top:0;'>⚠️ No Active Dataset Detected</h3>
-            <p style='color:#cbd5e1;'>Load a research dataset or generate synthetic bio-clinical observations to test the AutoML pipeline.</p>
+            <p style='color:#cbd5e1;'>Load a research dataset or generate synthetic observations below to power the machine learning pipeline.</p>
         </div>
         """,
         unsafe_allow_html=True
@@ -236,100 +159,155 @@ if active_df is None or active_df.empty:
     
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("🔍 Load Synthetic Biological Dataset", type="primary", use_container_width=True):
+        if st.button("🔍 Load Synthetic Binary Classification Dataset", type="primary", use_container_width=True):
             np.random.seed(42)
             sim_df = pd.DataFrame({
-                "Gene_Expression_A": np.random.normal(12.5, 2.1, 120),
-                "Gene_Expression_B": np.random.normal(8.3, 1.4, 120),
-                "Protein_Density": np.random.uniform(0.1, 5.0, 120),
-                "Patient_Age": np.random.randint(22, 78, 120),
-                "Biomarker_Status": np.random.choice(["Positive", "Negative"], 120),
-                "Treatment_Response": np.random.choice([0, 1], p=[0.35, 0.65], size=120)
+                "Gene_Expression_A": np.random.normal(12.5, 2.1, 150),
+                "Gene_Expression_B": np.random.normal(8.3, 1.4, 150),
+                "Protein_Density": np.random.uniform(0.1, 5.0, 150),
+                "Patient_Age": np.random.randint(22, 78, 150),
+                "Treatment_Response": np.random.choice([0, 1], p=[0.4, 0.6], size=150)
             })
             st.session_state["active_df"] = sim_df
             st.session_state["working_df"] = sim_df
             st.rerun()
     with col_b:
-        if st.button("🔍 Generate Multi-Class Cohort", use_container_width=True):
+        if st.button("🔍 Load Synthetic Regression Dataset", use_container_width=True):
             np.random.seed(101)
+            x1 = np.random.randn(150)
+            x2 = np.random.randn(150)
+            y = 3.5 * x1 - 2.0 * x2 + np.random.normal(0, 0.5, 150)
             sim_df = pd.DataFrame({
-                "Feature_1": np.random.randn(150),
-                "Feature_2": np.random.randn(150),
-                "Feature_3": np.random.randn(150),
-                "Cluster_Target": np.random.choice(["Type-A", "Type-B", "Type-C"], 150)
+                "Predictor_X1": x1,
+                "Predictor_X2": x2,
+                "Environmental_Factor": np.random.uniform(10, 50, 150),
+                "Target_Continuous_Score": y
             })
             st.session_state["active_df"] = sim_df
             st.session_state["working_df"] = sim_df
             st.rerun()
     st.stop()
 
-# ── Advanced Header Dashboard Metrics ────────────────────────────────
-section_header("🔍 Dataset Topology & Machine Learning Readiness")
+# ── Dataset Topology Metrics ────────────────────────────────────────
+section_header("🔍 Dataset Topology & ML Readiness")
 
-m1, m2, m3, m4, m5 = st.columns(5)
+m1, m2, m3, m4 = st.columns(4)
 with m1:
-    st.metric("🔍 Total Observations", f"{len(active_df):,}")
+    st.metric("Total Observations", f"{len(active_df):,}")
 with m2:
-    st.metric("🔍 Total Features", f"{len(active_df.columns):,}")
+    st.metric("Total Features", f"{len(active_df.columns):,}")
 with m3:
     numeric_cols_count = len(active_df.select_dtypes(include=[np.number]).columns)
-    st.metric("🔍 Numeric Predictors", numeric_cols_count)
+    st.metric("Numeric Predictors", numeric_cols_count)
 with m4:
-    categorical_cols_count = len(active_df.select_dtypes(include=['object', 'category']).columns)
-    st.metric("🔍 ️ Categorical Features", categorical_cols_count)
-with m5:
     missing_cells_pct = (active_df.isnull().sum().sum() / (active_df.shape[0] * active_df.shape[1])) * 100
-    st.metric("⚠️ Missing Data Density", f"{missing_cells_pct:.1f}%")
+    st.metric("Missing Data Density", f"{missing_cells_pct:.1f}%")
 
-with st.expander("🔍 Preview Active Dataset Schema & Descriptive Statistics", expanded=False):
+with st.expander("🔍 Preview Active Dataset Schema", expanded=False):
     st.dataframe(active_df.head(10), use_container_width=True)
-    st.markdown("##### Feature Type Distribution")
-    st.write(active_df.dtypes.astype(str))
 
 st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
-# ── Main AutoML Suite Orchestration ─────────────────────────────────
-section_header("⚙️ Automated Machine Learning Pipeline Controller")
+# ── Real Functional Machine Learning Training Engine ──────────────────
+section_header("⚙️ Live Model Training & Execution Suite")
 
-tabs = st.tabs([
-    "🔍 Supervised Classification", 
-    "🔍 Advanced Regression", 
-    "🔍 Unsupervised Clustering", 
-    "⏳ Time-Series Forecasting",
-    "⚙️ Hyperparameter Configuration"
-])
+target_var = st.selectbox("🔍 Select Target Variable to Predict", options=active_df.columns, index=len(active_df.columns)-1)
+feature_cols = [c for c in active_df.columns if c != target_var]
+selected_features = st.multiselect("🔍 Select Feature Predictors", options=feature_cols, default=feature_cols)
 
-with tabs[0]:
-    st.markdown("### 🔍 Automated Classification Suite")
-    st.markdown("Train, benchmark, and cross-validate multi-class and binary classification algorithms (Random Forest, XGBoost, LightGBM, SVM, Logistic Regression).")
-    render_predictive_modeling_ui(active_df)
+col_cfg1, col_cfg2 = st.columns(2)
+with col_cfg1:
+    test_size_pct = st.slider("Test Set Split Proportion (%)", min_value=10, max_value=50, value=20, step=5)
+with col_cfg2:
+    model_type = st.radio("Task Category", options=["Classification", "Regression"], horizontal=True)
 
-with tabs[1]:
-    st.markdown("### 🔍 Automated Regression Suite")
-    st.markdown("Model continuous targets with automated residual analysis, RMSE, MAE, and $R^2$ performance metrics optimization.")
-    st.info("🔍 **Tip:** Select a continuous target metric containing float or integer values within the modeling panel.")
+if st.button("🚀 Train and Evaluate Model Live", type="primary", use_container_width=True):
+    if not selected_features:
+        st.error("Please select at least one feature predictor.")
+    else:
+        with st.spinner("Preprocessing data, imputing missing values, and fitting models..."):
+            try:
+                X = active_df[selected_features].copy()
+                y = active_df[target_var].copy()
 
-with tabs[2]:
-    st.markdown("### 🔍 Unsupervised Clustering & Dimensionality Reduction")
-    st.markdown("Discover latent groupings via K-Means, DBSCAN, and Hierarchical Agglomerative Clustering backed by PCA spatial visualization.")
+                # Handle missing values in numeric columns
+                imputer = SimpleImputer(strategy="median")
+                X_imputed = pd.DataFrame(imputer.fit_transform(X), columns=selected_features)
 
-with tabs[3]:
-    st.markdown("### ⏳ Time-Series Trend Forecasting")
-    st.markdown("Project temporal horizons using autoregressive models, moving averages, and decomposition trend estimators.")
+                if model_type == "Classification":
+                    # Encode target if non-numeric
+                    if y.dtype == 'object' or y.dtype.name == 'category':
+                        le = LabelEncoder()
+                        y_encoded = le.fit_transform(y.astype(str))
+                    else:
+                        y_encoded = y.values
 
-with tabs[4]:
-    st.markdown("### ⚙️ Global Hyperparameter & Compute Settings")
-    col_c1, col_c2 = st.columns(2)
-    with col_c1:
-        st.slider("Cross-Validation Folds (k)", min_value=3, max_value=10, value=5, help="Sets the validation split depth for robust model out-of-sample scoring.")
-        st.slider("Test Set Proportion (%)", min_value=10, max_value=50, value=20, step=5)
-    with col_c2:
-        st.selectbox("Imputation Strategy for Missing Values", options=["Median / Mode (Robust)", "Mean / Constant", "KNN Imputer", "Drop Missing Rows"])
-        st.toggle("Enable Automated Feature Scaling (StandardScaler / MinMaxScaler)", value=True)
-    
-    if st.button("🔍 Save Pipeline Configuration Settings", type="primary"):
-        st.success("✅ AutoML global hyperparameters updated successfully across session states!")
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        X_imputed, y_encoded, test_size=(test_size_pct / 100.0), random_state=42
+                    )
 
+                    scaler = StandardScaler()
+                    X_train_scaled = scaler.fit_transform(X_train)
+                    X_test_scaled = scaler.transform(X_test)
 
+                    rf = RandomForestClassifier(random_state=42)
+                    rf.fit(X_train_scaled, y_train)
+                    y_pred_rf = rf.predict(X_test_scaled)
+                    acc_rf = accuracy_score(y_test, y_pred_rf)
 
+                    lr = LogisticRegression(max_iter=500, random_state=42)
+                    lr.fit(X_train_scaled, y_train)
+                    y_pred_lr = lr.predict(X_test_scaled)
+                    acc_lr = accuracy_score(y_test, y_pred_lr)
 
+                    st.success("✅ Classification Models Trained Successfully!")
+                    
+                    col_m1, col_m2 = st.columns(2)
+                    with col_m1:
+                        st.metric("Random Forest Accuracy", f"{acc_rf * 100:.2f}%")
+                    with col_m2:
+                        st.metric("Logistic Regression Accuracy", f"{acc_lr * 100:.2f}%")
+
+                    st.markdown("#### Feature Importance (Random Forest)")
+                    importances = pd.Series(rf.feature_importances_, index=selected_features).sort_values(ascending=False)
+                    st.bar_chart(importances)
+
+                else:
+                    # Regression Task
+                    y_numeric = pd.to_numeric(y, errors='coerce')
+                    valid_idx = y_numeric.notnull()
+                    X_reg = X_imputed.loc[valid_idx]
+                    y_reg = y_numeric.loc[valid_idx]
+
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        X_reg, y_reg, test_size=(test_size_pct / 100.0), random_state=42
+                    )
+
+                    scaler = StandardScaler()
+                    X_train_scaled = scaler.fit_transform(X_train)
+                    X_test_scaled = scaler.transform(X_test)
+
+                    rf_reg = RandomForestRegressor(random_state=42)
+                    rf_reg.fit(X_train_scaled, y_train)
+                    y_pred_rf = rf_reg.predict(X_test_scaled)
+                    r2_rf = r2_score(y_test, y_pred_rf)
+                    rmse_rf = np.sqrt(mean_squared_error(y_test, y_pred_rf))
+
+                    lin_reg = LinearRegression()
+                    lin_reg.fit(X_train_scaled, y_train)
+                    y_pred_lin = lin_reg.predict(X_test_scaled)
+                    r2_lin = r2_score(y_test, y_pred_lin)
+                    rmse_lin = np.sqrt(mean_squared_error(y_test, y_pred_lin))
+
+                    st.success("✅ Regression Models Trained Successfully!")
+
+                    col_r1, col_r2 = st.columns(2)
+                    with col_r1:
+                        st.metric("Random Forest R² Score", f"{r2_rf:.4f}")
+                        st.metric("Random Forest RMSE", f"{rmse_rf:.4f}")
+                    with col_r2:
+                        st.metric("Linear Regression R² Score", f"{r2_lin:.4f}")
+                        st.metric("Linear Regression RMSE", f"{rmse_lin:.4f}")
+
+            except Exception as e:
+                st.error(f"Error during model training execution: {str(e)}")

@@ -1,4 +1,3 @@
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # ADVANCED FILE ANALYZER & MULTI-FORMAT INGESTION ENGINE [ENTERPRISE v7.0 PRO]
 # Standalone Edition with High-Contrast Cyber-Emerald Styling, PII Masking,
@@ -686,5 +685,3 @@ if working_df is not None and not working_df.empty:
                 st.plotly_chart(build_chart("scatter", working_df, x=numeric_cols[0], y=numeric_cols[1], height=320), use_container_width=True)
         else:
             st.info("Requires at least 2 numeric features.")
-
-

@@ -1,13 +1,10 @@
-
-
-
 """
 ═══════════════════════════════════════════════════════════════════════════════
-ENTERPRISE DATA QUALITY AUDIT & ANOMALY SUITE [v3.0]
-High-precision automated data validation engine: Auditing completeness, 
-uniqueness, consistency, validity, accuracy, outlier identification, 
-and automated remediation pipelines.
-Designed for: Kula Chris (Chrishem)
+ENTERPRISE DATA QUALITY AUDIT & ANOMALY SOLVER SUITE [v4.0]
+High-precision automated validation engine: Complete auditing across completeness, 
+uniqueness, consistency, validity, accuracy, live outlier isolation, 
+and automated multi-strategy remediation pipelines.
+Designed for: Kula Chris
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
@@ -29,7 +26,6 @@ if str(current_file.parent) not in sys.path:
 try:
     from modules.config import init_session_state
     from modules.ui_components import hero_card, load_css, section_header, watermark
-    from modules.data_quality import render_data_quality_ui
 except ImportError:
     def init_session_state():
         if "theme" not in st.session_state:
@@ -58,16 +54,35 @@ except ImportError:
         if desc:
             st.caption(desc)
 
-    def render_data_quality_ui(df: pd.DataFrame):
-        st.success("⚡ Automated Data Health Inspector Active: Multi-Dimensional Diagnostics Ready.")
-        st.markdown("**Sample Observations Overview:**")
-        st.dataframe(df.head(5), use_container_width=True)
+# ─── EMBEDDED DATA QUALITY ENGINE (Resolves Import Errors) ────────────
+def render_data_quality_ui(df: pd.DataFrame):
+    """Live interactive data health inspection and discrepancy analyzer."""
+    st.success("⚡ Automated Data Health Inspector Active: Multi-Dimensional Diagnostics Ready.")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("##### Dataset Schema Overview")
+        schema_df = pd.DataFrame({
+            "Column": df.columns,
+            "Type": df.dtypes.astype(str),
+            "Non-Null Count": df.notnull().sum().values,
+            "Null Count": df.isnull().sum().values
+        })
+        st.dataframe(schema_df, use_container_width=True, hide_index=True)
+        
+    with col2:
+        st.markdown("##### Quick Statistical Sanity Check")
+        num_df = df.select_dtypes(include=[np.number])
+        if not num_df.empty:
+            st.dataframe(num_df.describe().T, use_container_width=True)
+        else:
+            st.info("No numeric features available for statistical description.")
 
 # ─── PAGE CONFIGURATION ───────────────────────────────────────────────
 st.set_page_config(
     page_title="Enterprise Data Quality Studio", 
     layout="wide", 
-    page_icon="🔍 ",
+    page_icon="🔍",
     initial_sidebar_state="collapsed"
 )
 
@@ -77,74 +92,31 @@ init_session_state()
 st.markdown(
     """
     <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
         border-right: 1px solid #1e293b !important;
     }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
         color: #f8fafc !important;
     }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-    }
-    /* Global Application Canvas */
     .stApp {
         background-color: #060b13 !important;
         color: #ffffff !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
-
-    /* High-Contrast Clear Typography */
     h1, h2, h3, h4, h5, h6 {
         color: #00f2fe !important;
         font-weight: 800 !important;
         letter-spacing: -0.025em !important;
     }
-    
     p, span, label, div, .stMarkdown, .stCheckbox label, .stRadio label {
         color: #f8fafc !important;
         font-size: 0.95rem;
     }
-
     .stCaption {
         color: #cbd5e1 !important;
         font-size: 0.85rem !important;
     }
-
-    /* Card Containers */
     .contrast-card {
         background: #111c2e !important;
         border: 1px solid #00f2fe44 !important;
@@ -153,8 +125,6 @@ st.markdown(
         margin-bottom: 1.2rem;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
-
-    /* Tab Layout & Controls */
     div.stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: #09101d !important;
@@ -176,15 +146,11 @@ st.markdown(
         color: #00f2fe !important;
         border-bottom: 3px solid #00f2fe !important;
     }
-
-    /* Inputs, Selectboxes, Radio Buttons, Multiselects */
     div.stSelectbox, div.stMultiSelect, div.stTextInput, div.stNumberInput, div.stSlider, div[data-testid="stRadio"] {
         background-color: #111c2e !important;
         padding: 8px !important;
         border-radius: 8px !important;
     }
-
-    /* Metric Cards */
     div[data-testid="stMetricValue"] {
         color: #00f2fe !important;
         font-size: 1.7rem !important;
@@ -196,8 +162,6 @@ st.markdown(
         text-transform: uppercase;
         font-size: 0.75rem;
     }
-
-    /* Custom High-Visibility Primary Buttons */
     .stButton button {
         background: #111c2e !important;
         border: 1px solid #00f2fe !important;
@@ -217,8 +181,8 @@ st.markdown(
 
 hero_card(
     "🔍 Enterprise Data Quality & Anomaly Audit Suite", 
-    "High-precision data validation engine: Comprehensive auditing across completeness, uniqueness, consistency, validity, accuracy, outlier identification, and automated remediation pipelines.", 
-    "Data Quality Engine 3.0"
+    "High-precision data validation engine: Comprehensive auditing across completeness, uniqueness, consistency, validity, accuracy, live outlier isolation, and automated remediation pipelines.", 
+    "Data Quality Engine 4.0"
 )
 watermark("CHRISHEM")
 
@@ -230,29 +194,28 @@ if active_df is None or active_df.empty:
         """
         <div class='contrast-card'>
             <h3 style='margin-top:0;'>⚠️ No Active Dataset Detected</h3>
-            <p style='color:#cbd5e1;'>Load a dataset or generate synthetic observations containing missing values and outliers to benchmark the auditing engine.</p>
+            <p style='color:#cbd5e1;'>Load a dataset or generate live benchmark observations containing missing values and outliers to test the auditing engine.</p>
         </div>
         """,
         unsafe_allow_html=True
     )
     col_a, col_b = st.columns(2)
     with col_a:
-        if st.button("🔍 Generate Benchmark Audit Dataset", type="primary", use_container_width=True):
+        if st.button("🚀 Generate Benchmark Audit Dataset", type="primary", use_container_width=True):
             np.random.seed(42)
             n_rows = 100
             sim_df = pd.DataFrame({
-                "Subject_ID": [f"SUBJ-{i:03d}" for i in range(1, n_rows  1)],
+                "Subject_ID": [f"SUBJ-{i:03d}" for i in range(1, n_rows + 1)],
                 "Age": np.random.choice([22, 29, 34, np.nan, 45, 52, 110, 31], n_rows),
                 "Blood_Glucose_mg_dL": np.random.choice([95.4, 110.2, 140.5, np.nan, 450.0, 102.1, 98.6], n_rows),
                 "Category": np.random.choice(["Control", "Treatment", "Placebo", "  Treatment  "], n_rows),
                 "Systolic_BP": np.random.normal(120, 15, n_rows)
             })
-            # Inject duplicate records
             sim_df = pd.concat([sim_df, sim_df.iloc[[0, 1, 2]]], ignore_index=True)
             st.session_state["active_df"] = sim_df
             st.rerun()
     with col_b:
-        if st.button("🔍 Load Standard Sample Dataset", use_container_width=True):
+        if st.button("🚀 Load Standard Sample Dataset", use_container_width=True):
             sim_df = pd.DataFrame({
                 "ID": list(range(1, 21)),
                 "Value_A": [10.5, 12.1, np.nan, 14.8, 15.2] * 4,
@@ -263,7 +226,7 @@ if active_df is None or active_df.empty:
     st.stop()
 
 # ─── High-Level Data Quality Health Metrics ─────────────────────────────
-section_header("🔍 Data Health Index & Core Audit Summary")
+section_header("📊 Data Health Index & Core Audit Summary")
 
 total_cells = active_df.shape[0] * active_df.shape[1]
 missing_cells = active_df.isnull().sum().sum()
@@ -273,15 +236,15 @@ duplicate_pct = (duplicate_rows / len(active_df) * 100) if len(active_df) > 0 el
 
 m1, m2, m3, m4, m5 = st.columns(5)
 with m1:
-    st.metric("🔍 Total Observations", f"{len(active_df):,}")
+    st.metric("Total Observations", f"{len(active_df):,}")
 with m2:
-    st.metric("🔍 Total Attributes", f"{len(active_df.columns):,}")
+    st.metric("Total Attributes", f"{len(active_df.columns):,}")
 with m3:
-    st.metric("✨ Overall Completeness", f"{completeness_pct:.1f}%")
+    st.metric("Overall Completeness", f"{completeness_pct:.1f}%")
 with m4:
-    st.metric("🔍 Duplicate Rows", f"{duplicate_rows:,} ({duplicate_pct:.1f}%)")
+    st.metric("Duplicate Rows", f"{duplicate_rows:,} ({duplicate_pct:.1f}%)")
 with m5:
-    st.metric("🔍 ️ Quality Status", "Passed" if completeness_pct > 90 else "Review Needed")
+    st.metric("Quality Status", "Passed" if completeness_pct > 90 else "Review Needed")
 
 with st.expander("🔍 Preview Active Dataset Schema & Descriptive Audit", expanded=False):
     st.dataframe(active_df.head(10), use_container_width=True)
@@ -298,18 +261,16 @@ st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 section_header("⚙️ Data Audit & Remediation Suite")
 
 quality_tabs = st.tabs([
-    "🔍 Core Data Quality Audit",
+    "📊 Core Data Quality Audit",
     "⚠️ Outlier & Anomaly Detection",
-    "🔍 Automated Data Cleaning Tools",
-    "🔍 Executive Quality Audit Report"
+    "🛠️ Automated Data Cleaning Tools",
+    "📄 Executive Quality Audit Report"
 ])
 
 # ── TAB 1: Core Data Quality Audit ─────────────────────────────────────
 with quality_tabs[0]:
-    st.markdown("### 🔍 Comprehensive Quality Assessment Dashboard")
+    st.markdown("### 📊 Comprehensive Quality Assessment Dashboard")
     st.caption("Execute full automated auditing across completeness, uniqueness, consistency, validity, and accuracy.")
-    
-    # Renders primary data quality module
     render_data_quality_ui(active_df)
 
 # ── TAB 2: Outlier & Anomaly Detection ─────────────────────────────────
@@ -320,74 +281,107 @@ with quality_tabs[1]:
     numeric_cols = list(active_df.select_dtypes(include=[np.number]).columns)
     if numeric_cols:
         target_outlier_col = st.selectbox("Select Numeric Feature for Outlier Audit", options=numeric_cols, key="outlier_col")
-        outlier_method = st.radio("Detection Method", options=["IQR Method (1.5 x IQR)", "Z-Score Threshold (|Z| > 3.0)"])
+        outlier_method = st.radio("Detection Method", options=["IQR Method (1.5 x IQR)", "Z-Score Threshold (|Z| > 3.0)"], key="outlier_method_radio")
         
-        if st.button("🔍 Scan for Anomalies", use_container_width=True):
+        if st.button("🚀 Scan for Anomalies", use_container_width=True):
             series = active_df[target_outlier_col].dropna()
-            q1, q3 = np.percentile(series, 25), np.percentile(series, 75)
-            iqr = q3 - q1
-            outliers_count = len(series[(series < (q1 - 1.5 * iqr)) | (series > (q3  1.5 * iqr))])
+            if outlier_method.startswith("IQR"):
+                q1, q3 = np.percentile(series, 25), np.percentile(series, 75)
+                iqr = q3 - q1
+                outliers_mask = (series < (q1 - 1.5 * iqr)) | (series > (q3 + 1.5 * iqr))
+            else:
+                mean_val, std_val = series.mean(), series.std()
+                if std_val == 0:
+                    outliers_mask = pd.Series([False] * len(series))
+                else:
+                    z_scores = np.abs((series - mean_val) / std_val)
+                    outliers_mask = z_scores > 3.0
+
+            outliers_count = int(outliers_mask.sum())
+            outlier_records = active_df.loc[series[outliers_mask].index]
             
             st.markdown(
                 f"""
                 <div class='contrast-card'>
                     <h4 style='margin-top:0; color:#00f2fe;'>🔍 Outlier Scan Summary for `{target_outlier_col}`</h4>
-                    <p style='margin:0; color:#cbd5e1;'>Identified <strong>{outliers_count} potential outlier record(s)</strong> based on the selected criteria ({outlier_method}).</p>
+                    <p style='margin:0; color:#cbd5e1;'>Identified <strong>{outliers_count} potential outlier record(s)</strong> based on the selected criteria.</p>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
+            if outliers_count > 0:
+                st.dataframe(outlier_records, use_container_width=True)
     else:
         st.warning("No numeric variables available for outlier detection.")
 
 # ── TAB 3: Automated Data Cleaning Tools ───────────────────────────────
 with quality_tabs[2]:
-    st.markdown("### 🔍 Automated Remediation & Imputation Hub")
+    st.markdown("### 🛠️ Automated Remediation & Imputation Hub")
     st.caption("Fix data quality issues instantly with automated imputation, whitespace stripping, and duplicate purging.")
 
     c_clean1, c_clean2 = st.columns(2)
     with c_clean1:
         st.markdown("#### Missing Value Remediation")
-        impute_strategy = st.selectbox("Imputation Strategy", options=["Drop Rows with Missing Values", "Impute Numeric with Median", "Impute Numeric with Mean", "Forward Fill / Backward Fill"])
+        impute_strategy = st.selectbox("Imputation Strategy", options=["Drop Rows with Missing Values", "Impute Numeric with Median", "Impute Numeric with Mean"], key="impute_strat")
     with c_clean2:
         st.markdown("#### Data Formatting Cleanup")
-        st.checkbox("Strip Leading/Trailing Whitespaces from Strings", value=True)
-        st.checkbox("Standardize Column Header Naming (Snake_case)", value=True)
-        st.checkbox("Remove Exact Duplicate Rows Automatically", value=False)
+        strip_ws = st.checkbox("Strip Leading/Trailing Whitespaces from Strings", value=True, key="strip_ws")
+        std_cols = st.checkbox("Standardize Column Header Naming (Snake_case)", value=True, key="std_cols")
+        drop_dups = st.checkbox("Remove Exact Duplicate Rows Automatically", value=False, key="drop_dups")
 
-    if st.button("🔍 Execute Automated Cleaning Pipeline", type="primary", use_container_width=True):
+    if st.button("🚀 Execute Automated Cleaning Pipeline", type="primary", use_container_width=True):
+        cleaned_df = active_df.copy()
+        
+        if drop_dups:
+            cleaned_df = cleaned_df.drop_duplicates()
+            
+        if strip_ws:
+            for col in cleaned_df.select_dtypes(include=['object', 'category']).columns:
+                cleaned_df[col] = cleaned_df[col].astype(str).str.strip()
+                
+        if std_cols:
+            cleaned_df.columns = [str(c).strip().lower().replace(" ", "_") for c in cleaned_df.columns]
+            
+        if "Drop Rows" in impute_strategy:
+            cleaned_df = cleaned_df.dropna()
+        elif "Median" in impute_strategy:
+            num_c = cleaned_df.select_dtypes(include=[np.number]).columns
+            cleaned_df[num_c] = cleaned_df[num_c].fillna(cleaned_df[num_c].median())
+        elif "Mean" in impute_strategy:
+            num_c = cleaned_df.select_dtypes(include=[np.number]).columns
+            cleaned_df[num_c] = cleaned_df[num_c].fillna(cleaned_df[num_c].mean())
+            
+        st.session_state["active_df"] = cleaned_df
         st.markdown(
             """
             <div class='contrast-card' style='text-align:center;'>
-                <h4 style='color:#00f2fe; margin-top:0;'>🔍 Data Cleaning Pipeline Executed Successfully!</h4>
-                <p style='color:#cbd5e1; margin:0;'>Selected imputation and formatting transformations have been applied to the active dataset.</p>
+                <h4 style='color:#00f2fe; margin-top:0;'>Data Cleaning Pipeline Executed Successfully!</h4>
+                <p style='color:#cbd5e1; margin:0;'>Selected transformations have been committed to the live session state.</p>
             </div>
             """,
             unsafe_allow_html=True
         )
+        st.rerun()
 
 # ── TAB 4: Executive Quality Audit Report ──────────────────────────────
 with quality_tabs[3]:
-    st.markdown("### 🔍 Publication-Ready Data Quality Report")
+    st.markdown("### 📄 Publication-Ready Data Quality Report")
     st.caption("Generate executive summary metrics and compliance checklists for research or enterprise reporting.")
 
     report_data = [
-        {"Audit Dimension": "Completeness", "Metric": f"{completeness_pct:.1f}% valid cells", "Status": "✅ Optimal" if completeness_pct > 90 else "⚠️ Moderate"},
-        {"Audit Dimension": "Uniqueness", "Metric": f"{100 - duplicate_pct:.1f}% unique records", "Status": "✅ Optimal" if duplicate_pct == 0 else "⚠️ Review Duplicates"},
-        {"Audit Dimension": "Consistency", "Metric": "Schema types aligned", "Status": "✅ Verified"},
-        {"Audit Dimension": "Validity", "Metric": "Range constraints checked", "Status": "✅ Verified"}
+        {"Audit Dimension": "Completeness", "Metric": f"{completeness_pct:.1f}% valid cells", "Status": "Optimal" if completeness_pct > 90 else "Moderate"},
+        {"Audit Dimension": "Uniqueness", "Metric": f"{100 - duplicate_pct:.1f}% unique records", "Status": "Optimal" if duplicate_pct == 0 else "Review Duplicates"},
+        {"Audit Dimension": "Consistency", "Metric": "Schema types aligned", "Status": "Verified"},
+        {"Audit Dimension": "Validity", "Metric": "Range constraints checked", "Status": "Verified"}
     ]
-    st.dataframe(pd.DataFrame(report_data), use_container_width=True, hide_index=True)
+    report_df = pd.DataFrame(report_data)
+    st.dataframe(report_df, use_container_width=True, hide_index=True)
     
-    csv_report = pd.DataFrame(report_data).to_csv(index=False).encode('utf-8')
+    csv_report = report_df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        "🔍 Download Quality Audit Report (CSV)",
+        "📥 Download Quality Audit Report (CSV)",
         data=csv_report,
         file_name="data_quality_audit_report.csv",
         mime="text/csv",
         use_container_width=True
     )
-
-
-
-

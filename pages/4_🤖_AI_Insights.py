@@ -1,9 +1,8 @@
-
 """
 ═══════════════════════════════════════════════════════════════════════════════
-ADVANCED AI INSIGHTS & EXECUTIVE REPORT GENERATOR [ENTERPRISE MODULE v6.3]
+ADVANCED AI INSIGHTS & EXECUTIVE REPORT GENERATOR [ENTERPRISE MODULE v7.0]
 Standalone Edition featuring Nordic Cyber-Emerald styling, defensive error
-handling, dynamic AI finding cards, and native HTML report generation.
+handling, dynamic AI finding cards, outlier diagnostics, and native HTML generation.
 Designed for: Kula Chris (Chrishem)
 ═══════════════════════════════════════════════════════════════════════════════
 """
@@ -198,7 +197,7 @@ def auto_generate_report(df: pd.DataFrame, source_name: str = "dataset.csv") -> 
                 {summary_stats}
 
                 <div class="footer">
-                    <p>Generated via CHRISHEM Enterprise Intelligence Engine &bull; Confidential Data Processing</p>
+                    <p>Generated via CHRISHEM Enterprise Intelligence Engine v7.0 &bull; Confidential Data Processing</p>
                 </div>
             </div>
         </body>
@@ -211,17 +210,17 @@ def auto_generate_report(df: pd.DataFrame, source_name: str = "dataset.csv") -> 
 
 # ─── 3. MAIN PAGE RENDERER ───────────────────────────────────────────────
 def render_ai_insights_page():
-    """Renders the AI Insights page with full defensive error handling and intelligent diagnostics."""
+    """Renders the AI Insights page with advanced diagnostics, anomaly hunting, and interactive correlation mapping."""
     
     # ── HERO HEADER ──
     st.markdown(
         """
         <div style='display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #0b1e36 0%, #061527 100%); border: 2px solid #00f2fe; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem;'>
             <div>
-                <span class='badge-primary'>AUTOMATED DIAGNOSTICS & REPORTING</span>
-                <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 AI Intelligence Engine</h1>
+                <span class='badge-primary'>AUTOMATED DIAGNOSTICS & REPORTING v7.0</span>
+                <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: #00f2fe;'>🔍 AI Intelligence & Anomaly Engine</h1>
                 <p style='color: #cbd5e1; margin: 0; font-size: 0.95rem;'>
-                    Deep dataset auditing, anomaly detection, automated correlation mapping, and executive HTML report compilation.
+                    Advanced dataset auditing, IQR outlier detection, correlation mapping, and interactive deep-dive exploration.
                 </p>
             </div>
             <div style='text-align: right;'>
@@ -244,7 +243,7 @@ def render_ai_insights_page():
             """
             <div class='contrast-card'>
                 <h3 style='margin-top:0;'>⚠️ No Active Dataset Loaded</h3>
-                <p style='color:#cbd5e1;'>Generate a sample clinical/research cohort below to test the AI Intelligence Engine.</p>
+                <p style='color:#cbd5e1;'>Generate a sample clinical/research cohort below to test the advanced AI Intelligence Engine.</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -260,8 +259,9 @@ def render_ai_insights_page():
                 "Glucose_Level": np.round(np.random.normal(105.0, 25.0, size=120), 1),
                 "Treatment_Group": np.random.choice(["Placebo", "Low Dose", "High Dose"], size=120)
             })
-            # Inject artificial missingness & correlation
+            # Inject artificial missingness & outliers
             demo_data.loc[5:12, "BMI"] = np.nan
+            demo_data.loc[15, "Glucose_Level"] = 280.0  # Outlier
             demo_data["Pulse_Pressure"] = demo_data["Systolic_BP"] - demo_data["Diastolic_BP"]
             
             st.session_state["active_df"] = demo_data
@@ -303,12 +303,22 @@ def render_ai_insights_page():
             c1, c2, val = high_corrs[0]
             insights.append(f"🔍 <b>High Collinearity Detected</b>: Strong linear correlation (r = <b>{val:.2f}</b>) observed between <b>'{c1}'</b> and <b>'{c2}'</b>.")
 
-    # Variance and Skewness Check
+    # Advanced Outlier Detection (IQR Method)
     if not numeric_df.empty:
-        skew_series = numeric_df.skew()
-        highly_skewed = skew_series[abs(skew_series) > 1.5].index.tolist()
-        if highly_skewed:
-            insights.append(f"🔍 <b>Distribution Skewness</b>: Features <b>{', '.join(highly_skewed[:3])}</b> exhibit significant skewness (|skew| > 1.5), indicating standard normalization or log scaling may be required.")
+        outlier_counts = {}
+        for col in numeric_df.columns:
+            q1 = numeric_df[col].quantile(0.25)
+            q3 = numeric_df[col].quantile(0.75)
+            iqr = q3 - q1
+            if iqr > 0:
+                lower_bound = q1 - 1.5 * iqr
+                upper_bound = q3 + 1.5 * iqr
+                outliers = numeric_df[(numeric_df[col] < lower_bound) | (numeric_df[col] > upper_bound)]
+                if len(outliers) > 0:
+                    outlier_counts[col] = len(outliers)
+        if outlier_counts:
+            top_outlier_col = max(outlier_counts, key=outlier_counts.get)
+            insights.append(f"⚠️ <b>Anomaly Alert</b>: Feature <b>'{top_outlier_col}'</b> contains <b>{outlier_counts[top_outlier_col]}</b> statistical outlier points via IQR boundary analysis.")
 
     # Display Analytical Finding Cards
     st.markdown("### 🔍 Key Analytical Findings")
@@ -325,7 +335,31 @@ def render_ai_insights_page():
 
     st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
 
-    # ── 2. Executive HTML Report Generator ──
+    # ── 2. Interactive Feature Deep-Dive Explorer & Correlation Heatmap ──
+    col_exp1, col_exp2 = st.columns(2)
+    
+    with col_exp1:
+        st.markdown("### 📊 Interactive Feature Inspector")
+        selected_feature = st.selectbox("Select Feature for Deep Analysis", df.columns.tolist())
+        if selected_feature:
+            feat_series = df[selected_feature]
+            st.markdown(f"**Data Type:** `{feat_series.dtype}` | **Unique Values:** `{feat_series.nunique():,}`")
+            if pd.api.types.is_numeric_dtype(feat_series):
+                st.metric("Mean ± Std", f"{feat_series.mean():.2f} ± {feat_series.std():.2f}")
+            else:
+                top_val = feat_series.mode()[0] if not feat_series.mode().empty else "N/A"
+                st.metric("Most Frequent Value", str(top_val))
+
+    with col_exp2:
+        st.markdown("### 📈 Correlation Matrix Matrix")
+        if not numeric_df.empty and numeric_df.shape[1] >= 2:
+            st.dataframe(numeric_df.corr().style.background_gradient(cmap="Blues", axis=None), use_container_width=True)
+        else:
+            st.info("Insufficient numeric columns for correlation matrix.")
+
+    st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
+
+    # ── 3. Executive HTML Report Generator ──
     st.markdown("### 🔍 Executive HTML Report Generator")
     st.caption("Compile dataset metrics, structural profiles, and descriptive statistics into a standalone professional HTML document.")
 
@@ -356,5 +390,3 @@ def render_ai_insights_page():
 # Execute main page renderer when executed directly
 if __name__ == "__main__":
     render_ai_insights_page()
-
-
