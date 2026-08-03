@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 import psutil
 from functools import lru_cache
 from modules.database import log_backend_event

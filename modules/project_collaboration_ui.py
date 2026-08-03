@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Unified Split-Screen Collaboration Shell UI
 Production-grade Tailwind-styled (custom CSS) split-screen collaboration interface featuring:

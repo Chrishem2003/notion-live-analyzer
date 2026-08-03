@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """Cross-version pandas helpers.
 
 pandas 3 infers a dedicated ``str`` dtype for text columns that used to land on

@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 import os
 import base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM

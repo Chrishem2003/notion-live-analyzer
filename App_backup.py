@@ -1,5 +1,4 @@
-﻿import security_guard
-import shutil
+﻿import shutil
 
 app_path = "App.py"
 backup_path = "App_backup.py"

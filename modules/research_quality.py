@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Research Quality & Reproducibility Checker  detects p-hacking, QRPs,
 assesses reproducibility, and provides transparency checks.

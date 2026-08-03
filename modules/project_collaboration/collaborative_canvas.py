@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Collaborative Canvas & Viewport Sync Engine (Yjs / CRDTs)
 Production-grade CRDT-based collaborative workspace with:

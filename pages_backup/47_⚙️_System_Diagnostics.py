@@ -1,7 +1,4 @@
-﻿import security_guard
-iimport security_guard
-security_guard.verify_access()
-
+﻿
 
 
 import streamlit as st

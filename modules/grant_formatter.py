@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 One-Click Grant & Journal Transpiler
 Instantly reformats summaries, bibliographies, and proposal drafts into

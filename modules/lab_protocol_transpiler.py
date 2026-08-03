@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Theoretical-to-Practical Protocol Transpiler
 Converts dense paper methodology into actionable step-by-step laboratory,

@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 # ==============================================================================
 # CHRISHEM Bulletproof PDF Engine (Zero-Dependency Fallback)
 # Owner: Kula Chris (CHRISHEM)

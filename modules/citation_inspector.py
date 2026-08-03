@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Real-Time Citation Integrity & Retraction Inspector
 Audits paper bibliographies against live databases to protect researchers

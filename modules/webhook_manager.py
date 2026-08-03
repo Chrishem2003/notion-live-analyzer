@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 import requests
 import json
 from datetime import datetime

@@ -1,5 +1,4 @@
-﻿import security_guard
-import datetime
+﻿import datetime
 import hashlib
 import io
 import json
@@ -19,8 +18,6 @@ import plotly.express as px
 # runnable standalone (e.g. for local dev / review) even without that module.
 # ---------------------------------------------------------------------------
 try:
-iiiimport security_guard
-    security_guard.verify_access()
 except Exception:
     pass
 

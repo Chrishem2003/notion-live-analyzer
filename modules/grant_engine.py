@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 import streamlit as st
 
 def generate_grant_sections(topic: str, agency: str, background_context: str, specific_goals: str) -> dict:

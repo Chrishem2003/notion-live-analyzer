@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 import re
 
 def validate_fasta(sequence_str: str) -> bool:

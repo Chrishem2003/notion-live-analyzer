@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """Unit tests for modules.pandas_compat and its use across the app."""
 import pandas as pd
 

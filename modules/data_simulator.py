@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Data Simulator  generate synthetic research data with specified parameters.
 Useful for teaching, testing, power analysis, and simulations.

@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Visual Chart Data Extractor & CSV Re-Synthesizer
 A vision pipeline that extracts buried quantitative data from static PDF charts,

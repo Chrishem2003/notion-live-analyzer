@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Live Verified Opportunity Feed Engine
 Real-time scholarship, grant, and fellowship discovery module for the

@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 import pytest
 import os
 import sqlite3

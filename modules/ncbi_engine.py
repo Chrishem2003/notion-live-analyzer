@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 import requests
 import xml.etree.ElementTree as ET
 from modules.api_safeguards import safe_api_request

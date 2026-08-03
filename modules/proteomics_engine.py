@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 import requests
 
 def translate_dna_to_protein(dna_seq: str) -> dict:

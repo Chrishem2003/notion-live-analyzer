@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Bayesian Analysis Engine  Bayesian hypothesis testing and parameter estimation.
 Provides Bayesian t-tests, ANOVA, correlation, regression with Bayes factors,

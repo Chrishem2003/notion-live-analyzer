@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Clinical & Health Analytics  BMI calculator, clinical reference ranges,
 Z-scores, growth percentiles, and health indicator analysis.

@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 SPSS Variable View Editor  manage variable labels, value labels, measurement levels,
 missing values, and column properties like SPSS Variable View.

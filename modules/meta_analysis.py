@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Meta-Analysis Engine  Combine effect sizes across studies, assess heterogeneity,
 detect publication bias, and generate publication-ready forest/funnel plots.

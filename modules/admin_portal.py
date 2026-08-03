@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """Admin Portal  Developer Management Console."""
 import os
 import hashlib

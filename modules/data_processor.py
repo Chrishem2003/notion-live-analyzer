@@ -1,5 +1,4 @@
-﻿import security_guard
-import numpy as np
+﻿import numpy as np
 
 def infer_column_types(df: pd.DataFrame) -> dict:
     types = {}

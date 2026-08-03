@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Publication-Ready Table Generator  APA-style tables, journal-specific formats,
 descriptive statistics tables, correlation matrices, regression tables.

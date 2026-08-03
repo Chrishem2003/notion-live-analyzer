@@ -1,5 +1,4 @@
-﻿import security_guard
-
+﻿
 """
 Dependency Manager  auto-detect, auto-install, and verify all required Python packages.
 Provides a one-click Streamlit UI for non-technical users to fix dependency issues.
