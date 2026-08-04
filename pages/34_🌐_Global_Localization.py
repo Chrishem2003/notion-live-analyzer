@@ -337,7 +337,7 @@ tot_accents = sum(len(l["accentVariants"]) for l in EXTENDED_LANGUAGES)
 m1, m2, m3, m4 = st.columns([3, 2, 2, 2])
 
 with m1:
-region_opts = ["All Regions"] + REGIONS
+    region_opts = ["All Regions"] + REGIONS
     cur_reg = st.session_state["loc_region_filter"]
     idx = region_opts.index(cur_reg) if cur_reg in region_opts else 0
     sel_region = st.selectbox("🔍 Filter Regions", region_opts, index=idx, key="loc_region_select")

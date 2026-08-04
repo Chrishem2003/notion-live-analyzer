@@ -181,8 +181,8 @@ def generate_sens_dataset(n=200, seed=42, noise=1.0):
     x1 = np.random.normal(50, 10, n)
     x2 = np.random.uniform(10, 100, n)
     x3 = np.random.exponential(15, n)
-    # True relationship: y = 2.5*x1 - 0.8*x2  noise
-y = 2.5 * x1 - 0.8 * x2 + np.random.normal(0, noise * 5, n)
+    # True relationship: y = 2.5*x1 - 0.8*x2 + noise
+    y = 2.5 * x1 - 0.8 * x2 + np.random.normal(0, noise * 5, n)
     
     # Inject 3 severe leverage points/outliers
     y[5] = 60 * noise
@@ -228,7 +228,7 @@ if active_sens_tab == "influence":
         
         # Calculate Cook's Distance via statsmodels or matrix math
         if HAS_STATSMODELS:
-            model = smf.ols("Y_Outcome ~ Moisture  Elevation", data=df_data).fit()
+            model = smf.ols("Y_Outcome ~ Moisture + Elevation", data=df_data).fit()
             influence = model.get_influence()
             cooks_d = influence.cooks_distance[0]
             stud_res = influence.resid_studentized_internal
@@ -297,7 +297,7 @@ elif active_sens_tab == "specification":
         if len(covariates) > 0:
             import itertools
             combo_idx = 0
-            for k in range(1, len(covariates)  1):
+            for k in range(1, len(covariates) + 1):
                 for subset in itertools.combinations(covariates, k):
                     combo_idx = 1
                     formula = f"Y_Outcome ~ {'  '.join(subset)}"
@@ -306,7 +306,7 @@ elif active_sens_tab == "specification":
                         coef = fit.params[subset[0]]
                         se = fit.bse[subset[0]]
                     else:
-                        coef = 2.5  np.random.normal(0, 0.15)
+                        coef = 2.5 + np.random.normal(0, 0.15)
                         se = 0.2
                     
                     spec_results.append({
@@ -314,7 +314,7 @@ elif active_sens_tab == "specification":
                         "Formula": formula,
                         "Primary Coef": coef,
                         "Lower CI": coef - 1.96 * se,
-                        "Upper CI": coef  1.96 * se
+                        "Upper CI": coef + 1.96 * se
                     })
         
         df_specs = pd.DataFrame(spec_results).sort_values("Primary Coef").reset_index(drop=True)
@@ -403,8 +403,8 @@ elif active_sens_tab == "evalue":
         rr_lower = st.number_input("Lower 95% Confidence Limit", value=1.82, min_value=1.0, step=0.05)
         
         # Exact E-Value Formula: E = RR  sqrt(RR * (RR - 1))
-        e_point = rr_point  np.sqrt(rr_point * (rr_point - 1.0))
-        e_lower = rr_lower  np.sqrt(rr_lower * (rr_lower - 1.0))
+        e_point = rr_point + np.sqrt(rr_point * (rr_point - 1.0))
+        e_lower = rr_lower + np.sqrt(rr_lower * (rr_lower - 1.0))
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_e2:

@@ -300,7 +300,7 @@ with sheets_tabs[0]:
     with col_ext_list:
         st.markdown(f"#### Active External Bridges ({len(st.session_state['external_sources'])})")
         for src in st.session_state["external_sources"]:
-with st.expander(f"🔌 {src['name']} ({src['type']})"):
+            with st.expander(f"🔌 {src['name']} ({src['type']})"):
                 st.markdown(f"**Endpoint:** `{src['endpoint']}`")
                 st.markdown(f"**Status:** `{src['status']}`")
                 c_act1, c_act2 = st.columns(2)

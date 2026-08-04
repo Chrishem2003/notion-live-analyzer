@@ -227,7 +227,7 @@ else:
         drift = 0.05
         volatility = 0.2
         stochastic_shocks = np.random.normal(0, 1, 100)
-paths[:, i] = np.exp((drift - 0.5 * volatility**2) * time_steps + volatility * np.sqrt(time_steps) * stochastic_shocks)
+        paths[:, i] = np.exp((drift - 0.5 * volatility**2) * time_steps + volatility * np.sqrt(time_steps) * stochastic_shocks)
     
     st.line_chart(paths)
     

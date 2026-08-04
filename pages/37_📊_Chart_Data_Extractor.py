@@ -67,7 +67,7 @@ except ImportError:
                 # Synthetic CSV Re-Synthesis Preview
                 np.random.seed(42)
                 x_vals = np.linspace(0, 10, 20)
-y_vals = np.round(np.sin(x_vals) * 50 + 50 + np.random.normal(0, 2, 20), 2)
+                y_vals = np.round(np.sin(x_vals) * 50 + 50 + np.random.normal(0, 2, 20), 2)
                 df_res = pd.DataFrame({"X_Axis_calibrated": x_vals, "Y_Series_extracted": y_vals})
                 
                 st.success("✅ Extraction Complete! CSV Data Re-Synthesized.")

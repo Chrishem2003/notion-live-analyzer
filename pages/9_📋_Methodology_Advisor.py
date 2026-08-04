@@ -168,7 +168,7 @@ with advisor_tabs[0]:
             "Primary Research Objective",
             options=["Compare Group Means/Medians", "Measure Association / Correlation", "Predict Outcome Variable (Regression)", "Analyze Categorical Frequencies"]
         )
-num_groups = st.selectbox("Number of Comparison Groups / Categories", options=["2 Groups", "3 or More Groups", "Not Applicable (Continuous)"])
+        num_groups = st.selectbox("Number of Comparison Groups / Categories", options=["2 Groups", "3 or More Groups", "Not Applicable (Continuous)"])
     with col_q2:
         data_distribution = st.selectbox("Data Distribution Shape", options=["Normally Distributed (Parametric)", "Non-Normal / Skewed (Non-Parametric)", "Categorical / Counts"])
         pairing_status = st.selectbox("Sample Dependency", options=["Independent / Unpaired Samples", "Dependent / Paired Samples (Repeated Measures)"])
