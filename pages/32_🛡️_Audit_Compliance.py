@@ -491,7 +491,7 @@ with tabs[3]:
   st.markdown("#### 31. SHA-256 Cryptographic Block Ledgering")
   
   if st.button("⚡ Generate New SHA-256 Immutable Proof Block"):
-    block_id = len(st.session_state.blockchain_ledger)  1
+block_id = len(st.session_state.blockchain_ledger) + 1
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     prev_hash = st.session_state.blockchain_ledger[-1]["hash"] if st.session_state.blockchain_ledger else "0000000000000000"
     block_hash = hashlib.sha256(f"{block_id}{timestamp}{prev_hash}KULA_CHRIS".encode()).hexdigest()

@@ -329,7 +329,7 @@ with tab_radar:
     with col_l:
         st.markdown("<h3 style='font-size:1.1rem; color:#00f2fe;'>🔍 Research Roadblocks</h3>", unsafe_allow_html=True)
         search_q = st.text_input("Filter Bottlenecks", key="radar_search_term", placeholder="Search title, domain...")
-        sev_filter = st.selectbox("Severity Level", ["All"]  SEVERITIES, key="radar_selected_severity")
+sev_filter = st.selectbox("Severity Level", ["All"] + SEVERITIES, key="radar_selected_severity")
         
         pts = st.session_state["radar_pain_points"]
         filtered_pts = [

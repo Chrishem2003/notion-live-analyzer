@@ -206,7 +206,7 @@ elif active_bayes_tab == "anova":
         st.markdown("<h4 style='color:#f1f5f9; font-size:0.9rem;'>🔍 Group-Level Posterior Estimates (Shrinkage Plot)</h4>", unsafe_allow_html=True)
         if HAS_PLOTLY:
             df_shrink = pd.DataFrame({
-                "Group": [f"District {chr(65i)}" for i in range(8)],
+"Group": [f"District {chr(65 + i)}" for i in range(8)],
                 "Estimate": np.random.normal(10, 3, 8),
                 "Error": np.random.uniform(0.5, 1.5, 8)
             })

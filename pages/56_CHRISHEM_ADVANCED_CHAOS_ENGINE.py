@@ -18,6 +18,7 @@ import plotly.express as px
 # runnable standalone (e.g. for local dev / review) even without that module.
 # ---------------------------------------------------------------------------
 try:
+    pass
 except Exception:
     pass
 

@@ -271,7 +271,7 @@ with tab_overview:
         st.markdown(f"- **Confounder Stress-Test Pipeline:** {status_confounder}")
         
         st.markdown("<hr style='border:1px solid #1e293b;'>", unsafe_allow_html=True)
-        st.markdown(r"**Selected Significance Constraint:** $\alpha = "  str(alpha_threshold)  r"$")
+st.markdown(r"**Selected Significance Constraint:** $\alpha = " + str(alpha_threshold) + r"$")
         st.markdown(r"**Target Statistical Power Constraint:** $1 - \beta = "  str(power_target)  r"$")
         st.markdown("</div>", unsafe_allow_html=True)
 

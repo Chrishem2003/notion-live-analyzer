@@ -902,7 +902,7 @@ else:
           plag_prob = min(
               88.0, max(3.5, (text_len % 41)  (10 if text_len < 200 else 2))
           )
-          original_score = max(5.0, 100.0 - (ai_prob  plag_prob) / 2)
+original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
 
           new_report = {
               "id": str(uuid.uuid4())[:6].upper(),

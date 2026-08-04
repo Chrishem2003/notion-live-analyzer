@@ -299,7 +299,7 @@ elif active_nl_tab == "visualizer":
         if HAS_PLOTLY:
             np.random.seed(42)
             x_vals = np.random.normal(45, 8, 200)
-            y_vals = 0.6 * x_vals  np.random.normal(0, 3, 200)
+y_vals = 0.6 * x_vals + np.random.normal(0, 3, 200)
             fig = px.scatter(x=x_vals, y=y_vals, trendline="ols", labels={"x": "Soil Moisture", "y": "Yield Index"}, color_discrete_sequence=["#ec4899", "#38bdf8"])
             fig.update_layout(
                 paper_bgcolor="#020617", plot_bgcolor="#090d16",

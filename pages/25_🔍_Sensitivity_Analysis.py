@@ -182,7 +182,7 @@ def generate_sens_dataset(n=200, seed=42, noise=1.0):
     x2 = np.random.uniform(10, 100, n)
     x3 = np.random.exponential(15, n)
     # True relationship: y = 2.5*x1 - 0.8*x2  noise
-    y = 2.5 * x1 - 0.8 * x2  np.random.normal(0, noise * 5, n)
+y = 2.5 * x1 - 0.8 * x2 + np.random.normal(0, noise * 5, n)
     
     # Inject 3 severe leverage points/outliers
     y[5] = 60 * noise

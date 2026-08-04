@@ -218,7 +218,7 @@ elif active_causal_tab == "psm":
             np.random.seed(42)
             df_psm = pd.DataFrame({
                 "Propensity Score": np.concatenate([np.random.beta(2, 5, 500), np.random.beta(5, 2, 500)]),
-                "Group": ["Control"] * 500  ["Treated"] * 500
+"Group": ["Control"] * 500 + ["Treated"] * 500
             })
             fig = px.histogram(df_psm, x="Propensity Score", color="Group", barmode="overlay", nbins=40, color_discrete_map={"Control": "#64748b", "Treated": "#4f46e5"})
             fig.update_layout(paper_bgcolor="#020617", plot_bgcolor="#090d16", font=dict(color="#f1f5f9"), margin=dict(t=20, b=20, l=20, r=20))
