@@ -474,7 +474,7 @@ def estimate_sample_size(
         # Fisher's z transformation
         z = np.arctanh(effect_size)
         se = 1 / np.sqrt(3)
-        n = ((stats.norm.ppf(1 - alpha/2)  stats.norm.ppf(power)) / (z / se)) ** 2  3
+        n = ((stats.norm.ppf(1 - alpha/2) + stats.norm.ppf(power)) / (z / se)) ** 2 + 3
         results["total_n"] = int(np.ceil(n))
         results["n_per_group"] = int(np.ceil(n))
         results["formula"] = "Correlation power analysis (Fisher's z)"

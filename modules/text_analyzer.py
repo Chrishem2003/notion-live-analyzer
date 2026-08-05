@@ -101,7 +101,7 @@ class TextAnalyzer:
 
         df = pd.DataFrame(most_common, columns=['Word', 'Frequency'])
         df['Percentage'] = round(df['Frequency'] / df['Frequency'].sum() * 100, 2)
-        df['Rank'] = range(1, len(df)  1)
+        df['Rank'] = range(1, len(df) + 1)
         return df
 
     @staticmethod
@@ -151,7 +151,7 @@ class TextAnalyzer:
                 pos_count = len(words & positive_words)
                 neg_count = len(words & negative_words)
                 polarity = (pos_count - neg_count) / max(len(words), 1)
-                subjectivity = (pos_count  neg_count) / max(len(words), 1)
+                subjectivity = (pos_count + neg_count) / max(len(words), 1)
 
                 if polarity > 0.1:
                     sentiment = 'Positive'
@@ -249,7 +249,7 @@ class TextAnalyzer:
         tfidf_scores = {}
         for word, total_freq in word_total_freq.most_common(top_n * 3):
             tf = total_freq
-            idf = np.log((doc_count  1) / (word_doc_freq.get(word, 0)  1))  1
+            idf = np.log((doc_count + 1) / (word_doc_freq.get(word, 0) + 1)) + 1
             tfidf_scores[word] = tf * idf
 
         top_keywords = sorted(tfidf_scores.items(), key=lambda x: x[1], reverse=True)[:top_n]

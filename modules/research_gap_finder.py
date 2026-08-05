@@ -116,7 +116,7 @@ class ResearchGapFinder:
         all_domains = {}
         for paper in corpus:
             domain = paper.get("domain", "general")
-            all_domains[domain] = all_domains.get(domain, 0)  1
+            all_domains[domain] = all_domains.get(domain, 0) + 1
         return dict(sorted(all_domains.items(), key=lambda x: -x[1]))
 
     def _identify_gaps(self, corpus: List[Dict]) -> List[Dict]:
@@ -337,7 +337,7 @@ class ResearchGapFinder:
         gap_score = min(1.0, n_gaps * 0.1)
         conflict_score = min(1.0, n_conflicts * 0.15)
         hypothesis_score = min(1.0, n_hypotheses * 0.08)
-        overall = round((gap_score * 0.4  conflict_score * 0.35  hypothesis_score * 0.25) * 100, 1)
+        overall = round((gap_score * 0.4 + conflict_score * 0.35 + hypothesis_score * 0.25) * 100, 1)
         label = "Highly Novel" if overall >= 75 else "Novel" if overall >= 50 else "Moderately Novel" if overall >= 25 else "Low Novelty"
         return {"overall_novelty": overall, "label": label, "gap_density": round(gap_score*100,1),
                 "conflict_density": round(conflict_score*100,1), "hypothesis_potential": round(hypothesis_score*100,1)}

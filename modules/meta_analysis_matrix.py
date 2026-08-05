@@ -143,7 +143,7 @@ class MetaAnalysisMatrix:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 start = max(0, match.start() - 50)
-                end = min(len(text), match.end()  100)
+                end = min(len(text), match.end() + 100)
                 context = text[start:end].replace("\n", " ").strip()
                 return context[:200]
         return ""

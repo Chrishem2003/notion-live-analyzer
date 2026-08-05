@@ -114,12 +114,12 @@ class GrantFormatter:
     def _nature_format(self, content: str, title: str, authors: str) -> str:
         para = re.sub(r'\n\s*\n', '\n\n', content.strip())
         max_chars = 2000
-        return f"# {title}\n"  (f"**{authors}**\n\n" if authors else "")  para[:max_chars]  "\n\n*Nature format: ~2000-character limit for main text*"
+        return f"# {title}\n"  (f"**{authors}**\n\n" if authors else "") + para[:max_chars] + "\n\n*Nature format: ~2000-character limit for main text*"
 
     def _science_format(self, content: str, title: str, authors: str) -> str:
         para = re.sub(r'\n\s*\n', '\n\n', content.strip())
         max_chars = 3000
-        return f"# {title}\n"  (f"*{authors}*\n\n" if authors else "")  para[:max_chars]  "\n\n*Science format: ~3000-character limit*"
+        return f"# {title}\n"  (f"*{authors}*\n\n" if authors else "") + para[:max_chars] + "\n\n*Science format: ~3000-character limit*"
 
     def _ieee_format(self, content: str, title: str, authors: str) -> str:
         return f"# {title}\n{content.strip()[:4000]}\n\n*IEEE format: ~4000-word limit*"
@@ -141,7 +141,7 @@ class GrantFormatter:
         para_size = max(50, len(words) // max(1, len(sections) - 1))
         for i, section in enumerate(sections):
             start = i * para_size
-            end = min(len(words), (i  1) * para_size) if i < len(sections) - 1 else len(words)
+            end = min(len(words), (i + 1) * para_size) if i < len(sections) - 1 else len(words)
             section_text = " ".join(words[start:end]) if words else "[Add content here]"
             proposal = f"## {section}\n{section_text}\n\n"
 
@@ -174,7 +174,7 @@ class GrantFormatter:
             if key not in ("name", "citation_style", "sections"):
                 guide = f"- **{key.replace('_', ' ').title()}**: {val}\n"
         if "sections" in info:
-            guide = "- **Required Sections**:\n"  "\n".join(f"  - {s}" for s in info["sections"])
+            guide = "- **Required Sections**:\n" + "\n".join(f"  - {s}" for s in info["sections"])
         return guide
 
 

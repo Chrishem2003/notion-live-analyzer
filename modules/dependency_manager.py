@@ -179,7 +179,7 @@ def install_missing_packages(
         results[name] = (success, message)
 
         if progress_callback:
-            progress_callback(i  1, total, message)
+            progress_callback(i + 1, total, message)
 
     return results
 

@@ -759,7 +759,7 @@ def render_methodology_auditor_ui():
             with col1:
                 detected_design = st.selectbox(
                     "Study design (optional  auto-detect if blank)",
-                    options=[""]  list(STUDY_DESIGNS.keys()),
+                    options=[""] + list(STUDY_DESIGNS.keys()),
                     key="audit_design_select",
                 ) or None
             with col2:

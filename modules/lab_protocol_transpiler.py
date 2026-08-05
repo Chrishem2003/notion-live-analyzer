@@ -154,7 +154,7 @@ class ProtocolTranspiler:
         results["summary"] = {
             "total_reagents": len(results["reagents"]),
             "total_steps": len(results["steps"]),
-            "total_tools": len(results["software"])  len(results["hardware"]),
+            "total_tools": len(results["software"]) + len(results["hardware"]),
             "has_code": len(results["code_blocks"]) > 0,
             "has_safety": len(results["safety_notes"]) > 0,
         }
@@ -504,12 +504,12 @@ class ProtocolTranspiler:
     def _get_context(self, text: str, pos: int, window: int = 60) -> str:
         """Get surrounding context for a match."""
         start = max(0, pos - window)
-        end = min(len(text), pos  window)
+        end = min(len(text), pos + window)
         context = text[start:end].strip()
         if start > 0:
-            context = "..."  context
+            context = "..." + context
         if end < len(text):
-            context = context  "..."
+            context = context + "..."
         return context
 
     def format_protocol_text(self, protocol: Dict[str, Any]) -> str:

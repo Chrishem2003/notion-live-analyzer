@@ -52,9 +52,9 @@ class HypothesisSimulator:
                                   noise_level: float = 0.05) -> Dict[str, Any]:
         """Simulate a dose-response curve using the Hill equation."""
         doses = np.linspace(0, max_dose, 50)
-        responses = base_effect  (1 - base_effect) / (1  (ec50 / (doses  1e-10)) ** hill_coefficient)
+        responses = base_effect  (1 - base_effect) / (1  (ec50 / (doses + 1e-10)) ** hill_coefficient)
         noise = np.random.normal(0, noise_level, len(doses))
-        noisy_responses = responses  noise
+        noisy_responses = responses + noise
 
         curve_data = [{"dose": float(d), "response": float(r), "noisy_response": float(nr)}
                       for d, r, nr in zip(doses, responses, noisy_responses)]
@@ -104,7 +104,7 @@ class HypothesisSimulator:
                              noise_sd: float = 1.0) -> Dict[str, Any]:
         """Simulate simple linear regression data."""
         X = np.random.normal(0, 1, n)
-        y = beta_0  beta_1 * X  np.random.normal(0, noise_sd, n)
+        y = beta_0 + beta_1 * X + np.random.normal(0, noise_sd, n)
         df = pd.DataFrame({"X": X, "Y": y})
         from scipy import stats as scipy_stats
         slope, intercept, r_val, p_val, std_err = scipy_stats.linregress(X, y)
@@ -129,7 +129,7 @@ class HypothesisSimulator:
         for i in range(n_studies):
             se = np.random.uniform(0.1, 0.5)
             bias = np.random.normal(bias_strength, 0.1)
-            observed = np.random.normal(true_effect  bias, se)
+            observed = np.random.normal(true_effect + bias, se)
             p_value = 2 * (1 - __import__('scipy').stats.norm.cdf(abs(observed) / se))
             study = {"study": f"Study {i1}", "observed_effect": round(float(observed), 3),
                      "se": round(float(se), 3), "p_value": round(float(p_value), 4),

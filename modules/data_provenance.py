@@ -134,7 +134,7 @@ class ProvenanceDatabase:
                 "SELECT MAX(execution_order) as mx FROM data_provenance WHERE session_id = ?",
                 (session_id,),
             ).fetchone()
-            execution_order = (row["mx"] or 0)  1
+            execution_order = (row["mx"] or 0) + 1
 
             params_json = json.dumps(parameters or {})
             input_cols_json = json.dumps(input_columns or [])
@@ -630,7 +630,7 @@ class ProvenanceVisualizer:
 
         for i, step in enumerate(lineage):
             op_name = step.get("operation_name", f"Step {i1}")
-            exec_order = step.get("execution_order", i  1)
+            exec_order = step.get("execution_order", i + 1)
             input_shape = step.get("input_shape")
             output_shape = step.get("output_shape")
             row_change = step.get("row_count_change", 0)
@@ -677,7 +677,7 @@ class ProvenanceVisualizer:
             if i < len(lineage) - 1:
                 links.append({
                     "source": i,
-                    "target": i  1,
+                    "target": i + 1,
                     "value": 1,
                 })
 
@@ -686,7 +686,7 @@ class ProvenanceVisualizer:
         for node in nodes:
             # Vary y position based on row change magnitude
             y_offset = min(max(node["row_change"], -10), 10) / 10.0
-            y_positions.append(0.5  y_offset * 0.3)
+            y_positions.append(0.5 + y_offset * 0.3)
 
         # Create Plotly figure using scatter for nodes  lines for edges
         fig = go.Figure()
@@ -757,7 +757,7 @@ class ProvenanceVisualizer:
                 showgrid=False,
                 range=[-0.2, 1.2],
             ),
-            height=max(300, 80  len(nodes) * 30),
+            height=max(300, 80 + len(nodes) * 30),
             margin=dict(l=20, r=250, t=50, b=50),
             plot_bgcolor="rgba(0,0,0,0)",
             hovermode="x",
@@ -773,7 +773,7 @@ class ProvenanceVisualizer:
             input_shape = step.get("input_shape")
             output_shape = step.get("output_shape")
             rows.append({
-                "#": step.get("execution_order", i  1),
+                "#": step.get("execution_order", i + 1),
                 "Operation": step.get("operation_name", ""),
                 "Input Shape": f"{input_shape[0]}Ã—{input_shape[1]}" if input_shape else "-",
                 "Output Shape": f"{output_shape[0]}Ã—{output_shape[1]}" if output_shape else "-",
@@ -934,7 +934,7 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
         with st.expander("ðŸ” Detailed Operation Inspector"):
             for i, step in enumerate(lineage):
                 op_name = step.get("operation_name", f"Step {i1}")
-                exec_order = step.get("execution_order", i  1)
+                exec_order = step.get("execution_order", i + 1)
                 with st.container():
                     st.markdown(f"""
                     <div style="padding:0.5rem;margin:0.3rem 0;border-radius:8px;

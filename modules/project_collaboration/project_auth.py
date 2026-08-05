@@ -149,7 +149,7 @@ class ProjectTokenPayload:
         self.avatar_url = avatar_url
         self.metadata = metadata or {}
         self.iat = int(time.time())
-        self.exp = int(time.time()  min(expires_in_hours, MAX_TOKEN_EXPIRY_HOURS) * 3600)
+        self.exp = int(time.time() + min(expires_in_hours, MAX_TOKEN_EXPIRY_HOURS) * 3600)
         self.iss = TOKEN_ISSUER
         self.aud = TOKEN_AUDIENCE
         self.is_duress_token = is_duress_token
@@ -317,7 +317,7 @@ class ProjectAuthManager:
             "project_id": project_id,
             "role": role.value,
             "created_at": time.time(),
-            "expires_at": time.time()  REFRESH_TOKEN_EXPIRY_DAYS * 86400,
+            "expires_at": time.time() + REFRESH_TOKEN_EXPIRY_DAYS * 86400,
         }
         self._refresh_tokens[refresh_id] = token_data
         self._audit("refresh_token_created", {
@@ -395,7 +395,7 @@ class ProjectAuthManager:
     def revoke_token(self, jti: str) -> bool:
         """Revoke a token by adding it to the blacklist."""
         if jti not in self._blacklisted_tokens:
-            self._blacklisted_tokens[jti] = time.time()  MAX_TOKEN_EXPIRY_HOURS * 3600
+            self._blacklisted_tokens[jti] = time.time() + MAX_TOKEN_EXPIRY_HOURS * 3600
             self._audit("token_revoked", {"jti": jti[:12]})
             return True
         return False
@@ -434,7 +434,7 @@ class ProjectAuthManager:
         for rid in expired_refresh:
             del self._refresh_tokens[rid]
 
-        return len(expired_blacklist)  len(expired_refresh)
+        return len(expired_blacklist) + len(expired_refresh)
 
     # â”€â”€ Permission Checks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

@@ -219,11 +219,11 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
     # Axis selections
     col1, col2, col3 = st.columns(3)
     with col1:
-        x_col = st.selectbox("X-axis", options=[""]  all_cols, key="dash_x")
+        x_col = st.selectbox("X-axis", options=[""] + all_cols, key="dash_x")
     with col2:
-        y_col = st.selectbox("Y-axis", options=[""]  all_cols, key="dash_y")
+        y_col = st.selectbox("Y-axis", options=[""] + all_cols, key="dash_y")
     with col3:
-        color_col = st.selectbox("Color by", options=[""]  all_cols, key="dash_color")
+        color_col = st.selectbox("Color by", options=[""] + all_cols, key="dash_color")
 
     if st.button("âž• Add to Dashboard", type="primary", use_container_width=True):
         params = {}
@@ -239,7 +239,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
     st.markdown("---")
     st.subheader("ðŸ” Global Filters")
 
-    filter_col = st.selectbox("Add filter column", options=[""]  all_cols, key="dash_filter_col")
+    filter_col = st.selectbox("Add filter column", options=[""] + all_cols, key="dash_filter_col")
     if filter_col and st.button("âž• Add Filter", use_container_width=True):
         DashboardBuilder.add_filter(dashboard, filter_col)
         st.rerun()
@@ -255,7 +255,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
                 if col in df.columns:
                     unique_vals = df[col].dropna().unique().tolist()
                     if len(unique_vals) <= 20:
-                        selected = st.selectbox("", options=["All"]  sorted([str(v) for v in unique_vals]),
+                        selected = st.selectbox("", options=["All"] + sorted([str(v) for v in unique_vals]),
                                                 key=f"dash_filter_{i}")
                         f["value"] = None if selected == "All" else selected
                     else:
@@ -312,7 +312,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         chart_idx = 0
         for n_cols in cols_per_row:
             while chart_idx < len(charts):
-                row_charts = charts[chart_idx:chart_idx  n_cols]
+                row_charts = charts[chart_idx:chart_idx + n_cols]
                 if not row_charts:
                     break
 

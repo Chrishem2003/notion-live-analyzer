@@ -1,37 +1,35 @@
-# Full Upgrade — Progress Tracker
+# Multi-Problem Solver — Enterprise Advancement Roadmap
 
-## Phase 1 — Security Hardening (brief §0)
-- [x] Create `modules/security_config.py` — centralized secret resolution, admin seeding, password hashing
-- [x] Fix `modules/access_control.py` — remove hardcoded admin email, use env-based check
-- [x] Fix `modules/admin_portal.py` — server-side role check, admin email from env (also fixed mojibake operators)
-- [x] Add `tests/test_security_config.py` (14 tests passing)
+## Phase 1 — Core Engine Files
+- [x] `modules/task_status_registry.py` — shared task/status DB + progress tracking
+- [x] `tasks.py` — Celery + Redis async runner with ThreadPool fallback
+- [x] `agents.py` — 3-persona Multi-Agent Problem Solver Swarm
+- [x] `rag_engine.py` — Hybrid Graph+Vector RAG (postgres pgvector / SQLite fallback)
+- [x] `fastapi_app.py` — FastAPI microservice (:8000) with CORS bridge
 
-## Phase 2 — Subscription / Trial / Agency Core (brief §6, §7 + addendum)
-- [x] Create `modules/subscription_core.py` — pure-logic: has_access, require_access, require_admin, start_trial, webhook verification
-- [x] Create `modules/workspace.py` — multi-workspace/agency mode
-- [x] Refactor `modules/subscription.py` — delegate trial/access checks to subscription_core.has_access(); fixed mojibake operators (+1, +timedelta)
-- [x] Add `tests/test_subscription_core.py` (31 tests passing combined)
+## Phase 2 — Enterprise Modules
+- [x] `modules/llm_router.py` — Gemini / Ollama / deterministic hybrid fallback
+- [x] `modules/self_correcting_executor.py` — LLM code self-correction loop
+- [x] `modules/mendeley_integration.py` — Real Mendeley OAuth + library sync (SQLite + BibTeX/RIS)
+- [x] `modules/gis_engine.py` — QGIS-grade spatial analytics suite (vector ops + choropleth)
+- [x] `modules/spss_suite.py` — SPSS-grade advanced stats (ANCOVA/MANOVA/factor/SAV writer)
 
-## Phase 3 — Real Automations & AI (brief §4, §5)
-- [ ] Create `modules/llm_client.py` — call_llm() wrapper, tag suggestion, NL query
-- [ ] Create `modules/audit_rules.py` — condition types, rule evaluation, run_audit
-- [ ] Create `modules/weekly_digest.py` — digest data, email HTML builder, run_all_digests
-- [ ] Wire `modules/advanced_automations.py` to real handles where possible
-- [ ] Add `tests/test_llm_client.py`
-- [ ] Add `tests/test_audit_rules.py`
+## Phase 3 — Streamlit Pages & Fixes
+- [x] Repair corrupted `pages/__init__.py`
+- [x] Page 57 — GIS / QGIS Spatial Analytics (`57_🗺️_GIS_Spatial_Analytics.py`)
+- [x] Page 58 — Mendeley Reference Integration (`58_📚_Mendeley_Reference_Manager.py`)
+- [x] Page 59 — SPSS Advanced Statistical Suite (`59_📊_SPSS_Advanced_Suite.py`)
+- [x] Page 60 — Agent Swarm & Async Task Console (RAG + tasks + self-correction) (`60_🦾_Agent_Swarm_Task_Console.py`)
 
-## Phase 4 — Governance & Presentations (brief §4, addendum)
-- [ ] Create `modules/governance.py` — activity log, permission health check, CSV export
-- [ ] Create `modules/presentations.py` — health report generation, streamlit render
-- [ ] Add `tests/test_governance.py`
-- [ ] Add `tests/test_presentations.py`
+## Phase 4 — Enterprise Configuration
+- [x] `requirements.txt` — upgraded deps (celery, redis, fastapi, google-genai, geopandas, folium, streamlit-folium, pyreadstat, python-dotenv…)
+- [x] `docker-compose.yml` — pgvector + redis + fastapi + celery worker + streamlit
+- [x] `Dockerfile` — existing build preserved (geospatial deps noted in SETUP_GUIDE)
+- [x] `.env.example` — environment template
+- [x] `SETUP_GUIDE.md` — full startup guide
 
-## Phase 5 — Integration & Landing (brief §8)
-- [ ] Create `landing.py` — value prop + trial CTA page
-- [ ] Wire `app.py`/`main.py` to show subscription status and gate premium modules
-
-## Phase 6 — Final Verification
-- [ ] Run `pytest` — all tests pass
-- [ ] Run `python -m py_compile` on all new/modified modules
-- [ ] Manual QA smoke test notes added
+## Phase 5 — Verification
+- [x] `py_compile` all new/modified Python files → 0 fails
+- [x] Import-sanity check module graph
+- [x] Update `modules/__init__.py` exports
 

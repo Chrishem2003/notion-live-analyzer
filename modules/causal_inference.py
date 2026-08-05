@@ -68,7 +68,7 @@ class CausalInferenceEngine:
         3. Compare outcomes within matched pairs
         """
         # Prepare data
-        data = df[[treatment_col, outcome_col]  covariates].dropna()
+        data = df[[treatment_col, outcome_col] + covariates].dropna()
         if len(data) < 10:
             return {"error": "Need at least 10 complete observations"}
 
@@ -139,8 +139,8 @@ class CausalInferenceEngine:
             treated_vals = data.iloc[[p[0] for p in matched_pairs]][cov].values
             control_vals = data.iloc[[p[1] for p in matched_pairs]][cov].values
             smd = (np.mean(treated_vals) - np.mean(control_vals)) / \
-                  np.sqrt((np.var(treated_vals)  np.var(control_vals)) / 2) if \
-                  (np.var(treated_vals)  np.var(control_vals)) > 0 else 0
+                  np.sqrt((np.var(treated_vals) + np.var(control_vals)) / 2) if \
+                  (np.var(treated_vals) + np.var(control_vals)) > 0 else 0
             balance[cov] = round(float(abs(smd)), 4)
 
         return {
@@ -299,7 +299,7 @@ class CausalInferenceEngine:
             bandwidth = h_ik
 
         # Focus on observations within bandwidth
-        mask = (x >= cutoff - bandwidth) & (x <= cutoff  bandwidth)
+        mask = (x >= cutoff - bandwidth) & (x <= cutoff + bandwidth)
         x_local = x[mask]
         y_local = y[mask]
         t_local = (x_local >= cutoff).astype(float)
@@ -311,7 +311,7 @@ class CausalInferenceEngine:
         x_centered = x_local - cutoff
 
         # Build polynomial features
-        X_poly = np.column_stack([x_centered ** (i  1) for i in range(polynomial_order)])
+        X_poly = np.column_stack([x_centered ** (i + 1) for i in range(polynomial_order)])
         X_design = np.column_stack([np.ones(len(x_local)), t_local, X_poly, t_local[:, None] * X_poly])
 
         model = sm.OLS(y_local, X_design).fit()
@@ -356,7 +356,7 @@ class CausalInferenceEngine:
         P(T=1|X) estimated via logistic regression.
         ATE = E[Y * T / e(X) - Y * (1-T) / (1-e(X))]
         """
-        data = df[[treatment_col, outcome_col]  covariates].dropna()
+        data = df[[treatment_col, outcome_col] + covariates].dropna()
 
         model = LogisticRegression(max_iter=1000, random_state=42)
         model.fit(data[covariates], data[treatment_col])
@@ -415,7 +415,7 @@ class CausalInferenceEngine:
         adjustment_set = [c for c in confounders if c not in mediators and c not in colliders]
 
         # Variables to NOT adjust for
-        dont_adjust = mediators  colliders  [treatment, outcome]
+        dont_adjust = mediators + colliders  [treatment, outcome]
 
         return {
             "treatment": treatment,
@@ -446,7 +446,7 @@ class CausalInferenceEngine:
         Estimate Conditional Average Treatment Effects (CATE).
         Uses DR-learner: doubly robust estimation for heterogeneous effects.
         """
-        data = df[[treatment_col, outcome_col]  covariates].dropna()
+        data = df[[treatment_col, outcome_col] + covariates].dropna()
         T = data[treatment_col].values
         Y = data[outcome_col].values
         X = data[covariates].values

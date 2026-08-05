@@ -126,7 +126,7 @@ class BayesianEngine:
         # Fallback: BIC approximation
         if y is not None and not paired:
             t_stat, p_val = scipy_stats.ttest_ind(x, y, equal_var=True)
-            n = len(x)  len(y)
+            n = len(x) + len(y)
         elif paired:
             diff = x - y if y is not None else x
             t_stat, p_val = scipy_stats.ttest_1samp(diff, 0)
@@ -197,12 +197,12 @@ class BayesianEngine:
                 n = len(df)
 
                 # BIC approximation for ANOVA
-                bic_h1 = n * math.log(result['SS'].iloc[1] / n)  (df_effect  1) * math.log(n)
-                bic_h0 = n * math.log((result['SS'].iloc[1]  result['SS'].iloc[0]) / n)  math.log(n)
+                bic_h1 = n * math.log(result['SS'].iloc[1] / n)  (df_effect + 1) * math.log(n)
+                bic_h0 = n * math.log((result['SS'].iloc[1] + result['SS'].iloc[0]) / n) + math.log(n)
                 bf = self._bic_to_bf(bic_h0 - bic_h1)
 
                 eta2 = result['np2'].iloc[0] if 'np2' in result.columns else \
-                       result['SS'].iloc[0] / (result['SS'].iloc[0]  result['SS'].iloc[1])
+                       result['SS'].iloc[0] / (result['SS'].iloc[0] + result['SS'].iloc[1])
 
                 return {
                     "method": "Bayesian One-Way ANOVA",
@@ -232,7 +232,7 @@ class BayesianEngine:
         from sklearn.linear_model import LinearRegression
         from sklearn.metrics import mean_squared_error
 
-        data = df[[target]  predictors].dropna()
+        data = df[[target] + predictors].dropna()
         y = data[target].values
         X = data[predictors].values
         n = len(data)
@@ -251,8 +251,8 @@ class BayesianEngine:
         full_mse = mean_squared_error(y, full_pred)
 
         # BIC approximation
-        bic_null = n * math.log(null_mse)  math.log(n)
-        bic_full = n * math.log(full_mse)  (k  1) * math.log(n)
+        bic_null = n * math.log(null_mse) + math.log(n)
+        bic_full = n * math.log(full_mse)  (k + 1) * math.log(n)
         bf = self._bic_to_bf(bic_null - bic_full)
 
         # R-squared
@@ -294,7 +294,7 @@ class BayesianEngine:
             # GÂ² (likelihood ratio statistic)
             with np.errstate(divide='ignore', invalid='ignore'):
                 g2 = 2 * np.sum(observed * np.log(observed / expected, where=observed > 0), where=observed > 0)
-            bic_h0 = g2  dof * math.log(n)
+            bic_h0 = g2 + dof * math.log(n)
             bic_h1 = 0  # Saturated model
             bf = self._bic_to_bf(bic_h0 - bic_h1)
         else:
@@ -318,7 +318,7 @@ class BayesianEngine:
         se = 1 / math.sqrt(n - 3) if n > 3 else 1
         z_crit = scipy_stats.norm.ppf(1 - (1 - ci) / 2)
         lower = math.tanh(z - z_crit * se)
-        upper = math.tanh(z  z_crit * se)
+        upper = math.tanh(z + z_crit * se)
         return (round(float(lower), 4), round(float(upper), 4))
 
     @staticmethod

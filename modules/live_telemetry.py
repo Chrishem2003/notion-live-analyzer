@@ -34,7 +34,7 @@ def render_live_telemetry_panel():
     # Simulate streaming telemetry data points for live charting
     chart_data = pd.DataFrame({
         "Timestamp": [datetime.now().strftime('%H:%M:%S')] * 5,
-        "CPU (%)": [cpu_usage, cpu_usage - 2, cpu_usage  1, cpu_usage - 1, cpu_usage],
+        "CPU (%)": [cpu_usage, cpu_usage - 2, cpu_usage + 1, cpu_usage - 1, cpu_usage],
         "Memory (%)": [memory.percent] * 5
     })
     

@@ -35,7 +35,7 @@ def calculate_gc_content(sequence: str) -> float:
     if not sequence:
         return 0.0
     
-    gc_count = sequence.count('G')  sequence.count('C')
+    gc_count = sequence.count('G') + sequence.count('C')
     total_bases = len(sequence)
     return round((gc_count / total_bases) * 100, 2)
 

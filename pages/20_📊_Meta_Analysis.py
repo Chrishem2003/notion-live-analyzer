@@ -186,12 +186,12 @@ st.markdown("""
 # ─── STATISTICAL HELPER FUNCTIONS ─────────────────────────────────────
 def compute_continuous_effect(m1, sd1, n1, m2, sd2, n2, measure="hedges_g"):
     """Calculates Cohen's d or Hedges' g along with Standard Errors."""
-    s_pooled = np.sqrt(((n1 - 1) * sd1**2  (n2 - 1) * sd2**2) / (n1  n2 - 2))
+    s_pooled = np.sqrt(((n1 - 1) * sd1**2  (n2 - 1) * sd2**2) / (n1 + n2 - 2))
     d = (m1 - m2) / s_pooled
-    var_d = ((n1  n2) / (n1 * n2))  (d**2 / (2 * (n1  n2)))
+    var_d = ((n1 + n2) / (n1 * n2))  (d**2 / (2 * (n1 + n2)))
     
     if measure == "hedges_g":
-        j_correction = 1 - (3 / (4 * (n1  n2 - 2) - 1))
+        j_correction = 1 - (3 / (4 * (n1 + n2 - 2) - 1))
         g = d * j_correction
         var_g = (j_correction**2) * var_d
         return g, np.sqrt(var_g)
@@ -201,12 +201,12 @@ def compute_binary_effect(e1, n1, e2, n2, measure="log_or"):
     """Calculates Log Odds Ratio or Log Risk Ratio with Standard Errors."""
     c1, c2 = n1 - e1, n2 - e2
     if 0 in [e1, c1, e2, c2]:
-        e1, c1, e2, c2 = e1  0.5, c1  0.5, e2  0.5, c2  0.5
-        n1, n2 = n1  1, n2  1
+        e1, c1, e2, c2 = e1 + 0.5, c1 + 0.5, e2 + 0.5, c2 + 0.5
+        n1, n2 = n1 + 1, n2 + 1
         
     if measure == "log_or":
         log_or = np.log((e1 * c2) / (c1 * e2))
-        se_log_or = np.sqrt(1/e1  1/c1  1/e2  1/c2)
+        se_log_or = np.sqrt(1/e1 + 1/c1 + 1/e2 + 1/c2)
         return log_or, se_log_or
     else:
         log_rr = np.log((e1 / n1) / (e2 / n2))
@@ -239,8 +239,8 @@ def trim_and_fill(effects, std_errs, max_iter=20):
             missing_effects = 2 * center - np.array(filled_effects)[sorted_idx[-k0:]]
             missing_se = np.array(filled_se)[sorted_idx[-k0:]]
             
-            filled_effects = list(effects)  list(missing_effects)
-            filled_se = list(std_errs)  list(missing_se)
+            filled_effects = list(effects) + list(missing_effects)
+            filled_se = list(std_errs) + list(missing_se)
             
             w_temp = 1.0 / (np.array(filled_se) ** 2)
             center = np.sum(w_temp * np.array(filled_effects)) / np.sum(w_temp)
@@ -433,7 +433,7 @@ with tab2:
         tau_squared = max(0.0, (q_stat - df_q) / c_val) if c_val > 0 else 0.0
 
     if "Random" in model_type:
-        weights_re = 1.0 / ((standard_errors ** 2)  tau_squared)
+        weights_re = 1.0 / ((standard_errors ** 2) + tau_squared)
         sum_w_re = np.sum(weights_re)
         pooled_active = np.sum(weights_re * effect_sizes) / sum_w_re
         se_active = np.sqrt(1.0 / sum_w_re)
@@ -444,7 +444,7 @@ with tab2:
     z_stat = pooled_active / se_active
     p_val = 2 * (1 - stats.norm.cdf(abs(z_stat)))
     ci_low = pooled_active - 1.96 * se_active
-    ci_high = pooled_active  1.96 * se_active
+    ci_high = pooled_active + 1.96 * se_active
 
     st.markdown("### 🔍 Meta-Analytic Synthesis Results")
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
@@ -464,7 +464,7 @@ with tab3:
     for i in range(k):
         es = effect_sizes[i]
         se = standard_errors[i]
-        ci_l, ci_u = es - 1.96 * se, es  1.96 * se
+        ci_l, ci_u = es - 1.96 * se, es + 1.96 * se
         rel_wt = (weights[i] / np.sum(weights)) * 100
         
         fig.add_trace(go.Scatter(
@@ -546,7 +546,7 @@ with tab4:
             ))
 
         se_seq = np.linspace(0.001, max(filled_se) * 1.15, 100)
-        cone_upper = pooled_active  1.96 * se_seq
+        cone_upper = pooled_active + 1.96 * se_seq
         cone_lower = pooled_active - 1.96 * se_seq
 
         fig_funnel.add_trace(go.Scatter(x=cone_upper, y=se_seq, mode='lines', line=dict(color='#64748b', dash='dash'), showlegend=False))
@@ -600,7 +600,7 @@ with tab5:
                 "Studies (k)": len(sub_df),
                 "Pooled Effect": round(sg_pooled, 4),
                 "95% CI Lower": round(sg_pooled - 1.96 * sg_se_pooled, 4),
-                "95% CI Upper": round(sg_pooled  1.96 * sg_se_pooled, 4)
+                "95% CI Upper": round(sg_pooled + 1.96 * sg_se_pooled, 4)
             })
             
         st.dataframe(pd.DataFrame(sub_results), use_container_width=True, hide_index=True)

@@ -57,7 +57,7 @@ class InteractiveAudioEngine:
         self._notify_listeners("playback_stopped", {})
 
     def skip_forward(self, segments: int = 1):
-        self.current_segment_index = min(len(self.segments) - 1, self.current_segment_index  segments)
+        self.current_segment_index = min(len(self.segments) - 1, self.current_segment_index + segments)
         self.current_position = 0.0
         self._notify_listeners("segments_skipped", {"new_index": self.current_segment_index, "direction": "forward"})
 
@@ -163,7 +163,7 @@ class InteractiveAudioEngine:
 
     def get_progress(self) -> float:
         if not self.segments: return 0.0
-        return (self.current_segment_index  1) / len(self.segments) * 100
+        return (self.current_segment_index + 1) / len(self.segments) * 100
 
     def get_state_summary(self) -> Dict:
         return {

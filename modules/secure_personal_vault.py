@@ -106,8 +106,8 @@ def _verify_totp(secret: str, code: str, interval: int = TOTP_INTERVAL, window: 
     if not code or len(code) != 6 or not code.isdigit():
         return False
     current = int(time.time()) // interval
-    for offset in range(-window, window  1):
-        expected = _generate_totp_for_counter(secret, current  offset)
+    for offset in range(-window, window + 1):
+        expected = _generate_totp_for_counter(secret, current + offset)
         if hmac.compare_digest(expected, code):
             return True
     return False
@@ -177,7 +177,7 @@ class CryptoEngine:
             aesgcm = AESGCM(key)
             nonce = os.urandom(12)
             ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data or b"")
-            return nonce  ciphertext
+            return nonce + ciphertext
         else:
             # Fallback: XOR  HMAC (MUST use real AES-GCM in production)
             nonce = os.urandom(12)
@@ -187,8 +187,8 @@ class CryptoEngine:
             encryptor = cipher.encryptor()
             if associated_data:
                 encryptor.authenticate_additional_data(associated_data)
-            ciphertext = encryptor.update(plaintext)  encryptor.finalize()
-            return nonce  ciphertext  encryptor.tag
+            ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+            return nonce + ciphertext + encryptor.tag
 
     @staticmethod
     def decrypt(ciphertext_with_nonce: bytes, key: bytes, associated_data: Optional[bytes] = None) -> Optional[bytes]:
@@ -212,7 +212,7 @@ class CryptoEngine:
                 decryptor = cipher.decryptor()
                 if associated_data:
                     decryptor.authenticate_additional_data(associated_data)
-                return decryptor.update(ciphertext)  decryptor.finalize()
+                return decryptor.update(ciphertext) + decryptor.finalize()
         except Exception:
             logger.warning("AES-GCM decryption failed (wrong key or tampered ciphertext)", exc_info=True)
             return None
@@ -332,7 +332,7 @@ class VaultFile:
             "file_id": self.id,
             "file_name": self.name,
             "created_at": now.isoformat(),
-            "expires_at": (now  timedelta(hours=expires_in_hours)).isoformat(),
+            "expires_at": (now + timedelta(hours=expires_in_hours)).isoformat(),
             "max_downloads": max_downloads,
             "download_count": 0,
             "is_expired": False,
@@ -549,7 +549,7 @@ class SecurePersonalVault:
         # Failed attempt
         self.failed_login_attempts = 1
         if self.failed_login_attempts >= self.max_failed_attempts:
-            self.locked_until = time.time()  300  # 5 min lockout
+            self.locked_until = time.time() + 300  # 5 min lockout
             self._log("account_locked", f"Locked for 5 min after {self.max_failed_attempts} failed attempts")
         return False, False
 
@@ -639,7 +639,7 @@ class SecurePersonalVault:
 
         # Check quota
         used = self.get_storage_used()
-        if used  len(file_bytes) > self.quota_bytes:
+        if used + len(file_bytes) > self.quota_bytes:
             raise ValueError("Storage quota exceeded.")
 
         # Determine category
@@ -814,7 +814,7 @@ def _create_dummy_vault() -> SecurePersonalVault:
     # Add some fake files
     dummy_files = [
         ("notes.txt", b"This is a personal note.", VaultCategory.DOCUMENTS),
-        ("photo.jpg", b"\xff\xd8\xff\xe0"  b"\x00" * 100, VaultCategory.IMAGES),
+        ("photo.jpg", b"\xff\xd8\xff\xe0" + b"\x00" * 100, VaultCategory.IMAGES),
         ("todo.md", b"# TODO\n- Buy groceries\n- Call dentist", VaultCategory.DOCUMENTS),
     ]
     for name, content, cat in dummy_files:

@@ -223,7 +223,7 @@ class ExecutiveStoryteller:
                 q3 = series.quantile(0.75)
                 iqr = q3 - q1
                 lower = q1 - 1.5 * iqr
-                upper = q3  1.5 * iqr
+                upper = q3 + 1.5 * iqr
                 outliers = series[(series < lower) | (series > upper)]
                 if len(outliers) > 0:
                     anomalies["columns_with_outliers"] = 1
@@ -253,7 +253,7 @@ class ExecutiveStoryteller:
         corr_matrix = df[numeric_cols].corr()
         strong_pairs = []
         for i in range(len(numeric_cols)):
-            for j in range(i  1, len(numeric_cols)):
+            for j in range(i + 1, len(numeric_cols)):
                 r = corr_matrix.iloc[i, j]
                 if abs(r) >= 0.5:
                     strong_pairs.append({

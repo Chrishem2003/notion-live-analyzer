@@ -58,7 +58,7 @@ class NetworkAnalyzer:
         edges = []
         for i, v1 in enumerate(variables):
             G.add_node(v1, type="variable")
-            for v2 in variables[i  1:]:
+            for v2 in variables[i + 1:]:
                 r = corr.loc[v1, v2]
                 if abs(r) >= min_abs_corr:
                     color = "#2ecc71" if r > 0 else "#e74c3c"
@@ -136,11 +136,11 @@ class NetworkAnalyzer:
             if word not in word_set:
                 continue
             start = max(0, i - window_size)
-            end = min(len(words), i  window_size  1)
+            end = min(len(words), i + window_size + 1)
             for j in range(start, end):
                 if i != j and words[j] in word_set:
                     pair = tuple(sorted([word, words[j]]))
-                    cooccur[pair] = cooccur.get(pair, 0)  1
+                    cooccur[pair] = cooccur.get(pair, 0) + 1
 
         min_cooccur = max(1, max(cooccur.values()) // 20) if cooccur else 1
         for (w1, w2), count in cooccur.items():
@@ -209,7 +209,7 @@ class NetworkAnalyzer:
             node_y.append(y)
             node_text.append(str(node))
             degree = G.degree(node, weight='weight')
-            node_sizes.append(10  degree * 2)
+            node_sizes.append(10 + degree * 2)
             node_colors.append(node_color_map.get(node, '#1d4ed8') if node_color_map else '#1d4ed8')
 
         node_trace = go.Scatter(

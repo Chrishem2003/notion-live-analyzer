@@ -28,7 +28,7 @@ class TestInferColumnType:
         assert dp.infer_column_type(series) == "categorical"
 
     def test_text_for_long_strings(self):
-        series = object_series(["x" * 80  str(i) for i in range(200)])
+        series = object_series(["x" * 80 + str(i) for i in range(200)])
         assert dp.infer_column_type(series) == "text"
 
     def test_string_for_short_high_cardinality_values(self):
@@ -132,7 +132,7 @@ class TestAggregation:
     def test_groupby_aggregate(self, sample_df):
         out = dp.groupby_aggregate(sample_df, ["group"], "score", "sum")
         assert set(out.columns) == {"group", "score"}
-        assert out.loc[out["group"] == "a", "score"].iloc[0] == pytest.approx(1.5  3.5  5.5  7.5)
+        assert out.loc[out["group"] == "a", "score"].iloc[0] == pytest.approx(1.5 + 3.5 + 5.5 + 7.5)
 
     def test_groupby_aggregate_falls_back_to_mean_for_invalid_func(self, sample_df):
         out = dp.groupby_aggregate(sample_df, ["group"], "score", "not-a-func")

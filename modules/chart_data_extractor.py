@@ -149,8 +149,8 @@ class ChartDataExtractor:
         return [{
             "x_pixel": p["x_pixel"],
             "y_pixel": p["y_pixel"],
-            "x_value": round(float(x_slope * p["x_pixel"]  x_intercept), 4),
-            "y_value": round(float(y_slope * p["y_pixel"]  y_intercept), 4),
+            "x_value": round(float(x_slope * p["x_pixel"] + x_intercept), 4),
+            "y_value": round(float(y_slope * p["y_pixel"] + y_intercept), 4),
         } for p in calibration_points]
 
     def _generate_sample_data(self, chart_type: str) -> pd.DataFrame:
@@ -169,12 +169,12 @@ class ChartDataExtractor:
 
         elif chart_type == "line":
             x = np.linspace(0, 10, 20)
-            y = 5  2 * x  np.random.normal(0, 1, 20)
+            y = 5 + 2 * x + np.random.normal(0, 1, 20)
             return pd.DataFrame({"X": x.round(2), "Y": y.round(2)})
 
         elif chart_type == "scatter":
             x = np.random.normal(50, 15, 50)
-            y = 0.6 * x  np.random.normal(10, 5, 50)
+            y = 0.6 * x + np.random.normal(10, 5, 50)
             return pd.DataFrame({"X": x.round(2), "Y": y.round(2)})
 
         elif chart_type == "pie":
@@ -211,7 +211,7 @@ class ChartDataExtractor:
                 try:
                     if len(parts) == 2:
                         value = float(parts[1])
-                        data_rows.append({"Label": parts[0], "Value": value, "X": len(data_rows)  1, "Y": value})
+                        data_rows.append({"Label": parts[0], "Value": value, "X": len(data_rows) + 1, "Y": value})
                     elif len(parts) >= 3:
                         x_val = float(parts[1])
                         y_val = float(parts[2])

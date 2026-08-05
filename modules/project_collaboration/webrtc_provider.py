@@ -96,7 +96,7 @@ class AudioSpatialPosition:
         """
         dx = remote_x - local_x
         dy = remote_y - local_y
-        distance = math.sqrt(dx**2  dy**2)
+        distance = math.sqrt(dx**2 + dy**2)
 
         if distance < 10:
             return 0.0  # Too close  center
@@ -121,7 +121,7 @@ class AudioSpatialPosition:
         """
         dx = remote_x - local_x
         dy = remote_y - local_y
-        distance = math.sqrt(dx**2  dy**2)
+        distance = math.sqrt(dx**2 + dy**2)
 
         if distance < 10:
             return 1.0  # Max volume
@@ -1142,7 +1142,7 @@ def render_webrtc_panel():
                 az = params["azimuth"]
 
                 # Visual pan indicator
-                pan_pct = ((pan  1.0) / 2.0) * 100  # -1..1 -> 0..100
+                pan_pct = ((pan + 1.0) / 2.0) * 100  # -1..1 -> 0..100
                 vol_pct = vol * 100
 
                 with cols[idx % 4]:

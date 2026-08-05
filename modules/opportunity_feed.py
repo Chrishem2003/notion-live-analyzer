@@ -769,10 +769,10 @@ class OpportunityFeedEngine:
         ranked = self.prioritizer.rank(results, user_country)
 
         # Paginate
-        total_pages = max(1, (len(ranked)  per_page - 1) // per_page)
+        total_pages = max(1, (len(ranked) + per_page - 1) // per_page)
         page = min(page, total_pages - 1)
         start = page * per_page
-        end = start  per_page
+        end = start + per_page
         page_results = ranked[start:end]
 
         return {
@@ -781,7 +781,7 @@ class OpportunityFeedEngine:
             "page": page,
             "per_page": per_page,
             "total_pages": total_pages,
-            "has_next": page  1 < total_pages,
+            "has_next": page + 1 < total_pages,
             "has_prev": page > 0,
         }
 
@@ -867,11 +867,11 @@ def seed_opportunity_catalog(db: Optional[OpportunityDatabase] = None) -> Opport
 def _build_opportunity_catalog() -> List[Dict[str, Any]]:
     """Build the curated opportunity catalog."""
     now = datetime.now()
-    three_months = (now  timedelta(days=90)).isoformat()
-    six_months = (now  timedelta(days=180)).isoformat()
-    one_month = (now  timedelta(days=30)).isoformat()
-    two_months = (now  timedelta(days=60)).isoformat()
-    two_weeks = (now  timedelta(days=14)).isoformat()
+    three_months = (now + timedelta(days=90)).isoformat()
+    six_months = (now + timedelta(days=180)).isoformat()
+    one_month = (now + timedelta(days=30)).isoformat()
+    two_months = (now + timedelta(days=60)).isoformat()
+    two_weeks = (now + timedelta(days=14)).isoformat()
 
     # Helper to create opportunities with auto-scored verification
     def make_opp(

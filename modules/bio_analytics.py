@@ -9,7 +9,7 @@ def analyze_sequence_variants(dna_seq: str):
     if length == 0:
         return None
     
-    gc_count = seq.count('G')  seq.count('C')
+    gc_count = seq.count('G') + seq.count('C')
     gc_percentage = round((gc_count / length) * 100, 2)
     
     # Codon frequencies

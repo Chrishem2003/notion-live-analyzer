@@ -63,8 +63,8 @@ class ResamplingEngine:
                 acc = np.sum((np.mean(jackknife) - jackknife)**3) / (6 * np.sum((np.mean(jackknife) - jackknife)**2)**1.5)
             else:
                 acc = 0
-            a1 = scipy_stats.norm.cdf(z0  (z0  scipy_stats.norm.ppf(alpha / 2)) / (1 - acc * (z0  scipy_stats.norm.ppf(alpha / 2))))
-            a2 = scipy_stats.norm.cdf(z0  (z0  scipy_stats.norm.ppf(1 - alpha / 2)) / (1 - acc * (z0  scipy_stats.norm.ppf(1 - alpha / 2))))
+            a1 = scipy_stats.norm.cdf(z0  (z0 + scipy_stats.norm.ppf(alpha / 2)) / (1 - acc * (z0 + scipy_stats.norm.ppf(alpha / 2))))
+            a2 = scipy_stats.norm.cdf(z0  (z0 + scipy_stats.norm.ppf(1 - alpha / 2)) / (1 - acc * (z0 + scipy_stats.norm.ppf(1 - alpha / 2))))
             ci_lower = np.percentile(bootstrap_stats, a1 * 100)
             ci_upper = np.percentile(bootstrap_stats, a2 * 100)
         elif method == "basic":
@@ -72,7 +72,7 @@ class ResamplingEngine:
             z = scipy_stats.norm.ppf(1 - alpha / 2)
             point_est = statistic(data)
             ci_lower = point_est - z * se
-            ci_upper = point_est  z * se
+            ci_upper = point_est + z * se
         else:
             ci_lower = np.percentile(bootstrap_stats, alpha / 2 * 100)
             ci_upper = np.percentile(bootstrap_stats, (1 - alpha / 2) * 100)
@@ -179,7 +179,7 @@ class ResamplingEngine:
             "mean_score": round(float(np.mean(scores)), 4),
             "std_score": round(float(np.std(scores)), 4),
             "ci_lower": round(float(np.mean(scores) - 1.96 * np.std(scores) / np.sqrt(n_folds)), 4),
-            "ci_upper": round(float(np.mean(scores)  1.96 * np.std(scores) / np.sqrt(n_folds)), 4),
+            "ci_upper": round(float(np.mean(scores) + 1.96 * np.std(scores) / np.sqrt(n_folds)), 4),
         }
 
     @staticmethod
@@ -206,7 +206,7 @@ class ResamplingEngine:
                 _, p = scipy_stats.ttest_ind(group1, group2)
             elif test_type == "correlation":
                 x = rng.normal(0, 1, size=sample_size)
-                y = effect_size * x  np.sqrt(1 - effect_size**2) * rng.normal(0, 1, size=sample_size)
+                y = effect_size * x + np.sqrt(1 - effect_size**2) * rng.normal(0, 1, size=sample_size)
                 _, p = scipy_stats.pearsonr(x, y)
             else:
                 group1 = rng.normal(0, 1, size=sample_size)
@@ -244,7 +244,7 @@ class ResamplingEngine:
         bootstrap_diffs = []
 
         for _ in range(n_bootstrap):
-            sample = rng.choice(combined, size=n1  n2, replace=True)
+            sample = rng.choice(combined, size=n1 + n2, replace=True)
             b1 = sample[:n1]
             b2 = sample[n1:]
             bootstrap_diffs.append(np.mean(b1) - np.mean(b2))

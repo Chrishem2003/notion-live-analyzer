@@ -26,7 +26,7 @@ def calculate_distance_matrix(records):
     padded_seqs = [str(rec.seq).ljust(max_len, '-') for rec in records]
 
     for i in range(n):
-        for j in range(i  1, n):
+        for j in range(i + 1, n):
             s1, s2 = padded_seqs[i], padded_seqs[j]
             mismatches = sum(1 for a, b in zip(s1, s2) if a != b)
             dist = round(mismatches / max_len, 4)
@@ -39,7 +39,7 @@ def generate_simple_newick(names, dist_matrix):
     """Builds a basic Neighbor-Joining style Newick string representation."""
     # Build a simplified star/neighbor branch structure
     branches = [f"{names[i]}:{dist_matrix[0][i]/2:.4f}" for i in range(1, len(names))]
-    newick_str = f"({names[0]}:0.01,("  ",".join(branches)  "));"
+    newick_str = f"({names[0]}:0.01,(" + ",".join(branches) + "));"
     return newick_str
 
 def render_ascii_tree(names):

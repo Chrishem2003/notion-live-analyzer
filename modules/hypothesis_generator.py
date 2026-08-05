@@ -360,9 +360,9 @@ class HypothesisGenerator:
                 # Adjust priority score with novelty
                 current_score = h.get("priority_score", 50)
                 if gap_type == "novel_larger" or gap_type == "novel_smaller":
-                    adjusted = min(100, current_score  15)
+                    adjusted = min(100, current_score + 15)
                 elif gap_type == "replication":
-                    adjusted = min(100, current_score  5)
+                    adjusted = min(100, current_score + 5)
                 else:
                     adjusted = max(0, current_score - 10)
                 h["priority_score"] = adjusted
@@ -382,7 +382,7 @@ class HypothesisGenerator:
                     "source": None,
                 }
                 # Boost score for unexplored patterns
-                h["priority_score"] = min(100, h.get("priority_score", 50)  10)
+                h["priority_score"] = min(100, h.get("priority_score", 50) + 10)
                 h["priority_label"] = self._score_to_label(h["priority_score"])
 
             h["gap_analysis"] = gap_analysis
@@ -408,7 +408,7 @@ class HypothesisGenerator:
             return (effect_size * 0.5, effect_size * 1.5)
         se = math.sqrt((1 - effect_size**2) / (n - 2)) if abs(effect_size) < 1 else 1.0 / math.sqrt(n - 2)
         z = scipy_stats.norm.ppf(1 - alpha / 2)
-        return (effect_size - z * se, effect_size  z * se)
+        return (effect_size - z * se, effect_size + z * se)
 
     def _score_to_label(self, score: int) -> str:
         if score >= 80: return "Critical"
@@ -423,14 +423,14 @@ class HypothesisGenerator:
         gap_type = gap.get("type", "")
 
         if gap_type == "replication":
-            return base_narrative  f" âœ… This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
+            return base_narrative + f" âœ… This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
         elif gap_type in ("novel_larger", "novel_smaller"):
             direction = "larger" if gap_type == "novel_larger" else "smaller"
-            return base_narrative  f" ðŸ”¬ This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
+            return base_narrative + f" ðŸ”¬ This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
         elif gap_type == "knowledge_gap":
-            return base_narrative  " ðŸ’¡ This pattern has not been found in the literature review  potential knowledge gap worth exploring."
+            return base_narrative + " ðŸ’¡ This pattern has not been found in the literature review  potential knowledge gap worth exploring."
         elif gap_type == "inconsistent":
-            return base_narrative  f" âš ï¸ This finding diverges from published literature (d_lit={gap.get('literature_effect', 0):.2f}). Consider contextual or methodological factors."
+            return base_narrative + f" âš ï¸ This finding diverges from published literature (d_lit={gap.get('literature_effect', 0):.2f}). Consider contextual or methodological factors."
         return base_narrative
 
     def _score_hypotheses(self, hypotheses: List[Dict]) -> List[Dict]:

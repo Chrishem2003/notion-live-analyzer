@@ -186,7 +186,7 @@ class CHRISHEMAnalyzer:
         strong_pairs = []
 
         for i in range(len(corr_matrix.columns)):
-            for j in range(i  1, len(corr_matrix.columns)):
+            for j in range(i + 1, len(corr_matrix.columns)):
                 val = corr_matrix.iloc[i, j]
                 if val >= threshold:
                     strong_pairs.append({
@@ -201,7 +201,7 @@ class CHRISHEMAnalyzer:
         if len(strong_pairs) == 0:
             weakest = []
             for i in range(min(5, len(corr_matrix.columns))):
-                for j in range(i  1, min(5, len(corr_matrix.columns))):
+                for j in range(i + 1, min(5, len(corr_matrix.columns))):
                     val = abs(corr_matrix.iloc[i, j])
                     weakest.append({
                         "var1": corr_matrix.columns[i],

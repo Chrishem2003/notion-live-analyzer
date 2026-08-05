@@ -327,11 +327,11 @@ def verify_student_id(
     # Check 5: Expiry date (if present)
     id_dates = extract_date_from_text(id_text)
     student_dates = extract_date_from_text(student_id_text)
-    results["details"]["extracted_dates"] = id_dates  student_dates
+    results["details"]["extracted_dates"] = id_dates + student_dates
     
     if id_dates or student_dates:
         # Parse dates and check if expired
-        all_dates = id_dates  student_dates
+        all_dates = id_dates + student_dates
         try:
             for date_str in all_dates:
                 # Simple year extraction
@@ -505,11 +505,11 @@ def render_verification_ui():
             # Debug: Show extracted text (collapsible)
             with st.expander("ðŸ”§ Verification Details (Debug)"):
                 st.write("**ID Document Text:**")
-                st.text(id_text[:500]  "..." if len(id_text) > 500 else id_text)
+                st.text(id_text[:500] + "..." if len(id_text) > 500 else id_text)
                 st.write(f"Confidence: {id_confidence}")
                 
                 st.write("**Student ID Text:**")
-                st.text(student_text[:500]  "..." if len(student_text) > 500 else student_text)
+                st.text(student_text[:500] + "..." if len(student_text) > 500 else student_text)
                 st.write(f"Confidence: {student_confidence}")
                 
                 st.write("**Checks:**", result["checks"])
@@ -601,8 +601,8 @@ def render_tier_selector():
                 import streamlit as st
                 url = create_stripe_checkout_session(
                     Tier.PREMIUM,
-                    success_url=st.query_params.get("url", "")  "?success=true",
-                    cancel_url=st.query_params.get("url", "")  "?canceled=true",
+                    success_url=st.query_params.get("url", "") + "?success=true",
+                    cancel_url=st.query_params.get("url", "") + "?canceled=true",
                 )
                 if url:
                     st.markdown(f'<script>window.location.href = "{url}"</script>', unsafe_allow_html=True)

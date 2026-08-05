@@ -89,15 +89,15 @@ def calculate_bmi_for_age(
     # Mean and SD vary by age and sex  using simplified reference tables
     if sex.lower() == "male":
         if age_years < 18:
-            mean_bmi = 15.5  age_years * 0.45
-            sd_bmi = 1.2  age_years * 0.08
+            mean_bmi = 15.5 + age_years * 0.45
+            sd_bmi = 1.2 + age_years * 0.08
         else:
             mean_bmi = 22.5  (age_years - 18) * 0.05
             sd_bmi = 2.5
     else:  # female
         if age_years < 18:
-            mean_bmi = 15.0  age_years * 0.50
-            sd_bmi = 1.3  age_years * 0.09
+            mean_bmi = 15.0 + age_years * 0.50
+            sd_bmi = 1.3 + age_years * 0.09
         else:
             mean_bmi = 21.5  (age_years - 18) * 0.06
             sd_bmi = 2.8
@@ -129,7 +129,7 @@ def calculate_bmi_for_age(
 
 def normal_cdf(x: float) -> float:
     """Standard normal CDF approximation."""
-    return 0.5 * (1  np.sign(x) * np.sqrt(1 - np.exp(-2 * x**2 / np.pi)))
+    return 0.5 * (1 + np.sign(x) * np.sqrt(1 - np.exp(-2 * x**2 / np.pi)))
 
 
 # â”€â”€â”€ Clinical Reference Ranges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

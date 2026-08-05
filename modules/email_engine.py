@@ -497,7 +497,7 @@ def send_audit_report(
         sentence_count=profile.get("sentences", "N/A"),
         burstiness=profile.get("burstiness", "N/A"),
         vocabulary=profile.get("vocabulary_richness", "N/A"),
-        session_id=report_data.get("session_id", "N/A")[:20]  "...",
+        session_id=report_data.get("session_id", "N/A")[:20] + "...",
         report_attachments="<p>ðŸ“Ž Full PDF report attached.</p>" if pdf_content else "",
         app_url=os.environ.get("APP_URL", "https://your-app.streamlit.app"),
     )

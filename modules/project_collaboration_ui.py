@@ -730,8 +730,8 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
             elem = canvas.add_element(
                 CanvasElementType.STICKY,
                 local.id if local else "unknown",
-                x=100  len(canvas.elements) * 30,
-                y=100  len(canvas.elements) * 30,
+                x=100 + len(canvas.elements) * 30,
+                y=100 + len(canvas.elements) * 30,
                 width=220, height=150,
                 content={"text": "New research note...", "color": "#1e293b"},
             )

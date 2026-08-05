@@ -456,11 +456,11 @@ class PredictiveEngine:
             trend = (ts_df['y'].iloc[-1] - ts_df['y'].iloc[0]) / max(len(ts_df), 1)
 
             future_dates = pd.date_range(
-                start=ts_df['ds'].iloc[-1]  timedelta(days=1),
+                start=ts_df['ds'].iloc[-1] + timedelta(days=1),
                 periods=periods,
                 freq=freq
             )
-            forecast_values = [last_val  trend * i for i in range(1, periods  1)]
+            forecast_values = [last_val + trend * i for i in range(1, periods + 1)]
 
             forecast_df = pd.DataFrame({
                 'ds': future_dates,

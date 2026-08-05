@@ -51,7 +51,7 @@ class EffectSizeConverter:
     @staticmethod
     def cohens_d_from_means(m1: float, m2: float, sd1: float, sd2: float, n1: int, n2: int) -> float:
         """Cohen's d from group means and SDs."""
-        pooled_sd = math.sqrt(((n1 - 1) * sd1**2  (n2 - 1) * sd2**2) / (n1  n2 - 2))
+        pooled_sd = math.sqrt(((n1 - 1) * sd1**2  (n2 - 1) * sd2**2) / (n1 + n2 - 2))
         if pooled_sd == 0:
             return 0.0
         return (m1 - m2) / pooled_sd
@@ -59,7 +59,7 @@ class EffectSizeConverter:
     @staticmethod
     def cohens_d_from_t(t_stat: float, n1: int, n2: int) -> float:
         """Cohen's d from independent t-test statistic."""
-        return t_stat * math.sqrt(1/n1  1/n2)
+        return t_stat * math.sqrt(1/n1 + 1/n2)
 
     @staticmethod
     def cohens_d_from_r(r: float) -> float:
@@ -69,7 +69,7 @@ class EffectSizeConverter:
     @staticmethod
     def r_from_cohens_d(d: float) -> float:
         """Pearson r from Cohen's d."""
-        return d / math.sqrt(d**2  4)
+        return d / math.sqrt(d**2 + 4)
 
     @staticmethod
     def odds_ratio_from_d(d: float) -> float:
@@ -84,7 +84,7 @@ class EffectSizeConverter:
     @staticmethod
     def variance_of_d(n1: int, n2: int, d: float = 0) -> float:
         """Approximate variance of Cohen's d."""
-        return (n1  n2) / (n1 * n2)  d**2 / (2 * (n1  n2))
+        return (n1 + n2) / (n1 * n2) + d**2 / (2 * (n1 + n2))
 
     @staticmethod
     def se_from_ci(ci_lower: float, ci_upper: float, z: float = 1.96) -> float:
@@ -94,7 +94,7 @@ class EffectSizeConverter:
     @staticmethod
     def hedges_g(d: float, n1: int, n2: int) -> float:
         """Convert Cohen's d to Hedges' g (small sample correction)."""
-        df = n1  n2 - 2
+        df = n1 + n2 - 2
         correction = 1 - 3 / (4 * df - 1)
         return d * correction
 
@@ -140,7 +140,7 @@ class MetaAnalysisEngine:
         z = pooled / se if se > 0 else 0
         p = 2 * (1 - norm.cdf(abs(z)))
         ci_lower = pooled - 1.96 * se
-        ci_upper = pooled  1.96 * se
+        ci_upper = pooled + 1.96 * se
 
         return {
             "model": "Fixed Effects",
@@ -193,14 +193,14 @@ class MetaAnalysisEngine:
         i2 = max(0, (q - df) / q * 100) if q > 0 else 0
 
         # Step 5: Random effects weights
-        re_weights = [1 / (v  tau2) for v in variances]
+        re_weights = [1 / (v + tau2) for v in variances]
         re_total_weight = sum(re_weights)
         re_pooled = sum(w * e for w, e in zip(re_weights, effects)) / re_total_weight
         re_se = math.sqrt(1 / re_total_weight)
         re_z = re_pooled / re_se if re_se > 0 else 0
         re_p = 2 * (1 - norm.cdf(abs(re_z)))
         re_ci_lower = re_pooled - 1.96 * re_se
-        re_ci_upper = re_pooled  1.96 * re_se
+        re_ci_upper = re_pooled + 1.96 * re_se
 
         # Step 6: Q-test p-value
         q_p = 1 - chi2.cdf(q, df) if chi2 else 1.0
@@ -276,9 +276,9 @@ class MetaAnalysisEngine:
                 "se": se_i,
                 "variance": v,
                 "ci_lower": e - 1.96 * se_i,
-                "ci_upper": e  1.96 * se_i,
+                "ci_upper": e + 1.96 * se_i,
                 "weight_fe": (1 / v) if v > 0 else 0,
-                "weight_re": (1 / (v  results.get("random", {}).get("tau2", 0))) if v > 0 else 0,
+                "weight_re": (1 / (v + results.get("random", {}).get("tau2", 0))) if v > 0 else 0,
             })
 
         results["forest_data"] = forest_data
@@ -320,9 +320,9 @@ class MetaAnalysisEngine:
             slope = sum((xi - x_mean) * (yi - y_mean) for xi, yi in zip(x, y)) / \
                     sum((xi - x_mean)**2 for xi in x) if sum((xi - x_mean)**2 for xi in x) > 0 else 0
             intercept = y_mean - slope * x_mean
-            residuals = [yi - (intercept  slope * xi) for xi, yi in zip(x, y)]
+            residuals = [yi - (intercept + slope * xi) for xi, yi in zip(x, y)]
             resid_var = sum(r**2 for r in residuals) / (n - 2) if n > 2 else 0
-            intercept_se = math.sqrt(resid_var * (1/n  x_mean**2 / sum((xi - x_mean)**2 for xi in x))) \
+            intercept_se = math.sqrt(resid_var * (1/n + x_mean**2 / sum((xi - x_mean)**2 for xi in x))) \
                 if sum((xi - x_mean)**2 for xi in x) > 0 else 0
             intercept_t = intercept / intercept_se if intercept_se > 0 else 0
             intercept_p = 2 * (1 - norm.cdf(abs(intercept_t)))
@@ -368,7 +368,7 @@ class MetaAnalysisEngine:
         n_fs = max(0, int(math.ceil(n_fs)))
 
         # Tolerance: 5k  10 (Rosenthal's rule of thumb)
-        tolerance = 5 * k  10
+        tolerance = 5 * k + 10
 
         return {
             "test": "Rosenthal's Fail-Safe N",
@@ -537,7 +537,7 @@ class MetaAnalysisEngine:
         cumulative = []
         engine = MetaAnalysisEngine()
 
-        for i in range(1, k  1):
+        for i in range(1, k + 1):
             indices = sorted_indices[:i]
             cum_effects = [effects[j] for j in indices]
             cum_variances = [variances[j] for j in indices]
@@ -552,7 +552,7 @@ class MetaAnalysisEngine:
                     "pooled": cum_effects[0],
                     "se": se_i,
                     "ci_lower": cum_effects[0] - 1.96 * se_i,
-                    "ci_upper": cum_effects[0]  1.96 * se_i,
+                    "ci_upper": cum_effects[0] + 1.96 * se_i,
                     "k": 1,
                     "i2": 0,
                 })
@@ -655,7 +655,7 @@ class MetaAnalysisEngine:
             moderator_names = [f"Moderator {i1}" for i in range(n_mods)]
 
         # Build design matrix (including intercept)
-        X = np.column_stack([[1.0] * k]  moderators)
+        X = np.column_stack([[1.0] * k] + moderators)
         y = np.array(effects)
         w = 1.0 / np.array(variances)  # Inverse-variance weights
         W = np.diag(w)
@@ -681,7 +681,7 @@ class MetaAnalysisEngine:
             r2 = 1 - ss_res / ss_total if ss_total > 0 else 0
 
             coefficients = []
-            for i in range(n_mods  1):
+            for i in range(n_mods + 1):
                 name = "Intercept" if i == 0 else moderator_names[i - 1]
                 coefficients.append({
                     "variable": name,
@@ -731,8 +731,8 @@ class MetaPlotData:
                 "Effect": e,
                 "SE": se_i,
                 "CI Lower": e - 1.96 * se_i,
-                "CI Upper": e  1.96 * se_i,
-                "Weight (RE)": round(1 / (v  pooled_re.get("tau2", 0)), 2),
+                "CI Upper": e + 1.96 * se_i,
+                "Weight (RE)": round(1 / (v + pooled_re.get("tau2", 0)), 2),
                 "Weight (FE)": round(1 / v, 2),
                 "Type": "Study",
             })
@@ -881,7 +881,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 if len(numeric_cols) >= 2:
                     es_col = st.selectbox("Effect size column", options=numeric_cols, key="meta_es_col")
                     var_col = st.selectbox("Variance/SE column", options=[c for c in numeric_cols if c != es_col], key="meta_var_col")
-                    label_col = st.selectbox("Study label column (optional)", options=[""]  df.columns.tolist(), key="meta_label_col")
+                    label_col = st.selectbox("Study label column (optional)", options=[""] + df.columns.tolist(), key="meta_label_col")
 
                     if st.button("ðŸ“¥ Load from Data", type="primary"):
                         studies = []
@@ -1114,7 +1114,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         summary_y = -1  # Below all studies
                         # Diamond as scatter
                         diamond_x = [sd["effect"], sd["ci_upper"], sd["effect"], sd["ci_lower"], sd["effect"]]
-                        diamond_y = [summary_y, summary_y  0.3, summary_y  0.6, summary_y  0.3, summary_y]
+                        diamond_y = [summary_y, summary_y + 0.3, summary_y + 0.6, summary_y + 0.3, summary_y]
                         fig.add_trace(go.Scatter(
                             x=diamond_x,
                             y=diamond_y,
@@ -1140,7 +1140,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         autorange="reversed",
                         tickfont=dict(size=11),
                     ),
-                    height=max(400, 50  40 * len(study_data)),
+                    height=max(400, 50 + 40 * len(study_data)),
                     margin=dict(l=150, r=50, t=50, b=50),
                     hovermode="y unified",
                 )
@@ -1259,10 +1259,10 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     (2.58, "rgba(0,0,0,0.08)", "99% CI"),
                 ]:
                     lower = pooled - z_val * se_range
-                    upper = pooled  z_val * se_range
+                    upper = pooled + z_val * se_range
                     fig.add_trace(go.Scatter(
-                        x=list(lower)  list(upper)[::-1],
-                        y=list(se_range)  list(se_range)[::-1],
+                        x=list(lower) + list(upper)[::-1],
+                        y=list(se_range) + list(se_range)[::-1],
                         fill="toself",
                         fillcolor=color,
                         line=dict(color="rgba(0,0,0,0)", width=0),
@@ -1279,7 +1279,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     hoverinfo="skip",
                 ))
                 fig.add_trace(go.Scatter(
-                    x=[pooled  1.96 * s for s in se_range],
+                    x=[pooled + 1.96 * s for s in se_range],
                     y=se_range,
                     mode="lines",
                     line=dict(color="rgba(0,0,0,0.3)", width=1, dash="dot"),

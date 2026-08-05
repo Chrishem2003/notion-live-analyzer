@@ -139,7 +139,7 @@ class LiteratureContext:
             from scipy.stats import norm
             return float(norm.cdf(z) * 100)
         except ImportError:
-            return 50  z * 15  # Approximate
+            return 50 + z * 15  # Approximate
 
     # â”€â”€â”€ Sample Size Benchmarking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def benchmark_sample_size(

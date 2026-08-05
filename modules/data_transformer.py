@@ -456,7 +456,7 @@ def render_rank_ui(df: pd.DataFrame) -> pd.DataFrame:
         help="Average=mean of tied ranks, Lowest=min rank, Highest=max rank, Sequential=first seen first, Dense=no gaps"
     )
     ascending = st.checkbox("Ascending order (lowest gets rank 1)", value=True, key="rank_asc")
-    group_col = st.selectbox("Group by (optional)", options=[""]  cols, key="rank_group")
+    group_col = st.selectbox("Group by (optional)", options=[""] + cols, key="rank_group")
     new_col = st.text_input("Rank variable name", value=f"{col}_rank", key="rank_new")
 
     if st.button("â–¶ï¸ Rank Cases", type="primary"):
@@ -495,7 +495,7 @@ def render_shift_ui(df: pd.DataFrame) -> pd.DataFrame:
     cols = df.columns.tolist()
     col = st.selectbox("Variable to shift", options=cols, key="shift_col")
     periods = st.number_input("Periods (positive=lag, negative=lead)", value=1, key="shift_periods")
-    group_col = st.selectbox("Group by (optional for panel data)", options=[""]  cols, key="shift_group")
+    group_col = st.selectbox("Group by (optional for panel data)", options=[""] + cols, key="shift_group")
     new_col = st.text_input("New variable name", value=f"{col}_lag{abs(periods)}", key="shift_new")
 
     if st.button("â–¶ï¸ Create Shift", type="primary"):

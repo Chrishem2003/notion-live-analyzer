@@ -37,7 +37,7 @@ def parse_uploaded_document(uploaded_file):
                 for page in reader.pages:
                     extracted = page.extract_text()
                     if extracted:
-                        text = extracted  "\n"
+                        text = extracted + "\n"
                 if not text.strip():
                     return None, "PDF appears to be scanned or contains no selectable text."
                 return text, "success"

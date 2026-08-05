@@ -6,7 +6,7 @@ def fetch_field_site_telemetry(lat: float, lon: float) -> dict:
     """Simulates real-time NASA/Sentinel satellite telemetry retrieval for biological sampling points."""
     # Calculates localized vegetation index proxy and satellite pass data
     timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-    ndvi_value = round(0.45  ((lat  lon) % 0.35), 2)
+    ndvi_value = round(0.45  ((lat + lon) % 0.35), 2)
     
     return {
         "coordinates": f"{lat:.4f}, {lon:.4f}",

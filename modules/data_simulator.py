@@ -30,7 +30,7 @@ class DataSimulator:
 
         # Demographics
         if add_demographics:
-            data['ID'] = [f"R{str(i).zfill(4)}" for i in range(1, n_respondents  1)]
+            data['ID'] = [f"R{str(i).zfill(4)}" for i in range(1, n_respondents + 1)]
             data['Age'] = np.random.normal(35, 12, n_respondents).astype(int).clip(18, 85)
             data['Gender'] = np.random.choice(['Male', 'Female', 'Non-binary', 'Prefer not to say'],
                                                size=n_respondents, p=[0.48, 0.48, 0.03, 0.01])
@@ -86,7 +86,7 @@ class DataSimulator:
                 base = np.random.normal(50, 15, n_respondents)
                 # Add item-specific effect
                 effect = np.random.normal(0, 5)
-                data[q_name] = np.round(base  effect, 1).clip(0, 100)
+                data[q_name] = np.round(base + effect, 1).clip(0, 100)
             else:
                 # Add correlation structure (first item correlates with demographics)
                 if i == 0 and add_demographics:
@@ -139,10 +139,10 @@ class DataSimulator:
                 if group_name == 'Control':
                     effect = 0
                 else:
-                    effect = effect_size * 10 * (1  0.1 * group_idx)
+                    effect = effect_size * 10 * (1 + 0.1 * group_idx)
 
                 # Post-test with effect
-                post_test = pre_test  effect  np.random.normal(0, 5)
+                post_test = pre_test + effect + np.random.normal(0, 5)
 
                 # Covariate (e.g., age, baseline measure)
                 covariate = np.random.normal(0, 1) if add_covariate else None
@@ -188,9 +188,9 @@ class DataSimulator:
         # Create correlation matrix
         corr_matrix = np.eye(n_variables)
         for i in range(n_variables):
-            for j in range(i  1, n_variables):
+            for j in range(i + 1, n_variables):
                 if random.random() < 0.4:  # 40% chance of correlation
-                    corr_matrix[i, j] = correlation_strength  random.uniform(-0.2, 0.2)
+                    corr_matrix[i, j] = correlation_strength + random.uniform(-0.2, 0.2)
                     corr_matrix[j, i] = corr_matrix[i, j]
                     corr_matrix[i, j] = np.clip(corr_matrix[i, j], -0.9, 0.9)
                     corr_matrix[j, i] = corr_matrix[i, j]
@@ -207,7 +207,7 @@ class DataSimulator:
         # Add noise
         if add_noise:
             noise = np.random.normal(0, 0.5, data.shape)
-            data = data  noise
+            data = data + noise
 
         # Convert to DataFrame
         var_names = [f"Var_{i1}" for i in range(n_variables)]
@@ -255,13 +255,13 @@ class DataSimulator:
         noise = np.random.normal(0, noise_level, n_periods)
 
         # Combined
-        values = 50  trend_component  season_component  noise
+        values = 50 + trend_component + season_component + noise
         # Cumulative sum for non-stationary feel
-        values = np.cumsum(values - values.mean()) / 10  100
+        values = np.cumsum(values - values.mean()) / 10 + 100
 
         # Additional variables
-        predictor1 = 0.5 * values  np.random.normal(0, 2, n_periods)
-        predictor2 = 0.3 * values  np.random.normal(0, 3, n_periods)  0.1 * t
+        predictor1 = 0.5 * values + np.random.normal(0, 2, n_periods)
+        predictor2 = 0.3 * values + np.random.normal(0, 3, n_periods) + 0.1 * t
 
         df = pd.DataFrame({
             'Date': dates,
@@ -298,11 +298,11 @@ class DataSimulator:
         rows = []
         group_names = ['Control', 'Treatment'][:n_groups]
 
-        for subj in range(1, n_subjects  1):
+        for subj in range(1, n_subjects + 1):
             group = group_names[subj % n_groups]
             base_score = np.random.normal(50, 10)
 
-            for tp in range(1, n_timepoints  1):
+            for tp in range(1, n_timepoints + 1):
                 time_effect = tp * 2  # Natural increase over time
 
                 if group == 'Treatment':
@@ -310,7 +310,7 @@ class DataSimulator:
                 else:
                     treatment_effect = 0
 
-                score = base_score  time_effect  treatment_effect  np.random.normal(0, 5)
+                score = base_score + time_effect + treatment_effect + np.random.normal(0, 5)
 
                 rows.append({
                     'Subject_ID': f"S{str(subj).zfill(3)}",
@@ -341,7 +341,7 @@ def _likert_probs(base_prob: float, scale_values: List[int]) -> List[float]:
     probs[0] = base_prob
     for i in range(1, n - 1):
         if i == n // 2:
-            probs[i] = probs[i] * 0.5  base_prob * 0.3
+            probs[i] = probs[i] * 0.5 + base_prob * 0.3
     probs = probs / probs.sum()
     return probs.tolist()
 

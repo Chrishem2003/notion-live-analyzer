@@ -423,8 +423,8 @@ class TaskScheduler:
         if len(parts) >= 5:
             now = datetime.utcnow()
             # Very simplified - just add hours
-            return now  timedelta(hours=1)
-        return datetime.utcnow()  timedelta(days=1)
+            return now + timedelta(hours=1)
+        return datetime.utcnow() + timedelta(days=1)
     
     def check_and_run(self) -> List[Dict]:
         """Check and run due tasks."""

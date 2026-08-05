@@ -449,7 +449,7 @@ def render_apa_quick_format_ui():
                 "p_value": p_val,
                 "cohens_d": d_val,
                 "mean_1": mean1, "mean_2": mean2,
-                "n_1": df_val // 2  1, "n_2": df_val // 2  1,
+                "n_1": df_val // 2 + 1, "n_2": df_val // 2 + 1,
                 "significant": p_val < 0.05,
                 "group_1": "Group 1", "group_2": "Group 2",
             }
@@ -470,7 +470,7 @@ def render_apa_quick_format_ui():
                 "f_statistic": f_val,
                 "p_value": p_val,
                 "eta_squared": eta2,
-                "num_groups": df1  1,
+                "num_groups": df1 + 1,
                 "total_n": 100,
                 "significant": p_val < 0.05,
             }

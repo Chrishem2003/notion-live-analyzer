@@ -155,7 +155,7 @@ def render_structure_viewer_tab():
                 show_surface=show_surface,
                 height=viewer_height
             )
-            components.html(html_content, height=viewer_height  20)
+            components.html(html_content, height=viewer_height + 20)
             st.info("ðŸ” **Controls:** Click  Drag to rotate | Scroll to zoom | Right-Click  Drag to pan")
         else:
             st.warning("Enter a valid PDB ID or upload a structure file to render.")

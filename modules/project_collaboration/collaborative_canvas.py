@@ -188,17 +188,17 @@ class ViewportState:
         half_h = (self.height / 2) / self.zoom
         return {
             "left": self.x - half_w,
-            "right": self.x  half_w,
+            "right": self.x + half_w,
             "top": self.y - half_h,
-            "bottom": self.y  half_h,
+            "bottom": self.y + half_h,
         }
 
     def is_visible(self, element_x: float, element_y: float,
                    margin: float = 100) -> bool:
         """Check if a point is visible in the current viewport."""
         bbox = self.get_bounding_box()
-        return (bbox["left"] - margin <= element_x <= bbox["right"]  margin and
-                bbox["top"] - margin <= element_y <= bbox["bottom"]  margin)
+        return (bbox["left"] - margin <= element_x <= bbox["right"] + margin and
+                bbox["top"] - margin <= element_y <= bbox["bottom"] + margin)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary."""
@@ -259,7 +259,7 @@ class CRDTElement:
             return False
 
         # Increment state vector for updater
-        self.state_vector[updater_id] = self.state_vector.get(updater_id, 0)  1
+        self.state_vector[updater_id] = self.state_vector.get(updater_id, 0) + 1
 
         # Apply updates (LWW  last writer wins per field)
         for key, value in updates.items():
@@ -433,7 +433,7 @@ class GhostStage:
             "additions": len(additions),
             "modifications": len(modifications),
             "deletions": len(deletions),
-            "total_changes": len(additions)  len(modifications)  len(deletions),
+            "total_changes": len(additions) + len(modifications) + len(deletions),
             "additions_detail": additions[:10],  # Limit to 10 for display
             "modifications_detail": modifications[:10],
             "deletions_detail": deletions[:10],
@@ -477,7 +477,7 @@ class GhostStage:
             "added": added,
             "updated": updated,
             "deleted": deleted,
-            "total": added  updated  deleted,
+            "total": added + updated + deleted,
             "merged_at": datetime.now().isoformat(),
         }
 
@@ -901,7 +901,7 @@ class CollaborativeCanvas:
         type_counts: Dict[str, int] = {}
         for elem in active_elements:
             t = elem.type.value
-            type_counts[t] = type_counts.get(t, 0)  1
+            type_counts[t] = type_counts.get(t, 0) + 1
 
         return {
             "project_id": self.project_id,

@@ -31,7 +31,7 @@ class DeckBuilder:
     def add_slide(self, title: str, content: str, chart_fig=None, slide_type: str = "content"):
         """Add a slide to the deck."""
         slide = {
-            "id": len(self.slides)  1,
+            "id": len(self.slides) + 1,
             "type": slide_type,
             "title": title,
             "content": content,
@@ -235,7 +235,7 @@ class DeckBuilder:
         type_counts = {}
         for s in self.slides:
             stype = s.get("type", "content")
-            type_counts[stype] = type_counts.get(stype, 0)  1
+            type_counts[stype] = type_counts.get(stype, 0) + 1
 
         return {
             "total_slides": len(self.slides),
@@ -371,10 +371,10 @@ def render_deck_builder_ui():
             st.rerun()
     with col_counter:
         total = len(deck.slides)
-        current = deck.current_slide_idx  1
+        current = deck.current_slide_idx + 1
         slide_idx = st.select_slider(
             "Slide navigation",
-            options=list(range(1, total  1)),
+            options=list(range(1, total + 1)),
             value=min(current, total),
             key="slide_nav",
             label_visibility="collapsed",
@@ -384,7 +384,7 @@ def render_deck_builder_ui():
             st.rerun()
     with col_next:
         if st.button("Next âž¡ï¸", use_container_width=True, disabled=deck.current_slide_idx >= len(deck.slides) - 1):
-            deck.current_slide_idx = min(len(deck.slides) - 1, deck.current_slide_idx  1)
+            deck.current_slide_idx = min(len(deck.slides) - 1, deck.current_slide_idx + 1)
             st.rerun()
 
     # Current slide display
@@ -434,8 +434,8 @@ def render_deck_builder_ui():
     with col_edit2:
         if st.button("â¬‡ï¸ Move Down", use_container_width=True, disabled=deck.current_slide_idx >= len(deck.slides) - 1):
             idx = deck.current_slide_idx
-            deck.slides[idx], deck.slides[idx  1] = deck.slides[idx  1], deck.slides[idx]
-            deck.current_slide_idx = min(len(deck.slides) - 1, idx  1)
+            deck.slides[idx], deck.slides[idx + 1] = deck.slides[idx + 1], deck.slides[idx]
+            deck.current_slide_idx = min(len(deck.slides) - 1, idx + 1)
             st.rerun()
     with col_edit3:
         if st.button("ðŸ—‘ï¸ Remove Slide", use_container_width=True, type="secondary"):

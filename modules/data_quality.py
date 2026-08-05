@@ -244,7 +244,7 @@ class DataQualityReport:
             q3 = series.quantile(0.75)
             iqr = q3 - q1
             lower = q1 - 3 * iqr
-            upper = q3  3 * iqr
+            upper = q3 + 3 * iqr
 
             extreme = series[(series < lower) | (series > upper)]
             if len(extreme) > 0:
@@ -292,7 +292,7 @@ class DataQualityReport:
         duplicate_cols = []
         if not col_corr.empty:
             for i in range(len(col_corr.columns)):
-                for j in range(i  1, len(col_corr.columns)):
+                for j in range(i + 1, len(col_corr.columns)):
                     if col_corr.iloc[i, j] > 0.999:
                         duplicate_cols.append((col_corr.columns[i], col_corr.columns[j]))
 

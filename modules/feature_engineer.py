@@ -54,7 +54,7 @@ class FeatureEngineer:
         y = df[target].fillna(df[target].median())
 
         for i, v1 in enumerate(top_vars):
-            for v2 in top_vars[i  1:]:
+            for v2 in top_vars[i + 1:]:
                 interaction = df[v1] * df[v2]
                 valid = interaction.notna()
                 if valid.sum() < 10:
@@ -92,7 +92,7 @@ class FeatureEngineer:
         """Generate polynomial features up to specified degree."""
         result = df.copy()
         for col in columns:
-            for degree in range(2, max_degree  1):
+            for degree in range(2, max_degree + 1):
                 new_col = f"{col}^{degree}"
                 result[new_col] = df[col] ** degree
         return result

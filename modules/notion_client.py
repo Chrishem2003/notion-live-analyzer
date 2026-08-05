@@ -72,7 +72,7 @@ class RateLimiter:
         self.calls = [t for t in self.calls if now - t < self.per_seconds]
         
         if len(self.calls) >= self.max_calls:
-            sleep_time = self.calls[0]  self.per_seconds - now
+            sleep_time = self.calls[0] + self.per_seconds - now
             if sleep_time > 0:
                 time.sleep(sleep_time)
         
@@ -204,7 +204,7 @@ def get_database_options(token: str) -> List[Dict]:
             if response.status_code != 200:
                 logger.error(
                     "Notion database search failed (page %s): %s  %s",
-                    page_count  1, response.status_code, response.text[:200],
+                    page_count + 1, response.status_code, response.text[:200],
                 )
                 if not _handle_api_error(response, token):
                     st.error(

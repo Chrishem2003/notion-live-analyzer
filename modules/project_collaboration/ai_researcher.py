@@ -448,7 +448,7 @@ class TranscriptProcessor:
             segment.extracted_action_items = action_items
 
         # Accumulate for summary
-        self._accumulated_text = " "  cleaned_text
+        self._accumulated_text = " " + cleaned_text
 
         # Check if we should generate a summary
         if len(self.segments) - self._last_summary_index >= SUMMARIZATION_INTERVAL:
@@ -476,7 +476,7 @@ class TranscriptProcessor:
 
         # Capitalize first letter
         if text and text[0].islower():
-            text = text[0].upper()  text[1:]
+            text = text[0].upper() + text[1:]
 
         return text
 
@@ -531,7 +531,7 @@ class TranscriptProcessor:
         words = set(w.lower().rstrip(".,!?;:") for w in text.split())
         pos_count = sum(1 for w in words if w in positive_words)
         neg_count = sum(1 for w in words if w in negative_words)
-        total = pos_count  neg_count
+        total = pos_count + neg_count
 
         if total == 0:
             return 0.0
@@ -1098,7 +1098,7 @@ class AIResearcher:
             generated_by=self.researcher_id,
             source_segment_ids=[action_item.source_segment_id],
         )
-        note.tags = ["action_item"]  action_item.tags
+        note.tags = ["action_item"] + action_item.tags
 
         self.notes[note.id] = note
         self._emit("note_generated", note.to_dict())

@@ -34,7 +34,7 @@ CHRISHEM_SALT = b"CHRISHEM_AUDIT_PORTAL_SALT_2024"
 def derive_fernet_key(password: str) -> bytes:
     """Derive a 32-byte Fernet key from a password."""
     if not HAS_CRYPTOGRAPHY:
-        return hashlib.sha256(password.encode()  CHRISHEM_SALT).digest()
+        return hashlib.sha256(password.encode() + CHRISHEM_SALT).digest()
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
