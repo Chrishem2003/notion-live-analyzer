@@ -3,12 +3,15 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from modules.database import log_backend_event
+from modules.security_config import is_admin_email
 
 def verify_master_admin(email: str) -> bool:
     """
-    Validates if the provided email belongs to the master administrator.
+    Server-side check: validates if the provided email belongs to the master
+    administrator. The admin email is resolved from configuration (env / .env),
+    never hardcoded in source.
     """
-    return email.strip().lower() == "chrishem242@gmail.com"
+    return is_admin_email(email)
 
 def render_access_control_panel():
     """

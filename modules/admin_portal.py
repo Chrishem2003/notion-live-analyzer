@@ -20,9 +20,13 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 
-# Admin access control
+# Admin access control  driven by configuration, not hardcoded values.
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
-ADMIN_EMAILS = ["chrishem242@gmail.com"]  # Whitelist
+ADMIN_EMAILS = [
+    email.strip()
+    for email in os.environ.get("ADMIN_EMAILS", "").split(",")
+    if email.strip()
+]  # Whitelist. Real values go in a git-ignored .env / environment.
 
 def _get_service_headers() -> dict:
     return {
@@ -36,29 +40,44 @@ def _get_service_headers() -> dict:
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•=============
 
 def is_admin() -> bool:
-    """Check if current user is admin."""
-    # Check in session state first
+    """
+    Server-side admin check.
+
+    Precedence:
+      1. Verified authenticated role in session state (set by a real login/
+         auth flow after verifying a hashed password — do not set this from
+         client input alone).
+      2. Matching ADMIN_KEY supplied as a server-side secret (legacy).
+      3. Current user email in the configured ADMIN_EMAILS whitelist
+         (seeded via env/.env, never hardcoded).
+
+    The email whitelist is a *server-side* check on the current session's
+    email, not a client-only UI toggle.
+    """
+    # Check in session state first — this must have been set server-side by
+    # a verified login flow.
     if st.session_state.get("is_admin"):
         return True
-    
-    # Check secret key
+
+    # Check secret key (optional legacy admin key from env/.env).
     provided_key = st.query_params.get("admin_key", "")
-    if provided_key and provided_key == ADMIN_KEY:
+    if provided_key and ADMIN_KEY and hmac.compare_digest(provided_key, ADMIN_KEY):
         st.session_state["is_admin"] = True
         return True
-    
-    # Check email whitelist
+
+    # Check email whitelist (from configuration).
     user_email = st.session_state.get("user_email", "")
     if user_email in ADMIN_EMAILS:
         return True
-    
+
     return False
+
 
 def require_admin(func):
     """Decorator to require admin access."""
     def wrapper(*args, **kwargs):
         if not is_admin():
-            st.error("ðŸ”’ This page requires admin access")
+            st.error("🔒 This page requires admin access")
             st.info("Contact the administrator for access.")
             return None
         return func(*args, **kwargs)
@@ -129,7 +148,7 @@ def create_promo_code(code: str, discount: int, expires_days: int) -> Dict:
     promo_data = {
         "code": code.upper(),
         "discount_percent": discount,
-        "expires_at": (datetime.utcnow()  timedelta(days=expires_days)).isoformat(),
+        "expires_at": (datetime.utcnow() + timedelta(days=expires_days)).isoformat(),
         "created_at": datetime.utcnow().isoformat(),
         "uses": 0,
         "max_uses": 100,
@@ -194,7 +213,7 @@ def get_analytics() -> Dict[str, Any]:
             notion_claimed = 1
     
     # Calculate MRR (simplified)
-    mrr = tier_counts["standard"] * 15  tier_counts["premium"] * 49  # $15/$49/month
+    mrr = tier_counts["standard"] * 15 + tier_counts["premium"] * 49  # $15/$49/month
     
     return {
         "total_users": total_users,
@@ -269,8 +288,8 @@ def render_admin_portal():
         
         if tier_filter != "All":
             df = df[df["tier"] == tier_filter]
-        if status_filter != "All":
-            df = df[df.get("subscription_status", "active") == status_filter]
+        if status_filter != "All" and "subscription_status" in df.columns:
+            df = df[df["subscription_status"] == status_filter]
         
         # Display user table
         st.dataframe(

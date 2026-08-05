@@ -1,27 +1,37 @@
-# Error Fix & Commit Plan
+# Full Upgrade — Progress Tracker
 
-## Steps
-- [x] Analyze all errors across 9 page files
-- [x] Confirm plan with user
+## Phase 1 — Security Hardening (brief §0)
+- [x] Create `modules/security_config.py` — centralized secret resolution, admin seeding, password hashing
+- [x] Fix `modules/access_control.py` — remove hardcoded admin email, use env-based check
+- [x] Fix `modules/admin_portal.py` — server-side role check, admin email from env (also fixed mojibake operators)
+- [x] Add `tests/test_security_config.py` (14 tests passing)
 
-### Phase 1: Fix Syntax & Indentation Errors
-- [ ] Fix `pages/16_🔗_Google_Sheets.py` — indentation of `for src` loop
-- [ ] Fix `pages/21_🛰️_Global_Research_Radar.py` — indentation of `search_q` / `sev_filter`
-- [ ] Fix `pages/25_🔍_Sensitivity_Analysis.py` — mojibake operators (`+`, `*`) and indentation
-- [ ] Fix `pages/9_📋_Methodology_Advisor.py` — indentation of `options=...` and `num_groups`
-- [ ] Fix `pages/31_💬_NL_Query.py` — indentation of `np.random.seed`, fix `fig = px.scatter(...)` line
-- [ ] Fix `pages/32_🛡️_Audit_Compliance.py` — indentation of `if st.button`, fix `prev_hash[:12]  "..."` operator
-- [ ] Fix `pages/34_🌐_Global_Localization.py` — indentation of `region_opts`
-- [ ] Fix `pages/37_📊_Chart_Data_Extractor.py` — indentation of `np.random.seed`
-- [ ] Fix `pages/42_🧮_Hypothesis_Simulator.py` — indentation of `stochastic_shocks`
+## Phase 2 — Subscription / Trial / Agency Core (brief §6, §7 + addendum)
+- [x] Create `modules/subscription_core.py` — pure-logic: has_access, require_access, require_admin, start_trial, webhook verification
+- [x] Create `modules/workspace.py` — multi-workspace/agency mode
+- [x] Refactor `modules/subscription.py` — delegate trial/access checks to subscription_core.has_access(); fixed mojibake operators (+1, +timedelta)
+- [x] Add `tests/test_subscription_core.py` (31 tests passing combined)
 
-### Phase 2: Verify + Check Other Files
-- [ ] Re-run `py_compile` on all 9 files
-- [ ] Check `app.py`, `main.py`, key modules for errors
+## Phase 3 — Real Automations & AI (brief §4, §5)
+- [ ] Create `modules/llm_client.py` — call_llm() wrapper, tag suggestion, NL query
+- [ ] Create `modules/audit_rules.py` — condition types, rule evaluation, run_audit
+- [ ] Create `modules/weekly_digest.py` — digest data, email HTML builder, run_all_digests
+- [ ] Wire `modules/advanced_automations.py` to real handles where possible
+- [ ] Add `tests/test_llm_client.py`
+- [ ] Add `tests/test_audit_rules.py`
 
-### Phase 3: Commit & Push
-- [ ] Stage all fixed files
-- [ ] Create `.gitignore` entries for `.pyc`, `.db` if needed
-- [ ] Commit with descriptive message
-- [ ] Push to origin/main
+## Phase 4 — Governance & Presentations (brief §4, addendum)
+- [ ] Create `modules/governance.py` — activity log, permission health check, CSV export
+- [ ] Create `modules/presentations.py` — health report generation, streamlit render
+- [ ] Add `tests/test_governance.py`
+- [ ] Add `tests/test_presentations.py`
+
+## Phase 5 — Integration & Landing (brief §8)
+- [ ] Create `landing.py` — value prop + trial CTA page
+- [ ] Wire `app.py`/`main.py` to show subscription status and gate premium modules
+
+## Phase 6 — Final Verification
+- [ ] Run `pytest` — all tests pass
+- [ ] Run `python -m py_compile` on all new/modified modules
+- [ ] Manual QA smoke test notes added
 

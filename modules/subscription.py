@@ -5,7 +5,7 @@ import hashlib
 import hmac
 import time
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, Tuple, List
 from enum import Enum
 
@@ -14,7 +14,17 @@ import streamlit as st
 import requests
 import pandas as pd
 
+from modules.subscription_core import (
+    TRIAL_LENGTH_DAYS as TRIAL_LENGTH_DAYS_CORE,
+    SubStatus,
+    Subscription,
+)
+
 logger = logging.getLogger(__name__)
+
+# Single source of truth for trial length comes from subscription_core.
+# Keep a local alias for backwards compatibility with existing callers.
+STRIPE_FREE_TRIAL_DAYS = TRIAL_LENGTH_DAYS_CORE
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # TIER DEFINITIONS
@@ -192,7 +202,7 @@ def increment_billingCounter(limit_type: str):
     """Increment usage counter for a billing limit type."""
     usage_key = f"{limit_type}_used"
     current = st.session_state.get(usage_key, 0)
-    st.session_state[usage_key] = current  1
+    st.session_state[usage_key] = current + 1
 
 def render_limit_warning(limit_type: str):
     """Render a warning when user approaches their limit."""
@@ -217,7 +227,8 @@ STRIPE_PRICE_IDS = {
     Tier.STANDARD: os.environ.get("STRIPE_PRICE_STANDARD", "price_standard"),
     Tier.PREMIUM: os.environ.get("STRIPE_PRICE_PREMIUM", "price_premium"),
 }
-STRIPE_FREE_TRIAL_DAYS = 15
+# STRIPE_FREE_TRIAL_DAYS is defined at the top of this module, sourced from
+# subscription_core.TRIAL_LENGTH_DAYS (single source of truth).
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # SUPABASE CONFIGURATION
@@ -390,9 +401,9 @@ def increment_usage():
     if st.session_state.get("last_usage_date") != today:
         st.session_state["daily_usage"] = {}
         st.session_state["last_usage_date"] = today
-    
+
     current = st.session_state["daily_usage"].get("queries", 0)
-    st.session_state["daily_usage"]["queries"] = current  1
+    st.session_state["daily_usage"]["queries"] = current + 1
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # STRIPE CHECKOUT
@@ -501,7 +512,7 @@ def handle_stripe_webhook(event: dict):
 
 def start_trial(tier: Tier = Tier.STANDARD) -> datetime:
     """Start free trial for specified tier."""
-    trial_end = datetime.utcnow()  timedelta(days=STRIPE_FREE_TRIAL_DAYS)
+    trial_end = datetime.utcnow() + timedelta(days=STRIPE_FREE_TRIAL_DAYS)
     st.session_state["trial_end_date"] = trial_end.isoformat()
     st.session_state["subscription_status"] = "trial"
     st.session_state["user_tier"] = tier.value
@@ -523,33 +534,74 @@ def start_trial(tier: Tier = Tier.STANDARD) -> datetime:
     
     return trial_end
 
-def is_trial_active() -> bool:
-    """Check if trial is still active."""
-    if st.session_state.get("subscription_status") != "trial":
-        return False
-    
+def _build_subscription_from_session() -> Optional[Subscription]:
+    """Build a subscription_core.Subscription from the current session state.
+
+    This allows the pure-logic ``has_access`` to be the single source of
+    truth for trial/paid access, even with session-backed state (no DB yet).
+    """
+    from modules.subscription_core import Subscription as _Sub
+    from modules.subscription_core import start_trial as _start_trial
+
+    status = st.session_state.get("subscription_status", "inactive")
     trial_end = st.session_state.get("trial_end_date")
-    if not trial_end:
+
+    if status == "active":
+        return _Sub(
+            user_id=st.session_state.get("user_id", ""),
+            status=SubStatus.ACTIVE,
+            trial_started_at=datetime.now(timezone.utc),
+            trial_ends_at=datetime.now(timezone.utc) + timedelta(days=STRIPE_FREE_TRIAL_DAYS),
+            current_period_end=datetime.now(timezone.utc) + timedelta(days=30),
+        )
+
+    if status == "trial" and trial_end:
+        try:
+            end_date = datetime.fromisoformat(trial_end.replace("Z", "+00:00"))
+            if end_date.tzinfo is None:
+                end_date = end_date.replace(tzinfo=timezone.utc)
+            return _Sub(
+                user_id=st.session_state.get("user_id", ""),
+                status=SubStatus.TRIAL,
+                trial_started_at=end_date - timedelta(days=STRIPE_FREE_TRIAL_DAYS),
+                trial_ends_at=end_date,
+            )
+        except Exception:
+            return None
+
+    return None
+
+
+def has_access() -> bool:
+    """Single source of truth: does the current user have paid/trial access?
+
+    Delegates to ``subscription_core.has_access`` on a subscription built
+    from the current session state. Prefer persisting a real Subscription
+    row in the database and calling ``subscription_core.has_access(sub)``
+    directly for production.
+    """
+    from modules.subscription_core import has_access as _has_access
+
+    sub = _build_subscription_from_session()
+    # If we couldn't build a subscription (e.g. "inactive"), no access.
+    if sub is None:
         return False
-    
-    try:
-        end_date = datetime.fromisoformat(trial_end.replace("Z", "00:00"))
-        return datetime.utcnow() < end_date
-    except Exception:
-        return False
+    return _has_access(sub)
+
+
+def is_trial_active() -> bool:
+    """Check if trial is still active (delegates to the single source of truth)."""
+    return has_access() and st.session_state.get("subscription_status") == "trial"
+
 
 def get_trial_days_remaining() -> int:
-    """Get remaining trial days."""
-    trial_end = st.session_state.get("trial_end_date")
-    if not trial_end:
+    """Get remaining trial days (delegates to subscription_core)."""
+    from modules.subscription_core import days_left_in_trial
+
+    sub = _build_subscription_from_session()
+    if sub is None:
         return 0
-    
-    try:
-        end_date = datetime.fromisoformat(trial_end.replace("Z", "00:00"))
-        remaining = (end_date - datetime.utcnow()).days
-        return max(0, remaining)
-    except Exception:
-        return 0
+    return days_left_in_trial(sub)
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ACCESS CONTROL DECORATOR
