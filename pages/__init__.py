@@ -56,6 +56,16 @@ PAGE_REGISTRY = {
     46: "Application Pipeline",
     47: "System Diagnostics",
     48: "Advanced Chaos Engine",
+    57: "GIS Spatial Analytics",
+    58: "Mendeley Reference Manager",
+    59: "SPSS Advanced Suite",
+    60: "Agent Swarm Task Console",
+    61: "Subscriptions, Licensing & Access",
+    62: "Admin Billing & Management Portal",
+    63: "Academic Portfolio & Grants Studio",
+    64: "Global Surveillance & Impact",
+    65: "Advanced AI & Defensive Cores",
+    66: "Telemetry, Webhooks & Threat Response",
 }
 
 
