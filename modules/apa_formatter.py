@@ -1,6 +1,6 @@
 
 """
-APA Formatter  formats statistical results in APA 7th edition style.
+APA Formatter + formats statistical results in APA 7 + th edition style.
 Provides publication-ready output for all statistical tests.
 """
 from typing import Dict, List, Any, Optional, Union, Tuple
@@ -12,26 +12,26 @@ import re
 
 
 class APAFormatter:
-    """Format statistical results in APA 7th edition style."""
+    """Format statistical results in APA 7 + th edition style."""
 
     @staticmethod
     def format_p_value(p: float, stars: bool = True) -> str:
         """Format p-value in APA style."""
         if p < 0.001:
-            return "p < .001"  ("***" if stars else "")
+            return "p < .001" + ("***" if stars else "")
         elif p < 0.01:
-            return f"p = {p:.3f}"  ("**" if stars else "")
+            return f"p = {p:.3 + f}" + ("**" if stars else "")
         elif p < 0.05:
-            return f"p = {p:.3f}"  ("*" if stars else "")
+            return f"p = {p:.3 + f}" + ("*" if stars else "")
         elif p < 0.10:
-            return f"p = {p:.3f}"  ("â€ " if stars else "")
+            return f"p = {p:.3 + f}" + ("â€ " if stars else "")
         else:
-            return f"p = {p:.3f}"
+            return f"p = {p:.3 + f}"
 
     @staticmethod
     def format_effect_size(d: float, name: str = "Cohen's d") -> str:
         """Format effect size in APA style."""
-        return f"{name} = {d:.2f}, {APAFormatter._interpret_effect_size(d, name)}"
+        return f"{name} = {d:.2 + f}, {APAFormatter._interpret_effect_size(d, name)}"
 
     @staticmethod
     def _interpret_effect_size(val: float, name: str = "Cohen's d") -> str:
@@ -84,7 +84,7 @@ class APAFormatter:
     @staticmethod
     def format_confidence_interval(ci_lower: float, ci_upper: float, confidence: float = 0.95) -> str:
         """Format confidence interval in APA style."""
-        return f"{confidence*100:.0f}% CI [{ci_lower:.2f}, {ci_upper:.2f}]"
+        return f"{confidence*100:.0 + f}% CI [{ci_lower:.2 + f}, {ci_upper:.2 + f}]"
 
     # â”€â”€â”€ Test-Specific Formatters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -105,7 +105,7 @@ class APAFormatter:
                 f"({APAFormatter.format_mean_sd(result.get('mean_1', 0), 0)}) "
                 f"and {result.get('group_2', 'Group 2')} "
                 f"({APAFormatter.format_mean_sd(result.get('mean_2', 0), 0)}), "
-                f"t({result.get('n_1', 0)  result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2f}, "
+                f"t({result.get('n_1', 0) + result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2 + f}, "
                 f"{APAFormatter.format_p_value(result.get('p_value', 1))}, "
                 f"{APAFormatter.format_effect_size(result.get('cohens_d', 0), eff_name)}."
             )
@@ -116,8 +116,8 @@ class APAFormatter:
                 f"There was a {'significant' if result.get('significant') else 'non-significant'} "
                 f"difference between pre-test ({APAFormatter.format_mean_sd(result.get('mean_before', 0), 0)}) "
                 f"and post-test ({APAFormatter.format_mean_sd(result.get('mean_after', 0), 0)}) scores, "
-                f"with a mean change of {result.get('mean_change', 0):.2f}, "
-                f"t({result.get('n_pairs', 0) - 1}) = {result.get('t_statistic', 0):.2f}, "
+                f"with a mean change of {result.get('mean_change', 0):.2 + f}, "
+                f"t({result.get('n_pairs', 0) - 1}) = {result.get('t_statistic', 0):.2 + f}, "
                 f"{APAFormatter.format_p_value(result.get('p_value', 1))}, "
                 f"{APAFormatter.format_effect_size(result.get('cohens_d', 0), eff_name)}."
             )
@@ -125,9 +125,9 @@ class APAFormatter:
         elif test_type == "One-Sample T-Test":
             eff_name = "Cohen's d"
             parts.append(
-                f"The mean {result.get('mean', 0):.2f} was {'significantly' if result.get('significant') else 'not significantly'} "
+                f"The mean {result.get('mean', 0):.2 + f} was {'significantly' if result.get('significant') else 'not significantly'} "
                 f"different from the test value of {result.get('test_value', 0)}, "
-                f"t({result.get('n', 0) - 1}) = {result.get('t_statistic', 0):.2f}, "
+                f"t({result.get('n', 0) - 1}) = {result.get('t_statistic', 0):.2 + f}, "
                 f"{APAFormatter.format_p_value(result.get('p_value', 1))}, "
                 f"{APAFormatter.format_effect_size(result.get('cohens_d', 0), eff_name)}."
             )
@@ -148,7 +148,7 @@ class APAFormatter:
                 f"There was a {'significant' if result.get('significant') else 'non-significant'} "
                 f"effect of group on the dependent variable, "
                 f"F({result.get('num_groups', 1) - 1}, {result.get('total_n', 0) - result.get('num_groups', 1)}) "
-                f"= {result.get('f_statistic', 0):.2f}, "
+                f"= {result.get('f_statistic', 0):.2 + f}, "
                 f"{APAFormatter.format_p_value(result.get('p_value', 1))}, "
                 f"{APAFormatter.format_effect_size(result.get('eta_squared', 0), 'Eta-squared')}."
             )
@@ -168,7 +168,7 @@ class APAFormatter:
             parts.append(
                 f"There was a {'significant' if result.get('significant') else 'non-significant'} "
                 f"{result.get('strength', '')} correlation between the variables, "
-                f"r({result.get('n', 0) - 2}) = {result.get('r', 0):.2f}, "
+                f"r({result.get('n', 0) - 2}) = {result.get('r', 0):.2 + f}, "
                 f"{APAFormatter.format_p_value(result.get('p_value', 1))}, "
                 f"{APAFormatter.format_effect_size(result.get('r', 0), 'r')}."
             )
@@ -177,7 +177,7 @@ class APAFormatter:
             parts.append(
                 f"There was a {'significant' if result.get('significant') else 'non-significant'} "
                 f"correlation between the variables, "
-                f"Ï({result.get('n', 0) - 2}) = {result.get('rho', 0):.2f}, "
+                f"Ï({result.get('n', 0) - 2}) = {result.get('rho', 0):.2 + f}, "
                 f"{APAFormatter.format_p_value(result.get('p_value', 1))}."
             )
 
@@ -195,7 +195,7 @@ class APAFormatter:
             f"There was a {'significant' if result.get('significant') else 'non-significant'} "
             f"association between the variables, "
             f"Chi2({result.get('degrees_of_freedom', 1)}, N = {result.get('sample_size', 0)}) "
-            f"= {result.get('chi_square', 0):.2f}, "
+            f"= {result.get('chi_square', 0):.2 + f}, "
             f"{APAFormatter.format_p_value(result.get('p_value', 1))}, "
             f"{APAFormatter.format_effect_size(result.get('cramers_v', 0), eff_name)}."
         )
@@ -221,7 +221,7 @@ class APAFormatter:
                 if r2 is not None:
                     parts.append(
                         f"The model was {'significant' if f_pval and f_pval < 0.05 else 'non-significant'}, "
-                        f"F(_, _) = {float(f_stat):.2f}, {APAFormatter.format_p_value(float(f_pval))}, "
+                        f"F(_, _) = {float(f_stat):.2 + f}, {APAFormatter.format_p_value(float(f_pval))}, "
                         f"{APAFormatter.format_effect_size(float(r2), 'RÂ²')}."
                     )
                 return " ".join(parts)
@@ -243,7 +243,7 @@ class APAFormatter:
         return (
             f"Cronbach's alpha was calculated to assess the internal consistency "
             f"of the {items}-item scale (N = {n}). "
-            f"The analysis yielded Î± = {alpha:.3f}, indicating {interp.lower()} reliability."
+            f"The analysis yielded Î± = {alpha:.3 + f}, indicating {interp.lower()} reliability."
         )
 
     @staticmethod
@@ -256,7 +256,7 @@ class APAFormatter:
             f"A Mann-Whitney U test indicated that there was "
             f"{'a significant' if result.get('significant') else 'no significant'} "
             f"difference between the groups "
-            f"(U = {result.get('u_statistic', 0):.2f}, "
+            f"(U = {result.get('u_statistic', 0):.2 + f}, "
             f"{APAFormatter.format_p_value(result.get('p_value', 1))})."
         )
 
@@ -270,7 +270,7 @@ class APAFormatter:
             f"A Kruskal-Wallis H test showed that there was "
             f"{'a significant' if result.get('significant') else 'no significant'} "
             f"difference between groups "
-            f"(H({result.get('degrees_of_freedom', 1)}) = {result.get('h_statistic', 0):.2f}, "
+            f"(H({result.get('degrees_of_freedom', 1)}) = {result.get('h_statistic', 0):.2 + f}, "
             f"{APAFormatter.format_p_value(result.get('p_value', 1))})."
         )
 
@@ -284,7 +284,7 @@ class APAFormatter:
             f"A Wilcoxon signed-rank test indicated that the median post-test scores were "
             f"{'significantly' if result.get('significant') else 'not significantly'} "
             f"different from pre-test scores "
-            f"(W = {result.get('w_statistic', 0):.2f}, "
+            f"(W = {result.get('w_statistic', 0):.2 + f}, "
             f"{APAFormatter.format_p_value(result.get('p_value', 1))}, "
             f"n = {result.get('n_pairs', 0)})."
         )
@@ -300,7 +300,7 @@ class APAFormatter:
             f"Results indicated that the data "
             f"{'followed' if result.get('is_normal') else 'did not follow'} "
             f"a normal distribution "
-            f"({result.get('statistic', 0):.2f}, "
+            f"({result.get('statistic', 0):.2 + f}, "
             f"{APAFormatter.format_p_value(result.get('p_value', 1))})."
         )
 
@@ -319,8 +319,8 @@ class APAFormatter:
         for _, row in desc_df.iterrows():
             lines.append(
                 f"| {row.get('Variable', '')} | {row.get('N', '')} | "
-                f"{row.get('Mean', ''):.2f} | {row.get('Std Dev', ''):.2f} | "
-                f"{row.get('Min', ''):.2f} | {row.get('Max', ''):.2f} |"
+                f"{row.get('Mean', ''):.2 + f} | {row.get('Std Dev', ''):.2 + f} | "
+                f"{row.get('Min', ''):.2 + f} | {row.get('Max', ''):.2 + f} |"
             )
         return "\n".join(lines)
 
@@ -366,7 +366,7 @@ class APAFormatter:
 
 def render_apa_outputs_page(statistical_results: List[Dict[str, Any]] = None):
     """Render the APA outputs page."""
-    st.markdown("## ðŸ“‘ APA 7th Edition Results")
+    st.markdown("## ðŸ“‘ APA 7 + th Edition Results")
     st.markdown("*Publication-ready statistical reporting*")
 
     if not statistical_results:
@@ -374,7 +374,7 @@ def render_apa_outputs_page(statistical_results: List[Dict[str, Any]] = None):
         st.markdown("""
         ### APA Formatting Guide
 
-        **Key APA 7th Edition reporting standards:**
+        **Key APA 7 + th Edition reporting standards:**
 
         1. **T-Tests**: *t*(df) = value, *p* = value, Cohen's *d* = value
         2. **ANOVA**: *F*(df1, df2) = value, *p* = value, Î·Â² = value
@@ -433,11 +433,11 @@ def render_apa_quick_format_ui():
     if test_type == "T-Test":
         col1, col2, col3 = st.columns(3)
         with col1:
-            t_val = st.number_input("t-value", value=2.5, step=0.1, format="%.2f", key="apa_t")
+            t_val = st.number_input("t-value", value=2.5, step=0.1, format="%.2 + f", key="apa_t")
             df_val = st.number_input("df", value=58, step=1, key="apa_t_df")
         with col2:
-            p_val = st.number_input("p-value", value=0.015, step=0.001, format="%.4f", key="apa_t_p")
-            d_val = st.number_input("Cohen's d", value=0.65, step=0.01, format="%.2f", key="apa_t_d")
+            p_val = st.number_input("p-value", value=0.015, step=0.001, format="%.4 + f", key="apa_t_p")
+            d_val = st.number_input("Cohen's d", value=0.65, step=0.01, format="%.2 + f", key="apa_t_d")
         with col3:
             mean1 = st.number_input("Mâ‚", value=45.2, step=0.1, key="apa_t_m1")
             mean2 = st.number_input("Mâ‚‚", value=38.5, step=0.1, key="apa_t_m2")
@@ -458,11 +458,11 @@ def render_apa_quick_format_ui():
     elif test_type == "ANOVA":
         col1, col2 = st.columns(2)
         with col1:
-            f_val = st.number_input("F-value", value=5.82, step=0.1, format="%.2f", key="apa_f")
+            f_val = st.number_input("F-value", value=5.82, step=0.1, format="%.2 + f", key="apa_f")
             df1 = st.number_input("dfâ‚ (between)", value=2, step=1, key="apa_f_df1")
         with col2:
-            p_val = st.number_input("p-value", value=0.005, step=0.001, format="%.4f", key="apa_f_p")
-            eta2 = st.number_input("Î·Â²", value=0.14, step=0.01, format="%.2f", key="apa_f_eta")
+            p_val = st.number_input("p-value", value=0.005, step=0.001, format="%.4 + f", key="apa_f_p")
+            eta2 = st.number_input("Î·Â²", value=0.14, step=0.01, format="%.2 + f", key="apa_f_eta")
 
         if st.button("Format ANOVA"):
             result = {
@@ -479,10 +479,10 @@ def render_apa_quick_format_ui():
     elif test_type == "Correlation":
         col1, col2 = st.columns(2)
         with col1:
-            r_val = st.number_input("r-value", value=0.45, step=0.01, format="%.2f", min_value=-1.0, max_value=1.0, key="apa_r")
+            r_val = st.number_input("r-value", value=0.45, step=0.01, format="%.2 + f", min_value=-1.0, max_value=1.0, key="apa_r")
             n_val = st.number_input("N", value=60, step=1, key="apa_r_n")
         with col2:
-            p_val = st.number_input("p-value", value=0.001, step=0.001, format="%.4f", key="apa_r_p")
+            p_val = st.number_input("p-value", value=0.001, step=0.001, format="%.4 + f", key="apa_r_p")
 
         if st.button("Format Correlation"):
             result = {
@@ -498,11 +498,11 @@ def render_apa_quick_format_ui():
     elif test_type == "Chi-Square":
         col1, col2 = st.columns(2)
         with col1:
-            chi2 = st.number_input("Ï‡Â² value", value=12.5, step=0.1, format="%.2f", key="apa_chi")
+            chi2 = st.number_input("Ï‡Â² value", value=12.5, step=0.1, format="%.2 + f", key="apa_chi")
             df_chi = st.number_input("df", value=2, step=1, key="apa_chi_df")
         with col2:
-            p_val = st.number_input("p-value", value=0.002, step=0.001, format="%.4f", key="apa_chi_p")
-            cv = st.number_input("Cramer's V", value=0.35, step=0.01, format="%.2f", key="apa_chi_cv")
+            p_val = st.number_input("p-value", value=0.002, step=0.001, format="%.4 + f", key="apa_chi_p")
+            cv = st.number_input("Cramer's V", value=0.35, step=0.01, format="%.2 + f", key="apa_chi_cv")
 
         if st.button("Format Chi-Square"):
             result = {

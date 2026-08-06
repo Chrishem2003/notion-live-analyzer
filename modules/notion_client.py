@@ -1,6 +1,6 @@
 
 """
-Notion API Client  handles all interactions with the Notion API.
+Notion API Client + handles all interactions with the Notion API.
 Supports all 20 property types and automatic database detection.
 Includes caching and rate-limiting to improve performance.
 """
@@ -36,7 +36,7 @@ def _cached_request(cache_key: str, ttl: int = 60):
             if kwargs.pop("force_refresh", False):
                 return func(*args, **kwargs)
             
-            full_key = f"{cache_key}:{hash(str(args)  str(kwargs))}"
+            full_key = f"{cache_key}:{hash(str(args) + str(kwargs))}"
             now = time.time()
             
             if full_key in _request_cache:
@@ -230,7 +230,7 @@ def get_database_options(token: str) -> List[Dict]:
     return databases
 
 def fingerprint_database(properties: dict) -> str:
-    """Create a unique SHA-256 fingerprint from property names  types."""
+    """Create a unique SHA-256 fingerprint from property names + types."""
     schema_items = []
     for name, prop in sorted(properties.items()):
         if isinstance(prop, dict):
@@ -373,7 +373,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
             fetch_attempts = 0  # Reset on success
 
         except requests.exceptions.Timeout:
-            logger.warning("Timeout querying Notion database %s  retrying", db_id)
+            logger.warning("Timeout querying Notion database %s + retrying", db_id)
             st.warning("â±ï¸ Notion API timeout. Retrying...")
             fetch_attempts = 1
             time.sleep(1)

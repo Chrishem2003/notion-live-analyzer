@@ -1,12 +1,12 @@
 
 """
 Secure Personal Vault
-Zero-knowledge encrypted personal storage vault with 2FA authentication,
+Zero-knowledge encrypted personal storage vault with 2 + FA authentication,
 AES-GCM-256 client-side encryption, duress PIN support, categorized file
 management, self-destruct share links, and an interactive media previewer.
 
 Architecture:
-  - Security Layer: Master passcode  TOTP 2FA gate, duress PIN, auto-lock
+  - Security Layer: Master passcode + TOTP 2 + FA gate, duress PIN, auto-lock
   - Crypto Engine: AES-GCM-256 (simulated via cryptography library)
   - Storage: Categorized vault with unlimited object store integration pattern
   - UI: High-density dark-mode with slate-950/indigo/emerald/amber/cyan accents
@@ -38,7 +38,7 @@ try:
     HAS_CRYPTO = True
 except ImportError:
     HAS_CRYPTO = False
-    logger.warning("cryptography package unavailable  vault falls back to a reduced crypto path")
+    logger.warning("cryptography package unavailable + vault falls back to a reduced crypto path")
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -55,7 +55,7 @@ class VaultCategory(str, Enum):
 CATEGORY_EXTENSIONS: Dict[VaultCategory, List[str]] = {
     VaultCategory.DOCUMENTS: [".pdf", ".docx", ".doc", ".txt", ".md", ".rtf", ".odt"],
     VaultCategory.IMAGES: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".raw", ".tiff"],
-    VaultCategory.AUDIO: [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a", ".wma"],
+    VaultCategory.AUDIO: [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4 + a", ".wma"],
     VaultCategory.DATASETS: [".csv", ".json", ".tsv", ".xlsx", ".xls", ".parquet", ".feather",
                               ".fasta", ".fastq", ".gbk", ".gff", ".vcf", ".py", ".r", ".ipynb",
                               ".sql", ".sh", ".yaml", ".yml", ".toml", ".cfg"],
@@ -69,10 +69,10 @@ CATEGORY_ICONS: Dict[VaultCategory, str] = {
 }
 
 CATEGORY_COLORS: Dict[VaultCategory, str] = {
-    VaultCategory.DOCUMENTS: "#6366f1",   # indigo
-    VaultCategory.IMAGES: "#10b981",      # emerald
-    VaultCategory.AUDIO: "#f59e0b",       # amber
-    VaultCategory.DATASETS: "#06b6d4",    # cyan
+    VaultCategory.DOCUMENTS: "#6366 + f1",   # indigo
+    VaultCategory.IMAGES: "#10 + b981",      # emerald
+    VaultCategory.AUDIO: "#f59 + e0b",       # amber
+    VaultCategory.DATASETS: "#06 + b6d4",    # cyan
 }
 
 # Default storage quota (unlimited free tier)
@@ -91,12 +91,12 @@ def _generate_totp(secret: str, interval: int = TOTP_INTERVAL) -> str:
     """Generate a 6-digit TOTP code from a base32-encoded secret."""
     try:
         import base64 as _b64
-        key = _b64.b32decode(secret.upper().replace(" ", ""))
+        key = _b64.b32 + decode(secret.upper().replace(" ", ""))
         counter = struct.pack(">Q", int(time.time()) // interval)
         hmac_hash = hmac.new(key, counter, hashlib.sha1).digest()
-        offset = hmac_hash[-1] & 0x0F
-        truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0x7FFFFFFF
-        return f"{truncated % 1000000:06d}"
+        offset = hmac_hash[-1] & 0 + x0F
+        truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0 + x7FFFFFFF
+        return f"{truncated % 1000000:06 + d}"
     except Exception:
         return "000000"
 
@@ -117,12 +117,12 @@ def _generate_totp_for_counter(secret: str, counter: int) -> str:
     """Generate TOTP for a specific counter value."""
     try:
         import base64 as _b64
-        key = _b64.b32decode(secret.upper().replace(" ", ""))
+        key = _b64.b32 + decode(secret.upper().replace(" ", ""))
         packed = struct.pack(">Q", counter)
         hmac_hash = hmac.new(key, packed, hashlib.sha1).digest()
-        offset = hmac_hash[-1] & 0x0F
-        truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0x7FFFFFFF
-        return f"{truncated % 1000000:06d}"
+        offset = hmac_hash[-1] & 0 + x0F
+        truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0 + x7FFFFFFF
+        return f"{truncated % 1000000:06 + d}"
     except Exception:
         return "000000"
 
@@ -131,7 +131,7 @@ def _generate_totp_secret() -> str:
     """Generate a random base32-encoded TOTP secret."""
     raw = os.urandom(20)
     import base64 as _b64
-    return _b64.b32encode(raw).decode("utf-8")
+    return _b64.b32 + encode(raw).decode("utf-8")
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -164,14 +164,14 @@ class CryptoEngine:
             key = kdf.derive(passcode.encode("utf-8"))
         else:
             # Fallback: PBKDF2 via hashlib
-            key = hashlib.pbkdf2_hmac("sha256", passcode.encode("utf-8"), salt, 100_000, dklen=32)
+            key = hashlib.pbkdf2 + _hmac("sha256", passcode.encode("utf-8"), salt, 100 + _000, dklen=32)
         return key, salt
 
     @staticmethod
     def encrypt(plaintext: bytes, key: bytes, associated_data: Optional[bytes] = None) -> bytes:
         """
         Encrypt plaintext with AES-GCM-256.
-        Returns: nonce (12 bytes)  ciphertext  tag (16 bytes)
+        Returns: nonce (12 bytes) + ciphertext + tag (16 bytes)
         """
         if HAS_CRYPTO:
             aesgcm = AESGCM(key)
@@ -194,7 +194,7 @@ class CryptoEngine:
     def decrypt(ciphertext_with_nonce: bytes, key: bytes, associated_data: Optional[bytes] = None) -> Optional[bytes]:
         """
         Decrypt AES-GCM-256 ciphertext.
-        Input: nonce (12 bytes)  ciphertext  tag (16 bytes)
+        Input: nonce (12 bytes) + ciphertext + tag (16 bytes)
         """
         if len(ciphertext_with_nonce) < 28:
             return None
@@ -219,11 +219,11 @@ class CryptoEngine:
 
     @staticmethod
     def encrypt_file(file_bytes: bytes, key: bytes) -> Dict[str, Any]:
-        """Encrypt a file and return metadata  ciphertext."""
+        """Encrypt a file and return metadata + ciphertext."""
         file_hash = hashlib.sha256(file_bytes).hexdigest()
         ciphertext = CryptoEngine.encrypt(file_bytes, key, associated_data=file_hash.encode())
         return {
-            "ciphertext_b64": base64.b64encode(ciphertext).decode("utf-8"),
+            "ciphertext_b64": base64.b64 + encode(ciphertext).decode("utf-8"),
             "original_hash": file_hash,
             "encrypted_at": datetime.now().isoformat(),
             "algorithm": "AES-256-GCM",
@@ -234,12 +234,12 @@ class CryptoEngine:
     def decrypt_file(ciphertext_b64: str, key: bytes, expected_hash: Optional[str] = None) -> Optional[bytes]:
         """Decrypt a file, optionally verifying its hash."""
         try:
-            ciphertext = base64.b64decode(ciphertext_b64)
+            ciphertext = base64.b64 + decode(ciphertext_b64)
             plaintext = CryptoEngine.decrypt(ciphertext, key, associated_data=(expected_hash or "").encode())
             if plaintext is not None and expected_hash:
                 actual_hash = hashlib.sha256(plaintext).hexdigest()
                 if not hmac.compare_digest(actual_hash, expected_hash):
-                    logger.error("Vault file integrity check failed  content hash mismatch")
+                    logger.error("Vault file integrity check failed + content hash mismatch")
                     return None
             return plaintext
         except Exception:
@@ -391,11 +391,11 @@ class VaultFile:
         if b < 1024:
             return f"{b} B"
         elif b < 1024**2:
-            return f"{b/1024:.1f} KB"
+            return f"{b/1024:.1 + f} KB"
         elif b < 1024**3:
-            return f"{b/1024**2:.1f} MB"
+            return f"{b/1024**2:.1 + f} MB"
         else:
-            return f"{b/1024**3:.2f} GB"
+            return f"{b/1024**3:.2 + f} GB"
 
     def rename(self, new_name: str) -> None:
         """Rename the file."""
@@ -422,7 +422,7 @@ class SecurePersonalVault:
     Zero-knowledge encrypted personal storage vault.
 
     Features:
-      - 2FA gate: Master passcode  TOTP authenticator code
+      - 2 + FA gate: Master passcode + TOTP authenticator code
       - Duress PIN: Shows dummy vault under pressure
       - Auto-lock: Session locks after inactivity timeout
       - AES-GCM-256: All files encrypted client-side before storage
@@ -561,7 +561,7 @@ class SecurePersonalVault:
 
     def unlock(self, passcode: str, totp_code: str) -> Tuple[bool, str]:
         """
-        Attempt to unlock the vault with passcode  TOTP.
+        Attempt to unlock the vault with passcode + TOTP.
         Returns: (success: bool, message: str)
         """
         authenticated, is_duress = self.verify_passcode(passcode)
@@ -579,7 +579,7 @@ class SecurePersonalVault:
         self.last_activity_time = time.time()
         self._log("vault_unlocked", f"Vault {'(duress mode)' if is_duress else ''}unlocked")
         if is_duress:
-            return True, "âš ï¸ DUress mode active  showing limited vault."
+            return True, "âš ï¸ DUress mode active + showing limited vault."
         return True, "âœ… Vault unlocked successfully."
 
     def lock(self) -> None:
@@ -771,7 +771,7 @@ class SecurePersonalVault:
                 {
                     "name": cat.value,
                     "icon": CATEGORY_ICONS.get(cat, ""),
-                    "color": CATEGORY_COLORS.get(cat, "#64748b"),
+                    "color": CATEGORY_COLORS.get(cat, "#64748 + b"),
                     "count": len(flist),
                 }
                 for cat, flist in sorted(
@@ -787,11 +787,11 @@ class SecurePersonalVault:
         if b < 1024:
             return f"{b} B"
         elif b < 1024**2:
-            return f"{b/1024:.1f} KB"
+            return f"{b/1024:.1 + f} KB"
         elif b < 1024**3:
-            return f"{b/1024**2:.1f} MB"
+            return f"{b/1024**2:.1 + f} MB"
         else:
-            return f"{b/1024**3:.2f} GB"
+            return f"{b/1024**3:.2 + f} GB"
 
     def get_audit_log(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Get the vault audit log."""
@@ -842,13 +842,13 @@ def render_secure_vault_ui():
     <style>
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        background-color: #090 + d16 !important;
+        border-right: 1 + px solid #1 + e293b !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #f8 + fafc !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -856,167 +856,167 @@ def render_secure_vault_ui():
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #f8 + fafc !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
+        background-color: #1 + e293b !important;
+        border-radius: 8 + px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #0284 + c7 !important;
         color: #ffffff !important;
         font-weight: 700 !important;
-        border-radius: 8px !important;
+        border-radius: 8 + px !important;
     }
 
     /* Custom form inputs inside sidebar */
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #38 + bdf8 !important;
         font-weight: 700 !important;
     }
     .vault-container {
-        background: #0f172a;
-        border: 1px solid #1e293b;
-        border-radius: 16px;
+        background: #0 + f172a;
+        border: 1 + px solid #1 + e293b;
+        border-radius: 16 + px;
         padding: 0;
         overflow: hidden;
     }
     .vault-header {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        border-bottom: 1px solid #1e293b;
-        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135 + deg, #0 + f172a 0%, #1 + e1b4b 100%);
+        border-bottom: 1 + px solid #1 + e293b;
+        padding: 1.2 + rem 1.5 + rem;
     }
     .vault-header h1 {
-        color: #f8fafc !important;
-        font-size: 1.5rem !important;
+        color: #f8 + fafc !important;
+        font-size: 1.5 + rem !important;
         font-weight: 800 !important;
         margin: 0 !important;
     }
     .vault-header p {
-        color: #94a3b8 !important;
-        font-size: 0.85rem !important;
-        margin: 0.2rem 0 0 0 !important;
+        color: #94 + a3b8 !important;
+        font-size: 0.85 + rem !important;
+        margin: 0.2 + rem 0 0 0 !important;
     }
     .vault-card {
-        background: #0f172a;
-        border: 1px solid #1e293b;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-        transition: border-color 0.2s;
+        background: #0 + f172a;
+        border: 1 + px solid #1 + e293b;
+        border-radius: 12 + px;
+        padding: 1 + rem;
+        margin-bottom: 0.75 + rem;
+        transition: border-color 0.2 + s;
     }
     .vault-card:hover {
-        border-color: #6366f1;
+        border-color: #6366 + f1;
     }
     .vault-card-header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
+        gap: 0.75 + rem;
+        margin-bottom: 0.5 + rem;
     }
     .vault-card-title {
-        color: #f1f5f9;
+        color: #f1 + f5f9;
         font-weight: 700;
-        font-size: 1rem;
+        font-size: 1 + rem;
         flex: 1;
     }
     .vault-card-meta {
-        color: #64748b;
-        font-size: 0.8rem;
+        color: #64748 + b;
+        font-size: 0.8 + rem;
     }
     .vault-badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.3rem;
-        padding: 0.2rem 0.6rem;
-        border-radius: 999px;
-        font-size: 0.7rem;
+        gap: 0.3 + rem;
+        padding: 0.2 + rem 0.6 + rem;
+        border-radius: 999 + px;
+        font-size: 0.7 + rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.05 + em;
     }
-    .vault-badge-indigo { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
-    .vault-badge-emerald { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-    .vault-badge-amber { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-    .vault-badge-cyan { background: rgba(6,182,212,0.15); color: #22d3ee; border: 1px solid rgba(6,182,212,0.3); }
-    .vault-badge-slate { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+    .vault-badge-indigo { background: rgba(99,102,241,0.15); color: #818 + cf8; border: 1 + px solid rgba(99,102,241,0.3); }
+    .vault-badge-emerald { background: rgba(16,185,129,0.15); color: #34 + d399; border: 1 + px solid rgba(16,185,129,0.3); }
+    .vault-badge-amber { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1 + px solid rgba(245,158,11,0.3); }
+    .vault-badge-cyan { background: rgba(6,182,212,0.15); color: #22 + d3ee; border: 1 + px solid rgba(6,182,212,0.3); }
+    .vault-badge-slate { background: rgba(100,116,139,0.15); color: #94 + a3b8; border: 1 + px solid rgba(100,116,139,0.3); }
 
     .vault-storage-bar {
-        background: #1e293b;
-        border-radius: 999px;
-        height: 8px;
+        background: #1 + e293b;
+        border-radius: 999 + px;
+        height: 8 + px;
         overflow: hidden;
-        margin: 0.5rem 0;
+        margin: 0.5 + rem 0;
     }
     .vault-storage-fill {
         height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #6366f1, #818cf8);
-        transition: width 0.5s;
+        border-radius: 999 + px;
+        background: linear-gradient(90 + deg, #6366 + f1, #818 + cf8);
+        transition: width 0.5 + s;
     }
     .vault-storage-warning .vault-storage-fill {
-        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        background: linear-gradient(90 + deg, #f59 + e0b, #fbbf24);
     }
     .vault-storage-critical .vault-storage-fill {
-        background: linear-gradient(90deg, #ef4444, #f87171);
+        background: linear-gradient(90 + deg, #ef4444, #f87171);
     }
 
     .vault-gate {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        border: 1px solid #312e81;
-        border-radius: 20px;
-        padding: 2.5rem;
+        background: linear-gradient(135 + deg, #0 + f172a 0%, #1 + e1b4b 100%);
+        border: 1 + px solid #312 + e81;
+        border-radius: 20 + px;
+        padding: 2.5 + rem;
         text-align: center;
-        max-width: 480px;
-        margin: 2rem auto;
+        max-width: 480 + px;
+        margin: 2 + rem auto;
     }
     .vault-gate-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
+        font-size: 3 + rem;
+        margin-bottom: 1 + rem;
     }
     .vault-gate h2 {
-        color: #f1f5f9 !important;
-        font-size: 1.4rem !important;
-        margin-bottom: 0.5rem !important;
+        color: #f1 + f5f9 !important;
+        font-size: 1.4 + rem !important;
+        margin-bottom: 0.5 + rem !important;
     }
     .vault-gate p {
-        color: #64748b !important;
-        font-size: 0.9rem !important;
-        margin-bottom: 1.5rem !important;
+        color: #64748 + b !important;
+        font-size: 0.9 + rem !important;
+        margin-bottom: 1.5 + rem !important;
     }
 
     .vault-upload-zone {
-        border: 2px dashed #334155;
-        border-radius: 16px;
-        padding: 2.5rem 1.5rem;
+        border: 2 + px dashed #334155;
+        border-radius: 16 + px;
+        padding: 2.5 + rem 1.5 + rem;
         text-align: center;
-        transition: all 0.3s;
+        transition: all 0.3 + s;
         cursor: pointer;
         background: rgba(15,23,42,0.5);
     }
     .vault-upload-zone:hover {
-        border-color: #6366f1;
+        border-color: #6366 + f1;
         background: rgba(99,102,241,0.05);
     }
-    .vault-upload-zone svg { margin-bottom: 0.5rem; }
-    .vault-upload-zone p { color: #94a3b8; font-size: 0.9rem; margin: 0; }
+    .vault-upload-zone svg { margin-bottom: 0.5 + rem; }
+    .vault-upload-zone p { color: #94 + a3b8; font-size: 0.9 + rem; margin: 0; }
 
     .vault-file-row {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        padding: 0.6rem 0.75rem;
-        border-bottom: 1px solid #1e293b;
-        transition: background 0.2s;
+        gap: 0.75 + rem;
+        padding: 0.6 + rem 0.75 + rem;
+        border-bottom: 1 + px solid #1 + e293b;
+        transition: background 0.2 + s;
     }
     .vault-file-row:hover {
         background: rgba(99,102,241,0.04);
@@ -1026,25 +1026,25 @@ def render_secure_vault_ui():
     }
 
     .vault-search-input {
-        background: #1e293b !important;
-        border: 1px solid #334155 !important;
-        border-radius: 10px !important;
-        color: #f1f5f9 !important;
-        padding: 0.6rem 1rem !important;
-        font-size: 0.9rem !important;
+        background: #1 + e293b !important;
+        border: 1 + px solid #334155 !important;
+        border-radius: 10 + px !important;
+        color: #f1 + f5f9 !important;
+        padding: 0.6 + rem 1 + rem !important;
+        font-size: 0.9 + rem !important;
     }
     .vault-search-input:focus {
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 2px rgba(99,102,241,0.2) !important;
+        border-color: #6366 + f1 !important;
+        box-shadow: 0 0 0 2 + px rgba(99,102,241,0.2) !important;
     }
 
     .vault-section-title {
-        color: #cbd5e1;
-        font-size: 0.75rem;
+        color: #cbd5 + e1;
+        font-size: 0.75 + rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        padding: 0.5rem 0.75rem;
+        letter-spacing: 0.08 + em;
+        padding: 0.5 + rem 0.75 + rem;
         margin: 0;
     }
 
@@ -1052,38 +1052,38 @@ def render_secure_vault_ui():
         position: fixed;
         inset: 0;
         background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(8 + px);
         z-index: 999;
         display: flex;
         align-items: center;
         justify-content: center;
     }
     .vault-modal {
-        background: #0f172a;
-        border: 1px solid #1e293b;
-        border-radius: 20px;
-        padding: 1.5rem;
-        max-width: 720px;
+        background: #0 + f172a;
+        border: 1 + px solid #1 + e293b;
+        border-radius: 20 + px;
+        padding: 1.5 + rem;
+        max-width: 720 + px;
         width: 90%;
-        max-height: 85vh;
+        max-height: 85 + vh;
         overflow-y: auto;
     }
-    .vault-modal h3 { color: #f1f5f9; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .vault-modal h3 { color: #f1 + f5f9; font-size: 1.2 + rem; font-weight: 700; margin-bottom: 0.75 + rem; }
     .vault-modal-close {
         float: right;
         background: none;
         border: none;
-        color: #64748b;
-        font-size: 1.5rem;
+        color: #64748 + b;
+        font-size: 1.5 + rem;
         cursor: pointer;
     }
-    .vault-modal-close:hover { color: #f1f5f9; }
+    .vault-modal-close:hover { color: #f1 + f5f9; }
 
-    div[data-testid="stTextInput"] input { background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important; }
-    div[data-testid="stTextArea"] textarea { background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important; }
-    div[data-testid="stSelectbox"] { background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important; }
-    .stButton button[kind="primary"] { background: #6366f1 !important; border: none !important; color: white !important; font-weight: 700 !important; }
-    .stButton button[kind="primary"]:hover { background: #818cf8 !important; }
+    div[data-testid="stTextInput"] input { background: #1 + e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
+    div[data-testid="stTextArea"] textarea { background: #1 + e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
+    div[data-testid="stSelectbox"] { background: #1 + e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
+    .stButton button[kind="primary"] { background: #6366 + f1 !important; border: none !important; color: white !important; font-weight: 700 !important; }
+    .stButton button[kind="primary"]:hover { background: #818 + cf8 !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1131,7 +1131,7 @@ def render_secure_vault_ui():
                                               placeholder="Enter your master passcode...", key="vault_setup_pass")
                     passcode2 = st.text_input("Confirm Master Passcode", type="password",
                                                placeholder="Confirm passcode...", key="vault_setup_pass2")
-                    duress_pass = st.text_input("Duress PIN (optional  triggers dummy vault)", type="password",
+                    duress_pass = st.text_input("Duress PIN (optional + triggers dummy vault)", type="password",
                                                  placeholder="Alternate passcode for coercion...", key="vault_setup_duress")
                     col_a, col_b = st.columns(2)
                     with col_a:
@@ -1217,16 +1217,16 @@ def render_secure_vault_ui():
     # â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     duress_badge = ""
     if vault.is_duress_mode:
-        duress_badge = '<span class="vault-badge vault-badge-amber" style="margin-left:0.75rem;">âš ï¸ DUress Mode</span>'
+        duress_badge = '<span class="vault-badge vault-badge-amber" style="margin-left:0.75 + rem;">âš ï¸ DUress Mode</span>'
 
     st.markdown(f"""
-    <div class="vault-header" style="border-radius:16px 16px 0 0;margin-bottom:1rem;">
+    <div class="vault-header" style="border-radius:16 + px 16 + px 0 0;margin-bottom:1 + rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;">
             <div>
                 <h1>ðŸ”’ Secure Personal Vault {duress_badge}</h1>
                 <p>Zero-knowledge encrypted Â· AES-256-GCM Â· Vault ID: {vault.vault_id[:16]}â€¦</p>
             </div>
-            <div style="display:flex;gap:0.5rem;align-items:center;">
+            <div style="display:flex;gap:0.5 + rem;align-items:center;">
                 <span class="vault-badge vault-badge-emerald">â— Live</span>
                 <span class="vault-badge vault-badge-indigo">Encrypted</span>
             </div>
@@ -1261,18 +1261,18 @@ def render_secure_vault_ui():
 
     st.markdown(f"""
     <div class="vault-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
-            <span style="color:#94a3b8;font-size:0.85rem;">ðŸ’¾ Storage</span>
-            <span style="color:#cbd5e1;font-size:0.9rem;font-weight:700;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3 + rem;">
+            <span style="color:#94 + a3b8;font-size:0.85 + rem;">ðŸ’¾ Storage</span>
+            <span style="color:#cbd5 + e1;font-size:0.9 + rem;font-weight:700;">
                 {stats['total_used_display']} / {stats['total_quota_display']}
             </span>
         </div>
         <div class="vault-storage-bar {bar_class}">
             <div class="vault-storage-fill" style="width:{min(usage_pct, 100)}%;"></div>
         </div>
-        <div style="display:flex;justify-content:space-between;margin-top:0.2rem;">
-            <span style="color:#64748b;font-size:0.75rem;">{stats['total_files']} files</span>
-            <span style="color:#64748b;font-size:0.75rem;">{usage_pct:.1f}% used</span>
+        <div style="display:flex;justify-content:space-between;margin-top:0.2 + rem;">
+            <span style="color:#64748 + b;font-size:0.75 + rem;">{stats['total_files']} files</span>
+            <span style="color:#64748 + b;font-size:0.75 + rem;">{usage_pct:.1 + f}% used</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1280,15 +1280,15 @@ def render_secure_vault_ui():
     # â”€â”€ Category Stats Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     cat_cols = st.columns(4)
     for idx, cat_info in enumerate(stats.get("categories", [])):
-        color = cat_info.get("color", "#64748b")
+        color = cat_info.get("color", "#64748 + b")
         with cat_cols[idx]:
             st.markdown(f"""
-            <div class="vault-card" style="text-align:center;padding:0.75rem 0.5rem;">
-                <div style="font-size:1.5rem;">{cat_info['icon']}</div>
-                <div style="color:#f1f5f9;font-size:0.85rem;font-weight:700;margin:0.15rem 0;">
+            <div class="vault-card" style="text-align:center;padding:0.75 + rem 0.5 + rem;">
+                <div style="font-size:1.5 + rem;">{cat_info['icon']}</div>
+                <div style="color:#f1 + f5f9;font-size:0.85 + rem;font-weight:700;margin:0.15 + rem 0;">
                     {cat_info['count']}
                 </div>
-                <div style="color:#64748b;font-size:0.7rem;">{cat_info['name']}</div>
+                <div style="color:#64748 + b;font-size:0.7 + rem;">{cat_info['name']}</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1309,7 +1309,7 @@ def render_secure_vault_ui():
         include_trash = st.checkbox("ðŸ—‘ï¸ Include trash", value=False, key="vault_show_trash")
 
     # â”€â”€ Category Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    tab_options = ["All"]  [cat.value for cat in VaultCategory]
+    tab_options = ["All"] + [cat.value for cat in VaultCategory]
     active_tab = st.session_state.get("vault_active_tab", "All")
 
     tab_cols = st.columns(len(tab_options))
@@ -1339,16 +1339,16 @@ def render_secure_vault_ui():
 
     if not files:
         st.markdown("""
-        <div class="vault-card" style="text-align:center;padding:2rem;">
-            <div style="font-size:3rem;margin-bottom:0.5rem;">ðŸ“‚</div>
-            <div style="color:#94a3b8;font-size:0.95rem;">No files found</div>
-            <div style="color:#64748b;font-size:0.8rem;">Upload files using the upload section below</div>
+        <div class="vault-card" style="text-align:center;padding:2 + rem;">
+            <div style="font-size:3 + rem;margin-bottom:0.5 + rem;">ðŸ“‚</div>
+            <div style="color:#94 + a3b8;font-size:0.95 + rem;">No files found</div>
+            <div style="color:#64748 + b;font-size:0.8 + rem;">Upload files using the upload section below</div>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown(f"<div class='vault-section-title'>ðŸ“ {len(files)} file(s)</div>", unsafe_allow_html=True)
         for vf in files:
-            cat_color = CATEGORY_COLORS.get(vf.category, "#64748b")
+            cat_color = CATEGORY_COLORS.get(vf.category, "#64748 + b")
             cat_icon = CATEGORY_ICONS.get(vf.category, "ðŸ“")
             badge_class = {
                 VaultCategory.DOCUMENTS: "vault-badge-indigo",
@@ -1361,15 +1361,15 @@ def render_secure_vault_ui():
             with col_file:
                 st.markdown(f"""
                 <div class="vault-file-row">
-                    <span style="font-size:1.2rem;">{cat_icon}</span>
+                    <span style="font-size:1.2 + rem;">{cat_icon}</span>
                     <div style="flex:1;min-width:0;">
-                        <div style="color:#f1f5f9;font-weight:600;font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        <div style="color:#f1 + f5f9;font-weight:600;font-size:0.9 + rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                             {vf.name}
                         </div>
-                        <div style="display:flex;gap:0.5rem;align-items:center;margin-top:0.15rem;">
-                            <span style="color:#64748b;font-size:0.7rem;">{vf._format_size()}</span>
-                            <span class="vault-badge {badge_class}" style="font-size:0.65rem;">{cat_icon} {vf.category.value.split()[-1]}</span>
-                            <span style="color:#64748b;font-size:0.7rem;">{vf.uploaded_at.strftime('%b %d, %H:%M')}</span>
+                        <div style="display:flex;gap:0.5 + rem;align-items:center;margin-top:0.15 + rem;">
+                            <span style="color:#64748 + b;font-size:0.7 + rem;">{vf._format_size()}</span>
+                            <span class="vault-badge {badge_class}" style="font-size:0.65 + rem;">{cat_icon} {vf.category.value.split()[-1]}</span>
+                            <span style="color:#64748 + b;font-size:0.7 + rem;">{vf.uploaded_at.strftime('%b %d, %H:%M')}</span>
                         </div>
                     </div>
                 </div>
@@ -1383,7 +1383,7 @@ def render_secure_vault_ui():
             with col_share:
                 if st.button("ðŸ”—", key=f"vault_share_{vf.id}", use_container_width=True, help="Generate share link"):
                     link = vf.generate_share_link(expires_in_hours=1, max_downloads=1)
-                    st.info(f"ðŸ”— Share link: `{link['url']}`  expires in 1h / 1 download")
+                    st.info(f"ðŸ”— Share link: `{link['url']}`  expires in 1 + h / 1 download")
 
             with col_del:
                 if vf.is_deleted:
@@ -1421,22 +1421,22 @@ def render_secure_vault_ui():
                     ext = vf.extension
                     if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"):
                         import base64 as _b64
-                        b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64_data}" style="max-width:100%;border-radius:12px;border:1px solid #1e293b;">', unsafe_allow_html=True)
+                        b64 + _data = _b64.b64 + encode(data).decode()
+                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64 + _data}" style="max-width:100%;border-radius:12 + px;border:1 + px solid #1 + e293b;">', unsafe_allow_html=True)
                     elif ext == ".pdf":
                         import base64 as _b64
-                        b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}" width="100%" height="600" style="border:1px solid #1e293b;border-radius:12px;"></iframe>', unsafe_allow_html=True)
+                        b64 + _data = _b64.b64 + encode(data).decode()
+                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64 + _data}" width="100%" height="600" style="border:1 + px solid #1 + e293b;border-radius:12 + px;"></iframe>', unsafe_allow_html=True)
                     elif ext in (".mp3", ".wav", ".ogg"):
                         import base64 as _b64
-                        b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type};base64,{b64_data}" type="{vf.mime_type}"></audio>', unsafe_allow_html=True)
+                        b64 + _data = _b64.b64 + encode(data).decode()
+                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type};base64,{b64 + _data}" type="{vf.mime_type}"></audio>', unsafe_allow_html=True)
                     elif ext in (".txt", ".md", ".csv", ".json", ".tsv", ".py", ".r", ".yaml", ".yml", ".toml", ".cfg", ".sh"):
                         try:
                             text = data.decode("utf-8")
                             st.code(text, language="python" if ext == ".py" else "markdown" if ext == ".md" else "json" if ext == ".json" else "csv" if ext == ".csv" else "plain")
                         except UnicodeDecodeError:
-                            st.info("ðŸ“„ Binary file  download to view")
+                            st.info("ðŸ“„ Binary file + download to view")
                     else:
                         st.info(f"ðŸ“„ File type `{ext}`  download to view")
 
@@ -1543,9 +1543,9 @@ def render_secure_vault_ui():
                 <div class="vault-file-row">
                     <span>ðŸ”—</span>
                     <div style="flex:1;">
-                        <div style="color:#f1f5f9;font-size:0.85rem;">{vf.name}</div>
-                        <div style="color:#64748b;font-size:0.75rem;">
-                            Link: <code>{link['url']}</code> Â· {remaining}/{link['max_downloads']} downloads Â· {hours_left:.1f}h remaining
+                        <div style="color:#f1 + f5f9;font-size:0.85 + rem;">{vf.name}</div>
+                        <div style="color:#64748 + b;font-size:0.75 + rem;">
+                            Link: <code>{link['url']}</code> Â· {remaining}/{link['max_downloads']} downloads Â· {hours_left:.1 + f}h remaining
                         </div>
                     </div>
                 </div>
@@ -1560,10 +1560,10 @@ def render_secure_vault_ui():
             for entry in reversed(log_entries):
                 ts = entry["timestamp"][:19] if "T" in entry["timestamp"] else entry["timestamp"]
                 st.markdown(f"""
-                <div style="display:flex;gap:0.75rem;padding:0.3rem 0;border-bottom:1px solid #1e293b;font-size:0.8rem;">
-                    <span style="color:#64748b;min-width:140px;">{ts}</span>
-                    <span style="color:#818cf8;">{entry['action']}</span>
-                    <span style="color:#94a3b8;">{entry['details']}</span>
+                <div style="display:flex;gap:0.75 + rem;padding:0.3 + rem 0;border-bottom:1 + px solid #1 + e293b;font-size:0.8 + rem;">
+                    <span style="color:#64748 + b;min-width:140 + px;">{ts}</span>
+                    <span style="color:#818 + cf8;">{entry['action']}</span>
+                    <span style="color:#94 + a3b8;">{entry['details']}</span>
                 </div>
                 """, unsafe_allow_html=True)
         else:
@@ -1572,19 +1572,19 @@ def render_secure_vault_ui():
     # â”€â”€ Duress mode indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if vault.is_duress_mode:
         st.markdown("""
-        <div class="vault-card" style="border:1px solid #92400e;background:rgba(245,158,11,0.05);text-align:center;padding:1rem;">
-            <span style="color:#fbbf24;font-size:1.5rem;">âš ï¸</span>
+        <div class="vault-card" style="border:1 + px solid #92400 + e;background:rgba(245,158,11,0.05);text-align:center;padding:1 + rem;">
+            <span style="color:#fbbf24;font-size:1.5 + rem;">âš ï¸</span>
             <div style="color:#fbbf24;font-weight:700;">DUress Mode Active</div>
-            <div style="color:#d97706;font-size:0.85rem;">Limited vault view  only dummy files visible</div>
+            <div style="color:#d97706;font-size:0.85 + rem;">Limited vault view + only dummy files visible</div>
         </div>
         """, unsafe_allow_html=True)
 
     # â”€â”€ Footer Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown(f"""
-    <div style="margin-top:1.5rem;padding:0.75rem;border-top:1px solid #1e293b;display:flex;justify-content:space-between;">
-        <span style="color:#475569;font-size:0.7rem;">ðŸ”’ AES-256-GCM Encrypted</span>
-        <span style="color:#475569;font-size:0.7rem;">ðŸ›¡ï¸ Zero-knowledge architecture</span>
-        <span style="color:#475569;font-size:0.7rem;">â±ï¸ Auto-lock: {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity</span>
+    <div style="margin-top:1.5 + rem;padding:0.75 + rem;border-top:1 + px solid #1 + e293b;display:flex;justify-content:space-between;">
+        <span style="color:#475569;font-size:0.7 + rem;">ðŸ”’ AES-256-GCM Encrypted</span>
+        <span style="color:#475569;font-size:0.7 + rem;">ðŸ›¡ï¸ Zero-knowledge architecture</span>
+        <span style="color:#475569;font-size:0.7 + rem;">â±ï¸ Auto-lock: {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity</span>
     </div>
     """, unsafe_allow_html=True)
 

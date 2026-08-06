@@ -158,7 +158,7 @@ class ChartDataExtractor:
         np.random.seed(42)
 
         if chart_type == "bar":
-            categories = [f"Group {chr(65i)}" for i in range(6)]
+            categories = [f"Group {chr(65 + i)}" for i in range(6)]
             values = np.random.normal(50, 15, 6)
             errors = np.random.uniform(2, 8, 6)
             return pd.DataFrame({
@@ -178,12 +178,12 @@ class ChartDataExtractor:
             return pd.DataFrame({"X": x.round(2), "Y": y.round(2)})
 
         elif chart_type == "pie":
-            labels = [f"Category {chr(65i)}" for i in range(5)]
+            labels = [f"Category {chr(65 + i)}" for i in range(5)]
             values = np.random.dirichlet(np.ones(5)) * 100
             return pd.DataFrame({"Label": labels, "Percentage": values.round(1)})
 
         elif chart_type == "horizontal_bar":
-            items = [f"Item {chr(65i)}" for i in range(6)]
+            items = [f"Item {chr(65 + i)}" for i in range(6)]
             values = np.random.normal(50, 20, 6)
             return pd.DataFrame({"Item": items, "Value": values.round(1)})
 
@@ -243,7 +243,7 @@ def render_chart_data_extractor_ui():
     import plotly.express as px
 
     st.markdown("##  Visual Chart Data Extractor & CSV Re-Synthesizer")
-    st.markdown("*Extract numerical data from charts and figures  reconstruct raw datasets from static images*")
+    st.markdown("*Extract numerical data from charts and figures + reconstruct raw datasets from static images*")
 
     tab1, tab2, tab3 = st.tabs(["ðŸ“¤ Extract from Image", "âœï¸ Manual Description", "ðŸ“‹ Export Data"])
 
@@ -324,12 +324,12 @@ def render_chart_data_extractor_ui():
                 with chart_tab1:
                     if "Category" in df.columns and "Value" in df.columns:
                         fig = px.bar(df, x="Category", y="Value", error_y="Error" if "Error" in df.columns else None,
-                                    title="Reconstructed Chart", color_discrete_sequence=["#1d4ed8"])
+                                    title="Reconstructed Chart", color_discrete_sequence=["#1 + d4ed8"])
                         st.plotly_chart(fig, use_container_width=True)
                 with chart_tab2:
                     if "X" in df.columns and "Y" in df.columns:
                         fig = px.scatter(df, x="X", y="Y", trendline="ols",
-                                        title="Reconstructed Scatter", color_discrete_sequence=["#1d4ed8"])
+                                        title="Reconstructed Scatter", color_discrete_sequence=["#1 + d4ed8"])
                         st.plotly_chart(fig, use_container_width=True)
 
         else:
@@ -377,11 +377,11 @@ Point 3, 4.0, 6.1""",
                 import plotly.express as px
                 if "Label" in df.columns and "Value" in df.columns:
                     fig = px.bar(df, x="Label", y="Value", title="Parsed Chart Data",
-                                color_discrete_sequence=["#1d4ed8"])
+                                color_discrete_sequence=["#1 + d4ed8"])
                     st.plotly_chart(fig, use_container_width=True)
                 elif "X" in df.columns and "Y" in df.columns:
                     fig = px.scatter(df, x="X", y="Y", trendline="ols",
-                                    title="Parsed Scatter Data", color_discrete_sequence=["#1d4ed8"])
+                                    title="Parsed Scatter Data", color_discrete_sequence=["#1 + d4ed8"])
                     st.plotly_chart(fig, use_container_width=True)
             else:
                 st.warning("Could not parse data from description. Use format: Label: Value or X, Y per line.")
@@ -408,21 +408,21 @@ Point 3, 4.0, 6.1""",
 
             with col1:
                 csv_data = extractor.to_csv(df)
-                b64 = base64.b64encode(csv_data.encode()).decode()
+                b64 = base64.b64 + encode(csv_data.encode()).decode()
                 st.markdown(
                     f'<a href="data:text/csv;base64,{b64}" download="extracted_data.csv" '
-                    f'style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;'
-                    f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download CSV</a>',
+                    f'style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;'
+                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download CSV</a>',
                     unsafe_allow_html=True,
                 )
 
             with col2:
                 json_data = extractor.to_json(df)
-                b64 = base64.b64encode(json_data.encode()).decode()
+                b64 = base64.b64 + encode(json_data.encode()).decode()
                 st.markdown(
                     f'<a href="data:application/json;base64,{b64}" download="extracted_data.json" '
-                    f'style="display:inline-block;padding:10px 20px;background:#059669;color:white;'
-                    f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download JSON</a>',
+                    f'style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;'
+                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download JSON</a>',
                     unsafe_allow_html=True,
                 )
 

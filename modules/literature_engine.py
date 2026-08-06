@@ -5,10 +5,10 @@ Zero-loss SQLite persistence, factual paper harvesting from Semantic Scholar,
 mechanical reference formatting (citeproc-py, NO AI), and human-authored drafting.
 
 Core Principles:
-- NO AI-generated citations or text  everything is factual or user-written
+- NO AI-generated citations or text + everything is factual or user-written
 - Every action persists instantly to SQLite (research_workspace.db)
 - Papers are REAL, fetched from live academic APIs (Semantic Scholar, CrossRef)
-- References are formatted mechanically using citeproc-py or regex  zero hallucination
+- References are formatted mechanically using citeproc-py or regex + zero hallucination
 - User findings merge seamlessly into final downloadable reports
 """
 from __future__ import annotations
@@ -44,7 +44,7 @@ DB_PATH = APP_DIR / "research_workspace.db"
 class LiteratureDatabase:
     """
     SQLite persistence layer for the Literature Aggregator.
-    Every operation commits immediately  no data ever lost.
+    Every operation commits immediately + no data ever lost.
     Survives crashes, reloads, and network drops.
     """
 
@@ -430,7 +430,7 @@ class LiteratureDatabase:
                     "SELECT MAX(section_order) as mx FROM report_sections WHERE project_id = ?",
                     (project_id,),
                 ).fetchone()
-                new_order = (max_row["mx"] or -1)  1
+                new_order = (max_row["mx"] or -1) + 1
             cursor = conn.execute(
                 "INSERT INTO report_sections (project_id, section_order, section_title, content) VALUES (?, ?, ?, '')",
                 (project_id, new_order, title),
@@ -497,7 +497,7 @@ class LiteratureDatabase:
 class PaperHarvester:
     """
     Fetches REAL papers from Semantic Scholar and CrossRef.
-    No AI generation  every paper returned is a real publication.
+    No AI generation + every paper returned is a real publication.
     Supports unlimited fetching using offset-based pagination.
     """
 
@@ -517,7 +517,7 @@ class PaperHarvester:
         """
         Search Semantic Scholar for papers matching the query.
         Supports unlimited papers via pagination (API max 100 per request).
-        Returns real papers with metadata  no hallucination possible.
+        Returns real papers with metadata + no hallucination possible.
         """
         if fields is None:
             fields = "title,authors,year,journal,citationCount,externalIds,url,abstract"
@@ -525,7 +525,7 @@ class PaperHarvester:
         papers = []
         batch_size = 100  # API max
         offset = 0
-        max_pages = (limit // batch_size)  2
+        max_pages = (limit // batch_size) + 2
 
         try:
             for page_num in range(max_pages):
@@ -716,7 +716,7 @@ class PaperHarvester:
     ) -> List[Dict]:
         """
         Search Semantic Scholar (primary) and CrossRef (fallback).
-        Supports unlimited paper count  paginates through API results.
+        Supports unlimited paper count + paginates through API results.
         Prioritizes papers relevant to the country of study if provided.
         """
         all_papers = []
@@ -777,7 +777,7 @@ class ReferenceFormatter:
                 return self._format_with_citeproc(papers, style)
             except Exception:
                 logger.warning(
-                    "citeproc formatting failed for style %r  falling back to manual formatting",
+                    "citeproc formatting failed for style %r + falling back to manual formatting",
                     style, exc_info=True,
                 )
         return self._format_manual(papers, style)
@@ -831,7 +831,7 @@ class ReferenceFormatter:
             return "\n\n".join(formatted) if formatted else self._format_manual(papers, style)
         except Exception:
             logger.warning(
-                "citeproc rendering failed for style %r  falling back to manual formatting",
+                "citeproc rendering failed for style %r + falling back to manual formatting",
                 style, exc_info=True,
             )
             return self._format_manual(papers, style)
@@ -963,7 +963,7 @@ class ReferenceFormatter:
     def _generate_cite_key(self, paper: Dict, doi: str, index: int) -> str:
         if doi:
             key = doi.split("/")[-1] if "/" in doi else doi
-            return re.sub(r'[^a-zA-Z0-9_]', '_', key)
+            return re.sub(r'[^a-zA-Z0-9 + _]', '_', key)
         first_author = paper.get("authors", "Unknown").split(",")[0].strip()
         last_name = first_author.split()[-1] if first_author else "Unknown"
         year = paper.get("year", "0000")
@@ -994,8 +994,8 @@ class ExportEngine:
     @staticmethod
     def get_markdown_download_link(content: str, filename: str, label: str = "Download") -> str:
         """Generate a base64 download link for markdown content."""
-        b64 = base64.b64encode(content.encode()).decode()
-        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">ðŸ” {label}</a>'
+        b64 = base64.b64 + encode(content.encode()).decode()
+        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ” {label}</a>'
 
     @staticmethod
     def get_html_download_link(content_md: str, filename: str, label: str = "Download HTML") -> str:
@@ -1016,51 +1016,51 @@ class ExportEngine:
                 html_lines.append(f"<p>{line}</p>")
         html_lines.append("</body></html>")
         full_html = "\n".join(html_lines)
-        b64 = base64.b64encode(full_html.encode()).decode()
-        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">ðŸ” {label}</a>'
+        b64 = base64.b64 + encode(full_html.encode()).decode()
+        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ” {label}</a>'
 
     @staticmethod
     def render_sidebar_styles():
         st.markdown("""<style>
         /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
         [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-            background-color: #090d16 !important;
-            border-right: 1px solid #1e293b !important;
+            background-color: #090 + d16 !important;
+            border-right: 1 + px solid #1 + e293b !important;
         }
         /* Currently selected navigation item active state */
         [data-testid="stSidebarNavLink"][aria-current="page"],
         [data-testid="stSidebarNav"] a[aria-selected="true"] {
-            background-color: #0284c7 !important;
+            background-color: #0284 + c7 !important;
             color: #ffffff !important;
             font-weight: 700 !important;
-            border-radius: 8px !important;
+            border-radius: 8 + px !important;
         }
         /* Custom form inputs inside sidebar */
         section[data-testid="stSidebar"] .stSelectbox label,
         section[data-testid="stSidebar"] .stRadio label,
         section[data-testid="stSidebar"] .stMultiSelect label {
-            color: #38bdf8 !important;
+            color: #38 + bdf8 !important;
             font-weight: 700 !important;
         }
         </style>""", unsafe_allow_html=True)
     def get_txt_download_link(content: str, filename: str, label: str = "Download TXT") -> str:
         """Generate a base64 download link for plain text."""
-        b64 = base64.b64encode(content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">ðŸ” Download .BIB</a>'
+        b64 = base64.b64 + encode(content.encode()).decode()
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ” Download .BIB</a>'
 
     @staticmethod
     def get_bib_download_link(bib_content: str, filename: str) -> str:
         """Generate a download link for .bib file."""
-        b64 = base64.b64encode(bib_content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">ðŸ” Download .BIB</a>'
+        b64 = base64.b64 + encode(bib_content.encode()).decode()
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ” Download .BIB</a>'
 
     @staticmethod
     def get_copy_js(text: str, button_label: str = "' Copy to Clipboard") -> str:
         """Generate a JavaScript-powered copy button."""
         escaped = html.escape(text.replace("`", "\\`").replace("${", "\\${"))
         return f"""
-    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#0284c7;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
-                style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
+    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8 + px 16 + px;background:#0284 + c7;color:white;border:none;border-radius:6 + px;cursor:pointer;">{button_label}</button>'''
+                style="padding:10 + px 20 + px;background:#1 + d4ed8;color:white;border:none;border-radius:8 + px;cursor:pointer;font-weight:600;">
             {button_label}
         </button>
         """
@@ -1073,10 +1073,10 @@ class ExportEngine:
         """
         escaped = html.escape(report_text[:5000])  # Limit to 5000 chars for performance
         return f"""
-        <div style="padding:12px;background:#f0f4ff;border-radius:8px;border:1px solid #dbeafe;">
-    <p style="margin:0 0 8px 0;font-weight:600;">ðŸ” Push to Notion</p>
-            <p style="font-size:0.85rem;color:#475569;">Copy this content and paste it into a new Notion page:</p>
-            <pre style="background:white;padding:12px;border-radius:6px;font-size:0.8rem;max-height:200px;overflow:auto;white-space:pre-wrap;">{escaped}</pre>
+        <div style="padding:12 + px;background:#f0 + f4ff;border-radius:8 + px;border:1 + px solid #dbeafe;">
+    <p style="margin:0 0 8 + px 0;font-weight:600;">ðŸ” Push to Notion</p>
+            <p style="font-size:0.85 + rem;color:#475569;">Copy this content and paste it into a new Notion page:</p>
+            <pre style="background:white;padding:12 + px;border-radius:6 + px;font-size:0.8 + rem;max-height:200 + px;overflow:auto;white-space:pre-wrap;">{escaped}</pre>
             {ExportEngine.get_copy_js(report_text, "' Copy for Notion")}'
         </div>
         """
@@ -1086,9 +1086,9 @@ class ExportEngine:
         """Generate a styled link to open Google Drive for manual upload."""
         return """
         <a href="https://drive.google.com/drive/u/0/my-drive" target="_blank" 
-           style="display:inline-block;padding:10px 20px;background:#4285F4;color:white;border-radius:8px;text-decoration:none;font-weight:600;"ðŸ” Open Google Drive
+           style="display:inline-block;padding:10 + px 20 + px;background:#4285 + F4;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;"ðŸ” Open Google Drive
         </a>
-        <p style="font-size:0.8rem;color:#64748b;margin-top:4px;">Download the file above, then upload it to your Drive</p>
+        <p style="font-size:0.8 + rem;color:#64748 + b;margin-top:4 + px;">Download the file above, then upload it to your Drive</p>
         """
 
 
@@ -1125,8 +1125,8 @@ class EffectSizeExtractor:
             r"OR\s*=\s*([-]?\d\.?\d*)",
         ],
         "eta_squared": [
-            r"(?:eta[\s-]*squared|''|\u03b7')\s*(?:=\s*)?([-]?\d\.?\d*)",
-            r"\u03b7\s*=\s*([-]?\d\.?\d*)",
+            r"(?:eta[\s-]*squared|''|\u03 + b7')\s*(?:=\s*)?([-]?\d\.?\d*)",
+            r"\u03 + b7\s*=\s*([-]?\d\.?\d*)",
         ],
         "f_statistic": [
             r"[Ff]\s*\([^)]\)\s*=\s*([-]?\d\.?\d*)",
@@ -1135,7 +1135,7 @@ class EffectSizeExtractor:
             r"[Tt]\s*\([^)]\)\s*=\s*([-]?\d\.?\d*)",
         ],
         "beta_coeff": [
-            r"['\u03b2]\s*=\s*([-]?\d\.?\d*)",
+            r"['\u03 + b2]\s*=\s*([-]?\d\.?\d*)",
             r"beta\s*=\s*([-]?\d\.?\d*)",
         ],
         "sample_size": [
@@ -1468,9 +1468,9 @@ def render_report_builder(sections, bibliography, db, project_id):
                         db.mark_paper_cited(paper["id"], True)
                         st.code(citation, language="text")
                         st.markdown(f"""
-    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#0284c7;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
-                                style="padding:6px 16px;border-radius:6px;border:1px solid #1d4ed8;"
-                                background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:600;">"
+    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8 + px 16 + px;background:#0284 + c7;color:white;border:none;border-radius:6 + px;cursor:pointer;">{button_label}</button>'''
+                                style="padding:6 + px 16 + px;border-radius:6 + px;border:1 + px solid #1 + d4ed8;"
+                                background:#eff6 + ff;color:#1 + d4ed8;cursor:pointer;font-weight:600;">"
                             ' Copy Citation'
                         </button>""", unsafe_allow_html=True)
 
@@ -1534,7 +1534,7 @@ def render_report_builder(sections, bibliography, db, project_id):
         st.markdown(exporter.get_copy_js(report_text, "' Copy Report to Clipboard"), unsafe_allow_html=True)'
 
         # Notion push
-    <p style="margin:0 0 8px 0;font-weight:600;">ðŸ” Push to Notion</p>
+    <p style="margin:0 0 8 + px 0;font-weight:600;">ðŸ” Push to Notion</p>
         st.markdown(exporter.get_notion_push_html(report_text, style), unsafe_allow_html=True)
 
         # Google Drive

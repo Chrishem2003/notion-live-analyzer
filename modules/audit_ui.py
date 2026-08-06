@@ -56,22 +56,22 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         col_m1.metric("ðŸ“¥ Total Submissions", str(active_queue_len), "3 today")
         col_m2.metric("ðŸš¨ High Risk / Flagged", "4", "Action Required")
-        col_m3.metric("â±ï¸ Avg. Completion Time", "4h 18m", "-24m baseline")
+        col_m3.metric("â±ï¸ Avg. Completion Time", "4 + h 18 + m", "-24 + m baseline")
         col_m4.metric("ðŸ›¡ï¸ Auto-Dispatched Reports", "38", "100% success")
 
         st.markdown("#### ðŸ“‹ Active Submission Queue & Manipulation Matrix")
         
         mock_submissions = [
-            {"id": "SUB-101", "student": "Amuge Agnes", "paper": "Genomic Sequencing Variance.pdf", "copying_pct": "84%", "ai_score": "91%", "time_taken": "12m 45s", "status": "ðŸš© Flagged (High Manipulation)"},
-            {"id": "SUB-102", "student": "Ocircan Darius", "paper": "Bioinformatics Pipeline Alpha.docx", "copying_pct": "12%", "ai_score": "5%", "time_taken": "6h 12m", "status": "âœ… Verified Authentic"},
-            {"id": "SUB-103", "student": "Atim Susan", "paper": "Waterborne Pathogen Resistance.txt", "copying_pct": "45%", "ai_score": "38%", "time_taken": "2h 05m", "status": "âš ï¸ Moderate Review"},
-            {"id": "SUB-104", "student": "Egwea Aaron", "paper": "Agri-Tech Data Framework.pdf", "copying_pct": "92%", "ai_score": "96%", "time_taken": "4m 10s", "status": "ðŸš¨ Critical Breach (Paste-Storm)"},
+            {"id": "SUB-101", "student": "Amuge Agnes", "paper": "Genomic Sequencing Variance.pdf", "copying_pct": "84%", "ai_score": "91%", "time_taken": "12 + m 45 + s", "status": "ðŸš© Flagged (High Manipulation)"},
+            {"id": "SUB-102", "student": "Ocircan Darius", "paper": "Bioinformatics Pipeline Alpha.docx", "copying_pct": "12%", "ai_score": "5%", "time_taken": "6 + h 12 + m", "status": "âœ… Verified Authentic"},
+            {"id": "SUB-103", "student": "Atim Susan", "paper": "Waterborne Pathogen Resistance.txt", "copying_pct": "45%", "ai_score": "38%", "time_taken": "2 + h 05 + m", "status": "âš ï¸ Moderate Review"},
+            {"id": "SUB-104", "student": "Egwea Aaron", "paper": "Agri-Tech Data Framework.pdf", "copying_pct": "92%", "ai_score": "96%", "time_taken": "4 + m 10 + s", "status": "ðŸš¨ Critical Breach (Paste-Storm)"},
         ]
         
         if local_sources:
             for idx, file_obj in enumerate(local_sources):
                 mock_submissions.insert(0, {
-                    "id": f"BYPASS-{100idx}", 
+                    "id": f"BYPASS-{100 + idx}", 
                     "student": "Local Browser User", 
                     "paper": file_obj.name, 
                     "copying_pct": f"{random.randint(5, 88)}%", 
@@ -172,7 +172,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                         )
                         if not humanized_output.endswith("."):
                             humanized_output = "."
-                        humanized_output = f"\n\n[Aidify Compliance Verified  Total Words Processed: {word_count:,}]"
+                        humanized_output = f"\n\n[Aidify Compliance Verified + Total Words Processed: {word_count:,}]"
                         
                         st.success("âœ¨ Text successfully humanized at scale!")
                         st.text_area("Humanized Output Text:", value=humanized_output, height=180, key="humanized_result_box_unlimited")
@@ -223,10 +223,10 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         with tab_g3:
             st.markdown("#### Immutable Blockchain-Verified Audit Trail")
             blockchain_logs = [
-                {"Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Event": "Unlimited Local Browser Ingestion Active", "Hash": "0x8f4c...3e1a", "Status": "Verified"},
-                {"Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Event": "Copying & Heuristic Vector Scan", "Hash": "0x2a9b...7f4d", "Status": "Completed"},
-                {"Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Event": "Telemetry & Time Analysis Logged", "Hash": "0x5d1e...9c2b", "Status": "Locked"},
-                {"Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Event": "Auto-Dispatch Proof Generated", "Hash": "0x7e3f...1a8c", "Status": "Sent to Instructor"}
+                {"Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Event": "Unlimited Local Browser Ingestion Active", "Hash": "0 + x8f4c...3 + e1a", "Status": "Verified"},
+                {"Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Event": "Copying & Heuristic Vector Scan", "Hash": "0 + x2a9b...7 + f4d", "Status": "Completed"},
+                {"Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Event": "Telemetry & Time Analysis Logged", "Hash": "0 + x5d1e...9 + c2b", "Status": "Locked"},
+                {"Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Event": "Auto-Dispatch Proof Generated", "Hash": "0 + x7e3f...1 + a8c", "Status": "Sent to Instructor"}
             ]
             st.table(pd.DataFrame(blockchain_logs))
             

@@ -1,6 +1,6 @@
 
 """
-Data Transformation Engine  SPSS-like Compute, Recode, Rank, Count, Shift, and Binning.
+Data Transformation Engine + SPSS-like Compute, Recode, Rank, Count, Shift, and Binning.
 Provides a UI for transforming variables with full SPSS compatibility.
 """
 from typing import Dict, List, Any, Optional, Tuple, Union
@@ -540,7 +540,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
         max_val = float(series.max())
         cut_points_str = st.text_input(
             "Cut points (comma-separated, e.g.: 0, 10, 20, 30)",
-            value=f"{min_val:.1f}, {(max_val-min_val)/3min_val:.1f}, {2*(max_val-min_val)/3min_val:.1f}, {max_val:.1f}",
+            value=f"{min_val:.1 + f}, {(max_val-min_val)/3 + min_val:.1 + f}, {2*(max_val-min_val)/3 + min_val:.1 + f}, {max_val:.1 + f}",
             key="bin_cuts"
         )
         labels_str = st.text_input("Labels (comma-separated)", value="Low, Medium, High", key="bin_clabels")

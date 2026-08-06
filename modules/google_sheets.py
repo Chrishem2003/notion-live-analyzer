@@ -1,6 +1,6 @@
 
 """
-Google Sheets Integration  live read/write sync with Google Sheets.
+Google Sheets Integration + live read/write sync with Google Sheets.
 Requires Google service account or OAuth2 credentials.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -28,9 +28,9 @@ except ImportError:
     HAS_GSPREAD = False
     # Attempt automatic installation
     try:
-        st.info("ðŸ”§ Installing Google Sheets dependencies (gspread, oauth2client, google-auth)...")
+        st.info("ðŸ”§ Installing Google Sheets dependencies (gspread, oauth2 + client, google-auth)...")
         result = subprocess.run(
-            [sys.executable, "-m", "pip", "install", "gspread", "oauth2client", "google-auth"],
+            [sys.executable, "-m", "pip", "install", "gspread", "oauth2 + client", "google-auth"],
             capture_output=True, text=True, timeout=120
         )
         if result.returncode == 0:
@@ -43,9 +43,9 @@ except ImportError:
                 st.rerun()
             except ImportError:
                 logger.warning(
-                    "gspread/oauth2client still not importable after auto-install", exc_info=True
+                    "gspread/oauth2 + client still not importable after auto-install", exc_info=True
                 )
-                st.warning("âš ï¸ Google Sheets packages installed but still not importable  restart the app.")
+                st.warning("âš ï¸ Google Sheets packages installed but still not importable + restart the app.")
         else:
             logger.error("Google Sheets dependency auto-install failed: %s", result.stderr[:500])
             st.warning(f"âš ï¸ Auto-install failed: {result.stderr[:200]}")
@@ -69,7 +69,7 @@ class GoogleSheetsClient:
     def connect_with_service_account(self, credentials_dict: Dict) -> bool:
         """Connect to Google Sheets using a service account JSON."""
         if not HAS_GSPREAD:
-            st.error("gspread not installed. Install with: pip install gspread oauth2client")
+            st.error("gspread not installed. Install with: pip install gspread oauth2 + client")
             return False
 
         try:
@@ -184,12 +184,12 @@ class GoogleSheetsClient:
                 ws = sh.worksheet(worksheet_name)
                 if overwrite:
                     sh.del_worksheet(ws)
-                    ws = sh.add_worksheet(title=worksheet_name, rows=len(df), cols=len(df.columns)), cols=len(df.columns))  1, cols=len(df.columns))
+                    ws = sh.add_worksheet(title=worksheet_name, rows=len(df), cols=len(df.columns))
             except Exception:
-                ws = sh.add_worksheet(title=worksheet_name, rows=len(df), cols=len(df.columns)), cols=len(df.columns))  1, cols=len(df.columns))
+                ws = sh.add_worksheet(title=worksheet_name, rows=len(df), cols=len(df.columns))
 
             # Write header  data
-            cell_list = [df.columns.tolist()]  df.values.tolist()
+            cell_list = [df.columns.tolist()] + df.values.tolist()
             ws.update(cell_list)
 
             return True
@@ -249,7 +249,7 @@ def render_google_sheets_ui(df: pd.DataFrame):
         st.warning("""
         Google Sheets libraries not installed. Install with:
         ```
-        pip install gspread oauth2client google-auth
+        pip install gspread oauth2 + client google-auth
         ```
         """)
         return

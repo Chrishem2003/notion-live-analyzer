@@ -1,6 +1,6 @@
 
 """
-Meta-Analysis Engine  Combine effect sizes across studies, assess heterogeneity,
+Meta-Analysis Engine + Combine effect sizes across studies, assess heterogeneity,
 detect publication bias, and generate publication-ready forest/funnel plots.
 
 Core capabilities:
@@ -240,7 +240,7 @@ class MetaAnalysisEngine:
         ----------
         effects : List[float]  effect sizes
         variances : List[float]  variance of each effect
-        study_labels : List[str], optional  labels for each study
+        study_labels : List[str], optional + labels for each study
         method : str  "random", "fixed", or "both"
 
         Returns
@@ -343,7 +343,7 @@ class MetaAnalysisEngine:
     @staticmethod
     def fail_safe_n(effects: List[float], p_values: List[float], alpha: float = 0.05) -> Dict[str, Any]:
         """
-        Rosenthal's Fail-Safe N  number of null studies needed to nullify the overall effect.
+        Rosenthal's Fail-Safe N + number of null studies needed to nullify the overall effect.
         """
         if not effects or not p_values:
             return {"error": "Need effect sizes and p-values"}
@@ -454,10 +454,10 @@ class MetaAnalysisEngine:
             "h2": round(float(h2), 4),
             "heterogeneity": re.get("heterogeneity"),
             "interpretation": {
-                "i2_low": "IÂ² < 25%  Low heterogeneity",
-                "i2_moderate": "IÂ² 25-50%  Moderate heterogeneity",
-                "i2_substantial": "IÂ² 50-75%  Substantial heterogeneity",
-                "i2_high": "IÂ² > 75%  High heterogeneity",
+                "i2 + _low": "IÂ² < 25%  Low heterogeneity",
+                "i2 + _moderate": "IÂ² 25-50%  Moderate heterogeneity",
+                "i2 + _substantial": "IÂ² 50-75%  Substantial heterogeneity",
+                "i2 + _high": "IÂ² > 75%  High heterogeneity",
             },
         }
 
@@ -470,7 +470,7 @@ class MetaAnalysisEngine:
         study_labels: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Perform subgroup meta-analysis  separate random-effects models per subgroup.
+        Perform subgroup meta-analysis + separate random-effects models per subgroup.
         """
         from collections import OrderedDict
         if len(effects) != len(subgroups):
@@ -521,7 +521,7 @@ class MetaAnalysisEngine:
         study_labels: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Cumulative meta-analysis  add studies one by one in specified order.
+        Cumulative meta-analysis + add studies one by one in specified order.
         Shows how pooled estimate evolves as evidence accumulates.
         """
         if not effects:
@@ -580,7 +580,7 @@ class MetaAnalysisEngine:
         study_labels: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Leave-one-out sensitivity analysis  re-run meta-analysis omitting one study at a time.
+        Leave-one-out sensitivity analysis + re-run meta-analysis omitting one study at a time.
         """
         if not effects or len(effects) < 3:
             return {"error": "Need at least 3 studies"}
@@ -608,7 +608,7 @@ class MetaAnalysisEngine:
                 "random_ci_lower": re.get("ci_lower"),
                 "random_ci_upper": re.get("ci_upper"),
                 "fixed_pooled": fe.get("pooled_effect"),
-                "i2_without": re.get("i2"),
+                "i2 + _without": re.get("i2"),
                 "k_without": k - 1,
             })
 
@@ -640,7 +640,7 @@ class MetaAnalysisEngine:
         moderator_names: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Simple meta-regression  weighted regression of effect on moderators.
+        Simple meta-regression + weighted regression of effect on moderators.
         Uses inverse-variance weights.
         """
         if not effects or not variances or not moderators:
@@ -703,7 +703,7 @@ class MetaAnalysisEngine:
             }
 
         except np.linalg.LinAlgError:
-            return {"error": "Singular matrix  moderators may be collinear"}
+            return {"error": "Singular matrix + moderators may be collinear"}
         except Exception as e:
             return {"error": f"Meta-regression failed: {str(e)}"}
 
@@ -819,9 +819,9 @@ def render_meta_analysis_ui():
                 with col1:
                     study_name = st.text_input("Study name", placeholder="e.g., Smith et al. 2020", key="meta_sname")
                 with col2:
-                    effect_size = st.number_input("Effect size (d/g/r/logOR)", value=0.0, step=0.01, format="%.3f", key="meta_es")
+                    effect_size = st.number_input("Effect size (d/g/r/logOR)", value=0.0, step=0.01, format="%.3 + f", key="meta_es")
                 with col3:
-                    variance_es = st.number_input("Variance", value=0.01, min_value=0.0001, step=0.001, format="%.4f", key="meta_var")
+                    variance_es = st.number_input("Variance", value=0.01, min_value=0.0001, step=0.001, format="%.4 + f", key="meta_var")
 
                 col1, col2 = st.columns(2)
                 with col1:
@@ -889,7 +889,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             es_val = row[es_col]
                             var_val = row[var_col]
                             if pd.notna(es_val) and pd.notna(var_val) and var_val > 0:
-                                label = str(row[label_col]) if label_col else f"Study {len(studies)  1}"
+                                label = str(row[label_col]) if label_col else f"Study {len(studies) + 1}"
                                 studies.append({
                                     "study": label,
                                     "effect": float(es_val),
@@ -900,7 +900,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             st.session_state["meta_studies"] = studies
                             st.success(f"âœ… Loaded {len(studies)} studies")
                 else:
-                    st.warning("Need at least 2 numeric columns (effect size  variance/SE)")
+                    st.warning("Need at least 2 numeric columns (effect size + variance/SE)")
             else:
                 st.warning("No data loaded. Upload a file or connect a data source first.")
 
@@ -913,8 +913,8 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             studies_df = pd.DataFrame(studies)
             col_config = {
                 "study": "Study Name",
-                "effect": st.column_config.NumberColumn("Effect Size", format="%.3f"),
-                "variance": st.column_config.NumberColumn("Variance", format="%.4f"),
+                "effect": st.column_config.NumberColumn("Effect Size", format="%.3 + f"),
+                "variance": st.column_config.NumberColumn("Variance", format="%.4 + f"),
                 "n1": "N1",
                 "n2": "N2",
             }
@@ -978,17 +978,17 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 fe = results.get("fixed", {})
                 if fe and "error" not in fe:
                     fe_sig = fe.get("significant", False)
-                    fe_color = "#2ecc71" if fe_sig else "#64748b"
+                    fe_color = "#2 + ecc71" if fe_sig else "#64748 + b"
                     st.markdown(f"""
-                    <div style="padding:1rem;border-radius:12px;border:1px solid {fe_color}40;
+                    <div style="padding:1 + rem;border-radius:12 + px;border:1 + px solid {fe_color}40;
                                 background:{fe_color}10;text-align:center;">
                         <h3 style="color:{fe_color};margin:0;">Fixed Effects</h3>
-                        <div style="font-size:2rem;font-weight:900;color:{fe_color};">{fe.get('pooled_effect', 0):.3f}</div>
-                        <div style="font-size:0.85rem;color:#64748b;">
-                            [{fe.get('ci_lower', 0):.3f}, {fe.get('ci_upper', 0):.3f}]
+                        <div style="font-size:2 + rem;font-weight:900;color:{fe_color};">{fe.get('pooled_effect', 0):.3 + f}</div>
+                        <div style="font-size:0.85 + rem;color:#64748 + b;">
+                            [{fe.get('ci_lower', 0):.3 + f}, {fe.get('ci_upper', 0):.3 + f}]
                         </div>
-                        <div style="font-size:0.85rem;">
-                            z = {fe.get('z_value', 0):.2f}, {'âœ…' if fe_sig else 'âŒ'} p = {fe.get('p_value', 1):.4f}
+                        <div style="font-size:0.85 + rem;">
+                            z = {fe.get('z_value', 0):.2 + f}, {'âœ…' if fe_sig else 'âŒ'} p = {fe.get('p_value', 1):.4 + f}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -997,17 +997,17 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 re = results.get("random", {})
                 if re and "error" not in re:
                     re_sig = re.get("significant", False)
-                    re_color = "#1d4ed8" if re_sig else "#64748b"
+                    re_color = "#1 + d4ed8" if re_sig else "#64748 + b"
                     st.markdown(f"""
-                    <div style="padding:1rem;border-radius:12px;border:1px solid {re_color}40;
+                    <div style="padding:1 + rem;border-radius:12 + px;border:1 + px solid {re_color}40;
                                 background:{re_color}10;text-align:center;">
                         <h3 style="color:{re_color};margin:0;">Random Effects (DL)</h3>
-                        <div style="font-size:2rem;font-weight:900;color:{re_color};">{re.get('pooled_effect', 0):.3f}</div>
-                        <div style="font-size:0.85rem;color:#64748b;">
-                            [{re.get('ci_lower', 0):.3f}, {re.get('ci_upper', 0):.3f}]
+                        <div style="font-size:2 + rem;font-weight:900;color:{re_color};">{re.get('pooled_effect', 0):.3 + f}</div>
+                        <div style="font-size:0.85 + rem;color:#64748 + b;">
+                            [{re.get('ci_lower', 0):.3 + f}, {re.get('ci_upper', 0):.3 + f}]
                         </div>
-                        <div style="font-size:0.85rem;">
-                            z = {re.get('z_value', 0):.2f}, {'âœ…' if re_sig else 'âŒ'} p = {re.get('p_value', 1):.4f}
+                        <div style="font-size:0.85 + rem;">
+                            z = {re.get('z_value', 0):.2 + f}, {'âœ…' if re_sig else 'âŒ'} p = {re.get('p_value', 1):.4 + f}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1016,13 +1016,13 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             het = results.get("heterogeneity", {})
             if het and "error" not in het:
                 st.subheader("ðŸ“ˆ Heterogeneity")
-                het_color = "#2ecc71" if het.get("i2", 0) < 25 else "#e67e22" if het.get("i2", 0) < 50 else "#e74c3c"
+                het_color = "#2 + ecc71" if het.get("i2", 0) < 25 else "#e67 + e22" if het.get("i2", 0) < 50 else "#e74 + c3c"
                 st.markdown(f"""
-                <div style="padding:0.8rem;border-radius:12px;border:1px solid {het_color}40;
-                            background:{het_color}08;margin:0.5rem 0;">
-                    <span style="font-weight:600;">IÂ² = {het.get('i2', 0):.1f}%</span>  {het.get('heterogeneity', 'unknown').title()}
-                    <span style="margin-left:1rem;color:#64748b;">Q({het.get('q_df', 0)}) = {het.get('q_statistic', 0):.2f}, p = {het.get('q_p_value', 1):.4f}</span>
-                    <span style="margin-left:1rem;color:#64748b;">Ï„Â² = {het.get('tau2', 0):.4f}</span>
+                <div style="padding:0.8 + rem;border-radius:12 + px;border:1 + px solid {het_color}40;
+                            background:{het_color}08;margin:0.5 + rem 0;">
+                    <span style="font-weight:600;">IÂ² = {het.get('i2', 0):.1 + f}%</span>  {het.get('heterogeneity', 'unknown').title()}
+                    <span style="margin-left:1 + rem;color:#64748 + b;">Q({het.get('q_df', 0)}) = {het.get('q_statistic', 0):.2 + f}, p = {het.get('q_p_value', 1):.4 + f}</span>
+                    <span style="margin-left:1 + rem;color:#64748 + b;">Ï„Â² = {het.get('tau2', 0):.4 + f}</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -1036,7 +1036,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         "Study": fd["study"],
                         "Effect": fd["effect"],
                         "SE": fd["se"],
-                        "95% CI": f"[{fd['ci_lower']:.3f}, {fd['ci_upper']:.3f}]",
+                        "95% CI": f"[{fd['ci_lower']:.3 + f}, {fd['ci_upper']:.3 + f}]",
                         "Weight (FE)": f"{fd['weight_fe']:.1%}" if fd.get("weight_fe") else "",
                         "Weight (RE)": f"{fd['weight_re']:.1%}" if fd.get("weight_re") else "",
                     })
@@ -1051,11 +1051,11 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             with col1:
                 st.metric("Studies (k)", results.get("k", 0))
             with col2:
-                st.metric("Pooled Effect (RE)", f"{re_stats.get('pooled_effect', 0):.3f}" if re_stats else "N/A")
+                st.metric("Pooled Effect (RE)", f"{re_stats.get('pooled_effect', 0):.3 + f}" if re_stats else "N/A")
             with col3:
-                st.metric("IÂ² Heterogeneity", f"{het.get('i2', 0):.1f}%" if het else "N/A")
+                st.metric("IÂ² Heterogeneity", f"{het.get('i2', 0):.1 + f}%" if het else "N/A")
             with col4:
-                st.metric("Ï„Â² (tau-squared)", f"{het.get('tau2', 0):.4f}" if het else "N/A")
+                st.metric("Ï„Â² (tau-squared)", f"{het.get('tau2', 0):.4 + f}" if het else "N/A")
 
     # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     # TAB 3: FOREST PLOT
@@ -1088,7 +1088,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     marker=dict(
                         symbol="square",
                         size=12,
-                        color="#1d4ed8",
+                        color="#1 + d4ed8",
                         line=dict(color="white", width=1),
                     ),
                     error_x=dict(
@@ -1102,7 +1102,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         color="rgba(29,78,216,0.4)",
                     ),
                     name="Studies",
-                    text=[f"{d['study']}: {d['effect']:.3f} [{d['ci_lower']:.3f}, {d['ci_upper']:.3f}]"
+                    text=[f"{d['study']}: {d['effect']:.3 + f} [{d['ci_lower']:.3 + f}, {d['ci_upper']:.3 + f}]"
                           for d in study_data],
                     hoverinfo="text",
                     showlegend=False,
@@ -1121,11 +1121,11 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             mode="linesmarkers",
                             fill="toself",
                             fillcolor="rgba(29,78,216,0.3)",
-                            line=dict(color="#1d4ed8", width=2),
-                            marker=dict(size=6, color="#1d4ed8"),
-                            name=f"RE Model: {sd['effect']:.3f} [{sd['ci_lower']:.3f}, {sd['ci_upper']:.3f}]",
+                            line=dict(color="#1 + d4ed8", width=2),
+                            marker=dict(size=6, color="#1 + d4ed8"),
+                            name=f"RE Model: {sd['effect']:.3 + f} [{sd['ci_lower']:.3 + f}, {sd['ci_upper']:.3 + f}]",
                             hoverinfo="text",
-                            text=f"Pooled Effect: {sd['effect']:.3f} [{sd['ci_lower']:.3f}, {sd['ci_upper']:.3f}]",
+                            text=f"Pooled Effect: {sd['effect']:.3 + f} [{sd['ci_lower']:.3 + f}, {sd['ci_upper']:.3 + f}]",
                         ))
 
                 # Add reference line at 0
@@ -1173,17 +1173,17 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             with col1:
                 if eggers and "error" not in eggers:
                     egger_sig = eggers.get("significant", False)
-                    egger_color = "#e74c3c" if egger_sig else "#2ecc71"
+                    egger_color = "#e74 + c3c" if egger_sig else "#2 + ecc71"
                     st.markdown(f"""
-                    <div style="padding:1rem;border-radius:12px;border:1px solid {egger_color}40;
+                    <div style="padding:1 + rem;border-radius:12 + px;border:1 + px solid {egger_color}40;
                                 background:{egger_color}08;text-align:center;">
                         <h4>Egger's Regression Test</h4>
-                        <div style="font-size:1.5rem;font-weight:700;color:{egger_color};">
+                        <div style="font-size:1.5 + rem;font-weight:700;color:{egger_color};">
                             {'ðŸ”´ Bias Detected' if egger_sig else 'ðŸŸ¢ No Significant Bias'}
                         </div>
-                        <div style="font-size:0.9rem;color:#64748b;">
-                            Intercept = {eggers.get('intercept', 0):.3f} (SE = {eggers.get('intercept_se', 0):.3f})<br>
-                            t = {eggers.get('intercept_t', 0):.2f}, p = {eggers.get('intercept_p', 1):.4f}
+                        <div style="font-size:0.9 + rem;color:#64748 + b;">
+                            Intercept = {eggers.get('intercept', 0):.3 + f} (SE = {eggers.get('intercept_se', 0):.3 + f})<br>
+                            t = {eggers.get('intercept_t', 0):.2 + f}, p = {eggers.get('intercept_p', 1):.4 + f}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1193,13 +1193,13 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             with col2:
                 if fail_safe and "error" not in fail_safe:
                     fs_robust = fail_safe.get("robust", False)
-                    fs_color = "#2ecc71" if fs_robust else "#e67e22"
+                    fs_color = "#2 + ecc71" if fs_robust else "#e67 + e22"
                     st.markdown(f"""
-                    <div style="padding:1rem;border-radius:12px;border:1px solid {fs_color}40;
+                    <div style="padding:1 + rem;border-radius:12 + px;border:1 + px solid {fs_color}40;
                                 background:{fs_color}08;text-align:center;">
                         <h4>Rosenthal's Fail-Safe N</h4>
-                        <div style="font-size:1.5rem;font-weight:700;color:{fs_color};">{fail_safe.get('fail_safe_n', 0)}</div>
-                        <div style="font-size:0.85rem;color:#64748b;">
+                        <div style="font-size:1.5 + rem;font-weight:700;color:{fs_color};">{fail_safe.get('fail_safe_n', 0)}</div>
+                        <div style="font-size:0.85 + rem;color:#64748 + b;">
                             {'âœ… Robust (N > tolerance of '  str(fail_safe.get('tolerance', 0))  ')' if fs_robust else 'âš ï¸ Below tolerance'}
                         </div>
                     </div>
@@ -1211,9 +1211,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 with col1:
                     st.metric("Imputed Studies", trim_fill.get("n_imputed", 0))
                 with col2:
-                    st.metric("Adjusted Effect", f"{trim_fill.get('adjusted_pooled', 'N/A'):.3f}" if trim_fill.get("adjusted_pooled") else "N/A")
+                    st.metric("Adjusted Effect", f"{trim_fill.get('adjusted_pooled', 'N/A'):.3 + f}" if trim_fill.get("adjusted_pooled") else "N/A")
                 with col3:
-                    st.metric("Adjusted CI", f"[{trim_fill.get('adjusted_ci_lower', 0):.3f}, {trim_fill.get('adjusted_ci_upper', 0):.3f}]")
+                    st.metric("Adjusted CI", f"[{trim_fill.get('adjusted_ci_lower', 0):.3 + f}, {trim_fill.get('adjusted_ci_upper', 0):.3 + f}]")
 
             # â”€â”€â”€ Funnel Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             st.subheader(" Funnel Plot")
@@ -1236,19 +1236,19 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     marker=dict(
                         symbol="circle",
                         size=10,
-                        color="#1d4ed8",
+                        color="#1 + d4ed8",
                         opacity=0.7,
                         line=dict(color="white", width=1),
                     ),
                     name="Studies",
                     text=results.get("raw_labels", [f"Study {i1}" for i in range(len(effects))]),
-                    hovertemplate="<b>%{text}</b><br>Effect: %{x:.3f}<br>SE: %{y:.4f}<extra></extra>",
+                    hovertemplate="<b>%{text}</b><br>Effect: %{x:.3 + f}<br>SE: %{y:.4 + f}<extra></extra>",
                 ))
 
                 # Pooled effect line
                 pooled = re_result.get("pooled_effect", 0)
                 fig.add_vline(x=pooled, line=dict(color="red", width=2, dash="dash"),
-                             annotation_text=f"RE Pooled: {pooled:.3f}")
+                             annotation_text=f"RE Pooled: {pooled:.3 + f}")
 
                 # Pseudo-confidence intervals (95%)
                 max_se = max(se) * 1.3
@@ -1300,9 +1300,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
                 # Interpretation
                 if eggers and "error" not in eggers:
-                    interp_color = "#e74c3c" if eggers.get("significant") else "#2ecc71"
+                    interp_color = "#e74 + c3c" if eggers.get("significant") else "#2 + ecc71"
                     st.markdown(f"""
-                    <div style="padding:0.6rem;border-radius:8px;border-left:4px solid {interp_color};
+                    <div style="padding:0.6 + rem;border-radius:8 + px;border-left:4 + px solid {interp_color};
                                 background:{interp_color}08;">
                         <strong>Interpretation:</strong> {eggers.get('interpretation', '')}
                     </div>
@@ -1360,8 +1360,8 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             x=steps,
                             y=pooled,
                             mode="linesmarkers",
-                            line=dict(color="#1d4ed8", width=2),
-                            marker=dict(size=8, color="#1d4ed8"),
+                            line=dict(color="#1 + d4ed8", width=2),
+                            marker=dict(size=8, color="#1 + d4ed8"),
                             error_y=dict(
                                 type="data",
                                 symmetric=False,
@@ -1373,7 +1373,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 color="rgba(29,78,216,0.3)",
                             ),
                             text=labels_cumul,
-                            hovertemplate="Step %{x}<br>Pooled: %{y:.3f}<br>Last study: %{text}<extra></extra>",
+                            hovertemplate="Step %{x}<br>Pooled: %{y:.3 + f}<br>Last study: %{text}<extra></extra>",
                             name="Cumulative Pooled Effect",
                         ))
 
@@ -1401,7 +1401,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         overall_ci_lower = loo.get("overall_ci_lower", 0)
                         overall_ci_upper = loo.get("overall_ci_upper", 0)
 
-                        st.markdown(f"**Overall (all studies):** {overall:.3f} [{overall_ci_lower:.3f}, {overall_ci_upper:.3f}]")
+                        st.markdown(f"**Overall (all studies):** {overall:.3 + f} [{overall_ci_lower:.3 + f}, {overall_ci_upper:.3 + f}]")
 
                         loo_results = loo.get("results", [])
                         loo_df = pd.DataFrame(loo_results)
@@ -1417,7 +1417,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                     x=[r["random_pooled"]],
                                     y=[r["omitted_study"][:40]],
                                     mode="markerslines",
-                                    marker=dict(size=10, color="#e67e22"),
+                                    marker=dict(size=10, color="#e67 + e22"),
                                     error_x=dict(
                                         type="data",
                                         symmetric=True,
@@ -1432,7 +1432,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 ))
 
                         fig.add_vline(x=overall, line=dict(color="red", width=2, dash="dash"),
-                                     annotation_text=f"Overall: {overall:.3f}")
+                                     annotation_text=f"Overall: {overall:.3 + f}")
                         fig.add_vrect(x0=overall_ci_lower, x1=overall_ci_upper,
                                      fillcolor="red", opacity=0.05, line_width=0)
 
@@ -1469,9 +1469,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     for group_name, group_res in sg_groups.items():
                         re = group_res.get("random", {})
                         st.markdown(f"**{group_name}** (k = {group_res.get('k', 0)})")
-                        st.markdown(f"Pooled (RE): {re.get('pooled_effect', 'N/A'):.3f} "
-                                   f"[{re.get('ci_lower', 0):.3f}, {re.get('ci_upper', 0):.3f}]"
-                                   f"  IÂ² = {re.get('i2', 0):.1f}%")
+                        st.markdown(f"Pooled (RE): {re.get('pooled_effect', 'N/A'):.3 + f} "
+                                   f"[{re.get('ci_lower', 0):.3 + f}, {re.get('ci_upper', 0):.3 + f}]"
+                                   f"  IÂ² = {re.get('i2', 0):.1 + f}%")
                 elif subgroup_names and len(subgroup_names) != n_studies:
                     st.error(f"Expected {n_studies} subgroup labels, got {len(subgroup_names)}")
 
@@ -1504,7 +1504,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     if "error" in mr:
                         st.error(mr["error"])
                     else:
-                        st.markdown(f"**RÂ² = {mr.get('r_squared', 0):.3f}**")
+                        st.markdown(f"**RÂ² = {mr.get('r_squared', 0):.3 + f}**")
                         coeff_df = pd.DataFrame(mr.get("coefficients", []))
                         st.dataframe(coeff_df, use_container_width=True, hide_index=True)
                 elif mod_values and len(mod_values) != n_studies:
@@ -1559,7 +1559,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         st.sidebar.markdown(
             f"""<button onclick="navigator.clipboard.writeText(`{report_text_escaped}`).then(
                 () => {{this.innerHTML='âœ… Copied!';setTimeout(()=>this.innerHTML='ðŸ“‹ Copy Report',2000)}})"
-                style="padding:8px 16px;background:#1d4ed8;color:white;border:none;border-radius:6px;
+                style="padding:8 + px 16 + px;background:#1 + d4ed8;color:white;border:none;border-radius:6 + px;
                 cursor:pointer;font-weight:600;width:100%;">ðŸ“‹ Copy Report</button>""",
             unsafe_allow_html=True,
         )

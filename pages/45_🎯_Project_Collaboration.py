@@ -166,13 +166,13 @@ st.markdown(
 <style>
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        background-color: #090 + d16 !important;
+        border-right: 1 + px solid #1 + e293b !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #f8 + fafc !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -180,151 +180,151 @@ st.markdown(
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #f8 + fafc !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
-        border-radius: 8px !important;
+        background-color: #1 + e293b !important;
+        border-radius: 8 + px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #0284 + c7 !important;
         color: #ffffff !important;
         font-weight: 700 !important;
-        border-radius: 8px !important;
+        border-radius: 8 + px !important;
     }
 
     /* Custom form inputs inside sidebar */
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #38 + bdf8 !important;
         font-weight: 700 !important;
     }
-    .stApp { background-color: #0b0f19; color: #f8fafc; font-family: -apple-system, sans-serif; }
+    .stApp { background-color: #0 + b0f19; color: #f8 + fafc; font-family: -apple-system, sans-serif; }
     input, textarea, select {
         background-color: #111827 !important;
-        color: #f8fafc !important;
-        border: 1px solid #374151 !important;
-        border-radius: 8px !important;
+        color: #f8 + fafc !important;
+        border: 1 + px solid #374151 !important;
+        border-radius: 8 + px !important;
     }
     .hero-banner {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        border: 1px solid #312e81;
-        border-radius: 20px;
-        padding: 2.5rem;
+        background: linear-gradient(135 + deg, #0 + f172a 0%, #1 + e1b4b 100%);
+        border: 1 + px solid #312 + e81;
+        border-radius: 20 + px;
+        padding: 2.5 + rem;
         text-align: center;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
-        margin-bottom: 2rem;
+        box-shadow: 0 20 + px 25 + px -5 + px rgba(0, 0, 0, 0.4);
+        margin-bottom: 2 + rem;
     }
     .card-box {
         background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
+        border: 1 + px solid #1 + f2937;
+        border-radius: 16 + px;
+        padding: 1.5 + rem;
+        margin-bottom: 1 + rem;
     }
     .link-display {
-        background: #0d1117;
-        border: 1px solid #30363d;
-        padding: 10px 14px;
-        border-radius: 8px;
+        background: #0 + d1117;
+        border: 1 + px solid #30363 + d;
+        padding: 10 + px 14 + px;
+        border-radius: 8 + px;
         font-family: monospace;
-        color: #38bdf8;
-        font-size: 0.9rem;
+        color: #38 + bdf8;
+        font-size: 0.9 + rem;
     }
     .omni-share-card {
-        background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
-        border: 1px solid #374151;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 12px;
+        background: linear-gradient(135 + deg, #111827 0%, #1 + f2937 100%);
+        border: 1 + px solid #374151;
+        border-radius: 12 + px;
+        padding: 16 + px;
+        margin-bottom: 12 + px;
     }
     .pause-overlay {
-        background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
-        border: 2px solid #818cf8;
-        border-radius: 16px;
-        padding: 2rem;
+        background: linear-gradient(135 + deg, #1 + e1b4b 0%, #311042 100%);
+        border: 2 + px solid #818 + cf8;
+        border-radius: 16 + px;
+        padding: 2 + rem;
         text-align: center;
-        box-shadow: 0 10px 25px rgba(129, 140, 248, 0.2);
+        box-shadow: 0 10 + px 25 + px rgba(129, 140, 248, 0.2);
     }
     
     /* Social Media Styled Verified Badges (TikTok / X / Instagram Aesthetic) */
     .verified-badge-blue {
         display: inline-block;
-        width: 15px;
-        height: 15px;
-        background-color: #1d9bf0;
-        mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center;
-        -webkit-mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center;
+        width: 15 + px;
+        height: 15 + px;
+        background-color: #1 + d9bf0;
+        mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17 + L4.83 12 + l-1.42 1.41 + L9 19 21 7 + l-1.41-1.41 + z"/></svg>') no-repeat center;
+        -webkit-mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17 + L4.83 12 + l-1.42 1.41 + L9 19 21 7 + l-1.41-1.41 + z"/></svg>') no-repeat center;
         vertical-align: middle;
-        margin-left: 4px;
+        margin-left: 4 + px;
     }
     .verified-badge-gold {
         display: inline-block;
-        width: 15px;
-        height: 15px;
-        background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-        mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>') no-repeat center;
-        -webkit-mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>') no-repeat center;
+        width: 15 + px;
+        height: 15 + px;
+        background: linear-gradient(135 + deg, #f59 + e0b 0%, #fbbf24 100%);
+        mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1 + L3 5 + v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12 + V5l-9-4 + zm-2 16 + l-4-4 1.41-1.41 + L10 14.17 + l6.59-6.59 + L18 9 + l-8 8 + z"/></svg>') no-repeat center;
+        -webkit-mask: url('data:image/svgxml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1 + L3 5 + v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12 + V5l-9-4 + zm-2 16 + l-4-4 1.41-1.41 + L10 14.17 + l6.59-6.59 + L18 9 + l-8 8 + z"/></svg>') no-repeat center;
         vertical-align: middle;
-        margin-left: 4px;
+        margin-left: 4 + px;
     }
     .stealth-badge {
         background: #374151;
-        color: #94a3b8;
-        font-size: 0.7rem;
-        padding: 2px 6px;
-        border-radius: 10px;
+        color: #94 + a3b8;
+        font-size: 0.7 + rem;
+        padding: 2 + px 6 + px;
+        border-radius: 10 + px;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
-        gap: 3px;
-        border: 1px dashed #6b7280;
+        gap: 3 + px;
+        border: 1 + px dashed #6 + b7280;
     }
     
     .telemetry-card {
-        background: #0d1117;
-        border: 1px solid #1f2937;
-        padding: 10px 14px;
-        border-radius: 10px;
+        background: #0 + d1117;
+        border: 1 + px solid #1 + f2937;
+        padding: 10 + px 14 + px;
+        border-radius: 10 + px;
         text-align: center;
     }
     .transcript-box, .chat-box {
-        background: #0d1117;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        padding: 14px;
+        background: #0 + d1117;
+        border: 1 + px solid #30363 + d;
+        border-radius: 8 + px;
+        padding: 14 + px;
         font-family: monospace;
-        font-size: 0.85rem;
-        color: #34d399;
-        max-height: 280px;
+        font-size: 0.85 + rem;
+        color: #34 + d399;
+        max-height: 280 + px;
         overflow-y: auto;
     }
     /* Floating PiP Active Speaker HUD */
     .floating-pip-hud {
         position: fixed;
-        bottom: 25px;
-        right: 25px;
-        background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
-        border: 2px solid #38bdf8;
-        border-radius: 14px;
-        padding: 14px 18px;
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+        bottom: 25 + px;
+        right: 25 + px;
+        background: linear-gradient(135 + deg, #111827 0%, #1 + f2937 100%);
+        border: 2 + px solid #38 + bdf8;
+        border-radius: 14 + px;
+        padding: 14 + px 18 + px;
+        box-shadow: 0 15 + px 30 + px rgba(0, 0, 0, 0.6);
         z-index: 999999;
-        width: 270px;
-        animation: pulse-border 2s infinite;
+        width: 270 + px;
+        animation: pulse-border 2 + s infinite;
     }
     @keyframes pulse-border {
-        0% { border-color: #38bdf8; }
-        50% { border-color: #34d399; }
-        100% { border-color: #38bdf8; }
+        0% { border-color: #38 + bdf8; }
+        50% { border-color: #34 + d399; }
+        100% { border-color: #38 + bdf8; }
     }
 </style>
 """,
@@ -338,11 +338,11 @@ if not st.session_state["in_session"]:
   st.markdown(
       """
         <div class="hero-banner">
-            <div style="font-size:3.5rem;margin-bottom:0.75rem;">🔍 </div>
-            <h1 style="color:#f1f5f9;font-size:2.2rem;font-weight:800;margin-bottom:0.75rem;">
+            <div style="font-size:3.5 + rem;margin-bottom:0.75 + rem;">🔍 </div>
+            <h1 style="color:#f1 + f5f9;font-size:2.2 + rem;font-weight:800;margin-bottom:0.75 + rem;">
                 Autonomous Collaboration & Research Suite
             </h1>
-            <p style="color:#94a3b8;font-size:1.05rem;max-width:700px;margin:0 auto;line-height: 1.6;">
+            <p style="color:#94 + a3b8;font-size:1.05 + rem;max-width:700 + px;margin:0 auto;line-height: 1.6;">
                 Apple-Grade WebRTC streaming with Multi-Tier Verified Badges, Stealth Anonymous Voice Channels, and Host/Co-Host Exclusive Plagiarism & AI Content Audit Engines.
             </p>
         </div>
@@ -505,7 +505,7 @@ else:
 
   rem_minutes, rem_secs = divmod(max(0, remaining_seconds), 60)
   rem_hours, rem_minutes = divmod(rem_minutes, 60)
-  countdown_str = f"{rem_hours:02d}:{rem_minutes:02d}:{rem_secs:02d}"
+  countdown_str = f"{rem_hours:02 + d}:{rem_minutes:02 + d}:{rem_secs:02 + d}"
 
   # Render Floating PiP Active Speaker HUD Across All Tabs with Social Media Verified Badges
   curr_spk = st.session_state["current_active_speaker"]
@@ -517,12 +517,12 @@ else:
   st.markdown(
       f"""
         <div class="floating-pip-hud">
-            <div style="font-size:0.7rem;color:#38bdf8;margin-bottom:2px;font-weight:bold;">🔍 LIVE SPEAKER HUD</div>
-            <div style="font-size:0.95rem;font-weight:bold;color:#f8fafc;">{curr_spk['name']} {curr_badge_html}</div>
-            <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:6px;">{curr_spk['role']}</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#34d399;">
+            <div style="font-size:0.7 + rem;color:#38 + bdf8;margin-bottom:2 + px;font-weight:bold;">🔍 LIVE SPEAKER HUD</div>
+            <div style="font-size:0.95 + rem;font-weight:bold;color:#f8 + fafc;">{curr_spk['name']} {curr_badge_html}</div>
+            <div style="font-size:0.75 + rem;color:#94 + a3b8;margin-bottom:6 + px;">{curr_spk['role']}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75 + rem;color:#34 + d399;">
                 <span>{curr_spk['status']}</span>
-                <span style="font-family:monospace;background:#0d1117;padding:2px 6px;border-radius:4px;">{curr_spk['db']}</span>
+                <span style="font-family:monospace;background:#0 + d1117;padding:2 + px 6 + px;border-radius:4 + px;">{curr_spk['db']}</span>
             </div>
         </div>
         """,
@@ -542,21 +542,21 @@ else:
     )
 
   with h2:
-    timer_color = "#38bdf8" if remaining_seconds > 300 else "#f87171"
+    timer_color = "#38 + bdf8" if remaining_seconds > 300 else "#f87171"
     st.markdown(
         f"""
             <div class="telemetry-card">
-                <div style="color:#94a3b8;font-size:0.75rem;">? COUNTDOWN</div>
-                <div style="color:{timer_color};font-size:1.05rem;font-weight:bold;font-family:monospace;">{countdown_str}</div>
+                <div style="color:#94 + a3b8;font-size:0.75 + rem;">? COUNTDOWN</div>
+                <div style="color:{timer_color};font-size:1.05 + rem;font-weight:bold;font-family:monospace;">{countdown_str}</div>
             </div>
             """,
         unsafe_allow_html=True,
     )
 
   with h3:
-    shareable_link = f"https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
+    shareable_link = f"https://notion-live-analyzer-w6 + ckned7rqd4gb8oppjjke.streamlit.app/Project_Collaboration?room={st.session_state['room_id']}"
     st.markdown(
-        f'<div class="link-display" style="font-size:0.75rem;overflow:hidden;text-overflow:ellipsis;">🔍 {shareable_link}</div>',
+        f'<div class="link-display" style="font-size:0.75 + rem;overflow:hidden;text-overflow:ellipsis;">🔍 {shareable_link}</div>',
         unsafe_allow_html=True,
     )
 
@@ -637,7 +637,7 @@ else:
         )
       else:
         st.markdown(
-            '<span style="color:#34d399;font-weight:bold;">🔍 Broadcast'
+            '<span style="color:#34 + d399;font-weight:bold;">🔍 Broadcast'
             " Live</span>",
             unsafe_allow_html=True,
         )
@@ -668,17 +668,17 @@ else:
       if mirror_feed:
         img = cv2.flip(img, 1)
       if filter_mode == "Cinematic Contrast":
-        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        lab = cv2.cvtColor(img, cv2.COLOR_BGR2 + LAB)
         l, a, b = cv2.split(lab)
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         cl = clahe.apply(l)
-        img = cv2.cvtColor(cv2.merge((cl, a, b)), cv2.COLOR_LAB2BGR)
+        img = cv2.cvtColor(cv2.merge((cl, a, b)), cv2.COLOR_LAB2 + BGR)
       elif filter_mode == "Studio Grayscale":
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2 + GRAY)
+        img = cv2.cvtColor(gray, cv2.COLOR_GRAY2 + BGR)
       elif filter_mode == "Edge Sharpen":
         kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
-        img = cv2.filter2D(img, -1, kernel)
+        img = cv2.filter2 + D(img, -1, kernel)
       return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 
@@ -701,10 +701,10 @@ else:
         st.markdown(
             f"""
                 <div class="pause-overlay">
-                    <div style="font-size:3rem;margin-bottom:0.5rem;">🔍 </div>
-                    <h3 style="color:#f8fafc;margin-bottom:0.5rem;">Stream Paused by Host</h3>
-                    <p style="color:#cbd5e1;font-size:1.05rem;">{st.session_state['pause_message']}</p>
-                    <div style="margin-top:1rem;color:#a5b4fc;font-size:0.85rem;">Stand by 🔍 session will resume shortly.</div>
+                    <div style="font-size:3 + rem;margin-bottom:0.5 + rem;">🔍 </div>
+                    <h3 style="color:#f8 + fafc;margin-bottom:0.5 + rem;">Stream Paused by Host</h3>
+                    <p style="color:#cbd5 + e1;font-size:1.05 + rem;">{st.session_state['pause_message']}</p>
+                    <div style="margin-top:1 + rem;color:#a5 + b4fc;font-size:0.85 + rem;">Stand by 🔍 session will resume shortly.</div>
                 </div>
                 """,
             unsafe_allow_html=True,
@@ -762,7 +762,7 @@ else:
           disp_name = f"🔍 Anonymous Contributor #{idx1}"
           badge_tag = '<span class="stealth-badge">🔍 Encrypted Voice</span>'
           cam_status = (
-              '<span style="color:#94a3b8;font-size:0.75rem;">No Camera'
+              '<span style="color:#94 + a3b8;font-size:0.75 + rem;">No Camera'
               " (Strict Anonymity)</span>"
           )
         else:
@@ -773,23 +773,23 @@ else:
               else ""
           )
           cam_status = (
-              '<span style="color:#34d399;font-size:0.75rem;">Camera'
+              '<span style="color:#34 + d399;font-size:0.75 + rem;">Camera'
               " Enabled</span>"
           )
 
         attendee_cards_html = f"""
-                <div style="background:#0d1117;border:1px solid #30363d;padding:8px 12px;border-radius:6px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+                <div style="background:#0 + d1117;border:1 + px solid #30363 + d;padding:8 + px 12 + px;border-radius:6 + px;margin-bottom:6 + px;display:flex;justify-content:space-between;align-items:center;">
                     <div>
-                        <span style="color:#38bdf8;font-weight:bold;">{disp_name}</span> {badge_tag}
-                        <div style="color:#94a3b8;font-size:0.75rem;">Role: {att['role']} | {cam_status}</div>
+                        <span style="color:#38 + bdf8;font-weight:bold;">{disp_name}</span> {badge_tag}
+                        <div style="color:#94 + a3b8;font-size:0.75 + rem;">Role: {att['role']} | {cam_status}</div>
                     </div>
-                    <div style="color:#34d399;font-size:0.8rem;">{att['status']}</div>
+                    <div style="color:#34 + d399;font-size:0.8 + rem;">{att['status']}</div>
                 </div>
                 """
       st.markdown(
           f"""
-            <div style="background:#111827;border:1px solid #374151;border-radius:12px;padding:15px;height:200px;overflow-y:auto;margin-top:10px;">
-                <div style="color:#f8fafc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;">Connected Roster ({len(st.session_state['active_attendees'])} Online):</div>
+            <div style="background:#111827;border:1 + px solid #374151;border-radius:12 + px;padding:15 + px;height:200 + px;overflow-y:auto;margin-top:10 + px;">
+                <div style="color:#f8 + fafc;font-weight:bold;margin-bottom:8 + px;font-size:0.9 + rem;">Connected Roster ({len(st.session_state['active_attendees'])} Online):</div>
                 {attendee_cards_html}
             </div>
             """,
@@ -825,10 +825,10 @@ else:
     if not is_authorized_host_or_cohost:
       st.markdown(
           """
-            <div style="background:#1f2937;border:1px solid #f87171;border-radius:12px;padding:2rem;text-align:center;margin-top:2rem;">
-                <div style="font-size:3rem;margin-bottom:0.5rem;">🔍 </div>
-                <h3 style="color:#f87171;margin-bottom:0.5rem;">Restricted Access Area</h3>
-                <p style="color:#94a3b8;font-size:1rem;">The Plagiarism & AI Content Audit Suite is strictly available to Verified Hosts and Co-Hosts.</p>
+            <div style="background:#1 + f2937;border:1 + px solid #f87171;border-radius:12 + px;padding:2 + rem;text-align:center;margin-top:2 + rem;">
+                <div style="font-size:3 + rem;margin-bottom:0.5 + rem;">🔍 </div>
+                <h3 style="color:#f87171;margin-bottom:0.5 + rem;">Restricted Access Area</h3>
+                <p style="color:#94 + a3b8;font-size:1 + rem;">The Plagiarism & AI Content Audit Suite is strictly available to Verified Hosts and Co-Hosts.</p>
             </div>
             """,
           unsafe_allow_html=True,
@@ -896,11 +896,11 @@ else:
               94.5,
               max(
                   12.0,
-                  (text_len % 73)  (15 if strictness_mode[0] == "H" else 5),
+                  (text_len % 73) + (15 if strictness_mode[0] == "H" else 5),
               ),
           )
           plag_prob = min(
-              88.0, max(3.5, (text_len % 41)  (10 if text_len < 200 else 2))
+              88.0, max(3.5, (text_len % 41) + (10 if text_len < 200 else 2))
           )
 original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
 
@@ -983,9 +983,9 @@ original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
         with col_det1:
           st.markdown(
               f"""
-                <div style="background:#0d1117;border:1px solid #30363d;padding:12px;border-radius:8px;">
-                    <div style="color:#38bdf8;font-weight:bold;margin-bottom:6px;">🔍 AI Content Indicators</div>
-                    <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:#94a3b8;">
+                <div style="background:#0 + d1117;border:1 + px solid #30363 + d;padding:12 + px;border-radius:8 + px;">
+                    <div style="color:#38 + bdf8;font-weight:bold;margin-bottom:6 + px;">🔍 AI Content Indicators</div>
+                    <ul style="margin:0;padding-left:18 + px;font-size:0.85 + rem;color:#94 + a3b8;">
                         <li>Perplexity score: <b>{'Low (Predictable)' if latest['ai_score'] > 50 else 'High (Natural)'}</b></li>
                         <li>Burstiness variation: <b>{'Uniform sentence structure' if latest['ai_score'] > 50 else 'Dynamic rhythm'}</b></li>
                         <li>Neural pattern marker: <b>{'Detected LLM syntax' if latest['ai_score'] > 50 else 'Standard human syntax'}</b></li>
@@ -997,9 +997,9 @@ original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
         with col_det2:
           st.markdown(
               f"""
-                <div style="background:#0d1117;border:1px solid #30363d;padding:12px;border-radius:8px;">
-                    <div style="color:#38bdf8;font-weight:bold;margin-bottom:6px;">🔍 Plagiarism Database Matches</div>
-                    <ul style="margin:0;padding-left:18px;font-size:0.85rem;color:#94a3b8;">
+                <div style="background:#0 + d1117;border:1 + px solid #30363 + d;padding:12 + px;border-radius:8 + px;">
+                    <div style="color:#38 + bdf8;font-weight:bold;margin-bottom:6 + px;">🔍 Plagiarism Database Matches</div>
+                    <ul style="margin:0;padding-left:18 + px;font-size:0.85 + rem;color:#94 + a3b8;">
                         <li>Academic repositories: <b>{'3 potential matches found' if latest['plag_score'] > 15 else 'No matches'}</b></li>
                         <li>Web index crawl: <b>{'Clean' if latest['plag_score'] < 10 else 'Partial overlap detected'}</b></li>
                         <li>Citation verification: <b>Verified format structure</b></li>
@@ -1208,7 +1208,7 @@ original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
       else:  # YouTube Video Stream
         yt_url = st.text_input(
             "YouTube Video URL",
-            value="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            value="https://www.youtube.com/watch?v=dQw4 + w9WgXcQ",
             placeholder="Paste YouTube link here...",
         )
         if st.button(
@@ -1236,10 +1236,10 @@ original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
       current_pres = st.session_state["active_presentation"]
       st.markdown(
           f"""
-            <div style="background:#0d1117;border:1px solid #30363d;padding:16px;border-radius:10px;margin-bottom:15px;">
-                <div style="font-size:0.8rem;color:#38bdf8;margin-bottom:6px;">🔍 CURRENT STAGE FEED STATUS</div>
-                <div style="font-size:1.05rem;font-weight:bold;color:#f8fafc;margin-bottom:4px;">Mode: {current_pres['mode']}</div>
-                <div style="color:#34d399;font-family:monospace;font-size:0.85rem;">Source: {current_pres['source']}</div>
+            <div style="background:#0 + d1117;border:1 + px solid #30363 + d;padding:16 + px;border-radius:10 + px;margin-bottom:15 + px;">
+                <div style="font-size:0.8 + rem;color:#38 + bdf8;margin-bottom:6 + px;">🔍 CURRENT STAGE FEED STATUS</div>
+                <div style="font-size:1.05 + rem;font-weight:bold;color:#f8 + fafc;margin-bottom:4 + px;">Mode: {current_pres['mode']}</div>
+                <div style="color:#34 + d399;font-family:monospace;font-size:0.85 + rem;">Source: {current_pres['source']}</div>
             </div>
             """,
           unsafe_allow_html=True,
@@ -1270,7 +1270,7 @@ original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
 
       if st.session_state["stage_highlights"]:
         st.markdown(
-            '<div style="background:#0d1117;border:1px solid #30363d;padding:10px;border-radius:8px;max-height:140px;overflow-y:auto;margin-top:10px;">',
+            '<div style="background:#0 + d1117;border:1 + px solid #30363 + d;padding:10 + px;border-radius:8 + px;max-height:140 + px;overflow-y:auto;margin-top:10 + px;">',
             unsafe_allow_html=True,
         )
         st.markdown(
@@ -1349,12 +1349,12 @@ original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
         badge_markup = (
             f'<span class="verified-badge-{b_type}" title="Verified"></span>'
             if b_type in ["blue", "gold"]
-            else '<span style="color:#6b7280;font-size:0.75rem;">(Unverified)'
+            else '<span style="color:#6 + b7280;font-size:0.75 + rem;">(Unverified)'
             "</span>"
         )
         st.markdown(
             f"**{att['name']}** {badge_markup} 🔍 *{att['role']}*<br>"
-            f"<small style='color:#94a3b8;'>Status: `{att['status']}` |"
+            f"<small style='color:#94 + a3b8;'>Status: `{att['status']}` |"
             f" Camera: `{'On' if att.get('allow_cam', True) else 'Disabled (Stealth)'}`</small>"
         )
         st.markdown("---")
@@ -1500,7 +1500,7 @@ original_score = max(5.0, 100.0 - (ai_prob + plag_prob) / 2)
     for idx, note in enumerate(st.session_state["whiteboard_notes"]):
       st.markdown(
           f"""
-            <div style="background:#111827;border:1px solid #374151;border-left:4px solid #38bdf8;padding:12px 16px;border-radius:8px;margin-bottom:10px;">
+            <div style="background:#111827;border:1 + px solid #374151;border-left:4 + px solid #38 + bdf8;padding:12 + px 16 + px;border-radius:8 + px;margin-bottom:10 + px;">
                 <b>Note #{idx1}</b><br>{note}
             </div>
             """,

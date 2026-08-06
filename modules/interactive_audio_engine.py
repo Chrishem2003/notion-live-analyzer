@@ -225,7 +225,7 @@ def render_interactive_audio_ui():
             st.markdown("### Current Segment")
             seg = engine.get_current_segment()
             if seg:
-                st.info(f"**Segment {seg['index']1}/{len(engine.segments)}** ({seg['word_count']} words)")
+                st.info(f"**Segment {seg['index'] + 1}/{len(engine.segments)}** ({seg['word_count']} words)")
                 st.markdown(seg['text'])
                 st.progress(engine.get_progress() / 100)
             else:

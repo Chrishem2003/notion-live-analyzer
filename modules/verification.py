@@ -1,5 +1,5 @@
 
-"""African Student Verification  Automated ID Verification Pipeline."""
+"""African Student Verification + Automated ID Verification Pipeline."""
 import io
 import hashlib
 import logging
@@ -222,7 +222,7 @@ def extract_name_from_text(text: str) -> List[str]:
     name_label_pattern = r'(?:Name|Student|Name\s*[:\-])\s*([A-Za-z\s])'
     labeled_names = re.findall(name_label_pattern, text, re.IGNORECASE)
     
-    return names  [n.strip() for n in labeled_names]
+    return names + [n.strip() for n in labeled_names]
 
 def extract_university_from_text(text: str) -> List[str]:
     """Extract potential university names from text."""
@@ -541,20 +541,20 @@ def render_tier_selector():
     
     # Current tier display
     tier_colors = {
-        Tier.FREE: "#6b7280",
-        Tier.STANDARD: "#3b82f6", 
-        Tier.PREMIUM: "#8b5cf6",
+        Tier.FREE: "#6 + b7280",
+        Tier.STANDARD: "#3 + b82f6", 
+        Tier.PREMIUM: "#8 + b5cf6",
     }
     
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, {tier_colors.get(current, '#6b7280')}20, {tier_colors.get(current, '#6b7280')}10);
-        border: 1px solid {tier_colors.get(current, '#6b7280')};
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1rem;
+        background: linear-gradient(135 + deg, {tier_colors.get(current, '#6 + b7280')}20, {tier_colors.get(current, '#6 + b7280')}10);
+        border: 1 + px solid {tier_colors.get(current, '#6 + b7280')};
+        border-radius: 12 + px;
+        padding: 1 + rem;
+        margin-bottom: 1 + rem;
     ">
-        <strong>Current Tier:</strong> <span style="color: {tier_colors.get(current, '#6b7280')}; font-weight: bold;">{current.name.title()}</span>
+        <strong>Current Tier:</strong> <span style="color: {tier_colors.get(current, '#6 + b7280')}; font-weight: bold;">{current.name.title()}</span>
     </div>
     """, unsafe_allow_html=True)
     

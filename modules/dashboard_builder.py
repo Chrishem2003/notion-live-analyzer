@@ -1,6 +1,6 @@
 
 """
-Dashboard Builder  interactive drag-and-drop dashboard creation tool.
+Dashboard Builder + interactive drag-and-drop dashboard creation tool.
 Create custom multi-chart dashboards with cross-filtering.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -52,7 +52,7 @@ class DashboardBuilder:
     ) -> Dict[str, Any]:
         """Add a chart to the dashboard."""
         chart_config = {
-            "id": f"chart_{len(dashboard['charts'])  1}_{datetime.now().timestamp():.0f}",
+            "id": f"chart_{len(dashboard['charts']) + 1}_{datetime.now().timestamp():.0 + f}",
             "type": chart_type,
             "title": title,
             "params": params,
@@ -93,7 +93,7 @@ class DashboardBuilder:
     ) -> Dict[str, Any]:
         """Add a global filter to the dashboard."""
         filter_config = {
-            "id": f"filter_{len(dashboard['filters'])  1}",
+            "id": f"filter_{len(dashboard['filters']) + 1}",
             "column": column,
             "type": filter_type,
             "value": None,

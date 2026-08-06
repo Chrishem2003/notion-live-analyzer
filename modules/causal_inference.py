@@ -1,6 +1,6 @@
 
 """
-Causal Inference Engine  Estimate causal effects from observational data.
+Causal Inference Engine + Estimate causal effects from observational data.
 Provides propensity score matching, difference-in-differences, instrumental variable
 regression, regression discontinuity, DAG specification, and ATE/ATT/CATE estimation.
 """
@@ -156,7 +156,7 @@ class CausalInferenceEngine:
             "significant": float(att_p) < 0.05,
             "balance_smd": balance,
             "matched_pairs": matched_pairs[:10],  # Preview
-            "interpretation": f"Treatment effect (ATT) = {att:.3f} (SE = {att_se:.3f}, p = {att_p:.4f})",
+            "interpretation": f"Treatment effect (ATT) = {att:.3 + f} (SE = {att_se:.3 + f}, p = {att_p:.4 + f})",
         }
 
     # â”€â”€â”€ Difference-in-Differences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -212,7 +212,7 @@ class CausalInferenceEngine:
             "control_post_mean": round(float(control_post), 4),
             "r_squared": round(float(model.rsquared), 4),
             "n_obs": int(model.nobs),
-            "interpretation": f"DiD estimate = {did_coef:.3f} (SE = {did_se:.3f}, p = {did_p:.4f})",
+            "interpretation": f"DiD estimate = {did_coef:.3 + f} (SE = {did_se:.3 + f}, p = {did_p:.4 + f})",
         }
 
     # â”€â”€â”€ Instrumental Variable Regression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -225,7 +225,7 @@ class CausalInferenceEngine:
         covariates: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Two-Stage Least Squares (2SLS) IV regression.
+        Two-Stage Least Squares (2 + SLS) IV regression.
         """
         if not HAS_STATSMODELS:
             return {"error": "statsmodels required for IV regression"}
@@ -255,7 +255,7 @@ class CausalInferenceEngine:
             f_stat = first_stage.fvalue if hasattr(first_stage, 'fvalue') else 0
 
             return {
-                "method": "Instrumental Variable (2SLS)",
+                "method": "Instrumental Variable (2 + SLS)",
                 "iv_estimate": round(float(iv_coef), 4),
                 "se": round(float(iv_se), 4),
                 "t_value": round(float(iv_t), 4),
@@ -266,7 +266,7 @@ class CausalInferenceEngine:
                 "second_stage_rsquared": round(float(second_stage.rsquared), 4),
                 "n_obs": int(second_stage.nobs),
                 "weak_instrument": f_stat < 10,
-                "interpretation": f"IV estimate = {iv_coef:.3f} (SE = {iv_se:.3f}, p = {iv_p:.4f})",
+                "interpretation": f"IV estimate = {iv_coef:.3 + f} (SE = {iv_se:.3 + f}, p = {iv_p:.4 + f})",
             }
         except Exception as e:
             return {"error": f"IV regression failed: {str(e)}"}
@@ -340,7 +340,7 @@ class CausalInferenceEngine:
             "mean_above_cutoff": round(float(np.mean(above)), 4),
             "polynomial_order": polynomial_order,
             "r_squared": round(float(model.rsquared), 4),
-            "interpretation": f"RDD estimate = {rd_coef:.3f} (SE = {rd_se:.3f}, p = {rd_p:.4f})",
+            "interpretation": f"RDD estimate = {rd_coef:.3 + f} (SE = {rd_se:.3 + f}, p = {rd_p:.4 + f})",
         }
 
     # â”€â”€â”€ ATE Estimation via IPW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -391,7 +391,7 @@ class CausalInferenceEngine:
             "p_value": round(float(ate_p), 4),
             "significant": float(ate_p) < 0.05,
             "n": len(data),
-            "interpretation": f"ATE (IPW) = {ate:.3f} (SE = {ate_se:.3f}, p = {ate_p:.4f})",
+            "interpretation": f"ATE (IPW) = {ate:.3 + f} (SE = {ate_se:.3 + f}, p = {ate_p:.4 + f})",
         }
 
     # â”€â”€â”€ DAG-based Adjustment Sets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -461,20 +461,20 @@ class CausalInferenceEngine:
         treated_mask = T == 1
         control_mask = T == 0
 
-        mu1_model = LinearRegression()
-        mu0_model = LinearRegression()
+        mu1 + _model = LinearRegression()
+        mu0 + _model = LinearRegression()
 
         if np.sum(treated_mask) > 5:
-            mu1_model.fit(X[treated_mask], Y[treated_mask])
+            mu1 + _model.fit(X[treated_mask], Y[treated_mask])
         if np.sum(control_mask) > 5:
-            mu0_model.fit(X[control_mask], Y[control_mask])
+            mu0 + _model.fit(X[control_mask], Y[control_mask])
 
         # Predict potential outcomes
-        mu1 = mu1_model.predict(X)
-        mu0 = mu0_model.predict(X)
+        mu1 = mu1 + _model.predict(X)
+        mu0 = mu0 + _model.predict(X)
 
         # Doubly robust scores
-        dr_scores = mu1 - mu0  \
+        dr_scores = mu1 - mu0 + \
                     T * (Y - mu1) / pscores - \
                     (1 - T) * (Y - mu0) / (1 - pscores)
 
@@ -489,11 +489,11 @@ class CausalInferenceEngine:
             "std_cate": round(float(np.std(cate_estimates)), 4),
             "min_cate": round(float(np.min(cate_estimates)), 4),
             "max_cate": round(float(np.max(cate_estimates)), 4),
-            "q25_cate": round(float(np.percentile(cate_estimates, 25)), 4),
-            "q75_cate": round(float(np.percentile(cate_estimates, 75)), 4),
+            "q25 + _cate": round(float(np.percentile(cate_estimates, 25)), 4),
+            "q75 + _cate": round(float(np.percentile(cate_estimates, 75)), 4),
             "cate_distribution": cate_estimates.tolist(),
-            "interpretation": f"Average CATE = {np.mean(cate_estimates):.3f} (SD = {np.std(cate_estimates):.3f}). "
-                              f"Treatment effects range from {np.min(cate_estimates):.3f} to {np.max(cate_estimates):.3f}.",
+            "interpretation": f"Average CATE = {np.mean(cate_estimates):.3 + f} (SD = {np.std(cate_estimates):.3 + f}). "
+                              f"Treatment effects range from {np.min(cate_estimates):.3 + f} to {np.max(cate_estimates):.3 + f}.",
         }
 
 
@@ -505,7 +505,7 @@ def render_causal_inference_ui():
     import plotly.express as px
 
     st.markdown("## ðŸ”¬ Causal Inference Engine")
-    st.markdown("*Estimate causal effects from observational data  PSM, DiD, IV, RDD, IPW, CATE*")
+    st.markdown("*Estimate causal effects from observational data + PSM, DiD, IV, RDD, IPW, CATE*")
 
     df = st.session_state.get("active_df")
     if df is None or df.empty:
@@ -548,9 +548,9 @@ def render_causal_inference_ui():
             else:
                 st.success("âœ… PSM complete!")
                 col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("ATT Estimate", f"{result['att']:.4f}")
-                with col2: st.metric("SE", f"{result['se']:.4f}")
-                with col3: st.metric("p-value", f"{result['p_value']:.4f}")
+                with col1: st.metric("ATT Estimate", f"{result['att']:.4 + f}")
+                with col2: st.metric("SE", f"{result['se']:.4 + f}")
+                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}")
                 with col4: st.metric("Matched Pairs", result['n_matched_pairs'])
                 st.info(result['interpretation'])
 
@@ -581,10 +581,10 @@ def render_causal_inference_ui():
             else:
                 st.success("âœ… DiD complete!")
                 col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("DiD Estimate", f"{result['did_estimate']:.4f}")
-                with col2: st.metric("SE", f"{result['se']:.4f}")
-                with col3: st.metric("p-value", f"{result['p_value']:.4f}")
-                with col4: st.metric("RÂ²", f"{result['r_squared']:.4f}")
+                with col1: st.metric("DiD Estimate", f"{result['did_estimate']:.4 + f}")
+                with col2: st.metric("SE", f"{result['se']:.4 + f}")
+                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}")
+                with col4: st.metric("RÂ²", f"{result['r_squared']:.4 + f}")
                 st.info(result['interpretation'])
 
                 # Means plot
@@ -599,7 +599,7 @@ def render_causal_inference_ui():
                 st.plotly_chart(fig, use_container_width=True)
 
     with tab3:
-        st.subheader("ðŸ“ Instrumental Variable Regression (2SLS)")
+        st.subheader("ðŸ“ Instrumental Variable Regression (2 + SLS)")
         st.info("Requires: outcome, treatment (endogenous), instrument (exogenous), optional covariates")
         col1, col2 = st.columns(2)
         with col1:
@@ -610,16 +610,16 @@ def render_causal_inference_ui():
             iv_covs = st.multiselect("Covariates (optional)", options=[c for c in numeric_cols if c not in (iv_outcome, iv_treat, iv_inst)], key="iv_covs")
 
         if st.button("ðŸ“ Run IV Regression", type="primary", use_container_width=True):
-            with st.spinner("Running 2SLS..."):
+            with st.spinner("Running 2 + SLS..."):
                 result = engine.instrumental_variable(df, iv_outcome, iv_treat, iv_inst, iv_covs or None)
             if "error" in result:
                 st.error(result["error"])
             else:
                 st.success("âœ… IV regression complete!")
                 col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("IV Estimate", f"{result['iv_estimate']:.4f}")
-                with col2: st.metric("SE", f"{result['se']:.4f}")
-                with col3: st.metric("F-stat (1st stage)", f"{result['first_stage_f_stat']:.2f}")
+                with col1: st.metric("IV Estimate", f"{result['iv_estimate']:.4 + f}")
+                with col2: st.metric("SE", f"{result['se']:.4 + f}")
+                with col3: st.metric("F-stat (1 + st stage)", f"{result['first_stage_f_stat']:.2 + f}")
                 with col4: st.metric("Weak IV?", "âš ï¸ Yes" if result.get('weak_instrument') else "âœ… No")
                 st.info(result['interpretation'])
 
@@ -643,9 +643,9 @@ def render_causal_inference_ui():
             else:
                 st.success("âœ… RDD complete!")
                 col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("RD Estimate", f"{result['rd_estimate']:.4f}")
-                with col2: st.metric("SE", f"{result['se']:.4f}")
-                with col3: st.metric("p-value", f"{result['p_value']:.4f}")
+                with col1: st.metric("RD Estimate", f"{result['rd_estimate']:.4 + f}")
+                with col2: st.metric("SE", f"{result['se']:.4 + f}")
+                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}")
                 with col4: st.metric("N (bandwidth)", result['n_within_bandwidth'])
                 st.info(result['interpretation'])
 
@@ -665,7 +665,7 @@ def render_causal_inference_ui():
                 st.error(result["error"])
             else:
                 st.success("âœ… IPW complete!")
-                st.metric("ATE (IPW)", f"{result['ate']:.4f}")
+                st.metric("ATE (IPW)", f"{result['ate']:.4 + f}")
                 st.info(result['interpretation'])
 
     with tab6:
@@ -685,9 +685,9 @@ def render_causal_inference_ui():
             else:
                 st.success("âœ… CATE estimated!")
                 col1, col2, col3 = st.columns(3)
-                with col1: st.metric("Mean CATE", f"{result['mean_cate']:.4f}")
-                with col2: st.metric("Median CATE", f"{result['median_cate']:.4f}")
-                with col3: st.metric("Std CATE", f"{result['std_cate']:.4f}")
+                with col1: st.metric("Mean CATE", f"{result['mean_cate']:.4 + f}")
+                with col2: st.metric("Median CATE", f"{result['median_cate']:.4 + f}")
+                with col3: st.metric("Std CATE", f"{result['std_cate']:.4 + f}")
                 st.info(result['interpretation'])
 
                 # Distribution plot
@@ -695,7 +695,7 @@ def render_causal_inference_ui():
                 if cate_vals:
                     fig = px.histogram(pd.DataFrame({"CATE": cate_vals}), x="CATE", nbins=50,
                                        title="Distribution of Conditional Average Treatment Effects",
-                                       color_discrete_sequence=["#1d4ed8"])
+                                       color_discrete_sequence=["#1 + d4ed8"])
                     fig.add_vline(x=0, line_dash="dash", line_color="red")
                     st.plotly_chart(fig, use_container_width=True)
 

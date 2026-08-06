@@ -1,6 +1,6 @@
 
 """
-Automated Feature Engineering  Interaction term discovery, polynomial features,
+Automated Feature Engineering + Interaction term discovery, polynomial features,
 binning, text extraction, date decomposition, and auto feature selection.
 """
 from __future__ import annotations
@@ -275,7 +275,7 @@ def render_feature_engineering_ui():
     with tab4:
         st.subheader("ðŸ“… Date Feature Extraction")
         date_cols = [c for c in df.columns if 'date' in c.lower() or 'time' in c.lower()]
-        date_col = st.selectbox("Date column", options=date_cols  [c for c in df.columns], key="fe_date_col")
+        date_col = st.selectbox("Date column", options=date_cols + [c for c in df.columns], key="fe_date_col")
         if st.button("ðŸ“… Extract Date Features", type="primary", use_container_width=True):
             result = engine.extract_date_features(df, date_col)
             new_features = [c for c in result.columns if c not in df.columns and date_col in c]

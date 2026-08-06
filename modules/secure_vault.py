@@ -28,10 +28,10 @@ def render_vault_ui():
         for f in uploaded_files:
             if not any(x["name"] == f.name for x in st.session_state["vault_files"]):
                 st.session_state["vault_files"].insert(0, {
-                    "id": f"FILE-{len(st.session_state['vault_files'])  1}",
+                    "id": f"FILE-{len(st.session_state['vault_files']) + 1}",
                     "name": f.name,
                     "bytes": f.getvalue(),
-                    "size": f"{f.size / 1024:.1f} KB" if f.size < 1048576 else f"{f.size / 1048576:.1f} MB",
+                    "size": f"{f.size / 1024:.1 + f} KB" if f.size < 1048576 else f"{f.size / 1048576:.1 + f} MB",
                     "status": "Verified Encrypted Stream"
                 })
                 added_count = 1
@@ -77,7 +77,7 @@ def show_document_dialog(item):
             if HAS_PYPDF and raw_bytes:
                 try:
                     reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
-                    extracted_text = "\n\n".join([f"--- Page {i1} ---\n"  (p.extract_text() or "") for i, p in enumerate(reader.pages)])
+                    extracted_text = "\n\n".join([f"--- Page {i1} ---\n" + (p.extract_text() or "") for i, p in enumerate(reader.pages)])
                     st.text_area("Extracted PDF Document Content", value=extracted_text, height=350)
                 except Exception as e:
                     st.warning(f"Could not parse PDF text: {e}")

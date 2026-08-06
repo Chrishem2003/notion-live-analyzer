@@ -1,6 +1,6 @@
 
 """
-Natural Language Data Query Engine  allows users to ask questions in plain English
+Natural Language Data Query Engine + allows users to ask questions in plain English
 and get automatic analysis, visualizations, and insights.
 """
 from typing import Dict, List, Any, Optional, Tuple
@@ -67,7 +67,7 @@ class NaturalLanguageQueryEngine:
                 "result": result,
                 "chart_type": "histogram",
                 "chart_params": {"x": target_col},
-                "narrative": f"**{target_col}**: Mean = {result.iloc[0]['Mean']:.2f}, SD = {result.iloc[0]['Std Dev']:.2f}, N = {result.iloc[0]['N']}",
+                "narrative": f"**{target_col}**: Mean = {result.iloc[0]['Mean']:.2 + f}, SD = {result.iloc[0]['Std Dev']:.2 + f}, N = {result.iloc[0]['N']}",
                 "confidence": 90,
             }
 
@@ -75,7 +75,7 @@ class NaturalLanguageQueryEngine:
             result = self.stats.descriptive_stats(df, numeric_cols[:5])
             narrative_parts = [f"Dataset has {len(df):,} rows and {len(df.columns)} columns."]
             for _, row in result.iterrows():
-                narrative_parts.append(f"- **{row['Variable']}**: M = {row['Mean']:.2f}, SD = {row['Std Dev']:.2f}")
+                narrative_parts.append(f"- **{row['Variable']}**: M = {row['Mean']:.2 + f}, SD = {row['Std Dev']:.2 + f}")
             return {
                 "type": "descriptive",
                 "result": result,
@@ -105,7 +105,7 @@ class NaturalLanguageQueryEngine:
                     "result": result,
                     "chart_type": "box",
                     "chart_params": {"x": target_cat, "y": target_num},
-                    "narrative": f"Comparing **{target_num}** by **{target_cat}**: t({result.get('n_1', 0)  result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, d = {result.get('cohens_d', 0):.2f}",
+                    "narrative": f"Comparing **{target_num}** by **{target_cat}**: t({result.get('n_1', 0) + result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2 + f}, p = {result.get('p_value', 1):.3 + f}, d = {result.get('cohens_d', 0):.2 + f}",
                     "confidence": 95,
                 }
         elif len(groups) >= 3:
@@ -119,7 +119,7 @@ class NaturalLanguageQueryEngine:
                     "result": result,
                     "chart_type": "violin",
                     "chart_params": {"x": target_cat, "y": target_num},
-                    "narrative": f"Comparing **{target_num}** across {len(groups)} groups of **{target_cat}**: F({result.get('num_groups', 1) - 1}, ...) = {result.get('f_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}",
+                    "narrative": f"Comparing **{target_num}** across {len(groups)} groups of **{target_cat}**: F({result.get('num_groups', 1) - 1}, ...) = {result.get('f_statistic', 0):.2 + f}, p = {result.get('p_value', 1):.3 + f}",
                     "confidence": 90,
                 }
 
@@ -189,7 +189,7 @@ class NaturalLanguageQueryEngine:
                 "r_squared": r_squared,
                 "coefficients": dict(zip(predictors, model.coef_)),
                 "intercept": model.intercept_,
-                "narrative": f"Regression model for **{target_col}**: RÂ² = {r_squared:.3f}, {len(predictors)} predictor(s).",
+                "narrative": f"Regression model for **{target_col}**: RÂ² = {r_squared:.3 + f}, {len(predictors)} predictor(s).",
                 "confidence": 80,
             }
         except ImportError:
@@ -321,7 +321,7 @@ class NaturalLanguageQueryEngine:
                 "target": target_col,
                 "chart_type": "histogram",
                 "chart_params": {"x": target_col},
-                "narrative": f"Distribution of **{target_col}**: Min={desc['min']:.2f}, Max={desc['max']:.2f}, Mean={desc['mean']:.2f}, Median={desc['50%']:.2f}, Std={desc['std']:.2f}",
+                "narrative": f"Distribution of **{target_col}**: Min={desc['min']:.2 + f}, Max={desc['max']:.2 + f}, Mean={desc['mean']:.2 + f}, Median={desc['50%']:.2 + f}, Std={desc['std']:.2 + f}",
                 "confidence": 90,
             }
         except Exception:
@@ -373,7 +373,7 @@ class NaturalLanguageQueryEngine:
             missing = df.isnull().sum()
             missing = missing[missing > 0]
             if len(missing) > 0:
-                missing_str = "\n".join(f"- **{c}**: {v} missing ({v/len(df)*100:.1f}%)" for c, v in missing.items())
+                missing_str = "\n".join(f"- **{c}**: {v} missing ({v/len(df)*100:.1 + f}%)" for c, v in missing.items())
                 return {
                     "type": "info",
                     "narrative": f"**Missing Values:**\n{missing_str}",
