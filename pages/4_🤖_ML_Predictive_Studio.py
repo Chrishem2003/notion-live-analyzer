@@ -220,16 +220,169 @@ def render_agents_tab():
 
 
 def render_chaos_tab():
-    section_header("⚛️ Advanced AI & Agentic Cores", "Autonomous intelligence, defensive cores, and system resilience tools.")
+    section_header(
+        "🌀 Chaos & Nonlinear Systems Lab",
+        "Real SciPy ODE integration, bifurcation analysis, Monte Carlo ensembles, sensitivity landscapes, and from-scratch forecasting.",
+    )
 
-    st.markdown("### System Resilience & Stability Monitor")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Stability Index", "0.142", delta="STABLE")
-    c2.metric("Active Agents", "128 Nodes", delta="Autonomous")
-    c3.metric("Anomaly Detection", "99.94%", delta="Optimal")
-    c4.metric("System State", "RESILIENT", delta="Protected")
+    st.markdown(
+        "This is a **real nonlinear dynamical systems sandbox**. Every trajectory is genuinely computed by "
+        "integrating the shown differential equations with SciPy's LSODA solver — nothing is fabricated. "
+        "Use it to explore feedback, instability, and early-warning signals for any system you label a sector to."
+    )
 
-    st.info("This tab consolidates the Chaos Engine, Agent Swarm Console, and Advanced AI Defensive Cores into a unified intelligence monitoring interface.")
+    try:
+        from modules.chaos_engine import (
+            solve_ode_system,
+            default_ode,
+            lyapunov_style_heuristic,
+            rolling_variance_autocorr,
+            classify_state,
+            bifurcation_scan,
+            monte_carlo_ensemble,
+            sensitivity_heatmap,
+            holt_winters_forecast,
+            ar_least_squares_forecast,
+            anomaly_flags,
+        )
+    except ImportError as e:
+        st.error(f"Chaos engine unavailable: {e}")
+        return
+
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    # ── Model configuration ──────────────────────────────────────────
+    with st.expander("⚙️ Model configuration", expanded=True):
+        colA, colB = st.columns(2)
+        with colA:
+            sector_presets = {
+                "Generic / custom": ("a", "Drive term", "b", "Friction term", "c", "Buffer decay"),
+                "Economics-style": ("a", "Growth driver", "b", "Investment cost", "c", "Market elasticity"),
+                "Health-system-style": ("a", "Patient influx", "b", "Capacity burnout", "c", "Staff fatigue decay"),
+                "Epidemiology-style": ("a", "Transmission", "b", "Recovery", "c", "Waning immunity"),
+                "Grid-style": ("a", "Demand surge", "b", "Load friction", "c", "Buffer capacity"),
+            }
+            sector = st.selectbox("Sector framing (labels only)", list(sector_presets.keys()))
+            a_label, a_desc, b_label, b_desc, c_label, c_desc = sector_presets[sector]
+        with colB:
+            t_max = st.slider("Simulation horizon (steps)", 50, 400, 200, 10)
+            policy_shock = st.slider("Injected shock magnitude (mid-run)", -3.0, 3.0, 0.0, 0.1)
+            pss_slice_z = st.slider("Poincaré cut plane (Z)", -3.0, 3.0, 0.1, 0.05)
+
+        col1, col2, col3 = st.columns(3)
+        a = col1.slider(f"{a_label} ({a_desc})", 0.1, 5.0, 1.5, 0.1)
+        b = col2.slider(f"{b_label} ({b_desc})", 0.0, 3.0, 0.9, 0.1)
+        c = col3.slider(f"{c_label} ({c_desc})", 0.0, 3.0, 1.0, 0.1)
+
+        col4, col5, col6 = st.columns(3)
+        x0 = col4.number_input("Initial x0", value=0.10, format="%.3f")
+        y0 = col5.number_input("Initial y0", value=0.10, format="%.3f")
+        z0 = col6.number_input("Initial z0", value=0.10, format="%.3f")
+
+    # ── Integrate the real system ────────────────────────────────────
+    t = np.linspace(0, t_max, t_max * 2)
+    initial_state = [x0, y0, z0]
+    solution = solve_ode_system(default_ode, initial_state, t, args=(a, b, c, policy_shock, t_max))
+    x_traj, y_traj, z_traj = solution[:, 0], solution[:, 1], solution[:, 2]
+    dt = t[1] - t[0]
+    mlce = lyapunov_style_heuristic(x_traj, dt)
+    rolling_var, rolling_ac = rolling_variance_autocorr(x_traj)
+    state_label = classify_state(mlce)
+
+    tabs = st.tabs([
+        "Executive View", "3D Phase Space", "Poincaré Section", "Early Warning Signals",
+        "Bifurcation", "Monte Carlo Ensemble", "Sensitivity Heatmap", "Forecasting",
+    ])
+
+    with tabs[0]:
+        c1, c2 = st.columns(2)
+        c2.metric("Trajectory State", state_label, delta=f"mLCE≈{mlce:.4f}")
+        c1.metric("Expansion-Rate Heuristic", f"{mlce:.4f}")
+        fig = go.Figure(data=[go.Scatter3d(x=x_traj, y=y_traj, z=z_traj, mode="lines",
+                        line=dict(color="#60A5FA", width=4), marker=dict(size=2, color=z_traj, colorscale="Viridis", opacity=0.9))])
+        fig.update_layout(title_text="3D Phase Portrait", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=480, margin=dict(l=0, r=0, t=50, b=0))
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tabs[1]:
+        fig = go.Figure(data=[go.Scatter3d(x=x_traj, y=y_traj, z=z_traj, mode="lines", line=dict(color="#60A5FA", width=4))])
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=550, margin=dict(l=0, r=0, t=30, b=0))
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tabs[2]:
+        mask = np.abs(z_traj - pss_slice_z) < 0.05
+        fig = go.Figure(data=[go.Scatter(x=x_traj[mask], y=y_traj[mask], mode="markers", marker=dict(size=4, color="#60A5FA"))])
+        fig.update_layout(title_text=f"Poincaré Section (Z={pss_slice_z:.2f})", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tabs[3]:
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=("Rolling Variance (critical slowing down)", "Rolling Autocorrelation (lag-1)"))
+        fig.add_trace(go.Scatter(x=t, y=rolling_var, line=dict(color="#F59E0B")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=t, y=rolling_ac, line=dict(color="#EC4899")), row=2, col=1)
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=500, margin=dict(l=0, r=0, t=50, b=0))
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tabs[4]:
+        st.caption("Recomputes the model across a range of the friction parameter (b) and records local maxima.")
+        if st.button("Run bifurcation scan", key="chaos_bif"):
+            with st.spinner("Scanning parameter space..."):
+                b_pts, peaks = bifurcation_scan(default_ode, initial_state, t, np.linspace(0.2, 2.8, 40), param_idx=1, args_base=(a, b, c, 0.0, t_max))
+            fig = go.Figure(data=[go.Scatter(x=b_pts, y=peaks, mode="markers", marker=dict(size=1.5, color="#60A5FA", opacity=0.6))])
+            fig.update_layout(title_text="Bifurcation Diagram", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
+            fig.update_xaxes(title_text=f"{b_label} (b)"); fig.update_yaxes(title_text="Local Extrema")
+            st.plotly_chart(fig, use_container_width=True)
+
+    with tabs[5]:
+        n_mc = st.slider("Ensemble runs", 10, 150, 30, 10, key="chaos_mc_n")
+        if st.button("Run Monte Carlo ensemble", key="chaos_mc"):
+            with st.spinner(f"Running {n_mc} perturbed integrations..."):
+                mc_runs = monte_carlo_ensemble(default_ode, initial_state, t, (a, b, c, policy_shock, t_max), n_runs=n_mc)
+            fig = go.Figure()
+            for i in range(mc_runs.shape[1]):
+                fig.add_trace(go.Scatter(x=t, y=mc_runs[:, i], mode="lines", line=dict(width=0.8, color="rgba(96,165,250,0.25)"), showlegend=False))
+            fig.update_layout(title_text=f"Monte Carlo Uncertainty Envelope ({n_mc} runs)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
+            st.plotly_chart(fig, use_container_width=True)
+
+    with tabs[6]:
+        if st.button("Compute sensitivity heatmap (a vs b)", key="chaos_sens"):
+            with st.spinner("Computing 2D sensitivity landscape..."):
+                a_grid, b_grid, Z_m = sensitivity_heatmap(default_ode, initial_state, t, np.linspace(0.5, 3.0, 12), np.linspace(0.2, 2.0, 12), args_base=(a, b, c, 0.0, t_max))
+            fig = go.Figure(data=go.Contour(z=Z_m, x=a_grid, y=b_grid, colorscale="Viridis", contours=dict(coloring="heatmap")))
+            fig.update_layout(title_text=f"Sensitivity Landscape: {a_label} vs {b_label}", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=500, margin=dict(l=0, r=0, t=50, b=0))
+            st.plotly_chart(fig, use_container_width=True)
+
+    with tabs[7]:
+        st.markdown("#### Real from-scratch forecasting (Holt-Winters + AR least-squares)")
+        series_src = st.radio("Series source", ["Use real extracted trajectory", "Use active dataset column"], horizontal=True, key="chaos_fc_src")
+        series = None
+        if series_src == "Use real extracted trajectory":
+            series = x_traj
+        elif df is not None:
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            if numeric_cols:
+                col = st.selectbox("Numeric column to forecast", numeric_cols, key="chaos_fc_col")
+                series = df[col].dropna().values
+        if series is not None and len(series) >= 4:
+            periods = st.slider("Periods to forecast", 1, 30, 12, key="chaos_fc_periods")
+            fitted_hw, forecast_hw = holt_winters_forecast(series, periods=periods)
+            lags = st.slider("AR lag order (p)", 1, min(10, max(1, len(series) // 3)), 3, key="chaos_fc_lags")
+            fitted_ar, forecast_ar, coeffs = ar_least_squares_forecast(series, lags=lags, periods=periods)
+            x_hist = np.arange(len(series))
+            x_fore = np.arange(len(series), len(series) + periods)
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=x_hist, y=series, name="Observed", line=dict(color="#94A3B8", width=2)))
+            fig.add_trace(go.Scatter(x=x_hist, y=fitted_hw, name="Holt-Winters fit", line=dict(color="#38BDF8", width=2, dash="dot")))
+            fig.add_trace(go.Scatter(x=x_fore, y=forecast_hw, name="Holt-Winters forecast", line=dict(color="#38BDF8", width=3)))
+            fig.add_trace(go.Scatter(x=x_fore, y=forecast_ar, name=f"AR({lags}) forecast", line=dict(color="#F472B6", width=3, dash="dash")))
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=460, margin=dict(l=0, r=0, t=30, b=0))
+            st.plotly_chart(fig, use_container_width=True)
+            resid = series[lags:] - fitted_ar
+            mae = float(np.mean(np.abs(resid))) if len(resid) else 0.0
+            c1, c2 = st.columns(2)
+            c1.metric("AR In-Sample MAE", f"{mae:.3f}")
+            c2.metric("Series Length", f"{len(series)} pts")
+        else:
+            st.info("Need at least 4 numeric points to forecast.")
 
 
 def main():

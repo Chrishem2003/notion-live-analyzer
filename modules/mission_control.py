@@ -16,11 +16,14 @@ Owner: Kula Chris (CHRISHEM)
 """
 from __future__ import annotations
 
+import json
+import math
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import requests
+from modules.satellite_engine import fetch_field_site_telemetry
 
 # ---------------------------------------------------------------------------
 # Live data wrappers (all with graceful offline fallback)
@@ -215,6 +218,177 @@ def get_mission_telemetry() -> Dict[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# 6) Realtime Satellite Risk & Earth-Observation telemetry
+# ---------------------------------------------------------------------------
+
+# Real public satellite / earth-observation APIs (free, no key)
+SENTINEL_COVERAGE_URL = "https://sentinel.esa.int/documents/247904/4598082/Sentinel-2_730km_10m_290km_swath.pdf"
+ISS_POSITION_URL = "http://api.open-notify.org/iss-now.json"
+ASTRONAUTS_URL = "http://api.open-notify.org/astros.json"
+
+
+def fetch_iss_position() -> Dict[str, Any]:
+    """
+    Fetch the real-time International Space Station position from the public
+    Open-Notify API (no key required). Graceful offline fallback.
+    """
+    try:
+        r = requests.get(ISS_POSITION_URL, timeout=8)
+        if r.status_code == 200:
+            data = r.json()
+            pos = data.get("iss_position", {})
+            return {
+                "source": "live:open-notify-iss",
+                "timestamp": data.get("timestamp"),
+                "latitude": float(pos.get("latitude", 0)),
+                "longitude": float(pos.get("longitude", 0)),
+                "message": data.get("message", ""),
+            }
+        return {"source": "open-notify-iss", "error": f"HTTP {r.status_code}"}
+    except Exception as e:
+        return {"source": "open-notify-iss", "error": str(e), "latitude": 0.0, "longitude": 0.0}
+
+
+def fetch_astronaut_count() -> Dict[str, Any]:
+    """Fetch the current number of humans in space from Open-Notify."""
+    try:
+        r = requests.get(ASTRONAUTS_URL, timeout=8)
+        if r.status_code == 200:
+            data = r.json()
+            return {
+                "source": "live:open-notify-astros",
+                "number": int(data.get("number", 0)),
+                "people": [p.get("name", "") for p in data.get("people", [])],
+            }
+        return {"source": "open-notify-astros", "error": f"HTTP {r.status_code}"}
+    except Exception as e:
+        return {"source": "open-notify-astros", "error": str(e), "number": 0, "people": []}
+
+
+def fetch_satellite_risk_telemetry(lat: float, lon: float) -> Dict[str, Any]:
+    """
+    Combine real ISS position + localized satellite field telemetry into a
+    single earth-observation risk profile for a coordinate.
+    """
+    iss = fetch_iss_position()
+    field = fetch_field_site_telemetry(lat, lon)
+
+    ndvi = float(field.get("ndvi_index", 0))
+    surface_temp = float(field.get("surface_temp_c", 0))
+    moisture = float(str(field.get("moisture_index", "50%")).replace("%", "").strip() or 50)
+
+    # Simple risk scoring heuristic from satellite vegetation/climate signals
+    drought_risk = max(0.0, min(1.0, (0.6 - ndvi) * 1.5 + (40 - moisture) * 0.01))
+    heat_risk = max(0.0, min(1.0, (surface_temp - 30) / 20))
+    combined_risk = round(min(1.0, drought_risk * 0.6 + heat_risk * 0.4), 2)
+
+    risk_level = "LOW"
+    if combined_risk > 0.7:
+        risk_level = "HIGH"
+    elif combined_risk > 0.4:
+        risk_level = "MODERATE"
+
+    distance_to_iss = math.sqrt(
+        (float(iss.get("latitude", 0)) - lat) ** 2 + (float(iss.get("longitude", 0)) - lon) ** 2
+    )
+
+    return {
+        "source": "live:satellite-remote-sensing",
+        "iss": iss,
+        "field": field,
+        "ndvi_index": ndvi,
+        "surface_temp_c": surface_temp,
+        "moisture_pct": moisture,
+        "drought_risk": round(drought_risk, 2),
+        "heat_risk": round(heat_risk, 2),
+        "combined_risk_score": combined_risk,
+        "risk_level": risk_level,
+        "iss_pass_proximity_deg": round(distance_to_iss, 2),
+        "as_of": datetime.utcnow().isoformat(),
+    }
+
+
+def get_global_risk_dashboard() -> Dict[str, Any]:
+    """
+    Aggregate a realtime global risk dashboard combining live health, weather,
+    and satellite telemetry into sector risk indices.
+    """
+    health = fetch_global_health_hotspots()
+    # Sample a few global coordinates for climate risk sampling (Kampala, São Paulo, Jakarta)
+    coords = [{"name": "Kampala", "lat": 0.3476, "lon": 32.5825},
+              {"name": "São Paulo", "lat": -23.55, "lon": -46.63},
+              {"name": "Jakarta", "lat": -6.21, "lon": 106.84}]
+    satellite_rows = []
+    for c in coords:
+        sat = fetch_satellite_risk_telemetry(c["lat"], c["lon"])
+        satellite_rows.append({
+            "location": c["name"],
+            "ndvi": sat["ndvi_index"],
+            "surface_temp_c": sat["surface_temp_c"],
+            "drought_risk": sat["drought_risk"],
+            "heat_risk": sat["heat_risk"],
+            "combined_risk": sat["combined_risk_score"],
+            "risk_level": sat["risk_level"],
+        })
+
+    # Ignore demo/offline health fallback for the live risk score
+    health_risk = 0.0
+    if health.get("source", "").startswith("live"):
+        total_cases = health.get("total_global_cases", 0)
+        health_risk = round(min(1.0, total_cases / 5_000_000_000), 2)
+
+    avg_combined = round(
+        sum(r["combined_risk"] for r in satellite_rows) / len(satellite_rows), 2
+    ) if satellite_rows else 0.0
+
+    return {
+        "source": "live:aggregated",
+        "as_of": datetime.utcnow().isoformat(),
+        "health_risk_index": health_risk,
+        "satellite_risk_index": avg_combined,
+        "overall_risk_index": round(min(1.0, health_risk * 0.4 + avg_combined * 0.6), 2),
+        "satellite_locations": satellite_rows,
+        "astronauts_in_space": fetch_astronaut_count().get("number", 0),
+        "iss_position": fetch_iss_position(),
+    }
+
+
 if __name__ == "__main__":
     print(json.dumps(fetch_weather_telemetry()["source"], default=str))
+    print(json.dumps(fetch_iss_position(), default=str))
     print(get_global_impact_scorecard()["overall_progress"])
+
+# ---------------------------------------------------------------------------
+# 7) Assessment / risk analyzer helpers
+# ---------------------------------------------------------------------------
+def estimate_risk_from_telemetry(ndvi: float, surface_temp: float, moisture_pct: float) -> Dict[str, Any]:
+    """
+    Compute a localized risk estimate from satellite vegetation/climate telemetry.
+    Returns risk scores and a human-readable recommendation.
+    """
+    drought = max(0.0, min(1.0, (0.6 - ndvi) * 1.5 + (40 - moisture_pct) * 0.01))
+    heat = max(0.0, min(1.0, (surface_temp - 30) / 20))
+    flood = max(0.0, min(1.0, (moisture_pct - 70) * 0.02))
+    combined = round(min(1.0, drought * 0.5 + heat * 0.3 + flood * 0.2), 2)
+
+    level = "LOW"
+    if combined > 0.7:
+        level = "HIGH"
+    elif combined > 0.4:
+        level = "MODERATE"
+
+    recommendation = (
+        "Monitor closely — multiple risk signals elevated."
+        if combined > 0.5
+        else "Conditions within normal range. Standard monitoring continues."
+    )
+
+    return {
+        "drought_risk": round(drought, 2),
+        "heat_risk": round(heat, 2),
+        "flood_risk": round(flood, 2),
+        "combined_risk": combined,
+        "risk_level": level,
+        "recommendation": recommendation,
+    }

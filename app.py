@@ -181,7 +181,7 @@ db_conn = init_sovereign_db()
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.1",
-    page_icon="âš¡",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )

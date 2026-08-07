@@ -161,7 +161,7 @@ def main():
     with tab_telemetry:
         render_live_telemetry(conn)
 
-with tab_about:
+    with tab_about:
         section_header("ℹ️ About the Unified Platform")
         st.markdown(
             """

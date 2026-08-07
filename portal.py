@@ -7,7 +7,7 @@ import streamlit as st
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Chrishem Science Hub - Secure Gateway",
-    page_icon="ðŸ§¬",
+    page_icon="🔬",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
