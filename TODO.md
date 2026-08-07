@@ -1,35 +1,37 @@
-# Multi-Problem Solver — Enterprise Advancement Roadmap
+# CHRISHEM Sovereign Intelligence & Forensics Command Platform
+## World-Apex Transformation — Task List
 
-## Phase 1 — Core Engine Files
-- [x] `modules/task_status_registry.py` — shared task/status DB + progress tracking
-- [x] `tasks.py` — Celery + Redis async runner with ThreadPool fallback
-- [x] `agents.py` — 3-persona Multi-Agent Problem Solver Swarm
-- [x] `rag_engine.py` — Hybrid Graph+Vector RAG (postgres pgvector / SQLite fallback)
-- [x] `fastapi_app.py` — FastAPI microservice (:8000) with CORS bridge
+## ✅ COMPLETED — Deep-Dive Analysis
+- [x] Analyzed 11-hub architecture, 180+ modules, FastAPI/Streamlit/SQLite/Celery/RAG stack
+- [x] Identified simulated features vs real engines (CVE, threat intel, satellite all simulated)
+- [x] Defined world-class transformation roadmap (Forensics, Converters, Scanners, Threat Intel, Mission Control)
 
-## Phase 2 — Enterprise Modules
-- [x] `modules/llm_router.py` — Gemini / Ollama / deterministic hybrid fallback
-- [x] `modules/self_correcting_executor.py` — LLM code self-correction loop
-- [x] `modules/mendeley_integration.py` — Real Mendeley OAuth + library sync (SQLite + BibTeX/RIS)
-- [x] `modules/gis_engine.py` — QGIS-grade spatial analytics suite (vector ops + choropleth)
-- [x] `modules/spss_suite.py` — SPSS-grade advanced stats (ANCOVA/MANOVA/factor/SAV writer)
+## Phase 1 — Forensic Intelligence Engine
+- [x] 1. Create `modules/forensics_engine.py` — digital evidence lab, hashing, file carving, metadata/EXIF forensics, steganography detector, timeline reconstruction, phishing/email header analyzer, chain-of-custody vault
+- [x] 2. Create `pages/12_🕵️_Forensics_Intelligence.py` — Forensic Intelligence hub page
 
-## Phase 3 — Streamlit Pages & Fixes
-- [x] Repair corrupted `pages/__init__.py`
-- [x] Page 57 — GIS / QGIS Spatial Analytics (`57_🗺️_GIS_Spatial_Analytics.py`)
-- [x] Page 58 — Mendeley Reference Integration (`58_📚_Mendeley_Reference_Manager.py`)
-- [x] Page 59 — SPSS Advanced Statistical Suite (`59_📊_SPSS_Advanced_Suite.py`)
-- [x] Page 60 — Agent Swarm & Async Task Console (RAG + tasks + self-correction) (`60_🦾_Agent_Swarm_Task_Console.py`)
+## Phase 2 — Universal Converter Studio
+- [x] 3. Create `modules/file_converter.py` — format/encoding/reshaper/unit/coordinate/PDF converters
+- [x] 4. Create `pages/13_🔄_Universal_Converter.py` — Universal Converter hub page
 
-## Phase 4 — Enterprise Configuration
-- [x] `requirements.txt` — upgraded deps (celery, redis, fastapi, google-genai, geopandas, folium, streamlit-folium, pyreadstat, python-dotenv…)
-- [x] `docker-compose.yml` — pgvector + redis + fastapi + celery worker + streamlit
-- [x] `Dockerfile` — existing build preserved (geospatial deps noted in SETUP_GUIDE)
-- [x] `.env.example` — environment template
-- [x] `SETUP_GUIDE.md` — full startup guide
+## Phase 3 — Advanced Scanner Suite
+- [x] 5. Create `modules/scanner_engine.py` — PII/secret scanner, live CVE (NVD API), YARA-lite signature scanner, duplicate scanner, file integrity baseline, real port scanner
+- [x] 6. Create `modules/threat_intel.py` — IP reputation, WHOIS, phishing URL analyzer, GeoIP threat map, incident playbooks
+- [x] 7. Create `pages/14_🛡️_Threat_Scanner_Suite.py` — Threat & Scanner Suite hub page
 
-## Phase 5 — Verification
-- [x] `py_compile` all new/modified Python files → 0 fails
-- [x] Import-sanity check module graph
-- [x] Update `modules/__init__.py` exports
+## Phase 4 — Global Mission Control
+- [x] 8. Create `modules/mission_control.py` — live WHO/OWID disease feed, live weather (Open-Meteo), global impact scorecard, problem-solver registry
+- [x] 9. Create `pages/15_🌍_Global_Mission_Control.py` — Global Mission Control hub page
+
+## Phase 5 — Integration
+- [x] 10. Update `modules/navigation.py` — register 4 new hubs
+- [x] 11. Update `pages/__init__.py` — register 4 new consolidated hubs
+- [x] 12. Update `app.py` / gateway to expose new hubs
+- [x] 13. Add dependencies to `requirements.txt`
+- [x] 14. Update `NAVIGATION_GUIDE.md` and `README.md`
+- [x] 15. Verify all new modules compile cleanly
+
+## Phase 6 — Quality Assurance
+- [x] 16. Syntax-check all new modules/pages
+- [x] 17. Final architecture summary & handoff
 
