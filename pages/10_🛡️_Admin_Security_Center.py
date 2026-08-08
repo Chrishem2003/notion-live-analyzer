@@ -120,52 +120,91 @@ def render_system_diagnostics(conn):
 
 
 def render_user_management(conn):
-    """Tab: User access & roles."""
-    section_header("👤 User Management & Access Control", "Manage users, roles, and permissions.")
+    """Tab: User access & roles — real accounts from auth_store, real server-side role changes."""
+    section_header("👤 User Management & Access Control", "This reads and writes the real accounts table — role changes here are the actual security boundary.")
 
-    st.markdown("#### Active Users")
-    cursor = conn.cursor()
-    cursor.execute("SELECT username, role, last_seen, visit_count FROM user_profiles ORDER BY visit_count DESC")
-    users = cursor.fetchall()
-    if users:
-        users_df = pd.DataFrame(users, columns=["Username", "Role", "Last Seen", "Visits"])
-        st.dataframe(users_df, use_container_width=True, hide_index=True)
-    else:
-        st.info("No user profiles recorded yet.")
+    from modules import auth_store
 
-    st.markdown("#### Role-Based Access Control (RBAC)")
-    rbac_data = pd.DataFrame({
-        "Role": ["Sovereign Administrator", "Data Analyst", "Field Researcher", "System Auditor"],
-        "Access Level": ["Full Control", "Analytics Tools", "Data Entry & View", "Read-Only Audit"],
-        "Permissions": ["All Hubs", "Data/Stats/ML/Viz", "Data Studio", "Admin Center"],
-    })
-    st.dataframe(rbac_data, use_container_width=True, hide_index=True)
+    auth_conn = auth_store.get_conn()
+    users = auth_conn.execute(
+        "SELECT email, name, role, created_at, last_login FROM auth_users ORDER BY created_at DESC"
+    ).fetchall()
+    auth_conn.close()
+
+    if not users:
+        st.info("No registered accounts yet. Accounts appear here once people sign up through portal.py.")
+        return
+
+    users_df = pd.DataFrame(users, columns=["Email", "Name", "Role", "Created", "Last Login"])
+    st.dataframe(users_df, use_container_width=True, hide_index=True)
+
+    st.markdown("#### Change a User's Role")
+    st.caption("This is the ONLY place a role can change. Nobody can grant themselves admin from the sidebar anymore.")
+    emails = [u[0] for u in users]
+    sel_email = st.selectbox("Account", emails, key="rbac_target_email")
+    sel_role = st.selectbox("New role", auth_store.ROLES, key="rbac_new_role")
+    current_admin = st.session_state.get("user_identity", {}).get("email")
+    if st.button("🔐 Apply Role Change", type="primary", key="rbac_apply"):
+        if sel_role == "user" and sel_email == current_admin:
+            st.error("You can't demote your own currently-signed-in admin account from this screen — sign in as another admin first.")
+        else:
+            auth_store.set_role(sel_email, sel_role)
+            st.success(f"{sel_email} is now '{sel_role}'.")
+            st.rerun()
 
 
 def render_billing():
-    """Tab: Billing & licensing."""
-    section_header("💳 Billing, Licensing & Subscriptions", "Manage plans, licenses, and billing.")
+    """Tab: Billing & licensing — real data from the subscriptions table, real Stripe links."""
+    section_header("💳 Billing, Licensing & Subscriptions", "Live subscription data — not a mock.")
 
-    st.markdown("#### Current Plan")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Plan Tier", "Enterprise")
-    c2.metric("License Expiry", "2030-12-31")
-    c3.metric("Active Nodes", "128")
+    from modules import subscription, billing_stripe
 
-    st.markdown("#### Subscription Management")
-    plan_options = ["Free", "Professional", "Enterprise", "Sovereign Apex"]
-    selected_plan = st.selectbox("Select Plan", plan_options, index=2, key="plan_sel")
-    if st.button("💳 Update Subscription", type="primary", key="update_plan"):
-        st.success(f"Subscription updated to **{selected_plan}** plan.")
+    conn2 = subscription.get_conn()
+    rows = conn2.execute("SELECT email, plan, trial_started FROM subscriptions").fetchall()
+    conn2.close()
 
-    st.markdown("#### Billing History")
-    billing = pd.DataFrame({
-        "Invoice": ["INV-001", "INV-002", "INV-003"],
-        "Amount": ["$99.00", "$99.00", "$499.00"],
-        "Status": ["Paid", "Paid", "Pending"],
-        "Date": ["2024-01-01", "2024-02-01", "2024-03-01"],
-    })
-    st.dataframe(billing, use_container_width=True, hide_index=True)
+    plan_counts = {}
+    for _, plan, _ in rows:
+        plan_counts[plan] = plan_counts.get(plan, 0) + 1
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total Accounts", len(rows))
+    c2.metric("Active Trials", plan_counts.get("trial", 0))
+    c3.metric("Paying (active)", plan_counts.get("active", 0))
+    c4.metric("Student Free", plan_counts.get("student_free", 0))
+
+    if not billing_stripe.is_configured():
+        st.warning(
+            "⚠️ Stripe isn't configured yet. Set STRIPE_SECRET_KEY, STRIPE_PRICE_ID, and "
+            "STRIPE_WEBHOOK_SECRET as environment variables to make 'Active' a real, paid state "
+            "instead of an admin toggle. See modules/billing_stripe.py."
+        )
+
+    st.markdown("#### All Accounts")
+    if rows:
+        bdf = pd.DataFrame(rows, columns=["Email", "Plan", "Trial Started"])
+        st.dataframe(bdf, use_container_width=True, hide_index=True)
+    else:
+        st.info("No accounts yet.")
+
+    st.markdown("#### Manually Adjust a Plan")
+    st.caption("Use this for comps/refunds/manual overrides. Real upgrades should come through Stripe webhooks.")
+    target_email = st.text_input("Account email", key="billing_target_email")
+    new_plan = st.selectbox("Set plan to", ["trial", "active", "expired", "student_free"], key="billing_new_plan")
+    if st.button("💾 Apply", key="billing_apply"):
+        if target_email:
+            conn3 = subscription.get_conn()
+            conn3.execute(
+                "INSERT INTO subscriptions (email, trial_started, plan) VALUES (?,?,?) "
+                "ON CONFLICT(email) DO UPDATE SET plan=excluded.plan",
+                (target_email.strip().lower(), __import__("datetime").datetime.utcnow().isoformat(), new_plan),
+            )
+            conn3.commit()
+            conn3.close()
+            st.success(f"{target_email} set to plan '{new_plan}'.")
+            st.rerun()
+        else:
+            st.warning("Enter an email.")
 
 
 def render_security_vault():
@@ -203,10 +242,15 @@ def render_audit_compliance(conn):
     section_header("🛡️ Audit & Compliance Center", "Regulatory compliance and audit trail management.")
 
     st.markdown("#### Compliance Framework")
+    st.warning(
+        "⚠️ These statuses are not backed by an actual audit — set each to 'Not Assessed' until "
+        "a real review happens. Displaying 'Aligned' for HIPAA/GDPR without one is a false claim "
+        "that could create legal exposure, especially once you're storing ID documents."
+    )
     compliance = pd.DataFrame({
         "Framework": ["HIPAA", "GDPR", "Data Protection", "Research Ethics"],
-        "Status": ["Aligned", "Aligned", "Aligned", "Aligned"],
-        "Last Audit": ["2024-01-15", "2024-02-01", "2023-12-20", "2024-03-05"],
+        "Status": ["Not Assessed", "Not Assessed", "Not Assessed", "Not Assessed"],
+        "Last Audit": ["—", "—", "—", "—"],
     })
     st.dataframe(compliance, use_container_width=True, hide_index=True)
 
@@ -635,11 +679,14 @@ def render_nexus_vault():
 
 
 def main():
+    from modules.admin_guard import require_admin
+    require_admin()  # ← real server-side gate. Not a UI hint — a hard stop.
+
     setup_page("Admin & Security Center", "🛡️", initial_sidebar_state="expanded")
 
     hero_card(
         "🛡️ Admin & Security Center",
-        "Consolidated administration hub: system diagnostics, user management, billing & licensing, secure vault, audit compliance, and platform settings.",
+        "Consolidated administration hub: system diagnostics, user management, billing & licensing, secure vault, audit compliance, student verification, and platform settings.",
         badge_text="ADMIN & SECURITY CENTER • CONSOLIDATED",
     )
 
@@ -649,6 +696,7 @@ def main():
         "🔍 Diagnostics",
         "👤 Users & Access",
         "💳 Billing & Licensing",
+        "🎓 Student Verification",
         "🔒 Secure Vault",
         "🛡️ Audit & Compliance",
         "🔐 Nexus Vault 2.0",
@@ -662,12 +710,15 @@ def main():
     with tabs[2]:
         render_billing()
     with tabs[3]:
-        render_security_vault()
+        from modules.verification import render_admin_review_queue
+        render_admin_review_queue()
     with tabs[4]:
-        render_audit_forensics()
+        render_security_vault()
     with tabs[5]:
-        render_nexus_vault()
+        render_audit_forensics()
     with tabs[6]:
+        render_nexus_vault()
+    with tabs[7]:
         render_settings()
 
     render_standard_footer("ADMIN & SECURITY CENTER")

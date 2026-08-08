@@ -151,7 +151,9 @@ def main():
     st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
 
     # ── Tabs for vault + telemetry ──
-    tab_vault, tab_telemetry, tab_about = st.tabs(["💾 Saved Analyses Vault", "📡 Live Telemetry", "ℹ️ About Platform"])
+    tab_vault, tab_telemetry, tab_account, tab_about = st.tabs(
+        ["💾 Saved Analyses Vault", "📡 Live Telemetry", "👤 My Account", "ℹ️ About Platform"]
+    )
 
     conn = get_db()
 
@@ -160,6 +162,21 @@ def main():
 
     with tab_telemetry:
         render_live_telemetry(conn)
+
+    with tab_account:
+        from modules import subscription, verification
+        acct_email = identity.get("email")
+        if acct_email:
+            status = subscription.get_status(acct_email)
+            subscription.ensure_trial_started(acct_email)
+            status = subscription.get_status(acct_email)
+            c1, c2 = st.columns(2)
+            c1.metric("Plan", status["plan"])
+            c2.metric("Trial Days Left", status["days_left"] if status["days_left"] is not None else "—")
+            st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
+            verification.render_student_application_form()
+        else:
+            st.info("Sign in to see your plan and apply for student access.")
 
     with tab_about:
         section_header("ℹ️ About the Unified Platform")

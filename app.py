@@ -1,4 +1,4 @@
-import streamlit as st
+Cimport streamlit as st
 
 # Initialize unlock state
 if 'portal_unlocked' not in st.session_state:
@@ -826,22 +826,19 @@ def main():
     # Multi-Language Selector in Sidebar
     selected_lang = st.sidebar.selectbox("Select Language / Lugha", ["English", "Swahili", "French"])
 
-    st.sidebar.markdown("### ðŸ‘¤ User Authentication & RBAC")
-    signed_in_user = st.sidebar.text_input("Enter Analyst Name:", value="Kula Chris")
-    
-    if signed_in_user.strip().lower() == "chris" or signed_in_user.strip().upper() == "chrishem":
-        active_analyst_name = "CHRISHEM"
-        default_role = "Sovereign Administrator"
-    else:
-        active_analyst_name = signed_in_user
-        default_role = "Data Analyst / Researcher"
+    from modules.subscription import require_active_subscription
+    from modules.admin_guard import is_admin
+    require_active_subscription()  # paywall/trial gate, real DB check
 
-    user_role = st.sidebar.selectbox("Assigned Role (RBAC)", [
-        "Sovereign Administrator",
-        "Data Analyst",
-        "Field Researcher",
-        "System Auditor"
-    ], index=0 if default_role == "Sovereign Administrator" else 1)
+    st.sidebar.markdown("### 👤 Session")
+    identity = st.session_state.get("user_identity", {})
+    active_analyst_name = identity.get("name", "Analyst")
+    user_role = "Sovereign Administrator" if is_admin() else identity.get("role", "user")
+    # Identity and role come ONLY from the real login in portal.py now — this
+    # sidebar used to let anyone type a name + pick "Sovereign Administrator"
+    # from a dropdown and become admin. That box is gone.
+
+    user_bday = st.sidebar.date_input("Your Birthday (optional, for the greeting)", value=datetime.date(2003, 7, 3))
 
     selected_country = st.sidebar.selectbox("Select User Location / Jurisdiction", [
         "Uganda [UG]",
@@ -1032,15 +1029,22 @@ def main():
             st.info("No saved analyses found in the vault yet.")
 
     elif navigation == t("nav_access", selected_lang):
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Clearance Tier", f"Tier-1 {user_role}")
-        c2.metric("License Expiry", "2030-12-31")
-        c3.metric("Active Nodes", "128 Swarm Agents Linked")
-        st.markdown("#### Security Authorization Matrix & RBAC Verification")
-        st.code(f"[User Principal] -> {active_analyst_name}\n[Assigned Role] -> {user_role}\n[Root Governance] -> CHRISHEM Apex Engine", language="text")
+        if not is_admin():
+            st.error("🚫 This view is restricted to administrators.")
+        else:
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Clearance Tier", f"Tier-1 {user_role}")
+            c2.metric("License Expiry", "2030-12-31")
+            c3.metric("Active Nodes", "128 Swarm Agents Linked")
+            st.markdown("#### Security Authorization Matrix & RBAC Verification")
+            st.code(f"[User Principal] -> {active_analyst_name}\n[Assigned Role] -> {user_role}\n[Root Governance] -> CHRISHEM Apex Engine", language="text")
 
     elif navigation == t("nav_diag", selected_lang):
-        render_system_diagnostics()
+        if not is_admin():
+            st.error("🚫 This view is restricted to administrators.")
+        else:
+            render_system_diagnostics()
 
 if __name__ == "__main__":
     main()
+

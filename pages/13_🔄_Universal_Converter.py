@@ -269,6 +269,9 @@ def render_pdf_tab():
 
 
 def main():
+    from modules.subscription import require_active_subscription
+    require_active_subscription()  # paywall/trial gate, real DB check
+
     setup_page("Universal Converter", "🔄", initial_sidebar_state="expanded")
 
     hero_card(
