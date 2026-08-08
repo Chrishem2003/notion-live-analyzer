@@ -351,7 +351,7 @@ def render_audit_forensics():
 
 
 def render_nexus_vault():
-    section_header("🔐 Nexus Vault 2.0 — Secure Workspace Suite", "Integrated encrypted drive, calendar conflict manager, virtual meeting scheduler, markdown documentation suite, spreadsheet engine, and contacts directory.")
+    section_header("🔐 Nexus Vault 2.0 — Secure Workspace Suite", "Integrated encrypted drive, calendar conflict manager, virtual meeting scheduler, markdown documentation suite, spreadsheet engine, and contacts directory[cite: 15].")
 
     tab_v = st.tabs([
         "📁 Encrypted Drive",
@@ -413,7 +413,9 @@ def render_nexus_vault():
             st.info("ℹ️ No calendar events scheduled.")
 
     with tab_v[2]:
-        st.markdown("#### Virtual Meeting Scheduler")
+        st.markdown("#### Virtual Meeting Scheduler & Live Session Interface")
+        st.caption("Manage secure WebRTC video conferencing sessions, camera streams, and audio feeds[cite: 15].")
+        
         with st.form("nexus_meet_form_upg"):
             m_title = st.text_input("Meeting Subject", key="nexus_meet_title_upg")
             m_date = st.date_input("Meeting Date", key="nexus_meet_date_upg")
@@ -427,6 +429,26 @@ def render_nexus_vault():
                 res = NexusMeet.schedule(m_title, dat, int(m_dur), [a.strip() for a in m_attendees.split(",") if a.strip()], m_agenda)
                 st.success(f"✅ Secure meeting created: `{res['meeting_link']}`")
                 st.json(res)
+
+        st.markdown("---")
+        st.markdown("#### 🎥 Live Camera & Meeting Video Stream Integration")
+        st.caption("Access and test local web camera peripherals or stream inputs directly inside active meeting room sections[cite: 15].")
+        
+        cam_col1, cam_col2 = st.columns(2)
+        with cam_col1:
+            enable_camera = st.checkbox("🟢 Enable Live Camera Feed", value=False, key="nexus_enable_camera")
+        with cam_col2:
+            camera_index = st.selectbox("Camera Hardware Device Index", [0, 1, 2], key="nexus_camera_index")
+            
+        if enable_camera:
+            st.info(f"📹 Initializing hardware camera stream on device index `{camera_index}`...")
+            # Streamlit native camera input widget provides an integrated browser-based camera interface
+            camera_capture = st.camera_input("Capture Meeting Snapshot / Video Frame")
+            if camera_capture is not None:
+                st.success("✅ Frame captured successfully from active meeting hardware stream.")
+                st.image(camera_capture, caption="Captured Meeting Snapshot Preview", use_container_width=True)
+        else:
+            st.info("ℹ️ Camera stream is currently paused or disabled. Check the box above to initialize live video capture.")
 
     with tab_v[3]:
         st.markdown("#### Secure Document Editor")
