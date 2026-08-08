@@ -232,7 +232,6 @@ class RoomManager:
         room.members = [m for m in room.members if m.id != member_id]
         return True
 
-@st.cache_resource
 def get_room_manager() -> RoomManager:
     """Get cached room manager."""
     return RoomManager()
@@ -393,7 +392,6 @@ class TaskManager:
                 stats[task.status] = 1
         return stats
 
-@st.cache_resource
 def get_task_manager() -> TaskManager:
     """Get cached task manager."""
     return TaskManager()
@@ -684,7 +682,6 @@ class FileManager:
         })
         return True
 
-@st.cache_resource
 def get_file_manager() -> FileManager:
     """Get cached file manager."""
     return FileManager()

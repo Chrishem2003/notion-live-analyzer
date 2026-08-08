@@ -141,7 +141,6 @@ class SecurityManager:
         """Get list of blocked IPs."""
         return list(self._blocked_ips)
 
-@st.cache_resource
 def get_security_manager() -> SecurityManager:
     """Get cached security manager."""
     return SecurityManager()
@@ -250,7 +249,6 @@ class GeoManager:
         
         return base
 
-@st.cache_resource
 def get_geo_manager() -> GeoManager:
     """Get cached geo manager."""
     return GeoManager()

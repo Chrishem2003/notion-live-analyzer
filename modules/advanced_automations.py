@@ -524,7 +524,6 @@ class NotificationManager:
         """Get unread notification count."""
         return len([n for n in self._notifications.get(user_id, []) if not n.read])
 
-@st.cache_resource
 def get_notification_manager() -> NotificationManager:
     """Get cached notification manager."""
     return NotificationManager()

@@ -19,7 +19,6 @@ st.set_page_config(
 )
 
 # --- COOKIE MANAGER INITIALIZATION ---
-@st.cache_resource
 def get_cookie_manager():
     return stx.CookieManager()
 
