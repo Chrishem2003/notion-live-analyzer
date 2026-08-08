@@ -13,23 +13,23 @@ if not st.session_state.portal_unlocked:
 else:
     # If unlocked, display a clean dashboard hub on the main page 
     # while letting Streamlit show the sidebar pages normally.
-    st.title('&#9889; Chrishem Sovereign Apex Hub')
-    st.success('&#128275; Gateway Unlocked: Select any module from the sidebar navigation to begin.')
+    st.title('⚡ Chrishem Sovereign Apex Hub')
+    st.success('🔓 Gateway Unlocked: Select any module from the sidebar navigation to begin.')
     
     identity = st.session_state.get('user_identity', {})
     st.info(f"**Active Session:** {identity.get('name', 'Analyst')} ({identity.get('role', 'User')})")
     
-    if st.button('&#128274; Lock Portal & Sign Out'):
+    if st.button('🔒 Lock Portal & Sign Out'):
         st.session_state.portal_unlocked = False
         st.rerun()
 
-# --- CHRISHEM AUTHOR PROFILE BLOCK (FIXED VISIBILITY) ---
+# --- CHRISHEM AUTHOR PROFILE BLOCK (POLISHED STYLING) ---
 import os
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👑 App Creator")
 
-# Check and render author photo with high-contrast styling wrapper
+# Check and render author photo with premium high-contrast styling wrapper
 if os.path.exists("background.jpg"):
     st.sidebar.image("background.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
 elif os.path.exists("assets/author_photo.jpg"):
@@ -37,15 +37,15 @@ elif os.path.exists("assets/author_photo.jpg"):
 else:
     # Fallback styled profile badge if image file is missing locally
     st.sidebar.markdown("""
-        <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 10px; text-align: center;">
-            <b style="color: #38BDF8; font-size: 1rem;">CHRISHEM</b>
+        <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            <b style="color: #38BDF8; font-size: 1.05rem; letter-spacing: 0.05em;">CHRISHEM</b>
         </div>
     """, unsafe_allow_html=True)
 
-st.sidebar.markdown("<p style='text-align: center; color: #F8FAFC; font-weight: 700; margin-top: 5px;'>CHRISHEM</p>", unsafe_allow_html=True)
-st.sidebar.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.8rem;'>Data Analyst & Lead Developer</p>", unsafe_allow_html=True)
+st.sidebar.markdown("<p style='text-align: center; color: #F8FAFC; font-weight: 700; margin-top: 8px; letter-spacing: 0.05em;'>CHRISHEM</p>", unsafe_allow_html=True)
+st.sidebar.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.8rem; margin-top: -10px;'>Data Analyst & Lead Developer</p>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
-# -------------------------------------
+# ---------------------------------------------------------
 
 import builtins
 import datetime
@@ -238,7 +238,7 @@ def t(key, lang="English"):
     return TRANSLATIONS.get(lang, TRANSLATIONS["English"]).get(key, key)
 
 # ---------------------------------------------------------
-# FULLY HARDENED DARK-MODE CSS & SELECTBOX FIXES
+# STUNNING, POLISHED ENTERPRISE DARK-MODE CSS
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -250,22 +250,25 @@ st.markdown("""
     }
 
     .stApp {
-        background: radial-gradient(circle at top right, #0F172A, #070B14 75%) !important;
+        background: linear-gradient(135deg, #090D16 0%, #0F172A 50%, #060911 100%) !important;
         background-attachment: fixed;
         color: #F8FAFC !important;
     }
 
-    /* --- COMPREHENSIVE SELECTBOX & DROPDOWN OVERRIDES --- */
-    
-    /* Main selectbox toggle button container */
+    /* --- PREMIUM SELECTBOX & DROPDOWN OVERRIDES --- */
     div[data-baseweb="select"] > div {
         background-color: #1E293B !important;
-        border: 1px solid rgba(56, 189, 248, 0.5) !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
         color: #F8FAFC !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
+        transition: all 0.3s ease;
     }
     
-    /* Text inside the main closed selectbox */
+    div[data-baseweb="select"] > div:hover {
+        border-color: rgba(56, 189, 248, 0.8) !important;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+    
     div[data-baseweb="select"] span, 
     div[data-baseweb="select"] div,
     div[data-baseweb="select"] * {
@@ -273,64 +276,70 @@ st.markdown("""
         background-color: transparent !important;
     }
 
-    /* Dropdown popup menu container */
     div[data-baseweb="popover"], 
     div[data-baseweb="menu"], 
     ul[data-testid="stVirtualDropdown"],
     div[role="listbox"] {
-        background-color: #0B132B !important;
-        border: 1px solid rgba(56, 189, 248, 0.5) !important;
+        background-color: #0F172A !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
         color: #F8FAFC !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.85) !important;
+        border-radius: 10px !important;
     }
 
-    /* Individual dropdown option items */
     li[role="option"], 
     div[role="option"] {
-        background-color: #0B132B !important;
+        background-color: #0F172A !important;
         color: #F8FAFC !important;
+        padding: 10px 14px !important;
     }
 
-    /* Hover and selected states for options */
     li[role="option"]:hover, 
     li[role="option"][aria-selected="true"],
     div[role="option"]:hover,
     div[role="option"][aria-selected="true"] {
-        background-color: rgba(56, 189, 248, 0.3) !important;
+        background-color: rgba(56, 189, 248, 0.25) !important;
         color: #38BDF8 !important;
     }
 
-    /* Input text fields and general widgets */
     input, textarea, select {
         background-color: #1E293B !important;
         color: #F8FAFC !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        border: 1px solid rgba(56, 189, 248, 0.35) !important;
+        border-radius: 8px !important;
+    }
+    
+    input:focus, textarea:focus {
+        border-color: #38BDF8 !important;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.3) !important;
     }
     
     p, span, label, div, .stMarkdown {
         color: #F8FAFC !important;
     }
 
+    /* --- GLASSMORPHIC COMPONENTS --- */
     .top-banner {
-        background: rgba(15, 23, 42, 0.92);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 16px;
-        padding: 0.85rem 1.25rem;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 14px;
+        padding: 0.9rem 1.4rem;
         margin-bottom: 1.25rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 0.5rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        gap: 0.75rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
     
     .top-banner-item {
         font-size: 0.85rem;
         color: #CBD5E1 !important;
         font-weight: 500;
+        letter-spacing: 0.02em;
     }
     
     .top-banner-item b {
@@ -339,73 +348,118 @@ st.markdown("""
     }
 
     .greeting-card {
-        background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(129, 140, 248, 0.15));
-        border: 1px solid rgba(56, 189, 248, 0.4);
-        border-radius: 14px;
-        padding: 1.15rem 1.35rem;
-        margin-bottom: 1.25rem;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(129, 140, 248, 0.12));
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        border-radius: 16px;
+        padding: 1.35rem 1.6rem;
+        margin-bottom: 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 1rem;
-        box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
+    
     .greeting-title {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         font-weight: 800;
         color: #FFFFFF !important;
+        letter-spacing: -0.01em;
     }
+    
     .greeting-sub {
-        font-size: 0.85rem;
+        font-size: 0.88rem;
         color: #38BDF8 !important;
         font-weight: 600;
-        margin-top: 0.2rem;
+        margin-top: 0.3rem;
     }
 
     .metric-box {
-        background: rgba(30, 41, 59, 0.75);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 12px;
-        padding: 1.1rem;
+        background: rgba(30, 41, 59, 0.65);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(56, 189, 248, 0.22);
+        border-radius: 14px;
+        padding: 1.25rem 1rem;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        transition: transform 0.2s ease, border-color 0.2s ease;
     }
+    
+    .metric-box:hover {
+        transform: translateY(-2px);
+        border-color: rgba(56, 189, 248, 0.5);
+    }
+    
     .metric-box .val {
-        font-size: 1.8rem;
+        font-size: 1.85rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #38BDF8, #818CF8);
+        background: linear-gradient(135deg, #38BDF8, #818CF8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
     }
+    
     .metric-box .lbl {
         font-size: 0.75rem;
         color: #94A3B8 !important;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-top: 0.25rem;
-        font-weight: 600;
+        letter-spacing: 0.08em;
+        margin-top: 0.35rem;
+        font-weight: 700;
     }
 
     .status-badge {
         display: inline-block;
-        padding: 0.25rem 0.75rem;
+        padding: 0.35rem 0.85rem;
         border-radius: 9999px;
         font-weight: 700;
         font-size: 0.8rem;
+        letter-spacing: 0.03em;
     }
-    .status-stable { background: rgba(16, 185, 129, 0.25); color: #34D399 !important; border: 1px solid #059669; }
-    .status-critical { background: rgba(239, 68, 68, 0.25); color: #F87171 !important; border: 1px solid #DC2626; }
+    
+    .status-stable { 
+        background: rgba(16, 185, 129, 0.2); 
+        color: #34D399 !important; 
+        border: 1px solid rgba(16, 185, 129, 0.5); 
+    }
+    
+    .status-critical { 
+        background: rgba(239, 68, 68, 0.2); 
+        color: #F87171 !important; 
+        border: 1px solid rgba(239, 68, 68, 0.5); 
+    }
 
     [data-testid="stSidebar"] {
-        background-color: #060911 !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: linear-gradient(180deg, #04060B 0%, #080D1A 100%) !important;
+        border-right: 1px solid rgba(56, 189, 248, 0.15) !important;
     }
 
     .glass-hr {
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.3), transparent);
-        margin: 1rem 0;
+        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.4), transparent);
+        margin: 1.25rem 0;
+    }
+    
+    /* Custom button styling */
+    .stButton > button {
+        background: linear-gradient(135deg, #0284C7, #4F46E5) !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        border-radius: 10px !important;
+        padding: 0.5rem 1.25rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3) !important;
+    }
+    
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #0369A1, #4338CA) !important;
+        border-color: rgba(56, 189, 248, 0.8) !important;
+        box-shadow: 0 6px 20px rgba(56, 189, 248, 0.45) !important;
+        transform: translateY(-1px);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -798,7 +852,7 @@ def render_ai_intelligence_daemon(active_analyst_name):
         st.markdown("#### 💬 Live Conversation History")
         for p, r, ts in chat_rows:
             st.markdown(f"""
-            <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem;">
+            <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 1rem; margin-bottom: 0.85rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
                 <b style="color: #38BDF8;">[{ts[:19]}] {active_analyst_name}:</b> <span style="color: #F8FAFC;">{p}</span><br><br>
                 <b style="color: #818CF8;">AI Intelligence Daemon:</b> <span style="color: #CBD5E1;">{r}</span>
             </div>
@@ -1069,13 +1123,13 @@ def main():
         if saved_rows:
             for s_id, s_title, s_ts, s_cat, s_content in saved_rows:
                 st.markdown(f"""
-                <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <b style="color: #38BDF8; font-size: 1.05rem;">{s_title}</b>
-                        <span style="color: #94A3B8; font-size: 0.8rem;">{s_ts[:19]}</span>
+                <div style="background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <b style="color: #38BDF8; font-size: 1.1rem; letter-spacing: -0.01em;">{s_title}</b>
+                        <span style="color: #94A3B8; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace;">{s_ts[:19]}</span>
                     </div>
-                    <div style="color: #818CF8; font-size: 0.85rem; margin-top: 0.25rem;">Category: {s_cat}</div>
-                    <p style="margin-top: 0.5rem; color: #F8FAFC; font-size: 0.9rem;">{s_content}</p>
+                    <div style="color: #818CF8; font-size: 0.85rem; font-weight: 600; margin-top: 0.35rem;">Category: {s_cat}</div>
+                    <p style="margin-top: 0.75rem; color: #F8FAFC; font-size: 0.9rem; line-height: 1.5;">{s_content}</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
