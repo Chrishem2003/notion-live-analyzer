@@ -57,7 +57,7 @@ def init_sovereign_db():
 
 db_conn = init_sovereign_db()
 
-# --- AUTOMATIC ADMIN PROMOTION FOR CHRISHEM ---
+# --- AUTOMATIC ADMIN PRIVILEGES FOR CHRISHEM ---
 def ensure_superuser_privileges():
     cursor = db_conn.cursor()
     target_email = "chrishem242@gmail.com"
@@ -156,49 +156,144 @@ linux_zip = create_package_zip("Linux")
 mac_zip = create_package_zip("macOS")
 pwa_zip = create_package_zip("Mobile-PWA")
 
-# --- COSMIC UI STYLING ---
+# --- WORLD-CLASS STUNNING PORTAL STYLING & LAYOUTS ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-    html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; color: #F8FAFC; }
-    .stApp { background: radial-gradient(circle at 15% 20%, #0c0f1d 0%, #05070b 85%); color: #f3f4f6; }
-    .landing-container {
-        background: rgba(20, 25, 42, 0.85);
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #F8FAFC !important;
+    }
+
+    /* Cosmic Dynamic Background */
+    .stApp {
+        background: radial-gradient(circle at 15% 20%, #0d1326 0%, #04060a 85%);
+        background-attachment: fixed;
+    }
+
+    /* Stunning Glassmorphism Portal Container */
+    .portal-hero-card {
+        background: rgba(17, 24, 39, 0.82);
         backdrop-filter: blur(24px);
-        border: 1px solid rgba(56, 189, 248, 0.3);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(56, 189, 248, 0.35);
         border-radius: 28px;
-        padding: 35px 25px;
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(56, 189, 248, 0.15);
-        text-align: center;
-        max-width: 800px;
+        padding: 35px 30px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(56, 189, 248, 0.15);
+        max-width: 860px;
         margin: 0 auto;
     }
-    .hub-title {
-        font-size: 2.1rem;
+
+    .portal-title {
+        font-size: 2.3rem;
         font-weight: 800;
         background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #F472B6 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 8px;
-    }
-    .hub-subtitle { font-size: 1rem; color: #94A3B8; font-weight: 400; margin-bottom: 15px; }
-    .profile-img-wrap { display: flex; justify-content: center; margin-bottom: 15px; }
-    .profile-img {
-        width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
-        border: 3px solid #38BDF8; box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
-    }
-    .download-card {
-        background: rgba(15, 23, 42, 0.9);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        padding: 15px;
-        border-radius: 12px;
         text-align: center;
-        margin-bottom: 10px;
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
     }
+
+    .portal-subtitle {
+        font-size: 0.95rem;
+        color: #94A3B8 !important;
+        font-weight: 600;
+        text-align: center;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+    }
+
+    .profile-glow-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #38BDF8;
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
+    }
+
+    /* Gorgeous Tabs Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: rgba(15, 23, 42, 0.6);
+        padding: 6px;
+        border-radius: 14px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 44px;
+        border-radius: 10px;
+        color: #94A3B8;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)) !important;
+        color: #38BDF8 !important;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    /* Modern Interactive Cards for Downloads */
+    .download-grid-card {
+        background: rgba(30, 41, 59, 0.65);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        padding: 16px;
+        border-radius: 14px;
+        text-align: center;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+    .download-grid-card:hover {
+        border-color: rgba(56, 189, 248, 0.6);
+        box-shadow: 0 6px 25px rgba(56, 189, 248, 0.2);
+        transform: translateY(-2px);
+    }
+
     .glass-hr {
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-        margin: 1rem 0;
+        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.35), transparent);
+        margin: 1.5rem 0;
+    }
+
+    /* Workspace Metrics */
+    .workspace-metric {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 16px;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    .workspace-metric .metric-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #38BDF8, #818CF8, #F472B6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .workspace-metric .metric-label {
+        font-size: 0.75rem;
+        color: #94A3B8 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 0.3rem;
+        font-weight: 700;
+    }
+
+    [data-testid="stSidebar"] {
+        background-color: #050810 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -223,37 +318,38 @@ if not st.session_state.portal_unlocked:
             }
             subscription.ensure_trial_started(user_record["email"])
 
-# --- GATEWAY SCREEN (LOCKED STATE) ---
+# --- PORTAL GATEWAY SCREEN (LOCKED STATE) ---
 if not st.session_state.portal_unlocked:
     st.markdown("<style>[data-testid=\"stSidebar\"] {display: none;}</style>", unsafe_allow_html=True)
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
     
-    img_tag = f'<img src="data:image/png;base64,{img_base64}" class="profile-img">' if img_base64 else '<div style="font-size: 50px;">🔬</div>'
+    avatar_html = f'<img src="data:image/png;base64,{img_base64}" class="profile-avatar">' if img_base64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
     
     st.markdown(f"""
-    <div class="landing-container">
-        <div class="profile-img-wrap">{img_tag}</div>
-        <div class="hub-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
-        <div class="hub-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
+    <div class="portal-hero-card">
+        <div class="profile-glow-wrap">{avatar_html}</div>
+        <div class="portal-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
+        <div class="portal-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
     
-    _, center_col, _ = st.columns([0.5, 3, 0.5])
-    with center_col:
-        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register", "📱 Ecosystem Downloads"])
+    _, portal_col, _ = st.columns([0.4, 3.2, 0.4])
+    with portal_col:
+        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register Account", "📱 Ecosystem Downloads"])
         
         with tab_signin:
-            si_email = st.text_input("Email Address", key="si_email_input")
-            si_password = st.text_input("Password", type="password", key="si_password_input")
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
+            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="••••••••")
             remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            if st.button("🚀 Sign In", width='stretch'):
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            if st.button("🚀 Unlock Portal Workspace", use_container_width=True):
                 user = auth_store.verify_login(si_email, si_password)
                 if user is None:
-                    st.error("Incorrect email or password. (Note: Master account chrishem242@gmail.com can log in or register freely).")
+                    st.error("Incorrect email or password. (Master account chrishem242@gmail.com is pre-configured).")
                 else:
                     st.session_state.portal_unlocked = True
                     st.session_state.user_identity = {
@@ -269,13 +365,14 @@ if not st.session_state.portal_unlocked:
                     st.rerun()
 
         with tab_signup:
-            su_name = st.text_input("Your Preferred Name", key="su_name_input")
-            su_email = st.text_input("Your Email Address", key="su_email_input")
-            su_password = st.text_input("Choose a Password", type="password", key="su_password_input")
-            su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input")
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            su_name = st.text_input("Preferred Full Name", key="su_name_input", placeholder="Analyst Name")
+            su_email = st.text_input("Email Address", key="su_email_input", placeholder="name@domain.com")
+            su_password = st.text_input("Choose Password", type="password", key="su_password_input", placeholder="At least 6 characters")
+            su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input", placeholder="Re-enter password")
 
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            if st.button("✨ Register", width='stretch'):
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            if st.button("✨ Create Sovereign Account", use_container_width=True):
                 if not su_email or not su_password:
                     st.error("Email and password are required.")
                 elif su_password != su_password2:
@@ -287,41 +384,42 @@ if not st.session_state.portal_unlocked:
                     if not result["ok"]:
                         st.error(result["error"])
                     else:
-                        st.success("Account created successfully! Please sign in above.")
+                        st.success("Account created successfully! Switch to 'Secure Sign In' above.")
 
         with tab_downloads:
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
             st.markdown("### 🌍 Cross-Platform Ecosystem Releases")
-            st.write("Click any bundle below to download the setup package.")
+            st.write("Download standalone bundles for your preferred environment directly from the portal gate.")
             
             d_col1, d_col2 = st.columns(2)
             with d_col1:
-                st.markdown('<div class="download-card"><h4>🪟 Windows Suite</h4><p style="font-size: 0.85rem; color: #94A3B8;">Windows Desktop Engine</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Windows Suite (.zip)", data=win_zip, file_name="chrishem_hub_windows.zip", mime="application/zip", width='stretch')
+                st.markdown('<div class="download-grid-card"><h4>🪟 Windows Suite</h4><p style="font-size: 0.8rem; color: #94A3B8;">Desktop Engine (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Windows Package", data=win_zip, file_name="chrishem_hub_windows.zip", mime="application/zip", use_container_width=True)
 
-                st.markdown('<div class="download-card" style="margin-top: 15px;"><h4>🐧 Linux Distribution</h4><p style="font-size: 0.85rem; color: #94A3B8;">Ubuntu/Debian Server Build</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Linux Build (.zip)", data=linux_zip, file_name="chrishem_hub_linux.zip", mime="application/zip", width='stretch')
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux Distribution</h4><p style="font-size: 0.8rem; color: #94A3B8;">Ubuntu / Debian Server Build</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Linux Package", data=linux_zip, file_name="chrishem_hub_linux.zip", mime="application/zip", use_container_width=True)
 
             with d_col2:
-                st.markdown('<div class="download-card"><h4>🍏 macOS Architecture</h4><p style="font-size: 0.85rem; color: #94A3B8;">Apple Silicon & Intel Universal</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download macOS Bundle (.zip)", data=mac_zip, file_name="chrishem_hub_macos.zip", mime="application/zip", width='stretch')
+                st.markdown('<div class="download-grid-card"><h4>🍏 macOS Architecture</h4><p style="font-size: 0.8rem; color: #94A3B8;">Apple Silicon & Intel Universal</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download macOS Package", data=mac_zip, file_name="chrishem_hub_macos.zip", mime="application/zip", use_container_width=True)
 
-                st.markdown('<div class="download-card" style="margin-top: 15px;"><h4>📱 Mobile PWA / Phone</h4><p style="font-size: 0.85rem; color: #94A3B8;">Progressive Web Client</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Mobile PWA Config (.zip)", data=pwa_zip, file_name="chrishem_hub_mobile_pwa.zip", mime="application/zip", width='stretch')
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile PWA / Client</h4><p style="font-size: 0.8rem; color: #94A3B8;">Progressive Web Configuration</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Mobile PWA", data=pwa_zip, file_name="chrishem_hub_mobile_pwa.zip", mime="application/zip", use_container_width=True)
 
-# --- UNLOCKED WORKSPACE & DASHBOARD ---
+# --- UNLOCKED WORKSPACE DASHBOARD ---
 else:
     identity = st.session_state.get("user_identity", {"name": "Chrishem", "role": "admin"})
     
     st.sidebar.title("CHRISHEM APEX")
-    st.sidebar.success(f"🔓 Logged in as: {identity.get('name')}")
+    st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
     st.sidebar.markdown(f"**Email:** `{identity.get('email', 'chrishem242@gmail.com')}`")
-    st.sidebar.markdown(f"**Privilege Level:** `{'👑 Full-Time Admin' if is_admin() else 'Standard User'}`")
+    st.sidebar.markdown(f"**Privilege:** `{'👑 Full-Time Admin' if is_admin() else 'Standard User'}`")
     
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
     
     theme_mode = st.sidebar.selectbox("Interface Spectrum", ["Deep Space Nebula", "Cyber Matrix Dark", "Sovereign Gold"])
     
-    if st.sidebar.button("🔒 Lock Portal & Sign Out", width='stretch'):
+    if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
         cookie_manager.delete("chrishem_user_email")
         st.session_state.portal_unlocked = False
         st.rerun()
@@ -340,9 +438,12 @@ else:
     st.markdown("---")
     
     col1, col2, col3 = st.columns(3)
-    col1.metric("Gateway Status", "Unlocked", delta="Enclave Verified")
-    col2.metric("Active Operator", identity.get("name"))
-    col3.metric("Authorization", "Full-Time Admin" if is_admin() else "Standard", delta="Tier-1 Access")
+    with col1:
+        st.markdown('<div class="workspace-metric"><div class="metric-value">Active</div><div class="metric-label">Gateway Status</div></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
+    with col3:
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
     
     st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
@@ -406,6 +507,6 @@ else:
             users = cursor.fetchall()
             
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
-            st.dataframe(user_df, width='stretch')
+            st.dataframe(user_df, use_container_width=True)
             
             st.success("👑 Your account (`chrishem242@gmail.com`) is permanently locked with full administrative privileges and sovereign override capabilities.")
