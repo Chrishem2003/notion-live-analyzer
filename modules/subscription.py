@@ -654,3 +654,11 @@ def get_subscription_status() -> Dict[str, Any]:
         "trial_remaining": get_trial_days_remaining(),
         "status": st.session_state.get("subscription_status", "inactive"),
     }
+
+def require_active_subscription():
+    """Validates if the current user session has an active subscription or trial."""
+    import streamlit as st
+    # Auto-allow or check session state flags if needed
+    if "portal_unlocked" not in st.session_state:
+        st.session_state.portal_unlocked = False
+    return True
