@@ -1,3 +1,4 @@
+import portal
 import streamlit as st
 
 # Initialize unlock state
