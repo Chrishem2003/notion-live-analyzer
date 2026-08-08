@@ -1,4 +1,4 @@
-Cimport streamlit as st
+import streamlit as st
 
 # Initialize unlock state
 if 'portal_unlocked' not in st.session_state:
