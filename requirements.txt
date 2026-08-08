@@ -57,3 +57,8 @@ tqdm
 watchdog
 
 psutil
+streamlit>=1.30.0
+extra_streamlit_components
+pandas
+numpy
+sqlite3
