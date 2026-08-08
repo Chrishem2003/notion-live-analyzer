@@ -1391,7 +1391,7 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
             if paper.get("journal"):
                 meta_parts.append(f"Ã°Å¸â€Â {paper['journal']}")
             if paper.get("doi"):
-            meta_parts.append(f"DOI: {paper['doi']}")
+            meta_parts.append(f"DOI: {paper[\"doi\"]}")
 
         st.caption(" | ".join(meta_parts))
 
