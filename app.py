@@ -238,7 +238,7 @@ def t(key, lang="English"):
     return TRANSLATIONS.get(lang, TRANSLATIONS["English"]).get(key, key)
 
 # ---------------------------------------------------------
-# ADVANCED METALLIC GLASSMORPHISM CSS & SELECTBOX FIXES
+# FULLY HARDENED DARK-MODE CSS & SELECTBOX FIXES
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -250,43 +250,66 @@ st.markdown("""
     }
 
     .stApp {
-        background: radial-gradient(circle at top right, #0F172A, #070B14 75%);
+        background: radial-gradient(circle at top right, #0F172A, #070B14 75%) !important;
         background-attachment: fixed;
-    }
-
-    /* Force high text clarity inside dataframes, markdown, and labels */
-    p, span, label, div, .stMarkdown {
         color: #F8FAFC !important;
     }
 
-    /* --- SELECTBOX / DROPDOWN VISIBILITY FIXES --- */
+    /* --- COMPREHENSIVE SELECTBOX & DROPDOWN OVERRIDES --- */
+    
+    /* Main selectbox toggle button container */
     div[data-baseweb="select"] > div {
         background-color: #1E293B !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        border: 1px solid rgba(56, 189, 248, 0.5) !important;
         color: #F8FAFC !important;
         border-radius: 8px !important;
     }
     
-    div[data-baseweb="select"] span {
+    /* Text inside the main closed selectbox */
+    div[data-baseweb="select"] span, 
+    div[data-baseweb="select"] div,
+    div[data-baseweb="select"] * {
+        color: #F8FAFC !important;
+        background-color: transparent !important;
+    }
+
+    /* Dropdown popup menu container */
+    div[data-baseweb="popover"], 
+    div[data-baseweb="menu"], 
+    ul[data-testid="stVirtualDropdown"],
+    div[role="listbox"] {
+        background-color: #0B132B !important;
+        border: 1px solid rgba(56, 189, 248, 0.5) !important;
+        color: #F8FAFC !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+    }
+
+    /* Individual dropdown option items */
+    li[role="option"], 
+    div[role="option"] {
+        background-color: #0B132B !important;
         color: #F8FAFC !important;
     }
 
-    div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-testid="stVirtualDropdown"] {
-        background-color: #0F172A !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        color: #F8FAFC !important;
-    }
-
-    li[role="option"] {
-        background-color: #0F172A !important;
-        color: #F8FAFC !important;
-    }
-
-    li[role="option"]:hover, li[role="option"][aria-selected="true"] {
-        background-color: rgba(56, 189, 248, 0.25) !important;
+    /* Hover and selected states for options */
+    li[role="option"]:hover, 
+    li[role="option"][aria-selected="true"],
+    div[role="option"]:hover,
+    div[role="option"][aria-selected="true"] {
+        background-color: rgba(56, 189, 248, 0.3) !important;
         color: #38BDF8 !important;
     }
-    /* --------------------------------------------- */
+
+    /* Input text fields and general widgets */
+    input, textarea, select {
+        background-color: #1E293B !important;
+        color: #F8FAFC !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    }
+    
+    p, span, label, div, .stMarkdown {
+        color: #F8FAFC !important;
+    }
 
     .top-banner {
         background: rgba(15, 23, 42, 0.92);
@@ -875,23 +898,6 @@ def main():
         username = str(identity.get("name", "")).lower()
         is_root_user = username in ["chrishem", "chris shem", "kula chris"]
         return bool(is_admin_role or session_flag or is_root_user)
-
-    def require_active_subscription():
-        identity = st.session_state.get("user_identity", {})
-        if isinstance(identity, dict):
-            email = identity.get("email") or st.session_state.get("email")
-            role = identity.get("role") or st.session_state.get("role")
-            username = str(identity.get("name", "")).lower()
-        else:
-            email = st.session_state.get("email")
-            role = st.session_state.get("role")
-            username = ""
-
-        if not email:
-            if role in ["admin", "sovereign administrator", "administrator"] or username in ["chrishem", "chris shem", "kula chris"] or st.session_state.get("is_admin", False):
-                return
-            return
-        return
 
     st.sidebar.markdown("### 👤 Session")
     identity = st.session_state.get("user_identity", {})
