@@ -238,7 +238,7 @@ def t(key, lang="English"):
     return TRANSLATIONS.get(lang, TRANSLATIONS["English"]).get(key, key)
 
 # ---------------------------------------------------------
-# ADVANCED METALLIC GLASSMORPHISM CSS & CONTRAST FIXES
+# ADVANCED METALLIC GLASSMORPHISM CSS & SELECTBOX FIXES
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -258,6 +258,35 @@ st.markdown("""
     p, span, label, div, .stMarkdown {
         color: #F8FAFC !important;
     }
+
+    /* --- SELECTBOX / DROPDOWN VISIBILITY FIXES --- */
+    div[data-baseweb="select"] > div {
+        background-color: #1E293B !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        color: #F8FAFC !important;
+        border-radius: 8px !important;
+    }
+    
+    div[data-baseweb="select"] span {
+        color: #F8FAFC !important;
+    }
+
+    div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-testid="stVirtualDropdown"] {
+        background-color: #0F172A !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        color: #F8FAFC !important;
+    }
+
+    li[role="option"] {
+        background-color: #0F172A !important;
+        color: #F8FAFC !important;
+    }
+
+    li[role="option"]:hover, li[role="option"][aria-selected="true"] {
+        background-color: rgba(56, 189, 248, 0.25) !important;
+        color: #38BDF8 !important;
+    }
+    /* --------------------------------------------- */
 
     .top-banner {
         background: rgba(15, 23, 42, 0.92);
