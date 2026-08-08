@@ -22,19 +22,28 @@ else:
     if st.button('&#128274; Lock Portal & Sign Out'):
         st.session_state.portal_unlocked = False
         st.rerun()
-# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+
+# --- CHRISHEM AUTHOR PROFILE BLOCK (FIXED VISIBILITY) ---
 import os
-import streamlit as st
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### App Creator")
-if os.path.exists("background.jpg"):
-    st.sidebar.image("background.jpg", caption="CHRISHEM", width=True)
-elif os.path.exists("assets/author_photo.jpg"):
-    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", width=True)
+st.sidebar.markdown("### 👑 App Creator")
 
-st.sidebar.markdown("**CHRISHEM**")
-st.sidebar.markdown("*Data Analyst & Lead Developer*")
+# Check and render author photo with high-contrast styling wrapper
+if os.path.exists("background.jpg"):
+    st.sidebar.image("background.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
+elif os.path.exists("assets/author_photo.jpg"):
+    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
+else:
+    # Fallback styled profile badge if image file is missing locally
+    st.sidebar.markdown("""
+        <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 10px; text-align: center;">
+            <b style="color: #38BDF8; font-size: 1rem;">CHRISHEM</b>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.sidebar.markdown("<p style='text-align: center; color: #F8FAFC; font-weight: 700; margin-top: 5px;'>CHRISHEM</p>", unsafe_allow_html=True)
+st.sidebar.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.8rem;'>Data Analyst & Lead Developer</p>", unsafe_allow_html=True)
 st.sidebar.markdown("---")
 # -------------------------------------
 
@@ -120,22 +129,16 @@ def init_sovereign_db():
         )
     """)
     # Auto-migration safety check: ensure missing columns are added if an older table schema exists
-    try:
-        cursor.execute("ALTER TABLE user_profiles ADD COLUMN birthday TEXT")
-    except Exception:
-        pass
-    try:
-        cursor.execute("ALTER TABLE user_profiles ADD COLUMN role TEXT")
-    except Exception:
-        pass
-    try:
-        cursor.execute("ALTER TABLE user_profiles ADD COLUMN last_seen TEXT")
-    except Exception:
-        pass
-    try:
-        cursor.execute("ALTER TABLE user_profiles ADD COLUMN visit_count INTEGER")
-    except Exception:
-        pass
+    for col_query in [
+        "ALTER TABLE user_profiles ADD COLUMN birthday TEXT",
+        "ALTER TABLE user_profiles ADD COLUMN role TEXT",
+        "ALTER TABLE user_profiles ADD COLUMN last_seen TEXT",
+        "ALTER TABLE user_profiles ADD COLUMN visit_count INTEGER"
+    ]:
+        try:
+            cursor.execute(col_query)
+        except Exception:
+            pass
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS live_chat_history (
@@ -180,7 +183,7 @@ db_conn = init_sovereign_db()
 # PAGE CONFIGURATION
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.1",
+    page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.2",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -235,7 +238,7 @@ def t(key, lang="English"):
     return TRANSLATIONS.get(lang, TRANSLATIONS["English"]).get(key, key)
 
 # ---------------------------------------------------------
-# ADVANCED METALLIC GLASSMORPHISM CSS & UI POLISH
+# ADVANCED METALLIC GLASSMORPHISM CSS & CONTRAST FIXES
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -251,11 +254,16 @@ st.markdown("""
         background-attachment: fixed;
     }
 
+    /* Force high text clarity inside dataframes, markdown, and labels */
+    p, span, label, div, .stMarkdown {
+        color: #F8FAFC !important;
+    }
+
     .top-banner {
-        background: rgba(15, 23, 42, 0.85);
+        background: rgba(15, 23, 42, 0.92);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.25);
         border-radius: 16px;
         padding: 0.85rem 1.25rem;
         margin-bottom: 1.25rem;
@@ -264,50 +272,52 @@ st.markdown("""
         align-items: center;
         flex-wrap: wrap;
         gap: 0.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
     
     .top-banner-item {
         font-size: 0.85rem;
-        color: #94A3B8;
+        color: #CBD5E1 !important;
         font-weight: 500;
     }
     
     .top-banner-item b {
-        color: #38BDF8;
-        font-weight: 600;
+        color: #38BDF8 !important;
+        font-weight: 700;
     }
 
     .greeting-card {
-        background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(129, 140, 248, 0.12));
-        border: 1px solid rgba(56, 189, 248, 0.3);
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(129, 140, 248, 0.15));
+        border: 1px solid rgba(56, 189, 248, 0.4);
         border-radius: 14px;
-        padding: 1rem 1.25rem;
+        padding: 1.15rem 1.35rem;
         margin-bottom: 1.25rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 1rem;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.3);
     }
     .greeting-title {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: #F8FAFC;
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #FFFFFF !important;
     }
     .greeting-sub {
         font-size: 0.85rem;
-        color: #38BDF8;
-        font-weight: 500;
-        margin-top: 0.15rem;
+        color: #38BDF8 !important;
+        font-weight: 600;
+        margin-top: 0.2rem;
     }
 
     .metric-box {
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(30, 41, 59, 0.75);
+        border: 1px solid rgba(56, 189, 248, 0.25);
         border-radius: 12px;
         padding: 1.1rem;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .metric-box .val {
         font-size: 1.8rem;
@@ -318,10 +328,11 @@ st.markdown("""
     }
     .metric-box .lbl {
         font-size: 0.75rem;
-        color: #94A3B8;
+        color: #94A3B8 !important;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-top: 0.25rem;
+        font-weight: 600;
     }
 
     .status-badge {
@@ -331,17 +342,17 @@ st.markdown("""
         font-weight: 700;
         font-size: 0.8rem;
     }
-    .status-stable { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid #059669; }
-    .status-critical { background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid #DC2626; }
+    .status-stable { background: rgba(16, 185, 129, 0.25); color: #34D399 !important; border: 1px solid #059669; }
+    .status-critical { background: rgba(239, 68, 68, 0.25); color: #F87171 !important; border: 1px solid #DC2626; }
 
     [data-testid="stSidebar"] {
         background-color: #060911 !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
     .glass-hr {
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.3), transparent);
         margin: 1rem 0;
     }
 </style>
@@ -397,7 +408,7 @@ def load_dataset(uploaded_file, drop_duplicates=True, handle_missing="Mean Imput
     return df, file_bytes
 
 # ---------------------------------------------------------
-# PDF REPORT GENERATOR HELPER (FIXED FOR FPDF2 COMPATIBILITY)
+# PDF REPORT GENERATOR HELPER
 # ---------------------------------------------------------
 def generate_pdf_report(title, content):
     if not FPDF_AVAILABLE:
@@ -680,7 +691,7 @@ def render_personal_workspace():
 
         tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Data Table", "📈 Descriptive Statistics", "📉 Advanced Plotter", "💾 Save Full Analysis"])
         with tab1:
-            st.dataframe(df, width=True)
+            st.dataframe(df, use_container_width=True)
             csv_data = df.to_csv(index=False).encode('utf-8')
             st.download_button("Download Processed Data (CSV)", data=csv_data, file_name=f"processed_{fname}.csv", mime="text/csv")
         with tab2:
@@ -703,7 +714,7 @@ def render_personal_workspace():
                     fig_v = px.bar(df, x=x_col, y=y_col, title=f"Bar: {x_col} vs {y_col}", template="plotly_dark")
                 
                 fig_v.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                st.plotly_chart(fig_v, width=True)
+                st.plotly_chart(fig_v, use_container_width=True)
             else:
                 st.info("Dataset requires at least two numeric columns for interactive plotting.")
         with tab4:
@@ -735,9 +746,9 @@ def render_ai_intelligence_daemon(active_analyst_name):
         st.markdown("#### 💬 Live Conversation History")
         for p, r, ts in chat_rows:
             st.markdown(f"""
-            <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem;">
-                <b style="color: #38BDF8;">[{ts[:19]}] {active_analyst_name}:</b> {p}<br><br>
-                <b style="color: #818CF8;">AI Intelligence Daemon:</b> {r}
+            <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem;">
+                <b style="color: #38BDF8;">[{ts[:19]}] {active_analyst_name}:</b> <span style="color: #F8FAFC;">{p}</span><br><br>
+                <b style="color: #818CF8;">AI Intelligence Daemon:</b> <span style="color: #CBD5E1;">{r}</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -811,7 +822,7 @@ def render_system_diagnostics():
     logs_data = cursor.fetchall()
     if logs_data:
         logs_df = pd.DataFrame(logs_data, columns=["ID", "Timestamp", "Module", "Severity", "Crypto Hash"])
-        st.dataframe(logs_df, width=True, hide_index=True)
+        st.dataframe(logs_df, use_container_width=True, hide_index=True)
     else:
         st.info("No system telemetry logs recorded yet.")
 
@@ -820,13 +831,13 @@ def render_system_diagnostics():
 # ---------------------------------------------------------
 def main():
     st.sidebar.title("CHRISHEM")
-    st.sidebar.caption("Sovereign Enterprise Engine v8.1 (World Apex Edition)")
+    st.sidebar.caption("Sovereign Enterprise Engine v8.2 (World Apex Edition)")
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
     # Multi-Language Selector in Sidebar
     selected_lang = st.sidebar.selectbox("Select Language / Lugha", ["English", "Swahili", "French"])
 
-    # Inline admin and subscription definitions to avoid cloud module path errors
+    # Inline admin and subscription definitions
     def is_admin() -> bool:
         identity = st.session_state.get("user_identity", {})
         role = str(identity.get("role", "")).lower()
@@ -848,11 +859,11 @@ def main():
             username = ""
 
         if not email:
-            # Bypass if admin or root user
             if role in ["admin", "sovereign administrator", "administrator"] or username in ["chrishem", "chris shem", "kula chris"] or st.session_state.get("is_admin", False):
                 return
-            return # Or let standard execution pass if you prefer open access during debugging
+            return
         return
+
     st.sidebar.markdown("### 👤 Session")
     identity = st.session_state.get("user_identity", {})
     active_analyst_name = identity.get("name", "Analyst")
@@ -1023,7 +1034,7 @@ def main():
         if saved_rows:
             for s_id, s_title, s_ts, s_cat, s_content in saved_rows:
                 st.markdown(f"""
-                <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
+                <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
                     <div style="display: flex; justify-content: space-between;">
                         <b style="color: #38BDF8; font-size: 1.05rem;">{s_title}</b>
                         <span style="color: #94A3B8; font-size: 0.8rem;">{s_ts[:19]}</span>
