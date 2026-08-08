@@ -1,7 +1,4 @@
-﻿[runner]
-magicEnabled = false
-
-[server]
+﻿[server]
 headless = true
 enableCORS = false
-enableXsrfProtection = true
+maxUploadSize = 200
