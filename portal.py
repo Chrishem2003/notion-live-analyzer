@@ -210,7 +210,6 @@ if "portal_unlocked" not in st.session_state:
 if "user_identity" not in st.session_state:
     st.session_state.user_identity = {}
 
-# Check for persistent cookie if session is locked
 if not st.session_state.portal_unlocked:
     saved_email = cookie_manager.get(cookie="chrishem_user_email")
     if saved_email:
@@ -252,7 +251,7 @@ if not st.session_state.portal_unlocked:
             remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            if st.button("🚀 Sign In", use_container_width=True):
+            if st.button("🚀 Sign In", width='stretch'):
                 user = auth_store.verify_login(si_email, si_password)
                 if user is None:
                     st.error("Incorrect email or password. (Note: Master account chrishem242@gmail.com can log in or register freely).")
@@ -277,7 +276,7 @@ if not st.session_state.portal_unlocked:
             su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input")
 
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            if st.button("✨ Register", use_container_width=True):
+            if st.button("✨ Register", width='stretch'):
                 if not su_email or not su_password:
                     st.error("Email and password are required.")
                 elif su_password != su_password2:
@@ -298,17 +297,17 @@ if not st.session_state.portal_unlocked:
             d_col1, d_col2 = st.columns(2)
             with d_col1:
                 st.markdown('<div class="download-card"><h4>🪟 Windows Suite</h4><p style="font-size: 0.85rem; color: #94A3B8;">Windows Desktop Engine</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Windows Suite (.zip)", data=win_zip, file_name="chrishem_hub_windows.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download Windows Suite (.zip)", data=win_zip, file_name="chrishem_hub_windows.zip", mime="application/zip", width='stretch')
 
                 st.markdown('<div class="download-card" style="margin-top: 15px;"><h4>🐧 Linux Distribution</h4><p style="font-size: 0.85rem; color: #94A3B8;">Ubuntu/Debian Server Build</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Linux Build (.zip)", data=linux_zip, file_name="chrishem_hub_linux.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download Linux Build (.zip)", data=linux_zip, file_name="chrishem_hub_linux.zip", mime="application/zip", width='stretch')
 
             with d_col2:
                 st.markdown('<div class="download-card"><h4>🍏 macOS Architecture</h4><p style="font-size: 0.85rem; color: #94A3B8;">Apple Silicon & Intel Universal</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download macOS Bundle (.zip)", data=mac_zip, file_name="chrishem_hub_macos.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download macOS Bundle (.zip)", data=mac_zip, file_name="chrishem_hub_macos.zip", mime="application/zip", width='stretch')
 
                 st.markdown('<div class="download-card" style="margin-top: 15px;"><h4>📱 Mobile PWA / Phone</h4><p style="font-size: 0.85rem; color: #94A3B8;">Progressive Web Client</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Mobile PWA Config (.zip)", data=pwa_zip, file_name="chrishem_hub_mobile_pwa.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download Mobile PWA Config (.zip)", data=pwa_zip, file_name="chrishem_hub_mobile_pwa.zip", mime="application/zip", width='stretch')
 
 # --- UNLOCKED WORKSPACE & DASHBOARD ---
 else:
@@ -323,7 +322,7 @@ else:
     
     theme_mode = st.sidebar.selectbox("Interface Spectrum", ["Deep Space Nebula", "Cyber Matrix Dark", "Sovereign Gold"])
     
-    if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
+    if st.sidebar.button("🔒 Lock Portal & Sign Out", width='stretch'):
         cookie_manager.delete("chrishem_user_email")
         st.session_state.portal_unlocked = False
         st.rerun()
@@ -408,6 +407,6 @@ else:
             users = cursor.fetchall()
             
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
-            st.dataframe(user_df, use_container_width=True)
+            st.dataframe(user_df, width='stretch')
             
             st.success("👑 Your account (`chrishem242@gmail.com`) is permanently locked with full administrative privileges and sovereign override capabilities.")
