@@ -7,13 +7,6 @@ and administrative enforcement across all platform modules.
 
 import streamlit as st
 
-def is_admin():
-    """Checks if the active user has administrator privileges."""
-    identity = st.session_state.get("user_identity", {})
-    role = identity.get("role", "user")
-    # You can customize what defines an admin user here
-    return role.lower() in ["admin", "administrator", "sovereign administrator", "root"]
-
 def is_admin() -> bool:
     """Returns True if the current user session has administrator or sovereign privileges."""
     identity = st.session_state.get("user_identity", {})
