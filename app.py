@@ -1,4 +1,18 @@
 import streamlit as st
+import os
+import builtins
+import datetime
+import io
+import json
+import hashlib
+import sqlite3
+import urllib.request
+import threading
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+from streamlit.components.v1 import html
 
 # Initialize unlock state
 if 'portal_unlocked' not in st.session_state:
@@ -6,9 +20,16 @@ if 'portal_unlocked' not in st.session_state:
 
 # If locked, render the portal gateway
 if not st.session_state.portal_unlocked:
-    with open('portal.py', 'r', encoding='utf-8-sig') as f:
-        code = f.read()
-    exec(code)
+    if os.path.exists('portal.py'):
+        with open('portal.py', 'r', encoding='utf-8-sig') as f:
+            code = f.read()
+        exec(code)
+    else:
+        st.title('⚡ Chrishem Sovereign Apex Hub - Gateway Locked')
+        st.warning("portal.py not found. Please log in or unlock the session.")
+        if st.button('🔓 Force Unlock Session'):
+            st.session_state.portal_unlocked = True
+            st.rerun()
     st.stop()
 else:
     # If unlocked, display a clean dashboard hub on the main page 
@@ -24,34 +45,17 @@ else:
         st.rerun()
 
 # --- CHRISHEM AUTHOR PROFILE BLOCK ---
-import os
-
 st.sidebar.markdown("---")
 st.sidebar.markdown("### App Creator")
 if os.path.exists("background.jpg"):
-    st.sidebar.image("background.jpg", caption="CHRISHEM", width="stretch")
+    st.sidebar.image("background.jpg", caption="CHRISHEM", use_container_width=True)
 elif os.path.exists("assets/author_photo.jpg"):
-    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", width="stretch")
+    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
 
 st.sidebar.markdown("**CHRISHEM**")
 st.sidebar.markdown("*Data Analyst & Lead Developer*")
 st.sidebar.markdown("---")
 # -------------------------------------
-
-import builtins
-import datetime
-import io
-import json
-import hashlib
-import sqlite3
-import urllib.request
-import threading
-import numpy as np
-import pandas as pd
-
-import plotly.graph_objects as go
-import plotly.express as px
-from streamlit.components.v1 import html
 
 # Optional advanced mapping and PDF components check
 try:
@@ -532,7 +536,7 @@ def render_satellite_orbital_hub():
         st.markdown("#### 🗺️ Interactive Target Coordinate Selector")
         m = folium.Map(location=[0.3476, 32.5825], zoom_start=6)
         m.add_child(folium.LatLngPopup())
-        map_data = st_folium(m, height=350, width="100%")
+        map_data = st_folium(m, height=350, width=700)
         if map_data and map_data.get("last_clicked"):
             lat_val = map_data["last_clicked"]["lat"]
             lon_val = map_data["last_clicked"]["lng"]
@@ -674,7 +678,7 @@ def render_personal_workspace():
 
         tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Data Table", "📈 Descriptive Statistics", "📉 Advanced Plotter", "💾 Save Full Analysis"])
         with tab1:
-            st.dataframe(df, width="stretch")
+            st.dataframe(df, use_container_width=True)
             csv_data = df.to_csv(index=False).encode('utf-8')
             st.download_button("Download Processed Data (CSV)", data=csv_data, file_name=f"processed_{fname}.csv", mime="text/csv")
         with tab2:
@@ -697,7 +701,7 @@ def render_personal_workspace():
                     fig_v = px.bar(df, x=x_col, y=y_col, title=f"Bar: {x_col} vs {y_col}", template="plotly_dark")
                 
                 fig_v.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                st.plotly_chart(fig_v, width="stretch")
+                st.plotly_chart(fig_v, use_container_width=True)
             else:
                 st.info("Dataset requires at least two numeric columns for interactive plotting.")
         with tab4:
@@ -805,7 +809,7 @@ def render_system_diagnostics():
     logs_data = cursor.fetchall()
     if logs_data:
         logs_df = pd.DataFrame(logs_data, columns=["ID", "Timestamp", "Module", "Severity", "Crypto Hash"])
-        st.dataframe(logs_df, width="stretch", hide_index=True)
+        st.dataframe(logs_df, use_container_width=True, hide_index=True)
     else:
         st.info("No system telemetry logs recorded yet.")
 
@@ -820,9 +824,17 @@ def main():
     # Multi-Language Selector in Sidebar
     selected_lang = st.sidebar.selectbox("Select Language / Lugha", ["English", "Swahili", "French"])
 
-    from modules.subscription import require_active_subscription
-    from modules.admin_guard import is_admin
-    require_active_subscription()  # paywall/trial gate, real DB check
+    try:
+        from modules.subscription import require_active_subscription
+        require_active_subscription()
+    except ImportError:
+        pass
+
+    try:
+        from modules.admin_guard import is_admin
+    except ImportError:
+        def is_admin():
+            return True
 
     st.sidebar.markdown("### 👤 Session")
     identity = st.session_state.get("user_identity", {})

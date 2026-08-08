@@ -8,6 +8,7 @@ import zipfile
 import numpy as np
 import pandas as pd
 import streamlit as st
+import extra_streamlit_components as stx
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -16,6 +17,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# --- COOKIE MANAGER INITIALIZATION ---
+@st.cache_resource
+def get_cookie_manager():
+    return stx.CookieManager()
+
+cookie_manager = get_cookie_manager()
 
 # --- SOVEREIGN DATABASE INITIALIZATION ---
 def init_sovereign_db():
@@ -58,7 +66,6 @@ def ensure_superuser_privileges():
     if cursor.fetchone():
         cursor.execute("UPDATE auth_users SET role = 'admin' WHERE email = ?", (target_email,))
     else:
-        # Auto-provision master account if it hasn't registered yet
         default_hash = hashlib.sha256("chrishem2026".encode()).hexdigest()
         cursor.execute("INSERT INTO auth_users (email, name, password_hash, role) VALUES (?, ?, ?, ?)",
                        (target_email, "Chrishem", default_hash, "admin"))
@@ -73,13 +80,20 @@ ensure_superuser_privileges()
 class AuthStore:
     def verify_login(self, email, password):
         cursor = db_conn.cursor()
-        # Force update admin status on any login attempt for safety
         if email.lower().strip() == "chrishem242@gmail.com":
             cursor.execute("UPDATE auth_users SET role = 'admin' WHERE email = ?", (email,))
             db_conn.commit()
             
         pwd_hash = hashlib.sha256(password.encode()).hexdigest()
         cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ? AND password_hash = ?", (email, pwd_hash))
+        row = cursor.fetchone()
+        if row:
+            return {"email": row[0], "name": row[1], "role": row[2]}
+        return None
+
+    def get_user_by_email(self, email):
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ?", (email,))
         row = cursor.fetchone()
         if row:
             return {"email": row[0], "name": row[1], "role": row[2]}
@@ -190,11 +204,26 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- SESSION STATE INITIALIZATION ---
+# --- SESSION STATE & COOKIE RESTORATION ---
 if "portal_unlocked" not in st.session_state:
     st.session_state.portal_unlocked = False
 if "user_identity" not in st.session_state:
     st.session_state.user_identity = {}
+
+# Check for persistent cookie if session is locked
+if not st.session_state.portal_unlocked:
+    saved_email = cookie_manager.get(cookie="chrishem_user_email")
+    if saved_email:
+        user_record = auth_store.get_user_by_email(saved_email)
+        if user_record:
+            st.session_state.portal_unlocked = True
+            st.session_state.user_identity = {
+                "email": user_record["email"],
+                "name": user_record["name"],
+                "role": "admin" if user_record["email"] == "chrishem242@gmail.com" else user_record["role"],
+                "is_admin": (user_record["email"] == "chrishem242@gmail.com" or user_record["role"] == "admin"),
+            }
+            subscription.ensure_trial_started(user_record["email"])
 
 # --- GATEWAY SCREEN (LOCKED STATE) ---
 if not st.session_state.portal_unlocked:
@@ -220,6 +249,7 @@ if not st.session_state.portal_unlocked:
         with tab_signin:
             si_email = st.text_input("Email Address", key="si_email_input")
             si_password = st.text_input("Password", type="password", key="si_password_input")
+            remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
             if st.button("🚀 Sign In", use_container_width=True):
@@ -234,6 +264,9 @@ if not st.session_state.portal_unlocked:
                         "role": "admin" if user["email"] == "chrishem242@gmail.com" else user["role"],
                         "is_admin": (user["email"] == "chrishem242@gmail.com" or user["role"] == "admin"),
                     }
+                    if remember_me:
+                        cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
+                    
                     subscription.ensure_trial_started(user["email"])
                     st.rerun()
 
@@ -288,10 +321,10 @@ else:
     
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
     
-    # Unique Feature: System Theme Customizer
     theme_mode = st.sidebar.selectbox("Interface Spectrum", ["Deep Space Nebula", "Cyber Matrix Dark", "Sovereign Gold"])
     
     if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
+        cookie_manager.delete("chrishem_user_email")
         st.session_state.portal_unlocked = False
         st.rerun()
         
