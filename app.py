@@ -1,5 +1,43 @@
 import streamlit as st
+
+# Initialize unlock state
+if 'portal_unlocked' not in st.session_state:
+    st.session_state.portal_unlocked = False
+
+# If locked, render the portal gateway
+if not st.session_state.portal_unlocked:
+    with open('portal.py', 'r', encoding='utf-8-sig') as f:
+        code = f.read()
+    exec(code)
+    st.stop()
+else:
+    # If unlocked, display a clean dashboard hub on the main page 
+    # while letting Streamlit show the sidebar pages normally.
+    st.title('⚡ Chrishem Sovereign Apex Hub')
+    st.success('🔓 Gateway Unlocked: Select any module from the sidebar navigation to begin.')
+    
+    identity = st.session_state.get('user_identity', {})
+    st.info(f"**Active Session:** {identity.get('name', 'Analyst')} ({identity.get('role', 'User')})")
+    
+    if st.button('🔒 Lock Portal & Sign Out'):
+        st.session_state.portal_unlocked = False
+        st.rerun()
+
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
 import os
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### App Creator")
+if os.path.exists("background.jpg"):
+    st.sidebar.image("background.jpg", caption="CHRISHEM", width="stretch")
+elif os.path.exists("assets/author_photo.jpg"):
+    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", width="stretch")
+
+st.sidebar.markdown("**CHRISHEM**")
+st.sidebar.markdown("*Data Analyst & Lead Developer*")
+st.sidebar.markdown("---")
+# -------------------------------------
+
 import builtins
 import datetime
 import io
@@ -10,49 +48,10 @@ import urllib.request
 import threading
 import numpy as np
 import pandas as pd
+
 import plotly.graph_objects as go
 import plotly.express as px
 from streamlit.components.v1 import html
-
-# Initialize unlock state
-if 'portal_unlocked' not in st.session_state:
-    st.session_state.portal_unlocked = False
-
-# If locked, render the portal gateway
-if not st.session_state.portal_unlocked:
-    if os.path.exists('portal.py'):
-        with open('portal.py', 'r', encoding='utf-8-sig') as f:
-            code = f.read()
-        exec(code)
-    else:
-        st.title('⚡ Sovereign Apex Hub - Gateway Locked')
-        st.warning("portal.py not found. Please log in or unlock the session.")
-        if st.button('🔓 Force Unlock Session'):
-            st.session_state.portal_unlocked = True
-            st.rerun()
-    st.stop()
-else:
-    st.title('⚡ Sovereign Apex Hub')
-    st.success('🔓 Gateway Unlocked: Select any module from the sidebar navigation to begin.')
-    
-    identity = st.session_state.get('user_identity', {})
-    st.info(f"**Active Session:** {identity.get('name', 'Analyst')} ({identity.get('role', 'User')})")
-    
-    if st.button('🔒 Lock Portal & Sign Out'):
-        st.session_state.portal_unlocked = False
-        st.rerun()
-
-# --- AUTHOR PROFILE BLOCK ---
-st.sidebar.markdown("---")
-st.sidebar.markdown("### App Creator")
-if os.path.exists("background.jpg"):
-    st.sidebar.image("background.jpg", caption="CHRISHEM", use_container_width=True)
-elif os.path.exists("assets/author_photo.jpg"):
-    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
-
-st.sidebar.markdown("**CHRISHEM**")
-st.sidebar.markdown("*Data Analyst & Lead Developer*")
-st.sidebar.markdown("---")
 
 # Optional advanced mapping and PDF components check
 try:
@@ -116,16 +115,14 @@ def init_sovereign_db():
             username TEXT PRIMARY KEY,
             role TEXT,
             birthday TEXT,
-            country TEXT,
             last_seen TEXT,
             visit_count INTEGER
         )
     """)
-    # Auto-migration safety check
+    # Auto-migration safety check: ensure missing columns are added if an older table schema exists
     for col_query in [
         "ALTER TABLE user_profiles ADD COLUMN birthday TEXT",
         "ALTER TABLE user_profiles ADD COLUMN role TEXT",
-        "ALTER TABLE user_profiles ADD COLUMN country TEXT",
         "ALTER TABLE user_profiles ADD COLUMN last_seen TEXT",
         "ALTER TABLE user_profiles ADD COLUMN visit_count INTEGER"
     ]:
@@ -177,7 +174,7 @@ db_conn = init_sovereign_db()
 # PAGE CONFIGURATION
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="Sovereign Apex Platform - World Apex Edition v8.5",
+    page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.1",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -394,7 +391,7 @@ def load_dataset(uploaded_file, drop_duplicates=True, handle_missing="Mean Imput
     return df, file_bytes
 
 # ---------------------------------------------------------
-# PDF REPORT GENERATOR HELPER
+# PDF REPORT GENERATOR HELPER (FIXED FOR FPDF2 COMPATIBILITY)
 # ---------------------------------------------------------
 def generate_pdf_report(title, content):
     if not FPDF_AVAILABLE:
@@ -402,7 +399,7 @@ def generate_pdf_report(title, content):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 16)
-    pdf.cell(200, 10, txt="Sovereign Apex Dossier", ln=True, align="C")
+    pdf.cell(200, 10, txt="CHRISHEM Sovereign Apex Dossier", ln=True, align="C")
     pdf.set_font("Arial", "I", 10)
     pdf.cell(200, 10, txt=f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True, align="C")
     pdf.ln(10)
@@ -417,7 +414,7 @@ def generate_pdf_report(title, content):
     return pdf_output
 
 # ---------------------------------------------------------
-# MODULES: AGENTS, BIOINFORMATICS, SATELLITE, GAPS, WORKSPACE, AI, DIAGNOSTICS
+# NEW MODULE 1: AUTONOMOUS AGENT SWARMS (ASYNC BACKGROUND)
 # ---------------------------------------------------------
 def run_background_swarm(task_name):
     import time
@@ -436,7 +433,7 @@ def render_autonomous_agents():
     c1.metric("Active Swarm Agents", "128 Nodes", delta="Autonomous")
     c2.metric("Cross-Sector Loops", "Active", delta="Async Threading")
     c3.metric("Anomaly Detection Rate", "99.94%", delta="Optimal")
-    c4.metric("Autonomous Controller", "AI Core", delta="Secure")
+    c4.metric("Autonomous Controller", "CHRISHEM AI", delta="Secure")
 
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -463,6 +460,9 @@ def render_autonomous_agents():
             * **Systemic Risk Index:** `Low (0.014)`
             """)
 
+# ---------------------------------------------------------
+# NEW MODULE 2: ADVANCED BIOINFORMATICS & GENOMIC STUDIO
+# ---------------------------------------------------------
 def render_bioinformatics_studio():
     st.markdown("### 🧬 Advanced Bioinformatics & Genomic Sequence Studio")
     st.markdown("Analyze FASTA sequences, calculate GC-content distributions, assess open reading frames (ORFs), and track phylogenetic variance.")
@@ -500,6 +500,9 @@ def render_bioinformatics_studio():
             db_conn.commit()
             st.success("Genomic sequence record saved to secure vault!")
 
+# ---------------------------------------------------------
+# MODULE: SATELLITE & GLOBAL INTERNET TELEMETRY HUB (WITH MAP)
+# ---------------------------------------------------------
 def render_satellite_orbital_hub():
     st.markdown("### 🛰️ Live Satellite Constellation & Global Database Telemetry Hub")
     st.markdown("Real-time downlink integration with orbital earth-observation satellites (Sentinel, Landsat, MODIS) and interactive map coordinate selection.")
@@ -512,7 +515,7 @@ def render_satellite_orbital_hub():
     with c3:
         st.markdown('<div class="metric-box"><div class="val">99.98%</div><div class="lbl">Orbital Lock Precision</div></div>', unsafe_allow_html=True)
     with c4:
-        st.markdown('<div class="metric-box"><div class="val">Apex</div><div class="lbl">Orbital Controller</div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-box"><div class="val">CHRISHEM</div><div class="lbl">Orbital Controller</div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -529,7 +532,7 @@ def render_satellite_orbital_hub():
         st.markdown("#### 🗺️ Interactive Target Coordinate Selector")
         m = folium.Map(location=[0.3476, 32.5825], zoom_start=6)
         m.add_child(folium.LatLngPopup())
-        map_data = st_folium(m, height=350, width=700)
+        map_data = st_folium(m, height=350, width="100%")
         if map_data and map_data.get("last_clicked"):
             lat_val = map_data["last_clicked"]["lat"]
             lon_val = map_data["last_clicked"]["lng"]
@@ -566,6 +569,9 @@ def render_satellite_orbital_hub():
                            (f"Satellite Scan: {sat_select[:15]} ({lat_val:.2f}, {lon_val:.2f})", datetime.datetime.now().isoformat(), "Satellite Intelligence", f"Temp: {temp}C, Humidity: {hum}%, Precip: {prec}mm/h"))
             db_conn.commit()
 
+# ---------------------------------------------------------
+# MODULE: COMPREHENSIVE SECTOR GAP SOLVER
+# ---------------------------------------------------------
 def render_sector_gap_solver():
     st.markdown("### 💡 Universal Multi-Sector Gap & Problem Solver")
     st.markdown("Deep macroscopic analysis across **all global sectors** identifying structural gaps and generating immediate, deployable technological solutions.")
@@ -577,7 +583,7 @@ def render_sector_gap_solver():
         "Education & Skill Development (Automated Personalized Learning)",
         "Financial Inclusion & Micro-Lending (Risk Scoring & Fraud Prevention)",
         "Supply Chain & Regional Trade (Cross-Border Customs & Bottlenecks)",
-        "Environmental Conservation & Waste Management (Urban & Industrial Bio-Waste)"
+        "Environmental Conservation & Waste Management (Urban & Abattoir Bio-Waste)"
     ])
 
     st.markdown("#### 🔬 Diagnostic Gap Breakdown")
@@ -591,14 +597,14 @@ def render_sector_gap_solver():
         gap_desc = "Unstable regional power grids suffer from frequency mismatch and high transmission loss during peak industrial cycles."
         sol_desc = "Implement decentralized microgrid load-balancing algorithms powered by real-time neural network demand forecasting."
     elif "Environmental" in sector_choice:
-        gap_desc = "Municipalities and facilities lack automated organic waste conversion tracking and bio-gas energy recovery systems."
+        gap_desc = "Municipalities and abattoirs lack automated organic waste conversion tracking and bio-gas energy recovery systems."
         sol_desc = "Deploy automated chemical oxygen demand (COD) tracking sensors and continuous anaerobic digestion telemetry pipelines."
     else:
         gap_desc = f"Structural inefficiencies and data silos in {sector_choice} causing resource misallocation and high latency."
         sol_desc = "Establish an encrypted sovereign database pipeline with automated predictive agents to streamline operations."
 
     st.info(f"**Identified Systemic Gap:** {gap_desc}")
-    st.success(f"**Sovereign Solution:** {sol_desc}")
+    st.success(f"**CHRISHEM Sovereign Solution:** {sol_desc}")
 
     if st.button("🚀 Deploy Solution Framework to Global Network", key="deploy_sector_solution"):
         with st.spinner("Synthesizing cryptographic execution blocks and updating global telemetry registries..."):
@@ -609,6 +615,9 @@ def render_sector_gap_solver():
             db_conn.commit()
             st.success(f"Solution successfully deployed and logged! [Deployment Hash: SEC-{h}]")
 
+# ---------------------------------------------------------
+# MODULE: INTERACTIVE DATA EXPLORER & VAULT (WITH AUTO-CLEANING)
+# ---------------------------------------------------------
 def render_personal_workspace():
     st.markdown("### 📁 Interactive Vault & Automated Data Analytics Studio")
     st.markdown("Upload any dataset (CSV, Excel, JSON), apply automated pre-processing controls, inspect metrics, and save final reports to the secure vault.")
@@ -624,7 +633,7 @@ def render_personal_workspace():
     with c3:
         st.markdown('<div class="metric-box"><div class="val">Active</div><div class="lbl">Streamlit Pipeline</div></div>', unsafe_allow_html=True)
     with c4:
-        st.markdown('<div class="metric-box"><div class="val">Apex</div><div class="lbl">Root Governance</div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-box"><div class="val">CHRISHEM</div><div class="lbl">Root Governance</div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("#### 📤 Secure File Upload & Automated Pre-Processing Toggles")
@@ -665,7 +674,7 @@ def render_personal_workspace():
 
         tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Data Table", "📈 Descriptive Statistics", "📉 Advanced Plotter", "💾 Save Full Analysis"])
         with tab1:
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
             csv_data = df.to_csv(index=False).encode('utf-8')
             st.download_button("Download Processed Data (CSV)", data=csv_data, file_name=f"processed_{fname}.csv", mime="text/csv")
         with tab2:
@@ -688,7 +697,7 @@ def render_personal_workspace():
                     fig_v = px.bar(df, x=x_col, y=y_col, title=f"Bar: {x_col} vs {y_col}", template="plotly_dark")
                 
                 fig_v.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                st.plotly_chart(fig_v, use_container_width=True)
+                st.plotly_chart(fig_v, width="stretch")
             else:
                 st.info("Dataset requires at least two numeric columns for interactive plotting.")
         with tab4:
@@ -705,6 +714,9 @@ def render_personal_workspace():
                 db_conn.commit()
                 st.success(f"Analysis report '{report_title}' successfully saved to database vault!")
 
+# ---------------------------------------------------------
+# MODULE: AI INTELLIGENCE DAEMON
+# ---------------------------------------------------------
 def render_ai_intelligence_daemon(active_analyst_name):
     st.markdown("### 🤖 Fully Operational AI Intelligence & Instant Problem Solver")
     st.markdown("Ask any technical, mathematical, data analytics, or programming question below. The autonomous engine instantly formulates contextual solutions.")
@@ -773,6 +785,9 @@ def render_ai_intelligence_daemon(active_analyst_name):
                 st.success("Analysis generated successfully!")
                 st.rerun()
 
+# ---------------------------------------------------------
+# MODULE: SYSTEM DIAGNOSTICS & TELEMETRY
+# ---------------------------------------------------------
 def render_system_diagnostics():
     st.markdown("### 🔍 System Diagnostics & Telemetry Center")
     st.markdown("Real-time monitoring of database connection pools, memory allocation, and pipeline latency with immutable SHA-256 cryptographic audit trails.")
@@ -790,34 +805,26 @@ def render_system_diagnostics():
     logs_data = cursor.fetchall()
     if logs_data:
         logs_df = pd.DataFrame(logs_data, columns=["ID", "Timestamp", "Module", "Severity", "Crypto Hash"])
-        st.dataframe(logs_df, use_container_width=True, hide_index=True)
+        st.dataframe(logs_df, width="stretch", hide_index=True)
     else:
         st.info("No system telemetry logs recorded yet.")
 
 # ---------------------------------------------------------
-# MAIN ROUTER & NAVIGATION WITH LOCATION-AWARENESS
+# MAIN ROUTER & NAVIGATION
 # ---------------------------------------------------------
 def main():
-    st.sidebar.title("Sovereign Enterprise")
-    st.sidebar.caption("Sovereign Enterprise Engine v8.5 (World Apex Edition)")
+    st.sidebar.title("CHRISHEM")
+    st.sidebar.caption("Sovereign Enterprise Engine v8.1 (World Apex Edition)")
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
     # Multi-Language Selector in Sidebar
     selected_lang = st.sidebar.selectbox("Select Language / Lugha", ["English", "Swahili", "French"])
 
-    try:
-        from modules.subscription import require_active_subscription
-        require_active_subscription()
-    except ImportError:
-        pass
+    from modules.subscription import require_active_subscription
+    from modules.admin_guard import is_admin
+    require_active_subscription()  # paywall/trial gate, real DB check
 
-    try:
-        from modules.admin_guard import is_admin
-    except ImportError:
-        def is_admin():
-            return True
-
-    st.sidebar.markdown("### 👤 User & Location Profile")
+    st.sidebar.markdown("### 👤 Session")
     identity = st.session_state.get("user_identity", {})
     active_analyst_name = identity.get("name", "Analyst")
     user_role = "Sovereign Administrator" if is_admin() else identity.get("role", "user")
@@ -834,7 +841,7 @@ def main():
         "Global / International Universal"
     ])
 
-    user_bday = st.sidebar.date_input("Your Date of Birth", value=datetime.date(2003, 7, 3))
+    user_bday = st.sidebar.date_input("Your Birthday", value=datetime.date(2003, 7, 3))
 
     st.sidebar.markdown(f"**Active Session:** `{active_analyst_name}`")
     st.sidebar.markdown(f"**Security Role:** `{user_role}`")
@@ -871,29 +878,13 @@ def main():
         last_seen_val, visit_count_val = profile_record
         is_returning = True
         new_visit_count = (visit_count_val or 0) + 1
-        cursor.execute("UPDATE user_profiles SET role = ?, country = ?, last_seen = ?, visit_count = ? WHERE username = ?", 
-                       (user_role, selected_country, now_dt.isoformat(), new_visit_count, active_analyst_name))
+        cursor.execute("UPDATE user_profiles SET role = ?, last_seen = ?, visit_count = ? WHERE username = ?", (user_role, now_dt.isoformat(), new_visit_count, active_analyst_name))
     else:
         new_visit_count = 1
-        cursor.execute("INSERT INTO user_profiles (username, role, birthday, country, last_seen, visit_count) VALUES (?, ?, ?, ?, ?, ?)", 
-                       (active_analyst_name, user_role, user_bday.isoformat(), selected_country, now_dt.isoformat(), new_visit_count))
+        cursor.execute("INSERT INTO user_profiles (username, role, birthday, last_seen, visit_count) VALUES (?, ?, ?, ?, ?)", 
+                       (active_analyst_name, user_role, user_bday.isoformat(), now_dt.isoformat(), new_visit_count))
     db_conn.commit()
 
-    # Timezone offset map based on jurisdiction
-    tz_map = {
-        "Uganda [UG]": ("East Africa Time (EAT)", "+3"),
-        "Kenya [KE]": ("East Africa Time (EAT)", "+3"),
-        "Tanzania [TZ]": ("East Africa Time (EAT)", "+3"),
-        "Rwanda [RW]": ("Central Africa Time (CAT)", "+2"),
-        "Nigeria [NG]": ("West Africa Time (WAT)", "+1"),
-        "South Africa [ZA]": ("South Africa Standard Time (SAST)", "+2"),
-        "United States [US]": ("Eastern Standard Time (EST)", "-5"),
-        "United Kingdom [UK]": ("Greenwich Mean Time (GMT)", "+0"),
-        "Global / International Universal": ("Coordinated Universal Time (UTC)", "+0")
-    }
-    tz_name, tz_offset = tz_map.get(selected_country, ("EAT", "+3"))
-
-    # Dynamic time-of-day greeting
     if 5 <= current_hour < 12:
         time_greeting = "Good Morning"
     elif 12 <= current_hour < 17:
@@ -905,49 +896,27 @@ def main():
 
     welcome_prefix = f"Welcome back, **{active_analyst_name}**!" if is_returning else f"Welcome to the platform, **{active_analyst_name}**!"
 
-    # Birthday check & age calculation
     bday_msg = ""
-    age = now_dt.year - user_bday.year - ((now_dt.month, now_dt.day) < (user_bday.month, user_bday.day))
     if user_bday.month == now_dt.month and user_bday.day == now_dt.day:
-        bday_msg = f" 🎉 **Happy {age}th Birthday!** Wishing you an incredible year ahead filled with breakthroughs!"
+        bday_msg = " 🎉 **Happy Birthday!** Wishing you an incredible year ahead filled with breakthroughs and success!"
 
-    # Location-based upcoming official days & holidays
-    holidays_db = {
-        "Uganda [UG]": [
-            ("Independence Day", "October 9, 2026"),
-            ("Christmas Day", "December 25, 2026"),
-            ("New Year's Day", "January 1, 2027"),
-            ("NRM Liberation Day", "January 26, 2027")
-        ],
-        "Kenya [KE]": [
-            ("Mashujaa Day", "October 20, 2026"),
-            ("Jamhuri Day", "December 12, 2026"),
-            ("Christmas Day", "December 25, 2026")
-        ],
-        "Tanzania [TZ]": [
-            ("Nyerere Day", "October 14, 2026"),
-            ("Independence Day", "December 12, 2026"),
-            ("Christmas Day", "December 25, 2026")
-        ]
-    }
-    country_key = selected_country if selected_country in holidays_db else "Uganda [UG]"
-    upcoming_holidays = holidays_db.get(country_key, [("National Anniversary", "Upcoming")])
-    next_holiday_name, next_holiday_date = upcoming_holidays[0]
+    country_code = selected_country.split(" ")[-1]
+    if "UG" in country_code:
+        big_days_info = " 🇺🇬 *Jurisdiction Profile Active: Uganda [UG]*"
+    else:
+        big_days_info = f" 🌍 *Jurisdiction Profile Active: {selected_country}*"
 
-    jurisdiction_info = f"📍 *Jurisdiction: {selected_country} | Timezone: {tz_name} ({tz_offset}) | Upcoming Official Day: {next_holiday_name} ({next_holiday_date})*"
-
-    # Live JS Clock with Local Timezone Auto-Update
-    live_clock_html = f"""
+    live_clock_html = """
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #38BDF8; font-weight: 600; text-align: right;" id="live-clock">
         Syncing Live Clock...
     </div>
     <script>
-        function updateClock() {{
+        function updateClock() {
             const now = new Date();
             const timeString = now.toLocaleTimeString();
             const dateString = now.toLocaleDateString();
-            document.getElementById('live-clock').innerText = dateString + ' ' + timeString + ' ({tz_name})';
-        }}
+            document.getElementById('live-clock').innerText = dateString + ' ' + timeString + ' EAT';
+        }
         setInterval(updateClock, 1000);
         updateClock();
     </script>
@@ -957,7 +926,7 @@ def main():
         <div class="top-banner">
             <div class="top-banner-item">Jurisdiction: <b>{selected_country}</b></div>
             <div class="top-banner-item">Active Analyst: <b>{active_analyst_name} ({user_role})</b></div>
-            <div class="top-banner-item">DOB Age Verified: <b>{age} Years Old</b></div>
+            <div class="top-banner-item">Live Time: <b>{now_dt.strftime('%Y-%m-%d %H:%M:%S')} EAT</b></div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -967,7 +936,7 @@ def main():
         <div class="greeting-card">
             <div>
                 <div class="greeting-title">{time_greeting}, {active_analyst_name}! {bday_msg}</div>
-                <div class="greeting-sub">{welcome_prefix} | {jurisdiction_info}</div>
+                <div class="greeting-sub">{welcome_prefix} | {big_days_info}</div>
             </div>
             <div>
                 <span class="status-badge status-stable">{t('visits', selected_lang)}: #{new_visit_count}</span>
@@ -1057,7 +1026,7 @@ def main():
             c2.metric("License Expiry", "2030-12-31")
             c3.metric("Active Nodes", "128 Swarm Agents Linked")
             st.markdown("#### Security Authorization Matrix & RBAC Verification")
-            st.code(f"[User Principal] -> {active_analyst_name}\n[Assigned Role] -> {user_role}\n[Jurisdiction] -> {selected_country}", language="text")
+            st.code(f"[User Principal] -> {active_analyst_name}\n[Assigned Role] -> {user_role}\n[Root Governance] -> CHRISHEM Apex Engine", language="text")
 
     elif navigation == t("nav_diag", selected_lang):
         if not is_admin():
