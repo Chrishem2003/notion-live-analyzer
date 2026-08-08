@@ -1,4 +1,3 @@
-
 """
 CHRISHEM Research Data Analyzer & Visualizer  Module Package
 A world-class research tool that replaces SPSS, STATA, Tableau, Power BI, and more.
@@ -15,6 +14,7 @@ _enterprise_modules = [
     "gis_engine",
     "spss_suite",
     "task_status_registry",
+    "admin_guard",  # <-- Added here
 ]
 
 for _mod in _enterprise_modules:
@@ -22,4 +22,3 @@ for _mod in _enterprise_modules:
         __import__(f"modules.{_mod}")
     except Exception:
         pass
-
