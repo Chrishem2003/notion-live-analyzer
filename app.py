@@ -29,9 +29,9 @@ import os
 st.sidebar.markdown("---")
 st.sidebar.markdown("### App Creator")
 if os.path.exists("background.jpg"):
-    st.sidebar.image("background.jpg", caption="CHRISHEM", use_container_width=True)
+    st.sidebar.image("background.jpg", caption="CHRISHEM", width="stretch")
 elif os.path.exists("assets/author_photo.jpg"):
-    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", use_container_width=True)
+    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM", width="stretch")
 
 st.sidebar.markdown("**CHRISHEM**")
 st.sidebar.markdown("*Data Analyst & Lead Developer*")
@@ -674,7 +674,7 @@ def render_personal_workspace():
 
         tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Data Table", "📈 Descriptive Statistics", "📉 Advanced Plotter", "💾 Save Full Analysis"])
         with tab1:
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
             csv_data = df.to_csv(index=False).encode('utf-8')
             st.download_button("Download Processed Data (CSV)", data=csv_data, file_name=f"processed_{fname}.csv", mime="text/csv")
         with tab2:
@@ -697,7 +697,7 @@ def render_personal_workspace():
                     fig_v = px.bar(df, x=x_col, y=y_col, title=f"Bar: {x_col} vs {y_col}", template="plotly_dark")
                 
                 fig_v.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                st.plotly_chart(fig_v, use_container_width=True)
+                st.plotly_chart(fig_v, width="stretch")
             else:
                 st.info("Dataset requires at least two numeric columns for interactive plotting.")
         with tab4:
@@ -805,7 +805,7 @@ def render_system_diagnostics():
     logs_data = cursor.fetchall()
     if logs_data:
         logs_df = pd.DataFrame(logs_data, columns=["ID", "Timestamp", "Module", "Severity", "Crypto Hash"])
-        st.dataframe(logs_df, use_container_width=True, hide_index=True)
+        st.dataframe(logs_df, width="stretch", hide_index=True)
     else:
         st.info("No system telemetry logs recorded yet.")
 
