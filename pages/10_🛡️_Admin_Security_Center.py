@@ -1,15 +1,16 @@
+from pathlib import Path
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+# Now your import will work smoothly on Streamlit Cloud
+from modules.admin_guard import require_admin
 """
 🛡️ Admin & Security Center — Sovereign Enterprise Administration & Security Command Hub (Upgraded)
 The ultimate hardened administrative control plane consolidating real-time system diagnostics, enterprise RBAC user management, 
 stripe/license billing workflows, academic student verification queues, encrypted credential vaults, 50+ compliance audit engines, 
 and the complete Nexus 2.0 encrypted productivity suite.
 """
-from pathlib import Path
-import sys
-
-# Ensure root directory is discoverable for local modules in pages/
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
 import datetime
 import json
 import platform
