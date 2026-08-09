@@ -4,7 +4,11 @@ The ultimate hardened administrative control plane consolidating real-time syste
 stripe/license billing workflows, academic student verification queues, encrypted credential vaults, 50+ compliance audit engines, 
 and the complete Nexus 2.0 encrypted productivity suite.
 """
+from pathlib import Path
+import sys
 
+# Add the root directory to system path so modules can be imported inside pages/
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 import datetime
 import json
 import platform
