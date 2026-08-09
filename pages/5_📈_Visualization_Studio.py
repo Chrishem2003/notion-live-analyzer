@@ -1,5 +1,5 @@
 """
-📈 Visualization Studio — Consolidated Visualization & Dashboard Hub (Premium Upgraded)
+📈 Visualization Studio — Consolidated Visualization & Dashboard Hub (Fully Stabilized & Upgraded)
 Consolidates Advanced Visuals, Executive Dashboard Builder, Presentation Deck Generator,
 Chart Data Extractor, and AI Insights Visuals into a high-performance analytics studio.
 """
@@ -20,7 +20,6 @@ from modules.shared_ui import (
 try:
     import plotly.express as px
     import plotly.graph_objects as go
-    # Check for kaleido availability for image exports if needed
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
@@ -41,33 +40,41 @@ def get_df():
     return df
 
 
-def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=None, height=420):
+def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=None, height=420, **kwargs):
     if not PLOTLY_AVAILABLE or df is None or df.empty:
         return None
     try:
         template = "plotly_dark"
         
-        # Safe fallback selectors if columns are missing
+        # Merge any extra kwargs into parameters seamlessly
+        if "x" in kwargs and not x:
+            x = kwargs["x"]
+        if "y" in kwargs and not y:
+            y = kwargs["y"]
+        if "color" in kwargs and not color:
+            color = kwargs["color"]
+
         num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+        all_cols = df.columns.tolist()
         
-        fallback_x = x if x and x in df.columns else (cat_cols[0] if cat_cols else df.columns[0])
-        fallback_y = y if y and y in df.columns else (num_cols[0] if num_cols else None)
+        fallback_x = x if x and x in all_cols else (cat_cols[0] if cat_cols else all_cols[0])
+        fallback_y = y if y and y in all_cols else (num_cols[0] if num_cols else None)
 
         if chart_type == "Histogram":
-            fig = px.histogram(df, x=fallback_x, color=color if color in df.columns else None, barmode="group", template=template, height=height)
+            fig = px.histogram(df, x=fallback_x, color=color if color in all_cols else None, barmode="group", template=template, height=height)
         elif chart_type == "Scatter Plot":
-            fig = px.scatter(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, size=size if size in df.columns else None, template=template, height=height, trendline="ols" if len(df) > 5 and fallback_y else None)
+            fig = px.scatter(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, size=size if size in all_cols else None, template=template, height=height, trendline="ols" if len(df) > 5 and fallback_y else None)
         elif chart_type == "Bar Chart":
-            fig = px.bar(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, barmode="group", template=template, height=height)
+            fig = px.bar(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, barmode="group", template=template, height=height)
         elif chart_type == "Line Chart":
-            fig = px.line(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, markers=True, template=template, height=height)
+            fig = px.line(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, markers=True, template=template, height=height)
         elif chart_type == "Area Chart":
-            fig = px.area(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, template=template, height=height)
+            fig = px.area(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, template=template, height=height)
         elif chart_type == "Box Plot":
-            fig = px.box(df, x=fallback_x, y=fallback_y if fallback_y in df.columns else None, color=color if color in df.columns else None, template=template, height=height)
+            fig = px.box(df, x=fallback_x, y=fallback_y if fallback_y in all_cols else None, color=color if color in all_cols else None, template=template, height=height)
         elif chart_type == "Violin Plot":
-            fig = px.violin(df, x=fallback_x, y=fallback_y if fallback_y in df.columns else None, color=color if color in df.columns else None, box=True, points="all", template=template, height=height)
+            fig = px.violin(df, x=fallback_x, y=fallback_y if fallback_y in all_cols else None, color=color if color in all_cols else None, box=True, points="all", template=template, height=height)
         elif chart_type == "Pie / Donut":
             counts = df[fallback_x].value_counts().reset_index()
             counts.columns = [fallback_x, "count"]
@@ -84,10 +91,10 @@ def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=Non
             fig = px.treemap(df, path=[fallback_x], values=vals, template=template, height=height)
         elif chart_type == "Sunburst":
             vals = num_cols[0] if num_cols else None
-            path = [fallback_x, color] if color and color in df.columns and color != fallback_x else [fallback_x]
+            path = [fallback_x, color] if color and color in all_cols and color != fallback_x else [fallback_x]
             fig = px.sunburst(df, path=path, values=vals, template=template, height=height)
         elif chart_type == "Funnel Chart":
-            fig = px.funnel(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, template=template, height=height)
+            fig = px.funnel(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, template=template, height=height)
         else:
             fig = px.bar(df, template=template, height=height)
 
@@ -100,7 +107,7 @@ def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=Non
         )
         return fig
     except Exception as e:
-        st.error(f"⚠️ Chart rendering exception: {e}")
+        st.error(f"⚠️ Chart execution error: {e}")
         return None
 
 
@@ -142,9 +149,7 @@ def render_custom_builder(df):
     )
     
     if fig:
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": True, "scrollZoom": True})
-        
-        # Premium Download & Copy Actions Toolbar
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": True})
         st.markdown("#### 📥 Download & Copy Studio Assets")
         exp_col1, exp_col2 = st.columns(2)
         with exp_col1:
@@ -159,7 +164,7 @@ def render_custom_builder(df):
                 key="download_raw_csv_custom"
             )
     else:
-        st.error("⚠️ Could not render chart with the selected parameters. Verify field mappings.")
+        st.error("⚠️ Could not render chart with the selected parameters.")
 
 
 def render_auto_studio(df):
@@ -188,6 +193,7 @@ def render_auto_studio(df):
         with st.container():
             st.markdown(f"#### 💡 Insight Perspective {i+1}: {ctype}")
             st.caption(rationale)
+            # Pass dictionary unpacking cleanly into the updated build_chart function
             fig = build_chart(ctype, df, height=350, **params)
             if fig:
                 st.plotly_chart(fig, use_container_width=True)
@@ -225,8 +231,6 @@ def render_exec_dashboard(df):
             fig2 = build_chart("Scatter Plot", df, x=numeric_cols[0], y=numeric_cols[1], height=340)
             if fig2:
                 st.plotly_chart(fig2, use_container_width=True)
-        else:
-            st.info("Additional numeric columns required for scatter correlation.")
 
     if cat_cols and len(numeric_cols) >= 1:
         fig3 = build_chart("Bar Chart", df, x=cat_cols[0], y=numeric_cols[0], height=340)
@@ -244,7 +248,7 @@ def render_deck_builder(df):
     slide_count = st.slider("Number of Slides to Generate", 2, 6, 4, key="deck_slide_count")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    cat_cols = st.select_dtypes(include=["object", "category"]).columns.tolist()
+    cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if st.button("📽️ Generate Presentation Deck", type="primary", key="build_deck_btn"):
         st.success(f"✅ Presentation deck '{deck_title}' compiled successfully with {slide_count} slides.")
