@@ -545,7 +545,7 @@ def render_settings():
     st.markdown("#### Appearance & Theme Preferences")
     c1, c2 = st.columns(2)
     with c1:
-        theme = st.selectbox("UI Color Scheme", ["dark", "light"], index=0, key="settings_theme_upg)
+        theme = st.selectbox("UI Color Scheme", ["dark", "light"], index=0, key="settings_theme_upg")
     with c2:
         accent = st.color_picker("Accent Brand Color", value="#00f2fe", key="settings_accent_upg")
 
