@@ -1,5 +1,5 @@
 """
-📈 Visualization Studio — Consolidated Visualization & Dashboard Hub (Upgraded)
+📈 Visualization Studio — Consolidated Visualization & Dashboard Hub (Premium Upgraded)
 Consolidates Advanced Visuals, Executive Dashboard Builder, Presentation Deck Generator,
 Chart Data Extractor, and AI Insights Visuals into a high-performance analytics studio.
 """
@@ -20,6 +20,7 @@ from modules.shared_ui import (
 try:
     import plotly.express as px
     import plotly.graph_objects as go
+    # Check for kaleido availability for image exports if needed
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
@@ -40,29 +41,37 @@ def get_df():
     return df
 
 
-def build_chart(chart_type, df, x, y, color=None, facet=None, size=None, height=420):
-    if not PLOTLY_AVAILABLE:
+def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=None, height=420):
+    if not PLOTLY_AVAILABLE or df is None or df.empty:
         return None
     try:
         template = "plotly_dark"
-        if chart_type == "Histogram" and x:
-            fig = px.histogram(df, x=x, color=color, barmode="group", template=template, height=height)
-        elif chart_type == "Scatter Plot" and x and y:
-            fig = px.scatter(df, x=x, y=y, color=color, size=size, template=template, height=height, trendline="ols" if len(df) > 5 else None)
-        elif chart_type == "Bar Chart" and x and y:
-            fig = px.bar(df, x=x, y=y, color=color, barmode="group", template=template, height=height)
-        elif chart_type == "Line Chart" and x and y:
-            fig = px.line(df, x=x, y=y, color=color, markers=True, template=template, height=height)
-        elif chart_type == "Area Chart" and x and y:
-            fig = px.area(df, x=x, y=y, color=color, template=template, height=height)
-        elif chart_type == "Box Plot" and x:
-            fig = px.box(df, x=x, y=y, color=color, template=template, height=height)
-        elif chart_type == "Violin Plot" and x:
-            fig = px.violin(df, x=x, y=y, color=color, box=True, points="all", template=template, height=height)
-        elif chart_type == "Pie / Donut" and x:
-            counts = df[x].value_counts().reset_index()
-            counts.columns = [x, "count"]
-            fig = px.pie(counts, names=x, values="count", hole=0.4, template=template, height=height)
+        
+        # Safe fallback selectors if columns are missing
+        num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+        
+        fallback_x = x if x and x in df.columns else (cat_cols[0] if cat_cols else df.columns[0])
+        fallback_y = y if y and y in df.columns else (num_cols[0] if num_cols else None)
+
+        if chart_type == "Histogram":
+            fig = px.histogram(df, x=fallback_x, color=color if color in df.columns else None, barmode="group", template=template, height=height)
+        elif chart_type == "Scatter Plot":
+            fig = px.scatter(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, size=size if size in df.columns else None, template=template, height=height, trendline="ols" if len(df) > 5 and fallback_y else None)
+        elif chart_type == "Bar Chart":
+            fig = px.bar(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, barmode="group", template=template, height=height)
+        elif chart_type == "Line Chart":
+            fig = px.line(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, markers=True, template=template, height=height)
+        elif chart_type == "Area Chart":
+            fig = px.area(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, template=template, height=height)
+        elif chart_type == "Box Plot":
+            fig = px.box(df, x=fallback_x, y=fallback_y if fallback_y in df.columns else None, color=color if color in df.columns else None, template=template, height=height)
+        elif chart_type == "Violin Plot":
+            fig = px.violin(df, x=fallback_x, y=fallback_y if fallback_y in df.columns else None, color=color if color in df.columns else None, box=True, points="all", template=template, height=height)
+        elif chart_type == "Pie / Donut":
+            counts = df[fallback_x].value_counts().reset_index()
+            counts.columns = [fallback_x, "count"]
+            fig = px.pie(counts, names=fallback_x, values="count", hole=0.4, template=template, height=height)
         elif chart_type == "Heatmap":
             num_df = df.select_dtypes(include=[np.number])
             if not num_df.empty:
@@ -70,15 +79,15 @@ def build_chart(chart_type, df, x, y, color=None, facet=None, size=None, height=
                 fig = px.imshow(corr, text_auto=True, color_continuous_scale="Viridis", template=template, height=height)
             else:
                 fig = px.bar(df, template=template, height=height)
-        elif chart_type == "Treemap" and x:
-            vals = df.select_dtypes(include=[np.number]).columns[0] if not df.select_dtypes(include=[np.number]).empty else None
-            fig = px.treemap(df, path=[x], values=vals, template=template, height=height)
-        elif chart_type == "Sunburst" and x:
-            vals = df.select_dtypes(include=[np.number]).columns[0] if not df.select_dtypes(include=[np.number]).empty else None
-            path = [x, color] if color and color != x else [x]
+        elif chart_type == "Treemap":
+            vals = num_cols[0] if num_cols else None
+            fig = px.treemap(df, path=[fallback_x], values=vals, template=template, height=height)
+        elif chart_type == "Sunburst":
+            vals = num_cols[0] if num_cols else None
+            path = [fallback_x, color] if color and color in df.columns and color != fallback_x else [fallback_x]
             fig = px.sunburst(df, path=path, values=vals, template=template, height=height)
-        elif chart_type == "Funnel Chart" and x and y:
-            fig = px.funnel(df, x=x, y=y, color=color, template=template, height=height)
+        elif chart_type == "Funnel Chart":
+            fig = px.funnel(df, x=fallback_x, y=fallback_y, color=color if color in df.columns else None, template=template, height=height)
         else:
             fig = px.bar(df, template=template, height=height)
 
@@ -90,12 +99,13 @@ def build_chart(chart_type, df, x, y, color=None, facet=None, size=None, height=
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         return fig
-    except Exception:
+    except Exception as e:
+        st.error(f"⚠️ Chart rendering exception: {e}")
         return None
 
 
 def render_custom_builder(df):
-    section_header("🎨 Advanced Custom Chart Studio", "Configure multi-dimensional data visualizations with real-time Plotly rendering.")
+    section_header("🎨 Advanced Custom Chart Studio", "Configure multi-dimensional data visualizations with real-time Plotly rendering & direct exports.")
 
     if not PLOTLY_AVAILABLE:
         st.error("⚠️ Plotly is required for visualization rendering.")
@@ -103,7 +113,6 @@ def render_custom_builder(df):
 
     all_cols = df.columns.tolist()
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     chart_type = st.selectbox("Select Visualization Archetype", [
         "Bar Chart", "Scatter Plot", "Line Chart", "Area Chart", "Histogram",
@@ -123,20 +132,34 @@ def render_custom_builder(df):
 
     height = st.slider("Visualization Height (px)", 300, 750, 450, 25, key="viz_height_adv")
 
-    if st.button("🚀 Render Visual Studio Chart", type="primary", key="render_adv_chart"):
-        fig = build_chart(
-            chart_type, df,
-            x=x_col if x_col else None,
-            y=y_col if y_col else None,
-            color=color_col if color_col else None,
-            size=size_col if size_col else None,
-            height=height
-        )
-        if fig:
-            st.plotly_chart(fig, use_container_width=True)
-            render_export_buttons(df, base_name=f"visualization_{chart_type.lower().replace(' ', '_')}")
-        else:
-            st.error("⚠️ Could not render chart with the selected parameters. Verify field mappings.")
+    fig = build_chart(
+        chart_type, df,
+        x=x_col if x_col else None,
+        y=y_col if y_col else None,
+        color=color_col if color_col else None,
+        size=size_col if size_col else None,
+        height=height
+    )
+    
+    if fig:
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": True, "scrollZoom": True})
+        
+        # Premium Download & Copy Actions Toolbar
+        st.markdown("#### 📥 Download & Copy Studio Assets")
+        exp_col1, exp_col2 = st.columns(2)
+        with exp_col1:
+            render_export_buttons(df, base_name=f"custom_viz_{chart_type.lower().replace(' ', '_')}")
+        with exp_col2:
+            csv_data = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📋 Copy / Download Raw Table CSV",
+                data=csv_data,
+                file_name="chart_source_data.csv",
+                mime="text/csv",
+                key="download_raw_csv_custom"
+            )
+    else:
+        st.error("⚠️ Could not render chart with the selected parameters. Verify field mappings.")
 
 
 def render_auto_studio(df):
@@ -193,7 +216,7 @@ def render_exec_dashboard(df):
     row1_c1, row1_c2 = st.columns(2)
 
     with row1_c1:
-        fig1 = build_chart("Histogram", df, x=numeric_cols[0], y=None, height=340)
+        fig1 = build_chart("Histogram", df, x=numeric_cols[0], height=340)
         if fig1:
             st.plotly_chart(fig1, use_container_width=True)
 
@@ -209,6 +232,9 @@ def render_exec_dashboard(df):
         fig3 = build_chart("Bar Chart", df, x=cat_cols[0], y=numeric_cols[0], height=340)
         if fig3:
             st.plotly_chart(fig3, use_container_width=True)
+            
+    st.markdown("---")
+    render_export_buttons(df, base_name="executive_dashboard_dataset")
 
 
 def render_deck_builder(df):
@@ -239,7 +265,7 @@ def render_chart_extractor(df):
     section_header("📊 Chart Data Extractor & Aggregator", "Extract, aggregate, and export structured tabular subsets directly from visual nodes.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    cat_cols = st.select_dtypes(include=["object", "category"]).columns.tolist()
+    cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not numeric_cols or not cat_cols:
         st.warning("⚠️ Data extraction requires both categorical and numeric columns.")
@@ -259,7 +285,7 @@ def render_chart_extractor(df):
         else:
             extracted_df = df.groupby(group_col)[agg_col].agg(agg_func).reset_index()
 
-        st.markdown("#### 📋 Extracted Dataset Preview")
+        st.markdown("#### 📋 Extracted Dataset Preview & Copy Options")
         st.dataframe(extracted_df, use_container_width=True, hide_index=True)
         render_export_buttons(extracted_df, base_name="extracted_chart_dataset")
 
