@@ -33,9 +33,16 @@ def init_sovereign_db():
             email TEXT PRIMARY KEY,
             name TEXT,
             password_hash TEXT,
-            role TEXT
+            role TEXT,
+            avatar_blob BLOB
         )
     """)
+    # Safely migrate older database schemas if avatar_blob column doesn't exist yet
+    try:
+        cursor.execute("ALTER TABLE auth_users ADD COLUMN avatar_blob BLOB")
+    except sqlite3.OperationalError:
+        pass # Column already exists
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS user_subscriptions (
             email TEXT PRIMARY KEY,
@@ -132,15 +139,22 @@ def is_admin():
     identity = st.session_state.get("user_identity", {})
     return identity.get("role") == "admin" or identity.get("email") == "chrishem242@gmail.com"
 
-# --- LOCAL IMAGE LOADER ---
-def get_image_base64(image_path):
-    if os.path.exists(image_path):
-        with open(image_path, "rb") as img_file:
+# --- DYNAMIC AVATAR LOADER (USER CUSTOM OR DEFAULT FALLBACK) ---
+def get_user_avatar_base64(email):
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT avatar_blob FROM auth_users WHERE email = ?", (email,))
+    row = cursor.fetchone()
+    if row and row[0]:
+        # Return user's custom uploaded picture from database
+        return base64.b64encode(row[0]).decode("utf-8")
+    
+    # Fallback to default local chrishem.png file if present
+    img_path = "chrishem.png"
+    if os.path.exists(img_path):
+        with open(img_path, "rb") as img_file:
             return base64.b64encode(img_file.read()).decode("utf-8")
+            
     return None
-
-img_path = "chrishem.png"
-img_base64 = get_image_base64(img_path)
 
 # --- IN-MEMORY ZIP PACKAGE BUILDER ---
 def create_package_zip(platform_name):
@@ -323,7 +337,9 @@ if not st.session_state.portal_unlocked:
     st.markdown("<style>[data-testid=\"stSidebar\"] {display: none;}</style>", unsafe_allow_html=True)
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
     
-    avatar_html = f'<img src="data:image/png;base64,{img_base64}" class="profile-avatar">' if img_base64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
+    # Render gateway hero avatar using master/default or general user fallback
+    gateway_avatar_b64 = get_user_avatar_base64("chrishem242@gmail.com")
+    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
     
     st.markdown(f"""
     <div class="portal-hero-card">
@@ -409,10 +425,16 @@ if not st.session_state.portal_unlocked:
 # --- UNLOCKED WORKSPACE DASHBOARD ---
 else:
     identity = st.session_state.get("user_identity", {"name": "Chrishem", "role": "admin"})
+    current_user_email = identity.get("email", "chrishem242@gmail.com")
     
+    # Render custom or default user avatar inside sidebar
+    sidebar_avatar_b64 = get_user_avatar_base64(current_user_email)
+    if sidebar_avatar_b64:
+        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
+
     st.sidebar.title("CHRISHEM APEX")
     st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
-    st.sidebar.markdown(f"**Email:** `{identity.get('email', 'chrishem242@gmail.com')}`")
+    st.sidebar.markdown(f"**Email:** `{current_user_email}`")
     st.sidebar.markdown(f"**Privilege:** `{'👑 Full-Time Admin' if is_admin() else 'Standard User'}`")
     
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
@@ -431,6 +453,7 @@ else:
         "⚡ Apex Dashboard", 
         "🤖 AI Intelligence Daemon", 
         "🔬 Bioinformatics Studio", 
+        "⚙️ Profile Settings",
         "🛡️ Admin Security & User Controls"
     ])
 
@@ -455,7 +478,7 @@ else:
         with c_a:
             st.info("**System Status:** All telemetry daemons are operating smoothly with 0ms latency.")
         with c_b:
-            st.success("**License Status:** Lifetime Sovereign Enterprise Access Enabled for `chrishem242@gmail.com`.")
+            st.success(f"**License Status:** Lifetime Sovereign Enterprise Access Enabled for `{current_user_email}`.")
 
     elif menu_selection == "🤖 AI Intelligence Daemon":
         st.markdown("### 🤖 Autonomous AI Intelligence & Problem Solver")
@@ -495,6 +518,37 @@ else:
             else:
                 st.warning("Please provide a sequence string.")
 
+    elif menu_selection == "⚙️ Profile Settings":
+        st.markdown("### ⚙️ Operator Profile & Avatar Customization")
+        st.write("Upload a custom picture to personalize your account avatar across the platform. If no picture is uploaded, the system will automatically fall back to the default asset (`chrishem.png`).")
+        
+        # Display current avatar preview
+        active_b64 = get_user_avatar_base64(current_user_email)
+        if active_b64:
+            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8; box-shadow:0 0 20px rgba(56,189,248,0.4);"></div>', unsafe_allow_html=True)
+        
+        uploaded_avatar = st.file_uploader("Upload New Avatar Image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
+        
+        col_up1, col_up2 = st.columns(2)
+        with col_up1:
+            if st.button("💾 Save Custom Avatar", use_container_width=True):
+                if uploaded_avatar is not None:
+                    image_bytes = uploaded_avatar.read()
+                    cursor = db_conn.cursor()
+                    cursor.execute("UPDATE auth_users SET avatar_blob = ? WHERE email = ?", (image_bytes, current_user_email))
+                    db_conn.commit()
+                    st.success("Avatar successfully updated! Refreshing view...")
+                    st.rerun()
+                else:
+                    st.warning("Please select an image file first.")
+        with col_up2:
+            if st.button("🔄 Revert to Default Picture", use_container_width=True):
+                cursor = db_conn.cursor()
+                cursor.execute("UPDATE auth_users SET avatar_blob = NULL WHERE email = ?", (current_user_email,))
+                db_conn.commit()
+                st.success("Reverted to default system picture successfully!")
+                st.rerun()
+
     elif menu_selection == "🛡️ Admin Security & User Controls":
         if not is_admin():
             st.error("🚫 Access Denied: This panel requires full-time administrator clearance.")
@@ -509,4 +563,4 @@ else:
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
             st.dataframe(user_df, use_container_width=True)
             
-            st.success("👑 Your account (`chrishem242@gmail.com`) is permanently locked with full administrative privileges and sovereign override capabilities.")
+            st.success(f"👑 Your account (`{current_user_email}`) is permanently locked with full administrative privileges and sovereign override capabilities.")
