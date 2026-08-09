@@ -1,11 +1,42 @@
 """
-🤖 ML & Predictive Studio — Consolidated Machine Learning Hub (Upgraded)
-Consolidates Predictive Modeling, Feature Engineering, Chaos Engine, Agent Swarm, and AI Defensive Cores 
-with hyperparameter tuning, cross-validation, automated feature selection, and model export pipelines.
+🤖 ML & Predictive Studio — Consolidated Machine Learning Hub (Premium)
+AutoML with real hyperparameter tuning, cross-validation, model persistence/export, a prediction
+engine that actually uses your trained model (not a throwaway retrain), automated feature
+selection, and non-theatrical autonomous agent missions.
+
+Changelog vs prior version:
+- FIXED: the module docstring claimed "hyperparameter tuning" and "model export pipelines" —
+  neither existed. `GridSearchCV` was imported but never called. There was no way to save,
+  download, or reload a trained model anywhere in the file.
+  → Added a real GridSearchCV-backed tuning toggle with per-algorithm parameter grids, and a
+    real model export/import flow (joblib-serialized pipeline: model + scaler + feature list +
+    label encoder, downloadable as .pkl and reloadable).
+- FIXED: the Prediction Engine ignored whatever you trained in the AutoML tab and silently
+  retrained a brand-new RandomForestRegressor on just the first 4 numeric columns, with no
+  train/test split, every time you opened it. It now uses the actual best model from your last
+  AutoML run (or an imported one), supports both classification and regression, reports class
+  probabilities where applicable, gives a rough prediction-interval from tree-level spread for
+  Random Forest models, and supports batch scoring of an uploaded CSV, not just one row at a time.
+- FIXED: "Automated Feature Selection" always used `f_regression`, even for a categorical
+  (classification) target — statistically wrong. It now auto-detects the task and uses
+  `f_classif` or `f_regression` accordingly.
+- FIXED (real bug): regression AutoML would silently coerce a non-numeric target to all-NaN via
+  `pd.to_numeric(errors="coerce")` and then crash deep inside `train_test_split` on an empty
+  sample. It now validates the target up front with a clear error message.
+- FIXED: the Agent Swarm console was pure theater — every "mission" just slept 1.2s and printed
+  a canned "0 errors" success message regardless of what was in the data. Each mission now
+  actually runs against the active dataset: real IQR outlier sweep, real completeness/duplicate
+  audit, a real trend-degradation check (linear regression per numeric column vs. row order),
+  a real downloadable executive report, and a real dataset-fingerprint consistency check against
+  what Data Studio last recorded.
 """
+
+import io
+import pickle
 
 import numpy as np
 import pandas as pd
+import scipy.stats as sps
 import streamlit as st
 
 from modules.page_bootstrap import setup_page, render_standard_footer
@@ -18,16 +49,30 @@ from modules.shared_ui import (
 )
 
 try:
+    import joblib
+    JOBLIB_AVAILABLE = True
+except ImportError:
+    JOBLIB_AVAILABLE = False
+
+try:
     from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
     from sklearn.preprocessing import StandardScaler, LabelEncoder, PolynomialFeatures
     from sklearn.impute import SimpleImputer
     from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor
-    from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge
-    from sklearn.metrics import accuracy_score, r2_score, classification_report, mean_squared_error, roc_auc_score
+    from sklearn.linear_model import LogisticRegression, Ridge
+    from sklearn.metrics import accuracy_score, r2_score, mean_squared_error, roc_auc_score
     from sklearn.feature_selection import SelectKBest, f_classif, f_regression
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
+
+
+PARAM_GRIDS = {
+    "Random Forest": {"n_estimators": [100, 250], "max_depth": [None, 10, 20]},
+    "Gradient Boosting": {"n_estimators": [100, 200], "learning_rate": [0.05, 0.1]},
+    "Logistic Regression": {"C": [0.1, 1.0, 10.0]},
+    "Ridge Regression": {"alpha": [0.1, 1.0, 10.0]},
+}
 
 
 def get_df():
@@ -44,8 +89,38 @@ def get_df():
     return df
 
 
+def _build_model_registry(task: str) -> dict:
+    if task == "Classification":
+        return {
+            "Random Forest": RandomForestClassifier(random_state=42),
+            "Gradient Boosting": GradientBoostingClassifier(random_state=42),
+            "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
+        }
+    return {
+        "Random Forest": RandomForestRegressor(random_state=42),
+        "Gradient Boosting": GradientBoostingRegressor(random_state=42),
+        "Ridge Regression": Ridge(random_state=42),
+    }
+
+
+def _serialize_pipeline(bundle: dict) -> bytes:
+    buf = io.BytesIO()
+    if JOBLIB_AVAILABLE:
+        joblib.dump(bundle, buf)
+    else:
+        pickle.dump(bundle, buf)
+    return buf.getvalue()
+
+
+def _deserialize_pipeline(raw_bytes: bytes) -> dict:
+    buf = io.BytesIO(raw_bytes)
+    if JOBLIB_AVAILABLE:
+        return joblib.load(buf)
+    return pickle.load(buf)
+
+
 def render_automl_tab(df):
-    section_header("🤖 Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate multi-algorithm machine learning models.")
+    section_header("🤖 Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate multi-algorithm machine learning models — with real hyperparameter search and a persistable trained pipeline.")
 
     if not SKLEARN_AVAILABLE:
         st.error("⚠️ `scikit-learn` is required for this module.")
@@ -67,20 +142,9 @@ def render_automl_tab(df):
     with col3:
         cv_folds = st.slider("Cross-Validation Folds", 3, 10, 5, key="ml_cv")
 
-    # Algorithm selection
-    if task == "Classification":
-        models = {
-            "Random Forest": RandomForestClassifier(random_state=42),
-            "Gradient Boosting": GradientBoostingClassifier(random_state=42),
-            "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42)
-        }
-    else:
-        models = {
-            "Random Forest": RandomForestRegressor(random_state=42),
-            "Gradient Boosting": GradientBoostingRegressor(random_state=42),
-            "Ridge Regression": Ridge(random_state=42)
-        }
+    tune = st.checkbox("🔧 Enable Hyperparameter Tuning (GridSearchCV) — slower, more accurate", value=False, key="ml_tune")
 
+    models = _build_model_registry(task)
     selected_models = st.multiselect("Select Algorithms to Evaluate", list(models.keys()), default=list(models.keys()), key="ml_algos")
 
     if st.button("🚀 Run AutoML & Cross-Validation Suite", type="primary", key="run_ml"):
@@ -88,135 +152,227 @@ def render_automl_tab(df):
             st.error("Select at least one feature.")
         elif not selected_models:
             st.error("Select at least one algorithm.")
+        elif task == "Regression" and not pd.api.types.is_numeric_dtype(pd.to_numeric(df[target], errors="coerce")):
+            st.error(f"🚫 Target `{target}` cannot be interpreted as numeric — choose Classification instead, or pick a numeric target for regression.")
         else:
             with st.spinner("Preprocessing data and executing cross-validation training..."):
                 try:
-                    X = df[features].copy()
-                    # Handle categorical features via one-hot encoding if any selected
-                    X = pd.get_dummies(X, drop_first=True)
+                    X = pd.get_dummies(df[features].copy(), drop_first=True)
                     y = df[target].copy()
 
                     imputer = SimpleImputer(strategy="median")
-                    X_imp = pd.DataFrame(imputer.fit_transform(X), columns=X.columns)
+                    X_imp = pd.DataFrame(imputer.fit_transform(X), columns=X.columns, index=X.index)
 
+                    label_encoder = None
                     if task == "Classification":
-                        if y.dtype == "object" or y.dtype.name == "category" or y.dtype == "bool":
-                            le = LabelEncoder()
-                            y_enc = le.fit_transform(y.astype(str))
+                        if y.dtype == "object" or str(y.dtype) == "category" or y.dtype == "bool":
+                            label_encoder = LabelEncoder()
+                            y_target = label_encoder.fit_transform(y.astype(str))
                         else:
-                            y_enc = y.values
+                            y_target = y.values
+                        scoring = "accuracy"
+                    else:
+                        y_num = pd.to_numeric(y, errors="coerce")
+                        valid = y_num.notnull()
+                        if valid.sum() < 10:
+                            st.error("🚫 Fewer than 10 valid numeric target rows after cleaning — cannot train reliably.")
+                            st.stop()
+                        X_imp = X_imp.loc[valid]
+                        y_target = y_num.loc[valid].values
+                        scoring = "r2"
 
-                        X_train, X_test, y_train, y_test = train_test_split(
-                            X_imp, y_enc, test_size=test_size / 100, random_state=42
-                        )
-                        scaler = StandardScaler()
-                        X_tr = scaler.fit_transform(X_train)
-                        X_te = scaler.transform(X_test)
+                    X_train, X_test, y_train, y_test = train_test_split(X_imp, y_target, test_size=test_size / 100, random_state=42)
+                    scaler = StandardScaler()
+                    X_tr = scaler.fit_transform(X_train)
+                    X_te = scaler.transform(X_test)
 
-                        results = []
-                        trained_models = {}
+                    results = []
+                    trained_models = {}
+                    best_name, best_score, best_model = None, -np.inf, None
 
-                        for name in selected_models:
-                            model = models[name]
-                            cv_scores = cross_val_score(model, X_tr, y_train, cv=cv_folds, scoring="accuracy")
+                    for name in selected_models:
+                        base_model = models[name]
+                        best_params_note = "default"
+
+                        if tune and name in PARAM_GRIDS:
+                            grid = GridSearchCV(base_model, PARAM_GRIDS[name], cv=cv_folds, scoring=scoring, n_jobs=-1)
+                            grid.fit(X_tr, y_train)
+                            model = grid.best_estimator_
+                            cv_mean, cv_std = grid.best_score_, np.nan
+                            best_params_note = str(grid.best_params_)
+                        else:
+                            cv_scores = cross_val_score(base_model, X_tr, y_train, cv=cv_folds, scoring=scoring)
+                            cv_mean, cv_std = cv_scores.mean(), cv_scores.std()
+                            model = base_model
                             model.fit(X_tr, y_train)
-                            y_pred = model.predict(X_te)
-                            test_acc = accuracy_score(y_test, y_pred)
-                            
+
+                        y_pred = model.predict(X_te)
+
+                        if task == "Classification":
+                            test_metric = accuracy_score(y_test, y_pred)
                             try:
                                 y_proba = model.predict_proba(X_te)[:, 1]
                                 auc = roc_auc_score(y_test, y_proba)
                             except Exception:
                                 auc = None
-
                             results.append({
                                 "Algorithm": name,
-                                "CV Accuracy (Mean)": f"{cv_scores.mean() * 100:.2f}% (±{cv_scores.std() * 100:.2f}%)",
-                                "Test Accuracy": f"{test_acc * 100:.2f}%",
-                                "ROC-AUC": f"{auc:.4f}" if auc is not None else "N/A"
+                                "CV Accuracy": f"{cv_mean * 100:.2f}%" + (f" (±{cv_std*100:.2f}%)" if not np.isnan(cv_std) else ""),
+                                "Test Accuracy": f"{test_metric * 100:.2f}%",
+                                "ROC-AUC": f"{auc:.4f}" if auc is not None else "N/A",
+                                "Params": best_params_note,
                             })
-                            trained_models[name] = model
-
-                        res_df = pd.DataFrame(results)
-                        st.markdown("#### 📊 Model Performance Leaderboard")
-                        st.dataframe(res_df, use_container_width=True, hide_index=True)
-
-                        # Feature importance for tree models if available
-                        if "Random Forest" in trained_models:
-                            st.markdown("#### 🔍 Random Forest Feature Importances")
-                            importances = pd.Series(trained_models["Random Forest"].feature_importances_, index=X_imp.columns).sort_values(ascending=False)
-                            st.bar_chart(importances)
-
-                    else:
-                        y_num = pd.to_numeric(y, errors="coerce")
-                        valid = y_num.notnull()
-                        X_imp = X_imp.loc[valid]
-                        y_num = y_num.loc[valid]
-
-                        X_train, X_test, y_train, y_test = train_test_split(
-                            X_imp, y_num, test_size=test_size / 100, random_state=42
-                        )
-                        scaler = StandardScaler()
-                        X_tr = scaler.fit_transform(X_train)
-                        X_te = scaler.transform(X_test)
-
-                        results = []
-                        for name in selected_models:
-                            model = models[name]
-                            cv_scores = cross_val_score(model, X_tr, y_train, cv=cv_folds, scoring="r2")
-                            model.fit(X_tr, y_train)
-                            y_pred = model.predict(X_te)
-                            test_r2 = r2_score(y_test, y_pred)
+                        else:
+                            test_metric = r2_score(y_test, y_pred)
                             test_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-
                             results.append({
                                 "Algorithm": name,
-                                "CV R² (Mean)": f"{cv_scores.mean():.4f}",
-                                "Test R²": f"{test_r2:.4f}",
-                                "Test RMSE": f"{test_rmse:.4f}"
+                                "CV R²": f"{cv_mean:.4f}" + (f" (±{cv_std:.4f})" if not np.isnan(cv_std) else ""),
+                                "Test R²": f"{test_metric:.4f}",
+                                "Test RMSE": f"{test_rmse:.4f}",
+                                "Params": best_params_note,
                             })
 
-                        res_df = pd.DataFrame(results)
-                        st.markdown("#### 📊 Regression Leaderboard")
-                        st.dataframe(res_df, use_container_width=True, hide_index=True)
+                        trained_models[name] = model
+                        if test_metric > best_score:
+                            best_score, best_name, best_model = test_metric, name, model
 
-                    st.success("✅ AutoML evaluation completed successfully!")
+                    res_df = pd.DataFrame(results)
+                    st.markdown("#### 📊 Model Performance Leaderboard")
+                    st.dataframe(res_df, use_container_width=True, hide_index=True)
+                    st.success(f"✅ Best performer: **{best_name}** (test score {best_score:.4f}) — this is now the active model for the Prediction Engine tab.")
+
+                    if "Random Forest" in trained_models and hasattr(trained_models["Random Forest"], "feature_importances_"):
+                        st.markdown("#### 🔍 Random Forest Feature Importances")
+                        importances = pd.Series(trained_models["Random Forest"].feature_importances_, index=X_imp.columns).sort_values(ascending=False)
+                        st.bar_chart(importances)
+
+                    # Persist the winning pipeline for the Prediction Engine tab and for export.
+                    st.session_state["ml_active_pipeline"] = {
+                        "model": best_model,
+                        "scaler": scaler,
+                        "features": list(X.columns),
+                        "raw_features": features,
+                        "task": task,
+                        "target": target,
+                        "label_encoder": label_encoder,
+                        "algorithm": best_name,
+                        "test_score": float(best_score),
+                        "trained_at": pd.Timestamp.now().isoformat(),
+                    }
+
                 except Exception as e:
                     st.error(f"Training error: {e}")
 
+    pipeline = st.session_state.get("ml_active_pipeline")
+    if pipeline:
+        st.markdown("---")
+        st.markdown("#### 💾 Model Persistence")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.caption(f"Active model: **{pipeline['algorithm']}** ({pipeline['task']}, target=`{pipeline['target']}`, test score={pipeline['test_score']:.4f})")
+            raw = _serialize_pipeline(pipeline)
+            st.download_button("⬇️ Export Trained Pipeline (.pkl)", data=raw, file_name=f"ml_pipeline_{pipeline['algorithm'].lower().replace(' ', '_')}.pkl", mime="application/octet-stream", key="dl_pipeline")
+        with c2:
+            uploaded_pipeline = st.file_uploader("📤 Import a Previously Exported Pipeline", type=["pkl"], key="upload_pipeline")
+            if uploaded_pipeline is not None and st.button("Load Imported Pipeline", key="load_pipeline"):
+                try:
+                    loaded = _deserialize_pipeline(uploaded_pipeline.getvalue())
+                    st.session_state["ml_active_pipeline"] = loaded
+                    st.success(f"✅ Loaded pipeline: {loaded.get('algorithm', 'Unknown')} ({loaded.get('task', 'Unknown')})")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Could not load pipeline: {e}")
+
 
 def render_predict_tab(df):
-    section_header("🔮 Interactive Prediction Engine", "Input custom predictor values to generate real-time inferences from a trained Random Forest model.")
+    section_header("🔮 Interactive Prediction Engine", "Score new records using the model you actually trained in the AutoML tab — not a disconnected throwaway retrain.")
 
     if not SKLEARN_AVAILABLE:
         st.error("`scikit-learn` required.")
         return
 
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    if len(numeric_cols) < 2:
-        st.info("Need at least 2 numeric columns.")
+    pipeline = st.session_state.get("ml_active_pipeline")
+    if not pipeline:
+        st.warning("⚠️ No trained model yet. Go to **AutoML & Training**, run the suite, and come back — this tab will automatically use the best model from that run.")
         return
 
-    target = st.selectbox("Target Variable", numeric_cols, key="pred_target")
-    features = [c for c in numeric_cols if c != target][:4]
+    model, scaler = pipeline["model"], pipeline["scaler"]
+    feature_cols, raw_features = pipeline["features"], pipeline["raw_features"]
+    task, target, label_encoder = pipeline["task"], pipeline["target"], pipeline["label_encoder"]
 
-    st.markdown("#### Enter Predictor Values")
-    inputs = {}
-    cols = st.columns(len(features))
-    for i, feat in enumerate(features):
-        mean_val = df[feat].mean()
-        inputs[feat] = cols[i].number_input(f"{feat}", value=float(mean_val), key=f"pred_in_{feat}")
+    st.info(f"Using **{pipeline['algorithm']}** trained for `{target}` ({task}) on {len(raw_features)} input feature(s). Trained: {pipeline['trained_at'][:19]}")
 
-    if st.button("🔮 Generate Prediction", type="primary", key="run_predict"):
-        try:
-            X = df[features].dropna()
-            y = df.loc[X.index, target]
-            model = RandomForestRegressor(random_state=42).fit(X, y)
-            pred = model.predict([list(inputs.values())])[0]
-            st.metric(f"Predicted {target}", f"{pred:.4f}")
-            st.markdown(f"> **Inference Note:** Generated using a fitted Random Forest Regressor trained on {len(X)} active dataset records.")
-        except Exception as e:
-            st.error(f"Prediction error: {e}")
+    mode = st.radio("Scoring Mode", ["Single Record", "Batch CSV Upload"], horizontal=True, key="pred_mode")
+
+    def _predict(input_df: pd.DataFrame):
+        encoded = pd.get_dummies(input_df[raw_features], drop_first=True)
+        encoded = encoded.reindex(columns=feature_cols, fill_value=0)
+        scaled = scaler.transform(encoded)
+        preds = model.predict(scaled)
+        proba, interval = None, None
+        if task == "Classification":
+            try:
+                proba = model.predict_proba(scaled)
+            except Exception:
+                proba = None
+            if label_encoder is not None:
+                preds = label_encoder.inverse_transform(preds.astype(int))
+        elif hasattr(model, "estimators_"):
+            # Random Forest: spread across individual trees as a rough prediction interval.
+            tree_preds = np.array([est.predict(scaled) for est in model.estimators_])
+            interval = (np.percentile(tree_preds, 5, axis=0), np.percentile(tree_preds, 95, axis=0))
+        return preds, proba, interval
+
+    if mode == "Single Record":
+        st.markdown("#### Enter Predictor Values")
+        inputs = {}
+        cols = st.columns(min(4, len(raw_features)))
+        for i, feat in enumerate(raw_features):
+            col = cols[i % len(cols)]
+            if pd.api.types.is_numeric_dtype(df[feat]):
+                inputs[feat] = col.number_input(feat, value=float(df[feat].mean()), key=f"pred_in_{feat}")
+            else:
+                options = df[feat].dropna().unique().tolist()
+                inputs[feat] = col.selectbox(feat, options, key=f"pred_in_{feat}")
+
+        if st.button("🔮 Generate Prediction", type="primary", key="run_predict"):
+            try:
+                input_df = pd.DataFrame([inputs])
+                preds, proba, interval = _predict(input_df)
+                if task == "Classification":
+                    st.metric(f"Predicted {target}", str(preds[0]))
+                    if proba is not None:
+                        classes = label_encoder.classes_ if label_encoder is not None else model.classes_
+                        proba_df = pd.DataFrame({"Class": classes, "Probability": proba[0]}).sort_values("Probability", ascending=False)
+                        st.dataframe(proba_df, use_container_width=True, hide_index=True)
+                else:
+                    st.metric(f"Predicted {target}", f"{preds[0]:.4f}")
+                    if interval is not None:
+                        st.caption(f"Approx. 90% prediction interval (tree-spread): [{interval[0][0]:.4f}, {interval[1][0]:.4f}]")
+            except Exception as e:
+                st.error(f"Prediction error: {e}")
+
+    else:
+        st.markdown("#### Batch Scoring")
+        st.caption(f"Upload a CSV containing at least these columns: {', '.join(raw_features)}")
+        batch_file = st.file_uploader("Upload CSV for batch scoring", type=["csv"], key="pred_batch_upload")
+        if batch_file is not None and st.button("🔮 Score Batch", type="primary", key="run_batch_predict"):
+            try:
+                batch_df = pd.read_csv(batch_file)
+                missing = [c for c in raw_features if c not in batch_df.columns]
+                if missing:
+                    st.error(f"🚫 Uploaded file is missing required columns: {', '.join(missing)}")
+                else:
+                    preds, proba, interval = _predict(batch_df)
+                    out = batch_df.copy()
+                    out[f"Predicted_{target}"] = preds
+                    if interval is not None:
+                        out["Interval_Low_90"], out["Interval_High_90"] = interval[0], interval[1]
+                    st.dataframe(out, use_container_width=True)
+                    render_export_buttons(out, base_name="batch_predictions")
+            except Exception as e:
+                st.error(f"Batch scoring error: {e}")
 
 
 def render_feature_engineering_tab(df):
@@ -233,19 +389,20 @@ def render_feature_engineering_tab(df):
             f1 = st.selectbox("Feature 1", numeric_cols, key="fe_f1")
             f2 = st.selectbox("Feature 2", [c for c in numeric_cols if c != f1], key="fe_f2")
             op = st.selectbox("Operation", ["Multiply (X * Y)", "Divide (X / Y)", "Difference (X - Y)", "Sum (X + Y)"], key="fe_op")
-            
-            if st.button("➕ Create Interaction Feature", type="primary", key="run_fe_interact"):
-                if "Multiply" in op:
-                    new_col, values = f"{f1}_mul_{f2}", df[f1] * df[f2]
-                elif "Divide" in op:
-                    new_col, values = f"{f1}_div_{f2}", df[f1] / df[f2].replace(0, np.nan)
-                elif "Difference" in op:
-                    new_col, values = f"{f1}_sub_{f2}", df[f1] - df[f2]
-                else:
-                    new_col, values = f"{f1}_add_{f2}", df[f1] + df[f2]
 
-                df[new_col] = values
-                set_active_dataframe(df, st.session_state.get("source_name", "engineered.csv"))
+            if st.button("➕ Create Interaction Feature", type="primary", key="run_fe_interact"):
+                working = df.copy()
+                if "Multiply" in op:
+                    new_col, values = f"{f1}_mul_{f2}", working[f1] * working[f2]
+                elif "Divide" in op:
+                    new_col, values = f"{f1}_div_{f2}", working[f1] / working[f2].replace(0, np.nan)
+                elif "Difference" in op:
+                    new_col, values = f"{f1}_sub_{f2}", working[f1] - working[f2]
+                else:
+                    new_col, values = f"{f1}_add_{f2}", working[f1] + working[f2]
+
+                working[new_col] = values
+                set_active_dataframe(working, st.session_state.get("source_name", "engineered.csv"))
                 st.success(f"✅ Created engineered feature '{new_col}' and updated active dataset.")
                 st.rerun()
         else:
@@ -256,13 +413,14 @@ def render_feature_engineering_tab(df):
             col = st.selectbox("Variable to bin", numeric_cols, key="fe_bin_col")
             strategy = st.radio("Binning Strategy", ["Equal Width (Uniform)", "Equal Frequency (Quantiles)"], horizontal=True, key="fe_bin_strat")
             n_bins = st.slider("Number of Bins", 2, 10, 4, key="fe_bin_n")
-            
+
             if st.button("📦 Create Binned Feature", type="primary", key="run_fe_bin"):
+                working = df.copy()
                 if "Uniform" in strategy:
-                    df[f"{col}_bin"] = pd.cut(df[col], bins=n_bins, labels=[f"Bin_{i+1}" for i in range(n_bins)])
+                    working[f"{col}_bin"] = pd.cut(working[col], bins=n_bins, labels=[f"Bin_{i+1}" for i in range(n_bins)])
                 else:
-                    df[f"{col}_bin"] = pd.qcut(df[col], q=n_bins, labels=[f"Q_{i+1}" for i in range(n_bins)], duplicates="drop")
-                set_active_dataframe(df, st.session_state.get("source_name", "binned.csv"))
+                    working[f"{col}_bin"] = pd.qcut(working[col], q=n_bins, labels=[f"Q_{i+1}" for i in range(n_bins)], duplicates="drop")
+                set_active_dataframe(working, st.session_state.get("source_name", "binned.csv"))
                 st.success(f"✅ Binned '{col}' into {n_bins} categories.")
                 st.rerun()
         else:
@@ -270,66 +428,207 @@ def render_feature_engineering_tab(df):
 
     with tab_poly:
         if numeric_cols:
-            col = st.selectbox("Variable for polynomial generation", numeric_cols, key="fe_poly_col")
-            degree = st.slider("Maximum Degree", 2, 4, 2, key="fe_poly_deg")
-            
-            if st.button("📈 Generate Polynomial Features", type="primary", key="run_fe_poly"):
-                for d in range(2, degree + 1):
-                    df[f"{col}_pow{d}"] = df[col] ** d
-                set_active_dataframe(df, st.session_state.get("source_name", "polynomial.csv"))
-                st.success(f"✅ Created polynomial features up to degree {degree}.")
-                st.rerun()
+            mode = st.radio("Mode", ["Single Column Powers", "Multi-Column Polynomial + Interactions (sklearn)"], key="fe_poly_mode")
+            if mode == "Single Column Powers":
+                col = st.selectbox("Variable for polynomial generation", numeric_cols, key="fe_poly_col")
+                degree = st.slider("Maximum Degree", 2, 4, 2, key="fe_poly_deg")
+                if st.button("📈 Generate Polynomial Features", type="primary", key="run_fe_poly"):
+                    working = df.copy()
+                    for d in range(2, degree + 1):
+                        working[f"{col}_pow{d}"] = working[col] ** d
+                    set_active_dataframe(working, st.session_state.get("source_name", "polynomial.csv"))
+                    st.success(f"✅ Created polynomial features up to degree {degree}.")
+                    st.rerun()
+            else:
+                if not SKLEARN_AVAILABLE:
+                    st.error("`scikit-learn` required for multi-column polynomial expansion.")
+                else:
+                    cols_sel = st.multiselect("Select columns to expand", numeric_cols, default=numeric_cols[:2], key="fe_poly_cols")
+                    degree = st.slider("Degree", 2, 3, 2, key="fe_poly_multi_deg")
+                    if len(cols_sel) >= 2 and st.button("📈 Generate Polynomial + Interaction Set", type="primary", key="run_fe_poly_multi"):
+                        working = df.copy()
+                        clean = working[cols_sel].dropna()
+                        poly = PolynomialFeatures(degree=degree, include_bias=False)
+                        expanded = poly.fit_transform(clean)
+                        names = poly.get_feature_names_out(cols_sel)
+                        expanded_df = pd.DataFrame(expanded, columns=names, index=clean.index)
+                        new_names = [n for n in names if n not in cols_sel]
+                        for n in new_names:
+                            working.loc[clean.index, n] = expanded_df[n]
+                        set_active_dataframe(working, st.session_state.get("source_name", "polynomial_expanded.csv"))
+                        st.success(f"✅ Added {len(new_names)} polynomial/interaction terms: {', '.join(new_names[:8])}{'…' if len(new_names) > 8 else ''}")
+                        st.rerun()
         else:
             st.info("No numeric columns available.")
 
     with tab_select:
-        st.markdown("#### Univariate Feature Selection (SelectKBest)")
-        if len(numeric_cols) >= 3:
-            target_col = st.selectbox("Target variable for selection", numeric_cols, key="fs_target")
+        st.markdown("#### Automated, Task-Aware Feature Selection (SelectKBest)")
+        if len(df.columns) >= 3:
+            target_col = st.selectbox("Target variable for selection", df.columns, key="fs_target")
+            is_classification = not pd.api.types.is_numeric_dtype(df[target_col]) or df[target_col].nunique() <= 10
+            st.caption(f"Auto-detected task: **{'Classification (f_classif)' if is_classification else 'Regression (f_regression)'}** based on target type/cardinality.")
+
             features_pool = [c for c in numeric_cols if c != target_col]
-            k_val = st.slider("Select top K features", 1, min(len(features_pool), 5), min(len(features_pool), 3), key="fs_k")
-            
-            if st.button("🎯 Run Feature Selection", type="primary", key="run_fs"):
-                clean_df = df[features_pool + [target_col]].dropna()
-                X_sel = clean_df[features_pool]
-                y_sel = clean_df[target_col]
-                
-                selector = SelectKBest(score_func=f_regression, k=k_val)
-                selector.fit(X_sel, y_sel)
-                scores = pd.Series(selector.scores_, index=features_pool).sort_values(ascending=False)
-                
-                st.markdown("#### 📊 Feature F-Scores")
-                st.bar_chart(scores)
-                top_feats = scores.head(k_val).index.tolist()
-                st.success(f"✅ Top {k_val} recommended features: {', '.join(top_feats)}")
+            if not features_pool:
+                st.info("Need numeric candidate features.")
+            else:
+                k_val = st.slider("Select top K features", 1, min(len(features_pool), 10), min(len(features_pool), 3), key="fs_k")
+
+                if st.button("🎯 Run Feature Selection", type="primary", key="run_fs"):
+                    clean_df = df[features_pool + [target_col]].dropna()
+                    X_sel = clean_df[features_pool]
+                    y_raw = clean_df[target_col]
+
+                    if is_classification:
+                        y_sel = LabelEncoder().fit_transform(y_raw.astype(str)) if not pd.api.types.is_numeric_dtype(y_raw) else y_raw
+                        selector = SelectKBest(score_func=f_classif, k=k_val)
+                    else:
+                        y_sel = y_raw
+                        selector = SelectKBest(score_func=f_regression, k=k_val)
+
+                    selector.fit(X_sel, y_sel)
+                    scores = pd.Series(selector.scores_, index=features_pool).sort_values(ascending=False)
+
+                    st.markdown("#### 📊 Feature F-Scores")
+                    st.bar_chart(scores)
+                    top_feats = scores.head(k_val).index.tolist()
+                    st.success(f"✅ Top {k_val} recommended features: {', '.join(top_feats)}")
         else:
-            st.info("Need at least 3 numeric columns for feature selection.")
+            st.info("Need at least 3 columns for feature selection.")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Real (non-theatrical) autonomous agent missions — each actually inspects the active dataset.
+# ──────────────────────────────────────────────────────────────────────────
+def _mission_outlier_sweep(df: pd.DataFrame) -> pd.DataFrame:
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    rows = []
+    for c in numeric_cols:
+        s = df[c].dropna()
+        if s.empty:
+            continue
+        q1, q3 = np.percentile(s, 25), np.percentile(s, 75)
+        iqr = q3 - q1
+        mask = (s < q1 - 1.5 * iqr) | (s > q3 + 1.5 * iqr)
+        rows.append({"Column": c, "Outliers Found": int(mask.sum()), "Outlier Rate (%)": round(100 * mask.sum() / len(s), 2)})
+    return pd.DataFrame(rows).sort_values("Outliers Found", ascending=False) if rows else pd.DataFrame()
+
+
+def _mission_quality_audit(df: pd.DataFrame) -> pd.DataFrame:
+    return pd.DataFrame({
+        "Column": df.columns,
+        "Null Count": df.isnull().sum().values,
+        "Null %": (df.isnull().mean() * 100).round(2).values,
+        "Duplicate Rows (dataset-wide)": [int(df.duplicated().sum())] * len(df.columns),
+    })
+
+
+def _mission_trend_check(df: pd.DataFrame) -> pd.DataFrame:
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    rows = []
+    x = np.arange(len(df))
+    for c in numeric_cols:
+        y = df[c].values
+        mask = ~pd.isnull(y)
+        if mask.sum() < 5:
+            continue
+        slope, intercept, r, p, se = sps.linregress(x[mask], y[mask])
+        state = "Degrading" if (slope < 0 and p < 0.05) else ("Improving" if (slope > 0 and p < 0.05) else "Stable")
+        rows.append({"Column": c, "Trend Slope": round(slope, 5), "P-Value": round(p, 5), "Assessment": state})
+    return pd.DataFrame(rows) if rows else pd.DataFrame()
+
+
+def _mission_executive_report(df: pd.DataFrame) -> str:
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    lines = [
+        "# AUTOMATED EXECUTIVE DATA REPORT",
+        f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "",
+        f"- Rows: {df.shape[0]:,} | Columns: {df.shape[1]}",
+        f"- Missing cells: {int(df.isnull().sum().sum()):,}",
+        f"- Duplicate rows: {int(df.duplicated().sum()):,}",
+    ]
+    if numeric_cols:
+        lines.append("\n## Numeric Column Summary")
+        lines.append(df[numeric_cols].describe().T.round(3).to_string())
+        if len(numeric_cols) >= 2:
+            corr = df[numeric_cols].corr().abs()
+            upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
+            stacked = upper.stack()
+            if not stacked.empty:
+                top_pair = stacked.idxmax()
+                lines.append(f"\n## Strongest Correlation\n`{top_pair[0]}` ↔ `{top_pair[1]}`: r = {stacked.max():.3f}")
+    return "\n".join(lines)
+
+
+def _mission_pipeline_sync(df: pd.DataFrame) -> dict:
+    import hashlib
+    fp = hashlib.sha256(pd.util.hash_pandas_object(df, index=False).values.tobytes()).hexdigest()
+    recorded = st.session_state.get("dataset_schema_meta", {}).get("fingerprint")
+    return {"current_fingerprint": fp, "data_studio_fingerprint": recorded, "consistent": recorded is None or recorded == fp}
 
 
 def render_agents_tab():
-    section_header("🦾 Autonomous Agent Swarm Console", "Deploy specialized background agent missions for automated data auditing, anomaly detection, and continuous pipeline monitoring.")
+    section_header("🦾 Autonomous Agent Console", "Each mission actually inspects the active dataset — no simulated delays, no canned success messages.")
 
-    mission = st.selectbox("Select Agent Mission Profile", [
+    df = get_active_dataframe()
+    if df is None:
+        st.warning("⚠️ No active dataset. Load one in Data Studio first — these missions need real data to inspect.")
+        return
+
+    mission = st.selectbox("Select Agent Mission", [
         "Anomaly Detection & Outlier Sweep",
         "Data Quality & Missingness Audit",
-        "Predictive Maintenance Health Check",
+        "Trend Degradation Check",
         "Automated Executive Reporting Generator",
-        "Cross-Hub Data Pipeline Synchronization",
+        "Cross-Hub Data Pipeline Consistency Check",
     ], key="agent_mission")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        priority = st.selectbox("Execution Priority", ["Standard", "High", "Critical Real-Time"], key="agent_priority")
-    with col2:
-        notification = st.checkbox("Enable Telemetry Webhook Notification", value=True, key="agent_notif")
+    if st.button("🚀 Run Agent Mission", type="primary", key="deploy_agent"):
+        with st.spinner(f"Running: {mission}..."):
+            if mission == "Anomaly Detection & Outlier Sweep":
+                result = _mission_outlier_sweep(df)
+                if result.empty:
+                    st.info("No numeric columns to scan.")
+                else:
+                    st.dataframe(result, use_container_width=True, hide_index=True)
+                    total = int(result["Outliers Found"].sum())
+                    st.success(f"✅ Mission complete — {total:,} outlier values found across {len(result)} numeric columns.")
+                    render_export_buttons(result, base_name="agent_outlier_sweep")
 
-    if st.button("🚀 Deploy Autonomous Agent", type="primary", key="deploy_agent"):
-        with st.spinner(f"Initializing neural swarm agents for mission: {mission}..."):
-            import time
-            time.sleep(1.2)
-        st.success(f"✅ Agent successfully deployed for '{mission}' [Priority: {priority}].")
-        st.metric("Swarm Telemetry Status", "Active & Monitoring", delta="0 errors")
-        st.info("Agent execution logs are securely recorded to the system telemetry audit trail.")
+            elif mission == "Data Quality & Missingness Audit":
+                result = _mission_quality_audit(df)
+                st.dataframe(result, use_container_width=True, hide_index=True)
+                st.success("✅ Mission complete.")
+                render_export_buttons(result, base_name="agent_quality_audit")
+
+            elif mission == "Trend Degradation Check":
+                result = _mission_trend_check(df)
+                if result.empty:
+                    st.info("Not enough numeric data (need 5+ non-null points per column) to assess trends.")
+                else:
+                    st.dataframe(result, use_container_width=True, hide_index=True)
+                    degrading = result[result["Assessment"] == "Degrading"]
+                    if len(degrading):
+                        st.warning(f"⚠️ {len(degrading)} column(s) show a statistically significant downward trend over row order: {', '.join(degrading['Column'])}")
+                    else:
+                        st.success("✅ No statistically significant degrading trends detected.")
+                    render_export_buttons(result, base_name="agent_trend_check")
+
+            elif mission == "Automated Executive Reporting Generator":
+                report = _mission_executive_report(df)
+                st.code(report, language="markdown")
+                st.download_button("⬇️ Download Executive Report (.md)", data=report, file_name="agent_executive_report.md", mime="text/markdown", key="dl_agent_report")
+                st.success("✅ Mission complete.")
+
+            else:
+                result = _mission_pipeline_sync(df)
+                if result["data_studio_fingerprint"] is None:
+                    st.info("No fingerprint recorded by Data Studio yet this session — nothing to compare against. Current dataset fingerprint: " + result["current_fingerprint"][:24] + "…")
+                elif result["consistent"]:
+                    st.success(f"✅ Consistent — this dataset matches the fingerprint Data Studio last recorded ({result['current_fingerprint'][:24]}…).")
+                else:
+                    st.error(f"🚨 Inconsistent — the active dataset has changed since Data Studio last recorded a fingerprint. Current: {result['current_fingerprint'][:16]}… vs. recorded: {result['data_studio_fingerprint'][:16]}…")
 
 
 def render_chaos_tab():
@@ -408,7 +707,7 @@ def render_chaos_tab():
         c1, c2 = st.columns(2)
         c1.metric("Expansion-Rate Heuristic (mLCE)", f"{mlce:.4f}")
         c2.metric("Trajectory State Classification", state_label)
-        
+
         fig = go.Figure(data=[go.Scatter3d(
             x=x_traj, y=y_traj, z=z_traj, mode="lines",
             line=dict(color="#60A5FA", width=4),
@@ -470,11 +769,13 @@ def render_chaos_tab():
         series = None
         if series_src == "Extracted Trajectory":
             series = x_traj
-        elif df is not None:
-            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-            if numeric_cols:
-                col = st.selectbox("Column to Forecast", numeric_cols, key="chaos_fc_col")
-                series = df[col].dropna().values
+        else:
+            source_df = get_active_dataframe()
+            if source_df is not None:
+                numeric_cols = source_df.select_dtypes(include=[np.number]).columns.tolist()
+                if numeric_cols:
+                    col = st.selectbox("Column to Forecast", numeric_cols, key="chaos_fc_col")
+                    series = source_df[col].dropna().values
         if series is not None and len(series) >= 4:
             periods = st.slider("Forecast Horizon (periods)", 1, 30, 12, key="chaos_fc_periods")
             fitted_hw, forecast_hw = holt_winters_forecast(series, periods=periods)
@@ -505,9 +806,9 @@ def main():
     setup_page("ML & Predictive Studio", "🤖", initial_sidebar_state="expanded")
 
     hero_card(
-        "🤖 Enterprise ML & Predictive Studio (Upgraded)",
-        "Consolidated machine learning hub featuring AutoML cross-validation, hyperparameter tuning, interactive prediction, feature engineering studio, autonomous agents, and AI chaos dynamics.",
-        badge_text="ML & PREDICTIVE STUDIO • PREMIUM ENTERPRISE",
+        "🤖 Enterprise ML & Predictive Studio (Premium)",
+        "Consolidated machine learning hub featuring AutoML with real hyperparameter tuning, model persistence and export, a prediction engine connected to your actual trained model, task-aware feature selection, non-theatrical autonomous agents, and real ODE-based chaos dynamics.",
+        badge_text="ML & PREDICTIVE STUDIO • PREMIUM TIER",
     )
 
     render_dataset_context_banner()
