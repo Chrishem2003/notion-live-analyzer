@@ -69,3 +69,32 @@ def render_standard_footer(hub_name: str):
 def hub_tool_label(hub_name: str, tool_name: str):
     """Return a standardized section header string."""
     return f"{hub_name} → {tool_name}"
+
+# Global CSS Fix for Streamlit Selectboxes and Dropdown Options
+def inject_global_dropdown_fix():
+    import streamlit as st
+    st.markdown("""
+        <style>
+            /* Fix Streamlit dropdown options background and text contrast */
+            div[data-baseweb="select"] > div {
+                background-color: #1e293b !important;
+                color: #f8fafc !important;
+            }
+            ul[data-baseweb="menu"] {
+                background-color: #1e293b !important;
+            }
+            li[data-baseweb="option"] {
+                background-color: #1e293b !important;
+                color: #f8fafc !important;
+            }
+            li[data-baseweb="option"]:hover {
+                background-color: #334155 !important;
+                color: #ffffff !important;
+            }
+            span[data-baseweb="tag"] {
+                background-color: #334155 !important;
+                color: #f8fafc !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
