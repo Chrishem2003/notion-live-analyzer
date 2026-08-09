@@ -39,3 +39,28 @@ def inject_global_dropdown_fix():
             }
         </style>
     """, unsafe_allow_html=True)
+    import streamlit as st
+
+def setup_page(page_title="App", page_icon="📊", initial_sidebar_state="expanded"):
+    """Configures page layout, title, icon, and injects global styling."""
+    st.set_page_config(
+        page_title=page_title,
+        page_icon=page_icon,
+        layout="wide",
+        initial_sidebar_state=initial_sidebar_state
+    )
+    # Call your dropdown/UI styling injection here if available
+    try:
+        inject_global_dropdown_fix()
+    except NameError:
+        pass
+
+def render_standard_footer(module_name="ANALYTICS STUDIO"):
+    """Renders a standardized footer across application pages."""
+    st.markdown("---")
+    st.markdown(
+        f"<p style='text-align: center; color: #64748b; font-size: 0.85rem;'>"
+        f"🔒 Enterprise Analytics Hub • Module: <b>{module_name}</b>"
+        f"</p>",
+        unsafe_allow_html=True
+    )
