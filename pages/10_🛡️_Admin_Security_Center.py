@@ -7,8 +7,9 @@ and the complete Nexus 2.0 encrypted productivity suite.
 from pathlib import Path
 import sys
 
-# Add the root directory to system path so modules can be imported inside pages/
+# Ensure root directory is discoverable for local modules in pages/
 sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import datetime
 import json
 import platform
@@ -19,6 +20,7 @@ import streamlit as st
 
 from modules.page_bootstrap import setup_page, render_standard_footer
 from modules.shared_ui import hero_card, section_header, metric_card, render_export_buttons
+from modules.admin_guard import require_admin
 from modules.audit_compliance_engine import (
     statcheck_consistency,
     p_curve_analysis,
@@ -108,7 +110,7 @@ def render_system_diagnostics(conn):
         "System Property": ["Python Core Version", "Host Operating System", "System Platform", "UTC Timestamp"],
         "Value": [platform.python_version(), platform.system(), platform.platform(), datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")],
     })
-    st.dataframe(env_data, use_container_width=True, hide_index=True)
+    st.dataframe(env_data, width='stretch', hide_index=True)
     render_export_buttons(env_data, base_name="system_runtime_environment")
 
     st.markdown("#### Cryptographic Telemetry Log Stream")
@@ -117,7 +119,7 @@ def render_system_diagnostics(conn):
     logs = cursor.fetchall()
     if logs:
         logs_df = pd.DataFrame(logs, columns=["ID", "Timestamp", "Module", "Severity", "Details", "SHA-256 Hash"])
-        st.dataframe(logs_df, use_container_width=True, hide_index=True)
+        st.dataframe(logs_df, width='stretch', hide_index=True)
         render_export_buttons(logs_df, base_name="system_telemetry_audit_logs")
     else:
         st.info("ℹ️ No system telemetry anomaly flags recorded during the active operational window.")
@@ -150,7 +152,7 @@ def render_user_management(conn):
         return
 
     users_df = pd.DataFrame(users, columns=["Email Address", "Full Name", "Assigned Role", "Registration Date", "Last Active"])
-    st.dataframe(users_df, use_container_width=True, hide_index=True)
+    st.dataframe(users_df, width='stretch', hide_index=True)
     render_export_buttons(users_df, base_name="rbac_user_directory")
 
     st.markdown("#### Privilege Elevation & Role Modification Console")
@@ -201,7 +203,7 @@ def render_billing():
     st.markdown("#### Registered Subscription Directory")
     if rows:
         bdf = pd.DataFrame(rows, columns=["Subscriber Email", "Subscription Plan", "Trial Commencement"])
-        st.dataframe(bdf, use_container_width=True, hide_index=True)
+        st.dataframe(bdf, width='stretch', hide_index=True)
         render_export_buttons(bdf, base_name="enterprise_subscription_directory")
     else:
         st.info("ℹ️ No subscription records found.")
@@ -259,7 +261,7 @@ def render_security_vault():
         "Access Action": ["Session Vault Read/Write Execution"],
         "Authenticated User": [st.session_state.get("user_identity", {}).get("name", "System Administrator")],
     })
-    st.dataframe(audit, use_container_width=True, hide_index=True)
+    st.dataframe(audit, width='stretch', hide_index=True)
 
 
 def render_audit_forensics():
@@ -355,7 +357,7 @@ def render_audit_forensics():
 
 
 def render_nexus_vault():
-    section_header("🔐 Nexus Vault 2.0 — Secure Workspace Suite", "Integrated encrypted drive, calendar conflict manager, virtual meeting scheduler, markdown documentation suite, spreadsheet engine, and contacts directory[cite: 15].")
+    section_header("🔐 Nexus Vault 2.0 — Secure Workspace Suite", "Integrated encrypted drive, calendar conflict manager, virtual meeting scheduler, markdown documentation suite, spreadsheet engine, and contacts directory.")
 
     tab_v = st.tabs([
         "📁 Encrypted Drive",
@@ -384,7 +386,7 @@ def render_nexus_vault():
         if files:
             df = pd.DataFrame([{k: f[k] for k in ("name", "category", "size_bytes", "created_at")} for f in files])
             df["Size Display"] = df["size_bytes"].apply(lambda b: f"{b/1024:.2f} KB" if b > 1024 else f"{b} B")
-            st.dataframe(df.drop(columns=["size_bytes"]), use_container_width=True, hide_index=True)
+            st.dataframe(df.drop(columns=["size_bytes"]), width='stretch', hide_index=True)
             render_export_buttons(df, base_name="nexus_vault_file_directory")
         else:
             st.info("ℹ️ Vault is currently empty. Upload files above to initiate AES-256 encryption.")
@@ -411,14 +413,14 @@ def render_nexus_vault():
         events = NexusCalendar.all_events()
         if events:
             ev_df = pd.DataFrame([{"Title": e["title"], "Start": e["start_dt"][:16].replace("T", " "), "End": e["end_dt"][:16].replace("T", " "), "Location": e.get("location", "")} for e in events])
-            st.dataframe(ev_df, use_container_width=True, hide_index=True)
+            st.dataframe(ev_df, width='stretch', hide_index=True)
             render_export_buttons(ev_df, base_name="nexus_calendar_events")
         else:
             st.info("ℹ️ No calendar events scheduled.")
 
     with tab_v[2]:
         st.markdown("#### Virtual Meeting Scheduler & Live Session Interface")
-        st.caption("Manage secure WebRTC video conferencing sessions, camera streams, and audio feeds[cite: 15].")
+        st.caption("Manage secure WebRTC video conferencing sessions, camera streams, and audio feeds.")
         
         with st.form("nexus_meet_form_upg"):
             m_title = st.text_input("Meeting Subject", key="nexus_meet_title_upg")
@@ -436,7 +438,7 @@ def render_nexus_vault():
 
         st.markdown("---")
         st.markdown("#### 🎥 Live Camera & Meeting Video Stream Integration")
-        st.caption("Access and test local web camera peripherals or stream inputs directly inside active meeting room sections[cite: 15].")
+        st.caption("Access and test local web camera peripherals or stream inputs directly inside active meeting room sections.")
         
         cam_col1, cam_col2 = st.columns(2)
         with cam_col1:
@@ -446,11 +448,10 @@ def render_nexus_vault():
             
         if enable_camera:
             st.info(f"📹 Initializing hardware camera stream on device index `{camera_index}`...")
-            # Streamlit native camera input widget provides an integrated browser-based camera interface
             camera_capture = st.camera_input("Capture Meeting Snapshot / Video Frame")
             if camera_capture is not None:
                 st.success("✅ Frame captured successfully from active meeting hardware stream.")
-                st.image(camera_capture, caption="Captured Meeting Snapshot Preview", use_container_width=True)
+                st.image(camera_capture, caption="Captured Meeting Snapshot Preview", width='stretch')
         else:
             st.info("ℹ️ Camera stream is currently paused or disabled. Check the box above to initialize live video capture.")
 
@@ -509,7 +510,7 @@ def render_nexus_vault():
         contacts = NexusContacts.list_contacts(query=query)
         if contacts:
             df_contacts = pd.DataFrame(contacts)
-            st.dataframe(df_contacts, use_container_width=True, hide_index=True)
+            st.dataframe(df_contacts, width='stretch', hide_index=True)
             render_export_buttons(df_contacts, base_name="nexus_contacts_directory")
         else:
             st.info("ℹ️ No matching contacts found.")
@@ -544,7 +545,7 @@ def render_settings():
     st.markdown("#### Appearance & Theme Preferences")
     c1, c2 = st.columns(2)
     with c1:
-        theme = st.selectbox("UI Color Scheme", ["dark", "light"], index=0, key="settings_theme_upg")
+        theme = st.selectbox("UI Color Scheme", ["dark", "light"], index=0, key="settings_theme_upg)
     with c2:
         accent = st.color_picker("Accent Brand Color", value="#00f2fe", key="settings_accent_upg")
 
@@ -574,7 +575,6 @@ def render_settings():
 
 
 def main():
-    from modules.admin_guard import require_admin
     require_admin()
 
     setup_page("Admin & Security Center", "🛡️", initial_sidebar_state="expanded")
