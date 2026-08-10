@@ -10,6 +10,9 @@ from pathlib import Path
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
+from modules.page_bootstrap import setup_page, render_standard_footer
+from modules.shared_ui import hero_card, section_header, metric_card, render_export_buttons
+from modules.admin_guard import require_admin
 
 import datetime
 import hashlib
