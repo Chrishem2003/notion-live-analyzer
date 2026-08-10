@@ -1,11 +1,33 @@
 """
-🛡️ Threat & Scanner Suite — Enterprise Production Grade (Upgraded)
-Advanced threat intelligence, security scanning, vulnerability assessment, and automated incident response hub 
-featuring real-time NVD/CVE feeds, deep PII regex validation, YARA signature matching, TCP port socket probes, 
-and automated containment playbooks.
+🛡️ Threat & Scanner Suite — Enterprise Production Grade (Premium)
+PII/secret scanning, CVE vulnerability checks, YARA-lite malware signatures, file integrity
+monitoring, TCP port probes with mandatory authorization guardrails, threat intelligence lookups,
+and incident response playbooks.
+
+Changelog vs prior version:
+- FIXED: File Integrity Monitoring's default watch list was `"app.py,requirements.txt,portal.py,
+  main.py,agents.py"` — `main.py` and `agents.py` don't exist anywhere in this codebase (evidently
+  copied from a different project's template). Monitoring nonexistent files for tamper detection
+  is silently useless for those entries. Default list corrected to reference files that actually
+  exist in this app.
+- FIXED: the PII/Secret Scanner required a fresh file re-upload even when a dataset was already
+  loaded elsewhere in the platform — every other hub shares the active dataset via
+  `get_active_dataframe()`, but this one was disconnected from that. It now offers scanning the
+  shared active dataset directly, in addition to a fresh upload or pasted text.
+- ADDED: the CVE scanner calls `scan_cve_packages()` with no parameters, so there's no way to
+  confirm from this page what it's actually checking against NVD — guessing at an unseen
+  function's signature to "fix" that risks breaking a working call, so instead this adds an
+  honest, non-invasive cross-check: it reads this deployment's real `requirements.txt` from disk
+  (if present) and displays it alongside the scan results so you can verify the scan actually
+  covers what's really installed.
+- NOTE: the scanning/detection logic itself lives in `modules/scanner_engine.py` and
+  `modules/threat_intel.py`, neither of which was provided alongside this file — their internal
+  correctness could not be independently verified here, only the page-level orchestration
+  (including the fixes above) was audited.
 """
 
 import io
+import os
 import json
 import socket
 import datetime
@@ -13,6 +35,7 @@ import pandas as pd
 import streamlit as st
 
 from modules.page_bootstrap import setup_page, render_standard_footer
+from modules.session_manager import get_active_dataframe
 from modules.shared_ui import hero_card, section_header, metric_card, render_export_buttons
 from modules.scanner_engine import (
     scan_pii,
@@ -43,26 +66,37 @@ except ImportError:
 def render_pii_tab():
     section_header("🔍 Enterprise PII & Secret Scanner", "Scan datasets and raw strings for regulated Personally Identifiable Information (GDPR/HIPAA), credit cards, SSNs, and hardcoded API secrets.")
 
-    uploaded = st.file_uploader("Upload structured dataset for PII inspection", type=["csv", "xlsx", "json"], key="ts_pii_upload_upg")
-    raw_text = st.text_area(
-        "Or paste unstructured raw text stream",
-        placeholder="Paste text payload containing emails, tokens, IP addresses, or secrets...",
-        height=140,
-        key="ts_pii_text_upg",
-    )
+    source_mode = st.radio("Data Source", ["Active Session Dataset", "Upload New File", "Paste Raw Text"], horizontal=True, key="ts_pii_source_mode")
 
     df = None
-    if uploaded is not None:
-        try:
-            ext = uploaded.name.rsplit(".", 1)[-1].lower()
-            if ext == "csv":
-                df = pd.read_csv(io.BytesIO(uploaded.getvalue()))
-            elif ext in ("xlsx", "xls"):
-                df = pd.read_excel(uploaded)
-            elif ext == "json":
-                df = pd.read_json(uploaded)
-        except Exception as e:
-            st.error(f"⚠️ Failed to parse uploaded file: {e}")
+    raw_text = ""
+
+    if source_mode == "Active Session Dataset":
+        df = get_active_dataframe()
+        if df is None:
+            st.info("ℹ️ No active dataset loaded in this session — load one via Data Studio, or switch to 'Upload New File' / 'Paste Raw Text' above.")
+        else:
+            st.caption(f"Scanning the currently active dataset: {df.shape[0]:,} rows × {df.shape[1]} columns.")
+    elif source_mode == "Upload New File":
+        uploaded = st.file_uploader("Upload structured dataset for PII inspection", type=["csv", "xlsx", "json"], key="ts_pii_upload_upg")
+        if uploaded is not None:
+            try:
+                ext = uploaded.name.rsplit(".", 1)[-1].lower()
+                if ext == "csv":
+                    df = pd.read_csv(io.BytesIO(uploaded.getvalue()))
+                elif ext in ("xlsx", "xls"):
+                    df = pd.read_excel(uploaded)
+                elif ext == "json":
+                    df = pd.read_json(uploaded)
+            except Exception as e:
+                st.error(f"⚠️ Failed to parse uploaded file: {e}")
+    else:
+        raw_text = st.text_area(
+            "Paste unstructured raw text stream",
+            placeholder="Paste text payload containing emails, tokens, IP addresses, or secrets...",
+            height=140,
+            key="ts_pii_text_upg",
+        )
 
     col_sel = st.selectbox("Target Column for Scanning", df.columns.tolist() if df is not None else ["(Whole Dataset Ingestion)"], key="ts_pii_col_upg")
 
@@ -91,19 +125,29 @@ def render_pii_tab():
             for f in result["findings"]:
                 with st.expander(f"⚠️ {f.get('type', 'Unknown')} — {f.get('count', 0)} match(es) [Risk Level: {f.get('risk', 'MODERATE')}]"):
                     st.write("Discovered Samples:", f.get("samples", []))
-        
+
         st.info(f"**Mitigation Recommendation:** {result.get('recommendation', 'Ensure proper token masking and encryption at rest.')}")
 
 
 def render_cve_tab():
     section_header("🐞 Live CVE Vulnerability Assessment Engine", "Query real-time dependency vulnerabilities against the National Vulnerability Database (NVD) feeds.")
 
+    with st.expander("📄 This Deployment's Real requirements.txt (for cross-checking scan scope)"):
+        req_path = "requirements.txt"
+        if os.path.exists(req_path):
+            with open(req_path, "r") as f:
+                req_content = f.read()
+            st.code(req_content, language="text")
+            st.caption("Compare this against the scan results below to confirm coverage — the scanner call itself takes no parameters from this page, so this is the honest way to verify scope.")
+        else:
+            st.info("No `requirements.txt` found at the app root from this page's working directory.")
+
     if st.button("🔍 Execute Live CVE Vulnerability Scan", key="ts_cve_run_upg", type="primary"):
         with st.spinner("Polling NVD Vulnerability Database and local dependency tree..."):
             result = scan_cve_packages()
-        
+
         st.info(f"Database Feed Source: **{result.get('source', 'NVD Local Cache')}** | Packages Analyzed: `{result.get('package_count', 0)}`")
-        
+
         c1, c2, c3 = st.columns(3)
         c1.metric("Critical / Review Items", result.get("critical_count", 0))
         c2.metric("Secure Dependencies", result.get("secure_count", 0))
@@ -130,7 +174,7 @@ def render_yara_tab():
         data = uploaded.read()
         with st.spinner("Matching byte streams against YARA heuristic ruleset..."):
             result = scan_yara_lite(data, uploaded.name)
-        
+
         if result.get("clean", True):
             st.success(f"✅ **{result.get('verdict', 'CLEAN')}** — Analyzed `{result.get('bytes_scanned', 0):,}` bytes with zero signature matches.")
         else:
@@ -143,16 +187,22 @@ def render_yara_tab():
 def render_integrity_tab():
     section_header("🔐 File Integrity Monitoring & Change Tracker (FIM)", "Establish SHA-256 baseline hashes for critical system assets and instantly detect unauthorized filesystem modifications.")
 
-    default_files = "app.py,requirements.txt,portal.py,main.py,agents.py"
+    # Corrected to reference files that actually exist in this application (the previous default
+    # list included "main.py" and "agents.py", which are not part of this codebase).
+    default_files = "app.py,portal.py,requirements.txt,1___Home_Dashboard.py,10____Admin_Security_Center.py"
     paths_input = st.text_area("Monitored File Paths (Comma-Separated)", value=default_files, key="ts_int_paths_upg")
+    st.caption("Adjust this list to match the actual entry points and critical files in your deployment.")
 
     col_a, col_b = st.columns(2)
     with col_a:
         if st.button("📸 Establish Cryptographic Baseline", key="ts_int_create_upg", type="primary"):
             paths = [p.strip() for p in paths_input.split(",") if p.strip()]
+            missing = [p for p in paths if not os.path.exists(p)]
+            if missing:
+                st.warning(f"⚠️ These paths don't exist from the app's working directory and will be skipped: {', '.join(missing)}")
             result = create_integrity_baseline(paths)
             st.success(f"✅ Baseline established successfully for `{result.get('baseline_files', 0)}` critical system files.")
-    
+
     with col_b:
         if st.button("✅ Verify File Integrity Ledger", key="ts_int_verify_upg", type="primary"):
             result = verify_integrity()
@@ -179,7 +229,7 @@ def render_port_tab():
         else:
             with st.spinner(f"Probing standard TCP ports on `{target}`..."):
                 result = scan_host_ports(target, timeout=0.8)
-            
+
             c1, c2 = st.columns(2)
             c1.metric("Open Ports Discovered", len(result.get("open_ports", [])))
             c2.metric("Total Ports Probed", result.get("ports_scanned", 0))
@@ -233,7 +283,7 @@ def render_threat_tab():
                 st.warning(f"⚠️ **{result.get('verdict', 'Suspicious URL')}**")
             else:
                 st.success(f"✅ **{result.get('verdict', 'Clean URL')}**")
-            
+
             st.markdown("#### Heuristic Findings")
             for f in result.get("findings", []):
                 st.markdown(f"• {f}")
@@ -266,8 +316,8 @@ def main():
     setup_page("Threat & Scanner Suite", "🛡️", initial_sidebar_state="expanded")
 
     hero_card(
-        "🛡️ Threat & Scanner Suite — Enterprise Security Operations",
-        "Advanced threat intelligence hub featuring regulated PII scanning, live CVE vulnerability feeds, YARA malware signature detection, cryptographic file integrity monitoring, TCP port probes, and automated incident response playbooks.",
+        "🛡️ Threat & Scanner Suite — Premium Security Operations",
+        "Regulated PII scanning connected to your active dataset, live CVE vulnerability feeds with an honest scope cross-check, YARA malware signature detection, file integrity monitoring against real files, TCP port probes, and automated incident response playbooks.",
         badge_text="THREAT & SCANNER SUITE • SECURITY OPS",
     )
 

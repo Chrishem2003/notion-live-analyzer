@@ -1,12 +1,29 @@
 """
-🕵️ Forensics Intelligence — Digital Evidence Laboratory (Enterprise Production Grade)
-Advanced digital forensics hub featuring real bit-level byte stream inspection, LSB entropy steganography profiling, 
-deep EXIF/geolocation mapping, SMTP envelope/DKIM/SPF analysis, and cryptographically immutable chain-of-custody ledgers.
+🕵️ Forensics Intelligence — Digital Evidence Laboratory (Premium)
+Bit-level byte stream inspection, LSB entropy steganography profiling, deep EXIF/geolocation
+mapping, SMTP envelope/DKIM/SPF analysis, and cryptographically immutable, per-evidence
+chain-of-custody ledgers.
+
+Changelog vs prior version:
+- FIXED (crash bug): line 119 called `st.plotly_graph(...)`, which doesn't exist in Streamlit's
+  API (it's `st.plotly_chart`) — the entropy gauge crashed every single time it rendered. Fixed.
+- FIXED (chain-of-custody correctness bug): case tracking used a single
+  `st.session_state["fe_case_id"]` set once and reused for *every* file uploaded afterward in the
+  same session. That means investigating two unrelated pieces of evidence in one sitting silently
+  merged them into the same "immutable" custody chain — which undermines the entire point of a
+  chain-of-custody ledger. Cases are now keyed by the SHA-256 of the uploaded file itself: each
+  distinct piece of evidence gets its own case, a session-scoped case registry tracks all cases
+  opened this session, and the Chain-of-Custody tab lets you pick which case to inspect/verify
+  instead of only ever showing the single most recently touched one.
+- NOTE: the hashing, EXIF extraction, LSB steganalysis, and email-header forensics logic itself
+  lives in `modules/forensics_engine.py`, which was not provided alongside this file — that
+  module's internal correctness could not be independently verified here, only the page-level
+  orchestration (including the two bugs above) was audited and fixed.
 """
 
+import hashlib
 import io
 import json
-import hashlib
 import datetime
 import pandas as pd
 import streamlit as st
@@ -35,8 +52,26 @@ except ImportError:
     PLOTLY_AVAILABLE = False
 
 
+def _file_fingerprint(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def _get_or_open_case(data: bytes, filename: str) -> str:
+    """One case per distinct piece of evidence, keyed by content hash — not one case per session."""
+    if "fe_case_registry" not in st.session_state:
+        st.session_state["fe_case_registry"] = {}  # fingerprint -> {case_id, filename}
+
+    fp = _file_fingerprint(data)
+    registry = st.session_state["fe_case_registry"]
+    if fp not in registry:
+        case = open_evidence_case(filename, summary=f"Forensic evidentiary ingestion: {filename}")
+        registry[fp] = {"case_id": case["case_id"], "filename": filename}
+    st.session_state["fe_current_fingerprint"] = fp
+    return registry[fp]["case_id"]
+
+
 def render_evidence_lab_tab():
-    section_header("💼 Bit-Level Digital Evidence Laboratory", "Perform deep binary inspection, magic byte verification, entropy profiling, cryptographic hashing, and automated chain-of-custody logging.")
+    section_header("💼 Bit-Level Digital Evidence Laboratory", "Deep binary inspection, magic byte verification, entropy profiling, cryptographic hashing, and automated per-evidence chain-of-custody logging.")
 
     uploaded = st.file_uploader("Upload evidentiary artifact for forensic analysis", key="fe_upload_upg")
     if uploaded is None:
@@ -46,12 +81,11 @@ def render_evidence_lab_tab():
     data = uploaded.read()
     filename = uploaded.name
 
-    if "fe_case_id" not in st.session_state:
-        case = open_evidence_case(filename, summary=f"Forensic evidentiary ingestion: {filename}")
-        st.session_state["fe_case_id"] = case["case_id"]
-    case_id = st.session_state["fe_case_id"]
+    case_id = _get_or_open_case(data, filename)
+    is_new_case = st.session_state["fe_case_registry"][_file_fingerprint(data)]["filename"] == filename and \
+        len([1 for v in st.session_state["fe_case_registry"].values() if v["case_id"] == case_id]) == 1
 
-    st.success(f"🔗 Immutable Chain-of-Custody Case Bound: **{case_id}**")
+    st.success(f"🔗 Immutable Chain-of-Custody Case Bound: **{case_id}** (this evidence's own case — not shared with other uploads this session)")
     append_custody_record(case_id, "EVIDENCE_INGESTED_AND_HASHED", st.session_state.get("user_identity", {}).get("name", "Forensic Analyst"))
 
     with st.spinner("Executing low-level byte parsing and entropy profiling..."):
@@ -116,7 +150,7 @@ def render_evidence_lab_tab():
             }
         ))
         fig.update_layout(height=220, margin=dict(t=30, b=10, l=20, r=20), paper_bgcolor="rgba(0,0,0,0)", font={'color': "white"})
-        st.plotly_graph(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("#### 📦 Export Cryptographic Evidence Dossier")
     dossier = json.dumps(report, indent=2)
@@ -152,12 +186,13 @@ def render_metadata_tab():
         st.warning(exif.get("note", "No EXIF metadata detected. The file may have been scrubbed or stripped prior to acquisition."))
 
     if st.button("🔗 Append Extraction Event to Custody Ledger", key="fe_meta_custody_upg"):
-        case_id = st.session_state.get("fe_case_id")
+        fp = st.session_state.get("fe_current_fingerprint")
+        case_id = st.session_state.get("fe_case_registry", {}).get(fp, {}).get("case_id") if fp else None
         if case_id:
             append_custody_record(case_id, "METADATA_EXIF_EXTRACTED", "Forensic Analyst")
-            st.success("✅ Metadata extraction successfully logged to immutable custody ledger.")
+            st.success("✅ Metadata extraction successfully logged to that evidence's custody ledger.")
         else:
-            st.warning("⚠️ No active case found. Ingest a primary evidence file in the Evidence Lab first.")
+            st.warning("⚠️ No active case found. Ingest this file in the Evidence Lab tab first to open its case.")
 
 
 def render_stego_tab():
@@ -224,7 +259,7 @@ def render_phishing_tab():
         cols[0].metric("From Domain", result.get("from_domain", "—"))
         cols[1].metric("Reply-To Domain", result.get("reply_to_domain", "—"))
         cols[2].metric("Return-Path Domain", result.get("return_path_domain", "—"))
-        
+
         st.info(
             f"**Authentication Status:** SPF Present: `{result.get('spf_present')}` | "
             f"DKIM Present: `{result.get('dkim_present')}` | "
@@ -233,25 +268,32 @@ def render_phishing_tab():
 
 
 def render_custody_tab():
-    section_header("🔗 Cryptographic Chain-of-Custody Vault", "Court-admissible tamper-evident ledger where every investigative action is cryptographically chained via SHA-256 blocks.")
+    section_header("🔗 Cryptographic Chain-of-Custody Vault", "Court-admissible tamper-evident ledger where every investigative action is cryptographically chained via SHA-256 blocks — one independent chain per piece of evidence.")
 
-    case_id = st.session_state.get("fe_case_id")
-    if case_id:
-        st.metric("Active Case Identifier", case_id)
-        if st.button("✅ Verify Cryptographic Ledger Integrity", key="fe_verify_chain_upg", type="primary"):
-            result = verify_chain(case_id)
-            if result.get("valid"):
-                st.success(f"🔐 Chain integrity verified successfully — {result['records']} immutable ledger entries intact.")
-            else:
-                st.error(f"🚨 **CHAIN TAMPER DETECTED:** {result.get('reason')}")
-    else:
-        st.info("ℹ️ No active forensic case session. Ingest evidentiary artifacts in the Evidence Lab to initialize a case.")
+    registry = st.session_state.get("fe_case_registry", {})
+    if not registry:
+        st.info("ℹ️ No forensic cases opened this session. Ingest an evidentiary artifact in the Evidence Lab to initialize a case.")
+        return
+
+    options = {f"{v['case_id']} — {v['filename']}": v["case_id"] for v in registry.values()}
+    selected_label = st.selectbox("Select Case to Inspect", list(options.keys()), key="fe_case_selector")
+    case_id = options[selected_label]
+
+    st.metric("Selected Case Identifier", case_id)
+    if st.button("✅ Verify Cryptographic Ledger Integrity", key="fe_verify_chain_upg", type="primary"):
+        result = verify_chain(case_id)
+        if result.get("valid"):
+            st.success(f"🔐 Chain integrity verified successfully — {result['records']} immutable ledger entries intact for this case.")
+        else:
+            st.error(f"🚨 **CHAIN TAMPER DETECTED:** {result.get('reason')}")
+
+    st.caption(f"{len(registry)} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
 
     st.markdown("#### About Cryptographic Chain-of-Custody")
     st.markdown("""
     - Every upload, hashing operation, extraction, and analysis is recorded with a strict UTC timestamp.
-    - Records are chained together using preceding SHA-256 hashes.
-    - Any unauthorized modification or file tampering instantly invalidates the cryptographic proof chain, ensuring strict legal admissibility.
+    - Records are chained together using preceding SHA-256 hashes, **scoped to the specific evidence file that generated them**.
+    - Any unauthorized modification or file tampering instantly invalidates the cryptographic proof chain for that case.
     """)
 
 
@@ -262,8 +304,8 @@ def main():
     setup_page("Forensics Intelligence", "🕵️", initial_sidebar_state="expanded")
 
     hero_card(
-        "🕵️ Forensic Intelligence & Digital Evidence Laboratory — Enterprise Suite",
-        "Advanced digital forensics suite featuring bit-level byte stream parsing, Shannon entropy profiling, LSB steganography detection, EXIF geolocation mapping, SMTP phishing forensics, and cryptographically immutable chain-of-custody ledgers.",
+        "🕵️ Forensic Intelligence & Digital Evidence Laboratory — Premium Suite",
+        "Bit-level byte stream parsing, Shannon entropy profiling, LSB steganography detection, EXIF geolocation mapping, SMTP phishing forensics, and cryptographically immutable, per-evidence chain-of-custody ledgers.",
         badge_text="FORENSIC INTELLIGENCE • DIGITAL EVIDENCE LAB",
     )
 

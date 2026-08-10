@@ -1,12 +1,25 @@
 """
-🔄 Universal Converter Studio — Enterprise Production Grade (Upgraded)
-Comprehensive enterprise-grade conversion, reshaping, scientific unit conversion, geodesic coordinate transformation, 
-and PDF content extraction engine with live batch processing, schema mapping, and robust error recovery.
+🔄 Universal Converter Studio — Enterprise Production Grade (Premium)
+Comprehensive conversion, reshaping, scientific unit conversion, geodesic coordinate
+transformation, PDF content extraction, and now real batch multi-file conversion.
+
+Changelog vs prior version:
+- FIXED: the encoding tab's mode selector read "Encode" / "Descending Decode" — the second label
+  is nonsensical (not a real term) and was almost certainly a stray autocomplete/typo artifact.
+  Corrected to plain "Decode".
+- ADDED: Format Converter previously handled exactly one file per run. It now supports real batch
+  conversion — upload multiple files, convert all of them to the target format, and download a
+  single ZIP bundle, instead of repeating the single-file flow N times.
+- NOTE: the actual format/encoding/reshape/unit/coordinate/PDF conversion logic lives in
+  `modules/file_converter.py`, which was not provided alongside this file — that module's
+  internal correctness could not be independently verified here, only the page-level UI/flow
+  (including the fixes above) was audited.
 """
 
 import io
 import json
 import datetime
+import zipfile
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -63,29 +76,7 @@ def _load_dataframe(uploaded):
 
 
 def render_format_tab():
-    section_header("📦 Enterprise Format Converter", "Convert structured datasets seamlessly between CSV, Excel, JSON, Parquet, XML, YAML, SQLite SQL, HTML, and Markdown.")
-
-    uploaded = st.file_uploader("Upload source tabular or dataset file", type=["csv", "xlsx", "xls", "json", "parquet", "sav", "dta"], key="uc_fmt_upload_upg")
-    if uploaded is None:
-        st.info("ℹ️ Upload a structured data file to initiate conversion.")
-        return
-
-    df = _load_dataframe(uploaded)
-    if df is None or df.empty:
-        st.error("⚠️ Failed to parse uploaded file. Verify file schema and structure.")
-        return
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Total Rows", f"{df.shape[0]:,}")
-    c2.metric("Total Columns", f"{df.shape[1]:,}")
-    c3.metric("Memory Footprint", f"{df.memory_usage(deep=True).sum() / 1024:.2f} KB")
-
-    st.markdown("#### Dataset Preview")
-    st.dataframe(df.head(5), use_container_width=True, hide_index=True)
-
-    target = st.selectbox("Target Output Format", [
-        "CSV", "Excel (XLSX)", "JSON", "Parquet", "XML", "YAML", "SQL (SQLite)", "HTML", "Markdown",
-    ], key="uc_fmt_target_upg")
+    section_header("📦 Enterprise Format Converter", "Convert structured datasets seamlessly between CSV, Excel, JSON, Parquet, XML, YAML, SQLite SQL, HTML, and Markdown — single file or real batch mode.")
 
     fmt_map = {
         "CSV": "csv", "Excel (XLSX)": "xlsx", "JSON": "json", "Parquet": "parquet",
@@ -101,24 +92,89 @@ def render_format_tab():
         "XML": "xml", "YAML": "yml", "SQL (SQLite)": "sql", "HTML": "html", "Markdown": "md",
     }
 
-    if st.button("🔄 Execute Format Conversion", key="uc_fmt_convert_upg", type="primary"):
-        with st.spinner("Converting dataset schema and payload..."):
-            data = convert_dataframe(df, fmt_map[target])
-            out_name = uploaded.name.rsplit(".", 1)[0]
-            st.success(f"✅ Conversion successful! Generated `{len(data):,}` bytes.")
-            st.download_button(
-                f"⬇️ Download Converted {target} File",
-                data=data,
-                file_name=f"{out_name}_converted.{ext_map[target]}",
-                mime=mime_map[target],
-                key="uc_fmt_dl_upg",
-            )
+    mode = st.radio("Mode", ["Single File", "Batch (Multiple Files → ZIP)"], horizontal=True, key="uc_fmt_mode")
+    target = st.selectbox("Target Output Format", list(fmt_map.keys()), key="uc_fmt_target_upg")
+
+    if mode == "Single File":
+        uploaded = st.file_uploader("Upload source tabular or dataset file", type=["csv", "xlsx", "xls", "json", "parquet", "sav", "dta"], key="uc_fmt_upload_upg")
+        if uploaded is None:
+            st.info("ℹ️ Upload a structured data file to initiate conversion.")
+            return
+
+        df = _load_dataframe(uploaded)
+        if df is None or df.empty:
+            st.error("⚠️ Failed to parse uploaded file. Verify file schema and structure.")
+            return
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Total Rows", f"{df.shape[0]:,}")
+        c2.metric("Total Columns", f"{df.shape[1]:,}")
+        c3.metric("Memory Footprint", f"{df.memory_usage(deep=True).sum() / 1024:.2f} KB")
+
+        st.markdown("#### Dataset Preview")
+        st.dataframe(df.head(5), use_container_width=True, hide_index=True)
+
+        if st.button("🔄 Execute Format Conversion", key="uc_fmt_convert_upg", type="primary"):
+            with st.spinner("Converting dataset schema and payload..."):
+                data = convert_dataframe(df, fmt_map[target])
+                out_name = uploaded.name.rsplit(".", 1)[0]
+                st.success(f"✅ Conversion successful! Generated `{len(data):,}` bytes.")
+                st.download_button(
+                    f"⬇️ Download Converted {target} File",
+                    data=data,
+                    file_name=f"{out_name}_converted.{ext_map[target]}",
+                    mime=mime_map[target],
+                    key="uc_fmt_dl_upg",
+                )
+    else:
+        uploaded_files = st.file_uploader(
+            "Upload multiple source files", type=["csv", "xlsx", "xls", "json", "parquet", "sav", "dta"],
+            accept_multiple_files=True, key="uc_fmt_batch_upload",
+        )
+        if not uploaded_files:
+            st.info("ℹ️ Upload two or more files to batch-convert them all to the target format in one ZIP.")
+            return
+
+        st.caption(f"{len(uploaded_files)} file(s) queued for conversion to {target}.")
+
+        if st.button(f"🔄 Convert All {len(uploaded_files)} Files & Bundle ZIP", type="primary", key="uc_fmt_batch_convert"):
+            zip_buffer = io.BytesIO()
+            results = []
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                for uf in uploaded_files:
+                    df = _load_dataframe(uf)
+                    if df is None or df.empty:
+                        results.append({"File": uf.name, "Status": "❌ Failed to parse"})
+                        continue
+                    try:
+                        data = convert_dataframe(df, fmt_map[target])
+                        out_name = f"{uf.name.rsplit('.', 1)[0]}_converted.{ext_map[target]}"
+                        zf.writestr(out_name, data)
+                        results.append({"File": uf.name, "Status": f"✅ Converted ({len(data):,} bytes)"})
+                    except Exception as e:
+                        results.append({"File": uf.name, "Status": f"❌ Error: {e}"})
+
+            results_df = pd.DataFrame(results)
+            st.dataframe(results_df, use_container_width=True, hide_index=True)
+
+            success_count = sum(1 for r in results if r["Status"].startswith("✅"))
+            if success_count:
+                st.success(f"✅ {success_count}/{len(uploaded_files)} file(s) converted successfully.")
+                st.download_button(
+                    f"⬇️ Download Batch ZIP ({success_count} file(s))",
+                    data=zip_buffer.getvalue(),
+                    file_name=f"batch_converted_{target.lower().replace(' ', '_')}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+                    mime="application/zip",
+                    key="uc_fmt_batch_dl",
+                )
+            else:
+                st.error("🚫 No files converted successfully — check the status table above.")
 
 
 def render_encoding_tab():
     section_header("🔤 Multi-Encoding & Payload Converter", "Encode and decode binary payloads, API secrets, and text blocks across Base64, Hex, URL Encoding, Binary, and ASCII85.")
 
-    mode = st.radio("Operation Mode", ["Encode", "Descending Decode"], horizontal=True, key="uc_enc_mode_upg")
+    mode = st.radio("Operation Mode", ["Encode", "Decode"], horizontal=True, key="uc_enc_mode_upg")
     source_text = st.text_area("Input Payload / Text String", placeholder="Enter raw text or encoded cipher payload...", height=160, key="uc_enc_input_upg")
 
     target_enc = st.selectbox("Encoding Scheme", ["Base64", "Hex", "URL Encoding", "Binary", "ASCII85"], key="uc_enc_type_upg")
@@ -268,11 +324,11 @@ def render_pdf_tab():
     if st.button("📄 Extract PDF Text Content", key="uc_pdf_run_upg", type="primary"):
         with st.spinner("Parsing document byte streams..."):
             result = extract_pdf_text(uploaded.getvalue())
-        
+
         c1, c2 = st.columns(2)
         c1.metric("Total Pages", result.get("pages", "—"))
         c2.metric("Character Count", f"{result.get('total_chars', 0):,}")
-        
+
         text = result.get("text", "")
         if text.strip():
             st.text_area("Extracted Document Text", value=text, height=320, key="uc_pdf_text_upg")
@@ -288,9 +344,9 @@ def main():
     setup_page("Universal Converter", "🔄", initial_sidebar_state="expanded")
 
     hero_card(
-        "🔄 Universal Converter & Utilities Studio — Enterprise Suite",
-        "Enterprise-grade conversion suite supporting 9+ tabular formats, binary payload encoding, matrix reshaping, scientific unit transformations, geodetic coordinate conversion, and PDF text extraction.",
-        badge_text="UNIVERSAL CONVERTER • UTILITIES STUDIO",
+        "🔄 Universal Converter & Utilities Studio — Premium Suite",
+        "Conversion suite supporting 9+ tabular formats with real batch mode, binary payload encoding, matrix reshaping, scientific unit transformations, geodetic coordinate conversion, and PDF text extraction.",
+        badge_text="UNIVERSAL CONVERTER • PREMIUM SUITE",
     )
 
     tabs = st.tabs([

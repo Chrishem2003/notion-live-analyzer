@@ -1,7 +1,24 @@
 """
-🌍 Global Mission Control — Sovereign Enterprise Command Center (Upgraded)
-The ultimate human-impact intelligence hub featuring automated live health surveillance, global weather & climate telemetry, 
-dynamic impact scorecards with Plotly visualizations, interactive problem-solver registries, and real-time sovereign mission telemetry.
+🌍 Global Mission Control — Sovereign Enterprise Command Center (Premium)
+Live global health surveillance, real weather & climate telemetry (Open-Meteo), an impact
+scorecard, a problem-solver registry, and mission telemetry.
+
+Changelog vs prior version:
+- ADDED transparency caveats on three tabs whose underlying data could not be verified. This
+  page pulls from `modules/mission_control.py`, which was not provided alongside this file.
+  The Health Surveillance and Weather tabs show real signs of being genuinely API-backed (explicit
+  live-vs-fallback error handling, Open-Meteo attribution) and were left functionally as-is.
+  The Impact Scorecard, Problem Solver Registry, and especially Mission Telemetry tabs
+  ("Satellites Linked," "Independent Systems," "AI Agents Deployed") match — almost word for word
+  — the exact fabricated-marketing-metrics pattern already confirmed and fixed in this same
+  codebase's Domain Analytics Hub (which previously showed hardcoded "48 Satellites" and a static
+  "Systemic Risk Index: 0.012" with zero basis in real data). A data-analytics SaaS platform
+  literally operating satellites doesn't make sense as a real infrastructure claim. Since the
+  source module wasn't available to inspect or rewrite, honest on-page disclaimers were added
+  instead of silently presenting unverified — and, by strong pattern-match, likely fabricated —
+  figures as validated fact. If these numbers *are* real (e.g., genuinely computed from logged
+  platform usage), the fix is to wire `modules/mission_control.py` to real counters and this
+  caveat can come out; if they're static, this caveat should stay until they're replaced.
 """
 
 import json
@@ -33,9 +50,9 @@ def render_health_tab():
     if st.button("📡 Initialize Live Health Surveillance Feed", key="mc_health_fetch_upg", type="primary"):
         with st.spinner("Querying international epidemiological telemetry feeds..."):
             result = fetch_global_health_hotspots()
-        
+
         st.info(f"Feed Source: **{result.get('source', 'Global Health Registry')}** | Last Synchronized: `{result.get('as_of', datetime.datetime.utcnow().strftime('%Y-%m-%d'))}`")
-        
+
         total_cases = result.get('total_global_cases', 0)
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Global Tracked Cases", f"{total_cases:,}")
@@ -43,7 +60,7 @@ def render_health_tab():
         c3.metric("Surveillance Status", "ONLINE")
 
         if result.get("error"):
-            st.warning(f"⚠️ Live API Notice: {result['error']} — displaying validated fallback telemetry cache.")
+            st.warning(f"⚠️ Live API Notice: {result['error']} — displaying fallback telemetry cache.")
 
         hotspots = result.get("hotspots", [])
         if hotspots:
@@ -75,12 +92,12 @@ def render_weather_tab():
     if st.button("🌤️ Execute Meteorological Query", key="mc_weather_fetch_upg", type="primary"):
         with st.spinner(f"Querying Open-Meteo satellite grid for coordinates [{lat}, {lon}]..."):
             result = fetch_weather_telemetry(lat, lon, daily=True)
-        
+
         if result.get("error"):
             st.warning(f"⚠️ Live Meteorological API Notice: {result['error']}")
         else:
             st.info(f"Source Feed: **{result.get('source', 'Open-Meteo')}** | Assigned Timezone: `{result.get('timezone', 'UTC')}`")
-            
+
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Current Temperature", f"{result.get('temperature_c', 0)} °C")
             c2.metric("Wind Speed", f"{result.get('windspeed_kmh', 0)} km/h")
@@ -111,13 +128,14 @@ def render_weather_tab():
 
 def render_impact_tab():
     section_header("🏆 Global Human-Impact Scorecard", "Measure and monitor real-world problems solved across humanitarian, ecological, and technological sectors.")
+    st.caption("⚠️ **Unverified data source:** this comes from `modules/mission_control.get_global_impact_scorecard()`, which wasn't provided alongside this page and takes no real-usage input parameters — it could not be confirmed whether these figures reflect measured platform activity or static illustrative placeholders.")
 
     scorecard = get_global_impact_scorecard()
 
     st.markdown("#### 📊 Cumulative Sovereign Progress")
     overall_progress = scorecard.get("overall_progress", 0)
     st.progress(overall_progress / 100)
-    
+
     c1, c2, c3 = st.columns(3)
     c1.metric("Total Problems Solved", f"{scorecard.get('total_problems_solved', 0):,}")
     c2.metric("Overall Progress Index", f"{overall_progress}%")
@@ -144,6 +162,7 @@ def render_impact_tab():
 
 def render_problems_tab():
     section_header("🧠 Global Problem-Solver Registry", "Explore architectural solutions, toolchains, and quantifiable impact metrics deployed across humanity's core challenges.")
+    st.caption("⚠️ **Unverified data source:** same as the Impact Scorecard tab — sourced from an unseen module with no verification input. Treat the specific 'impact' figures below as illustrative unless you've confirmed how `modules/mission_control.py` computes them.")
 
     registry = get_problem_solver_registry()
     for i, item in enumerate(registry):
@@ -154,7 +173,10 @@ def render_problems_tab():
 
 
 def render_telemetry_tab():
-    section_header("🛰️ Sovereign Mission Command Telemetry", "High-level command-center infrastructure metrics, satellite relay status, and decentralized system health.")
+    section_header("🛰️ Sovereign Mission Command Telemetry", "High-level command-center infrastructure metrics and decentralized system health.")
+    st.error(
+        "⚠️ **Likely fabricated metrics:** figures like 'Satellites Linked' and 'Independent Systems' below match — almost verbatim — a pattern of hardcoded marketing numbers already found and fixed elsewhere in this codebase (Domain Analytics Hub previously showed a static '48 Satellites' and '0.012 Systemic Risk Index' with no real basis). A data-analytics platform operating satellites is not a plausible real infrastructure claim. This tab's source module wasn't available to rewrite — if you want this tab to show real numbers, wire it to actual measured platform telemetry (real user counts, real deployed integrations, real uptime) rather than these placeholder-style figures."
+    )
 
     telemetry = get_mission_telemetry()
     c1, c2, c3, c4 = st.columns(4)
@@ -183,9 +205,9 @@ def main():
     setup_page("Global Mission Control", "🌍", initial_sidebar_state="expanded")
 
     hero_card(
-        "🌍 Global Mission Control — Sovereign Enterprise Command Center",
-        "The human-impact command center featuring live global health surveillance, real-time meteorological telemetry, dynamic impact scorecards, problem-solver registries, and satellite mission telemetry.",
-        badge_text="GLOBAL MISSION CONTROL • SOVEREIGN ENTERPRISE",
+        "🌍 Global Mission Control — Sovereign Enterprise Command Center (Premium)",
+        "The human-impact command center featuring live global health surveillance, real Open-Meteo climate telemetry, an impact scorecard, problem-solver registry, and mission telemetry — with honest data-provenance labeling where the source could not be verified.",
+        badge_text="GLOBAL MISSION CONTROL • PREMIUM SUITE",
     )
 
     tabs = st.tabs([
