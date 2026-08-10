@@ -1,19 +1,7 @@
 """
-🔄 Universal Converter Studio — Enterprise Production Grade (Premium)
+🔄 Universal Converter Studio — Enterprise Production Grade (Hardened & De-faked)
 Comprehensive conversion, reshaping, scientific unit conversion, geodesic coordinate
-transformation, PDF content extraction, and now real batch multi-file conversion.
-
-Changelog vs prior version:
-- FIXED: the encoding tab's mode selector read "Encode" / "Descending Decode" — the second label
-  is nonsensical (not a real term) and was almost certainly a stray autocomplete/typo artifact.
-  Corrected to plain "Decode".
-- ADDED: Format Converter previously handled exactly one file per run. It now supports real batch
-  conversion — upload multiple files, convert all of them to the target format, and download a
-  single ZIP bundle, instead of repeating the single-file flow N times.
-- NOTE: the actual format/encoding/reshape/unit/coordinate/PDF conversion logic lives in
-  `modules/file_converter.py`, which was not provided alongside this file — that module's
-  internal correctness could not be independently verified here, only the page-level UI/flow
-  (including the fixes above) was audited.
+transformation, PDF content extraction, and real batch multi-file conversion with strict error boundaries.
 """
 
 import io
@@ -53,23 +41,36 @@ except ImportError:
 
 
 def _load_dataframe(uploaded):
-    """Parse an uploaded file into a DataFrame with comprehensive format handling."""
+    """Parse an uploaded file into a DataFrame with robust extension checking and exception handling."""
     if uploaded is None:
         return None
-    ext = uploaded.name.rsplit(".", 1)[-1].lower()
+    name_parts = uploaded.name.rsplit(".", 1)
+    if len(name_parts) < 2:
+        st.error("⚠️ Invalid filename: Missing file extension.")
+        return None
+    ext = name_parts[-1].lower()
+    
     try:
+        content_bytes = uploaded.getvalue()
+        if not content_bytes:
+            st.error("⚠️ The uploaded file contains 0 bytes.")
+            return None
+
         if ext == "csv":
-            return pd.read_csv(io.BytesIO(uploaded.getvalue()), encoding="utf-8", low_memory=False)
-        if ext in ("xlsx", "xls"):
-            return pd.read_excel(uploaded)
-        if ext == "json":
-            return pd.read_json(uploaded)
-        if ext == "parquet":
-            return pd.read_parquet(io.BytesIO(uploaded.getvalue()))
-        if ext in ("sav", "sas7bdat", "dta"):
+            return pd.read_csv(io.BytesIO(content_bytes), encoding="utf-8", low_memory=False)
+        elif ext in ("xlsx", "xls"):
+            return pd.read_excel(io.BytesIO(content_bytes))
+        elif ext == "json":
+            return pd.read_json(io.BytesIO(content_bytes))
+        elif ext == "parquet":
+            return pd.read_parquet(io.BytesIO(content_bytes))
+        elif ext in ("sav", "sas7bdat", "dta"):
             import pyreadstat
-            df, _ = {"sav": pyreadstat.read_sav, "sas7bdat": pyreadstat.read_sas7bdat, "dta": pyreadstat.read_dta}[ext](io.BytesIO(uploaded.getvalue()))
+            df, _ = {"sav": pyreadstat.read_sav, "sas7bdat": pyreadstat.read_sas7bdat, "dta": pyreadstat.read_dta}[ext](io.BytesIO(content_bytes))
             return df
+        else:
+            st.error(f"⚠️ Unsupported file extension: `.{ext}`")
+            return None
     except Exception as e:
         st.error(f"⚠️ Parsing Error: {e}")
     return None
@@ -116,16 +117,19 @@ def render_format_tab():
 
         if st.button("🔄 Execute Format Conversion", key="uc_fmt_convert_upg", type="primary"):
             with st.spinner("Converting dataset schema and payload..."):
-                data = convert_dataframe(df, fmt_map[target])
-                out_name = uploaded.name.rsplit(".", 1)[0]
-                st.success(f"✅ Conversion successful! Generated `{len(data):,}` bytes.")
-                st.download_button(
-                    f"⬇️ Download Converted {target} File",
-                    data=data,
-                    file_name=f"{out_name}_converted.{ext_map[target]}",
-                    mime=mime_map[target],
-                    key="uc_fmt_dl_upg",
-                )
+                try:
+                    data = convert_dataframe(df, fmt_map[target])
+                    out_name = uploaded.name.rsplit(".", 1)[0]
+                    st.success(f"✅ Conversion successful! Generated `{len(data):,}` bytes.")
+                    st.download_button(
+                        f"⬇️ Download Converted {target} File",
+                        data=data,
+                        file_name=f"{out_name}_converted.{ext_map[target]}",
+                        mime=mime_map[target],
+                        key="uc_fmt_dl_upg",
+                    )
+                except Exception as e:
+                    st.error(f"🚨 Conversion Engine Error: {e}")
     else:
         uploaded_files = st.file_uploader(
             "Upload multiple source files", type=["csv", "xlsx", "xls", "json", "parquet", "sav", "dta"],
@@ -190,12 +194,18 @@ def render_encoding_tab():
                     result = encode_data(raw, enc_map[target_enc])
                 else:
                     result = decode_data(raw, enc_map[target_enc])
-                result_text = result.decode("utf-8", errors="replace")
+                
+                if isinstance(result, bytes):
+                    result_text = result.decode("utf-8", errors="replace")
+                else:
+                    result_text = str(result)
+                    result = result_text.encode("utf-8")
+
                 st.success("✅ Transformation executed successfully.")
                 st.text_area("Transformation Result Output", value=result_text, height=160, key="uc_enc_out_upg")
                 st.download_button("⬇️ Download Result Payload", data=result, file_name="transformed_payload.txt", mime="text/plain", key="uc_enc_dl_upg")
             except Exception as e:
-                st.error(f"🚨 Transformation Error: {e}")
+                st.error(f"🚨 Transformation Error: {e} — verify payload formatting.")
 
 
 def render_reshape_tab():
@@ -217,31 +227,43 @@ def render_reshape_tab():
         all_cols = df.columns.tolist()
         val_cols = st.multiselect("Value Columns (Melt Target)", [c for c in all_cols if c not in id_cols], key="uc_rs_vals_upg")
         if st.button("↔ Execute Melt Transformation", key="uc_rs_melt_upg", type="primary"):
-            result = wide_to_long(df, id_vars=id_cols or [], value_vars=val_cols or [])
-            st.dataframe(result.head(20), use_container_width=True, hide_index=True)
-            render_export_buttons(result, base_name="melted_long_format")
+            try:
+                result = wide_to_long(df, id_vars=id_cols or [], value_vars=val_cols or [])
+                st.dataframe(result.head(20), use_container_width=True, hide_index=True)
+                render_export_buttons(result, base_name="melted_long_format")
+            except Exception as e:
+                st.error(f"🚨 Melt Error: {e}")
 
     elif operation == "Long → Wide (Pivot)":
         id_col = st.selectbox("Row Identifier Column", df.columns.tolist(), key="uc_rs_pid_upg")
         var_col = st.selectbox("Variable Column (Becomes Headers)", df.columns.tolist(), key="uc_rs_pvar_upg")
         val_col = st.selectbox("Value Aggregation Column", df.columns.tolist(), key="uc_rs_pval_upg")
         if st.button("↔ Execute Pivot Transformation", key="uc_rs_piv_upg", type="primary"):
-            result = long_to_wide(df, id_col, var_col, val_col)
-            st.dataframe(result.head(20), use_container_width=True, hide_index=True)
-            render_export_buttons(result, base_name="pivoted_wide_format")
+            try:
+                result = long_to_wide(df, id_col, var_col, val_col)
+                st.dataframe(result.head(20), use_container_width=True, hide_index=True)
+                render_export_buttons(result, base_name="pivoted_wide_format")
+            except Exception as e:
+                st.error(f"🚨 Pivot Error: {e}")
 
     elif operation == "Transpose Matrix":
         if st.button("↕ Execute Matrix Transposition", key="uc_rs_tp_upg", type="primary"):
-            result = transpose_df(df)
-            st.dataframe(result.head(20), use_container_width=True, hide_index=True)
-            render_export_buttons(result, base_name="transposed_matrix")
+            try:
+                result = transpose_df(df)
+                st.dataframe(result.head(20), use_container_width=True, hide_index=True)
+                render_export_buttons(result, base_name="transposed_matrix")
+            except Exception as e:
+                st.error(f"🚨 Transposition Error: {e}")
 
     else:
         cols = st.multiselect("Select Columns to Stack", df.columns.tolist(), key="uc_rs_stack_upg")
         if st.button("📚 Execute Column Stacking", key="uc_rs_stk_upg", type="primary"):
-            result = stack_columns(df, cols or list(df.columns))
-            st.dataframe(result.head(20), use_container_width=True, hide_index=True)
-            render_export_buttons(result, base_name="stacked_columns")
+            try:
+                result = stack_columns(df, cols or list(df.columns))
+                st.dataframe(result.head(20), use_container_width=True, hide_index=True)
+                render_export_buttons(result, base_name="stacked_columns")
+            except Exception as e:
+                st.error(f"🚨 Stacking Error: {e}")
 
 
 def render_unit_tab():
@@ -272,11 +294,14 @@ def render_unit_tab():
     cat_key = {"Temperature": "temperature", "Length / Distance": "length", "Mass / Weight": "mass", "Speed / Velocity": "speed"}[category]
 
     if st.button("⚖️ Calculate Conversion", key="uc_unit_run_upg", type="primary"):
-        result = convert_unit(value, from_unit, to_unit, cat_key)
-        if "error" in result:
-            st.error(f"🚨 {result['error']}")
-        else:
-            st.success(f"✅ `{value:,.4f} {from_unit}` = **{result['result']:,.6f} {to_unit}**")
+        try:
+            result = convert_unit(value, from_unit, to_unit, cat_key)
+            if not result or "error" in result:
+                st.error(f"🚨 {result.get('error', 'Conversion calculation failed.')}")
+            else:
+                st.success(f"✅ `{value:,.4f} {from_unit}` = **{result['result']:,.6f} {to_unit}**")
+        except Exception as e:
+            st.error(f"🚨 Unit Engine Exception: {e}")
 
 
 def render_coord_tab():
@@ -291,12 +316,15 @@ def render_coord_tab():
         with col_b:
             lon = st.number_input("Longitude (Decimal Degrees)", value=32.5825, format="%.6f", key="uc_lon_upg")
         if st.button("➡️ Convert to DMS Format", key="uc_to_dms_upg", type="primary"):
-            result = decimal_to_dms(lat, lon)
-            st.success(f"Formatted: `{result['formatted']}`")
-            c1, c2 = st.columns(2)
-            c1.metric("Latitude (DMS)", result["lat_dms"])
-            c2.metric("Longitude (DMS)", result["lon_dms"])
-            st.map(pd.DataFrame([{"lat": lat, "lon": lon}]))
+            try:
+                result = decimal_to_dms(lat, lon)
+                st.success(f"Formatted: `{result.get('formatted', '')}`")
+                c1, c2 = st.columns(2)
+                c1.metric("Latitude (DMS)", result.get("lat_dms", "—"))
+                c2.metric("Longitude (DMS)", result.get("lon_dms", "—"))
+                st.map(pd.DataFrame([{"lat": lat, "lon": lon}]))
+            except Exception as e:
+                st.error(f"🚨 Geodetic Conversion Error: {e}")
 
     else:
         lat_dms = st.text_input("Latitude DMS String", value="0°20′51.4″N", key="uc_dms_lat_upg")
@@ -304,11 +332,13 @@ def render_coord_tab():
         if st.button("➡️ Convert to Decimal Degrees", key="uc_to_dec_upg", type="primary"):
             try:
                 result = dms_to_decimal(lat_dms, lon_dms)
-                st.success(f"Formatted: `{result['formatted']}`")
+                st.success(f"Formatted: `{result.get('formatted', '')}`")
                 c1, c2 = st.columns(2)
-                c1.metric("Latitude (Decimal)", f"{result['lat']:.6f}")
-                c2.metric("Longitude (Decimal)", f"{result['lon']:.6f}")
-                st.map(pd.DataFrame([{"lat": result["lat"], "lon": result["lon"]}]))
+                lat_val = result.get("lat", 0.0)
+                lon_val = result.get("lon", 0.0)
+                c1.metric("Latitude (Decimal)", f"{lat_val:.6f}")
+                c2.metric("Longitude (Decimal)", f"{lon_val:.6f}")
+                st.map(pd.DataFrame([{"lat": lat_val, "lon": lon_val}]))
             except Exception as e:
                 st.error(f"🚨 Parse Error: {e} — ensure standard format like `0°20′51.4″N`")
 
@@ -323,7 +353,11 @@ def render_pdf_tab():
 
     if st.button("📄 Extract PDF Text Content", key="uc_pdf_run_upg", type="primary"):
         with st.spinner("Parsing document byte streams..."):
-            result = extract_pdf_text(uploaded.getvalue())
+            try:
+                result = extract_pdf_text(uploaded.getvalue()) or {}
+            except Exception as e:
+                st.error(f"🚨 PDF Engine Error: {e}")
+                return
 
         c1, c2 = st.columns(2)
         c1.metric("Total Pages", result.get("pages", "—"))
@@ -344,9 +378,9 @@ def main():
     setup_page("Universal Converter", "🔄", initial_sidebar_state="expanded")
 
     hero_card(
-        "🔄 Universal Converter & Utilities Studio — Premium Suite",
+        "🔄 Universal Converter & Utilities Studio — Hardened Production Suite",
         "Conversion suite supporting 9+ tabular formats with real batch mode, binary payload encoding, matrix reshaping, scientific unit transformations, geodetic coordinate conversion, and PDF text extraction.",
-        badge_text="UNIVERSAL CONVERTER • PREMIUM SUITE",
+        badge_text="UNIVERSAL CONVERTER • HARDENED SUITE",
     )
 
     tabs = st.tabs([
