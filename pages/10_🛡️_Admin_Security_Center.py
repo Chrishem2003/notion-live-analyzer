@@ -1,44 +1,9 @@
 """
-🛡️ Admin & Security Center — Sovereign Enterprise Administration & Security Command Hub (Premium)
+🛡️ Admin & Security Center — Sovereign Enterprise Administration & Security Command Hub (Premium v2.0)
 The hardened administrative control plane consolidating real-time system diagnostics, enterprise
 RBAC user management, Stripe/license billing workflows, academic student verification queues, a
 genuinely encrypted credential vault with a real accumulating audit trail, compliance forensic
 engines, and the Nexus 2.0 workspace suite.
-
-Changelog vs prior version:
-- FIXED (structural): `from modules.admin_guard import require_admin` was imported once *before*
-  the module docstring — which meant the docstring was no longer the first statement in the file
-  and so was silently discarded as `__doc__` — and then imported again later. Consolidated into
-  one import, with the docstring restored as the actual first statement.
-- FIXED: System Diagnostics showed hardcoded telemetry ("99.99%" uptime, "14 Threads", "0.1ms
-  Latency") that never changed. Replaced with real measurements: process uptime via a
-  process-lifetime resource, actual measured DB round-trip latency, real memory (psutil, with
-  graceful fallback), and the real live Python thread count via `threading.active_count()`.
-- FIXED (real security issue): the "Encrypted Credential & API Token Vault" claimed tokens were
-  "encrypted and securely bound" but stored them as plain, unencrypted strings in session state.
-  Tokens are now genuinely encrypted with `cryptography.fernet` (AES-128-CBC + HMAC under the
-  hood) before being stored, and decrypted only when explicitly retrieved. Note: the encryption
-  key is generated per server process for this environment — in a real production deployment,
-  source it from a proper secrets manager/environment variable instead, so encrypted values
-  survive restarts and work across multiple app instances.
-- FIXED: the vault's "Access Audit Trail" wasn't a trail — it regenerated a single row with the
-  *current* timestamp on every page render, so nothing ever accumulated. It's now a real,
-  persistent, SHA-256 hash-chained log (same tamper-evident pattern used on the Home Dashboard)
-  that actually accumulates every vault save/purge/retrieve event.
-- ADDED: role changes and billing plan overrides are now written to that same audit ledger.
-  Previously, an admin could silently reassign anyone's role or override anyone's subscription
-  tier with zero trace anywhere in the system — a real gap for a "security center."
-- ADDED: last-admin lockout protection — you can no longer demote the final remaining admin
-  account (yourself or anyone else), which previously had no safeguard.
-- FIXED (was fake): the camera tab had a "Camera Hardware Device Index" dropdown (0/1/2) that did
-  nothing — Streamlit's `st.camera_input` has no device-index parameter, so selecting a value had
-  zero effect on which camera was actually used. Removed the non-functional control and added an
-  honest note that the browser's own camera picker governs device selection.
-- NOTE: the Audit & Compliance forensic engines (statcheck, GRIM/DEGRIM, p-curve, burstiness,
-  HIPAA/GDPR auditors, etc.) and the entire Nexus Vault suite call into
-  `modules/audit_compliance_engine.py` and `modules/nexus_vault_engine.py`, neither of which was
-  provided alongside this file. Their internal correctness could not be verified or rewritten here
-  — only the page-level orchestration was audited and fixed.
 """
 
 from pathlib import Path
