@@ -8,18 +8,18 @@ Changelog vs prior version:
   but produced nothing downloadable — just inline `st.expander`s that vanish when you leave the
   page. It now builds a real .pptx file (via python-pptx, with chart images rendered through
   kaleido) with an actual download button. If those packages aren't installed, it says so plainly
-  instead of pretending the deck was "compiled successfully."
+  instead of pretending the deck was "compiled successfully."[cite: 1]
 - FIXED (real bug): Treemap and Sunburst charts silently ignored whatever you picked in the
   "Y-Axis / Metric" dropdown and always sized by the *first* numeric column regardless. They now
-  respect your selection.
+  respect your selection.[cite: 1]
 - UPGRADED: "AI Auto-Recommendation Studio" used to just grab the first numeric/categorical
   columns in the dataframe — not analysis, just column order. It now: picks the numeric pair with
   the strongest correlation for the scatter recommendation (not "whichever came first"), flags
   skewed columns and recommends a box plot instead of a histogram for them, detects datetime
   columns and recommends a time trend line when present, and avoids recommending a bar chart
-  against a high-cardinality categorical column (which would just render noise).
+  against a high-cardinality categorical column (which would just render noise).[cite: 1]
 - FIXED: `trendline="ols"` on scatter plots requires statsmodels; it's now only requested when
-  statsmodels is actually importable, avoiding a silent chart-rendering failure otherwise.
+  statsmodels is actually importable, avoiding a silent chart-rendering failure otherwise.[cite: 1]
 """
 
 import io
@@ -126,10 +126,10 @@ def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=Non
             else:
                 fig = px.bar(df, template=template, height=height)
         elif chart_type == "Treemap":
-            vals = fallback_y if fallback_y in num_cols else (num_cols[0] if num_cols else None)
+            vals = y if y and y in num_cols else (fallback_y if fallback_y in num_cols else (num_cols[0] if num_cols else None))
             fig = px.treemap(df, path=[fallback_x], values=vals, template=template, height=height)
         elif chart_type == "Sunburst":
-            vals = fallback_y if fallback_y in num_cols else (num_cols[0] if num_cols else None)
+            vals = y if y and y in num_cols else (fallback_y if fallback_y in num_cols else (num_cols[0] if num_cols else None))
             path = [fallback_x, color] if color and color in all_cols and color != fallback_x else [fallback_x]
             fig = px.sunburst(df, path=path, values=vals, template=template, height=height)
         elif chart_type == "Funnel Chart":
@@ -233,7 +233,6 @@ def render_auto_studio(df):
 
     recs = []
 
-    # Distribution: recommend box plot for skewed columns, histogram otherwise.
     for col in numeric_cols[:2]:
         skew = _skewness(df[col])
         if abs(skew) > 1.0:
@@ -241,7 +240,6 @@ def render_auto_studio(df):
         else:
             recs.append(("Histogram", {"x": col}, f"Univariate Distribution Analysis of '{col}' (approximately symmetric, skew = {skew:.2f})"))
 
-    # Correlation: pick the strongest pair, not just the first two.
     if len(numeric_cols) >= 2:
         corr = df[numeric_cols].corr().abs()
         upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
@@ -250,11 +248,9 @@ def render_auto_studio(df):
             (best_x, best_y), best_r = stacked.idxmax(), stacked.max()
             recs.append(("Scatter Plot", {"x": best_x, "y": best_y}, f"Strongest Bivariate Relationship: '{best_x}' vs '{best_y}' (|r| = {best_r:.2f}) — selected from all {len(numeric_cols)} numeric columns, not just the first two."))
 
-    # Datetime: recommend a real trend line if a time column exists.
     if datetime_cols and numeric_cols:
         recs.append(("Line Chart", {"x": datetime_cols[0], "y": numeric_cols[0]}, f"Temporal Trend of '{numeric_cols[0]}' over '{datetime_cols[0]}' — datetime column detected."))
 
-    # Categorical comparison: use lowest-cardinality categorical for a clean bar chart.
     if low_card_cats and numeric_cols:
         best_cat = min(low_card_cats, key=lambda c: df[c].nunique())
         recs.append(("Bar Chart", {"x": best_cat, "y": numeric_cols[0]}, f"Categorical Comparison of '{numeric_cols[0]}' across '{best_cat}' ({df[best_cat].nunique()} categories — clean to render)."))

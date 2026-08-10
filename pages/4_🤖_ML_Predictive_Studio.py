@@ -28,7 +28,7 @@ Changelog vs prior version:
   actually runs against the active dataset: real IQR outlier sweep, real completeness/duplicate
   audit, a real trend-degradation check (linear regression per numeric column vs. row order),
   a real downloadable executive report, and a real dataset-fingerprint consistency check against
-  what Data Studio last recorded.
+  what Data Studio last recorded[cite: 4].
 """
 
 import io
@@ -497,9 +497,6 @@ def render_feature_engineering_tab(df):
             st.info("Need at least 3 columns for feature selection.")
 
 
-# ──────────────────────────────────────────────────────────────────────────
-# Real (non-theatrical) autonomous agent missions — each actually inspects the active dataset.
-# ──────────────────────────────────────────────────────────────────────────
 def _mission_outlier_sweep(df: pd.DataFrame) -> pd.DataFrame:
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     rows = []

@@ -2,25 +2,6 @@
 📁 Data Studio — Enterprise Data Management & Intelligence Hub (Premium)
 Out-of-core-aware ingestion, a sandboxed DuckDB query engine, safe transformations, a *replayable*
 JSON recipe pipeline, dataset fingerprinting, and schema drift detection.
-
-Changelog vs prior version:
-- FIXED: two leftover debug artifacts that happened to run but were dead/nonsensical code —
-  `working['{col2abez}' if False else col2]` in the compute-feature f-string, and an unused
-  walrus-assigned `Sprintf_lbl` in the binning tab.
-- FIXED (security): the DuckDB SQL console accepted ANY statement. DuckDB supports `ATTACH`,
-  `COPY ... TO`, `read_csv('/arbitrary/path')`, `INSTALL`/`LOAD` extensions, etc. — meaning the
-  "run SQL on your data" box was actually an arbitrary file read/write vector. It is now a
-  read-only sandbox: only SELECT/WITH statements are accepted, a keyword denylist blocks
-  ATTACH/COPY/PRAGMA/INSTALL/LOAD/DDL/DML, it runs on an isolated in-memory connection, and
-  results are capped to 5,000 rows.
-- ADDED: the transformation recipe is now genuinely reproducible — each step stores structured,
-  machine-applicable parameters (not just a human-readable description), and there's a real
-  "Replay Recipe on a New File" flow that re-executes the exact same pipeline on freshly
-  uploaded data.
-- ADDED: SHA-256 dataset fingerprinting for lightweight version tracking, duplicate-upload
-  detection, and schema-drift comparison against the previously active dataset.
-- ADDED: batch outlier scan across all numeric columns (not just one at a time) and a
-  downloadable quality audit report.
 """
 
 import hashlib
@@ -140,8 +121,7 @@ def initialize_recipe_engine():
 
 
 def log_transformation(step_type: str, description: str, params: dict):
-    """Appends a structured, machine-replayable step. `params` must contain everything
-    `apply_recipe_step` needs to deterministically reproduce this transformation on new data."""
+    """Appends a structured, machine-replayable step."""
     initialize_recipe_engine()
     st.session_state["transform_recipe"].append({
         "step": step_type,
@@ -152,8 +132,7 @@ def log_transformation(step_type: str, description: str, params: dict):
 
 
 def apply_recipe_step(df: pd.DataFrame, step: dict) -> pd.DataFrame:
-    """Deterministically re-applies a single logged step to a dataframe. Raises on missing columns
-    so replay failures are surfaced explicitly rather than silently skipped."""
+    """Deterministically re-applies a single logged step to a dataframe."""
     kind = step["step"]
     p = step["params"]
 
@@ -245,7 +224,7 @@ def apply_recipe(df: pd.DataFrame, recipe: list) -> pd.DataFrame:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# TABS
+# TABS & UI RENDERERS
 # ═══════════════════════════════════════════════════════════════════════
 def render_ingestion_tab():
     section_header("📥 Enterprise Data Ingestion Hub", "Secure ingestion pipeline supporting multi-format files, out-of-core handling, and sample generators.")
@@ -271,7 +250,7 @@ def render_ingestion_tab():
                     prev_sig = st.session_state.get("dataset_schema_meta", {}).get("schema", {})
 
                     if prev_fp == new_fp:
-                        st.warning("⚠️ This file is byte-for-byte identical (same schema + content fingerprint) to the currently active dataset. Ingesting anyway.")
+                        st.warning("⚠️ This file is byte-for-byte identical to the currently active dataset. Ingesting anyway.")
                     elif prev_sig:
                         drift = diff_schema(prev_sig, schema_signature(df))
                         if drift["added"] or drift["removed"] or drift["retyped"]:
@@ -443,7 +422,6 @@ def render_transform_tab():
 
     with tab_compute:
         st.markdown("#### Safe Expression Builder")
-        st.caption("Perform robust column transformations using verified arithmetic syntax.")
         new_col = st.text_input("New column designation", value="engineered_ratio", key="ent_comp_col")
 
         if not num_columns:
@@ -515,7 +493,6 @@ def render_transform_tab():
 
             st.markdown("---")
             st.markdown("#### 🔁 Replay This Recipe on a New File")
-            st.caption("Uploads a fresh file and mechanically re-applies every logged step above, in order — real reproducibility, not just an audit log.")
             replay_file = st.file_uploader("Upload a file to replay the recipe onto", key="ent_replay_upload")
             if replay_file is not None and st.button("▶️ Run Replay", type="primary", key="ent_run_replay"):
                 fresh_df = robust_parse_file(replay_file)

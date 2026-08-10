@@ -11,22 +11,22 @@ Changelog vs prior version:
   text. It's now a real (rule-based, not LLM) NL-to-pandas engine: it recognizes patterns like
   "average of X", "sum of X by Y", "correlation between X and Y", "top 5 X by Y", "how many rows",
   resolves column names from your question, and actually executes the computation on the live
-  dataframe. Unrecognized queries get an honest message with example patterns, not a fake score.
+  dataframe. Unrecognized queries get an honest message with example patterns, not a fake score.[cite: 2]
 - FIXED (was completely fake): "Research Synthesizer" always returned the same four hardcoded
   theme labels regardless of the input text. It now runs real TF-IDF vectorization + KMeans
   clustering (falls back to keyword-frequency grouping if scikit-learn isn't available) and
-  reports themes actually derived from your text corpus.
+  reports themes actually derived from your text corpus.[cite: 2]
 - FIXED (was completely fake): "Strategic Gap Finder" printed the identical four gaps regardless
   of domain or dataset. It's now a "Methodology Checklist" that's honestly labeled as a heuristic
   checklist (not a literature review) and is grounded in the *actual* properties of your loaded
   dataset — real sample size, whether a datetime column exists, category diversity, duplicate
-  rate — rather than static boilerplate.
+  rate — rather than static boilerplate.[cite: 2]
 - FIXED (was completely fake): "Voice & Audio Telemetry" did nothing but print a canned success
   message. It's now real browser-based text-to-speech via the Web Speech API — it actually speaks
-  text aloud using the client's system voices, with rate control.
+  text aloud using the client's system voices, with rate control.[cite: 2]
 - UPGRADED: sentiment analysis used a 24-word substring-matching lexicon (so "bad" would match
   inside any word containing that substring). Uses VADER (`vaderSentiment`) when available for a
-  real compound sentiment score; falls back to a larger, word-boundary-safe lexicon otherwise.
+  real compound sentiment score; falls back to a larger, word-boundary-safe lexicon otherwise.[cite: 2]
 """
 
 import re

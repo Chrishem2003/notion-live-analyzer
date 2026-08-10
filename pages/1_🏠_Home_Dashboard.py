@@ -3,16 +3,6 @@
 Consolidated unified enterprise workspace featuring interactive session telemetry, real-time SQLite vault
 management, LIVE system health metrics, a cryptographically chained audit ledger, interactive quick-access
 navigation hubs, and secure user account management.
-
-Changelog vs prior version:
-- FIXED crash: `json` was used (json.dumps) but never imported.
-- FIXED: telemetry metrics (uptime / DB latency / memory / disk) were hardcoded strings ("99.99%",
-  "0.2ms Latency", "42.8%"). They are now measured live.
-- FIXED: the `crypto_hash` column existed in system_telemetry_logs but nothing ever wrote to it, so the
-  "secure audit ledger" had no actual integrity guarantee. It now uses a real SHA-256 hash chain
-  (each row hashes its own content + the previous row's hash) with a one-click verifier.
-- ADDED: bulk ZIP export of the saved-analyses vault, pagination, and per-record delete.
-- ADDED: "Active Hubs" now reflects the real navigation registry instead of a hardcoded "15 Hubs".
 """
 
 import datetime
@@ -42,12 +32,18 @@ GENESIS_HASH = "0" * 64
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# Database
+# Database Layer
 # ──────────────────────────────────────────────────────────────────────────
 
-def get_db():
-    """Open or initialize the sovereign database connection with secure logging tables."""
+@st.cache_resource
+def get_db_connection():
+    """Singleton-managed thread-safe SQLite connection for the enterprise engine."""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    return conn
+
+
+def init_db(conn):
+    """Ensure core sovereign tables exist with proper schema definitions."""
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS saved_analyses (
@@ -70,7 +66,6 @@ def get_db():
         )
     """)
     conn.commit()
-    return conn
 
 
 def _row_hash(prev_hash: str, timestamp: str, module_name: str, severity: str, details: str) -> str:
@@ -80,7 +75,7 @@ def _row_hash(prev_hash: str, timestamp: str, module_name: str, severity: str, d
 
 
 def log_telemetry(conn, module_name: str, severity: str, details: str):
-    """Append a chained, tamper-evident telemetry record."""
+    """Append a chained, tamper-evident telemetry record safely."""
     cursor = conn.cursor()
     cursor.execute("SELECT crypto_hash FROM system_telemetry_logs ORDER BY id DESC LIMIT 1")
     row = cursor.fetchone()
@@ -96,7 +91,7 @@ def log_telemetry(conn, module_name: str, severity: str, details: str):
 
 
 def verify_telemetry_chain(conn):
-    """Recompute the hash chain end-to-end and confirm no row has been altered or removed."""
+    """Recompute the hash chain end-to-end and confirm zero records have been altered or removed."""
     cursor = conn.cursor()
     cursor.execute(
         "SELECT id, timestamp, module_name, severity, details, crypto_hash, prev_hash "
@@ -115,12 +110,12 @@ def verify_telemetry_chain(conn):
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# Live system health (real measurements, no hardcoded placeholders)
+# Live System Health Diagnostics
 # ──────────────────────────────────────────────────────────────────────────
 
 @st.cache_resource
 def _process_start_time():
-    """Persists for the life of the server process (shared across all sessions), giving a real uptime clock."""
+    """Persists for the process lifetime to maintain an accurate uptime ticker."""
     return datetime.datetime.utcnow()
 
 
@@ -137,7 +132,7 @@ def _format_duration(delta: datetime.timedelta) -> str:
 
 
 def measure_system_health(conn):
-    """Returns real, measured system health figures instead of static placeholder strings."""
+    """Measures actual application health metrics on-demand."""
     uptime = datetime.datetime.utcnow() - _process_start_time()
 
     t0 = datetime.datetime.now().timestamp()
@@ -149,12 +144,8 @@ def measure_system_health(conn):
     except OSError:
         db_size_kb = 0.0
 
-    if PSUTIL_AVAILABLE:
-        mem_percent = psutil.virtual_memory().percent
-        cpu_percent = psutil.cpu_percent(interval=0.1)
-    else:
-        mem_percent = None
-        cpu_percent = None
+    mem_percent = psutil.virtual_memory().percent if PSUTIL_AVAILABLE else None
+    cpu_percent = psutil.cpu_percent(interval=0.0) if PSUTIL_AVAILABLE else None
 
     disk = shutil.disk_usage(".")
     disk_free_pct = 100 * disk.free / disk.total
@@ -170,13 +161,13 @@ def measure_system_health(conn):
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# Vault
+# Vault Rendering & Management Module
 # ──────────────────────────────────────────────────────────────────────────
 
 def render_saved_analyses_vault(conn):
     section_header(
         "💾 Saved Analyses & Reports Vault",
-        "Review, filter, export, and inspect all analytical reports and generated artifacts stored securely in the local database.",
+        "Review, filter, export, and inspect analytical reports and execution outputs securely stored in the database.",
     )
 
     cursor = conn.cursor()
@@ -184,7 +175,7 @@ def render_saved_analyses_vault(conn):
     saved_rows = cursor.fetchall()
 
     if not saved_rows:
-        st.info("ℹ️ No saved analyses found yet. Execute analyses across analytical hubs and save them to populate the vault.")
+        st.info("ℹ️ No saved analyses found yet. Execute analyses across analytical hubs and save them to populate your vault.")
         return
 
     df_vault = pd.DataFrame(saved_rows, columns=["ID", "Title", "Timestamp", "Category", "Content"])
@@ -215,7 +206,7 @@ def render_saved_analyses_vault(conn):
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
             for s_id, s_title, s_ts, s_cat, s_content in filtered_rows:
-                safe_name = f"{s_id}_{s_title.lower().replace(' ', '_')}.md"
+                safe_name = f"{s_id}_{s_title.lower().replace(' ', '_').replace('/', '_')}.md"
                 zf.writestr(safe_name, str(s_content))
             manifest = json.dumps(
                 [{"id": r[0], "title": r[1], "timestamp": r[2], "category": r[3]} for r in filtered_rows],
@@ -240,7 +231,8 @@ def render_saved_analyses_vault(conn):
     st.caption(f"Showing records {start + 1}–{min(start + page_size, len(filtered_rows))} of {len(filtered_rows)} (page {page}/{total_pages})")
 
     for s_id, s_title, s_ts, s_cat, s_content in page_rows:
-        with st.expander(f"📄 [{s_cat}] {s_title} — {s_ts[:19]}", expanded=False):
+        display_ts = s_ts[:19] if len(s_ts) >= 19 else s_ts
+        with st.expander(f"📄 [{s_cat}] {s_title} — {display_ts}", expanded=False):
             st.markdown(f"**Category:** `{s_cat}` | **Timestamp:** `{s_ts}`")
             st.markdown("---")
             st.markdown(s_content)
@@ -249,7 +241,7 @@ def render_saved_analyses_vault(conn):
                 st.download_button(
                     label="⬇️ Markdown",
                     data=str(s_content),
-                    file_name=f"analysis_{s_id}_{s_title.lower().replace(' ', '_')}.md",
+                    file_name=f"analysis_{s_id}.md",
                     mime="text/markdown",
                     key=f"dl_md_{s_id}",
                 )
@@ -271,13 +263,13 @@ def render_saved_analyses_vault(conn):
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# Live telemetry & tamper-evident audit ledger
+# Live Telemetry & Audit Ledger Module
 # ──────────────────────────────────────────────────────────────────────────
 
 def render_live_telemetry(conn):
     section_header(
         "📡 Real-Time System Telemetry & Operational Health",
-        "Live enterprise monitoring of uptime, database response latency, memory utilization, and a cryptographically chained audit log.",
+        "Live tracking of system resources, database response times, and the cryptographically secure audit trail.",
     )
 
     health = measure_system_health(conn)
@@ -289,18 +281,18 @@ def render_live_telemetry(conn):
     if health["mem_percent"] is not None:
         c3.metric("Memory Utilization", f"{health['mem_percent']:.1f}%", delta=f"CPU {health['cpu_percent']:.1f}%")
     else:
-        c3.metric("Memory Utilization", "psutil not installed")
+        c3.metric("Memory Utilization", "psutil inactive")
     c4.metric("Active Hubs", f"{hub_count} Hubs", delta=f"Disk free: {health['disk_free_pct']:.1f}%")
 
     st.markdown("#### 🔒 Cryptographically Chained Audit & Telemetry Ledger")
-    col_v1, col_v2 = st.columns([1, 3])
+    col_v1, _ = st.columns([1, 3])
     with col_v1:
         if st.button("🔍 Verify Chain Integrity", key="verify_home_chain"):
             result = verify_telemetry_chain(conn)
             if result["valid"]:
-                st.success(f"✅ Chain verified — {result['records']} entries intact, no tampering detected.")
+                st.success(f"✅ Chain verified — {result['records']} entries intact, zero modifications found.")
             else:
-                st.error(f"🚨 CHAIN TAMPER DETECTED: {result['reason']}")
+                st.error(f"🚨 TAMPER DETECTED: {result['reason']}")
 
     cursor = conn.cursor()
     cursor.execute(
@@ -315,21 +307,25 @@ def render_live_telemetry(conn):
         st.dataframe(logs_df, use_container_width=True, hide_index=True)
         render_export_buttons(logs_df, base_name="system_telemetry_logs")
     else:
-        st.info("ℹ️ No system telemetry entries recorded yet this session cycle.")
+        st.info("ℹ️ No system telemetry logs recorded yet for this session cycle.")
 
+
+# ──────────────────────────────────────────────────────────────────────────
+# Main Application Entrypoint
+# ──────────────────────────────────────────────────────────────────────────
 
 def main():
     setup_page("Home Dashboard", "🏠", initial_sidebar_state="expanded")
 
     hero_card(
         "🏠 Chrishem Sovereign Enterprise Platform — Home Command Center",
-        "Welcome to the consolidated sovereign analytics workspace. Navigate via the sidebar hubs to access advanced analytical, machine learning, security, and research tools.",
+        "Welcome to your consolidated sovereign workspace. Use the sidebar hubs or quick access cards to navigate advanced analytical pipelines.",
         badge_text="SOVEREIGN ENTERPRISE PLATFORM v11.0",
     )
 
-    conn = get_db()
+    conn = get_db_connection()
+    init_db(conn)
 
-    # ── Session Greeting Card ──
     identity = st.session_state.get("user_identity", {})
     name = identity.get("name", "Analyst")
     role = identity.get("role", "Data Analyst & Researcher")
@@ -346,7 +342,7 @@ def main():
     summary = dataset_summary()
 
     if "home_session_logged" not in st.session_state:
-        log_telemetry(conn, "Home Dashboard", "INFO", f"Session started for {name} ({role})")
+        log_telemetry(conn, "Home Dashboard", "INFO", f"Session initialized for {name} ({role})")
         st.session_state["home_session_logged"] = True
 
     st.markdown(
@@ -375,11 +371,11 @@ def main():
             f"| Numeric: `{summary.get('numeric', 0)}` | Categorical: `{summary.get('categorical', 0)}`"
         )
     else:
-        st.warning("📭 **No active dataset loaded.** Upload or ingest data in the **📁 Data Studio** hub to initiate your analytical pipeline.")
+        st.warning("📭 **No active dataset loaded.** Upload or ingest data via the **📁 Data Studio** hub to jumpstart your analytics.")
 
     st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
 
-    section_header("🚀 Quick Access — Enterprise Workspace Hubs", "Select an operational hub below to begin. Each hub consolidates advanced multi-tool workflows into intuitive tabs.")
+    section_header("🚀 Quick Access — Enterprise Workspace Hubs", "Select an operational hub below to load modular capabilities.")
     hub_quick_access_cards()
 
     st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
@@ -395,11 +391,10 @@ def main():
         render_live_telemetry(conn)
 
     with tab_account:
-        section_header("👤 User Account, Subscription & Academic Verification", "Manage your enterprise subscription tier, trial status, and academic credentials.")
+        section_header("👤 User Account, Subscription & Academic Verification", "Manage your enterprise subscription tier and credentials.")
         from modules import subscription, verification
         acct_email = identity.get("email")
         if acct_email:
-            status = subscription.get_status(acct_email)
             subscription.ensure_trial_started(acct_email)
             status = subscription.get_status(acct_email)
 
@@ -411,30 +406,30 @@ def main():
             st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
             verification.render_student_application_form()
         else:
-            st.info("ℹ️ Sign in with a registered email profile to view your active subscription tier and manage academic verification.")
+            st.info("ℹ️ Sign in with a registered user profile to check your subscription status.")
 
     with tab_about:
         section_header("ℹ️ About the Chrishem Sovereign Intelligence Platform")
         st.markdown(
             """
-            **CHRISHEM Sovereign Intelligence Platform v11.0** is an enterprise-grade analytical ecosystem consolidating dozens of specialized modules into **15 high-performance hubs**:
+            **CHRISHEM Sovereign Intelligence Platform v11.0** is an enterprise architecture consolidating core workflows into **15 high-performance hubs**:
 
-            | Operational Hub | Core Capabilities & Consolidations |
+            | Operational Hub | Core Capabilities |
             |-----------------|-----------------------------------|
-            | 🏠 **Home Dashboard** | Enterprise dashboard, saved vault, live telemetry, chained audit ledger |
-            | 📁 **Data Studio** | Advanced data ingestion, quality audits, data transformation, anomaly simulator |
-            | 📊 **Statistics Studio** | Hypothesis testing, causal inference, Bayesian modeling |
-            | 🤖 **ML & Predictive Studio** | AutoML pipelines, feature engineering, predictive AI insights |
-            | 📈 **Visualization Studio** | Interactive charting, executive dashboards, presentation tools |
-            | 💬 **AI & NLP Studio** | Text mining, natural language querying, automated synthesis |
-            | 📚 **Literature & Publishing Hub** | Meta-analysis synthesis, APA reference generators, grant writing |
-            | 🔬 **Domain Analytics Hub** | Clinical studies, GIS geospatial mapping, research quality audits |
-            | 🔗 **Integrations Hub** | Notion sync, Google Sheets connectors, Git repositories, API gateways |
-            | 🛡️ **Admin & Security Center** | System settings, diagnostics, vault security, licensing management |
-            | 🤝 **Collaboration & Portfolio** | Team pipelines, autonomous agents, academic portfolio workspace |
-            | 🌍 **Global Mission Control** | Live global health surveillance, climate telemetry, impact scorecard |
+            | 🏠 **Home Dashboard** | Enterprise dashboard, vault, telemetry, ledger |
+            | 📁 **Data Studio** | Data ingestion, quality assurance, anomaly testing |
+            | 📊 **Statistics Studio** | Hypothesis testing, causal modeling, inference |
+            | 🤖 **ML & Predictive Studio**| AutoML pipelines, feature analysis, predictive metrics |
+            | 📈 **Visualization Studio** | Interactive mapping, presentation dashboards |
+            | 💬 **AI & NLP Studio** | Natural language analytics, synthesis engines |
+            | 📚 **Literature Hub** | Meta-analysis tools, reference generation |
+            | 🔬 **Domain Analytics** | Clinical tracking, geospatial processing |
+            | 🔗 **Integrations Hub** | API routing, sync modules |
+            | 🛡️ **Admin & Security** | Access governance, diagnostics, token handling |
+            | 🤝 **Collaboration** | Workspace sharing, team pipelines |
+            | 🌍 **Global Control** | Live global data views |
 
-            *Engineered and architected by Kula Chris (CHRISHEM).*
+            *Engineered by Kula Chris (CHRISHEM).*
             """
         )
 

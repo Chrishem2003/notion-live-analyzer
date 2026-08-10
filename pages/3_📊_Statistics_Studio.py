@@ -3,26 +3,6 @@
 Pre-flight assumption validation, comprehensive effect sizes, a genuine specification-curve
 sensitivity analysis, a session-wide multiple-comparisons ledger, causal econometrics, interactive
 Bayesian updating, exact power analysis, and exportable methodology reports.
-
-Changelog vs prior version:
-- FIXED (was actively misleading): "Sensitivity & Multiverse Analysis" injected synthetic random
-  noise into the outcome variable and called the result "specification robustness" — it never
-  varied any real analytic decision. It's now a genuine specification curve that varies actual
-  choices an analyst would face: Pearson vs. Spearman, outlier-excluded vs. winsorized vs. full
-  sample, partial correlation controlling for each other numeric covariate, and subgroup breakdown
-  by any available categorical variable.
-- ADDED: a session-wide Test Ledger that logs every hypothesis test you run (test name, p-value,
-  effect size) and applies Bonferroni and Benjamini-Hochberg FDR correction across the whole
-  session — the multiple-comparisons problem is now visible instead of invisible.
-- ADDED: missing effect sizes — eta-squared for One-Way ANOVA, partial eta-squared per term for
-  Two-Way ANOVA (including the interaction term, which the old version silently dropped from its
-  interpretation), Cramér's V for Chi-Square, epsilon-squared for Kruskal-Wallis.
-- FIXED: Two-Way ANOVA interpretation used to report only the first row of the ANOVA table
-  (main effect 1) and call it "Two-Way ANOVA" — it now reports each term, including the
-  interaction, with its own p-value and partial eta-squared.
-- UPGRADED: Power & Sample Size calculator uses exact noncentral-t power analysis via
-  `statsmodels.stats.power` when available, falling back to the normal approximation otherwise
-  (both are labeled so you know which you're looking at).
 """
 
 import numpy as np
@@ -195,7 +175,6 @@ def render_param_tests(df):
                     pooled_sd = np.sqrt(((n1 - 1) * s1**2 + (n2 - 1) * s2**2) / (n1 + n2 - 2)) if (n1 + n2 - 2) > 0 else 1.0
                     cohens_d = (np.mean(groups[0]) - np.mean(groups[1])) / pooled_sd if pooled_sd > 0 else 0.0
 
-                    # Approximate 95% CI for Cohen's d (Hedges & Olkin large-sample approximation)
                     se_d = np.sqrt((n1 + n2) / (n1 * n2) + (cohens_d ** 2) / (2 * (n1 + n2)))
                     d_ci = (cohens_d - 1.96 * se_d, cohens_d + 1.96 * se_d)
 
@@ -471,7 +450,7 @@ def render_nonparam_tests(df):
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# Real specification-curve sensitivity analysis (replaces the fake noise-injection version)
+# Real specification-curve sensitivity analysis
 # ──────────────────────────────────────────────────────────────────────────
 def _iqr_clean_pair(x: pd.Series, y: pd.Series):
     def bounds(s):
