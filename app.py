@@ -167,12 +167,16 @@ def init_sovereign_db():
             timestamp TEXT
         )
     """)
+    # NOTE: previously this seeded fabricated job statuses ('SUCCESS', 'OPTIMAL', 'RUNNING')
+    # for jobs with no evidence any real scheduler actually executes them — presenting fake
+    # cron-job telemetry as fact on every app startup. Seeding honest, neutral placeholder rows
+    # instead; wire this to a real job scheduler (e.g. APScheduler) if these jobs should exist,
+    # and let real execution update `last_status`/`next_execution` rather than hardcoding claims.
     cursor.execute("""
         INSERT OR IGNORE INTO automated_jobs (job_name, schedule_interval, last_status, next_execution)
-        VALUES 
-        ('Nightly Crypto Vault Snapshot', 'Every 24 Hours', 'SUCCESS', '2026-08-03 00:00:00'),
-        ('Satellite Constellation Feed Sync', 'Every 15 Minutes', 'OPTIMAL', 'Active Continuous'),
-        ('Autonomous Agent Anomaly Sweep', 'Every 5 Minutes', 'RUNNING', 'Active Continuous')
+        VALUES
+        ('Nightly Vault Snapshot', 'Every 24 Hours', 'NOT YET CONFIGURED', 'n/a — no scheduler wired up'),
+        ('Anomaly Sweep', 'Every 5 Minutes', 'NOT YET CONFIGURED', 'n/a — no scheduler wired up')
     """)
     conn.commit()
     return conn
@@ -1150,10 +1154,14 @@ def main():
         if not is_admin():
             st.error("🚫 This view is restricted to administrators.")
         else:
-            c1, c2, c3 = st.columns(3)
+            # NOTE: previously showed hardcoded "License Expiry: 2030-12-31" and "128 Swarm
+            # Agents Linked" to every admin regardless of reality — same fabricated-metric
+            # pattern found and fixed throughout this codebase. Replaced with the real role
+            # from the session and an honest note about where real subscription data lives.
+            c1, c2 = st.columns(2)
             c1.metric("Clearance Tier", f"Tier-1 {user_role}")
-            c2.metric("License Expiry", "2030-12-31")
-            c3.metric("Active Nodes", "128 Swarm Agents Linked")
+            c2.metric("Session Started", now_dt.strftime("%Y-%m-%d %H:%M"))
+            st.caption("For real subscription/license status, see Admin & Security Center → Billing & Licensing (reads the actual `subscriptions` table).")
             st.markdown("#### Security Authorization Matrix & RBAC Verification")
             st.code(f"[User Principal] -> {active_analyst_name}\n[Assigned Role] -> {user_role}\n[Root Governance] -> CHRISHEM Apex Engine", language="text")
 

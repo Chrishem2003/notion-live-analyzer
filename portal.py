@@ -1,8 +1,49 @@
+"""
+Portal Gateway — Authentication, Subscription, and Workspace Shell (Premium / Security-Hardened)
+
+Changelog vs prior version — this file had the most serious issues found in the entire audit,
+security issues rather than just fake features:
+- FIXED (critical): passwords were hashed with bare, unsalted SHA-256 — fast, unsalted hashing is
+  trivially reversible via rainbow tables if the database ever leaks. Passwords are now hashed
+  with PBKDF2-HMAC-SHA256 (260,000 iterations) and a unique random salt per user (stdlib only, no
+  new dependency). Existing accounts created under the old scheme are transparently upgraded to
+  the new scheme the next time they log in successfully — no forced password reset needed.
+- FIXED (critical): `chrishem242@gmail.com` was hardcoded as a permanent admin account in THREE
+  separate places (cookie-restore, sign-in handler, and a startup routine that silently
+  re-promoted it to admin on every single login) with a default password baked directly into the
+  source. This is a backdoor: it bypasses RBAC entirely, and would silently re-promote that
+  account back to admin even if another admin explicitly demoted it via Admin Security Center.
+  The login failure message even advertised its existence ("Master account ... is pre-configured")
+  to anyone who mistyped a password. All hardcoded email special-casing has been removed. The
+  very first admin account is now created only on a genuinely empty database, and only from
+  `SOVEREIGN_ADMIN_EMAIL` / `SOVEREIGN_ADMIN_PASSWORD` environment variables you set yourself —
+  nothing is auto-created with a guessable default password baked into the code. After that,
+  the database's stored role is the sole source of truth.
+- FIXED (data-consistency bug): this file maintained its own `user_subscriptions` table with a
+  different schema (`trial_end`, `is_active`) than the `subscriptions` table
+  (`plan`, `trial_started`) that Admin Security Center's billing panel actually reads from —
+  meaning every signup through this portal was invisible to the real billing/admin system.
+  Aligned to the one shared schema.
+- FIXED (was fake): the "AI Intelligence Daemon" returned a canned
+  `"[Execution successful with 99.9% confidence matrix]"` for any input. It's now honestly labeled
+  as a query log (a real, legitimate feature) rather than a fake AI response, with a pointer to
+  the real AI & NLP Studio hub for actual analysis.
+- FIXED (was fake): "System Status: 0ms latency" and "Lifetime Sovereign Enterprise Access" were
+  static claims shown to every user regardless of reality. Replaced with the user's real role and
+  real subscription plan pulled from the (now-aligned) subscription table.
+- FIXED (was fake): the "Windows / Linux / macOS / Mobile PWA" download buttons all produced the
+  identical placeholder zip (a stub README, a one-line fake script, a bare config file) regardless
+  of platform — there was no real platform-specific build behind any of them. Relabeled honestly
+  as a minimal starter-config bundle rather than implying real native applications exist.
+"""
+
 import base64
 import datetime
 import hashlib
+import hmac
 import io
 import os
+import secrets
 import sqlite3
 import zipfile
 import numpy as np
@@ -18,13 +59,17 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- COOKIE MANAGER INITIALIZATION ---
+PBKDF2_ITERATIONS = 260_000
+
+
 def get_cookie_manager():
     return stx.CookieManager()
 
+
 cookie_manager = get_cookie_manager()
 
-# --- SOVEREIGN DATABASE INITIALIZATION ---
+
+# --- DATABASE INITIALIZATION ---
 def init_sovereign_db():
     conn = sqlite3.connect("sovereign_apex_engine.db", check_same_thread=False)
     cursor = conn.cursor()
@@ -37,17 +82,20 @@ def init_sovereign_db():
             avatar_blob BLOB
         )
     """)
-    # Safely migrate older database schemas if avatar_blob column doesn't exist yet
-    try:
-        cursor.execute("ALTER TABLE auth_users ADD COLUMN avatar_blob BLOB")
-    except sqlite3.OperationalError:
-        pass # Column already exists
+    for migration in ("ALTER TABLE auth_users ADD COLUMN avatar_blob BLOB",
+                       "ALTER TABLE auth_users ADD COLUMN salt TEXT"):
+        try:
+            cursor.execute(migration)
+        except sqlite3.OperationalError:
+            pass  # Column already exists.
 
+    # Aligned with the schema Admin Security Center's billing panel actually reads
+    # (plan, trial_started) — previously this file used an incompatible parallel table.
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_subscriptions (
+        CREATE TABLE IF NOT EXISTS subscriptions (
             email TEXT PRIMARY KEY,
-            trial_end TEXT,
-            is_active INTEGER
+            plan TEXT,
+            trial_started TEXT
         )
     """)
     cursor.execute("""
@@ -62,39 +110,73 @@ def init_sovereign_db():
     conn.commit()
     return conn
 
+
 db_conn = init_sovereign_db()
 
-# --- AUTOMATIC ADMIN PRIVILEGES FOR CHRISHEM ---
-def ensure_superuser_privileges():
+
+# --- PASSWORD HASHING (PBKDF2-HMAC-SHA256, salted) ---
+def _hash_password(password: str, salt_hex: str = None):
+    salt = bytes.fromhex(salt_hex) if salt_hex else secrets.token_bytes(16)
+    dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, PBKDF2_ITERATIONS)
+    return dk.hex(), salt.hex()
+
+
+def _verify_password(password: str, stored_hash_hex: str, salt_hex: str) -> bool:
+    computed_hash, _ = _hash_password(password, salt_hex)
+    return hmac.compare_digest(computed_hash, stored_hash_hex)
+
+
+# --- BOOTSTRAP: create the first admin ONLY on a genuinely empty database, ONLY from env vars ---
+def ensure_bootstrap_admin():
     cursor = db_conn.cursor()
-    target_email = "chrishem242@gmail.com"
-    cursor.execute("SELECT email FROM auth_users WHERE email = ?", (target_email,))
-    if cursor.fetchone():
-        cursor.execute("UPDATE auth_users SET role = 'admin' WHERE email = ?", (target_email,))
-    else:
-        default_hash = hashlib.sha256("chrishem2026".encode()).hexdigest()
-        cursor.execute("INSERT INTO auth_users (email, name, password_hash, role) VALUES (?, ?, ?, ?)",
-                       (target_email, "Chrishem", default_hash, "admin"))
-    
-    cursor.execute("INSERT OR REPLACE INTO user_subscriptions (email, trial_end, is_active) VALUES (?, ?, ?)",
-                   (target_email, "2030-12-31 23:59:59", 1))
-    db_conn.commit()
+    if cursor.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] > 0:
+        return  # Not a fresh install — the database's stored roles are the sole source of truth.
 
-ensure_superuser_privileges()
+    bootstrap_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
+    bootstrap_password = os.environ.get("SOVEREIGN_ADMIN_PASSWORD")
+    if bootstrap_email and bootstrap_password:
+        pwd_hash, salt = _hash_password(bootstrap_password)
+        email_norm = bootstrap_email.lower().strip()
+        cursor.execute(
+            "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?,?,?,?,?)",
+            (email_norm, "Administrator", pwd_hash, salt, "admin"),
+        )
+        cursor.execute(
+            "INSERT OR REPLACE INTO subscriptions (email, plan, trial_started) VALUES (?,?,?)",
+            (email_norm, "active", datetime.datetime.utcnow().isoformat()),
+        )
+        db_conn.commit()
 
-# --- AUTH & SUBSCRIPTION HANDLERS ---
+
+ensure_bootstrap_admin()
+
+
+# --- AUTH & SUBSCRIPTION ---
 class AuthStore:
     def verify_login(self, email, password):
         cursor = db_conn.cursor()
-        if email.lower().strip() == "chrishem242@gmail.com":
-            cursor.execute("UPDATE auth_users SET role = 'admin' WHERE email = ?", (email,))
-            db_conn.commit()
-            
-        pwd_hash = hashlib.sha256(password.encode()).hexdigest()
-        cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ? AND password_hash = ?", (email, pwd_hash))
+        cursor.execute(
+            "SELECT email, name, role, password_hash, salt FROM auth_users WHERE email = ?",
+            (email.lower().strip(),),
+        )
         row = cursor.fetchone()
-        if row:
-            return {"email": row[0], "name": row[1], "role": row[2]}
+        if not row:
+            return None
+        db_email, name, role, stored_hash, salt = row
+
+        if salt:
+            if _verify_password(password, stored_hash, salt):
+                return {"email": db_email, "name": name, "role": role}
+            return None
+
+        # Legacy unsalted-SHA256 account: verify against the old scheme, then transparently
+        # upgrade to salted PBKDF2 so it never has to be checked the old way again.
+        legacy_hash = hashlib.sha256(password.encode()).hexdigest()
+        if legacy_hash == stored_hash:
+            new_hash, new_salt = _hash_password(password)
+            cursor.execute("UPDATE auth_users SET password_hash = ?, salt = ? WHERE email = ?", (new_hash, new_salt, db_email))
+            db_conn.commit()
+            return {"email": db_email, "name": name, "role": role}
         return None
 
     def get_user_by_email(self, email):
@@ -107,70 +189,90 @@ class AuthStore:
 
     def create_user(self, email, name, password, role="user"):
         cursor = db_conn.cursor()
-        cursor.execute("SELECT email FROM auth_users WHERE email = ?", (email,))
+        email_norm = email.lower().strip()
+        cursor.execute("SELECT email FROM auth_users WHERE email = ?", (email_norm,))
         if cursor.fetchone():
             return {"ok": False, "error": "Email already registered."}
-        
-        assigned_role = "admin" if email.lower().strip() == "chrishem242@gmail.com" else role
-        pwd_hash = hashlib.sha256(password.encode()).hexdigest()
-        cursor.execute("INSERT INTO auth_users (email, name, password_hash, role) VALUES (?, ?, ?, ?)",
-                       (email, name, pwd_hash, assigned_role))
-        trial_end = (datetime.datetime.now() + datetime.timedelta(days=365)).strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute("INSERT OR IGNORE INTO user_subscriptions (email, trial_end, is_active) VALUES (?, ?, ?)",
-                       (email, trial_end, 1))
+
+        pwd_hash, salt = _hash_password(password)
+        cursor.execute(
+            "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
+            (email_norm, name, pwd_hash, salt, role),
+        )
+        cursor.execute(
+            "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
+            (email_norm, "trial", datetime.datetime.utcnow().isoformat()),
+        )
         db_conn.commit()
         return {"ok": True}
 
+
 auth_store = AuthStore()
+
 
 class SubscriptionManager:
     def ensure_trial_started(self, email):
         cursor = db_conn.cursor()
-        cursor.execute("SELECT email FROM user_subscriptions WHERE email = ?", (email,))
+        cursor.execute("SELECT email FROM subscriptions WHERE email = ?", (email,))
         if not cursor.fetchone():
-            trial_end = (datetime.datetime.now() + datetime.timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
-            cursor.execute("INSERT INTO user_subscriptions (email, trial_end, is_active) VALUES (?, ?, ?)",
-                           (email, trial_end, 1))
+            cursor.execute(
+                "INSERT INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
+                (email, "trial", datetime.datetime.utcnow().isoformat()),
+            )
             db_conn.commit()
+
+    def get_status(self, email):
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT plan, trial_started FROM subscriptions WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        if not row:
+            return {"plan": "trial", "trial_started": None}
+        return {"plan": row[0], "trial_started": row[1]}
+
 
 subscription = SubscriptionManager()
 
-def is_admin():
-    identity = st.session_state.get("user_identity", {})
-    return identity.get("role") == "admin" or identity.get("email") == "chrishem242@gmail.com"
 
-# --- DYNAMIC AVATAR LOADER (USER CUSTOM OR DEFAULT FALLBACK) ---
+def is_admin():
+    # Role comes solely from the database now — no hardcoded email ever grants admin implicitly.
+    identity = st.session_state.get("user_identity", {})
+    return identity.get("role") == "admin"
+
+
 def get_user_avatar_base64(email):
     cursor = db_conn.cursor()
     cursor.execute("SELECT avatar_blob FROM auth_users WHERE email = ?", (email,))
     row = cursor.fetchone()
     if row and row[0]:
-        # Return user's custom uploaded picture from database
         return base64.b64encode(row[0]).decode("utf-8")
-    
-    # Fallback to default local chrishem.png file if present
     img_path = "chrishem.png"
     if os.path.exists(img_path):
         with open(img_path, "rb") as img_file:
             return base64.b64encode(img_file.read()).decode("utf-8")
-            
     return None
 
-# --- IN-MEMORY ZIP PACKAGE BUILDER ---
-def create_package_zip(platform_name):
+
+# --- STARTER CONFIG BUNDLE (honestly labeled — not a real platform-specific build) ---
+def create_starter_bundle(platform_name):
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.writestr("README.md", f"# Chrishem Science Hub - {platform_name} Edition\n\nSovereign Enterprise Engine setup bundle.")
-        zip_file.writestr("run_engine.py", "import streamlit as st\nst.write('Running Chrishem Sovereign Engine locally...')")
+        zip_file.writestr(
+            "README.md",
+            f"# Chrishem Science Hub — Starter Notes ({platform_name})\n\n"
+            "This is a minimal configuration reference bundle, not a packaged native application. "
+            "To actually run the platform, deploy this Streamlit app's source (`streamlit run app.py`) "
+            f"on your {platform_name} environment with Python 3.10+ and the project's `requirements.txt`.",
+        )
         zip_file.writestr("config.toml", "[server]\nheadless = true\nenableCORS = false")
     return zip_buffer.getvalue()
 
-win_zip = create_package_zip("Windows")
-linux_zip = create_package_zip("Linux")
-mac_zip = create_package_zip("macOS")
-pwa_zip = create_package_zip("Mobile-PWA")
 
-# --- WORLD-CLASS STUNNING PORTAL STYLING & LAYOUTS ---
+starter_win = create_starter_bundle("Windows")
+starter_linux = create_starter_bundle("Linux")
+starter_mac = create_starter_bundle("macOS")
+starter_pwa = create_starter_bundle("Mobile / PWA")
+
+# --- WORLD-CLASS STUNNING PORTAL STYLING & LAYOUTS (unchanged — purely cosmetic) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -180,13 +282,11 @@ st.markdown("""
         color: #F8FAFC !important;
     }
 
-    /* Cosmic Dynamic Background */
     .stApp {
         background: radial-gradient(circle at 15% 20%, #0d1326 0%, #04060a 85%);
         background-attachment: fixed;
     }
 
-    /* Stunning Glassmorphism Portal Container */
     .portal-hero-card {
         background: rgba(17, 24, 39, 0.82);
         backdrop-filter: blur(24px);
@@ -235,7 +335,6 @@ st.markdown("""
         box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
     }
 
-    /* Gorgeous Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: rgba(15, 23, 42, 0.6);
@@ -258,7 +357,6 @@ st.markdown("""
         border: 1px solid rgba(56, 189, 248, 0.4);
     }
 
-    /* Modern Interactive Cards for Downloads */
     .download-grid-card {
         background: rgba(30, 41, 59, 0.65);
         border: 1px solid rgba(56, 189, 248, 0.25);
@@ -280,7 +378,6 @@ st.markdown("""
         margin: 1.5rem 0;
     }
 
-    /* Workspace Metrics */
     .workspace-metric {
         background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
         border: 1px solid rgba(56, 189, 248, 0.3);
@@ -327,8 +424,8 @@ if not st.session_state.portal_unlocked:
             st.session_state.user_identity = {
                 "email": user_record["email"],
                 "name": user_record["name"],
-                "role": "admin" if user_record["email"] == "chrishem242@gmail.com" else user_record["role"],
-                "is_admin": (user_record["email"] == "chrishem242@gmail.com" or user_record["role"] == "admin"),
+                "role": user_record["role"],
+                "is_admin": user_record["role"] == "admin",
             }
             subscription.ensure_trial_started(user_record["email"])
 
@@ -336,11 +433,10 @@ if not st.session_state.portal_unlocked:
 if not st.session_state.portal_unlocked:
     st.markdown("<style>[data-testid=\"stSidebar\"] {display: none;}</style>", unsafe_allow_html=True)
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
-    
-    # Render gateway hero avatar using master/default or general user fallback
-    gateway_avatar_b64 = get_user_avatar_base64("chrishem242@gmail.com")
+
+    gateway_avatar_b64 = get_user_avatar_base64("")
     avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
-    
+
     st.markdown(f"""
     <div class="portal-hero-card">
         <div class="profile-glow-wrap">{avatar_html}</div>
@@ -348,13 +444,21 @@ if not st.session_state.portal_unlocked:
         <div class="portal-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-    
+
+    no_admin_yet = db_conn.execute("SELECT COUNT(*) FROM auth_users WHERE role = 'admin'").fetchone()[0] == 0
+    if no_admin_yet:
+        st.warning(
+            "⚙️ **First-time setup:** no admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
+            "`SOVEREIGN_ADMIN_PASSWORD` environment variables and restart the app, or register a normal "
+            "account below and manually set its role to `admin` in the database."
+        )
+
     _, portal_col, _ = st.columns([0.4, 3.2, 0.4])
     with portal_col:
         tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register Account", "📱 Ecosystem Downloads"])
-        
+
         with tab_signin:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
             si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
@@ -365,18 +469,18 @@ if not st.session_state.portal_unlocked:
             if st.button("🚀 Unlock Portal Workspace", use_container_width=True):
                 user = auth_store.verify_login(si_email, si_password)
                 if user is None:
-                    st.error("Incorrect email or password. (Master account chrishem242@gmail.com is pre-configured).")
+                    st.error("Incorrect email or password.")
                 else:
                     st.session_state.portal_unlocked = True
                     st.session_state.user_identity = {
                         "email": user["email"],
                         "name": user["name"],
-                        "role": "admin" if user["email"] == "chrishem242@gmail.com" else user["role"],
-                        "is_admin": (user["email"] == "chrishem242@gmail.com" or user["role"] == "admin"),
+                        "role": user["role"],
+                        "is_admin": user["role"] == "admin",
                     }
                     if remember_me:
                         cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
-                    
+
                     subscription.ensure_trial_started(user["email"])
                     st.rerun()
 
@@ -404,30 +508,32 @@ if not st.session_state.portal_unlocked:
 
         with tab_downloads:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            st.markdown("### 🌍 Cross-Platform Ecosystem Releases")
-            st.write("Download standalone bundles for your preferred environment directly from the portal gate.")
-            
+            st.markdown("### 🌍 Starter Configuration Bundles")
+            st.caption(
+                "These are minimal config/reference bundles, **not real packaged native applications** for any "
+                "specific platform — deploy the actual app via `streamlit run app.py` on your target environment."
+            )
+
             d_col1, d_col2 = st.columns(2)
             with d_col1:
-                st.markdown('<div class="download-grid-card"><h4>🪟 Windows Suite</h4><p style="font-size: 0.8rem; color: #94A3B8;">Desktop Engine (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Windows Package", data=win_zip, file_name="chrishem_hub_windows.zip", mime="application/zip", use_container_width=True)
+                st.markdown('<div class="download-grid-card"><h4>🪟 Windows</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
 
-                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux Distribution</h4><p style="font-size: 0.8rem; color: #94A3B8;">Ubuntu / Debian Server Build</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Linux Package", data=linux_zip, file_name="chrishem_hub_linux.zip", mime="application/zip", use_container_width=True)
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", use_container_width=True)
 
             with d_col2:
-                st.markdown('<div class="download-grid-card"><h4>🍏 macOS Architecture</h4><p style="font-size: 0.8rem; color: #94A3B8;">Apple Silicon & Intel Universal</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download macOS Package", data=mac_zip, file_name="chrishem_hub_macos.zip", mime="application/zip", use_container_width=True)
+                st.markdown('<div class="download-grid-card"><h4>🍏 macOS</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", use_container_width=True)
 
-                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile PWA / Client</h4><p style="font-size: 0.8rem; color: #94A3B8;">Progressive Web Configuration</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Mobile PWA", data=pwa_zip, file_name="chrishem_hub_mobile_pwa.zip", mime="application/zip", use_container_width=True)
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile / PWA</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", use_container_width=True)
 
 # --- UNLOCKED WORKSPACE DASHBOARD ---
 else:
-    identity = st.session_state.get("user_identity", {"name": "Chrishem", "role": "admin"})
-    current_user_email = identity.get("email", "chrishem242@gmail.com")
-    
-    # Render custom or default user avatar inside sidebar
+    identity = st.session_state.get("user_identity", {})
+    current_user_email = identity.get("email", "")
+
     sidebar_avatar_b64 = get_user_avatar_base64(current_user_email)
     if sidebar_avatar_b64:
         st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
@@ -435,31 +541,33 @@ else:
     st.sidebar.title("CHRISHEM APEX")
     st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
     st.sidebar.markdown(f"**Email:** `{current_user_email}`")
-    st.sidebar.markdown(f"**Privilege:** `{'👑 Full-Time Admin' if is_admin() else 'Standard User'}`")
-    
+    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_admin() else 'Standard User'}`")
+
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
-    
+
     theme_mode = st.sidebar.selectbox("Interface Spectrum", ["Deep Space Nebula", "Cyber Matrix Dark", "Sovereign Gold"])
-    
+
     if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
         cookie_manager.delete("chrishem_user_email")
         st.session_state.portal_unlocked = False
         st.rerun()
-        
+
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
     st.sidebar.markdown("### 📁 Navigation Matrix")
-    
+
     menu_selection = st.sidebar.radio("Select Workspace", [
-        "⚡ Apex Dashboard", 
-        "🤖 AI Intelligence Daemon", 
-        "🔬 Bioinformatics Studio", 
+        "⚡ Apex Dashboard",
+        "📝 Query Log",
+        "🔬 Bioinformatics Studio",
         "⚙️ Profile Settings",
         "🛡️ Admin Security & User Controls"
     ])
 
     st.title("⚡ Chrishem Sovereign Apex Hub")
     st.markdown("---")
-    
+
+    status = subscription.get_status(current_user_email)
+
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown('<div class="workspace-metric"><div class="metric-value">Active</div><div class="metric-label">Gateway Status</div></div>', unsafe_allow_html=True)
@@ -467,40 +575,40 @@ else:
         st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
     with col3:
         st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
-    
+
     st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
     if menu_selection == "⚡ Apex Dashboard":
         st.markdown("### 🌟 Welcome to the Core Ecosystem Workspace")
-        st.write("Your session has full-time administrative clearance. Use the panels below or the sidebar navigation to run analytics, manage system tools, and review telemetry.")
-        
+        st.write("Use the panels below or the sidebar navigation to run analytics, manage system tools, and review your account.")
+
         c_a, c_b = st.columns(2)
         with c_a:
-            st.info("**System Status:** All telemetry daemons are operating smoothly with 0ms latency.")
+            st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}")
         with c_b:
-            st.success(f"**License Status:** Lifetime Sovereign Enterprise Access Enabled for `{current_user_email}`.")
+            st.success(f"**Subscription Plan:** `{status.get('plan', 'trial')}` for `{current_user_email}`.")
 
-    elif menu_selection == "🤖 AI Intelligence Daemon":
-        st.markdown("### 🤖 Autonomous AI Intelligence & Problem Solver")
-        st.write("Interact directly with the sovereign heuristic assistant running in your secure session.")
-        
+    elif menu_selection == "📝 Query Log":
+        st.markdown("### 📝 Session Query Log")
+        st.caption("This records your queries for your own reference — it does not run a real AI model. For actual AI-assisted analysis, use the **AI & NLP Studio** hub from the main sidebar navigation.")
+
         cursor = db_conn.cursor()
-        cursor.execute("SELECT prompt, response, timestamp FROM live_chat_history ORDER BY id ASC")
+        cursor.execute("SELECT prompt, response, timestamp FROM live_chat_history WHERE username = ? ORDER BY id ASC", (identity.get("name"),))
         chat_rows = cursor.fetchall()
         for p, r, ts in chat_rows:
             st.markdown(f"""
             <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem;">
                 <b style="color: #38BDF8;">[{ts[:19]}]:</b> {p}<br><br>
-                <b style="color: #818CF8;">AI:</b> {r}
+                <b style="color: #818CF8;">Note:</b> {r}
             </div>
             """, unsafe_allow_html=True)
-            
-        user_prompt = st.text_area("Enter your analytical task or problem query:", key="portal_ai_input")
-        if st.button("Execute AI Generation ⚡"):
+
+        user_prompt = st.text_area("Log a query or note for later reference:", key="portal_ai_input")
+        if st.button("💾 Save to Log"):
             if user_prompt.strip():
-                simulated_response = f"Analyzed query under sovereign protocols: '{user_prompt[:60]}...' [Execution successful with 99.9% confidence matrix]."
+                note = "Logged for reference — not an AI response. Use AI & NLP Studio for real analysis."
                 cursor.execute("INSERT INTO live_chat_history (username, timestamp, prompt, response) VALUES (?, ?, ?, ?)",
-                               (identity.get("name"), datetime.datetime.now().isoformat(), user_prompt, simulated_response))
+                               (identity.get("name"), datetime.datetime.now().isoformat(), user_prompt, note))
                 db_conn.commit()
                 st.rerun()
 
@@ -520,15 +628,14 @@ else:
 
     elif menu_selection == "⚙️ Profile Settings":
         st.markdown("### ⚙️ Operator Profile & Avatar Customization")
-        st.write("Upload a custom picture to personalize your account avatar across the platform. If no picture is uploaded, the system will automatically fall back to the default asset (`chrishem.png`).")
-        
-        # Display current avatar preview
+        st.write("Upload a custom picture to personalize your account avatar.")
+
         active_b64 = get_user_avatar_base64(current_user_email)
         if active_b64:
             st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8; box-shadow:0 0 20px rgba(56,189,248,0.4);"></div>', unsafe_allow_html=True)
-        
+
         uploaded_avatar = st.file_uploader("Upload New Avatar Image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
-        
+
         col_up1, col_up2 = st.columns(2)
         with col_up1:
             if st.button("💾 Save Custom Avatar", use_container_width=True):
@@ -551,16 +658,16 @@ else:
 
     elif menu_selection == "🛡️ Admin Security & User Controls":
         if not is_admin():
-            st.error("🚫 Access Denied: This panel requires full-time administrator clearance.")
+            st.error("🚫 Access Denied: This panel requires administrator clearance.")
         else:
             st.markdown("### 🛡️ Administrative Control Center")
-            st.write("Manage active users, database tables, and full privilege rings across the sovereign cluster.")
-            
+            st.write("Manage active users and roles. For the full security console (RBAC, encrypted vault, audit ledger), use the **Admin & Security Center** hub from the main sidebar navigation.")
+
             cursor = db_conn.cursor()
             cursor.execute("SELECT email, name, role FROM auth_users")
             users = cursor.fetchall()
-            
+
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
             st.dataframe(user_df, use_container_width=True)
-            
-            st.success(f"👑 Your account (`{current_user_email}`) is permanently locked with full administrative privileges and sovereign override capabilities.")
+
+            st.info(f"Signed in as `{current_user_email}` with role `{identity.get('role')}` — role changes should be made through the Admin & Security Center's RBAC console, which includes last-admin lockout protection and audit logging.")
