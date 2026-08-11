@@ -1,96 +1,64 @@
-import os
-import builtins
+import base64
 import datetime
-import io
-import json
 import hashlib
+import hmac
+import io
+import os
+import secrets
 import sqlite3
-import urllib.request
-import threading
+import zipfile
 import numpy as np
 import pandas as pd
 import streamlit as st
-import plotly.graph_objects as go
-import plotly.express as px
-from streamlit.components.v1 import html
+import extra_streamlit_components as stx
 
-# Optional advanced mapping and PDF components check
-try:
-    from fpdf import FPDF
-    FPDF_AVAILABLE = True
-except ImportError:
-    FPDF_AVAILABLE = False
+# --- PAGE CONFIGURATION ---
+st.set_page_config(
+    page_title="Chrishem Science Hub - Sovereign Enterprise Engine",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-try:
-    import folium
-    from streamlit_folium import st_folium
-    FOLIUM_AVAILABLE = True
-except ImportError:
-    FOLIUM_AVAILABLE = False
+PBKDF2_ITERATIONS = 260_000
 
-# ---------------------------------------------------------
-# GLOBAL BUILTINS & FALLBACKS
-# ---------------------------------------------------------
-if not hasattr(builtins, "run_automations"):
-    def _run_automations_fallback(*args, **kwargs):
-        pass
-    builtins.run_automations = _run_automations_fallback
 
-# ---------------------------------------------------------
-# DATABASE INITIALIZATION (Fully Operational Backend with RBAC & Vault)
-# ---------------------------------------------------------
+def get_cookie_manager():
+    return stx.CookieManager()
+
+
+cookie_manager = get_cookie_manager()
+
+
+# --- DATABASE INITIALIZATION ---
 def init_sovereign_db():
     conn = sqlite3.connect("sovereign_apex_engine.db", check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS system_telemetry_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            module_name TEXT,
-            severity TEXT,
-            details TEXT,
-            crypto_hash TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS automated_jobs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            job_name TEXT,
-            schedule_interval TEXT,
-            last_status TEXT,
-            next_execution TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS uploaded_vault_files (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            filename TEXT,
-            upload_timestamp TEXT,
-            row_count INTEGER,
-            column_count INTEGER,
-            preview_json TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_profiles (
-            username TEXT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS auth_users (
+            email TEXT PRIMARY KEY,
+            name TEXT,
+            password_hash TEXT,
             role TEXT,
-            birthday TEXT,
-            last_seen TEXT,
-            visit_count INTEGER
+            avatar_blob BLOB
         )
     """)
-    for col_query in [
-        "ALTER TABLE user_profiles ADD COLUMN birthday TEXT",
-        "ALTER TABLE user_profiles ADD COLUMN role TEXT",
-        "ALTER TABLE user_profiles ADD COLUMN last_seen TEXT",
-        "ALTER TABLE user_profiles ADD COLUMN visit_count INTEGER"
-    ]:
+    for migration in ("ALTER TABLE auth_users ADD COLUMN avatar_blob BLOB",
+                      "ALTER TABLE auth_users ADD COLUMN salt TEXT"):
         try:
-            cursor.execute(col_query)
-        except Exception:
-            pass
+            cursor.execute(migration)
+        except sqlite3.OperationalError:
+            pass  # Column already exists.
 
+    # Aligned with the schema Admin Security Center's billing panel actually reads
+    # (plan, trial_started) — previously this file used an incompatible parallel table.
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS subscriptions (
+            email TEXT PRIMARY KEY,
+            plan TEXT,
+            trial_started TEXT
+        )
+    """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS live_chat_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,748 +68,571 @@ def init_sovereign_db():
             response TEXT
         )
     """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS saved_analyses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
-            timestamp TEXT,
-            category TEXT,
-            content TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS bioinformatics_records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sequence_name TEXT,
-            gc_content REAL,
-            length INTEGER,
-            timestamp TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS subscriptions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tier TEXT,
-            status TEXT,
-            expiry_date TEXT
-        )
-    """)
     conn.commit()
     return conn
 
+
 db_conn = init_sovereign_db()
 
-# ---------------------------------------------------------
-# PAGE CONFIGURATION
-# ---------------------------------------------------------
-st.set_page_config(
-    page_title="CHRISHEM Sovereign Apex Platform - World Apex Edition v8.2",
-    page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
-# Initialize unlock state
-if 'portal_unlocked' not in st.session_state:
-    st.session_state.portal_unlocked = False
+# --- PASSWORD HASHING (PBKDF2-HMAC-SHA256, salted) ---
+def _hash_password(password: str, salt_hex: str = None):
+    salt = bytes.fromhex(salt_hex) if salt_hex else secrets.token_bytes(16)
+    dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, PBKDF2_ITERATIONS)
+    return dk.hex(), salt.hex()
 
-# If locked, render portal gateway or auth check
-if not st.session_state.portal_unlocked:
-    if os.path.exists('portal.py'):
-        with open('portal.py', 'r', encoding='utf-8-sig') as f:
-            code = f.read()
-        exec(code)
-        st.stop()
-    else:
-        st.title('⚡ Chrishem Sovereign Apex Hub - Gateway')
-        st.success('🔓 Secure Authentication Required')
-        auth_user = st.text_input("Username", value="Chrishem")
-        auth_role = st.selectbox("Role", ["Sovereign Administrator", "Data Analyst", "Enterprise User"])
-        if st.button("Unlock Portal & Initialize Session"):
-            if auth_user:
-                st.session_state.portal_unlocked = True
-                st.session_state.user_identity = {"name": auth_user, "role": auth_role}
-                st.rerun()
-        st.stop()
-else:
-    st.title('⚡ Chrishem Sovereign Apex Hub')
-    st.success('🔓 Gateway Unlocked: Select any module from the sidebar navigation to begin.')
-    
-    identity = st.session_state.get('user_identity', {})
-    st.info(f"**Active Session:** {identity.get('name', 'Analyst')} ({identity.get('role', 'User')})")
-    
-    if st.button('🔒 Lock Portal & Sign Out'):
-        st.session_state.portal_unlocked = False
-        st.rerun()
 
-# --- CHRISHEM AUTHOR PROFILE BLOCK ---
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 👑 App Creator")
+def _verify_password(password: str, stored_hash_hex: str, salt_hex: str) -> bool:
+    computed_hash, _ = _hash_password(password, salt_hex)
+    return hmac.compare_digest(computed_hash, stored_hash_hex)
 
-if os.path.exists("background.jpg"):
-    st.sidebar.image("background.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
-elif os.path.exists("assets/author_photo.jpg"):
-    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
-else:
-    st.sidebar.markdown("""
-        <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-            <b style="color: #38BDF8; font-size: 1.05rem; letter-spacing: 0.05em;">CHRISHEM</b>
-        </div>
-    """, unsafe_allow_html=True)
 
-st.sidebar.markdown("<p style='text-align: center; color: #F8FAFC; font-weight: 700; margin-top: 8px; letter-spacing: 0.05em;'>CHRISHEM</p>", unsafe_allow_html=True)
-st.sidebar.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.8rem; margin-top: -10px;'>Data Analyst & Lead Developer</p>", unsafe_allow_html=True)
-st.sidebar.markdown("---")
+# --- BOOTSTRAP: create the first admin ONLY on a genuinely empty database, ONLY from env vars ---
+def ensure_bootstrap_admin():
+    cursor = db_conn.cursor()
+    if cursor.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] > 0:
+        return  # Not a fresh install — the database's stored roles are the sole source of truth.
 
-# ---------------------------------------------------------
-# MULTI-LANGUAGE DICTIONARY (i18n)
-# ---------------------------------------------------------
-TRANSLATIONS = {
-    "English": {
-        "nav_sat": "Satellite & Orbital Telemetry",
-        "nav_swarm": "Autonomous Agent Swarms",
-        "nav_bio": "Bioinformatics & Genomic Studio",
-        "nav_gap": "Universal Sector Gap Solver",
-        "nav_workspace": "Personal Workspace",
-        "nav_ai": "AI Intelligence Daemon",
-        "nav_vault": "Saved Analyses Vault",
-        "nav_access": "Access Control & Licensing",
-        "nav_diag": "System Diagnostics & Health",
-        "greeting": "Welcome back",
-        "visits": "Visits"
-    },
-    "Swahili": {
-        "nav_sat": "Telemetria ya Satelaiti na Anga",
-        "nav_swarm": "Makundi ya Wakala Huru",
-        "nav_bio": "Studio ya Bioinforamatics na Jenomu",
-        "nav_gap": "Kitatuzi cha Mapungufu ya Sekta",
-        "nav_workspace": "Nafasi ya Kazi ya Kibinafsi",
-        "nav_ai": "Pepo la Akili Bandia",
-        "nav_vault": "Hifadhi ya Uchambuzi Uliohifadhiwa",
-        "nav_access": "Udhibiti wa Upatikanaji na Leseni",
-        "nav_diag": "Utambuzi wa Mfumo na Afya",
-        "greeting": "Karibu tena",
-        "visits": "Ziara"
-    },
-    "French": {
-        "nav_sat": "Télémétrie Satellitaire & Orbitale",
-        "nav_swarm": "Essaims d'Agents Autonomes",
-        "nav_bio": "Studio de Bioinformatique & Génomique",
-        "nav_gap": "Solveur de Lacunes Sectorielles",
-        "nav_workspace": "Espace de Travail Personnel",
-        "nav_ai": "Démon d'Intelligence Artificielle",
-        "nav_vault": "Coffre-fort des Analyses",
-        "nav_access": "Contrôle d'Accès & Licences",
-        "nav_diag": "Diagnostics Système & Santé",
-        "greeting": "Bon retour",
-        "visits": "Visites"
-    }
-}
+    bootstrap_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
+    bootstrap_password = os.environ.get("SOVEREIGN_ADMIN_PASSWORD")
+    if bootstrap_email and bootstrap_password:
+        pwd_hash, salt = _hash_password(bootstrap_password)
+        email_norm = bootstrap_email.lower().strip()
+        cursor.execute(
+            "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?,?,?,?,?)",
+            (email_norm, "Administrator", pwd_hash, salt, "admin"),
+        )
+        cursor.execute(
+            "INSERT OR REPLACE INTO subscriptions (email, plan, trial_started) VALUES (?,?,?)",
+            (email_norm, "active", datetime.datetime.utcnow().isoformat()),
+        )
+        db_conn.commit()
 
-def t(key, lang="English"):
-    return TRANSLATIONS.get(lang, TRANSLATIONS["English"]).get(key, key)
 
-# ---------------------------------------------------------
-# STYLING CSS
-# ---------------------------------------------------------
+ensure_bootstrap_admin()
+
+
+# --- AUTH & SUBSCRIPTION ---
+class AuthStore:
+    def verify_login(self, email, password):
+        cursor = db_conn.cursor()
+        cursor.execute(
+            "SELECT email, name, role, password_hash, salt FROM auth_users WHERE email = ?",
+            (email.lower().strip(),),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        db_email, name, role, stored_hash, salt = row
+
+        if salt:
+            if _verify_password(password, stored_hash, salt):
+                return {"email": db_email, "name": name, "role": role}
+            return None
+
+        # Legacy unsalted-SHA256 account: verify against the old scheme, then transparently
+        # upgrade to salted PBKDF2 so it never has to be checked the old way again.
+        legacy_hash = hashlib.sha256(password.encode()).hexdigest()
+        if legacy_hash == stored_hash:
+            new_hash, new_salt = _hash_password(password)
+            cursor.execute("UPDATE auth_users SET password_hash = ?, salt = ? WHERE email = ?", (new_hash, new_salt, db_email))
+            db_conn.commit()
+            return {"email": db_email, "name": name, "role": role}
+        return None
+
+    def get_user_by_email(self, email):
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        if row:
+            return {"email": row[0], "name": row[1], "role": row[2]}
+        return None
+
+    def create_user(self, email, name, password, role="user"):
+        cursor = db_conn.cursor()
+        email_norm = email.lower().strip()
+        cursor.execute("SELECT email FROM auth_users WHERE email = ?", (email_norm,))
+        if cursor.fetchone():
+            return {"ok": False, "error": "Email already registered."}
+
+        pwd_hash, salt = _hash_password(password)
+        cursor.execute(
+            "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
+            (email_norm, name, pwd_hash, salt, role),
+        )
+        cursor.execute(
+            "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
+            (email_norm, "trial", datetime.datetime.utcnow().isoformat()),
+        )
+        db_conn.commit()
+        return {"ok": True}
+
+
+auth_store = AuthStore()
+
+
+class SubscriptionManager:
+    def ensure_trial_started(self, email):
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT email FROM subscriptions WHERE email = ?", (email,))
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
+                (email, "trial", datetime.datetime.utcnow().isoformat()),
+            )
+            db_conn.commit()
+
+    def get_status(self, email):
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT plan, trial_started FROM subscriptions WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        if not row:
+            return {"plan": "trial", "trial_started": None}
+        return {"plan": row[0], "trial_started": row[1]}
+
+
+subscription = SubscriptionManager()
+
+
+def is_admin():
+    # Role comes solely from the database now — no hardcoded email ever grants admin implicitly.
+    identity = st.session_state.get("user_identity", {})
+    return identity.get("role") == "admin"
+
+
+def get_user_avatar_base64(email):
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT avatar_blob FROM auth_users WHERE email = ?", (email,))
+    row = cursor.fetchone()
+    if row and row[0]:
+        return base64.b64encode(row[0]).decode("utf-8")
+    img_path = "chrishem.png"
+    if os.path.exists(img_path):
+        with open(img_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+    return None
+
+
+# --- STARTER CONFIG BUNDLE (honestly labeled — not a real platform-specific build) ---
+def create_starter_bundle(platform_name):
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr(
+            "README.md",
+            f"# Chrishem Science Hub — Starter Notes ({platform_name})\n\n"
+            "This is a minimal configuration reference bundle, not a packaged native application. "
+            "To actually run the platform, deploy this Streamlit app's source (`streamlit run app.py`) "
+            f"on your {platform_name} environment with Python 3.10+ and the project's `requirements.txt`.",
+        )
+        zip_file.writestr("config.toml", "[server]\nheadless = true\nenableCORS = false")
+    return zip_buffer.getvalue()
+
+
+starter_win = create_starter_bundle("Windows")
+starter_linux = create_starter_bundle("Linux")
+starter_mac = create_starter_bundle("macOS")
+starter_pwa = create_starter_bundle("Mobile / PWA")
+
+# --- WORLD-CLASS STUNNING PORTAL STYLING & LAYOUTS (with sidebar fixes applied) ---
 st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #F8FAFC !important;
     }
+
     .stApp {
-        background: linear-gradient(135deg, #090D16 0%, #0F172A 50%, #060911 100%) !important;
+        background: radial-gradient(circle at 15% 20%, #0d1326 0%, #04060a 85%);
         background-attachment: fixed;
-        color: #F8FAFC !important;
     }
-    .top-banner {
-        background: rgba(15, 23, 42, 0.75);
-        backdrop-filter: blur(16px);
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        border-radius: 14px;
-        padding: 0.9rem 1.4rem;
-        margin-bottom: 1.25rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
-    .greeting-card {
-        background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(129, 140, 248, 0.12));
+
+    .portal-hero-card {
+        background: rgba(17, 24, 39, 0.82);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         border: 1px solid rgba(56, 189, 248, 0.35);
-        border-radius: 16px;
-        padding: 1.35rem 1.6rem;
-        margin-bottom: 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
+        border-radius: 28px;
+        padding: 35px 30px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(56, 189, 248, 0.15);
+        max-width: 860px;
+        margin: 0 auto;
     }
-    .metric-box {
-        background: rgba(30, 41, 59, 0.65);
-        border: 1px solid rgba(56, 189, 248, 0.22);
-        border-radius: 14px;
-        padding: 1.25rem 1rem;
-        text-align: center;
-    }
-    .metric-box .val {
-        font-size: 1.85rem;
+
+    .portal-title {
+        font-size: 2.3rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #38BDF8, #818CF8);
+        background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #F472B6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+    }
+
+    .portal-subtitle {
+        font-size: 0.95rem;
+        color: #94A3B8 !important;
+        font-weight: 600;
+        text-align: center;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+    }
+
+    .profile-glow-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #38BDF8;
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
+    }
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: rgba(15, 23, 42, 0.6);
+        padding: 6px;
+        border-radius: 14px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 44px;
+        border-radius: 10px;
+        color: #94A3B8;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)) !important;
+        color: #38BDF8 !important;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .download-grid-card {
+        background: rgba(30, 41, 59, 0.65);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        padding: 16px;
+        border-radius: 14px;
+        text-align: center;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+    .download-grid-card:hover {
+        border-color: rgba(56, 189, 248, 0.6);
+        box-shadow: 0 6px 25px rgba(56, 189, 248, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .glass-hr {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.35), transparent);
+        margin: 1.5rem 0;
+    }
+
+    .workspace-metric {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 16px;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    .workspace-metric .metric-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #38BDF8, #818CF8, #F472B6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
-    .metric-box .lbl {
+    .workspace-metric .metric-label {
         font-size: 0.75rem;
         color: #94A3B8 !important;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        margin-top: 0.35rem;
+        margin-top: 0.3rem;
         font-weight: 700;
     }
-    .glass-hr {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.4), transparent);
-        margin: 1.25rem 0;
+
+    [data-testid="stSidebar"] {
+        background-color: #050810 !important;
+        border-right: 1px solid rgba(56, 189, 248, 0.15) !important;
     }
-</style>
+
+    [data-testid="stSidebarContent"] {
+        background-color: #050810 !important;
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# DATA LOADER & CLEANER HELPER
-# ---------------------------------------------------------
-def load_dataset(uploaded_file, drop_duplicates=True, handle_missing="Mean Imputation", outlier_removal=False):
-    file_bytes = uploaded_file.read()
-    name = uploaded_file.name.lower()
-    df = None
-    
-    if name.endswith(".csv") or name.endswith(".txt"):
-        for enc in ["utf-8", "latin-1", "cp1252", "iso-8859-1"]:
-            try:
-                df = pd.read_csv(io.BytesIO(file_bytes), encoding=enc)
-                break
-            except Exception:
-                continue
-    elif name.endswith(".json"):
-        try:
-            df = pd.read_json(io.BytesIO(file_bytes))
-        except Exception:
-            pass
-    elif name.endswith((".xlsx", ".xls")):
-        try:
-            df = pd.read_excel(io.BytesIO(file_bytes))
-        except Exception:
-            pass
-            
-    if df is not None:
-        if drop_duplicates:
-            df = df.drop_duplicates()
-        
-        numeric_cols = df.select_dtypes(include=[np.number]).columns
-        if handle_missing == "Mean Imputation":
-            for col in numeric_cols:
-                df[col] = df[col].fillna(df[col].mean())
-        elif handle_missing == "Median Imputation":
-            for col in numeric_cols:
-                df[col] = df[col].fillna(df[col].median())
-        elif handle_missing == "Drop Missing Rows":
-            df = df.dropna()
-            
-        if outlier_removal and len(numeric_cols) > 0:
-            for col in numeric_cols:
-                mean_val = df[col].mean()
-                std_val = df[col].std()
-                if std_val > 0:
-                    df = df[(df[col] - mean_val).abs() <= 3 * std_val]
+# --- SESSION STATE & COOKIE RESTORATION ---
+if "portal_unlocked" not in st.session_state:
+    st.session_state.portal_unlocked = False
+if "user_identity" not in st.session_state:
+    st.session_state.user_identity = {}
 
-    return df, file_bytes
+if not st.session_state.portal_unlocked:
+    saved_email = cookie_manager.get(cookie="chrishem_user_email")
+    if saved_email:
+        user_record = auth_store.get_user_by_email(saved_email)
+        if user_record:
+            st.session_state.portal_unlocked = True
+            st.session_state.user_identity = {
+                "email": user_record["email"],
+                "name": user_record["name"],
+                "role": user_record["role"],
+                "is_admin": user_record["role"] == "admin",
+            }
+            subscription.ensure_trial_started(user_record["email"])
 
-# ---------------------------------------------------------
-# PDF REPORT GENERATOR HELPER
-# ---------------------------------------------------------
-def generate_pdf_report(title, content):
-    if not FPDF_AVAILABLE:
-        return None
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(200, 10, txt="CHRISHEM Sovereign Apex Dossier", ln=True, align="C")
-    pdf.set_font("Arial", "I", 10)
-    pdf.cell(200, 10, txt=f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True, align="C")
-    pdf.ln(10)
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(200, 10, txt=f"Title: {title}", ln=True)
-    pdf.set_font("Arial", "", 10)
-    pdf.multi_cell(0, 10, txt=str(content))
-    
-    pdf_output = pdf.output()
-    if isinstance(pdf_output, str):
-        return pdf_output.encode("latin1")
-    return pdf_output
+# --- PORTAL GATEWAY SCREEN (LOCKED STATE) ---
+if not st.session_state.portal_unlocked:
+    st.markdown("<style>[data-testid=\"stSidebar\"] {display: none;}</style>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# ADVANCED MODULE IMPLEMENTATIONS
-# ---------------------------------------------------------
-def run_background_swarm(task_name):
-    import time
-    time.sleep(1)
-    cursor = db_conn.cursor()
-    h = hashlib.sha256(task_name.encode()).hexdigest()[:12].upper()
-    cursor.execute("INSERT INTO saved_analyses (title, timestamp, category, content) VALUES (?, ?, ?, ?)",
-                   (f"Async Swarm: {task_name[:25]}", datetime.datetime.now().isoformat(), "Autonomous Swarms", f"Background simulation completed. ID: AGENT-{h}"))
-    db_conn.commit()
+    gateway_avatar_b64 = get_user_avatar_base64("")
+    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
 
-def render_autonomous_agents():
-    st.markdown("### 🤖 Autonomous Agent Swarms & Cross-Sector Orchestration")
-    st.markdown("Autonomous background intelligence loops running asynchronous worker threads to continuously probe telemetry and trigger proactive cross-sector optimizations.")
+    st.markdown(f"""
+    <div class="portal-hero-card">
+        <div class="profile-glow-wrap">{avatar_html}</div>
+        <div class="portal-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
+        <div class="portal-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Active Swarm Agents", "128 Nodes", delta="Autonomous")
-    c2.metric("Cross-Sector Loops", "Active", delta="Async Threading")
-    c3.metric("Anomaly Detection Rate", "99.94%", delta="Optimal")
-    c4.metric("Autonomous Controller", "CHRISHEM AI", delta="Secure")
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    agent_task = st.selectbox("Select Autonomous Agent Swarm Mission", [
-        "Global Agricultural Drought & Supply Chain Shock Mitigation",
-        "Epidemiological Mutation & Pathogen Outbreak Early-Warning",
-        "Decentralized Microgrid Load Balancing & Energy Redistribution",
-        "Financial Liquidity Contraction & Sovereign Risk Prediction"
-    ])
+    no_admin_yet = db_conn.execute("SELECT COUNT(*) FROM auth_users WHERE role = 'admin'").fetchone()[0] == 0
+    if no_admin_yet:
+        st.warning(
+            "⚙️ **First-time setup:** no admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
+            "`SOVEREIGN_ADMIN_PASSWORD` environment variables and restart the app, or register a normal "
+            "account below and manually set its role to `admin` in the database."
+        )
 
-    if st.button("🚀 Deploy Asynchronous Agent Swarm Probe", key="deploy_agent_swarm"):
-        with st.spinner(f"Spawning background thread for mission: {agent_task}..."):
-            t_worker = threading.Thread(target=run_background_swarm, args=(agent_task,))
-            t_worker.start()
-            
-            h = hashlib.sha256(agent_task.encode()).hexdigest()[:12].upper()
-            st.success(f"Agent swarm successfully dispatched in asynchronous background mode! [Swarm ID: AGENT-{h}]")
-            
-            st.markdown("#### 🔄 Cross-Sector Automated Synthesis Feed")
-            st.markdown(f"""
-            * **Primary Target:** `{agent_task}`
-            * **Execution Mode:** `Non-blocking Background Thread`
-            * **Satellite Weather Feed Integration:** Synced with Sentinel-2 & MODIS indices.
-            * **Systemic Risk Index:** `Low (0.014)`
-            """)
+    _, portal_col, _ = st.columns([0.4, 3.2, 0.4])
+    with portal_col:
+        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register Account", "📱 Ecosystem Downloads"])
 
-def render_bioinformatics_studio():
-    st.markdown("### 🧬 Advanced Bioinformatics & Genomic Sequence Studio")
-    st.markdown("Analyze FASTA sequences, calculate GC-content distributions, assess open reading frames (ORFs), and track phylogenetic variance.")
+        with tab_signin:
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
+            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="••••••••")
+            remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
-    seq_name = st.text_input("Sequence Identifier / Name", value="SARS-CoV-2 / Pathogen Variant Target X")
-    fasta_input = st.text_area("Paste FASTA Sequence (DNA/RNA)", placeholder="ATGCGATCGATCGATCGATCGATCGATCG...")
-
-    if st.button("🧬 Execute Genomic Sequence Analysis", key="run_bio_analysis"):
-        if not fasta_input.strip():
-            st.warning("Please provide a valid FASTA sequence.")
-        else:
-            clean_seq = "".join(fasta_input.upper().split())
-            seq_len = len(clean_seq)
-            g_count = clean_seq.count('G')
-            c_count = clean_seq.count('C')
-            gc_content = ((g_count + c_count) / seq_len * 100) if seq_len > 0 else 0.0
-            
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Sequence Length", f"{seq_len} bp")
-            col2.metric("GC-Content", f"{gc_content:.2f}%")
-            col3.metric("Mutation Drift Risk", "Stable", delta="99.7% Confidence")
-
-            st.markdown("#### 📊 Sliding-Window GC Distribution")
-            window_size = max(10, seq_len // 20)
-            gc_window = [
-                ((clean_seq[i:i+window_size].count('G') + clean_seq[i:i+window_size].count('C')) / window_size * 100)
-                for i in range(0, seq_len - window_size + 1, max(1, window_size // 5))
-            ]
-            if gc_window:
-                st.line_chart(gc_window)
-
-            cursor = db_conn.cursor()
-            cursor.execute("INSERT INTO bioinformatics_records (sequence_name, gc_content, length, timestamp) VALUES (?, ?, ?, ?)",
-                           (seq_name, float(gc_content), int(seq_len), datetime.datetime.now().isoformat()))
-            db_conn.commit()
-            st.success("Genomic sequence record saved to secure vault!")
-
-def render_satellite_orbital_hub():
-    st.markdown("### 🛰️ Live Satellite Constellation & Global Database Telemetry Hub")
-    st.markdown("Real-time downlink integration with orbital earth-observation satellites and interactive map coordinate selection.")
-
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.markdown('<div class="metric-box"><div class="val">42 Active</div><div class="lbl">Linked Satellites</div></div>', unsafe_allow_html=True)
-    with c2:
-        st.markdown('<div class="metric-box"><div class="val">1.4 TB/s</div><div class="lbl">Downlink Bandwidth</div></div>', unsafe_allow_html=True)
-    with c3:
-        st.markdown('<div class="metric-box"><div class="val">99.98%</div><div class="lbl">Orbital Lock Precision</div></div>', unsafe_allow_html=True)
-    with c4:
-        st.markdown('<div class="metric-box"><div class="val">CHRISHEM</div><div class="lbl">Orbital Controller</div></div>', unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    sat_select = st.selectbox("Select Orbital Satellite Feed", [
-        "Sentinel-2 (MultiSpectral High-Res Land Imaging)",
-        "Landsat-9 (Thermal Infrared & Surface Reflectance)",
-        "MODIS Terra/Aqua (Daily Global Climate & Drought Monitoring)",
-        "NOAA Weather Radar & Atmospheric Sounding",
-        "Open-World Global Economic & Trade Database Feed"
-    ])
-
-    lat_val, lon_val = 0.3476, 32.5825
-    if FOLIUM_AVAILABLE:
-        st.markdown("#### 🗺️ Interactive Target Coordinate Selector")
-        m = folium.Map(location=[0.3476, 32.5825], zoom_start=6)
-        m.add_child(folium.LatLngPopup())
-        map_data = st_folium(m, height=350, width="100%")
-        if map_data and map_data.get("last_clicked"):
-            lat_val = map_data["last_clicked"]["lat"]
-            lon_val = map_data["last_clicked"]["lng"]
-            st.info(f"Selected Target Coordinates from Map -> Latitude: **{lat_val:.4f}**, Longitude: **{lon_val:.4f}**")
-
-    col_lat, col_lon = st.columns(2)
-    with col_lat:
-        lat_val = st.number_input("Target Latitude", value=float(lat_val), format="%.4f")
-    with col_lon:
-        lon_val = st.number_input("Target Longitude", value=float(lon_val), format="%.4f")
-    
-    if st.button("📡 Execute Live Satellite Downlink & Scan", key="execute_sat_downlink"):
-        with st.spinner(f"Establishing encrypted uplink to {sat_select} for coordinates ({lat_val}, {lon_val})..."):
-            h = hashlib.sha256(f"{sat_select}-{lat_val}-{lon_val}".encode()).hexdigest()[:12].upper()
-            try:
-                req = urllib.request.urlopen(f"https://api.open-meteo.com/v1/forecast?latitude={lat_val}&longitude={lon_val}&current=temperature_2m,relative_humidity_2m,precipitation", timeout=5)
-                api_data = json.loads(req.read().decode())
-                current_weather = api_data.get("current", {})
-                temp = current_weather.get("temperature_2m", 25.0)
-                hum = current_weather.get("relative_humidity_2m", 60.0)
-                prec = current_weather.get("precipitation", 0.0)
-            except Exception:
-                temp, hum, prec = 26.5, 58.0, 0.2
-
-            st.success(f"Downlink successful! [Downlink ID: SAT-{h}]")
-            
-            sc1, sc2, sc3 = st.columns(3)
-            sc1.metric("Surface Temp (Live API)", f"{temp} °C", delta="Stable")
-            sc2.metric("Relative Humidity", f"{hum} %", delta="Optimal")
-            sc3.metric("Precipitation Rate", f"{prec} mm/h", delta="Normal")
-
-            cursor = db_conn.cursor()
-            cursor.execute("INSERT INTO saved_analyses (title, timestamp, category, content) VALUES (?, ?, ?, ?)",
-                           (f"Satellite Scan: {sat_select[:15]} ({lat_val:.2f}, {lon_val:.2f})", datetime.datetime.now().isoformat(), "Satellite Intelligence", f"Temp: {temp}C, Humidity: {hum}%, Precip: {prec}mm/h"))
-            db_conn.commit()
-
-def render_sector_gap_solver():
-    st.markdown("### 💡 Universal Multi-Sector Gap & Problem Solver")
-    st.markdown("Deep macroscopic analysis across global sectors identifying structural gaps and generating immediate, deployable technological solutions.")
-
-    sector_choice = st.selectbox("Select Global Sector to Analyze", [
-        "Agriculture & Food Security (Drought & Yield Optimization)",
-        "Healthcare & Epidemic Surveillance (Early Disease Outbreak Detection)",
-        "Renewable Energy & Power Grids (Load Distribution & Storage)",
-        "Education & Skill Development (Automated Personalized Learning)",
-        "Financial Inclusion & Micro-Lending (Risk Scoring & Fraud Prevention)",
-        "Supply Chain & Regional Trade (Cross-Border Customs & Bottlenecks)",
-        "Environmental Conservation & Waste Management (Urban & Abattoir Bio-Waste)"
-    ])
-
-    st.markdown("#### 🔍 Diagnostic Gap Breakdown")
-    if "Agriculture" in sector_choice:
-        gap_desc = "Smallholder farmers lack real-time soil moisture telemetry and predictive pest migration warnings, leading to 35% post-harvest loss."
-        sol_desc = "Integrate Sentinel-2 satellite NDVI data with localized IoT soil sensors to provide SMS-based actionable planting and irrigation schedules."
-    elif "Healthcare" in sector_choice:
-        gap_desc = "Rural clinics experience delayed diagnostic turnaround times and lack predictive epidemiological tracking for vector-borne diseases."
-        sol_desc = "Deploy offline-first AI diagnostic triage models on edge computing tablets synchronized via satellite cellular backhaul."
-    elif "Energy" in sector_choice:
-        gap_desc = "Unstable regional power grids suffer from frequency mismatch and high transmission loss during peak industrial cycles."
-        sol_desc = "Implement decentralized microgrid load-balancing algorithms powered by real-time neural network demand forecasting."
-    elif "Environmental" in sector_choice:
-        gap_desc = "Municipalities and abattoirs lack automated organic waste conversion tracking and bio-gas energy recovery systems."
-        sol_desc = "Deploy automated chemical oxygen demand (COD) tracking sensors and continuous anaerobic digestion telemetry pipelines."
-    else:
-        gap_desc = f"Structural inefficiencies and data silos in {sector_choice} causing resource misallocation and high latency."
-        sol_desc = "Establish an encrypted sovereign database pipeline with automated predictive agents to streamline operations."
-
-    st.info(f"**Identified Systemic Gap:** {gap_desc}")
-    st.success(f"**CHRISHEM Sovereign Solution:** {sol_desc}")
-
-    if st.button("🚀 Deploy Solution Framework to Global Network", key="deploy_sector_solution"):
-        with st.spinner("Synthesizing cryptographic execution blocks and updating global telemetry registries..."):
-            h = hashlib.sha256(sector_choice.encode()).hexdigest()[:10].upper()
-            cursor = db_conn.cursor()
-            cursor.execute("INSERT INTO saved_analyses (title, timestamp, category, content) VALUES (?, ?, ?, ?)",
-                           (f"Sector Solution: {sector_choice[:25]}", datetime.datetime.now().isoformat(), "Global Sector Solver", sol_desc))
-            db_conn.commit()
-            st.success(f"Solution successfully deployed and logged! [Deployment Hash: SEC-{h}]")
-
-def render_personal_workspace():
-    st.markdown("### 📁 Interactive Vault & Automated Data Analytics Studio")
-    st.markdown("Upload any dataset (CSV, Excel, JSON), apply automated pre-processing controls, inspect metrics, and save final reports to the secure vault.")
-
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        cursor = db_conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM uploaded_vault_files")
-        total_vault = cursor.fetchone()[0]
-        st.markdown(f'<div class="metric-box"><div class="val">{total_vault}</div><div class="lbl">Files Stored in Vault</div></div>', unsafe_allow_html=True)
-    with c2:
-        st.markdown('<div class="metric-box"><div class="val">100%</div><div class="lbl">Backend Synchronization</div></div>', unsafe_allow_html=True)
-    with c3:
-        st.markdown('<div class="metric-box"><div class="val">Active</div><div class="lbl">Streamlit Pipeline</div></div>', unsafe_allow_html=True)
-    with c4:
-        st.markdown('<div class="metric-box"><div class="val">CHRISHEM</div><div class="lbl">Root Governance</div></div>', unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### 📤 Secure File Upload & Automated Pre-Processing Toggles")
-    
-    uploaded_file = st.file_uploader("Drop your dataset here (CSV, XLSX, JSON):", type=["csv", "xlsx", "xls", "json", "txt"], key="single_vault_uploader")
-    
-    col_opt1, col_opt2, col_opt3 = st.columns(3)
-    with col_opt1:
-        drop_dup = st.checkbox("Drop Duplicate Rows", value=True)
-    with col_opt2:
-        missing_handling = st.selectbox("Missing Value Strategy", ["Mean Imputation", "Median Imputation", "Drop Missing Rows", "None"])
-    with col_opt3:
-        outlier_flag = st.checkbox("Filter Statistical Outliers (3σ)", value=False)
-
-    if uploaded_file is not None:
-        df, file_bytes = load_dataset(uploaded_file, drop_duplicates=drop_dup, handle_missing=missing_handling, outlier_removal=outlier_flag)
-        if df is not None:
-            st.info(f"File loaded successfully: `{uploaded_file.name}` | Cleaned Dimensions: **{df.shape[0]} rows** × **{df.shape[1]} columns**")
-            
-            if st.button("🚀 Initiate Data Analytics Pipeline", key="initiate_pipeline_btn"):
-                with st.spinner("Executing rigorous data ingestion, cleaning, and schema validation..."):
-                    preview_str = df.head(3).to_json()
-                    cursor = db_conn.cursor()
-                    cursor.execute("""
-                        INSERT INTO uploaded_vault_files (filename, upload_timestamp, row_count, column_count, preview_json)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (uploaded_file.name, datetime.datetime.now().isoformat(), int(df.shape[0]), int(df.shape[1]), preview_str))
-                    db_conn.commit()
-                st.success("Pipeline executed successfully and record saved to database vault!")
-                st.session_state['active_df'] = df
-                st.session_state['active_filename'] = uploaded_file.name
-
-    if 'active_df' in st.session_state:
-        df = st.session_state['active_df']
-        fname = st.session_state.get('active_filename', 'Dataset')
-        st.markdown("---")
-        st.markdown(f"#### 📊 Active Inspection Suite: `{fname}`")
-
-        tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Data Table", "📈 Descriptive Statistics", "📉 Advanced Plotter", "💾 Save Full Analysis"])
-        with tab1:
-            st.dataframe(df, use_container_width=True)
-            csv_data = df.to_csv(index=False).encode('utf-8')
-            st.download_button("Download Processed Data (CSV)", data=csv_data, file_name=f"processed_{fname}.csv", mime="text/csv")
-        with tab2:
-            st.write(df.describe())
-        with tab3:
-            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-            if len(numeric_cols) >= 2:
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    x_col = st.selectbox("X-Axis Variable", numeric_cols, key=f"x_{fname}")
-                with col_b:
-                    y_col = st.selectbox("Y-Axis Variable", numeric_cols, key=f"y_{fname}")
-                
-                chart_type = st.radio("Select Plot Type", ["Scatter Plot", "Line Chart", "Bar Chart"], horizontal=True, key=f"chart_{fname}")
-                if chart_type == "Scatter Plot":
-                    fig_v = px.scatter(df, x=x_col, y=y_col, title=f"Scatter: {x_col} vs {y_col}", template="plotly_dark")
-                elif chart_type == "Line Chart":
-                    fig_v = px.line(df, x=x_col, y=y_col, title=f"Line: {x_col} vs {y_col}", template="plotly_dark")
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            if st.button("🚀 Unlock Portal Workspace", use_container_width=True):
+                user = auth_store.verify_login(si_email, si_password)
+                if user is None:
+                    st.error("Incorrect email or password.")
                 else:
-                    fig_v = px.bar(df, x=x_col, y=y_col, title=f"Bar: {x_col} vs {y_col}", template="plotly_dark")
-                
-                fig_v.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                st.plotly_chart(fig_v, use_container_width=True)
-            else:
-                st.info("Dataset requires at least two numeric columns for interactive plotting.")
-        with tab4:
-            report_title = st.text_input("Analysis Report Title", value=f"Analysis Report - {fname}")
-            if st.button("Save Full Analysis Now", key="save_full_analysis_btn"):
-                summary_stats = df.describe().to_string()
-                payload = json.dumps({"filename": fname, "rows": int(df.shape[0]), "columns": int(df.shape[1]), "summary": summary_stats})
-                cursor = db_conn.cursor()
-                cursor.execute("""
-                    INSERT INTO saved_analyses (title, timestamp, category, content)
-                    VALUES (?, ?, ?, ?)
-                """, (report_title, datetime.datetime.now().isoformat(), "Data Analytics", payload))
-                db_conn.commit()
-                st.success(f"Analysis report '{report_title}' successfully saved to database vault!")
+                    st.session_state.portal_unlocked = True
+                    st.session_state.user_identity = {
+                        "email": user["email"],
+                        "name": user["name"],
+                        "role": user["role"],
+                        "is_admin": user["role"] == "admin",
+                    }
+                    if remember_me:
+                        cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
 
-def render_ai_intelligence_daemon(active_analyst_name):
-    st.markdown("### 🤖 Fully Operational AI Intelligence & Instant Problem Solver")
-    st.markdown("Ask any technical, mathematical, data analytics, or programming question below. The autonomous engine instantly formulates contextual solutions.")
+                    subscription.ensure_trial_started(user["email"])
+                    st.rerun()
 
-    cursor = db_conn.cursor()
-    cursor.execute("SELECT prompt, response, timestamp FROM live_chat_history ORDER BY id ASC")
-    chat_rows = cursor.fetchall()
+        with tab_signup:
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            su_name = st.text_input("Preferred Full Name", key="su_name_input", placeholder="Analyst Name")
+            su_email = st.text_input("Email Address", key="su_email_input", placeholder="name@domain.com")
+            su_password = st.text_input("Choose Password", type="password", key="su_password_input", placeholder="At least 6 characters")
+            su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input", placeholder="Re-enter password")
 
-    if chat_rows:
-        st.markdown("#### 💬 Live Conversation History")
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            if st.button("✨ Create Sovereign Account", use_container_width=True):
+                if not su_email or not su_password:
+                    st.error("Email and password are required.")
+                elif su_password != su_password2:
+                    st.error("Passwords don't match.")
+                elif len(su_password) < 6:
+                    st.error("Password must be at least 6 characters.")
+                else:
+                    result = auth_store.create_user(su_email, su_name or "Analyst", su_password, role="user")
+                    if not result["ok"]:
+                        st.error(result["error"])
+                    else:
+                        st.success("Account created successfully! Switch to 'Secure Sign In' above.")
+
+        with tab_downloads:
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            st.markdown("### 🌍 Starter Configuration Bundles")
+            st.caption(
+                "These are minimal config/reference bundles, **not real packaged native applications** for any "
+                "specific platform — deploy the actual app via `streamlit run app.py` on your target environment."
+            )
+
+            d_col1, d_col2 = st.columns(2)
+            with d_col1:
+                st.markdown('<div class="download-grid-card"><h4>🪟 Windows</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
+
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", use_container_width=True)
+
+            with d_col2:
+                st.markdown('<div class="download-grid-card"><h4>🍏 macOS</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", use_container_width=True)
+
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile / PWA</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", use_container_width=True)
+
+# --- UNLOCKED WORKSPACE DASHBOARD ---
+else:
+    identity = st.session_state.get("user_identity", {})
+    current_user_email = identity.get("email", "")
+
+    sidebar_avatar_b64 = get_user_avatar_base64(current_user_email)
+    if sidebar_avatar_b64:
+        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
+
+    st.sidebar.title("CHRISHEM APEX")
+    st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
+    st.sidebar.markdown(f"**Email:** `{current_user_email}`")
+    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_admin() else 'Standard User'}`")
+
+    st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+
+    theme_mode = st.sidebar.selectbox("Interface Spectrum", ["Deep Space Nebula", "Cyber Matrix Dark", "Sovereign Gold"])
+
+    if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
+        cookie_manager.delete("chrishem_user_email")
+        st.session_state.portal_unlocked = False
+        st.rerun()
+
+    st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+    st.sidebar.markdown("### 📁 Navigation Matrix")
+
+    menu_selection = st.sidebar.radio("Select Workspace", [
+        "⚡ Apex Dashboard",
+        "📝 Query Log",
+        "🔬 Bioinformatics Studio",
+        "⚙️ Profile Settings",
+        "🛡️ Admin Security & User Controls"
+    ])
+
+    st.title("⚡ Chrishem Sovereign Apex Hub")
+    st.markdown("---")
+
+    status = subscription.get_status(current_user_email)
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown('<div class="workspace-metric"><div class="metric-value">Active</div><div class="metric-label">Gateway Status</div></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
+    with col3:
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+
+    if menu_selection == "⚡ Apex Dashboard":
+        st.markdown("### 🌟 Welcome to the Core Ecosystem Workspace")
+        st.write("Use the panels below or the sidebar navigation to run analytics, manage system tools, and review your account.")
+
+        c_a, c_b = st.columns(2)
+        with c_a:
+            st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}")
+        with c_b:
+            st.success(f"**Subscription Plan:** `{status.get('plan', 'trial')}` for `{current_user_email}`.")
+
+    elif menu_selection == "📝 Query Log":
+        st.markdown("### 📝 Session Query Log")
+        st.caption("This records your queries for your own reference — it does not run a real AI model. For actual AI-assisted analysis, use the **AI & NLP Studio** hub from the main sidebar navigation.")
+
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT prompt, response, timestamp FROM live_chat_history WHERE username = ? ORDER BY id ASC", (identity.get("name"),))
+        chat_rows = cursor.fetchall()
         for p, r, ts in chat_rows:
             st.markdown(f"""
-            <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 1rem; margin-bottom: 0.85rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-                <b style="color: #38BDF8;">[{ts[:19]}] {active_analyst_name}:</b> <span style="color: #F8FAFC;">{p}</span><br><br>
-                <b style="color: #818CF8;">AI Intelligence Daemon:</b> <span style="color: #CBD5E1;">{r}</span>
+            <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem;">
+                <b style="color: #38BDF8;">[{ts[:19]}]:</b> {p}<br><br>
+                <b style="color: #818CF8;">Note:</b> {r}
             </div>
             """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    query_mode = st.selectbox("Select Problem-Solving Domain", [
-        "General Problem Solver & Root Cause Analysis",
-        "Data Analytics & Statistical Prediction",
-        "Python / Streamlit Code Optimization & Debugging",
-        "Bioinformatics & Environmental Research Strategy"
-    ])
-
-    user_prompt = st.text_area("Enter your custom problem or question here:", key="real_ai_chat_input")
-    col_btn1, col_btn2 = st.columns([1, 4])
-    with col_btn1:
-        submit_btn = st.button("Generate Solution ⚡", key="submit_ai_prompt_btn")
-    with col_btn2:
-        clear_btn = st.button("Clear Chat History", key="clear_chat_btn")
-
-    if clear_btn:
-        cursor.execute("DELETE FROM live_chat_history")
-        db_conn.commit()
-        st.success("Chat history cleared.")
-        st.rerun()
-
-    if submit_btn:
-        if not user_prompt.strip():
-            st.warning("Please enter a valid prompt or question before submitting.")
-        else:
-            with st.spinner("Analyzing parameters and synthesizing real-time operational solution..."):
-                hash_val = hashlib.sha256(user_prompt.encode()).hexdigest()[:16].upper()
-                solution_text = f"Synthesized heuristic response for challenge '{user_prompt[:50]}...': Recommended action involves executing vector optimizations and telemetry boundary checks."
-                prediction_text = f"Adaptive system stability index maintained at 99.9% for input hash HASH-{hash_val}"
-
-                full_response = f"""
-**Domain:** `{query_mode}`  
-**Tailored Solution:** {solution_text}  
-**Predictive Outcome:** {prediction_text}  
-**Execution Hash:** `HASH-{hash_val}`
-                """
-
-                cursor.execute("""
-                    INSERT INTO live_chat_history (username, timestamp, prompt, response)
-                    VALUES (?, ?, ?, ?)
-                """, (active_analyst_name, datetime.datetime.now().isoformat(), user_prompt, full_response))
+        user_prompt = st.text_area("Log a query or note for later reference:", key="portal_ai_input")
+        if st.button("💾 Save to Log"):
+            if user_prompt.strip():
+                note = "Logged for reference — not an AI response. Use AI & NLP Studio for real analysis."
+                cursor.execute("INSERT INTO live_chat_history (username, timestamp, prompt, response) VALUES (?, ?, ?, ?)",
+                               (identity.get("name"), datetime.datetime.now().isoformat(), user_prompt, note))
                 db_conn.commit()
-                st.success("Analysis generated successfully!")
                 st.rerun()
 
-def render_system_diagnostics():
-    st.markdown("### 🔍 System Diagnostics & Telemetry Center")
-    st.markdown("Real-time monitoring of database connection pools, memory allocation, and pipeline latency with cryptographic audit trails.")
+    elif menu_selection == "🔬 Bioinformatics Studio":
+        st.markdown("### 🧬 Genomic Sequence & GC-Content Studio")
+        seq_input = st.text_area("Paste FASTA Sequence Data", placeholder="ATGCGATCGATCGATCGATCG...")
+        if st.button("Run Sequence Metric Analysis"):
+            if seq_input.strip():
+                clean_seq = "".join(seq_input.upper().split())
+                length = len(clean_seq)
+                gc = ((clean_seq.count('G') + clean_seq.count('C')) / length * 100) if length > 0 else 0
+                c1, c2 = st.columns(2)
+                c1.metric("Total Base Pairs", f"{length} bp")
+                c2.metric("GC-Content Ratio", f"{gc:.2f}%")
+            else:
+                st.warning("Please provide a sequence string.")
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("System Uptime", "99.99%", delta="Stable")
-    col2.metric("Database Health", "Connected", delta="0ms Latency")
-    col3.metric("Memory Utilization", "42.8%", delta="-1.2%")
-    col4.metric("Active Threads", "14 Daemons", delta="Optimal")
+    elif menu_selection == "⚙️ Profile Settings":
+        st.markdown("### ⚙️ Operator Profile & Avatar Customization")
+        st.write("Upload a custom picture to personalize your account avatar.")
 
-    st.markdown("---")
-    st.markdown("#### 📋 Immutable Cryptographic Audit Trails & Telemetry Logs")
-    cursor = db_conn.cursor()
-    cursor.execute("SELECT id, timestamp, module_name, severity, crypto_hash FROM system_telemetry_logs ORDER BY id DESC LIMIT 15")
-    logs_data = cursor.fetchall()
-    if logs_data:
-        logs_df = pd.DataFrame(logs_data, columns=["ID", "Timestamp", "Module", "Severity", "Crypto Hash"])
-        st.dataframe(logs_df, use_container_width=True, hide_index=True)
-    else:
-        st.info("No system telemetry logs recorded yet.")
+        active_b64 = get_user_avatar_base64(current_user_email)
+        if active_b64:
+            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8; box-shadow:0 0 20px rgba(56,189,248,0.4);"></div>', unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# MAIN ROUTER & NAVIGATION
-# ---------------------------------------------------------
-def main():
-    st.sidebar.title("CHRISHEM")
-    st.sidebar.caption("Sovereign Enterprise Engine v8.2 (World Apex Edition)")
-    st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+        uploaded_avatar = st.file_uploader("Upload New Avatar Image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 
-    selected_lang = st.sidebar.selectbox("Select Language / Lugha", ["English", "Swahili", "French"])
+        col_up1, col_up2 = st.columns(2)
+        with col_up1:
+            if st.button("💾 Save Custom Avatar", use_container_width=True):
+                if uploaded_avatar is not None:
+                    image_bytes = uploaded_avatar.read()
+                    cursor = db_conn.cursor()
+                    cursor.execute("UPDATE auth_users SET avatar_blob = ? WHERE email = ?", (image_bytes, current_user_email))
+                    db_conn.commit()
+                    st.success("Avatar successfully updated! Refreshing view...")
+                    st.rerun()
+                else:
+                    st.warning("Please select an image file first.")
+        with col_up2:
+            if st.button("🔄 Revert to Default Picture", use_container_width=True):
+                cursor = db_conn.cursor()
+                cursor.execute("UPDATE auth_users SET avatar_blob = NULL WHERE email = ?", (current_user_email,))
+                db_conn.commit()
+                st.success("Reverted to default system picture successfully!")
+                st.rerun()
 
-    def is_admin() -> bool:
-        identity = st.session_state.get("user_identity", {})
-        role = str(identity.get("role", "")).lower()
-        return role in ["admin", "sovereign administrator", "administrator"]
-
-    identity = st.session_state.get("user_identity", {})
-    active_analyst_name = identity.get("name", "Analyst")
-    user_role = identity.get("role", "User")
-
-    nav_options = [
-        t("nav_sat", selected_lang),
-        t("nav_swarm", selected_lang),
-        t("nav_bio", selected_lang),
-        t("nav_gap", selected_lang),
-        t("nav_workspace", selected_lang),
-        t("nav_ai", selected_lang),
-        t("nav_vault", selected_lang),
-        t("nav_access", selected_lang),
-        t("nav_diag", selected_lang)
-    ]
-    navigation = st.sidebar.radio("Navigation Hub", nav_options)
-
-    st.markdown(f"""
-        <div class="top-banner">
-            <div>Active Analyst: <b>{active_analyst_name} ({user_role})</b></div>
-            <div>Live Time: <b>{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} EAT</b></div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.title(navigation)
-    st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
-
-    if navigation == t("nav_sat", selected_lang):
-        render_satellite_orbital_hub()
-    elif navigation == t("nav_swarm", selected_lang):
-        render_autonomous_agents()
-    elif navigation == t("nav_bio", selected_lang):
-        render_bioinformatics_studio()
-    elif navigation == t("nav_gap", selected_lang):
-        render_sector_gap_solver()
-    elif navigation == t("nav_workspace", selected_lang):
-        render_personal_workspace()
-    elif navigation == t("nav_ai", selected_lang):
-        render_ai_intelligence_daemon(active_analyst_name)
-    elif navigation == t("nav_vault", selected_lang):
-        st.markdown("### 💾 Saved Analyses & Reports Vault")
-        cursor = db_conn.cursor()
-        cursor.execute("SELECT id, title, timestamp, category, content FROM saved_analyses ORDER BY id DESC")
-        saved_rows = cursor.fetchall()
-        
-        if saved_rows:
-            for s_id, s_title, s_ts, s_cat, s_content in saved_rows:
-                st.markdown(f"""
-                <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;">
-                    <b style="color: #38BDF8; font-size: 1.1rem;">{s_title}</b> ({s_ts[:19]})
-                    <div style="color: #818CF8; font-size: 0.85rem; font-weight: 600;">Category: {s_cat}</div>
-                    <p style="margin-top: 0.5rem; color: #F8FAFC;">{s_content}</p>
-                </div>
-                """, unsafe_allow_html=True)
-                if FPDF_AVAILABLE:
-                    pdf_bytes = generate_pdf_report(s_title, s_content)
-                    if pdf_bytes:
-                        st.download_button(label=f"📥 Download PDF Dossier (#{s_id})", data=pdf_bytes, file_name=f"dossier_{s_id}.pdf", mime="application/pdf", key=f"pdf_{s_id}")
-        else:
-            st.info("No saved analyses found in the vault yet.")
-    elif navigation == t("nav_access", selected_lang):
+    elif menu_selection == "🛡️ Admin Security & User Controls":
         if not is_admin():
-            st.error("🚫 Restricted to administrators.")
+            st.error("🚫 Access Denied: This panel requires administrator clearance.")
         else:
-            st.markdown("### Access Control & Licensing Matrix")
-            st.code(f"[User Principal] -> {active_analyst_name}\n[Assigned Role] -> {user_role}\n[Root Governance] -> CHRISHEM Apex Engine", language="text")
-    elif navigation == t("nav_diag", selected_lang):
-        if not is_admin():
-            st.error("🚫 Restricted to administrators.")
-        else:
-            render_system_diagnostics()
+            st.markdown("### 🛡️ Administrative Control Center")
+            st.write("Manage active users and roles. For the full security console (RBAC, encrypted vault, audit ledger), use the **Admin & Security Center** hub from the main sidebar navigation.")
 
-if __name__ == "__main__":
-    main()
+            cursor = db_conn.cursor()
+            cursor.execute("SELECT email, name, role FROM auth_users")
+            users = cursor.fetchall()
+
+            user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
+            st.dataframe(user_df, use_container_width=True)
+
+            st.info(f"Signed in as `{current_user_email}` with role `{identity.get('role')}` — role changes should be made through the Admin & Security Center's RBAC console, which includes last-admin lockout protection and audit logging.")
