@@ -1,42 +1,3 @@
-"""
-Portal Gateway — Authentication, Subscription, and Workspace Shell (Premium / Security-Hardened)
-
-Changelog vs prior version — this file had the most serious issues found in the entire audit,
-security issues rather than just fake features:
-- FIXED (critical): passwords were hashed with bare, unsalted SHA-256 — fast, unsalted hashing is
-  trivially reversible via rainbow tables if the database ever leaks. Passwords are now hashed
-  with PBKDF2-HMAC-SHA256 (260,000 iterations) and a unique random salt per user (stdlib only, no
-  new dependency). Existing accounts created under the old scheme are transparently upgraded to
-  the new scheme the next time they log in successfully — no forced password reset needed.
-- FIXED (critical): `chrishem242@gmail.com` was hardcoded as a permanent admin account in THREE
-  separate places (cookie-restore, sign-in handler, and a startup routine that silently
-  re-promoted it to admin on every single login) with a default password baked directly into the
-  source. This is a backdoor: it bypasses RBAC entirely, and would silently re-promote that
-  account back to admin even if another admin explicitly demoted it via Admin Security Center.
-  The login failure message even advertised its existence ("Master account ... is pre-configured")
-  to anyone who mistyped a password. All hardcoded email special-casing has been removed. The
-  very first admin account is now created only on a genuinely empty database, and only from
-  `SOVEREIGN_ADMIN_EMAIL` / `SOVEREIGN_ADMIN_PASSWORD` environment variables you set yourself —
-  nothing is auto-created with a guessable default password baked into the code. After that,
-  the database's stored role is the sole source of truth.
-- FIXED (data-consistency bug): this file maintained its own `user_subscriptions` table with a
-  different schema (`trial_end`, `is_active`) than the `subscriptions` table
-  (`plan`, `trial_started`) that Admin Security Center's billing panel actually reads from —
-  meaning every signup through this portal was invisible to the real billing/admin system.
-  Aligned to the one shared schema.
-- FIXED (was fake): the "AI Intelligence Daemon" returned a canned
-  `"[Execution successful with 99.9% confidence matrix]"` for any input. It's now honestly labeled
-  as a query log (a real, legitimate feature) rather than a fake AI response, with a pointer to
-  the real AI & NLP Studio hub for actual analysis.
-- FIXED (was fake): "System Status: 0ms latency" and "Lifetime Sovereign Enterprise Access" were
-  static claims shown to every user regardless of reality. Replaced with the user's real role and
-  real subscription plan pulled from the (now-aligned) subscription table.
-- FIXED (was fake): the "Windows / Linux / macOS / Mobile PWA" download buttons all produced the
-  identical placeholder zip (a stub README, a one-line fake script, a bare config file) regardless
-  of platform — there was no real platform-specific build behind any of them. Relabeled honestly
-  as a minimal starter-config bundle rather than implying real native applications exist.
-"""
-
 import base64
 import datetime
 import hashlib
@@ -89,8 +50,6 @@ def init_sovereign_db():
         except sqlite3.OperationalError:
             pass  # Column already exists.
 
-    # Aligned with the schema Admin Security Center's billing panel actually reads
-    # (plan, trial_started) — previously this file used an incompatible parallel table.
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS subscriptions (
             email TEXT PRIMARY KEY,
@@ -130,7 +89,7 @@ def _verify_password(password: str, stored_hash_hex: str, salt_hex: str) -> bool
 def ensure_bootstrap_admin():
     cursor = db_conn.cursor()
     if cursor.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] > 0:
-        return  # Not a fresh install — the database's stored roles are the sole source of truth.
+        return  
 
     bootstrap_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
     bootstrap_password = os.environ.get("SOVEREIGN_ADMIN_PASSWORD")
@@ -169,8 +128,6 @@ class AuthStore:
                 return {"email": db_email, "name": name, "role": role}
             return None
 
-        # Legacy unsalted-SHA256 account: verify against the old scheme, then transparently
-        # upgrade to salted PBKDF2 so it never has to be checked the old way again.
         legacy_hash = hashlib.sha256(password.encode()).hexdigest()
         if legacy_hash == stored_hash:
             new_hash, new_salt = _hash_password(password)
@@ -234,7 +191,6 @@ subscription = SubscriptionManager()
 
 
 def is_admin():
-    # Role comes solely from the database now — no hardcoded email ever grants admin implicitly.
     identity = st.session_state.get("user_identity", {})
     return identity.get("role") == "admin"
 
@@ -252,7 +208,7 @@ def get_user_avatar_base64(email):
     return None
 
 
-# --- STARTER CONFIG BUNDLE (honestly labeled — not a real platform-specific build) ---
+# --- STARTER CONFIG BUNDLE ---
 def create_starter_bundle(platform_name):
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
@@ -272,7 +228,7 @@ starter_linux = create_starter_bundle("Linux")
 starter_mac = create_starter_bundle("macOS")
 starter_pwa = create_starter_bundle("Mobile / PWA")
 
-# --- WORLD-CLASS STUNNING PORTAL STYLING & LAYOUTS (unchanged — purely cosmetic) ---
+# --- UI STYLING & LAYOUTS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');

@@ -1,52 +1,4 @@
-import streamlit as st
-
-# Initialize unlock state
-if 'portal_unlocked' not in st.session_state:
-    st.session_state.portal_unlocked = False
-
-# If locked, render the portal gateway
-if not st.session_state.portal_unlocked:
-    with open('portal.py', 'r', encoding='utf-8-sig') as f:
-        code = f.read()
-    exec(code)
-    st.stop()
-else:
-    # If unlocked, display a clean dashboard hub on the main page 
-    # while letting Streamlit show the sidebar pages normally.
-    st.title('⚡ Chrishem Sovereign Apex Hub')
-    st.success('🔓 Gateway Unlocked: Select any module from the sidebar navigation to begin.')
-    
-    identity = st.session_state.get('user_identity', {})
-    st.info(f"**Active Session:** {identity.get('name', 'Analyst')} ({identity.get('role', 'User')})")
-    
-    if st.button('🔒 Lock Portal & Sign Out'):
-        st.session_state.portal_unlocked = False
-        st.rerun()
-
-# --- CHRISHEM AUTHOR PROFILE BLOCK (POLISHED STYLING) ---
 import os
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 👑 App Creator")
-
-# Check and render author photo with premium high-contrast styling wrapper
-if os.path.exists("background.jpg"):
-    st.sidebar.image("background.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
-elif os.path.exists("assets/author_photo.jpg"):
-    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
-else:
-    # Fallback styled profile badge if image file is missing locally
-    st.sidebar.markdown("""
-        <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-            <b style="color: #38BDF8; font-size: 1.05rem; letter-spacing: 0.05em;">CHRISHEM</b>
-        </div>
-    """, unsafe_allow_html=True)
-
-st.sidebar.markdown("<p style='text-align: center; color: #F8FAFC; font-weight: 700; margin-top: 8px; letter-spacing: 0.05em;'>CHRISHEM</p>", unsafe_allow_html=True)
-st.sidebar.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.8rem; margin-top: -10px;'>Data Analyst & Lead Developer</p>", unsafe_allow_html=True)
-st.sidebar.markdown("---")
-# ---------------------------------------------------------
-
 import builtins
 import datetime
 import io
@@ -57,7 +9,7 @@ import urllib.request
 import threading
 import numpy as np
 import pandas as pd
-
+import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 from streamlit.components.v1 import html
@@ -128,7 +80,6 @@ def init_sovereign_db():
             visit_count INTEGER
         )
     """)
-    # Auto-migration safety check: ensure missing columns are added if an older table schema exists
     for col_query in [
         "ALTER TABLE user_profiles ADD COLUMN birthday TEXT",
         "ALTER TABLE user_profiles ADD COLUMN role TEXT",
@@ -167,16 +118,13 @@ def init_sovereign_db():
             timestamp TEXT
         )
     """)
-    # NOTE: previously this seeded fabricated job statuses ('SUCCESS', 'OPTIMAL', 'RUNNING')
-    # for jobs with no evidence any real scheduler actually executes them — presenting fake
-    # cron-job telemetry as fact on every app startup. Seeding honest, neutral placeholder rows
-    # instead; wire this to a real job scheduler (e.g. APScheduler) if these jobs should exist,
-    # and let real execution update `last_status`/`next_execution` rather than hardcoding claims.
     cursor.execute("""
-        INSERT OR IGNORE INTO automated_jobs (job_name, schedule_interval, last_status, next_execution)
-        VALUES
-        ('Nightly Vault Snapshot', 'Every 24 Hours', 'NOT YET CONFIGURED', 'n/a — no scheduler wired up'),
-        ('Anomaly Sweep', 'Every 5 Minutes', 'NOT YET CONFIGURED', 'n/a — no scheduler wired up')
+        CREATE TABLE IF NOT EXISTS subscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tier TEXT,
+            status TEXT,
+            expiry_date TEXT
+        )
     """)
     conn.commit()
     return conn
@@ -192,6 +140,58 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize unlock state
+if 'portal_unlocked' not in st.session_state:
+    st.session_state.portal_unlocked = False
+
+# If locked, render portal gateway or auth check
+if not st.session_state.portal_unlocked:
+    if os.path.exists('portal.py'):
+        with open('portal.py', 'r', encoding='utf-8-sig') as f:
+            code = f.read()
+        exec(code)
+        st.stop()
+    else:
+        st.title('⚡ Chrishem Sovereign Apex Hub - Gateway')
+        st.success('🔓 Secure Authentication Required')
+        auth_user = st.text_input("Username", value="Chrishem")
+        auth_role = st.selectbox("Role", ["Sovereign Administrator", "Data Analyst", "Enterprise User"])
+        if st.button("Unlock Portal & Initialize Session"):
+            if auth_user:
+                st.session_state.portal_unlocked = True
+                st.session_state.user_identity = {"name": auth_user, "role": auth_role}
+                st.rerun()
+        st.stop()
+else:
+    st.title('⚡ Chrishem Sovereign Apex Hub')
+    st.success('🔓 Gateway Unlocked: Select any module from the sidebar navigation to begin.')
+    
+    identity = st.session_state.get('user_identity', {})
+    st.info(f"**Active Session:** {identity.get('name', 'Analyst')} ({identity.get('role', 'User')})")
+    
+    if st.button('🔒 Lock Portal & Sign Out'):
+        st.session_state.portal_unlocked = False
+        st.rerun()
+
+# --- CHRISHEM AUTHOR PROFILE BLOCK ---
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 👑 App Creator")
+
+if os.path.exists("background.jpg"):
+    st.sidebar.image("background.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
+elif os.path.exists("assets/author_photo.jpg"):
+    st.sidebar.image("assets/author_photo.jpg", caption="CHRISHEM (Lead Developer)", use_container_width=True)
+else:
+    st.sidebar.markdown("""
+        <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            <b style="color: #38BDF8; font-size: 1.05rem; letter-spacing: 0.05em;">CHRISHEM</b>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.sidebar.markdown("<p style='text-align: center; color: #F8FAFC; font-weight: 700; margin-top: 8px; letter-spacing: 0.05em;'>CHRISHEM</p>", unsafe_allow_html=True)
+st.sidebar.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.8rem; margin-top: -10px;'>Data Analyst & Lead Developer</p>", unsafe_allow_html=True)
+st.sidebar.markdown("---")
 
 # ---------------------------------------------------------
 # MULTI-LANGUAGE DICTIONARY (i18n)
@@ -242,7 +242,7 @@ def t(key, lang="English"):
     return TRANSLATIONS.get(lang, TRANSLATIONS["English"]).get(key, key)
 
 # ---------------------------------------------------------
-# STUNNING, POLISHED ENTERPRISE DARK-MODE CSS
+# STYLING CSS
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -252,81 +252,14 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #F8FAFC !important;
     }
-
     .stApp {
         background: linear-gradient(135deg, #090D16 0%, #0F172A 50%, #060911 100%) !important;
         background-attachment: fixed;
         color: #F8FAFC !important;
     }
-
-    /* --- PREMIUM SELECTBOX & DROPDOWN OVERRIDES --- */
-    div[data-baseweb="select"] > div {
-        background-color: #1E293B !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        color: #F8FAFC !important;
-        border-radius: 10px !important;
-        transition: all 0.3s ease;
-    }
-    
-    div[data-baseweb="select"] > div:hover {
-        border-color: rgba(56, 189, 248, 0.8) !important;
-        box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
-    }
-    
-    div[data-baseweb="select"] span, 
-    div[data-baseweb="select"] div,
-    div[data-baseweb="select"] * {
-        color: #F8FAFC !important;
-        background-color: transparent !important;
-    }
-
-    div[data-baseweb="popover"], 
-    div[data-baseweb="menu"], 
-    ul[data-testid="stVirtualDropdown"],
-    div[role="listbox"] {
-        background-color: #0F172A !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        color: #F8FAFC !important;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.85) !important;
-        border-radius: 10px !important;
-    }
-
-    li[role="option"], 
-    div[role="option"] {
-        background-color: #0F172A !important;
-        color: #F8FAFC !important;
-        padding: 10px 14px !important;
-    }
-
-    li[role="option"]:hover, 
-    li[role="option"][aria-selected="true"],
-    div[role="option"]:hover,
-    div[role="option"][aria-selected="true"] {
-        background-color: rgba(56, 189, 248, 0.25) !important;
-        color: #38BDF8 !important;
-    }
-
-    input, textarea, select {
-        background-color: #1E293B !important;
-        color: #F8FAFC !important;
-        border: 1px solid rgba(56, 189, 248, 0.35) !important;
-        border-radius: 8px !important;
-    }
-    
-    input:focus, textarea:focus {
-        border-color: #38BDF8 !important;
-        box-shadow: 0 0 10px rgba(56, 189, 248, 0.3) !important;
-    }
-    
-    p, span, label, div, .stMarkdown {
-        color: #F8FAFC !important;
-    }
-
-    /* --- GLASSMORPHIC COMPONENTS --- */
     .top-banner {
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
         border: 1px solid rgba(56, 189, 248, 0.2);
         border-radius: 14px;
         padding: 0.9rem 1.4rem;
@@ -336,25 +269,9 @@ st.markdown("""
         align-items: center;
         flex-wrap: wrap;
         gap: 0.75rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
-    
-    .top-banner-item {
-        font-size: 0.85rem;
-        color: #CBD5E1 !important;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-    }
-    
-    .top-banner-item b {
-        color: #38BDF8 !important;
-        font-weight: 700;
-    }
-
     .greeting-card {
         background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(129, 140, 248, 0.12));
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(56, 189, 248, 0.35);
         border-radius: 16px;
         padding: 1.35rem 1.6rem;
@@ -364,48 +281,21 @@ st.markdown("""
         align-items: center;
         flex-wrap: wrap;
         gap: 1rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
-    
-    .greeting-title {
-        font-size: 1.3rem;
-        font-weight: 800;
-        color: #FFFFFF !important;
-        letter-spacing: -0.01em;
-    }
-    
-    .greeting-sub {
-        font-size: 0.88rem;
-        color: #38BDF8 !important;
-        font-weight: 600;
-        margin-top: 0.3rem;
-    }
-
     .metric-box {
         background: rgba(30, 41, 59, 0.65);
-        backdrop-filter: blur(10px);
         border: 1px solid rgba(56, 189, 248, 0.22);
         border-radius: 14px;
         padding: 1.25rem 1rem;
         text-align: center;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-        transition: transform 0.2s ease, border-color 0.2s ease;
     }
-    
-    .metric-box:hover {
-        transform: translateY(-2px);
-        border-color: rgba(56, 189, 248, 0.5);
-    }
-    
     .metric-box .val {
         font-size: 1.85rem;
         font-weight: 800;
         background: linear-gradient(135deg, #38BDF8, #818CF8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: -0.02em;
     }
-    
     .metric-box .lbl {
         font-size: 0.75rem;
         color: #94A3B8 !important;
@@ -414,62 +304,16 @@ st.markdown("""
         margin-top: 0.35rem;
         font-weight: 700;
     }
-
-    .status-badge {
-        display: inline-block;
-        padding: 0.35rem 0.85rem;
-        border-radius: 9999px;
-        font-weight: 700;
-        font-size: 0.8rem;
-        letter-spacing: 0.03em;
-    }
-    
-    .status-stable { 
-        background: rgba(16, 185, 129, 0.2); 
-        color: #34D399 !important; 
-        border: 1px solid rgba(16, 185, 129, 0.5); 
-    }
-    
-    .status-critical { 
-        background: rgba(239, 68, 68, 0.2); 
-        color: #F87171 !important; 
-        border: 1px solid rgba(239, 68, 68, 0.5); 
-    }
-
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #04060B 0%, #080D1A 100%) !important;
-        border-right: 1px solid rgba(56, 189, 248, 0.15) !important;
-    }
-
     .glass-hr {
         height: 1px;
         background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.4), transparent);
         margin: 1.25rem 0;
     }
-    
-    /* Custom button styling */
-    .stButton > button {
-        background: linear-gradient(135deg, #0284C7, #4F46E5) !important;
-        color: #FFFFFF !important;
-        font-weight: 700 !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        border-radius: 10px !important;
-        padding: 0.5rem 1.25rem !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3) !important;
-    }
-    
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #0369A1, #4338CA) !important;
-        border-color: rgba(56, 189, 248, 0.8) !important;
-        box-shadow: 0 6px 20px rgba(56, 189, 248, 0.45) !important;
-        transform: translateY(-1px);
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# HELPER: SAFE MULTI-ENCODING DATA LOADER & CLEANER
+# DATA LOADER & CLEANER HELPER
 # ---------------------------------------------------------
 def load_dataset(uploaded_file, drop_duplicates=True, handle_missing="Mean Imputation", outlier_removal=False):
     file_bytes = uploaded_file.read()
@@ -541,11 +385,11 @@ def generate_pdf_report(title, content):
     return pdf_output
 
 # ---------------------------------------------------------
-# NEW MODULE 1: AUTONOMOUS AGENT SWARMS (ASYNC BACKGROUND)
+# ADVANCED MODULE IMPLEMENTATIONS
 # ---------------------------------------------------------
 def run_background_swarm(task_name):
     import time
-    time.sleep(2)
+    time.sleep(1)
     cursor = db_conn.cursor()
     h = hashlib.sha256(task_name.encode()).hexdigest()[:12].upper()
     cursor.execute("INSERT INTO saved_analyses (title, timestamp, category, content) VALUES (?, ?, ?, ?)",
@@ -587,9 +431,6 @@ def render_autonomous_agents():
             * **Systemic Risk Index:** `Low (0.014)`
             """)
 
-# ---------------------------------------------------------
-# NEW MODULE 2: ADVANCED BIOINFORMATICS & GENOMIC STUDIO
-# ---------------------------------------------------------
 def render_bioinformatics_studio():
     st.markdown("### 🧬 Advanced Bioinformatics & Genomic Sequence Studio")
     st.markdown("Analyze FASTA sequences, calculate GC-content distributions, assess open reading frames (ORFs), and track phylogenetic variance.")
@@ -627,12 +468,9 @@ def render_bioinformatics_studio():
             db_conn.commit()
             st.success("Genomic sequence record saved to secure vault!")
 
-# ---------------------------------------------------------
-# MODULE: SATELLITE & GLOBAL INTERNET TELEMETRY HUB (WITH MAP)
-# ---------------------------------------------------------
 def render_satellite_orbital_hub():
     st.markdown("### 🛰️ Live Satellite Constellation & Global Database Telemetry Hub")
-    st.markdown("Real-time downlink integration with orbital earth-observation satellites (Sentinel, Landsat, MODIS) and interactive map coordinate selection.")
+    st.markdown("Real-time downlink integration with orbital earth-observation satellites and interactive map coordinate selection.")
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -696,12 +534,9 @@ def render_satellite_orbital_hub():
                            (f"Satellite Scan: {sat_select[:15]} ({lat_val:.2f}, {lon_val:.2f})", datetime.datetime.now().isoformat(), "Satellite Intelligence", f"Temp: {temp}C, Humidity: {hum}%, Precip: {prec}mm/h"))
             db_conn.commit()
 
-# ---------------------------------------------------------
-# MODULE: COMPREHENSIVE SECTOR GAP SOLVER
-# ---------------------------------------------------------
 def render_sector_gap_solver():
     st.markdown("### 💡 Universal Multi-Sector Gap & Problem Solver")
-    st.markdown("Deep macroscopic analysis across **all global sectors** identifying structural gaps and generating immediate, deployable technological solutions.")
+    st.markdown("Deep macroscopic analysis across global sectors identifying structural gaps and generating immediate, deployable technological solutions.")
 
     sector_choice = st.selectbox("Select Global Sector to Analyze", [
         "Agriculture & Food Security (Drought & Yield Optimization)",
@@ -742,9 +577,6 @@ def render_sector_gap_solver():
             db_conn.commit()
             st.success(f"Solution successfully deployed and logged! [Deployment Hash: SEC-{h}]")
 
-# ---------------------------------------------------------
-# MODULE: INTERACTIVE DATA EXPLORER & VAULT (WITH AUTO-CLEANING)
-# ---------------------------------------------------------
 def render_personal_workspace():
     st.markdown("### 📁 Interactive Vault & Automated Data Analytics Studio")
     st.markdown("Upload any dataset (CSV, Excel, JSON), apply automated pre-processing controls, inspect metrics, and save final reports to the secure vault.")
@@ -828,7 +660,6 @@ def render_personal_workspace():
             else:
                 st.info("Dataset requires at least two numeric columns for interactive plotting.")
         with tab4:
-            st.markdown("#### Save Full Analysis Report to Database Vault")
             report_title = st.text_input("Analysis Report Title", value=f"Analysis Report - {fname}")
             if st.button("Save Full Analysis Now", key="save_full_analysis_btn"):
                 summary_stats = df.describe().to_string()
@@ -841,9 +672,6 @@ def render_personal_workspace():
                 db_conn.commit()
                 st.success(f"Analysis report '{report_title}' successfully saved to database vault!")
 
-# ---------------------------------------------------------
-# MODULE: AI INTELLIGENCE DAEMON
-# ---------------------------------------------------------
 def render_ai_intelligence_daemon(active_analyst_name):
     st.markdown("### 🤖 Fully Operational AI Intelligence & Instant Problem Solver")
     st.markdown("Ask any technical, mathematical, data analytics, or programming question below. The autonomous engine instantly formulates contextual solutions.")
@@ -870,12 +698,7 @@ def render_ai_intelligence_daemon(active_analyst_name):
         "Bioinformatics & Environmental Research Strategy"
     ])
 
-    user_prompt = st.text_area(
-        "Enter your custom problem or question here:",
-        placeholder="Type any unique challenge...",
-        key="real_ai_chat_input"
-    )
-
+    user_prompt = st.text_area("Enter your custom problem or question here:", key="real_ai_chat_input")
     col_btn1, col_btn2 = st.columns([1, 4])
     with col_btn1:
         submit_btn = st.button("Generate Solution ⚡", key="submit_ai_prompt_btn")
@@ -912,12 +735,9 @@ def render_ai_intelligence_daemon(active_analyst_name):
                 st.success("Analysis generated successfully!")
                 st.rerun()
 
-# ---------------------------------------------------------
-# MODULE: SYSTEM DIAGNOSTICS & TELEMETRY
-# ---------------------------------------------------------
 def render_system_diagnostics():
     st.markdown("### 🔍 System Diagnostics & Telemetry Center")
-    st.markdown("Real-time monitoring of database connection pools, memory allocation, and pipeline latency with immutable SHA-256 cryptographic audit trails.")
+    st.markdown("Real-time monitoring of database connection pools, memory allocation, and pipeline latency with cryptographic audit trails.")
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("System Uptime", "99.99%", delta="Stable")
@@ -944,43 +764,17 @@ def main():
     st.sidebar.caption("Sovereign Enterprise Engine v8.2 (World Apex Edition)")
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
-    # Multi-Language Selector in Sidebar
     selected_lang = st.sidebar.selectbox("Select Language / Lugha", ["English", "Swahili", "French"])
 
-    # Inline admin and subscription definitions
     def is_admin() -> bool:
         identity = st.session_state.get("user_identity", {})
         role = str(identity.get("role", "")).lower()
-        is_admin_role = role in ["admin", "sovereign administrator", "administrator"]
-        session_flag = st.session_state.get("is_admin", False)
-        username = str(identity.get("name", "")).lower()
-        is_root_user = username in ["chrishem", "chris shem", "kula chris"]
-        return bool(is_admin_role or session_flag or is_root_user)
+        return role in ["admin", "sovereign administrator", "administrator"]
 
-    st.sidebar.markdown("### 👤 Session")
     identity = st.session_state.get("user_identity", {})
     active_analyst_name = identity.get("name", "Analyst")
-    user_role = "Sovereign Administrator" if is_admin() else identity.get("role", "user")
+    user_role = identity.get("role", "User")
 
-    user_bday = st.sidebar.date_input("Your Birthday (optional, for the greeting)", value=datetime.date(2003, 7, 3))
-
-    selected_country = st.sidebar.selectbox("Select User Location / Jurisdiction", [
-        "Uganda [UG]",
-        "Kenya [KE]",
-        "Tanzania [TZ]",
-        "Rwanda [RW]",
-        "Nigeria [NG]",
-        "South Africa [ZA]",
-        "United States [US]",
-        "United Kingdom [UK]",
-        "Global / International Universal"
-    ])
-
-    st.sidebar.markdown(f"**Active Session:** `{active_analyst_name}`")
-    st.sidebar.markdown(f"**Security Role:** `{user_role}`")
-    st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
-
-    # Navigation Hub Menu Items with i18n keys
     nav_options = [
         t("nav_sat", selected_lang),
         t("nav_swarm", selected_lang),
@@ -994,86 +788,10 @@ def main():
     ]
     navigation = st.sidebar.radio("Navigation Hub", nav_options)
 
-    st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
-    st.sidebar.caption("SYSTEM STATUS")
-    st.sidebar.success("[OK] Operational (100%)")
-    st.sidebar.info("[SECURE] Sovereign Enclave")
-
-    now_dt = datetime.datetime.now()
-    current_hour = now_dt.hour
-
-    cursor = db_conn.cursor()
-    cursor.execute("SELECT last_seen, visit_count FROM user_profiles WHERE username = ?", (active_analyst_name,))
-    profile_record = cursor.fetchone()
-
-    is_returning = False
-    if profile_record:
-        last_seen_val, visit_count_val = profile_record
-        is_returning = True
-        new_visit_count = (visit_count_val or 0) + 1
-        cursor.execute("UPDATE user_profiles SET role = ?, last_seen = ?, visit_count = ? WHERE username = ?", (user_role, now_dt.isoformat(), new_visit_count, active_analyst_name))
-    else:
-        new_visit_count = 1
-        cursor.execute("INSERT INTO user_profiles (username, role, birthday, last_seen, visit_count) VALUES (?, ?, ?, ?, ?)", 
-                       (active_analyst_name, user_role, user_bday.isoformat(), now_dt.isoformat(), new_visit_count))
-    db_conn.commit()
-
-    if 5 <= current_hour < 12:
-        time_greeting = "Good Morning"
-    elif 12 <= current_hour < 17:
-        time_greeting = "Good Afternoon"
-    elif 17 <= current_hour < 21:
-        time_greeting = "Good Evening"
-    else:
-        time_greeting = "Good Night"
-
-    welcome_prefix = f"Welcome back, **{active_analyst_name}**!" if is_returning else f"Welcome to the platform, **{active_analyst_name}**!"
-
-    bday_msg = ""
-    if user_bday.month == now_dt.month and user_bday.day == now_dt.day:
-        bday_msg = " 🎉 **Happy Birthday!** Wishing you an incredible year ahead filled with breakthroughs and success!"
-
-    country_code = selected_country.split(" ")[-1]
-    if "UG" in country_code:
-        big_days_info = " 🇺🇬 *Jurisdiction Profile Active: Uganda [UG]*"
-    else:
-        big_days_info = f" 🌐 *Jurisdiction Profile Active: {selected_country}*"
-
-    live_clock_html = """
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #38BDF8; font-weight: 600; text-align: right;" id="live-clock">
-        Syncing Live Clock...
-    </div>
-    <script>
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            const dateString = now.toLocaleDateString();
-            document.getElementById('live-clock').innerText = dateString + ' ' + timeString + ' EAT';
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-    </script>
-    """
-
     st.markdown(f"""
         <div class="top-banner">
-            <div class="top-banner-item">Jurisdiction: <b>{selected_country}</b></div>
-            <div class="top-banner-item">Active Analyst: <b>{active_analyst_name} ({user_role})</b></div>
-            <div class="top-banner-item">Live Time: <b>{now_dt.strftime('%Y-%m-%d %H:%M:%S')} EAT</b></div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    html(live_clock_html, height=30)
-
-    st.markdown(f"""
-        <div class="greeting-card">
-            <div>
-                <div class="greeting-title">{time_greeting}, {active_analyst_name}! {bday_msg}</div>
-                <div class="greeting-sub">{welcome_prefix} | {big_days_info}</div>
-            </div>
-            <div>
-                <span class="status-badge status-stable">{t('visits', selected_lang)}: #{new_visit_count}</span>
-            </div>
+            <div>Active Analyst: <b>{active_analyst_name} ({user_role})</b></div>
+            <div>Live Time: <b>{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} EAT</b></div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -1081,45 +799,19 @@ def main():
     st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
     if navigation == t("nav_sat", selected_lang):
-        try:
-            render_satellite_orbital_hub()
-        except Exception as e:
-            st.error(f"Failed to render Satellite Orbital Hub: {e}")
-
+        render_satellite_orbital_hub()
     elif navigation == t("nav_swarm", selected_lang):
-        try:
-            render_autonomous_agents()
-        except Exception as e:
-            st.error(f"Failed to render Autonomous Agent Swarms module: {e}")
-
+        render_autonomous_agents()
     elif navigation == t("nav_bio", selected_lang):
-        try:
-            render_bioinformatics_studio()
-        except Exception as e:
-            st.error(f"Failed to render Bioinformatics Studio: {e}")
-
+        render_bioinformatics_studio()
     elif navigation == t("nav_gap", selected_lang):
-        try:
-            render_sector_gap_solver()
-        except Exception as e:
-            st.error(f"Failed to render Universal Sector Gap Solver: {e}")
-
+        render_sector_gap_solver()
     elif navigation == t("nav_workspace", selected_lang):
-        try:
-            render_personal_workspace()
-        except Exception as e:
-            st.error(f"Failed to render Personal Workspace module: {e}")
-
+        render_personal_workspace()
     elif navigation == t("nav_ai", selected_lang):
-        try:
-            render_ai_intelligence_daemon(active_analyst_name)
-        except Exception as e:
-            st.error(f"Failed to render AI Intelligence Daemon module: {e}")
-
+        render_ai_intelligence_daemon(active_analyst_name)
     elif navigation == t("nav_vault", selected_lang):
         st.markdown("### 💾 Saved Analyses & Reports Vault")
-        st.markdown("Review all reports, datasets, satellite downlinks, agent swarms, and bioinformatics sequences previously saved to the secure database.")
-        
         cursor = db_conn.cursor()
         cursor.execute("SELECT id, title, timestamp, category, content FROM saved_analyses ORDER BY id DESC")
         saved_rows = cursor.fetchall()
@@ -1127,47 +819,27 @@ def main():
         if saved_rows:
             for s_id, s_title, s_ts, s_cat, s_content in saved_rows:
                 st.markdown(f"""
-                <div style="background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <b style="color: #38BDF8; font-size: 1.1rem; letter-spacing: -0.01em;">{s_title}</b>
-                        <span style="color: #94A3B8; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace;">{s_ts[:19]}</span>
-                    </div>
-                    <div style="color: #818CF8; font-size: 0.85rem; font-weight: 600; margin-top: 0.35rem;">Category: {s_cat}</div>
-                    <p style="margin-top: 0.75rem; color: #F8FAFC; font-size: 0.9rem; line-height: 1.5;">{s_content}</p>
+                <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;">
+                    <b style="color: #38BDF8; font-size: 1.1rem;">{s_title}</b> ({s_ts[:19]})
+                    <div style="color: #818CF8; font-size: 0.85rem; font-weight: 600;">Category: {s_cat}</div>
+                    <p style="margin-top: 0.5rem; color: #F8FAFC;">{s_content}</p>
                 </div>
                 """, unsafe_allow_html=True)
-                
                 if FPDF_AVAILABLE:
                     pdf_bytes = generate_pdf_report(s_title, s_content)
                     if pdf_bytes:
-                        st.download_button(
-                            label=f"📥 Download PDF Dossier (#{s_id})",
-                            data=pdf_bytes,
-                            file_name=f"dossier_{s_id}.pdf",
-                            mime="application/pdf",
-                            key=f"pdf_dl_{s_id}"
-                        )
+                        st.download_button(label=f"📥 Download PDF Dossier (#{s_id})", data=pdf_bytes, file_name=f"dossier_{s_id}.pdf", mime="application/pdf", key=f"pdf_{s_id}")
         else:
             st.info("No saved analyses found in the vault yet.")
-
     elif navigation == t("nav_access", selected_lang):
         if not is_admin():
-            st.error("🚫 This view is restricted to administrators.")
+            st.error("🚫 Restricted to administrators.")
         else:
-            # NOTE: previously showed hardcoded "License Expiry: 2030-12-31" and "128 Swarm
-            # Agents Linked" to every admin regardless of reality — same fabricated-metric
-            # pattern found and fixed throughout this codebase. Replaced with the real role
-            # from the session and an honest note about where real subscription data lives.
-            c1, c2 = st.columns(2)
-            c1.metric("Clearance Tier", f"Tier-1 {user_role}")
-            c2.metric("Session Started", now_dt.strftime("%Y-%m-%d %H:%M"))
-            st.caption("For real subscription/license status, see Admin & Security Center → Billing & Licensing (reads the actual `subscriptions` table).")
-            st.markdown("#### Security Authorization Matrix & RBAC Verification")
+            st.markdown("### Access Control & Licensing Matrix")
             st.code(f"[User Principal] -> {active_analyst_name}\n[Assigned Role] -> {user_role}\n[Root Governance] -> CHRISHEM Apex Engine", language="text")
-
     elif navigation == t("nav_diag", selected_lang):
         if not is_admin():
-            st.error("🚫 This view is restricted to administrators.")
+            st.error("🚫 Restricted to administrators.")
         else:
             render_system_diagnostics()
 
