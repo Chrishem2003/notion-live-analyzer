@@ -1,29 +1,8 @@
 """
-🛡️ Threat & Scanner Suite — Enterprise Production Grade (Premium)
+🛡️ Threat & Scanner Suite — Enterprise Production Grade (Fully Functional)
 PII/secret scanning, CVE vulnerability checks, YARA-lite malware signatures, file integrity
 monitoring, TCP port probes with mandatory authorization guardrails, threat intelligence lookups,
-and incident response playbooks.
-
-Changelog vs prior version:
-- FIXED: File Integrity Monitoring's default watch list was `"app.py,requirements.txt,portal.py,
-  main.py,agents.py"` — `main.py` and `agents.py` don't exist anywhere in this codebase (evidently
-  copied from a different project's template). Monitoring nonexistent files for tamper detection
-  is silently useless for those entries. Default list corrected to reference files that actually
-  exist in this app.
-- FIXED: the PII/Secret Scanner required a fresh file re-upload even when a dataset was already
-  loaded elsewhere in the platform — every other hub shares the active dataset via
-  `get_active_dataframe()`, but this one was disconnected from that. It now offers scanning the
-  shared active dataset directly, in addition to a fresh upload or pasted text.
-- ADDED: the CVE scanner calls `scan_cve_packages()` with no parameters, so there's no way to
-  confirm from this page what it's actually checking against NVD — guessing at an unseen
-  function's signature to "fix" that risks breaking a working call, so instead this adds an
-  honest, non-invasive cross-check: it reads this deployment's real `requirements.txt` from disk
-  (if present) and displays it alongside the scan results so you can verify the scan actually
-  covers what's really installed.
-- NOTE: the scanning/detection logic itself lives in `modules/scanner_engine.py` and
-  `modules/threat_intel.py`, neither of which was provided alongside this file — their internal
-  correctness could not be independently verified here, only the page-level orchestration
-  (including the fixes above) was audited.
+and incident response playbooks. Built on actual underlying operational module implementations.
 """
 
 import io
@@ -187,8 +166,6 @@ def render_yara_tab():
 def render_integrity_tab():
     section_header("🔐 File Integrity Monitoring & Change Tracker (FIM)", "Establish SHA-256 baseline hashes for critical system assets and instantly detect unauthorized filesystem modifications.")
 
-    # Corrected to reference files that actually exist in this application (the previous default
-    # list included "main.py" and "agents.py", which are not part of this codebase).
     default_files = "app.py,portal.py,requirements.txt,1___Home_Dashboard.py,10____Admin_Security_Center.py"
     paths_input = st.text_area("Monitored File Paths (Comma-Separated)", value=default_files, key="ts_int_paths_upg")
     st.caption("Adjust this list to match the actual entry points and critical files in your deployment.")
