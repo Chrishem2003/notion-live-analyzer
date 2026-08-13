@@ -2,24 +2,6 @@
 📈 Visualization Studio — Consolidated Visualization & Dashboard Hub (Premium)
 Advanced Visuals, Executive Dashboard Builder, a real downloadable Presentation Deck Generator,
 Chart Data Extractor, and a genuinely intelligent Auto-Recommendation engine.
-
-Changelog vs prior version:
-- FIXED (was a fake feature): "Presentation Deck & Slide Generator" claimed to "compile" a deck
-  but produced nothing downloadable — just inline `st.expander`s that vanish when you leave the
-  page. It now builds a real .pptx file (via python-pptx, with chart images rendered through
-  kaleido) with an actual download button. If those packages aren't installed, it says so plainly
-  instead of pretending the deck was "compiled successfully."[cite: 1]
-- FIXED (real bug): Treemap and Sunburst charts silently ignored whatever you picked in the
-  "Y-Axis / Metric" dropdown and always sized by the *first* numeric column regardless. They now
-  respect your selection.[cite: 1]
-- UPGRADED: "AI Auto-Recommendation Studio" used to just grab the first numeric/categorical
-  columns in the dataframe — not analysis, just column order. It now: picks the numeric pair with
-  the strongest correlation for the scatter recommendation (not "whichever came first"), flags
-  skewed columns and recommends a box plot instead of a histogram for them, detects datetime
-  columns and recommends a time trend line when present, and avoids recommending a bar chart
-  against a high-cardinality categorical column (which would just render noise).[cite: 1]
-- FIXED: `trendline="ols"` on scatter plots requires statsmodels; it's now only requested when
-  statsmodels is actually importable, avoiding a silent chart-rendering failure otherwise.[cite: 1]
 """
 
 import io
@@ -84,6 +66,7 @@ def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=Non
         return None
     try:
         template = "plotly_dark"
+        working_df = df.copy()
 
         if "x" in kwargs and not x:
             x = kwargs["x"]
@@ -92,50 +75,60 @@ def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=Non
         if "color" in kwargs and not color:
             color = kwargs["color"]
 
-        num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-        cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
-        all_cols = df.columns.tolist()
+        num_cols = working_df.select_dtypes(include=[np.number]).columns.tolist()
+        cat_cols = working_df.select_dtypes(include=["object", "category"]).columns.tolist()
+        all_cols = working_df.columns.tolist()
 
         fallback_x = x if x and x in all_cols else (cat_cols[0] if cat_cols else all_cols[0])
         fallback_y = y if y and y in all_cols else (num_cols[0] if num_cols else None)
 
+        # Prevent type coercion crashes on continuous axes requiring numeric inputs
+        if chart_type in ["Scatter Plot", "Line Chart", "Area Chart", "Funnel Chart"]:
+            if fallback_y and fallback_y not in num_cols:
+                # Attempt safe conversion if possible, else swap to a numeric column
+                try:
+                    working_df[fallback_y] = pd.to_numeric(working_df[fallback_y])
+                except Exception:
+                    if num_cols:
+                        fallback_y = num_cols[0]
+
         if chart_type == "Histogram":
-            fig = px.histogram(df, x=fallback_x, color=color if color in all_cols else None, barmode="group", template=template, height=height)
+            fig = px.histogram(working_df, x=fallback_x, color=color if color in all_cols else None, barmode="group", template=template, height=height)
         elif chart_type == "Scatter Plot":
-            use_trendline = "ols" if (len(df) > 5 and fallback_y and STATSMODELS_AVAILABLE) else None
-            fig = px.scatter(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, size=size if size in all_cols else None, template=template, height=height, trendline=use_trendline)
+            use_trendline = "ols" if (len(working_df) > 5 and fallback_y and STATSMODELS_AVAILABLE) else None
+            fig = px.scatter(working_df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, size=size if size in all_cols else None, template=template, height=height, trendline=use_trendline)
         elif chart_type == "Bar Chart":
-            fig = px.bar(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, barmode="group", template=template, height=height)
+            fig = px.bar(working_df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, barmode="group", template=template, height=height)
         elif chart_type == "Line Chart":
-            fig = px.line(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, markers=True, template=template, height=height)
+            fig = px.line(working_df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, markers=True, template=template, height=height)
         elif chart_type == "Area Chart":
-            fig = px.area(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, template=template, height=height)
+            fig = px.area(working_df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, template=template, height=height)
         elif chart_type == "Box Plot":
-            fig = px.box(df, x=fallback_x, y=fallback_y if fallback_y in all_cols else None, color=color if color in all_cols else None, template=template, height=height)
+            fig = px.box(working_df, x=fallback_x, y=fallback_y if fallback_y in all_cols else None, color=color if color in all_cols else None, template=template, height=height)
         elif chart_type == "Violin Plot":
-            fig = px.violin(df, x=fallback_x, y=fallback_y if fallback_y in all_cols else None, color=color if color in all_cols else None, box=True, points="all", template=template, height=height)
+            fig = px.violin(working_df, x=fallback_x, y=fallback_y if fallback_y in all_cols else None, color=color if color in all_cols else None, box=True, points="all", template=template, height=height)
         elif chart_type == "Pie / Donut":
-            counts = df[fallback_x].value_counts().reset_index()
+            counts = working_df[fallback_x].value_counts().reset_index()
             counts.columns = [fallback_x, "count"]
             fig = px.pie(counts, names=fallback_x, values="count", hole=0.4, template=template, height=height)
         elif chart_type == "Heatmap":
-            num_df = df.select_dtypes(include=[np.number])
+            num_df = working_df.select_dtypes(include=[np.number])
             if not num_df.empty:
                 corr = num_df.corr()
                 fig = px.imshow(corr, text_auto=True, color_continuous_scale="Viridis", template=template, height=height)
             else:
-                fig = px.bar(df, template=template, height=height)
+                fig = px.bar(working_df, template=template, height=height)
         elif chart_type == "Treemap":
             vals = y if y and y in num_cols else (fallback_y if fallback_y in num_cols else (num_cols[0] if num_cols else None))
-            fig = px.treemap(df, path=[fallback_x], values=vals, template=template, height=height)
+            fig = px.treemap(working_df, path=[fallback_x], values=vals, template=template, height=height)
         elif chart_type == "Sunburst":
             vals = y if y and y in num_cols else (fallback_y if fallback_y in num_cols else (num_cols[0] if num_cols else None))
             path = [fallback_x, color] if color and color in all_cols and color != fallback_x else [fallback_x]
-            fig = px.sunburst(df, path=path, values=vals, template=template, height=height)
+            fig = px.sunburst(working_df, path=path, values=vals, template=template, height=height)
         elif chart_type == "Funnel Chart":
-            fig = px.funnel(df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, template=template, height=height)
+            fig = px.funnel(working_df, x=fallback_x, y=fallback_y, color=color if color in all_cols else None, template=template, height=height)
         else:
-            fig = px.bar(df, template=template, height=height)
+            fig = px.bar(working_df, template=template, height=height)
 
         fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
@@ -176,10 +169,20 @@ def render_custom_builder(df):
     with col4:
         size_col = st.selectbox("Marker Size (Scatter)", [""] + numeric_cols, key="viz_size_adv")
 
+    # NEW PREMIUM FEATURE: Real-time outlier filtering control
+    filter_outliers = st.checkbox("🧹 Automatically Filter Extreme Outliers (3 Sigma Rule on Numeric Metrics)", value=False, key="viz_outlier_filter")
+    
+    render_df = df.copy()
+    if filter_outliers and y_col and y_col in numeric_cols:
+        series = render_df[y_col].dropna()
+        mean, std = series.mean(), series.std()
+        if std > 0:
+            render_df = render_df[(render_df[y_col] - mean).abs() <= 3 * std]
+
     height = st.slider("Visualization Height (px)", 300, 750, 450, 25, key="viz_height_adv")
 
     fig = build_chart(
-        chart_type, df,
+        chart_type, render_df,
         x=x_col if x_col else None,
         y=y_col if y_col else None,
         color=color_col if color_col else None,
@@ -189,12 +192,17 @@ def render_custom_builder(df):
 
     if fig:
         st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": True})
+        
+        # NEW PREMIUM FEATURE: Live Telemetry Summary Stats
+        if y_col and y_col in numeric_cols:
+            st.info(f"📈 **Active Metric Telemetry (`{y_col}`)**: Count: `{len(render_df)}` | Mean: `{render_df[y_col].mean():,.2f}` | Median: `{render_df[y_col].median():,.2f}` | Std Dev: `{render_df[y_col].std():,.2f}`")
+
         st.markdown("#### 📥 Download & Copy Studio Assets")
         exp_col1, exp_col2 = st.columns(2)
         with exp_col1:
-            render_export_buttons(df, base_name=f"custom_viz_{chart_type.lower().replace(' ', '_')}")
+            render_export_buttons(render_df, base_name=f"custom_viz_{chart_type.lower().replace(' ', '_')}")
         with exp_col2:
-            csv_data = df.to_csv(index=False).encode('utf-8')
+            csv_data = render_df.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="📋 Copy / Download Raw Table CSV",
                 data=csv_data,
@@ -214,31 +222,24 @@ def _skewness(series: pd.Series) -> float:
 
 
 def render_auto_studio(df):
-    section_header("🤖 AI Auto-Recommendation Studio", "Automated exploratory visual discovery — selections are driven by actual data properties (correlation strength, skew, cardinality, temporal structure), not column order.")
+    section_header("🤖 AI Auto-Recommendation Studio", "Automated exploratory visual discovery — selections are driven by actual data properties (correlation strength, skew, cardinality, temporal structure).")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
     datetime_cols = df.select_dtypes(include=["datetime64[ns]", "datetime64[ns, UTC]"]).columns.tolist()
     low_card_cats = [c for c in cat_cols if df[c].nunique() <= 15]
-    high_card_cats = [c for c in cat_cols if df[c].nunique() > 15]
 
     if not numeric_cols:
         st.warning("⚠️ Dataset requires numeric columns to generate automated visual recommendations.")
         return
 
-    if high_card_cats:
-        st.caption(f"ℹ️ Skipping bar-chart recommendations for high-cardinality columns ({', '.join(high_card_cats)}) — too many categories to render meaningfully.")
-
-    st.markdown("The recommendation engine has scanned your dataset topology and generated these optimal perspectives:")
-
     recs = []
-
     for col in numeric_cols[:2]:
         skew = _skewness(df[col])
         if abs(skew) > 1.0:
-            recs.append(("Box Plot", {"y": col}, f"Distribution of '{col}' — skew = {skew:.2f}, box plot recommended over histogram to surface outliers clearly."))
+            recs.append(("Box Plot", {"y": col}, f"Distribution of '{col}' — skew = {skew:.2f}, box plot recommended."))
         else:
-            recs.append(("Histogram", {"x": col}, f"Univariate Distribution Analysis of '{col}' (approximately symmetric, skew = {skew:.2f})"))
+            recs.append(("Histogram", {"x": col}, f"Univariate Distribution Analysis of '{col}' (skew = {skew:.2f})"))
 
     if len(numeric_cols) >= 2:
         corr = df[numeric_cols].corr().abs()
@@ -246,17 +247,14 @@ def render_auto_studio(df):
         stacked = upper.stack()
         if not stacked.empty:
             (best_x, best_y), best_r = stacked.idxmax(), stacked.max()
-            recs.append(("Scatter Plot", {"x": best_x, "y": best_y}, f"Strongest Bivariate Relationship: '{best_x}' vs '{best_y}' (|r| = {best_r:.2f}) — selected from all {len(numeric_cols)} numeric columns, not just the first two."))
+            recs.append(("Scatter Plot", {"x": best_x, "y": best_y}, f"Strongest Bivariate Relationship: '{best_x}' vs '{best_y}' (|r| = {best_r:.2f})."))
 
     if datetime_cols and numeric_cols:
-        recs.append(("Line Chart", {"x": datetime_cols[0], "y": numeric_cols[0]}, f"Temporal Trend of '{numeric_cols[0]}' over '{datetime_cols[0]}' — datetime column detected."))
+        recs.append(("Line Chart", {"x": datetime_cols[0], "y": numeric_cols[0]}, f"Temporal Trend of '{numeric_cols[0]}' over '{datetime_cols[0]}'."))
 
     if low_card_cats and numeric_cols:
         best_cat = min(low_card_cats, key=lambda c: df[c].nunique())
-        recs.append(("Bar Chart", {"x": best_cat, "y": numeric_cols[0]}, f"Categorical Comparison of '{numeric_cols[0]}' across '{best_cat}' ({df[best_cat].nunique()} categories — clean to render)."))
-
-    if len(numeric_cols) >= 3:
-        recs.append(("Heatmap", {}, "Multivariate Correlation Matrix across all numeric features"))
+        recs.append(("Bar Chart", {"x": best_cat, "y": numeric_cols[0]}, f"Categorical Comparison of '{numeric_cols[0]}' across '{best_cat}'."))
 
     for i, (ctype, params, rationale) in enumerate(recs):
         with st.container():
@@ -310,12 +308,10 @@ def render_exec_dashboard(df):
 
 
 def _fig_to_png_bytes(fig):
-    """Renders a Plotly figure to PNG bytes via kaleido. Raises if kaleido isn't available."""
     return fig.to_image(format="png", width=1000, height=560, scale=2)
 
 
 def _build_pptx(deck_title: str, slides_spec: list) -> bytes:
-    """slides_spec: list of dicts with keys title, metric_label, metric_value, fig (optional)."""
     prs = Presentation()
     prs.slide_width = Inches(13.33)
     prs.slide_height = Inches(7.5)
@@ -356,9 +352,9 @@ def render_deck_builder(df):
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not PPTX_AVAILABLE:
-        st.warning("⚠️ `python-pptx` is not installed in this environment — the deck can be previewed on-screen below, but a real .pptx file cannot be generated until that package is available. (`pip install python-pptx`)")
+        st.warning("⚠️ `python-pptx` is not installed — preview is available on-screen, but .pptx file creation requires `pip install python-pptx`.")
     if not KALEIDO_AVAILABLE:
-        st.caption("ℹ️ `kaleido` not installed — slides will export as text/metric-only (no embedded chart images) until it's available. (`pip install kaleido`)")
+        st.caption("ℹ️ `kaleido` not installed — slides will export as text/metric-only until installed (`pip install kaleido`).")
 
     if st.button("📽️ Generate Presentation Deck", type="primary", key="build_deck_btn"):
         if not numeric_cols:
@@ -396,7 +392,7 @@ def render_deck_builder(df):
 
         if PPTX_AVAILABLE:
             pptx_bytes = _build_pptx(deck_title, slides_spec)
-            st.success(f"✅ Presentation deck '{deck_title}' compiled — {slide_count} slides, ready to download.")
+            st.success(f"✅ Presentation deck '{deck_title}' compiled — {slide_count} slides ready.")
             st.download_button(
                 "⬇️ Download Presentation (.pptx)",
                 data=pptx_bytes,
@@ -404,8 +400,6 @@ def render_deck_builder(df):
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
                 key="dl_pptx_deck",
             )
-        else:
-            st.info("Install `python-pptx` to enable a real downloadable file for this deck.")
 
 
 def render_chart_extractor(df):
@@ -450,7 +444,6 @@ def main():
     )
 
     render_dataset_context_banner()
-
     df = get_df()
 
     tabs = st.tabs([
