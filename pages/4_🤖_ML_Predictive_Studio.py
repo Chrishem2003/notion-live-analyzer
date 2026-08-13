@@ -3,32 +3,6 @@
 AutoML with real hyperparameter tuning, cross-validation, model persistence/export, a prediction
 engine that actually uses your trained model (not a throwaway retrain), automated feature
 selection, and non-theatrical autonomous agent missions.
-
-Changelog vs prior version:
-- FIXED: the module docstring claimed "hyperparameter tuning" and "model export pipelines" —
-  neither existed. `GridSearchCV` was imported but never called. There was no way to save,
-  download, or reload a trained model anywhere in the file.
-  → Added a real GridSearchCV-backed tuning toggle with per-algorithm parameter grids, and a
-    real model export/import flow (joblib-serialized pipeline: model + scaler + feature list +
-    label encoder, downloadable as .pkl and reloadable).
-- FIXED: the Prediction Engine ignored whatever you trained in the AutoML tab and silently
-  retrained a brand-new RandomForestRegressor on just the first 4 numeric columns, with no
-  train/test split, every time you opened it. It now uses the actual best model from your last
-  AutoML run (or an imported one), supports both classification and regression, reports class
-  probabilities where applicable, gives a rough prediction-interval from tree-level spread for
-  Random Forest models, and supports batch scoring of an uploaded CSV, not just one row at a time.
-- FIXED: "Automated Feature Selection" always used `f_regression`, even for a categorical
-  (classification) target — statistically wrong. It now auto-detects the task and uses
-  `f_classif` or `f_regression` accordingly.
-- FIXED (real bug): regression AutoML would silently coerce a non-numeric target to all-NaN via
-  `pd.to_numeric(errors="coerce")` and then crash deep inside `train_test_split` on an empty
-  sample. It now validates the target up front with a clear error message.
-- FIXED: the Agent Swarm console was pure theater — every "mission" just slept 1.2s and printed
-  a canned "0 errors" success message regardless of what was in the data. Each mission now
-  actually runs against the active dataset: real IQR outlier sweep, real completeness/duplicate
-  audit, a real trend-degradation check (linear regression per numeric column vs. row order),
-  a real downloadable executive report, and a real dataset-fingerprint consistency check against
-  what Data Studio last recorded[cite: 4].
 """
 
 import io
@@ -247,7 +221,6 @@ def render_automl_tab(df):
                         importances = pd.Series(trained_models["Random Forest"].feature_importances_, index=X_imp.columns).sort_values(ascending=False)
                         st.bar_chart(importances)
 
-                    # Persist the winning pipeline for the Prediction Engine tab and for export.
                     st.session_state["ml_active_pipeline"] = {
                         "model": best_model,
                         "scaler": scaler,
@@ -319,7 +292,6 @@ def render_predict_tab(df):
             if label_encoder is not None:
                 preds = label_encoder.inverse_transform(preds.astype(int))
         elif hasattr(model, "estimators_"):
-            # Random Forest: spread across individual trees as a rough prediction interval.
             tree_preds = np.array([est.predict(scaled) for est in model.estimators_])
             interval = (np.percentile(tree_preds, 5, axis=0), np.percentile(tree_preds, 95, axis=0))
         return preds, proba, interval
