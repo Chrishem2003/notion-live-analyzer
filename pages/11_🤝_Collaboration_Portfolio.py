@@ -43,9 +43,14 @@ except ImportError:
     WEBRTC_AVAILABLE = False
 
 DB_PATH = "sovereign_apex_engine.db"
-RTC_CONFIGURATION = RTCConfiguration(
-    {"iceServers": [{"urls": ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]}]}
-)
+
+# Safeguard RTCConfiguration initialization to resolve NameError if streamlit_webrtc is missing
+if WEBRTC_AVAILABLE:
+    RTC_CONFIGURATION = RTCConfiguration(
+        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]}]}
+    )
+else:
+    RTC_CONFIGURATION = None
 
 
 def get_db():
@@ -101,7 +106,7 @@ def render_meetings_hub(conn):
 
     with col2:
         st.markdown(f"#### Live Stream Window — Room: `{room_name}`")
-        if WEBRTC_AVAILABLE:
+        if WEBRTC_AVAILABLE and RTC_CONFIGURATION is not None:
             webrtc_streamer(
                 key=room_name,
                 rtc_configuration=RTC_CONFIGURATION,
@@ -109,7 +114,7 @@ def render_meetings_hub(conn):
                 async_processing=True,
             )
         else:
-            st.info("ℹ️ Placeholder video frame active. Install `streamlit-webrtc` for real peer-to-peer tracks.")
+            st.info("ℹ️ Placeholder video frame active. Install `streamlit-webrtc` (`pip install streamlit-webrtc`) for real peer-to-peer tracks.")
 
 
 def render_projects(conn):

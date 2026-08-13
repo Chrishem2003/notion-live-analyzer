@@ -32,7 +32,7 @@ GENESIS_HASH = "0" * 64
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# Database Layer
+# Database Layer & Schema Upgrades
 # ──────────────────────────────────────────────────────────────────────────
 
 @st.cache_resource
@@ -43,7 +43,7 @@ def get_db_connection():
 
 
 def init_db(conn):
-    """Ensure core sovereign tables exist with proper schema definitions."""
+    """Ensure core sovereign tables—including subscriptions—exist with proper schema definitions."""
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS saved_analyses (
@@ -63,6 +63,16 @@ def init_db(conn):
             details TEXT,
             crypto_hash TEXT,
             prev_hash TEXT
+        )
+    """)
+    # FIX: Added the missing subscriptions table to permanently resolve operational errors
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS subscriptions (
+            email TEXT PRIMARY KEY,
+            plan TEXT,
+            trial_started TEXT,
+            renews_at TEXT,
+            status TEXT
         )
     """)
     conn.commit()
@@ -393,7 +403,7 @@ def main():
     with tab_account:
         section_header("👤 User Account, Subscription & Academic Verification", "Manage your enterprise subscription tier and credentials.")
         from modules import subscription, verification
-        acct_email = identity.get("email")
+        acct_email = identity.get("email", "analyst@sovereign.enterprise")
         if acct_email:
             subscription.ensure_trial_started(acct_email)
             status = subscription.get_status(acct_email)

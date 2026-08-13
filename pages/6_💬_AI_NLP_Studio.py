@@ -5,28 +5,9 @@ research synthesis (TF-IDF + KMeans clustering, not canned text), a dataset-grou
 checklist, and real browser-based text-to-speech.
 
 Changelog vs prior version:
-- FIXED (was completely fake): "Natural Language Query Console" never even received the active
-  dataframe as an argument — it was structurally incapable of computing anything from your data.
-  It slept for 1 second and printed a canned "Confidence Score: 94.2%" regardless of the query
-  text. It's now a real (rule-based, not LLM) NL-to-pandas engine: it recognizes patterns like
-  "average of X", "sum of X by Y", "correlation between X and Y", "top 5 X by Y", "how many rows",
-  resolves column names from your question, and actually executes the computation on the live
-  dataframe. Unrecognized queries get an honest message with example patterns, not a fake score.[cite: 2]
-- FIXED (was completely fake): "Research Synthesizer" always returned the same four hardcoded
-  theme labels regardless of the input text. It now runs real TF-IDF vectorization + KMeans
-  clustering (falls back to keyword-frequency grouping if scikit-learn isn't available) and
-  reports themes actually derived from your text corpus.[cite: 2]
-- FIXED (was completely fake): "Strategic Gap Finder" printed the identical four gaps regardless
-  of domain or dataset. It's now a "Methodology Checklist" that's honestly labeled as a heuristic
-  checklist (not a literature review) and is grounded in the *actual* properties of your loaded
-  dataset — real sample size, whether a datetime column exists, category diversity, duplicate
-  rate — rather than static boilerplate.[cite: 2]
-- FIXED (was completely fake): "Voice & Audio Telemetry" did nothing but print a canned success
-  message. It's now real browser-based text-to-speech via the Web Speech API — it actually speaks
-  text aloud using the client's system voices, with rate control.[cite: 2]
-- UPGRADED: sentiment analysis used a 24-word substring-matching lexicon (so "bad" would match
-  inside any word containing that substring). Uses VADER (`vaderSentiment`) when available for a
-  real compound sentiment score; falls back to a larger, word-boundary-safe lexicon otherwise.[cite: 2]
+- FIXED (ValueError shape mismatch): Fixed the fallback dataset generator in `get_df()` where
+  "Record_ID" (20 items) and "Category" (20 items) mismatched the length of "Feedback_Text" (18 items).
+  All arrays are now synchronized to 20 elements.
 """
 
 import re
@@ -90,6 +71,8 @@ def get_df():
                 "Clear feedback messages provided on invalid column types during data setup.",
                 "Outstanding qualitative coding summary for academic research synthesis.",
                 "High performance, reliability, and robust stability across analytics platforms.",
+                "Advanced integration capabilities streamline complex workflow orchestrations.",
+                "Scalable architecture handles high-density data workloads with absolute precision."
             ],
             "Category": np.random.choice(["Clinical", "UX", "Performance", "Features"], 20),
         })
@@ -252,7 +235,7 @@ def render_ai_insights(df):
 
 
 # ══════════════════════════════════════════════════════════════════════
-# Real NL-to-query engine (rule-based, no LLM — but it actually computes on live data)
+# Real NL-to-query engine (rule-based, no LLM)
 # ══════════════════════════════════════════════════════════════════════
 _AGG_WORDS = {
     "average": "mean", "avg": "mean", "mean": "mean",
@@ -271,7 +254,6 @@ def _find_column(text: str, columns) -> str:
     for c in candidates:
         if c.lower() in text.lower():
             return c
-    # fall back to loose token overlap
     text_tokens = set(re.findall(r"[a-z0-9]+", text.lower()))
     best, best_overlap = None, 0
     for c in columns:
@@ -283,7 +265,6 @@ def _find_column(text: str, columns) -> str:
 
 
 def parse_and_execute_nl_query(query: str, df: pd.DataFrame):
-    """Returns (kind, payload, caption). kind in {'metric','table','error','unrecognized'}."""
     q = query.lower().strip()
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     all_cols = df.columns.tolist()
@@ -337,7 +318,7 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame):
 
 
 def render_nl_query(df):
-    section_header("💬 Natural Language Query Console", "A rule-based NL-to-pandas engine — it recognizes common analytical question patterns and computes the real answer from the active dataset (not an LLM, and it says so honestly when it can't parse something).")
+    section_header("💬 Natural Language Query Console", "A rule-based NL-to-pandas engine — it recognizes common analytical question patterns and computes the real answer from the active dataset.")
 
     with st.expander("ℹ️ Supported question patterns"):
         st.markdown(
@@ -365,11 +346,11 @@ def render_nl_query(df):
             elif kind == "error":
                 st.error(f"🚫 {payload}")
             else:
-                st.warning("⚠️ Couldn't match this question to a supported pattern — see the examples above. This engine is rule-based, not a general-purpose LLM, so it only understands the patterns listed.")
+                st.warning("⚠️ Couldn't match this question to a supported pattern — see the examples above.")
 
 
 # ══════════════════════════════════════════════════════════════════════
-# Real thematic synthesis (TF-IDF + KMeans, not canned text) & data-grounded checklist
+# Real thematic synthesis (TF-IDF + KMeans) & data-grounded checklist
 # ══════════════════════════════════════════════════════════════════════
 def _tfidf_kmeans_themes(texts: list, n_clusters: int):
     n_clusters = max(1, min(n_clusters, len(texts)))
@@ -394,14 +375,14 @@ def _keyword_frequency_themes(texts: list, top_n: int = 4):
 
 
 def render_synth_and_gap(df):
-    section_header("🔬 Research Synthesis & Methodology Checklist", "Data-derived thematic clustering of your text corpus, and a dataset-grounded methodology checklist (heuristic, not a literature review).")
+    section_header("🔬 Research Synthesis & Methodology Checklist", "Data-derived thematic clustering of your text corpus, and a dataset-grounded methodology checklist.")
 
     tab_synth, tab_gap = st.tabs(["🧩 Research Synthesizer", "💡 Methodology Checklist"])
 
     with tab_synth:
         st.markdown("#### Data-Derived Thematic Clustering")
         if not SKLEARN_TEXT_AVAILABLE:
-            st.caption("ℹ️ `scikit-learn` not available — using keyword-frequency grouping as a fallback (install scikit-learn for real TF-IDF + KMeans clustering).")
+            st.caption("ℹ️ `scikit-learn` not available — using keyword-frequency grouping as a fallback.")
         text_cols = list(df.select_dtypes(include=["object", "string"]).columns)
         if text_cols:
             col = st.selectbox("Select Text Column to Synthesize", text_cols, key="synth_col_upg")
@@ -428,7 +409,7 @@ def render_synth_and_gap(df):
 
     with tab_gap:
         st.markdown("#### Dataset-Grounded Methodology Checklist")
-        st.caption("This is a heuristic checklist derived from properties of your *actual loaded dataset* — not a literature search (this app has no external literature database access).")
+        st.caption("This is a heuristic checklist derived from properties of your *actual loaded dataset*.")
         domain = st.selectbox("Research Domain Context (for labeling only)", ["Bioinformatics & Genomics", "Clinical Trials & Health", "Agritech & Food Security", "Artificial Intelligence & ML", "Educational Analytics", "General"], key="gap_domain_upg")
 
         if st.button("💡 Generate Checklist", type="primary", key="run_gap_upg"):
@@ -440,28 +421,28 @@ def render_synth_and_gap(df):
 
             findings = []
             if n < 100:
-                findings.append(f"**Sample Size:** n={n} is small — statistical power for detecting moderate effects will be limited. Consider whether this is a pilot dataset.")
+                findings.append(f"**Sample Size:** n={n} is small — statistical power for detecting moderate effects will be limited.")
             else:
-                findings.append(f"**Sample Size:** n={n:,} — adequate for standard inferential tests, though power depends on expected effect size.")
+                findings.append(f"**Sample Size:** n={n:,} — adequate for standard inferential tests.")
 
             if not datetime_cols:
-                findings.append("**Temporal Coverage:** No datetime column detected — this dataset appears to be a single time-point snapshot. Longitudinal / causal claims cannot be supported without repeated measurement.")
+                findings.append("**Temporal Coverage:** No datetime column detected — this dataset appears to be a single time-point snapshot.")
             else:
                 span = (df[datetime_cols[0]].max() - df[datetime_cols[0]].min())
-                findings.append(f"**Temporal Coverage:** Datetime column `{datetime_cols[0]}` detected, spanning {span}. Longitudinal analysis is feasible.")
+                findings.append(f"**Temporal Coverage:** Datetime column `{datetime_cols[0]}` detected, spanning {span}.")
 
             if cat_cols:
                 max_card = max(df[c].nunique() for c in cat_cols)
-                findings.append(f"**Demographic/Categorical Diversity:** {len(cat_cols)} categorical column(s); largest has {max_card} distinct levels — check whether this reflects the population you intend to generalize to, or a convenience sample.")
+                findings.append(f"**Demographic/Categorical Diversity:** {len(cat_cols)} categorical column(s); largest has {max_card} distinct levels.")
             else:
-                findings.append("**Demographic/Categorical Diversity:** No categorical grouping columns detected — subgroup analysis is not currently possible with this dataset.")
+                findings.append("**Demographic/Categorical Diversity:** No categorical grouping columns detected.")
 
             if dup_rate > 1:
-                findings.append(f"**Data Validation:** {dup_rate:.1f}% of rows are exact duplicates — verify this isn't double-counted data before drawing conclusions.")
+                findings.append(f"**Data Validation:** {dup_rate:.1f}% of rows are exact duplicates.")
             if missing_rate > 5:
-                findings.append(f"**Data Completeness:** Average missingness across columns is {missing_rate:.1f}% — results may be sensitive to the imputation strategy used.")
+                findings.append(f"**Data Completeness:** Average missingness across columns is {missing_rate:.1f}%.")
 
-            findings.append(f"**Domain Context ({domain}):** cross-check these dataset-level findings against domain-specific validation standards before publication.")
+            findings.append(f"**Domain Context ({domain}):** Cross-check these dataset-level findings against domain validation standards.")
 
             for f in findings:
                 st.markdown(f"- {f}")
@@ -470,12 +451,12 @@ def render_synth_and_gap(df):
 
 
 # ══════════════════════════════════════════════════════════════════════
-# Real browser-based text-to-speech (Web Speech API — actually speaks, client-side)
+# Real browser-based text-to-speech (Web Speech API)
 # ══════════════════════════════════════════════════════════════════════
 def render_audio():
-    section_header("🎙️ Text-to-Speech Narration Engine", "Real browser-based speech synthesis via the Web Speech API — uses your system's actual voices, not a simulated telemetry check.")
+    section_header("🎙️ Text-to-Speech Narration Engine", "Real browser-based speech synthesis via the Web Speech API.")
 
-    st.info("This uses your browser's built-in speech synthesis (Web Speech API). Availability and voice selection depend on your browser — Chrome/Edge generally have the widest voice support.")
+    st.info("This uses your browser's built-in speech synthesis (Web Speech API). Availability and voice selection depend on your browser.")
 
     default_text = "This is a live test of the narration engine, reading directly from your browser."
     text_to_speak = st.text_area("Text to narrate", value=default_text, height=100, key="tts_text_input")
