@@ -1,0 +1,10 @@
+{
+    "python.analysis.diagnosticSeverityOverrides":  {
+                                                        "reportMissingImports":  "none",
+                                                        "reportUndefinedVariable":  "none"
+                                                    },
+    "python.analysis.extraPaths":  [
+                                       "."
+                                   ],
+    "python.defaultInterpreterPath":  ".venv\\Scripts\\python.exe"
+}
