@@ -69,6 +69,15 @@ import requests
 import streamlit as st
 import extra_streamlit_components as stx
 
+# Real subscription/billing engine lives in modules/subscription.py +
+# modules/billing_stripe.py and is shared with Admin Security Center's
+# billing panel. This used to be a second, parallel implementation living
+# only in this file (with an incompatible schema) — that duplication is
+# exactly the kind of drift that made the two "billing systems" disagree
+# with each other. There is now exactly one, imported once, up top, so
+# it's available before ensure_bootstrap_admin() runs at import time below.
+from modules import subscription, billing_stripe
+
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Chrishem Science Hub - Sovereign Enterprise Engine",
@@ -161,11 +170,12 @@ def ensure_bootstrap_admin():
             "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?,?,?,?,?)",
             (email_norm, "Administrator", pwd_hash, salt, "admin"),
         )
-        cursor.execute(
-            "INSERT OR REPLACE INTO subscriptions (email, plan, trial_started) VALUES (?,?,?)",
-            (email_norm, "active", datetime.datetime.utcnow().isoformat()),
-        )
         db_conn.commit()
+        # Admins bypass plan checks entirely via is_admin_email() regardless
+        # of what's in `subscriptions` (see modules/subscription.py), but we
+        # still record a real, well-formed row here rather than a legacy
+        # plan="active"/no-status one, so the billing directory reads clean.
+        subscription.admin_override_plan("system:bootstrap", email_norm, "pro", "comp")
 
 
 ensure_bootstrap_admin()
@@ -251,11 +261,10 @@ class AuthStore:
             "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
             (email_norm, name, pwd_hash, salt, role),
         )
-        cursor.execute(
-            "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
-            (email_norm, "trial", datetime.datetime.utcnow().isoformat()),
-        )
         db_conn.commit()
+        # Route through the real subscription engine instead of writing this
+        # table's row shape by hand here -- one writer, one schema.
+        subscription.ensure_trial_started(email_norm)
         return {"ok": True}
 
     def get_or_create_oauth_user(self, email, name, provider, provider_id):
@@ -277,11 +286,8 @@ class AuthStore:
             "VALUES (?, ?, NULL, NULL, ?, ?, ?)",
             (email_norm, name, "user", provider, provider_id),
         )
-        cursor.execute(
-            "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
-            (email_norm, "trial", datetime.datetime.utcnow().isoformat()),
-        )
         db_conn.commit()
+        subscription.ensure_trial_started(email_norm)
         return {"email": email_norm, "name": name, "role": "user"}
 
 
@@ -473,27 +479,24 @@ def render_oauth_buttons():
     )
 
 
-class SubscriptionManager:
-    def ensure_trial_started(self, email):
-        cursor = db_conn.cursor()
-        cursor.execute("SELECT email FROM subscriptions WHERE email = ?", (email,))
-        if not cursor.fetchone():
-            cursor.execute(
-                "INSERT INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
-                (email, "trial", datetime.datetime.utcnow().isoformat()),
+def handle_checkout_return():
+    """Stripe redirects back to APP_BASE_URL after Checkout with
+    ?checkout=success&session_id=... . Verify it server-side against
+    Stripe's own API (never trust the URL alone) and apply the result."""
+    qp = st.query_params
+    if qp.get("checkout") == "success" and qp.get("session_id"):
+        result = billing_stripe.verify_checkout_session(qp["session_id"])
+        st.query_params.clear()
+        if result:
+            st.session_state["_billing_toast"] = f"✅ Upgraded to **{result['plan'].title()}** — welcome aboard."
+        else:
+            st.session_state["_billing_toast"] = (
+                "⚠️ We couldn't confirm that payment yet. If you were charged, use "
+                "'Resync billing status' in Billing & Subscription, or try again."
             )
-            db_conn.commit()
-
-    def get_status(self, email):
-        cursor = db_conn.cursor()
-        cursor.execute("SELECT plan, trial_started FROM subscriptions WHERE email = ?", (email,))
-        row = cursor.fetchone()
-        if not row:
-            return {"plan": "trial", "trial_started": None}
-        return {"plan": row[0], "trial_started": row[1]}
-
-
-subscription = SubscriptionManager()
+    elif qp.get("checkout") == "cancelled":
+        st.query_params.clear()
+        st.session_state["_billing_toast"] = "ℹ️ Checkout cancelled — no charge was made."
 
 
 def is_admin():
@@ -693,6 +696,9 @@ if not st.session_state.portal_unlocked:
             }
             subscription.ensure_trial_started(user_record["email"])
 
+if st.session_state.portal_unlocked:
+    handle_checkout_return()
+
 # --- PORTAL GATEWAY SCREEN (LOCKED STATE) ---
 if not st.session_state.portal_unlocked:
     st.markdown("<style>[data-testid=\"stSidebar\"] {display: none;}</style>", unsafe_allow_html=True)
@@ -829,16 +835,22 @@ else:
 
     menu_selection = st.sidebar.radio("Select Workspace", [
         "⚡ Apex Dashboard",
+        "💳 Billing & Subscription",
         "📝 Query Log",
         "🔬 Bioinformatics Studio",
         "⚙️ Profile Settings",
         "🛡️ Admin Security & User Controls"
     ])
 
+    toast_msg = st.session_state.pop("_billing_toast", None)
+    if toast_msg:
+        st.toast(toast_msg) if hasattr(st, "toast") else st.info(toast_msg)
+
     st.title("⚡ Chrishem Sovereign Apex Hub")
     st.markdown("---")
 
     status = subscription.get_status(current_user_email)
+    plan_label = "Admin (full access)" if is_admin() else status["effective_plan"].title()
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -858,7 +870,70 @@ else:
         with c_a:
             st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}")
         with c_b:
-            st.success(f"**Subscription Plan:** `{status.get('plan', 'trial')}` for `{current_user_email}`.")
+            if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
+                st.success(f"**Trial:** {plan_label} access — {status['days_left_in_trial']} day(s) left.")
+            else:
+                st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
+
+    elif menu_selection == "💳 Billing & Subscription":
+        st.markdown("### 💳 Billing & Subscription")
+
+        s1, s2, s3 = st.columns(3)
+        s1.metric("Current plan", plan_label)
+        s2.metric("Status", status["status"].title())
+        s3.metric("Trial days left", status["days_left_in_trial"] if status["days_left_in_trial"] is not None else "—")
+
+        if status["current_period_end"]:
+            st.caption(f"Current billing period ends: {status['current_period_end'][:10]}")
+
+        st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+
+        if not billing_stripe.is_configured():
+            st.warning(
+                "Payments aren't configured on this deployment yet. An administrator needs to set "
+                "`STRIPE_SECRET_KEY`, the `STRIPE_PRICE_*` variables, and `APP_BASE_URL` for upgrades "
+                "to work here."
+            )
+        else:
+            st.markdown("#### Upgrade")
+            up_col1, up_col2 = st.columns(2)
+            for col, plan_key in zip((up_col1, up_col2), ("premium", "pro")):
+                info = subscription.PLAN_CATALOG[plan_key]
+                with col:
+                    st.markdown(f"**{info['label']}** — {info['blurb']}")
+                    st.caption(f"${info['price_monthly']}/mo · ${info['price_annual']}/yr")
+                    b1, b2 = st.columns(2)
+                    if b1.button(f"Monthly", key=f"pf_{plan_key}_m", use_container_width=True):
+                        url = billing_stripe.create_checkout_session(current_user_email, plan_key, "monthly")
+                        if url:
+                            st.link_button("Continue to secure checkout →", url, type="primary", use_container_width=True)
+                        else:
+                            st.error("Checkout is not available — that plan's Stripe price ID isn't configured.")
+                    if b2.button(f"Annual", key=f"pf_{plan_key}_a", use_container_width=True):
+                        url = billing_stripe.create_checkout_session(current_user_email, plan_key, "annual")
+                        if url:
+                            st.link_button("Continue to secure checkout →", url, type="primary", use_container_width=True)
+                        else:
+                            st.error("Checkout is not available — that plan's Stripe price ID isn't configured.")
+
+            st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+            st.markdown("#### Manage your subscription")
+            mc1, mc2 = st.columns(2)
+            with mc1:
+                if st.button("Open billing portal", use_container_width=True):
+                    portal_url = billing_stripe.create_billing_portal_session(current_user_email)
+                    if portal_url:
+                        st.link_button("Open Stripe billing portal →", portal_url, use_container_width=True)
+                    else:
+                        st.info("No Stripe customer on file yet — upgrade first to create one.")
+            with mc2:
+                if st.button("🔄 Resync billing status from Stripe", use_container_width=True):
+                    result = billing_stripe.reconcile_subscription(current_user_email)
+                    if result:
+                        st.success(f"Resynced: {result['plan'].title()} ({result['status']}).")
+                        st.rerun()
+                    else:
+                        st.info("No active Stripe subscription found for this account.")
 
     elif menu_selection == "📝 Query Log":
         st.markdown("### 📝 Session Query Log")

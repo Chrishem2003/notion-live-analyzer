@@ -649,63 +649,105 @@ def render_user_management(conn):
 
 
 def render_billing(conn):
-    section_header("💳 Enterprise Billing, Licensing & Subscription Management", "Monitor real-time subscription tiers, trial statuses, and license allocations from the primary database repository.")
+    section_header("💳 Enterprise Billing, Licensing & Subscription Management", "Monitor real-time subscription tiers, trial statuses, and license allocations from the shared subscription engine (modules/subscription.py + modules/billing_stripe.py).")
 
     from modules import subscription, billing_stripe
 
     conn2 = subscription.get_conn()
-    rows = conn2.execute("SELECT email, plan, trial_started FROM subscriptions").fetchall()
+    subscription.init_billing_schema(conn2)
+    rows = conn2.execute(
+        "SELECT email, plan, status, trial_started, trial_ends, current_period_end, stripe_customer_id "
+        "FROM subscriptions ORDER BY updated_at DESC"
+    ).fetchall()
     conn2.close()
 
-    plan_counts = {}
-    for _, plan, _ in rows:
-        plan_counts[plan] = plan_counts.get(plan, 0) + 1
+    status_counts, plan_counts = {}, {}
+    for _, plan, status, *_ in rows:
+        status_counts[status or "active"] = status_counts.get(status or "active", 0) + 1
+        plan_counts[plan or "free"] = plan_counts.get(plan or "free", 0) + 1
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Total Accounts", len(rows))
-    c2.metric("Active Trials", plan_counts.get("trial", 0))
-    c3.metric("Paid Active Tiers", plan_counts.get("active", 0))
-    c4.metric("Student Free Access", plan_counts.get("student_free", 0))
+    c2.metric("Active Trials", status_counts.get("trialing", 0))
+    c3.metric("Paid & Active", status_counts.get("active", 0))
+    c4.metric("Comp / Admin-Granted", status_counts.get("comp", 0))
+
+    c5, c6, c7 = st.columns(3)
+    c5.metric("Free tier", plan_counts.get("free", 0))
+    c6.metric("Premium", plan_counts.get("premium", 0))
+    c7.metric("Pro", plan_counts.get("pro", 0))
 
     if not billing_stripe.is_configured():
         st.warning(
-            "⚠️ Stripe API credentials not fully detected. Configure STRIPE_SECRET_KEY, STRIPE_PRICE_ID, and "
-            "STRIPE_WEBHOOK_SECRET environment variables to enable automated payment gateway settlement."
+            "⚠️ Stripe isn't fully configured. Set `STRIPE_SECRET_KEY`, the four `STRIPE_PRICE_*` "
+            "variables (premium/pro × monthly/annual), and `APP_BASE_URL` to enable live checkout, "
+            "the billing portal, and Stripe resync."
         )
 
     st.markdown("#### Registered Subscription Directory")
     if rows:
-        bdf = pd.DataFrame(rows, columns=["Subscriber Email", "Subscription Plan", "Trial Commencement"])
+        bdf = pd.DataFrame(rows, columns=[
+            "Email", "Plan", "Status", "Trial Started", "Trial Ends", "Period End", "Stripe Customer",
+        ])
         st.dataframe(bdf, width='stretch', hide_index=True)
         render_export_buttons(bdf, base_name="enterprise_subscription_directory")
     else:
         st.info("ℹ️ No subscription records found.")
 
-    st.markdown("#### Manual Plan Override Console")
-    st.caption("Execute administrative account comps, refunds, or manual tier adjustments. All overrides are written to the audit ledger.")
+    st.markdown("---")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        target_email = st.text_input("Subscriber Email Address", key="billing_target_email_upg")
-    with col2:
-        new_plan = st.selectbox("Target Subscription Tier", ["trial", "active", "expired", "student_free"], key="billing_new_plan_upg")
+    col_override, col_resync = st.columns(2)
 
-    if st.button("💾 Commit Plan Override", type="primary", key="billing_apply_upg"):
-        if target_email.strip():
-            actor = st.session_state.get("user_identity", {}).get("email", "unknown")
-            conn3 = subscription.get_conn()
-            conn3.execute(
-                "INSERT INTO subscriptions (email, trial_started, plan) VALUES (?,?,?) "
-                "ON CONFLICT(email) DO UPDATE SET plan=excluded.plan",
-                (target_email.strip().lower(), datetime.datetime.utcnow().isoformat(), new_plan),
-            )
-            conn3.commit()
-            conn3.close()
-            log_admin_action(conn, "Admin Center", "BILLING_OVERRIDE", f"{target_email.strip().lower()}: plan → {new_plan} (by {actor})")
-            st.success(f"✅ Subscription tier for `{target_email}` successfully overridden to `{new_plan}`.")
-            st.rerun()
-        else:
-            st.warning("⚠️ Please provide a valid subscriber email address.")
+    with col_override:
+        st.markdown("#### Manual Plan Override")
+        st.caption("For comps, refunds handled outside Stripe, or support cases. Always written to the audit ledger and to `billing_events`.")
+        target_email = st.text_input("Subscriber email", key="billing_target_email_upg")
+        oc1, oc2 = st.columns(2)
+        new_plan = oc1.selectbox("Plan", ["free", "premium", "pro"], key="billing_new_plan_upg")
+        new_status = oc2.selectbox("Status", ["comp", "active", "trialing", "expired"], key="billing_new_status_upg")
+
+        if st.button("💾 Commit Plan Override", type="primary", key="billing_apply_upg"):
+            if target_email.strip():
+                actor = st.session_state.get("user_identity", {}).get("email", "unknown")
+                subscription.admin_override_plan(actor, target_email.strip().lower(), new_plan, new_status)
+                log_admin_action(conn, "Admin Center", "BILLING_OVERRIDE",
+                                  f"{target_email.strip().lower()}: plan → {new_plan}/{new_status} (by {actor})")
+                st.success(f"✅ `{target_email.strip().lower()}` set to **{new_plan}/{new_status}**.")
+                st.rerun()
+            else:
+                st.warning("⚠️ Please provide a valid subscriber email address.")
+
+    with col_resync:
+        st.markdown("#### Resync from Stripe")
+        st.caption("Pulls the live subscription state straight from Stripe for one account — use this if a cancellation or renewal doesn't seem to have caught up yet.")
+        resync_email = st.text_input("Subscriber email", key="billing_resync_email_upg")
+        if st.button("🔄 Resync this account", key="billing_resync_btn_upg"):
+            if not billing_stripe.is_configured():
+                st.error("Stripe isn't configured on this deployment.")
+            elif resync_email.strip():
+                result = billing_stripe.reconcile_subscription(resync_email.strip().lower())
+                actor = st.session_state.get("user_identity", {}).get("email", "unknown")
+                if result:
+                    log_admin_action(conn, "Admin Center", "BILLING_RESYNC",
+                                      f"{resync_email.strip().lower()}: resynced to {result['plan']}/{result['status']} (by {actor})")
+                    st.success(f"Resynced: {result['plan'].title()} ({result['status']}).")
+                    st.rerun()
+                else:
+                    st.info("No Stripe customer/subscription found for that email.")
+            else:
+                st.warning("⚠️ Please provide a subscriber email address.")
+
+    st.markdown("#### Recent billing events")
+    conn4 = subscription.get_conn()
+    events = conn4.execute(
+        "SELECT timestamp, email, event_type, detail FROM billing_events ORDER BY id DESC LIMIT 30"
+    ).fetchall()
+    conn4.close()
+    if events:
+        edf = pd.DataFrame(events, columns=["Timestamp", "Email", "Event", "Detail"])
+        st.dataframe(edf, width='stretch', hide_index=True)
+    else:
+        st.info("No billing events recorded yet.")
 
 
 def render_security_vault(conn):
@@ -1108,4 +1150,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main()ss
