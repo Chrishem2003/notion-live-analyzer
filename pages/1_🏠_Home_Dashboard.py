@@ -5,6 +5,14 @@ management, LIVE system health metrics, a cryptographically chained audit ledger
 navigation hubs, and secure user account management.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure the root project directory is in sys.path so 'modules' can always be resolved
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import datetime
 import hashlib
 import io
@@ -43,7 +51,7 @@ def get_db_connection():
 
 
 def init_db(conn):
-    """Ensure core sovereign tables—including subscriptions—exist with proper schema definitions."""
+    """Ensure core sovereign tables—including subscriptions and telemetry chains—exist with proper schema definitions."""
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS saved_analyses (
@@ -65,7 +73,6 @@ def init_db(conn):
             prev_hash TEXT
         )
     """)
-    # FIX: Added the missing subscriptions table to permanently resolve operational errors
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS subscriptions (
             email TEXT PRIMARY KEY,
@@ -75,6 +82,18 @@ def init_db(conn):
             status TEXT
         )
     """)
+    
+    # Safe runtime schema migrations for pre-existing databases
+    try:
+        cursor.execute("ALTER TABLE system_telemetry_logs ADD COLUMN prev_hash TEXT")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+
+    try:
+        cursor.execute("ALTER TABLE subscriptions ADD COLUMN renews_at TEXT")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+
     conn.commit()
 
 
