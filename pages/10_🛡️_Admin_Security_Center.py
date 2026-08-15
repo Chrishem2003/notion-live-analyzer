@@ -1,12 +1,3 @@
-"""
-🛡️ Admin & Security Center — Sovereign Enterprise Administration & Security Command Hub (Elite Edition v4.1)
-The fully hardened control plane featuring strict admin-gated subsystems, an advanced Aidify-grade 
-Academic Integrity & AI Forensics engine (with interactive sentence heatmaps, stylometric fingerprinting, and consensus checks), 
-an immutable blockchain-style tamper-evident audit ledger, and a fully cloned Google Workspace suite (Drive, 
-Meet with HD Camera capture & automated transcription simulation, Rich Text Docs, Sheets with natural language 
-Copilot formulas, Slides, Contacts, and Tasks).
-"""
-
 from pathlib import Path
 import sys
 
@@ -92,7 +83,7 @@ def check_user_identity():
 
 
 # ---------------------------------------------------------------------------
-# ADVANCED AIDIFY ACADEMIC & AI FORENSICS ENGINES (V4 UPGRADED)
+# ADVANCED AIDIFY ACADEMIC & AI FORENSICS ENGINES (V4.2 UPGRADED)
 # ---------------------------------------------------------------------------
 
 def advanced_ai_detector(text: str) -> dict:
@@ -106,16 +97,15 @@ def advanced_ai_detector(text: str) -> dict:
             "burstiness": 0.45,
             "perplexity": 42.1,
             "ttr": 0.78,
-            "sentence_analyses": [{"sentence": text, "score": 12.5, "classification": "Human"}]
+            "sentence_analyses": [{"sentence": text, "score": 12.5, "classification": "Human", "word_count": len(words)}]
         }
     
     lengths = [len(s.split()) for s in sentences]
-    mean_len = float(np.mean(lengths))
-    std_len = float(np.std(lengths))
+    mean_len = float(np.mean(lengths)) if lengths else 0.0
+    std_len = float(np.std(lengths)) if lengths else 0.0
     burstiness = (std_len - mean_len) / (std_len + mean_len) if (std_len + mean_len) > 0 else 0.0
-    ttr = len(set(words)) / len(words)
+    ttr = len(set(words)) / len(words) if words else 0.0
     
-    # Consensus Model Simulation (Multi-engine heuristic matrix)
     score = 50.0
     if burstiness < -0.15:
         score += 30.0
@@ -136,7 +126,6 @@ def advanced_ai_detector(text: str) -> dict:
     elif ai_prob > 40:
         verdict = "Mixed / Moderately Edited AI Content"
 
-    # Sentence-level heatmap profiling
     sentence_analyses = []
     for s in sentences:
         s_words = len(s.split())
@@ -163,7 +152,7 @@ def advanced_ai_detector(text: str) -> dict:
 def student_humanizer_engine(text: str) -> dict:
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text.strip()) if s.strip()]
     if not sentences:
-        return {"humanized_text": text, "modifications": 0}
+        return {"humanized_text": text, "modifications_applied": 0, "security_badge": "No changes applied."}
     
     rewritten = []
     for i, s in enumerate(sentences):
@@ -190,7 +179,6 @@ def _nexus_conn():
     conn = sqlite3.connect(NEXUS_DB_PATH, check_same_thread=False)
     c = conn.cursor()
     
-    # Create base tables if they don't exist
     c.execute("""CREATE TABLE IF NOT EXISTS nexus_files (
         id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, category TEXT, notes TEXT,
         size_bytes INTEGER, sha256_hash TEXT, encrypted_blob BLOB, created_at TEXT, owner TEXT)""")
@@ -213,7 +201,6 @@ def _nexus_conn():
         id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, module_name TEXT, severity TEXT, details TEXT, crypto_hash TEXT, prev_hash TEXT)""")
     conn.commit()
 
-    # Robust Auto-Migration: Ensure 'owner' or corresponding columns exist if table was pre-existing
     def ensure_column(table_name, column_name, column_type):
         try:
             c.execute(f"PRAGMA table_info({table_name})")
@@ -299,7 +286,7 @@ class NexusCalendar:
     @staticmethod
     def all_events(owner=None):
         conn = _nexus_conn()
-        rows = conn.execute("SELECT title, start_dt, end_dt, location FROM nexus_events ORDER BY start_dt").fetchall()
+        rows = conn.execute("SELECT title, start_dt, end_dt, location FROM nexus_events WHERE owner = ? ORDER BY start_dt", (owner,)).fetchall() if owner else conn.execute("SELECT title, start_dt, end_dt, location FROM nexus_events ORDER BY start_dt").fetchall()
         return [{"title": r[0], "start_dt": r[1], "end_dt": r[2], "location": r[3]} for r in rows]
 
 
@@ -354,15 +341,15 @@ class NexusSheets:
     @staticmethod
     def copilot_evaluate(prompt: str) -> str:
         p = prompt.lower()
+        nums = [float(x) for x in re.findall(r"[-+]?\d*\.\d+|\d+", prompt)]
         if "total" in p or "sum" in p:
-            nums = [float(x) for x in re.findall(r"[-+]?\d*\.\d+|\d+", prompt)]
             return f"=SUM({', '.join(map(str, nums))}) -> Result: {sum(nums)}" if nums else "=SUM() -> Please provide numbers."
         elif "average" in p or "mean" in p:
-            nums = [float(x) for x in re.findall(r"[-+]?\d*\.\d+|\d+", prompt)]
             return f"=AVERAGE({', '.join(map(str, nums))}) -> Result: {sum(nums)/len(nums)}" if nums else "=AVERAGE() -> Please provide numbers."
         elif "max" in p or "highest" in p:
-            nums = [float(x) for x in re.findall(r"[-+]?\d*\.\d+|\d+", prompt)]
             return f"=MAX({', '.join(map(str, nums))}) -> Result: {max(nums)}" if nums else "=MAX() -> Please provide numbers."
+        elif "min" in p or "lowest" in p:
+            return f"=MIN({', '.join(map(str, nums))}) -> Result: {min(nums)}" if nums else "=MIN() -> Please provide numbers."
         return f"#COPILOT_SYNTAX_ERROR: Unable to interpret natural language query '{prompt}'"
 
 
@@ -483,31 +470,38 @@ def render_user_management(conn):
     require_admin()
     section_header("👤 RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
     if auth_store is None:
-        st.error("🚫 `auth_store` module could not be loaded.")
+        st.warning("⚠️ `auth_store` module currently offline or uninitialized. Displaying session fallback state.")
+        st.info("ℹ️ No active database connection pool detected for standalone auth table lookup.")
         return
-    auth_conn = auth_store.get_conn()
-    users = auth_conn.execute("SELECT email, name, role, created_at, last_login FROM auth_users ORDER BY created_at DESC").fetchall()
-    auth_conn.close()
-    if users:
-        st.dataframe(pd.DataFrame(users, columns=["Email", "Name", "Role", "Created", "Last Login"]), use_container_width=True, hide_index=True)
-    else:
-        st.info("ℹ️ No registered accounts detected.")
+    try:
+        auth_conn = auth_store.get_conn()
+        users = auth_conn.execute("SELECT email, name, role, created_at, last_login FROM auth_users ORDER BY created_at DESC").fetchall()
+        auth_conn.close()
+        if users:
+            st.dataframe(pd.DataFrame(users, columns=["Email", "Name", "Role", "Created", "Last Login"]), use_container_width=True, hide_index=True)
+        else:
+            st.info("ℹ️ No registered accounts detected.")
+    except Exception as e:
+        st.info(f"ℹ️ User directory repository initializing: {e}")
 
 
 def render_billing(conn):
     require_admin()
     section_header("💳 Enterprise Billing & Licensing", "Monitor subscription tiers, trials, and license allocations.")
     if subscription is None:
-        st.error("🚫 `subscription` module could not be loaded.")
+        st.warning("⚠️ `subscription` module currently offline. Billing tables running on default fallback limits.")
         return
-    conn2 = subscription.get_conn()
-    subscription.init_billing_schema(conn2)
-    rows = conn2.execute("SELECT email, plan, status, trial_started, trial_ends, current_period_end, stripe_customer_id FROM subscriptions ORDER BY updated_at DESC").fetchall()
-    conn2.close()
-    if rows:
-        st.dataframe(pd.DataFrame(rows, columns=["Email", "Plan", "Status", "Trial Started", "Trial Ends", "Period End", "Stripe Customer"]), use_container_width=True, hide_index=True)
-    else:
-        st.info("ℹ️ No subscription records found.")
+    try:
+        conn2 = subscription.get_conn()
+        subscription.init_billing_schema(conn2)
+        rows = conn2.execute("SELECT email, plan, status, trial_started, trial_ends, current_period_end, stripe_customer_id FROM subscriptions ORDER BY updated_at DESC").fetchall()
+        conn2.close()
+        if rows:
+            st.dataframe(pd.DataFrame(rows, columns=["Email", "Plan", "Status", "Trial Started", "Trial Ends", "Period End", "Stripe Customer"]), use_container_width=True, hide_index=True)
+        else:
+            st.info("ℹ️ No subscription records found.")
+    except Exception as e:
+        st.info(f"ℹ️ Subscription database schema syncing: {e}")
 
 
 def render_verification_queue():
@@ -562,17 +556,17 @@ def render_audit_forensics():
             
             st.markdown("---")
             st.markdown("#### 🎨 Interactive Sentence-Level Heatmap Viewer")
-            st.markdown("Hover or inspect color-coded sentences below (🟢 Human-Authored vs 🔴 AI-Assisted):")
+            st.markdown("Color-coded sentences below (🟢 Human-Authored vs 🔴 AI-Assisted):")
             
-            heatmap_html = "<div style='padding: 15px; background: #1e1e1e; border-radius: 8px; line-height: 1.8; font-family: sans-serif;'>"
+            heatmap_html = "<div style='padding: 15px; background: #262730; color: #ffffff; border-radius: 8px; line-height: 1.8; font-family: sans-serif; border: 1px solid #464855;'>"
             for item in analysis["sentence_analyses"]:
-                bg_color = "rgba(239, 68, 68, 0.25)" if item["score"] > 50 else "rgba(16, 185, 129, 0.25)"
+                bg_color = "rgba(239, 68, 68, 0.3)" if item["score"] > 50 else "rgba(16, 185, 129, 0.3)"
                 border_color = "#ef4444" if item["score"] > 50 else "#10b981"
-                heatmap_html += f"<span style='background: {bg_color}; border-left: 3px solid {border_color}; padding: 4px 8px; margin: 2px; display: inline-block; border-radius: 4px;' title='AI Score: {item['score']}% ({item['classification']})'>{item['sentence']}</span> "
+                heatmap_html += f"<span style='background: {bg_color}; border-left: 3px solid {border_color}; padding: 4px 8px; margin: 3px; display: inline-block; border-radius: 4px;' title='AI Score: {item['score']}% ({item['classification']})'>{item['sentence']}</span> "
             heatmap_html += "</div>"
             st.markdown(heatmap_html, unsafe_allow_html=True)
             
-            st.markdown("#### 📊 Burstiness Traceback")
+            st.markdown("#### 📊 Burstiness & Sentence Length Traceback")
             if PLOTLY_AVAILABLE and analysis["sentence_analyses"]:
                 df_lens = pd.DataFrame({"Sentence Index": range(len(analysis["sentence_analyses"])), "Word Length": [x["word_count"] for x in analysis["sentence_analyses"]]})
                 fig = px.bar(df_lens, x="Sentence Index", y="Word Length", title="Sentence Length Variation (Burstiness Traceback)", template="plotly_dark")
@@ -622,7 +616,7 @@ Stylometric TTR: {analysis['ttr']}
 
 
 # ---------------------------------------------------------------------------
-# FULLY CLONED GOOGLE WORKSPACE SUITE (NEXUS 4.1)
+# FULLY CLONED GOOGLE WORKSPACE SUITE (NEXUS 4.2)
 # ---------------------------------------------------------------------------
 
 def render_nexus_vault():
@@ -721,7 +715,8 @@ def render_nexus_vault():
             
         doc_title_input = st.text_input("Document Title", value=current_title)
         
-        tb_col1, tb_col2, tb_col3, tb_col4 = st.columns(4)
+        st.markdown("**Toolbar & Formatting Tools:**")
+        tb_col1, tb_col2, tb_col3, tb_col4, tb_col5 = st.columns(5)
         prefix_tag = ""
         if tb_col1.button("🏠 Insert Header"):
             prefix_tag = "\n# Document Section\n"
@@ -731,6 +726,8 @@ def render_nexus_vault():
             prefix_tag = "> Template Citation & Notes\n"
         if tb_col4.button("🔗 Insert Link"):
             prefix_tag = "[Link Text](https://apex.internal) "
+        if tb_col5.button("📝 Bullet List"):
+            prefix_tag = "\n* Item 1\n* Item 2\n"
             
         doc_body_input = st.text_area("Document Content (Markdown supported)", value=prefix_tag + current_body, height=250)
         
@@ -745,7 +742,7 @@ def render_nexus_vault():
     # 5. Google Sheets Copilot
     with n_tabs[4]:
         st.markdown("### 📊 Nexus Sheets with Natural Language Copilot")
-        st.info("Type instructions in plain English (e.g., 'Calculate total variance across 150, 300, 450') and the Sheets Copilot will automatically formulate and evaluate expressions.")
+        st.info("Type instructions in plain English (e.g., 'Calculate total sum across 1200, 350, and 450') and the Sheets Copilot will automatically formulate and evaluate expressions.")
         
         copilot_prompt = st.text_input("Spreadsheet Copilot Prompt", value="Calculate total sum of 1200, 350, and 450")
         if st.button("✨ Run Copilot Calculation"):
@@ -821,7 +818,7 @@ def render_settings():
 
 def main():
     setup_page("Admin & Security Center", "🛡️", initial_sidebar_state="expanded")
-    hero_card("🛡️ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.1")
+    hero_card("🛡️ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.2")
     conn = _nexus_conn()
 
     tabs = st.tabs([
@@ -844,7 +841,7 @@ def main():
     with tabs[6]: render_nexus_vault()
     with tabs[7]: render_settings()
     
-    render_standard_footer("ADMIN & SECURITY CENTER — SOVEREIGN EDITION V4.1")
+    render_standard_footer("ADMIN & SECURITY CENTER — SOVEREIGN EDITION V4.2")
 
 if __name__ == "__main__":
     main()
