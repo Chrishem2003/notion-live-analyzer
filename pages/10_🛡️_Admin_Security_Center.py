@@ -479,7 +479,21 @@ def render_system_diagnostics(conn):
 
 def render_user_management(conn):
     section_header("👤 RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
-    import modules.auth_store as auth_store
+    def render_user_management(conn):
+    section_header("👤 RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
+    
+    # Safe absolute path resolution for modules package on Streamlit Cloud
+    import sys
+    from pathlib import Path
+    root_dir = Path(__file__).resolve().parent.parent
+    if str(root_dir) not in sys.path:
+        sys.path.append(str(root_dir))
+        
+    try:
+        from modules import auth_store
+    except ModuleNotFoundError:
+        import auth_store  # Fallback if executed from root context
+
     auth_conn = auth_store.get_conn()
     users = auth_conn.execute("SELECT email, name, role, created_at, last_login FROM auth_users ORDER BY created_at DESC").fetchall()
     auth_conn.close()
