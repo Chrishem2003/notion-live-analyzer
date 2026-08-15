@@ -1,0 +1,11 @@
+# Virtual environments
+.venv/
+venv/
+**/venv/
+**/ .venv/
+
+# Local database files
+*.db
+
+# Log files
+*.log

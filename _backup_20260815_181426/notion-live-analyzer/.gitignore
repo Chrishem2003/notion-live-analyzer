@@ -1,0 +1,25 @@
+# Streamlit secrets - never commit
+.streamlit/secrets.toml
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database files (local state)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
