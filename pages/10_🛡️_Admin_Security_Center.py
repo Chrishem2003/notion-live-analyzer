@@ -10,7 +10,10 @@ and the complete Nexus 2.0 workspace suite.
 from pathlib import Path
 import sys
 
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+# Ensure root directory is in sys.path for absolute module imports
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
 
 import datetime
 import hashlib
@@ -28,6 +31,29 @@ import streamlit as st
 
 from modules.page_bootstrap import setup_page, render_standard_footer
 from modules.shared_ui import hero_card, section_header, metric_card, render_export_buttons
+
+# Safe imports for internal modules with robust fallbacks
+try:
+    from modules import auth_store
+except ImportError:
+    try:
+        import auth_store
+    except ImportError:
+        auth_store = None
+
+try:
+    from modules import subscription, billing_stripe
+except ImportError:
+    try:
+        import subscription, billing_stripe
+    except ImportError:
+        subscription = None
+
+try:
+    from modules.verification import render_admin_review_queue
+except ImportError:
+    def render_admin_review_queue():
+        st.warning("Verification queue module could not be loaded.")
 
 try:
     import plotly.express as px
@@ -192,35 +218,6 @@ def pii_redactor(text: str) -> dict:
         counts[label] = len(re.findall(pattern, redacted))
         redacted = re.sub(pattern, f"[REDACTED_{label.upper()}]", redacted)
     return {"counts": counts, "redacted_text": redacted}
-
-
-def hipaa_phi_audit(text: str) -> dict:
-    findings = []
-    if re.search(r"\b\d{3}-\d{2}-\d{4}\b", text):
-        findings.append("Possible SSN pattern detected")
-    if re.search(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text):
-        findings.append("Email address detected")
-    if re.search(r"\+?\d{1,3}[\s.-]?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{3,4}", text):
-        findings.append("Phone number pattern detected")
-    risk = "HIGH" if len(findings) >= 3 else ("MODERATE" if findings else "LOW")
-    return {"findings": findings, "risk": risk}
-
-
-def sha256_block(block_id: int, prev_hash: str, payload: str, actor: str) -> dict:
-    ts = datetime.datetime.utcnow().isoformat()
-    content = f"{block_id}|{prev_hash}|{payload}|{actor}|{ts}"
-    return {"block_id": block_id, "prev_hash": prev_hash, "payload": payload, "actor": actor, "timestamp": ts, "block_hash": hashlib.sha256(content.encode("utf-8")).hexdigest()}
-
-
-def grant_compliance_matrix(required: list, fulfilled: list) -> dict:
-    required_set, fulfilled_set = set(required), set(fulfilled)
-    missing = sorted(required_set - fulfilled_set)
-    pct = round(100 * len(required_set & fulfilled_set) / len(required_set), 1) if required_set else 100.0
-    return {
-        "required_count": len(required_set), "fulfilled_count": len(fulfilled_set & required_set),
-        "completion_pct": pct, "missing_requirements": missing,
-        "verdict": "FULLY COMPLIANT" if not missing else f"INCOMPLETE — {len(missing)} missing",
-    }
 
 
 def _nexus_conn():
@@ -480,17 +477,9 @@ def render_system_diagnostics(conn):
 def render_user_management(conn):
     section_header("👤 RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
     
-    # Safe absolute path resolution for modules package on Streamlit Cloud
-    import sys
-    from pathlib import Path
-    root_dir = Path(__file__).resolve().parent.parent
-    if str(root_dir) not in sys.path:
-        sys.path.append(str(root_dir))
-        
-    try:
-        from modules import auth_store
-    except ModuleNotFoundError:
-        import auth_store  # Fallback if executed from root context
+    if auth_store is None:
+        st.error("🚫 `auth_store` module could not be loaded.")
+        return
 
     auth_conn = auth_store.get_conn()
     users = auth_conn.execute("SELECT email, name, role, created_at, last_login FROM auth_users ORDER BY created_at DESC").fetchall()
@@ -505,7 +494,9 @@ def render_user_management(conn):
 
 def render_billing(conn):
     section_header("💳 Enterprise Billing & Licensing", "Monitor subscription tiers, trials, and license allocations.")
-    from modules import subscription, billing_stripe
+    if subscription is None:
+        st.error("🚫 `subscription` module could not be loaded.")
+        return
     conn2 = subscription.get_conn()
     subscription.init_billing_schema(conn2)
     rows = conn2.execute("SELECT email, plan, status, trial_started, trial_ends, current_period_end, stripe_customer_id FROM subscriptions ORDER BY updated_at DESC").fetchall()
@@ -712,9 +703,7 @@ def main():
     with tabs[0]: render_system_diagnostics(conn)
     with tabs[1]: render_user_management(conn)
     with tabs[2]: render_billing(conn)
-    with tabs[3]: 
-        from modules.verification import render_admin_review_queue
-        render_admin_review_queue()
+    with tabs[3]: render_admin_review_queue()
     with tabs[4]: render_security_vault(conn)
     with tabs[5]: render_audit_forensics()
     with tabs[6]: render_nexus_vault()
