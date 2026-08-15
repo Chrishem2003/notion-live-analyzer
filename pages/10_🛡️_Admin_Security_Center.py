@@ -29,7 +29,7 @@ try:
     from modules import auth_store
 except ImportError:
     try:
-        import auth_store
+        import auth_store  # type: ignore
     except ImportError:
         auth_store = None
 
@@ -37,9 +37,10 @@ try:
     from modules import subscription, billing_stripe
 except ImportError:
     try:
-        import subscription, billing_stripe
+        import subscription, billing_stripe  # type: ignore
     except ImportError:
         subscription = None
+        billing_stripe = None
 
 try:
     from modules.verification import render_admin_review_queue
