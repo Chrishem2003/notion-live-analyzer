@@ -479,7 +479,7 @@ def render_system_diagnostics(conn):
 
 def render_user_management(conn):
     section_header("👤 RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
-    from modules import auth_store
+    import modules.auth_store as auth_store
     auth_conn = auth_store.get_conn()
     users = auth_conn.execute("SELECT email, name, role, created_at, last_login FROM auth_users ORDER BY created_at DESC").fetchall()
     auth_conn.close()
