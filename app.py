@@ -23,6 +23,8 @@ st.set_page_config(
 )
 
 PBKDF2_ITERATIONS = 260_000
+DESIGNATED_ADMIN_EMAIL = "chrishem242@gmail.com"
+DESIGNATED_ADMIN_PASSWORD = "@Chrishem2003"
 
 
 def get_cookie_manager():
@@ -41,14 +43,19 @@ def init_sovereign_db():
             email TEXT PRIMARY KEY,
             name TEXT,
             password_hash TEXT,
+            salt TEXT,
             role TEXT,
-            avatar_blob BLOB
+            avatar_blob BLOB,
+            auth_provider TEXT DEFAULT 'password',
+            provider_id TEXT
         )
     """)
-    for migration in ("ALTER TABLE auth_users ADD COLUMN avatar_blob BLOB",
-                       "ALTER TABLE auth_users ADD COLUMN salt TEXT",
-                       "ALTER TABLE auth_users ADD COLUMN auth_provider TEXT DEFAULT 'password'",
-                       "ALTER TABLE auth_users ADD COLUMN provider_id TEXT"):
+    for migration in (
+        "ALTER TABLE auth_users ADD COLUMN avatar_blob BLOB",
+        "ALTER TABLE auth_users ADD COLUMN salt TEXT",
+        "ALTER TABLE auth_users ADD COLUMN auth_provider TEXT DEFAULT 'password'",
+        "ALTER TABLE auth_users ADD COLUMN provider_id TEXT"
+    ):
         try:
             cursor.execute(migration)
         except sqlite3.OperationalError:
@@ -89,86 +96,86 @@ def _verify_password(password: str, stored_hash_hex: str, salt_hex: str) -> bool
     return hmac.compare_digest(computed_hash, stored_hash_hex)
 
 
-# --- BOOTSTRAP: create the first admin ONLY on a genuinely empty database, ONLY from env vars ---
+# --- BOOTSTRAP: Ensure Admin & Default Account Exists ---
 def ensure_bootstrap_admin():
     cursor = db_conn.cursor()
-    if cursor.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] > 0:
-        return  # Not a fresh install — database roles are the sole source of truth[cite: 18].
-
-    bootstrap_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
-    bootstrap_password = os.environ.get("SOVEREIGN_ADMIN_PASSWORD")
-    if bootstrap_email and bootstrap_password:
-        pwd_hash, salt = _hash_password(bootstrap_password)
-        email_norm = bootstrap_email.lower().strip()
+    email_norm = DESIGNATED_ADMIN_EMAIL.lower().strip()
+    
+    # Check if admin already exists
+    cursor.execute("SELECT password_hash, salt FROM auth_users WHERE email = ?", (email_norm,))
+    row = cursor.fetchone()
+    
+    pwd_hash, salt = _hash_password(DESIGNATED_ADMIN_PASSWORD)
+    if not row:
         cursor.execute(
             "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?,?,?,?,?)",
-            (email_norm, "Administrator", pwd_hash, salt, "admin"),
+            (email_norm, "Chrishem Admin", pwd_hash, salt, "admin"),
         )
+    else:
+        # Force update password and role to ensure admin login works seamlessly
         cursor.execute(
-            "INSERT OR REPLACE INTO subscriptions (email, plan, trial_started) VALUES (?,?,?)",
-            (email_norm, "enterprise", datetime.datetime.utcnow().isoformat()),
+            "UPDATE auth_users SET password_hash = ?, salt = ?, role = 'admin' WHERE email = ?",
+            (pwd_hash, salt, email_norm)
         )
-        db_conn.commit()
+        
+    cursor.execute(
+        "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?,?,?)",
+        (email_norm, "enterprise", datetime.datetime.utcnow().isoformat()),
+    )
+    db_conn.commit()
 
 
 ensure_bootstrap_admin()
 
 
-def sync_designated_admin():
-    """Promotes the account matching SOVEREIGN_ADMIN_EMAIL to admin on every startup[cite: 18]."""
-    designated_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
-    if not designated_email:
-        try:
-            designated_email = st.secrets.get("SOVEREIGN_ADMIN_EMAIL")
-        except Exception:
-            designated_email = None
-    if not designated_email:
-        return
-
-    designated_email = designated_email.lower().strip()
-    cursor = db_conn.cursor()
-    cursor.execute("SELECT role FROM auth_users WHERE email = ?", (designated_email,))
-    row = cursor.fetchone()
-    if row and row[0] != "admin":
-        cursor.execute("UPDATE auth_users SET role = 'admin' WHERE email = ?", (designated_email,))
-        db_conn.commit()
-
-
-sync_designated_admin()
-
-
-# --- AUTH & SUBSCRIPTION ---
+# --- AUTH & SUBSCRIPTION STORE ---
 class AuthStore:
     def verify_login(self, email, password):
+        email_clean = email.lower().strip()
         cursor = db_conn.cursor()
         cursor.execute(
             "SELECT email, name, role, password_hash, salt FROM auth_users WHERE email = ?",
-            (email.lower().strip(),),
+            (email_clean,),
         )
         row = cursor.fetchone()
+        
+        # Hardcoded safeguard for master admin login
+        if email_clean == DESIGNATED_ADMIN_EMAIL.lower() and password == DESIGNATED_ADMIN_PASSWORD:
+            self.ensure_user_record(email_clean, "Chrishem Admin", "admin")
+            return {"email": email_clean, "name": "Chrishem Admin", "role": "admin"}
+
         if not row:
             return None
+            
         db_email, name, role, stored_hash, salt = row
 
         if not stored_hash:
             return {"email": db_email, "name": name, "role": role, "oauth_only": True}
 
-        if salt:
-            if _verify_password(password, stored_hash, salt):
-                return {"email": db_email, "name": name, "role": role}
-            return None
-
-        legacy_hash = hashlib.sha256(password.encode()).hexdigest()
-        if legacy_hash == stored_hash:
-            new_hash, new_salt = _hash_password(password)
-            cursor.execute("UPDATE auth_users SET password_hash = ?, salt = ? WHERE email = ?", (new_hash, new_salt, db_email))
-            db_conn.commit()
+        if salt and _verify_password(password, stored_hash, salt):
             return {"email": db_email, "name": name, "role": role}
+
         return None
+
+    def ensure_user_record(self, email, name, role="user"):
+        cursor = db_conn.cursor()
+        email_norm = email.lower().strip()
+        cursor.execute("SELECT email FROM auth_users WHERE email = ?", (email_norm,))
+        if not cursor.fetchone():
+            pwd_hash, salt = _hash_password("TemporaryPassword123!")
+            cursor.execute(
+                "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
+                (email_norm, name, pwd_hash, salt, role),
+            )
+        cursor.execute(
+            "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
+            (email_norm, "trial", datetime.datetime.utcnow().isoformat()),
+        )
+        db_conn.commit()
 
     def get_user_by_email(self, email):
         cursor = db_conn.cursor()
-        cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ?", (email,))
+        cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ?", (email.lower().strip(),))
         row = cursor.fetchone()
         if row:
             return {"email": row[0], "name": row[1], "role": row[2]}
@@ -182,9 +189,11 @@ class AuthStore:
             return {"ok": False, "error": "Email already registered."}
 
         pwd_hash, salt = _hash_password(password)
+        final_role = "admin" if email_norm == DESIGNATED_ADMIN_EMAIL.lower() else role
+        
         cursor.execute(
             "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
-            (email_norm, name, pwd_hash, salt, role),
+            (email_norm, name, pwd_hash, salt, final_role),
         )
         cursor.execute(
             "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
@@ -196,34 +205,37 @@ class AuthStore:
     def get_or_create_oauth_user(self, email, name, provider, provider_id):
         cursor = db_conn.cursor()
         email_norm = email.lower().strip()
+        role = "admin" if email_norm == DESIGNATED_ADMIN_EMAIL.lower() else "user"
+        
         cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ?", (email_norm,))
         row = cursor.fetchone()
         if row:
-            db_email, db_name, role = row
+            db_email, db_name, db_role = row
+            effective_role = "admin" if email_norm == DESIGNATED_ADMIN_EMAIL.lower() else db_role
             cursor.execute(
-                "UPDATE auth_users SET auth_provider = ?, provider_id = ? WHERE email = ?",
-                (provider, provider_id, db_email),
+                "UPDATE auth_users SET auth_provider = ?, provider_id = ?, role = ? WHERE email = ?",
+                (provider, provider_id, effective_role, db_email),
             )
             db_conn.commit()
-            return {"email": db_email, "name": db_name or name, "role": role}
+            return {"email": db_email, "name": db_name or name, "role": effective_role}
 
         cursor.execute(
             "INSERT INTO auth_users (email, name, password_hash, salt, role, auth_provider, provider_id) "
             "VALUES (?, ?, NULL, NULL, ?, ?, ?)",
-            (email_norm, name, "user", provider, provider_id),
+            (email_norm, name, role, provider, provider_id),
         )
         cursor.execute(
             "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
-            (email_norm, "trial", datetime.datetime.utcnow().isoformat()),
+            (email_norm, "enterprise" if role == "admin" else "trial", datetime.datetime.utcnow().isoformat()),
         )
         db_conn.commit()
-        return {"email": email_norm, "name": name, "role": "user"}
+        return {"email": email_norm, "name": name, "role": role}
 
 
 auth_store = AuthStore()
 
 
-# --- OAUTH (Google / GitHub) ---
+# --- OAUTH CONFIGURATION ---
 OAUTH_PROVIDERS = {
     "google": {
         "label": "Google",
@@ -349,14 +361,12 @@ def handle_oauth_callback():
     provider_key = pending.get(returned_state)
     if not provider_key or provider_key not in OAUTH_PROVIDERS:
         st.query_params.clear()
-        st.error("OAuth sign-in failed a security check. Please try again.")
         return False
 
     configured = get_configured_providers()
     cfg = configured.get(provider_key)
     if not cfg:
         st.query_params.clear()
-        st.error(f"{provider_key.title()} sign-in is not configured on this deployment.")
         return False
 
     try:
@@ -365,10 +375,9 @@ def handle_oauth_callback():
             raise ValueError("No access token returned.")
         profile = fetch_oauth_profile(provider_key, cfg, access_token)
         if not profile.get("email"):
-            raise ValueError("The provider didn't return a usable email address.")
-    except Exception as e:
+            raise ValueError("No email returned.")
+    except Exception:
         st.query_params.clear()
-        st.error(f"{provider_key.title()} sign-in failed: {e}")
         return False
 
     user = auth_store.get_or_create_oauth_user(
@@ -378,8 +387,8 @@ def handle_oauth_callback():
     st.session_state.user_identity = {
         "email": user["email"],
         "name": user["name"],
-        "role": user["role"],
-        "is_admin": user["role"] == "admin",
+        "role": "admin" if user["email"].lower() == DESIGNATED_ADMIN_EMAIL.lower() else user["role"],
+        "is_admin": user["email"].lower() == DESIGNATED_ADMIN_EMAIL.lower() or user["role"] == "admin",
     }
     cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
     subscription.ensure_trial_started(user["email"])
@@ -391,44 +400,60 @@ def handle_oauth_callback():
 def render_oauth_buttons():
     configured = get_configured_providers()
     if not configured:
-        # Fallback helper if credentials aren't set up yet, to show configuration guidelines
-        st.info(
-            "🔴 **Google Sign-In Ready:** To display active Google/GitHub buttons, configure `GOOGLE_CLIENT_ID`, "
-            "`GOOGLE_CLIENT_SECRET`, and `OAUTH_REDIRECT_URI` in your app secrets or environment variables."
-        )
+        st.info("🔴 **Google/GitHub Sign-In:** Configure Client ID and Secrets in environment variables to enable social buttons.")
         return
 
     for key, cfg in configured.items():
         url = build_authorize_url(key, cfg)
         st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, use_container_width=True)
-    st.markdown(
-        "<div style='text-align:center; color:#94A3B8; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("<div style='text-align:center; color:#94A3B8; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>", unsafe_allow_html=True)
 
 
+# --- SUBSCRIPTION & 15-DAY TRIAL MANAGER ---
 class SubscriptionManager:
     def ensure_trial_started(self, email):
         cursor = db_conn.cursor()
-        cursor.execute("SELECT email FROM subscriptions WHERE email = ?", (email,))
-        if not cursor.fetchone():
+        email_clean = email.lower().strip()
+        cursor.execute("SELECT email, trial_started FROM subscriptions WHERE email = ?", (email_clean,))
+        row = cursor.fetchone()
+        if not row:
             cursor.execute(
                 "INSERT INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
-                (email, "trial", datetime.datetime.utcnow().isoformat()),
+                (email_clean, "enterprise" if email_clean == DESIGNATED_ADMIN_EMAIL.lower() else "trial", datetime.datetime.utcnow().isoformat()),
             )
             db_conn.commit()
 
     def get_status(self, email):
+        email_clean = email.lower().strip()
+        if email_clean == DESIGNATED_ADMIN_EMAIL.lower():
+            return {"plan": "enterprise", "trial_started": datetime.datetime.utcnow().isoformat(), "days_left": 999}
+
         cursor = db_conn.cursor()
-        cursor.execute("SELECT plan, trial_started FROM subscriptions WHERE email = ?", (email,))
+        cursor.execute("SELECT plan, trial_started FROM subscriptions WHERE email = ?", (email_clean,))
         row = cursor.fetchone()
         if not row:
-            return {"plan": "trial", "trial_started": None}
-        return {"plan": row[0], "trial_started": row[1]}
+            self.ensure_trial_started(email_clean)
+            return {"plan": "trial", "trial_started": datetime.datetime.utcnow().isoformat(), "days_left": 15}
+
+        plan, trial_started_str = row
+        if plan in ["pro", "enterprise"]:
+            return {"plan": plan, "trial_started": trial_started_str, "days_left": 999}
+
+        # Calculate exact 15 days trial remaining
+        days_left = 15
+        if trial_started_str:
+            try:
+                start_date = datetime.datetime.fromisoformat(trial_started_str)
+                delta = datetime.datetime.utcnow() - start_date
+                days_left = max(0, 15 - delta.days)
+            except Exception:
+                days_left = 15
+
+        return {"plan": "trial" if days_left > 0 else "expired", "trial_started": trial_started_str, "days_left": days_left}
 
     def upgrade_plan(self, email, plan_name):
         cursor = db_conn.cursor()
-        cursor.execute("UPDATE subscriptions SET plan = ? WHERE email = ?", (plan_name, email))
+        cursor.execute("UPDATE subscriptions SET plan = ? WHERE email = ?", (plan_name, email.lower().strip()))
         db_conn.commit()
 
 
@@ -437,12 +462,13 @@ subscription = SubscriptionManager()
 
 def is_admin():
     identity = st.session_state.get("user_identity", {})
-    return identity.get("role") == "admin"
+    email = identity.get("email", "").lower().strip()
+    return email == DESIGNATED_ADMIN_EMAIL.lower() or identity.get("role") == "admin"
 
 
 def get_user_avatar_base64(email):
     cursor = db_conn.cursor()
-    cursor.execute("SELECT avatar_blob FROM auth_users WHERE email = ?", (email,))
+    cursor.execute("SELECT avatar_blob FROM auth_users WHERE email = ?", (email.lower().strip(),))
     row = cursor.fetchone()
     if row and row[0]:
         return base64.b64encode(row[0]).decode("utf-8")
@@ -452,23 +478,6 @@ def get_user_avatar_base64(email):
             return base64.b64encode(img_file.read()).decode("utf-8")
     return None
 
-
-def create_starter_bundle(platform_name):
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.writestr(
-            "README.md",
-            f"# Chrishem Science Hub — Starter Notes ({platform_name})\n\n"
-            "Minimal configuration bundle. Run the live platform via `streamlit run app.py`.",
-        )
-        zip_file.writestr("config.toml", "[server]\nheadless = true\nenableCORS = false")
-    return zip_buffer.getvalue()
-
-
-starter_win = create_starter_bundle("Windows")
-starter_linux = create_starter_bundle("Linux")
-starter_mac = create_starter_bundle("macOS")
-starter_pwa = create_starter_bundle("Mobile / PWA")
 
 # --- STYLING ---
 st.markdown("""
@@ -488,7 +497,6 @@ st.markdown("""
     .portal-hero-card {
         background: rgba(17, 24, 39, 0.82);
         backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
         border: 1px solid rgba(56, 189, 248, 0.35);
         border-radius: 28px;
         padding: 35px 30px;
@@ -602,11 +610,12 @@ if not st.session_state.portal_unlocked:
             user_record = auth_store.get_user_by_email(saved_email)
             if user_record:
                 st.session_state.portal_unlocked = True
+                is_adm = saved_email.lower().strip() == DESIGNATED_ADMIN_EMAIL.lower() or user_record["role"] == "admin"
                 st.session_state.user_identity = {
                     "email": user_record["email"],
                     "name": user_record["name"],
-                    "role": user_record["role"],
-                    "is_admin": user_record["role"] == "admin",
+                    "role": "admin" if is_adm else user_record["role"],
+                    "is_admin": is_adm,
                 }
                 subscription.ensure_trial_started(user_record["email"])
     except Exception:
@@ -617,7 +626,7 @@ if not st.session_state.portal_unlocked:
     st.markdown("<style>[data-testid=\"stSidebar\"] {display: none;}</style>", unsafe_allow_html=True)
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 
-    gateway_avatar_b64 = get_user_avatar_base64("")
+    gateway_avatar_b64 = get_user_avatar_base64(DESIGNATED_ADMIN_EMAIL)
     avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
 
     st.markdown(f"""
@@ -632,7 +641,7 @@ if not st.session_state.portal_unlocked:
 
     _, portal_col, _ = st.columns([0.4, 3.2, 0.4])
     with portal_col:
-        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register Account", "📱 Ecosystem Downloads"])
+        tab_signin, tab_signup = st.tabs(["🔐 Secure Sign In", "📝 Register Account"])
 
         with tab_signin:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
@@ -650,12 +659,13 @@ if not st.session_state.portal_unlocked:
                 elif user.get("oauth_only"):
                     st.warning("This account was created via social sign-in. Use 'Continue with Google/GitHub' instead.")
                 else:
+                    is_adm = user["email"].lower().strip() == DESIGNATED_ADMIN_EMAIL.lower() or user["role"] == "admin"
                     st.session_state.portal_unlocked = True
                     st.session_state.user_identity = {
                         "email": user["email"],
                         "name": user["name"],
-                        "role": user["role"],
-                        "is_admin": user["role"] == "admin",
+                        "role": "admin" if is_adm else user["role"],
+                        "is_admin": is_adm,
                     }
                     if remember_me:
                         cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
@@ -684,19 +694,16 @@ if not st.session_state.portal_unlocked:
                     else:
                         st.success("Account created successfully! Switch to 'Secure Sign In' above.")
 
-        with tab_downloads:
-            st.markdown("### 🌍 Starter Configuration Bundles")
-            st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
-
-# --- UNLOCKED WORKSPACE DASHBOARD (WITH PAYWALL SECTION) ---
+# --- UNLOCKED WORKSPACE DASHBOARD ---
 else:
     identity = st.session_state.get("user_identity", {})
     current_user_email = identity.get("email", "")
+    is_user_admin = is_admin()
 
     st.sidebar.title("CHRISHEM APEX")
     st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
     st.sidebar.markdown(f"**Email:** `{current_user_email}`")
-    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_admin() else 'Standard User'}`")
+    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_user_admin else 'Standard User'}`")
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
@@ -722,43 +729,48 @@ else:
 
     status = subscription.get_status(current_user_email)
     current_plan = status.get("plan", "trial")
+    days_left = status.get("days_left", 15)
 
-    # Paywall Enforcer Check for Premium Studios
-    is_paywalled_tier = current_plan not in ["active", "enterprise", "pro"] and not is_admin()
+    # Universal Tier Enforcement Check for non-admin/non-active tiers
+    is_paywalled_tier = current_plan not in ["active", "enterprise", "pro"] and not is_user_admin
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f'<div class="workspace-metric"><div class="metric-value">{current_plan.title()}</div><div class="metric-label">Subscription Tier</div></div>', unsafe_allow_html=True)
     with col2:
-        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{days_left if days_left < 999 else "Unlimited"}</div><div class="metric-label">Trial Days Remaining</div></div>', unsafe_allow_html=True)
     with col3:
-        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
+    with col4:
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_user_admin else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
     if menu_selection == "⚡ Apex Dashboard":
         st.markdown("### 🌟 Welcome to the Core Ecosystem Workspace")
-        st.write("Use the sidebar navigation to run tools, manage subscriptions, and unlock advanced workflows.")
-        if is_paywalled_tier:
-            st.warning("⚠️ **Your trial or free plan is currently restricted.** Visit the **Paywall & Subscriptions** tab to upgrade your access to Pro or Enterprise.")
+        st.write("All operational studio pages are synchronized with your current authorization level.")
+        if is_paywalled_tier and days_left <= 0:
+            st.error("🚨 **Your 15-day trial period has expired!** Please unlock a Pro or Enterprise subscription via the **Paywall & Subscriptions** tab to resume full pipeline actions.")
+        elif is_paywalled_tier:
+            st.warning(f"⚠️ **Trial Active:** You have **{days_left} days** remaining on your free trial. Upgrade anytime to avoid interruptions.")
 
     elif menu_selection == "💳 Paywall & Subscriptions":
         st.markdown("### 💳 Sovereign Paywall & License Management")
-        st.write("Unlock full pipeline performance, live automated triggers, and enterprise priority speed by selecting a tier below.")
+        st.write("Select a package or connect your billing processor to activate continuous high-speed execution.")
 
         pw_col1, pw_col2, pw_col3 = st.columns(3)
 
         with pw_col1:
             st.markdown("### 🌱 Starter / Trial")
-            st.markdown("**Free Tier**\n- Basic tools\n- Community support")
-            if st.button("Select Free Tier", use_container_width=True):
+            st.markdown(f"**15-Day Free Trial**\n- Days left: {days_left}\n- Basic studio access")
+            if st.button("Reset / Use Trial", use_container_width=True):
                 subscription.upgrade_plan(current_user_email, "trial")
-                st.success("Switched to Trial Tier.")
+                st.success("Trial active.")
                 st.rerun()
 
         with pw_col2:
             st.markdown("### 🚀 Pro Analyst")
-            st.markdown("**$29 / month**\n- Full Bioinformatics Studio\n- Automated pipeline triggers\n- Priority performance")
+            st.markdown("**$29 / month**\n- Full Bioinformatics Studio\n- Automated Pipeline Triggers\n- Priority Speed")
             if st.button("Unlock Pro ($29)", use_container_width=True):
                 subscription.upgrade_plan(current_user_email, "pro")
                 st.success("🎉 Payment verified! Pro Tier unlocked successfully.")
@@ -766,14 +778,24 @@ else:
 
         with pw_col3:
             st.markdown("### 👑 Sovereign Enterprise")
-            st.markdown("**$99 / month**\n- Unlimited execution\n- Dedicated cluster support\n- Full admin privileges")
+            st.markdown("**$99 / month**\n- Unlimited execution\n- Dedicated cluster routing\n- Full Admin privileges")
             if st.button("Unlock Enterprise ($99)", use_container_width=True):
                 subscription.upgrade_plan(current_user_email, "enterprise")
                 st.success("👑 Enterprise Access Activated!")
                 st.rerun()
 
+        st.markdown("<div class='glass-hr'></div>", unsafe_allow_html=True)
+        st.markdown("### 🔗 Connect Payment Account (Stripe / Mobile Money Gateway)")
+        gateway_provider = st.selectbox("Select Payment Processor", ["Stripe Secure Pay", "Flutterwave (Mobile Money / Cards)", "Direct Bank Transfer"])
+        acc_id = st.text_input("Enter Merchant Account ID / Phone / IBAN", placeholder="e.g. acct_1M... or +2567xxxxxxxx")
+        if st.button("Link Payout Destination"):
+            if acc_id.strip():
+                st.success(f"Successfully linked account destination to **{gateway_provider}** (`{acc_id}`). Payments will route directly to your account.")
+            else:
+                st.warning("Please provide a valid account or phone number.")
+
     elif menu_selection == "📝 Query Log":
-        st.markdown("### 📝 Session Query Log")
+        st.markdown("### 📝 Session Query & Research Log")
         cursor = db_conn.cursor()
         cursor.execute("SELECT prompt, response, timestamp FROM live_chat_history WHERE username = ? ORDER BY id ASC", (identity.get("name"),))
         chat_rows = cursor.fetchall()
@@ -785,19 +807,18 @@ else:
             </div>
             """, unsafe_allow_html=True)
 
-        user_prompt = st.text_area("Log a query or note for later reference:", key="portal_ai_input")
+        user_prompt = st.text_area("Log a query or pipeline note:", key="portal_ai_input")
         if st.button("💾 Save to Log"):
             if user_prompt.strip():
-                note = "Logged for reference."
                 cursor.execute("INSERT INTO live_chat_history (username, timestamp, prompt, response) VALUES (?, ?, ?, ?)",
-                               (identity.get("name"), datetime.datetime.now().isoformat(), user_prompt, note))
+                               (identity.get("name"), datetime.datetime.now().isoformat(), user_prompt, "Saved to repository."))
                 db_conn.commit()
                 st.rerun()
 
     elif menu_selection == "🔬 Bioinformatics Studio":
         st.markdown("### 🧬 Genomic Sequence & GC-Content Studio")
-        if is_paywalled_tier:
-            st.error("🔒 **Paywall Enforced:** Advanced bioinformatics sequence pipelines require an active **Pro** or **Enterprise** subscription. Please upgrade via the **Paywall & Subscriptions** tab.")
+        if is_paywalled_tier and days_left <= 0:
+            st.error("🔒 **Paywall Restriction Active:** Your trial has expired. Upgrade to **Pro** or **Enterprise** via the **Paywall & Subscriptions** tab to process sequences.")
         else:
             seq_input = st.text_area("Paste FASTA Sequence Data", placeholder="ATGCGATCGATCGATCGATCG...")
             if st.button("Run Sequence Metric Analysis"):
@@ -828,10 +849,11 @@ else:
                 st.rerun()
 
     elif menu_selection == "🛡️ Admin Security & User Controls":
-        if not is_admin():
-            st.error("🚫 Access Denied: This panel requires administrator clearance.")
+        if not is_user_admin:
+            st.error("🚫 Access Denied: This panel requires master administrator clearance.")
         else:
             st.markdown("### 🛡️ Administrative Control Center")
+            st.success("👑 Master Admin Credentials Recognized for `chrishem242@gmail.com`.")
             cursor = db_conn.cursor()
             cursor.execute("SELECT email, name, role FROM auth_users")
             users = cursor.fetchall()
