@@ -35,6 +35,23 @@ security issues rather than just fake features:
   identical placeholder zip (a stub README, a one-line fake script, a bare config file) regardless
   of platform — there was no real platform-specific build behind any of them. Relabeled honestly
   as a minimal starter-config bundle rather than implying real native applications exist.
+- DECLINED: a request to re-add a *hidden* permanent admin grant hardcoded to
+  `chrishem242@gmail.com`. That's the exact backdoor removed above, for the exact reasons
+  documented above — hidden privilege escalation tied to a specific account, invisible to
+  anyone else administering the app, immune to being revoked through the normal admin console.
+  Concealment is the part that makes it a backdoor rather than an admin account; "hidden" was
+  the specific thing declined. What's provided instead is the transparent mechanism already
+  built above: set `SOVEREIGN_ADMIN_EMAIL=chrishem242@gmail.com` in your own deployment's
+  environment variables or Streamlit secrets (not in this source file), register that email
+  normally through Sign Up, and it's promoted to admin on next startup — visible to anyone who
+  reads the deployment config, logged like any other role, and revocable by just removing the
+  env var and demoting the account through the admin console.
+- ADDED: real "Continue with Google" / "Continue with GitHub" sign-in using the standard OAuth
+  2.0 Authorization Code flow (genuine redirect to the provider, genuine token exchange, genuine
+  profile fetch) — not a styled button that does nothing. Requires you to register the app with
+  each provider and set `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` and/or
+  `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` plus `OAUTH_REDIRECT_URI`. A provider's button only
+  appears once its credentials are actually configured — no dead buttons.
 """
 
 import base64
@@ -45,9 +62,11 @@ import io
 import os
 import secrets
 import sqlite3
+import urllib.parse
 import zipfile
 import numpy as np
 import pandas as pd
+import requests
 import streamlit as st
 import extra_streamlit_components as stx
 
@@ -83,7 +102,9 @@ def init_sovereign_db():
         )
     """)
     for migration in ("ALTER TABLE auth_users ADD COLUMN avatar_blob BLOB",
-                       "ALTER TABLE auth_users ADD COLUMN salt TEXT"):
+                       "ALTER TABLE auth_users ADD COLUMN salt TEXT",
+                       "ALTER TABLE auth_users ADD COLUMN auth_provider TEXT DEFAULT 'password'",
+                       "ALTER TABLE auth_users ADD COLUMN provider_id TEXT"):
         try:
             cursor.execute(migration)
         except sqlite3.OperationalError:
@@ -204,6 +225,12 @@ class AuthStore:
             return None
         db_email, name, role, stored_hash, salt = row
 
+        if not stored_hash:
+            # OAuth-only account (e.g. created via "Continue with Google") — there is no
+            # password to check against. Tell the user which door to use instead of failing
+            # silently with a generic "incorrect password".
+            return {"email": db_email, "name": name, "role": role, "oauth_only": True}
+
         if salt:
             if _verify_password(password, stored_hash, salt):
                 return {"email": db_email, "name": name, "role": role}
@@ -246,8 +273,237 @@ class AuthStore:
         db_conn.commit()
         return {"ok": True}
 
+    def get_or_create_oauth_user(self, email, name, provider, provider_id):
+        """Look up (or create) an account by email for a successful OAuth login.
+
+        If an account with this email already exists — whether it was created with a
+        password or through a different provider — this just logs into that same account;
+        it never changes an existing account's role, and it never overwrites a password.
+        """
+        cursor = db_conn.cursor()
+        email_norm = email.lower().strip()
+        cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ?", (email_norm,))
+        row = cursor.fetchone()
+        if row:
+            db_email, db_name, role = row
+            cursor.execute(
+                "UPDATE auth_users SET auth_provider = ?, provider_id = ? WHERE email = ?",
+                (provider, provider_id, db_email),
+            )
+            db_conn.commit()
+            return {"email": db_email, "name": db_name or name, "role": role}
+
+        cursor.execute(
+            "INSERT INTO auth_users (email, name, password_hash, salt, role, auth_provider, provider_id) "
+            "VALUES (?, ?, NULL, NULL, ?, ?, ?)",
+            (email_norm, name, "user", provider, provider_id),
+        )
+        cursor.execute(
+            "INSERT OR IGNORE INTO subscriptions (email, plan, trial_started) VALUES (?, ?, ?)",
+            (email_norm, "trial", datetime.datetime.utcnow().isoformat()),
+        )
+        db_conn.commit()
+        return {"email": email_norm, "name": name, "role": "user"}
+
 
 auth_store = AuthStore()
+
+
+# --- OAUTH (Google / GitHub — real Authorization Code flow) ---------------------------------
+# Each provider only appears as a sign-in option once its client id/secret are actually set.
+# Nothing here fakes a connection: a missing config means the button is simply not shown.
+OAUTH_PROVIDERS = {
+    "google": {
+        "label": "Google",
+        "icon": "🔴",
+        "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+        "token_url": "https://oauth2.googleapis.com/token",
+        "userinfo_url": "https://www.googleapis.com/oauth2/v3/userinfo",
+        "scope": "openid email profile",
+        "client_id_env": "GOOGLE_CLIENT_ID",
+        "client_secret_env": "GOOGLE_CLIENT_SECRET",
+    },
+    "github": {
+        "label": "GitHub",
+        "icon": "⚫",
+        "authorize_url": "https://github.com/login/oauth/authorize",
+        "token_url": "https://github.com/login/oauth/access_token",
+        "userinfo_url": "https://api.github.com/user",
+        "scope": "read:user user:email",
+        "client_id_env": "GITHUB_CLIENT_ID",
+        "client_secret_env": "GITHUB_CLIENT_SECRET",
+    },
+}
+
+
+def _oauth_config_value(name):
+    val = os.environ.get(name)
+    if val:
+        return val
+    try:
+        return st.secrets.get(name)
+    except Exception:
+        return None
+
+
+def get_configured_providers():
+    """Only providers with both a client id and secret set — no dead buttons."""
+    configured = {}
+    for key, cfg in OAUTH_PROVIDERS.items():
+        cid = _oauth_config_value(cfg["client_id_env"])
+        secret = _oauth_config_value(cfg["client_secret_env"])
+        if cid and secret:
+            configured[key] = {**cfg, "client_id": cid, "client_secret": secret}
+    return configured
+
+
+def get_redirect_uri():
+    return _oauth_config_value("OAUTH_REDIRECT_URI") or ""
+
+
+def build_authorize_url(provider_key, cfg):
+    """Generates a fresh CSRF token for this provider, remembers it in this session against
+    the provider it belongs to, and returns the real provider authorize URL."""
+    token = secrets.token_urlsafe(24)
+    pending = st.session_state.setdefault("oauth_pending", {})
+    pending[token] = provider_key
+
+    params = {
+        "client_id": cfg["client_id"],
+        "redirect_uri": get_redirect_uri(),
+        "scope": cfg["scope"],
+        "state": token,
+        "response_type": "code",
+    }
+    if provider_key == "google":
+        params["access_type"] = "online"
+        params["prompt"] = "select_account"
+    return f"{cfg['authorize_url']}?{urllib.parse.urlencode(params)}"
+
+
+def exchange_code_for_token(cfg, code):
+    resp = requests.post(
+        cfg["token_url"],
+        data={
+            "client_id": cfg["client_id"],
+            "client_secret": cfg["client_secret"],
+            "code": code,
+            "redirect_uri": get_redirect_uri(),
+            "grant_type": "authorization_code",
+        },
+        headers={"Accept": "application/json"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json().get("access_token")
+
+
+def fetch_oauth_profile(provider_key, cfg, access_token):
+    headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+    resp = requests.get(cfg["userinfo_url"], headers=headers, timeout=10)
+    resp.raise_for_status()
+    data = resp.json()
+
+    if provider_key == "google":
+        return {
+            "email": data.get("email"),
+            "name": data.get("name") or data.get("email", "").split("@")[0],
+            "provider_id": data.get("sub"),
+        }
+
+    if provider_key == "github":
+        email = data.get("email")
+        if not email:
+            # GitHub only returns a primary email here if the user made it public;
+            # otherwise it has to be fetched from the dedicated emails endpoint.
+            email_resp = requests.get("https://api.github.com/user/emails", headers=headers, timeout=10)
+            if email_resp.ok:
+                for entry in email_resp.json():
+                    if entry.get("primary") and entry.get("verified"):
+                        email = entry.get("email")
+                        break
+        return {
+            "email": email,
+            "name": data.get("name") or data.get("login"),
+            "provider_id": str(data.get("id")),
+        }
+
+    return {"email": None, "name": None, "provider_id": None}
+
+
+def handle_oauth_callback():
+    """Runs once per page load. If the URL carries a provider's ?code=&state=, complete the
+    login. Silently does nothing on a normal page load with no callback params."""
+    query = st.query_params
+    code = query.get("code")
+    returned_state = query.get("state")
+    if not code or not returned_state:
+        return False
+
+    pending = st.session_state.get("oauth_pending", {})
+    provider_key = pending.get(returned_state)
+    if not provider_key or provider_key not in OAUTH_PROVIDERS:
+        st.query_params.clear()
+        st.error("OAuth sign-in failed a security check (unrecognized state). Please try again.")
+        return False
+
+    configured = get_configured_providers()
+    cfg = configured.get(provider_key)
+    if not cfg:
+        st.query_params.clear()
+        st.error(f"{provider_key.title()} sign-in is not configured on this deployment.")
+        return False
+
+    try:
+        access_token = exchange_code_for_token(cfg, code)
+        if not access_token:
+            raise ValueError("No access token returned.")
+        profile = fetch_oauth_profile(provider_key, cfg, access_token)
+        if not profile.get("email"):
+            raise ValueError("The provider didn't return a usable email address.")
+    except Exception as e:
+        st.query_params.clear()
+        st.error(f"{provider_key.title()} sign-in failed: {e}")
+        return False
+
+    user = auth_store.get_or_create_oauth_user(
+        profile["email"], profile["name"] or profile["email"], provider_key, profile["provider_id"]
+    )
+    st.session_state.portal_unlocked = True
+    st.session_state.user_identity = {
+        "email": user["email"],
+        "name": user["name"],
+        "role": user["role"],
+        "is_admin": user["role"] == "admin",
+    }
+    cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
+    subscription.ensure_trial_started(user["email"])
+    st.session_state.pop("oauth_pending", None)
+    st.query_params.clear()
+    st.rerun()
+
+
+def render_oauth_buttons():
+    """Real 'Continue with X' buttons — one per provider that actually has credentials
+    configured. If nothing is configured, this quietly renders nothing rather than showing
+    dead buttons."""
+    configured = get_configured_providers()
+    if not configured:
+        return
+    if not get_redirect_uri():
+        st.caption(
+            "Social sign-in provider credentials are set, but `OAUTH_REDIRECT_URI` is missing — "
+            "set it to this app's exact deployed URL to enable the buttons below."
+        )
+        return
+
+    for key, cfg in configured.items():
+        url = build_authorize_url(key, cfg)
+        st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, use_container_width=True)
+    st.markdown(
+        "<div style='text-align:center; color:#94A3B8; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>",
+        unsafe_allow_html=True,
+    )
 
 
 class SubscriptionManager:
@@ -455,6 +711,10 @@ if "portal_unlocked" not in st.session_state:
 if "user_identity" not in st.session_state:
     st.session_state.user_identity = {}
 
+# Handle a Google/GitHub redirect back to this app before anything else renders.
+# No-op on a normal page load with no ?code=&state= in the URL.
+handle_oauth_callback()
+
 if not st.session_state.portal_unlocked:
     saved_email = cookie_manager.get(cookie="chrishem_user_email")
     if saved_email:
@@ -501,6 +761,9 @@ if not st.session_state.portal_unlocked:
 
         with tab_signin:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+
+            render_oauth_buttons()
+
             si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
             si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="••••••••")
             remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
@@ -510,6 +773,11 @@ if not st.session_state.portal_unlocked:
                 user = auth_store.verify_login(si_email, si_password)
                 if user is None:
                     st.error("Incorrect email or password.")
+                elif user.get("oauth_only"):
+                    st.warning(
+                        f"This account was created via social sign-in and has no password set. "
+                        f"Use one of the 'Continue with...' buttons above instead."
+                    )
                 else:
                     st.session_state.portal_unlocked = True
                     st.session_state.user_identity = {
