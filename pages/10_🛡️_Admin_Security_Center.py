@@ -88,7 +88,7 @@ def check_user_identity():
 
 def advanced_ai_detector(text: str) -> dict:
     # Clean text to avoid binary/garbled traceback artifacts
-    clean_text = "".join(ch for ch in text if ch.printable or ch.isspace())
+    clean_text = "".join(ch for ch in text if ch.isprintable() or ch.isspace())
     words = re.findall(r"[a-zA-Z']+", clean_text.lower())
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", clean_text.strip()) if s.strip()]
     
