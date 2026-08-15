@@ -1,5 +1,5 @@
 """
-🛡️ Admin & Security Center — Sovereign Enterprise Administration & Security Command Hub (Elite Edition v4.0)
+🛡️ Admin & Security Center — Sovereign Enterprise Administration & Security Command Hub (Elite Edition v4.1)
 The fully hardened control plane featuring strict admin-gated subsystems, an advanced Aidify-grade 
 Academic Integrity & AI Forensics engine (with interactive sentence heatmaps, stylometric fingerprinting, and consensus checks), 
 an immutable blockchain-style tamper-evident audit ledger, and a fully cloned Google Workspace suite (Drive, 
@@ -183,12 +183,14 @@ def student_humanizer_engine(text: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# DATABASE INITIALIZATION FOR NEXUS & IMMUTABLE BLOCKCHAIN-STYLE AUDIT LEDGER
+# DATABASE INITIALIZATION & MIGRATION HELPER
 # ---------------------------------------------------------------------------
 
 def _nexus_conn():
     conn = sqlite3.connect(NEXUS_DB_PATH, check_same_thread=False)
     c = conn.cursor()
+    
+    # Create base tables if they don't exist
     c.execute("""CREATE TABLE IF NOT EXISTS nexus_files (
         id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, category TEXT, notes TEXT,
         size_bytes INTEGER, sha256_hash TEXT, encrypted_blob BLOB, created_at TEXT, owner TEXT)""")
@@ -210,6 +212,27 @@ def _nexus_conn():
     c.execute("""CREATE TABLE IF NOT EXISTS system_telemetry_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, module_name TEXT, severity TEXT, details TEXT, crypto_hash TEXT, prev_hash TEXT)""")
     conn.commit()
+
+    # Robust Auto-Migration: Ensure 'owner' or corresponding columns exist if table was pre-existing
+    def ensure_column(table_name, column_name, column_type):
+        try:
+            c.execute(f"PRAGMA table_info({table_name})")
+            columns = [col[1] for col in c.fetchall()]
+            if column_name not in columns:
+                c.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}")
+                conn.commit()
+        except Exception:
+            pass
+
+    ensure_column("nexus_files", "owner", "TEXT")
+    ensure_column("nexus_events", "owner", "TEXT")
+    ensure_column("nexus_meetings", "host", "TEXT")
+    ensure_column("nexus_docs", "owner", "TEXT")
+    ensure_column("nexus_sheets", "owner", "TEXT")
+    ensure_column("nexus_slides", "owner", "TEXT")
+    ensure_column("nexus_contacts", "owner", "TEXT")
+    ensure_column("nexus_tasks", "owner", "TEXT")
+
     return conn
 
 
@@ -437,12 +460,10 @@ def render_system_diagnostics(conn):
     cursor.execute("SELECT id, timestamp, module_name, severity, details, crypto_hash, prev_hash FROM system_telemetry_logs ORDER BY id DESC LIMIT 20")
     logs = cursor.fetchall()
     
-    # Verify chain integrity
     chain_valid = True
     for i in range(len(logs) - 1):
         curr = logs[i]
         prev = logs[i+1]
-        # curr has prev_hash, prev has crypto_hash
         if curr[6] != prev[5]:
             chain_valid = False
             break
@@ -557,7 +578,6 @@ def render_audit_forensics():
                 fig = px.bar(df_lens, x="Sentence Index", y="Word Length", title="Sentence Length Variation (Burstiness Traceback)", template="plotly_dark")
                 st.plotly_chart(fig, use_container_width=True)
                 
-            # Downloadable Certificate
             report_payload = f"""=== AIDIFY CERTIFIED ACADEMIC INTEGRITY REPORT ===
 Timestamp: {datetime.datetime.utcnow().isoformat()}
 Verdict: {analysis['verdict']}
@@ -602,7 +622,7 @@ Stylometric TTR: {analysis['ttr']}
 
 
 # ---------------------------------------------------------------------------
-# FULLY CLONED GOOGLE WORKSPACE SUITE (NEXUS 4.0 WITH COPILOT & TRANSCRIPTS)
+# FULLY CLONED GOOGLE WORKSPACE SUITE (NEXUS 4.1)
 # ---------------------------------------------------------------------------
 
 def render_nexus_vault():
@@ -725,7 +745,7 @@ def render_nexus_vault():
     # 5. Google Sheets Copilot
     with n_tabs[4]:
         st.markdown("### 📊 Nexus Sheets with Natural Language Copilot")
-        st.info("Type instructions in plain English (e.g., 'Calculate total variance across 150, 300, 450' or 'Find average of 10, 20, 30') and the Sheets Copilot will automatically formulate and evaluate expressions.")
+        st.info("Type instructions in plain English (e.g., 'Calculate total variance across 150, 300, 450') and the Sheets Copilot will automatically formulate and evaluate expressions.")
         
         copilot_prompt = st.text_input("Spreadsheet Copilot Prompt", value="Calculate total sum of 1200, 350, and 450")
         if st.button("✨ Run Copilot Calculation"):
@@ -801,7 +821,7 @@ def render_settings():
 
 def main():
     setup_page("Admin & Security Center", "🛡️", initial_sidebar_state="expanded")
-    hero_card("🛡️ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.0")
+    hero_card("🛡️ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.1")
     conn = _nexus_conn()
 
     tabs = st.tabs([
@@ -824,7 +844,7 @@ def main():
     with tabs[6]: render_nexus_vault()
     with tabs[7]: render_settings()
     
-    render_standard_footer("ADMIN & SECURITY CENTER — SOVEREIGN EDITION V4.0")
+    render_standard_footer("ADMIN & SECURITY CENTER — SOVEREIGN EDITION V4.1")
 
 if __name__ == "__main__":
     main()
