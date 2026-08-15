@@ -83,12 +83,15 @@ def check_user_identity():
 
 
 # ---------------------------------------------------------------------------
-# ADVANCED AIDIFY ACADEMIC & AI FORENSICS ENGINES (V4.2 UPGRADED)
+# ADVANCED AIDIFY ACADEMIC & AI FORENSICS ENGINES (V4.3 UPGRADED & FIXED)
 # ---------------------------------------------------------------------------
 
 def advanced_ai_detector(text: str) -> dict:
-    words = re.findall(r"[a-zA-Z']+", text.lower())
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text.strip()) if s.strip()]
+    # Clean text to avoid binary/garbled traceback artifacts
+    clean_text = "".join(ch for ch in text if ch.printable or ch.isspace())
+    words = re.findall(r"[a-zA-Z']+", clean_text.lower())
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", clean_text.strip()) if s.strip()]
+    
     if len(words) < 10 or len(sentences) < 2:
         return {
             "ai_probability": 12.5,
@@ -97,7 +100,7 @@ def advanced_ai_detector(text: str) -> dict:
             "burstiness": 0.45,
             "perplexity": 42.1,
             "ttr": 0.78,
-            "sentence_analyses": [{"sentence": text, "score": 12.5, "classification": "Human", "word_count": len(words)}]
+            "sentence_analyses": [{"sentence": clean_text, "score": 12.5, "classification": "Human", "word_count": len(words)}]
         }
     
     lengths = [len(s.split()) for s in sentences]
@@ -150,9 +153,10 @@ def advanced_ai_detector(text: str) -> dict:
 
 
 def student_humanizer_engine(text: str) -> dict:
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text.strip()) if s.strip()]
+    clean_text = "".join(ch for ch in text if ch.printable or ch.isspace())
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", clean_text.strip()) if s.strip()]
     if not sentences:
-        return {"humanized_text": text, "modifications_applied": 0, "security_badge": "No changes applied."}
+        return {"humanized_text": clean_text, "modifications_applied": 0, "security_badge": "No changes applied."}
     
     rewritten = []
     for i, s in enumerate(sentences):
@@ -199,6 +203,8 @@ def _nexus_conn():
         id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, priority TEXT, due_date TEXT, status TEXT, owner TEXT)""")
     c.execute("""CREATE TABLE IF NOT EXISTS system_telemetry_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT, module_name TEXT, severity TEXT, details TEXT, crypto_hash TEXT, prev_hash TEXT)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS student_tracks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, student_name TEXT, assignment_title TEXT, ai_score REAL, submission_date TEXT, owner TEXT)""")
     conn.commit()
 
     def ensure_column(table_name, column_name, column_type):
@@ -219,6 +225,7 @@ def _nexus_conn():
     ensure_column("nexus_slides", "owner", "TEXT")
     ensure_column("nexus_contacts", "owner", "TEXT")
     ensure_column("nexus_tasks", "owner", "TEXT")
+    ensure_column("student_tracks", "owner", "TEXT")
 
     return conn
 
@@ -521,18 +528,53 @@ def render_security_vault(conn):
 
 
 # ---------------------------------------------------------------------------
-# ADVANCED AIDIFY-GRADE AUDIT & COMPLIANCE FORENSICS (PROFESSOR & STUDENT PORTALS)
+# FULLY ENHANCED AIDIFY-GRADE AUDIT & COMPLIANCE FORENSICS (PROFESSOR & STUDENT SUITES)
 # ---------------------------------------------------------------------------
 
 def render_audit_forensics():
-    section_header("🛡️ Aidify-Grade Academic Integrity & AI Forensics", "Elite multi-layer scanner featuring consensus AI detection, interactive sentence heatmaps, stylometric fingerprinting, and certified exportable reports.")
+    section_header("🛡️ Aidify-Grade Academic Integrity & Student Tracking Hub", "Elite multi-layer scanner featuring interactive student submission charts, consensus AI detection, visual heatmaps, advanced humanization suite, and certified exportable reports.")
     
     portal_mode = st.radio("Select Portal Mode", ["👨‍🏫 Professor & Researcher Portal", "🎓 Student Security & Humanizer Suite"], horizontal=True)
     
+    conn = _nexus_conn()
+    user = check_user_identity()
+    user_email = user.get("email", "guest@apex.internal")
+
     if portal_mode == "👨‍🏫 Professor & Researcher Portal":
-        st.markdown("### Professor Audit Workbench")
-        st.info("Upload research papers, student essays, or batch submissions for deep AI content probability mapping, stylometric fingerprinting, and interactive sentence-level heatmaps.")
+        st.markdown("### 📊 Live Student Tracking & Analytics Workbench")
+        st.info("Monitor live student submission metrics, batch AI probability trends, and comparative performance distributions across all assignments.")
         
+        # Seed initial sample tracking records if empty
+        existing_tracks = conn.execute("SELECT COUNT(*) FROM student_tracks").fetchone()[0]
+        if existing_tracks == 0:
+            sample_records = [
+                ("Alice Nakato", "Research Paper 1", 14.2, "2026-08-10", user_email),
+                ("Brian Okello", "Research Paper 1", 82.5, "2026-08-10", user_email),
+                ("Cathy Namubiru", "Research Paper 1", 28.0, "2026-08-11", user_email),
+                ("David Mukasa", "Midterm Thesis Draft", 74.1, "2026-08-14", user_email),
+                ("Evelyn Auma", "Midterm Thesis Draft", 9.5, "2026-08-14", user_email),
+            ]
+            conn.executemany("INSERT INTO student_tracks (student_name, assignment_title, ai_score, submission_date, owner) VALUES (?,?,?,?,?)", sample_records)
+            conn.commit()
+
+        # Fetch and display interactive analytics graphs
+        tracks_df = pd.read_sql_query("SELECT student_name, assignment_title, ai_score, submission_date FROM student_tracks", conn)
+        
+        col_st1, col_st2, col_st3 = st.columns(3)
+        col_st1.metric("Total Tracked Submissions", len(tracks_df))
+        col_st2.metric("Average AI Score", f"{tracks_df['ai_score'].mean():.1f}%")
+        col_st3.metric("High AI Flag Rate (>50%)", f"{(tracks_df['ai_score'] > 50).mean() * 100:.1f}%")
+
+        if PLOTLY_AVAILABLE and not tracks_df.empty:
+            st.markdown("#### 📈 Student AI Score Distribution & Trace Charts")
+            fig_bar = px.bar(tracks_df, x="student_name", y="ai_score", color="assignment_title", title="Student AI Probability Trace Across Assignments", template="plotly_dark", labels={"ai_score": "AI Probability (%)", "student_name": "Student Name"})
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+            fig_box = px.box(tracks_df, x="assignment_title", y="ai_score", title="AI Score Spread by Assignment", template="plotly_dark")
+            st.plotly_chart(fig_box, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("#### 📝 Individual Manuscript & Batch Audit Workbench")
         uploaded_paper = st.file_uploader("Upload Manuscript / Assignment (TXT, PDF, DOCX)", type=["txt", "pdf", "docx"], key="prof_paper_upload")
         raw_text_input = st.text_area("Or paste manuscript text directly", value="Furthermore, the experimental paradigm demonstrated robust empirical validity. In addition, the algorithmic throughput scaled linearly with sample volume.", height=150)
         
@@ -589,7 +631,7 @@ Stylometric TTR: {analysis['ttr']}
             )
 
     else:
-        st.markdown("### Student Security & Advanced Humanizer Suite")
+        st.markdown("### 🎓 Student Security & Advanced Humanizer Suite")
         st.info("Optimize your drafts to ensure authentic linguistic flow, bypass strict AI detectors safely, and verify your writing compliance before submission.")
         
         student_draft = st.text_area("Paste your draft for humanization and security check", value="It is important to note that our methodology yields significant findings. The framework integrates seamlessly across platforms.", height=150)
@@ -818,7 +860,7 @@ def render_settings():
 
 def main():
     setup_page("Admin & Security Center", "🛡️", initial_sidebar_state="expanded")
-    hero_card("🛡️ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.2")
+    hero_card("🛡️ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.3")
     conn = _nexus_conn()
 
     tabs = st.tabs([
@@ -841,7 +883,7 @@ def main():
     with tabs[6]: render_nexus_vault()
     with tabs[7]: render_settings()
     
-    render_standard_footer("ADMIN & SECURITY CENTER — SOVEREIGN EDITION V4.2")
+    render_standard_footer("ADMIN & SECURITY CENTER — SOVEREIGN EDITION V4.3")
 
 if __name__ == "__main__":
     main()
