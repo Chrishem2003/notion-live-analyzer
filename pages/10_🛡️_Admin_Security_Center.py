@@ -479,8 +479,6 @@ def render_system_diagnostics(conn):
 
 def render_user_management(conn):
     section_header("👤 RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
-    def render_user_management(conn):
-    section_header("👤 RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
     
     # Safe absolute path resolution for modules package on Streamlit Cloud
     import sys
