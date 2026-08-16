@@ -76,6 +76,7 @@ import extra_streamlit_components as stx
 # exactly the kind of drift that made the two "billing systems" disagree
 # with each other. There is now exactly one, imported once, up top, so
 # it's available before ensure_bootstrap_admin() runs at import time below.
+# In app.py
 from modules import subscription
 from modules import billing_stripe
 # --- PAGE CONFIGURATION ---
