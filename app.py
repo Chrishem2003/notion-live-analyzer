@@ -78,7 +78,6 @@ import extra_streamlit_components as stx
 # it's available before ensure_bootstrap_admin() runs at import time below.
 from modules import subscription
 from modules import subscription, billing_stripe
-
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Chrishem Science Hub - Sovereign Enterprise Engine",
