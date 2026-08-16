@@ -77,7 +77,7 @@ import extra_streamlit_components as stx
 # with each other. There is now exactly one, imported once, up top, so
 # it's available before ensure_bootstrap_admin() runs at import time below.
 from modules import subscription
-import modules.billing_stripe as billing_stripe
+from modules import subscription, billing_stripe
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
