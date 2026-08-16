@@ -76,8 +76,8 @@ import extra_streamlit_components as stx
 # exactly the kind of drift that made the two "billing systems" disagree
 # with each other. There is now exactly one, imported once, up top, so
 # it's available before ensure_bootstrap_admin() runs at import time below.
-import modules.subscription as subscription
-import modules.billing_stripe as billing_stripe
+from modules import subscription
+from modules import billing_stripe
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Chrishem Science Hub - Sovereign Enterprise Engine",
