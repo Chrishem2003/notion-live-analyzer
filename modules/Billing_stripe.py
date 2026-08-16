@@ -39,7 +39,8 @@ try:
 except ImportError:
     STRIPE_SDK_AVAILABLE = False
 
-from . import subscription as sub_module
+# Fixed: Use absolute import instead of relative dot notation to prevent ModuleNotFoundError in Streamlit
+from modules import subscription as sub_module
 
 
 def is_configured() -> bool:
@@ -142,8 +143,11 @@ def _apply_subscription_state(email: str, plan: str, stripe_subscription_id: str
     status = "active" if status_raw in ("active", "trialing") else (
         "past_due" if status_raw == "past_due" else "expired"
     )
-    period_end_iso = datetime.datetime.utcfromtimestamp(current_period_end).isoformat() if current_period_end else None
-    now = datetime.datetime.utcnow().isoformat()
+    
+    # Modernized timestamp evaluation to avoid deprecation warnings
+    period_end_iso = datetime.datetime.fromtimestamp(current_period_end, datetime.UTC).isoformat() if current_period_end else None
+    now = datetime.datetime.now(datetime.UTC).isoformat()
+    
     cur.execute(
         "UPDATE subscriptions SET plan = ?, status = ?, stripe_subscription_id = ?, "
         "current_period_end = ?, updated_at = ?, updated_by = 'stripe' WHERE email = ?",
