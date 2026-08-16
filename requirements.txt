@@ -59,3 +59,6 @@ google-genai==0.3.0
 fastapi
 uvicorn[standard]
 stripe
+boto3==1.35.99
+websockets==14.2
+pycrdt==0.9.20
