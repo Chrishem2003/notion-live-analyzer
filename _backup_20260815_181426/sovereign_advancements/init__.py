@@ -1,2 +1,0 @@
-
-# Sovereign Advancements Module
