@@ -92,14 +92,14 @@ def calculate_bmi_for_age(
             mean_bmi = 15.5 + age_years * 0.45
             sd_bmi = 1.2 + age_years * 0.08
         else:
-            mean_bmi = 22.5  (age_years - 18) * 0.05
+            mean_bmi = 22.5 + (age_years - 18) * 0.05
             sd_bmi = 2.5
     else:  # female
         if age_years < 18:
             mean_bmi = 15.0 + age_years * 0.50
             sd_bmi = 1.3 + age_years * 0.09
         else:
-            mean_bmi = 21.5  (age_years - 18) * 0.06
+            mean_bmi = 21.5 + (age_years - 18) * 0.06
             sd_bmi = 2.8
 
     # Z-score

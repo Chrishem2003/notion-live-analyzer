@@ -843,7 +843,7 @@ def render_secure_vault_ui():
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090 + d16 !important;
-        border-right: 1 + px solid #1 + e293b !important;
+        border-right: 1px solid #1e293b !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
@@ -863,7 +863,7 @@ def render_secure_vault_ui():
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1 + e293b !important;
+        background-color: #1e293b !important;
         border-radius: 8 + px !important;
     }
 
@@ -885,14 +885,14 @@ def render_secure_vault_ui():
     }
     .vault-container {
         background: #0 + f172a;
-        border: 1 + px solid #1 + e293b;
+        border: 1px solid #1e293b;
         border-radius: 16 + px;
         padding: 0;
         overflow: hidden;
     }
     .vault-header {
         background: linear-gradient(135 + deg, #0 + f172a 0%, #1 + e1b4b 100%);
-        border-bottom: 1 + px solid #1 + e293b;
+        border-bottom: 1px solid #1e293b;
         padding: 1.2 + rem 1.5 + rem;
     }
     .vault-header h1 {
@@ -908,8 +908,8 @@ def render_secure_vault_ui():
     }
     .vault-card {
         background: #0 + f172a;
-        border: 1 + px solid #1 + e293b;
-        border-radius: 12 + px;
+        border: 1px solid #1e293b;
+        border-radius: 12px;
         padding: 1 + rem;
         margin-bottom: 0.75 + rem;
         transition: border-color 0.2 + s;
@@ -944,14 +944,14 @@ def render_secure_vault_ui():
         text-transform: uppercase;
         letter-spacing: 0.05 + em;
     }
-    .vault-badge-indigo { background: rgba(99,102,241,0.15); color: #818 + cf8; border: 1 + px solid rgba(99,102,241,0.3); }
-    .vault-badge-emerald { background: rgba(16,185,129,0.15); color: #34 + d399; border: 1 + px solid rgba(16,185,129,0.3); }
-    .vault-badge-amber { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1 + px solid rgba(245,158,11,0.3); }
-    .vault-badge-cyan { background: rgba(6,182,212,0.15); color: #22 + d3ee; border: 1 + px solid rgba(6,182,212,0.3); }
-    .vault-badge-slate { background: rgba(100,116,139,0.15); color: #94 + a3b8; border: 1 + px solid rgba(100,116,139,0.3); }
+    .vault-badge-indigo { background: rgba(99,102,241,0.15); color: #818 + cf8; border: 1px solid rgba(99,102,241,0.3); }
+    .vault-badge-emerald { background: rgba(16,185,129,0.15); color: #34 + d399; border: 1px solid rgba(16,185,129,0.3); }
+    .vault-badge-amber { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .vault-badge-cyan { background: rgba(6,182,212,0.15); color: #22 + d3ee; border: 1px solid rgba(6,182,212,0.3); }
+    .vault-badge-slate { background: rgba(100,116,139,0.15); color: #94 + a3b8; border: 1px solid rgba(100,116,139,0.3); }
 
     .vault-storage-bar {
-        background: #1 + e293b;
+        background: #1e293b;
         border-radius: 999 + px;
         height: 8 + px;
         overflow: hidden;
@@ -972,7 +972,7 @@ def render_secure_vault_ui():
 
     .vault-gate {
         background: linear-gradient(135 + deg, #0 + f172a 0%, #1 + e1b4b 100%);
-        border: 1 + px solid #312 + e81;
+        border: 1px solid #312 + e81;
         border-radius: 20 + px;
         padding: 2.5 + rem;
         text-align: center;
@@ -1015,7 +1015,7 @@ def render_secure_vault_ui():
         align-items: center;
         gap: 0.75 + rem;
         padding: 0.6 + rem 0.75 + rem;
-        border-bottom: 1 + px solid #1 + e293b;
+        border-bottom: 1px solid #1e293b;
         transition: background 0.2 + s;
     }
     .vault-file-row:hover {
@@ -1026,8 +1026,8 @@ def render_secure_vault_ui():
     }
 
     .vault-search-input {
-        background: #1 + e293b !important;
-        border: 1 + px solid #334155 !important;
+        background: #1e293b !important;
+        border: 1px solid #334155 !important;
         border-radius: 10 + px !important;
         color: #f1 + f5f9 !important;
         padding: 0.6 + rem 1 + rem !important;
@@ -1060,7 +1060,7 @@ def render_secure_vault_ui():
     }
     .vault-modal {
         background: #0 + f172a;
-        border: 1 + px solid #1 + e293b;
+        border: 1px solid #1e293b;
         border-radius: 20 + px;
         padding: 1.5 + rem;
         max-width: 720 + px;
@@ -1079,9 +1079,9 @@ def render_secure_vault_ui():
     }
     .vault-modal-close:hover { color: #f1 + f5f9; }
 
-    div[data-testid="stTextInput"] input { background: #1 + e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
-    div[data-testid="stTextArea"] textarea { background: #1 + e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
-    div[data-testid="stSelectbox"] { background: #1 + e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
+    div[data-testid="stTextInput"] input { background: #1e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
+    div[data-testid="stTextArea"] textarea { background: #1e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
+    div[data-testid="stSelectbox"] { background: #1e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
     .stButton button[kind="primary"] { background: #6366 + f1 !important; border: none !important; color: white !important; font-weight: 700 !important; }
     .stButton button[kind="primary"]:hover { background: #818 + cf8 !important; }
     </style>
@@ -1421,16 +1421,16 @@ def render_secure_vault_ui():
                     ext = vf.extension
                     if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"):
                         import base64 as _b64
-                        b64 + _data = _b64.b64 + encode(data).decode()
-                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64 + _data}" style="max-width:100%;border-radius:12 + px;border:1 + px solid #1 + e293b;">', unsafe_allow_html=True)
+                        b64_data = _b64.b64encode(data).decode()
+                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64_data}" style="max-width:100%;border-radius:12px;border:1px solid #1e293b;">', unsafe_allow_html=True)
                     elif ext == ".pdf":
                         import base64 as _b64
-                        b64 + _data = _b64.b64 + encode(data).decode()
-                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64 + _data}" width="100%" height="600" style="border:1 + px solid #1 + e293b;border-radius:12 + px;"></iframe>', unsafe_allow_html=True)
+                        b64_data = _b64.b64encode(data).decode()
+                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}" width="100%" height="600" style="border:1px solid #1e293b;border-radius:12px;"></iframe>', unsafe_allow_html=True)
                     elif ext in (".mp3", ".wav", ".ogg"):
                         import base64 as _b64
-                        b64 + _data = _b64.b64 + encode(data).decode()
-                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type};base64,{b64 + _data}" type="{vf.mime_type}"></audio>', unsafe_allow_html=True)
+                        b64_data = _b64.b64encode(data).decode()
+                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type};base64,{b64_data}" type="{vf.mime_type}"></audio>', unsafe_allow_html=True)
                     elif ext in (".txt", ".md", ".csv", ".json", ".tsv", ".py", ".r", ".yaml", ".yml", ".toml", ".cfg", ".sh"):
                         try:
                             text = data.decode("utf-8")
@@ -1560,7 +1560,7 @@ def render_secure_vault_ui():
             for entry in reversed(log_entries):
                 ts = entry["timestamp"][:19] if "T" in entry["timestamp"] else entry["timestamp"]
                 st.markdown(f"""
-                <div style="display:flex;gap:0.75 + rem;padding:0.3 + rem 0;border-bottom:1 + px solid #1 + e293b;font-size:0.8 + rem;">
+                <div style="display:flex;gap:0.75 + rem;padding:0.3 + rem 0;border-bottom:1px solid #1e293b;font-size:0.8 + rem;">
                     <span style="color:#64748 + b;min-width:140 + px;">{ts}</span>
                     <span style="color:#818 + cf8;">{entry['action']}</span>
                     <span style="color:#94 + a3b8;">{entry['details']}</span>
@@ -1572,7 +1572,7 @@ def render_secure_vault_ui():
     # â”€â”€ Duress mode indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if vault.is_duress_mode:
         st.markdown("""
-        <div class="vault-card" style="border:1 + px solid #92400 + e;background:rgba(245,158,11,0.05);text-align:center;padding:1 + rem;">
+        <div class="vault-card" style="border:1px solid #92400 + e;background:rgba(245,158,11,0.05);text-align:center;padding:1 + rem;">
             <span style="color:#fbbf24;font-size:1.5 + rem;">âš ï¸</span>
             <div style="color:#fbbf24;font-weight:700;">DUress Mode Active</div>
             <div style="color:#d97706;font-size:0.85 + rem;">Limited vault view + only dummy files visible</div>
@@ -1581,7 +1581,7 @@ def render_secure_vault_ui():
 
     # â”€â”€ Footer Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown(f"""
-    <div style="margin-top:1.5 + rem;padding:0.75 + rem;border-top:1 + px solid #1 + e293b;display:flex;justify-content:space-between;">
+    <div style="margin-top:1.5 + rem;padding:0.75 + rem;border-top:1px solid #1e293b;display:flex;justify-content:space-between;">
         <span style="color:#475569;font-size:0.7 + rem;">ðŸ”’ AES-256-GCM Encrypted</span>
         <span style="color:#475569;font-size:0.7 + rem;">ðŸ›¡ï¸ Zero-knowledge architecture</span>
         <span style="color:#475569;font-size:0.7 + rem;">â±ï¸ Auto-lock: {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity</span>

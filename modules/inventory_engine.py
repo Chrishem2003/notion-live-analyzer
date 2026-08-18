@@ -44,7 +44,7 @@ def render_inventory_tab():
         rxn_count = st.number_input("Number of Reactions", min_value=1, max_value=384, value=10, step=1)
         waste_pct = st.slider("Excess Margin (%)", min_value=0, max_value=20, value=10, step=5)
         
-        effective_rxns = rxn_count * (1  (waste_pct / 100.0))
+        effective_rxns = rxn_count * (1 + (waste_pct / 100.0))
         
         buffer_vol = round(5.0 * effective_rxns, 2)
         dntp_vol = round(1.0 * effective_rxns, 2)

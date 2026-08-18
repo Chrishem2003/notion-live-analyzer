@@ -184,7 +184,7 @@ class SensitivityEngine:
 
         # Robustness of inference to replacement (RIR)
         if beta > 0:
-            rir = math.ceil((n - k - 1) * (beta / se)**2 / ((beta / se)**2  (n - k - 1)))
+            rir = math.ceil((n - k - 1) * (beta / se)**2 / ((beta / se)**2 + (n - k - 1)))
             rir_pct = rir / n * 100 if n > 0 else 0
         else:
             rir = 0

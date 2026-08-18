@@ -51,7 +51,7 @@ class EffectSizeConverter:
     @staticmethod
     def cohens_d_from_means(m1: float, m2: float, sd1: float, sd2: float, n1: int, n2: int) -> float:
         """Cohen's d from group means and SDs."""
-        pooled_sd = math.sqrt(((n1 - 1) * sd1**2  (n2 - 1) * sd2**2) / (n1 + n2 - 2))
+        pooled_sd = math.sqrt(((n1 - 1) * sd1**2 + (n2 - 1) * sd2**2) / (n1 + n2 - 2))
         if pooled_sd == 0:
             return 0.0
         return (m1 - m2) / pooled_sd
@@ -1200,7 +1200,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         <h4>Rosenthal's Fail-Safe N</h4>
                         <div style="font-size:1.5 + rem;font-weight:700;color:{fs_color};">{fail_safe.get('fail_safe_n', 0)}</div>
                         <div style="font-size:0.85 + rem;color:#64748 + b;">
-                            {'âœ… Robust (N > tolerance of '  str(fail_safe.get('tolerance', 0))  ')' if fs_robust else 'âš ï¸ Below tolerance'}
+                            {'✅ Robust (N > tolerance of ' + str(fail_safe.get('tolerance', 0)) + ')' if fs_robust else '⚠️ Below tolerance'}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)

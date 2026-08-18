@@ -52,7 +52,7 @@ class HypothesisSimulator:
                                   noise_level: float = 0.05) -> Dict[str, Any]:
         """Simulate a dose-response curve using the Hill equation."""
         doses = np.linspace(0, max_dose, 50)
-        responses = base_effect  (1 - base_effect) / (1  (ec50 / (doses + 1e-10)) ** hill_coefficient)
+        responses = base_effect + (1 - base_effect) / (1 + (ec50 / (doses + 1e-10)) ** hill_coefficient)
         noise = np.random.normal(0, noise_level, len(doses))
         noisy_responses = responses + noise
 
@@ -152,7 +152,7 @@ class HypothesisSimulator:
             "bias_impact": round(float(pub_mean - true_effect), 3),
             "studies": studies,
             "published_only": published_only,
-            "interpretation": f"True effect={true_effect}. Published mean={pub_mean:.3f}"  (f" (bias: {pub_mean-true_effect:.3f})" if publication_bias else ""),
+            "interpretation": f"True effect={true_effect}. Published mean={pub_mean:.3f}" + (f" (bias: {pub_mean-true_effect:.3f})" if publication_bias else ""),
         }
 
 

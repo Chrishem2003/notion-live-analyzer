@@ -421,10 +421,10 @@ class LiteratureDatabase:
         try:
             if after_order is not None:
                 conn.execute(
-                    "UPDATE report_sections SET section_order = section_order  1 WHERE project_id = ? AND section_order > ?",
+                    "UPDATE report_sections SET section_order = section_order + 1 WHERE project_id = ? AND section_order > ?",
                     (project_id, after_order),
                 )
-                new_order = after_order  1
+                new_order = after_order + 1
             else:
                 max_row = conn.execute(
                     "SELECT MAX(section_order) as mx FROM report_sections WHERE project_id = ?",
@@ -568,13 +568,13 @@ class PaperHarvester:
 
         except requests.exceptions.Timeout:
             logger.warning("Semantic Scholar search timed out for query %r", query)
-            st.warning("'' Semantic Scholar API timed out. Try a more specific query.")
+            st.warning("⚠️ Semantic Scholar API timed out. Try a more specific query.")
         except requests.exceptions.ConnectionError:
             logger.warning("Could not connect to Semantic Scholar for query %r", query)
-            st.warning("' Could not connect to Semantic Scholar API. Check your internet."),
+            st.warning("⚠️ Could not connect to Semantic Scholar API. Check your internet."),
         except Exception as e:
             logger.exception("Semantic Scholar search failed for query %r", query)
-            st.warning(f"'' Semantic Scholar search error: {str(e)[:100]}")
+            st.warning(f"⚠️ Semantic Scholar search error: {str(e)[:100]}")
 
         return papers[:limit]
 
@@ -645,7 +645,7 @@ class PaperHarvester:
                     "CrossRef search for %r failed: %s  %s",
                     query, resp.status_code, resp.text[:200],
                 )
-                st.warning(f"'' CrossRef returned HTTP {resp.status_code}  no results from this source.")
+                st.warning(f"⚠️ CrossRef returned HTTP {resp.status_code}  no results from this source.")
                 return papers
 
             data = resp.json()
@@ -658,13 +658,13 @@ class PaperHarvester:
 
         except requests.exceptions.Timeout:
             logger.warning("CrossRef search timed out for query %r", query)
-            st.warning("'' CrossRef API timed out.")
+            st.warning("⚠️ CrossRef API timed out.")
         except requests.exceptions.ConnectionError:
             logger.warning("Could not connect to CrossRef for query %r", query)
             st.warning("Could not connect to CrossRef API.")
         except Exception as e:
             logger.exception("CrossRef search failed for query %r", query)
-            st.warning(f"'' CrossRef search error: {str(e)[:100]}")
+            st.warning(f"⚠️ CrossRef search error: {str(e)[:100]}")
 
         return papers[:limit]
 
@@ -744,7 +744,7 @@ class PaperHarvester:
             country_papers = self.search_semantic_scholar(country_query, limit=30)
             if country_papers:
                 country_dois = {p.get("doi", "") for p in country_papers if p.get("doi")}
-                deduped = [p for p in country_papers if p.get("doi") not in country_dois]  deduped
+                deduped += [p for p in country_papers if p.get("doi") not in country_dois]
 
         return deduped[:limit]
 
@@ -814,7 +814,7 @@ class ReferenceFormatter:
 
         csl_items = []
         for i, paper in enumerate(papers):
-            csl_item = self._paper_to_csl_json(paper, i  1)
+            csl_item = self._paper_to_csl_json(paper, i + 1)
             if csl_item:
                 csl_items.append(csl_item)
 
@@ -864,7 +864,7 @@ class ReferenceFormatter:
     def _format_manual(self, papers: List[Dict], style: str) -> str:
         references = []
         for i, paper in enumerate(papers):
-            ref = self._format_one_manual(paper, style, i  1)
+            ref = self._format_one_manual(paper, style, i + 1)
             if ref:
                 references.append(ref)
         return "\n\n".join(references) if references else "No references to format."
@@ -936,7 +936,7 @@ class ReferenceFormatter:
         ]
         for i, paper in enumerate(papers):
             doi = paper.get("doi", "")
-            cite_key = self._generate_cite_key(paper, doi, i  1)
+            cite_key = self._generate_cite_key(paper, doi, i + 1)
             title = paper.get("title", "").strip()
             authors = paper.get("authors", "")
             year = paper.get("year")
@@ -995,7 +995,7 @@ class ExportEngine:
     def get_markdown_download_link(content: str, filename: str, label: str = "Download") -> str:
         """Generate a base64 download link for markdown content."""
         b64 = base64.b64 + encode(content.encode()).decode()
-        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â {label}</a>'
+        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â {label}</a>'
 
     @staticmethod
     def get_html_download_link(content_md: str, filename: str, label: str = "Download HTML") -> str:
@@ -1017,50 +1017,50 @@ class ExportEngine:
         html_lines.append("</body></html>")
         full_html = "\n".join(html_lines)
         b64 = base64.b64 + encode(full_html.encode()).decode()
-        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â {label}</a>'
+        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â {label}</a>'
 
     @staticmethod
     def render_sidebar_styles():
         st.markdown("""<style>
         /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
         [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-            background-color: #090 + d16 !important;
-            border-right: 1 + px solid #1 + e293b !important;
+            background-color: #090d16 !important;
+            border-right: 1px solid #1e293b !important;
         }
         /* Currently selected navigation item active state */
         [data-testid="stSidebarNavLink"][aria-current="page"],
         [data-testid="stSidebarNav"] a[aria-selected="true"] {
-            background-color: #0284 + c7 !important;
+            background-color: #0284c7 !important;
             color: #ffffff !important;
             font-weight: 700 !important;
-            border-radius: 8 + px !important;
+            border-radius: 8px !important;
         }
         /* Custom form inputs inside sidebar */
         section[data-testid="stSidebar"] .stSelectbox label,
         section[data-testid="stSidebar"] .stRadio label,
         section[data-testid="stSidebar"] .stMultiSelect label {
-            color: #38 + bdf8 !important;
+            color: #38bdf8 !important;
             font-weight: 700 !important;
         }
         </style>""", unsafe_allow_html=True)
     def get_txt_download_link(content: str, filename: str, label: str = "Download TXT") -> str:
         """Generate a base64 download link for plain text."""
         b64 = base64.b64 + encode(content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â Download .BIB</a>'
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â Download .BIB</a>'
 
     @staticmethod
     def get_bib_download_link(bib_content: str, filename: str) -> str:
         """Generate a download link for .bib file."""
         b64 = base64.b64 + encode(bib_content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â Download .BIB</a>'
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â Download .BIB</a>'
 
     @staticmethod
-    def get_copy_js(text: str, button_label: str = "' Copy to Clipboard") -> str:
+    def get_copy_js(text: str, button_label: str = "⚠️ Copy to Clipboard") -> str:
         """Generate a JavaScript-powered copy button."""
         escaped = html.escape(text.replace("`", "\\`").replace("${", "\\${"))
         return f"""
-    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8 + px 16 + px;background:#0284 + c7;color:white;border:none;border-radius:6 + px;cursor:pointer;">{button_label}</button>'''
-                style="padding:10 + px 20 + px;background:#1 + d4ed8;color:white;border:none;border-radius:8 + px;cursor:pointer;font-weight:600;">
+    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#0284c7;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
+                style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
             {button_label}
         </button>
         """
@@ -1073,11 +1073,11 @@ class ExportEngine:
         """
         escaped = html.escape(report_text[:5000])  # Limit to 5000 chars for performance
         return f"""
-        <div style="padding:12 + px;background:#f0 + f4ff;border-radius:8 + px;border:1 + px solid #dbeafe;">
-    <p style="margin:0 0 8 + px 0;font-weight:600;">Ã°Å¸â€Â Push to Notion</p>
-            <p style="font-size:0.85 + rem;color:#475569;">Copy this content and paste it into a new Notion page:</p>
-            <pre style="background:white;padding:12 + px;border-radius:6 + px;font-size:0.8 + rem;max-height:200 + px;overflow:auto;white-space:pre-wrap;">{escaped}</pre>
-            {ExportEngine.get_copy_js(report_text, "' Copy for Notion")}'
+        <div style="padding:12px;background:#f0f4ff;border-radius:8px;border:1px solid #dbeafe;">
+    <p style="margin:0 0 8px 0;font-weight:600;">Ã°Å¸â€Â Push to Notion</p>
+            <p style="font-size:0.85rem;color:#475569;">Copy this content and paste it into a new Notion page:</p>
+            <pre style="background:white;padding:12px;border-radius:6px;font-size:0.8rem;max-height:200px;overflow:auto;white-space:pre-wrap;">{escaped}</pre>
+            {ExportEngine.get_copy_js(report_text, "⚠️ Copy for Notion")}'
         </div>
         """
 
@@ -1086,9 +1086,9 @@ class ExportEngine:
         """Generate a styled link to open Google Drive for manual upload."""
         return """
         <a href="https://drive.google.com/drive/u/0/my-drive" target="_blank" 
-           style="display:inline-block;padding:10 + px 20 + px;background:#4285 + F4;color:white;border-radius:8 + px;text-decoration:none;font-weight:600;"Ã°Å¸â€Â Open Google Drive
+           style="display:inline-block;padding:10px 20px;background:#4285F4;color:white;border-radius:8px;text-decoration:none;font-weight:600;"Ã°Å¸â€Â Open Google Drive
         </a>
-        <p style="font-size:0.8 + rem;color:#64748 + b;margin-top:4 + px;">Download the file above, then upload it to your Drive</p>
+        <p style="font-size:0.8rem;color:#64748b;margin-top:4px;">Download the file above, then upload it to your Drive</p>
         """
 
 
@@ -1355,7 +1355,7 @@ class DraftingEngine:
         if bibliography:
             parts.append("## References\n\n")
             ref_text = formatter.format_references(bibliography, style)
-            parts.append(ref_text  "\n")
+            parts.append(ref_text + "\n")
 
         parts.append("\n---\n## Appendices\n*Add supplementary materials here.*")
         return "\n".join(parts)
@@ -1391,11 +1391,11 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
             if paper.get("journal"):
                 meta_parts.append(f"Ã°Å¸â€Â {paper['journal']}")
             if paper.get("doi"):
-            meta_parts.append(f"DOI: {paper["doi"]}")
+                meta_parts.append(f"DOI: {paper['doi']}")
 
         st.caption(" | ".join(meta_parts))
 
-        with st.expander("'" View details & add notes/findings"):"
+        with st.expander("View details & add notes/findings"):
             tab_a, tab_b, tab_c = st.tabs(["Abstract", "My Notes", "My Findings"])
 
             with tab_a:
@@ -1414,7 +1414,7 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
                     label_visibility="collapsed")
                 if new_notes != current_notes:
                     db.update_paper_notes(paper["id"], new_notes)
-                    st.success("'" Notes saved!", icon="'")"
+                    st.success("Notes saved!", icon="✅")
 
             with tab_c:
                 current_finding = paper.get("user_findings", "") or ""
@@ -1424,7 +1424,7 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
                     label_visibility="collapsed")
                 if new_finding != current_finding:
                     db.update_paper_findings(paper["id"], new_finding)
-                    st.success("'" Finding saved!", icon="'")"
+                    st.success("Finding saved!", icon="✅")
 
                 formatter = ReferenceFormatter()
                 citation = formatter.format_citation(paper, style, inline=False)
@@ -1446,13 +1446,13 @@ def render_report_builder(sections, bibliography, db, project_id):
     for section in sections:
         sid = section["id"]
         title = section["section_title"]
-        with st.expander(f"' {title}", expanded=(title == "Introduction")):'
+        with st.expander(f"{title}", expanded=(title == "Introduction")):
             content = st.text_area(f"Write your {title}", value=section_contents.get(sid, ""),
                 key=f"report_{sid}", height=200, placeholder=f"Write your {title} content here...",
                 label_visibility="collapsed")
             if content != section_contents.get(sid, ""):
                 db.update_report_section(sid, content)
-                st.success(f"'" {title} saved!", icon="'")"
+                st.success(f"{title} saved!", icon="✅")
 
             # Citation insertion helper
             if bibliography and content:
@@ -1468,9 +1468,9 @@ def render_report_builder(sections, bibliography, db, project_id):
                         db.mark_paper_cited(paper["id"], True)
                         st.code(citation, language="text")
                         st.markdown(f"""
-    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8 + px 16 + px;background:#0284 + c7;color:white;border:none;border-radius:6 + px;cursor:pointer;">{button_label}</button>'''
-                                style="padding:6 + px 16 + px;border-radius:6 + px;border:1 + px solid #1 + d4ed8;"
-                                background:#eff6 + ff;color:#1 + d4ed8;cursor:pointer;font-weight:600;">"
+    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#0284c7;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
+                                style="padding:6px 16px;border-radius:6px;border:1px solid #1d4ed8;"
+                                background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:600;">"
                             ' Copy Citation'
                         </button>""", unsafe_allow_html=True)
 
@@ -1480,13 +1480,13 @@ def render_report_builder(sections, bibliography, db, project_id):
     with col1:
         new_section_title = st.text_input("Add a custom section", placeholder="e.g., Data Collection Procedure")
     with col2:
-        if st.button("' Add Section", use_container_width=True) and new_section_title.strip():'
+        if st.button("Add Section", use_container_width=True) and new_section_title.strip():
             db.add_report_section(project_id, new_section_title.strip())
             st.rerun()
 
     # ''' EXPORT SECTION  Enhanced Multi-Format Exports ''''
     st.markdown("---")
-    st.subheader("' Export Your Report")'
+    st.subheader("Export Your Report")
     st.caption("Download in multiple formats, push to Notion, or save to Google Drive.")
 
     col1, col2, col3 = st.columns(3)
@@ -1497,7 +1497,7 @@ def render_report_builder(sections, bibliography, db, project_id):
     with col3:
         report_title = st.text_input("Report title", value="Research Paper", key="export_title")
 
-    if st.button("' Generate Complete Report", type="primary", use_container_width=True):'
+    if st.button("Generate Complete Report", type="primary", use_container_width=True):
         updated_sections = db.get_report_sections(project_id)
         bibliography = db.get_bibliography(project_id)
         for s in updated_sections:
@@ -1509,7 +1509,7 @@ def render_report_builder(sections, bibliography, db, project_id):
         )
         st.session_state["_generated_report"] = report_text
         st.session_state["_generated_report_style"] = style
-        st.success("'" Report generated! Choose your export format below.")"
+        st.success("Report generated! Choose your export format below.")
 
     if st.session_state.get("_generated_report"):
         report_text = st.session_state["_generated_report"]
@@ -1518,7 +1518,7 @@ def render_report_builder(sections, bibliography, db, project_id):
         bib_content = formatter.generate_bibtex(bib_papers)
 
         # Format downloads
-        st.markdown("#### ' Download Options")'
+        st.markdown("#### 📥 Download Options")
         col_a, col_b, col_c, col_d = st.columns(4)
         with col_a:
             st.markdown(exporter.get_markdown_download_link(report_text, f"report_{timestamp}.md", "Download MD"), unsafe_allow_html=True)
@@ -1530,11 +1530,10 @@ def render_report_builder(sections, bibliography, db, project_id):
             st.markdown(exporter.get_bib_download_link(bib_content, f"references_{timestamp}.bib"), unsafe_allow_html=True)
 
         # Copy to clipboard
-        st.markdown("#### ' Copy to Clipboard")'
-        st.markdown(exporter.get_copy_js(report_text, "' Copy Report to Clipboard"), unsafe_allow_html=True)'
+        st.markdown("#### 📋 Copy to Clipboard")
+        st.markdown(exporter.get_copy_js(report_text, "Copy Report to Clipboard"), unsafe_allow_html=True)
 
         # Notion push
-    <p style="margin:0 0 8 + px 0;font-weight:600;">Ã°Å¸â€Â Push to Notion</p>
         st.markdown(exporter.get_notion_push_html(report_text, style), unsafe_allow_html=True)
 
         # Google Drive
@@ -1542,8 +1541,7 @@ def render_report_builder(sections, bibliography, db, project_id):
         st.markdown(exporter.get_google_drive_button(), unsafe_allow_html=True)
 
         # Preview
-        with st.expander("'" Preview Report", expanded=False):"
+        with st.expander("Preview Report", expanded=False):
             st.markdown(report_text)
 
-\"\"\""
 

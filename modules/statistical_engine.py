@@ -148,7 +148,7 @@ class StatisticalEngine:
         # Cohen's d
         n1, n2 = len(group1), len(group2)
         s1, s2 = group1.std(), group2.std()
-        pooled_std = np.sqrt(((n1 - 1) * s1**2  (n2 - 1) * s2**2) / (n1 + n2 - 2))
+        pooled_std = np.sqrt(((n1 - 1) * s1**2 + (n2 - 1) * s2**2) / (n1 + n2 - 2))
         cohens_d = (group1.mean() - group2.mean()) / pooled_std if pooled_std != 0 else 0
         return {
             "test": "Independent Samples T-Test",

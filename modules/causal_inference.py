@@ -230,18 +230,18 @@ class CausalInferenceEngine:
         if not HAS_STATSMODELS:
             return {"error": "statsmodels required for IV regression"}
 
-        data = df[[outcome_col, treatment_col, instrument_col]  (covariates or [])].dropna()
+        data = df[[outcome_col, treatment_col, instrument_col] + (covariates or [])].dropna()
 
         try:
             # First stage: regress treatment on instrument
-            X1 = data[[instrument_col]  (covariates or [])]
+            X1 = data[[instrument_col] + (covariates or [])]
             X1 = sm.add_constant(X1)
             y1 = data[treatment_col]
             first_stage = sm.OLS(y1, X1).fit()
             data['treatment_hat'] = first_stage.fittedvalues
 
             # Second stage: regress outcome on predicted treatment
-            X2 = data[['treatment_hat']  (covariates or [])]
+            X2 = data[['treatment_hat'] + (covariates or [])]
             X2 = sm.add_constant(X2)
             y2 = data[outcome_col]
             second_stage = sm.OLS(y2, X2).fit()
@@ -461,17 +461,17 @@ class CausalInferenceEngine:
         treated_mask = T == 1
         control_mask = T == 0
 
-        mu1 + _model = LinearRegression()
-        mu0 + _model = LinearRegression()
+        mu1_model = LinearRegression()
+        mu0_model = LinearRegression()
 
         if np.sum(treated_mask) > 5:
-            mu1 + _model.fit(X[treated_mask], Y[treated_mask])
+            mu1_model.fit(X[treated_mask], Y[treated_mask])
         if np.sum(control_mask) > 5:
-            mu0 + _model.fit(X[control_mask], Y[control_mask])
+            mu0_model.fit(X[control_mask], Y[control_mask])
 
         # Predict potential outcomes
-        mu1 = mu1 + _model.predict(X)
-        mu0 = mu0 + _model.predict(X)
+        mu1 = mu1_model.predict(X)
+        mu0 = mu0_model.predict(X)
 
         # Doubly robust scores
         dr_scores = mu1 - mu0 + \

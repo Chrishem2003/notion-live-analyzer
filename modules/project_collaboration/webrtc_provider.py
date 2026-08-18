@@ -143,7 +143,7 @@ class AudioSpatialPosition:
         return {
             "pan": pan,           # -1.0 (L) to 1.0 (R)
             "volume": volume,      # 0.0 to 1.0
-            "distance": math.sqrt((remote_x - local_x)**2  (remote_y - local_y)**2),
+            "distance": math.sqrt((remote_x - local_x)**2 + (remote_y - local_y)**2),
             "azimuth": math.degrees(math.atan2(remote_y - local_y, remote_x - local_x)),
         }
 
@@ -309,7 +309,7 @@ class NoiseSuppressionEngine:
             "speech_threshold_db": self._speech_threshold_db,
             "learned_at": datetime.now().isoformat(),
             "sample_count": len(self._noise_samples),
-            "estimated_snr_db": 15.0  (self.suppression_strength * 10.0),
+            "estimated_snr_db": 15.0 + (self.suppression_strength * 10.0),
             "algorithm": "spectral_gating_v2",
             "frequency_bands": {
                 "low": {"cutoff_hz": 300, "suppression": self.suppression_strength * 0.5},

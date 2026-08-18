@@ -90,7 +90,7 @@ class DataSimulator:
             else:
                 # Add correlation structure (first item correlates with demographics)
                 if i == 0 and add_demographics:
-                    prob = 0.3  (data['Age'] - 18) / (85 - 18) * 0.4
+                    prob = 0.3 + (data['Age'] - 18) / (85 - 18) * 0.4
                     data[q_name] = np.array([
                         np.random.choice(scale_values, p=_likert_probs(prob_val, scale_values))
                         for prob_val in prob

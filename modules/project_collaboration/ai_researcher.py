@@ -811,7 +811,7 @@ class ActionItemDetector:
                     source_segment_id=segment_id,
                     priority=ActionItemPriority.HIGH,
                 )
-                item.confidence = 0.85  (hash(action_text) % 10) / 100  # 0.85-0.95
+                item.confidence = 0.85 + (hash(action_text) % 10) / 100  # 0.85-0.95
                 item.extraction_method = "pattern_direct"
                 items.append(item)
 
@@ -828,7 +828,7 @@ class ActionItemDetector:
                         source_segment_id=segment_id,
                         priority=ActionItemPriority.MEDIUM,
                     )
-                    item.confidence = 0.65  (hash(action_text) % 15) / 100  # 0.65-0.80
+                    item.confidence = 0.65 + (hash(action_text) % 15) / 100  # 0.65-0.80
                     item.extraction_method = "pattern_suggestion"
                     items.append(item)
 
@@ -844,7 +844,7 @@ class ActionItemDetector:
                         source_segment_id=segment_id,
                         priority=ActionItemPriority.LOW,
                     )
-                    item.confidence = 0.45  (hash(action_text) % 15) / 100  # 0.45-0.60
+                    item.confidence = 0.45 + (hash(action_text) % 15) / 100  # 0.45-0.60
                     item.extraction_method = "pattern_obligation"
                     items.append(item)
 
@@ -1444,7 +1444,7 @@ def render_ai_researcher_panel():
                         </div>
                         <div style="color:#64748b;font-size:0.8rem;margin-top:0.25rem;">
                             Priority: {item.priority.value.upper()} Â· Status: {item.status.value}
-                            {' Â· ðŸ‘¤ '  item.assignee_name if item.assignee_name else ''}
+                            {' · 👤 ' + item.assignee_name if item.assignee_name else ''}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1455,7 +1455,7 @@ def render_ai_researcher_panel():
             st.markdown(f"### Meeting Notes ({len(researcher.notes)})")
             categories = list(NoteCategory)
             selected_cat = st.selectbox("Filter by category",
-                                         options=["All"]  [c.value for c in categories],
+                                         options=["All"] + [c.value for c in categories],
                                          key="ai_note_filter")
 
             for note in sorted(researcher.notes.values(),

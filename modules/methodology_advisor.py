@@ -501,7 +501,7 @@ def estimate_sample_size(
         n = (z**2 * p * (1-p)) / (e**2)
         # Finite population correction
         N = 10000  # Assumed population
-        n_adj = n / (1  (n - 1) / N)
+        n_adj = n / (1 + (n - 1) / N)
         results["total_n"] = int(np.ceil(n_adj))
         results["n_per_group"] = int(np.ceil(n_adj))
         results["formula"] = "Survey sample size (Cochran's formula)"

@@ -717,7 +717,7 @@ class ProvenanceVisualizer:
         # Node sizes based on duration
         durations = [n["duration"] for n in nodes]
         max_dur = max(durations) if durations else 1
-        sizes = [15  (d / max_dur) * 20 if max_dur > 0 else 20 for d in durations]
+        sizes = [15 + (d / max_dur) * 20 if max_dur > 0 else 20 for d in durations]
 
         fig.add_trace(go.Scatter(
             x=node_x,
