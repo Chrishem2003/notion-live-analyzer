@@ -55,16 +55,79 @@ st.markdown("""
     div[data-testid="stDataFrame"] { background-color: #111827; border-radius: 8px; border: 1px solid #1F2937; }
     button[data-baseweb="tab"] { font-weight: 600 !important; color: #94A3B8 !important; }
     button[aria-selected="true"] { color: #38BDF8 !important; border-bottom-color: #38BDF8 !important; }
+
+    /* Creator Profile Card Styling */
+    .creator-card {
+        background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
+        border: 1px solid #38BDF8;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(56, 189, 248, 0.25);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 30px;
+        margin-bottom: 25px;
+    }
+    .creator-avatar-frame {
+        width: 180px;
+        height: 180px;
+        min-width: 180px;
+        border-radius: 50%;
+        padding: 5px;
+        background: linear-gradient(45deg, #0284C7, #38BDF8, #818CF8, #C084FC);
+        box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+    }
+    .creator-avatar-img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #0B0F19;
+    }
+    .creator-details h1 {
+        margin: 0 0 5px 0;
+        font-size: 2.4rem;
+        background: linear-gradient(90deg, #38BDF8, #818CF8, #F43F5E);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    .creator-badge {
+        display: inline-block;
+        background: rgba(56, 189, 248, 0.15);
+        color: #38BDF8;
+        border: 1px solid #38BDF8;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 DB_FILE = "sovereign_apex.db"
 CUSTOM_SOUNDS_DIR = "custom_sounds"
+CREATOR_IMAGE_PATH = r"C:\Users\Admin\Pictures\background.jpg"
 os.makedirs(CUSTOM_SOUNDS_DIR, exist_ok=True)
 
 # ==========================================
-# 2. AUDIO STORAGE & BASE64 ENGINE
+# 2. IMAGE & AUDIO FILE UTILITIES
 # ==========================================
+def load_file_as_base64(file_path):
+    """Encodes a local binary file into Base64 for embedding in HTML/CSS."""
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode("utf-8")
+                ext = file_path.split(".")[-1].lower()
+                mime = "image/jpeg" if ext in ["jpg", "jpeg"] else f"image/{ext}"
+                return f"data:{mime};base64,{encoded}"
+        except Exception:
+            return None
+    return None
+
 def save_uploaded_audio(uploaded_file):
     """Saves uploaded audio file to disk and returns its file path."""
     file_path = os.path.join(CUSTOM_SOUNDS_DIR, uploaded_file.name)
@@ -85,7 +148,7 @@ def get_custom_sounds_catalog():
                         ext = file_name.split(".")[-1].lower()
                         mime_type = f"audio/{'mpeg' if ext == 'mp3' else ext}"
                         custom_catalog[file_name] = f"data:{mime_type};base64,{encoded}"
-                except Exception as e:
+                except Exception:
                     pass
     return custom_catalog
 
@@ -407,7 +470,7 @@ def render_paywall_screen(module_name, required_tier="Pro"):
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. SESSION STATE & EXPANDED 25-TRACK SOUND CATALOG
+# 6. SESSION STATE & FULL 25-TRACK SOUND CATALOG
 # ==========================================
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = True
@@ -420,47 +483,46 @@ st.sidebar.markdown(f"<h3 style='margin:0; color:#F8FAFC;'>{st.session_state.use
 st.sidebar.caption(f"Operator: **{st.session_state.role.upper()}**")
 st.sidebar.divider()
 
-# EXPANDED 25+ TRACK SOUND CATALOG ACROSS 5 CATEGORIES
+# EXPLICIT FULL 25-TRACK AUDIO PRESET CATALOG ACROSS 5 CATEGORIES
 SOUND_CATALOG = {
-    "🧠 Brain Wiring & Neural Frequencies": {
-        "432Hz Deep Focus Pulse": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
-        "528Hz Solfeggio Transformation Tone": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3",
-        "Alpha Waves Concentration (10Hz)": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
-        "Gamma Frequency Peak Focus (40Hz)": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
-        "Beta Wave Cognition Engine (18Hz)": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
-        "Delta Wave Deep Sleep Sync (2Hz)": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3"
+    "🧠 Brain Wiring & Neural Frequencies (5 Tracks)": {
+        "1. 432Hz Deep Focus Pulse": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
+        "2. 528Hz Solfeggio Tone": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3",
+        "3. Alpha Waves Concentration (10Hz)": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
+        "4. Gamma Peak Focus (40Hz)": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
+        "5. Beta Wave Cognition Engine (18Hz)": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3"
     },
-    "🔊 Noise Generators & Deep Focus": {
-        "Smooth Brown Noise (Deep Study)": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
-        "Soothing Pink Noise Focus": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
-        "Pure White Noise Masker": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
-        "Deep Space Low Frequency Drone": "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73232.mp3",
-        "Binaural Sub-Bass Resonance": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3"
+    "🔊 Noise Generators & Deep Focus (5 Tracks)": {
+        "6. Smooth Brown Noise": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
+        "7. Soothing Pink Noise": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
+        "8. Pure White Noise Masker": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
+        "9. Deep Space Frequency Drone": "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73232.mp3",
+        "10. Binaural Sub-Bass Resonance": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3"
     },
-    "🌧️ Weather & Rain Acoustics": {
-        "Gentle Rain & Soft Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
-        "Heavy Rain on Roof": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3",
-        "Soft Rain on Glass Window": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
-        "Distant Thunderstorm Ambience": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
-        "Tropical Downpour Flow": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3"
+    "🌧️ Weather & Rain Acoustics (5 Tracks)": {
+        "11. Gentle Rain & Soft Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
+        "12. Heavy Rain on Roof": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3",
+        "13. Soft Rain on Glass Window": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
+        "14. Distant Thunderstorm Ambience": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
+        "15. Tropical Downpour Flow": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3"
     },
-    "🌿 Nature & Environmental Ambience": {
-        "Forest River & Birds Chirping": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3",
-        "Deep Ocean Waves Crashing": "https://cdn.pixabay.com/download/audio/2022/04/27/audio_651a021132.mp3",
-        "Crackling Campfire Night": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
-        "Night Jungle & Crickets": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
-        "High Mountain Wind Ambience": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"
+    "🌿 Nature & Environmental Ambience (5 Tracks)": {
+        "16. Forest River & Birds": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3",
+        "17. Deep Ocean Waves Crashing": "https://cdn.pixabay.com/download/audio/2022/04/27/audio_651a021132.mp3",
+        "18. Crackling Campfire Night": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
+        "19. Night Jungle & Crickets": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
+        "20. High Mountain Wind Ambience": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"
     },
-    "🎧 Lo-Fi & Study Beats": {
-        "Lo-Fi Study Groove": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
-        "Midnight City Lo-Fi Chill": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
-        "Coffee Shop Acoustic Chill": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
-        "Cozy Fireside Lo-Fi Session": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
-        "Soft Piano & Ambient Strings": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3"
+    "🎧 Lo-Fi & Study Beats (5 Tracks)": {
+        "21. Lo-Fi Study Groove": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
+        "22. Midnight City Lo-Fi Chill": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
+        "23. Coffee Shop Acoustic Chill": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
+        "24. Cozy Fireside Lo-Fi Session": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
+        "25. Soft Piano & Ambient Strings": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3"
     }
 }
 
-# Dynamically Attach Local Custom Uploaded Tracks
+# Attach Local Custom Uploaded Tracks
 custom_tracks = get_custom_sounds_catalog()
 if custom_tracks:
     SOUND_CATALOG["📁 Custom Uploaded Sounds"] = custom_tracks
@@ -486,6 +548,7 @@ st.sidebar.divider()
 menu = st.sidebar.radio("Navigation Engine", [
     "⚡ System Overview",
     "🧠 Neuro-Sonic Focus Engine",
+    "👤 Identity & App Creator",
     "💳 Admin Billing Control",
     "📊 Notion Workspace Sync",
     "🧬 Bioinformatics Engine",
@@ -495,7 +558,6 @@ menu = st.sidebar.radio("Navigation Engine", [
     "📊 Epidemiological Cohort",
     "💬 Local AI & NLP Bridge",
     "🗂️ Academic Report Vault",
-    "👤 Identity Settings",
     "🛡️ Security & Database Core"
 ])
 
@@ -516,8 +578,8 @@ if menu == "⚡ System Overview":
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("System Modules", "13 Active", "Operational")
     m2.metric("Paywall Guard", "Active" if is_paywall_enabled() else "Disabled", "Bypass Admin")
-    m3.metric("Custom Sounds", f"{len(custom_tracks)} Saved", "Persistent")
-    m4.metric("Admin Handle", "CHRISHEM", "Active")
+    m3.metric("Audio Presets", "25 Tracks", "Loaded")
+    m4.metric("App Creator", "CHRISHEM", "Active")
 
     st.divider()
     col_l, col_r = st.columns([2, 1])
@@ -543,18 +605,35 @@ if menu == "⚡ System Overview":
             for t_name in custom_tracks.keys():
                 st.write(f"🎵 `{t_name}`")
         else:
-            st.info("No custom files uploaded yet.")
+            st.info("No custom audio files uploaded yet.")
 
 # ------------------------------------------
 # MODULE 2: NEURO-SONIC FOCUS ENGINE
 # ------------------------------------------
 elif menu == "🧠 Neuro-Sonic Focus Engine":
     st.title("🧠 Zenith Neuro-Sonic Engine")
-    st.caption("Brain Wiring Frequency Generator & Focus Session Tracker")
+    st.caption("Brain Wiring Frequency Generator & Complete 25-Track Sound Catalog")
 
-    f_tab1, f_tab2 = st.tabs(["🎛️ Generative Web-Audio Synthesizer", "📈 Focus Log Analytics"])
+    f_tab1, f_tab2, f_tab3 = st.tabs([
+        "🎵 Complete 25-Track Catalog Matrix", 
+        "🎛️ Generative Web-Audio Synthesizer", 
+        "📈 Focus Log Analytics"
+    ])
 
     with f_tab1:
+        st.subheader("🎼 Full 25 Preset Audio Catalog Overview")
+        st.markdown("Select any sound below to set it as your active playback track across the application:")
+        
+        catalog_items = []
+        for cat_name, tracks in SOUND_CATALOG.items():
+            if cat_name != "📁 Custom Uploaded Sounds":
+                for track_name, track_url in tracks.items():
+                    catalog_items.append({"Category": cat_name, "Track Title": track_name, "URL": track_url})
+        
+        cat_df = pd.DataFrame(catalog_items)
+        st.dataframe(cat_df, use_container_width=True)
+
+    with f_tab2:
         web_audio_synth_code = """
         <!DOCTYPE html>
         <html>
@@ -653,7 +732,7 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
         """
         components.html(web_audio_synth_code, height=260, scrolling=False)
 
-    with f_tab2:
+    with f_tab3:
         st.subheader("⏱️ Record Focus Session")
         with st.form("log_focus_session"):
             c_p, c_d = st.columns(2)
@@ -676,7 +755,66 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
         st.dataframe(focus_df, use_container_width=True)
 
 # ------------------------------------------
-# MODULE 3: ADMIN BILLING CONTROL
+# MODULE 3: IDENTITY & APP CREATOR (CHRISHEM SHOWCASE)
+# ------------------------------------------
+elif menu == "👤 Identity & App Creator":
+    st.title("👑 App Creator & System Identity")
+    st.caption("Sovereign System Architect Profile")
+
+    # Base64 render for local picture C:\Users\Admin\Pictures\background.jpg
+    image_b64 = load_file_as_base64(CREATOR_IMAGE_PATH)
+
+    if image_b64:
+        avatar_html = f'<img src="{image_b64}" class="creator-avatar-img" alt="CHRISHEM Profile">'
+    else:
+        avatar_html = '<div style="width:100%; height:100%; border-radius:50%; background:#1E293B; display:flex; align-items:center; justify-content:center; font-size:3rem;">👑</div>'
+
+    st.markdown(f"""
+    <div class="creator-card">
+        <div class="creator-avatar-frame">
+            {avatar_html}
+        </div>
+        <div class="creator-details">
+            <span class="creator-badge">⚡ CHRISHEM SOVEREIGN APEX ARCHITECT</span>
+            <h1>CHRISHEM</h1>
+            <p style="color: #94A3B8; font-size: 1.1rem; margin: 0 0 10px 0;">
+                Independent Recording Artist, Music Producer & Bio-Data Software Engineer
+            </p>
+            <p style="color: #CBD5E1; font-size: 0.95rem; margin: 0;">
+                📍 <b>Location:</b> Arua, Uganda | 🎓 <b>Academic:</b> Muni University (BSMB, Reg: 2501202072)
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if not image_b64:
+        st.info(f"💡 Note: To display your photo, ensure your image is placed at `{CREATOR_IMAGE_PATH}`.")
+
+    st.divider()
+
+    c_col1, c_col2 = st.columns(2)
+    with c_col1:
+        st.subheader("🎓 Academic & Research Profile")
+        st.markdown("""
+        * **Full Name:** Kula Chris
+        * **Stage / Admin Name:** CHRISHEM (Chris Shem)
+        * **Registration Number:** `2501202072`
+        * **Degree:** Bachelor of Science in Biological Sciences (BSMB)
+        * **Institution:** Muni University (Faculty of Science)
+        * **Core Focus:** Bioinformatics, $mcr$ Plasmid Resistance Surveillance, Clinical Data Analytics
+        """)
+
+    with c_col2:
+        st.subheader("💻 Software & Creative Stack")
+        st.markdown("""
+        * **Frontend & Dashboards:** Python Streamlit, HTML5/CSS3, Web Audio API
+        * **Backend & Database:** SQLite3, RESTful APIs, Docker, Notion Integration
+        * **Data Science:** Pandas, NumPy, Plotly, SQL, Tableau, Power BI
+        * **Music & Audio:** R&B, Amapiano, Afrobeat Production & Binaural Neural Frequency Synthesis
+        """)
+
+# ------------------------------------------
+# MODULE 4: ADMIN BILLING CONTROL
 # ------------------------------------------
 elif menu == "💳 Admin Billing Control":
     st.title("💳 Subscription & Paywall Administration")
@@ -705,7 +843,7 @@ elif menu == "💳 Admin Billing Control":
         st.dataframe(subs_df, use_container_width=True)
 
 # ------------------------------------------
-# MODULE 4: NOTION WORKSPACE SYNC
+# MODULE 5: NOTION WORKSPACE SYNC
 # ------------------------------------------
 elif menu == "📊 Notion Workspace Sync":
     st.title("📊 Notion Workspace Synchronization")
@@ -725,7 +863,7 @@ elif menu == "📊 Notion Workspace Sync":
             st.info("Remote payload received. 0 conflicts found.")
 
 # ------------------------------------------
-# MODULE 5: BIOINFORMATICS ENGINE
+# MODULE 6: BIOINFORMATICS ENGINE
 # ------------------------------------------
 elif menu == "🧬 Bioinformatics Engine":
     allowed, msg = check_user_access(st.session_state.user_email, required_tier="Pro")
@@ -755,7 +893,7 @@ elif menu == "🧬 Bioinformatics Engine":
                 st.info("No matching standard resistance motifs found in input sequence.")
 
 # ------------------------------------------
-# MODULE 6: GIS RESISTANCE MAP
+# MODULE 7: GIS RESISTANCE MAP
 # ------------------------------------------
 elif menu == "🗺️ GIS Resistance Map":
     st.title("🗺️ Geospatial Resistance Mapping (Arua Region)")
@@ -786,7 +924,7 @@ elif menu == "🗺️ GIS Resistance Map":
         st.map(gis_df[["latitude", "longitude"]])
 
 # ------------------------------------------
-# MODULE 7: ENVIRONMENTAL COMPLIANCE
+# MODULE 8: ENVIRONMENTAL COMPLIANCE
 # ------------------------------------------
 elif menu == "🌊 Environmental Compliance":
     st.title("🌊 Assa River & Abattoir Environmental Compliance")
@@ -810,7 +948,7 @@ elif menu == "🌊 Environmental Compliance":
         st.metric("Regulatory Compliance Status", status, delta_color="normal" if status=="COMPLIANT" else "inverse")
 
 # ------------------------------------------
-# MODULE 8: BUSINESS PORTFOLIO
+# MODULE 9: BUSINESS PORTFOLIO
 # ------------------------------------------
 elif menu == "💼 Business Portfolio":
     st.title("💼 Enterprise Venture Portfolio & ROI Projections")
@@ -834,7 +972,7 @@ elif menu == "💼 Business Portfolio":
         st.plotly_chart(fig, use_container_width=True)
 
 # ------------------------------------------
-# MODULE 9: EPIDEMIOLOGICAL COHORT
+# MODULE 10: EPIDEMIOLOGICAL COHORT
 # ------------------------------------------
 elif menu == "📊 Epidemiological Cohort":
     st.title("📊 Women's Health Cohort (PPWR & DRA)")
@@ -879,7 +1017,7 @@ elif menu == "📊 Epidemiological Cohort":
             st.plotly_chart(fig, use_container_width=True)
 
 # ------------------------------------------
-# MODULE 10: LOCAL AI & NLP BRIDGE
+# MODULE 11: LOCAL AI & NLP BRIDGE
 # ------------------------------------------
 elif menu == "💬 Local AI & NLP Bridge":
     allowed, msg = check_user_access(st.session_state.user_email, required_tier="Apex Sovereign")
@@ -898,7 +1036,7 @@ elif menu == "💬 Local AI & NLP Bridge":
             """)
 
 # ------------------------------------------
-# MODULE 11: ACADEMIC REPORT VAULT
+# MODULE 12: ACADEMIC REPORT VAULT
 # ------------------------------------------
 elif menu == "🗂️ Academic Report Vault":
     st.title("🗂️ Academic Report Vault")
@@ -912,20 +1050,6 @@ elif menu == "🗂️ Academic Report Vault":
         with st.expander(f"📖 [{row['course_code']}] {row['title']}"):
             st.write(f"**Department:** {row['department']} | **Status:** `{row['status']}`")
             st.write(row['abstract_text'])
-
-# ------------------------------------------
-# MODULE 12: IDENTITY SETTINGS
-# ------------------------------------------
-elif menu == "👤 Identity Settings":
-    st.title("👤 Operator Identity & Student Credentials")
-
-    st.markdown("""
-    * **System Operator / Admin Handle:** `CHRISHEM`
-    * **Student Name:** Kula Chris
-    * **Registration Number:** `2501202072`
-    * **Program:** Bachelor of Science in Biological Sciences (BSMB)
-    * **Institution:** Muni University, Arua, Uganda
-    """)
 
 # ------------------------------------------
 # MODULE 13: SECURITY & DATABASE CORE
