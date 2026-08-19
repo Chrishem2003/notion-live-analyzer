@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import sqlite3
 import pandas as pd
 import base64
@@ -231,7 +232,7 @@ def init_db():
     cursor.execute("INSERT OR REPLACE INTO subscriptions VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
                    ("admin@chrishem.apex", "Apex Sovereign", "active", 0.0, "2099-12-31"))
 
-    # Seed Sample Data for mcr Surveillance
+    # Seed Production Data for mcr Surveillance
     cursor.execute("SELECT COUNT(*) FROM mcr_gene_surveillance")
     if cursor.fetchone()[0] == 0:
         cursor.executemany(
@@ -257,7 +258,7 @@ def init_db():
             ]
         )
 
-    # Seed Music Catalog
+    # Seed Clean Production Music Catalog
     cursor.execute("SELECT COUNT(*) FROM music_catalog")
     if cursor.fetchone()[0] == 0:
         cursor.executemany(
@@ -469,7 +470,6 @@ c.execute("SELECT avatar_blob, name FROM auth_users WHERE email = ?", (st.sessio
 user_row = c.fetchone()
 conn.close()
 
-# SVG Badge or Base64 Image Profile Display
 if user_row and user_row[0]:
     try:
         encoded_img = base64.b64encode(user_row[0]).decode()
@@ -823,41 +823,358 @@ elif menu == "📊 Epidemiological Cohort":
         st.plotly_chart(fig, use_container_width=True)
 
 # ------------------------------------------
-# MODULE 9: CREATOR & MUSIC STUDIO
+# MODULE 9: CREATOR & MUSIC STUDIO (UPGRADED WITH NEURO-FOCUS AUDIO ENGINE)
 # ------------------------------------------
 elif menu == "🎵 Creator & Music Studio":
-    st.title("🎵 Chrishem Studio & Audio Processing Vault")
-    st.caption("Catalog Management, R&B/Amapiano Writing & Waveform Synthesizer")
+    st.title("🎵 Chrishem Studio & Web Audio DSP Vault")
+    st.caption("Catalog Management, Real-Time Procedural Brainwave Audio Synthesis & Songwriting Blueprint Engine")
 
-    m_tab1, m_tab2, m_tab3 = st.tabs(["🎧 Music Catalog", "🌊 Audio Waveform Engine", "✍️ Lyric Blueprint"])
+    m_tab1, m_tab2, m_tab3 = st.tabs(["🎧 Production Catalog", "🎛️ Real-Time Neuro-Focus DSP", "✍️ Lyric Blueprint Studio"])
 
     with m_tab1:
-        st.subheader("🎤 Released & Upcoming Productions")
+        st.subheader("🎤 Active Production Catalog Management")
+        
         conn = get_db_connection()
-        music_df = pd.read_sql_query("SELECT id, track_title, artist_alias, genre, release_status FROM music_catalog", conn)
+        music_df = pd.read_sql_query("SELECT id, track_title, artist_alias, genre, release_status, lyrics FROM music_catalog", conn)
         conn.close()
 
-        st.dataframe(music_df, use_container_width=True)
+        st.dataframe(music_df[["id", "track_title", "artist_alias", "genre", "release_status"]], use_container_width=True)
+
+        st.divider()
+        st.markdown("##### ➕ Register New Track Production Entry")
+        with st.form("add_track_form"):
+            col_t1, col_t2 = st.columns(2)
+            track_title = col_t1.text_input("Track Title")
+            artist_alias = col_t2.text_input("Artist Alias", value="CHRISHEM")
+            
+            col_g1, col_g2 = st.columns(2)
+            genre = col_g1.selectbox("Genre Category", ["Smooth R&B", "Afro-R&B", "Amapiano", "Worship / Gospel", "Hip-Hop / Trap", "Experimental DSP"])
+            release_status = col_g2.selectbox("Release Status", ["In Concept", "In Production", "Mixed", "Mastered", "Released"])
+            lyrics_input = st.text_area("Track Lyrics / Arrangement Notes", height=100)
+
+            if st.form_submit_button("Add Production Track to Vault", type="primary"):
+                if track_title.strip():
+                    try:
+                        conn = get_db_connection()
+                        c = conn.cursor()
+                        c.execute("INSERT INTO music_catalog (track_title, artist_alias, genre, release_status, lyrics) VALUES (?, ?, ?, ?, ?)",
+                                  (track_title.strip(), artist_alias.strip(), genre, release_status, lyrics_input.strip()))
+                        conn.commit()
+                        conn.close()
+                        log_audit(st.session_state.username, "add_track", f"Title: {track_title}")
+                        st.success(f"Track '{track_title}' successfully registered in database catalog!")
+                        st.rerun()
+                    except sqlite3.IntegrityError:
+                        st.error("A track with this title already exists in the catalog database.")
+                else:
+                    st.error("Track title cannot be empty.")
 
     with m_tab2:
-        st.subheader("🌊 Signal Waveform Visualizer Engine")
-        freq = st.slider("Frequency Generator Pitch (Hz)", 100.0, 880.0, 440.0, 10.0)
+        st.subheader("🎛️ Neuro-Focus Real-Time Web Audio Engine")
+        st.caption("Dynamic asset-less procedural sound generator running natively in browser Web Audio API.")
+
+        # Embedded Single-File Web Audio API Audio Engine Component
+        neuro_audio_html = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                :root {
+                    --bg-primary: #0b0f19;
+                    --bg-card: #111827;
+                    --accent-glow: #0284c7;
+                    --text-main: #f8fafc;
+                    --text-muted: #9ca3af;
+                }
+
+                body {
+                    margin: 0;
+                    padding: 10px;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                    background-color: var(--bg-primary);
+                    color: var(--text-main);
+                    display: flex;
+                    justify-content: center;
+                }
+
+                .dashboard {
+                    width: 100%;
+                    max-width: 520px;
+                    background: var(--bg-card);
+                    border-radius: 16px;
+                    padding: 24px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 50px rgba(2, 132, 199, 0.15);
+                    border: 1px solid #1f2937;
+                    box-sizing: border-box;
+                }
+
+                h3 { margin: 0 0 4px 0; font-size: 20px; font-weight: 700; text-align: center; color: #38bdf8; }
+                .subtitle { color: var(--text-muted); text-align: center; margin-bottom: 20px; font-size: 13px; }
+
+                .control-group {
+                    background: rgba(255,255,255,0.02);
+                    padding: 16px;
+                    border-radius: 12px;
+                    margin-bottom: 16px;
+                    border: 1px solid rgba(255,255,255,0.05);
+                }
+
+                label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #e2e8f0; }
+                
+                select, input[type="range"] {
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+
+                select {
+                    background: #1e293b;
+                    color: white;
+                    border: 1px solid #334155;
+                    padding: 10px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    outline: none;
+                }
+
+                .slider-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+                input[type="range"] {
+                    appearance: none;
+                    height: 6px;
+                    background: #1e293b;
+                    border-radius: 3px;
+                    outline: none;
+                    flex-grow: 1;
+                }
+
+                input[type="range"]::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    background: #38bdf8;
+                    cursor: pointer;
+                    transition: transform 0.1s;
+                }
+
+                input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+                .value-display { font-size: 12px; color: #38bdf8; width: 45px; text-align: right; font-weight: bold; }
+
+                .btn-master {
+                    width: 100%;
+                    padding: 14px;
+                    border-radius: 10px;
+                    border: none;
+                    background: #0284c7;
+                    color: white;
+                    font-size: 15px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    margin-top: 8px;
+                }
+
+                .btn-master:hover { opacity: 0.9; transform: translateY(-1px); }
+                .btn-master.playing { background: #ef4444; }
+            </style>
+        </head>
+        <body>
+
+        <div class="dashboard">
+            <h3>Neuro-Focus Sound Suite</h3>
+            <div class="subtitle">Procedural Real-Time Brainwave Generator Engine</div>
+
+            <button id="masterBtn" class="btn-master">Initialize Sound Engine</button>
+
+            <div style="margin-top: 20px;">
+                <!-- Binaural Waves Section -->
+                <div class="control-group">
+                    <label for="wavePreset">Neural Target (Binaural Beats)</label>
+                    <select id="wavePreset">
+                        <option value="15" selected>Beta Wave (15 Hz) — Active Focus & Creative Flow</option>
+                        <option value="40">Gamma Wave (40 Hz) — High-Level Cognition & Binding</option>
+                        <option value="10">Alpha Wave (10 Hz) — Relaxed Focus & Composition</option>
+                        <option value="5">Theta Wave (5 Hz) — Deep Ambient Visualization</option>
+                    </select>
+                    <div class="slider-container" style="margin-top: 12px;">
+                        <input type="range" id="waveVolume" min="0" max="0.15" step="0.01" value="0.05">
+                        <div class="value-display" id="waveVolDisp">33%</div>
+                    </div>
+                </div>
+
+                <!-- Ambient Noise Section -->
+                <div class="control-group">
+                    <label for="noiseVolume">Deep Brown Noise Masking (Procedural Math)</label>
+                    <div class="slider-container">
+                        <input type="range" id="noiseVolume" min="0" max="0.30" step="0.01" value="0.10">
+                        <div class="value-display" id="noiseVolDisp">33%</div>
+                    </div>
+                </div>
+
+                <!-- Carrier Frequency Section -->
+                <div class="control-group">
+                    <label for="carrierFreq">Carrier Pitch Tuning (Hz)</label>
+                    <div class="slider-container">
+                        <input type="range" id="carrierFreq" min="100" max="300" step="1" value="160">
+                        <div class="value-display" id="carrierDisp">160Hz</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let audioCtx = null;
+            let isPlaying = false;
+
+            let leftOsc = null, rightOsc = null;
+            let leftPanner = null, rightPanner = null;
+            let noiseSource = null;
+            let waveGainNode = null, noiseGainNode = null;
+
+            const masterBtn = document.getElementById('masterBtn');
+            const wavePreset = document.getElementById('wavePreset');
+            const waveVolume = document.getElementById('waveVolume');
+            const noiseVolume = document.getElementById('noiseVolume');
+            const carrierFreq = document.getElementById('carrierFreq');
+
+            const waveVolDisp = document.getElementById('waveVolDisp');
+            const noiseVolDisp = document.getElementById('noiseVolDisp');
+            const carrierDisp = document.getElementById('carrierDisp');
+
+            waveVolume.addEventListener('input', (e) => {
+                waveVolDisp.textContent = Math.round((e.target.value / 0.15) * 100) + '%';
+                if(waveGainNode && audioCtx) waveGainNode.gain.setTargetAtTime(e.target.value, audioCtx.currentTime, 0.05);
+            });
+
+            noiseVolume.addEventListener('input', (e) => {
+                noiseVolDisp.textContent = Math.round((e.target.value / 0.30) * 100) + '%';
+                if(noiseGainNode && audioCtx) noiseGainNode.gain.setTargetAtTime(e.target.value, audioCtx.currentTime, 0.05);
+            });
+
+            carrierFreq.addEventListener('input', (e) => {
+                carrierDisp.textContent = e.target.value + 'Hz';
+                updateFrequencies();
+            });
+
+            wavePreset.addEventListener('change', () => {
+                updateFrequencies();
+            });
+
+            function initAudio() {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                waveGainNode = audioCtx.createGain();
+                noiseGainNode = audioCtx.createGain();
+                
+                waveGainNode.gain.setValueAtTime(waveVolume.value, audioCtx.currentTime);
+                noiseGainNode.gain.setValueAtTime(noiseVolume.value, audioCtx.currentTime);
+
+                waveGainNode.connect(audioCtx.destination);
+                noiseGainNode.connect(audioCtx.destination);
+
+                leftOsc = audioCtx.createOscillator();
+                rightOsc = audioCtx.createOscillator();
+
+                leftPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+                rightPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+                if (leftPanner && rightPanner) {
+                    leftPanner.pan.setValueAtTime(-1, audioCtx.currentTime);
+                    rightPanner.pan.setValueAtTime(1, audioCtx.currentTime);
+                    leftOsc.connect(leftPanner).connect(waveGainNode);
+                    rightOsc.connect(rightPanner).connect(waveGainNode);
+                } else {
+                    leftOsc.connect(waveGainNode);
+                    rightOsc.connect(waveGainNode);
+                }
+
+                updateFrequencies();
+
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    output[i] = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = output[i];
+                    output[i] *= 3.5;
+                }
+
+                noiseSource = audioCtx.createBufferSource();
+                noiseSource.buffer = noiseBuffer;
+                noiseSource.loop = true;
+                noiseSource.connect(noiseGainNode);
+
+                leftOsc.start();
+                rightOsc.start();
+                noiseSource.start();
+            }
+
+            function updateFrequencies() {
+                if (!audioCtx || !leftOsc || !rightOsc) return;
+
+                const baseCarrier = parseFloat(carrierFreq.value);
+                const brainwaveOffset = parseFloat(wavePreset.value);
+
+                leftOsc.frequency.setTargetAtTime(baseCarrier, audioCtx.currentTime, 0.1);
+                rightOsc.frequency.setTargetAtTime(baseCarrier + brainwaveOffset, audioCtx.currentTime, 0.1);
+            }
+
+            masterBtn.addEventListener('click', async () => {
+                if (!audioCtx) {
+                    initAudio();
+                    isPlaying = true;
+                    masterBtn.textContent = "Pause Audio DSP Engine";
+                    masterBtn.classList.add('playing');
+                    return;
+                }
+
+                if (isPlaying) {
+                    await audioCtx.suspend();
+                    isPlaying = false;
+                    masterBtn.textContent = "Resume Audio DSP Engine";
+                    masterBtn.classList.remove('playing');
+                } else {
+                    await audioCtx.resume();
+                    isPlaying = true;
+                    masterBtn.textContent = "Pause Audio DSP Engine";
+                    masterBtn.classList.add('playing');
+                }
+            });
+        </script>
+        </body>
+        </html>
+        """
+
+        components.html(neuro_audio_html, height=520, scrolling=False)
+
+        st.divider()
+        st.subheader("🌊 Harmonic Signal Waveform Analytics")
+        freq = st.slider("Signal Analytical Oscillator (Hz)", 100.0, 880.0, 440.0, 10.0)
         x_w, y_w = generate_waveform_data(freq=freq)
 
         if HAS_PLOTLY:
-            fig_wave = px.line(x=x_w, y=y_w, title=f"Audio Signal Output ({freq} Hz)",
+            fig_wave = px.line(x=x_w, y=y_w, title=f"Synthesized Waveform Vector Output ({freq} Hz)",
                                labels={"x": "Time (s)", "y": "Amplitude"}, template="plotly_dark")
             fig_wave.update_traces(line_color="#38BDF8", line_width=2)
             st.plotly_chart(fig_wave, use_container_width=True)
 
-        st.markdown("##### 🔊 Master Preview Channel")
-        st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
-
     with m_tab3:
-        st.subheader("✍️ Songwriting & Rhythm Template Generator")
-        vibe = st.selectbox("Select Vibe Arrangement", ["Smooth Late-Night R&B", "Vulnerable & Edgy Storytelling", "Amapiano Afro-Pop Rhythms"])
-        if st.button("Generate Verse Blueprint", type="primary"):
-            st.text_area("Verse Arrangement", value=f"[Verse 1 - {vibe}]\nLate night in Arua, frequency tuned in...\nSovereign mind, catching every vision within...\n[Chorus]\nWe riding on the wave tonight...\nUnderneath the red lights...", height=140)
+        st.subheader("✍️ Procedural Songwriting & Song Blueprint Studio")
+        vibe = st.selectbox("Select Genre & Arrangement Vibe", ["Smooth Late-Night R&B", "Vulnerable & Edgy Storytelling", "Amapiano Afro-Pop Rhythms", "Ambient Electro-Binaural Focus"])
+        key_signature = st.selectbox("Key Signature", ["C Major / A Minor", "F# Minor", "D Major", "G Minor", "E Minor"])
+        
+        if st.button("Generate Production Arrangement Structural Blueprint", type="primary"):
+            st.text_area("Master Songwriting Blueprint", value=f"[Key: {key_signature} | Vibe: {vibe}]\n\n[Intro - Soft Binaural Layer]\n(Fading carrier pitch at 160Hz... Light synth pads entry)\n\n[Verse 1]\nLate night in Arua, frequency tuned in...\nSovereign mind, catching every vision within...\nCoding till the sunrise, steady through the storm...\nEvery sound wave aligned, keeping energy warm...\n\n[Chorus]\nWe riding on the wave tonight...\nUnderneath the dark canvas lights...\nSovereign mind, vision crystal clear...\nChrishem studio, we elevate right here...\n\n[Bridge / Outro]\n(Brown noise ramp swell... Smooth frequency decay)", height=220)
 
 # ------------------------------------------
 # MODULE 10: LOCAL AI & NLP BRIDGE (PROTECTED - APEX SOVEREIGN TIER)
