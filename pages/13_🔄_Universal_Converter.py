@@ -377,6 +377,10 @@ def main():
 
     setup_page("Universal Converter", "🔄", initial_sidebar_state="expanded")
 
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
+
     hero_card(
         "🔄 Universal Converter & Utilities Studio — Hardened Production Suite",
         "Conversion suite supporting 9+ tabular formats with real batch mode, binary payload encoding, matrix reshaping, scientific unit transformations, geodetic coordinate conversion, and PDF text extraction.",

@@ -976,6 +976,10 @@ def main():
 
     setup_page("ML & Predictive Studio", "🤖", initial_sidebar_state="expanded")
 
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
+
     hero_card(
         "🤖 Enterprise ML & Predictive Studio (Premium)",
         "Consolidated machine learning hub featuring AutoML with real hyperparameter tuning, model persistence and export, a prediction engine connected to your actual trained model, task-aware feature selection, non-theatrical autonomous agents, and real ODE-based chaos dynamics.",

@@ -395,11 +395,100 @@ Standardized protocol generated for reproducible laboratory execution and compli
             st.warning("⚠️ Please provide a valid protocol title.")
 
 
+def render_field_surveillance():
+    section_header(
+        "🧬 Genomic & Clinical Field Surveillance",
+        "Real research data migrated from an earlier standalone build: colistin-resistance gene "
+        "(mcr) surveillance across Arua region sample sites, and a postpartum health cohort (PPWR/DRA). "
+        "Genuine records, not demo data — you can add real new entries below.",
+    )
+
+    from modules.legacy_research_data import (
+        get_mcr_surveillance_df, add_mcr_sample, get_ppwr_df, add_ppwr_entry,
+    )
+
+    sub_mcr, sub_ppwr = st.tabs(["🦠 mcr Gene Resistance Surveillance", "🤰 PPWR / DRA Clinical Cohort"])
+
+    with sub_mcr:
+        gis_df = get_mcr_surveillance_df()
+        st.dataframe(gis_df, use_container_width=True, hide_index=True)
+
+        if PLOTLY_AVAILABLE and not gis_df.empty:
+            fig = px.scatter_mapbox(
+                gis_df, lat="latitude", lon="longitude", color="mcr_variant", size="colistin_mic",
+                hover_name="sample_id", hover_data=["sample_type", "source_location", "colistin_mic"],
+                zoom=11, height=420, title="mcr Gene Distribution — Arua Region Field Samples",
+            )
+            fig.update_layout(mapbox_style="carto-darkmatter", paper_bgcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig, use_container_width=True)
+        elif not gis_df.empty:
+            st.map(gis_df[["latitude", "longitude"]])
+
+        render_export_buttons(gis_df, base_name="mcr_gene_surveillance")
+
+        with st.expander("➕ Log a new field sample"):
+            with st.form("mcr_add_form"):
+                c1, c2 = st.columns(2)
+                with c1:
+                    sample_id = st.text_input("Sample ID (unique)", value="")
+                    sample_type = st.text_input("Sample Type", value="Poultry Cecal")
+                    source_location = st.text_input("Source Location", value="")
+                    isolation_date = st.date_input("Isolation Date", value=datetime.date.today())
+                with c2:
+                    lat = st.number_input("Latitude", value=3.03, format="%.4f")
+                    lon = st.number_input("Longitude", value=30.91, format="%.4f")
+                    mcr_variant = st.text_input("mcr Variant (or 'Negative')", value="Negative")
+                    colistin_mic = st.number_input("Colistin MIC", value=0.5, min_value=0.0)
+                notes = st.text_area("Notes", value="")
+                if st.form_submit_button("Add Real Field Sample"):
+                    if not sample_id.strip():
+                        st.warning("Sample ID is required.")
+                    else:
+                        try:
+                            add_mcr_sample(sample_id.strip(), sample_type, source_location, lat, lon,
+                                          mcr_variant, colistin_mic, isolation_date, notes)
+                            st.success(f"Sample {sample_id} recorded.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Could not save (duplicate Sample ID?): {e}")
+
+    with sub_ppwr:
+        ppwr_df = get_ppwr_df()
+        col_p1, col_p2 = st.columns([1, 2])
+
+        with col_p1:
+            st.markdown("#### ➕ Log Participant Data")
+            with st.form("ppwr_add_form"):
+                age = st.number_input("Age", 18, 50, 26)
+                months = st.number_input("Months Postpartum", 1, 48, 6)
+                dra = st.number_input("DRA Gap (cm)", 0.0, 10.0, 2.5)
+                ppwr = st.number_input("PPWR (kg)", 0.0, 30.0, 4.5)
+                if st.form_submit_button("Record Entry"):
+                    add_ppwr_entry(age, months, dra, ppwr)
+                    st.success("Entry added.")
+                    st.rerun()
+
+        with col_p2:
+            st.dataframe(ppwr_df, use_container_width=True, hide_index=True)
+            if PLOTLY_AVAILABLE and not ppwr_df.empty:
+                fig = px.scatter(
+                    ppwr_df, x="dra_gap_cm", y="ppwr_kg", size="months_postpartum", color="participant_age",
+                    title="Diastasis Recti Gap (cm) vs Postpartum Weight Retention (kg)",
+                )
+                fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
+                st.plotly_chart(fig, use_container_width=True)
+            render_export_buttons(ppwr_df, base_name="ppwr_cohort")
+
+
 def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="domain")
 
     setup_page("Domain Analytics Hub", "🔬", initial_sidebar_state="expanded")
+
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
 
     hero_card(
         "🔬 Domain & Specialized Analytics Hub — Production Suite",
@@ -418,6 +507,7 @@ def main():
         "🌍 Sector Indicators",
         "🎓 Academic Portfolio",
         "🧪 Lab Protocols",
+        "🧬 Field Surveillance (mcr/PPWR)",
     ])
 
     with tabs[0]:
@@ -432,6 +522,8 @@ def main():
         render_academic()
     with tabs[5]:
         render_lab()
+    with tabs[6]:
+        render_field_surveillance()
 
     render_standard_footer("DOMAIN ANALYTICS HUB")
 

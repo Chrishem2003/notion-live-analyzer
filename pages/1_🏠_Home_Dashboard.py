@@ -343,8 +343,43 @@ def render_live_telemetry(conn):
 # Main Application Entrypoint
 # ──────────────────────────────────────────────────────────────────────────
 
+def render_automated_intelligence_report():
+    section_header(
+        "🤖 Automated Intelligence — Scheduled, Unattended Runs",
+        "Real output from the scheduled GitHub Actions workflow (.github/workflows/automated_intelligence_run.yml), "
+        "not something triggered by clicking a button here. It pulls fresh World Bank data and runs the chaos "
+        "detector on a watchlist automatically on a schedule and commits the results back to the repo.",
+    )
+    from pathlib import Path
+    repo_root = Path(__file__).resolve().parent.parent
+    report_path = repo_root / "reports" / "latest_report.md"
+    alert_path = repo_root / "reports" / "latest_alert_summary.txt"
+
+    if not report_path.exists():
+        st.info(
+            "No automated run has completed yet. Once `automated_intelligence_run.yml` runs on its schedule "
+            "(or you trigger it manually from the repo's Actions tab), the latest results will appear here "
+            "automatically — nothing to configure in the app itself."
+        )
+        return
+
+    if alert_path.exists():
+        alert_text = alert_path.read_text().strip()
+        if alert_text and alert_text != "No changes since last run.":
+            st.warning(f"🚨 **Changes detected in the latest run:**\n\n{alert_text}")
+        else:
+            st.success("✅ No verdict changes since the previous scheduled run.")
+
+    with st.expander("📄 Full latest report", expanded=False):
+        st.markdown(report_path.read_text())
+
+
 def main():
     setup_page("Home Dashboard", "🏠", initial_sidebar_state="expanded")
+
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
 
     hero_card(
         "🏠 Chrishem Sovereign Enterprise Platform — Home Command Center",
@@ -359,14 +394,13 @@ def main():
     name = identity.get("name", "Analyst")
     role = identity.get("role", "Data Analyst & Researcher")
 
-    now_dt = datetime.datetime.now()
-    hour = now_dt.hour
-    greeting = (
-        "Good Morning" if 5 <= hour < 12
-        else "Good Afternoon" if 12 <= hour < 17
-        else "Good Evening" if 17 <= hour < 21
-        else "Good Night"
-    )
+    from modules.user_preferences import get_user_timezone, compute_greeting, render_accent_color_css
+    import zoneinfo
+    render_accent_color_css()
+
+    user_tz_name = get_user_timezone()
+    now_dt = datetime.datetime.now(zoneinfo.ZoneInfo(user_tz_name))
+    greeting = compute_greeting(now_dt)
 
     summary = dataset_summary()
 
@@ -383,7 +417,7 @@ def main():
             <div>
                 <div style="font-size:1.25rem; font-weight:800; color:#F8FAFC;">{greeting}, {name}! 👋</div>
                 <div style="font-size:0.9rem; color:#38BDF8; font-weight:600; margin-top:0.2rem;">
-                    Active Session Role: {role} | System Timestamp: {now_dt.strftime('%A, %Y-%m-%d %H:%M:%S')}
+                    Active Session Role: {role} | Your Local Time: {now_dt.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}
                 </div>
             </div>
             <div>
@@ -409,8 +443,8 @@ def main():
 
     st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
 
-    tab_vault, tab_telemetry, tab_account, tab_about = st.tabs(
-        ["💾 Saved Analyses Vault", "📡 Live Telemetry", "👤 My Account & Plan", "ℹ️ About Platform"]
+    tab_vault, tab_telemetry, tab_automation, tab_account, tab_about = st.tabs(
+        ["💾 Saved Analyses Vault", "📡 Live Telemetry", "🤖 Automated Intelligence", "👤 My Account & Plan", "ℹ️ About Platform"]
     )
 
     with tab_vault:
@@ -418,6 +452,9 @@ def main():
 
     with tab_telemetry:
         render_live_telemetry(conn)
+
+    with tab_automation:
+        render_automated_intelligence_report()
 
     with tab_account:
         section_header("👤 User Account, Subscription & Academic Verification", "Manage your enterprise subscription tier and credentials.")
@@ -434,6 +471,10 @@ def main():
 
             st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
             verification.render_student_application_form()
+
+            st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
+            from modules.user_preferences import render_timezone_and_accent_settings
+            render_timezone_and_accent_settings()
         else:
             st.info("ℹ️ Sign in with a registered user profile to check your subscription status.")
 
@@ -445,18 +486,21 @@ def main():
 
             | Operational Hub | Core Capabilities |
             |-----------------|-----------------------------------|
-            | 🏠 **Home Dashboard** | Enterprise dashboard, vault, telemetry, ledger |
+            | 🏠 **Home Dashboard** | Enterprise dashboard, vault, telemetry, automated intelligence |
             | 📁 **Data Studio** | Data ingestion, quality assurance, anomaly testing |
             | 📊 **Statistics Studio** | Hypothesis testing, causal modeling, inference |
-            | 🤖 **ML & Predictive Studio**| AutoML pipelines, feature analysis, predictive metrics |
+            | 🤖 **ML & Predictive Studio**| AutoML pipelines, feature analysis, real-world chaos detection |
             | 📈 **Visualization Studio** | Interactive mapping, presentation dashboards |
             | 💬 **AI & NLP Studio** | Natural language analytics, synthesis engines |
             | 📚 **Literature Hub** | Meta-analysis tools, reference generation |
             | 🔬 **Domain Analytics** | Clinical tracking, geospatial processing |
-            | 🔗 **Integrations Hub** | API routing, sync modules |
-            | 🛡️ **Admin & Security** | Access governance, diagnostics, token handling |
+            | 🔗 **Integrations Hub** | API routing, sync modules, real World Bank data |
+            | 🛡️ **Admin & Security** | Access governance, diagnostics, audit forensics, nexus workspace |
             | 🤝 **Collaboration** | Workspace sharing, team pipelines |
-            | 🌍 **Global Control** | Live global data views |
+            | 🕵️ **Forensics Intelligence** | Investigative and forensic analysis tools |
+            | 🔄 **Universal Converter** | Format and encoding conversion utilities |
+            | 🛡️ **Threat & Scanner Suite** | PII/secret scanning, threat detection |
+            | 🌍 **Global Mission Control** | Live global health & weather telemetry |
 
             *Engineered by Kula Chris (CHRISHEM).*
             """

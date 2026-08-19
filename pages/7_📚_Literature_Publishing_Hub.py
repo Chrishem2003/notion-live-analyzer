@@ -520,11 +520,47 @@ def render_publication_pipeline():
         )
 
 
+def render_academic_vault():
+    section_header(
+        "🗂️ Academic Report Vault",
+        "Real Muni University academic publications & fieldwork repository — migrated from an earlier "
+        "standalone build. Genuine submitted/completed course reports, not demo entries.",
+    )
+
+    from modules.legacy_research_data import get_academic_vault_df, add_academic_report
+
+    reports_df = get_academic_vault_df()
+    for _, row in reports_df.iterrows():
+        with st.expander(f"📖 [{row['course_code']}] {row['title']}"):
+            st.write(f"**Department:** {row['department']} | **Status:** `{row['status']}`")
+            st.write(row["abstract_text"])
+
+    with st.expander("➕ Add a real report to the vault"):
+        with st.form("academic_vault_add"):
+            title = st.text_input("Title")
+            c1, c2, c3 = st.columns(3)
+            course_code = c1.text_input("Course Code")
+            department = c2.text_input("Department")
+            status = c3.selectbox("Status", ["Planning", "In Progress", "Submitted", "Completed"])
+            abstract = st.text_area("Abstract")
+            if st.form_submit_button("Add to Vault"):
+                if title.strip():
+                    add_academic_report(title, course_code, department, status, abstract)
+                    st.success("Report added.")
+                    st.rerun()
+                else:
+                    st.warning("Title is required.")
+
+
 def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="literature")
 
     setup_page("Literature & Publishing Hub", "📚", initial_sidebar_state="expanded")
+
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
 
     hero_card(
         "📚 Literature & Publishing Hub — Production Suite",
@@ -538,6 +574,7 @@ def main():
         "📑 APA & Citations",
         "📜 Grants & Quality",
         "🚀 Publication Pipeline",
+        "🗂️ Academic Report Vault",
     ])
 
     with tabs[0]:
@@ -550,6 +587,8 @@ def main():
         render_grants_and_quality()
     with tabs[4]:
         render_publication_pipeline()
+    with tabs[5]:
+        render_academic_vault()
 
     render_standard_footer("LITERATURE & PUBLISHING HUB")
 

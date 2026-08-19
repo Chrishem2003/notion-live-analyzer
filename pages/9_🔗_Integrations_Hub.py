@@ -420,11 +420,127 @@ def render_reference_lookup():
                 st.error(f"🚫 Reference lookup failed: {str(e)}")
 
 
+def render_world_data():
+    section_header(
+        "🌍 Global Real-Data Connector (World Bank Open Data)",
+        "Real indicator data for ~217 countries and economies, pulled live from the World Bank's public "
+        "API — education, healthcare, security, agriculture, engineering & infrastructure, economics & "
+        "finance, and demographics. No API key required. This is not a demo dataset — it's the actual "
+        "public data at api.worldbank.org, fetched fresh on every run.",
+    )
+
+    if not REQUESTS_AVAILABLE:
+        st.error("The `requests` package isn't available in this environment — this connector needs it.")
+        return
+
+    try:
+        from modules.world_data_connector import SECTOR_INDICATORS, fetch_country_list, fetch_multi_indicator
+    except ImportError as e:
+        st.error(f"World Bank connector module unavailable: {e}")
+        return
+
+    if "wdc_country_list" not in st.session_state:
+        with st.spinner("Loading the real World Bank country list…"):
+            t0 = time.time()
+            try:
+                st.session_state["wdc_country_list"] = fetch_country_list()
+                log_call("World Bank Countries", (time.time() - t0) * 1000, "success")
+            except Exception as e:
+                log_call("World Bank Countries", (time.time() - t0) * 1000, "error")
+                st.error(f"Could not reach the World Bank API: {e}")
+                return
+
+    country_df = st.session_state["wdc_country_list"]
+    st.caption(f"{len(country_df)} real countries/economies loaded from the World Bank API.")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        sector = st.selectbox("Sector", list(SECTOR_INDICATORS.keys()), key="wdc_sector")
+        indicator_labels = st.multiselect(
+            "Indicator(s) — each is a separate real API call",
+            list(SECTOR_INDICATORS[sector].keys()),
+            default=[list(SECTOR_INDICATORS[sector].keys())[0]],
+            key="wdc_indicators",
+        )
+    with c2:
+        region_filter = st.multiselect(
+            "Filter by region (optional)", sorted(country_df["region"].unique().tolist()), key="wdc_region"
+        )
+        candidate_countries = country_df if not region_filter else country_df[country_df["region"].isin(region_filter)]
+        country_names = st.multiselect(
+            "Countries (leave empty = all countries in the region filter above, or all ~217 if no filter)",
+            candidate_countries["name"].tolist(), key="wdc_countries",
+        )
+
+    year_range = st.slider("Year range", 1970, 2026, (2000, 2025), key="wdc_years")
+
+    if st.button("🌐 Fetch Real Country Data", type="primary", key="wdc_fetch"):
+        if not indicator_labels:
+            st.warning("Pick at least one indicator.")
+            return
+        selected = country_names if country_names else candidate_countries["name"].tolist()
+        if len(selected) > 100:
+            st.info(f"Fetching {len(selected)} countries — this may take a moment (real API calls, no shortcuts).")
+        iso3_list = country_df[country_df["name"].isin(selected)]["iso3"].tolist()
+        indicator_codes = {label: SECTOR_INDICATORS[sector][label] for label in indicator_labels}
+        date_range = f"{year_range[0]}:{year_range[1]}"
+
+        with st.spinner(f"Querying World Bank API for {len(indicator_codes)} indicator(s) × {len(iso3_list)} countries…"):
+            t0 = time.time()
+            try:
+                merged_df, errors = fetch_multi_indicator(iso3_list, indicator_codes, date_range)
+                log_call("World Bank Indicators", (time.time() - t0) * 1000, "success" if not merged_df.empty else "warning")
+            except Exception as e:
+                log_call("World Bank Indicators", (time.time() - t0) * 1000, "error")
+                st.error(f"Fetch failed: {e}")
+                return
+
+        if errors:
+            with st.expander(f"⚠️ {len(errors)} issue(s) during fetch"):
+                for e in errors:
+                    st.markdown(f"- {e}")
+
+        if merged_df.empty:
+            st.warning("No data returned for this selection — try a wider year range or different countries.")
+            return
+
+        st.success(f"Loaded {len(merged_df):,} real country-year rows.")
+        st.dataframe(merged_df, use_container_width=True, hide_index=True)
+        render_export_buttons(merged_df, base_name=f"worldbank_{sector.lower().replace(' & ', '_').replace(' ', '_')}")
+
+        if PLOTLY_AVAILABLE and len(indicator_codes) >= 1:
+            first_indicator = list(indicator_codes.keys())[0]
+            plot_df = merged_df.dropna(subset=[first_indicator])
+            top_countries = plot_df.groupby("country")[first_indicator].last().nlargest(12).index.tolist()
+            fig = px.line(plot_df[plot_df["country"].isin(top_countries)], x="year", y=first_indicator,
+                          color="country", title=f"{first_indicator} — Top 12 by most recent value")
+            fig.update_layout(height=420, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                              font=dict(color="white"))
+            st.plotly_chart(fig, use_container_width=True)
+
+        if st.button("📥 Load into Active Dataset (feeds Statistics / ML / Chaos Detector / Visualization)",
+                     key="wdc_load_active"):
+            set_active_dataframe(merged_df, f"worldbank_{sector.lower()}.csv")
+            st.success("Loaded as your active dataset — it's now available across every other hub.")
+            st.rerun()
+
+    st.caption(
+        "Source: World Bank Open Data (api.worldbank.org), World Development Indicators. Free and public, "
+        "no key required. Some country/indicator/year combinations genuinely have no data — the World Bank "
+        "itself doesn't collect everything for every country every year, and this connector reports that "
+        "honestly rather than filling gaps with invented numbers."
+    )
+
+
 def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="integrations")
 
     setup_page("Integrations Hub", "🔗", initial_sidebar_state="expanded")
+
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
 
     hero_card(
         "🔗 Integrations & External Connectivity Hub — Enterprise Grade (Premium v2.0)",
@@ -438,6 +554,7 @@ def main():
         "🔧 GitHub",
         "🌐 API Gateway & Webhooks",
         "📚 Reference Lookup",
+        "🌍 Global Real-Data (World Bank)",
     ])
 
     with tabs[0]:
@@ -450,6 +567,8 @@ def main():
         render_api_gateway()
     with tabs[4]:
         render_reference_lookup()
+    with tabs[5]:
+        render_world_data()
 
     render_standard_footer("INTEGRATIONS HUB")
 

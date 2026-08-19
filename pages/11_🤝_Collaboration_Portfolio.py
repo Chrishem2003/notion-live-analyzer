@@ -87,7 +87,7 @@ def render_meetings_hub(conn):
     section_header("📹 Real-Time Video Collaboration (Zoom / Google Meet Style)", "Host or join secure, low-latency WebRTC video rooms directly inside your workspace.")
     
     if not WEBRTC_AVAILABLE:
-        st.warning("⚠️ `streamlit-webrtc` is not installed. Video streaming operates in fallback mode. Run `pip install streamlit-webrtc` for native camera/audio support.")
+        st.warning("⚠️ `streamlit-webrtc` isn't available in this deployment yet. Video streaming is running in fallback mode — this is a deployment configuration item (it needs to be in requirements.txt), not something to fix from here.")
 
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -114,7 +114,7 @@ def render_meetings_hub(conn):
                 async_processing=True,
             )
         else:
-            st.info("ℹ️ Placeholder video frame active. Install `streamlit-webrtc` (`pip install streamlit-webrtc`) for real peer-to-peer tracks.")
+            st.info("ℹ️ Placeholder video frame active — real peer-to-peer tracks need `streamlit-webrtc` added to the deployment's requirements.txt.")
 
 
 def render_projects(conn):
@@ -335,6 +335,44 @@ def render_portfolio(conn):
         st.dataframe(projects_df, use_container_width=True, hide_index=True)
 
 
+def render_venture_portfolio():
+    section_header(
+        "💼 Enterprise Venture Portfolio & ROI Tracking",
+        "Real business venture data migrated from an earlier standalone build — actual capital allocation "
+        "and ROI projections, not project-management placeholders.",
+    )
+
+    from modules.legacy_research_data import get_business_projects_df, add_business_project
+
+    biz_df = get_business_projects_df()
+    st.dataframe(biz_df, use_container_width=True, hide_index=True)
+
+    if PLOTLY_AVAILABLE and not biz_df.empty:
+        fig = px.bar(
+            biz_df, x="project_name", y="capital_ugx", color="roi_projection_pct",
+            labels={"capital_ugx": "Capital (UGX)", "project_name": "Project"},
+            title="Venture Capital Allocation vs Projected ROI (%)",
+        )
+        fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig, use_container_width=True)
+
+    with st.expander("➕ Add or update a venture"):
+        with st.form("venture_add_form"):
+            name = st.text_input("Project Name (unique)")
+            lead = st.text_input("Lead Entity")
+            c1, c2 = st.columns(2)
+            capital = c1.number_input("Capital (UGX)", min_value=0.0, value=1000000.0, step=100000.0)
+            roi = c2.number_input("ROI Projection (%)", min_value=0.0, value=20.0)
+            status = st.selectbox("Status", ["Planning", "Field Testing", "Active Scaling", "Active Operations", "Closed"])
+            if st.form_submit_button("Save Venture"):
+                if name.strip():
+                    add_business_project(name.strip(), lead, capital, roi, status)
+                    st.success(f"'{name}' saved.")
+                    st.rerun()
+                else:
+                    st.warning("Project name is required.")
+
+
 def main():
     from modules.subscription import require_active_subscription
     # FIX: this hub had no tier gate at all — every trial/free account could
@@ -342,6 +380,10 @@ def main():
     require_active_subscription(hub_id="collaboration")
 
     setup_page("Collaboration & Portfolio Hub", "🤝", initial_sidebar_state="expanded")
+
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
 
     hero_card(
         "🤝 Collaboration & Portfolio Hub — Enterprise Production Grade",
@@ -358,6 +400,7 @@ def main():
         "🦾 Agent Console",
         "👥 Team Workspace",
         "🎓 Impact Summary",
+        "💼 Venture Portfolio",
     ])
 
     with tabs[0]:
@@ -372,6 +415,8 @@ def main():
         render_team_workspace(conn)
     with tabs[5]:
         render_portfolio(conn)
+    with tabs[6]:
+        render_venture_portfolio()
 
     render_standard_footer("COLLABORATION & PORTFOLIO HUB")
 

@@ -323,6 +323,10 @@ def main():
 
     setup_page("Forensics Intelligence", "🕵️", initial_sidebar_state="expanded")
 
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
+
     hero_card(
         "🕵️ Forensic Intelligence & Digital Evidence Laboratory — Hardened Production Suite",
         "Bit-level byte stream parsing, Shannon entropy profiling, LSB steganography detection, EXIF geolocation mapping, SMTP phishing forensics, and cryptographically immutable, per-evidence chain-of-custody ledgers.",

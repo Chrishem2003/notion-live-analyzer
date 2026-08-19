@@ -117,7 +117,7 @@ def score_sentiment(text: str):
 def render_text_analysis(df):
     section_header("💬 Advanced Text Mining & Sentiment Intelligence", "Extract keyword frequencies, sentiment polarities, and semantic n-gram phrase structures.")
     if not VADER_AVAILABLE:
-        st.caption("ℹ️ Using a built-in word-boundary-safe lexicon for sentiment (`pip install vaderSentiment` for a more accurate compound-score engine).")
+        st.caption("ℹ️ Using a built-in word-boundary-safe lexicon for sentiment — the more accurate compound-score engine will activate automatically once available in this deployment.")
 
     text_cols = list(df.select_dtypes(include=["object", "string"]).columns)
     if not text_cols:
@@ -514,6 +514,10 @@ def main():
     require_active_subscription(hub_id="nlp")
 
     setup_page("AI & NLP Studio", "💬", initial_sidebar_state="expanded")
+
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
 
     hero_card(
         "💬 AI & NLP Studio — Consolidated AI & Text Analytics Hub (Premium)",

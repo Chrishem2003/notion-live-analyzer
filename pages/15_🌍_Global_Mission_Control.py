@@ -186,6 +186,10 @@ def main():
 
     setup_page("Global Mission Control", "🌍", initial_sidebar_state="expanded")
 
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
+
     hero_card(
         "🌍 Global Mission Control — Sovereign Enterprise Command Center (Real)",
         "The operational command center featuring live global health surveillance, real Open-Meteo climate telemetry, verified workload scorecards, workflow registries, and platform execution telemetry.",

@@ -870,6 +870,11 @@ def main():
     require_admin()
 
     setup_page("Admin & Security Center", "🛡️", initial_sidebar_state="expanded")
+
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
+
     hero_card("🛡️ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.3")
     conn = _nexus_conn()
 

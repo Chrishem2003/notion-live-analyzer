@@ -732,6 +732,10 @@ def main():
 
     setup_page("Statistics Studio", "📊", initial_sidebar_state="expanded")
 
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
+
     hero_card(
         "📊 Enterprise Statistics Studio (Premium)",
         "Consolidated statistical hub featuring pre-flight assumption validation, comprehensive effect sizes, a genuine specification-curve sensitivity analysis, session-wide multiple-comparisons correction, causal econometrics, interactive Bayesian updating, and exact power analysis.",

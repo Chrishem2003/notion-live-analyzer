@@ -352,9 +352,9 @@ def render_deck_builder(df):
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not PPTX_AVAILABLE:
-        st.warning("⚠️ `python-pptx` is not installed — preview is available on-screen, but .pptx file creation requires `pip install python-pptx`.")
+        st.warning("⚠️ `.pptx` file export isn't available in this deployment yet — preview is available on-screen. This is a deployment configuration item, not something to fix from here.")
     if not KALEIDO_AVAILABLE:
-        st.caption("ℹ️ `kaleido` not installed — slides will export as text/metric-only until installed (`pip install kaleido`).")
+        st.caption("ℹ️ Chart-image export isn't available in this deployment yet — slides will export as text/metric-only until it is.")
 
     if st.button("📽️ Generate Presentation Deck", type="primary", key="build_deck_btn"):
         if not numeric_cols:
@@ -436,6 +436,10 @@ def main():
     require_active_subscription(hub_id="visualization")
 
     setup_page("Visualization Studio", "📈", initial_sidebar_state="expanded")
+
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
 
     hero_card(
         "📈 Visualization Studio & Executive Dashboard Hub (Premium)",

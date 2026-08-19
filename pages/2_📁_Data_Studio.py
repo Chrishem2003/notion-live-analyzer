@@ -678,6 +678,10 @@ def main():
 
     setup_page("Enterprise Data Studio", "📁", initial_sidebar_state="expanded")
 
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
+
     hero_card(
         "📁 Enterprise Data Studio (Premium)",
         "Production-grade data management hub featuring secure schema management, sandboxed transformations, a replayable reproducible-recipe pipeline, dataset fingerprinting, and advanced anomaly detection.",

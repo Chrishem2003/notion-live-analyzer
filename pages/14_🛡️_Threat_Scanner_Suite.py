@@ -292,6 +292,10 @@ def main():
 
     setup_page("Threat & Scanner Suite", "🛡️", initial_sidebar_state="expanded")
 
+    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    render_readability_fix()
+    render_accent_color_css()
+
     hero_card(
         "🛡️ Threat & Scanner Suite — Premium Security Operations",
         "Regulated PII scanning connected to your active dataset, live CVE vulnerability feeds with an honest scope cross-check, YARA malware signature detection, file integrity monitoring against real files, TCP port probes, and automated incident response playbooks.",

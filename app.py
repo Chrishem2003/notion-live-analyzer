@@ -1,1090 +1,1028 @@
-import streamlit as st
-import streamlit.components.v1 as components
-import sqlite3
-import pandas as pd
+"""
+Portal Gateway — Authentication, Subscription, and Workspace Shell (Premium / Security-Hardened)
+
+Changelog vs prior version — this file had the most serious issues found in the entire audit,
+security issues rather than just fake features:
+- FIXED (critical): passwords were hashed with bare, unsalted SHA-256 — fast, unsalted hashing is
+  trivially reversible via rainbow tables if the database ever leaks. Passwords are now hashed
+  with PBKDF2-HMAC-SHA256 (260,000 iterations) and a unique random salt per user (stdlib only, no
+  new dependency). Existing accounts created under the old scheme are transparently upgraded to
+  the new scheme the next time they log in successfully — no forced password reset needed.
+- FIXED (critical): `chrishem242@gmail.com` was hardcoded as a permanent admin account in THREE
+  separate places (cookie-restore, sign-in handler, and a startup routine that silently
+  re-promoted it to admin on every single login) with a default password baked directly into the
+  source. This is a backdoor: it bypasses RBAC entirely, and would silently re-promote that
+  account back to admin even if another admin explicitly demoted it via Admin Security Center.
+  The login failure message even advertised its existence ("Master account ... is pre-configured")
+  to anyone who mistyped a password. All hardcoded email special-casing has been removed. The
+  very first admin account is now created only on a genuinely empty database, and only from
+  `SOVEREIGN_ADMIN_EMAIL` / `SOVEREIGN_ADMIN_PASSWORD` environment variables you set yourself —
+  nothing is auto-created with a guessable default password baked into the code. After that,
+  the database's stored role is the sole source of truth.
+- FIXED (data-consistency bug): this file maintained its own `user_subscriptions` table with a
+  different schema (`trial_end`, `is_active`) than the `subscriptions` table
+  (`plan`, `trial_started`) that Admin Security Center's billing panel actually reads from —
+  meaning every signup through this portal was invisible to the real billing/admin system.
+  Aligned to the one shared schema.
+- FIXED (was fake): the "AI Intelligence Daemon" returned a canned
+  `"[Execution successful with 99.9% confidence matrix]"` for any input. It's now honestly labeled
+  as a query log (a real, legitimate feature) rather than a fake AI response, with a pointer to
+  the real AI & NLP Studio hub for actual analysis.
+- FIXED (was fake): "System Status: 0ms latency" and "Lifetime Sovereign Enterprise Access" were
+  static claims shown to every user regardless of reality. Replaced with the user's real role and
+  real subscription plan pulled from the (now-aligned) subscription table.
+- FIXED (was fake): the "Windows / Linux / macOS / Mobile PWA" download buttons all produced the
+  identical placeholder zip (a stub README, a one-line fake script, a bare config file) regardless
+  of platform — there was no real platform-specific build behind any of them. Relabeled honestly
+  as a minimal starter-config bundle rather than implying real native applications exist.
+- DECLINED: a request to re-add a *hidden* permanent admin grant hardcoded to
+  `chrishem242@gmail.com`. That's the exact backdoor removed above, for the exact reasons
+  documented above — hidden privilege escalation tied to a specific account, invisible to
+  anyone else administering the app, immune to being revoked through the normal admin console.
+  Concealment is the part that makes it a backdoor rather than an admin account; "hidden" was
+  the specific thing declined. What's provided instead is the transparent mechanism already
+  built above: set `SOVEREIGN_ADMIN_EMAIL=chrishem242@gmail.com` in your own deployment's
+  environment variables or Streamlit secrets (not in this source file), register that email
+  normally through Sign Up, and it's promoted to admin on next startup — visible to anyone who
+  reads the deployment config, logged like any other role, and revocable by just removing the
+  env var and demoting the account through the admin console.
+- ADDED: real "Continue with Google" / "Continue with GitHub" sign-in using the standard OAuth
+  2.0 Authorization Code flow (genuine redirect to the provider, genuine token exchange, genuine
+  profile fetch) — not a styled button that does nothing. Requires you to register the app with
+  each provider and set `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` and/or
+  `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` plus `OAUTH_REDIRECT_URI`. A provider's button only
+  appears once its credentials are actually configured — no dead buttons.
+"""
+
 import base64
+import datetime
 import hashlib
+import hmac
+import io
 import os
-import sys
-import json
-import math
+import secrets
+import sqlite3
+import urllib.parse
+import zipfile
+import pandas as pd
 import requests
-from datetime import datetime, timedelta
+import streamlit as st
+import extra_streamlit_components as stx
 
-# Plotly visualization import with graceful fallback
-try:
-    import plotly.express as px
-    import plotly.graph_objects as go
-    HAS_PLOTLY = True
-except ImportError:
-    HAS_PLOTLY = False
-
-# ==========================================
-# 1. SYSTEM CONFIGURATION & DARK THEME STYLING
-# ==========================================
+# Real subscription/billing engine lives in modules/subscription.py +
+# modules/billing_stripe.py and is shared with Admin Security Center's
+# billing panel. This used to be a second, parallel implementation living
+# only in this file (with an incompatible schema) — that duplication is
+# exactly the kind of drift that made the two "billing systems" disagree
+# with each other. There is now exactly one, imported once, up top, so
+# it's available before ensure_bootstrap_admin() runs at import time below.
+# In app.py
+from modules import subscription
+from modules import billing_stripe
+# --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="Chrishem Sovereign Apex Hub",
+    page_title="Chrishem Science Hub - Sovereign Enterprise Engine",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    .stApp { background-color: #0B0F19; color: #F8FAFC; }
-    section[data-testid="stSidebar"] { background-color: #111827 !important; border-right: 1px solid #1F2937; }
-    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] p {
-        color: #F8FAFC !important; font-weight: 500;
-    }
-    div[data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background: #1F2937 !important; border: 1px solid #374151 !important; border-radius: 8px !important;
-        padding: 8px 12px !important; margin-bottom: 4px !important; transition: all 0.2s ease;
-    }
-    div[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { border-color: #38BDF8 !important; background: #374151 !important; }
-    div[data-testid="stSidebar"] div[role="radiogroup"] > label[data-checked="true"] { background: #0284C7 !important; border-color: #38BDF8 !important; }
-    div[data-testid="stSidebar"] div[role="radiogroup"] > label[data-checked="true"] span { color: #FFFFFF !important; font-weight: 700 !important; }
+PBKDF2_ITERATIONS = 260_000
 
-    div[data-testid="metric-container"] {
-        background: #111827; border: 1px solid #1F2937; border-radius: 10px; padding: 14px 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    div[data-testid="stMetricValue"] { color: #38BDF8 !important; font-weight: 700 !important; font-size: 1.8rem !important; }
 
-    .paywall-card {
-        background: #1E1B4B; border: 2px solid #6366F1; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;
-    }
-    div[data-testid="stDataFrame"] { background-color: #111827; border-radius: 8px; border: 1px solid #1F2937; }
-    button[data-baseweb="tab"] { font-weight: 600 !important; color: #94A3B8 !important; }
-    button[aria-selected="true"] { color: #38BDF8 !important; border-bottom-color: #38BDF8 !important; }
+def get_cookie_manager():
+    return stx.CookieManager()
 
-    /* Creator Profile Card Styling */
-    .creator-card {
-        background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
-        border: 1px solid #38BDF8;
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 10px 30px rgba(56, 189, 248, 0.25);
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 30px;
-        margin-bottom: 25px;
-    }
-    .creator-avatar-frame {
-        width: 180px;
-        height: 180px;
-        min-width: 180px;
-        border-radius: 50%;
-        padding: 5px;
-        background: linear-gradient(45deg, #0284C7, #38BDF8, #818CF8, #C084FC);
-        box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
-    }
-    .creator-avatar-img {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #0B0F19;
-    }
-    .creator-details h1 {
-        margin: 0 0 5px 0;
-        font-size: 2.4rem;
-        background: linear-gradient(90deg, #38BDF8, #818CF8, #F43F5E);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-    }
-    .creator-badge {
-        display: inline-block;
-        background: rgba(56, 189, 248, 0.15);
-        color: #38BDF8;
-        border: 1px solid #38BDF8;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin-bottom: 12px;
-    }
-</style>
-""", unsafe_allow_html=True)
 
-DB_FILE = "sovereign_apex.db"
-CUSTOM_SOUNDS_DIR = "custom_sounds"
-CREATOR_IMAGE_PATH = r"C:\Users\Admin\Pictures\background.jpg"
-os.makedirs(CUSTOM_SOUNDS_DIR, exist_ok=True)
+cookie_manager = get_cookie_manager()
 
-# ==========================================
-# 2. IMAGE & AUDIO FILE UTILITIES
-# ==========================================
-def load_file_as_base64(file_path):
-    """Encodes a local binary file into Base64 for embedding in HTML/CSS."""
-    if os.path.exists(file_path):
-        try:
-            with open(file_path, "rb") as f:
-                encoded = base64.b64encode(f.read()).decode("utf-8")
-                ext = file_path.split(".")[-1].lower()
-                mime = "image/jpeg" if ext in ["jpg", "jpeg"] else f"image/{ext}"
-                return f"data:{mime};base64,{encoded}"
-        except Exception:
-            return None
-    return None
 
-def save_uploaded_audio(uploaded_file):
-    """Saves uploaded audio file to disk and returns its file path."""
-    file_path = os.path.join(CUSTOM_SOUNDS_DIR, uploaded_file.name)
-    with open(file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    return file_path
-
-def get_custom_sounds_catalog():
-    """Scans local custom_sounds folder and encodes files as Base64 Data URIs."""
-    custom_catalog = {}
-    if os.path.exists(CUSTOM_SOUNDS_DIR):
-        for file_name in sorted(os.listdir(CUSTOM_SOUNDS_DIR)):
-            if file_name.lower().endswith(('.mp3', '.wav', '.ogg', '.m4a')):
-                file_path = os.path.join(CUSTOM_SOUNDS_DIR, file_name)
-                try:
-                    with open(file_path, "rb") as f:
-                        encoded = base64.b64encode(f.read()).decode("utf-8")
-                        ext = file_name.split(".")[-1].lower()
-                        mime_type = f"audio/{'mpeg' if ext == 'mp3' else ext}"
-                        custom_catalog[file_name] = f"data:{mime_type};base64,{encoded}"
-                except Exception:
-                    pass
-    return custom_catalog
-
-# ==========================================
-# 3. PERSISTENT AUDIO PLAYER COMPONENT
-# ==========================================
-def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
-    """
-    Renders a persistent audio widget with continuous auto-resume on Streamlit reruns.
-    """
-    player_html = f"""
-    <style>
-        .audio-popup {{
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #111827;
-            color: #ffffff;
-            padding: 12px 18px;
-            border-radius: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-            z-index: 999999;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 13px;
-            border: 1px solid #38bdf8;
-        }}
-        audio {{ display: none; }}
-        .btn-play {{
-            background: #0284c7;
-            border: none;
-            color: #ffffff;
-            padding: 6px 14px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }}
-        .btn-play:hover {{ background: #38bdf8; }}
-    </style>
-    
-    <div class="audio-popup">
-        <span>🎧 <b id="trackLabel">{track_title[:24]}...</b></span>
-        <button class="btn-play" id="playBtn" onclick="togglePlay()">▶ Play / ⏸ Pause</button>
-        <audio id="globalAudio" loop preload="auto" autoplay>
-            <source src="{audio_url}">
-        </audio>
-    </div>
-
-    <script>
-        const audio = document.getElementById("globalAudio");
-        const playBtn = document.getElementById("playBtn");
-        const trackKey = "apex_audio_url";
-        const timeKey = "apex_audio_time";
-        const stateKey = "apex_audio_playing";
-        const targetUrl = "{audio_url}";
-
-        function initAudio() {{
-            const savedUrl = localStorage.getItem(trackKey);
-            const savedTime = localStorage.getItem(timeKey);
-            const savedPlaying = localStorage.getItem(stateKey);
-
-            if (savedUrl === targetUrl) {{
-                if (savedTime) audio.currentTime = parseFloat(savedTime);
-                if (savedPlaying === "true") {{
-                    audio.play().catch(e => console.log("Autoplay policy override needed:", e));
-                }} else {{
-                    audio.pause();
-                }}
-            }} else {{
-                localStorage.setItem(trackKey, targetUrl);
-                localStorage.setItem(timeKey, "0");
-                localStorage.setItem(stateKey, "true");
-                audio.play().catch(e => console.log("Autoplay policy override needed:", e));
-            }}
-        }}
-
-        window.addEventListener("load", initAudio);
-
-        audio.ontimeupdate = () => {{
-            localStorage.setItem(timeKey, audio.currentTime);
-        }};
-
-        function togglePlay() {{
-            if (audio.paused) {{
-                audio.play();
-                localStorage.setItem(stateKey, "true");
-            }} else {{
-                audio.pause();
-                localStorage.setItem(stateKey, "false");
-            }}
-        }}
-    </script>
-    """
-    components.html(player_html, height=80)
-
-# ==========================================
-# 4. DATABASE SEEDING & CONTROL ENGINE
-# ==========================================
-def init_db(purge_and_reseed=False):
-    conn = sqlite3.connect(DB_FILE)
+# --- DATABASE INITIALIZATION ---
+def init_sovereign_db():
+    conn = sqlite3.connect("sovereign_apex_engine.db", check_same_thread=False)
     cursor = conn.cursor()
-    
-    if purge_and_reseed:
-        cursor.execute("DROP TABLE IF EXISTS mcr_gene_surveillance")
-        cursor.execute("DROP TABLE IF EXISTS business_projects")
-        cursor.execute("DROP TABLE IF EXISTS ppwr_cohort")
-        cursor.execute("DROP TABLE IF EXISTS academic_vault")
-    
-    cursor.execute('''
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS auth_users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            name TEXT NOT NULL,
-            password_hash TEXT NOT NULL,
-            salt TEXT NOT NULL,
-            role TEXT DEFAULT 'user',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            email TEXT PRIMARY KEY,
+            name TEXT,
+            password_hash TEXT,
+            role TEXT,
+            avatar_blob BLOB
         )
-    ''')
+    """)
+    for migration in ("ALTER TABLE auth_users ADD COLUMN avatar_blob BLOB",
+                       "ALTER TABLE auth_users ADD COLUMN salt TEXT",
+                       "ALTER TABLE auth_users ADD COLUMN auth_provider TEXT DEFAULT 'password'",
+                       "ALTER TABLE auth_users ADD COLUMN provider_id TEXT"):
+        try:
+            cursor.execute(migration)
+        except sqlite3.OperationalError:
+            pass  # Column already exists.
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS audit_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            operator TEXT NOT NULL,
-            action TEXT NOT NULL,
-            details TEXT
-        )
-    ''')
-
-    cursor.execute('''
+    # Aligned with the schema Admin Security Center's billing panel actually reads
+    # (plan, trial_started) — previously this file used an incompatible parallel table.
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS subscriptions (
-            user_email TEXT PRIMARY KEY,
-            tier TEXT DEFAULT 'Free',
-            status TEXT DEFAULT 'active',
-            amount_paid_ugx REAL DEFAULT 0.0,
-            expires_at DATE,
-            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            email TEXT PRIMARY KEY,
+            plan TEXT,
+            trial_started TEXT
         )
-    ''')
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS paywall_settings (
-            setting_key TEXT PRIMARY KEY,
-            setting_value TEXT
-        )
-    ''')
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS mcr_gene_surveillance (
-            sample_id TEXT PRIMARY KEY,
-            sample_type TEXT,
-            source_location TEXT,
-            latitude REAL,
-            longitude REAL,
-            mcr_variant TEXT,
-            colistin_mic REAL,
-            isolation_date DATE,
-            notes TEXT
-        )
-    ''')
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS business_projects (
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS live_chat_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            project_name TEXT UNIQUE,
-            lead_entity TEXT,
-            capital_ugx REAL,
-            roi_projection_pct REAL,
-            status TEXT
+            username TEXT,
+            timestamp TEXT,
+            prompt TEXT,
+            response TEXT
         )
-    ''')
+    """)
+    conn.commit()
+    return conn
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS focus_sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_email TEXT,
-            preset_mode TEXT,
-            duration_minutes INTEGER,
-            logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+db_conn = init_sovereign_db()
+
+
+# --- PASSWORD HASHING (PBKDF2-HMAC-SHA256, salted) ---
+def _hash_password(password: str, salt_hex: str = None):
+    salt = bytes.fromhex(salt_hex) if salt_hex else secrets.token_bytes(16)
+    dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, PBKDF2_ITERATIONS)
+    return dk.hex(), salt.hex()
+
+
+def _verify_password(password: str, stored_hash_hex: str, salt_hex: str) -> bool:
+    computed_hash, _ = _hash_password(password, salt_hex)
+    return hmac.compare_digest(computed_hash, stored_hash_hex)
+
+
+# --- BOOTSTRAP: create the first admin ONLY on a genuinely empty database, ONLY from env vars ---
+def ensure_bootstrap_admin():
+    cursor = db_conn.cursor()
+    if cursor.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] > 0:
+        return  # Not a fresh install — the database's stored roles are the sole source of truth.
+
+    bootstrap_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
+    bootstrap_password = os.environ.get("SOVEREIGN_ADMIN_PASSWORD")
+    if bootstrap_email and bootstrap_password:
+        pwd_hash, salt = _hash_password(bootstrap_password)
+        email_norm = bootstrap_email.lower().strip()
+        cursor.execute(
+            "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?,?,?,?,?)",
+            (email_norm, "Administrator", pwd_hash, salt, "admin"),
         )
-    ''')
+        db_conn.commit()
+        # Admins bypass plan checks entirely via is_admin_email() regardless
+        # of what's in `subscriptions` (see modules/subscription.py), but we
+        # still record a real, well-formed row here rather than a legacy
+        # plan="active"/no-status one, so the billing directory reads clean.
+        subscription.admin_override_plan("system:bootstrap", email_norm, "pro", "comp")
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS ppwr_cohort (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            participant_age INTEGER,
-            months_postpartum INTEGER,
-            dra_gap_cm REAL,
-            ppwr_kg REAL,
-            recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+ensure_bootstrap_admin()
+
+
+def sync_designated_admin():
+    """Promotes the account matching SOVEREIGN_ADMIN_EMAIL to admin on every startup, if that
+    account already exists (register it normally first, then restart the app).
+
+    This is the secure replacement for a hardcoded backdoor: the designated admin's email lives
+    only in your deployment's environment variables or Streamlit secrets — never in this source
+    file — so it isn't exposed to anyone who reads or shares this code.
+    """
+    designated_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
+    if not designated_email:
+        try:
+            designated_email = st.secrets.get("SOVEREIGN_ADMIN_EMAIL")
+        except Exception:
+            designated_email = None
+    if not designated_email:
+        return
+
+    designated_email = designated_email.lower().strip()
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT role FROM auth_users WHERE email = ?", (designated_email,))
+    row = cursor.fetchone()
+    if row and row[0] != "admin":
+        cursor.execute("UPDATE auth_users SET role = 'admin' WHERE email = ?", (designated_email,))
+        db_conn.commit()
+
+
+sync_designated_admin()
+
+
+# --- AUTH & SUBSCRIPTION ---
+class AuthStore:
+    def verify_login(self, email, password):
+        cursor = db_conn.cursor()
+        cursor.execute(
+            "SELECT email, name, role, password_hash, salt FROM auth_users WHERE email = ?",
+            (email.lower().strip(),),
         )
-    ''')
+        row = cursor.fetchone()
+        if not row:
+            return None
+        db_email, name, role, stored_hash, salt = row
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS academic_vault (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
-            course_code TEXT,
-            department TEXT,
-            status TEXT,
-            abstract_text TEXT
-        )
-    ''')
+        if not stored_hash:
+            return {"email": db_email, "name": name, "role": role, "oauth_only": True}
 
-    cursor.execute("INSERT OR IGNORE INTO paywall_settings VALUES ('global_paywall_active', 'true')")
+        if salt:
+            if _verify_password(password, stored_hash, salt):
+                return {"email": db_email, "name": name, "role": role}
+            return None
 
-    # Admin User Seed
-    cursor.execute("SELECT * FROM auth_users WHERE email = ?", ("admin@chrishem.apex",))
-    if not cursor.fetchone():
-        salt = os.urandom(16).hex()
-        pwd_hash = hashlib.pbkdf2_hmac('sha256', "AdminPass123!".encode(), salt.encode(), 100000).hex()
+        # Legacy unsalted-SHA256 account: verify against the old scheme, then transparently
+        # upgrade to salted PBKDF2.
+        legacy_hash = hashlib.sha256(password.encode()).hexdigest()
+        if legacy_hash == stored_hash:
+            new_hash, new_salt = _hash_password(password)
+            cursor.execute("UPDATE auth_users SET password_hash = ?, salt = ? WHERE email = ?", (new_hash, new_salt, db_email))
+            db_conn.commit()
+            return {"email": db_email, "name": name, "role": role}
+        return None
+
+    def get_user_by_email(self, email):
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        if row:
+            return {"email": row[0], "name": row[1], "role": row[2]}
+        return None
+
+    def create_user(self, email, name, password, role="user"):
+        cursor = db_conn.cursor()
+        email_norm = email.lower().strip()
+        cursor.execute("SELECT email FROM auth_users WHERE email = ?", (email_norm,))
+        if cursor.fetchone():
+            return {"ok": False, "error": "Email already registered."}
+
+        pwd_hash, salt = _hash_password(password)
         cursor.execute(
             "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
-            ("admin@chrishem.apex", "CHRISHEM", pwd_hash, salt, "admin")
+            (email_norm, name, pwd_hash, salt, role),
         )
+        db_conn.commit()
+        # Route through the real subscription engine instead of writing this
+        # table's row shape by hand here -- one writer, one schema.
+        subscription.ensure_trial_started(email_norm)
+        return {"ok": True}
 
-    cursor.execute("INSERT OR REPLACE INTO subscriptions VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
-                   ("admin@chrishem.apex", "Apex Sovereign", "active", 0.0, "2099-12-31"))
+    def get_or_create_oauth_user(self, email, name, provider, provider_id):
+        cursor = db_conn.cursor()
+        email_norm = email.lower().strip()
+        cursor.execute("SELECT email, name, role FROM auth_users WHERE email = ?", (email_norm,))
+        row = cursor.fetchone()
+        if row:
+            db_email, db_name, role = row
+            cursor.execute(
+                "UPDATE auth_users SET auth_provider = ?, provider_id = ? WHERE email = ?",
+                (provider, provider_id, db_email),
+            )
+            db_conn.commit()
+            return {"email": db_email, "name": db_name or name, "role": role}
 
-    # Seed MCR Surveillance Data
-    cursor.execute("SELECT COUNT(*) FROM mcr_gene_surveillance")
-    if cursor.fetchone()[0] == 0:
-        mcr_samples = [
-            ("MCR-ARUA-001", "Poultry Cecal", "Arua Central Poultry Farm", 3.0305, 30.9073, "mcr-1.1", 8.0, "2026-03-15", "Plasmid mediated resistant strain isolated"),
-            ("MCR-ARUA-002", "Assa River Water", "Assa River Discharge Site", 3.0211, 30.9150, "mcr-1.2", 16.0, "2026-03-18", "Downstream abattoir effluent run-off"),
-            ("MCR-ARUA-003", "Abattoir Drainage", "Arua City Main Abattoir", 3.0280, 30.9110, "mcr-3.1", 32.0, "2026-03-20", "High MIC strain detected in bio-waste"),
-            ("MCR-ARUA-004", "Soil Sediment", "Muni Eco-Farm Composting Zone", 3.0350, 30.9200, "Negative", 0.5, "2026-04-02", "Control sample - no resistance cassette detected"),
-            ("MCR-ARUA-005", "Poultry Cloacal", "Oruko Avian Clinic", 3.0410, 30.8990, "mcr-5.1", 12.0, "2026-04-10", "Multidrug resistant colistin gene cassette")
-        ]
-        cursor.executemany("INSERT INTO mcr_gene_surveillance VALUES (?,?,?,?,?,?,?,?,?)", mcr_samples)
+        cursor.execute(
+            "INSERT INTO auth_users (email, name, password_hash, salt, role, auth_provider, provider_id) "
+            "VALUES (?, ?, NULL, NULL, ?, ?, ?)",
+            (email_norm, name, "user", provider, provider_id),
+        )
+        db_conn.commit()
+        subscription.ensure_trial_started(email_norm)
+        return {"email": email_norm, "name": name, "role": "user"}
 
-    # Seed Business Projects
-    cursor.execute("SELECT COUNT(*) FROM business_projects")
-    if cursor.fetchone()[0] == 0:
-        biz_data = [
-            ("Kidega Fresh Passion-Mango Cooler", "Team Kula", 12500000.0, 34.5, "Active Scaling"),
-            ("Santa Solo Amuca Enterprise", "Galilee Venture", 8000000.0, 22.0, "Field Testing"),
-            ("Galilee Motor Spare Parts", "Galilee Community", 15000000.0, 28.0, "Planning"),
-            ("Galilee Boutique & Salon", "Galilee Community", 6500000.0, 40.0, "Active Operations")
-        ]
-        cursor.executemany("INSERT INTO business_projects (project_name, lead_entity, capital_ugx, roi_projection_pct, status) VALUES (?,?,?,?,?)", biz_data)
 
-    # Seed PPWR Cohort Data
-    cursor.execute("SELECT COUNT(*) FROM ppwr_cohort")
-    if cursor.fetchone()[0] == 0:
-        ppwr_data = [
-            (24, 6, 2.8, 5.2), (29, 12, 1.5, 3.1), (31, 3, 3.5, 8.4),
-            (22, 18, 0.8, 1.2), (35, 9, 2.2, 4.6), (27, 4, 3.1, 7.0)
-        ]
-        cursor.executemany("INSERT INTO ppwr_cohort (participant_age, months_postpartum, dra_gap_cm, ppwr_kg) VALUES (?,?,?,?)", ppwr_data)
+auth_store = AuthStore()
 
-    # Seed Academic Vault Data
-    cursor.execute("SELECT COUNT(*) FROM academic_vault")
-    if cursor.fetchone()[0] == 0:
-        reports = [
-            ("Plasmid-Mediated mcr Gene Surveillance in Poultry and Environmental Samples", "BIO3201", "Biological Sciences", "Completed", "Comprehensive investigation into colistin resistance genes mcr-1 to mcr-5 in livestock and Assa River aquatic channels."),
-            ("Assa River Environmental Impact and Manure Composting Evaluation", "ENV2104", "Biological Sciences", "Submitted", "Field evaluation of Muni University discharge into Assa River and organic composting strategy."),
-            ("Evolutionary Trace of Birds from Theropod Reptilian Ancestors", "ORN3102", "Ornithology & Mammalogy", "Completed", "Comparative anatomical analysis tracing avian flight skeletal adaptations from theropod dinosaurs."),
-            ("Invertebrate Biology Innovations: Soft Robotics & Biomimicry", "INV2201", "Invertebrate Biology", "Completed", "Genomic sequencing and structural biomimicry applications derived from marine invertebrates.")
-        ]
-        cursor.executemany("INSERT INTO academic_vault (title, course_code, department, status, abstract_text) VALUES (?,?,?,?,?)", reports)
 
-    conn.commit()
-    conn.close()
-
-init_db()
-
-def get_db_connection():
-    return sqlite3.connect(DB_FILE)
-
-def log_audit(operator, action, details=""):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("INSERT INTO audit_logs (operator, action, details) VALUES (?, ?, ?)", (operator, action, details))
-    conn.commit()
-    conn.close()
-
-# ==========================================
-# 5. ACCESS CONTROL & PAYWALL GUARD
-# ==========================================
-def is_paywall_enabled():
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT setting_value FROM paywall_settings WHERE setting_key = 'global_paywall_active'")
-    row = c.fetchone()
-    conn.close()
-    return row[0] == 'true' if row else False
-
-def check_user_access(email, required_tier="Pro"):
-    if st.session_state.get("role") == "admin": return True, "Admin Grant"
-    if not is_paywall_enabled(): return True, "Paywall Disabled"
-
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT tier, status, expires_at FROM subscriptions WHERE user_email = ?", (email.lower(),))
-    sub = c.fetchone()
-    conn.close()
-
-    if not sub: return False, "No active subscription tier found."
-    tier, status, expires_at = sub
-    if status != "active": return False, f"Subscription status is '{status}'."
-    if expires_at and datetime.strptime(expires_at, "%Y-%m-%d").date() < datetime.now().date(): return False, "Expired."
-
-    tier_levels = {"Free": 0, "Pro": 1, "Apex Sovereign": 2}
-    if tier_levels.get(tier, 0) < tier_levels.get(required_tier, 1):
-        return False, f"Requires '{required_tier}' tier."
-
-    return True, "Access Granted"
-
-def render_paywall_screen(module_name, required_tier="Pro"):
-    st.markdown(f"""
-    <div class="paywall-card">
-        <h2 style="color: #818CF8; margin-top:0;">🔒 {module_name} is Locked</h2>
-        <p style="color: #E0E7FF; font-size: 1.1rem;">Access restricted under subscription policies.</p>
-        <p style="color: #9CA3AF;">Required Tier: <strong style="color:#38BDF8;">{required_tier} Tier</strong></p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ==========================================
-# 6. SESSION STATE & FULL 25-TRACK SOUND CATALOG
-# ==========================================
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = True
-    st.session_state.user_email = "admin@chrishem.apex"
-    st.session_state.username = "CHRISHEM"
-    st.session_state.role = "admin"
-
-st.sidebar.title("⚡ Sovereign Apex")
-st.sidebar.markdown(f"<h3 style='margin:0; color:#F8FAFC;'>{st.session_state.username}</h3>", unsafe_allow_html=True)
-st.sidebar.caption(f"Operator: **{st.session_state.role.upper()}**")
-st.sidebar.divider()
-
-# EXPLICIT FULL 25-TRACK AUDIO PRESET CATALOG ACROSS 5 CATEGORIES
-SOUND_CATALOG = {
-    "🧠 Brain Wiring & Neural Frequencies (5 Tracks)": {
-        "1. 432Hz Deep Focus Pulse": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
-        "2. 528Hz Solfeggio Tone": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3",
-        "3. Alpha Waves Concentration (10Hz)": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
-        "4. Gamma Peak Focus (40Hz)": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
-        "5. Beta Wave Cognition Engine (18Hz)": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3"
+# --- OAUTH (Google / GitHub — real Authorization Code flow) ---
+OAUTH_PROVIDERS = {
+    "google": {
+        "label": "Google",
+        "icon": "🔴",
+        "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+        "token_url": "https://oauth2.googleapis.com/token",
+        "userinfo_url": "https://www.googleapis.com/oauth2/v3/userinfo",
+        "scope": "openid email profile",
+        "client_id_env": "GOOGLE_CLIENT_ID",
+        "client_secret_env": "GOOGLE_CLIENT_SECRET",
     },
-    "🔊 Noise Generators & Deep Focus (5 Tracks)": {
-        "6. Smooth Brown Noise": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
-        "7. Soothing Pink Noise": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
-        "8. Pure White Noise Masker": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
-        "9. Deep Space Frequency Drone": "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73232.mp3",
-        "10. Binaural Sub-Bass Resonance": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3"
+    "github": {
+        "label": "GitHub",
+        "icon": "⚫",
+        "authorize_url": "https://github.com/login/oauth/authorize",
+        "token_url": "https://github.com/login/oauth/access_token",
+        "userinfo_url": "https://api.github.com/user",
+        "scope": "read:user user:email",
+        "client_id_env": "GITHUB_CLIENT_ID",
+        "client_secret_env": "GITHUB_CLIENT_SECRET",
     },
-    "🌧️ Weather & Rain Acoustics (5 Tracks)": {
-        "11. Gentle Rain & Soft Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
-        "12. Heavy Rain on Roof": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3",
-        "13. Soft Rain on Glass Window": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
-        "14. Distant Thunderstorm Ambience": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
-        "15. Tropical Downpour Flow": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3"
-    },
-    "🌿 Nature & Environmental Ambience (5 Tracks)": {
-        "16. Forest River & Birds": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3",
-        "17. Deep Ocean Waves Crashing": "https://cdn.pixabay.com/download/audio/2022/04/27/audio_651a021132.mp3",
-        "18. Crackling Campfire Night": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
-        "19. Night Jungle & Crickets": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
-        "20. High Mountain Wind Ambience": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"
-    },
-    "🎧 Lo-Fi & Study Beats (5 Tracks)": {
-        "21. Lo-Fi Study Groove": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
-        "22. Midnight City Lo-Fi Chill": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
-        "23. Coffee Shop Acoustic Chill": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
-        "24. Cozy Fireside Lo-Fi Session": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
-        "25. Soft Piano & Ambient Strings": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3"
-    }
 }
 
-# Attach Local Custom Uploaded Tracks
-custom_tracks = get_custom_sounds_catalog()
-if custom_tracks:
-    SOUND_CATALOG["📁 Custom Uploaded Sounds"] = custom_tracks
 
-st.sidebar.subheader("🎧 Persistent Sound Center")
+def _oauth_config_value(name):
+    val = os.environ.get(name)
+    if val:
+        return val
+    try:
+        return st.secrets.get(name)
+    except Exception:
+        return None
 
-# File Uploader for Custom Audio
-uploaded_sound = st.sidebar.file_uploader("Upload Local Audio (MP3/WAV/OGG)", type=["mp3", "wav", "ogg", "m4a"])
-if uploaded_sound:
-    saved_path = save_uploaded_audio(uploaded_sound)
-    st.sidebar.success(f"Saved to disk: {uploaded_sound.name}")
+
+def get_configured_providers():
+    configured = {}
+    for key, cfg in OAUTH_PROVIDERS.items():
+        cid = _oauth_config_value(cfg["client_id_env"])
+        secret = _oauth_config_value(cfg["client_secret_env"])
+        if cid and secret:
+            configured[key] = {**cfg, "client_id": cid, "client_secret": secret}
+    return configured
+
+
+def get_redirect_uri():
+    return _oauth_config_value("OAUTH_REDIRECT_URI") or ""
+
+
+def build_authorize_url(provider_key, cfg):
+    token = secrets.token_urlsafe(24)
+    pending = st.session_state.setdefault("oauth_pending", {})
+    pending[token] = provider_key
+
+    params = {
+        "client_id": cfg["client_id"],
+        "redirect_uri": get_redirect_uri(),
+        "scope": cfg["scope"],
+        "state": token,
+        "response_type": "code",
+    }
+    if provider_key == "google":
+        params["access_type"] = "online"
+        params["prompt"] = "select_account"
+    return f"{cfg['authorize_url']}?{urllib.parse.urlencode(params)}"
+
+
+def exchange_code_for_token(cfg, code):
+    resp = requests.post(
+        cfg["token_url"],
+        data={
+            "client_id": cfg["client_id"],
+            "client_secret": cfg["client_secret"],
+            "code": code,
+            "redirect_uri": get_redirect_uri(),
+            "grant_type": "authorization_code",
+        },
+        headers={"Accept": "application/json"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json().get("access_token")
+
+
+def fetch_oauth_profile(provider_key, cfg, access_token):
+    headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+    resp = requests.get(cfg["userinfo_url"], headers=headers, timeout=10)
+    resp.raise_for_status()
+    data = resp.json()
+
+    if provider_key == "google":
+        return {
+            "email": data.get("email"),
+            "name": data.get("name") or data.get("email", "").split("@")[0],
+            "provider_id": data.get("sub"),
+        }
+
+    if provider_key == "github":
+        email = data.get("email")
+        if not email:
+            email_resp = requests.get("https://api.github.com/user/emails", headers=headers, timeout=10)
+            if email_resp.ok:
+                for entry in email_resp.json():
+                    if entry.get("primary") and entry.get("verified"):
+                        email = entry.get("email")
+                        break
+        return {
+            "email": email,
+            "name": data.get("name") or data.get("login"),
+            "provider_id": str(data.get("id")),
+        }
+
+    return {"email": None, "name": None, "provider_id": None}
+
+
+def handle_oauth_callback():
+    query = st.query_params
+    code = query.get("code")
+    returned_state = query.get("state")
+    if not code or not returned_state:
+        return False
+
+    pending = st.session_state.get("oauth_pending", {})
+    provider_key = pending.get(returned_state)
+    if not provider_key or provider_key not in OAUTH_PROVIDERS:
+        st.query_params.clear()
+        st.error("OAuth sign-in failed a security check (unrecognized state). Please try again.")
+        return False
+
+    configured = get_configured_providers()
+    cfg = configured.get(provider_key)
+    if not cfg:
+        st.query_params.clear()
+        st.error(f"{provider_key.title()} sign-in is not configured on this deployment.")
+        return False
+
+    try:
+        access_token = exchange_code_for_token(cfg, code)
+        if not access_token:
+            raise ValueError("No access token returned.")
+        profile = fetch_oauth_profile(provider_key, cfg, access_token)
+        if not profile.get("email"):
+            raise ValueError("The provider didn't return a usable email address.")
+    except Exception as e:
+        st.query_params.clear()
+        st.error(f"{provider_key.title()} sign-in failed: {e}")
+        return False
+
+    user = auth_store.get_or_create_oauth_user(
+        profile["email"], profile["name"] or profile["email"], provider_key, profile["provider_id"]
+    )
+    st.session_state.portal_unlocked = True
+    st.session_state.user_identity = {
+        "email": user["email"],
+        "name": user["name"],
+        "role": user["role"],
+        "is_admin": user["role"] == "admin",
+    }
+    cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
+    subscription.ensure_trial_started(user["email"])
+    st.session_state.pop("oauth_pending", None)
+    st.query_params.clear()
     st.rerun()
 
-sound_category = st.sidebar.selectbox("Sound Category", list(SOUND_CATALOG.keys()))
-selected_sound_name = st.sidebar.selectbox("Select Track", list(SOUND_CATALOG[sound_category].keys()))
-active_audio_url = SOUND_CATALOG[sound_category][selected_sound_name]
 
-# Render persistent floating HTML audio player
-render_persistent_audio_player(active_audio_url, selected_sound_name)
+def render_oauth_buttons():
+    configured = get_configured_providers()
+    if not configured:
+        return
+    if not get_redirect_uri():
+        st.caption(
+            "Social sign-in provider credentials are set, but `OAUTH_REDIRECT_URI` is missing — "
+            "set it to this app's exact deployed URL to enable the buttons below."
+        )
+        return
 
-st.sidebar.divider()
+    for key, cfg in configured.items():
+        url = build_authorize_url(key, cfg)
+        st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, use_container_width=True)
+    st.markdown(
+        "<div style='text-align:center; color:#94A3B8; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>",
+        unsafe_allow_html=True,
+    )
 
-menu = st.sidebar.radio("Navigation Engine", [
-    "⚡ System Overview",
-    "🧠 Neuro-Sonic Focus Engine",
-    "👤 Identity & App Creator",
-    "💳 Admin Billing Control",
-    "📊 Notion Workspace Sync",
-    "🧬 Bioinformatics Engine",
-    "🗺️ GIS Resistance Map",
-    "🌊 Environmental Compliance",
-    "💼 Business Portfolio",
-    "📊 Epidemiological Cohort",
-    "💬 Local AI & NLP Bridge",
-    "🗂️ Academic Report Vault",
-    "🛡️ Security & Database Core"
-])
 
-st.sidebar.divider()
-st.sidebar.caption("Architecture: `CHRISHEM-APEX-v6.5`")
-
-# ==========================================
-# 7. MODULE IMPLEMENTATIONS
-# ==========================================
-
-# ------------------------------------------
-# MODULE 1: SYSTEM OVERVIEW
-# ------------------------------------------
-if menu == "⚡ System Overview":
-    st.title("⚡ Sovereign Apex Control Portal")
-    st.caption("Operational Telemetry & System Core")
-
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("System Modules", "13 Active", "Operational")
-    m2.metric("Paywall Guard", "Active" if is_paywall_enabled() else "Disabled", "Bypass Admin")
-    m3.metric("Audio Presets", "25 Tracks", "Loaded")
-    m4.metric("App Creator", "CHRISHEM", "Active")
-
-    st.divider()
-    col_l, col_r = st.columns([2, 1])
-
-    with col_l:
-        st.subheader("📌 Database Tables Telemetry")
-        conn = get_db_connection()
-        c = conn.cursor()
-        c.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = [t[0] for t in c.fetchall()]
-        
-        table_stats = []
-        for tbl in tables:
-            c.execute(f"SELECT COUNT(*) FROM {tbl}")
-            count = c.fetchone()[0]
-            table_stats.append({"Table Name": tbl, "Record Count": count})
-        conn.close()
-        st.dataframe(pd.DataFrame(table_stats), use_container_width=True)
-
-    with col_r:
-        st.subheader("📁 Saved Custom Audio Files")
-        if custom_tracks:
-            for t_name in custom_tracks.keys():
-                st.write(f"🎵 `{t_name}`")
+def handle_checkout_return():
+    """Stripe redirects back to APP_BASE_URL after Checkout with
+    ?checkout=success&session_id=... . Verify it server-side against
+    Stripe's own API (never trust the URL alone) and apply the result."""
+    qp = st.query_params
+    if qp.get("checkout") == "success" and qp.get("session_id"):
+        result = billing_stripe.verify_checkout_session(qp["session_id"])
+        st.query_params.clear()
+        if result:
+            st.session_state["_billing_toast"] = f"✅ Upgraded to **{result['plan'].title()}** — welcome aboard."
         else:
-            st.info("No custom audio files uploaded yet.")
+            st.session_state["_billing_toast"] = (
+                "⚠️ We couldn't confirm that payment yet. If you were charged, use "
+                "'Resync billing status' in Billing & Subscription, or try again."
+            )
+    elif qp.get("checkout") == "cancelled":
+        st.query_params.clear()
+        st.session_state["_billing_toast"] = "ℹ️ Checkout cancelled — no charge was made."
 
-# ------------------------------------------
-# MODULE 2: NEURO-SONIC FOCUS ENGINE
-# ------------------------------------------
-elif menu == "🧠 Neuro-Sonic Focus Engine":
-    st.title("🧠 Zenith Neuro-Sonic Engine")
-    st.caption("Brain Wiring Frequency Generator & Complete 25-Track Sound Catalog")
 
-    f_tab1, f_tab2, f_tab3 = st.tabs([
-        "🎵 Complete 25-Track Catalog Matrix", 
-        "🎛️ Generative Web-Audio Synthesizer", 
-        "📈 Focus Log Analytics"
-    ])
+def is_admin():
+    identity = st.session_state.get("user_identity", {})
+    return identity.get("role") == "admin"
 
-    with f_tab1:
-        st.subheader("🎼 Full 25 Preset Audio Catalog Overview")
-        st.markdown("Select any sound below to set it as your active playback track across the application:")
-        
-        catalog_items = []
-        for cat_name, tracks in SOUND_CATALOG.items():
-            if cat_name != "📁 Custom Uploaded Sounds":
-                for track_name, track_url in tracks.items():
-                    catalog_items.append({"Category": cat_name, "Track Title": track_name, "URL": track_url})
-        
-        cat_df = pd.DataFrame(catalog_items)
-        st.dataframe(cat_df, use_container_width=True)
 
-    with f_tab2:
-        web_audio_synth_code = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { background-color: #0d1117; color: #f0f6fc; font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
-                .synth-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-                .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 15px 0; }
-                .btn { background: #21262d; border: 1px solid #363b42; color: #c9d1d9; padding: 12px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: 600; font-size: 13px; }
-                .btn:hover { border-color: #58a6ff; background: #30363d; }
-                .btn.active { background: #1f6feb; border-color: #58a6ff; color: #fff; }
-                .play-btn { background: #238636; border: none; color: white; width: 100%; padding: 14px; font-size: 16px; font-weight: 700; border-radius: 8px; cursor: pointer; margin-top: 10px; }
-                .play-btn.playing { background: #da3633; }
-            </style>
-        </head>
-        <body>
-        <div class="synth-card">
-            <h3 style="margin:0 0 5px 0; color:#58a6ff;">🔊 Real-Time Binaural & Frequency Synthesizer</h3>
-            <p style="margin:0 0 15px 0; font-size:12px; color:#8b949e;">Generate live neural frequencies natively in browser:</p>
-            <div class="grid">
-                <div class="btn active" id="mode-binaural" onclick="setMode('binaural')">🧠 Beta Binaural (15Hz)</div>
-                <div class="btn" id="mode-solfeggio" onclick="setMode('solfeggio')">✨ Solfeggio 528Hz</div>
-                <div class="btn" id="mode-pad" onclick="setMode('pad')">🎹 Deep Ambient Pad</div>
-                <div class="btn" id="mode-delta" onclick="setMode('delta')">🌙 Delta Sleep (2Hz)</div>
-            </div>
-            <button id="masterBtn" class="play-btn" onclick="toggleAudio()">▶️ Start Synthesizer</button>
-        </div>
-        <script>
-            let audioCtx = null;
-            let isPlaying = false;
-            let currentMode = 'binaural';
-            let currentNodes = [];
+def get_user_avatar_base64(email):
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT avatar_blob FROM auth_users WHERE email = ?", (email,))
+    row = cursor.fetchone()
+    if row and row[0]:
+        return base64.b64encode(row[0]).decode("utf-8")
+    img_path = "chrishem.png"
+    if os.path.exists(img_path):
+        with open(img_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+    return None
 
-            function setMode(mode) {
-                currentMode = mode;
-                document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-                document.getElementById(`mode-${mode}`).classList.add('active');
-                if (isPlaying) { stopSound(); playSound(); }
+
+# --- STARTER CONFIG BUNDLE ---
+def create_starter_bundle(platform_name):
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr(
+            "README.md",
+            f"# Chrishem Science Hub — Starter Notes ({platform_name})\n\n"
+            "This is a minimal configuration reference bundle, not a packaged native application. "
+            "To actually run the platform, deploy this Streamlit app's source (`streamlit run app.py`) "
+            f"on your {platform_name} environment with Python 3.10+ and the project's `requirements.txt`.",
+        )
+        zip_file.writestr("config.toml", "[server]\nheadless = true\nenableCORS = false")
+    return zip_buffer.getvalue()
+
+
+starter_win = create_starter_bundle("Windows")
+starter_linux = create_starter_bundle("Linux")
+starter_mac = create_starter_bundle("macOS")
+starter_pwa = create_starter_bundle("Mobile / PWA")
+
+# --- STYLING ---
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #F8FAFC !important;
+    }
+
+    .stApp {
+        background: radial-gradient(circle at 15% 20%, #0d1326 0%, #04060a 85%);
+        background-attachment: fixed;
+    }
+
+    .portal-hero-card {
+        background: rgba(17, 24, 39, 0.82);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        border-radius: 28px;
+        padding: 35px 30px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(56, 189, 248, 0.15);
+        max-width: 860px;
+        margin: 0 auto;
+    }
+
+    .portal-title {
+        font-size: 2.3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #F472B6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+    }
+
+    .portal-subtitle {
+        font-size: 0.95rem;
+        color: #94A3B8 !important;
+        font-weight: 600;
+        text-align: center;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+    }
+
+    .profile-glow-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #38BDF8;
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
+    }
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: rgba(15, 23, 42, 0.6);
+        padding: 6px;
+        border-radius: 14px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 44px;
+        border-radius: 10px;
+        color: #94A3B8;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)) !important;
+        color: #38BDF8 !important;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .download-grid-card {
+        background: rgba(30, 41, 59, 0.65);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        padding: 16px;
+        border-radius: 14px;
+        text-align: center;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+    .download-grid-card:hover {
+        border-color: rgba(56, 189, 248, 0.6);
+        box-shadow: 0 6px 25px rgba(56, 189, 248, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .glass-hr {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.35), transparent);
+        margin: 1.5rem 0;
+    }
+
+    .workspace-metric {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 16px;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    .workspace-metric .metric-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #38BDF8, #818CF8, #F472B6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .workspace-metric .metric-label {
+        font-size: 0.75rem;
+        color: #94A3B8 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 0.3rem;
+        font-weight: 700;
+    }
+
+    [data-testid="stSidebar"] {
+        background-color: #050810 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+from modules.user_preferences import render_readability_fix, render_accent_color_css
+render_readability_fix()
+render_accent_color_css()
+
+# --- SESSION STATE & COOKIE RESTORATION ---
+if "portal_unlocked" not in st.session_state:
+    st.session_state.portal_unlocked = False
+if "user_identity" not in st.session_state:
+    st.session_state.user_identity = {}
+
+handle_oauth_callback()
+
+if not st.session_state.portal_unlocked:
+    saved_email = cookie_manager.get(cookie="chrishem_user_email")
+    if saved_email:
+        user_record = auth_store.get_user_by_email(saved_email)
+        if user_record:
+            st.session_state.portal_unlocked = True
+            st.session_state.user_identity = {
+                "email": user_record["email"],
+                "name": user_record["name"],
+                "role": user_record["role"],
+                "is_admin": user_record["role"] == "admin",
             }
+            subscription.ensure_trial_started(user_record["email"])
 
-            function toggleAudio() {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                if (!isPlaying) {
-                    isPlaying = true;
-                    document.getElementById('masterBtn').innerText = '⏸️ Stop Synthesizer';
-                    document.getElementById('masterBtn').classList.add('playing');
-                    playSound();
-                } else {
-                    isPlaying = false;
-                    document.getElementById('masterBtn').innerText = '▶️ Start Synthesizer';
-                    document.getElementById('masterBtn').classList.remove('playing');
-                    stopSound();
-                }
-            }
+if st.session_state.portal_unlocked:
+    handle_checkout_return()
 
-            function stopSound() {
-                currentNodes.forEach(n => { try { if (n.stop) n.stop(); n.disconnect(); } catch(e){} });
-                currentNodes = [];
-            }
+# --- PORTAL GATEWAY SCREEN (LOCKED STATE) ---
+if not st.session_state.portal_unlocked:
+    st.markdown("<style>[data-testid=\"stSidebar\"] {display: none;}</style>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 
-            function playSound() {
-                stopSound();
-                let masterGain = audioCtx.createGain();
-                masterGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                masterGain.connect(audioCtx.destination);
-
-                if (currentMode === 'binaural' || currentMode === 'delta') {
-                    let oscL = audioCtx.createOscillator();
-                    let oscR = audioCtx.createOscillator();
-                    let diff = currentMode === 'binaural' ? 15 : 2;
-                    oscL.type = 'sine'; oscL.frequency.value = 210;
-                    oscR.type = 'sine'; oscR.frequency.value = 210 + diff;
-                    oscL.connect(masterGain); oscR.connect(masterGain);
-                    oscL.start(); oscR.start();
-                    currentNodes.push(oscL, oscR);
-                } else if (currentMode === 'solfeggio') {
-                    let osc = audioCtx.createOscillator();
-                    osc.type = 'sine'; osc.frequency.value = 528;
-                    osc.connect(masterGain); osc.start();
-                    currentNodes.push(osc);
-                } else if (currentMode === 'pad') {
-                    [130.81, 164.81, 196.00, 246.94].forEach(f => {
-                        let osc = audioCtx.createOscillator();
-                        osc.type = 'sawtooth'; osc.frequency.value = f;
-                        let filter = audioCtx.createBiquadFilter();
-                        filter.type = 'lowpass'; filter.frequency.value = 400;
-                        osc.connect(filter).connect(masterGain);
-                        osc.start(); currentNodes.push(osc);
-                    });
-                }
-            }
-        </script>
-        </body>
-        </html>
-        """
-        components.html(web_audio_synth_code, height=260, scrolling=False)
-
-    with f_tab3:
-        st.subheader("⏱️ Record Focus Session")
-        with st.form("log_focus_session"):
-            c_p, c_d = st.columns(2)
-            session_preset = c_p.selectbox("Preset Mode", ["Beta Binaural (15 Hz)", "Solfeggio 528Hz", "Deep Ambient Pad", "Delta Sleep (2 Hz)"])
-            duration_mins = c_d.number_input("Session Duration (Minutes)", min_value=5, max_value=240, value=25, step=5)
-
-            if st.form_submit_button("Record Session", type="primary"):
-                conn = get_db_connection()
-                c = conn.cursor()
-                c.execute("INSERT INTO focus_sessions (user_email, preset_mode, duration_minutes) VALUES (?, ?, ?)",
-                          (st.session_state.user_email, session_preset, duration_mins))
-                conn.commit()
-                conn.close()
-                st.success(f"Logged {duration_mins} mins of {session_preset}")
-                st.rerun()
-
-        conn = get_db_connection()
-        focus_df = pd.read_sql_query("SELECT * FROM focus_sessions ORDER BY logged_at DESC", conn)
-        conn.close()
-        st.dataframe(focus_df, use_container_width=True)
-
-# ------------------------------------------
-# MODULE 3: IDENTITY & APP CREATOR (CHRISHEM SHOWCASE)
-# ------------------------------------------
-elif menu == "👤 Identity & App Creator":
-    st.title("👑 App Creator & System Identity")
-    st.caption("Sovereign System Architect Profile")
-
-    # Initialize photo in session state
-    if "creator_photo_b64" not in st.session_state:
-        st.session_state.creator_photo_b64 = load_file_as_base64(CREATOR_IMAGE_PATH)
-
-    # Photo Upload Controls
-    with st.expander("🖼️ Upload / Change Profile Photo"):
-        uploaded_profile = st.file_uploader("Select Image (JPG/PNG)", type=["jpg", "jpeg", "png"])
-        if uploaded_profile:
-            encoded = base64.b64encode(uploaded_profile.read()).decode("utf-8")
-            mime = uploaded_profile.type
-            st.session_state.creator_photo_b64 = f"data:{mime};base64,{encoded}"
-            st.success("Profile image updated successfully!")
-            st.rerun()
-
-    image_b64 = st.session_state.get("creator_photo_b64")
-
-    if image_b64:
-        avatar_html = f'<img src="{image_b64}" class="creator-avatar-img" alt="CHRISHEM Profile">'
-    else:
-        avatar_html = '<div style="width:100%; height:100%; border-radius:50%; background:#1E293B; display:flex; align-items:center; justify-content:center; font-size:3rem;">👑</div>'
+    gateway_avatar_b64 = get_user_avatar_base64("")
+    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
 
     st.markdown(f"""
-    <div class="creator-card">
-        <div class="creator-avatar-frame">
-            {avatar_html}
-        </div>
-        <div class="creator-details">
-            <span class="creator-badge">⚡ CHRISHEM SOVEREIGN APEX ARCHITECT</span>
-            <h1>CHRISHEM</h1>
-            <p style="color: #94A3B8; font-size: 1.1rem; margin: 0 0 10px 0;">
-                Independent Recording Artist, Music Producer & Bio-Data Software Engineer
-            </p>
-            <p style="color: #CBD5E1; font-size: 0.95rem; margin: 0;">
-                📍 <b>Location:</b> Arua, Uganda | 🎓 <b>Academic:</b> Muni University (BSMB, Reg: 2501202072)
-            </p>
-        </div>
+    <div class="portal-hero-card">
+        <div class="profile-glow-wrap">{avatar_html}</div>
+        <div class="portal-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
+        <div class="portal-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
     </div>
     """, unsafe_allow_html=True)
 
-    if not image_b64:
-        st.info(f"💡 Note: To display your photo by default, ensure your image is placed at `{CREATOR_IMAGE_PATH}`.")
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-    st.divider()
-
-    c_col1, c_col2 = st.columns(2)
-    with c_col1:
-        st.subheader("🎓 Academic & Research Profile")
-        st.markdown("""
-        * **Full Name:** Kula Chris
-        * **Stage / Admin Name:** CHRISHEM (Chris Shem)
-        * **Registration Number:** `2501202072`
-        * **Degree:** Bachelor of Science in Biological Sciences (BSMB)
-        * **Institution:** Muni University (Faculty of Science)
-        * **Core Focus:** Bioinformatics, $mcr$ Plasmid Resistance Surveillance, Clinical Data Analytics
-        """)
-
-    with c_col2:
-        st.subheader("💻 Software & Creative Stack")
-        st.markdown("""
-        * **Frontend & Dashboards:** Python Streamlit, HTML5/CSS3, Web Audio API
-        * **Backend & Database:** SQLite3, RESTful APIs, Docker, Notion Integration
-        * **Data Science:** Pandas, NumPy, Plotly, SQL, Tableau, Power BI
-        * **Music & Audio:** R&B, Amapiano, Afrobeat Production & Binaural Neural Frequency Synthesis
-        """)
-
-# ------------------------------------------
-# MODULE 4: ADMIN BILLING CONTROL
-# ------------------------------------------
-elif menu == "💳 Admin Billing Control":
-    st.title("💳 Subscription & Paywall Administration")
-    if st.session_state.role != "admin":
-        st.error("⛔ Administrator privileges required.")
-    else:
-        st.subheader("⚙️ System Paywall Enforcer")
-        curr_paywall = is_paywall_enabled()
-        paywall_toggle = st.toggle("Enable Paywall System-Wide", value=curr_paywall)
-        
-        if paywall_toggle != curr_paywall:
-            conn = get_db_connection()
-            c = conn.cursor()
-            c.execute("UPDATE paywall_settings SET setting_value = ? WHERE setting_key = 'global_paywall_active'",
-                      ('true' if paywall_toggle else 'false',))
-            conn.commit()
-            conn.close()
-            st.success(f"Paywall state set to: **{'ACTIVE' if paywall_toggle else 'DISABLED'}**")
-            st.rerun()
-
-        st.divider()
-        st.subheader("👥 Manage User Subscriptions")
-        conn = get_db_connection()
-        subs_df = pd.read_sql_query("SELECT * FROM subscriptions", conn)
-        conn.close()
-        st.dataframe(subs_df, use_container_width=True)
-
-# ------------------------------------------
-# MODULE 5: NOTION WORKSPACE SYNC
-# ------------------------------------------
-elif menu == "📊 Notion Workspace Sync":
-    st.title("📊 Notion Workspace Synchronization")
-    st.caption("Live SQLite to Notion Database Pipeline Bridge")
-
-    notion_key = st.text_input("Notion Integration Token", type="password", value="secret_notion_demo_token_apex")
-    database_id = st.text_input("Notion Database ID", value="c1d2e3f4a5b67890")
-
-    col_s1, col_s2 = st.columns(2)
-    with col_s1:
-        if st.button("🔄 Sync Local Research to Notion", type="primary"):
-            st.success("Successfully synchronized local SQLite tables with Notion workspace!")
-            log_audit(st.session_state.username, "notion_sync", f"Synced to db {database_id}")
-
-    with col_s2:
-        if st.button("📥 Pull Remote Notion Entries"):
-            st.info("Remote payload received. 0 conflicts found.")
-
-# ------------------------------------------
-# MODULE 6: BIOINFORMATICS ENGINE
-# ------------------------------------------
-elif menu == "🧬 Bioinformatics Engine":
-    allowed, msg = check_user_access(st.session_state.user_email, required_tier="Pro")
-    if not allowed:
-        render_paywall_screen("Bioinformatics Engine", required_tier="Pro")
-    else:
-        st.title("🧬 Bioinformatics & DNA Sequence Analyzer")
-        st.caption("Gene Motif Scanner & Mobile Colistin Resistance (mcr) Sequence Profiler")
-
-        sample_seq = st.text_area("Input FASTA / DNA Sequence", value="ATGCGATCGAATTCGCGTACAGCTAGCTAGCTAGCTAGCACCACCACCACGAATTCGGATCC", height=120)
-        
-        if st.button("Analyze Sequence Pattern", type="primary"):
-            seq = sample_seq.upper().replace("\n", "").replace(" ", "")
-            length = len(seq)
-            gc_content = ((seq.count('G') + seq.count('C')) / length * 100) if length > 0 else 0
-            
-            st.markdown(f"**Sequence Length:** `{length} bp` | **GC Content:** `{gc_content:.2f}%`")
-            
-            motifs = {"EcoRI Restriction Site": "GAATTC", "BamHI Restriction Site": "GGATCC", "Colistin Cassette Motif": "ACCACC"}
-            st.subheader("🔎 Identified Sequence Motifs")
-            found = False
-            for name, pattern in motifs.items():
-                if pattern in seq:
-                    st.write(f"✅ **{name}** (`{pattern}`) found at index: `{seq.find(pattern)}`")
-                    found = True
-            if not found:
-                st.info("No matching standard resistance motifs found in input sequence.")
-
-# ------------------------------------------
-# MODULE 7: GIS RESISTANCE MAP
-# ------------------------------------------
-elif menu == "🗺️ GIS Resistance Map":
-    st.title("🗺️ Geospatial Resistance Mapping (Arua Region)")
-    st.caption("Spatial surveillance of plasmid-mediated colistin resistance genes")
-
-    conn = get_db_connection()
-    gis_df = pd.read_sql_query("SELECT * FROM mcr_gene_surveillance", conn)
-    conn.close()
-
-    st.dataframe(gis_df, use_container_width=True)
-
-    if HAS_PLOTLY:
-        fig = px.scatter_mapbox(
-            gis_df,
-            lat="latitude",
-            lon="longitude",
-            color="mcr_variant",
-            size="colistin_mic",
-            hover_name="sample_id",
-            hover_data=["sample_type", "source_location", "colistin_mic"],
-            zoom=11,
-            height=450,
-            title="Arua City mcr Gene Distribution Map"
+    no_admin_yet = db_conn.execute("SELECT COUNT(*) FROM auth_users WHERE role = 'admin'").fetchone()[0] == 0
+    if no_admin_yet:
+        st.warning(
+            "⚙️ **First-time setup:** no admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
+            "`SOVEREIGN_ADMIN_PASSWORD` environment variables and restart the app, or register a normal "
+            "account below and manually set its role to `admin` in the database."
         )
-        fig.update_layout(mapbox_style="carto-darkmatter")
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.map(gis_df[["latitude", "longitude"]])
 
-# ------------------------------------------
-# MODULE 8: ENVIRONMENTAL COMPLIANCE
-# ------------------------------------------
-elif menu == "🌊 Environmental Compliance":
-    st.title("🌊 Assa River & Abattoir Environmental Compliance")
-    st.caption("Waste discharge analysis and organic composting yield calculator")
+    _, portal_col, _ = st.columns([0.4, 3.2, 0.4])
+    with portal_col:
+        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register Account", "📱 Ecosystem Downloads"])
 
-    col_e1, col_e2 = st.columns(2)
-    with col_e1:
-        st.subheader("💩 Organic Composting Yield Calculator")
-        manure_kg = st.number_input("Raw Waste Input (kg/day)", value=250, step=10)
-        carbon_ratio = st.slider("C:N Ratio Adjustment Factor", 15, 35, 25)
-        
-        compost_yield = manure_kg * 0.45 * (carbon_ratio / 25)
-        st.metric("Estimated High-Grade Organic Fertilizer", f"{compost_yield:.1f} kg/day")
+        with tab_signin:
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
-    with col_e2:
-        st.subheader("💧 Assa River Discharge Quality Score")
-        bod = st.number_input("Biological Oxygen Demand (BOD mg/L)", value=45)
-        coliform = st.number_input("Fecal Coliform (MPN/100ml)", value=1200)
-        
-        status = "COMPLIANT" if bod < 50 and coliform < 1000 else "NON-COMPLIANT"
-        st.metric("Regulatory Compliance Status", status, delta_color="normal" if status=="COMPLIANT" else "inverse")
+            render_oauth_buttons()
 
-# ------------------------------------------
-# MODULE 9: BUSINESS PORTFOLIO
-# ------------------------------------------
-elif menu == "💼 Business Portfolio":
-    st.title("💼 Enterprise Venture Portfolio & ROI Projections")
+            si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
+            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="••••••••")
+            remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
-    conn = get_db_connection()
-    biz_df = pd.read_sql_query("SELECT * FROM business_projects", conn)
-    conn.close()
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            if st.button("🚀 Unlock Portal Workspace", use_container_width=True):
+                user = auth_store.verify_login(si_email, si_password)
+                if user is None:
+                    st.error("Incorrect email or password.")
+                elif user.get("oauth_only"):
+                    st.warning(
+                        "This account was created via social sign-in and has no password set. "
+                        "Use one of the 'Continue with...' buttons above instead."
+                    )
+                else:
+                    st.session_state.portal_unlocked = True
+                    st.session_state.user_identity = {
+                        "email": user["email"],
+                        "name": user["name"],
+                        "role": user["role"],
+                        "is_admin": user["role"] == "admin",
+                    }
+                    if remember_me:
+                        cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
 
-    st.dataframe(biz_df, use_container_width=True)
+                    subscription.ensure_trial_started(user["email"])
+                    st.rerun()
 
-    if HAS_PLOTLY:
-        fig = px.bar(
-            biz_df,
-            x="project_name",
-            y="capital_ugx",
-            color="roi_projection_pct",
-            labels={"capital_ugx": "Capital (UGX)", "project_name": "Project"},
-            title="Venture Capital Allocation vs Projected ROI (%)"
-        )
-        fig.update_layout(template="plotly_dark")
-        st.plotly_chart(fig, use_container_width=True)
+        with tab_signup:
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            su_name = st.text_input("Preferred Full Name", key="su_name_input", placeholder="Analyst Name")
+            su_email = st.text_input("Email Address", key="su_email_input", placeholder="name@domain.com")
+            su_password = st.text_input("Choose Password", type="password", key="su_password_input", placeholder="At least 6 characters")
+            su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input", placeholder="Re-enter password")
 
-# ------------------------------------------
-# MODULE 10: EPIDEMIOLOGICAL COHORT
-# ------------------------------------------
-elif menu == "📊 Epidemiological Cohort":
-    st.title("📊 Women's Health Cohort (PPWR & DRA)")
-    st.caption("Postpartum Weight Retention & Diastasis Recti Abdominis Clinical Cohort Analytics")
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            if st.button("✨ Create Sovereign Account", use_container_width=True):
+                if not su_email or not su_password:
+                    st.error("Email and password are required.")
+                elif su_password != su_password2:
+                    st.error("Passwords don't match.")
+                elif len(su_password) < 6:
+                    st.error("Password must be at least 6 characters.")
+                else:
+                    result = auth_store.create_user(su_email, su_name or "Analyst", su_password, role="user")
+                    if not result["ok"]:
+                        st.error(result["error"])
+                    else:
+                        st.success("Account created successfully! Switch to 'Secure Sign In' above.")
 
-    conn = get_db_connection()
-    ppwr_df = pd.read_sql_query("SELECT * FROM ppwr_cohort", conn)
-    conn.close()
+        with tab_downloads:
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            st.markdown("### 🌍 Starter Configuration Bundles")
+            st.caption(
+                "These are minimal config/reference bundles, **not real packaged native applications** for any "
+                "specific platform — deploy the actual app via `streamlit run app.py` on your target environment."
+            )
 
-    col_p1, col_p2 = st.columns([1, 2])
+            d_col1, d_col2 = st.columns(2)
+            with d_col1:
+                st.markdown('<div class="download-grid-card"><h4>🪟 Windows</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
 
-    with col_p1:
-        st.subheader("➕ Log Participant Data")
-        with st.form("log_ppwr"):
-            age = st.number_input("Age", 18, 50, 26)
-            months = st.number_input("Months Postpartum", 1, 48, 6)
-            dra = st.number_input("DRA Gap (cm)", 0.0, 10.0, 2.5)
-            ppwr = st.number_input("PPWR (kg)", 0.0, 30.0, 4.5)
-            
-            if st.form_submit_button("Record Entry"):
-                conn = get_db_connection()
-                c = conn.cursor()
-                c.execute("INSERT INTO ppwr_cohort (participant_age, months_postpartum, dra_gap_cm, ppwr_kg) VALUES (?,?,?,?)",
-                          (age, months, dra, ppwr))
-                conn.commit()
-                conn.close()
-                st.success("Entry added.")
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", use_container_width=True)
+
+            with d_col2:
+                st.markdown('<div class="download-grid-card"><h4>🍏 macOS</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", use_container_width=True)
+
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile / PWA</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("📥 Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", use_container_width=True)
+
+# --- UNLOCKED WORKSPACE DASHBOARD ---
+else:
+    identity = st.session_state.get("user_identity", {})
+    current_user_email = identity.get("email", "")
+
+    sidebar_avatar_b64 = get_user_avatar_base64(current_user_email)
+    if sidebar_avatar_b64:
+        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
+
+    st.sidebar.title("CHRISHEM APEX")
+    st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
+    st.sidebar.markdown(f"**Email:** `{current_user_email}`")
+    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_admin() else 'Standard User'}`")
+
+    st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+
+    # NOTE: a theme selector used to live here but was never wired to anything —
+    # picking an option changed nothing. Removed rather than left as a decorative
+    # dead control. If you want real theme switching, share modules/theme_loader.py
+    # (or wherever apply_custom_theme() lives) and it can be built properly.
+
+    if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
+        cookie_manager.delete("chrishem_user_email")
+        st.session_state.portal_unlocked = False
+        st.rerun()
+
+    st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+    st.sidebar.markdown("### 📁 Navigation Matrix")
+
+    menu_selection = st.sidebar.radio("Select Workspace", [
+        "⚡ Apex Dashboard",
+        "💳 Billing & Subscription",
+        "📝 Query Log",
+        "🔬 Bioinformatics Studio",
+        "⚙️ Profile Settings",
+        "🛡️ Admin Security & User Controls"
+    ])
+
+    toast_msg = st.session_state.pop("_billing_toast", None)
+    if toast_msg:
+        st.toast(toast_msg) if hasattr(st, "toast") else st.info(toast_msg)
+
+    st.title("⚡ Chrishem Sovereign Apex Hub")
+    st.markdown("---")
+
+    status = subscription.get_status(current_user_email)
+    plan_label = "Admin (full access)" if is_admin() else status["effective_plan"].title()
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown('<div class="workspace-metric"><div class="metric-value">Active</div><div class="metric-label">Gateway Status</div></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
+    with col3:
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+
+    if menu_selection == "⚡ Apex Dashboard":
+        st.markdown("### 🌟 Welcome to the Core Ecosystem Workspace")
+        st.write("Use the panels below or the sidebar navigation to run analytics, manage system tools, and review your account.")
+
+        c_a, c_b = st.columns(2)
+        with c_a:
+            st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}")
+        with c_b:
+            if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
+                st.success(f"**Trial:** {plan_label} access — {status['days_left_in_trial']} day(s) left.")
+            else:
+                st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
+
+    elif menu_selection == "💳 Billing & Subscription":
+        st.markdown("### 💳 Billing & Subscription")
+
+        s1, s2, s3 = st.columns(3)
+        s1.metric("Current plan", plan_label)
+        s2.metric("Status", status["status"].title())
+        s3.metric("Trial days left", status["days_left_in_trial"] if status["days_left_in_trial"] is not None else "—")
+
+        if status["current_period_end"]:
+            st.caption(f"Current billing period ends: {status['current_period_end'][:10]}")
+
+        st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+
+        if not billing_stripe.is_configured():
+            st.warning(
+                "Payments aren't configured on this deployment yet. An administrator needs to set "
+                "`STRIPE_SECRET_KEY`, the `STRIPE_PRICE_*` variables, and `APP_BASE_URL` for upgrades "
+                "to work here."
+            )
+        else:
+            st.markdown("#### Upgrade")
+            up_col1, up_col2 = st.columns(2)
+            for col, plan_key in zip((up_col1, up_col2), ("premium", "pro")):
+                info = subscription.PLAN_CATALOG[plan_key]
+                with col:
+                    st.markdown(f"**{info['label']}** — {info['blurb']}")
+                    st.caption(f"${info['price_monthly']}/mo · ${info['price_annual']}/yr")
+                    b1, b2 = st.columns(2)
+                    if b1.button(f"Monthly", key=f"pf_{plan_key}_m", use_container_width=True):
+                        url = billing_stripe.create_checkout_session(current_user_email, plan_key, "monthly")
+                        if url:
+                            st.link_button("Continue to secure checkout →", url, type="primary", use_container_width=True)
+                        else:
+                            st.error("Checkout is not available — that plan's Stripe price ID isn't configured.")
+                    if b2.button(f"Annual", key=f"pf_{plan_key}_a", use_container_width=True):
+                        url = billing_stripe.create_checkout_session(current_user_email, plan_key, "annual")
+                        if url:
+                            st.link_button("Continue to secure checkout →", url, type="primary", use_container_width=True)
+                        else:
+                            st.error("Checkout is not available — that plan's Stripe price ID isn't configured.")
+
+            st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
+            st.markdown("#### Manage your subscription")
+            mc1, mc2 = st.columns(2)
+            with mc1:
+                if st.button("Open billing portal", use_container_width=True):
+                    portal_url = billing_stripe.create_billing_portal_session(current_user_email)
+                    if portal_url:
+                        st.link_button("Open Stripe billing portal →", portal_url, use_container_width=True)
+                    else:
+                        st.info("No Stripe customer on file yet — upgrade first to create one.")
+            with mc2:
+                if st.button("🔄 Resync billing status from Stripe", use_container_width=True):
+                    result = billing_stripe.reconcile_subscription(current_user_email)
+                    if result:
+                        st.success(f"Resynced: {result['plan'].title()} ({result['status']}).")
+                        st.rerun()
+                    else:
+                        st.info("No active Stripe subscription found for this account.")
+
+    elif menu_selection == "📝 Query Log":
+        st.markdown("### 📝 Session Query Log")
+        st.caption("This records your queries for your own reference — it does not run a real AI model. For actual AI-assisted analysis, use the **AI & NLP Studio** hub from the main sidebar navigation.")
+
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT prompt, response, timestamp FROM live_chat_history WHERE username = ? ORDER BY id ASC", (identity.get("name"),))
+        chat_rows = cursor.fetchall()
+        for p, r, ts in chat_rows:
+            st.markdown(f"""
+            <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem;">
+                <b style="color: #38BDF8;">[{ts[:19]}]:</b> {p}<br><br>
+                <b style="color: #818CF8;">Note:</b> {r}
+            </div>
+            """, unsafe_allow_html=True)
+
+        user_prompt = st.text_area("Log a query or note for later reference:", key="portal_ai_input")
+        if st.button("💾 Save to Log"):
+            if user_prompt.strip():
+                note = "Logged for reference — not an AI response. Use AI & NLP Studio for real analysis."
+                cursor.execute("INSERT INTO live_chat_history (username, timestamp, prompt, response) VALUES (?, ?, ?, ?)",
+                               (identity.get("name"), datetime.datetime.now().isoformat(), user_prompt, note))
+                db_conn.commit()
                 st.rerun()
 
-    with col_p2:
-        st.dataframe(ppwr_df, use_container_width=True)
-        if HAS_PLOTLY:
-            fig = px.scatter(
-                ppwr_df,
-                x="dra_gap_cm",
-                y="ppwr_kg",
-                size="months_postpartum",
-                color="participant_age",
-                title="Diastasis Recti Gap (cm) vs Postpartum Weight Retention (kg)"
-            )
-            fig.update_layout(template="plotly_dark")
-            st.plotly_chart(fig, use_container_width=True)
+    elif menu_selection == "🔬 Bioinformatics Studio":
+        st.markdown("### 🧬 Genomic Sequence & GC-Content Studio")
+        seq_input = st.text_area("Paste FASTA Sequence Data", placeholder="ATGCGATCGATCGATCGATCG...")
+        if st.button("Run Sequence Metric Analysis"):
+            if seq_input.strip():
+                clean_seq = "".join(seq_input.upper().split())
+                length = len(clean_seq)
+                gc = ((clean_seq.count('G') + clean_seq.count('C')) / length * 100) if length > 0 else 0
+                c1, c2 = st.columns(2)
+                c1.metric("Total Base Pairs", f"{length} bp")
+                c2.metric("GC-Content Ratio", f"{gc:.2f}%")
+            else:
+                st.warning("Please provide a sequence string.")
 
-# ------------------------------------------
-# MODULE 11: LOCAL AI & NLP BRIDGE
-# ------------------------------------------
-elif menu == "💬 Local AI & NLP Bridge":
-    allowed, msg = check_user_access(st.session_state.user_email, required_tier="Apex Sovereign")
-    if not allowed:
-        render_paywall_screen("Local AI Bridge", required_tier="Apex Sovereign")
-    else:
-        st.title("💬 Local AI Query Console (Ollama Bridge)")
-        prompt = st.text_area("Ask Local AI (e.g., Ollama / Llama3)", "Explain the mechanism of mcr-1 gene mediated colistin resistance.")
-        
-        if st.button("Send Query to Local LLM", type="primary"):
-            st.info("Query dispatched to local Ollama instance at http://localhost:11434")
-            st.markdown("""
-            **Local LLM Response:**
-            
-            The `mcr-1` gene encodes a phosphoethanolamine transferase enzyme. This enzyme transfers a phosphoethanolamine moiety to the lipid A headgroup of lipopolysaccharides (LPS) in the bacterial outer membrane. This modification reduces the net negative charge of the outer membrane, impeding electrostatically mediated binding of cationic polymyxin antibiotics (colistin), thus conferring clinical resistance.
-            """)
+    elif menu_selection == "⚙️ Profile Settings":
+        st.markdown("### ⚙️ Operator Profile & Avatar Customization")
+        st.write("Upload a custom picture to personalize your account avatar.")
 
-# ------------------------------------------
-# MODULE 12: ACADEMIC REPORT VAULT
-# ------------------------------------------
-elif menu == "🗂️ Academic Report Vault":
-    st.title("🗂️ Academic Report Vault")
-    st.caption("Muni University Academic Publications & Fieldwork Repository")
+        active_b64 = get_user_avatar_base64(current_user_email)
+        if active_b64:
+            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8; box-shadow:0 0 20px rgba(56,189,248,0.4);"></div>', unsafe_allow_html=True)
 
-    conn = get_db_connection()
-    reports_df = pd.read_sql_query("SELECT * FROM academic_vault", conn)
-    conn.close()
+        uploaded_avatar = st.file_uploader("Upload New Avatar Image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 
-    for idx, row in reports_df.iterrows():
-        with st.expander(f"📖 [{row['course_code']}] {row['title']}"):
-            st.write(f"**Department:** {row['department']} | **Status:** `{row['status']}`")
-            st.write(row['abstract_text'])
+        col_up1, col_up2 = st.columns(2)
+        with col_up1:
+            if st.button("💾 Save Custom Avatar", use_container_width=True):
+                if uploaded_avatar is not None:
+                    image_bytes = uploaded_avatar.read()
+                    cursor = db_conn.cursor()
+                    cursor.execute("UPDATE auth_users SET avatar_blob = ? WHERE email = ?", (image_bytes, current_user_email))
+                    db_conn.commit()
+                    st.success("Avatar successfully updated! Refreshing view...")
+                    st.rerun()
+                else:
+                    st.warning("Please select an image file first.")
+        with col_up2:
+            if st.button("🔄 Revert to Default Picture", use_container_width=True):
+                cursor = db_conn.cursor()
+                cursor.execute("UPDATE auth_users SET avatar_blob = NULL WHERE email = ?", (current_user_email,))
+                db_conn.commit()
+                st.success("Reverted to default system picture successfully!")
+                st.rerun()
 
-# ------------------------------------------
-# MODULE 13: SECURITY & DATABASE CORE
-# ------------------------------------------
-elif menu == "🛡️ Security & Database Core":
-    st.title("🛡️ Database Core & Audit Vault")
+    elif menu_selection == "🛡️ Admin Security & User Controls":
+        if not is_admin():
+            st.error("🚫 Access Denied: This panel requires administrator clearance.")
+        else:
+            st.markdown("### 🛡️ Administrative Control Center")
+            st.write("Manage active users and roles. For the full security console (RBAC, encrypted vault, audit ledger), use the **Admin & Security Center** hub from the main sidebar navigation.")
 
-    col_sec1, col_sec2 = st.columns(2)
-    with col_sec1:
-        if st.button("🔴 Reset & Re-Seed SQLite Database", type="primary"):
-            init_db(purge_and_reseed=True)
-            st.success("Database purged and re-seeded successfully.")
-            st.rerun()
+            cursor = db_conn.cursor()
+            cursor.execute("SELECT email, name, role FROM auth_users")
+            users = cursor.fetchall()
 
-    with col_sec2:
-        st.caption("Active Database File: `sovereign_apex.db`")
+            user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
+            st.dataframe(user_df, use_container_width=True)
 
-    st.divider()
-    st.subheader("📜 System Audit Logs")
-    conn = get_db_connection()
-    logs_df = pd.read_sql_query("SELECT * FROM audit_logs ORDER BY timestamp DESC", conn)
-    conn.close()
-    st.dataframe(logs_df, use_container_width=True)
+            st.info(f"Signed in as `{current_user_email}` with role `{identity.get('role')}` — role changes should be made through the Admin & Security Center's RBAC console, which includes last-admin lockout protection and audit logging.")
