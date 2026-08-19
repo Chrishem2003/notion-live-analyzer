@@ -245,7 +245,7 @@ def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
         }}
     </script>
     """
-    components.html(player_html, height=80, key="global_audio_player")
+    components.html(player_html, height=80)
 
 # ==========================================
 # 4. DATABASE SEEDING & CONTROL ENGINE
