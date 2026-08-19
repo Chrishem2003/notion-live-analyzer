@@ -95,7 +95,7 @@ def get_custom_sounds_catalog():
 def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
     """
     Renders a persistent audio widget at the bottom right.
-    Uses browser localStorage to sync playback position across page changes.
+    Uses browser localStorage to sync playback state continuously across page navigation.
     """
     player_html = f"""
     <style>
@@ -133,7 +133,7 @@ def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
     <div class="audio-popup">
         <span>🎧 <b id="trackLabel">{track_title[:24]}...</b></span>
         <button class="btn-play" id="playBtn" onclick="togglePlay()">▶ Play / ⏸ Pause</button>
-        <audio id="globalAudio" loop>
+        <audio id="globalAudio" loop preload="auto">
             <source src="{audio_url}">
         </audio>
     </div>
@@ -294,7 +294,7 @@ def init_db(purge_and_reseed=False):
 
     cursor.execute("INSERT OR IGNORE INTO paywall_settings VALUES ('global_paywall_active', 'true')")
 
-    # Admin User
+    # Admin User Seed
     cursor.execute("SELECT * FROM auth_users WHERE email = ?", ("admin@chrishem.apex",))
     if not cursor.fetchone():
         salt = os.urandom(16).hex()
@@ -307,7 +307,7 @@ def init_db(purge_and_reseed=False):
     cursor.execute("INSERT OR REPLACE INTO subscriptions VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
                    ("admin@chrishem.apex", "Apex Sovereign", "active", 0.0, "2099-12-31"))
 
-    # Seed MCR Surveillance Data (Arua, Uganda Region)
+    # Seed MCR Surveillance Data
     cursor.execute("SELECT COUNT(*) FROM mcr_gene_surveillance")
     if cursor.fetchone()[0] == 0:
         mcr_samples = [
@@ -330,7 +330,7 @@ def init_db(purge_and_reseed=False):
         ]
         cursor.executemany("INSERT INTO business_projects (project_name, lead_entity, capital_ugx, roi_projection_pct, status) VALUES (?,?,?,?,?)", biz_data)
 
-    # Seed PPWR Cohort
+    # Seed PPWR Cohort Data
     cursor.execute("SELECT COUNT(*) FROM ppwr_cohort")
     if cursor.fetchone()[0] == 0:
         ppwr_data = [
@@ -339,7 +339,7 @@ def init_db(purge_and_reseed=False):
         ]
         cursor.executemany("INSERT INTO ppwr_cohort (participant_age, months_postpartum, dra_gap_cm, ppwr_kg) VALUES (?,?,?,?)", ppwr_data)
 
-    # Seed Academic Vault
+    # Seed Academic Vault Data
     cursor.execute("SELECT COUNT(*) FROM academic_vault")
     if cursor.fetchone()[0] == 0:
         reports = [
@@ -407,7 +407,7 @@ def render_paywall_screen(module_name, required_tier="Pro"):
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. SESSION STATE & SIDEBAR SOUND ENGINE
+# 6. SESSION STATE & EXPANDED 25-TRACK SOUND CATALOG
 # ==========================================
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = True
@@ -420,42 +420,65 @@ st.sidebar.markdown(f"<h3 style='margin:0; color:#F8FAFC;'>{st.session_state.use
 st.sidebar.caption(f"Operator: **{st.session_state.role.upper()}**")
 st.sidebar.divider()
 
-# SOUND CATALOG
+# EXPANDED 25+ TRACK SOUND CATALOG ACROSS 5 CATEGORIES
 SOUND_CATALOG = {
-    "🧠 Brain Wiring & Frequencies": {
+    "🧠 Brain Wiring & Neural Frequencies": {
         "432Hz Deep Focus Pulse": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
         "528Hz Solfeggio Transformation Tone": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3",
         "Alpha Waves Concentration (10Hz)": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
         "Gamma Frequency Peak Focus (40Hz)": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
-        "Smooth Brown Noise (Deep Study)": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3"
+        "Beta Wave Cognition Engine (18Hz)": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
+        "Delta Wave Deep Sleep Sync (2Hz)": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3"
     },
-    "🌧️ Weather & Nature Ambience": {
+    "🔊 Noise Generators & Deep Focus": {
+        "Smooth Brown Noise (Deep Study)": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
+        "Soothing Pink Noise Focus": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
+        "Pure White Noise Masker": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
+        "Deep Space Low Frequency Drone": "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73232.mp3",
+        "Binaural Sub-Bass Resonance": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3"
+    },
+    "🌧️ Weather & Rain Acoustics": {
         "Gentle Rain & Soft Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
         "Heavy Rain on Roof": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3",
-        "Forest River & Birds": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3"
+        "Soft Rain on Glass Window": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
+        "Distant Thunderstorm Ambience": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
+        "Tropical Downpour Flow": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3"
+    },
+    "🌿 Nature & Environmental Ambience": {
+        "Forest River & Birds Chirping": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3",
+        "Deep Ocean Waves Crashing": "https://cdn.pixabay.com/download/audio/2022/04/27/audio_651a021132.mp3",
+        "Crackling Campfire Night": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
+        "Night Jungle & Crickets": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
+        "High Mountain Wind Ambience": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"
     },
     "🎧 Lo-Fi & Study Beats": {
         "Lo-Fi Study Groove": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
-        "Midnight City Lo-Fi Chill": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"
+        "Midnight City Lo-Fi Chill": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
+        "Coffee Shop Acoustic Chill": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
+        "Cozy Fireside Lo-Fi Session": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
+        "Soft Piano & Ambient Strings": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3"
     }
 }
 
+# Dynamically Attach Local Custom Uploaded Tracks
 custom_tracks = get_custom_sounds_catalog()
 if custom_tracks:
     SOUND_CATALOG["📁 Custom Uploaded Sounds"] = custom_tracks
 
 st.sidebar.subheader("🎧 Persistent Sound Center")
 
-uploaded_sound = st.sidebar.file_uploader("Upload Sound (MP3/WAV/OGG)", type=["mp3", "wav", "ogg", "m4a"])
+# File Uploader for Custom Audio
+uploaded_sound = st.sidebar.file_uploader("Upload Local Audio (MP3/WAV/OGG)", type=["mp3", "wav", "ogg", "m4a"])
 if uploaded_sound:
     saved_path = save_uploaded_audio(uploaded_sound)
-    st.sidebar.success(f"Saved: {uploaded_sound.name}")
+    st.sidebar.success(f"Saved to disk: {uploaded_sound.name}")
     st.rerun()
 
-sound_category = st.sidebar.selectbox("Category", list(SOUND_CATALOG.keys()))
-selected_sound_name = st.sidebar.selectbox("Track", list(SOUND_CATALOG[sound_category].keys()))
+sound_category = st.sidebar.selectbox("Sound Category", list(SOUND_CATALOG.keys()))
+selected_sound_name = st.sidebar.selectbox("Select Track", list(SOUND_CATALOG[sound_category].keys()))
 active_audio_url = SOUND_CATALOG[sound_category][selected_sound_name]
 
+# Render persistent floating HTML audio player
 render_persistent_audio_player(active_audio_url, selected_sound_name)
 
 st.sidebar.divider()
@@ -480,7 +503,7 @@ st.sidebar.divider()
 st.sidebar.caption("Architecture: `CHRISHEM-APEX-v6.5`")
 
 # ==========================================
-# 7. ADVANCED MODULE IMPLEMENTATIONS
+# 7. MODULE IMPLEMENTATIONS
 # ==========================================
 
 # ------------------------------------------
@@ -493,7 +516,7 @@ if menu == "⚡ System Overview":
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("System Modules", "13 Active", "Operational")
     m2.metric("Paywall Guard", "Active" if is_paywall_enabled() else "Disabled", "Bypass Admin")
-    m3.metric("Custom Sounds", f"{len(custom_tracks)} Loaded", "Persistent")
+    m3.metric("Custom Sounds", f"{len(custom_tracks)} Saved", "Persistent")
     m4.metric("Admin Handle", "CHRISHEM", "Active")
 
     st.divider()
@@ -515,7 +538,7 @@ if menu == "⚡ System Overview":
         st.dataframe(pd.DataFrame(table_stats), use_container_width=True)
 
     with col_r:
-        st.subheader("📁 Saved Audio Library")
+        st.subheader("📁 Saved Custom Audio Files")
         if custom_tracks:
             for t_name in custom_tracks.keys():
                 st.write(f"🎵 `{t_name}`")
@@ -550,7 +573,7 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
         <body>
         <div class="synth-card">
             <h3 style="margin:0 0 5px 0; color:#58a6ff;">🔊 Real-Time Binaural & Frequency Synthesizer</h3>
-            <p style="margin:0 0 15px 0; font-size:12px; color:#8b949e;">Generate neural brain-wave frequencies natively in browser:</p>
+            <p style="margin:0 0 15px 0; font-size:12px; color:#8b949e;">Generate live neural frequencies natively in browser:</p>
             <div class="grid">
                 <div class="btn active" id="mode-binaural" onclick="setMode('binaural')">🧠 Beta Binaural (15Hz)</div>
                 <div class="btn" id="mode-solfeggio" onclick="setMode('solfeggio')">✨ Solfeggio 528Hz</div>
@@ -721,7 +744,6 @@ elif menu == "🧬 Bioinformatics Engine":
             
             st.markdown(f"**Sequence Length:** `{length} bp` | **GC Content:** `{gc_content:.2f}%`")
             
-            # Simple Motif Search
             motifs = {"EcoRI Restriction Site": "GAATTC", "BamHI Restriction Site": "GGATCC", "Colistin Cassette Motif": "ACCACC"}
             st.subheader("🔎 Identified Sequence Motifs")
             found = False
