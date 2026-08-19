@@ -224,70 +224,78 @@ def render_gis():
                 st.error(f"Geocoding failed: {err}")
 
 
-SECTOR_INDICATORS = {
-    "Agriculture & Food Security Systems": ("AG.LND.AGRI.ZS", "Agricultural land (% of land area)"),
-    "Healthcare & Epidemiological Surveillance": ("SH.XPD.CHEX.GD.ZS", "Current health expenditure (% of GDP)"),
-    "Energy Infrastructure & Power Grids": ("EG.ELC.ACCS.ZS", "Access to electricity (% of population)"),
-    "Global Financial & Banking Systems": ("FS.AST.PRVT.GD.ZS", "Domestic credit to private sector (% of GDP)"),
-    "Environmental Conservation & Climate Telemetry": ("EN.ATM.CO2E.PC", "CO2 emissions (metric tons per capita)"),
-}
-COMMON_COUNTRIES = {
-    "Uganda": "UG", "Kenya": "KE", "Nigeria": "NG", "United States": "US", "United Kingdom": "GB",
-    "India": "IN", "Brazil": "BR", "South Africa": "ZA", "Germany": "DE", "China": "CN",
-}
+@st.cache_data(ttl=86400, show_spinner=False)
+def _cached_country_list():
+    from modules.world_data_connector import fetch_country_list
+    return fetch_country_list()
 
 
 @st.cache_data(ttl=86400, show_spinner=False)
-def fetch_worldbank_series(country_code: str, indicator_code: str):
-    if not REQUESTS_AVAILABLE:
-        return None, "`requests` package not available."
-    try:
-        url = f"https://api.worldbank.org/v2/country/{country_code}/indicator/{indicator_code}"
-        resp = requests.get(url, params={"format": "json", "per_page": 25}, timeout=10)
-        resp.raise_for_status()
-        payload = resp.json()
-        if not isinstance(payload, list) or len(payload) < 2 or not payload[1]:
-            return None, "Invalid response payload or indicator unavailable for this country."
-        records = [{"Year": int(r["date"]), "Value": r["value"]} for r in payload[1] if r["value"] is not None]
-        if not records:
-            return None, "No non-null records found for this series."
-        return pd.DataFrame(records).sort_values("Year"), None
-    except Exception as e:
-        return None, str(e)
+def _cached_indicator_series(country_iso3: str, indicator_code: str):
+    from modules.world_data_connector import fetch_indicator_series
+    return fetch_indicator_series([country_iso3], indicator_code)
 
 
 def render_global_surveillance():
-    section_header("🌍 Sector Indicator Monitor (World Bank Open Data API)", "Real macroeconomic, health, and environmental indicator data pulled directly from the World Bank API.")
+    section_header(
+        "🌍 Sector Indicator Monitor (World Bank Open Data API)",
+        "Real macroeconomic, health, and environmental indicator data pulled directly from the World "
+        "Bank API — shares the same connector as the Integrations Hub's Global Real-Data tab, covering "
+        "all ~217 real countries/economies rather than a fixed shortlist.",
+    )
+
+    from modules.world_data_connector import SECTOR_INDICATORS
+
+    if not REQUESTS_AVAILABLE:
+        st.error("The `requests` package isn't available in this environment.")
+        return
+
+    try:
+        country_df = _cached_country_list()
+    except Exception as e:
+        st.error(f"Could not reach the World Bank API for the country list: {e}")
+        return
 
     col1, col2 = st.columns(2)
     with col1:
         sector = st.selectbox("Select Strategic Sector Focus", list(SECTOR_INDICATORS.keys()), key="sector_sel_prod")
+        indicator_label = st.selectbox("Indicator", list(SECTOR_INDICATORS[sector].keys()), key="sector_ind_prod")
     with col2:
-        country_name = st.selectbox("Country", list(COMMON_COUNTRIES.keys()), key="sector_country_prod")
+        country_name = st.selectbox("Country", country_df["name"].tolist(),
+                                     index=int(country_df.index[country_df["name"] == "Uganda"][0])
+                                     if "Uganda" in country_df["name"].values else 0,
+                                     key="sector_country_prod")
 
-    indicator_code, indicator_label = SECTOR_INDICATORS[sector]
-    country_code = COMMON_COUNTRIES[country_name]
+    indicator_code = SECTOR_INDICATORS[sector][indicator_label]
+    country_iso3 = country_df.loc[country_df["name"] == country_name, "iso3"].iloc[0]
 
     if st.button("🌍 Fetch Live Sector Indicator Data", type="primary", key="run_sector_intel_prod"):
         with st.spinner(f"Querying World Bank API for {indicator_label} ({country_name})..."):
-            series_df, error = fetch_worldbank_series(country_code, indicator_code)
+            try:
+                series_df = _cached_indicator_series(country_iso3, indicator_code)
+            except Exception as e:
+                st.error(f"🚫 Live data retrieval failed: {e}")
+                return
 
-        if error:
-            st.error(f"🚫 Live data retrieval failed: {error}")
+        if series_df is None or series_df.empty:
+            st.warning("No data available for this country/indicator combination.")
         else:
             latest = series_df.iloc[-1]
             c1, c2, c3 = st.columns(3)
-            c1.metric(indicator_label, f"{latest['Value']:.2f}", delta=f"as of {int(latest['Year'])}")
+            c1.metric(indicator_label, f"{latest['value']:.2f}", delta=f"as of {int(latest['year'])}")
             c2.metric("Data Points Retrieved", len(series_df))
             c3.metric("Data Source", "World Bank Open Data API")
 
             if PLOTLY_AVAILABLE:
-                fig = px.line(series_df, x="Year", y="Value", markers=True, template="plotly_dark", height=350, title=f"{indicator_label} — {country_name}")
+                fig = px.line(series_df, x="year", y="value", markers=True, template="plotly_dark", height=350,
+                              title=f"{indicator_label} — {country_name}")
                 fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=40, b=0))
                 st.plotly_chart(fig, use_container_width=True)
 
             st.dataframe(series_df, use_container_width=True, hide_index=True)
-            render_export_buttons(series_df, base_name=f"worldbank_{indicator_code}_{country_code}")
+            render_export_buttons(series_df, base_name=f"worldbank_{indicator_code}_{country_iso3}")
+            st.caption("For multi-country comparisons, region filtering, or loading this straight into "
+                       "the shared active dataset, use the Integrations Hub's Global Real-Data tab.")
 
 
 def _compute_h_index(citation_counts: list) -> int:
