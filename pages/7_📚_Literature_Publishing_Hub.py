@@ -1,9 +1,15 @@
+﻿import os
+import sys
+
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
 """
-📚 Literature & Publishing Hub — Consolidated Research & Publication Hub (Production Grade)
+ðŸ“š Literature & Publishing Hub â€” Consolidated Research & Publication Hub (Production Grade)
 Real CrossRef-backed literature search with expanded metadata, a persistent reference manager 
 with JSON import/export and comprehensive BibTeX escaping, robust regex-based APA compliance 
 checking, a production-grade meta-analysis engine with real inverse-variance pooling, heterogeneity 
-metrics (I², Q-statistic, H²), publication-ready forest plots, dynamic APA templates, and complete 
+metrics (IÂ², Q-statistic, HÂ²), publication-ready forest plots, dynamic APA templates, and complete 
 grant proposal/rigor tracking workflows.
 """
 
@@ -37,9 +43,9 @@ except ImportError:
     REQUESTS_AVAILABLE = False
 
 
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Production CrossRef Search Engine with Robust Metadata Parsing
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def search_crossref(query: str, n_results: int, sort_by: str, contact_email: str):
     if not REQUESTS_AVAILABLE:
         return None, "`requests` package not installed in this environment."
@@ -86,7 +92,7 @@ def search_crossref(query: str, n_results: int, sort_by: str, contact_email: str
                     break
 
             container = it.get("container-title")
-            journal = container[0] if container else "—"
+            journal = container[0] if container else "â€”"
             
             records.append({
                 "Title": title,
@@ -113,9 +119,9 @@ def escape_bibtex(text: str) -> str:
 
 
 def render_literature_search():
-    section_header("📚 Literature Search & Reference Management", "Real bibliographic discovery via CrossRef API, persistent reference storage, and bibliometric mapping.")
+    section_header("ðŸ“š Literature Search & Reference Management", "Real bibliographic discovery via CrossRef API, persistent reference storage, and bibliometric mapping.")
 
-    tab_search, tab_manage, tab_cluster = st.tabs(["🔎 Live Literature Search", "📚 Reference Manager", "🌐 Bibliometric Map"])
+    tab_search, tab_manage, tab_cluster = st.tabs(["ðŸ”Ž Live Literature Search", "ðŸ“š Reference Manager", "ðŸŒ Bibliometric Map"])
 
     with tab_search:
         st.markdown("#### Live Academic Search (CrossRef API)")
@@ -132,7 +138,7 @@ def render_literature_search():
             sort_by = st.selectbox("Sort Priority", ["Relevance", "Citation Count", "Publication Date"], key="lit_sort_prod")
         with col3:
             st.markdown("<br>", unsafe_allow_html=True)
-            search_triggered = st.button("🔎 Search CrossRef", type="primary", key="run_lit_search_prod", use_container_width=True)
+            search_triggered = st.button("ðŸ”Ž Search CrossRef", type="primary", key="run_lit_search_prod", use_container_width=True)
 
         if search_triggered:
             if not query.strip():
@@ -141,11 +147,11 @@ def render_literature_search():
                 with st.spinner(f"Querying CrossRef API for '{query}'..."):
                     results_df, error = search_crossref(query, n_results, sort_by, contact_email)
                 if error:
-                    st.error(f"🚫 Live search unavailable: {error}. No synthetic results are generated.")
+                    st.error(f"ðŸš« Live search unavailable: {error}. No synthetic results are generated.")
                 elif results_df is None or results_df.empty:
                     st.info("No publications found matching this query string.")
                 else:
-                    st.success(f"✅ Successfully retrieved {len(results_df)} verified publications.")
+                    st.success(f"âœ… Successfully retrieved {len(results_df)} verified publications.")
                     st.dataframe(results_df, use_container_width=True, hide_index=True)
                     render_export_buttons(results_df, base_name="crossref_literature_results")
                     st.session_state["lit_search_results"] = results_df
@@ -169,7 +175,7 @@ def render_literature_search():
                 year = st.text_input("Year", placeholder="2026")
                 doi = st.text_input("DOI", placeholder="10.1038/s41587-026-00000-x")
             
-            submitted = st.form_submit_button("➕ Add Reference to Library")
+            submitted = st.form_submit_button("âž• Add Reference to Library")
             if submitted:
                 if citation_key.strip() and authors.strip() and title.strip():
                     new_ref = {
@@ -184,7 +190,7 @@ def render_literature_search():
                         "doi": doi.strip(),
                     }
                     st.session_state["lit_references"].append(new_ref)
-                    st.success(f"✅ Added reference key `{citation_key}` successfully.")
+                    st.success(f"âœ… Added reference key `{citation_key}` successfully.")
                 else:
                     st.warning("Citation key, authors, and title are mandatory.")
 
@@ -199,22 +205,22 @@ def render_literature_search():
             col_exp1, col_exp2 = st.columns(2)
             with col_exp1:
                 library_json = json.dumps(refs, indent=2)
-                st.download_button("⬇️ Export Library (JSON)", data=library_json, file_name="reference_library.json", mime="application/json")
+                st.download_button("â¬‡ï¸ Export Library (JSON)", data=library_json, file_name="reference_library.json", mime="application/json")
             with col_exp2:
-                uploaded_lib = st.file_uploader("📥 Import Reference Library (JSON)", type=["json"], key="import_lib_json")
+                uploaded_lib = st.file_uploader("ðŸ“¥ Import Reference Library (JSON)", type=["json"], key="import_lib_json")
                 if uploaded_lib is not None:
                     try:
                         imported_data = json.load(uploaded_lib)
                         if isinstance(imported_data, list):
                             st.session_state["lit_references"] = imported_data
-                            st.success(f"✅ Imported {len(imported_data)} references.")
+                            st.success(f"âœ… Imported {len(imported_data)} references.")
                             st.rerun()
                     except Exception as e:
                         st.error(f"Failed to parse JSON library file: {e}")
 
             st.markdown("---")
             selected_key = st.selectbox("Select Reference for BibTeX Generation", [r["citation_key"] for r in refs], key="bibtex_sel_prod")
-            if st.button("📋 Generate Production BibTeX", key="gen_bibtex_prod"):
+            if st.button("ðŸ“‹ Generate Production BibTeX", key="gen_bibtex_prod"):
                 ref = next(r for r in refs if r["citation_key"] == selected_key)
                 bibtex_str = f"""@{ref['entry_type']}{{{escape_bibtex(ref['citation_key'])},
   author = {{{escape_bibtex(ref['authors'])}}},
@@ -226,13 +232,13 @@ def render_literature_search():
   doi = {{{escape_bibtex(ref['doi'] or 'n/a')}}}
 }}"""
                 st.code(bibtex_str, language="bibtex")
-                st.download_button("⬇️ Download .bib File", data=bibtex_str, file_name=f"{ref['citation_key']}.bib", mime="text/plain", key="dl_bibtex_prod")
+                st.download_button("â¬‡ï¸ Download .bib File", data=bibtex_str, file_name=f"{ref['citation_key']}.bib", mime="text/plain", key="dl_bibtex_prod")
 
     with tab_cluster:
-        st.markdown("#### Bibliometric Map — Year vs. Citation Count")
+        st.markdown("#### Bibliometric Map â€” Year vs. Citation Count")
         results_df = st.session_state.get("lit_search_results")
         if results_df is None or results_df.empty:
-            st.info("ℹ️ Execute a search in the **Live Literature Search** tab to populate bibliometric visualizations.")
+            st.info("â„¹ï¸ Execute a search in the **Live Literature Search** tab to populate bibliometric visualizations.")
         elif not PLOTLY_AVAILABLE:
             st.info("Plotly library required for map rendering.")
         else:
@@ -249,11 +255,11 @@ def render_literature_search():
                 st.plotly_chart(fig, use_container_width=True)
 
 
-# ══════════════════════════════════════════════════════════════════════
-# Production Meta-Analysis Engine (Inverse-Variance, Heterogeneity, Q, I², H²)
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Production Meta-Analysis Engine (Inverse-Variance, Heterogeneity, Q, IÂ², HÂ²)
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def render_meta_analysis():
-    section_header("📊 Meta-Analysis & Effect Size Studio", "Rigorous pooling engine computing real inverse-variance weights, Cochran's Q, I² heterogeneity, and forest plots.")
+    section_header("ðŸ“Š Meta-Analysis & Effect Size Studio", "Rigorous pooling engine computing real inverse-variance weights, Cochran's Q, IÂ² heterogeneity, and forest plots.")
 
     if "meta_study_table" not in st.session_state:
         st.session_state["meta_study_table"] = pd.DataFrame({
@@ -268,7 +274,7 @@ def render_meta_analysis():
 
     col_load, col_clear = st.columns(2)
     with col_load:
-        if st.button("📥 Load Validated Demonstration Benchmark Data", key="meta_load_benchmark"):
+        if st.button("ðŸ“¥ Load Validated Demonstration Benchmark Data", key="meta_load_benchmark"):
             st.session_state["meta_study_table"] = pd.DataFrame({
                 "Study": ["Smith et al. (2024)", "Johnson & Lee (2025)", "Garcia et al. (2025)", "Kula et al. (2026)", "Ochieng et al. (2026)"],
                 "Effect_Size": [0.52, 0.68, 0.31, 0.45, 0.59],
@@ -277,7 +283,7 @@ def render_meta_analysis():
             })
             st.rerun()
     with col_clear:
-        if st.button("🗑️ Clear Matrix Rows", key="meta_clear_prod"):
+        if st.button("ðŸ—‘ï¸ Clear Matrix Rows", key="meta_clear_prod"):
             st.session_state["meta_study_table"] = pd.DataFrame({"Study": [], "Effect_Size": [], "Standard_Error": [], "Sample_Size": []})
             st.rerun()
 
@@ -297,9 +303,9 @@ def render_meta_analysis():
     valid = edited.dropna(subset=["Effect_Size", "Standard_Error"])
     valid = valid[valid["Standard_Error"] > 0]
 
-    if st.button("🚀 Execute Rigorous Meta-Analysis Pooling", type="primary", key="run_meta_prod"):
+    if st.button("ðŸš€ Execute Rigorous Meta-Analysis Pooling", type="primary", key="run_meta_prod"):
         if len(valid) < 2:
-                st.error("🚫 Minimum of 2 studies with valid non-zero standard errors required to execute meta-analysis.")
+                st.error("ðŸš« Minimum of 2 studies with valid non-zero standard errors required to execute meta-analysis.")
         else:
             effects = valid["Effect_Size"].values.astype(float)
             ses = valid["Standard_Error"].values.astype(float)
@@ -326,20 +332,20 @@ def render_meta_analysis():
             display_df["CI_Lower"] = (display_df["Effect_Size"] - 1.96 * display_df["Standard_Error"]).round(3)
             display_df["CI_Upper"] = (display_df["Effect_Size"] + 1.96 * display_df["Standard_Error"]).round(3)
 
-            st.markdown("#### 📋 Study-Level Weighting Summary")
+            st.markdown("#### ðŸ“‹ Study-Level Weighting Summary")
             st.dataframe(display_df, use_container_width=True, hide_index=True)
 
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Pooled Effect Size", f"{pooled_effect:.3f}", delta=f"95% CI [{ci_low:.3f}, {ci_high:.3f}]")
             c2.metric("Pooled p-value", f"{p_val:.5f}" if p_val >= 0.0001 else "< 0.0001")
-            c3.metric("Heterogeneity (I²)", f"{i_squared:.1f}%", delta="High" if i_squared >= 75 else ("Moderate" if i_squared >= 50 else "Low"))
+            c3.metric("Heterogeneity (IÂ²)", f"{i_squared:.1f}%", delta="High" if i_squared >= 75 else ("Moderate" if i_squared >= 50 else "Low"))
             c4.metric("Cochran's Q", f"{q_stat:.2f}", delta=f"df={df_val}, p={q_p_value:.4f}" if not np.isnan(q_p_value) else None)
 
             if i_squared >= 75:
-                st.warning("⚠️ High statistical heterogeneity detected (I² ≥ 75%). Consider evaluating subgroup moderators or applying DerSimonian-Laird random-effects variance adjustments.")
+                st.warning("âš ï¸ High statistical heterogeneity detected (IÂ² â‰¥ 75%). Consider evaluating subgroup moderators or applying DerSimonian-Laird random-effects variance adjustments.")
 
             if PLOTLY_AVAILABLE:
-                st.markdown("#### 🌲 Production Forest Plot")
+                st.markdown("#### ðŸŒ² Production Forest Plot")
                 fig = go.Figure()
                 
                 # Plot individual studies
@@ -369,25 +375,25 @@ def render_meta_analysis():
             render_export_buttons(display_df, base_name="meta_analysis_pooled_results")
 
 
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Production APA Compliance Inspector & Templates
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def inspect_apa_citation(citation: str):
     c = citation.strip()
     checks = []
     checks.append(("Author format (Surname, Initial.)", bool(re.match(r"^[A-Z][A-Za-z'\-]+,\s*[A-Z]\.", c))))
     checks.append(("Parenthetical publication year present e.g. (2026)", bool(re.search(r"\((1[5-9]\d{2}|20\d{2})[a-z]?\)", c))))
     checks.append(("Sentence-level punctuation density", c.count(".") >= 2))
-    checks.append(("Volume/issue number or page span pattern", bool(re.search(r"\b\d+\s*\(\d+\)|\b\d+[-–]\d+\b", c))))
+    checks.append(("Volume/issue number or page span pattern", bool(re.search(r"\b\d+\s*\(\d+\)|\b\d+[-â€“]\d+\b", c))))
     checks.append(("Persistent Identifier (DOI or URL) present", bool(re.search(r"https?://\S+|10\.\d{4,9}/\S+", c))))
     passed = sum(1 for _, ok in checks if ok)
     return checks, passed, len(checks)
 
 
 def render_apa_outputs():
-    section_header("📑 APA 7th Edition Formatting & Citation Compliance", "Standardized reporting templates, heuristic structural citation inspector, and publication data tables.")
+    section_header("ðŸ“‘ APA 7th Edition Formatting & Citation Compliance", "Standardized reporting templates, heuristic structural citation inspector, and publication data tables.")
 
-    tab_apa, tab_cite, tab_tables = st.tabs(["📝 APA Statistical Templates", "🔍 Citation Inspector", "📋 Publication Tables"])
+    tab_apa, tab_cite, tab_tables = st.tabs(["ðŸ“ APA Statistical Templates", "ðŸ” Citation Inspector", "ðŸ“‹ Publication Tables"])
 
     with tab_apa:
         st.markdown("#### APA 7th Edition Standardized Write-Up Templates")
@@ -398,28 +404,28 @@ def render_apa_outputs():
 
         templates = {
             "Independent Samples t-Test": "An independent-samples t-test was conducted to compare [Dependent Variable] between [Group A] and [Group B]. There was a statistically significant difference between the groups, t(df) = [X.XX], p = [.XXX], Cohen's d = [X.XX].",
-            "One-Way Analysis of Variance (ANOVA)": "A one-way ANOVA was conducted to evaluate the effect of [Independent Variable] on [Dependent Variable]. The overall effect was statistically significant, F(df_between, df_within) = [X.XX], p = [.XXX], partial η² = [X.XX].",
+            "One-Way Analysis of Variance (ANOVA)": "A one-way ANOVA was conducted to evaluate the effect of [Independent Variable] on [Dependent Variable]. The overall effect was statistically significant, F(df_between, df_within) = [X.XX], p = [.XXX], partial Î·Â² = [X.XX].",
             "Pearson Product-Moment Correlation": "A Pearson correlation coefficient was computed to assess the linear relationship between [Variable A] and [Variable B]. There was a strong, positive correlation between the two variables, r(df) = [X.XX], p = [.XXX].",
-            "Chi-Square Test of Independence": "A chi-square test of independence was performed to examine the association between [Categorical Var A] and [Categorical Var B]. The relation between these variables was significant, χ²(df, N = XXX) = [X.XX], p = [.XXX], Cramer's V = [X.XX].",
-            "Multiple Linear Regression": "A multiple linear regression was calculated to predict [Dependent Variable] from [Predictor 1] and [Predictor 2]. A significant regression equation was found, F(df_reg, df_res) = [X.XX], p = [.XXX], with an R² of [X.XX].",
+            "Chi-Square Test of Independence": "A chi-square test of independence was performed to examine the association between [Categorical Var A] and [Categorical Var B]. The relation between these variables was significant, Ï‡Â²(df, N = XXX) = [X.XX], p = [.XXX], Cramer's V = [X.XX].",
+            "Multiple Linear Regression": "A multiple linear regression was calculated to predict [Dependent Variable] from [Predictor 1] and [Predictor 2]. A significant regression equation was found, F(df_reg, df_res) = [X.XX], p = [.XXX], with an RÂ² of [X.XX].",
         }
         st.code(templates[test_type], language="markdown")
-        st.download_button("⬇️ Download Template Code (.md)", data=templates[test_type], file_name=f"apa_{test_type.lower().replace(' ', '_')}.md", mime="text/markdown")
+        st.download_button("â¬‡ï¸ Download Template Code (.md)", data=templates[test_type], file_name=f"apa_{test_type.lower().replace(' ', '_')}.md", mime="text/markdown")
 
     with tab_cite:
         st.markdown("#### Structural Citation Inspector (Heuristic APA Validator)")
         citation_input = st.text_area("Paste Reference Citation String to Validate", placeholder="Kula, C. (2026). Multi-omics biomarkers in clinical diagnostics. Journal of Biomedical Informatics, 42(3), 112-125. https://doi.org/10.1016/j.jbi.2026.100000", key="cite_input_prod")
-        if st.button("🔍 Run Structural Inspection", type="primary", key="run_cite_prod"):
+        if st.button("ðŸ” Run Structural Inspection", type="primary", key="run_cite_prod"):
             if citation_input.strip():
                 checks, passed, total = inspect_apa_citation(citation_input)
                 for label, ok in checks:
-                    st.markdown(f"{'✅' if ok else '❌'} {label}")
+                    st.markdown(f"{'âœ…' if ok else 'âŒ'} {label}")
                 if passed == total:
-                    st.success(f"✅ All {total} structural heuristic checks passed.")
+                    st.success(f"âœ… All {total} structural heuristic checks passed.")
                 elif passed >= total - 1:
-                    st.warning(f"⚠️ {passed}/{total} checks passed — minor formatting adjustments recommended.")
+                    st.warning(f"âš ï¸ {passed}/{total} checks passed â€” minor formatting adjustments recommended.")
                 else:
-                    st.error(f"🚨 Only {passed}/{total} checks passed — citation format deviates significantly from APA 7th standards.")
+                    st.error(f"ðŸš¨ Only {passed}/{total} checks passed â€” citation format deviates significantly from APA 7th standards.")
             else:
                 st.warning("Please provide a citation string to inspect.")
 
@@ -429,17 +435,17 @@ def render_apa_outputs():
             "Variable": ["Age (Years)", "Baseline Biomarker (ng/mL)", "Post-Intervention Biomarker", "Mean Difference", "Cohen's d"],
             "Experimental Group": ["45.2 (7.1)", "2.41 (0.35)", "1.12 (0.18)", "-1.29", "2.84"],
             "Control Group": ["44.8 (6.9)", "2.39 (0.32)", "2.35 (0.31)", "-0.04", "0.11"],
-            "t-statistic / F": ["0.42", "0.38", "14.21", "11.50", "—"],
-            "p-value": [".675", ".704", "< .001", "< .001", "—"],
+            "t-statistic / F": ["0.42", "0.38", "14.21", "11.50", "â€”"],
+            "p-value": [".675", ".704", "< .001", "< .001", "â€”"],
         })
         edited_table = st.data_editor(default_stub, num_rows="dynamic", use_container_width=True, key="apa_table_editor_prod")
         render_export_buttons(edited_table, base_name="apa_publication_table")
 
 
 def render_grants_and_quality():
-    section_header("📜 Grant Application Formatter & Research Quality Assessor", "Customizable institutional grant builder and multidimensional research rigor evaluation suite.")
+    section_header("ðŸ“œ Grant Application Formatter & Research Quality Assessor", "Customizable institutional grant builder and multidimensional research rigor evaluation suite.")
 
-    tab_grant, tab_quality = st.tabs(["📜 Grant Proposal Formatter", "✅ Research Quality Assessor"])
+    tab_grant, tab_quality = st.tabs(["ðŸ“œ Grant Proposal Formatter", "âœ… Research Quality Assessor"])
 
     with tab_grant:
         st.markdown("#### Institutional Grant Proposal Builder")
@@ -456,7 +462,7 @@ def render_grants_and_quality():
         background_text = st.text_area("Background & Significance", value="Current literature demonstrates critical gaps in reproducible bioinformatics pipelines. This proposal addresses this structural limitation directly.", height=110, key="grant_background_prod")
         methodology_text = st.text_area("Research Design & Methodology", value="We utilize robust statistical validation, modular Python architectures, and cross-validated machine learning algorithms.", height=110, key="grant_methodology_prod")
 
-        if st.button("📜 Generate Grant Proposal Package", type="primary", key="run_grant_prod"):
+        if st.button("ðŸ“œ Generate Grant Proposal Package", type="primary", key="run_grant_prod"):
             proposal_text = f"""# INSTITUTIONAL GRANT PROPOSAL: {agency.upper()}
 **Project Title:** {grant_title}
 **Principal Investigator:** {pi_name}
@@ -478,7 +484,7 @@ def render_grants_and_quality():
 * **Open-Access Publication & Conference Dissemination (10%):** ${amount * 0.1:,.2f}
 """
             st.code(proposal_text, language="markdown")
-            st.download_button("⬇️ Download Grant Package (.md)", data=proposal_text, file_name="grant_proposal_package.md", mime="text/markdown")
+            st.download_button("â¬‡ï¸ Download Grant Package (.md)", data=proposal_text, file_name="grant_proposal_package.md", mime="text/markdown")
 
     with tab_quality:
         st.markdown("#### Multidimensional Research Rigor Self-Assessment")
@@ -489,25 +495,25 @@ def render_grants_and_quality():
         for i, dim in enumerate(dims):
             scores[dim] = cols[i % 2].slider(dim, 0, 100, 75, key=f"quality_score_prod_{i}")
 
-        if st.button("✅ Calculate Rigor Index", type="primary", key="run_quality_prod"):
+        if st.button("âœ… Calculate Rigor Index", type="primary", key="run_quality_prod"):
             avg_score = np.mean(list(scores.values()))
             st.metric("Overall Research Quality Index", f"{avg_score:.1f} / 100")
             st.progress(int(avg_score))
-            verdict = "Strong — publication ready" if avg_score >= 85 else ("Moderate — minor revisions recommended" if avg_score >= 65 else "Weak — comprehensive methodological overhaul required")
+            verdict = "Strong â€” publication ready" if avg_score >= 85 else ("Moderate â€” minor revisions recommended" if avg_score >= 65 else "Weak â€” comprehensive methodological overhaul required")
             st.success(f"**Evaluation Verdict:** {verdict}")
             weakest = min(scores, key=scores.get)
-            st.info(f"💡 Priority Improvement Target: **{weakest}** ({scores[weakest]}/100) — focus protocol enhancements here.")
+            st.info(f"ðŸ’¡ Priority Improvement Target: **{weakest}** ({scores[weakest]}/100) â€” focus protocol enhancements here.")
 
 
 def render_publication_pipeline():
-    section_header("🚀 Publication Lifecycle Reference", "Standard operating roadmap from literature discovery to journal submission.")
+    section_header("ðŸš€ Publication Lifecycle Reference", "Standard operating roadmap from literature discovery to journal submission.")
 
     steps = [
-        ("📚 Phase 1: Literature Discovery & Management", "Execute live CrossRef queries and curate references in the persistent library."),
-        ("📊 Phase 2: Rigorous Meta-Analysis", "Pool study effect sizes, compute heterogeneity statistics, and generate forest plots."),
-        ("📑 Phase 3: APA Formatting & Tables", "Draft manuscript sections using standardized statistical templates and table editors."),
-        ("🔍 Phase 4: Citation Compliance", "Audit every reference string through the structural inspector before submission."),
-        ("🚀 Phase 5: Final Compilation & Export", "Export clean markdown packages, BibTeX libraries, and analysis tables."),
+        ("ðŸ“š Phase 1: Literature Discovery & Management", "Execute live CrossRef queries and curate references in the persistent library."),
+        ("ðŸ“Š Phase 2: Rigorous Meta-Analysis", "Pool study effect sizes, compute heterogeneity statistics, and generate forest plots."),
+        ("ðŸ“‘ Phase 3: APA Formatting & Tables", "Draft manuscript sections using standardized statistical templates and table editors."),
+        ("ðŸ” Phase 4: Citation Compliance", "Audit every reference string through the structural inspector before submission."),
+        ("ðŸš€ Phase 5: Final Compilation & Export", "Export clean markdown packages, BibTeX libraries, and analysis tables."),
     ]
 
     for i, (title, desc) in enumerate(steps, 1):
@@ -522,8 +528,8 @@ def render_publication_pipeline():
 
 def render_academic_vault():
     section_header(
-        "🗂️ Academic Report Vault",
-        "Real Muni University academic publications & fieldwork repository — migrated from an earlier "
+        "ðŸ—‚ï¸ Academic Report Vault",
+        "Real Muni University academic publications & fieldwork repository â€” migrated from an earlier "
         "standalone build. Genuine submitted/completed course reports, not demo entries.",
     )
 
@@ -531,11 +537,11 @@ def render_academic_vault():
 
     reports_df = get_academic_vault_df()
     for _, row in reports_df.iterrows():
-        with st.expander(f"📖 [{row['course_code']}] {row['title']}"):
+        with st.expander(f"ðŸ“– [{row['course_code']}] {row['title']}"):
             st.write(f"**Department:** {row['department']} | **Status:** `{row['status']}`")
             st.write(row["abstract_text"])
 
-    with st.expander("➕ Add a real report to the vault"):
+    with st.expander("âž• Add a real report to the vault"):
         with st.form("academic_vault_add"):
             title = st.text_input("Title")
             c1, c2, c3 = st.columns(3)
@@ -556,25 +562,25 @@ def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="literature")
 
-    setup_page("Literature & Publishing Hub", "📚", initial_sidebar_state="expanded")
+    setup_page("Literature & Publishing Hub", "ðŸ“š", initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "📚 Literature & Publishing Hub — Production Suite",
+        "ðŸ“š Literature & Publishing Hub â€” Production Suite",
         "Consolidated academic platform featuring real CrossRef integration, persistent reference management, inverse-variance meta-analysis pooling, heuristic APA compliance inspection, and grant proposal scaffolding.",
-        badge_text="LITERATURE & PUBLISHING HUB • PRODUCTION TIER",
+        badge_text="LITERATURE & PUBLISHING HUB â€¢ PRODUCTION TIER",
     )
 
     tabs = st.tabs([
-        "📚 Literature & References",
-        "📊 Meta-Analysis Studio",
-        "📑 APA & Citations",
-        "📜 Grants & Quality",
-        "🚀 Publication Pipeline",
-        "🗂️ Academic Report Vault",
+        "ðŸ“š Literature & References",
+        "ðŸ“Š Meta-Analysis Studio",
+        "ðŸ“‘ APA & Citations",
+        "ðŸ“œ Grants & Quality",
+        "ðŸš€ Publication Pipeline",
+        "ðŸ—‚ï¸ Academic Report Vault",
     ])
 
     with tabs[0]:

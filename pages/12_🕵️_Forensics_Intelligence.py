@@ -1,5 +1,11 @@
+﻿import os
+import sys
+
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
 """
-🕵️ Forensics Intelligence — Digital Evidence Laboratory (Hardened Production Grade)
+ðŸ•µï¸ Forensics Intelligence â€” Digital Evidence Laboratory (Hardened Production Grade)
 Bit-level byte stream inspection, LSB entropy steganography profiling, deep EXIF/geolocation
 mapping, SMTP envelope/DKIM/SPF analysis, and cryptographically immutable, per-evidence
 chain-of-custody ledgers with strict error trapping and state durability.
@@ -60,23 +66,23 @@ def _get_or_open_case(data: bytes, filename: str) -> str:
 
 
 def render_evidence_lab_tab():
-    section_header("💼 Bit-Level Digital Evidence Laboratory", "Deep binary inspection, magic byte verification, entropy profiling, cryptographic hashing, and automated per-evidence chain-of-custody logging.")
+    section_header("ðŸ’¼ Bit-Level Digital Evidence Laboratory", "Deep binary inspection, magic byte verification, entropy profiling, cryptographic hashing, and automated per-evidence chain-of-custody logging.")
 
     uploaded = st.file_uploader("Upload evidentiary artifact for forensic analysis", key="fe_upload_upg")
     if uploaded is None:
-        st.info("ℹ️ Upload any file artifact to initiate comprehensive bit-level forensic investigation.")
+        st.info("â„¹ï¸ Upload any file artifact to initiate comprehensive bit-level forensic investigation.")
         return
 
     data = uploaded.read()
     filename = uploaded.name
 
     if not data:
-        st.error("🚨 The uploaded file payload is empty (0 bytes). Please provide a valid evidentiary file.")
+        st.error("ðŸš¨ The uploaded file payload is empty (0 bytes). Please provide a valid evidentiary file.")
         return
 
     case_id = _get_or_open_case(data, filename)
 
-    st.success(f"🔗 Immutable Chain-of-Custody Case Bound: **{case_id}** (this evidence's own case — not shared with other uploads this session)")
+    st.success(f"ðŸ”— Immutable Chain-of-Custody Case Bound: **{case_id}** (this evidence's own case â€” not shared with other uploads this session)")
     try:
         append_custody_record(case_id, "EVIDENCE_INGESTED_AND_HASHED", st.session_state.get("user_identity", {}).get("name", "Forensic Analyst"))
     except Exception:
@@ -86,11 +92,11 @@ def render_evidence_lab_tab():
         try:
             report = investigate_bytes(data, filename) or {}
         except Exception as e:
-            st.error(f"🚨 Byte investigation engine error: {e}")
+            st.error(f"ðŸš¨ Byte investigation engine error: {e}")
             return
 
     hashes = report.get("hashes", {})
-    st.markdown("#### 🔐 Cryptographic Hashes & Integrity Signatures")
+    st.markdown("#### ðŸ” Cryptographic Hashes & Integrity Signatures")
     hash_df = pd.DataFrame(
         [
             {"Algorithm": "SHA-256", "Value": hashes.get("sha256", hashlib.sha256(data).hexdigest())},
@@ -102,7 +108,7 @@ def render_evidence_lab_tab():
     )
     st.dataframe(hash_df, use_container_width=True, hide_index=True)
 
-    st.markdown("#### 🧬 Magic Byte Signature & Extension Anomaly Detection")
+    st.markdown("#### ðŸ§¬ Magic Byte Signature & Extension Anomaly Detection")
     det = report.get("signature_detection", {"detected_type": "Unknown", "confidence": "0%"})
     ext = report.get("extension_check", {"verdict": "Unverified"})
     c1, c2, c3 = st.columns(3)
@@ -111,7 +117,7 @@ def render_evidence_lab_tab():
     c3.metric("Extension Status", ext.get("verdict", "N/A"))
     st.info(f"**Forensic Verdict:** Declared extension `{ext.get('declared_extension','n/a')}` vs Inferred Magic Signature `{det.get('detected_type','Unknown')}`")
 
-    st.markdown("#### 🔍 Embedded IOCs, Artifact Carving & Strings")
+    st.markdown("#### ðŸ” Embedded IOCs, Artifact Carving & Strings")
     meta = report.get("embedded", {})
     col_i1, col_i2, col_i3 = st.columns(3)
     col_i1.metric("Extracted URLs", len(meta.get("urls", [])))
@@ -129,7 +135,7 @@ def render_evidence_lab_tab():
         with st.expander(f"Extracted ASCII/Unicode Strings ({len(meta['printable_strings'])} tokens)", expanded=False):
             st.text("\n".join(meta["printable_strings"][:200]))
 
-    st.markdown("#### 📊 Shannon Entropy Distribution")
+    st.markdown("#### ðŸ“Š Shannon Entropy Distribution")
     entropy = report.get("entropy_bits_per_byte", 0.0)
     st.metric("Shannon Entropy (bits/byte)", f"{entropy:.4f} / 8.0")
     if PLOTLY_AVAILABLE:
@@ -151,21 +157,21 @@ def render_evidence_lab_tab():
         fig.update_layout(height=220, margin=dict(t=30, b=10, l=20, r=20), paper_bgcolor="rgba(0,0,0,0)", font={'color': "white"})
         st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown("#### 📦 Export Cryptographic Evidence Dossier")
+    st.markdown("#### ðŸ“¦ Export Cryptographic Evidence Dossier")
     dossier = json.dumps(report, indent=2)
-    st.download_button("⬇️ Download Complete Evidence Dossier (JSON)", data=dossier, file_name=f"evidence_dossier_{case_id}.json", mime="application/json", key="fe_download_upg")
+    st.download_button("â¬‡ï¸ Download Complete Evidence Dossier (JSON)", data=dossier, file_name=f"evidence_dossier_{case_id}.json", mime="application/json", key="fe_download_upg")
 
 
 def render_metadata_tab():
-    section_header("🖼️ Deep Metadata & EXIF Geolocation Forensics", "Extract hidden EXIF tags, device manufacturer signatures, original capture timestamps, and interactive GPS coordinate mapping.")
+    section_header("ðŸ–¼ï¸ Deep Metadata & EXIF Geolocation Forensics", "Extract hidden EXIF tags, device manufacturer signatures, original capture timestamps, and interactive GPS coordinate mapping.")
 
     uploaded = st.file_uploader("Upload image evidentiary artifact (JPEG / PNG / TIFF)", type=["jpg", "jpeg", "png", "tiff"], key="fe_meta_upload_upg")
     if uploaded is None:
-        st.info("ℹ️ Upload an image to extract embedded EXIF parameters and geolocation data.")
+        st.info("â„¹ï¸ Upload an image to extract embedded EXIF parameters and geolocation data.")
         return
 
     data = uploaded.read()
-    st.markdown("#### 🔍 Extracted EXIF & Device Parameters")
+    st.markdown("#### ðŸ” Extracted EXIF & Device Parameters")
     try:
         exif = extract_exif(data) or {}
     except Exception as e:
@@ -173,43 +179,43 @@ def render_metadata_tab():
 
     if exif.get("has_exif"):
         col1, col2, col3 = st.columns(3)
-        col1.metric("Camera Make", exif.get("Make", "—"))
-        col2.metric("Camera Model", exif.get("Model", "—"))
-        col3.metric("Software Tool", exif.get("Software", "—"))
+        col1.metric("Camera Make", exif.get("Make", "â€”"))
+        col2.metric("Camera Model", exif.get("Model", "â€”"))
+        col3.metric("Software Tool", exif.get("Software", "â€”"))
 
         if exif.get("GPS"):
             gps = exif["GPS"]
             lat, lon = gps.get("latitude"), gps.get("longitude")
             if lat is not None and lon is not None:
-                st.success(f"📍 Geolocation Coordinates Discovered: `{lat}, {lon}`")
+                st.success(f"ðŸ“ Geolocation Coordinates Discovered: `{lat}, {lon}`")
                 map_df = pd.DataFrame([{"lat": lat, "lon": lon}])
                 st.map(map_df, zoom=12)
             else:
-                st.info("ℹ️ GPS dictionary present, but coordinate values are invalid.")
+                st.info("â„¹ï¸ GPS dictionary present, but coordinate values are invalid.")
         else:
-            st.info("ℹ️ No GPS coordinates embedded in EXIF block.")
+            st.info("â„¹ï¸ No GPS coordinates embedded in EXIF block.")
     else:
         st.warning(exif.get("note", "No EXIF metadata detected. The file may have been scrubbed or stripped prior to acquisition."))
 
-    if st.button("🔗 Append Extraction Event to Custody Ledger", key="fe_meta_custody_upg"):
+    if st.button("ðŸ”— Append Extraction Event to Custody Ledger", key="fe_meta_custody_upg"):
         fp = st.session_state.get("fe_current_fingerprint")
         case_id = st.session_state.get("fe_case_registry", {}).get(fp, {}).get("case_id") if fp else None
         if case_id:
             try:
                 append_custody_record(case_id, "METADATA_EXIF_EXTRACTED", "Forensic Analyst")
-                st.success("✅ Metadata extraction successfully logged to that evidence's custody ledger.")
+                st.success("âœ… Metadata extraction successfully logged to that evidence's custody ledger.")
             except Exception as e:
-                st.error(f"🚨 Failed to write audit record: {e}")
+                st.error(f"ðŸš¨ Failed to write audit record: {e}")
         else:
-            st.warning("⚠️ No active case found. Ingest this file in the Evidence Lab tab first to open its case.")
+            st.warning("âš ï¸ No active case found. Ingest this file in the Evidence Lab tab first to open its case.")
 
 
 def render_stego_tab():
-    section_header("🧩 LSB Steganography & Bitstream Anomaly Detector", "Mathematically analyze least-significant bit (LSB) variance, chi-square pixel distributions, and bitstream entropy to uncover hidden payloads.")
+    section_header("ðŸ§© LSB Steganography & Bitstream Anomaly Detector", "Mathematically analyze least-significant bit (LSB) variance, chi-square pixel distributions, and bitstream entropy to uncover hidden payloads.")
 
     uploaded = st.file_uploader("Upload image for steganographic analysis (PNG / BMP / JPEG)", type=["png", "jpg", "jpeg", "bmp"], key="fe_stego_upload_upg")
     if uploaded is None:
-        st.info("ℹ️ Upload an image to perform LSB steganographic profiling.")
+        st.info("â„¹ï¸ Upload an image to perform LSB steganographic profiling.")
         return
 
     data = uploaded.read()
@@ -221,23 +227,23 @@ def render_stego_tab():
 
     if result.get("supported"):
         c1, c2, c3 = st.columns(3)
-        c1.metric("Bits Sampled", result.get("bits_sampled", "—"))
-        c2.metric("Ones Ratio", result.get("ones_ratio", "—"))
-        c3.metric("Bitstream Entropy", result.get("entropy", "—"))
+        c1.metric("Bits Sampled", result.get("bits_sampled", "â€”"))
+        c2.metric("Ones Ratio", result.get("ones_ratio", "â€”"))
+        c3.metric("Bitstream Entropy", result.get("entropy", "â€”"))
 
-        st.markdown("#### 🔍 Steganographic Verdict")
+        st.markdown("#### ðŸ” Steganographic Verdict")
         likelihood = result.get("hidden_payload_likelihood", "LOW")
         if likelihood == "HIGH":
-            st.error("🚨 **HIGH LIKELIHOOD OF HIDDEN PAYLOAD.** The LSB bitstream exhibits near-random statistical variance indicative of encrypted or compressed steganographic embedding.")
+            st.error("ðŸš¨ **HIGH LIKELIHOOD OF HIDDEN PAYLOAD.** The LSB bitstream exhibits near-random statistical variance indicative of encrypted or compressed steganographic embedding.")
         else:
-            st.success("✅ **No Significant Steganographic Payload Detected.** LSB bitstream aligns with natural sensor noise distribution.")
+            st.success("âœ… **No Significant Steganographic Payload Detected.** LSB bitstream aligns with natural sensor noise distribution.")
         st.write(result.get("estimate", ""))
     else:
         st.warning(result.get("note", "Steganographic analysis is unsupported for this file format."))
 
 
 def render_phishing_tab():
-    section_header("📧 SMTP Header & Email Phishing Forensics", "Inspect raw RFC 5322 email headers, evaluate DKIM/SPF alignment flags, trace transmission hop relays, and detect domain spoofing.")
+    section_header("ðŸ“§ SMTP Header & Email Phishing Forensics", "Inspect raw RFC 5322 email headers, evaluate DKIM/SPF alignment flags, trace transmission hop relays, and detect domain spoofing.")
 
     raw_email = st.text_area(
         "Paste raw SMTP email payload (Headers + Body)",
@@ -246,35 +252,35 @@ def render_phishing_tab():
         key="fe_email_input_upg",
     )
 
-    if raw_email and st.button("🔍 Execute Email Forensic Analysis", key="fe_analyze_email_upg", type="primary"):
+    if raw_email and st.button("ðŸ” Execute Email Forensic Analysis", key="fe_analyze_email_upg", type="primary"):
         try:
             result = analyze_email_headers(raw_email) or {}
         except Exception as e:
-            st.error(f"🚨 Email parser exception: {e}")
+            st.error(f"ðŸš¨ Email parser exception: {e}")
             return
 
         risk = result.get("phishing_risk", "LOW")
         if risk == "HIGH":
-            st.error(f"🚨 **{result.get('verdict', 'Potential Phishing')}** — Assessed Risk Level: **{risk}**")
+            st.error(f"ðŸš¨ **{result.get('verdict', 'Potential Phishing')}** â€” Assessed Risk Level: **{risk}**")
         elif risk == "MEDIUM":
-            st.warning(f"⚠️ **{result.get('verdict', 'Suspicious Headers')}** — Assessed Risk Level: **{risk}**")
+            st.warning(f"âš ï¸ **{result.get('verdict', 'Suspicious Headers')}** â€” Assessed Risk Level: **{risk}**")
         else:
-            st.success(f"✅ **{result.get('verdict', 'Clean Headers')}** — Assessed Risk Level: **{risk}**")
+            st.success(f"âœ… **{result.get('verdict', 'Clean Headers')}** â€” Assessed Risk Level: **{risk}**")
 
         if result.get("suspicious_findings"):
-            st.markdown("#### 🚩 Identified Indicator Anomalies (IoCs)")
+            st.markdown("#### ðŸš© Identified Indicator Anomalies (IoCs)")
             for finding in result["suspicious_findings"]:
-                st.warning(f"• {finding}")
+                st.warning(f"â€¢ {finding}")
 
         if result.get("keyword_hits"):
-            st.markdown("#### 🔑 Social Engineering Trigger Keywords")
+            st.markdown("#### ðŸ”‘ Social Engineering Trigger Keywords")
             st.write(", ".join(result["keyword_hits"]))
 
-        st.markdown("#### 📋 Domain Envelope Alignment")
+        st.markdown("#### ðŸ“‹ Domain Envelope Alignment")
         cols = st.columns(3)
-        cols[0].metric("From Domain", result.get("from_domain", "—"))
-        cols[1].metric("Reply-To Domain", result.get("reply_to_domain", "—"))
-        cols[2].metric("Return-Path Domain", result.get("return_path_domain", "—"))
+        cols[0].metric("From Domain", result.get("from_domain", "â€”"))
+        cols[1].metric("Reply-To Domain", result.get("reply_to_domain", "â€”"))
+        cols[2].metric("Return-Path Domain", result.get("return_path_domain", "â€”"))
 
         st.info(
             f"**Authentication Status:** SPF Present: `{result.get('spf_present')}` | "
@@ -284,30 +290,30 @@ def render_phishing_tab():
 
 
 def render_custody_tab():
-    section_header("🔗 Cryptographic Chain-of-Custody Vault", "Court-admissible tamper-evident ledger where every investigative action is cryptographically chained via SHA-256 blocks — one independent chain per piece of evidence.")
+    section_header("ðŸ”— Cryptographic Chain-of-Custody Vault", "Court-admissible tamper-evident ledger where every investigative action is cryptographically chained via SHA-256 blocks â€” one independent chain per piece of evidence.")
 
     registry = st.session_state.get("fe_case_registry", {})
     if not registry:
-        st.info("ℹ️ No forensic cases opened this session. Ingest an evidentiary artifact in the Evidence Lab to initialize a case.")
+        st.info("â„¹ï¸ No forensic cases opened this session. Ingest an evidentiary artifact in the Evidence Lab to initialize a case.")
         return
 
-    options = {f"{v['case_id']} — {v['filename']}": v["case_id"] for v in registry.values()}
+    options = {f"{v['case_id']} â€” {v['filename']}": v["case_id"] for v in registry.values()}
     selected_label = st.selectbox("Select Case to Inspect", list(options.keys()), key="fe_case_selector")
     case_id = options[selected_label]
 
     st.metric("Selected Case Identifier", case_id)
-    if st.button("✅ Verify Cryptographic Ledger Integrity", key="fe_verify_chain_upg", type="primary"):
+    if st.button("âœ… Verify Cryptographic Ledger Integrity", key="fe_verify_chain_upg", type="primary"):
         try:
             result = verify_chain(case_id) or {"valid": False, "reason": "No response from verification engine"}
         except Exception as e:
             result = {"valid": False, "reason": str(e)}
 
         if result.get("valid"):
-            st.success(f"🔐 Chain integrity verified successfully — {result.get('records', 'Unknown')} immutable ledger entries intact for this case.")
+            st.success(f"ðŸ” Chain integrity verified successfully â€” {result.get('records', 'Unknown')} immutable ledger entries intact for this case.")
         else:
-            st.error(f"🚨 **CHAIN TAMPER DETECTED:** {result.get('reason')}")
+            st.error(f"ðŸš¨ **CHAIN TAMPER DETECTED:** {result.get('reason')}")
 
-    st.caption(f"{len(registry)} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
+    st.caption(f"{len(registry)} independent case(s) opened this session â€” each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
 
     st.markdown("#### About Cryptographic Chain-of-Custody")
     st.markdown("""
@@ -321,24 +327,24 @@ def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="forensics")
 
-    setup_page("Forensics Intelligence", "🕵️", initial_sidebar_state="expanded")
+    setup_page("Forensics Intelligence", "ðŸ•µï¸", initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "🕵️ Forensic Intelligence & Digital Evidence Laboratory — Hardened Production Suite",
+        "ðŸ•µï¸ Forensic Intelligence & Digital Evidence Laboratory â€” Hardened Production Suite",
         "Bit-level byte stream parsing, Shannon entropy profiling, LSB steganography detection, EXIF geolocation mapping, SMTP phishing forensics, and cryptographically immutable, per-evidence chain-of-custody ledgers.",
-        badge_text="FORENSIC INTELLIGENCE • SECURE EVIDENCE LAB",
+        badge_text="FORENSIC INTELLIGENCE â€¢ SECURE EVIDENCE LAB",
     )
 
     tabs = st.tabs([
-        "💼 Evidence Lab",
-        "🖼️ Metadata & GPS",
-        "🧩 Steganography",
-        "📧 Phishing Analyzer",
-        "🔗 Chain of Custody",
+        "ðŸ’¼ Evidence Lab",
+        "ðŸ–¼ï¸ Metadata & GPS",
+        "ðŸ§© Steganography",
+        "ðŸ“§ Phishing Analyzer",
+        "ðŸ”— Chain of Custody",
     ])
 
     with tabs[0]:
