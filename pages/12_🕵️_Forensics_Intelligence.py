@@ -37,12 +37,12 @@ except ImportError:
 
 
 def _file_fingerprint(data: bytes) -> str:
-    """Computes a unique SHA-256 fingerprint for precise file case mapping[cite: 2]."""
+    """Computes a unique SHA-256 fingerprint for precise file case mapping."""
     return hashlib.sha256(data).hexdigest()
 
 
 def _get_or_open_case(data: bytes, filename: str) -> str:
-    """One case per distinct piece of evidence, keyed by content hash with safe fallback structures[cite: 2]."""
+    """One case per distinct piece of evidence, keyed by content hash with safe fallback structures."""
     if "fe_case_registry" not in st.session_state:
         st.session_state["fe_case_registry"] = {}
 
@@ -60,11 +60,11 @@ def _get_or_open_case(data: bytes, filename: str) -> str:
 
 
 def render_evidence_lab_tab():
-    section_header("💼 Bit-Level Digital Evidence Laboratory", "Deep binary inspection, magic byte verification, entropy profiling, cryptographic hashing, and automated per-evidence chain-of-custody logging[cite: 2].")
+    section_header("💼 Bit-Level Digital Evidence Laboratory", "Deep binary inspection, magic byte verification, entropy profiling, cryptographic hashing, and automated per-evidence chain-of-custody logging.")
 
     uploaded = st.file_uploader("Upload evidentiary artifact for forensic analysis", key="fe_upload_upg")
     if uploaded is None:
-        st.info("ℹ️ Upload any file artifact to initiate comprehensive bit-level forensic investigation[cite: 2].")
+        st.info("ℹ️ Upload any file artifact to initiate comprehensive bit-level forensic investigation.")
         return
 
     data = uploaded.read()
@@ -76,7 +76,7 @@ def render_evidence_lab_tab():
 
     case_id = _get_or_open_case(data, filename)
 
-    st.success(f"🔗 Immutable Chain-of-Custody Case Bound: **{case_id}** (this evidence's own case — not shared with other uploads this session)[cite: 2]")
+    st.success(f"🔗 Immutable Chain-of-Custody Case Bound: **{case_id}** (this evidence's own case — not shared with other uploads this session)")
     try:
         append_custody_record(case_id, "EVIDENCE_INGESTED_AND_HASHED", st.session_state.get("user_identity", {}).get("name", "Forensic Analyst"))
     except Exception:
@@ -109,7 +109,7 @@ def render_evidence_lab_tab():
     c1.metric("Detected File Type", det.get("detected_type", "Unknown"))
     c2.metric("Signature Confidence", det.get("confidence", "N/A"))
     c3.metric("Extension Status", ext.get("verdict", "N/A"))
-    st.info(f"**Forensic Verdict:** Declared extension `{ext.get('declared_extension','n/a')}` vs Inferred Magic Signature `{det.get('detected_type','Unknown')}`[cite: 2]")
+    st.info(f"**Forensic Verdict:** Declared extension `{ext.get('declared_extension','n/a')}` vs Inferred Magic Signature `{det.get('detected_type','Unknown')}`")
 
     st.markdown("#### 🔍 Embedded IOCs, Artifact Carving & Strings")
     meta = report.get("embedded", {})
@@ -157,11 +157,11 @@ def render_evidence_lab_tab():
 
 
 def render_metadata_tab():
-    section_header("🖼️ Deep Metadata & EXIF Geolocation Forensics", "Extract hidden EXIF tags, device manufacturer signatures, original capture timestamps, and interactive GPS coordinate mapping[cite: 2].")
+    section_header("🖼️ Deep Metadata & EXIF Geolocation Forensics", "Extract hidden EXIF tags, device manufacturer signatures, original capture timestamps, and interactive GPS coordinate mapping.")
 
     uploaded = st.file_uploader("Upload image evidentiary artifact (JPEG / PNG / TIFF)", type=["jpg", "jpeg", "png", "tiff"], key="fe_meta_upload_upg")
     if uploaded is None:
-        st.info("ℹ️ Upload an image to extract embedded EXIF parameters and geolocation data[cite: 2].")
+        st.info("ℹ️ Upload an image to extract embedded EXIF parameters and geolocation data.")
         return
 
     data = uploaded.read()
@@ -197,19 +197,19 @@ def render_metadata_tab():
         if case_id:
             try:
                 append_custody_record(case_id, "METADATA_EXIF_EXTRACTED", "Forensic Analyst")
-                st.success("✅ Metadata extraction successfully logged to that evidence's custody ledger[cite: 2].")
+                st.success("✅ Metadata extraction successfully logged to that evidence's custody ledger.")
             except Exception as e:
                 st.error(f"🚨 Failed to write audit record: {e}")
         else:
-            st.warning("⚠️ No active case found. Ingest this file in the Evidence Lab tab first to open its case[cite: 2].")
+            st.warning("⚠️ No active case found. Ingest this file in the Evidence Lab tab first to open its case.")
 
 
 def render_stego_tab():
-    section_header("🧩 LSB Steganography & Bitstream Anomaly Detector", "Mathematically analyze least-significant bit (LSB) variance, chi-square pixel distributions, and bitstream entropy to uncover hidden payloads[cite: 2].")
+    section_header("🧩 LSB Steganography & Bitstream Anomaly Detector", "Mathematically analyze least-significant bit (LSB) variance, chi-square pixel distributions, and bitstream entropy to uncover hidden payloads.")
 
     uploaded = st.file_uploader("Upload image for steganographic analysis (PNG / BMP / JPEG)", type=["png", "jpg", "jpeg", "bmp"], key="fe_stego_upload_upg")
     if uploaded is None:
-        st.info("ℹ️ Upload an image to perform LSB steganographic profiling[cite: 2].")
+        st.info("ℹ️ Upload an image to perform LSB steganographic profiling.")
         return
 
     data = uploaded.read()
@@ -237,7 +237,7 @@ def render_stego_tab():
 
 
 def render_phishing_tab():
-    section_header("📧 SMTP Header & Email Phishing Forensics", "Inspect raw RFC 5322 email headers, evaluate DKIM/SPF alignment flags, trace transmission hop relays, and detect domain spoofing[cite: 2].")
+    section_header("📧 SMTP Header & Email Phishing Forensics", "Inspect raw RFC 5322 email headers, evaluate DKIM/SPF alignment flags, trace transmission hop relays, and detect domain spoofing.")
 
     raw_email = st.text_area(
         "Paste raw SMTP email payload (Headers + Body)",
@@ -284,11 +284,11 @@ def render_phishing_tab():
 
 
 def render_custody_tab():
-    section_header("🔗 Cryptographic Chain-of-Custody Vault", "Court-admissible tamper-evident ledger where every investigative action is cryptographically chained via SHA-256 blocks — one independent chain per piece of evidence[cite: 2].")
+    section_header("🔗 Cryptographic Chain-of-Custody Vault", "Court-admissible tamper-evident ledger where every investigative action is cryptographically chained via SHA-256 blocks — one independent chain per piece of evidence.")
 
     registry = st.session_state.get("fe_case_registry", {})
     if not registry:
-        st.info("ℹ️ No forensic cases opened this session. Ingest an evidentiary artifact in the Evidence Lab to initialize a case[cite: 2].")
+        st.info("ℹ️ No forensic cases opened this session. Ingest an evidentiary artifact in the Evidence Lab to initialize a case.")
         return
 
     options = {f"{v['case_id']} — {v['filename']}": v["case_id"] for v in registry.values()}
@@ -307,13 +307,13 @@ def render_custody_tab():
         else:
             st.error(f"🚨 **CHAIN TAMPER DETECTED:** {result.get('reason')}")
 
-    st.caption(f"{len(registry)} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record[cite: 2].")
+    st.caption(f"{len(registry)} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
 
     st.markdown("#### About Cryptographic Chain-of-Custody")
     st.markdown("""
-    - Every upload, hashing operation, extraction, and analysis is recorded with a strict UTC timestamp[cite: 2].
-    - Records are chained together using preceding SHA-256 hashes, **scoped to the specific evidence file that generated them**[cite: 2].
-    - Any unauthorized modification or file tampering instantly invalidates the cryptographic proof chain for that case[cite: 2].
+    - Every upload, hashing operation, extraction, and analysis is recorded with a strict UTC timestamp.
+    - Records are chained together using preceding SHA-256 hashes, **scoped to the specific evidence file that generated them**.
+    - Any unauthorized modification or file tampering instantly invalidates the cryptographic proof chain for that case.
     """)
 
 
@@ -325,7 +325,7 @@ def main():
 
     hero_card(
         "🕵️ Forensic Intelligence & Digital Evidence Laboratory — Hardened Production Suite",
-        "Bit-level byte stream parsing, Shannon entropy profiling, LSB steganography detection, EXIF geolocation mapping, SMTP phishing forensics, and cryptographically immutable, per-evidence chain-of-custody ledgers[cite: 2].",
+        "Bit-level byte stream parsing, Shannon entropy profiling, LSB steganography detection, EXIF geolocation mapping, SMTP phishing forensics, and cryptographically immutable, per-evidence chain-of-custody ledgers.",
         badge_text="FORENSIC INTELLIGENCE • SECURE EVIDENCE LAB",
     )
 

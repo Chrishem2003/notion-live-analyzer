@@ -2,12 +2,12 @@
 Portal Gateway — Authentication, Subscription, and Workspace Shell (Premium / Security-Hardened)
 
 Changelog vs prior version — this file had the most serious issues found in the entire audit,
-security issues rather than just fake features[cite: 18]:
+security issues rather than just fake features:
 - FIXED (critical): passwords were hashed with bare, unsalted SHA-256 — fast, unsalted hashing is
   trivially reversible via rainbow tables if the database ever leaks. Passwords are now hashed
   with PBKDF2-HMAC-SHA256 (260,000 iterations) and a unique random salt per user (stdlib only, no
   new dependency). Existing accounts created under the old scheme are transparently upgraded to
-  the new scheme the next time they log in successfully — no forced password reset needed[cite: 18].
+  the new scheme the next time they log in successfully — no forced password reset needed.
 - FIXED (critical): `chrishem242@gmail.com` was hardcoded as a permanent admin account in THREE
   separate places (cookie-restore, sign-in handler, and a startup routine that silently
   re-promoted it to admin on every single login) with a default password baked directly into the
@@ -18,23 +18,23 @@ security issues rather than just fake features[cite: 18]:
   very first admin account is now created only on a genuinely empty database, and only from
   `SOVEREIGN_ADMIN_EMAIL` / `SOVEREIGN_ADMIN_PASSWORD` environment variables you set yourself —
   nothing is auto-created with a guessable default password baked into the code. After that,
-  the database's stored role is the sole source of truth[cite: 18].
+  the database's stored role is the sole source of truth.
 - FIXED (data-consistency bug): this file maintained its own `user_subscriptions` table with a
   different schema (`trial_end`, `is_active`) than the `subscriptions` table
   (`plan`, `trial_started`) that Admin Security Center's billing panel actually reads from —
   meaning every signup through this portal was invisible to the real billing/admin system.
-  Aligned to the one shared schema[cite: 18].
+  Aligned to the one shared schema.
 - FIXED (was fake): the "AI Intelligence Daemon" returned a canned
   `"[Execution successful with 99.9% confidence matrix]"` for any input. It's now honestly labeled
   as a query log (a real, legitimate feature) rather than a fake AI response, with a pointer to
-  the real AI & NLP Studio hub for actual analysis[cite: 18].
+  the real AI & NLP Studio hub for actual analysis.
 - FIXED (was fake): "System Status: 0ms latency" and "Lifetime Sovereign Enterprise Access" were
   static claims shown to every user regardless of reality. Replaced with the user's real role and
-  real subscription plan pulled from the (now-aligned) subscription table[cite: 18].
+  real subscription plan pulled from the (now-aligned) subscription table.
 - FIXED (was fake): the "Windows / Linux / macOS / Mobile PWA" download buttons all produced the
   identical placeholder zip (a stub README, a one-line fake script, a bare config file) regardless
   of platform — there was no real platform-specific build behind any of them. Relabeled honestly
-  as a minimal starter-config bundle rather than implying real native applications exist[cite: 18].
+  as a minimal starter-config bundle rather than implying real native applications exist.
 - DECLINED: a request to re-add a *hidden* permanent admin grant hardcoded to
   `chrishem242@gmail.com`. That's the exact backdoor removed above, for the exact reasons
   documented above — hidden privilege escalation tied to a specific account, invisible to
@@ -45,13 +45,13 @@ security issues rather than just fake features[cite: 18]:
   environment variables or Streamlit secrets (not in this source file), register that email
   normally through Sign Up, and it's promoted to admin on next startup — visible to anyone who
   reads the deployment config, logged like any other role, and revocable by just removing the
-  env var and demoting the account through the admin console[cite: 18].
+  env var and demoting the account through the admin console.
 - ADDED: real "Continue with Google" / "Continue with GitHub" sign-in using the standard OAuth
   2.0 Authorization Code flow (genuine redirect to the provider, genuine token exchange, genuine
   profile fetch) — not a styled button that does nothing. Requires you to register the app with
   each provider and set `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` and/or
   `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` plus `OAUTH_REDIRECT_URI`. A provider's button only
-  appears once its credentials are actually configured — no dead buttons[cite: 18].
+  appears once its credentials are actually configured — no dead buttons.
 """
 
 import base64
@@ -120,7 +120,7 @@ def init_sovereign_db():
             pass  # Column already exists.
 
     # Aligned with the schema Admin Security Center's billing panel actually reads
-    # (plan, trial_started) — previously this file used an incompatible parallel table[cite: 18].
+    # (plan, trial_started) — previously this file used an incompatible parallel table.
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS subscriptions (
             email TEXT PRIMARY KEY,
@@ -160,7 +160,7 @@ def _verify_password(password: str, stored_hash_hex: str, salt_hex: str) -> bool
 def ensure_bootstrap_admin():
     cursor = db_conn.cursor()
     if cursor.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] > 0:
-        return  # Not a fresh install — the database's stored roles are the sole source of truth[cite: 18].
+        return  # Not a fresh install — the database's stored roles are the sole source of truth.
 
     bootstrap_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
     bootstrap_password = os.environ.get("SOVEREIGN_ADMIN_PASSWORD")
@@ -188,7 +188,7 @@ def sync_designated_admin():
 
     This is the secure replacement for a hardcoded backdoor: the designated admin's email lives
     only in your deployment's environment variables or Streamlit secrets — never in this source
-    file — so it isn't exposed to anyone who reads or shares this code[cite: 18].
+    file — so it isn't exposed to anyone who reads or shares this code.
     """
     designated_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
     if not designated_email:
@@ -233,7 +233,7 @@ class AuthStore:
             return None
 
         # Legacy unsalted-SHA256 account: verify against the old scheme, then transparently
-        # upgrade to salted PBKDF2[cite: 18].
+        # upgrade to salted PBKDF2.
         legacy_hash = hashlib.sha256(password.encode()).hexdigest()
         if legacy_hash == stored_hash:
             new_hash, new_salt = _hash_password(password)
@@ -824,7 +824,10 @@ else:
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
-    theme_mode = st.sidebar.selectbox("Interface Spectrum", ["Deep Space Nebula", "Cyber Matrix Dark", "Sovereign Gold"])
+    # NOTE: a theme selector used to live here but was never wired to anything —
+    # picking an option changed nothing. Removed rather than left as a decorative
+    # dead control. If you want real theme switching, share modules/theme_loader.py
+    # (or wherever apply_custom_theme() lives) and it can be built properly.
 
     if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
         cookie_manager.delete("chrishem_user_email")

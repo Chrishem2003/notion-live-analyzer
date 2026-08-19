@@ -600,10 +600,212 @@ def render_agents_tab():
                     st.error(f"🚨 Inconsistent — the active dataset has changed since Data Studio last recorded a fingerprint. Current: {result['current_fingerprint'][:16]}… vs. recorded: {result['data_studio_fingerprint'][:16]}…")
 
 
+def render_realworld_chaos_tab(df):
+    section_header(
+        "🌍 Real-World Chaos & Nonlinear Dynamics Detector",
+        "Data-driven chaos detection on your actual uploaded data — Rosenstein Lyapunov exponent, "
+        "the Gottwald–Melbourne 0-1 Test, Grassberger–Procaccia correlation dimension, sample entropy, "
+        "and Huang's Empirical Mode Decomposition / Hilbert Spectral Analysis. Same rigorous math for "
+        "any sector — education, healthcare, security, agriculture, engineering, economics, finance, or "
+        "anything else. This tab analyzes what you actually uploaded; it does not simulate a toy model."
+    )
+
+    try:
+        from modules.chaos_detector import (
+            analyze_time_series, empirical_mode_decomposition, hilbert_spectrum, recurrence_analysis,
+        )
+    except ImportError as e:
+        st.error(f"Chaos detector module unavailable: {e}")
+        return
+
+    import plotly.graph_objects as go
+
+    if df is None or df.empty:
+        st.warning("No dataset loaded. Upload data in Data Studio first, or use the quick loader below.")
+        uploaded = st.file_uploader("Quick-load a CSV for chaos analysis", type=["csv"], key="rwc_quick_upload")
+        if uploaded is not None:
+            quick_df = pd.read_csv(uploaded)
+            set_active_dataframe(quick_df, uploaded.name)
+            st.rerun()
+        return
+
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    if not numeric_cols:
+        st.error("No numeric columns found in the active dataset. This engine needs a numeric time series.")
+        return
+
+    with st.expander("⚙️ Analysis Configuration", expanded=True):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            col = st.selectbox("Numeric column to analyze (in row order)", numeric_cols, key="rwc_col")
+        with c2:
+            sector = st.selectbox(
+                "Sector context (labeling only — the math below is identical regardless of choice)",
+                ["Generic / Unspecified", "Education", "Healthcare", "Security", "Agriculture",
+                 "Engineering", "Economics & Finance", "Other"],
+                key="rwc_sector",
+            )
+        with c3:
+            dt_real = st.number_input(
+                "Real time step between rows (e.g. 1.0 = daily units, 0.0833 = monthly-in-years). "
+                "Only affects the *scale* of the reported Lyapunov exponent, not the chaos/no-chaos call.",
+                value=1.0, min_value=1e-6, format="%.4f", key="rwc_dt",
+            )
+        run = st.button("🔬 Run Full Chaos & Nonlinear Dynamics Analysis", type="primary", key="rwc_run")
+
+    if not run:
+        st.info("Configure the column above and click **Run Full Chaos & Nonlinear Dynamics Analysis**.")
+        return
+
+    series = df[col].dropna().to_numpy(dtype=float)
+    n = len(series)
+    st.caption(f"Analyzing **{n} real data point(s)** from column `{col}` "
+               f"(sector context: {sector}, dt = {dt_real}).")
+
+    if n < 30:
+        st.error(
+            f"Only {n} usable data points after dropping missing values — that is too few for any of "
+            f"these methods to be meaningful (most need 50-200+ points). Upload a longer series."
+        )
+        return
+
+    with st.spinner("Running Rosenstein LLE, 0-1 Test, correlation dimension, sample entropy, EMD…"):
+        report = analyze_time_series(series, dt=dt_real)
+
+    # --- Verdict banner --------------------------------------------------
+    verdict_lower = report.verdict.lower()
+    if "all" in verdict_lower and "chaotic" in verdict_lower:
+        st.error(f"🌀 **{report.verdict}**")
+    elif "all" in verdict_lower and "no evidence" in verdict_lower:
+        st.success(f"✅ **{report.verdict}**")
+    else:
+        st.warning(f"⚠️ **{report.verdict}**")
+
+    if report.warnings:
+        with st.expander(f"⚠️ {len(report.warnings)} data-adequacy warning(s) — read before trusting numbers below"):
+            for w in report.warnings:
+                st.markdown(f"- {w}")
+
+    # --- Headline metrics --------------------------------------------------
+    m1, m2, m3, m4 = st.columns(4)
+    lle = report.lyapunov.get("lle")
+    m1.metric("Largest Lyapunov Exponent (Rosenstein)", f"{lle:.4f}" if np.isfinite(lle) else "n/a",
+               help="Positive = neighboring trajectories diverge exponentially (hallmark of chaos). "
+                    "Computed directly from your data, not from a simulated equation.")
+    K = report.zero_one.get("K")
+    m2.metric("0-1 Test for Chaos (K)", f"{K:.3f}" if np.isfinite(K) else "n/a",
+               help="K≈0: regular (periodic/quasi-periodic). K≈1: irregular (chaotic OR stochastic — "
+                    "this test alone cannot tell those apart; see correlation dimension for that).")
+    se = report.sample_entropy.get("sampen")
+    m3.metric("Sample Entropy", f"{se:.4f}" if np.isfinite(se) else "n/a",
+               help="Higher = less predictable / more complex. Pure noise scores very high; clean "
+                    "periodic signals score near zero; chaos is usually in between.")
+    m4.metric("Embedding used", f"m={report.embedding_dim}, τ={report.tau}",
+               help="Automatically chosen via False Nearest Neighbors and Average Mutual Information "
+                    "— not hand-tuned per dataset.")
+
+    # --- Correlation dimension detail ---------------------------------------
+    cd = report.correlation_dim
+    with st.expander("📐 Correlation Dimension (Grassberger–Procaccia) — is the attractor low-dimensional?"):
+        st.caption(cd.get("note", ""))
+        d2_by_dim = cd.get("d2_by_dim", {})
+        if d2_by_dim:
+            dims = list(d2_by_dim.keys())
+            vals = list(d2_by_dim.values())
+            fig = go.Figure(data=[go.Scatter(x=dims, y=vals, mode="lines+markers",
+                                              line=dict(color="#f472b6", width=3))])
+            fig.update_layout(title="Correlation Dimension D2 vs Embedding Dimension",
+                               xaxis_title="Embedding dimension", yaxis_title="D2",
+                               height=320, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                               font=dict(color="white"))
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("A flat curve (D2 stops rising) = consistent with a genuine, low-dimensional "
+                       "deterministic attractor. A curve that keeps climbing roughly 1-for-1 with "
+                       "embedding dimension = consistent with noise or very high-dimensional dynamics. "
+                       "This method is notoriously data-hungry — treat it as supporting evidence, not "
+                       "a standalone verdict, especially with under ~500 points.")
+        else:
+            st.info("Not enough data to compute a reliable correlation dimension curve here.")
+
+    # --- Lyapunov divergence curve -----------------------------------------
+    with st.expander("📈 Lyapunov Divergence Curve (Rosenstein)"):
+        k_axis, mean_log_div = report.lyapunov.get("divergence_curve", (None, None))
+        if k_axis is not None:
+            fig = go.Figure(data=[go.Scatter(x=k_axis, y=mean_log_div, mode="lines",
+                                              line=dict(color="#00f2fe", width=2))])
+            fit_region = report.lyapunov.get("fit_region")
+            if fit_region:
+                fig.add_vrect(x0=fit_region[0], x1=fit_region[1], fillcolor="#00f2fe", opacity=0.15,
+                              line_width=0, annotation_text="fit region")
+            fig.update_layout(title="Mean Log Divergence of Nearby Trajectories vs Time Step",
+                               xaxis_title="Time step (× dt)", yaxis_title="⟨ln divergence⟩",
+                               height=320, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                               font=dict(color="white"))
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("A sustained upward slope early on, followed by flattening once trajectories "
+                       "saturate at the attractor's size, is the real signature the Lyapunov exponent "
+                       "is measuring. The shaded region shows where the slope was actually fit.")
+
+    # --- EMD / Hilbert spectrum ----------------------------------------------
+    with st.expander("🌊 Empirical Mode Decomposition & Hilbert Spectrum (Huang et al., 1998)"):
+        st.caption("Decomposes your series into physically meaningful oscillatory modes without "
+                   "assuming linearity or stationarity — useful for spotting regime shifts and the "
+                   "dominant timescales actually present in the data.")
+        emd_res = empirical_mode_decomposition(series)
+        imfs = emd_res["imfs"]
+        if len(imfs) == 0:
+            st.info("No clear intrinsic modes found — the series may already be too smooth or too short.")
+        else:
+            fig = go.Figure()
+            for i, imf in enumerate(imfs[:5]):
+                fig.add_trace(go.Scatter(y=imf, mode="lines", name=f"IMF {i+1}"))
+            fig.add_trace(go.Scatter(y=emd_res["residual"], mode="lines", name="Residual (trend)",
+                                      line=dict(color="white", width=2, dash="dot")))
+            fig.update_layout(title=f"{min(5, len(imfs))} of {len(imfs)} Intrinsic Mode Functions + Residual Trend",
+                               height=380, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                               font=dict(color="white"))
+            st.plotly_chart(fig, use_container_width=True)
+
+    # --- Recurrence plot -------------------------------------------------
+    with st.expander("🔁 Recurrence Plot (Marwan et al., 2007)"):
+        try:
+            rqa = recurrence_analysis(series, report.embedding_dim, report.tau)
+            r1, r2, r3 = st.columns(3)
+            r1.metric("Recurrence rate", f"{rqa['recurrence_rate']*100:.1f}%")
+            r2.metric("Determinism", f"{rqa['determinism']*100:.1f}%")
+            r3.metric("Avg. diagonal length", f"{rqa['avg_diag_length']:.2f}")
+            fig = go.Figure(data=go.Heatmap(z=rqa["RP"], colorscale="Blues", showscale=False))
+            fig.update_layout(title="Recurrence Plot", height=420, paper_bgcolor="rgba(0,0,0,0)",
+                               plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("High determinism with short, broken diagonal lines is a classic visual "
+                       "signature of chaos (as opposed to the long unbroken diagonals of periodic "
+                       "motion, or the near-absence of structure in pure noise).")
+        except Exception as e:
+            st.info(f"Recurrence plot unavailable for this series: {e}")
+
+    st.markdown("---")
+    st.caption(
+        "**Methods, honestly cited:** Rosenstein et al. (1993) largest Lyapunov exponent from data · "
+        "Gottwald & Melbourne (2004) 0-1 test for chaos, built on the Li–Yorke definition of chaos "
+        "(Li & Yorke, 1975) · Grassberger & Procaccia (1983) correlation dimension · Kennel et al. "
+        "(1992) false nearest neighbors · Fraser & Swinney (1986) mutual information · Huang et al. "
+        "(1998) empirical mode decomposition & Hilbert spectral analysis · Richman & Moorman (2000) "
+        "sample entropy · Marwan et al. (2007) recurrence quantification analysis. **Known honest "
+        "limitation:** no method here, alone or combined, can perfectly separate low-dimensional chaos "
+        "from high-dimensional stochastic noise on short real-world data — this is an open problem in "
+        "nonlinear time series analysis, not a gap specific to this tool. Where the tests disagree, "
+        "this page says so instead of forcing a confident-sounding answer."
+    )
+
+
 def render_chaos_tab():
     section_header(
-        "⚛️ AI & Chaos Dynamics Lab",
-        "Real SciPy ODE integration, bifurcation analysis, Monte Carlo ensembles, sensitivity landscapes, and advanced time-series forecasting.",
+        "⚛️ ODE Simulator (Toy Model — Not Real Data)",
+        "A parameter sandbox for exploring generic nonlinear dynamical equations via SciPy's numerical "
+        "ODE solvers. Sector labels here only relabel the same underlying generic 3-variable system — "
+        "this tab does not analyze your uploaded data. For real, data-driven chaos detection on your "
+        "actual dataset, use the 'Real-World Chaos Detector' tab instead.",
     )
 
     st.markdown(
@@ -789,7 +991,8 @@ def main():
         "🔮 Prediction Engine",
         "⚡ Feature Engineering",
         "🦾 Autonomous Agents",
-        "⚛️ AI & Chaos Cores",
+        "🌍 Real-World Chaos Detector",
+        "⚛️ ODE Simulator (Toy Model)",
     ])
 
     with tabs[0]:
@@ -801,6 +1004,8 @@ def main():
     with tabs[3]:
         render_agents_tab()
     with tabs[4]:
+        render_realworld_chaos_tab(df)
+    with tabs[5]:
         render_chaos_tab()
 
     render_standard_footer("ML & PREDICTIVE STUDIO")

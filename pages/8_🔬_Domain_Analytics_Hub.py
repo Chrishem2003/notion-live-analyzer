@@ -97,7 +97,7 @@ def render_clinical(df):
         "⚠️ **This is NOT the validated ACC/AHA Pooled Cohort Equations and does not produce a clinical ASCVD risk percentage.** "
         "It is a transparent, additive screening heuristic for educational illustration. "
         "For certified clinical evaluations, use the official "
-        "[ACC/AHA ASCVD Risk Estimator Plus](https://tools.acc.org/ascvd-risk-estimator-plus/)[cite: 2]."
+        "[ACC/AHA ASCVD Risk Estimator Plus](https://tools.acc.org/ascvd-risk-estimator-plus/)."
     )
     col_a, col_b = st.columns(2)
     with col_a:
@@ -129,12 +129,12 @@ def render_clinical(df):
 
 
 def render_network(df):
-    section_header("🔗 Network Analytics — Correlation Graph from Active Dataset", "Builds a real network graph derived from numeric column relationships in your loaded dataset[cite: 2].")
+    section_header("🔗 Network Analytics — Correlation Graph from Active Dataset", "Builds a real network graph derived from numeric column relationships in your loaded dataset.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist() if df is not None else []
 
     if df is None or len(numeric_cols) < 2:
-        st.info("ℹ️ Load a dataset with at least 2 numeric columns via Data Studio to construct a real correlation network[cite: 2].")
+        st.info("ℹ️ Load a dataset with at least 2 numeric columns via Data Studio to construct a real correlation network.")
         return
 
     threshold = st.slider("Correlation threshold for edge inclusion (|r| ≥)", 0.1, 0.9, 0.4, 0.05, key="net_thresh_prod")
@@ -257,7 +257,7 @@ def fetch_worldbank_series(country_code: str, indicator_code: str):
 
 
 def render_global_surveillance():
-    section_header("🌍 Sector Indicator Monitor (World Bank Open Data API)", "Real macroeconomic, health, and environmental indicator data pulled directly from the World Bank API[cite: 2].")
+    section_header("🌍 Sector Indicator Monitor (World Bank Open Data API)", "Real macroeconomic, health, and environmental indicator data pulled directly from the World Bank API.")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -305,7 +305,7 @@ def _compute_h_index(citation_counts: list) -> int:
 
 
 def render_academic():
-    section_header("🎓 Academic Portfolio & Grant Management Studio", "Dynamic editable portfolio where citation totals, grant budgets, and h-index are computed directly from your entries[cite: 2].")
+    section_header("🎓 Academic Portfolio & Grant Management Studio", "Dynamic editable portfolio where citation totals, grant budgets, and h-index are computed directly from your entries.")
 
     if "academic_pubs_prod" not in st.session_state:
         st.session_state["academic_pubs_prod"] = pd.DataFrame({
