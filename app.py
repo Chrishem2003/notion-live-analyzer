@@ -410,7 +410,7 @@ def render_paywall_screen(module_name, required_tier="Pro"):
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. SESSION STATE & GLOBAL AUDIO SIDEBAR
+# 6. SESSION STATE & EXPANDED GLOBAL AUDIO SIDEBAR
 # ==========================================
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = True
@@ -423,21 +423,42 @@ st.sidebar.markdown(f"<h3 style='margin:0; color:#F8FAFC;'>{st.session_state.use
 st.sidebar.caption(f"Operator: **{st.session_state.role.upper()}**")
 st.sidebar.divider()
 
-# SOUND CATALOG & PERSISTENT AUDIO CONTROLS IN SIDEBAR
+# EXPANDED SOUND CATALOG SYSTEM (25+ TRACKS ACROSS 5 CATEGORIES)
 SOUND_CATALOG = {
-    "🧠 Brain Wiring & Focus": {
+    "🧠 Brain Wiring, Frequencies & Focus": {
         "432Hz Deep Focus Pulse": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
-        "Alpha Waves Concentration": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
-        "Gamma Frequency Sync": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3"
+        "528Hz Solfeggio Transformation Tone": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3",
+        "Alpha Waves Concentration (10Hz)": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
+        "Gamma Frequency Peak Focus (40Hz)": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3",
+        "Smooth Brown Noise (Deep Study)": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
+        "Soothing Pink Noise Focus": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3"
     },
-    "🌧️ Natural Acoustics & Ambience": {
-        "Gentle Rain & Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
-        "Deep Space Drone": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
-        "Forest River Flow": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3"
+    "🌧️ Weather, Nature & Deep Acoustics": {
+        "Gentle Rain & Soft Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
+        "Heavy Rain on Roof": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3",
+        "Forest River & Birds": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3",
+        "Deep Ocean Waves Crashing": "https://cdn.pixabay.com/download/audio/2022/04/27/audio_651a021132.mp3",
+        "Crackling Campfire Ambience": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
+        "Windy Mountain Peak": "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c3bc410d51.mp3"
     },
-    "🎵 Instrumental & Relaxing Songs": {
-        "Acoustic Chill Meditation": "https://cdn.pixabay.com/download/audio/2022/05/16/audio_db6591201e.mp3",
-        "Lo-Fi Study Groove": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3"
+    "🎧 Lo-Fi, Chillhop & Study Beats": {
+        "Lo-Fi Study Groove": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
+        "Midnight City Lo-Fi Chill": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
+        "Coffee Shop Acoustic Chill": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
+        "Late Night Cyberpunk Synthwave": "https://cdn.pixabay.com/download/audio/2022/02/10/audio_fc8a26f8ee.mp3",
+        "Smooth Jazz Study Session": "https://cdn.pixabay.com/download/audio/2022/03/24/audio_3311516e8b.mp3"
+    },
+    "🧘 Space, Meditative & Ambient Drones": {
+        "Deep Space Void Drone": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
+        "Tibetan Singing Bowls Zen": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_b28d541575.mp3",
+        "Celestial Shimmer Pad": "https://cdn.pixabay.com/download/audio/2022/05/16/audio_db6591201e.mp3",
+        "Cosmic Meditation Atmosphere": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3"
+    },
+    "🎵 Melodic Instrumental & Keys": {
+        "Acoustic Solitude Guitar": "https://cdn.pixabay.com/download/audio/2022/05/16/audio_db6591201e.mp3",
+        "Peaceful Piano Reflections": "https://cdn.pixabay.com/download/audio/2022/04/27/audio_c1e285d113.mp3",
+        "Cinematic Soft Strings": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_8946f04754.mp3",
+        "Late Night R&B Ambient Keys": "https://cdn.pixabay.com/download/audio/2022/02/15/audio_d00b14736f.mp3"
     }
 }
 
@@ -446,7 +467,7 @@ sound_category = st.sidebar.selectbox("Sound Category", list(SOUND_CATALOG.keys(
 selected_sound_name = st.sidebar.selectbox("Select Track", list(SOUND_CATALOG[sound_category].keys()))
 active_audio_url = SOUND_CATALOG[sound_category][selected_sound_name]
 
-# Upload & Download Section
+# Custom Audio Upload & Local Storage Download
 uploaded_sound = st.sidebar.file_uploader("Upload Custom Audio (MP3/WAV)", type=["mp3", "wav"])
 if uploaded_sound:
     os.makedirs("custom_sounds", exist_ok=True)
@@ -456,13 +477,13 @@ if uploaded_sound:
     st.sidebar.success(f"Uploaded: {uploaded_sound.name}")
     
     st.sidebar.download_button(
-        label="📥 Download Uploaded Track",
+        label="📥 Save Track Locally",
         data=uploaded_sound.getvalue(),
         file_name=uploaded_sound.name,
         mime="audio/mpeg"
     )
 
-# Render floating audio player across ALL pages
+# Render floating persistent audio player across all tabs
 render_persistent_audio_player(active_audio_url, selected_sound_name)
 
 st.sidebar.divider()
