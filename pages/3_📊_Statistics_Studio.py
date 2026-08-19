@@ -728,7 +728,7 @@ def render_methodology_tab():
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="statistics")
 
     setup_page("Statistics Studio", "📊", initial_sidebar_state="expanded")
 

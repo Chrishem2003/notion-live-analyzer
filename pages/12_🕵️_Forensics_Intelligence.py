@@ -319,7 +319,7 @@ def render_custody_tab():
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="forensics")
 
     setup_page("Forensics Intelligence", "🕵️", initial_sidebar_state="expanded")
 

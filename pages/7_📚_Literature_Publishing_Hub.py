@@ -522,7 +522,7 @@ def render_publication_pipeline():
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="literature")
 
     setup_page("Literature & Publishing Hub", "📚", initial_sidebar_state="expanded")
 

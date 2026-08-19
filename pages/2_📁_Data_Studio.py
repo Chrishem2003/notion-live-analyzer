@@ -674,7 +674,7 @@ def render_explorer_tab():
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="data")
 
     setup_page("Enterprise Data Studio", "📁", initial_sidebar_state="expanded")
 

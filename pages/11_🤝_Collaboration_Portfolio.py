@@ -336,6 +336,11 @@ def render_portfolio(conn):
 
 
 def main():
+    from modules.subscription import require_active_subscription
+    # FIX: this hub had no tier gate at all — every trial/free account could
+    # reach it even though HUB_MIN_PLAN declares "collaboration": "premium".
+    require_active_subscription(hub_id="collaboration")
+
     setup_page("Collaboration & Portfolio Hub", "🤝", initial_sidebar_state="expanded")
 
     hero_card(

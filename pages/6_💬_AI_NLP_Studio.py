@@ -511,7 +511,7 @@ def render_audio():
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="nlp")
 
     setup_page("AI & NLP Studio", "💬", initial_sidebar_state="expanded")
 

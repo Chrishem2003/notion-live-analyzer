@@ -861,6 +861,14 @@ def render_settings():
 
 
 def main():
+    # FIX (polish): previously this gate only existed inside render_system_diagnostics(),
+    # the first tab. Since Streamlit executes every `with tabs[i]:` block on each rerun
+    # regardless of which tab is visually selected, a non-admin hit st.stop() on that
+    # first tab's hidden code path and the whole page died before Aidify Audit / Nexus
+    # Workspace ever got a chance to render. Gating explicitly at the top is equivalent
+    # in effect but makes the access boundary obvious instead of accidental.
+    require_admin()
+
     setup_page("Admin & Security Center", "🛡️", initial_sidebar_state="expanded")
     hero_card("🛡️ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.3")
     conn = _nexus_conn()

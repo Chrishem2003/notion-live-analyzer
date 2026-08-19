@@ -179,7 +179,10 @@ def render_telemetry_tab():
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    # FIX: hub_id was previously omitted, so this page silently fell back to
+    # min_plan="free" instead of enforcing HUB_MIN_PLAN["mission"] == "premium".
+    # Every trial/free account was passing straight through.
+    require_active_subscription(hub_id="mission")
 
     setup_page("Global Mission Control", "🌍", initial_sidebar_state="expanded")
 

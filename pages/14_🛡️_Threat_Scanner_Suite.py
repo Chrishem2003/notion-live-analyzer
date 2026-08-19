@@ -288,7 +288,7 @@ def render_playbook_tab():
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="threat")
 
     setup_page("Threat & Scanner Suite", "🛡️", initial_sidebar_state="expanded")
 

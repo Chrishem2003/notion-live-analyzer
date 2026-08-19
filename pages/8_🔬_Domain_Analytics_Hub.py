@@ -389,7 +389,7 @@ Standardized protocol generated for reproducible laboratory execution and compli
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="domain")
 
     setup_page("Domain Analytics Hub", "🔬", initial_sidebar_state="expanded")
 

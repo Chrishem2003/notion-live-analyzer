@@ -433,7 +433,7 @@ def render_chart_extractor(df):
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="visualization")
 
     setup_page("Visualization Studio", "📈", initial_sidebar_state="expanded")
 

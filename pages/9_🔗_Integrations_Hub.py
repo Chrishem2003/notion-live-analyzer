@@ -422,7 +422,7 @@ def render_reference_lookup():
 
 def main():
     from modules.subscription import require_active_subscription
-    require_active_subscription()
+    require_active_subscription(hub_id="integrations")
 
     setup_page("Integrations Hub", "🔗", initial_sidebar_state="expanded")
 
