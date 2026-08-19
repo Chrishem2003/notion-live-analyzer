@@ -5,6 +5,7 @@ import pandas as pd
 import base64
 import hashlib
 import os
+import sys
 import json
 import math
 import requests
@@ -122,7 +123,6 @@ def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    # Auth Users
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS auth_users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -136,7 +136,6 @@ def init_db():
         )
     ''')
 
-    # Audit Logs
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -147,7 +146,6 @@ def init_db():
         )
     ''')
 
-    # Subscriptions & Paywall Control Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS subscriptions (
             user_email TEXT PRIMARY KEY,
@@ -159,7 +157,6 @@ def init_db():
         )
     ''')
 
-    # Global Paywall Toggles
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS paywall_settings (
             setting_key TEXT PRIMARY KEY,
@@ -167,7 +164,6 @@ def init_db():
         )
     ''')
 
-    # Research Domain Tables
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS mcr_gene_surveillance (
             sample_id TEXT PRIMARY KEY,
@@ -194,13 +190,12 @@ def init_db():
     ''')
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS music_catalog (
+        CREATE TABLE IF NOT EXISTS focus_sessions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            track_title TEXT UNIQUE,
-            artist_alias TEXT,
-            genre TEXT,
-            release_status TEXT,
-            lyrics TEXT
+            user_email TEXT,
+            preset_mode TEXT,
+            duration_minutes INTEGER,
+            logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
@@ -215,10 +210,8 @@ def init_db():
         )
     ''')
 
-    # Default Paywall Global Setting
     cursor.execute("INSERT OR IGNORE INTO paywall_settings VALUES ('global_paywall_active', 'true')")
 
-    # Seed Admin Account CHRISHEM
     cursor.execute("SELECT * FROM auth_users WHERE email = ?", ("admin@chrishem.apex",))
     if not cursor.fetchone():
         salt = os.urandom(16).hex()
@@ -228,11 +221,9 @@ def init_db():
             ("admin@chrishem.apex", "CHRISHEM", pwd_hash, salt, "admin")
         )
 
-    # Seed Admin Lifetime Subscription
     cursor.execute("INSERT OR REPLACE INTO subscriptions VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
                    ("admin@chrishem.apex", "Apex Sovereign", "active", 0.0, "2099-12-31"))
 
-    # Seed Production Data for mcr Surveillance
     cursor.execute("SELECT COUNT(*) FROM mcr_gene_surveillance")
     if cursor.fetchone()[0] == 0:
         cursor.executemany(
@@ -245,7 +236,6 @@ def init_db():
             ]
         )
 
-    # Seed Business Projects
     cursor.execute("SELECT COUNT(*) FROM business_projects")
     if cursor.fetchone()[0] == 0:
         cursor.executemany(
@@ -258,19 +248,6 @@ def init_db():
             ]
         )
 
-    # Seed Clean Production Music Catalog
-    cursor.execute("SELECT COUNT(*) FROM music_catalog")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany(
-            "INSERT INTO music_catalog (track_title, artist_alias, genre, release_status, lyrics) VALUES (?, ?, ?, ?, ?)",
-            [
-                ("Red Lights", "Chrishem", "Smooth R&B", "Mastered", "Late night in Arua city, lights down low...\nCatching waves on the frequency..."),
-                ("I Surrender (Gospel Cover)", "Chris Shem", "Worship / Gospel", "Released", "Making space for your presence...\nHere I stand with open arms..."),
-                ("Confirmation Vibes", "Chrishem", "Afro-R&B", "In Production", "Looking at the mirror, seeing all the growth...")
-            ]
-        )
-
-    # Seed Epidemiological Cohort
     cursor.execute("SELECT COUNT(*) FROM ppwr_cohort")
     if cursor.fetchone()[0] == 0:
         cursor.executemany(
@@ -503,7 +480,7 @@ menu = st.sidebar.radio("Navigation Engine", [
     "🌊 Environmental Compliance",
     "💼 Business Portfolio",
     "📊 Epidemiological Cohort",
-    "🎵 Creator & Music Studio",
+    "🧠 Neuro-Sonic Focus Engine",
     "💬 Local AI & NLP Bridge",
     "🗂️ Academic Report Vault",
     "👤 Identity Settings",
@@ -526,7 +503,7 @@ if menu == "⚡ System Overview":
     st.caption("Integrated Operational Telemetry & Academic Research Platform")
 
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("System Engines", "13 Active", "Online")
+    m1.metric("System Modules", "13 Installed", "Verified")
     m2.metric("Paywall Guard", "Active" if is_paywall_enabled() else "Disabled", "Bypass Admin")
     m3.metric("Lead Investigator", "Kula Chris", "2501202072")
     m4.metric("Creator Handle", "CHRISHEM", "Active")
@@ -537,15 +514,15 @@ if menu == "⚡ System Overview":
     with col_l:
         st.subheader("📌 Operational Subsystem Matrix")
         matrix_df = pd.DataFrame({
-            "Research Subsystem": ["mcr Genomic Surveillance", "Arua GIS Resistance Map", "Kidega Fresh Enterprise", "PPWR / DRA Women's Health", "Chrishem Music Catalog"],
-            "Target Focus": ["Plasmid Colistin Resistance", "Coordinate Resistance Map", "Beverage Production & Sales", "Postpartum Abdominal Recovery", "Amapiano / R&B Productions"],
+            "Research Subsystem": ["mcr Genomic Surveillance", "Arua GIS Resistance Map", "Kidega Fresh Enterprise", "PPWR / DRA Women's Health", "Neuro-Sonic Focus Engine"],
+            "Target Focus": ["Plasmid Colistin Resistance", "Coordinate Resistance Map", "Beverage Production & Sales", "Postpartum Abdominal Recovery", "Generative Cognitive Soundscapes"],
             "Access Status": ["Pro Tier Locked" if is_paywall_enabled() and st.session_state.role != "admin" else "Operational" for _ in range(5)]
         })
         st.dataframe(matrix_df, use_container_width=True)
 
     with col_r:
         st.subheader("🛡️ Environment Telemetry")
-        st.info("🔒 Security Node: Kali / Parrot VM Active")
+        st.info(f"💻 Runtime OS: {sys.platform.upper()}")
         st.success("🌐 Framework Engine: Streamlit Native")
         st.success("🧬 Bio Core: Alignment Matrix Ready")
 
@@ -626,32 +603,34 @@ elif menu == "📊 Notion Workspace Sync":
     st.title("📊 Notion Integration & Pipeline Engine")
     st.caption("Live Workspace Connection & Local Synchronization Protocols")
 
-    notion_token = st.text_input("Notion API Token", type="password", value="secret_notion_live_token_482910")
+    notion_token = st.text_input("Notion API Token", type="password", value="")
     database_id = st.text_input("Workspace Database ID", value="3a7f8e12b4c5d6e7f8a9b0c1d2e3f4a5")
 
     if st.button("Synchronize Workspace Data", type="primary"):
         log_audit(st.session_state.username, "notion_sync", f"DB: {database_id[:8]}")
-        try:
-            headers = {
-                "Authorization": f"Bearer {notion_token}",
-                "Notion-Version": "2022-06-28",
-                "Content-Type": "application/json"
-            }
-            res = requests.post(f"https://api.notion.com/v1/databases/{database_id}/query", headers=headers, timeout=3)
-            if res.status_code == 200:
-                st.success("Successfully synchronized live workspace data from Notion API!")
-                st.json(res.json())
-            else:
-                raise Exception("API Endpoint Unreachable")
-        except Exception:
-            st.info("Connected to local synchronized workspace database.")
+        if not notion_token.strip():
+            st.warning("⚠️ Notion API Token not configured. Displaying local cached workspace data.")
             live_df = pd.DataFrame([
                 {"Task Name": "Complete mcr-1 Plasmid Extraction Protocol", "Category": "Bioinformatics", "Priority": "High", "Status": "Completed", "Assignee": "Kula Chris"},
                 {"Task Name": "Draft Kidega Fresh Revenue Projections", "Category": "Enterprise", "Priority": "Medium", "Status": "In Progress", "Assignee": "Team Kula"},
-                {"Task Name": "Finalize 'Red Lights' Master Mix", "Category": "Music", "Priority": "High", "Status": "Review", "Assignee": "CHRISHEM"},
                 {"Task Name": "Audit Assa River Outreach Survey Data", "Category": "Environment", "Priority": "High", "Status": "Completed", "Assignee": "Kula Chris"}
             ])
             st.dataframe(live_df, use_container_width=True)
+        else:
+            try:
+                headers = {
+                    "Authorization": f"Bearer {notion_token}",
+                    "Notion-Version": "2022-06-28",
+                    "Content-Type": "application/json"
+                }
+                res = requests.post(f"https://api.notion.com/v1/databases/{database_id}/query", headers=headers, timeout=3)
+                if res.status_code == 200:
+                    st.success("Successfully synchronized live workspace data from Notion API!")
+                    st.json(res.json())
+                else:
+                    st.error(f"Notion API returned HTTP {res.status_code}: {res.text}")
+            except Exception as e:
+                st.error(f"Connection failed: {str(e)}")
 
 # ------------------------------------------
 # MODULE 4: BIOINFORMATICS ENGINE (PROTECTED - PRO TIER)
@@ -823,358 +802,331 @@ elif menu == "📊 Epidemiological Cohort":
         st.plotly_chart(fig, use_container_width=True)
 
 # ------------------------------------------
-# MODULE 9: CREATOR & MUSIC STUDIO (UPGRADED WITH NEURO-FOCUS AUDIO ENGINE)
+# MODULE 9: NEURO-SONIC FOCUS ENGINE (UPGRADED BRAIN.FM & ENDEL CLONE)
 # ------------------------------------------
-elif menu == "🎵 Creator & Music Studio":
-    st.title("🎵 Chrishem Studio & Web Audio DSP Vault")
-    st.caption("Catalog Management, Real-Time Procedural Brainwave Audio Synthesis & Songwriting Blueprint Engine")
+elif menu == "🧠 Neuro-Sonic Focus Engine":
+    st.title("🧠 Zenith Neuro-Instrumental Suite")
+    st.caption("Science-backed generative soundscapes, pentatonic instrumental chords, and binaural entrainment")
 
-    m_tab1, m_tab2, m_tab3 = st.tabs(["🎧 Production Catalog", "🎛️ Real-Time Neuro-Focus DSP", "✍️ Lyric Blueprint Studio"])
+    f_tab1, f_tab2 = st.tabs(["🎛️ Neuro Soundscape Generator", "📈 Session Analytics & Science"])
 
-    with m_tab1:
-        st.subheader("🎤 Active Production Catalog Management")
-        
-        conn = get_db_connection()
-        music_df = pd.read_sql_query("SELECT id, track_title, artist_alias, genre, release_status, lyrics FROM music_catalog", conn)
-        conn.close()
-
-        st.dataframe(music_df[["id", "track_title", "artist_alias", "genre", "release_status"]], use_container_width=True)
-
-        st.divider()
-        st.markdown("##### ➕ Register New Track Production Entry")
-        with st.form("add_track_form"):
-            col_t1, col_t2 = st.columns(2)
-            track_title = col_t1.text_input("Track Title")
-            artist_alias = col_t2.text_input("Artist Alias", value="CHRISHEM")
-            
-            col_g1, col_g2 = st.columns(2)
-            genre = col_g1.selectbox("Genre Category", ["Smooth R&B", "Afro-R&B", "Amapiano", "Worship / Gospel", "Hip-Hop / Trap", "Experimental DSP"])
-            release_status = col_g2.selectbox("Release Status", ["In Concept", "In Production", "Mixed", "Mastered", "Released"])
-            lyrics_input = st.text_area("Track Lyrics / Arrangement Notes", height=100)
-
-            if st.form_submit_button("Add Production Track to Vault", type="primary"):
-                if track_title.strip():
-                    try:
-                        conn = get_db_connection()
-                        c = conn.cursor()
-                        c.execute("INSERT INTO music_catalog (track_title, artist_alias, genre, release_status, lyrics) VALUES (?, ?, ?, ?, ?)",
-                                  (track_title.strip(), artist_alias.strip(), genre, release_status, lyrics_input.strip()))
-                        conn.commit()
-                        conn.close()
-                        log_audit(st.session_state.username, "add_track", f"Title: {track_title}")
-                        st.success(f"Track '{track_title}' successfully registered in database catalog!")
-                        st.rerun()
-                    except sqlite3.IntegrityError:
-                        st.error("A track with this title already exists in the catalog database.")
-                else:
-                    st.error("Track title cannot be empty.")
-
-    with m_tab2:
-        st.subheader("🎛️ Neuro-Focus Real-Time Web Audio Engine")
-        st.caption("Dynamic asset-less procedural sound generator running natively in browser Web Audio API.")
-
-        # Embedded Single-File Web Audio API Audio Engine Component
-        neuro_audio_html = """
+    with f_tab1:
+        zenith_html = """
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <style>
                 :root {
-                    --bg-primary: #0b0f19;
-                    --bg-card: #111827;
-                    --accent-glow: #0284c7;
-                    --text-main: #f8fafc;
-                    --text-muted: #9ca3af;
+                    --bg: #070a13;
+                    --panel: #111625;
+                    --accent: #6366f1;
+                    --accent-glow: rgba(99, 102, 241, 0.3);
+                    --text: #f8fafc;
+                    --muted: #64748b;
                 }
-
                 body {
-                    margin: 0;
-                    padding: 10px;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                    background-color: var(--bg-primary);
-                    color: var(--text-main);
-                    display: flex;
-                    justify-content: center;
+                    margin: 0; padding: 12px;
+                    background-color: var(--bg);
+                    color: var(--text);
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+                    display: flex; justify-content: center; align-items: center;
                 }
-
-                .dashboard {
-                    width: 100%;
-                    max-width: 520px;
-                    background: var(--bg-card);
-                    border-radius: 16px;
-                    padding: 24px;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 50px rgba(2, 132, 199, 0.15);
-                    border: 1px solid #1f2937;
+                .app-container {
+                    width: 100%; max-width: 500px;
+                    background: var(--panel);
+                    border-radius: 20px; padding: 24px;
+                    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5), 0 0 30px var(--accent-glow);
+                    border: 1px solid rgba(255,255,255,0.06);
                     box-sizing: border-box;
                 }
-
-                h3 { margin: 0 0 4px 0; font-size: 20px; font-weight: 700; text-align: center; color: #38bdf8; }
-                .subtitle { color: var(--text-muted); text-align: center; margin-bottom: 20px; font-size: 13px; }
-
-                .control-group {
-                    background: rgba(255,255,255,0.02);
-                    padding: 16px;
-                    border-radius: 12px;
-                    margin-bottom: 16px;
-                    border: 1px solid rgba(255,255,255,0.05);
-                }
-
-                label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #e2e8f0; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .header h2 { font-size: 20px; font-weight: 800; margin: 0 0 4px 0; color: #38bdf8; }
+                .header p { color: var(--muted); margin: 0; font-size: 12px; }
                 
-                select, input[type="range"] {
-                    width: 100%;
-                    box-sizing: border-box;
+                .master-trigger {
+                    width: 100%; padding: 16px; border: none; border-radius: 14px;
+                    background: var(--accent); color: white; font-size: 15px; font-weight: 700;
+                    cursor: pointer; transition: all 0.2s ease;
+                    box-shadow: 0 4px 12px var(--accent-glow);
                 }
+                .master-trigger:active { transform: scale(0.98); }
+                .master-trigger.playing { background: #ec4899; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); }
 
-                select {
-                    background: #1e293b;
-                    color: white;
-                    border: 1px solid #334155;
-                    padding: 10px;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    cursor: pointer;
-                    outline: none;
+                .section-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 0; }
+                
+                .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                .preset-card {
+                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+                    padding: 12px; border-radius: 12px; cursor: pointer; text-align: left; transition: all 0.2s;
                 }
+                .preset-card:hover { background: rgba(255,255,255,0.06); }
+                .preset-card.active { border-color: var(--accent); background: rgba(99, 102, 241, 0.15); }
+                .preset-card div { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+                .preset-card span { font-size: 10px; color: var(--muted); }
 
-                .slider-container {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
+                .mixer-row {
+                    background: rgba(255,255,255,0.02); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+                    display: flex; flex-direction: column; gap: 6px;
                 }
-
+                .mixer-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; }
+                .mixer-label span:last-child { color: var(--muted); font-size: 11px; }
+                
                 input[type="range"] {
-                    appearance: none;
-                    height: 6px;
-                    background: #1e293b;
-                    border-radius: 3px;
-                    outline: none;
-                    flex-grow: 1;
+                    -webkit-appearance: none; width: 100%; height: 5px; background: #1e293b; border-radius: 4px; outline: none;
                 }
-
                 input[type="range"]::-webkit-slider-thumb {
-                    appearance: none;
-                    width: 18px;
-                    height: 18px;
-                    border-radius: 50%;
-                    background: #38bdf8;
-                    cursor: pointer;
-                    transition: transform 0.1s;
+                    -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer;
                 }
-
-                input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-
-                .value-display { font-size: 12px; color: #38bdf8; width: 45px; text-align: right; font-weight: bold; }
-
-                .btn-master {
-                    width: 100%;
-                    padding: 14px;
-                    border-radius: 10px;
-                    border: none;
-                    background: #0284c7;
-                    color: white;
-                    font-size: 15px;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    margin-top: 8px;
-                }
-
-                .btn-master:hover { opacity: 0.9; transform: translateY(-1px); }
-                .btn-master.playing { background: #ef4444; }
             </style>
         </head>
         <body>
 
-        <div class="dashboard">
-            <h3>Neuro-Focus Sound Suite</h3>
-            <div class="subtitle">Procedural Real-Time Brainwave Generator Engine</div>
+        <div class="app-container">
+            <div class="header">
+                <h2>Neuro-Sonic Engine</h2>
+                <p>Acoustic Instrumentals & Generative Soundscapes</p>
+            </div>
 
-            <button id="masterBtn" class="btn-master">Initialize Sound Engine</button>
+            <button id="playBtn" class="master-trigger">Initialize Soundscape</button>
 
-            <div style="margin-top: 20px;">
-                <!-- Binaural Waves Section -->
-                <div class="control-group">
-                    <label for="wavePreset">Neural Target (Binaural Beats)</label>
-                    <select id="wavePreset">
-                        <option value="15" selected>Beta Wave (15 Hz) — Active Focus & Creative Flow</option>
-                        <option value="40">Gamma Wave (40 Hz) — High-Level Cognition & Binding</option>
-                        <option value="10">Alpha Wave (10 Hz) — Relaxed Focus & Composition</option>
-                        <option value="5">Theta Wave (5 Hz) — Deep Ambient Visualization</option>
-                    </select>
-                    <div class="slider-container" style="margin-top: 12px;">
-                        <input type="range" id="waveVolume" min="0" max="0.15" step="0.01" value="0.05">
-                        <div class="value-display" id="waveVolDisp">33%</div>
-                    </div>
+            <div class="section-title">Focus Intention</div>
+            <div class="preset-grid">
+                <div class="preset-card active" onclick="setPreset('ambient', 15)" id="p-ambient">
+                    <div>Deep Lo-Fi Pad</div>
+                    <span>Beta Wave Focus (15 Hz)</span>
                 </div>
-
-                <!-- Ambient Noise Section -->
-                <div class="control-group">
-                    <label for="noiseVolume">Deep Brown Noise Masking (Procedural Math)</label>
-                    <div class="slider-container">
-                        <input type="range" id="noiseVolume" min="0" max="0.30" step="0.01" value="0.10">
-                        <div class="value-display" id="noiseVolDisp">33%</div>
-                    </div>
+                <div class="preset-card" onclick="setPreset('zen', 10)" id="p-zen">
+                    <div>Chime Meditation</div>
+                    <span>Alpha Wave Recall (10 Hz)</span>
                 </div>
-
-                <!-- Carrier Frequency Section -->
-                <div class="control-group">
-                    <label for="carrierFreq">Carrier Pitch Tuning (Hz)</label>
-                    <div class="slider-container">
-                        <input type="range" id="carrierFreq" min="100" max="300" step="1" value="160">
-                        <div class="value-display" id="carrierDisp">160Hz</div>
-                    </div>
+                <div class="preset-card" onclick="setPreset('cosmic', 40)" id="p-cosmic">
+                    <div>Cosmic Strings</div>
+                    <span>Gamma High Focus (40 Hz)</span>
                 </div>
+                <div class="preset-card" onclick="setPreset('theta', 5)" id="p-theta">
+                    <div>Dream Harp</div>
+                    <span>Theta Creative (5 Hz)</span>
+                </div>
+            </div>
+
+            <div class="section-title">Instrumental Mixer</div>
+            
+            <div class="mixer-row">
+                <div class="mixer-label"><span>Melodic Instrumentals</span><span id="v1">70%</span></div>
+                <input type="range" id="volMusic" min="0" max="1" step="0.05" value="0.7">
+            </div>
+
+            <div class="mixer-row">
+                <div class="mixer-label"><span>Neural Entrainment (Binaural)</span><span id="v2">30%</span></div>
+                <input type="range" id="volBinaural" min="0" max="0.3" step="0.01" value="0.1">
+            </div>
+
+            <div class="mixer-row">
+                <div class="mixer-label"><span>Atmospheric Drift (Reverb)</span><span id="v3">50%</span></div>
+                <input type="range" id="volSpatial" min="0" max="1" step="0.05" value="0.5">
             </div>
         </div>
 
         <script>
-            let audioCtx = null;
-            let isPlaying = false;
+            let ctx = null, isPlaying = false;
+            let baseFreq = 140, currentOffset = 15, currentMode = 'ambient';
+            
+            let masterMusicGain, binauralGain, spatialGain;
+            let leftOsc, rightOsc, leftPan, rightPan;
+            let sequenceTimer = null;
 
-            let leftOsc = null, rightOsc = null;
-            let leftPanner = null, rightPanner = null;
-            let noiseSource = null;
-            let waveGainNode = null, noiseGainNode = null;
+            const scales = {
+                ambient: [146.83, 164.81, 220.00, 246.94, 293.66],
+                zen:     [130.81, 146.83, 164.81, 196.00, 220.00],
+                cosmic:  [110.00, 130.81, 146.83, 164.81, 196.00],
+                theta:   [98.00,  110.00, 130.81, 146.83, 174.61]
+            };
 
-            const masterBtn = document.getElementById('masterBtn');
-            const wavePreset = document.getElementById('wavePreset');
-            const waveVolume = document.getElementById('waveVolume');
-            const noiseVolume = document.getElementById('noiseVolume');
-            const carrierFreq = document.getElementById('carrierFreq');
+            const playBtn = document.getElementById('playBtn');
 
-            const waveVolDisp = document.getElementById('waveVolDisp');
-            const noiseVolDisp = document.getElementById('noiseVolDisp');
-            const carrierDisp = document.getElementById('carrierDisp');
-
-            waveVolume.addEventListener('input', (e) => {
-                waveVolDisp.textContent = Math.round((e.target.value / 0.15) * 100) + '%';
-                if(waveGainNode && audioCtx) waveGainNode.gain.setTargetAtTime(e.target.value, audioCtx.currentTime, 0.05);
+            document.getElementById('volMusic').addEventListener('input', (e) => {
+                document.getElementById('v1').textContent = Math.round(e.target.value * 100) + '%';
+                if(masterMusicGain && ctx) masterMusicGain.gain.setTargetAtTime(e.target.value, ctx.currentTime, 0.1);
+            });
+            document.getElementById('volBinaural').addEventListener('input', (e) => {
+                document.getElementById('v2').textContent = Math.round((e.target.value / 0.3) * 100) + '%';
+                if(binauralGain && ctx) binauralGain.gain.setTargetAtTime(e.target.value, ctx.currentTime, 0.1);
+            });
+            document.getElementById('volSpatial').addEventListener('input', (e) => {
+                document.getElementById('v3').textContent = Math.round(e.target.value * 100) + '%';
+                if(spatialGain && ctx) spatialGain.gain.setTargetAtTime(e.target.value, ctx.currentTime, 0.1);
             });
 
-            noiseVolume.addEventListener('input', (e) => {
-                noiseVolDisp.textContent = Math.round((e.target.value / 0.30) * 100) + '%';
-                if(noiseGainNode && audioCtx) noiseGainNode.gain.setTargetAtTime(e.target.value, audioCtx.currentTime, 0.05);
-            });
+            function setPreset(mode, offset) {
+                currentMode = mode;
+                currentOffset = offset;
+                
+                document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+                document.getElementById(`p-${mode}`).classList.add('active');
 
-            carrierFreq.addEventListener('input', (e) => {
-                carrierDisp.textContent = e.target.value + 'Hz';
-                updateFrequencies();
-            });
-
-            wavePreset.addEventListener('change', () => {
-                updateFrequencies();
-            });
+                if (isPlaying && ctx) {
+                    leftOsc.frequency.setTargetAtTime(baseFreq, ctx.currentTime, 0.5);
+                    rightOsc.frequency.setTargetAtTime(baseFreq + currentOffset, ctx.currentTime, 0.5);
+                }
+            }
 
             function initAudio() {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
-                waveGainNode = audioCtx.createGain();
-                noiseGainNode = audioCtx.createGain();
-                
-                waveGainNode.gain.setValueAtTime(waveVolume.value, audioCtx.currentTime);
-                noiseGainNode.gain.setValueAtTime(noiseVolume.value, audioCtx.currentTime);
+                ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-                waveGainNode.connect(audioCtx.destination);
-                noiseGainNode.connect(audioCtx.destination);
+                masterMusicGain = ctx.createGain();
+                binauralGain = ctx.createGain();
+                spatialGain = ctx.createGain();
 
-                leftOsc = audioCtx.createOscillator();
-                rightOsc = audioCtx.createOscillator();
+                masterMusicGain.gain.setValueAtTime(document.getElementById('volMusic').value, ctx.currentTime);
+                binauralGain.gain.setValueAtTime(document.getElementById('volBinaural').value, ctx.currentTime);
+                spatialGain.gain.setValueAtTime(document.getElementById('volSpatial').value, ctx.currentTime);
 
-                leftPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
-                rightPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+                masterMusicGain.connect(ctx.destination);
+                binauralGain.connect(ctx.destination);
+                spatialGain.connect(ctx.destination);
 
-                if (leftPanner && rightPanner) {
-                    leftPanner.pan.setValueAtTime(-1, audioCtx.currentTime);
-                    rightPanner.pan.setValueAtTime(1, audioCtx.currentTime);
-                    leftOsc.connect(leftPanner).connect(waveGainNode);
-                    rightOsc.connect(rightPanner).connect(waveGainNode);
+                leftOsc = ctx.createOscillator();
+                rightOsc = ctx.createOscillator();
+                leftPan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+                rightPan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+
+                leftOsc.type = 'sine';
+                rightOsc.type = 'sine';
+                leftOsc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+                rightOsc.frequency.setValueAtTime(baseFreq + currentOffset, ctx.currentTime);
+
+                if (leftPan && rightPan) {
+                    leftPan.pan.setValueAtTime(-1, ctx.currentTime);
+                    rightPan.pan.setValueAtTime(1, ctx.currentTime);
+                    leftOsc.connect(leftPan).connect(binauralGain);
+                    rightOsc.connect(rightPan).connect(binauralGain);
                 } else {
-                    leftOsc.connect(waveGainNode);
-                    rightOsc.connect(waveGainNode);
+                    leftOsc.connect(binauralGain);
+                    rightOsc.connect(binauralGain);
                 }
-
-                updateFrequencies();
-
-                const bufferSize = 2 * audioCtx.sampleRate;
-                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                const output = noiseBuffer.getChannelData(0);
                 
-                let lastOut = 0.0;
-                for (let i = 0; i < bufferSize; i++) {
-                    const white = Math.random() * 2 - 1;
-                    output[i] = (lastOut + (0.02 * white)) / 1.02;
-                    lastOut = output[i];
-                    output[i] *= 3.5;
-                }
-
-                noiseSource = audioCtx.createBufferSource();
-                noiseSource.buffer = noiseBuffer;
-                noiseSource.loop = true;
-                noiseSource.connect(noiseGainNode);
-
                 leftOsc.start();
                 rightOsc.start();
-                noiseSource.start();
+
+                runSequencer();
             }
 
-            function updateFrequencies() {
-                if (!audioCtx || !leftOsc || !rightOsc) return;
+            function playInstrumentNote(freq, startTime, duration) {
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const noteGain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
 
-                const baseCarrier = parseFloat(carrierFreq.value);
-                const brainwaveOffset = parseFloat(wavePreset.value);
+                osc1.type = currentMode === 'zen' ? 'triangle' : 'sine';
+                osc2.type = 'triangle';
 
-                leftOsc.frequency.setTargetAtTime(baseCarrier, audioCtx.currentTime, 0.1);
-                rightOsc.frequency.setTargetAtTime(baseCarrier + brainwaveOffset, audioCtx.currentTime, 0.1);
+                osc1.frequency.setValueAtTime(freq, startTime);
+                osc2.frequency.setValueAtTime(freq * 1.5, startTime);
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, startTime);
+                filter.frequency.exponentialRampToValueAtTime(300, startTime + duration);
+
+                noteGain.gain.setValueAtTime(0, startTime);
+                noteGain.gain.linearRampToValueAtTime(0.12, startTime + 0.3);
+                noteGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+                osc1.connect(filter);
+                osc2.connect(filter);
+                filter.connect(noteGain);
+                noteGain.connect(masterMusicGain);
+
+                const spatialBranch = ctx.createGain();
+                spatialBranch.gain.setValueAtTime(document.getElementById('volSpatial').value * 0.1, startTime);
+                noteGain.connect(spatialBranch).connect(spatialGain);
+
+                osc1.start(startTime);
+                osc2.start(startTime);
+                osc1.stop(startTime + duration);
+                osc2.stop(startTime + duration);
             }
 
-            masterBtn.addEventListener('click', async () => {
-                if (!audioCtx) {
+            function runSequencer() {
+                let scheduleAhead = 0.5;
+                let lookAheadTime = 250;
+                let nextNoteTime = ctx.currentTime;
+
+                function scheduler() {
+                    while (nextNoteTime < ctx.currentTime + scheduleAhead) {
+                        const currentScale = scales[currentMode];
+                        const randomNote = currentScale[Math.floor(Math.random() * currentScale.length)];
+                        let noteLength = currentMode === 'cosmic' ? 4.0 : 3.0;
+                        let stepInterval = currentMode === 'zen' ? 2.5 : 2.0;
+                        playInstrumentNote(randomNote, nextNoteTime, noteLength);
+                        nextNoteTime += stepInterval;
+                    }
+                    if (isPlaying) {
+                        sequenceTimer = setTimeout(scheduler, lookAheadTime);
+                    }
+                }
+                scheduler();
+            }
+
+            playBtn.addEventListener('click', async () => {
+                if (!ctx) {
                     initAudio();
                     isPlaying = true;
-                    masterBtn.textContent = "Pause Audio DSP Engine";
-                    masterBtn.classList.add('playing');
+                    playBtn.textContent = "Pause Session";
+                    playBtn.classList.add('playing');
                     return;
                 }
-
                 if (isPlaying) {
-                    await audioCtx.suspend();
+                    await ctx.suspend();
                     isPlaying = false;
-                    masterBtn.textContent = "Resume Audio DSP Engine";
-                    masterBtn.classList.remove('playing');
+                    clearTimeout(sequenceTimer);
+                    playBtn.textContent = "Resume Session";
+                    playBtn.classList.remove('playing');
                 } else {
-                    await audioCtx.resume();
+                    await ctx.resume();
                     isPlaying = true;
-                    masterBtn.textContent = "Pause Audio DSP Engine";
-                    masterBtn.classList.add('playing');
+                    runSequencer();
+                    playBtn.textContent = "Pause Session";
+                    playBtn.classList.add('playing');
                 }
             });
         </script>
         </body>
         </html>
         """
+        components.html(zenith_html, height=540, scrolling=False)
 
-        components.html(neuro_audio_html, height=520, scrolling=False)
+    with f_tab2:
+        st.subheader("⏱️ Focus Session Logging")
+        st.caption("Record completed deep work focus sessions to your persistent database.")
+
+        with st.form("log_focus_session"):
+            c_p, c_d = st.columns(2)
+            session_preset = c_p.selectbox("Preset Soundscape", ["Beta Wave Focus (15 Hz)", "Gamma High Focus (40 Hz)", "Alpha Wave Recall (10 Hz)", "Theta Creative (5 Hz)"])
+            duration_mins = c_d.number_input("Session Duration (Minutes)", min_value=5, max_value=240, value=25, step=5)
+
+            if st.form_submit_button("Record Focus Session", type="primary"):
+                conn = get_db_connection()
+                c = conn.cursor()
+                c.execute("INSERT INTO focus_sessions (user_email, preset_mode, duration_minutes) VALUES (?, ?, ?)",
+                          (st.session_state.user_email, session_preset, duration_mins))
+                conn.commit()
+                conn.close()
+                log_audit(st.session_state.username, "focus_logged", f"Mins: {duration_mins} | Mode: {session_preset}")
+                st.success(f"Logged {duration_mins} minutes of focused work!")
+                st.rerun()
 
         st.divider()
-        st.subheader("🌊 Harmonic Signal Waveform Analytics")
-        freq = st.slider("Signal Analytical Oscillator (Hz)", 100.0, 880.0, 440.0, 10.0)
-        x_w, y_w = generate_waveform_data(freq=freq)
+        st.subheader("📊 Historical Deep Work Logs")
+        conn = get_db_connection()
+        logs_df = pd.read_sql_query("SELECT id, preset_mode, duration_minutes, logged_at FROM focus_sessions ORDER BY logged_at DESC LIMIT 20", conn)
+        conn.close()
 
-        if HAS_PLOTLY:
-            fig_wave = px.line(x=x_w, y=y_w, title=f"Synthesized Waveform Vector Output ({freq} Hz)",
-                               labels={"x": "Time (s)", "y": "Amplitude"}, template="plotly_dark")
-            fig_wave.update_traces(line_color="#38BDF8", line_width=2)
-            st.plotly_chart(fig_wave, use_container_width=True)
-
-    with m_tab3:
-        st.subheader("✍️ Procedural Songwriting & Song Blueprint Studio")
-        vibe = st.selectbox("Select Genre & Arrangement Vibe", ["Smooth Late-Night R&B", "Vulnerable & Edgy Storytelling", "Amapiano Afro-Pop Rhythms", "Ambient Electro-Binaural Focus"])
-        key_signature = st.selectbox("Key Signature", ["C Major / A Minor", "F# Minor", "D Major", "G Minor", "E Minor"])
-        
-        if st.button("Generate Production Arrangement Structural Blueprint", type="primary"):
-            st.text_area("Master Songwriting Blueprint", value=f"[Key: {key_signature} | Vibe: {vibe}]\n\n[Intro - Soft Binaural Layer]\n(Fading carrier pitch at 160Hz... Light synth pads entry)\n\n[Verse 1]\nLate night in Arua, frequency tuned in...\nSovereign mind, catching every vision within...\nCoding till the sunrise, steady through the storm...\nEvery sound wave aligned, keeping energy warm...\n\n[Chorus]\nWe riding on the wave tonight...\nUnderneath the dark canvas lights...\nSovereign mind, vision crystal clear...\nChrishem studio, we elevate right here...\n\n[Bridge / Outro]\n(Brown noise ramp swell... Smooth frequency decay)", height=220)
+        if not logs_df.empty:
+            st.dataframe(logs_df, use_container_width=True)
+            st.metric("Total Logged Deep Work Time", f"{logs_df['duration_minutes'].sum()} Minutes")
+        else:
+            st.info("No focus sessions recorded yet.")
 
 # ------------------------------------------
 # MODULE 10: LOCAL AI & NLP BRIDGE (PROTECTED - APEX SOVEREIGN TIER)
@@ -1203,9 +1155,9 @@ elif menu == "💬 Local AI & NLP Bridge":
                     st.markdown("##### 🤖 Ollama Output:")
                     st.write(res.json().get("response"))
                 else:
-                    raise Exception("Endpoint Offline")
+                    st.warning(f"Ollama local API responded with HTTP {res.status_code}.")
             except Exception:
-                st.markdown("##### 🤖 Local Engine Response:")
+                st.info("⚠️ Local Ollama service (localhost:11434) is offline. Displaying static fallback snippet.")
                 st.code("""
 def analyze_fasta_gc(fasta_str):
     lines = [l.strip() for l in fasta_str.splitlines() if not l.startswith('>')]
@@ -1331,7 +1283,7 @@ elif menu == "🛡️ Security & Database Core":
     st.title("🛡️ Admin Security Command & Database Core")
     st.caption("Database Snapshots, System JSON Exports, and Audit Stream")
 
-    s_tab1, s_tab2, s_tab3 = st.tabs(["💾 Database Snapshots", "📋 Audit Log Stream", "🔐 Security Stack"])
+    s_tab1, s_tab2, s_tab3 = st.tabs(["💾 Database Snapshots", "📋 Audit Log Stream", "🔐 System Verification"])
 
     with s_tab1:
         st.subheader("💾 Database Backup & Export Protocols")
@@ -1354,7 +1306,7 @@ elif menu == "🛡️ Security & Database Core":
         st.subheader("📤 Export Database Tables to JSON Package")
         if st.button("Generate System JSON Dump"):
             conn = get_db_connection()
-            tables = ["mcr_gene_surveillance", "business_projects", "music_catalog", "ppwr_cohort", "subscriptions"]
+            tables = ["mcr_gene_surveillance", "business_projects", "focus_sessions", "ppwr_cohort", "subscriptions"]
             export_data = {}
             for t in tables:
                 export_data[t] = pd.read_sql_query(f"SELECT * FROM {t}", conn).to_dict(orient="records")
@@ -1376,8 +1328,13 @@ elif menu == "🛡️ Security & Database Core":
         st.dataframe(logs_df, use_container_width=True)
 
     with s_tab3:
-        st.subheader("🔐 Privacy Stack & Virtual Lab Status")
-        st.success("🛡️ Technitium MAC Address Changer (TMAC): Operational")
-        st.success("🧅 Tor Routing Layer: Active")
-        st.success("🔑 Bitwarden Vault Sync: Connected")
-        st.info("💻 Kali / Parrot Security VM: Ready")
+        st.subheader("🔐 System Core Health Verification")
+        conn = get_db_connection()
+        c = conn.cursor()
+        c.execute("PRAGMA integrity_check;")
+        integrity = c.fetchone()[0]
+        conn.close()
+
+        st.success(f"SQLite Integrity Status: **{integrity.upper()}**")
+        st.info(f"Python Platform Runtime: **{sys.version.split()[0]} ({sys.platform})**")
+        st.info(f"Database Path: **{os.path.abspath(DB_FILE)}**")
