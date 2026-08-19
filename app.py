@@ -157,8 +157,7 @@ def get_custom_sounds_catalog():
 # ==========================================
 def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
     """
-    Renders a persistent audio widget at the bottom right.
-    Uses browser localStorage to sync playback state continuously across page navigation.
+    Renders a persistent audio widget with continuous auto-resume on Streamlit reruns.
     """
     player_html = f"""
     <style>
@@ -196,7 +195,7 @@ def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
     <div class="audio-popup">
         <span>🎧 <b id="trackLabel">{track_title[:24]}...</b></span>
         <button class="btn-play" id="playBtn" onclick="togglePlay()">▶ Play / ⏸ Pause</button>
-        <audio id="globalAudio" loop preload="auto">
+        <audio id="globalAudio" loop preload="auto" autoplay>
             <source src="{audio_url}">
         </audio>
     </div>
@@ -209,7 +208,7 @@ def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
         const stateKey = "apex_audio_playing";
         const targetUrl = "{audio_url}";
 
-        window.addEventListener("DOMContentLoaded", () => {{
+        function initAudio() {{
             const savedUrl = localStorage.getItem(trackKey);
             const savedTime = localStorage.getItem(timeKey);
             const savedPlaying = localStorage.getItem(stateKey);
@@ -217,16 +216,19 @@ def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
             if (savedUrl === targetUrl) {{
                 if (savedTime) audio.currentTime = parseFloat(savedTime);
                 if (savedPlaying === "true") {{
-                    audio.play().catch(e => console.log("Autoplay notice:", e));
+                    audio.play().catch(e => console.log("Autoplay policy override needed:", e));
+                }} else {{
+                    audio.pause();
                 }}
             }} else {{
                 localStorage.setItem(trackKey, targetUrl);
                 localStorage.setItem(timeKey, "0");
-                if (savedPlaying === "true") {{
-                    audio.play().catch(e => console.log("Autoplay notice:", e));
-                }}
+                localStorage.setItem(stateKey, "true");
+                audio.play().catch(e => console.log("Autoplay policy override needed:", e));
             }}
-        }});
+        }}
+
+        window.addEventListener("load", initAudio);
 
         audio.ontimeupdate = () => {{
             localStorage.setItem(timeKey, audio.currentTime);
@@ -243,7 +245,7 @@ def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
         }}
     </script>
     """
-    components.html(player_html, height=80)
+    components.html(player_html, height=80, key="global_audio_player")
 
 # ==========================================
 # 4. DATABASE SEEDING & CONTROL ENGINE
@@ -761,8 +763,21 @@ elif menu == "👤 Identity & App Creator":
     st.title("👑 App Creator & System Identity")
     st.caption("Sovereign System Architect Profile")
 
-    # Base64 render for local picture C:\Users\Admin\Pictures\background.jpg
-    image_b64 = load_file_as_base64(CREATOR_IMAGE_PATH)
+    # Initialize photo in session state
+    if "creator_photo_b64" not in st.session_state:
+        st.session_state.creator_photo_b64 = load_file_as_base64(CREATOR_IMAGE_PATH)
+
+    # Photo Upload Controls
+    with st.expander("🖼️ Upload / Change Profile Photo"):
+        uploaded_profile = st.file_uploader("Select Image (JPG/PNG)", type=["jpg", "jpeg", "png"])
+        if uploaded_profile:
+            encoded = base64.b64encode(uploaded_profile.read()).decode("utf-8")
+            mime = uploaded_profile.type
+            st.session_state.creator_photo_b64 = f"data:{mime};base64,{encoded}"
+            st.success("Profile image updated successfully!")
+            st.rerun()
+
+    image_b64 = st.session_state.get("creator_photo_b64")
 
     if image_b64:
         avatar_html = f'<img src="{image_b64}" class="creator-avatar-img" alt="CHRISHEM Profile">'
@@ -788,7 +803,7 @@ elif menu == "👤 Identity & App Creator":
     """, unsafe_allow_html=True)
 
     if not image_b64:
-        st.info(f"💡 Note: To display your photo, ensure your image is placed at `{CREATOR_IMAGE_PATH}`.")
+        st.info(f"💡 Note: To display your photo by default, ensure your image is placed at `{CREATOR_IMAGE_PATH}`.")
 
     st.divider()
 
