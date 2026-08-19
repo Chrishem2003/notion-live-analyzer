@@ -61,7 +61,99 @@ st.markdown("""
 DB_FILE = "sovereign_apex.db"
 
 # ==========================================
-# 2. PERSISTENT DATABASE ENGINE & DATA CONTROL
+# 2. PERSISTENT AUDIO PLAYER COMPONENT
+# ==========================================
+def render_persistent_audio_player(audio_url, track_title="Brainwave Focus"):
+    """
+    Renders a persistent floating audio widget at the bottom right.
+    Uses browser localStorage to sync playback time and playing state across page switches.
+    """
+    player_html = f"""
+    <style>
+        .audio-popup {{
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e1e2e;
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 13px;
+            border: 1px solid #38bdf8;
+        }}
+        audio {{ display: none; }}
+        .btn {{
+            background: #38bdf8;
+            border: none;
+            color: #0b0f19;
+            padding: 6px 14px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }}
+        .btn:hover {{
+            background: #74c7ec;
+        }}
+    </style>
+    
+    <div class="audio-popup">
+        <span>🎵 <b id="trackLabel">{track_title}</b></span>
+        <button class="btn" id="playBtn" onclick="togglePlay()">Play / Pause</button>
+        <audio id="globalAudio" loop>
+            <source src="{audio_url}" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <script>
+        const audio = document.getElementById("globalAudio");
+        const playBtn = document.getElementById("playBtn");
+        const trackKey = "audio_track_url";
+
+        window.addEventListener("load", () => {{
+            const savedUrl = localStorage.getItem(trackKey);
+            const savedTime = localStorage.getItem("audio_current_time");
+            const isPlaying = localStorage.getItem("audio_is_playing");
+
+            // If audio URL changed, update source
+            if (savedUrl && savedUrl !== "{audio_url}") {{
+                localStorage.setItem(trackKey, "{audio_url}");
+                localStorage.setItem("audio_current_time", "0");
+            }} else {{
+                localStorage.setItem(trackKey, "{audio_url}");
+                if (savedTime) audio.currentTime = parseFloat(savedTime);
+            }}
+
+            if (isPlaying === "true") {{
+                audio.play().catch(e => console.log("Autoplay blocked by browser policy:", e));
+            }}
+        }});
+
+        audio.ontimeupdate = () => {{
+            localStorage.setItem("audio_current_time", audio.currentTime);
+        }};
+
+        function togglePlay() {{
+            if (audio.paused) {{
+                audio.play();
+                localStorage.setItem("audio_is_playing", "true");
+            }} else {{
+                audio.pause();
+                localStorage.setItem("audio_is_playing", "false");
+            }}
+        }}
+    </script>
+    """
+    components.html(player_html, height=80)
+
+# ==========================================
+# 3. PERSISTENT DATABASE ENGINE & DATA CONTROL
 # ==========================================
 def init_db(purge_and_reseed=False):
     conn = sqlite3.connect(DB_FILE)
@@ -173,7 +265,6 @@ def init_db(purge_and_reseed=False):
     cursor.execute("INSERT OR REPLACE INTO subscriptions VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
                    ("admin@chrishem.apex", "Apex Sovereign", "active", 0.0, "2099-12-31"))
 
-    # Seed initial default values if tables are completely empty
     cursor.execute("SELECT COUNT(*) FROM mcr_gene_surveillance")
     if cursor.fetchone()[0] == 0 and not purge_and_reseed:
         cursor.executemany(
@@ -224,7 +315,7 @@ def _hash_password(password, salt=None):
     return pwd_hash, salt
 
 # ==========================================
-# 3. COMPUTATIONAL ALGORITHMS
+# 4. COMPUTATIONAL ALGORITHMS
 # ==========================================
 def process_dna_sequence(seq):
     seq = seq.upper().replace("\n", "").replace(" ", "")
@@ -278,7 +369,7 @@ def needleman_wunsch(seq1, seq2, match=1, mismatch=-1, gap=-1):
     return align1, align2, score_matrix[n][m]
 
 # ==========================================
-# 4. ACCESS CONTROL & PAYWALL GUARD
+# 5. ACCESS CONTROL & PAYWALL GUARD
 # ==========================================
 def is_paywall_enabled():
     conn = get_db_connection()
@@ -319,7 +410,7 @@ def render_paywall_screen(module_name, required_tier="Pro"):
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 5. SESSION STATE & NAVIGATION
+# 6. SESSION STATE & GLOBAL AUDIO SIDEBAR
 # ==========================================
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = True
@@ -330,6 +421,50 @@ if "authenticated" not in st.session_state:
 st.sidebar.title("⚡ Sovereign Apex")
 st.sidebar.markdown(f"<h3 style='margin:0; color:#F8FAFC;'>{st.session_state.username}</h3>", unsafe_allow_html=True)
 st.sidebar.caption(f"Operator: **{st.session_state.role.upper()}**")
+st.sidebar.divider()
+
+# SOUND CATALOG & PERSISTENT AUDIO CONTROLS IN SIDEBAR
+SOUND_CATALOG = {
+    "🧠 Brain Wiring & Focus": {
+        "432Hz Deep Focus Pulse": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
+        "Alpha Waves Concentration": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
+        "Gamma Frequency Sync": "https://cdn.pixabay.com/download/audio/2021/09/06/audio_8b24a98492.mp3"
+    },
+    "🌧️ Natural Acoustics & Ambience": {
+        "Gentle Rain & Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
+        "Deep Space Drone": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
+        "Forest River Flow": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3"
+    },
+    "🎵 Instrumental & Relaxing Songs": {
+        "Acoustic Chill Meditation": "https://cdn.pixabay.com/download/audio/2022/05/16/audio_db6591201e.mp3",
+        "Lo-Fi Study Groove": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3"
+    }
+}
+
+st.sidebar.subheader("🎧 Persistent Sound Center")
+sound_category = st.sidebar.selectbox("Sound Category", list(SOUND_CATALOG.keys()))
+selected_sound_name = st.sidebar.selectbox("Select Track", list(SOUND_CATALOG[sound_category].keys()))
+active_audio_url = SOUND_CATALOG[sound_category][selected_sound_name]
+
+# Upload & Download Section
+uploaded_sound = st.sidebar.file_uploader("Upload Custom Audio (MP3/WAV)", type=["mp3", "wav"])
+if uploaded_sound:
+    os.makedirs("custom_sounds", exist_ok=True)
+    custom_path = os.path.join("custom_sounds", uploaded_sound.name)
+    with open(custom_path, "wb") as f:
+        f.write(uploaded_sound.getbuffer())
+    st.sidebar.success(f"Uploaded: {uploaded_sound.name}")
+    
+    st.sidebar.download_button(
+        label="📥 Download Uploaded Track",
+        data=uploaded_sound.getvalue(),
+        file_name=uploaded_sound.name,
+        mime="audio/mpeg"
+    )
+
+# Render floating audio player across ALL pages
+render_persistent_audio_player(active_audio_url, selected_sound_name)
+
 st.sidebar.divider()
 
 menu = st.sidebar.radio("Navigation Engine", [
@@ -352,7 +487,7 @@ st.sidebar.divider()
 st.sidebar.caption("Architecture: `CHRISHEM-APEX-v6.0`")
 
 # ==========================================
-# 6. MODULE IMPLEMENTATIONS
+# 7. MODULE IMPLEMENTATIONS
 # ==========================================
 
 # ------------------------------------------
@@ -389,11 +524,11 @@ if menu == "⚡ System Overview":
         st.success("💾 Database: Connected & Operational")
 
 # ------------------------------------------
-# MODULE 2: RECODED BRAIN.FM & ENDEL NEURO-SONIC ENGINE
+# MODULE 2: NEURO-SONIC FOCUS ENGINE
 # ------------------------------------------
 elif menu == "🧠 Neuro-Sonic Focus Engine":
     st.title("🧠 Zenith Neuro-Sonic Engine")
-    st.caption("Brain.fm & Endel Audio Synthesizer: Synthesizes real acoustic sound directly in-browser using Web Audio API")
+    st.caption("Brain.fm & Endel Audio Synthesizer: Real-time Web Audio API frequency generation and persistent audio stream integration")
 
     f_tab1, f_tab2 = st.tabs(["🎛️ Generative Audio Synthesizer", "📈 Focus Session Logger"])
 
@@ -422,7 +557,7 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
         <body>
 
         <div class="synth-card">
-            <h3 style="margin:0 0 5px 0; color:#58a6ff;">🔊 Brain.fm Real Acoustic Synthesizer</h3>
+            <h3 style="margin:0 0 5px 0; color:#58a6ff;">🔊 Real Acoustic Synthesizer</h3>
             <p style="margin:0 0 15px 0; font-size:12px; color:#8b949e;">Select soundscape mode & trigger native browser Web Audio synthesis:</p>
 
             <div class="grid">
@@ -510,7 +645,6 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
                 analyser.connect(audioCtx.destination);
 
                 if (currentMode === 'binaural') {
-                    // Binaural Beat: Left 200Hz, Right 215Hz (15Hz Beta entrainment)
                     let oscL = audioCtx.createOscillator();
                     let oscR = audioCtx.createOscillator();
                     let panL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
@@ -530,7 +664,6 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
                     currentNodes.push(oscL, oscR);
 
                 } else if (currentMode === 'rain') {
-                    // Generative Pink Noise (Rain/Ocean)
                     let bufferSize = 2 * audioCtx.sampleRate;
                     let noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                     let output = noiseBuffer.getChannelData(0);
@@ -563,7 +696,6 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
                     currentNodes.push(whiteNoise);
 
                 } else if (currentMode === 'pad') {
-                    // Deep Lo-Fi Ambient Chord (A minor pentatonic)
                     let freqs = [110.00, 130.81, 164.81, 196.00];
                     freqs.forEach(f => {
                         let osc = audioCtx.createOscillator();
@@ -582,7 +714,6 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
                     });
 
                 } else if (currentMode === 'chimes') {
-                    // Pentatonic Random Chime Generator
                     let notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
                     let chimeInterval = setInterval(() => {
                         if (!isPlaying || currentMode !== 'chimes') { clearInterval(chimeInterval); return; }
@@ -603,7 +734,6 @@ elif menu == "🧠 Neuro-Sonic Focus Engine":
                     }, 800);
 
                 } else if (currentMode === 'delta') {
-                    // Deep Sleep Delta Waves (100Hz / 102.5Hz = 2.5Hz Delta)
                     let oscL = audioCtx.createOscillator();
                     let oscR = audioCtx.createOscillator();
                     oscL.type = 'sine'; oscL.frequency.value = 100;
