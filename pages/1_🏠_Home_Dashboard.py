@@ -457,7 +457,7 @@ def main():
         render_automated_intelligence_report()
 
     with tab_account:
-        section_header("👤 User Account, Subscription & Academic Verification", "Manage your enterprise subscription tier and credentials.")
+        section_header("👤 Settings & Control Center", "Subscription, timezone, accent color, dependencies, focus engine, and creator profile — all managed in one place.")
         from modules import subscription, verification
         acct_email = identity.get("email", "analyst@sovereign.enterprise")
         if acct_email:
@@ -469,12 +469,51 @@ def main():
             c2.metric("Trial Days Remaining", status.get("days_left") if status.get("days_left") is not None else "Unlimited")
             c3.metric("Account Email", acct_email)
 
-            st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
-            verification.render_student_application_form()
+            settings_tabs = st.tabs([
+                "🎓 Verification", "🌐 Timezone & Color", "📦 Dependencies", "🧠 Focus Engine", "👑 Creator Profile",
+            ])
 
-            st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
-            from modules.user_preferences import render_timezone_and_accent_settings
-            render_timezone_and_accent_settings()
+            with settings_tabs[0]:
+                verification.render_student_application_form()
+
+            with settings_tabs[1]:
+                from modules.user_preferences import render_timezone_and_accent_settings
+                render_timezone_and_accent_settings()
+
+            with settings_tabs[2]:
+                from modules.environment_manager import render_environment_manager
+                render_environment_manager()
+
+            with settings_tabs[3]:
+                from modules.audio_engine import render_generative_synthesizer, render_ambient_library_picker
+                st.caption(
+                    "The generative synthesizer runs live in your browser — no files, no dead links. "
+                    "Streamlit recreates this widget on page navigation, so playback resumes automatically "
+                    "from where it left off (via your browser's local storage) rather than continuing "
+                    "gaplessly — that's a real platform constraint, not a bug."
+                )
+                render_generative_synthesizer()
+                st.markdown("---")
+                st.markdown("#### 🌿 Ambient Library")
+                render_ambient_library_picker()
+
+            with settings_tabs[4]:
+                from modules.app_settings import get_creator_photo_b64, set_creator_photo_b64
+                st.caption(
+                    "Replaces the old hardcoded local file path (which only worked on one person's own "
+                    "Windows machine) with a real upload stored in the shared database."
+                )
+                current_photo = get_creator_photo_b64()
+                if current_photo:
+                    st.image(current_photo, width=150)
+                uploaded_photo = st.file_uploader("Upload creator profile photo (JPG/PNG)", type=["jpg", "jpeg", "png"], key="creator_photo_upload")
+                if uploaded_photo:
+                    import base64 as _b64
+                    encoded = _b64.b64encode(uploaded_photo.read()).decode("utf-8")
+                    data_uri = f"data:{uploaded_photo.type};base64,{encoded}"
+                    set_creator_photo_b64(data_uri)
+                    st.success("Photo saved.")
+                    st.rerun()
         else:
             st.info("ℹ️ Sign in with a registered user profile to check your subscription status.")
 
