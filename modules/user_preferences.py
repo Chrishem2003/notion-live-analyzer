@@ -1,4 +1,3 @@
-# Stub module for user_preferences.py
 """
 User Preferences — timezone, accent color, and a defensive readability fix
 =============================================================================

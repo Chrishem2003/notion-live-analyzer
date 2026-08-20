@@ -170,7 +170,7 @@ class TestOutliers:
         assert not flags.iloc[:-1].any()
 
     def test_detect_outliers_zscore(self):
-        df = pd.DataFrame({"n": [10.0] * 30  [500.0]})
+        df = pd.DataFrame({"n": [10.0] * 30 + [500.0]})
         flags = dp.detect_outliers_zscore(df, "n", threshold=3.0)
         assert flags.sum() <= 1
 

@@ -1,101 +1,53 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  # ── PostgreSQL with pgvector (for RAG vector embeddings) ─────────────
-  postgres:
-    image: pgvector/pgvector:pg16
-    container_name: mps_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-mps}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mps_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-mps_rag}
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mps}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  # ── Redis (Celery broker / backend) ──────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: mps_redis
     restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 5
 
-  # ── FastAPI backend bridge (:8000) ───────────────────────────────────
-  api:
+  celery_worker:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mps_api
+    command: celery -A celery_app worker --loglevel=info --concurrency=4 -Q literature,data_audit,default
     restart: unless-stopped
-    command: uvicorn fastapi_app:app --host 0.0.0.0 --port 8000
-    ports:
-      - "8000:8000"
     environment:
       REDIS_URL: redis://redis:6379/0
-      POSTGRES_URL: postgresql://${POSTGRES_USER:-mps}:${POSTGRES_PASSWORD:-mps_secret}@postgres:5432/${POSTGRES_DB:-mps_rag}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     volumes:
       - .:/app
 
-  # ── Celery worker (async heavy pipelines) ────────────────────────────
-  worker:
+  streamlit_app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mps_worker
+    command: streamlit run portal.py --server.port=8501 --server.address=0.0.0.0
     restart: unless-stopped
-    command: celery -A tasks.celery_app worker --loglevel=info --concurrency=4
-    environment:
-      CELERY_MODE: "1"
-      REDIS_URL: redis://redis:6379/0
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-    depends_on:
-      - redis
-      - postgres
-    volumes:
-      - .:/app
-
-  # ── Streamlit frontend (:8501) ───────────────────────────────────────
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: mps_web
-    restart: unless-stopped
-    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
     ports:
       - "8501:8501"
     environment:
       REDIS_URL: redis://redis:6379/0
-      POSTGRES_URL: postgresql://${POSTGRES_USER:-mps}:${POSTGRES_PASSWORD:-mps_secret}@postgres:5432/${POSTGRES_DB:-mps_rag}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      API_URL: http://api:8000
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      # Set these two for the sole real admin bootstrap — see portal.py header.
+      SOVEREIGN_ADMIN_EMAIL: ${SOVEREIGN_ADMIN_EMAIL:-}
+      SOVEREIGN_ADMIN_PASSWORD: ${SOVEREIGN_ADMIN_PASSWORD:-}
     depends_on:
-      - api
-      - redis
+      redis:
+        condition: service_healthy
     volumes:
       - .:/app
 
 volumes:
-  pgdata:
+  redis_data:
