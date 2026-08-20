@@ -19,3 +19,9 @@ env/
 # Backups (never commit ad-hoc backups again — use git history instead)
 *_backup*.py
 *backup_*/
+
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
