@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Repo cleanup — run this from the root of notion-live-analyzer, on a clean
+# working tree (commit or stash anything in progress first).
+#
+# What this removes from git tracking (NOT from your local disk — these
+# stay on disk, just stop being committed, per the already-correct .gitignore):
+#   .venv/                  9.6MB of pip's own vendored source code —
+#                            should never be committed; every dev/deploy
+#                            regenerates this from requirements.txt anyway.
+#   notion-live-analyzer/   A full nested duplicate of this entire project
+#                            (12MB) sitting inside itself. Streamlit's real
+#                            entrypoint is the top-level app.py (confirmed
+#                            via Procfile), so this nested copy is dead
+#                            weight that can only cause confusion about
+#                            which files are "real."
+#   pages_backup/           ~40 files from the pre-consolidation 66-page
+#                            architecture (docstring in __init__.py already
+#                            says these were superseded by the 15 hubs).
+#   backup_corrupted/       Whatever's in here was already flagged as
+#                            corrupted by an earlier cleanup attempt.
+#   pages_archive/           Referenced in .gitignore; same category.
+#   modules/audit_portal_part1.txt  Empty (0 bytes), never imported anywhere.
+
+set -e
+
+echo "Current tracked file count:"
+git ls-files | wc -l
+
+git rm -r --cached .venv/ 2>/dev/null || echo "(.venv not tracked, skipping)"
+git rm -r --cached notion-live-analyzer/ 2>/dev/null || echo "(nested dir not tracked, skipping)"
+git rm -r --cached pages_backup/ 2>/dev/null || echo "(pages_backup not tracked, skipping)"
+git rm -r --cached backup_corrupted/ 2>/dev/null || echo "(backup_corrupted not tracked, skipping)"
+git rm -r --cached pages_archive/ 2>/dev/null || echo "(pages_archive not tracked, skipping)"
+git rm --cached modules/audit_portal_part1.txt 2>/dev/null || echo "(stray file not tracked, skipping)"
+
+echo ""
+echo "New tracked file count:"
+git ls-files | wc -l
+
+echo ""
+echo "Review the diff, then commit:"
+echo "  git status"
+echo "  git commit -m 'chore: remove committed venv, dead nested duplicate, and pre-consolidation backups'"
+echo "  git push"
+echo ""
+echo "NOTE: this only stops tracking these paths going forward. To actually"
+echo "shrink the .git history size (they'll still bloat old commits), a"
+echo "history rewrite (git filter-repo) would be needed separately — a much"
+echo "more invasive operation. Ask if you want that too; it rewrites commit"
+echo "hashes and needs everyone with a clone to re-clone afterward."
