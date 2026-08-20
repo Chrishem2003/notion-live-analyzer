@@ -1,4 +1,7 @@
-﻿import os
+import streamlit as st
+st.set_page_config(page_title="Admin Security Center", page_icon="🛡️", layout="wide")
+
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -80,7 +83,7 @@ NEXUS_DB_PATH = "sovereign_apex_engine.db"
 def require_admin():
     identity = st.session_state.get("user_identity", {})
     if identity.get("role") != "admin":
-        st.error("ðŸš« Access Denied: This zone requires explicit Administrator clearance.")
+        st.error(" Access Denied: This zone requires explicit Administrator clearance.")
         st.info("Your account is currently running on standard user privileges. Contact your sovereign system root administrator to elevate permissions.")
         st.stop()
 
@@ -443,7 +446,7 @@ def encrypt_secret(plaintext: str) -> str:
 
 def render_system_diagnostics(conn):
     require_admin()
-    section_header("ðŸ” System Diagnostics & Real-Time Telemetry", "Live server runtime health, memory footprint, active thread count, and immutable blockchain-style audit ledger.")
+    section_header(" System Diagnostics & Real-Time Telemetry", "Live server runtime health, memory footprint, active thread count, and immutable blockchain-style audit ledger.")
     uptime = datetime.datetime.utcnow() - _process_start_time()
     t0 = datetime.datetime.now().timestamp()
     conn.execute("SELECT 1").fetchone()
@@ -471,22 +474,22 @@ def render_system_diagnostics(conn):
             break
 
     if chain_valid:
-        st.success("ðŸ”’ Cryptographic Chain Integrity Verified: Zero tampering detected across all audit blocks.")
+        st.success(" Cryptographic Chain Integrity Verified: Zero tampering detected across all audit blocks.")
     else:
-        st.error("ðŸš¨ Warning: Blockchain Audit Chain integrity mismatch detected!")
+        st.error(" Warning: Blockchain Audit Chain integrity mismatch detected!")
 
     if logs:
         st.dataframe(pd.DataFrame(logs, columns=["ID", "Timestamp", "Module", "Severity", "Details", "Crypto Hash", "Previous Hash"]), use_container_width=True, hide_index=True)
     else:
-        st.info("â„¹ï¸ No system telemetry entries recorded.")
+        st.info("â„¹ No system telemetry entries recorded.")
 
 
 def render_user_management(conn):
     require_admin()
-    section_header("ðŸ‘¤ RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
+    section_header(" RBAC User Management & Administrative Control", "Manage user accounts, permission tiers, and role assignments.")
     if auth_store is None:
-        st.warning("âš ï¸ `auth_store` module currently offline or uninitialized. Displaying session fallback state.")
-        st.info("â„¹ï¸ No active database connection pool detected for standalone auth table lookup.")
+        st.warning("âš  `auth_store` module currently offline or uninitialized. Displaying session fallback state.")
+        st.info("â„¹ No active database connection pool detected for standalone auth table lookup.")
         return
     try:
         auth_conn = auth_store.get_conn()
@@ -495,16 +498,16 @@ def render_user_management(conn):
         if users:
             st.dataframe(pd.DataFrame(users, columns=["Email", "Name", "Role", "Created", "Last Login"]), use_container_width=True, hide_index=True)
         else:
-            st.info("â„¹ï¸ No registered accounts detected.")
+            st.info("â„¹ No registered accounts detected.")
     except Exception as e:
-        st.info(f"â„¹ï¸ User directory repository initializing: {e}")
+        st.info(f"â„¹ User directory repository initializing: {e}")
 
 
 def render_billing(conn):
     require_admin()
-    section_header("ðŸ’³ Enterprise Billing & Licensing", "Monitor subscription tiers, trials, and license allocations.")
+    section_header(" Enterprise Billing & Licensing", "Monitor subscription tiers, trials, and license allocations.")
     if subscription is None:
-        st.warning("âš ï¸ `subscription` module currently offline. Billing tables running on default fallback limits.")
+        st.warning("âš  `subscription` module currently offline. Billing tables running on default fallback limits.")
         return
     try:
         conn2 = subscription.get_conn()
@@ -514,22 +517,22 @@ def render_billing(conn):
         if rows:
             st.dataframe(pd.DataFrame(rows, columns=["Email", "Plan", "Status", "Trial Started", "Trial Ends", "Period End", "Stripe Customer"]), use_container_width=True, hide_index=True)
         else:
-            st.info("â„¹ï¸ No subscription records found.")
+            st.info("â„¹ No subscription records found.")
     except Exception as e:
-        st.info(f"â„¹ï¸ Subscription database schema syncing: {e}")
+        st.info(f"â„¹ Subscription database schema syncing: {e}")
 
 
 def render_verification_queue():
     require_admin()
-    section_header("ðŸŽ“ Academic Student Verification Queue", "Review and approve student institutional verification requests.")
+    section_header(" Academic Student Verification Queue", "Review and approve student institutional verification requests.")
     render_admin_review_queue()
 
 
 def render_security_vault(conn):
     require_admin()
-    section_header("ðŸ”’ Encrypted Credential & API Token Vault", "Secure local storage for third-party tokens.")
+    section_header(" Encrypted Credential & API Token Vault", "Secure local storage for third-party tokens.")
     token = st.text_input("Integration Token", type="password", key="vault_token_upg")
-    if st.button("ðŸ”’ Encrypt & Save", type="primary"):
+    if st.button(" Encrypt & Save", type="primary"):
         st.session_state["user_TOKEN_enc"] = encrypt_secret(token)
         log_admin_action(conn, "Security Vault", "VAULT_WRITE", "Credential saved")
         st.success("âœ… Credentials encrypted and bound to session.")
@@ -540,16 +543,16 @@ def render_security_vault(conn):
 # ---------------------------------------------------------------------------
 
 def render_audit_forensics():
-    section_header("ðŸ›¡ï¸ Aidify-Grade Academic Integrity & Student Tracking Hub", "Elite multi-layer scanner featuring interactive student submission charts, consensus AI detection, visual heatmaps, advanced humanization suite, and certified exportable reports.")
+    section_header(" Aidify-Grade Academic Integrity & Student Tracking Hub", "Elite multi-layer scanner featuring interactive student submission charts, consensus AI detection, visual heatmaps, advanced humanization suite, and certified exportable reports.")
     
-    portal_mode = st.radio("Select Portal Mode", ["ðŸ‘¨â€ðŸ« Professor & Researcher Portal", "ðŸŽ“ Student Security & Humanizer Suite"], horizontal=True)
+    portal_mode = st.radio("Select Portal Mode", [" Professor & Researcher Portal", " Student Security & Humanizer Suite"], horizontal=True)
     
     conn = _nexus_conn()
     user = check_user_identity()
     user_email = user.get("email", "guest@apex.internal")
 
-    if portal_mode == "ðŸ‘¨â€ðŸ« Professor & Researcher Portal":
-        st.markdown("### ðŸ“Š Live Student Tracking & Analytics Workbench")
+    if portal_mode == " Professor & Researcher Portal":
+        st.markdown("###  Live Student Tracking & Analytics Workbench")
         st.info("Monitor live student submission metrics, batch AI probability trends, and comparative performance distributions across all assignments.")
         
         # Seed initial sample tracking records if empty
@@ -574,7 +577,7 @@ def render_audit_forensics():
         col_st3.metric("High AI Flag Rate (>50%)", f"{(tracks_df['ai_score'] > 50).mean() * 100:.1f}%")
 
         if PLOTLY_AVAILABLE and not tracks_df.empty:
-            st.markdown("#### ðŸ“ˆ Student AI Score Distribution & Trace Charts")
+            st.markdown("####  Student AI Score Distribution & Trace Charts")
             fig_bar = px.bar(tracks_df, x="student_name", y="ai_score", color="assignment_title", title="Student AI Probability Trace Across Assignments", template="plotly_dark", labels={"ai_score": "AI Probability (%)", "student_name": "Student Name"})
             st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -582,7 +585,7 @@ def render_audit_forensics():
             st.plotly_chart(fig_box, use_container_width=True)
 
         st.markdown("---")
-        st.markdown("#### ðŸ“ Individual Manuscript & Batch Audit Workbench")
+        st.markdown("####  Individual Manuscript & Batch Audit Workbench")
         uploaded_paper = st.file_uploader("Upload Manuscript / Assignment (TXT, PDF, DOCX)", type=["txt", "pdf", "docx"], key="prof_paper_upload")
         raw_text_input = st.text_area("Or paste manuscript text directly", value="Furthermore, the experimental paradigm demonstrated robust empirical validity. In addition, the algorithmic throughput scaled linearly with sample volume.", height=150)
         
@@ -595,7 +598,7 @@ def render_audit_forensics():
         elif raw_text_input:
             eval_text = raw_text_input
             
-        if st.button("ðŸš€ Run Comprehensive Aidify Audit", type="primary"):
+        if st.button(" Run Comprehensive Aidify Audit", type="primary"):
             with st.spinner("Running multi-model consensus scan and stylometric fingerprinting..."):
                 analysis = advanced_ai_detector(eval_text)
                 
@@ -605,8 +608,8 @@ def render_audit_forensics():
             col_m3.metric("Stylometric TTR", f"{analysis['ttr']}")
             
             st.markdown("---")
-            st.markdown("#### ðŸŽ¨ Interactive Sentence-Level Heatmap Viewer")
-            st.markdown("Color-coded sentences below (ðŸŸ¢ Human-Authored vs ðŸ”´ AI-Assisted):")
+            st.markdown("####  Interactive Sentence-Level Heatmap Viewer")
+            st.markdown("Color-coded sentences below ( Human-Authored vs  AI-Assisted):")
             
             heatmap_html = "<div style='padding: 15px; background: #262730; color: #ffffff; border-radius: 8px; line-height: 1.8; font-family: sans-serif; border: 1px solid #464855;'>"
             for item in analysis["sentence_analyses"]:
@@ -616,7 +619,7 @@ def render_audit_forensics():
             heatmap_html += "</div>"
             st.markdown(heatmap_html, unsafe_allow_html=True)
             
-            st.markdown("#### ðŸ“Š Burstiness & Sentence Length Traceback")
+            st.markdown("####  Burstiness & Sentence Length Traceback")
             if PLOTLY_AVAILABLE and analysis["sentence_analyses"]:
                 df_lens = pd.DataFrame({"Sentence Index": range(len(analysis["sentence_analyses"])), "Word Length": [x["word_count"] for x in analysis["sentence_analyses"]]})
                 fig = px.bar(df_lens, x="Sentence Index", y="Word Length", title="Sentence Length Variation (Burstiness Traceback)", template="plotly_dark")
@@ -632,21 +635,21 @@ Perplexity: {analysis['perplexity']}
 Stylometric TTR: {analysis['ttr']}
 ================================================="""
             st.download_button(
-                label="ðŸ“¥ Download Official Audit Certificate (TXT)",
+                label=" Download Official Audit Certificate (TXT)",
                 data=report_payload,
                 file_name=f"Aidify_Audit_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 mime="text/plain"
             )
 
     else:
-        st.markdown("### ðŸŽ“ Student Security & Advanced Humanizer Suite")
+        st.markdown("###  Student Security & Advanced Humanizer Suite")
         st.info("Optimize your drafts to ensure authentic linguistic flow, bypass strict AI detectors safely, and verify your writing compliance before submission.")
         
         student_draft = st.text_area("Paste your draft for humanization and security check", value="It is important to note that our methodology yields significant findings. The framework integrates seamlessly across platforms.", height=150)
         
         col_s1, col_s2 = st.columns(2)
         with col_s1:
-            if st.button("ðŸ›¡ï¸ Run Pre-Check AI Scan", type="primary"):
+            if st.button(" Run Pre-Check AI Scan", type="primary"):
                 res_check = advanced_ai_detector(student_draft)
                 st.metric("Estimated AI Score", f"{res_check['ai_probability']}%")
                 st.info(f"Verdict: {res_check['verdict']}")
@@ -658,7 +661,7 @@ Stylometric TTR: {analysis['ttr']}
                 st.text_area("Humanized & Secured Output", value=res_human["humanized_text"], height=120)
                 st.markdown(f"*{res_human['security_badge']}*")
                 st.download_button(
-                    label="ðŸ“¥ Download Secured Draft",
+                    label=" Download Secured Draft",
                     data=res_human["humanized_text"],
                     file_name="Secured_Student_Draft.txt",
                     mime="text/plain"
@@ -673,13 +676,13 @@ def render_nexus_vault():
     user = check_user_identity()
     user_email = user.get("email", "guest@apex.internal")
     
-    section_header("ðŸ” Nexus Workspace Suite (Google Ecosystem Clone)", "Complete sovereign environment mirroring Google Drive, Meet with HD Camera capture & automated meeting transcription, Docs, Sheets with Natural Language Copilot, Slides, Contacts, and Tasks.")
+    section_header(" Nexus Workspace Suite (Google Ecosystem Clone)", "Complete sovereign environment mirroring Google Drive, Meet with HD Camera capture & automated meeting transcription, Docs, Sheets with Natural Language Copilot, Slides, Contacts, and Tasks.")
     
-    n_tabs = st.tabs(["ðŸ“ Google Drive", "ðŸ“… Calendar", "ðŸ“¹ Meet & Transcripts", "ðŸ“ Google Docs", "ðŸ“Š Google Sheets Copilot", "ðŸ“Š Google Slides", "ðŸ“‡ Google Contacts", "â˜‘ï¸ Google Tasks"])
+    n_tabs = st.tabs([" Google Drive", " Calendar", " Meet & Transcripts", " Google Docs", " Google Sheets Copilot", " Google Slides", " Google Contacts", "â˜‘ Google Tasks"])
     
     # 1. Google Drive
     with n_tabs[0]:
-        st.markdown("### ðŸ“ Nexus Drive â€” Cloud Storage & Vault")
+        st.markdown("###  Nexus Drive â€” Cloud Storage & Vault")
         uploaded = st.file_uploader("Upload file to cloud storage", key="nexus_drive_up")
         c_cat = st.selectbox("File Category", ["Documents", "Research Data", "Media", "Backups"], key="drive_cat")
         c_notes = st.text_input("File Description / Notes", key="drive_notes")
@@ -694,7 +697,7 @@ def render_nexus_vault():
             st.dataframe(df_files, use_container_width=True, hide_index=True)
             
             del_id = st.number_input("Enter File ID to Delete", min_value=0, step=1, key="del_file_id")
-            if st.button("ðŸ—‘ï¸ Delete Selected File"):
+            if st.button(" Delete Selected File"):
                 NexusDrive.delete_file(int(del_id))
                 st.success("âœ… File removed from storage.")
                 st.rerun()
@@ -703,7 +706,7 @@ def render_nexus_vault():
             
     # 2. Calendar
     with n_tabs[1]:
-        st.markdown("### ðŸ“… Nexus Calendar")
+        st.markdown("###  Nexus Calendar")
         with st.form("cal_form_cloned"):
             c_title = st.text_input("Event Title")
             c_start = st.text_input("Start (YYYY-MM-DD HH:MM)", value=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
@@ -718,8 +721,8 @@ def render_nexus_vault():
             
     # 3. Meet, Transcripts & HD Camera
     with n_tabs[2]:
-        st.markdown("### ðŸ“¹ Nexus Meet, Automated Transcripts & HD Camera")
-        meet_tab1, meet_tab2 = st.tabs(["ðŸŽ¥ Meeting Scheduler & Transcripts", "ðŸ“¸ HD Camera Capture"])
+        st.markdown("###  Nexus Meet, Automated Transcripts & HD Camera")
+        meet_tab1, meet_tab2 = st.tabs([" Meeting Scheduler & Transcripts", " HD Camera Capture"])
         
         with meet_tab1:
             m_title = st.text_input("Meeting Title", value="Research Sync")
@@ -736,7 +739,7 @@ def render_nexus_vault():
             meetings = NexusMeet.list_meetings(user_email)
             if meetings:
                 for m in meetings:
-                    with st.expander(f"ðŸŽ¥ {m['title']} ({m['meeting_dt']})"):
+                    with st.expander(f" {m['title']} ({m['meeting_dt']})"):
                         st.markdown(f"**Meet Link:** `{m['meeting_link']}`")
                         st.markdown(f"**Transcript:** {m['transcript']}")
                         st.markdown(f"**Action Items:**\n{m['action_items']}")
@@ -748,11 +751,11 @@ def render_nexus_vault():
             cam_image = st.camera_input("Take a High-Quality Snapshot")
             if cam_image is not None:
                 st.success("âœ… HD Image captured successfully!")
-                st.download_button("ðŸ“¥ Download Snapshot", data=cam_image.getvalue(), file_name="Nexus_HD_Snapshot.png", mime="image/png")
+                st.download_button(" Download Snapshot", data=cam_image.getvalue(), file_name="Nexus_HD_Snapshot.png", mime="image/png")
                 
     # 4. Google Docs
     with n_tabs[3]:
-        st.markdown("### ðŸ“ Nexus Docs (Advanced Text Editor)")
+        st.markdown("###  Nexus Docs (Advanced Text Editor)")
         docs_list = NexusDocs.list_docs(user_email)
         doc_choice = st.selectbox("Open Document", options=[0] + [d["id"] for d in docs_list], format_func=lambda x: "âœ¨ Create New Document" if x == 0 else next((d["title"] for d in docs_list if d["id"] == x), str(x)))
         
@@ -768,20 +771,20 @@ def render_nexus_vault():
         st.markdown("**Toolbar & Formatting Tools:**")
         tb_col1, tb_col2, tb_col3, tb_col4, tb_col5 = st.columns(5)
         prefix_tag = ""
-        if tb_col1.button("ðŸ  Insert Header"):
+        if tb_col1.button("  Insert Header"):
             prefix_tag = "\n# Document Section\n"
         if tb_col2.button("mathbf{B} Bolding"):
             prefix_tag = "**Bold Text** "
-        if tb_col3.button("ðŸ“‹ Copy Template"):
+        if tb_col3.button(" Copy Template"):
             prefix_tag = "> Template Citation & Notes\n"
-        if tb_col4.button("ðŸ”— Insert Link"):
+        if tb_col4.button(" Insert Link"):
             prefix_tag = "[Link Text](https://apex.internal) "
-        if tb_col5.button("ðŸ“ Bullet List"):
+        if tb_col5.button(" Bullet List"):
             prefix_tag = "\n* Item 1\n* Item 2\n"
             
         doc_body_input = st.text_area("Document Content (Markdown supported)", value=prefix_tag + current_body, height=250)
         
-        if st.button("ðŸ’¾ Save & Version Document", type="primary"):
+        if st.button(" Save & Version Document", type="primary"):
             if doc_title_input.strip():
                 NexusDocs.create(doc_title_input, doc_body_input, user_email)
                 st.success("âœ… Document saved successfully with version tracking.")
@@ -791,7 +794,7 @@ def render_nexus_vault():
                 
     # 5. Google Sheets Copilot
     with n_tabs[4]:
-        st.markdown("### ðŸ“Š Nexus Sheets with Natural Language Copilot")
+        st.markdown("###  Nexus Sheets with Natural Language Copilot")
         st.info("Type instructions in plain English (e.g., 'Calculate total sum across 1200, 350, and 450') and the Sheets Copilot will automatically formulate and evaluate expressions.")
         
         copilot_prompt = st.text_input("Spreadsheet Copilot Prompt", value="Calculate total sum of 1200, 350, and 450")
@@ -811,7 +814,7 @@ def render_nexus_vault():
                 
     # 6. Google Slides
     with n_tabs[5]:
-        st.markdown("### ðŸ“Š Nexus Slides (Presentation Hub)")
+        st.markdown("###  Nexus Slides (Presentation Hub)")
         slide_title = st.text_input("Presentation Title", value="Q3 Enterprise Roadmap")
         slide_content = st.text_area("Slide Content (Bullet points per line)", value="- Executive Summary\n- System Diagnostics Update\n- AI Forensics Milestones\n- Q4 Projections", height=150)
         if st.button("Create Presentation Deck"):
@@ -821,7 +824,7 @@ def render_nexus_vault():
             
     # 7. Google Contacts
     with n_tabs[6]:
-        st.markdown("### ðŸ“‡ Nexus Contacts Directory")
+        st.markdown("###  Nexus Contacts Directory")
         with st.form("contact_form_cloned"):
             cn_name = st.text_input("Full Name")
             cn_email = st.text_input("Email Address")
@@ -838,7 +841,7 @@ def render_nexus_vault():
             
     # 8. Google Tasks
     with n_tabs[7]:
-        st.markdown("### â˜‘ï¸ Nexus Tasks & Kanban Board")
+        st.markdown("### â˜‘ Nexus Tasks & Kanban Board")
         with st.form("task_form_cloned"):
             t_title = st.text_input("Task Description")
             t_prio = st.selectbox("Priority", ["LOW", "MEDIUM", "HIGH", "CRITICAL"])
@@ -860,8 +863,8 @@ def render_nexus_vault():
 
 def render_settings():
     require_admin()
-    section_header("âš™ï¸ Platform Settings & Configuration", "Manage theme preferences, system flags, and cache operations.")
-    if st.button("ðŸ§¹ Purge System Cache & Reset State", type="primary"):
+    section_header("âš™ Platform Settings & Configuration", "Manage theme preferences, system flags, and cache operations.")
+    if st.button(" Purge System Cache & Reset State", type="primary"):
         st.cache_data.clear()
         st.success("âœ… Cache flushed successfully.")
 
@@ -875,24 +878,24 @@ def main():
     # in effect but makes the access boundary obvious instead of accidental.
     require_admin()
 
-    setup_page("Admin & Security Center", "ðŸ›¡ï¸", initial_sidebar_state="expanded")
+    setup_page("Admin & Security Center", " initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
-    hero_card("ðŸ›¡ï¸ Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.3")
+    hero_card(" Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.3")
     conn = _nexus_conn()
 
     tabs = st.tabs([
-        "ðŸ” Diagnostics", 
-        "ðŸ‘¤ Users", 
-        "ðŸ’³ Billing", 
-        "ðŸŽ“ Verification", 
-        "ðŸ”’ Vault", 
-        "ðŸ›¡ï¸ Aidify Audit", 
-        "ðŸ” Nexus Workspace", 
-        "âš™ï¸ Settings"
+        " Diagnostics", 
+        " Users", 
+        " Billing", 
+        " Verification", 
+        " Vault", 
+        " Aidify Audit", 
+        " Nexus Workspace", 
+        "âš™ Settings"
     ])
     
     with tabs[0]: render_system_diagnostics(conn)

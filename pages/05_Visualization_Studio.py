@@ -1,11 +1,14 @@
-﻿import os
+import streamlit as st
+st.set_page_config(page_title="Visualization Studio", page_icon="🎨", layout="wide")
+
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ“ˆ Visualization Studio â€” Consolidated Visualization & Dashboard Hub (Premium)
+ Visualization Studio â€” Consolidated Visualization & Dashboard Hub (Premium)
 Advanced Visuals, Executive Dashboard Builder, a real downloadable Presentation Deck Generator,
 Chart Data Extractor, and a genuinely intelligent Auto-Recommendation engine.
 """
@@ -145,15 +148,15 @@ def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=Non
         )
         return fig
     except Exception as e:
-        st.error(f"âš ï¸ Chart execution error: {e}")
+        st.error(f"âš  Chart execution error: {e}")
         return None
 
 
 def render_custom_builder(df):
-    section_header("ðŸŽ¨ Advanced Custom Chart Studio", "Configure multi-dimensional data visualizations with real-time Plotly rendering & direct exports.")
+    section_header(" Advanced Custom Chart Studio", "Configure multi-dimensional data visualizations with real-time Plotly rendering & direct exports.")
 
     if not PLOTLY_AVAILABLE:
-        st.error("âš ï¸ Plotly is required for visualization rendering.")
+        st.error("âš  Plotly is required for visualization rendering.")
         return
 
     all_cols = df.columns.tolist()
@@ -176,7 +179,7 @@ def render_custom_builder(df):
         size_col = st.selectbox("Marker Size (Scatter)", [""] + numeric_cols, key="viz_size_adv")
 
     # NEW PREMIUM FEATURE: Real-time outlier filtering control
-    filter_outliers = st.checkbox("ðŸ§¹ Automatically Filter Extreme Outliers (3 Sigma Rule on Numeric Metrics)", value=False, key="viz_outlier_filter")
+    filter_outliers = st.checkbox(" Automatically Filter Extreme Outliers (3 Sigma Rule on Numeric Metrics)", value=False, key="viz_outlier_filter")
     
     render_df = df.copy()
     if filter_outliers and y_col and y_col in numeric_cols:
@@ -201,23 +204,23 @@ def render_custom_builder(df):
         
         # NEW PREMIUM FEATURE: Live Telemetry Summary Stats
         if y_col and y_col in numeric_cols:
-            st.info(f"ðŸ“ˆ **Active Metric Telemetry (`{y_col}`)**: Count: `{len(render_df)}` | Mean: `{render_df[y_col].mean():,.2f}` | Median: `{render_df[y_col].median():,.2f}` | Std Dev: `{render_df[y_col].std():,.2f}`")
+            st.info(f" **Active Metric Telemetry (`{y_col}`)**: Count: `{len(render_df)}` | Mean: `{render_df[y_col].mean():,.2f}` | Median: `{render_df[y_col].median():,.2f}` | Std Dev: `{render_df[y_col].std():,.2f}`")
 
-        st.markdown("#### ðŸ“¥ Download & Copy Studio Assets")
+        st.markdown("####  Download & Copy Studio Assets")
         exp_col1, exp_col2 = st.columns(2)
         with exp_col1:
             render_export_buttons(render_df, base_name=f"custom_viz_{chart_type.lower().replace(' ', '_')}")
         with exp_col2:
             csv_data = render_df.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="ðŸ“‹ Copy / Download Raw Table CSV",
+                label=" Copy / Download Raw Table CSV",
                 data=csv_data,
                 file_name="chart_source_data.csv",
                 mime="text/csv",
                 key="download_raw_csv_custom"
             )
     else:
-        st.error("âš ï¸ Could not render chart with the selected parameters.")
+        st.error("âš  Could not render chart with the selected parameters.")
 
 
 def _skewness(series: pd.Series) -> float:
@@ -228,7 +231,7 @@ def _skewness(series: pd.Series) -> float:
 
 
 def render_auto_studio(df):
-    section_header("ðŸ¤– AI Auto-Recommendation Studio", "Automated exploratory visual discovery â€” selections are driven by actual data properties (correlation strength, skew, cardinality, temporal structure).")
+    section_header(" AI Auto-Recommendation Studio", "Automated exploratory visual discovery â€” selections are driven by actual data properties (correlation strength, skew, cardinality, temporal structure).")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
@@ -236,7 +239,7 @@ def render_auto_studio(df):
     low_card_cats = [c for c in cat_cols if df[c].nunique() <= 15]
 
     if not numeric_cols:
-        st.warning("âš ï¸ Dataset requires numeric columns to generate automated visual recommendations.")
+        st.warning("âš  Dataset requires numeric columns to generate automated visual recommendations.")
         return
 
     recs = []
@@ -264,7 +267,7 @@ def render_auto_studio(df):
 
     for i, (ctype, params, rationale) in enumerate(recs):
         with st.container():
-            st.markdown(f"#### ðŸ’¡ Insight Perspective {i+1}: {ctype}")
+            st.markdown(f"####  Insight Perspective {i+1}: {ctype}")
             st.caption(rationale)
             fig = build_chart(ctype, df, height=350, **params)
             if fig:
@@ -273,13 +276,13 @@ def render_auto_studio(df):
 
 
 def render_exec_dashboard(df):
-    section_header("ðŸ“Š Executive KPI & Multi-Chart Dashboard", "Assembled executive dashboard combining core metrics, distribution telemetry, and trend analytics.")
+    section_header(" Executive KPI & Multi-Chart Dashboard", "Assembled executive dashboard combining core metrics, distribution telemetry, and trend analytics.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not numeric_cols:
-        st.warning("âš ï¸ Insufficient numeric features for executive metrics.")
+        st.warning("âš  Insufficient numeric features for executive metrics.")
         return
 
     st.markdown("#### Key Performance Indicators (KPIs)")
@@ -349,7 +352,7 @@ def _build_pptx(deck_title: str, slides_spec: list) -> bytes:
 
 
 def render_deck_builder(df):
-    section_header("ðŸ“½ï¸ Presentation Deck & Slide Generator", "Structure executive presentation slides with embedded charts and narrative metric highlights â€” with a real, downloadable .pptx output.")
+    section_header(" Presentation Deck & Slide Generator", "Structure executive presentation slides with embedded charts and narrative metric highlights â€” with a real, downloadable .pptx output.")
 
     deck_title = st.text_input("Presentation Deck Title", value="Executive Analytics & Data Briefing", key="deck_title_input")
     slide_count = st.slider("Number of Slides to Generate", 2, 6, 4, key="deck_slide_count")
@@ -358,11 +361,11 @@ def render_deck_builder(df):
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not PPTX_AVAILABLE:
-        st.warning("âš ï¸ `.pptx` file export isn't available in this deployment yet â€” preview is available on-screen. This is a deployment configuration item, not something to fix from here.")
+        st.warning("âš  `.pptx` file export isn't available in this deployment yet â€” preview is available on-screen. This is a deployment configuration item, not something to fix from here.")
     if not KALEIDO_AVAILABLE:
-        st.caption("â„¹ï¸ Chart-image export isn't available in this deployment yet â€” slides will export as text/metric-only until it is.")
+        st.caption("â„¹ Chart-image export isn't available in this deployment yet â€” slides will export as text/metric-only until it is.")
 
-    if st.button("ðŸ“½ï¸ Generate Presentation Deck", type="primary", key="build_deck_btn"):
+    if st.button(" Generate Presentation Deck", type="primary", key="build_deck_btn"):
         if not numeric_cols:
             st.error("Need at least one numeric column to build slide metrics.")
             return
@@ -400,7 +403,7 @@ def render_deck_builder(df):
             pptx_bytes = _build_pptx(deck_title, slides_spec)
             st.success(f"âœ… Presentation deck '{deck_title}' compiled â€” {slide_count} slides ready.")
             st.download_button(
-                "â¬‡ï¸ Download Presentation (.pptx)",
+                "â¬‡ Download Presentation (.pptx)",
                 data=pptx_bytes,
                 file_name=f"{deck_title.lower().replace(' ', '_')}.pptx",
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -409,13 +412,13 @@ def render_deck_builder(df):
 
 
 def render_chart_extractor(df):
-    section_header("ðŸ“Š Chart Data Extractor & Aggregator", "Extract, aggregate, and export structured tabular subsets directly from visual nodes.")
+    section_header(" Chart Data Extractor & Aggregator", "Extract, aggregate, and export structured tabular subsets directly from visual nodes.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not numeric_cols or not cat_cols:
-        st.warning("âš ï¸ Data extraction requires both categorical and numeric columns.")
+        st.warning("âš  Data extraction requires both categorical and numeric columns.")
         return
 
     col1, col2, col3 = st.columns(3)
@@ -426,13 +429,13 @@ def render_chart_extractor(df):
     with col3:
         agg_func = st.selectbox("Aggregation Function", ["mean", "sum", "median", "count", "max", "min", "std"], key="ext_func")
 
-    if st.button("ðŸ“Š Extract & Process Aggregated Data", type="primary", key="run_extraction"):
+    if st.button(" Extract & Process Aggregated Data", type="primary", key="run_extraction"):
         if agg_func == "count":
             extracted_df = df.groupby(group_col)[agg_col].count().reset_index()
         else:
             extracted_df = df.groupby(group_col)[agg_col].agg(agg_func).reset_index()
 
-        st.markdown("#### ðŸ“‹ Extracted Dataset Preview & Copy Options")
+        st.markdown("####  Extracted Dataset Preview & Copy Options")
         st.dataframe(extracted_df, use_container_width=True, hide_index=True)
         render_export_buttons(extracted_df, base_name="extracted_chart_dataset")
 
@@ -441,14 +444,14 @@ def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="visualization")
 
-    setup_page("Visualization Studio", "ðŸ“ˆ", initial_sidebar_state="expanded")
+    setup_page("Visualization Studio", " initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "ðŸ“ˆ Visualization Studio & Executive Dashboard Hub (Premium)",
+        " Visualization Studio & Executive Dashboard Hub (Premium)",
         "Consolidated enterprise visualization platform featuring advanced multi-dimensional charting, a genuinely data-driven AI recommendation engine, executive dashboards, a real downloadable presentation deck generator, and chart data extraction.",
         badge_text="VISUALIZATION STUDIO â€¢ PREMIUM TIER",
     )
@@ -457,11 +460,11 @@ def main():
     df = get_df()
 
     tabs = st.tabs([
-        "ðŸŽ¨ Custom Builder",
-        "ðŸ¤– Auto-Recommendations",
-        "ðŸ“Š Executive Dashboard",
-        "ðŸ“½ï¸ Presentation Deck",
-        "ðŸ“Š Chart Data Extractor",
+        " Custom Builder",
+        " Auto-Recommendations",
+        " Executive Dashboard",
+        " Presentation Deck",
+        " Chart Data Extractor",
     ])
 
     with tabs[0]:

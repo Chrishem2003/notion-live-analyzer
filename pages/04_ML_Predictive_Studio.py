@@ -1,11 +1,14 @@
-﻿import os
+import streamlit as st
+st.set_page_config(page_title="ML Predictive Studio", page_icon="🤖", layout="wide")
+
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ¤– ML & Predictive Studio â€” Consolidated Machine Learning Hub (Premium)
+ ML & Predictive Studio â€” Consolidated Machine Learning Hub (Premium)
 AutoML with real hyperparameter tuning, cross-validation, model persistence/export, a prediction
 engine that actually uses your trained model (not a throwaway retrain), automated feature
 selection, and non-theatrical autonomous agent missions.
@@ -100,10 +103,10 @@ def _deserialize_pipeline(raw_bytes: bytes) -> dict:
 
 
 def render_automl_tab(df):
-    section_header("ðŸ¤– Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate multi-algorithm machine learning models â€” with real hyperparameter search and a persistable trained pipeline.")
+    section_header(" Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate multi-algorithm machine learning models â€” with real hyperparameter search and a persistable trained pipeline.")
 
     if not SKLEARN_AVAILABLE:
-        st.error("âš ï¸ `scikit-learn` is required for this module.")
+        st.error("âš  `scikit-learn` is required for this module.")
         return
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -122,18 +125,18 @@ def render_automl_tab(df):
     with col3:
         cv_folds = st.slider("Cross-Validation Folds", 3, 10, 5, key="ml_cv")
 
-    tune = st.checkbox("ðŸ”§ Enable Hyperparameter Tuning (GridSearchCV) â€” slower, more accurate", value=False, key="ml_tune")
+    tune = st.checkbox(" Enable Hyperparameter Tuning (GridSearchCV) â€” slower, more accurate", value=False, key="ml_tune")
 
     models = _build_model_registry(task)
     selected_models = st.multiselect("Select Algorithms to Evaluate", list(models.keys()), default=list(models.keys()), key="ml_algos")
 
-    if st.button("ðŸš€ Run AutoML & Cross-Validation Suite", type="primary", key="run_ml"):
+    if st.button(" Run AutoML & Cross-Validation Suite", type="primary", key="run_ml"):
         if not features:
             st.error("Select at least one feature.")
         elif not selected_models:
             st.error("Select at least one algorithm.")
         elif task == "Regression" and not pd.api.types.is_numeric_dtype(pd.to_numeric(df[target], errors="coerce")):
-            st.error(f"ðŸš« Target `{target}` cannot be interpreted as numeric â€” choose Classification instead, or pick a numeric target for regression.")
+            st.error(f" Target `{target}` cannot be interpreted as numeric â€” choose Classification instead, or pick a numeric target for regression.")
         else:
             with st.spinner("Preprocessing data and executing cross-validation training..."):
                 try:
@@ -155,7 +158,7 @@ def render_automl_tab(df):
                         y_num = pd.to_numeric(y, errors="coerce")
                         valid = y_num.notnull()
                         if valid.sum() < 10:
-                            st.error("ðŸš« Fewer than 10 valid numeric target rows after cleaning â€” cannot train reliably.")
+                            st.error(" Fewer than 10 valid numeric target rows after cleaning â€” cannot train reliably.")
                             st.stop()
                         X_imp = X_imp.loc[valid]
                         y_target = y_num.loc[valid].values
@@ -218,12 +221,12 @@ def render_automl_tab(df):
                             best_score, best_name, best_model = test_metric, name, model
 
                     res_df = pd.DataFrame(results)
-                    st.markdown("#### ðŸ“Š Model Performance Leaderboard")
+                    st.markdown("####  Model Performance Leaderboard")
                     st.dataframe(res_df, use_container_width=True, hide_index=True)
                     st.success(f"âœ… Best performer: **{best_name}** (test score {best_score:.4f}) â€” this is now the active model for the Prediction Engine tab.")
 
                     if "Random Forest" in trained_models and hasattr(trained_models["Random Forest"], "feature_importances_"):
-                        st.markdown("#### ðŸ” Random Forest Feature Importances")
+                        st.markdown("####  Random Forest Feature Importances")
                         importances = pd.Series(trained_models["Random Forest"].feature_importances_, index=X_imp.columns).sort_values(ascending=False)
                         st.bar_chart(importances)
 
@@ -246,14 +249,14 @@ def render_automl_tab(df):
     pipeline = st.session_state.get("ml_active_pipeline")
     if pipeline:
         st.markdown("---")
-        st.markdown("#### ðŸ’¾ Model Persistence")
+        st.markdown("####  Model Persistence")
         c1, c2 = st.columns(2)
         with c1:
             st.caption(f"Active model: **{pipeline['algorithm']}** ({pipeline['task']}, target=`{pipeline['target']}`, test score={pipeline['test_score']:.4f})")
             raw = _serialize_pipeline(pipeline)
-            st.download_button("â¬‡ï¸ Export Trained Pipeline (.pkl)", data=raw, file_name=f"ml_pipeline_{pipeline['algorithm'].lower().replace(' ', '_')}.pkl", mime="application/octet-stream", key="dl_pipeline")
+            st.download_button("â¬‡ Export Trained Pipeline (.pkl)", data=raw, file_name=f"ml_pipeline_{pipeline['algorithm'].lower().replace(' ', '_')}.pkl", mime="application/octet-stream", key="dl_pipeline")
         with c2:
-            uploaded_pipeline = st.file_uploader("ðŸ“¤ Import a Previously Exported Pipeline", type=["pkl"], key="upload_pipeline")
+            uploaded_pipeline = st.file_uploader(" Import a Previously Exported Pipeline", type=["pkl"], key="upload_pipeline")
             if uploaded_pipeline is not None and st.button("Load Imported Pipeline", key="load_pipeline"):
                 try:
                     loaded = _deserialize_pipeline(uploaded_pipeline.getvalue())
@@ -265,7 +268,7 @@ def render_automl_tab(df):
 
 
 def render_predict_tab(df):
-    section_header("ðŸ”® Interactive Prediction Engine", "Score new records using the model you actually trained in the AutoML tab â€” not a disconnected throwaway retrain.")
+    section_header(" Interactive Prediction Engine", "Score new records using the model you actually trained in the AutoML tab â€” not a disconnected throwaway retrain.")
 
     if not SKLEARN_AVAILABLE:
         st.error("`scikit-learn` required.")
@@ -273,7 +276,7 @@ def render_predict_tab(df):
 
     pipeline = st.session_state.get("ml_active_pipeline")
     if not pipeline:
-        st.warning("âš ï¸ No trained model yet. Go to **AutoML & Training**, run the suite, and come back â€” this tab will automatically use the best model from that run.")
+        st.warning("âš  No trained model yet. Go to **AutoML & Training**, run the suite, and come back â€” this tab will automatically use the best model from that run.")
         return
 
     model, scaler = pipeline["model"], pipeline["scaler"]
@@ -314,7 +317,7 @@ def render_predict_tab(df):
                 options = df[feat].dropna().unique().tolist()
                 inputs[feat] = col.selectbox(feat, options, key=f"pred_in_{feat}")
 
-        if st.button("ðŸ”® Generate Prediction", type="primary", key="run_predict"):
+        if st.button(" Generate Prediction", type="primary", key="run_predict"):
             try:
                 input_df = pd.DataFrame([inputs])
                 preds, proba, interval = _predict(input_df)
@@ -335,12 +338,12 @@ def render_predict_tab(df):
         st.markdown("#### Batch Scoring")
         st.caption(f"Upload a CSV containing at least these columns: {', '.join(raw_features)}")
         batch_file = st.file_uploader("Upload CSV for batch scoring", type=["csv"], key="pred_batch_upload")
-        if batch_file is not None and st.button("ðŸ”® Score Batch", type="primary", key="run_batch_predict"):
+        if batch_file is not None and st.button(" Score Batch", type="primary", key="run_batch_predict"):
             try:
                 batch_df = pd.read_csv(batch_file)
                 missing = [c for c in raw_features if c not in batch_df.columns]
                 if missing:
-                    st.error(f"ðŸš« Uploaded file is missing required columns: {', '.join(missing)}")
+                    st.error(f" Uploaded file is missing required columns: {', '.join(missing)}")
                 else:
                     preds, proba, interval = _predict(batch_df)
                     out = batch_df.copy()
@@ -359,7 +362,7 @@ def render_feature_engineering_tab(df):
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     tab_interact, tab_bin, tab_poly, tab_select = st.tabs([
-        "âœ–ï¸ Interactions", "ðŸ“¦ Binning & Quantiles", "ðŸ“ˆ Polynomials", "ðŸŽ¯ Automated Feature Selection"
+        "âœ– Interactions", " Binning & Quantiles", " Polynomials", " Automated Feature Selection"
     ])
 
     with tab_interact:
@@ -392,7 +395,7 @@ def render_feature_engineering_tab(df):
             strategy = st.radio("Binning Strategy", ["Equal Width (Uniform)", "Equal Frequency (Quantiles)"], horizontal=True, key="fe_bin_strat")
             n_bins = st.slider("Number of Bins", 2, 10, 4, key="fe_bin_n")
 
-            if st.button("ðŸ“¦ Create Binned Feature", type="primary", key="run_fe_bin"):
+            if st.button(" Create Binned Feature", type="primary", key="run_fe_bin"):
                 working = df.copy()
                 if "Uniform" in strategy:
                     working[f"{col}_bin"] = pd.cut(working[col], bins=n_bins, labels=[f"Bin_{i+1}" for i in range(n_bins)])
@@ -410,7 +413,7 @@ def render_feature_engineering_tab(df):
             if mode == "Single Column Powers":
                 col = st.selectbox("Variable for polynomial generation", numeric_cols, key="fe_poly_col")
                 degree = st.slider("Maximum Degree", 2, 4, 2, key="fe_poly_deg")
-                if st.button("ðŸ“ˆ Generate Polynomial Features", type="primary", key="run_fe_poly"):
+                if st.button(" Generate Polynomial Features", type="primary", key="run_fe_poly"):
                     working = df.copy()
                     for d in range(2, degree + 1):
                         working[f"{col}_pow{d}"] = working[col] ** d
@@ -423,7 +426,7 @@ def render_feature_engineering_tab(df):
                 else:
                     cols_sel = st.multiselect("Select columns to expand", numeric_cols, default=numeric_cols[:2], key="fe_poly_cols")
                     degree = st.slider("Degree", 2, 3, 2, key="fe_poly_multi_deg")
-                    if len(cols_sel) >= 2 and st.button("ðŸ“ˆ Generate Polynomial + Interaction Set", type="primary", key="run_fe_poly_multi"):
+                    if len(cols_sel) >= 2 and st.button(" Generate Polynomial + Interaction Set", type="primary", key="run_fe_poly_multi"):
                         working = df.copy()
                         clean = working[cols_sel].dropna()
                         poly = PolynomialFeatures(degree=degree, include_bias=False)
@@ -452,7 +455,7 @@ def render_feature_engineering_tab(df):
             else:
                 k_val = st.slider("Select top K features", 1, min(len(features_pool), 10), min(len(features_pool), 3), key="fs_k")
 
-                if st.button("ðŸŽ¯ Run Feature Selection", type="primary", key="run_fs"):
+                if st.button(" Run Feature Selection", type="primary", key="run_fs"):
                     clean_df = df[features_pool + [target_col]].dropna()
                     X_sel = clean_df[features_pool]
                     y_raw = clean_df[target_col]
@@ -467,7 +470,7 @@ def render_feature_engineering_tab(df):
                     selector.fit(X_sel, y_sel)
                     scores = pd.Series(selector.scores_, index=features_pool).sort_values(ascending=False)
 
-                    st.markdown("#### ðŸ“Š Feature F-Scores")
+                    st.markdown("####  Feature F-Scores")
                     st.bar_chart(scores)
                     top_feats = scores.head(k_val).index.tolist()
                     st.success(f"âœ… Top {k_val} recommended features: {', '.join(top_feats)}")
@@ -544,11 +547,11 @@ def _mission_pipeline_sync(df: pd.DataFrame) -> dict:
 
 
 def render_agents_tab():
-    section_header("ðŸ¦¾ Autonomous Agent Console", "Each mission actually inspects the active dataset â€” no simulated delays, no canned success messages.")
+    section_header(" Autonomous Agent Console", "Each mission actually inspects the active dataset â€” no simulated delays, no canned success messages.")
 
     df = get_active_dataframe()
     if df is None:
-        st.warning("âš ï¸ No active dataset. Load one in Data Studio first â€” these missions need real data to inspect.")
+        st.warning("âš  No active dataset. Load one in Data Studio first â€” these missions need real data to inspect.")
         return
 
     mission = st.selectbox("Select Agent Mission", [
@@ -559,7 +562,7 @@ def render_agents_tab():
         "Cross-Hub Data Pipeline Consistency Check",
     ], key="agent_mission")
 
-    if st.button("ðŸš€ Run Agent Mission", type="primary", key="deploy_agent"):
+    if st.button(" Run Agent Mission", type="primary", key="deploy_agent"):
         with st.spinner(f"Running: {mission}..."):
             if mission == "Anomaly Detection & Outlier Sweep":
                 result = _mission_outlier_sweep(df)
@@ -585,7 +588,7 @@ def render_agents_tab():
                     st.dataframe(result, use_container_width=True, hide_index=True)
                     degrading = result[result["Assessment"] == "Degrading"]
                     if len(degrading):
-                        st.warning(f"âš ï¸ {len(degrading)} column(s) show a statistically significant downward trend over row order: {', '.join(degrading['Column'])}")
+                        st.warning(f"âš  {len(degrading)} column(s) show a statistically significant downward trend over row order: {', '.join(degrading['Column'])}")
                     else:
                         st.success("âœ… No statistically significant degrading trends detected.")
                     render_export_buttons(result, base_name="agent_trend_check")
@@ -593,7 +596,7 @@ def render_agents_tab():
             elif mission == "Automated Executive Reporting Generator":
                 report = _mission_executive_report(df)
                 st.code(report, language="markdown")
-                st.download_button("â¬‡ï¸ Download Executive Report (.md)", data=report, file_name="agent_executive_report.md", mime="text/markdown", key="dl_agent_report")
+                st.download_button("â¬‡ Download Executive Report (.md)", data=report, file_name="agent_executive_report.md", mime="text/markdown", key="dl_agent_report")
                 st.success("âœ… Mission complete.")
 
             else:
@@ -603,12 +606,12 @@ def render_agents_tab():
                 elif result["consistent"]:
                     st.success(f"âœ… Consistent â€” this dataset matches the fingerprint Data Studio last recorded ({result['current_fingerprint'][:24]}â€¦).")
                 else:
-                    st.error(f"ðŸš¨ Inconsistent â€” the active dataset has changed since Data Studio last recorded a fingerprint. Current: {result['current_fingerprint'][:16]}â€¦ vs. recorded: {result['data_studio_fingerprint'][:16]}â€¦")
+                    st.error(f" Inconsistent â€” the active dataset has changed since Data Studio last recorded a fingerprint. Current: {result['current_fingerprint'][:16]}â€¦ vs. recorded: {result['data_studio_fingerprint'][:16]}â€¦")
 
 
 def render_realworld_chaos_tab(df):
     section_header(
-        "ðŸŒ Real-World Chaos & Nonlinear Dynamics Detector",
+        " Real-World Chaos & Nonlinear Dynamics Detector",
         "Data-driven chaos detection on your actual uploaded data â€” Rosenstein Lyapunov exponent, "
         "the Gottwaldâ€“Melbourne 0-1 Test, Grassbergerâ€“Procaccia correlation dimension, sample entropy, "
         "and Huang's Empirical Mode Decomposition / Hilbert Spectral Analysis. Same rigorous math for "
@@ -640,7 +643,7 @@ def render_realworld_chaos_tab(df):
         st.error("No numeric columns found in the active dataset. This engine needs a numeric time series.")
         return
 
-    with st.expander("âš™ï¸ Analysis Configuration", expanded=True):
+    with st.expander("âš™ Analysis Configuration", expanded=True):
         c1, c2, c3 = st.columns(3)
         with c1:
             col = st.selectbox("Numeric column to analyze (in row order)", numeric_cols, key="rwc_col")
@@ -657,7 +660,7 @@ def render_realworld_chaos_tab(df):
                 "Only affects the *scale* of the reported Lyapunov exponent, not the chaos/no-chaos call.",
                 value=1.0, min_value=1e-6, format="%.4f", key="rwc_dt",
             )
-        run = st.button("ðŸ”¬ Run Full Chaos & Nonlinear Dynamics Analysis", type="primary", key="rwc_run")
+        run = st.button(" Run Full Chaos & Nonlinear Dynamics Analysis", type="primary", key="rwc_run")
 
     if not run:
         st.info("Configure the column above and click **Run Full Chaos & Nonlinear Dynamics Analysis**.")
@@ -681,14 +684,14 @@ def render_realworld_chaos_tab(df):
     # --- Verdict banner --------------------------------------------------
     verdict_lower = report.verdict.lower()
     if "all" in verdict_lower and "chaotic" in verdict_lower:
-        st.error(f"ðŸŒ€ **{report.verdict}**")
+        st.error(f" **{report.verdict}**")
     elif "all" in verdict_lower and "no evidence" in verdict_lower:
         st.success(f"âœ… **{report.verdict}**")
     else:
-        st.warning(f"âš ï¸ **{report.verdict}**")
+        st.warning(f"âš  **{report.verdict}**")
 
     if report.warnings:
-        with st.expander(f"âš ï¸ {len(report.warnings)} data-adequacy warning(s) â€” read before trusting numbers below"):
+        with st.expander(f"âš  {len(report.warnings)} data-adequacy warning(s) â€” read before trusting numbers below"):
             for w in report.warnings:
                 st.markdown(f"- {w}")
 
@@ -712,7 +715,7 @@ def render_realworld_chaos_tab(df):
 
     # --- Correlation dimension detail ---------------------------------------
     cd = report.correlation_dim
-    with st.expander("ðŸ“ Correlation Dimension (Grassbergerâ€“Procaccia) â€” is the attractor low-dimensional?"):
+    with st.expander(" Correlation Dimension (Grassbergerâ€“Procaccia) â€” is the attractor low-dimensional?"):
         st.caption(cd.get("note", ""))
         d2_by_dim = cd.get("d2_by_dim", {})
         if d2_by_dim:
@@ -734,7 +737,7 @@ def render_realworld_chaos_tab(df):
             st.info("Not enough data to compute a reliable correlation dimension curve here.")
 
     # --- Lyapunov divergence curve -----------------------------------------
-    with st.expander("ðŸ“ˆ Lyapunov Divergence Curve (Rosenstein)"):
+    with st.expander(" Lyapunov Divergence Curve (Rosenstein)"):
         k_axis, mean_log_div = report.lyapunov.get("divergence_curve", (None, None))
         if k_axis is not None:
             fig = go.Figure(data=[go.Scatter(x=k_axis, y=mean_log_div, mode="lines",
@@ -744,7 +747,7 @@ def render_realworld_chaos_tab(df):
                 fig.add_vrect(x0=fit_region[0], x1=fit_region[1], fillcolor="#00f2fe", opacity=0.15,
                               line_width=0, annotation_text="fit region")
             fig.update_layout(title="Mean Log Divergence of Nearby Trajectories vs Time Step",
-                               xaxis_title="Time step (Ã— dt)", yaxis_title="âŸ¨ln divergenceâŸ©",
+                               xaxis_title="Time step ( dt)", yaxis_title="âŸ¨ln divergenceâŸ©",
                                height=320, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                font=dict(color="white"))
             st.plotly_chart(fig, use_container_width=True)
@@ -753,7 +756,7 @@ def render_realworld_chaos_tab(df):
                        "is measuring. The shaded region shows where the slope was actually fit.")
 
     # --- EMD / Hilbert spectrum ----------------------------------------------
-    with st.expander("ðŸŒŠ Empirical Mode Decomposition & Hilbert Spectrum (Huang et al., 1998)"):
+    with st.expander(" Empirical Mode Decomposition & Hilbert Spectrum (Huang et al., 1998)"):
         st.caption("Decomposes your series into physically meaningful oscillatory modes without "
                    "assuming linearity or stationarity â€” useful for spotting regime shifts and the "
                    "dominant timescales actually present in the data.")
@@ -773,7 +776,7 @@ def render_realworld_chaos_tab(df):
             st.plotly_chart(fig, use_container_width=True)
 
     # --- Recurrence plot -------------------------------------------------
-    with st.expander("ðŸ” Recurrence Plot (Marwan et al., 2007)"):
+    with st.expander(" Recurrence Plot (Marwan et al., 2007)"):
         try:
             rqa = recurrence_analysis(series, report.embedding_dim, report.tau)
             r1, r2, r3 = st.columns(3)
@@ -807,7 +810,7 @@ def render_realworld_chaos_tab(df):
 
 def render_chaos_tab():
     section_header(
-        "âš›ï¸ ODE Simulator (Toy Model â€” Not Real Data)",
+        "âš› ODE Simulator (Toy Model â€” Not Real Data)",
         "A parameter sandbox for exploring generic nonlinear dynamical equations via SciPy's numerical "
         "ODE solvers. Sector labels here only relabel the same underlying generic 3-variable system â€” "
         "this tab does not analyze your uploaded data. For real, data-driven chaos detection on your "
@@ -839,7 +842,7 @@ def render_chaos_tab():
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
 
-    with st.expander("âš™ï¸ Dynamical System Configuration", expanded=True):
+    with st.expander("âš™ Dynamical System Configuration", expanded=True):
         colA, colB = st.columns(2)
         with colA:
             sector_presets = {
@@ -854,7 +857,7 @@ def render_chaos_tab():
         with colB:
             t_max = st.slider("Simulation Horizon (steps)", 50, 400, 200, 10, key="chaos_tmax")
             policy_shock = st.slider("Injected Shock Magnitude (Mid-run)", -3.0, 3.0, 0.0, 0.1, key="chaos_shock")
-            pss_slice_z = st.slider("PoincarÃ© Cut Plane (Z)", -3.0, 3.0, 0.1, 0.05, key="chaos_z_plane")
+            pss_slice_z = st.slider("Poincar Cut Plane (Z)", -3.0, 3.0, 0.1, 0.05, key="chaos_z_plane")
 
         col1, col2, col3 = st.columns(3)
         a = col1.slider(f"{a_label} ({a_desc})", 0.1, 5.0, 1.5, 0.1, key="chaos_a")
@@ -876,7 +879,7 @@ def render_chaos_tab():
     state_label = classify_state(mlce)
 
     tabs = st.tabs([
-        "Executive View", "3D Phase Space", "PoincarÃ© Section", "Early Warning Signals",
+        "Executive View", "3D Phase Space", "Poincar Section", "Early Warning Signals",
         "Bifurcation Analysis", "Monte Carlo Ensemble", "Sensitivity Heatmap", "Time-Series Forecasting",
     ])
 
@@ -901,7 +904,7 @@ def render_chaos_tab():
     with tabs[2]:
         mask = np.abs(z_traj - pss_slice_z) < 0.05
         fig = go.Figure(data=[go.Scatter(x=x_traj[mask], y=y_traj[mask], mode="markers", marker=dict(size=4, color="#60A5FA"))])
-        fig.update_layout(title_text=f"PoincarÃ© Section Slice (Z={pss_slice_z:.2f})", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
+        fig.update_layout(title_text=f"Poincar Section Slice (Z={pss_slice_z:.2f})", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
         st.plotly_chart(fig, use_container_width=True)
 
     with tabs[3]:
@@ -980,14 +983,14 @@ def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="ml")
 
-    setup_page("ML & Predictive Studio", "ðŸ¤–", initial_sidebar_state="expanded")
+    setup_page("ML & Predictive Studio", " initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "ðŸ¤– Enterprise ML & Predictive Studio (Premium)",
+        " Enterprise ML & Predictive Studio (Premium)",
         "Consolidated machine learning hub featuring AutoML with real hyperparameter tuning, model persistence and export, a prediction engine connected to your actual trained model, task-aware feature selection, non-theatrical autonomous agents, and real ODE-based chaos dynamics.",
         badge_text="ML & PREDICTIVE STUDIO â€¢ PREMIUM TIER",
     )
@@ -997,12 +1000,12 @@ def main():
     df = get_df()
 
     tabs = st.tabs([
-        "ðŸ¤– AutoML & Training",
-        "ðŸ”® Prediction Engine",
+        " AutoML & Training",
+        " Prediction Engine",
         "âš¡ Feature Engineering",
-        "ðŸ¦¾ Autonomous Agents",
-        "ðŸŒ Real-World Chaos Detector",
-        "âš›ï¸ ODE Simulator (Toy Model)",
+        " Autonomous Agents",
+        " Real-World Chaos Detector",
+        "âš› ODE Simulator (Toy Model)",
     ])
 
     with tabs[0]:

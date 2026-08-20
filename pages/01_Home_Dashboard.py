@@ -1,3 +1,6 @@
+import streamlit as st
+st.set_page_config(page_title="Home Dashboard", page_icon="🏠", layout="wide")
+
 """
 🏠 Home Dashboard — Sovereign Enterprise Platform Landing Hub (Premium)
 Consolidated unified enterprise workspace featuring interactive session telemetry, real-time SQLite vault

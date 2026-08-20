@@ -1,11 +1,14 @@
-﻿import os
+import streamlit as st
+st.set_page_config(page_title="Collaboration Portfolio", page_icon="🤝", layout="wide")
+
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ¤ Collaboration & Portfolio Hub â€” Enterprise Production Grade (Real-Time & Meeting Enabled)
+ Collaboration & Portfolio Hub â€” Enterprise Production Grade (Real-Time & Meeting Enabled)
 Includes persistent SQLite tracking, a real WebRTC video conference room (Zoom/Google Meet style),
 live team data sync, and non-theatrical autonomous agent operations.
 """
@@ -90,10 +93,10 @@ def get_db():
 
 
 def render_meetings_hub(conn):
-    section_header("ðŸ“¹ Real-Time Video Collaboration (Zoom / Google Meet Style)", "Host or join secure, low-latency WebRTC video rooms directly inside your workspace.")
+    section_header(" Real-Time Video Collaboration (Zoom / Google Meet Style)", "Host or join secure, low-latency WebRTC video rooms directly inside your workspace.")
     
     if not WEBRTC_AVAILABLE:
-        st.warning("âš ï¸ `streamlit-webrtc` isn't available in this deployment yet. Video streaming is running in fallback mode â€” this is a deployment configuration item (it needs to be in requirements.txt), not something to fix from here.")
+        st.warning("âš  `streamlit-webrtc` isn't available in this deployment yet. Video streaming is running in fallback mode â€” this is a deployment configuration item (it needs to be in requirements.txt), not something to fix from here.")
 
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -104,7 +107,7 @@ def render_meetings_hub(conn):
         enable_video = st.checkbox("Enable Camera Feed", value=True)
         enable_audio = st.checkbox("Enable Microphone Audio", value=True)
 
-        if st.button("ðŸš€ Launch / Join Room", type="primary", key="launch_room_btn"):
+        if st.button(" Launch / Join Room", type="primary", key="launch_room_btn"):
             st.success(f"âœ… Connected to secure WebRTC channel: `{room_name}` as **{user_alias}**")
             conn.execute("INSERT OR REPLACE INTO meeting_rooms (room_name, host, active_participants, created_at) VALUES (?,?,?,?)",
                          (room_name, user_alias, 1, datetime.datetime.now().isoformat()))
@@ -120,11 +123,11 @@ def render_meetings_hub(conn):
                 async_processing=True,
             )
         else:
-            st.info("â„¹ï¸ Placeholder video frame active â€” real peer-to-peer tracks need `streamlit-webrtc` added to the deployment's requirements.txt.")
+            st.info("â„¹ Placeholder video frame active â€” real peer-to-peer tracks need `streamlit-webrtc` added to the deployment's requirements.txt.")
 
 
 def render_projects(conn):
-    section_header("ðŸŽ¯ Research Project Collaboration & Milestones", "Manage projects, assign leads, and track progress â€” persisted in SQLite database.")
+    section_header(" Research Project Collaboration & Milestones", "Manage projects, assign leads, and track progress â€” persisted in SQLite database.")
 
     projects_df = pd.read_sql_query("SELECT id, name AS Name, lead AS Lead, stage AS Stage, progress AS Progress, budget AS Budget FROM collab_projects ORDER BY id DESC", conn)
     st.markdown("#### Active Project Portfolio")
@@ -155,7 +158,7 @@ def render_projects(conn):
 
 
 def render_pipeline(conn):
-    section_header("ðŸ“‹ Application & Grant Submission Pipeline", "Track actual grant applications, journal submissions, and review workflows.")
+    section_header(" Application & Grant Submission Pipeline", "Track actual grant applications, journal submissions, and review workflows.")
 
     pipeline_df = pd.read_sql_query("SELECT id, title AS 'Application / Proposal Title', target_entity AS 'Target Entity', status AS 'Current Status', deadline AS 'Deadline Date' FROM collab_pipeline ORDER BY id DESC", conn)
 
@@ -232,7 +235,7 @@ def _mission_literature_scrape(query):
 
 
 def render_agents(conn):
-    section_header("ðŸ¦¾ Autonomous Agent Console", "Non-theatrical missions executing real checks against active datasets and live APIs.")
+    section_header(" Autonomous Agent Console", "Non-theatrical missions executing real checks against active datasets and live APIs.")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -249,7 +252,7 @@ def render_agents(conn):
     if task == "Literature Scraping Agent":
         literature_query = st.text_input("Search query for CrossRef API", placeholder="e.g., biological data analysis", key="agent_lit_query")
 
-    if st.button("ðŸš€ Deploy Agent Task", type="primary", key="deploy_swarm_btn"):
+    if st.button(" Deploy Agent Task", type="primary", key="deploy_swarm_btn"):
         df = get_active_dataframe()
         status, summary = "COMPLETED", ""
 
@@ -261,7 +264,7 @@ def render_agents(conn):
                 titles, err = _mission_literature_scrape(literature_query)
                 if err:
                     status, summary = "FAILED", f"CrossRef request failed: {err}"
-                    st.error(f"ðŸš« {summary}")
+                    st.error(f" {summary}")
                 else:
                     summary = f"Retrieved {len(titles)} real result(s) for '{literature_query}'."
                     st.success(f"âœ… {summary}")
@@ -269,7 +272,7 @@ def render_agents(conn):
                         st.markdown(f"- {t}")
         elif df is None:
             status, summary = "FAILED", "No active dataset loaded â€” this mission needs real data to inspect."
-            st.warning(f"âš ï¸ {summary}")
+            st.warning(f"âš  {summary}")
         elif task == "Data Sync & Clean Agent":
             summary = _mission_data_sync_clean(df)
             st.success(f"âœ… {summary}")
@@ -293,7 +296,7 @@ def render_agents(conn):
 
 
 def render_team_workspace(conn):
-    section_header("ðŸ‘¥ Collaborative Team Workspace & Activity Feed", "Real-time editable team roster and a persistent note broadcast feed.")
+    section_header(" Collaborative Team Workspace & Activity Feed", "Real-time editable team roster and a persistent note broadcast feed.")
 
     st.markdown("#### Roster & Presence")
     roster_df = pd.read_sql_query("SELECT id, member_name AS 'Member Name', role AS 'Role', status AS 'Status', focus_task AS 'Current Focus' FROM collab_team_roster ORDER BY id", conn)
@@ -301,7 +304,7 @@ def render_team_workspace(conn):
         roster_df.drop(columns=["id"]) if not roster_df.empty else pd.DataFrame({"Member Name": [], "Role": [], "Status": [], "Current Focus": []}),
         num_rows="dynamic", use_container_width=True, key="roster_editor",
     )
-    if st.button("ðŸ’¾ Save Roster", key="save_roster_btn"):
+    if st.button(" Save Roster", key="save_roster_btn"):
         conn.execute("DELETE FROM collab_team_roster")
         for _, row in edited.dropna(subset=["Member Name"]).iterrows():
             conn.execute(
@@ -315,7 +318,7 @@ def render_team_workspace(conn):
     st.markdown("#### Team Notes Feed")
     note = st.text_area("Add a note or directive for the team...", key="team_workspace_note")
     author = st.session_state.get("user_identity", {}).get("name", "Kula Chris")
-    if st.button("ðŸ“ Broadcast Note", type="primary", key="save_team_note_btn"):
+    if st.button(" Broadcast Note", type="primary", key="save_team_note_btn"):
         if note.strip():
             conn.execute("INSERT INTO collab_notes (author, note, timestamp) VALUES (?,?,?)", (author, note.strip(), datetime.datetime.now().isoformat()))
             conn.commit()
@@ -328,7 +331,7 @@ def render_team_workspace(conn):
 
 
 def render_portfolio(conn):
-    section_header("ðŸŽ“ Team & Project Impact Summary", "Aggregated directly from this hub's real Projects and Pipeline records.")
+    section_header(" Team & Project Impact Summary", "Aggregated directly from this hub's real Projects and Pipeline records.")
     projects_df = pd.read_sql_query("SELECT name, lead, stage, progress, budget FROM collab_projects", conn)
     pipeline_df = pd.read_sql_query("SELECT title, status FROM collab_pipeline", conn)
 
@@ -343,7 +346,7 @@ def render_portfolio(conn):
 
 def render_venture_portfolio():
     section_header(
-        "ðŸ’¼ Enterprise Venture Portfolio & ROI Tracking",
+        " Enterprise Venture Portfolio & ROI Tracking",
         "Real capital allocation and ROI tracking, backed by persistent storage â€” not project-management "
         "placeholders. Starts empty; every row below is one your team actually entered.",
     )
@@ -385,14 +388,14 @@ def main():
     # reach it even though HUB_MIN_PLAN declares "collaboration": "premium".
     require_active_subscription(hub_id="collaboration")
 
-    setup_page("Collaboration & Portfolio Hub", "ðŸ¤", initial_sidebar_state="expanded")
+    setup_page("Collaboration & Portfolio Hub", " initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "ðŸ¤ Collaboration & Portfolio Hub â€” Enterprise Production Grade",
+        " Collaboration & Portfolio Hub â€” Enterprise Production Grade",
         "Persistent tracking, real-time WebRTC video conference rooms (Zoom/Google Meet style), non-theatrical agent execution, and dynamic team tools.",
         badge_text="ENTERPRISE SUITE â€¢ LIVE ACTIVE",
     )
@@ -400,13 +403,13 @@ def main():
     conn = get_db()
 
     tabs = st.tabs([
-        "ðŸ“¹ Live Meet Rooms",
-        "ðŸŽ¯ Projects",
-        "ðŸ“‹ Pipeline",
-        "ðŸ¦¾ Agent Console",
-        "ðŸ‘¥ Team Workspace",
-        "ðŸŽ“ Impact Summary",
-        "ðŸ’¼ Venture Portfolio",
+        " Live Meet Rooms",
+        " Projects",
+        " Pipeline",
+        " Agent Console",
+        " Team Workspace",
+        " Impact Summary",
+        " Venture Portfolio",
     ])
 
     with tabs[0]:

@@ -1,11 +1,14 @@
-﻿import os
+import streamlit as st
+st.set_page_config(page_title="Data Studio", page_icon="📊", layout="wide")
+
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ“ Data Studio â€” Enterprise Data Management & Intelligence Hub (Premium)
+ Data Studio â€” Enterprise Data Management & Intelligence Hub (Premium)
 Out-of-core-aware ingestion, a sandboxed DuckDB query engine, safe transformations, a *replayable*
 JSON recipe pipeline, dataset fingerprinting, and schema drift detection.
 """
@@ -85,7 +88,7 @@ def robust_parse_file(file_obj_or_path):
                 df, _ = reader(path)
                 return df
             except ImportError:
-                st.error("âš ï¸ `pyreadstat` required for SPSS/SAS/STATA files.")
+                st.error("âš  `pyreadstat` required for SPSS/SAS/STATA files.")
                 return None
         elif ext == "parquet":
             return pd.read_parquet(file_obj_or_path)
@@ -233,12 +236,12 @@ def apply_recipe(df: pd.DataFrame, recipe: list) -> pd.DataFrame:
 # TABS & UI RENDERERS
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def render_ingestion_tab():
-    section_header("ðŸ“¥ Enterprise Data Ingestion Hub", "Secure ingestion pipeline supporting multi-format files, out-of-core handling, and sample generators.")
+    section_header(" Enterprise Data Ingestion Hub", "Secure ingestion pipeline supporting multi-format files, out-of-core handling, and sample generators.")
 
     col_up, col_sample = st.columns([1.4, 1])
 
     with col_up:
-        st.markdown("#### ðŸ“ File Ingestion Pipeline")
+        st.markdown("####  File Ingestion Pipeline")
         uploaded_file = st.file_uploader(
             "Upload structured datasets (CSV, Excel, JSON, SPSS, SAS, STATA, Parquet)",
             type=["csv", "xlsx", "xls", "json", "sav", "sas7bdat", "dta", "parquet", "pkl", "txt"],
@@ -246,7 +249,7 @@ def render_ingestion_tab():
         )
         if uploaded_file is not None:
             file_size_mb = uploaded_file.size / (1024 * 1024)
-            st.info(f"ðŸ“¦ File detected: `{uploaded_file.name}` ({file_size_mb:.2f} MB)")
+            st.info(f" File detected: `{uploaded_file.name}` ({file_size_mb:.2f} MB)")
 
             with st.spinner(f"Parsing and running structural validation on '{uploaded_file.name}'..."):
                 df = robust_parse_file(uploaded_file)
@@ -256,11 +259,11 @@ def render_ingestion_tab():
                     prev_sig = st.session_state.get("dataset_schema_meta", {}).get("schema", {})
 
                     if prev_fp == new_fp:
-                        st.warning("âš ï¸ This file is byte-for-byte identical to the currently active dataset. Ingesting anyway.")
+                        st.warning("âš  This file is byte-for-byte identical to the currently active dataset. Ingesting anyway.")
                     elif prev_sig:
                         drift = diff_schema(prev_sig, schema_signature(df))
                         if drift["added"] or drift["removed"] or drift["retyped"]:
-                            with st.expander("ðŸ”€ Schema Drift Detected vs. Previously Active Dataset", expanded=True):
+                            with st.expander(" Schema Drift Detected vs. Previously Active Dataset", expanded=True):
                                 if drift["added"]:
                                     st.write("**New columns:**", ", ".join(drift["added"]))
                                 if drift["removed"]:
@@ -273,12 +276,12 @@ def render_ingestion_tab():
                     st.session_state["transform_recipe"] = []
                     st.session_state["dataset_schema_meta"] = {"fingerprint": new_fp, "schema": schema_signature(df)}
 
-                    st.success(f"âœ… Successfully ingested `{uploaded_file.name}` â€” {df.shape[0]:,} rows Ã— {df.shape[1]} columns")
-                    st.caption(f"ðŸ” Dataset fingerprint (SHA-256): `{new_fp[:24]}â€¦`")
+                    st.success(f"âœ… Successfully ingested `{uploaded_file.name}` â€” {df.shape[0]:,} rows  {df.shape[1]} columns")
+                    st.caption(f" Dataset fingerprint (SHA-256): `{new_fp[:24]}â€¦`")
                     st.dataframe(df.head(10), use_container_width=True)
 
     with col_sample:
-        st.markdown("#### ðŸŽ² Curated Sample Data Gallery")
+        st.markdown("####  Curated Sample Data Gallery")
         st.caption("Instantly provision standardized test beds for analysis workflows.")
         sample_kinds = {
             "Clinical Cohort (150 patients)": "clinical",
@@ -304,7 +307,7 @@ def render_ingestion_tab():
 
 def render_quality_tab():
     df = get_active_dataframe()
-    section_header("ðŸ” Enterprise Quality Audit & Remediation", "Deep anomaly scanning, missingness analysis, and safe data cleaning pipelines.")
+    section_header(" Enterprise Quality Audit & Remediation", "Deep anomaly scanning, missingness analysis, and safe data cleaning pipelines.")
 
     if df is None:
         st.warning("No active dataset loaded. Please ingest a dataset first.")
@@ -322,7 +325,7 @@ def render_quality_tab():
     c3.metric("Duplicate Rows", f"{dups:,}")
     c4.metric("Health Score", f"{health_score:.1f}%")
 
-    tab_audit, tab_outlier, tab_clean = st.tabs(["ðŸ“Š Schema & Missingness", "âš ï¸ Advanced Outlier Engine", "ðŸ› ï¸ Automated Cleaning Pipeline"])
+    tab_audit, tab_outlier, tab_clean = st.tabs([" Schema & Missingness", "âš  Advanced Outlier Engine", "  Automated Cleaning Pipeline"])
 
     with tab_audit:
         st.markdown("#### Structural Schema Audit")
@@ -349,7 +352,7 @@ def render_quality_tab():
             "## Per-Column Breakdown",
             schema_df.to_string(index=False),
         ]
-        st.download_button("â¬‡ï¸ Download Quality Audit Report (.md)", data="\n".join(report_lines), file_name="data_quality_audit.md", mime="text/markdown", key="dl_quality_report")
+        st.download_button("â¬‡ Download Quality Audit Report (.md)", data="\n".join(report_lines), file_name="data_quality_audit.md", mime="text/markdown", key="dl_quality_report")
 
     with tab_outlier:
         st.markdown("#### Statistical Outlier Detection")
@@ -375,7 +378,7 @@ def render_quality_tab():
 
             if scan_mode == "Single Column (Deep Dive)":
                 col = st.selectbox("Select target variable", numeric_cols, key="ent_outlier_col")
-                if st.button("ðŸ” Execute Outlier Scan", type="primary", key="ent_run_outlier"):
+                if st.button(" Execute Outlier Scan", type="primary", key="ent_run_outlier"):
                     series = df[col].dropna()
                     mask = _outlier_mask(series)
                     outliers = df.loc[series[mask].index]
@@ -384,7 +387,7 @@ def render_quality_tab():
                         st.dataframe(outliers, use_container_width=True)
                         render_export_buttons(outliers, base_name=f"outliers_{col}")
             else:
-                if st.button("ðŸ” Execute Batch Outlier Scan", type="primary", key="ent_run_outlier_batch"):
+                if st.button(" Execute Batch Outlier Scan", type="primary", key="ent_run_outlier_batch"):
                     summary = []
                     for c in numeric_cols:
                         series = df[c].dropna()
@@ -402,7 +405,7 @@ def render_quality_tab():
         drop_dups = st.checkbox("Remove exact duplicate rows", value=False, key="ent_clean_dups")
         impute_strat = st.selectbox("Missing Value Strategy", ["None", "Drop rows with missing values", "Mean Imputation (Numeric)", "Median Imputation (Numeric)", "Forward/Backward Fill"], key="ent_clean_impute")
 
-        if st.button("ðŸ§¹ Execute Cleaning Pipeline", type="primary", key="ent_run_clean"):
+        if st.button(" Execute Cleaning Pipeline", type="primary", key="ent_run_clean"):
             params = {"strip_ws": strip_ws, "drop_dups": drop_dups, "impute_strategy": impute_strat}
             cleaned = apply_recipe_step(df, {"step": "Clean Dataset", "params": params})
 
@@ -414,7 +417,7 @@ def render_quality_tab():
 
 def render_transform_tab():
     df = get_active_dataframe()
-    section_header("âš™ï¸ Enterprise Transform Studio", "Execute sandboxed calculations, quartile binning, scaling protocols, and replayable recipe logging.")
+    section_header("âš™ Enterprise Transform Studio", "Execute sandboxed calculations, quartile binning, scaling protocols, and replayable recipe logging.")
 
     if df is None:
         st.warning("No active dataset loaded. Please ingest a dataset first.")
@@ -424,7 +427,7 @@ def render_transform_tab():
     initialize_recipe_engine()
     num_columns = working.select_dtypes(include=[np.number]).columns.tolist()
 
-    tab_compute, tab_bin, tab_scale, tab_recipe = st.tabs(["ðŸ§® Safe Compute", "ðŸ“Š Binning & Recode", "ðŸ“ˆ Feature Scaling", "ðŸ“œ Recipe & Replay"])
+    tab_compute, tab_bin, tab_scale, tab_recipe = st.tabs([" Safe Compute", " Binning & Recode", " Feature Scaling", " Recipe & Replay"])
 
     with tab_compute:
         st.markdown("#### Safe Expression Builder")
@@ -457,7 +460,7 @@ def render_transform_tab():
             n_bins = st.slider("Bin partitions", 2, 10, 4, key="ent_bin_count")
             bin_name = st.text_input("Output bin column name", value=f"{col}_tier", key="ent_bin_name")
 
-            if st.button("ðŸ“Š Generate Quantile Bins", type="primary", key="ent_run_bin"):
+            if st.button(" Generate Quantile Bins", type="primary", key="ent_run_bin"):
                 try:
                     params = {"column": col, "bins": n_bins, "bin_name": bin_name}
                     working = apply_recipe_step(working, {"step": "Quantile Binning", "params": params})
@@ -476,7 +479,7 @@ def render_transform_tab():
             col = st.selectbox("Select column to scale", num_columns, key="ent_scale_col")
             method = st.selectbox("Scaling Algorithm", ["Z-Score Standardization", "Min-Max Normalization", "Percentile Rank"], key="ent_scale_method")
 
-            if st.button("ðŸ“ˆ Apply Scaling", type="primary", key="ent_run_scale"):
+            if st.button(" Apply Scaling", type="primary", key="ent_run_scale"):
                 try:
                     params = {"column": col, "method": method}
                     working = apply_recipe_step(working, {"step": "Scale Feature", "params": params})
@@ -495,32 +498,32 @@ def render_transform_tab():
         else:
             st.json(recipe)
             recipe_json = json.dumps(recipe, indent=2)
-            st.download_button("ðŸ“¥ Download Pipeline Recipe (.json)", data=recipe_json, file_name="data_studio_recipe.json", mime="application/json", use_container_width=True, key="dl_recipe_json")
+            st.download_button(" Download Pipeline Recipe (.json)", data=recipe_json, file_name="data_studio_recipe.json", mime="application/json", use_container_width=True, key="dl_recipe_json")
 
             st.markdown("---")
-            st.markdown("#### ðŸ” Replay This Recipe on a New File")
+            st.markdown("####  Replay This Recipe on a New File")
             replay_file = st.file_uploader("Upload a file to replay the recipe onto", key="ent_replay_upload")
-            if replay_file is not None and st.button("â–¶ï¸ Run Replay", type="primary", key="ent_run_replay"):
+            if replay_file is not None and st.button("â–¶ Run Replay", type="primary", key="ent_run_replay"):
                 fresh_df = robust_parse_file(replay_file)
                 if fresh_df is None or fresh_df.empty:
                     st.error("Could not parse the uploaded file.")
                 else:
                     try:
                         replayed = apply_recipe(fresh_df, recipe)
-                        st.success(f"âœ… Replay succeeded â€” {replayed.shape[0]:,} rows Ã— {replayed.shape[1]} columns.")
+                        st.success(f"âœ… Replay succeeded â€” {replayed.shape[0]:,} rows  {replayed.shape[1]} columns.")
                         st.dataframe(replayed.head(10), use_container_width=True)
                         render_export_buttons(replayed, base_name="recipe_replayed_dataset")
                     except (KeyError, ValueError) as e:
-                        st.error(f"ðŸš¨ Replay failed at a step that doesn't match this file's schema: {e}")
+                        st.error(f" Replay failed at a step that doesn't match this file's schema: {e}")
 
-            if st.button("ðŸ—‘ï¸ Clear Recipe Log", key="ent_clear_recipe"):
+            if st.button(" Clear Recipe Log", key="ent_clear_recipe"):
                 st.session_state["transform_recipe"] = []
                 st.rerun()
 
 
 def render_variable_editor_tab():
     df = get_active_dataframe()
-    section_header("ðŸ·ï¸ Enterprise Schema & Metadata Manager", "Manage variable types, persistence labels, and measurement scales securely.")
+    section_header(" Enterprise Schema & Metadata Manager", "Manage variable types, persistence labels, and measurement scales securely.")
 
     if df is None:
         st.warning("No active dataset loaded. Please ingest a dataset first.")
@@ -550,7 +553,7 @@ def render_variable_editor_tab():
         key="ent_var_editor",
     )
 
-    if st.button("ðŸš€ Enforce Enterprise Schema Types", type="primary", key="ent_apply_var"):
+    if st.button(" Enforce Enterprise Schema Types", type="primary", key="ent_apply_var"):
         try:
             type_map = {row["Variable"]: row["Type"] for _, row in edited.iterrows()}
             typed_df = apply_recipe_step(df, {"step": "Enforce Schema", "params": {"types": type_map}})
@@ -563,14 +566,14 @@ def render_variable_editor_tab():
 
 
 def render_simulator_tab():
-    section_header("ðŸŽ² Enterprise Synthetic Data Simulator", "Generate statistically controlled synthetic datasets for advanced staging and stress-testing.")
+    section_header(" Enterprise Synthetic Data Simulator", "Generate statistically controlled synthetic datasets for advanced staging and stress-testing.")
 
     n_rows = st.slider("Simulation Row Count", 100, 10000, 500, key="ent_sim_rows")
     template = st.selectbox("Simulation Template", [
         "Clinical Trial Cohort", "Customer Segmentation Analytics", "Financial Time Series", "Multivariate Gaussian Matrix"
     ], key="ent_sim_template")
 
-    if st.button("ðŸŽ² Generate Synthetic Enterprise Dataset", type="primary", key="ent_run_sim"):
+    if st.button(" Generate Synthetic Enterprise Dataset", type="primary", key="ent_run_sim"):
         rng = np.random.default_rng(42)
         if template == "Clinical Trial Cohort":
             df = pd.DataFrame({
@@ -633,13 +636,13 @@ def validate_readonly_sql(query: str):
 
 def render_explorer_tab():
     df = get_active_dataframe()
-    section_header("ðŸ“‹ Dataset Explorer & Enterprise Export", "Inspect, query via a sandboxed DuckDB engine (if available), and export sanitized data assets.")
+    section_header(" Dataset Explorer & Enterprise Export", "Inspect, query via a sandboxed DuckDB engine (if available), and export sanitized data assets.")
 
     if df is None:
         st.warning("No active dataset loaded.")
         return
 
-    tab_view, tab_sql, tab_stats, tab_export = st.tabs(["ðŸ‘ï¸ Data Table", "âš¡ DuckDB Query", "ðŸ“ˆ Descriptive Statistics", "ðŸ“¥ Enterprise Export"])
+    tab_view, tab_sql, tab_stats, tab_export = st.tabs([" Data Table", "âš¡ DuckDB Query", " Descriptive Statistics", " Enterprise Export"])
 
     with tab_view:
         st.dataframe(df, use_container_width=True)
@@ -649,10 +652,10 @@ def render_explorer_tab():
             st.markdown("#### In-Memory SQL Query Engine (DuckDB) â€” Read-Only Sandbox")
             st.caption(f"SELECT-only. No filesystem/extension access. Results capped at {SQL_RESULT_ROW_CAP:,} rows.")
             sql_query = st.text_area("SQL Query Statement", value="SELECT * FROM df LIMIT 50", height=100, key="ent_sql_input")
-            if st.button("ðŸš€ Execute SQL Query", type="primary", key="ent_run_sql"):
+            if st.button(" Execute SQL Query", type="primary", key="ent_run_sql"):
                 ok, msg_or_query = validate_readonly_sql(sql_query)
                 if not ok:
-                    st.error(f"ðŸš« Query rejected: {msg_or_query}")
+                    st.error(f" Query rejected: {msg_or_query}")
                 else:
                     try:
                         conn = duckdb.connect(database=":memory:")
@@ -682,14 +685,14 @@ def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="data")
 
-    setup_page("Enterprise Data Studio", "ðŸ“", initial_sidebar_state="expanded")
+    setup_page("Enterprise Data Studio", " initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "ðŸ“ Enterprise Data Studio (Premium)",
+        " Enterprise Data Studio (Premium)",
         "Production-grade data management hub featuring secure schema management, sandboxed transformations, a replayable reproducible-recipe pipeline, dataset fingerprinting, and advanced anomaly detection.",
         badge_text="ENTERPRISE STUDIO â€¢ PREMIUM TIER",
     )
@@ -697,12 +700,12 @@ def main():
     render_dataset_context_banner()
 
     tabs = st.tabs([
-        "ðŸ“¥ Ingestion Hub",
-        "ðŸ” Quality & Remediation",
-        "âš™ï¸ Transform Studio",
-        "ðŸ·ï¸ Schema Manager",
-        "ðŸŽ² Synthetic Simulator",
-        "ðŸ“‹ Explorer & SQL",
+        " Ingestion Hub",
+        " Quality & Remediation",
+        "âš™ Transform Studio",
+        " Schema Manager",
+        " Synthetic Simulator",
+        " Explorer & SQL",
     ])
 
     with tabs[0]:
