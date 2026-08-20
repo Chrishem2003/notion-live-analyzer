@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ“Š Statistics Studio â€” Consolidated Statistical Analysis Hub (Premium)
+ðŸ“Š Statistics Studio — Consolidated Statistical Analysis Hub (Premium)
 Pre-flight assumption validation, comprehensive effect sizes, a genuine specification-curve
 sensitivity analysis, a session-wide multiple-comparisons ledger, causal econometrics, interactive
 Bayesian updating, exact power analysis, and exportable methodology reports.
@@ -59,7 +59,7 @@ def generate_ai_interpretation(test_name, p_value, effect=None, effect_label="Ef
         f"{'**statistically significant** (p < 0.05)' if sig else 'not statistically significant (p â‰¥ 0.05)'} "
         f"with p = **{p_value:.5f}**."
     )
-    narrative += "\n> **Key Takeaway:** " + ("Reject $H_0$ â€” sufficient evidence of a reliable effect." if sig else "Fail to reject $H_0$ â€” insufficient evidence of an effect.")
+    narrative += "\n> **Key Takeaway:** " + ("Reject $H_0$ — sufficient evidence of a reliable effect." if sig else "Fail to reject $H_0$ — insufficient evidence of an effect.")
     if effect is not None:
         narrative += f"\n> **{effect_label}:** `{effect:.4f}`"
     if assumption_warning:
@@ -88,7 +88,7 @@ def log_test_result(test_name, p_value, effect_label=None, effect_value=None):
     st.session_state["stats_test_ledger"].append({
         "Test": test_name,
         "P-Value (Raw)": float(p_value),
-        "Effect Label": effect_label or "â€”",
+        "Effect Label": effect_label or "—",
         "Effect Value": float(effect_value) if effect_value is not None else None,
         "Timestamp": pd.Timestamp.now().strftime("%H:%M:%S"),
     })
@@ -108,11 +108,11 @@ def benjamini_hochberg(pvals: np.ndarray) -> np.ndarray:
 
 
 def render_ledger_tab():
-    section_header("ðŸ“‹ Multiple-Comparisons Ledger", "Every hypothesis test you run this session, with Bonferroni and Benjamini-Hochberg FDR correction applied across the whole set.")
+    section_header("📋 Multiple-Comparisons Ledger", "Every hypothesis test you run this session, with Bonferroni and Benjamini-Hochberg FDR correction applied across the whole set.")
 
     ledger = st.session_state.get("stats_test_ledger", [])
     if not ledger:
-        st.info("â„¹ï¸ No tests logged yet this session. Run any test in the Parametric, Non-Parametric, or Advanced tabs â€” each result is automatically added here.")
+        st.info("â„¹ï¸ No tests logged yet this session. Run any test in the Parametric, Non-Parametric, or Advanced tabs — each result is automatically added here.")
         return
 
     ledger_df = pd.DataFrame(ledger)
@@ -261,7 +261,7 @@ def render_param_tests(df):
                         partial_eta = ss_term / (ss_term + ss_resid) if (ss_term + ss_resid) > 0 else np.nan
                         p_term = anova_table.loc[term, "PR(>F)"]
                         breakdown.append({"Term": term, "F": anova_table.loc[term, "F"], "P-Value": p_term, "Partial Î·Â²": partial_eta})
-                        log_test_result(f"Two-Way ANOVA â€” {term} ({dep})", p_term, "Partial Î·Â²", partial_eta)
+                        log_test_result(f"Two-Way ANOVA — {term} ({dep})", p_term, "Partial Î·Â²", partial_eta)
 
                     breakdown_df = pd.DataFrame(breakdown)
                     st.markdown("#### Per-Term Breakdown (including interaction)")
@@ -271,7 +271,7 @@ def render_param_tests(df):
                     if not interaction_row.empty:
                         interaction_p = interaction_row.iloc[0]["P-Value"]
                         if interaction_p < 0.05:
-                            st.warning(f"âš ï¸ Significant interaction effect (p = {interaction_p:.5f}) â€” interpret the main effects of `{f1}` and `{f2}` with caution; their effect on `{dep}` depends on the level of the other factor.")
+                            st.warning(f"âš ï¸ Significant interaction effect (p = {interaction_p:.5f}) — interpret the main effects of `{f1}` and `{f2}` with caution; their effect on `{dep}` depends on the level of the other factor.")
                         st.markdown(generate_ai_interpretation(f"Two-Way ANOVA Interaction ({f1} Ã— {f2})", interaction_p, effect=interaction_row.iloc[0]["Partial Î·Â²"], effect_label="Partial Î·Â² (interaction)"))
                 except Exception as e:
                     st.error(f"Two-Way ANOVA computation error: {e}")
@@ -398,7 +398,7 @@ def render_nonparam_tests(df):
                 if low_exp > 0:
                     warning = f"Expected frequency count: {low_exp}/{total_cells} cells have < 5 expected counts."
                     if ct.shape == (2, 2):
-                        warning += " Consider Fisher's Exact Test instead â€” it doesn't rely on this asymptotic assumption."
+                        warning += " Consider Fisher's Exact Test instead — it doesn't rely on this asymptotic assumption."
 
                 st.markdown(generate_ai_interpretation("Chi-Square Test of Independence", p, effect=cramers_v, effect_label="CramÃ©r's V", assumption_warning=warning))
                 st.dataframe(ct, use_container_width=True)
@@ -494,7 +494,7 @@ def _partial_corr(x: np.ndarray, y: np.ndarray, z: np.ndarray):
 
 def render_sensitivity_tab(df):
     st.markdown("#### Specification Curve Sensitivity Analysis")
-    st.caption("Tests whether an association survives across the reasonable analytic choices a researcher could defensibly make â€” not synthetic noise.")
+    st.caption("Tests whether an association survives across the reasonable analytic choices a researcher could defensibly make — not synthetic noise.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
@@ -553,11 +553,11 @@ def render_sensitivity_tab(df):
         c2.metric("Sign Consistent Across Specs", "Yes" if sign_consistent else "No")
 
         if robust_pct == 100 and sign_consistent:
-            st.success("âœ… The association holds in direction and significance across every reasonable specification tested.")
+            st.success("✅ The association holds in direction and significance across every reasonable specification tested.")
         elif robust_pct == 0:
-            st.error("ðŸš¨ The association is not significant under any specification tested â€” treat the raw correlation as fragile.")
+            st.error("ðŸš¨ The association is not significant under any specification tested — treat the raw correlation as fragile.")
         else:
-            st.warning("âš ï¸ The association is sensitive to analytic choices â€” significant under some specifications but not others. Report this range, not just the most favorable one.")
+            st.warning("âš ï¸ The association is sensitive to analytic choices — significant under some specifications but not others. Report this range, not just the most favorable one.")
 
         render_export_buttons(res_df, base_name="specification_curve_results")
 
@@ -573,7 +573,7 @@ def render_advanced_tests(df):
 
     with tab_causal:
         st.markdown("#### Causal Inference & Econometric Control Engine")
-        st.info("Evaluate adjusted treatment effects controlling for measured confounding variables. Note: this identifies *associational* effects adjusted for observed covariates â€” it cannot rule out unmeasured confounding, and unmeasured confounding is common outside randomized designs.")
+        st.info("Evaluate adjusted treatment effects controlling for measured confounding variables. Note: this identifies *associational* effects adjusted for observed covariates — it cannot rule out unmeasured confounding, and unmeasured confounding is common outside randomized designs.")
         if len(numeric_cols) >= 3 and STATSMODELS_AVAILABLE:
             outcome = st.selectbox("Outcome variable", numeric_cols, key="causal_y")
             predictor = st.selectbox("Treatment / Predictor", [c for c in numeric_cols if c != outcome], key="causal_x")
@@ -717,7 +717,7 @@ def render_methodology_tab():
         else:
             rec, rationale = "Chi-Square Test of Independence / Fisher's Exact Test", "Frequency analysis for contingency table categorical distributions."
 
-        st.success(f"âœ… **Recommended Procedure:** {rec}")
+        st.success(f"✅ **Recommended Procedure:** {rec}")
         st.info(f"ðŸ’¡ **Methodological Rationale:** {rationale}")
 
         st.session_state["last_methodology_rec"] = {
@@ -727,7 +727,7 @@ def render_methodology_tab():
 
     if "last_methodology_rec" in st.session_state:
         st.markdown("---")
-        st.markdown("#### ðŸ“¥ Export Methodology Decision Report")
+        st.markdown("#### 📥 Export Methodology Decision Report")
         report_df = pd.DataFrame([st.session_state["last_methodology_rec"]])
         render_export_buttons(report_df, base_name="methodology_recommendation_report")
 
@@ -756,7 +756,7 @@ def main():
         "ðŸ”¬ Parametric Tests",
         "ðŸ”­ Non-Parametric Tests",
         "âš¡ Advanced Inference",
-        "ðŸ“‹ Test Ledger",
+        "📋 Test Ledger",
         "ðŸ§  Methodology Advisor",
     ])
 

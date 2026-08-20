@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ”¬ Domain & Specialized Analytics Hub â€” Consolidated Specialized Analytics Hub (Production Grade)
+ðŸ”¬ Domain & Specialized Analytics Hub — Consolidated Specialized Analytics Hub (Production Grade)
 Clinical & biometric calculators with honest risk scoring, robust correlation-based network analysis, 
 GIS mapping with cached reverse-geocoding and automatic column mapping, World Bank Open Data API 
 integration with error boundaries, a secure academic portfolio with fail-safe h-index calculation, 
@@ -115,7 +115,7 @@ def render_clinical(df):
         diabetic = st.checkbox("Diagnosed Diabetic Condition", key="cli_diab_prod")
         htn_treated = st.checkbox("On Blood Pressure Medication", key="cli_htn_prod")
 
-    if st.button("ðŸ“‹ Compute Illustrative Risk Factor Score", type="primary", key="run_cvd_prod"):
+    if st.button("📋 Compute Illustrative Risk Factor Score", type="primary", key="run_cvd_prod"):
         points = 0.0
         points += max(0.0, float(age - 40)) * 0.5
         points += max(0.0, float(sbp - 120)) * (0.3 if htn_treated else 0.2)
@@ -130,12 +130,12 @@ def render_clinical(df):
         elif score < 45:
             st.warning("ðŸŸ¡ Moderate illustrative risk-factor burden")
         else:
-            st.error("ðŸ”´ High illustrative risk-factor burden â€” consult a qualified clinician for professional assessment.")
+            st.error("ðŸ”´ High illustrative risk-factor burden — consult a qualified clinician for professional assessment.")
         st.caption("Score formulation: age contributes 0.5 pts/year over 40; SBP contributes 0.2â€“0.3 pts/mmHg over 120; cholesterol contributes 0.15 pts/mgÂ·dL over 200; smoking +15; diabetes +12. Capped at 100.")
 
 
 def render_network(df):
-    section_header("ðŸ”— Network Analytics â€” Correlation Graph from Active Dataset", "Builds a real network graph derived from numeric column relationships in your loaded dataset.")
+    section_header("ðŸ”— Network Analytics — Correlation Graph from Active Dataset", "Builds a real network graph derived from numeric column relationships in your loaded dataset.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist() if df is not None else []
 
@@ -214,7 +214,7 @@ def render_gis():
                 with st.spinner("Reverse-geocoding location..."):
                     place, err = cached_reverse_geocode(round(lat, 4), round(lon, 4))
                 if place:
-                    st.info(f"ðŸ“Œ **Resolved Location:** {place}")
+                    st.info(f"📜 **Resolved Location:** {place}")
                 elif err:
                     st.caption(f"Reverse-geocoding notice: {err}")
     except ImportError:
@@ -225,7 +225,7 @@ def render_gis():
         if st.button("ðŸ“ Reverse-Geocode Coordinate", key="gis_manual_geocode_prod"):
             place, err = cached_reverse_geocode(round(lat, 4), round(lon, 4))
             if place:
-                st.success(f"ðŸ“Œ {place}")
+                st.success(f"📜 {place}")
             else:
                 st.error(f"Geocoding failed: {err}")
 
@@ -246,7 +246,7 @@ def render_global_surveillance():
     section_header(
         "ðŸŒ Sector Indicator Monitor (World Bank Open Data API)",
         "Real macroeconomic, health, and environmental indicator data pulled directly from the World "
-        "Bank API â€” shares the same connector as the Integrations Hub's Global Real-Data tab, covering "
+        "Bank API — shares the same connector as the Integrations Hub's Global Real-Data tab, covering "
         "all ~217 real countries/economies rather than a fixed shortlist.",
     )
 
@@ -294,7 +294,7 @@ def render_global_surveillance():
 
             if PLOTLY_AVAILABLE:
                 fig = px.line(series_df, x="year", y="value", markers=True, template="plotly_dark", height=350,
-                              title=f"{indicator_label} â€” {country_name}")
+                              title=f"{indicator_label} — {country_name}")
                 fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=40, b=0))
                 st.plotly_chart(fig, use_container_width=True)
 
@@ -405,7 +405,7 @@ def render_field_surveillance():
     section_header(
         "ðŸ§¬ Genomic & Clinical Field Surveillance",
         "Colistin-resistance gene (mcr) surveillance and a postpartum health cohort (PPWR/DRA), backed "
-        "by persistent storage. Genuine records, not demo data â€” starts empty until you log real entries below.",
+        "by persistent storage. Genuine records, not demo data — starts empty until you log real entries below.",
     )
 
     from modules.legacy_research_data import (
@@ -422,7 +422,7 @@ def render_field_surveillance():
             fig = px.scatter_mapbox(
                 gis_df, lat="latitude", lon="longitude", color="mcr_variant", size="colistin_mic",
                 hover_name="sample_id", hover_data=["sample_type", "source_location", "colistin_mic"],
-                zoom=11, height=420, title="mcr Gene Distribution â€” Arua Region Field Samples",
+                zoom=11, height=420, title="mcr Gene Distribution — Arua Region Field Samples",
             )
             fig.update_layout(mapbox_style="carto-darkmatter", paper_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig, use_container_width=True)
@@ -496,7 +496,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸ”¬ Domain & Specialized Analytics Hub â€” Production Suite",
+        "ðŸ”¬ Domain & Specialized Analytics Hub — Production Suite",
         "Consolidated domain hub featuring robust biometric screening, correlation-driven network analytics, cached GIS reverse-geocoding, live World Bank sector data, and an editable academic portfolio.",
         badge_text="DOMAIN ANALYTICS HUB â€¢ PRODUCTION TIER",
     )

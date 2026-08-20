@@ -54,16 +54,16 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
             st.info(f"ðŸ“ **Active Direct Ingestion Stream**: {len(local_sources)} local file(s) queued for deep parsing.")
 
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-        col_m1.metric("ðŸ“¥ Total Submissions", str(active_queue_len), "3 today")
+        col_m1.metric("📥 Total Submissions", str(active_queue_len), "3 today")
         col_m2.metric("ðŸš¨ High Risk / Flagged", "4", "Action Required")
         col_m3.metric("â±ï¸ Avg. Completion Time", "4 + h 18 + m", "-24 + m baseline")
         col_m4.metric("ðŸ›¡ï¸ Auto-Dispatched Reports", "38", "100% success")
 
-        st.markdown("#### ðŸ“‹ Active Submission Queue & Manipulation Matrix")
+        st.markdown("#### 📋 Active Submission Queue & Manipulation Matrix")
         
         mock_submissions = [
             {"id": "SUB-101", "student": "Amuge Agnes", "paper": "Genomic Sequencing Variance.pdf", "copying_pct": "84%", "ai_score": "91%", "time_taken": "12 + m 45 + s", "status": "ðŸš© Flagged (High Manipulation)"},
-            {"id": "SUB-102", "student": "Ocircan Darius", "paper": "Bioinformatics Pipeline Alpha.docx", "copying_pct": "12%", "ai_score": "5%", "time_taken": "6 + h 12 + m", "status": "âœ… Verified Authentic"},
+            {"id": "SUB-102", "student": "Ocircan Darius", "paper": "Bioinformatics Pipeline Alpha.docx", "copying_pct": "12%", "ai_score": "5%", "time_taken": "6 + h 12 + m", "status": "✅ Verified Authentic"},
             {"id": "SUB-103", "student": "Atim Susan", "paper": "Waterborne Pathogen Resistance.txt", "copying_pct": "45%", "ai_score": "38%", "time_taken": "2 + h 05 + m", "status": "âš ï¸ Moderate Review"},
             {"id": "SUB-104", "student": "Egwea Aaron", "paper": "Agri-Tech Data Framework.pdf", "copying_pct": "92%", "ai_score": "96%", "time_taken": "4 + m 10 + s", "status": "ðŸš¨ Critical Breach (Paste-Storm)"},
         ]
@@ -113,7 +113,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 ==========================================
 """
             st.download_button(
-                label="ðŸ“¥ Download Official Forensic Proof Report (TXT)",
+                label="📥 Download Official Forensic Proof Report (TXT)",
                 data=report_content,
                 file_name=f"Forensic_Report_{selected_sub}.txt",
                 mime="text/plain"
@@ -178,7 +178,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                         st.text_area("Humanized Output Text:", value=humanized_output, height=180, key="humanized_result_box_unlimited")
                         
                         st.download_button(
-                            label="ðŸ“¥ Download Humanized Manuscript (.txt)",
+                            label="📥 Download Humanized Manuscript (.txt)",
                             data=humanized_output,
                             file_name="Humanized_Research_Manuscript.txt",
                             mime="text/plain"
@@ -188,7 +188,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         st.markdown("###  Advanced Visualizations & Forensic Tracebacks")
         st.markdown("Visualizing candidate session times, copying percentages, and cryptographic blockchain logs.")
         
-        tab_g1, tab_g2, tab_g3 = st.tabs(["ðŸ“ˆ Session Time vs Copying %", "ðŸ§¬ Source Plagiarism Breakdown", "ðŸ”— Blockchain Audit Trail"])
+        tab_g1, tab_g2, tab_g3 = st.tabs(["📈 Session Time vs Copying %", "ðŸ§¬ Source Plagiarism Breakdown", "ðŸ”— Blockchain Audit Trail"])
         
         with tab_g1:
             st.markdown("#### Time Taken vs. Copying Percentage Scatter Matrix")
@@ -231,7 +231,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             st.table(pd.DataFrame(blockchain_logs))
             
             log_csv = pd.DataFrame(blockchain_logs).to_csv(index=False)
-            st.download_button("ðŸ“¥ Download Complete Blockchain Ledger (CSV)", log_csv, "blockchain_audit_trail.csv", "text/csv")
+            st.download_button("📥 Download Complete Blockchain Ledger (CSV)", log_csv, "blockchain_audit_trail.csv", "text/csv")
 
     else:
         st.markdown("### âš¡ Automated Compliance Dispatcher & Proof Engine")
@@ -248,4 +248,4 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             
             submitted_dispatch = st.form_submit_button("ðŸ’¾ Save Dispatch Rules & Test Trigger")
             if submitted_dispatch:
-                st.success(f"âœ… Compliance dispatcher successfully configured for **{target_instructor}**! Auto-reports will trigger when scores exceed **{threshold_alert}%**.")
+                st.success(f"✅ Compliance dispatcher successfully configured for **{target_instructor}**! Auto-reports will trigger when scores exceed **{threshold_alert}%**.")

@@ -146,7 +146,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_weekly_report",
-                name="ðŸ“ˆ Weekly Team Report",
+                name="📈 Weekly Team Report",
                 description="Weekly team progress report",
                 automation_type=AutomationType.SCHEDULED,
                 trigger=TriggerEvent.WEEKLY_REPORT,
@@ -634,9 +634,9 @@ def render_automation_list(engine: AdvancedAutomationEngine):
         type_badge = {
             AutomationType.SCHEDULED: ("â° Scheduled", "ðŸ”µ"),
             AutomationType.TRIGGERED: ("âš¡ Triggered", "ðŸŸ¢"),
-            AutomationType.CONDITIONAL: ("ðŸ”€ Conditional", "ðŸŸ¡"),
+            AutomationType.CONDITIONAL: ("🔄 Conditional", "ðŸŸ¡"),
         }
-        badge, emoji = type_badge.get(auto.automation_type, ("ðŸ“Œ", "âšª"))
+        badge, emoji = type_badge.get(auto.automation_type, ("📜", "âšª"))
         
         col1, col2, col3 = st.columns([3, 2, 1])
         
@@ -707,7 +707,7 @@ def render_notifications_ui(notif_mgr: NotificationManager):
     demo_notifs = [
         ("", "Weekly Report Ready", "Your weekly research summary is ready", "info"),
         ("â°", "Task Reminder", "Review pending: Data analysis due in 2 hours", "warning"),
-        ("âœ…", "Task Completed", "Analysis complete for Project Alpha", "success"),
+        ("✅", "Task Completed", "Analysis complete for Project Alpha", "success"),
     ]
     
     for emoji, title, msg, ntype in demo_notifs:

@@ -853,7 +853,7 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
             session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             tracker = ProvenanceTracker(session_id=session_id)
             st.session_state["_provenance_tracker"] = tracker
-            st.success(f"âœ… Provenance tracking started! Session: {session_id}")
+            st.success(f"✅ Provenance tracking started! Session: {session_id}")
             st.rerun()
         return
 
@@ -878,7 +878,7 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
         st.plotly_chart(fig, use_container_width=True)
 
         # â”€â”€â”€ Summary Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        with st.expander("ðŸ“‹ Full Transformation Table", expanded=False):
+        with st.expander("📋 Full Transformation Table", expanded=False):
             table_df = ProvenanceVisualizer.render_summary_table(lineage)
             st.dataframe(table_df, use_container_width=True, hide_index=True)
 
@@ -898,24 +898,24 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
             if st.button("ðŸ“ Create Checkpoint", use_container_width=True) and cp_label:
                 cp_id = tracker.create_checkpoint(cp_label)
                 if cp_id > 0:
-                    st.success(f"âœ… Checkpoint '{cp_label}' created!")
+                    st.success(f"✅ Checkpoint '{cp_label}' created!")
                     st.rerun()
 
         # â”€â”€â”€ Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        st.subheader("ðŸ“¥ Export Lineage")
+        st.subheader("📥 Export Lineage")
         col1, col2 = st.columns(2)
 
         with col1:
             if st.button("ðŸ“„ Export as JSON", use_container_width=True):
                 json_str = tracker.export_json()
                 st.session_state["_provenance_json"] = json_str
-                st.success("âœ… JSON exported!")
+                st.success("✅ JSON exported!")
 
         with col2:
             if st.button("ðŸ”„ Reset Session", type="secondary", use_container_width=True):
                 tracker.db.delete_session(tracker.session_id)
                 st.session_state["_provenance_tracker"] = None
-                st.success("âœ… Session reset!")
+                st.success("✅ Session reset!")
                 st.rerun()
 
         if st.session_state.get("_provenance_json"):
@@ -926,7 +926,7 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
                 f'<a href="data:application/json;base64,{b64}" '
                 f'download="provenance_{tracker.session_id}.json" '
                 f'style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;'
-                f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download JSON</a>',
+                f'border-radius:8px;text-decoration:none;font-weight:600;">📥 Download JSON</a>',
                 unsafe_allow_html=True,
             )
 

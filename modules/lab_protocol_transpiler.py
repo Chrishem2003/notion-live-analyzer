@@ -692,7 +692,7 @@ def render_lab_protocol_transpiler_ui():
     st.markdown("## ðŸ§ª Theoretical-to-Practical Protocol Transpiler")
     st.markdown("*Converts dense paper methodology into actionable step-by-step protocols with reagents, equipment, code blocks, and safety notes*")
 
-    tab1, tab2, tab3 = st.tabs(["ðŸ“ Input & Transpile", "ðŸ“‹ Full Protocol", "ðŸ’» Code & Commands"])
+    tab1, tab2, tab3 = st.tabs(["ðŸ“ Input & Transpile", "📋 Full Protocol", "ðŸ’» Code & Commands"])
 
     transpiler = ProtocolTranspiler()
 
@@ -720,7 +720,7 @@ def render_lab_protocol_transpiler_ui():
                 st.session_state["_last_protocol"] = protocol
 
             summary = protocol.get("summary", {})
-            st.success(f"âœ… Protocol generated! {summary.get('total_steps', 0)} steps, {summary.get('total_reagents', 0)} reagents, {summary.get('total_tools', 0)} tools")
+            st.success(f"✅ Protocol generated! {summary.get('total_steps', 0)} steps, {summary.get('total_reagents', 0)} reagents, {summary.get('total_tools', 0)} tools")
 
             st.subheader("Quick Overview")
             col1, col2, col3, col4 = st.columns(4)
@@ -762,7 +762,7 @@ def render_lab_protocol_transpiler_ui():
         if not protocol:
             st.info("Transpile a protocol first in the **Input & Transpile** tab.")
         else:
-            st.subheader("ðŸ“‹ Complete Protocol")
+            st.subheader("📋 Complete Protocol")
 
             protocol_text = transpiler.format_protocol_text(protocol)
             st.markdown(f"```\n{protocol_text}\n```")
@@ -772,12 +772,12 @@ def render_lab_protocol_transpiler_ui():
             st.markdown(
                 f'<a href="data:text/plain;base64,{b64}" download="protocol.txt" '
                 f'style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;'
-                f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download Protocol</a>',
+                f'border-radius:8px;text-decoration:none;font-weight:600;">📥 Download Protocol</a>',
                 unsafe_allow_html=True,
             )
 
             # Interactive checklist
-            st.subheader("âœ… Interactive Workbench Checklist")
+            st.subheader("✅ Interactive Workbench Checklist")
             checklist = protocol.get("checklist", [])
             if checklist:
                 for i, item in enumerate(checklist):
@@ -786,7 +786,7 @@ def render_lab_protocol_transpiler_ui():
                         st.checkbox("", key=f"checklist_{i}")
                     with col2:
                         cat_icon = {"reagent": "ðŸ§ª", "equipment": "ðŸ”¬", "software": "ðŸ’»", "safety": "âš ï¸"}.get(
-                            item.get("category", ""), "ðŸ“‹"
+                            item.get("category", ""), "📋"
                         )
                         st.markdown(f"{cat_icon} **{item['item']}**")
                         if item.get("notes"):
@@ -819,7 +819,7 @@ def render_lab_protocol_transpiler_ui():
             st.markdown(
                 f'<a href="data:text/plain;base64,{b64}" download="commands.sh" '
                 f'style="display:inline-block;padding:10px 20px;background:#059669;color:white;'
-                f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download Bash Script</a>',
+                f'border-radius:8px;text-decoration:none;font-weight:600;">📥 Download Bash Script</a>',
                 unsafe_allow_html=True,
             )
 

@@ -782,9 +782,9 @@ def render_meta_analysis_ui():
     st.markdown("*Combine effect sizes across studies, assess heterogeneity, detect publication bias*")
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "ðŸ“¥ Input Studies",
+        "📥 Input Studies",
         " Meta-Analysis Results",
-        "ðŸ“ˆ Forest Plot",
+        "📈 Forest Plot",
         "ðŸ•³ï¸ Publication Bias",
         "ðŸ”¬ Advanced",
     ])
@@ -799,13 +799,13 @@ def render_meta_analysis_ui():
     # TAB 1: INPUT STUDIES
     # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     with tab1:
-        st.subheader("ðŸ“¥ Input Effect Sizes")
+        st.subheader("📥 Input Effect Sizes")
 
         input_method = st.radio(
             "Input method",
             options=[
                 "âœï¸ Manual Entry",
-                "ðŸ“‹ Paste from Clipboard",
+                "📋 Paste from Clipboard",
                 "ðŸ“ Load from Data",
             ],
             horizontal=True,
@@ -838,14 +838,14 @@ def render_meta_analysis_ui():
                             "n1": n1,
                             "n2": n2,
                         })
-                        st.success(f"âœ… Added '{study_name}'")
+                        st.success(f"✅ Added '{study_name}'")
 
-        elif input_method == "ðŸ“‹ Paste from Clipboard":
+        elif input_method == "📋 Paste from Clipboard":
             st.markdown("Paste data as: `Label, Effect, Variance` (one per line)")
             pasted = st.text_area("Paste data", height=150, placeholder="""Smith 2020, 0.45, 0.032
 Jones 2019, 0.78, 0.045
 Lee 2021, 0.23, 0.028""", key="meta_paste")
-            if st.button("ðŸ“‹ Parse & Add", type="primary"):
+            if st.button("📋 Parse & Add", type="primary"):
                 studies = []
                 for line in pasted.strip().split("\n"):
                     line = line.strip()
@@ -871,7 +871,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             st.session_state["meta_studies"].append(s)
                             existing_names.add(s["study"])
                             new_count = 1
-                    st.success(f"âœ… Added {new_count} new studies ({len(studies) - new_count} duplicates skipped)")
+                    st.success(f"✅ Added {new_count} new studies ({len(studies) - new_count} duplicates skipped)")
 
         elif input_method == "ðŸ“ Load from Data":
             st.info("Load effect sizes from the active dataset.")
@@ -883,7 +883,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     var_col = st.selectbox("Variance/SE column", options=[c for c in numeric_cols if c != es_col], key="meta_var_col")
                     label_col = st.selectbox("Study label column (optional)", options=[""] + df.columns.tolist(), key="meta_label_col")
 
-                    if st.button("ðŸ“¥ Load from Data", type="primary"):
+                    if st.button("📥 Load from Data", type="primary"):
                         studies = []
                         for _, row in df.iterrows():
                             es_val = row[es_col]
@@ -898,7 +898,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 })
                         if studies:
                             st.session_state["meta_studies"] = studies
-                            st.success(f"âœ… Loaded {len(studies)} studies")
+                            st.success(f"✅ Loaded {len(studies)} studies")
                 else:
                     st.warning("Need at least 2 numeric columns (effect size + variance/SE)")
             else:
@@ -908,7 +908,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         studies = st.session_state.get("meta_studies", [])
         if studies:
             st.markdown("---")
-            st.subheader(f"ðŸ“‹ Current Studies ({len(studies)})")
+            st.subheader(f"📋 Current Studies ({len(studies)})")
 
             studies_df = pd.DataFrame(studies)
             col_config = {
@@ -954,7 +954,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 results["loo"] = engine.leave_one_out(effects, variances, labels)
 
                             st.session_state["meta_results"] = results
-                        st.success("âœ… Meta-analysis complete!")
+                        st.success("✅ Meta-analysis complete!")
                         st.rerun()
                     else:
                         st.warning("Need at least 2 studies for meta-analysis")
@@ -988,7 +988,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             [{fe.get('ci_lower', 0):.3 + f}, {fe.get('ci_upper', 0):.3 + f}]
                         </div>
                         <div style="font-size:0.85 + rem;">
-                            z = {fe.get('z_value', 0):.2 + f}, {'âœ…' if fe_sig else 'âŒ'} p = {fe.get('p_value', 1):.4 + f}
+                            z = {fe.get('z_value', 0):.2 + f}, {'✅' if fe_sig else 'âŒ'} p = {fe.get('p_value', 1):.4 + f}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1007,7 +1007,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             [{re.get('ci_lower', 0):.3 + f}, {re.get('ci_upper', 0):.3 + f}]
                         </div>
                         <div style="font-size:0.85 + rem;">
-                            z = {re.get('z_value', 0):.2 + f}, {'âœ…' if re_sig else 'âŒ'} p = {re.get('p_value', 1):.4 + f}
+                            z = {re.get('z_value', 0):.2 + f}, {'✅' if re_sig else 'âŒ'} p = {re.get('p_value', 1):.4 + f}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1015,7 +1015,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             # â”€â”€â”€ Heterogeneity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             het = results.get("heterogeneity", {})
             if het and "error" not in het:
-                st.subheader("ðŸ“ˆ Heterogeneity")
+                st.subheader("📈 Heterogeneity")
                 het_color = "#2 + ecc71" if het.get("i2", 0) < 25 else "#e67 + e22" if het.get("i2", 0) < 50 else "#e74 + c3c"
                 st.markdown(f"""
                 <div style="padding:0.8 + rem;border-radius:12 + px;border:1 + px solid {het_color}40;
@@ -1027,7 +1027,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 """, unsafe_allow_html=True)
 
             # â”€â”€â”€ Study Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            st.subheader("ðŸ“‹ Study-Level Details")
+            st.subheader("📋 Study-Level Details")
             forest_data = results.get("forest_data", [])
             if forest_data:
                 detail_rows = []
@@ -1065,7 +1065,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         if not results:
             st.info("Run a meta-analysis first.")
         else:
-            st.subheader("ðŸ“ˆ Forest Plot")
+            st.subheader("📈 Forest Plot")
 
             forest_data = results.get("forest_data", [])
             if forest_data:
@@ -1148,7 +1148,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 st.plotly_chart(fig, use_container_width=True)
 
                 # Data table
-                with st.expander("ðŸ“‹ Forest Plot Data"):
+                with st.expander("📋 Forest Plot Data"):
                     forest_df = pd.DataFrame(forest_data)
                     st.dataframe(forest_df, use_container_width=True, hide_index=True)
             else:
@@ -1326,7 +1326,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             st.subheader("ðŸ”¬ Advanced Meta-Analysis Tools")
 
             # â”€â”€â”€ Cumulative Meta-Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            with st.expander("ðŸ“ˆ Cumulative Meta-Analysis", expanded=False):
+            with st.expander("📈 Cumulative Meta-Analysis", expanded=False):
                 st.markdown("Add studies one by one to see how evidence accumulates.")
 
                 sort_method = st.radio("Sort studies by", options=["Year (chronological)", "Effect Size", "Precision"],
@@ -1514,7 +1514,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
     results = st.session_state.get("meta_results")
     if results:
         st.sidebar.markdown("---")
-        st.sidebar.markdown("### ðŸ“¥ Export Meta-Analysis")
+        st.sidebar.markdown("### 📥 Export Meta-Analysis")
 
         report_lines = [
             "# Meta-Analysis Results",
@@ -1558,9 +1558,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
         st.sidebar.markdown(
             f"""<button onclick="navigator.clipboard.writeText(`{report_text_escaped}`).then(
-                () => {{this.innerHTML='âœ… Copied!';setTimeout(()=>this.innerHTML='ðŸ“‹ Copy Report',2000)}})"
+                () => {{this.innerHTML='✅ Copied!';setTimeout(()=>this.innerHTML='📋 Copy Report',2000)}})"
                 style="padding:8 + px 16 + px;background:#1 + d4ed8;color:white;border:none;border-radius:6 + px;
-                cursor:pointer;font-weight:600;width:100%;">ðŸ“‹ Copy Report</button>""",
+                cursor:pointer;font-weight:600;width:100%;">📋 Copy Report</button>""",
             unsafe_allow_html=True,
         )
 

@@ -69,7 +69,7 @@ def show_document_dialog(item):
     st.markdown(f"### ðŸ“„ {item['name']}")
     st.caption(f"**Size:** {item['size']}")
 
-    tab_view, tab_edit, tab_dl = st.tabs(["ðŸ‘ï¸ View / Read", "âœï¸ Edit (Docs/Sheets)", "ðŸ“¥ Download"])
+    tab_view, tab_edit, tab_dl = st.tabs(["ðŸ‘ï¸ View / Read", "âœï¸ Edit (Docs/Sheets)", "📥 Download"])
 
     with tab_view:
         if name.endswith(".pdf"):
@@ -119,7 +119,7 @@ def show_document_dialog(item):
                 st.rerun()
 
     with tab_dl:
-        st.markdown("### ðŸ“¥ Download File")
+        st.markdown("### 📥 Download File")
         st.download_button(
             label=f"â¬‡ï¸ Download {item['name']}",
             data=raw_bytes,

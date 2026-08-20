@@ -233,10 +233,10 @@ VERIFICATION_EMAIL_TEMPLATE = """
             
             <p>You now have <strong>FREE Standard Tier</strong> access to:</p>
             <ul>
-                <li>âœ… Full Literature Search Engine</li>
-                <li>âœ… File Exports (CSV, PDF, Excel)</li>
-                <li>âœ… Standard Automation Tools</li>
-                <li>âœ… 15-Day Free Trial to Premium</li>
+                <li>✅ Full Literature Search Engine</li>
+                <li>✅ File Exports (CSV, PDF, Excel)</li>
+                <li>✅ Standard Automation Tools</li>
+                <li>✅ 15-Day Free Trial to Premium</li>
             </ul>
             
             <p style="margin-top: 30px;">
@@ -316,7 +316,7 @@ AUDIT_REPORT_TEMPLATE = """
 <body>
     <div class="container">
         <div class="header">
-            <h1>ðŸ“œ Academic Audit Report</h1>
+            <h1>📜 Academic Audit Report</h1>
             <p>Generated: {generated_date}</p>
         </div>
         <div class="content">
@@ -510,7 +510,7 @@ def send_audit_report(
             "mime_type": "application/pdf",
         }]
     
-    return send_email(email, "ðŸ“œ Academic Audit Report Ready", html, attachments=attachments)
+    return send_email(email, "📜 Academic Audit Report Ready", html, attachments=attachments)
 
 def send_welcome_email(email: str, tier: str = "Free") -> bool:
     """Send welcome email to new users."""
@@ -519,20 +519,20 @@ def send_welcome_email(email: str, tier: str = "Free") -> bool:
             <li>ðŸ” Basic Literature Search</li>
             <li> Data Visualization Tools</li>
             <li>ðŸ“ File Analysis (CSV, Excel)</li>
-            <li>ðŸ“œ Audit Compliance Tools</li>
+            <li>📜 Audit Compliance Tools</li>
         """,
         "Standard": """
-            <li>âœ… Everything in Free</li>
+            <li>✅ Everything in Free</li>
             <li>ðŸ“š Full Literature Engine</li>
-            <li>ðŸ“¥ Unlimited File Exports</li>
+            <li>📥 Unlimited File Exports</li>
             <li>âš™ï¸ Standard Automation</li>
             <li>ðŸŽ 15-Day Premium Trial</li>
         """,
         "Premium": """
-            <li>âœ… Everything in Standard</li>
+            <li>✅ Everything in Standard</li>
             <li>ðŸ”¬ Deep Research Synthesis</li>
             <li>ðŸ“§ Automated Email Reports</li>
-            <li>ðŸ“‹ Notion Workspace Integration</li>
+            <li>📋 Notion Workspace Integration</li>
             <li> Priority Support</li>
         """,
     }
@@ -558,14 +558,14 @@ def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
     
     delivery_method = st.radio(
         "Delivery Method",
-        ["ðŸ“¥ Download Now", "ðŸ“§ Send to Email"],
+        ["📥 Download Now", "ðŸ“§ Send to Email"],
         horizontal=True,
     )
     
-    if delivery_method == "ðŸ“¥ Download Now":
+    if delivery_method == "📥 Download Now":
         if pdf_bytes:
             st.download_button(
-                "ðŸ“¥ Download PDF Report",
+                "📥 Download PDF Report",
                 data=pdf_bytes,
                 file_name=f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
                 mime="application/pdf",
@@ -576,7 +576,7 @@ def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
             orch = get_audit_orchestrator()
             text_report = orch.generate_export_report([report_data])
             st.download_button(
-                "ðŸ“¥ Download Text Report",
+                "📥 Download Text Report",
                 data=text_report,
                 file_name=f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
                 mime="text/plain",
@@ -597,6 +597,6 @@ def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
                     with st.spinner("Sending..."):
                         success = send_audit_report(email, report_data, pdf_bytes)
                         if success:
-                            st.success(f"âœ… Report sent to {email}")
+                            st.success(f"✅ Report sent to {email}")
                         else:
                             st.error("Failed to send email. Please try again.")

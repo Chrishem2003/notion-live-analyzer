@@ -81,7 +81,7 @@ class GitIntegration:
                 return False, f"âŒ Failed to clone repository: {str(e)}"
 
             self.connected = True
-            return True, f"âœ… Connected to {repo_name}"
+            return True, f"✅ Connected to {repo_name}"
 
         except Exception as e:
             return False, f"âŒ Connection failed: {str(e)}"
@@ -194,7 +194,7 @@ class GitIntegration:
             origin = self.local_repo.remotes.origin
             origin.push(refspec=f"HEAD:refs/heads/{branch}")
 
-            return True, f"âœ… Committed and pushed to {branch}"
+            return True, f"✅ Committed and pushed to {branch}"
 
         except Exception as e:
             return False, f"âŒ Commit/push failed: {str(e)}"
@@ -256,7 +256,7 @@ class GitIntegration:
             origin = self.local_repo.remotes.origin
             origin.push(refspec=f"HEAD:refs/heads/{branch}")
 
-            return True, f"âœ… Pushed {file_name} to {branch}"
+            return True, f"✅ Pushed {file_name} to {branch}"
 
         except Exception as e:
             return False, f"âŒ Failed to push dataset: {str(e)}"
@@ -308,7 +308,7 @@ print(desc)
 
 # Save results
 desc.to_csv("descriptive_statistics.csv")
-print("âœ… Descriptive analysis complete.")
+print("✅ Descriptive analysis complete.")
 ''',
             "correlation": f'''"""
 Auto-generated Correlation Analysis Script
@@ -444,7 +444,7 @@ def render_git_integration_ui():
 
     # â”€â”€â”€ Connected View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     status = engine.status
-    st.success(f"âœ… Connected to **{status.get('repo', 'Unknown')}**")
+    st.success(f"✅ Connected to **{status.get('repo', 'Unknown')}**")
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
@@ -460,7 +460,7 @@ def render_git_integration_ui():
             st.rerun()
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "ðŸ“‚ Browse Repo", "ðŸ“¥ Pull Dataset", "ðŸ“¤ Push Data/Scripts", "ðŸ“‹ Commit History"
+        "ðŸ“‚ Browse Repo", "📥 Pull Dataset", "ðŸ“¤ Push Data/Scripts", "📋 Commit History"
     ])
 
     with tab1:
@@ -477,7 +477,7 @@ def render_git_integration_ui():
             st.info("No files found at this path")
 
     with tab2:
-        st.subheader("ðŸ“¥ Pull Dataset from Repository")
+        st.subheader("📥 Pull Dataset from Repository")
         st.caption("Load a CSV, Excel, or JSON file directly from GitHub into the analyzer.")
 
         if files:
@@ -489,14 +489,14 @@ def render_git_integration_ui():
                     format_func=lambda f: f["name"],
                 )
 
-                if st.button("ðŸ“¥ Pull & Load Dataset", type="primary", use_container_width=True):
+                if st.button("📥 Pull & Load Dataset", type="primary", use_container_width=True):
                     with st.spinner(f"Pulling {file_to_pull['name']}..."):
                         pulled_df = engine.pull_dataset(file_to_pull["path"])
                     if pulled_df is not None:
                         st.session_state["uploaded_df"] = pulled_df
                         st.session_state["active_df"] = pulled_df
                         st.session_state["data_source"] = "github"
-                        st.success(f"âœ… Loaded '{file_to_pull['name']}'  {len(pulled_df)} rows Ã— {len(pulled_df.columns)} columns")
+                        st.success(f"✅ Loaded '{file_to_pull['name']}'  {len(pulled_df)} rows Ã— {len(pulled_df.columns)} columns")
                         st.dataframe(pulled_df.head(20), use_container_width=True, hide_index=True)
             else:
                 st.info("No supported data files found in the current directory. Navigate to a different path.")
@@ -558,7 +558,7 @@ def render_git_integration_ui():
                 st.success(msg) if success else st.error(msg)
 
     with tab4:
-        st.subheader("ðŸ“‹ Commit History")
+        st.subheader("📋 Commit History")
         st.caption("Track version history of data cleaning and analysis steps.")
 
         commits = engine.list_commits(max_count=30)

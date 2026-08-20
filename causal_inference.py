@@ -520,7 +520,7 @@ def render_causal_inference_ui():
         "ðŸ“ IV Regression",
         "âœ‚ï¸ RDD",
         "âš–ï¸ IPW",
-        "ðŸ”€ CATE",
+        "🔄 CATE",
         "ðŸ§© DAG Advisor",
     ])
 
@@ -546,7 +546,7 @@ def render_causal_inference_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("âœ… PSM complete!")
+                st.success("✅ PSM complete!")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1: st.metric("ATT Estimate", f"{result['att']:.4 + f}")
                 with col2: st.metric("SE", f"{result['se']:.4 + f}")
@@ -579,7 +579,7 @@ def render_causal_inference_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("âœ… DiD complete!")
+                st.success("✅ DiD complete!")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1: st.metric("DiD Estimate", f"{result['did_estimate']:.4 + f}")
                 with col2: st.metric("SE", f"{result['se']:.4 + f}")
@@ -615,12 +615,12 @@ def render_causal_inference_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("âœ… IV regression complete!")
+                st.success("✅ IV regression complete!")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1: st.metric("IV Estimate", f"{result['iv_estimate']:.4 + f}")
                 with col2: st.metric("SE", f"{result['se']:.4 + f}")
                 with col3: st.metric("F-stat (1 + st stage)", f"{result['first_stage_f_stat']:.2 + f}")
-                with col4: st.metric("Weak IV?", "âš ï¸ Yes" if result.get('weak_instrument') else "âœ… No")
+                with col4: st.metric("Weak IV?", "âš ï¸ Yes" if result.get('weak_instrument') else "✅ No")
                 st.info(result['interpretation'])
 
     with tab4:
@@ -641,7 +641,7 @@ def render_causal_inference_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("âœ… RDD complete!")
+                st.success("✅ RDD complete!")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1: st.metric("RD Estimate", f"{result['rd_estimate']:.4 + f}")
                 with col2: st.metric("SE", f"{result['se']:.4 + f}")
@@ -664,12 +664,12 @@ def render_causal_inference_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("âœ… IPW complete!")
+                st.success("✅ IPW complete!")
                 st.metric("ATE (IPW)", f"{result['ate']:.4 + f}")
                 st.info(result['interpretation'])
 
     with tab6:
-        st.subheader("ðŸ”€ Heterogeneous Treatment Effects (CATE)")
+        st.subheader("🔄 Heterogeneous Treatment Effects (CATE)")
         col1, col2 = st.columns(2)
         with col1:
             cate_treat = st.selectbox("Treatment (0/1)", options=numeric_cols, key="cate_treat")
@@ -677,13 +677,13 @@ def render_causal_inference_ui():
         with col2:
             cate_covs = st.multiselect("Features for heterogeneity", options=[c for c in numeric_cols if c not in (cate_treat, cate_outcome)], key="cate_covs")
 
-        if st.button("ðŸ”€ Estimate CATE", type="primary", use_container_width=True) and cate_covs:
+        if st.button("🔄 Estimate CATE", type="primary", use_container_width=True) and cate_covs:
             with st.spinner("Estimating CATE..."):
                 result = engine.estimate_cate(df, cate_treat, cate_outcome, cate_covs)
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("âœ… CATE estimated!")
+                st.success("✅ CATE estimated!")
                 col1, col2, col3 = st.columns(3)
                 with col1: st.metric("Mean CATE", f"{result['mean_cate']:.4 + f}")
                 with col2: st.metric("Median CATE", f"{result['median_cate']:.4 + f}")
@@ -714,7 +714,7 @@ def render_causal_inference_ui():
 
         if st.button("ðŸ§© Get Adjustment Set", type="primary", use_container_width=True):
             result = engine.suggest_adjustment_set(treat_var, outcome_var, all_cols, confounders, mediators, colliders)
-            st.success("âœ… DAG analysis complete!")
+            st.success("✅ DAG analysis complete!")
             st.markdown(f"### Recommended Adjustment Set")
             if result["recommended_adjustment_set"]:
                 for v in result["recommended_adjustment_set"]:

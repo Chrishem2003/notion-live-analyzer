@@ -193,7 +193,7 @@ def interpret_clinical_value(
         status = "â†“ Low"
         severity = "moderate"
     elif value <= normal_high:
-        status = "âœ… Normal"
+        status = "✅ Normal"
         severity = "normal"
     elif value <= flag_high:
         status = "â†‘ High"
@@ -378,7 +378,7 @@ def render_clinical_analytics_ui():
                     elif result.get("weight_to_gain", 0) > 0:
                         st.metric("Weight to Gain", f"{result['weight_to_gain']:.1f} kg", delta=result['weight_to_gain'])
                     else:
-                        st.metric("Weight Status", "âœ… Healthy")
+                        st.metric("Weight Status", "✅ Healthy")
                 with col3:
                     st.metric("Health Risk", result.get("risk", "N/A"))
 
@@ -431,7 +431,7 @@ def render_clinical_analytics_ui():
                     st.error(result["error"])
 
         # Reference table
-        with st.expander("ðŸ“‹ Complete Reference Range Table"):
+        with st.expander("📋 Complete Reference Range Table"):
             ref_rows = []
             for name, ref in CLINICAL_REFERENCE_RANGES.items():
                 ref_rows.append({
@@ -532,7 +532,7 @@ def render_clinical_analytics_ui():
             </div>
             """, unsafe_allow_html=True)
 
-            with st.expander("ðŸ“‹ Risk Factor Details"):
+            with st.expander("📋 Risk Factor Details"):
                 for factor, value in risk.get("risk_factors", {}).items():
                     st.markdown(f"- **{factor.replace('_', ' ').title()}**: {value}")
 

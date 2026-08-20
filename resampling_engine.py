@@ -277,19 +277,19 @@ def render_resampling_ui():
     engine = ResamplingEngine()
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "ðŸŽ² Bootstrap CI", "ðŸ”„ Permutation Test", " Cross-Validation",
-        "âš¡ Monte Carlo Power", "ðŸ“ˆ Bootstrap Hypothesis Test"
+        "🎲 Bootstrap CI", "ðŸ”„ Permutation Test", " Cross-Validation",
+        "âš¡ Monte Carlo Power", "📈 Bootstrap Hypothesis Test"
     ])
 
     with tab1:
-        st.subheader("ðŸŽ² Bootstrap Confidence Intervals")
+        st.subheader("🎲 Bootstrap Confidence Intervals")
         if df is not None:
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             col = st.selectbox("Variable", options=numeric_cols, key="bs_col")
             stat = st.selectbox("Statistic", options=["mean", "median", "std", "var"], key="bs_stat")
             n_boot = st.slider("Number of bootstrap samples", 100, 5000, 1000, key="bs_n")
             ci_method = st.selectbox("CI method", options=["percentile", "bca", "basic"], key="bs_method")
-            if st.button("ðŸŽ² Compute Bootstrap CI", type="primary"):
+            if st.button("🎲 Compute Bootstrap CI", type="primary"):
                 stat_map = {"mean": np.mean, "median": np.median, "std": np.std, "var": np.var}
                 data = df[col].dropna().values
                 result = engine.bootstrap_ci(data, stat_map[stat], n_boot, 0.95, ci_method)
@@ -317,7 +317,7 @@ def render_resampling_ui():
                     result = engine.permutation_test(g1, g2, alternative=alt)
                     st.metric("Observed Difference", result["observed_statistic"])
                     st.metric("p-value", result["p_value"])
-                    st.info(f"{'âœ… Significant' if result['significant'] else 'âŒ Not significant'} (p {'<' if result['p_value'] < 0.001 else '='} {result['p_value']:.4f})")
+                    st.info(f"{'✅ Significant' if result['significant'] else 'âŒ Not significant'} (p {'<' if result['p_value'] < 0.001 else '='} {result['p_value']:.4f})")
             else:
                 st.warning("Need a binary categorical and a numeric variable.")
         else:
@@ -355,14 +355,14 @@ def render_resampling_ui():
             st.info(f"Power = {result['estimated_power']:.2%}  {result['interpretation']}")
 
     with tab5:
-        st.subheader("ðŸ“ˆ Bootstrap Hypothesis Test")
+        st.subheader("📈 Bootstrap Hypothesis Test")
         if df is not None:
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             cat_cols = [c for c in df.columns if df[c].nunique() == 2]
             if cat_cols and numeric_cols:
                 bg_col = st.selectbox("Group variable", options=cat_cols, key="bht_group")
                 bv_col = st.selectbox("Value variable", options=numeric_cols, key="bht_value")
-                if st.button("ðŸ“ˆ Run Bootstrap Test", type="primary"):
+                if st.button("📈 Run Bootstrap Test", type="primary"):
                     groups = df[bg_col].dropna().unique()
                     g1 = df[df[bg_col] == groups[0]][bv_col].dropna().values
                     g2 = df[df[bg_col] == groups[1]][bv_col].dropna().values

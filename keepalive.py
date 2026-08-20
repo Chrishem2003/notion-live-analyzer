@@ -121,7 +121,7 @@ def get_health_check_html() -> str:
     <html>
     <head><title>Health Check</title></head>
     <body style="font-family: monospace; padding: 2rem;">
-        <h1>âœ… Notion Live Analyzer  Healthy</h1>
+        <h1>✅ Notion Live Analyzer  Healthy</h1>
         <pre>{json.dumps(health_data, indent=2)}</pre>
         <p>Time: {time.ctime()}</p>
     </body>

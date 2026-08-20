@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ“š Literature & Publishing Hub â€” Consolidated Research & Publication Hub (Production Grade)
+ðŸ“š Literature & Publishing Hub — Consolidated Research & Publication Hub (Production Grade)
 Real CrossRef-backed literature search with expanded metadata, a persistent reference manager 
 with JSON import/export and comprehensive BibTeX escaping, robust regex-based APA compliance 
 checking, a production-grade meta-analysis engine with real inverse-variance pooling, heterogeneity 
@@ -92,7 +92,7 @@ def search_crossref(query: str, n_results: int, sort_by: str, contact_email: str
                     break
 
             container = it.get("container-title")
-            journal = container[0] if container else "â€”"
+            journal = container[0] if container else "—"
             
             records.append({
                 "Title": title,
@@ -151,7 +151,7 @@ def render_literature_search():
                 elif results_df is None or results_df.empty:
                     st.info("No publications found matching this query string.")
                 else:
-                    st.success(f"âœ… Successfully retrieved {len(results_df)} verified publications.")
+                    st.success(f"✅ Successfully retrieved {len(results_df)} verified publications.")
                     st.dataframe(results_df, use_container_width=True, hide_index=True)
                     render_export_buttons(results_df, base_name="crossref_literature_results")
                     st.session_state["lit_search_results"] = results_df
@@ -190,7 +190,7 @@ def render_literature_search():
                         "doi": doi.strip(),
                     }
                     st.session_state["lit_references"].append(new_ref)
-                    st.success(f"âœ… Added reference key `{citation_key}` successfully.")
+                    st.success(f"✅ Added reference key `{citation_key}` successfully.")
                 else:
                     st.warning("Citation key, authors, and title are mandatory.")
 
@@ -207,20 +207,20 @@ def render_literature_search():
                 library_json = json.dumps(refs, indent=2)
                 st.download_button("â¬‡ï¸ Export Library (JSON)", data=library_json, file_name="reference_library.json", mime="application/json")
             with col_exp2:
-                uploaded_lib = st.file_uploader("ðŸ“¥ Import Reference Library (JSON)", type=["json"], key="import_lib_json")
+                uploaded_lib = st.file_uploader("📥 Import Reference Library (JSON)", type=["json"], key="import_lib_json")
                 if uploaded_lib is not None:
                     try:
                         imported_data = json.load(uploaded_lib)
                         if isinstance(imported_data, list):
                             st.session_state["lit_references"] = imported_data
-                            st.success(f"âœ… Imported {len(imported_data)} references.")
+                            st.success(f"✅ Imported {len(imported_data)} references.")
                             st.rerun()
                     except Exception as e:
                         st.error(f"Failed to parse JSON library file: {e}")
 
             st.markdown("---")
             selected_key = st.selectbox("Select Reference for BibTeX Generation", [r["citation_key"] for r in refs], key="bibtex_sel_prod")
-            if st.button("ðŸ“‹ Generate Production BibTeX", key="gen_bibtex_prod"):
+            if st.button("📋 Generate Production BibTeX", key="gen_bibtex_prod"):
                 ref = next(r for r in refs if r["citation_key"] == selected_key)
                 bibtex_str = f"""@{ref['entry_type']}{{{escape_bibtex(ref['citation_key'])},
   author = {{{escape_bibtex(ref['authors'])}}},
@@ -235,7 +235,7 @@ def render_literature_search():
                 st.download_button("â¬‡ï¸ Download .bib File", data=bibtex_str, file_name=f"{ref['citation_key']}.bib", mime="text/plain", key="dl_bibtex_prod")
 
     with tab_cluster:
-        st.markdown("#### Bibliometric Map â€” Year vs. Citation Count")
+        st.markdown("#### Bibliometric Map — Year vs. Citation Count")
         results_df = st.session_state.get("lit_search_results")
         if results_df is None or results_df.empty:
             st.info("â„¹ï¸ Execute a search in the **Live Literature Search** tab to populate bibliometric visualizations.")
@@ -274,7 +274,7 @@ def render_meta_analysis():
 
     col_load, col_clear = st.columns(2)
     with col_load:
-        if st.button("ðŸ“¥ Load Validated Demonstration Benchmark Data", key="meta_load_benchmark"):
+        if st.button("📥 Load Validated Demonstration Benchmark Data", key="meta_load_benchmark"):
             st.session_state["meta_study_table"] = pd.DataFrame({
                 "Study": ["Smith et al. (2024)", "Johnson & Lee (2025)", "Garcia et al. (2025)", "Kula et al. (2026)", "Ochieng et al. (2026)"],
                 "Effect_Size": [0.52, 0.68, 0.31, 0.45, 0.59],
@@ -332,7 +332,7 @@ def render_meta_analysis():
             display_df["CI_Lower"] = (display_df["Effect_Size"] - 1.96 * display_df["Standard_Error"]).round(3)
             display_df["CI_Upper"] = (display_df["Effect_Size"] + 1.96 * display_df["Standard_Error"]).round(3)
 
-            st.markdown("#### ðŸ“‹ Study-Level Weighting Summary")
+            st.markdown("#### 📋 Study-Level Weighting Summary")
             st.dataframe(display_df, use_container_width=True, hide_index=True)
 
             c1, c2, c3, c4 = st.columns(4)
@@ -393,7 +393,7 @@ def inspect_apa_citation(citation: str):
 def render_apa_outputs():
     section_header("ðŸ“‘ APA 7th Edition Formatting & Citation Compliance", "Standardized reporting templates, heuristic structural citation inspector, and publication data tables.")
 
-    tab_apa, tab_cite, tab_tables = st.tabs(["ðŸ“ APA Statistical Templates", "ðŸ” Citation Inspector", "ðŸ“‹ Publication Tables"])
+    tab_apa, tab_cite, tab_tables = st.tabs(["ðŸ“ APA Statistical Templates", "ðŸ” Citation Inspector", "📋 Publication Tables"])
 
     with tab_apa:
         st.markdown("#### APA 7th Edition Standardized Write-Up Templates")
@@ -419,13 +419,13 @@ def render_apa_outputs():
             if citation_input.strip():
                 checks, passed, total = inspect_apa_citation(citation_input)
                 for label, ok in checks:
-                    st.markdown(f"{'âœ…' if ok else 'âŒ'} {label}")
+                    st.markdown(f"{'✅' if ok else 'âŒ'} {label}")
                 if passed == total:
-                    st.success(f"âœ… All {total} structural heuristic checks passed.")
+                    st.success(f"✅ All {total} structural heuristic checks passed.")
                 elif passed >= total - 1:
-                    st.warning(f"âš ï¸ {passed}/{total} checks passed â€” minor formatting adjustments recommended.")
+                    st.warning(f"âš ï¸ {passed}/{total} checks passed — minor formatting adjustments recommended.")
                 else:
-                    st.error(f"ðŸš¨ Only {passed}/{total} checks passed â€” citation format deviates significantly from APA 7th standards.")
+                    st.error(f"ðŸš¨ Only {passed}/{total} checks passed — citation format deviates significantly from APA 7th standards.")
             else:
                 st.warning("Please provide a citation string to inspect.")
 
@@ -435,17 +435,17 @@ def render_apa_outputs():
             "Variable": ["Age (Years)", "Baseline Biomarker (ng/mL)", "Post-Intervention Biomarker", "Mean Difference", "Cohen's d"],
             "Experimental Group": ["45.2 (7.1)", "2.41 (0.35)", "1.12 (0.18)", "-1.29", "2.84"],
             "Control Group": ["44.8 (6.9)", "2.39 (0.32)", "2.35 (0.31)", "-0.04", "0.11"],
-            "t-statistic / F": ["0.42", "0.38", "14.21", "11.50", "â€”"],
-            "p-value": [".675", ".704", "< .001", "< .001", "â€”"],
+            "t-statistic / F": ["0.42", "0.38", "14.21", "11.50", "—"],
+            "p-value": [".675", ".704", "< .001", "< .001", "—"],
         })
         edited_table = st.data_editor(default_stub, num_rows="dynamic", use_container_width=True, key="apa_table_editor_prod")
         render_export_buttons(edited_table, base_name="apa_publication_table")
 
 
 def render_grants_and_quality():
-    section_header("ðŸ“œ Grant Application Formatter & Research Quality Assessor", "Customizable institutional grant builder and multidimensional research rigor evaluation suite.")
+    section_header("📜 Grant Application Formatter & Research Quality Assessor", "Customizable institutional grant builder and multidimensional research rigor evaluation suite.")
 
-    tab_grant, tab_quality = st.tabs(["ðŸ“œ Grant Proposal Formatter", "âœ… Research Quality Assessor"])
+    tab_grant, tab_quality = st.tabs(["📜 Grant Proposal Formatter", "✅ Research Quality Assessor"])
 
     with tab_grant:
         st.markdown("#### Institutional Grant Proposal Builder")
@@ -462,7 +462,7 @@ def render_grants_and_quality():
         background_text = st.text_area("Background & Significance", value="Current literature demonstrates critical gaps in reproducible bioinformatics pipelines. This proposal addresses this structural limitation directly.", height=110, key="grant_background_prod")
         methodology_text = st.text_area("Research Design & Methodology", value="We utilize robust statistical validation, modular Python architectures, and cross-validated machine learning algorithms.", height=110, key="grant_methodology_prod")
 
-        if st.button("ðŸ“œ Generate Grant Proposal Package", type="primary", key="run_grant_prod"):
+        if st.button("📜 Generate Grant Proposal Package", type="primary", key="run_grant_prod"):
             proposal_text = f"""# INSTITUTIONAL GRANT PROPOSAL: {agency.upper()}
 **Project Title:** {grant_title}
 **Principal Investigator:** {pi_name}
@@ -495,14 +495,14 @@ def render_grants_and_quality():
         for i, dim in enumerate(dims):
             scores[dim] = cols[i % 2].slider(dim, 0, 100, 75, key=f"quality_score_prod_{i}")
 
-        if st.button("âœ… Calculate Rigor Index", type="primary", key="run_quality_prod"):
+        if st.button("✅ Calculate Rigor Index", type="primary", key="run_quality_prod"):
             avg_score = np.mean(list(scores.values()))
             st.metric("Overall Research Quality Index", f"{avg_score:.1f} / 100")
             st.progress(int(avg_score))
-            verdict = "Strong â€” publication ready" if avg_score >= 85 else ("Moderate â€” minor revisions recommended" if avg_score >= 65 else "Weak â€” comprehensive methodological overhaul required")
+            verdict = "Strong — publication ready" if avg_score >= 85 else ("Moderate — minor revisions recommended" if avg_score >= 65 else "Weak — comprehensive methodological overhaul required")
             st.success(f"**Evaluation Verdict:** {verdict}")
             weakest = min(scores, key=scores.get)
-            st.info(f"ðŸ’¡ Priority Improvement Target: **{weakest}** ({scores[weakest]}/100) â€” focus protocol enhancements here.")
+            st.info(f"ðŸ’¡ Priority Improvement Target: **{weakest}** ({scores[weakest]}/100) — focus protocol enhancements here.")
 
 
 def render_publication_pipeline():
@@ -530,7 +530,7 @@ def render_academic_vault():
     section_header(
         "ðŸ—‚ï¸ Academic Report Vault",
         "Academic publications & fieldwork repository, backed by persistent storage. Genuine "
-        "submitted/completed course reports, not demo entries â€” starts empty until real reports are added.",
+        "submitted/completed course reports, not demo entries — starts empty until real reports are added.",
     )
 
     from modules.legacy_research_data import get_academic_vault_df, add_academic_report
@@ -569,7 +569,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸ“š Literature & Publishing Hub â€” Production Suite",
+        "ðŸ“š Literature & Publishing Hub — Production Suite",
         "Consolidated academic platform featuring real CrossRef integration, persistent reference management, inverse-variance meta-analysis pooling, heuristic APA compliance inspection, and grant proposal scaffolding.",
         badge_text="LITERATURE & PUBLISHING HUB â€¢ PRODUCTION TIER",
     )
@@ -578,7 +578,7 @@ def main():
         "ðŸ“š Literature & References",
         "ðŸ“Š Meta-Analysis Studio",
         "ðŸ“‘ APA & Citations",
-        "ðŸ“œ Grants & Quality",
+        "📜 Grants & Quality",
         "ðŸš€ Publication Pipeline",
         "ðŸ—‚ï¸ Academic Report Vault",
     ])

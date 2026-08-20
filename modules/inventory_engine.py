@@ -25,7 +25,7 @@ def render_inventory_tab():
     inv_col1, inv_col2 = st.columns([2, 1])
 
     with inv_col1:
-        st.markdown("### ðŸ“¦ Stock Status & Storage Mapping")
+        st.markdown("### 📦 Stock Status & Storage Mapping")
         
         # Highlight low stock
         low_stock = df[df["Quantity"] <= df["MinThreshold"]]
@@ -33,12 +33,12 @@ def render_inventory_tab():
             st.error(f"âš ï¸ **Alert:** {len(low_stock)} item(s) below minimum stock threshold!")
             st.dataframe(low_stock[["Name", "Quantity", "Unit", "Location", "MinThreshold"]], use_container_width=True)
         else:
-            st.success("âœ… All reagents and samples are above reorder thresholds.")
+            st.success("✅ All reagents and samples are above reorder thresholds.")
 
         st.dataframe(df, use_container_width=True)
 
     with inv_col2:
-        st.markdown("### ðŸ§® PCR Master Mix Calculator")
+        st.markdown("### 🧮 PCR Master Mix Calculator")
         st.caption("Auto-calculate total component volumes with overflow waste margin.")
         
         rxn_count = st.number_input("Number of Reactions", min_value=1, max_value=384, value=10, step=1)

@@ -54,7 +54,7 @@ def render_grant_engine_tab():
                 full_text = f"{section_content}\n\n---\n\n"
 
             st.download_button(
-                label="ðŸ“¥ Download Proposal (.MD)",
+                label="📥 Download Proposal (.MD)",
                 data=full_text,
                 file_name=f"Grant_Proposal_{funding_agency.replace(' ', '_')}.md",
                 mime="text/markdown",

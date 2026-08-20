@@ -336,7 +336,7 @@ def render_security_dashboard():
         
         # Status
         if check["is_safe"]:
-            st.success(f"âœ… Secure Session (Score: {check['security_score']}%)")
+            st.success(f"✅ Secure Session (Score: {check['security_score']}%)")
         else:
             st.warning(f"âš ï¸ Elevated Risk (Score: {check['security_score']}%)")
         
@@ -429,7 +429,7 @@ def render_professor_vault():
             st.code(encrypted)
             
             st.download_button(
-                "ðŸ“¥ Download Encrypted",
+                "📥 Download Encrypted",
                 data=encrypted,
                 file_name="encrypted_review.sec",
                 mime="text/plain",

@@ -1417,17 +1417,17 @@ def render_ai_researcher_panel():
         with col1:
             if st.button("â¹ï¸ End Meeting", use_container_width=True):
                 result = researcher.end_meeting()
-                st.success(f"âœ… Meeting ended  {result['duration_display']}")
+                st.success(f"✅ Meeting ended  {result['duration_display']}")
                 st.rerun()
         with col2:
-            if st.button("ðŸ§¹ Clear Notes", use_container_width=True):
+            if st.button("🧹 Clear Notes", use_container_width=True):
                 researcher.notes.clear()
                 researcher.action_items.clear()
                 st.rerun()
 
         # Tabs for different views
         tab1, tab2, tab3, tab4 = st.tabs([
-            "ðŸ“‹ Action Items", "ðŸ“ Meeting Notes", " Analytics", "ðŸ”¬ Research Context"
+            "📋 Action Items", "ðŸ“ Meeting Notes", " Analytics", "ðŸ”¬ Research Context"
         ])
 
         with tab1:
@@ -1512,7 +1512,7 @@ def render_ai_researcher_panel():
 
             st.markdown("### Integration Hooks")
             for hook_name, active in ctx["integration_hooks"].items():
-                st.markdown(f"{'âœ…' if active else 'âŒ'} `{hook_name}`  {'Connected' if active else 'Not connected'}")
+                st.markdown(f"{'✅' if active else 'âŒ'} `{hook_name}`  {'Connected' if active else 'Not connected'}")
 
             st.info("ðŸ’¡ Connect hooks from Literature Engine, Hypothesis Generator, and AI Analyzer for enriched meeting intelligence.")
 

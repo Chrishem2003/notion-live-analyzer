@@ -96,10 +96,10 @@ CATEGORY_ORDER = ["Core", "File Parsing", "Statistics", "Export", "AI/ML",
                   "Text Analysis", "Google Sheets", "Advanced", "Utilities"]
 
 CATEGORY_ICONS = {
-    "Core": "ðŸ“¦",
+    "Core": "📦",
     "File Parsing": "ðŸ“",
     "Statistics": "",
-    "Export": "ðŸ“¥",
+    "Export": "📥",
     "AI/ML": "ðŸ§ ",
     "Text Analysis": "ðŸ’¬",
     "Google Sheets": "ðŸ”—",
@@ -152,7 +152,7 @@ def install_package(pip_name: str, timeout: int = 120) -> Tuple[bool, str]:
             capture_output=True, text=True, timeout=timeout
         )
         if result.returncode == 0:
-            return True, f"âœ… {pip_name} installed successfully"
+            return True, f"✅ {pip_name} installed successfully"
         else:
             error_msg = result.stderr[:300] if result.stderr else "Unknown error"
             return False, f"âŒ Failed to install {pip_name}: {error_msg}"
@@ -224,7 +224,7 @@ def render_dependency_ui():
     st.markdown(f"###  Overall Status: {installed_count}/{total} packages installed ({pct}%)")
 
     if pct == 100:
-        st.success("âœ… **All packages are installed!** The application is ready to use.")
+        st.success("✅ **All packages are installed!** The application is ready to use.")
     else:
         st.warning(f"âš ï¸ **{len(missing_pkgs)} packages** need to be installed for full functionality.")
 
@@ -232,13 +232,13 @@ def render_dependency_ui():
     st.progress(pct)
 
     # â”€â”€â”€ Per-category breakdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    st.markdown("### ðŸ“‹ Package Breakdown by Category")
+    st.markdown("### 📋 Package Breakdown by Category")
 
     summary = get_package_summary()
 
     for cat in categories:
         cat_data = summary[cat]
-        icon = CATEGORY_ICONS.get(cat, "ðŸ“¦")
+        icon = CATEGORY_ICONS.get(cat, "📦")
 
         with st.expander(
             f"{icon} **{cat}**  {cat_data['installed']}/{cat_data['total']} installed",
@@ -246,11 +246,11 @@ def render_dependency_ui():
         ):
             cols = st.columns(2)
             with cols[0]:
-                st.markdown("**âœ… Installed:**")
+                st.markdown("**✅ Installed:**")
                 for name in cat_data["installed_names"]:
                     pkg = next((p for p in all_pkgs if p.pip_name == name), None)
                     version = f" v{pkg.installed_version}" if pkg and pkg.installed_version else ""
-                    st.markdown(f"- âœ… {name}{version}")
+                    st.markdown(f"- ✅ {name}{version}")
 
             with cols[1]:
                 if cat_data["missing_names"]:
@@ -260,7 +260,7 @@ def render_dependency_ui():
                         desc = f"  {pkg.description}" if pkg else ""
                         st.markdown(f"- âŒ {name}{desc}")
                 else:
-                    st.markdown("**âœ… All installed!**")
+                    st.markdown("**✅ All installed!**")
 
     # â”€â”€â”€ Install missing packages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if missing_pkgs:
@@ -292,7 +292,7 @@ def render_dependency_ui():
                 results = install_missing_packages(missing_names, progress_callback)
 
             # Show results
-            st.markdown("### ðŸ“‹ Installation Results")
+            st.markdown("### 📋 Installation Results")
             success_count = sum(1 for s, _ in results.values() if s)
             fail_count = sum(1 for s, _ in results.values() if not s)
             st.markdown(f"**{success_count} succeeded**, **{fail_count} failed**")
@@ -315,7 +315,7 @@ def render_dependency_ui():
         pkg_names = sorted([p.pip_name for p in ALL_PACKAGES])
         selected_pkg = st.selectbox("Select a package to install", options=pkg_names)
 
-        if st.button(f"ðŸ“¥ Install {selected_pkg}"):
+        if st.button(f"📥 Install {selected_pkg}"):
             with st.spinner(f"Installing {selected_pkg}..."):
                 success, message = install_package(selected_pkg)
             if success:
@@ -342,7 +342,7 @@ def auto_fix_missing_critical(quiet: bool = False) -> int:
             if success:
                 installed_count = 1
                 if not quiet:
-                    print(f"âœ… Auto-installed: {pkg.pip_name}")
+                    print(f"✅ Auto-installed: {pkg.pip_name}")
             else:
                 logger.error("Auto-install of %s failed: %s", pkg.pip_name, msg)
                 if not quiet:

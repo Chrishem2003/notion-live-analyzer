@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ¤– ML & Predictive Studio â€” Consolidated Machine Learning Hub (Premium)
+ðŸ¤– ML & Predictive Studio — Consolidated Machine Learning Hub (Premium)
 AutoML with real hyperparameter tuning, cross-validation, model persistence/export, a prediction
 engine that actually uses your trained model (not a throwaway retrain), automated feature
 selection, and non-theatrical autonomous agent missions.
@@ -100,7 +100,7 @@ def _deserialize_pipeline(raw_bytes: bytes) -> dict:
 
 
 def render_automl_tab(df):
-    section_header("ðŸ¤– Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate multi-algorithm machine learning models â€” with real hyperparameter search and a persistable trained pipeline.")
+    section_header("ðŸ¤– Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate multi-algorithm machine learning models — with real hyperparameter search and a persistable trained pipeline.")
 
     if not SKLEARN_AVAILABLE:
         st.error("âš ï¸ `scikit-learn` is required for this module.")
@@ -122,7 +122,7 @@ def render_automl_tab(df):
     with col3:
         cv_folds = st.slider("Cross-Validation Folds", 3, 10, 5, key="ml_cv")
 
-    tune = st.checkbox("ðŸ”§ Enable Hyperparameter Tuning (GridSearchCV) â€” slower, more accurate", value=False, key="ml_tune")
+    tune = st.checkbox("ðŸ”§ Enable Hyperparameter Tuning (GridSearchCV) — slower, more accurate", value=False, key="ml_tune")
 
     models = _build_model_registry(task)
     selected_models = st.multiselect("Select Algorithms to Evaluate", list(models.keys()), default=list(models.keys()), key="ml_algos")
@@ -133,7 +133,7 @@ def render_automl_tab(df):
         elif not selected_models:
             st.error("Select at least one algorithm.")
         elif task == "Regression" and not pd.api.types.is_numeric_dtype(pd.to_numeric(df[target], errors="coerce")):
-            st.error(f"ðŸš« Target `{target}` cannot be interpreted as numeric â€” choose Classification instead, or pick a numeric target for regression.")
+            st.error(f"ðŸš« Target `{target}` cannot be interpreted as numeric — choose Classification instead, or pick a numeric target for regression.")
         else:
             with st.spinner("Preprocessing data and executing cross-validation training..."):
                 try:
@@ -155,7 +155,7 @@ def render_automl_tab(df):
                         y_num = pd.to_numeric(y, errors="coerce")
                         valid = y_num.notnull()
                         if valid.sum() < 10:
-                            st.error("ðŸš« Fewer than 10 valid numeric target rows after cleaning â€” cannot train reliably.")
+                            st.error("ðŸš« Fewer than 10 valid numeric target rows after cleaning — cannot train reliably.")
                             st.stop()
                         X_imp = X_imp.loc[valid]
                         y_target = y_num.loc[valid].values
@@ -220,7 +220,7 @@ def render_automl_tab(df):
                     res_df = pd.DataFrame(results)
                     st.markdown("#### ðŸ“Š Model Performance Leaderboard")
                     st.dataframe(res_df, use_container_width=True, hide_index=True)
-                    st.success(f"âœ… Best performer: **{best_name}** (test score {best_score:.4f}) â€” this is now the active model for the Prediction Engine tab.")
+                    st.success(f"✅ Best performer: **{best_name}** (test score {best_score:.4f}) — this is now the active model for the Prediction Engine tab.")
 
                     if "Random Forest" in trained_models and hasattr(trained_models["Random Forest"], "feature_importances_"):
                         st.markdown("#### ðŸ” Random Forest Feature Importances")
@@ -258,14 +258,14 @@ def render_automl_tab(df):
                 try:
                     loaded = _deserialize_pipeline(uploaded_pipeline.getvalue())
                     st.session_state["ml_active_pipeline"] = loaded
-                    st.success(f"âœ… Loaded pipeline: {loaded.get('algorithm', 'Unknown')} ({loaded.get('task', 'Unknown')})")
+                    st.success(f"✅ Loaded pipeline: {loaded.get('algorithm', 'Unknown')} ({loaded.get('task', 'Unknown')})")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Could not load pipeline: {e}")
 
 
 def render_predict_tab(df):
-    section_header("ðŸ”® Interactive Prediction Engine", "Score new records using the model you actually trained in the AutoML tab â€” not a disconnected throwaway retrain.")
+    section_header("ðŸ”® Interactive Prediction Engine", "Score new records using the model you actually trained in the AutoML tab — not a disconnected throwaway retrain.")
 
     if not SKLEARN_AVAILABLE:
         st.error("`scikit-learn` required.")
@@ -273,7 +273,7 @@ def render_predict_tab(df):
 
     pipeline = st.session_state.get("ml_active_pipeline")
     if not pipeline:
-        st.warning("âš ï¸ No trained model yet. Go to **AutoML & Training**, run the suite, and come back â€” this tab will automatically use the best model from that run.")
+        st.warning("âš ï¸ No trained model yet. Go to **AutoML & Training**, run the suite, and come back — this tab will automatically use the best model from that run.")
         return
 
     model, scaler = pipeline["model"], pipeline["scaler"]
@@ -359,7 +359,7 @@ def render_feature_engineering_tab(df):
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     tab_interact, tab_bin, tab_poly, tab_select = st.tabs([
-        "âœ–ï¸ Interactions", "ðŸ“¦ Binning & Quantiles", "ðŸ“ˆ Polynomials", "ðŸŽ¯ Automated Feature Selection"
+        "âœ–ï¸ Interactions", "📦 Binning & Quantiles", "📈 Polynomials", "ðŸŽ¯ Automated Feature Selection"
     ])
 
     with tab_interact:
@@ -381,7 +381,7 @@ def render_feature_engineering_tab(df):
 
                 working[new_col] = values
                 set_active_dataframe(working, st.session_state.get("source_name", "engineered.csv"))
-                st.success(f"âœ… Created engineered feature '{new_col}' and updated active dataset.")
+                st.success(f"✅ Created engineered feature '{new_col}' and updated active dataset.")
                 st.rerun()
         else:
             st.info("Need at least 2 numeric columns.")
@@ -392,14 +392,14 @@ def render_feature_engineering_tab(df):
             strategy = st.radio("Binning Strategy", ["Equal Width (Uniform)", "Equal Frequency (Quantiles)"], horizontal=True, key="fe_bin_strat")
             n_bins = st.slider("Number of Bins", 2, 10, 4, key="fe_bin_n")
 
-            if st.button("ðŸ“¦ Create Binned Feature", type="primary", key="run_fe_bin"):
+            if st.button("📦 Create Binned Feature", type="primary", key="run_fe_bin"):
                 working = df.copy()
                 if "Uniform" in strategy:
                     working[f"{col}_bin"] = pd.cut(working[col], bins=n_bins, labels=[f"Bin_{i+1}" for i in range(n_bins)])
                 else:
                     working[f"{col}_bin"] = pd.qcut(working[col], q=n_bins, labels=[f"Q_{i+1}" for i in range(n_bins)], duplicates="drop")
                 set_active_dataframe(working, st.session_state.get("source_name", "binned.csv"))
-                st.success(f"âœ… Binned '{col}' into {n_bins} categories.")
+                st.success(f"✅ Binned '{col}' into {n_bins} categories.")
                 st.rerun()
         else:
             st.info("No numeric columns available.")
@@ -410,12 +410,12 @@ def render_feature_engineering_tab(df):
             if mode == "Single Column Powers":
                 col = st.selectbox("Variable for polynomial generation", numeric_cols, key="fe_poly_col")
                 degree = st.slider("Maximum Degree", 2, 4, 2, key="fe_poly_deg")
-                if st.button("ðŸ“ˆ Generate Polynomial Features", type="primary", key="run_fe_poly"):
+                if st.button("📈 Generate Polynomial Features", type="primary", key="run_fe_poly"):
                     working = df.copy()
                     for d in range(2, degree + 1):
                         working[f"{col}_pow{d}"] = working[col] ** d
                     set_active_dataframe(working, st.session_state.get("source_name", "polynomial.csv"))
-                    st.success(f"âœ… Created polynomial features up to degree {degree}.")
+                    st.success(f"✅ Created polynomial features up to degree {degree}.")
                     st.rerun()
             else:
                 if not SKLEARN_AVAILABLE:
@@ -423,7 +423,7 @@ def render_feature_engineering_tab(df):
                 else:
                     cols_sel = st.multiselect("Select columns to expand", numeric_cols, default=numeric_cols[:2], key="fe_poly_cols")
                     degree = st.slider("Degree", 2, 3, 2, key="fe_poly_multi_deg")
-                    if len(cols_sel) >= 2 and st.button("ðŸ“ˆ Generate Polynomial + Interaction Set", type="primary", key="run_fe_poly_multi"):
+                    if len(cols_sel) >= 2 and st.button("📈 Generate Polynomial + Interaction Set", type="primary", key="run_fe_poly_multi"):
                         working = df.copy()
                         clean = working[cols_sel].dropna()
                         poly = PolynomialFeatures(degree=degree, include_bias=False)
@@ -434,7 +434,7 @@ def render_feature_engineering_tab(df):
                         for n in new_names:
                             working.loc[clean.index, n] = expanded_df[n]
                         set_active_dataframe(working, st.session_state.get("source_name", "polynomial_expanded.csv"))
-                        st.success(f"âœ… Added {len(new_names)} polynomial/interaction terms: {', '.join(new_names[:8])}{'â€¦' if len(new_names) > 8 else ''}")
+                        st.success(f"✅ Added {len(new_names)} polynomial/interaction terms: {', '.join(new_names[:8])}{'â€¦' if len(new_names) > 8 else ''}")
                         st.rerun()
         else:
             st.info("No numeric columns available.")
@@ -470,7 +470,7 @@ def render_feature_engineering_tab(df):
                     st.markdown("#### ðŸ“Š Feature F-Scores")
                     st.bar_chart(scores)
                     top_feats = scores.head(k_val).index.tolist()
-                    st.success(f"âœ… Top {k_val} recommended features: {', '.join(top_feats)}")
+                    st.success(f"✅ Top {k_val} recommended features: {', '.join(top_feats)}")
         else:
             st.info("Need at least 3 columns for feature selection.")
 
@@ -544,11 +544,11 @@ def _mission_pipeline_sync(df: pd.DataFrame) -> dict:
 
 
 def render_agents_tab():
-    section_header("ðŸ¦¾ Autonomous Agent Console", "Each mission actually inspects the active dataset â€” no simulated delays, no canned success messages.")
+    section_header("ðŸ¦¾ Autonomous Agent Console", "Each mission actually inspects the active dataset — no simulated delays, no canned success messages.")
 
     df = get_active_dataframe()
     if df is None:
-        st.warning("âš ï¸ No active dataset. Load one in Data Studio first â€” these missions need real data to inspect.")
+        st.warning("âš ï¸ No active dataset. Load one in Data Studio first — these missions need real data to inspect.")
         return
 
     mission = st.selectbox("Select Agent Mission", [
@@ -568,13 +568,13 @@ def render_agents_tab():
                 else:
                     st.dataframe(result, use_container_width=True, hide_index=True)
                     total = int(result["Outliers Found"].sum())
-                    st.success(f"âœ… Mission complete â€” {total:,} outlier values found across {len(result)} numeric columns.")
+                    st.success(f"✅ Mission complete — {total:,} outlier values found across {len(result)} numeric columns.")
                     render_export_buttons(result, base_name="agent_outlier_sweep")
 
             elif mission == "Data Quality & Missingness Audit":
                 result = _mission_quality_audit(df)
                 st.dataframe(result, use_container_width=True, hide_index=True)
-                st.success("âœ… Mission complete.")
+                st.success("✅ Mission complete.")
                 render_export_buttons(result, base_name="agent_quality_audit")
 
             elif mission == "Trend Degradation Check":
@@ -587,32 +587,32 @@ def render_agents_tab():
                     if len(degrading):
                         st.warning(f"âš ï¸ {len(degrading)} column(s) show a statistically significant downward trend over row order: {', '.join(degrading['Column'])}")
                     else:
-                        st.success("âœ… No statistically significant degrading trends detected.")
+                        st.success("✅ No statistically significant degrading trends detected.")
                     render_export_buttons(result, base_name="agent_trend_check")
 
             elif mission == "Automated Executive Reporting Generator":
                 report = _mission_executive_report(df)
                 st.code(report, language="markdown")
                 st.download_button("â¬‡ï¸ Download Executive Report (.md)", data=report, file_name="agent_executive_report.md", mime="text/markdown", key="dl_agent_report")
-                st.success("âœ… Mission complete.")
+                st.success("✅ Mission complete.")
 
             else:
                 result = _mission_pipeline_sync(df)
                 if result["data_studio_fingerprint"] is None:
-                    st.info("No fingerprint recorded by Data Studio yet this session â€” nothing to compare against. Current dataset fingerprint: " + result["current_fingerprint"][:24] + "â€¦")
+                    st.info("No fingerprint recorded by Data Studio yet this session — nothing to compare against. Current dataset fingerprint: " + result["current_fingerprint"][:24] + "â€¦")
                 elif result["consistent"]:
-                    st.success(f"âœ… Consistent â€” this dataset matches the fingerprint Data Studio last recorded ({result['current_fingerprint'][:24]}â€¦).")
+                    st.success(f"✅ Consistent — this dataset matches the fingerprint Data Studio last recorded ({result['current_fingerprint'][:24]}â€¦).")
                 else:
-                    st.error(f"ðŸš¨ Inconsistent â€” the active dataset has changed since Data Studio last recorded a fingerprint. Current: {result['current_fingerprint'][:16]}â€¦ vs. recorded: {result['data_studio_fingerprint'][:16]}â€¦")
+                    st.error(f"ðŸš¨ Inconsistent — the active dataset has changed since Data Studio last recorded a fingerprint. Current: {result['current_fingerprint'][:16]}â€¦ vs. recorded: {result['data_studio_fingerprint'][:16]}â€¦")
 
 
 def render_realworld_chaos_tab(df):
     section_header(
         "ðŸŒ Real-World Chaos & Nonlinear Dynamics Detector",
-        "Data-driven chaos detection on your actual uploaded data â€” Rosenstein Lyapunov exponent, "
+        "Data-driven chaos detection on your actual uploaded data — Rosenstein Lyapunov exponent, "
         "the Gottwaldâ€“Melbourne 0-1 Test, Grassbergerâ€“Procaccia correlation dimension, sample entropy, "
         "and Huang's Empirical Mode Decomposition / Hilbert Spectral Analysis. Same rigorous math for "
-        "any sector â€” education, healthcare, security, agriculture, engineering, economics, finance, or "
+        "any sector — education, healthcare, security, agriculture, engineering, economics, finance, or "
         "anything else. This tab analyzes what you actually uploaded; it does not simulate a toy model."
     )
 
@@ -646,7 +646,7 @@ def render_realworld_chaos_tab(df):
             col = st.selectbox("Numeric column to analyze (in row order)", numeric_cols, key="rwc_col")
         with c2:
             sector = st.selectbox(
-                "Sector context (labeling only â€” the math below is identical regardless of choice)",
+                "Sector context (labeling only — the math below is identical regardless of choice)",
                 ["Generic / Unspecified", "Education", "Healthcare", "Security", "Agriculture",
                  "Engineering", "Economics & Finance", "Other"],
                 key="rwc_sector",
@@ -670,7 +670,7 @@ def render_realworld_chaos_tab(df):
 
     if n < 30:
         st.error(
-            f"Only {n} usable data points after dropping missing values â€” that is too few for any of "
+            f"Only {n} usable data points after dropping missing values — that is too few for any of "
             f"these methods to be meaningful (most need 50-200+ points). Upload a longer series."
         )
         return
@@ -683,12 +683,12 @@ def render_realworld_chaos_tab(df):
     if "all" in verdict_lower and "chaotic" in verdict_lower:
         st.error(f"ðŸŒ€ **{report.verdict}**")
     elif "all" in verdict_lower and "no evidence" in verdict_lower:
-        st.success(f"âœ… **{report.verdict}**")
+        st.success(f"✅ **{report.verdict}**")
     else:
         st.warning(f"âš ï¸ **{report.verdict}**")
 
     if report.warnings:
-        with st.expander(f"âš ï¸ {len(report.warnings)} data-adequacy warning(s) â€” read before trusting numbers below"):
+        with st.expander(f"âš ï¸ {len(report.warnings)} data-adequacy warning(s) — read before trusting numbers below"):
             for w in report.warnings:
                 st.markdown(f"- {w}")
 
@@ -700,7 +700,7 @@ def render_realworld_chaos_tab(df):
                     "Computed directly from your data, not from a simulated equation.")
     K = report.zero_one.get("K")
     m2.metric("0-1 Test for Chaos (K)", f"{K:.3f}" if np.isfinite(K) else "n/a",
-               help="Kâ‰ˆ0: regular (periodic/quasi-periodic). Kâ‰ˆ1: irregular (chaotic OR stochastic â€” "
+               help="Kâ‰ˆ0: regular (periodic/quasi-periodic). Kâ‰ˆ1: irregular (chaotic OR stochastic — "
                     "this test alone cannot tell those apart; see correlation dimension for that).")
     se = report.sample_entropy.get("sampen")
     m3.metric("Sample Entropy", f"{se:.4f}" if np.isfinite(se) else "n/a",
@@ -708,11 +708,11 @@ def render_realworld_chaos_tab(df):
                     "periodic signals score near zero; chaos is usually in between.")
     m4.metric("Embedding used", f"m={report.embedding_dim}, Ï„={report.tau}",
                help="Automatically chosen via False Nearest Neighbors and Average Mutual Information "
-                    "â€” not hand-tuned per dataset.")
+                    "— not hand-tuned per dataset.")
 
     # --- Correlation dimension detail ---------------------------------------
     cd = report.correlation_dim
-    with st.expander("ðŸ“ Correlation Dimension (Grassbergerâ€“Procaccia) â€” is the attractor low-dimensional?"):
+    with st.expander("ðŸ“ Correlation Dimension (Grassbergerâ€“Procaccia) — is the attractor low-dimensional?"):
         st.caption(cd.get("note", ""))
         d2_by_dim = cd.get("d2_by_dim", {})
         if d2_by_dim:
@@ -728,13 +728,13 @@ def render_realworld_chaos_tab(df):
             st.caption("A flat curve (D2 stops rising) = consistent with a genuine, low-dimensional "
                        "deterministic attractor. A curve that keeps climbing roughly 1-for-1 with "
                        "embedding dimension = consistent with noise or very high-dimensional dynamics. "
-                       "This method is notoriously data-hungry â€” treat it as supporting evidence, not "
+                       "This method is notoriously data-hungry — treat it as supporting evidence, not "
                        "a standalone verdict, especially with under ~500 points.")
         else:
             st.info("Not enough data to compute a reliable correlation dimension curve here.")
 
     # --- Lyapunov divergence curve -----------------------------------------
-    with st.expander("ðŸ“ˆ Lyapunov Divergence Curve (Rosenstein)"):
+    with st.expander("📈 Lyapunov Divergence Curve (Rosenstein)"):
         k_axis, mean_log_div = report.lyapunov.get("divergence_curve", (None, None))
         if k_axis is not None:
             fig = go.Figure(data=[go.Scatter(x=k_axis, y=mean_log_div, mode="lines",
@@ -755,12 +755,12 @@ def render_realworld_chaos_tab(df):
     # --- EMD / Hilbert spectrum ----------------------------------------------
     with st.expander("ðŸŒŠ Empirical Mode Decomposition & Hilbert Spectrum (Huang et al., 1998)"):
         st.caption("Decomposes your series into physically meaningful oscillatory modes without "
-                   "assuming linearity or stationarity â€” useful for spotting regime shifts and the "
+                   "assuming linearity or stationarity — useful for spotting regime shifts and the "
                    "dominant timescales actually present in the data.")
         emd_res = empirical_mode_decomposition(series)
         imfs = emd_res["imfs"]
         if len(imfs) == 0:
-            st.info("No clear intrinsic modes found â€” the series may already be too smooth or too short.")
+            st.info("No clear intrinsic modes found — the series may already be too smooth or too short.")
         else:
             fig = go.Figure()
             for i, imf in enumerate(imfs[:5]):
@@ -799,7 +799,7 @@ def render_realworld_chaos_tab(df):
         "(1998) empirical mode decomposition & Hilbert spectral analysis Â· Richman & Moorman (2000) "
         "sample entropy Â· Marwan et al. (2007) recurrence quantification analysis. **Known honest "
         "limitation:** no method here, alone or combined, can perfectly separate low-dimensional chaos "
-        "from high-dimensional stochastic noise on short real-world data â€” this is an open problem in "
+        "from high-dimensional stochastic noise on short real-world data — this is an open problem in "
         "nonlinear time series analysis, not a gap specific to this tool. Where the tests disagree, "
         "this page says so instead of forcing a confident-sounding answer."
     )
@@ -807,9 +807,9 @@ def render_realworld_chaos_tab(df):
 
 def render_chaos_tab():
     section_header(
-        "âš›ï¸ ODE Simulator (Toy Model â€” Not Real Data)",
+        "âš›ï¸ ODE Simulator (Toy Model — Not Real Data)",
         "A parameter sandbox for exploring generic nonlinear dynamical equations via SciPy's numerical "
-        "ODE solvers. Sector labels here only relabel the same underlying generic 3-variable system â€” "
+        "ODE solvers. Sector labels here only relabel the same underlying generic 3-variable system — "
         "this tab does not analyze your uploaded data. For real, data-driven chaos detection on your "
         "actual dataset, use the 'Real-World Chaos Detector' tab instead.",
     )

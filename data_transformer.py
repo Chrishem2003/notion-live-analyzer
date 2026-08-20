@@ -297,7 +297,7 @@ def weight_cases(df: pd.DataFrame, weight_col: str) -> pd.DataFrame:
 
 def render_compute_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Compute Variable UI."""
-    st.subheader("ðŸ§® Compute Variable")
+    st.subheader("🧮 Compute Variable")
     st.caption("Create a new variable based on an expression (like SPSS Compute)")
 
     cols = df.columns.tolist()
@@ -326,7 +326,7 @@ def render_compute_ui(df: pd.DataFrame) -> pd.DataFrame:
         if expression and new_var:
             result_df = compute_variable(df, expression, new_var)
             if new_var in result_df.columns:
-                st.success(f"âœ… Created '{new_var}'")
+                st.success(f"✅ Created '{new_var}'")
                 return result_df
 
     return df
@@ -377,7 +377,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
                 except ValueError:
                     else_converted = else_val
             df_result = recode_same(df, col, mappings, else_converted)
-            st.success("âœ… Recoded successfully")
+            st.success("✅ Recoded successfully")
             return df_result
 
     elif recode_type == "Into Different Variable":
@@ -407,7 +407,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
 
         if st.button("â–¶ï¸ Recode into Different", type="primary"):
             df_result = recode_same(df, col, mappings, new_var=new_col)
-            st.success(f"âœ… Created '{new_col}'")
+            st.success(f"✅ Created '{new_col}'")
             return df_result
 
     else:  # Into Different Variable (Ranges)
@@ -433,7 +433,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
 
         if st.button("â–¶ï¸ Recode Ranges", type="primary"):
             df_result = recode_different(df, col, new_col, ranges)
-            st.success(f"âœ… Created '{new_col}'")
+            st.success(f"✅ Created '{new_col}'")
             return df_result
 
     return df
@@ -465,7 +465,7 @@ def render_rank_ui(df: pd.DataFrame) -> pd.DataFrame:
             group_col=group_col if group_col else None,
             new_col=new_col if new_col else None
         )
-        st.success(f"âœ… Created '{new_col}'")
+        st.success(f"✅ Created '{new_col}'")
         return result_df
     return df
 
@@ -482,7 +482,7 @@ def render_count_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("â–¶ï¸ Count Occurrences", type="primary"):
         result_df = count_occurrences(df, value, selected_cols, new_col)
-        st.success(f"âœ… Created '{new_col}'")
+        st.success(f"✅ Created '{new_col}'")
         return result_df
     return df
 
@@ -500,7 +500,7 @@ def render_shift_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("â–¶ï¸ Create Shift", type="primary"):
         result_df = shift_variable(df, col, periods=int(periods), group_col=group_col or None, new_col=new_col)
-        st.success(f"âœ… Created '{new_col}'")
+        st.success(f"✅ Created '{new_col}'")
         return result_df
     return df
 
@@ -530,7 +530,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
 
         if st.button("â–¶ï¸ Bin Variable", type="primary"):
             result_df = bin_variable(df, col, bins=n_bins, labels=labels, new_col=new_col)
-            st.success(f"âœ… Created '{new_col}'")
+            st.success(f"✅ Created '{new_col}'")
             # Show distribution
             st.dataframe(result_df[new_col].value_counts().reset_index(), use_container_width=True, hide_index=True)
             return result_df
@@ -553,7 +553,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
                 else:
                     labels = None
                 result_df = bin_variable(df, col, bins=cuts, labels=labels, new_col=new_col)
-                st.success(f"âœ… Created '{new_col}'")
+                st.success(f"✅ Created '{new_col}'")
                 st.dataframe(result_df[new_col].value_counts().reset_index(), use_container_width=True, hide_index=True)
                 return result_df
             except Exception as e:
@@ -564,7 +564,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
 
 def render_sort_ui(df: pd.DataFrame) -> pd.DataFrame:
     """Render the Sort Cases UI."""
-    st.subheader("ðŸ”€ Sort Cases")
+    st.subheader("🔄 Sort Cases")
     st.caption("Sort data by one or more variables (like SPSS Sort Cases)")
 
     cols = df.columns.tolist()
@@ -577,7 +577,7 @@ def render_sort_ui(df: pd.DataFrame) -> pd.DataFrame:
 
         if st.button("â–¶ï¸ Sort Cases", type="primary"):
             result_df = sort_cases(df, sort_keys)
-            st.success(f"âœ… Sorted by {', '.join(sort_cols)}")
+            st.success(f"✅ Sorted by {', '.join(sort_cols)}")
             return result_df
     return df
 
@@ -598,7 +598,7 @@ def render_select_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("â–¶ï¸ Select Cases", type="primary") and condition:
         result_df = select_cases(df, condition, mode="filter" if "filter" in mode.lower() else "indicator")
-        st.success(f"âœ… Applied selection  {len(result_df)} cases remaining")
+        st.success(f"✅ Applied selection  {len(result_df)} cases remaining")
         return result_df
     return df
 
@@ -619,7 +619,7 @@ def render_weight_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("â–¶ï¸ Weight Cases", type="primary"):
         result_df = weight_cases(df, weight_col)
-        st.success(f"âœ… Weighted  {len(result_df)} cases after weighting (was {len(df)})")
+        st.success(f"✅ Weighted  {len(result_df)} cases after weighting (was {len(df)})")
         return result_df
     return df
 
@@ -646,7 +646,7 @@ def render_rename_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("â–¶ï¸ Rename Variables", type="primary") and rename_map:
         result_df = rename_variables(df, rename_map)
-        st.success(f"âœ… Renamed {len(rename_map)} variables")
+        st.success(f"✅ Renamed {len(rename_map)} variables")
         return result_df
     return df
 
@@ -663,8 +663,8 @@ def render_transformer_panel(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     tabs = st.tabs([
-        "ðŸ§® Compute", "ðŸ”„ Recode", "ðŸ† Rank", "ðŸ”¢ Count",
-        "â³ Shift/Lag", " Binning", "ðŸ”€ Sort", "ðŸ” Select",
+        "🧮 Compute", "ðŸ”„ Recode", "ðŸ† Rank", "ðŸ”¢ Count",
+        "â³ Shift/Lag", " Binning", "🔄 Sort", "ðŸ” Select",
         "âš–ï¸ Weight", "âœï¸ Rename"
     ])
 
@@ -692,7 +692,7 @@ def render_transformer_panel(df: pd.DataFrame) -> pd.DataFrame:
         result_df = render_rename_ui(result_df)
 
     st.markdown("---")
-    st.subheader("ðŸ“‹ Transformed Data Preview")
+    st.subheader("📋 Transformed Data Preview")
     st.dataframe(result_df.head(20), use_container_width=True, hide_index=True)
     st.caption(f"Dataset: {len(result_df)} rows Ã— {len(result_df.columns)} columns")
 

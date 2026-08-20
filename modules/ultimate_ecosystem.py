@@ -40,7 +40,7 @@ def render_ultimate_ecosystem_tab():
         "ðŸ”„ Polyglot Data Normalizer", 
         "ðŸŒ Decentralized Peer Bridge", 
         "âš–ï¸ Autonomous Pre-Review Audit", 
-        "ðŸ“œ Living Protocol Vault"
+        "📜 Living Protocol Vault"
     ])
 
     # 1. POLYGLOT DATA NORMALIZER
@@ -78,7 +78,7 @@ def render_ultimate_ecosystem_tab():
             score = 72.5
             findings = [
                 "âš ï¸ Warning: Control group omission detected in methodology section.",
-                "âœ… Sequence formatting matches standard NCBI FASTA guidelines.",
+                "✅ Sequence formatting matches standard NCBI FASTA guidelines.",
                 "â„¹ï¸ Recommendation: Include statistical confidence intervals for variant metrics."
             ]
             st.metric("Draft Integrity Score", f"{score} / 100")
@@ -87,7 +87,7 @@ def render_ultimate_ecosystem_tab():
 
     # 4. LIVING PROTOCOL VAULT
     with sub4:
-        st.markdown("### ðŸ“œ Living Protocol & Assistant Lineage Vault")
+        st.markdown("### 📜 Living Protocol & Assistant Lineage Vault")
         st.caption("Prevents protocol loss when lab personnel transition by locking step-by-step assay guides to physical inventory.")
         
         with st.form("protocol_form"):

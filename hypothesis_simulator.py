@@ -162,14 +162,14 @@ def render_hypothesis_simulator_ui():
     import plotly.graph_objects as go
     import plotly.express as px
 
-    st.markdown("## ðŸ§® Dynamic Hypothesis & Parameter Simulator")
+    st.markdown("## 🧮 Dynamic Hypothesis & Parameter Simulator")
     st.markdown("*Interactive mathematical modeler  vary parameters to see predicted outcomes*")
 
     sim = HypothesisSimulator()
 
     sim_type = st.radio("Select simulation type", [
         " Power Analysis", "ðŸ’Š Dose-Response", "ðŸ”— Correlation",
-        "ðŸ“ Confidence Intervals", "ðŸ“ˆ Regression", "âš ï¸ Bias Impact"
+        "ðŸ“ Confidence Intervals", "📈 Regression", "âš ï¸ Bias Impact"
     ], horizontal=True, key="sim_type_hyp")
 
     if sim_type == " Power Analysis":
@@ -251,8 +251,8 @@ def render_hypothesis_simulator_ui():
             with col2: st.metric("Expected", f"{result['expected_coverage']:.0%}")
             st.info(result["interpretation"])
 
-    elif sim_type == "ðŸ“ˆ Regression":
-        st.subheader("ðŸ“ˆ Linear Regression Simulator")
+    elif sim_type == "📈 Regression":
+        st.subheader("📈 Linear Regression Simulator")
         col1, col2 = st.columns(2)
         with col1:
             n_reg = st.slider("Sample size", 10, 500, 100, 10, key="sim_reg_n")

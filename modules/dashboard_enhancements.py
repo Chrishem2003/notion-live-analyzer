@@ -45,7 +45,7 @@ def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
     if df.empty:
         return
         
-    st.subheader("ðŸ“¥ Export Options")
+    st.subheader("📥 Export Options")
     col1, col2 = st.columns(2)
     
     with col1:

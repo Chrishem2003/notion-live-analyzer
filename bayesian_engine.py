@@ -358,7 +358,7 @@ def render_bayesian_analysis_ui():
 
     tab1, tab2, tab3, tab4 = st.tabs([
         "ðŸ§ª Bayesian T-Test", " Bayesian Correlation",
-        "ðŸ“ Bayesian ANOVA", "ðŸ“ˆ Bayesian Regression"
+        "ðŸ“ Bayesian ANOVA", "📈 Bayesian Regression"
     ])
 
     with tab1:
@@ -471,14 +471,14 @@ def render_bayesian_analysis_ui():
                 """, unsafe_allow_html=True)
 
     with tab4:
-        st.subheader("ðŸ“ˆ Bayesian Regression  BFâ‚â‚€")
+        st.subheader("📈 Bayesian Regression  BFâ‚â‚€")
         col1, col2 = st.columns(2)
         with col1:
             reg_target = st.selectbox("Target variable", options=numeric_cols, key="bf_reg_target")
         with col2:
             reg_predictors = st.multiselect("Predictors", options=[c for c in numeric_cols if c != reg_target], key="bf_reg_pred")
 
-        if st.button("ðŸ“ˆ Compute Bayes Factor", type="primary", use_container_width=True) and reg_predictors:
+        if st.button("📈 Compute Bayes Factor", type="primary", use_container_width=True) and reg_predictors:
             with st.spinner("Computing Bayesian regression..."):
                 result = engine.bayesian_regression(df, reg_target, reg_predictors)
             if "error" in result:

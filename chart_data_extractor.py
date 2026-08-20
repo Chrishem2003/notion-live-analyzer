@@ -245,7 +245,7 @@ def render_chart_data_extractor_ui():
     st.markdown("##  Visual Chart Data Extractor & CSV Re-Synthesizer")
     st.markdown("*Extract numerical data from charts and figures + reconstruct raw datasets from static images*")
 
-    tab1, tab2, tab3 = st.tabs(["ðŸ“¤ Extract from Image", "âœï¸ Manual Description", "ðŸ“‹ Export Data"])
+    tab1, tab2, tab3 = st.tabs(["ðŸ“¤ Extract from Image", "âœï¸ Manual Description", "📋 Export Data"])
 
     extractor = ChartDataExtractor()
 
@@ -311,7 +311,7 @@ def render_chart_data_extractor_ui():
                         st.error(result["error"])
                     else:
                         st.session_state["_extracted_chart_data"] = result
-                        st.success("âœ… Data extracted successfully!")
+                        st.success("✅ Data extracted successfully!")
 
             # Show current extraction if available
             result = st.session_state.get("_extracted_chart_data")
@@ -369,9 +369,9 @@ Point 3, 4.0, 6.1""",
 
             if not df.empty:
                 st.session_state["_extracted_chart_data_desc"] = df
-                st.success(f"âœ… Parsed {len(df)} data points!")
+                st.success(f"✅ Parsed {len(df)} data points!")
 
-                st.subheader("ðŸ“‹ Parsed Data")
+                st.subheader("📋 Parsed Data")
                 st.dataframe(df, use_container_width=True, hide_index=True)
 
                 import plotly.express as px
@@ -387,7 +387,7 @@ Point 3, 4.0, 6.1""",
                 st.warning("Could not parse data from description. Use format: Label: Value or X, Y per line.")
 
     with tab3:
-        st.subheader("ðŸ“‹ Export Reconstructed Data")
+        st.subheader("📋 Export Reconstructed Data")
 
         # Get data from either source
         result = st.session_state.get("_extracted_chart_data", {})
@@ -403,7 +403,7 @@ Point 3, 4.0, 6.1""",
             st.subheader(" Current Dataset")
             st.dataframe(df, use_container_width=True, hide_index=True)
 
-            st.subheader("ðŸ“¥ Export Options")
+            st.subheader("📥 Export Options")
             col1, col2, col3 = st.columns(3)
 
             with col1:
@@ -412,7 +412,7 @@ Point 3, 4.0, 6.1""",
                 st.markdown(
                     f'<a href="data:text/csv;base64,{b64}" download="extracted_data.csv" '
                     f'style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;'
-                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download CSV</a>',
+                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">📥 Download CSV</a>',
                     unsafe_allow_html=True,
                 )
 
@@ -422,7 +422,7 @@ Point 3, 4.0, 6.1""",
                 st.markdown(
                     f'<a href="data:application/json;base64,{b64}" download="extracted_data.json" '
                     f'style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;'
-                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download JSON</a>',
+                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">📥 Download JSON</a>',
                     unsafe_allow_html=True,
                 )
 
@@ -430,6 +430,6 @@ Point 3, 4.0, 6.1""",
                 if st.button(" Use for Analysis", use_container_width=True):
                     st.session_state["active_df"] = df
                     st.session_state["data_source"] = "chart_extracted"
-                    st.success("âœ… Loaded into active dataset! Navigate to other pages to analyze.")
+                    st.success("✅ Loaded into active dataset! Navigate to other pages to analyze.")
         else:
             st.info("No extracted data available. Extract data from an image or description first.")

@@ -446,7 +446,7 @@ COLLAB_CSS = """
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 PROFESSIONAL_REACTIONS = [
-    {"emoji": "âœ…", "label": "Approve", "id": "approve"},
+    {"emoji": "✅", "label": "Approve", "id": "approve"},
     {"emoji": "ðŸ¤”", "label": "Clarify", "id": "clarify"},
     {"emoji": "", "label": "Data Verify", "id": "data_verify"},
     {"emoji": "âœ‹", "label": "Raise Hand", "id": "raise_hand"},
@@ -575,7 +575,7 @@ def render_collaboration_shell():
             GhostStageState.EDITING: "âœï¸",
             GhostStageState.PENDING_REVIEW: "ðŸ”",
             GhostStageState.MERGING: "ðŸ”„",
-            GhostStageState.MERGED: "âœ…",
+            GhostStageState.MERGED: "✅",
         }.get(ghost_stage.state, "ðŸ“")
 
         st.markdown(f"""
@@ -783,12 +783,12 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
                 CanvasElementType.STICKY: "ðŸ“",
                 CanvasElementType.TEXT_NOTE: "ðŸ“„",
                 CanvasElementType.DATA_VIEW: "",
-                CanvasElementType.CHART: "ðŸ“ˆ",
+                CanvasElementType.CHART: "📈",
                 CanvasElementType.IMAGE: "ðŸ–¼ï¸",
                 CanvasElementType.CODE_BLOCK: "ðŸ’»",
                 CanvasElementType.ARROW: "âž¡ï¸",
             }
-            icon = type_icons.get(elem.type, "ðŸ“¦")
+            icon = type_icons.get(elem.type, "📦")
             content_text = elem.content.get("text", "") or elem.content.get("title", elem.type.value)
 
             # Check if ghost stage (highlight)
@@ -1107,7 +1107,7 @@ def _render_reactions_tab(ai_researcher: Optional[AIResearcher]):
                           key=lambda x: x.generated_at, reverse=True)[:10]:
             cat_icons = {
                 NoteCategory.ACTION_ITEM: "ðŸŽ¯",
-                NoteCategory.DECISION: "âœ…",
+                NoteCategory.DECISION: "✅",
                 NoteCategory.QUESTION: "â“",
                 NoteCategory.FINDING: "ðŸ’¡",
                 NoteCategory.GENERAL: "ðŸ“",

@@ -242,7 +242,7 @@ class GoogleSheetsClient:
 
 def render_google_sheets_ui(df: pd.DataFrame):
     """Render the Google Sheets integration UI."""
-    st.markdown("## Ã°Å¸â€â€” Google Sheets Integration")
+    st.markdown("## Ã°Å¸â€— Google Sheets Integration")
     st.markdown("*Connect, read from, and write to Google Sheets*")
 
     if not HAS_GSPREAD:
@@ -343,7 +343,7 @@ def render_google_sheets_ui(df: pd.DataFrame):
                             read_df = client.read_sheet(sheet_input, ws_name, header_row=1 if has_header else 0)
 
                         if read_df is not None and not read_df.empty:
-                            st.success(f"Ã¢Å“â€¦ Read {len(read_df)} rows Ãƒâ€” {len(read_df.columns)} columns")
+                            st.success(f"Ã¢Å“â€¦ Read {len(read_df)} rows Ãƒ— {len(read_df.columns)} columns")
                             st.dataframe(read_df.head(50), use_container_width=True, hide_index=True)
 
                             # Option to use as active data
@@ -361,7 +361,7 @@ def render_google_sheets_ui(df: pd.DataFrame):
         st.subheader("Ã°Å¸â€œÂ¤ Write Data to Google Sheets")
 
         if df is not None and not df.empty:
-            st.info(f"**Data to write**: {len(df)} rows Ãƒâ€” {len(df.columns)} columns from '{st.session_state.get('data_source', 'active dataset')}'")
+            st.info(f"**Data to write**: {len(df)} rows Ãƒ— {len(df.columns)} columns from '{st.session_state.get('data_source', 'active dataset')}'")
 
             sheet_target = st.text_input(
                 "Target Sheet URL or ID (or leave blank to create new)",

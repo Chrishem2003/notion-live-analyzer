@@ -592,7 +592,7 @@ def sync_status_card(database_id: str, source: str, last_sync: str):
     st.markdown(
         f"""
         <div class="sync-card">
-            <div><strong>âœ… Connected to Notion database</strong></div>
+            <div><strong>✅ Connected to Notion database</strong></div>
             <div class="live-badge">{database_id}</div>
             <div style="margin-top: 0.45rem; color: #334155;">Source: {source}</div>
             <div style="margin-top: 0.35rem; color: #475569;">Last sync: {last_sync}</div>
@@ -722,7 +722,7 @@ def render_onboarding_tour():
             - ** Live Dashboard**  Real-time sync with your Notion database
             - **ðŸ“ File Analyzer**  Upload CSV, Excel, SPSS, SAS, STATA files
             - **ðŸ”¬ Statistical Tests**  T-tests, ANOVA, Correlation, Regression, and more
-            - **ðŸ“ˆ Advanced Visuals**  18 chart types with auto-recommendation
+            - **📈 Advanced Visuals**  18 chart types with auto-recommendation
             - **ðŸ¤– CHRISHEM Insights**  Automated data analysis and smart recommendations
             - **ðŸ”— Git Integration**  Connect GitHub for data version control
             - ** Presentation Deck**  Build interactive slide decks
@@ -734,7 +734,7 @@ def render_onboarding_tour():
             - Enable Keep-Alive in Settings for 24/7 operation
             - Push cleaned data  analysis scripts back to GitHub
             """)
-            if st.button("âœ… Got it! Hide this tour"):
+            if st.button("✅ Got it! Hide this tour"):
                 st.session_state["show_onboarding"] = False
                 st.rerun()
 

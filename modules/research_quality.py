@@ -265,11 +265,11 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
     import streamlit as st
     from modules.ui_components import section_header, insight_card
 
-    st.markdown("## âœ… Research Quality & Reproducibility Checker")
+    st.markdown("## ✅ Research Quality & Reproducibility Checker")
     st.markdown("*Detect p-hacking, QRPs, assess reproducibility, and ensure transparency*")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "ðŸ” p-Hacking Detection", "ðŸ“‹ Reproducibility", "âš ï¸ QRP Detection", "ðŸ“ Transparency Checklist"
+        "ðŸ” p-Hacking Detection", "📋 Reproducibility", "âš ï¸ QRP Detection", "ðŸ“ Transparency Checklist"
     ])
 
     checker = ResearchQualityChecker()
@@ -314,7 +314,7 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
             st.info("No statistical results available. Run analyses on the **ðŸ”¬ Statistical Tests** page first.")
 
     with tab2:
-        st.subheader("ðŸ“‹ Reproducibility Check")
+        st.subheader("📋 Reproducibility Check")
         st.caption("Assess how reproducible your research is")
 
         if df is not None:
@@ -405,11 +405,11 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
             for item in items:
                 checked = st.checkbox(item["item"], key=f"check_{item['item']}")
                 if checked:
-                    st.caption(f"âœ… {item['description']}")
+                    st.caption(f"✅ {item['description']}")
                 else:
-                    st.caption(f"ðŸ“‹ {item['description']}")
+                    st.caption(f"📋 {item['description']}")
 
-        if st.button("ðŸ“¥ Download Checklist"):
+        if st.button("📥 Download Checklist"):
             import base64
             lines = ["# Transparency & Reproducibility Checklist", ""]
             for cat, items in categories.items():
@@ -419,5 +419,5 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                 lines.append("")
             text = "\n".join(lines)
             b64 = base64.b64encode(text.encode()).decode()
-            st.markdown(f'<a href="data:text/markdown;base64,{b64}" download="transparency_checklist.md">ðŸ“¥ Download Checklist</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="data:text/markdown;base64,{b64}" download="transparency_checklist.md">📥 Download Checklist</a>', unsafe_allow_html=True)
 

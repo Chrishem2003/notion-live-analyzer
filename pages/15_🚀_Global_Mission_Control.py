@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸŒ Global Mission Control â€” Sovereign Enterprise Command Center (Fully Production Real)
+ðŸŒ Global Mission Control — Sovereign Enterprise Command Center (Fully Production Real)
 Live global health surveillance, real weather & climate telemetry (Open-Meteo), an impact
 scorecard, a problem-solver registry, and validated operational session telemetry.
 Cleaned of fake marketing metrics and unverified placeholders.
@@ -50,7 +50,7 @@ def render_health_tab():
         c3.metric("Surveillance Status", "ONLINE")
 
         if result.get("error"):
-            st.warning(f"âš ï¸ Live API Notice: {result['error']} â€” displaying fallback telemetry cache.")
+            st.warning(f"âš ï¸ Live API Notice: {result['error']} — displaying fallback telemetry cache.")
 
         hotspots = result.get("hotspots", [])
         if hotspots:
@@ -59,7 +59,7 @@ def render_health_tab():
             st.dataframe(df[["country", "new_cases", "total_cases", "new_deaths", "total_deaths"]], use_container_width=True, hide_index=True)
             render_export_buttons(df, base_name="global_health_hotspots")
 
-            st.markdown("#### ðŸ“ˆ New Cases Trajectory by Country")
+            st.markdown("#### 📈 New Cases Trajectory by Country")
             if PLOTLY_AVAILABLE and "country" in df.columns and "new_cases" in df.columns:
                 fig = px.bar(df, x="country", y="new_cases", title="New Outbreak Cases per Region", color="new_cases", color_continuous_scale="Reds")
                 fig.update_layout(height=380, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
@@ -154,7 +154,7 @@ def render_problems_tab():
 
     registry = get_problem_solver_registry()
     for i, item in enumerate(registry):
-        with st.expander(f"ðŸ“Œ Task Workflow: {item.get('problem', 'Challenge')}", expanded=(i == 0)):
+        with st.expander(f"📜 Task Workflow: {item.get('problem', 'Challenge')}", expanded=(i == 0)):
             st.markdown(f"**ðŸ› ï¸ Implemented Solution:** {item.get('solution', 'N/A')}")
             st.markdown("**ðŸ”§ Active Toolchain:** " + ", ".join(item.get("tools", [])))
             st.success(f"**ðŸŽ¯ Validated Outcome:** {item.get('impact', 'Optimized resolution')}")
@@ -197,7 +197,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸŒ Global Mission Control â€” Sovereign Enterprise Command Center (Real)",
+        "ðŸŒ Global Mission Control — Sovereign Enterprise Command Center (Real)",
         "The operational command center featuring live global health surveillance, real Open-Meteo climate telemetry, verified workload scorecards, workflow registries, and platform execution telemetry.",
         badge_text="GLOBAL MISSION CONTROL â€¢ PRODUCTION SUITE",
     )

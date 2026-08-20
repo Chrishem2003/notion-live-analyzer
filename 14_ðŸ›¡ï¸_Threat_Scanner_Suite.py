@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ›¡ï¸ Threat & Scanner Suite â€” Enterprise Production Grade (Fully Functional)
+ðŸ›¡ï¸ Threat & Scanner Suite — Enterprise Production Grade (Fully Functional)
 PII/secret scanning, CVE vulnerability checks, YARA-lite malware signatures, file integrity
 monitoring, TCP port probes with mandatory authorization guardrails, threat intelligence lookups,
 and incident response playbooks. Built on actual underlying operational module implementations.
@@ -59,7 +59,7 @@ def render_pii_tab():
     if source_mode == "Active Session Dataset":
         df = get_active_dataframe()
         if df is None:
-            st.info("â„¹ï¸ No active dataset loaded in this session â€” load one via Data Studio, or switch to 'Upload New File' / 'Paste Raw Text' above.")
+            st.info("â„¹ï¸ No active dataset loaded in this session — load one via Data Studio, or switch to 'Upload New File' / 'Paste Raw Text' above.")
         else:
             st.caption(f"Scanning the currently active dataset: {df.shape[0]:,} rows Ã— {df.shape[1]} columns.")
     elif source_mode == "Upload New File":
@@ -94,11 +94,11 @@ def render_pii_tab():
 
         overall = result.get("overall", "CLEAN")
         if "CRITICAL" in overall:
-            st.error(f"ðŸš¨ **{overall}** â€” Detected {result.get('total_matches', 0):,} severe compliance violations.")
+            st.error(f"ðŸš¨ **{overall}** — Detected {result.get('total_matches', 0):,} severe compliance violations.")
         elif "REVIEW" in overall:
-            st.warning(f"âš ï¸ **{overall}** â€” Potential exposure vectors identified.")
+            st.warning(f"âš ï¸ **{overall}** — Potential exposure vectors identified.")
         else:
-            st.success(f"âœ… **{overall}** â€” No regulatory compliance breaches detected.")
+            st.success(f"✅ **{overall}** — No regulatory compliance breaches detected.")
 
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Findings", result.get("total_findings", 0))
@@ -108,7 +108,7 @@ def render_pii_tab():
         if result.get("findings"):
             st.markdown("#### Detailed Findings Breakdown")
             for f in result["findings"]:
-                with st.expander(f"âš ï¸ {f.get('type', 'Unknown')} â€” {f.get('count', 0)} match(es) [Risk Level: {f.get('risk', 'MODERATE')}]"):
+                with st.expander(f"âš ï¸ {f.get('type', 'Unknown')} — {f.get('count', 0)} match(es) [Risk Level: {f.get('risk', 'MODERATE')}]"):
                     st.write("Discovered Samples:", f.get("samples", []))
 
         st.info(f"**Mitigation Recommendation:** {result.get('recommendation', 'Ensure proper token masking and encryption at rest.')}")
@@ -123,7 +123,7 @@ def render_cve_tab():
             with open(req_path, "r") as f:
                 req_content = f.read()
             st.code(req_content, language="text")
-            st.caption("Compare this against the scan results below to confirm coverage â€” the scanner call itself takes no parameters from this page, so this is the honest way to verify scope.")
+            st.caption("Compare this against the scan results below to confirm coverage — the scanner call itself takes no parameters from this page, so this is the honest way to verify scope.")
         else:
             st.info("No `requirements.txt` found at the app root from this page's working directory.")
 
@@ -144,7 +144,7 @@ def render_cve_tab():
             st.dataframe(df_vuln, use_container_width=True, hide_index=True)
             render_export_buttons(df_vuln, base_name="cve_vulnerability_report")
         else:
-            st.success("âœ… All scanned packages are up to date with zero known CVE advisories.")
+            st.success("✅ All scanned packages are up to date with zero known CVE advisories.")
 
 
 def render_yara_tab():
@@ -161,7 +161,7 @@ def render_yara_tab():
             result = scan_yara_lite(data, uploaded.name)
 
         if result.get("clean", True):
-            st.success(f"âœ… **{result.get('verdict', 'CLEAN')}** â€” Analyzed `{result.get('bytes_scanned', 0):,}` bytes with zero signature matches.")
+            st.success(f"✅ **{result.get('verdict', 'CLEAN')}** — Analyzed `{result.get('bytes_scanned', 0):,}` bytes with zero signature matches.")
         else:
             st.error(f"ðŸš¨ **{result.get('verdict', 'THREAT DETECTED')}**")
             st.markdown("#### Triggered Signature Rules")
@@ -184,13 +184,13 @@ def render_integrity_tab():
             if missing:
                 st.warning(f"âš ï¸ These paths don't exist from the app's working directory and will be skipped: {', '.join(missing)}")
             result = create_integrity_baseline(paths)
-            st.success(f"âœ… Baseline established successfully for `{result.get('baseline_files', 0)}` critical system files.")
+            st.success(f"✅ Baseline established successfully for `{result.get('baseline_files', 0)}` critical system files.")
 
     with col_b:
-        if st.button("âœ… Verify File Integrity Ledger", key="ts_int_verify_upg", type="primary"):
+        if st.button("✅ Verify File Integrity Ledger", key="ts_int_verify_upg", type="primary"):
             result = verify_integrity()
             if result.get("changed_or_deleted", 0) == 0:
-                st.success(f"ðŸ” **{result.get('verdict', 'INTEGRITY VERIFIED')}** â€” `{result.get('verified_unchanged', 0)}` files verified unchanged.")
+                st.success(f"ðŸ” **{result.get('verdict', 'INTEGRITY VERIFIED')}** — `{result.get('verified_unchanged', 0)}` files verified unchanged.")
             else:
                 st.warning(f"âš ï¸ **{result.get('verdict', 'MODIFICATIONS DETECTED')}**")
                 changes = result.get("changes", [])
@@ -224,7 +224,7 @@ def render_port_tab():
                 st.dataframe(df_ports, use_container_width=True, hide_index=True)
                 render_export_buttons(df_ports, base_name=f"port_scan_{target}")
             else:
-                st.success("âœ… No open ports discovered among standard vectors.")
+                st.success("✅ No open ports discovered among standard vectors.")
 
 
 def render_threat_tab():
@@ -238,11 +238,11 @@ def render_threat_tab():
             result = check_ip_reputation(ip)
             risk = result.get("risk", "LOW")
             if risk == "HIGH":
-                st.error(f"ðŸš¨ Threat Risk Assessment: **{risk}** â€” Abuse Confidence Score: `{result.get('abuse_confidence', 0)}%`")
+                st.error(f"ðŸš¨ Threat Risk Assessment: **{risk}** — Abuse Confidence Score: `{result.get('abuse_confidence', 0)}%`")
             elif risk == "MEDIUM":
-                st.warning(f"âš ï¸ Threat Risk Assessment: **{risk}** â€” Abuse Confidence Score: `{result.get('abuse_confidence', 0)}%`")
+                st.warning(f"âš ï¸ Threat Risk Assessment: **{risk}** — Abuse Confidence Score: `{result.get('abuse_confidence', 0)}%`")
             else:
-                st.success(f"âœ… Threat Risk Assessment: **{risk}** â€” Clean Reputation.")
+                st.success(f"✅ Threat Risk Assessment: **{risk}** — Clean Reputation.")
             st.json({k: v for k, v in result.items() if k != "risk"})
 
     with tab_domain:
@@ -252,7 +252,7 @@ def render_threat_tab():
             if "error" in result:
                 st.error(f"ðŸš¨ WHOIS Lookup Error: {result['error']}")
             else:
-                st.success(f"âœ… Domain Record Retrieved: **{result.get('domain', domain)}**")
+                st.success(f"✅ Domain Record Retrieved: **{result.get('domain', domain)}**")
                 st.json({k: v for k, v in result.items() if k != "domain"})
 
     with tab_url:
@@ -261,11 +261,11 @@ def render_threat_tab():
             result = analyze_url(url)
             risk = result.get("risk", "LOW")
             if risk == "HIGH":
-                st.error(f"ðŸš¨ **{result.get('verdict', 'Malicious URL')}** â€” Risk Score: `{result.get('risk_score', 0)} / 100`")
+                st.error(f"ðŸš¨ **{result.get('verdict', 'Malicious URL')}** — Risk Score: `{result.get('risk_score', 0)} / 100`")
             elif risk == "MEDIUM":
                 st.warning(f"âš ï¸ **{result.get('verdict', 'Suspicious URL')}**")
             else:
-                st.success(f"âœ… **{result.get('verdict', 'Clean URL')}**")
+                st.success(f"✅ **{result.get('verdict', 'Clean URL')}**")
 
             st.markdown("#### Heuristic Findings")
             for f in result.get("findings", []):
@@ -274,7 +274,7 @@ def render_threat_tab():
 
 
 def render_playbook_tab():
-    section_header("ðŸ“‹ Automated Incident Response Playbooks", "Generate structured triage workflows, containment checklists, and remediation steps for active security incidents.")
+    section_header("📋 Automated Incident Response Playbooks", "Generate structured triage workflows, containment checklists, and remediation steps for active security incidents.")
 
     incident = st.selectbox("Select Incident Classification", [
         "Brute-Force Attack", "Phishing Campaign", "Malware Detection",
@@ -285,8 +285,8 @@ def render_playbook_tab():
 
     if st.button("ðŸš€ Generate Incident Response Playbook", key="ts_pb_run_upg", type="primary"):
         result = run_incident_playbook(incident, context)
-        st.success(f"âœ… Playbook **{result.get('playbook_id', 'IR-001')}** generated successfully â€” Assessed Severity: **{result.get('severity_assessment', 'HIGH')}**")
-        st.markdown("#### ðŸ“‹ Structured Containment & Response Steps")
+        st.success(f"✅ Playbook **{result.get('playbook_id', 'IR-001')}** generated successfully — Assessed Severity: **{result.get('severity_assessment', 'HIGH')}**")
+        st.markdown("#### 📋 Structured Containment & Response Steps")
         for i, step in enumerate(result.get("steps", []), 1):
             st.markdown(f"**{i}.** {step}")
         st.caption(f"Generated Timestamp (UTC): {result.get('created', datetime.datetime.utcnow().isoformat())}")
@@ -303,7 +303,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸ›¡ï¸ Threat & Scanner Suite â€” Premium Security Operations",
+        "ðŸ›¡ï¸ Threat & Scanner Suite — Premium Security Operations",
         "Regulated PII scanning connected to your active dataset, live CVE vulnerability feeds with an honest scope cross-check, YARA malware signature detection, file integrity monitoring against real files, TCP port probes, and automated incident response playbooks.",
         badge_text="THREAT & SCANNER SUITE â€¢ SECURITY OPS",
     )
@@ -315,7 +315,7 @@ def main():
         "ðŸ” Integrity FIM",
         "ðŸ–§ Port Scan",
         "ðŸ›¡ï¸ Threat Intel",
-        "ðŸ“‹ Playbooks",
+        "📋 Playbooks",
     ])
 
     with tabs[0]:

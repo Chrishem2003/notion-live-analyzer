@@ -245,7 +245,7 @@ def render_table_generator_ui():
 
     tab1, tab2, tab3, tab4 = st.tabs([
         " Descriptive Stats", "ðŸ”— Correlation Matrix",
-        "ðŸ“ Regression Table", "ðŸ“‹ Frequency Table"
+        "ðŸ“ Regression Table", "📋 Frequency Table"
     ])
 
     with tab1:
@@ -262,7 +262,7 @@ def render_table_generator_ui():
             if not result.empty:
                 st.dataframe(result, use_container_width=True, hide_index=True)
                 st.markdown("---")
-                st.markdown("**ðŸ“‹ APA Markdown:**")
+                st.markdown("**📋 APA Markdown:**")
                 st.code(TableGenerator.to_apa_markdown(result, "Table 1: Descriptive Statistics"), language="markdown")
 
     with tab2:
@@ -273,7 +273,7 @@ def render_table_generator_ui():
             result = TableGenerator.correlation_matrix_table(df, corr_vars, corr_method)
             st.dataframe(result, use_container_width=True, hide_index=True)
             st.caption(result.attrs.get("footnote", ""))
-            st.markdown("**ðŸ“‹ APA Markdown:**")
+            st.markdown("**📋 APA Markdown:**")
             st.code(TableGenerator.to_apa_markdown(result, "Table 2: Correlation Matrix"), language="markdown")
 
     with tab3:
@@ -302,14 +302,14 @@ def render_table_generator_ui():
             result = TableGenerator.regression_results_table([model], ["Model 1"])
             st.dataframe(result, use_container_width=True, hide_index=True)
             st.caption(result.attrs.get("footnote", ""))
-            st.markdown("**ðŸ“‹ APA Markdown:**")
+            st.markdown("**📋 APA Markdown:**")
             st.code(TableGenerator.to_apa_markdown(result, "Table 3: Regression Results"), language="markdown")
 
     with tab4:
-        st.subheader("ðŸ“‹ Frequency Table")
+        st.subheader("📋 Frequency Table")
         freq_col = st.selectbox("Column", options=df.columns.tolist(), key="tb_freq_col")
-        if st.button("ðŸ“‹ Generate", type="primary"):
+        if st.button("📋 Generate", type="primary"):
             result = TableGenerator.frequency_table(df, freq_col)
             st.dataframe(result, use_container_width=True, hide_index=True)
-            st.markdown("**ðŸ“‹ APA Markdown:**")
+            st.markdown("**📋 APA Markdown:**")
             st.code(TableGenerator.to_apa_markdown(result, f"Table 4: Frequency Distribution of {freq_col}"), language="markdown")

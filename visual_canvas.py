@@ -46,7 +46,7 @@ def render_hybrid_visual_canvas():
     components.html(pid_html, height=160)
 
     # 3. ICU-STYLE MULTIPARAMETER WAVEFORM TELEMETRY
-    st.markdown("### ðŸ“ˆ Real-Time Assay & Kinetic Waveform Monitoring")
+    st.markdown("### 📈 Real-Time Assay & Kinetic Waveform Monitoring")
     col_icu1, col_icu2 = st.columns(2)
     with col_icu1:
         st.markdown("**Enzyme Kinetics Real-Time Stream (ICU Style)**")

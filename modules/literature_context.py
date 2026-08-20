@@ -176,7 +176,7 @@ class LiteratureContext:
             "effect_size_assumed": effect_size,
             "interpretation": f"Your N = {n:,}. Field typical N = {typical_n:,}. "
                               f"Need N = {required_n:,} for 80% power at d = {effect_size:.2f}. "
-                              f"Your sample is {'âœ… ' if adequacy == 'adequate' else 'âš ï¸ '}{adequacy}.",
+                              f"Your sample is {'✅ ' if adequacy == 'adequate' else 'âš ï¸ '}{adequacy}.",
         }
 
     # â”€â”€â”€ Citation Suggestions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -343,5 +343,5 @@ def render_literature_context_ui():
             lc = LiteratureContext(disc_report)
             report = lc.generate_context_report(es_report, es_type_report, n_report, disc_report)
             st.markdown(report)
-            if st.button("ðŸ“‹ Copy to Clipboard"):
+            if st.button("📋 Copy to Clipboard"):
                 st.code(report, language="markdown")

@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ”— Integrations & External Connectivity Hub â€” Enterprise Grade (Premium v2.0)
+ðŸ”— Integrations & External Connectivity Hub — Enterprise Grade (Premium v2.0)
 Fully audited, fault-tolerant integration platform featuring strict session logging limits,
 defensive API response parsing, exponential-style timeout management, and secure real-time connectivity.
 """
@@ -75,7 +75,7 @@ def render_notion():
         st.error("`requests` package not available in this environment.")
         return
 
-    if st.button("ðŸ“¥ Query Notion Database (Real API Call)", type="primary", key="sync_notion_upg_v2_btn"):
+    if st.button("📥 Query Notion Database (Real API Call)", type="primary", key="sync_notion_upg_v2_btn"):
         if not (token and database_id):
             st.warning("âš ï¸ Please provide both the integration token and database ID.")
         else:
@@ -133,11 +133,11 @@ def render_notion():
                             rows.append(row)
 
                         if not rows:
-                            st.info("âœ… Query succeeded, but the target database returned 0 accessible pages.")
+                            st.info("✅ Query succeeded, but the target database returned 0 accessible pages.")
                         else:
                             real_df = pd.DataFrame(rows)
                             set_active_dataframe(real_df, "notion_live_query.csv")
-                            st.success(f"âœ… Retrieved {len(real_df)} real page(s) from Notion in {latency:.0f}ms.")
+                            st.success(f"✅ Retrieved {len(real_df)} real page(s) from Notion in {latency:.0f}ms.")
                             st.dataframe(real_df, use_container_width=True, hide_index=True)
                             render_export_buttons(real_df, base_name="notion_export")
                 except requests.exceptions.Timeout:
@@ -156,7 +156,7 @@ def render_sheets():
 
     sheet_url = st.text_input("Google Sheet URL", placeholder="https://docs.google.com/spreadsheets/d/...", key="sheets_url_upg_v2")
     gid = st.text_input("Sheet tab GID (optional, defaults to first tab)", value="0", key="sheets_gid_upg_v2")
-    st.caption("The sheet must be shared as 'Anyone with the link can view' â€” this uses Google's public CSV export endpoint securely.")
+    st.caption("The sheet must be shared as 'Anyone with the link can view' — this uses Google's public CSV export endpoint securely.")
 
     if not REQUESTS_AVAILABLE:
         st.error("`requests` package not available in this environment.")
@@ -185,7 +185,7 @@ def render_sheets():
                                 st.warning("âš ï¸ The imported spreadsheet is completely empty.")
                             else:
                                 set_active_dataframe(real_df, "google_sheets_imported.csv")
-                                st.success(f"âœ… Imported {real_df.shape[0]:,} real rows Ã— {real_df.shape[1]} columns in {latency:.0f}ms.")
+                                st.success(f"✅ Imported {real_df.shape[0]:,} real rows Ã— {real_df.shape[1]} columns in {latency:.0f}ms.")
                                 st.dataframe(real_df, use_container_width=True, hide_index=True)
                                 render_export_buttons(real_df, base_name="sheets_export")
                     except Exception as e:
@@ -232,13 +232,13 @@ def render_github():
                     st.error(f"ðŸš« GitHub API returned HTTP {resp.status_code}: {msg}")
                 else:
                     repo_data = resp.json()
-                    st.success(f"âœ… Connected successfully to repository: `{repo_data.get('full_name', repo)}`")
+                    st.success(f"✅ Connected successfully to repository: `{repo_data.get('full_name', repo)}`")
                     
                     c1, c2, c3, c4 = st.columns(4)
                     c1.metric("Stars", f"{repo_data.get('stargazers_count', 0):,}")
                     c2.metric("Forks", f"{repo_data.get('forks_count', 0):,}")
                     c3.metric("Open Issues", f"{repo_data.get('open_issues_count', 0):,}")
-                    c4.metric("Default Branch", repo_data.get("default_branch", "â€”"))
+                    c4.metric("Default Branch", repo_data.get("default_branch", "—"))
 
                     commits_resp = requests.get(
                         f"https://api.github.com/repos/{owner.strip()}/{repo.strip()}/commits", 
@@ -337,7 +337,7 @@ def render_api_gateway():
                     log_call("Webhook Test", latency, resp.status_code)
                     
                     if resp.status_code < 400:
-                        st.success(f"âœ… Webhook acknowledged successfully with HTTP {resp.status_code} in {latency:.0f}ms.")
+                        st.success(f"✅ Webhook acknowledged successfully with HTTP {resp.status_code} in {latency:.0f}ms.")
                     else:
                         st.warning(f"âš ï¸ Webhook responded with warning status HTTP {resp.status_code} in {latency:.0f}ms.")
                     st.code(resp.text[:600] or "(empty response body received)", language="text")
@@ -413,10 +413,10 @@ def render_reference_lookup():
                     authors_raw = item.get("author", [])
                     authors = ", ".join(f"{a.get('given', '')} {a.get('family', '')}".strip() for a in authors_raw if isinstance(a, dict))
                     
-                    container_list = item.get("container-title", ["â€”"])
-                    journal = container_list[0] if container_list else "â€”"
+                    container_list = item.get("container-title", ["—"])
+                    journal = container_list[0] if container_list else "—"
                     
-                    st.success("âœ… Real bibliographic record fetched successfully from CrossRef.")
+                    st.success("✅ Real bibliographic record fetched successfully from CrossRef.")
                     st.markdown(f"**Title:** {title}")
                     st.markdown(f"**Authors:** {authors or 'Not specified'}")
                     st.markdown(f"**Journal / Container:** {journal}")
@@ -430,13 +430,13 @@ def render_world_data():
     section_header(
         "ðŸŒ Global Real-Data Connector (World Bank Open Data)",
         "Real indicator data for ~217 countries and economies, pulled live from the World Bank's public "
-        "API â€” education, healthcare, security, agriculture, engineering & infrastructure, economics & "
-        "finance, and demographics. No API key required. This is not a demo dataset â€” it's the actual "
+        "API — education, healthcare, security, agriculture, engineering & infrastructure, economics & "
+        "finance, and demographics. No API key required. This is not a demo dataset — it's the actual "
         "public data at api.worldbank.org, fetched fresh on every run.",
     )
 
     if not REQUESTS_AVAILABLE:
-        st.error("The `requests` package isn't available in this environment â€” this connector needs it.")
+        st.error("The `requests` package isn't available in this environment — this connector needs it.")
         return
 
     try:
@@ -463,7 +463,7 @@ def render_world_data():
     with c1:
         sector = st.selectbox("Sector", list(SECTOR_INDICATORS.keys()), key="wdc_sector")
         indicator_labels = st.multiselect(
-            "Indicator(s) â€” each is a separate real API call",
+            "Indicator(s) — each is a separate real API call",
             list(SECTOR_INDICATORS[sector].keys()),
             default=[list(SECTOR_INDICATORS[sector].keys())[0]],
             key="wdc_indicators",
@@ -486,7 +486,7 @@ def render_world_data():
             return
         selected = country_names if country_names else candidate_countries["name"].tolist()
         if len(selected) > 100:
-            st.info(f"Fetching {len(selected)} countries â€” this may take a moment (real API calls, no shortcuts).")
+            st.info(f"Fetching {len(selected)} countries — this may take a moment (real API calls, no shortcuts).")
         iso3_list = country_df[country_df["name"].isin(selected)]["iso3"].tolist()
         indicator_codes = {label: SECTOR_INDICATORS[sector][label] for label in indicator_labels}
         date_range = f"{year_range[0]}:{year_range[1]}"
@@ -507,7 +507,7 @@ def render_world_data():
                     st.markdown(f"- {e}")
 
         if merged_df.empty:
-            st.warning("No data returned for this selection â€” try a wider year range or different countries.")
+            st.warning("No data returned for this selection — try a wider year range or different countries.")
             return
 
         st.success(f"Loaded {len(merged_df):,} real country-year rows.")
@@ -519,20 +519,20 @@ def render_world_data():
             plot_df = merged_df.dropna(subset=[first_indicator])
             top_countries = plot_df.groupby("country")[first_indicator].last().nlargest(12).index.tolist()
             fig = px.line(plot_df[plot_df["country"].isin(top_countries)], x="year", y=first_indicator,
-                          color="country", title=f"{first_indicator} â€” Top 12 by most recent value")
+                          color="country", title=f"{first_indicator} — Top 12 by most recent value")
             fig.update_layout(height=420, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                               font=dict(color="white"))
             st.plotly_chart(fig, use_container_width=True)
 
-        if st.button("ðŸ“¥ Load into Active Dataset (feeds Statistics / ML / Chaos Detector / Visualization)",
+        if st.button("📥 Load into Active Dataset (feeds Statistics / ML / Chaos Detector / Visualization)",
                      key="wdc_load_active"):
             set_active_dataframe(merged_df, f"worldbank_{sector.lower()}.csv")
-            st.success("Loaded as your active dataset â€” it's now available across every other hub.")
+            st.success("Loaded as your active dataset — it's now available across every other hub.")
             st.rerun()
 
     st.caption(
         "Source: World Bank Open Data (api.worldbank.org), World Development Indicators. Free and public, "
-        "no key required. Some country/indicator/year combinations genuinely have no data â€” the World Bank "
+        "no key required. Some country/indicator/year combinations genuinely have no data — the World Bank "
         "itself doesn't collect everything for every country every year, and this connector reports that "
         "honestly rather than filling gaps with invented numbers."
     )
@@ -549,7 +549,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸ”— Integrations & External Connectivity Hub â€” Enterprise Grade (Premium v2.0)",
+        "ðŸ”— Integrations & External Connectivity Hub — Enterprise Grade (Premium v2.0)",
         "Fully secured integration environment featuring direct authenticated API query execution, real-time public CSV ingestion, repository metrics, live endpoint health diagnostics, and dynamic cross-reference lookups.",
         badge_text="ENTERPRISE INTEGRATIONS HUB â€¢ SECURE SUITE",
     )

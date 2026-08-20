@@ -259,7 +259,7 @@ def render_feature_engineering_ui():
         if st.button("ðŸ“ Generate Polynomials", type="primary", use_container_width=True) and poly_cols:
             result = engine.generate_polynomials(df, poly_cols, max_deg)
             new_features = [c for c in result.columns if c not in df.columns]
-            st.success(f"âœ… Generated {len(new_features)} new features")
+            st.success(f"✅ Generated {len(new_features)} new features")
             st.dataframe(result[new_features].head(10), use_container_width=True)
 
     with tab3:
@@ -269,7 +269,7 @@ def render_feature_engineering_ui():
         n_bins = st.slider("Number of bins", 2, 10, 4, key="fe_n_bins")
         if st.button(" Apply Binning", type="primary", use_container_width=True):
             binned = engine.auto_bin(df, bin_col, bin_method, n_bins)
-            st.success(f"âœ… Binned into {binned.nunique()} bins")
+            st.success(f"✅ Binned into {binned.nunique()} bins")
             st.dataframe(binned.value_counts().reset_index(), use_container_width=True)
 
     with tab4:
@@ -279,7 +279,7 @@ def render_feature_engineering_ui():
         if st.button("ðŸ“… Extract Date Features", type="primary", use_container_width=True):
             result = engine.extract_date_features(df, date_col)
             new_features = [c for c in result.columns if c not in df.columns and date_col in c]
-            st.success(f"âœ… Generated {len(new_features)} date features")
+            st.success(f"✅ Generated {len(new_features)} date features")
             st.dataframe(result[new_features].head(10), use_container_width=True)
 
     with tab5:

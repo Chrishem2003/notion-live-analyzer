@@ -284,7 +284,7 @@ def render_deck_builder_ui():
                     )
                     st.rerun()
         with col2:
-            if st.button("ðŸ“ˆ Add Chart Slides", use_container_width=True):
+            if st.button("📈 Add Chart Slides", use_container_width=True):
                 charts_in_session = st.session_state.get("deck_charts", [])
                 if charts_in_session:
                     for i, chart_info in enumerate(charts_in_session):
@@ -297,7 +297,7 @@ def render_deck_builder_ui():
                 else:
                     st.warning("No charts selected. Run visualizations and use 'Add to Deck' buttons.")
         with col3:
-            if st.button("ðŸ“‹ Add Dataset Profile", use_container_width=True):
+            if st.button("📋 Add Dataset Profile", use_container_width=True):
                 df = st.session_state.get("active_df")
                 if df is not None:
                     from modules.data_processor import profile_dataset
@@ -334,7 +334,7 @@ def render_deck_builder_ui():
             for r in results[-5:]:
                 test_name = r.get("test", r.get("test_name", "Statistical Test"))
                 p = r.get("p_value", 1)
-                sig_text = "âœ… Significant" if r.get("significant") else "âŒ Not significant"
+                sig_text = "✅ Significant" if r.get("significant") else "âŒ Not significant"
                 if st.button(f"âž• Add: {test_name} ({sig_text}, p={p:.4f})", key=f"add_stat_{test_name}"):
                     content_lines = [f"**Test**: {test_name}"]
                     for k, v in r.items():
@@ -445,7 +445,7 @@ def render_deck_builder_ui():
 
     # â”€â”€â”€ Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("---")
-    st.markdown("### ðŸ“¥ Export Presentation")
+    st.markdown("### 📥 Export Presentation")
 
     col_exp1, col_exp2, col_exp3 = st.columns(3)
     with col_exp1:
@@ -454,7 +454,7 @@ def render_deck_builder_ui():
             b64 = base64.b64encode(html.encode()).decode()
             st.markdown(
                 f'<a href="data:text/html;base64,{b64}" download="presentation_{datetime.now():%Y%m%d}.html">'
-                f'ðŸ“¥ Click to Download HTML</a>',
+                f'📥 Click to Download HTML</a>',
                 unsafe_allow_html=True,
             )
     with col_exp2:
@@ -464,11 +464,11 @@ def render_deck_builder_ui():
                 b64 = base64.b64encode(pdf_bytes).decode()
                 st.markdown(
                     f'<a href="data:application/pdf;base64,{b64}" download="presentation_{datetime.now():%Y%m%d}.pdf">'
-                    f'ðŸ“¥ Click to Download PDF</a>',
+                    f'📥 Click to Download PDF</a>',
                     unsafe_allow_html=True,
                 )
     with col_exp3:
-        if st.button("ðŸ“‹ Copy Deck Summary", use_container_width=True):
+        if st.button("📋 Copy Deck Summary", use_container_width=True):
             summary = deck.get_summary()
             st.code(
                 f"Presentation: {st.session_state.get('deck_title', 'Untitled')}\n"

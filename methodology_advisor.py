@@ -572,7 +572,7 @@ def generate_methodology_section(
 
 def render_methodology_advisor_ui():
     """Render the methodology advisor UI."""
-    st.markdown("## ðŸ“‹ Research Methodology Advisor")
+    st.markdown("## 📋 Research Methodology Advisor")
     st.markdown("*Expert system for study design, test selection, and sample size estimation*")
 
     tab1, tab2, tab3, tab4 = st.tabs([
@@ -618,7 +618,7 @@ def render_methodology_advisor_ui():
                     with col1:
                         st.markdown("**Pros:**")
                         for p in rec['pros']:
-                            st.markdown(f"- âœ… {p}")
+                            st.markdown(f"- ✅ {p}")
                     with col2:
                         st.markdown("**Cons:**")
                         for c in rec['cons']:

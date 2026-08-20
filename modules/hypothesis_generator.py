@@ -330,7 +330,7 @@ class HypothesisGenerator:
 
                 if overlaps:
                     gap_type = "replication"
-                    gap_label = "âœ… Consistent with literature"
+                    gap_label = "✅ Consistent with literature"
                     novelty_score = 20  # Low novelty
                 elif es > lit_es * 1.5:
                     gap_type = "novel_larger"
@@ -423,7 +423,7 @@ class HypothesisGenerator:
         gap_type = gap.get("type", "")
 
         if gap_type == "replication":
-            return base_narrative + f" âœ… This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
+            return base_narrative + f" ✅ This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
         elif gap_type in ("novel_larger", "novel_smaller"):
             direction = "larger" if gap_type == "novel_larger" else "smaller"
             return base_narrative + f" ðŸ”¬ This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
@@ -636,15 +636,15 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
                 <div style="margin-top:0.3rem;">{h.get('narrative', '')}</div>
                 <div style="margin-top:0.2rem;font-size:0.8rem;color:#64748b;">
                     {h.get('test', '')} | {h.get('type', '').replace('_', ' ').title()}
-                    {' | âœ… Significant' if h.get('significant') else ' | âŒ Not significant'}
+                    {' | ✅ Significant' if h.get('significant') else ' | âŒ Not significant'}
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
     # Export
     st.markdown("---")
-    st.subheader("ðŸ“¥ Export Hypotheses")
-    if st.button("ðŸ“‹ Copy All as Markdown"):
+    st.subheader("📥 Export Hypotheses")
+    if st.button("📋 Copy All as Markdown"):
         lines = ["# Generated Hypotheses", f"**Generated**: {datetime.now():%Y-%m-%d %H:%M:%S}", ""]
         for h in filtered:
             lines.append(f"### {h.get('id', '')}  {h.get('priority_label', '')}")

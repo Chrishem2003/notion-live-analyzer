@@ -52,7 +52,7 @@ class NotionSyncEngine:
         try:
             response = requests.patch(url, json={"properties": payload}, headers=headers, timeout=15)
             if response.status_code == 200:
-                return True, f"âœ… Updated '{property_name}' on page {page_id[:8]}..."
+                return True, f"✅ Updated '{property_name}' on page {page_id[:8]}..."
             elif response.status_code == 401:
                 return False, "âŒ Invalid token  please re-connect your Notion integration"
             elif response.status_code == 404:
@@ -116,7 +116,7 @@ class NotionSyncEngine:
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=15)
             if response.status_code == 200:
-                return True, "âœ… Comment added to page"
+                return True, "✅ Comment added to page"
             else:
                 logger.error(
                     "Failed to add comment to Notion page %s: %s  %s",
@@ -169,7 +169,7 @@ class NotionSyncEngine:
             if response.status_code == 200:
                 data = response.json()
                 new_id = data.get("id", "")
-                message = "âœ… New entry created in Notion database"
+                message = "✅ New entry created in Notion database"
                 if rejected:
                     message = f"  skipped invalid properties: {'; '.join(rejected)}"
                 return True, message, new_id
@@ -324,7 +324,7 @@ class NotionSyncEngine:
         try:
             response = requests.patch(url, json={"children": [block]}, headers=headers, timeout=15)
             if response.status_code == 200:
-                return True, f"âœ… Block appended to page {page_id[:8]}..."
+                return True, f"✅ Block appended to page {page_id[:8]}..."
             logger.error(
                 "Failed to append %s block to Notion page %s: %s  %s",
                 block_type, page_id, response.status_code, response.text[:200],
@@ -353,7 +353,7 @@ def render_notion_sync_ui(df: pd.DataFrame):
 
     sync_engine = NotionSyncEngine()
 
-    tab1, tab2, tab3 = st.tabs(["ðŸ“¤ Push Insights", "ðŸ“ Push Cleaned Data", "ðŸ“‹ Sync History"])
+    tab1, tab2, tab3 = st.tabs(["ðŸ“¤ Push Insights", "ðŸ“ Push Cleaned Data", "📋 Sync History"])
 
     with tab1:
         st.subheader("ðŸ“¤ Push AI Insights to Notion")
@@ -417,7 +417,7 @@ def render_notion_sync_ui(df: pd.DataFrame):
         st.markdown("#### âš¡ Quick Actions")
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("âœ… Sync 'Significant' Flag", use_container_width=True):
+            if st.button("✅ Sync 'Significant' Flag", use_container_width=True):
                 if "significant" in df.columns:
                     result = sync_engine.sync_cleaned_column(df, "significant", "Significant")
                     st.success(result["message"])
@@ -434,14 +434,14 @@ def render_notion_sync_ui(df: pd.DataFrame):
                     st.warning("No suitable tag column found")
 
     with tab3:
-        st.subheader("ðŸ“‹ Sync History")
+        st.subheader("📋 Sync History")
         history = st.session_state.get("notion_sync_history", [])
         if history:
             for entry in reversed(history[-20:]):
                 ts = entry.get("timestamp", "")
                 stype = entry.get("type", "").replace("_", " ").title()
                 result = entry.get("result", {})
-                status = "âœ…" if result.get("success") else "âŒ"
+                status = "✅" if result.get("success") else "âŒ"
                 st.markdown(f"{status} **{ts}**  {stype}: {result.get('message', '')}")
         else:
             st.info("No sync history yet.")

@@ -5,33 +5,33 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-CHRISHEM Unified Platform â€” Page Registry (v9.0)
+CHRISHEM Unified Platform — Page Registry (v9.0)
 The application is organized into 11 consolidated hub pages instead of the
 previous 66 individual pages. Each hub consolidates multiple tools into tabs
 and shares unified infrastructure (theme, session state, navigation).
 
 Hub pages:
-  1_ðŸ _Home_Dashboard      â€” System overview, vault, quick access, telemetry
-  2_ðŸ“_Data_Studio         â€” Ingestion, quality, transform, variable editor, simulator
-  3_ðŸ“Š_Statistics_Studio   â€” Parametric/non-parametric tests, causal, Bayesian, power
-  4_ðŸ¤–_ML_Predictive_Studioâ€” AutoML, feature engineering, agents, AI cores
-  5_ðŸ“ˆ_Visualization_Studioâ€” Chart builder, dashboards, presentations, extractor
-  6_ðŸ’¬_AI_NLP_Studio       â€” Text mining, NLP, AI insights, synthesis, gap finder
-  7_ðŸ“š_Literature_Publishing_Hub â€” Literature, meta-analysis, APA, citations, grants
-  8_ðŸ”¬_Domain_Analytics_Hub â€” Clinical, network, GIS, surveillance, academic, lab
-  9_ðŸ”—_Integrations_Hub    â€” Notion, Sheets, Git, APIs, webhooks, Mendeley
-  10_ðŸ›¡ï¸_Admin_Security_Center â€” Diagnostics, users, billing, vault, compliance
-  11_ðŸ¤_Collaboration_Portfolio â€” Projects, pipeline, agents, team, portfolio
+  1_ðŸ _Home_Dashboard      — System overview, vault, quick access, telemetry
+  2_ðŸ“_Data_Studio         — Ingestion, quality, transform, variable editor, simulator
+  3_ðŸ“Š_Statistics_Studio   — Parametric/non-parametric tests, causal, Bayesian, power
+  4_ðŸ¤–_ML_Predictive_Studio— AutoML, feature engineering, agents, AI cores
+  5_📈_Visualization_Studio— Chart builder, dashboards, presentations, extractor
+  6_ðŸ’¬_AI_NLP_Studio       — Text mining, NLP, AI insights, synthesis, gap finder
+  7_ðŸ“š_Literature_Publishing_Hub — Literature, meta-analysis, APA, citations, grants
+  8_ðŸ”¬_Domain_Analytics_Hub — Clinical, network, GIS, surveillance, academic, lab
+  9_ðŸ”—_Integrations_Hub    — Notion, Sheets, Git, APIs, webhooks, Mendeley
+  10_ðŸ›¡ï¸_Admin_Security_Center — Diagnostics, users, billing, vault, compliance
+  11_ðŸ¤_Collaboration_Portfolio — Projects, pipeline, agents, team, portfolio
 
 The original 66 pages are preserved in the `pages_archive/` directory for
 reference and legacy recovery.
 
 Unified infrastructure modules (in `modules/`):
-  - theme.py           â€” single source of truth for UI styling
-  - session_manager.py â€” cross-hub data state management
-  - navigation.py      â€” role-based navigation & global command search
-  - shared_ui.py       â€” reusable hero cards, headers, metrics, footers
-  - page_bootstrap.py  â€” standardized page setup & sidebar rendering
+  - theme.py           — single source of truth for UI styling
+  - session_manager.py — cross-hub data state management
+  - navigation.py      — role-based navigation & global command search
+  - shared_ui.py       — reusable hero cards, headers, metrics, footers
+  - page_bootstrap.py  — standardized page setup & sidebar rendering
 """
 
 # Consolidated hub registry (single source of truth for file discovery).
@@ -41,7 +41,7 @@ CONSOLIDATED_HUBS = [
     {"id": "data", "icon": "ðŸ“", "name": "Data Studio", "page": "2_ðŸ“_Data_Studio.py"},
     {"id": "statistics", "icon": "ðŸ“Š", "name": "Statistics Studio", "page": "3_ðŸ“Š_Statistics_Studio.py"},
     {"id": "ml", "icon": "ðŸ¤–", "name": "ML & Predictive Studio", "page": "4_ðŸ¤–_ML_Predictive_Studio.py"},
-    {"id": "visualization", "icon": "ðŸ“ˆ", "name": "Visualization Studio", "page": "5_ðŸ“ˆ_Visualization_Studio.py"},
+    {"id": "visualization", "icon": "📈", "name": "Visualization Studio", "page": "5_📈_Visualization_Studio.py"},
     {"id": "nlp", "icon": "ðŸ’¬", "name": "AI & NLP Studio", "page": "6_ðŸ’¬_AI_NLP_Studio.py"},
     {"id": "literature", "icon": "ðŸ“š", "name": "Literature & Publishing Hub", "page": "7_ðŸ“š_Literature_Publishing_Hub.py"},
     {"id": "domain", "icon": "ðŸ”¬", "name": "Domain Analytics Hub", "page": "8_ðŸ”¬_Domain_Analytics_Hub.py"},

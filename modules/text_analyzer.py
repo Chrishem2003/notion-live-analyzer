@@ -312,7 +312,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
     st.info(f"**Analyzing**: {len(texts)} text entries from '{text_col}'")
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        " Summary", "ðŸ˜Š Sentiment", "ðŸ“ˆ Word Frequency",
+        " Summary", "ðŸ˜Š Sentiment", "📈 Word Frequency",
         "â˜ï¸ Word Cloud", "ðŸ”¤ N-Grams"
     ])
 
@@ -383,7 +383,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
                 st.warning("No sentiment results. TextBlob may not be installed.")
 
     with tab3:
-        st.subheader("ðŸ“ˆ Word Frequency Analysis")
+        st.subheader("📈 Word Frequency Analysis")
         st.caption("Find the most frequent words in the text corpus")
 
         col1, col2 = st.columns(2)
@@ -410,7 +410,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
                 csv = freq_df.to_csv(index=False).encode('utf-8')
                 import base64
                 b64 = base64.b64encode(csv).decode()
-                st.markdown(f'<a href="data:text/csv;base64,{b64}" download="word_frequencies.csv">ðŸ“¥ Download CSV</a>',
+                st.markdown(f'<a href="data:text/csv;base64,{b64}" download="word_frequencies.csv">📥 Download CSV</a>',
                            unsafe_allow_html=True)
 
     with tab4:
@@ -442,7 +442,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
                     buf = io.BytesIO()
                     wc.to_image().save(buf, format='PNG')
                     b64 = base64.b64encode(buf.getvalue()).decode()
-                    st.markdown(f'<a href="data:image/png;base64,{b64}" download="wordcloud.png">ðŸ“¥ Download PNG</a>',
+                    st.markdown(f'<a href="data:image/png;base64,{b64}" download="wordcloud.png">📥 Download PNG</a>',
                                unsafe_allow_html=True)
                 else:
                     st.warning("Could not generate word cloud. Not enough text data.")

@@ -166,7 +166,7 @@ class CHRISHEMSubmissionSystem:
         return {
             "id": sub_id,
             "blockchain_hash": block_hash,
-            "message": "âœ… Submission encrypted and stored successfully!",
+            "message": "✅ Submission encrypted and stored successfully!",
         }
 
     def get_submissions(

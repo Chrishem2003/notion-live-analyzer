@@ -360,7 +360,7 @@ class VaultFile:
                     return False, None, "âŒ Failed to decrypt file."
                 if link["download_count"] >= link["max_downloads"]:
                     link["is_expired"] = True
-                return True, data, f"âœ… File ready for download ({link['download_count']}/{link['max_downloads']} used)"
+                return True, data, f"✅ File ready for download ({link['download_count']}/{link['max_downloads']} used)"
         return False, None, "âŒ Share link not found."
 
     def to_dict(self) -> Dict[str, Any]:
@@ -580,7 +580,7 @@ class SecurePersonalVault:
         self._log("vault_unlocked", f"Vault {'(duress mode)' if is_duress else ''}unlocked")
         if is_duress:
             return True, "âš ï¸ DUress mode active + showing limited vault."
-        return True, "âœ… Vault unlocked successfully."
+        return True, "✅ Vault unlocked successfully."
 
     def lock(self) -> None:
         """Lock the vault immediately."""
@@ -1154,7 +1154,7 @@ def render_secure_vault_ui():
                                 duress_passcode=duress_pass if duress_pass else None,
                             )
                             st.session_state["secure_vault"] = new_vault
-                            st.success("âœ… Vault created! Scan the TOTP secret with your authenticator app.")
+                            st.success("✅ Vault created! Scan the TOTP secret with your authenticator app.")
                             st.session_state["vault_totp_setup_mode"] = True
                             st.rerun()
 
@@ -1171,9 +1171,9 @@ def render_secure_vault_ui():
                     )
                     verify_code = st.text_input("Enter 6-digit code from authenticator", max_chars=6,
                                                  placeholder="000000", key="vault_totp_verify")
-                    if st.button("âœ… Verify & Continue", type="primary") and verify_code:
+                    if st.button("✅ Verify & Continue", type="primary") and verify_code:
                         if v.verify_totp(verify_code):
-                            st.success("âœ… TOTP verified! You can now unlock your vault.")
+                            st.success("✅ TOTP verified! You can now unlock your vault.")
                             st.session_state["vault_totp_setup_mode"] = False
                             st.rerun()
                         else:
@@ -1441,7 +1441,7 @@ def render_secure_vault_ui():
                         st.info(f"ðŸ“„ File type `{ext}`  download to view")
 
                 # File metadata
-                with st.expander("ðŸ“‹ File Details", expanded=False):
+                with st.expander("📋 File Details", expanded=False):
                     meta_col1, meta_col2 = st.columns(2)
                     with meta_col1:
                         st.markdown(f"**Name:** {vf.name}")
@@ -1462,7 +1462,7 @@ def render_secure_vault_ui():
                 decoded_data = vf.decrypt()
                 if decoded_data:
                     st.download_button(
-                        "ðŸ“¥ Download Decrypted File",
+                        "📥 Download Decrypted File",
                         data=decoded_data,
                         file_name=vf.name,
                         mime=vf.mime_type,
@@ -1517,7 +1517,7 @@ def render_secure_vault_ui():
                         tags=tags,
                         notes=notes,
                     )
-                    st.success(f"âœ… `{vf.name}` encrypted & stored securely ({vf._format_size()})")
+                    st.success(f"✅ `{vf.name}` encrypted & stored securely ({vf._format_size()})")
                     st.balloons()
                     st.rerun()
                 except ValueError as e:
@@ -1554,7 +1554,7 @@ def render_secure_vault_ui():
             st.info("No active share links. Select a file and click ðŸ”— to generate one.")
 
     # â”€â”€ Vault Audit Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    with st.expander("ðŸ“‹ Audit Log", expanded=False):
+    with st.expander("📋 Audit Log", expanded=False):
         log_entries = vault.get_audit_log(limit=30)
         if log_entries:
             for entry in reversed(log_entries):

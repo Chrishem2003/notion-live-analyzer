@@ -406,10 +406,10 @@ def render_data_quality_ui(df: pd.DataFrame):
         st.subheader(" Quality Dimensions")
         dimensions = ["completeness", "uniqueness", "consistency", "validity", "accuracy", "timeliness"]
         dim_labels = {
-            "completeness": "âœ… Completeness",
+            "completeness": "✅ Completeness",
             "uniqueness": "ðŸ”‘ Uniqueness",
             "consistency": "ðŸ“ Consistency",
-            "validity": "âœ… Validity",
+            "validity": "✅ Validity",
             "accuracy": "ðŸŽ¯ Accuracy",
             "timeliness": "â° Timeliness",
         }
@@ -435,7 +435,7 @@ def render_data_quality_ui(df: pd.DataFrame):
             for issue in issues:
                 st.warning(issue)
         else:
-            st.success("âœ… No significant quality issues detected!")
+            st.success("✅ No significant quality issues detected!")
 
         # Recommendations
         recommendations = report.get("recommendations", [])
@@ -445,7 +445,7 @@ def render_data_quality_ui(df: pd.DataFrame):
                 insight_card("ðŸ’¡", rec)
 
         # Overview
-        st.subheader("ðŸ“‹ Dataset Overview")
+        st.subheader("📋 Dataset Overview")
         overview = report.get("overview", {})
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -459,7 +459,7 @@ def render_data_quality_ui(df: pd.DataFrame):
             st.metric("Completeness", f"{completeness.get('missing_pct', 0)}% missing")
 
         # Column Quality Table
-        st.subheader("ðŸ“‹ Column-by-Column Quality")
+        st.subheader("📋 Column-by-Column Quality")
         col_quality = []
         for col in df.columns:
             n_missing = int(df[col].isna().sum())
@@ -475,7 +475,7 @@ def render_data_quality_ui(df: pd.DataFrame):
             else:
                 n_outliers = 0
 
-            quality = "âœ…" if missing_pct < 5 and n_outliers == 0 else \
+            quality = "✅" if missing_pct < 5 and n_outliers == 0 else \
                       "âš ï¸" if missing_pct < 30 else "âŒ"
 
             col_quality.append({

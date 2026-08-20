@@ -300,7 +300,7 @@ class MethodologyAuditor:
                 if is_present:
                     findings.append({
                         "type": flaw_key,
-                        "label": f"âœ… {flaw_def['label']}  Present",
+                        "label": f"✅ {flaw_def['label']}  Present",
                         "detail": "Power analysis or sample size justification was found.",
                         "severity": "good",
                         "recommendation": None,
@@ -530,7 +530,7 @@ class MethodologyAuditor:
         else:
             return {
                 "type": "sample_size_adequate",
-                "label": f"âœ… Adequate Sample Size (N = {sample_size})",
+                "label": f"✅ Adequate Sample Size (N = {sample_size})",
                 "detail": f"Sample size N = {sample_size} meets minimum recommendation for '{design}' designs (â‰¥{min_n}).",
                 "severity": "good",
                 "weight": 0,
@@ -672,7 +672,7 @@ class MethodologyAuditor:
         flaws = audit_results.get("flaws", [])
         if flaws:
             for f in flaws:
-                severity_icon = {"high": "ðŸ”´", "medium": "ðŸŸ¡", "low": "ðŸŸ ", "good": "âœ…", "info": "â„¹ï¸"}.get(
+                severity_icon = {"high": "ðŸ”´", "medium": "ðŸŸ¡", "low": "ðŸŸ ", "good": "✅", "info": "â„¹ï¸"}.get(
                     f.get("severity", "low"), "âšª"
                 )
                 lines.append(f"{severity_icon} {f['label']}")
@@ -699,7 +699,7 @@ class MethodologyAuditor:
             lines.append("STRENGTHS")
             lines.append("â”€" * 40)
             for s in strengths:
-                lines.append(f"âœ… {s}")
+                lines.append(f"✅ {s}")
             lines.append("")
 
         lines.append("â•" * 70)
@@ -737,7 +737,7 @@ def render_methodology_auditor_ui():
             "Input method",
             options=[
                 "âœï¸ Paste Methodology Text",
-                "ðŸ“‹ Load from Active Report Sections",
+                "📋 Load from Active Report Sections",
             ],
             horizontal=True,
             key="audit_input_method",
@@ -770,7 +770,7 @@ def render_methodology_auditor_ui():
                 )
                 detected_n = detected_n if detected_n > 0 else None
 
-        elif input_method == "ðŸ“‹ Load from Active Report Sections":
+        elif input_method == "📋 Load from Active Report Sections":
             st.info("Load methodology content from the Literature Engine's report sections.")
             db_path = None
             try:
@@ -822,7 +822,7 @@ def render_methodology_auditor_ui():
                 st.error(results["error"])
             else:
                 st.session_state["_last_audit_results"] = results
-                st.success(f"âœ… Audit complete! Rigor Score: {results['rigor_score']}/100  {results['rigor_label']}")
+                st.success(f"✅ Audit complete! Rigor Score: {results['rigor_score']}/100  {results['rigor_label']}")
                 st.rerun()
 
         elif run_audit:
@@ -888,7 +888,7 @@ def render_methodology_auditor_ui():
             if flaws:
                 for f in flaws:
                     sev = f.get("severity", "low")
-                    sev_icon = {"high": "ðŸ”´", "medium": "ðŸŸ¡", "low": "ðŸŸ ", "good": "âœ…", "info": "â„¹ï¸"}.get(sev, "âšª")
+                    sev_icon = {"high": "ðŸ”´", "medium": "ðŸŸ¡", "low": "ðŸŸ ", "good": "✅", "info": "â„¹ï¸"}.get(sev, "âšª")
                     sev_color = {"high": "#e74c3c", "medium": "#e67e22", "low": "#f39c12", "good": "#2ecc71", "info": "#3498db"}.get(sev, "#95a5a6")
 
                     st.markdown(f"""
@@ -900,14 +900,14 @@ def render_methodology_auditor_ui():
                     </div>
                     """, unsafe_allow_html=True)
             else:
-                st.success("âœ… No methodological flaws detected!")
+                st.success("✅ No methodological flaws detected!")
 
             # Strengths
             strengths = results.get("strengths", [])
             if strengths:
-                st.subheader("âœ… Strengths")
+                st.subheader("✅ Strengths")
                 for s in strengths:
-                    st.markdown(f"âœ… {s}")
+                    st.markdown(f"✅ {s}")
 
     # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     # TAB 3: Audit Report
@@ -929,7 +929,7 @@ def render_methodology_auditor_ui():
             st.markdown(
                 f'<a href="data:text/plain;base64,{b64}" download="methodology_audit_report.txt" '
                 f'style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;'
-                f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download Audit Report</a>',
+                f'border-radius:8px;text-decoration:none;font-weight:600;">📥 Download Audit Report</a>',
                 unsafe_allow_html=True,
             )
 
@@ -938,6 +938,6 @@ def render_methodology_auditor_ui():
             st.markdown(
                 f"""<button onclick="navigator.clipboard.writeText(`{escaped}`)"
                     style="padding:10px 20px;background:#059669;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;margin-left:0.5rem;">
-                    ðŸ“‹ Copy Report</button>""",
+                    📋 Copy Report</button>""",
                 unsafe_allow_html=True,
             )

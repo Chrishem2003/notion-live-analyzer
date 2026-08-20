@@ -53,18 +53,18 @@ Motivated and detail-oriented undergraduate student in the Faculty of Science wi
 """
             st.markdown(output_content)
             
-            st.markdown("### ðŸ“¥ Download & Share Document")
+            st.markdown("### 📥 Download & Share Document")
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 st.download_button(
-                    label="ðŸ“¥ Download as Markdown (.md)",
+                    label="📥 Download as Markdown (.md)",
                     data=output_content,
                     file_name="Chrishem_CV_Summary.md",
                     mime="text/markdown"
                 )
             with col_d2:
                 st.download_button(
-                    label="ðŸ“¥ Download as Plain Text (.txt)",
+                    label="📥 Download as Plain Text (.txt)",
                     data=output_content,
                     file_name="Chrishem_CV_Summary.txt",
                     mime="text/plain"
@@ -95,18 +95,18 @@ This study investigates regional environmental sample distributions using {metho
 """
             st.markdown(output_content)
 
-            st.markdown("### ðŸ“¥ Download & Share Document")
+            st.markdown("### 📥 Download & Share Document")
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 st.download_button(
-                    label="ðŸ“¥ Download Research Abstract (.md)",
+                    label="📥 Download Research Abstract (.md)",
                     data=output_content,
                     file_name="Research_Abstract.md",
                     mime="text/markdown"
                 )
             with col_d2:
                 st.download_button(
-                    label="ðŸ“¥ Download Research Abstract (.txt)",
+                    label="📥 Download Research Abstract (.txt)",
                     data=output_content,
                     file_name="Research_Abstract.txt",
                     mime="text/plain"
@@ -135,18 +135,18 @@ This study investigates regional environmental sample distributions using {metho
 """
             st.markdown(output_content)
 
-            st.markdown("### ðŸ“¥ Download & Share Document")
+            st.markdown("### 📥 Download & Share Document")
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 st.download_button(
-                    label="ðŸ“¥ Download Portfolio (.md)",
+                    label="📥 Download Portfolio (.md)",
                     data=output_content,
                     file_name="Project_Portfolio.md",
                     mime="text/markdown"
                 )
             with col_d2:
                 st.download_button(
-                    label="ðŸ“¥ Download Portfolio (.txt)",
+                    label="📥 Download Portfolio (.txt)",
                     data=output_content,
                     file_name="Project_Portfolio.txt",
                     mime="text/plain"
@@ -174,18 +174,18 @@ Kula Chris (Chrishem)
 """
             st.markdown(output_content)
 
-            st.markdown("### ðŸ“¥ Download & Share Document")
+            st.markdown("### 📥 Download & Share Document")
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 st.download_button(
-                    label="ðŸ“¥ Download Cover Letter (.md)",
+                    label="📥 Download Cover Letter (.md)",
                     data=output_content,
                     file_name="Cover_Letter.md",
                     mime="text/markdown"
                 )
             with col_d2:
                 st.download_button(
-                    label="ðŸ“¥ Download Cover Letter (.txt)",
+                    label="📥 Download Cover Letter (.txt)",
                     data=output_content,
                     file_name="Cover_Letter.txt",
                     mime="text/plain"

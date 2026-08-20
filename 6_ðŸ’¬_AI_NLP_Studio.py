@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ’¬ AI & NLP Studio â€” Consolidated AI & Text Analytics Hub (Premium)
+ðŸ’¬ AI & NLP Studio — Consolidated AI & Text Analytics Hub (Premium)
 Text mining, real sentiment analysis, a genuine natural-language-to-query engine, data-grounded
 research synthesis (TF-IDF + KMeans clustering, not canned text), a dataset-grounded methodology
 checklist, and real browser-based text-to-speech.
@@ -123,7 +123,7 @@ def score_sentiment(text: str):
 def render_text_analysis(df):
     section_header("ðŸ’¬ Advanced Text Mining & Sentiment Intelligence", "Extract keyword frequencies, sentiment polarities, and semantic n-gram phrase structures.")
     if not VADER_AVAILABLE:
-        st.caption("â„¹ï¸ Using a built-in word-boundary-safe lexicon for sentiment â€” the more accurate compound-score engine will activate automatically once available in this deployment.")
+        st.caption("â„¹ï¸ Using a built-in word-boundary-safe lexicon for sentiment — the more accurate compound-score engine will activate automatically once available in this deployment.")
 
     text_cols = list(df.select_dtypes(include=["object", "string"]).columns)
     if not text_cols:
@@ -324,7 +324,7 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame):
 
 
 def render_nl_query(df):
-    section_header("ðŸ’¬ Natural Language Query Console", "A rule-based NL-to-pandas engine â€” it recognizes common analytical question patterns and computes the real answer from the active dataset.")
+    section_header("ðŸ’¬ Natural Language Query Console", "A rule-based NL-to-pandas engine — it recognizes common analytical question patterns and computes the real answer from the active dataset.")
 
     with st.expander("â„¹ï¸ Supported question patterns"):
         st.markdown(
@@ -343,16 +343,16 @@ def render_nl_query(df):
         else:
             kind, payload, caption = parse_and_execute_nl_query(query, df)
             if kind == "metric":
-                st.success(f"âœ… {caption}")
+                st.success(f"✅ {caption}")
                 st.metric(caption, payload)
             elif kind == "table":
-                st.success(f"âœ… {caption}")
+                st.success(f"✅ {caption}")
                 st.dataframe(payload, use_container_width=True, hide_index=True)
                 render_export_buttons(payload, base_name="nl_query_result")
             elif kind == "error":
                 st.error(f"ðŸš« {payload}")
             else:
-                st.warning("âš ï¸ Couldn't match this question to a supported pattern â€” see the examples above.")
+                st.warning("âš ï¸ Couldn't match this question to a supported pattern — see the examples above.")
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -388,7 +388,7 @@ def render_synth_and_gap(df):
     with tab_synth:
         st.markdown("#### Data-Derived Thematic Clustering")
         if not SKLEARN_TEXT_AVAILABLE:
-            st.caption("â„¹ï¸ `scikit-learn` not available â€” using keyword-frequency grouping as a fallback.")
+            st.caption("â„¹ï¸ `scikit-learn` not available — using keyword-frequency grouping as a fallback.")
         text_cols = list(df.select_dtypes(include=["object", "string"]).columns)
         if text_cols:
             col = st.selectbox("Select Text Column to Synthesize", text_cols, key="synth_col_upg")
@@ -427,12 +427,12 @@ def render_synth_and_gap(df):
 
             findings = []
             if n < 100:
-                findings.append(f"**Sample Size:** n={n} is small â€” statistical power for detecting moderate effects will be limited.")
+                findings.append(f"**Sample Size:** n={n} is small — statistical power for detecting moderate effects will be limited.")
             else:
-                findings.append(f"**Sample Size:** n={n:,} â€” adequate for standard inferential tests.")
+                findings.append(f"**Sample Size:** n={n:,} — adequate for standard inferential tests.")
 
             if not datetime_cols:
-                findings.append("**Temporal Coverage:** No datetime column detected â€” this dataset appears to be a single time-point snapshot.")
+                findings.append("**Temporal Coverage:** No datetime column detected — this dataset appears to be a single time-point snapshot.")
             else:
                 span = (df[datetime_cols[0]].max() - df[datetime_cols[0]].min())
                 findings.append(f"**Temporal Coverage:** Datetime column `{datetime_cols[0]}` detected, spanning {span}.")
@@ -452,7 +452,7 @@ def render_synth_and_gap(df):
 
             for f in findings:
                 st.markdown(f"- {f}")
-            st.success("âœ… Checklist generated from the properties of your active dataset.")
+            st.success("✅ Checklist generated from the properties of your active dataset.")
             st.download_button("â¬‡ï¸ Download Checklist (.md)", data="\n".join(f"- {f}" for f in findings), file_name="methodology_checklist.md", mime="text/markdown", key="dl_checklist")
 
 
@@ -526,7 +526,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸ’¬ AI & NLP Studio â€” Consolidated AI & Text Analytics Hub (Premium)",
+        "ðŸ’¬ AI & NLP Studio — Consolidated AI & Text Analytics Hub (Premium)",
         "Enterprise-grade natural language processing studio featuring text mining, real sentiment analysis, a genuine natural-language-to-query engine, data-derived research synthesis, a dataset-grounded methodology checklist, and real browser-based speech synthesis.",
         badge_text="AI & NLP STUDIO â€¢ PREMIUM TIER",
     )

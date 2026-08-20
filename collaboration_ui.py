@@ -369,7 +369,7 @@ def render_command_center():
         "ðŸ  Lobby",
         "ðŸ“¹ Video Rooms",
         "ðŸ’¬ Chat",
-        "âœ… Tasks",
+        "✅ Tasks",
         "ðŸ¤– AI Assistant",
         "âš¡ Automations",
     ])
@@ -446,7 +446,7 @@ def render_lobby():
     st.divider()
     
     # Browse rooms
-    st.subheader("ðŸ“‹ Available Rooms")
+    st.subheader("📋 Available Rooms")
     
     manager = get_room_manager()
     rooms = manager.list_rooms()
@@ -484,7 +484,7 @@ def render_lobby():
             RoomType.RESEARCH_PANEL: (" Research Panel", "room-type-panel"),
             RoomType.WEBINAR: ("ðŸŽ“ Webinar", "room-type-webinar"),
         }
-        badge_text, badge_class = type_badges.get(room.room_type, ("ðŸ“Œ", ""))
+        badge_text, badge_class = type_badges.get(room.room_type, ("📜", ""))
         
         col1, col2 = st.columns([4, 1])
         
@@ -771,7 +771,7 @@ def render_task_list(tasks, task_mgr):
     """Render a list of tasks."""
     for task in tasks:
         priority_class = f"task-priority-{task.priority}"
-        status_emoji = {"todo": "â­•", "in_progress": "ðŸ”„", "review": "ðŸ‘€", "done": "âœ…"}
+        status_emoji = {"todo": "â­•", "in_progress": "ðŸ”„", "review": "ðŸ‘€", "done": "✅"}
         
         st.markdown(f"""
         <div class="task-card {priority_class}">
@@ -879,7 +879,7 @@ def render_ai_assistant():
                 st.markdown(f"- **{exp['name']}** ({exp['affiliation']}) - h-index: {exp['h_index']}")
     
     with col3:
-        if st.button("ðŸ“‹ Generate Brief"):
+        if st.button("📋 Generate Brief"):
             assistant = get_research_assistant()
             brief = assistant.generate_research_brief("AI in healthcare")
             st.json(brief)
@@ -943,7 +943,7 @@ def render_automations():
     st.divider()
     
     # Automation templates
-    st.subheader("ðŸ“‹ Templates")
+    st.subheader("📋 Templates")
     
     template_cols = st.columns(3)
     

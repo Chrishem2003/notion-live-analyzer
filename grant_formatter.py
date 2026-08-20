@@ -169,7 +169,7 @@ class GrantFormatter:
 
     def add_formatting_guide(self, format_name: str) -> str:
         info = self.FORMATS.get(format_name, {})
-        guide = f"## ðŸ“‹ {info.get('name', format_name)} Formatting Guide\n\n"
+        guide = f"## 📋 {info.get('name', format_name)} Formatting Guide\n\n"
         for key, val in info.items():
             if key not in ("name", "citation_style", "sections"):
                 guide = f"- **{key.replace('_', ' ').title()}**: {val}\n"
@@ -183,12 +183,12 @@ def render_grant_formatter_ui():
     import streamlit as st
     import base64
 
-    st.markdown("## ðŸ“œ One-Click Grant & Journal Transpiler")
+    st.markdown("## 📜 One-Click Grant & Journal Transpiler")
     st.markdown("*Instantly reformat for journals, grants, and institutions*")
 
     formatter = GrantFormatter()
 
-    tab1, tab2, tab3 = st.tabs(["ðŸ“ Content Formatter", "ðŸ“š Reference Formatter", "ðŸ“‹ Format Guides"])
+    tab1, tab2, tab3 = st.tabs(["ðŸ“ Content Formatter", "ðŸ“š Reference Formatter", "📋 Format Guides"])
 
     with tab1:
         st.subheader("ðŸ“ Reformat Your Content")
@@ -208,7 +208,7 @@ def render_grant_formatter_ui():
             st.subheader(f"ðŸ“„ {target} Format")
             st.markdown(result["content"])
             st.caption(f"Word count: {result.get('word_count', 0)}")
-            st.download_button("ðŸ“¥ Download", result["content"], file_name=f"{target.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
+            st.download_button("📥 Download", result["content"], file_name=f"{target.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
 
     with tab2:
         st.subheader("ðŸ“š Format References")
@@ -220,12 +220,12 @@ def render_grant_formatter_ui():
             if st.button("ðŸ“š Format References", type="primary", use_container_width=True):
                 refs = formatter.format_references(lit_papers, target_ref)
                 st.markdown(refs)
-                st.download_button("ðŸ“¥ Download References", refs, file_name=f"references_{target_ref.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
+                st.download_button("📥 Download References", refs, file_name=f"references_{target_ref.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
         else:
             st.info("Load papers in the Literature Engine first.")
 
     with tab3:
-        st.subheader("ðŸ“‹ Formatting Guides")
+        st.subheader("📋 Formatting Guides")
         fmt_choice = st.selectbox("Select format for guide", options=formatter.get_format_options(), key="gf_guide")
         guide = formatter.add_formatting_guide(fmt_choice)
         st.markdown(guide)

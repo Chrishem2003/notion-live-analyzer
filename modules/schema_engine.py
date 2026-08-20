@@ -119,7 +119,7 @@ def render_schema_engine_tab():
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.markdown("### ðŸ“‹ Active Research Projects")
+        st.markdown("### 📋 Active Research Projects")
         projects_df = pd.read_sql_query("SELECT * FROM projects", conn)
         st.dataframe(projects_df, use_container_width=True)
 

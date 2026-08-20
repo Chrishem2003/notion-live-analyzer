@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ¤ Collaboration & Portfolio Hub â€” Enterprise Production Grade (Real-Time & Meeting Enabled)
+ðŸ¤ Collaboration & Portfolio Hub — Enterprise Production Grade (Real-Time & Meeting Enabled)
 Includes persistent SQLite tracking, a real WebRTC video conference room (Zoom/Google Meet style),
 live team data sync, and non-theatrical autonomous agent operations.
 """
@@ -93,7 +93,7 @@ def render_meetings_hub(conn):
     section_header("ðŸ“¹ Real-Time Video Collaboration (Zoom / Google Meet Style)", "Host or join secure, low-latency WebRTC video rooms directly inside your workspace.")
     
     if not WEBRTC_AVAILABLE:
-        st.warning("âš ï¸ `streamlit-webrtc` isn't available in this deployment yet. Video streaming is running in fallback mode â€” this is a deployment configuration item (it needs to be in requirements.txt), not something to fix from here.")
+        st.warning("âš ï¸ `streamlit-webrtc` isn't available in this deployment yet. Video streaming is running in fallback mode — this is a deployment configuration item (it needs to be in requirements.txt), not something to fix from here.")
 
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -105,13 +105,13 @@ def render_meetings_hub(conn):
         enable_audio = st.checkbox("Enable Microphone Audio", value=True)
 
         if st.button("ðŸš€ Launch / Join Room", type="primary", key="launch_room_btn"):
-            st.success(f"âœ… Connected to secure WebRTC channel: `{room_name}` as **{user_alias}**")
+            st.success(f"✅ Connected to secure WebRTC channel: `{room_name}` as **{user_alias}**")
             conn.execute("INSERT OR REPLACE INTO meeting_rooms (room_name, host, active_participants, created_at) VALUES (?,?,?,?)",
                          (room_name, user_alias, 1, datetime.datetime.now().isoformat()))
             conn.commit()
 
     with col2:
-        st.markdown(f"#### Live Stream Window â€” Room: `{room_name}`")
+        st.markdown(f"#### Live Stream Window — Room: `{room_name}`")
         if WEBRTC_AVAILABLE and RTC_CONFIGURATION is not None:
             webrtc_streamer(
                 key=room_name,
@@ -120,11 +120,11 @@ def render_meetings_hub(conn):
                 async_processing=True,
             )
         else:
-            st.info("â„¹ï¸ Placeholder video frame active â€” real peer-to-peer tracks need `streamlit-webrtc` added to the deployment's requirements.txt.")
+            st.info("â„¹ï¸ Placeholder video frame active — real peer-to-peer tracks need `streamlit-webrtc` added to the deployment's requirements.txt.")
 
 
 def render_projects(conn):
-    section_header("ðŸŽ¯ Research Project Collaboration & Milestones", "Manage projects, assign leads, and track progress â€” persisted in SQLite database.")
+    section_header("ðŸŽ¯ Research Project Collaboration & Milestones", "Manage projects, assign leads, and track progress — persisted in SQLite database.")
 
     projects_df = pd.read_sql_query("SELECT id, name AS Name, lead AS Lead, stage AS Stage, progress AS Progress, budget AS Budget FROM collab_projects ORDER BY id DESC", conn)
     st.markdown("#### Active Project Portfolio")
@@ -150,12 +150,12 @@ def render_projects(conn):
                 (proj_name.strip(), proj_lead.strip() or "Unassigned", proj_stage, proj_progress, proj_budget, datetime.datetime.now().isoformat()),
             )
             conn.commit()
-            st.success(f"âœ… Project `{proj_name}` successfully initialized and persisted.")
+            st.success(f"✅ Project `{proj_name}` successfully initialized and persisted.")
             st.rerun()
 
 
 def render_pipeline(conn):
-    section_header("ðŸ“‹ Application & Grant Submission Pipeline", "Track actual grant applications, journal submissions, and review workflows.")
+    section_header("📋 Application & Grant Submission Pipeline", "Track actual grant applications, journal submissions, and review workflows.")
 
     pipeline_df = pd.read_sql_query("SELECT id, title AS 'Application / Proposal Title', target_entity AS 'Target Entity', status AS 'Current Status', deadline AS 'Deadline Date' FROM collab_pipeline ORDER BY id DESC", conn)
 
@@ -178,7 +178,7 @@ def render_pipeline(conn):
                 (p_title.strip(), p_target.strip(), p_status, str(p_deadline), datetime.datetime.now().isoformat()),
             )
             conn.commit()
-            st.success(f"âœ… Added `{p_title}` to the pipeline.")
+            st.success(f"✅ Added `{p_title}` to the pipeline.")
             st.rerun()
 
     if not pipeline_df.empty:
@@ -264,21 +264,21 @@ def render_agents(conn):
                     st.error(f"ðŸš« {summary}")
                 else:
                     summary = f"Retrieved {len(titles)} real result(s) for '{literature_query}'."
-                    st.success(f"âœ… {summary}")
+                    st.success(f"✅ {summary}")
                     for t in titles:
                         st.markdown(f"- {t}")
         elif df is None:
-            status, summary = "FAILED", "No active dataset loaded â€” this mission needs real data to inspect."
+            status, summary = "FAILED", "No active dataset loaded — this mission needs real data to inspect."
             st.warning(f"âš ï¸ {summary}")
         elif task == "Data Sync & Clean Agent":
             summary = _mission_data_sync_clean(df)
-            st.success(f"âœ… {summary}")
+            st.success(f"✅ {summary}")
         elif task == "Anomaly Detection Agent":
             summary = _mission_anomaly_detection(df)
-            st.success(f"âœ… {summary}")
+            st.success(f"✅ {summary}")
         elif task == "Automated Report Compilation Agent":
             summary = f"Report compiled successfully across {df.shape[0]:,} rows."
-            st.success(f"âœ… {summary}")
+            st.success(f"✅ {summary}")
 
         conn.execute(
             "INSERT INTO collab_agent_runs (task, priority, status, result_summary, timestamp) VALUES (?,?,?,?,?)",
@@ -309,7 +309,7 @@ def render_team_workspace(conn):
                 (row["Member Name"], row.get("Role", ""), row.get("Status", ""), row.get("Current Focus", "")),
             )
         conn.commit()
-        st.success("âœ… Roster successfully updated and synced.")
+        st.success("✅ Roster successfully updated and synced.")
         st.rerun()
 
     st.markdown("#### Team Notes Feed")
@@ -319,7 +319,7 @@ def render_team_workspace(conn):
         if note.strip():
             conn.execute("INSERT INTO collab_notes (author, note, timestamp) VALUES (?,?,?)", (author, note.strip(), datetime.datetime.now().isoformat()))
             conn.commit()
-            st.success("âœ… Note broadcast and saved.")
+            st.success("✅ Note broadcast and saved.")
             st.rerun()
 
     notes_df = pd.read_sql_query("SELECT author AS Author, note AS Note, timestamp AS Timestamp FROM collab_notes ORDER BY id DESC LIMIT 20", conn)
@@ -344,7 +344,7 @@ def render_portfolio(conn):
 def render_venture_portfolio():
     section_header(
         "ðŸ’¼ Enterprise Venture Portfolio & ROI Tracking",
-        "Real capital allocation and ROI tracking, backed by persistent storage â€” not project-management "
+        "Real capital allocation and ROI tracking, backed by persistent storage — not project-management "
         "placeholders. Starts empty; every row below is one your team actually entered.",
     )
 
@@ -381,7 +381,7 @@ def render_venture_portfolio():
 
 def main():
     from modules.subscription import require_active_subscription
-    # FIX: this hub had no tier gate at all â€” every trial/free account could
+    # FIX: this hub had no tier gate at all — every trial/free account could
     # reach it even though HUB_MIN_PLAN declares "collaboration": "premium".
     require_active_subscription(hub_id="collaboration")
 
@@ -392,7 +392,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸ¤ Collaboration & Portfolio Hub â€” Enterprise Production Grade",
+        "ðŸ¤ Collaboration & Portfolio Hub — Enterprise Production Grade",
         "Persistent tracking, real-time WebRTC video conference rooms (Zoom/Google Meet style), non-theatrical agent execution, and dynamic team tools.",
         badge_text="ENTERPRISE SUITE â€¢ LIVE ACTIVE",
     )
@@ -402,7 +402,7 @@ def main():
     tabs = st.tabs([
         "ðŸ“¹ Live Meet Rooms",
         "ðŸŽ¯ Projects",
-        "ðŸ“‹ Pipeline",
+        "📋 Pipeline",
         "ðŸ¦¾ Agent Console",
         "ðŸ‘¥ Team Workspace",
         "ðŸŽ“ Impact Summary",

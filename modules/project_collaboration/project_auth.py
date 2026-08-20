@@ -357,7 +357,7 @@ class ProjectAuthManager:
                 project_id=stored["project_id"],
                 role=role,
             )
-            return new_token, payload, "âœ… Token refreshed successfully."
+            return new_token, payload, "✅ Token refreshed successfully."
 
         except Exception as e:
             return None, None, f"âŒ Token refresh failed: {str(e)}"
@@ -387,7 +387,7 @@ class ProjectAuthManager:
             if payload.is_expired():
                 return False, None, "âŒ Token has expired."
 
-            return True, payload, "âœ… Token valid."
+            return True, payload, "✅ Token valid."
 
         except Exception as e:
             return False, None, f"âŒ Token validation error: {str(e)}"
@@ -725,7 +725,7 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
 
     st.markdown("### ðŸ” Project Auth Manager")
 
-    tab1, tab2, tab3 = st.tabs(["ðŸŽŸï¸ Generate Token", "âœ… Validate Token", "ðŸ“‹ Audit Log"])
+    tab1, tab2, tab3 = st.tabs(["ðŸŽŸï¸ Generate Token", "✅ Validate Token", "📋 Audit Log"])
 
     with tab1:
         st.markdown('<div class="auth-card">', unsafe_allow_html=True)
@@ -773,7 +773,7 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
             <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
                 <span class="auth-role-badge {badge_class}">{payload.role.icon} {payload.role.label}</span>
                 <span style="color:#64748b;font-size:0.75rem;">â±ï¸ Expires in {expiry_hours}h</span>
-                <span style="color:#64748b;font-size:0.75rem;">ðŸ“‹ {payload.jti[:12]}...</span>
+                <span style="color:#64748b;font-size:0.75rem;">📋 {payload.jti[:12]}...</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -797,10 +797,10 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
             height=100,
             key="auth_validate_token",
         )
-        if st.button("âœ… Validate Token", type="primary", use_container_width=True) and token_to_validate:
+        if st.button("✅ Validate Token", type="primary", use_container_width=True) and token_to_validate:
             is_valid, payload, message = manager.validate_token(token_to_validate.strip())
             if is_valid and payload:
-                st.success(f"âœ… {message}")
+                st.success(f"✅ {message}")
                 badge_class = {
                     "Host": "auth-role-host",
                     "Co-Host": "auth-role-cohost",

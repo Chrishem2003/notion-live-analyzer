@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ•µï¸ Forensics Intelligence â€” Digital Evidence Laboratory (Hardened Production Grade)
+ðŸ•µï¸ Forensics Intelligence — Digital Evidence Laboratory (Hardened Production Grade)
 Bit-level byte stream inspection, LSB entropy steganography profiling, deep EXIF/geolocation
 mapping, SMTP envelope/DKIM/SPF analysis, and cryptographically immutable, per-evidence
 chain-of-custody ledgers with strict error trapping and state durability.
@@ -82,7 +82,7 @@ def render_evidence_lab_tab():
 
     case_id = _get_or_open_case(data, filename)
 
-    st.success(f"ðŸ”— Immutable Chain-of-Custody Case Bound: **{case_id}** (this evidence's own case â€” not shared with other uploads this session)")
+    st.success(f"ðŸ”— Immutable Chain-of-Custody Case Bound: **{case_id}** (this evidence's own case — not shared with other uploads this session)")
     try:
         append_custody_record(case_id, "EVIDENCE_INGESTED_AND_HASHED", st.session_state.get("user_identity", {}).get("name", "Forensic Analyst"))
     except Exception:
@@ -157,7 +157,7 @@ def render_evidence_lab_tab():
         fig.update_layout(height=220, margin=dict(t=30, b=10, l=20, r=20), paper_bgcolor="rgba(0,0,0,0)", font={'color': "white"})
         st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown("#### ðŸ“¦ Export Cryptographic Evidence Dossier")
+    st.markdown("#### 📦 Export Cryptographic Evidence Dossier")
     dossier = json.dumps(report, indent=2)
     st.download_button("â¬‡ï¸ Download Complete Evidence Dossier (JSON)", data=dossier, file_name=f"evidence_dossier_{case_id}.json", mime="application/json", key="fe_download_upg")
 
@@ -179,9 +179,9 @@ def render_metadata_tab():
 
     if exif.get("has_exif"):
         col1, col2, col3 = st.columns(3)
-        col1.metric("Camera Make", exif.get("Make", "â€”"))
-        col2.metric("Camera Model", exif.get("Model", "â€”"))
-        col3.metric("Software Tool", exif.get("Software", "â€”"))
+        col1.metric("Camera Make", exif.get("Make", "—"))
+        col2.metric("Camera Model", exif.get("Model", "—"))
+        col3.metric("Software Tool", exif.get("Software", "—"))
 
         if exif.get("GPS"):
             gps = exif["GPS"]
@@ -203,7 +203,7 @@ def render_metadata_tab():
         if case_id:
             try:
                 append_custody_record(case_id, "METADATA_EXIF_EXTRACTED", "Forensic Analyst")
-                st.success("âœ… Metadata extraction successfully logged to that evidence's custody ledger.")
+                st.success("✅ Metadata extraction successfully logged to that evidence's custody ledger.")
             except Exception as e:
                 st.error(f"ðŸš¨ Failed to write audit record: {e}")
         else:
@@ -227,16 +227,16 @@ def render_stego_tab():
 
     if result.get("supported"):
         c1, c2, c3 = st.columns(3)
-        c1.metric("Bits Sampled", result.get("bits_sampled", "â€”"))
-        c2.metric("Ones Ratio", result.get("ones_ratio", "â€”"))
-        c3.metric("Bitstream Entropy", result.get("entropy", "â€”"))
+        c1.metric("Bits Sampled", result.get("bits_sampled", "—"))
+        c2.metric("Ones Ratio", result.get("ones_ratio", "—"))
+        c3.metric("Bitstream Entropy", result.get("entropy", "—"))
 
         st.markdown("#### ðŸ” Steganographic Verdict")
         likelihood = result.get("hidden_payload_likelihood", "LOW")
         if likelihood == "HIGH":
             st.error("ðŸš¨ **HIGH LIKELIHOOD OF HIDDEN PAYLOAD.** The LSB bitstream exhibits near-random statistical variance indicative of encrypted or compressed steganographic embedding.")
         else:
-            st.success("âœ… **No Significant Steganographic Payload Detected.** LSB bitstream aligns with natural sensor noise distribution.")
+            st.success("✅ **No Significant Steganographic Payload Detected.** LSB bitstream aligns with natural sensor noise distribution.")
         st.write(result.get("estimate", ""))
     else:
         st.warning(result.get("note", "Steganographic analysis is unsupported for this file format."))
@@ -261,11 +261,11 @@ def render_phishing_tab():
 
         risk = result.get("phishing_risk", "LOW")
         if risk == "HIGH":
-            st.error(f"ðŸš¨ **{result.get('verdict', 'Potential Phishing')}** â€” Assessed Risk Level: **{risk}**")
+            st.error(f"ðŸš¨ **{result.get('verdict', 'Potential Phishing')}** — Assessed Risk Level: **{risk}**")
         elif risk == "MEDIUM":
-            st.warning(f"âš ï¸ **{result.get('verdict', 'Suspicious Headers')}** â€” Assessed Risk Level: **{risk}**")
+            st.warning(f"âš ï¸ **{result.get('verdict', 'Suspicious Headers')}** — Assessed Risk Level: **{risk}**")
         else:
-            st.success(f"âœ… **{result.get('verdict', 'Clean Headers')}** â€” Assessed Risk Level: **{risk}**")
+            st.success(f"✅ **{result.get('verdict', 'Clean Headers')}** — Assessed Risk Level: **{risk}**")
 
         if result.get("suspicious_findings"):
             st.markdown("#### ðŸš© Identified Indicator Anomalies (IoCs)")
@@ -276,11 +276,11 @@ def render_phishing_tab():
             st.markdown("#### ðŸ”‘ Social Engineering Trigger Keywords")
             st.write(", ".join(result["keyword_hits"]))
 
-        st.markdown("#### ðŸ“‹ Domain Envelope Alignment")
+        st.markdown("#### 📋 Domain Envelope Alignment")
         cols = st.columns(3)
-        cols[0].metric("From Domain", result.get("from_domain", "â€”"))
-        cols[1].metric("Reply-To Domain", result.get("reply_to_domain", "â€”"))
-        cols[2].metric("Return-Path Domain", result.get("return_path_domain", "â€”"))
+        cols[0].metric("From Domain", result.get("from_domain", "—"))
+        cols[1].metric("Reply-To Domain", result.get("reply_to_domain", "—"))
+        cols[2].metric("Return-Path Domain", result.get("return_path_domain", "—"))
 
         st.info(
             f"**Authentication Status:** SPF Present: `{result.get('spf_present')}` | "
@@ -290,30 +290,30 @@ def render_phishing_tab():
 
 
 def render_custody_tab():
-    section_header("ðŸ”— Cryptographic Chain-of-Custody Vault", "Court-admissible tamper-evident ledger where every investigative action is cryptographically chained via SHA-256 blocks â€” one independent chain per piece of evidence.")
+    section_header("ðŸ”— Cryptographic Chain-of-Custody Vault", "Court-admissible tamper-evident ledger where every investigative action is cryptographically chained via SHA-256 blocks — one independent chain per piece of evidence.")
 
     registry = st.session_state.get("fe_case_registry", {})
     if not registry:
         st.info("â„¹ï¸ No forensic cases opened this session. Ingest an evidentiary artifact in the Evidence Lab to initialize a case.")
         return
 
-    options = {f"{v['case_id']} â€” {v['filename']}": v["case_id"] for v in registry.values()}
+    options = {f"{v['case_id']} — {v['filename']}": v["case_id"] for v in registry.values()}
     selected_label = st.selectbox("Select Case to Inspect", list(options.keys()), key="fe_case_selector")
     case_id = options[selected_label]
 
     st.metric("Selected Case Identifier", case_id)
-    if st.button("âœ… Verify Cryptographic Ledger Integrity", key="fe_verify_chain_upg", type="primary"):
+    if st.button("✅ Verify Cryptographic Ledger Integrity", key="fe_verify_chain_upg", type="primary"):
         try:
             result = verify_chain(case_id) or {"valid": False, "reason": "No response from verification engine"}
         except Exception as e:
             result = {"valid": False, "reason": str(e)}
 
         if result.get("valid"):
-            st.success(f"ðŸ” Chain integrity verified successfully â€” {result.get('records', 'Unknown')} immutable ledger entries intact for this case.")
+            st.success(f"ðŸ” Chain integrity verified successfully — {result.get('records', 'Unknown')} immutable ledger entries intact for this case.")
         else:
             st.error(f"ðŸš¨ **CHAIN TAMPER DETECTED:** {result.get('reason')}")
 
-    st.caption(f"{len(registry)} independent case(s) opened this session â€” each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
+    st.caption(f"{len(registry)} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
 
     st.markdown("#### About Cryptographic Chain-of-Custody")
     st.markdown("""
@@ -334,7 +334,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸ•µï¸ Forensic Intelligence & Digital Evidence Laboratory â€” Hardened Production Suite",
+        "ðŸ•µï¸ Forensic Intelligence & Digital Evidence Laboratory — Hardened Production Suite",
         "Bit-level byte stream parsing, Shannon entropy profiling, LSB steganography detection, EXIF geolocation mapping, SMTP phishing forensics, and cryptographically immutable, per-evidence chain-of-custody ledgers.",
         badge_text="FORENSIC INTELLIGENCE â€¢ SECURE EVIDENCE LAB",
     )

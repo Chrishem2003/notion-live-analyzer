@@ -9,8 +9,8 @@ def init_pipeline_session_state():
     """Initializes session state keys for the pipeline module."""
     if "pipeline_records" not in st.session_state:
         st.session_state["pipeline_records"] = [
-            {"Document": "Resume_2026.pdf", "Category": "Professional", "Status": "âœ… Verified", "Score": 95},
-            {"Document": "Cover_Letter.docx", "Category": "Administrative", "Status": "âœ… Verified", "Score": 90},
+            {"Document": "Resume_2026.pdf", "Category": "Professional", "Status": "✅ Verified", "Score": 95},
+            {"Document": "Cover_Letter.docx", "Category": "Administrative", "Status": "✅ Verified", "Score": 90},
             {"Document": "Transcript_Muni.pdf", "Category": "Academic", "Status": "â³ Pending", "Score": 85}
         ]
 
@@ -20,7 +20,7 @@ def load_pipeline_stylesheet(is_dark: bool = False):
 
 def render_pipeline_ui(operational_mode: str = "Kanban Board & Stage Analytics", base_currency: str = "USD ($)"):
     """Renders the main Application Pipeline UI based on selected operational mode."""
-    st.title("ðŸ“‹ Enterprise Application Pipeline & Document Vault")
+    st.title("📋 Enterprise Application Pipeline & Document Vault")
     st.markdown(f"**Current Operational Mode:** `{operational_mode}` | **Active Financial Denomination:** `{base_currency}`")
     
     tab1, tab2, tab3 = st.tabs([" Pipeline Records", "ðŸ“ Document Vault", "âš™ï¸ Analytics & Risk Gates"])

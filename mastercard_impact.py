@@ -48,7 +48,7 @@ def render_mastercard_impact_tab():
                 st.rerun()
 
     with col_m2:
-        st.markdown("### ðŸ“ˆ Active Sponsored Portfolios")
+        st.markdown("### 📈 Active Sponsored Portfolios")
         mcf_df = pd.read_sql_query("SELECT * FROM youth_enterprise_ventures", conn)
         if not mcf_df.empty:
             st.dataframe(mcf_df, use_container_width=True)

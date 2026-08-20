@@ -57,7 +57,7 @@ class CHRISHEMAnalyzer:
 
         summary_lines = [
             f" **Dataset Overview**: {profile['rows']:,} rows Ã— {profile['columns']} columns",
-            f"ðŸ“¦ **Memory Usage**: {profile['memory_usage'] / 1024:.1f} KB",
+            f"📦 **Memory Usage**: {profile['memory_usage'] / 1024:.1f} KB",
             f"â¬œ **Missing Values**: {profile['missing_cells']:,} ({profile['missing_pct']}%)",
             f"ðŸ” **Duplicate Rows**: {profile['duplicate_rows']:,}",
         ]
@@ -84,7 +84,7 @@ class CHRISHEMAnalyzer:
         if missing_df.empty:
             return {
                 "has_missing": False,
-                "message": "âœ… No missing values found in the dataset.",
+                "message": "✅ No missing values found in the dataset.",
                 "data": missing_df,
             }
 
@@ -139,7 +139,7 @@ class CHRISHEMAnalyzer:
             "columns_with_outliers": n_cols_with_outliers,
             "total_numeric_columns": total_columns,
             "details": outlier_results,
-            "summary": f"ðŸ” Found potential outliers in **{n_cols_with_outliers}** of **{total_columns}** numeric columns" if n_cols_with_outliers > 0 else "âœ… No significant outliers detected",
+            "summary": f"ðŸ” Found potential outliers in **{n_cols_with_outliers}** of **{total_columns}** numeric columns" if n_cols_with_outliers > 0 else "✅ No significant outliers detected",
         }
 
     # â”€â”€â”€ Normality Tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -170,7 +170,7 @@ class CHRISHEMAnalyzer:
             "non_normal": non_normal_cols,
             "details": results,
             "summary": (
-                f"ðŸ“ˆ **Normality**: {len(normal_cols)}/{len(results)} columns appear normally distributed"
+                f"📈 **Normality**: {len(normal_cols)}/{len(results)} columns appear normally distributed"
                 if results else "â„¹ï¸ Insufficient data for normality testing"
             ),
         }
@@ -369,7 +369,7 @@ class CHRISHEMAnalyzer:
                     logger.warning("Temporal insight failed for column %r", col, exc_info=True)
 
         if not insights:
-            insights.append("âœ… No notable patterns detected  data appears clean and simple")
+            insights.append("✅ No notable patterns detected  data appears clean and simple")
 
         return insights
 

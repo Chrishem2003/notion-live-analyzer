@@ -110,6 +110,6 @@ def render_blindspot_engine_tab():
         check_doi = st.text_input("Verify Literature DOI / Identifier", value="10.1038/s41587-026-001")
         if st.button("Check Retraction Status"):
             # Simulated real-time cross-check against retraction databases
-            st.success(f"âœ… DOI `{check_doi}` is verified active. No retractions or expressions of concern registered in cross-agency databases.")
+            st.success(f"✅ DOI `{check_doi}` is verified active. No retractions or expressions of concern registered in cross-agency databases.")
 
     conn.close()

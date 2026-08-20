@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-ðŸ”„ Universal Converter Studio â€” Enterprise Production Grade (Hardened & De-faked)
+ðŸ”„ Universal Converter Studio — Enterprise Production Grade (Hardened & De-faked)
 Comprehensive conversion, reshaping, scientific unit conversion, geodesic coordinate
 transformation, PDF content extraction, and real batch multi-file conversion with strict error boundaries.
 """
@@ -83,7 +83,7 @@ def _load_dataframe(uploaded):
 
 
 def render_format_tab():
-    section_header("ðŸ“¦ Enterprise Format Converter", "Convert structured datasets seamlessly between CSV, Excel, JSON, Parquet, XML, YAML, SQLite SQL, HTML, and Markdown â€” single file or real batch mode.")
+    section_header("📦 Enterprise Format Converter", "Convert structured datasets seamlessly between CSV, Excel, JSON, Parquet, XML, YAML, SQLite SQL, HTML, and Markdown — single file or real batch mode.")
 
     fmt_map = {
         "CSV": "csv", "Excel (XLSX)": "xlsx", "JSON": "json", "Parquet": "parquet",
@@ -126,7 +126,7 @@ def render_format_tab():
                 try:
                     data = convert_dataframe(df, fmt_map[target])
                     out_name = uploaded.name.rsplit(".", 1)[0]
-                    st.success(f"âœ… Conversion successful! Generated `{len(data):,}` bytes.")
+                    st.success(f"✅ Conversion successful! Generated `{len(data):,}` bytes.")
                     st.download_button(
                         f"â¬‡ï¸ Download Converted {target} File",
                         data=data,
@@ -160,16 +160,16 @@ def render_format_tab():
                         data = convert_dataframe(df, fmt_map[target])
                         out_name = f"{uf.name.rsplit('.', 1)[0]}_converted.{ext_map[target]}"
                         zf.writestr(out_name, data)
-                        results.append({"File": uf.name, "Status": f"âœ… Converted ({len(data):,} bytes)"})
+                        results.append({"File": uf.name, "Status": f"✅ Converted ({len(data):,} bytes)"})
                     except Exception as e:
                         results.append({"File": uf.name, "Status": f"âŒ Error: {e}"})
 
             results_df = pd.DataFrame(results)
             st.dataframe(results_df, use_container_width=True, hide_index=True)
 
-            success_count = sum(1 for r in results if r["Status"].startswith("âœ…"))
+            success_count = sum(1 for r in results if r["Status"].startswith("✅"))
             if success_count:
-                st.success(f"âœ… {success_count}/{len(uploaded_files)} file(s) converted successfully.")
+                st.success(f"✅ {success_count}/{len(uploaded_files)} file(s) converted successfully.")
                 st.download_button(
                     f"â¬‡ï¸ Download Batch ZIP ({success_count} file(s))",
                     data=zip_buffer.getvalue(),
@@ -178,7 +178,7 @@ def render_format_tab():
                     key="uc_fmt_batch_dl",
                 )
             else:
-                st.error("ðŸš« No files converted successfully â€” check the status table above.")
+                st.error("ðŸš« No files converted successfully — check the status table above.")
 
 
 def render_encoding_tab():
@@ -207,15 +207,15 @@ def render_encoding_tab():
                     result_text = str(result)
                     result = result_text.encode("utf-8")
 
-                st.success("âœ… Transformation executed successfully.")
+                st.success("✅ Transformation executed successfully.")
                 st.text_area("Transformation Result Output", value=result_text, height=160, key="uc_enc_out_upg")
                 st.download_button("â¬‡ï¸ Download Result Payload", data=result, file_name="transformed_payload.txt", mime="text/plain", key="uc_enc_dl_upg")
             except Exception as e:
-                st.error(f"ðŸš¨ Transformation Error: {e} â€” verify payload formatting.")
+                st.error(f"ðŸš¨ Transformation Error: {e} — verify payload formatting.")
 
 
 def render_reshape_tab():
-    section_header("ðŸ”€ Advanced Data Reshaping Studio", "Reshape analytical datasets between wide and long formats, pivot tables, transpose matrices, and stack column hierarchies.")
+    section_header("🔄 Advanced Data Reshaping Studio", "Reshape analytical datasets between wide and long formats, pivot tables, transpose matrices, and stack column hierarchies.")
 
     uploaded = st.file_uploader("Upload dataset for restructuring", type=["csv", "xlsx", "json"], key="uc_rs_upload_upg")
     if uploaded is None:
@@ -305,7 +305,7 @@ def render_unit_tab():
             if not result or "error" in result:
                 st.error(f"ðŸš¨ {result.get('error', 'Conversion calculation failed.')}")
             else:
-                st.success(f"âœ… `{value:,.4f} {from_unit}` = **{result['result']:,.6f} {to_unit}**")
+                st.success(f"✅ `{value:,.4f} {from_unit}` = **{result['result']:,.6f} {to_unit}**")
         except Exception as e:
             st.error(f"ðŸš¨ Unit Engine Exception: {e}")
 
@@ -326,8 +326,8 @@ def render_coord_tab():
                 result = decimal_to_dms(lat, lon)
                 st.success(f"Formatted: `{result.get('formatted', '')}`")
                 c1, c2 = st.columns(2)
-                c1.metric("Latitude (DMS)", result.get("lat_dms", "â€”"))
-                c2.metric("Longitude (DMS)", result.get("lon_dms", "â€”"))
+                c1.metric("Latitude (DMS)", result.get("lat_dms", "—"))
+                c2.metric("Longitude (DMS)", result.get("lon_dms", "—"))
                 st.map(pd.DataFrame([{"lat": lat, "lon": lon}]))
             except Exception as e:
                 st.error(f"ðŸš¨ Geodetic Conversion Error: {e}")
@@ -346,7 +346,7 @@ def render_coord_tab():
                 c2.metric("Longitude (Decimal)", f"{lon_val:.6f}")
                 st.map(pd.DataFrame([{"lat": lat_val, "lon": lon_val}]))
             except Exception as e:
-                st.error(f"ðŸš¨ Parse Error: {e} â€” ensure standard format like `0Â°20â€²51.4â€³N`")
+                st.error(f"ðŸš¨ Parse Error: {e} — ensure standard format like `0Â°20â€²51.4â€³N`")
 
 
 def render_pdf_tab():
@@ -366,7 +366,7 @@ def render_pdf_tab():
                 return
 
         c1, c2 = st.columns(2)
-        c1.metric("Total Pages", result.get("pages", "â€”"))
+        c1.metric("Total Pages", result.get("pages", "—"))
         c2.metric("Character Count", f"{result.get('total_chars', 0):,}")
 
         text = result.get("text", "")
@@ -388,15 +388,15 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "ðŸ”„ Universal Converter & Utilities Studio â€” Hardened Production Suite",
+        "ðŸ”„ Universal Converter & Utilities Studio — Hardened Production Suite",
         "Conversion suite supporting 9+ tabular formats with real batch mode, binary payload encoding, matrix reshaping, scientific unit transformations, geodetic coordinate conversion, and PDF text extraction.",
         badge_text="UNIVERSAL CONVERTER â€¢ HARDENED SUITE",
     )
 
     tabs = st.tabs([
-        "ðŸ“¦ Format Converter",
+        "📦 Format Converter",
         "ðŸ”¤ Multi-Encoding",
-        "ðŸ”€ Data Reshaper",
+        "🔄 Data Reshaper",
         "âš–ï¸ Scientific Units",
         "ðŸ—ºï¸ Coordinates",
         "ðŸ“„ PDF Extractor",

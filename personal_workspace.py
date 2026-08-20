@@ -18,7 +18,7 @@ def render_personal_workspace_panel():
         with st.container(border=True):
             st.caption("RESEARCH PROGRESS")
             st.subheader(" 94.2%")
-            st.caption("ðŸ“ˆ 3.5% Auto")
+            st.caption("📈 3.5% Auto")
     with c3:
         with st.container(border=True):
             st.caption("WORKSPACE STATUS")

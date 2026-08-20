@@ -134,7 +134,7 @@ class InteractiveAudioEngine:
     def _handle_results_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         findings = paper.get("findings", paper.get("results", "not specified in context"))
-        return {"action": "results", "response_text": f"ðŸ“ˆ Key findings: {findings}", "success": True}
+        return {"action": "results", "response_text": f"📈 Key findings: {findings}", "success": True}
 
     def _handle_statistics_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
@@ -185,7 +185,7 @@ def render_interactive_audio_ui():
         st.session_state["audio_engine"] = InteractiveAudioEngine()
     engine = st.session_state["audio_engine"]
 
-    tab1, tab2, tab3 = st.tabs(["ðŸŽ§ Player", "ðŸŽ¯ Voice Commands", "ðŸ“‹ History"])
+    tab1, tab2, tab3 = st.tabs(["ðŸŽ§ Player", "ðŸŽ¯ Voice Commands", "📋 History"])
 
     with tab1:
         st.subheader("ðŸŽ§ Audio Briefing Player")
@@ -200,10 +200,10 @@ def render_interactive_audio_ui():
             methodology = st.text_input("Methodology", placeholder="RCT, double-blind", key="audio_method")
             findings = st.text_area("Key findings", height=60, placeholder="Main results...", key="audio_findings")
 
-        if st.button("ðŸ“¥ Load Briefing", type="primary", use_container_width=True) and briefing_text:
+        if st.button("📥 Load Briefing", type="primary", use_container_width=True) and briefing_text:
             paper_ctx = {"sample_size": sample_size, "methodology": methodology, "findings": findings, "statistics": ""}
             engine.load_briefing(briefing_text, paper_ctx)
-            st.success(f"âœ… Loaded {len(engine.segments)} segments")
+            st.success(f"✅ Loaded {len(engine.segments)} segments")
 
         if engine.segments:
             st.markdown("### Controls")
@@ -245,7 +245,7 @@ def render_interactive_audio_ui():
         st.markdown(engine._get_help_text())
 
     with tab3:
-        st.subheader("ðŸ“‹ Command History")
+        st.subheader("📋 Command History")
         if engine.command_history:
             for cmd in reversed(engine.command_history[-20:]):
                 ts = datetime.fromtimestamp(cmd["timestamp"]).strftime("%H:%M:%S")

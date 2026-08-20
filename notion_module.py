@@ -195,7 +195,7 @@ def render_notion_duplication():
     """Render the Notion template duplication UI."""
     from modules.subscription import check_feature_access, Tier, get_current_tier
     
-    st.subheader("ðŸ“‹ Notion Enterprise Research Planner")
+    st.subheader("📋 Notion Enterprise Research Planner")
     
     # Check premium access
     current_tier = get_current_tier()
@@ -214,8 +214,8 @@ def render_notion_duplication():
                 - ðŸ“š Literature Review Tracker
                 - ðŸ”¬ Methodology Framework
                 - ðŸ“ Research Journal
-                - ðŸ“ˆ Data Analysis Templates
-                - ðŸ“‹ Grant Application Checklist
+                - 📈 Data Analysis Templates
+                - 📋 Grant Application Checklist
                 
                 [View Template]({TEMPLATE_URL})
                 """)
@@ -225,7 +225,7 @@ def render_notion_duplication():
     already_claimed = check_notion_claimed()
     
     if already_claimed:
-        st.success("âœ… You have already claimed your 1-time Notion workspace duplication!")
+        st.success("✅ You have already claimed your 1-time Notion workspace duplication!")
         
         st.markdown(f"""
         ### Your Notion Research Planner
@@ -248,8 +248,8 @@ def render_notion_duplication():
         - ðŸ“š Literature Review Tracker  
         - ðŸ”¬ Methodology Framework
         - ðŸ“ Research Journal
-        - ðŸ“ˆ Data Analysis Templates
-        - ðŸ“‹ Grant Application Checklist
+        - 📈 Data Analysis Templates
+        - 📋 Grant Application Checklist
         """)
         
         # Claim button
@@ -264,7 +264,7 @@ def render_notion_duplication():
             </script>
             ''', unsafe_allow_html=True)
             
-            st.success("âœ… Workspace duplication claimed!")
+            st.success("✅ Workspace duplication claimed!")
             st.info(f"[Click here to open Notion]({TEMPLATE_URL}) if the link didn't open automatically.")
             
             st.rerun()
@@ -312,7 +312,7 @@ def render_notion_embed():
     with col2:
         st.markdown(f"[Open Full Screen â†’]({EMBED_URL})")
     with col3:
-        if st.button("ðŸ“‹ Copy Link"):
+        if st.button("📋 Copy Link"):
             st.code(EMBED_URL)
             st.toast("Link copied to clipboard!")
 
@@ -321,7 +321,7 @@ def render_notion_module():
     st.markdown("## ðŸ”— Notion Integration")
     
     # Tabs for different Notion features
-    tab1, tab2, tab3 = st.tabs(["ðŸ“‹ Claim Workspace", "ðŸ”— Embedded View", "âš™ï¸ Settings"])
+    tab1, tab2, tab3 = st.tabs(["📋 Claim Workspace", "ðŸ”— Embedded View", "âš™ï¸ Settings"])
     
     with tab1:
         render_notion_duplication()

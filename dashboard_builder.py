@@ -185,7 +185,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         st.caption("")
         if st.button("ðŸ’¾ Save Dashboard", use_container_width=True):
             DashboardBuilder.save_dashboard(dashboard, dash_name)
-            st.success(f"âœ… Saved '{dash_name}'")
+            st.success(f"✅ Saved '{dash_name}'")
     with col4:
         st.caption("")
         if st.button("ðŸ”„ Reset", use_container_width=True):
@@ -233,7 +233,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         params["height"] = {"small": 300, "medium": 430, "large": 550}.get(chart_size, 430)
 
         DashboardBuilder.add_chart(dashboard, chart_type, chart_title or f"{chart_type.replace('_', ' ').title()}", params, chart_size)
-        st.success(f"âœ… Added '{chart_title or chart_type}' to dashboard")
+        st.success(f"✅ Added '{chart_title or chart_type}' to dashboard")
 
     # â”€â”€â”€ Global Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("---")
@@ -297,7 +297,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
                     dashboard, ct, rec.get("reason", ct.replace("_", " ").title()),
                     params, "medium"
                 )
-            st.success("âœ… Auto-generated 6 charts! Scroll down to view.")
+            st.success("✅ Auto-generated 6 charts! Scroll down to view.")
             st.rerun()
     else:
         # Render charts based on layout
@@ -352,16 +352,16 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         st.markdown("---")
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("ðŸ“¥ Export Dashboard JSON", use_container_width=True):
+            if st.button("📥 Export Dashboard JSON", use_container_width=True):
                 json_str = DashboardBuilder.export_dashboard(dashboard)
                 st.code(json_str, language="json")
-                st.download_button("ðŸ“¥ Download", json_str, file_name=f"{dashboard.get('name', 'dashboard')}.json")
+                st.download_button("📥 Download", json_str, file_name=f"{dashboard.get('name', 'dashboard')}.json")
         with col2:
             uploaded_json = st.file_uploader("ðŸ“‚ Import Dashboard JSON", type=["json"], key="dash_import")
             if uploaded_json:
                 imported = DashboardBuilder.import_dashboard(uploaded_json.read().decode())
                 if imported:
                     st.session_state["current_dashboard"] = imported
-                    st.success("âœ… Dashboard imported!")
+                    st.success("✅ Dashboard imported!")
                     st.rerun()
 
