@@ -1,4 +1,4 @@
-"""
+﻿"""
 chat_auth.py — Signed, time-limited tokens bridging Streamlit's session
 auth to the FastAPI WebSocket process.
 

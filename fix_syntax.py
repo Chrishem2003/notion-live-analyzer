@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Auto-fixer for systematic operator corruption in the CHRISHEM repository.
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration example: drop this into 7___Literature_Publishing_Hub.py's
 render_literature_search(), inside the `tab_search` block, right after the
 existing instant-search UI (the one calling search_crossref() synchronously).

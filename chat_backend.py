@@ -1,4 +1,4 @@
-"""
+﻿"""
 chat_backend.py — Real-time messaging backend.
 
 Two storage layers, each doing the job it's actually suited for:
