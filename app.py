@@ -834,4 +834,3 @@ else:
             users = cursor.fetchall()
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
             st.dataframe(user_df, use_container_width=True)
-
