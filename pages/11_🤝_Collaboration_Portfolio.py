@@ -59,7 +59,7 @@ except ImportError:
 
 # WebRTC import for real-time video/audio conferencing
 try:
-    from streamlit_webrtc import webrtc_streamer, RTCConfiguration, VideoTransformerBase
+    from streamlit_webrtc import webrtc_streamer, RTCConfiguration
     WEBRTC_AVAILABLE = True
 except ImportError:
     WEBRTC_AVAILABLE = False
@@ -119,7 +119,7 @@ def render_meetings_hub():
     section_header("📹 Real-Time Video Collaboration (Zoom / Google Meet Style)", "Host or join secure, low-latency WebRTC video rooms directly inside your workspace.")
     
     if not WEBRTC_AVAILABLE:
-        st.warning("⚠️ `streamlit-webrtc` is not installed in this environment. Video streaming is running in fallback mode — add `streamlit-webrtc` to `requirements.txt` for live feeds.")
+        st.warning("⚠️ `streamlit-webrtc` is not installed in this environment. Video streaming is running in fallback mode — add `streamlit-webrtc>=0.47.0` to `requirements.txt` to enable live feeds.")
 
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -149,7 +149,7 @@ def render_meetings_hub():
                 async_processing=True,
             )
         else:
-            st.info("ℹ️ Video feed placeholder active — live WebRTC audio/video feeds will initialize when `streamlit-webrtc` is available.")
+            st.info("ℹ️ Video feed placeholder active — live WebRTC audio/video feeds will initialize once `streamlit-webrtc` is installed and the app is restarted.")
 
 
 def render_projects():
@@ -364,7 +364,7 @@ def render_team_workspace():
 
     st.markdown("#### Team Notes Feed")
     note = st.text_area("Add a note or directive for the team...", key="team_workspace_note")
-    author = st.session_state.get("user_identity", {}).get("name", "CHRISHEM")
+    author = "CHRISHEM"
     if st.button("📌 Broadcast Note", type="primary", key="save_team_note_btn"):
         if note.strip():
             with get_db_connection() as conn:
@@ -405,7 +405,6 @@ def render_venture_portfolio():
         from modules.legacy_research_data import get_business_projects_df, add_business_project
         biz_df = get_business_projects_df()
     except ImportError:
-        # Standalone dynamic fallback table
         if "fallback_ventures" not in st.session_state:
             st.session_state.fallback_ventures = pd.DataFrame([
                 {"project_name": "Kasubi Cultural Tech Integration", "lead_entity": "CHRISHEM", "capital_ugx": 15000000.0, "roi_projection_pct": 25.0, "status": "Active Scaling"}

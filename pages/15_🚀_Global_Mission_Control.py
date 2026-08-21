@@ -295,7 +295,7 @@ def render_telemetry_tab():
 
     st.markdown("#### 🌐 Sovereign Platform Mandate")
     st.success(
-        "**Chrishem Sovereign Intelligence** delivers transparent, high-performance data engineering, "
+        "**CHRISHEM Sovereign Intelligence** delivers transparent, high-performance data engineering, "
         "geospatial analysis, cryptographic file integrity monitoring, and biological sequence analytics "
         "unified within a single secure workspace."
     )

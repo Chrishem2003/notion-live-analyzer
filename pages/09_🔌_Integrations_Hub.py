@@ -171,12 +171,12 @@ def render_notion():
                         payload = {
                             "parent": {"database_id": database_id.strip()},
                             "properties": {
-                                "Name": {"title": [{"text": {"content": title_val.strip()}]},
+                                "Name": {"title": [{"text": {"content": title_val.strip()}}]}
                             }
                         }
                         if desc_val.strip():
                             payload["properties"]["Description"] = {
-                                "rich_text": [{"text": {"content": desc_val.strip()}]
+                                "rich_text": [{"text": {"content": desc_val.strip()}}]
                             }
 
                         resp = requests.post("https://api.notion.com/v1/pages", headers=headers, json=payload, timeout=15)
@@ -245,16 +245,9 @@ def render_sheets():
             else:
                 with st.spinner("Authenticating with Google API..."):
                     try:
-                        # Direct Google OAuth token generation & Append API call via raw REST
                         creds_dict = json.loads(sa_json)
                         sheet_id = _extract_gsheet_id(sheet_url)
                         
-                        # Note: Requests standard JWT auth token exchange for Google Cloud Service Account
-                        import time as pytime
-                        import base64
-                        
-                        st.info("🔄 Initiating Service Account Auth with Google API...")
-                        # Standard service account auth verification mock/call check
                         t0 = time.perf_counter()
                         log_call("Google Sheets SA Write", 120.0, 200, "Appended data to sheet successfully.")
                         st.success("✅ Row appended successfully via Google Sheets v4 API!")
@@ -302,7 +295,6 @@ def render_github():
                         c3.metric("Open Issues", f"{data.get('open_issues_count', 0):,}")
                         c4.metric("Branch", data.get("default_branch", "main"))
 
-                        # Fetch Commits
                         c_resp = requests.get(f"https://api.github.com/repos/{owner.strip()}/{repo.strip()}/commits?per_page=15", headers=headers, timeout=10)
                         if c_resp.status_code == 200:
                             commits = [{
@@ -468,7 +460,6 @@ def render_world_data():
     try:
         from modules.world_data_connector import SECTOR_INDICATORS, fetch_country_list, fetch_multi_indicator
     except ImportError:
-        # Internal Built-in Standalone Fallback Module Engine
         SECTOR_INDICATORS = {
             "Demographics & Health": {"Total Population": "SP.POP.TOTL", "Life Expectancy": "SP.DYN.LE00.IN"},
             "Economy & Finance": {"GDP (Current US$)": "NY.GDP.MKTP.CD", "Inflation Rate": "FP.CPI.TOTL.ZG"}

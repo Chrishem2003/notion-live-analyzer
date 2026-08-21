@@ -34,7 +34,7 @@ from modules.shared_ui import (
 
 def get_df() -> pd.DataFrame:
     df = get_active_dataframe()
-    if df is None:
+    if df is None or df.empty:
         np.random.seed(42)
         return pd.DataFrame({
             "CategoryGroup": np.random.choice(["Group A", "Group B", "Group C"], 150),
@@ -185,42 +185,45 @@ def render_param_tests(df: pd.DataFrame):
 
             sub_df = df[[g, v]].dropna()
             g_keys = sub_df[g].unique()
-            g1 = sub_df[sub_df[g] == g_keys[0]][v].values
-            g2 = sub_df[sub_df[g] == g_keys[1]][v].values
+            if len(g_keys) >= 2:
+                g1 = sub_df[sub_df[g] == g_keys[0]][v].values
+                g2 = sub_df[sub_df[g] == g_keys[1]][v].values
 
-            if len(g1) >= 3 and len(g2) >= 3:
-                _, norm_msg1 = check_normality_shapiro(pd.Series(g1))
-                _, norm_msg2 = check_normality_shapiro(pd.Series(g2))
-                levene_stat, levene_p = stats.levene(g1, g2)
-                homog_msg = f"Levene's Test $p = {levene_p:.4f}$ ({'Homogeneity of variance met' if levene_p > 0.05 else 'Variance heterogeneity detected'})"
+                if len(g1) >= 3 and len(g2) >= 3:
+                    _, norm_msg1 = check_normality_shapiro(pd.Series(g1))
+                    _, norm_msg2 = check_normality_shapiro(pd.Series(g2))
+                    levene_stat, levene_p = stats.levene(g1, g2)
+                    homog_msg = f"Levene's Test $p = {levene_p:.4f}$ ({'Homogeneity of variance met' if levene_p > 0.05 else 'Variance heterogeneity detected'})"
 
-                with st.expander("🔍 Pre-flight Statistical Assumptions Diagnostics"):
-                    st.write(f"- **Group 1 ({g_keys[0]}) Normality:** {norm_msg1}")
-                    st.write(f"- **Group 2 ({g_keys[1]}) Normality:** {norm_msg2}")
-                    st.write(f"- **Variance Homogeneity:** {homog_msg}")
-                    fig_box = px.box(sub_df, x=g, y=v, points="all", title=f"Group Comparison: {v} by {g}")
-                    st.plotly_chart(fig_box, use_container_width=True)
+                    with st.expander("🔍 Pre-flight Statistical Assumptions Diagnostics"):
+                        st.write(f"- **Group 1 ({g_keys[0]}) Normality:** {norm_msg1}")
+                        st.write(f"- **Group 2 ({g_keys[1]}) Normality:** {norm_msg2}")
+                        st.write(f"- **Variance Homogeneity:** {homog_msg}")
+                        fig_box = px.box(sub_df, x=g, y=v, points="all", title=f"Group Comparison: {v} by {g}")
+                        st.plotly_chart(fig_box, use_container_width=True)
 
-                if st.button("▶️ Compute Independent t-Test", type="primary", key="run_ttest"):
-                    equal_var = levene_p > 0.05
-                    stat_val, p_val = stats.ttest_ind(g1, g2, equal_var=equal_var)
+                    if st.button("▶️ Compute Independent t-Test", type="primary", key="run_ttest"):
+                        equal_var = levene_p > 0.05
+                        stat_val, p_val = stats.ttest_ind(g1, g2, equal_var=equal_var)
 
-                    n1, n2 = len(g1), len(g2)
-                    s1, s2 = np.std(g1, ddof=1), np.std(g2, ddof=1)
-                    pooled_sd = np.sqrt(((n1 - 1) * s1**2 + (n2 - 1) * s2**2) / (n1 + n2 - 2)) if (n1 + n2 - 2) > 0 else 1.0
-                    cohens_d = (np.mean(g1) - np.mean(g2)) / pooled_sd if pooled_sd > 0 else 0.0
+                        n1, n2 = len(g1), len(g2)
+                        s1, s2 = np.std(g1, ddof=1), np.std(g2, ddof=1)
+                        pooled_sd = np.sqrt(((n1 - 1) * s1**2 + (n2 - 1) * s2**2) / (n1 + n2 - 2)) if (n1 + n2 - 2) > 0 else 1.0
+                        cohens_d = (np.mean(g1) - np.mean(g2)) / pooled_sd if pooled_sd > 0 else 0.0
 
-                    se_d = np.sqrt((n1 + n2) / (n1 * n2) + (cohens_d ** 2) / (2 * (n1 + n2)))
-                    d_ci = (cohens_d - 1.96 * se_d, cohens_d + 1.96 * se_d)
+                        se_d = np.sqrt((n1 + n2) / (n1 * n2) + (cohens_d ** 2) / (2 * (n1 + n2)))
+                        d_ci = (cohens_d - 1.96 * se_d, cohens_d + 1.96 * se_d)
 
-                    col_m1, col_m2, col_m3 = st.columns(3)
-                    col_m1.metric("t-Statistic", f"{stat_val:.4f}")
-                    col_m2.metric("P-Value", f"{p_val:.6f}")
-                    col_m3.metric("Cohen's d", f"{cohens_d:.4f}", delta=f"95% CI [{d_ci[0]:.3f}, {d_ci[1]:.3f}]")
+                        col_m1, col_m2, col_m3 = st.columns(3)
+                        col_m1.metric("t-Statistic", f"{stat_val:.4f}")
+                        col_m2.metric("P-Value", f"{p_val:.6f}")
+                        col_m3.metric("Cohen's d", f"{cohens_d:.4f}", delta=f"95% CI [{d_ci[0]:.3f}, {d_ci[1]:.3f}]")
 
-                    warning = None if equal_var else "Equal variance assumption violated; Welch's t-test calculated."
-                    st.markdown(generate_ai_interpretation("Independent t-Test", p_val, effect=cohens_d, effect_label="Cohen's d", assumption_warning=warning))
-                    log_test_result(f"Independent t-Test ({v} by {g})", p_val, "Cohen's d", cohens_d)
+                        warning = None if equal_var else "Equal variance assumption violated; Welch's t-test calculated."
+                        st.markdown(generate_ai_interpretation("Independent t-Test", p_val, effect=cohens_d, effect_label="Cohen's d", assumption_warning=warning))
+                        log_test_result(f"Independent t-Test ({v} by {g})", p_val, "Cohen's d", cohens_d)
+            else:
+                st.info("Selected group does not contain 2 valid distinct partitions.")
         else:
             st.info("Requires at least one binary categorical feature and one continuous numeric feature.")
 
@@ -330,7 +333,6 @@ def render_param_tests(df: pd.DataFrame):
                 r, p = stats.pearsonr(clean[v1], clean[v2])
                 n = len(clean)
 
-                # Fisher z-transformation for CI
                 if abs(r) < 1.0 and n > 3:
                     z = np.arctanh(r)
                     se = 1.0 / np.sqrt(n - 3)
@@ -371,7 +373,7 @@ def render_param_tests(df: pd.DataFrame):
 
                     c1_m, c2_m = st.columns(2)
                     c1_m.metric("R-Squared (R²)", f"{r_sq:.4f}")
-                    c2_m.metric("Adjusted R²", f"{adj_r_sq:.4f}")
+                    c1_m.metric("Adjusted R²", f"{adj_r_sq:.4f}")
 
                     st.markdown(generate_ai_interpretation("Multiple OLS Regression", f_p, effect=r_sq, effect_label="R²"))
                     log_test_result(f"OLS Regression ({target} ~ {'+'.join(features)})", f_p, "R²", r_sq)
@@ -561,15 +563,12 @@ def render_sensitivity_tab(df: pd.DataFrame):
 
         specifications = []
 
-        # Raw Pearson
         r, p = stats.pearsonr(clean_df[x_var], clean_df[y_var])
         specifications.append({"Specification": "Raw - Pearson", "Estimate": r, "P-Value": p, "Type": "Parametric"})
 
-        # Spearman Rank
         rho, p_sp = stats.spearmanr(clean_df[x_var], clean_df[y_var])
         specifications.append({"Specification": "Raw - Spearman Rank", "Estimate": rho, "P-Value": p_sp, "Type": "Non-Parametric"})
 
-        # IQR Trimmed
         q1_x, q3_x = np.percentile(clean_df[x_var], 25), np.percentile(clean_df[x_var], 75)
         iqr_x = q3_x - q1_x
         q1_y, q3_y = np.percentile(clean_df[y_var], 25), np.percentile(clean_df[y_var], 75)
@@ -580,7 +579,6 @@ def render_sensitivity_tab(df: pd.DataFrame):
             r_tr, p_tr = stats.pearsonr(clean_df.loc[mask, x_var], clean_df.loc[mask, y_var])
             specifications.append({"Specification": "1.5x IQR Outlier Trimmed", "Estimate": r_tr, "P-Value": p_tr, "Type": "Robust"})
 
-        # Multivariate Controls
         if control_vars and STATSMODELS_AVAILABLE:
             for ctrl in control_vars:
                 X_ctrl = sm.add_constant(clean_df[[ctrl]])

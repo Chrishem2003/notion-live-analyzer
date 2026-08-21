@@ -114,7 +114,6 @@ def search_pubmed(query: str, n_results: int):
     if not REQUESTS_AVAILABLE:
         return None, "`requests` package not installed."
     try:
-        # Step 1: ESearch
         search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
         s_params = {"db": "pubmed", "term": query, "retmode": "json", "retmax": n_results}
         s_resp = requests.get(search_url, params=s_params, timeout=10)
@@ -124,7 +123,6 @@ def search_pubmed(query: str, n_results: int):
         if not id_list:
             return pd.DataFrame(), None
 
-        # Step 2: ESummary
         summary_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
         sum_params = {"db": "pubmed", "id": ",".join(id_list), "retmode": "json"}
         sum_resp = requests.get(summary_url, params=sum_params, timeout=10)
@@ -325,7 +323,7 @@ def render_literature_search():
   pages = {{{escape_bibtex(ref.get('pages') or 'n/a')},
   year = {{{escape_bibtex(ref.get('year') or 'n/a')},
   doi = {{{escape_bibtex(ref.get('doi') or 'n/a')}
-}"""
+}}"""
                     st.code(bibtex_str, language="bibtex")
 
     with tab_prisma:
@@ -469,7 +467,6 @@ def render_meta_analysis():
             p_val = 2.0 * (1.0 - stats.norm.cdf(abs(z_score)))
             ci_low, ci_high = pooled_effect - 1.96 * pooled_se, pooled_effect + 1.96 * pooled_se
 
-            # Egger's Regression Test for Publication Bias
             precision = 1.0 / ses
             snd = effects / ses
             slope, intercept, r_val, p_egger, std_err = stats.linregress(precision, snd)
@@ -518,7 +515,6 @@ def render_meta_analysis():
                         x=display_df["Effect_Size"], y=display_df["Standard_Error"],
                         mode="markers", marker=dict(size=10, color="#00F2FE"), text=display_df["Study"]
                     ))
-                    # Pseudo 95% CI bounds
                     max_se = max(display_df["Standard_Error"]) * 1.1
                     se_seq = np.linspace(0.001, max_se, 50)
                     fig_f.add_trace(go.Scatter(x=pooled_effect - 1.96 * se_seq, y=se_seq, mode="lines", line=dict(color="gray", dash="dash"), showlegend=False))

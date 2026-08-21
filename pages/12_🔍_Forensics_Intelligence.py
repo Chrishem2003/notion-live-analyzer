@@ -86,7 +86,7 @@ def render_evidence_lab_tab() -> None:
     st.success(f"🔗 Immutable Chain-of-Custody Case Bound: **{case_id}** (Scoped exclusively to this evidence artifact)")
     
     try:
-        user_name = st.session_state.get("user_identity", {}).get("name", "Forensic Analyst")
+        user_name = "CHRISHEM"
         append_custody_record(case_id, "EVIDENCE_INGESTED_AND_HASHED", user_name)
     except Exception:
         pass
@@ -231,7 +231,7 @@ def render_metadata_tab() -> None:
         
         if case_id:
             try:
-                user_name = st.session_state.get("user_identity", {}).get("name", "Forensic Analyst")
+                user_name = "CHRISHEM"
                 append_custody_record(case_id, "METADATA_EXIF_EXTRACTED", user_name)
                 st.success("✅ Metadata extraction successfully logged to that evidence's custody ledger.")
             except Exception as e:

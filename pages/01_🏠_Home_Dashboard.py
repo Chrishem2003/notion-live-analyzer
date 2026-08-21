@@ -131,7 +131,7 @@ def log_telemetry(conn, module_name: str, severity: str, details: str):
     cursor.execute("SELECT crypto_hash FROM system_telemetry_logs ORDER BY id DESC LIMIT 1")
     row = cursor.fetchone()
     prev_hash = row[0] if row and row[0] else GENESIS_HASH
-    ts = datetime.datetime.now(datetime.UTC).isoformat()
+    ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
     new_hash = _row_hash(prev_hash, ts, module_name, severity, details)
     cursor.execute(
         "INSERT INTO system_telemetry_logs (timestamp, module_name, severity, details, crypto_hash, prev_hash) "
@@ -161,7 +161,7 @@ def verify_telemetry_chain(conn):
 
 @st.cache_resource
 def _process_start_time():
-    return datetime.datetime.now(datetime.UTC)
+    return datetime.datetime.now(datetime.timezone.utc)
 
 
 def _format_duration(delta: datetime.timedelta) -> str:
@@ -177,7 +177,7 @@ def _format_duration(delta: datetime.timedelta) -> str:
 
 
 def measure_system_health(conn):
-    uptime = datetime.datetime.now(datetime.UTC) - _process_start_time()
+    uptime = datetime.datetime.now(datetime.timezone.utc) - _process_start_time()
 
     t0 = datetime.datetime.now().timestamp()
     conn.execute("SELECT 1").fetchone()
@@ -513,4 +513,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

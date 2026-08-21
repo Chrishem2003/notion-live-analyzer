@@ -7,7 +7,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 """
-📈 Visualization Studio — Consolidated Visualization & Dashboard Hub (Premium)
+Visualization Studio — Consolidated Visualization & Dashboard Hub (Premium)
 Advanced Visuals, Executive Dashboard Builder, Presentation Deck Generator,
 Chart Data Extractor, and an intelligent Auto-Recommendation engine.
 """
@@ -57,7 +57,7 @@ except ImportError:
 
 
 def get_df() -> pd.DataFrame:
-    """Retrieve active session dataframe or supply a clean mock dataset."""
+    """Retrieve active session dataframe or supply a clean mock dataset[cite: 6]."""
     df = get_active_dataframe()
     if df is None or df.empty:
         np.random.seed(42)
@@ -89,7 +89,7 @@ def build_chart(
     height: int = 420,
     **kwargs,
 ) -> go.Figure:
-    """Robust factory function to construct Plotly charts safely without type-mismatch failures."""
+    """Robust factory function to construct Plotly charts safely without type-mismatch failures[cite: 6]."""
     if not PLOTLY_AVAILABLE or df is None or df.empty:
         return None
 
@@ -116,7 +116,6 @@ def build_chart(
             y if y and y in all_cols else (num_cols[0] if num_cols else None)
         )
 
-        # Enforce numeric types safely on chart types that require numerical Y values
         continuous_charts = [
             "Scatter Plot",
             "Line Chart",
@@ -298,11 +297,11 @@ def build_chart(
 def render_custom_builder(df: pd.DataFrame):
     section_header(
         "🎨 Advanced Custom Chart Studio",
-        "Configure multi-dimensional data visualizations with real-time Plotly rendering & direct exports.",
+        "Configure multi-dimensional data visualizations with real-time Plotly rendering & direct exports[cite: 6].",
     )
 
     if not PLOTLY_AVAILABLE:
-        st.error("⚠️ Plotly is required for visualization rendering.")
+        st.error("⚠️ Plotly is required for visualization rendering[cite: 6].")
         return
 
     all_cols = df.columns.tolist()
@@ -404,7 +403,7 @@ def render_custom_builder(df: pd.DataFrame):
 
 
 def _skewness(series: pd.Series) -> float:
-    """Compute Fisher-Pearson coefficient of skewness safely."""
+    """Compute Fisher-Pearson coefficient of skewness safely[cite: 6]."""
     s = series.dropna()
     if len(s) < 3 or s.std() == 0:
         return 0.0
@@ -414,7 +413,7 @@ def _skewness(series: pd.Series) -> float:
 def render_auto_studio(df: pd.DataFrame):
     section_header(
         "🤖 AI Auto-Recommendation Studio",
-        "Automated exploratory visual discovery — selections are driven by actual data properties (correlation strength, skew, cardinality, temporal structure).",
+        "Automated exploratory visual discovery — selections are driven by actual data properties (correlation strength, skew, cardinality, temporal structure)[cite: 6].",
     )
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -423,7 +422,6 @@ def render_auto_studio(df: pd.DataFrame):
         include=["datetime64[ns]", "datetime64[ns, UTC]"]
     ).columns.tolist()
 
-    # Cast string dates dynamically if not parsed yet
     if not datetime_cols:
         for c in cat_cols:
             if "date" in c.lower() or "time" in c.lower():
@@ -437,7 +435,7 @@ def render_auto_studio(df: pd.DataFrame):
     low_card_cats = [c for c in cat_cols if df[c].nunique() <= 15]
 
     if not numeric_cols:
-        st.warning("⚠️ Dataset requires numeric columns to generate automated visual recommendations.")
+        st.warning("⚠️ Dataset requires numeric columns to generate automated visual recommendations[cite: 6].")
         return
 
     recs = []
@@ -498,14 +496,14 @@ def render_auto_studio(df: pd.DataFrame):
 def render_exec_dashboard(df: pd.DataFrame):
     section_header(
         "📊 Executive KPI & Multi-Chart Dashboard",
-        "Assembled executive dashboard combining core metrics, distribution telemetry, and trend analytics.",
+        "Assembled executive dashboard combining core metrics, distribution telemetry, and trend analytics[cite: 6].",
     )
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not numeric_cols:
-        st.warning("⚠️ Insufficient numeric features for executive metrics.")
+        st.warning("⚠️ Insufficient numeric features for executive metrics[cite: 6].")
         return
 
     st.markdown("#### Key Performance Indicators (KPIs)")
@@ -548,12 +546,12 @@ def render_exec_dashboard(df: pd.DataFrame):
 
 
 def _fig_to_png_bytes(fig: go.Figure) -> bytes:
-    """Render Plotly figure directly to PNG bytes."""
+    """Render Plotly figure directly to PNG bytes[cite: 6]."""
     return fig.to_image(format="png", width=1000, height=560, scale=2)
 
 
 def _build_pptx(deck_title: str, slides_spec: list) -> bytes:
-    """Generates standard .pptx binary presentation."""
+    """Generates standard .pptx binary presentation[cite: 6]."""
     prs = Presentation()
     prs.slide_width = Inches(13.33)
     prs.slide_height = Inches(7.5)
@@ -600,7 +598,7 @@ def _build_pptx(deck_title: str, slides_spec: list) -> bytes:
 def render_deck_builder(df: pd.DataFrame):
     section_header(
         "📹 Presentation Deck & Slide Generator",
-        "Structure executive presentation slides with embedded charts and narrative metric highlights — with downloadable .pptx output.",
+        "Structure executive presentation slides with embedded charts and narrative metric highlights — with downloadable .pptx output[cite: 6].",
     )
 
     deck_title = st.text_input(
@@ -617,18 +615,18 @@ def render_deck_builder(df: pd.DataFrame):
 
     if not PPTX_AVAILABLE:
         st.warning(
-            "⚠️ `.pptx` export library missing. Visual previews are available on-screen."
+            "⚠️ `.pptx` export library missing. Visual previews are available on-screen[cite: 6]."
         )
     if not KALEIDO_AVAILABLE:
         st.info(
-            "ℹ️ Image rendering engine missing (`kaleido`). Slides will export metrics with text layout until available."
+            "ℹ️ Image rendering engine missing (`kaleido`). Slides will export metrics with text layout until available[cite: 6]."
         )
 
     if st.button(
         "📹 Generate Presentation Deck", type="primary", key="build_deck_btn"
     ):
         if not numeric_cols:
-            st.error("Need at least one numeric column to build slide metrics.")
+            st.error("Need at least one numeric column to build slide metrics[cite: 6].")
             return
 
         slides_spec = []
@@ -649,7 +647,7 @@ def render_deck_builder(df: pd.DataFrame):
                 try:
                     image_bytes = _fig_to_png_bytes(fig)
                 except Exception as e:
-                    st.caption(f"Slide {i+1}: chart image render skipped ({e})")
+                    st.caption(f"Slide {i+1}: chart image render skipped ({e})[cite: 6]")
 
             slides_spec.append(
                 {
@@ -685,14 +683,14 @@ def render_deck_builder(df: pd.DataFrame):
 def render_chart_extractor(df: pd.DataFrame):
     section_header(
         "📊 Chart Data Extractor & Aggregator",
-        "Extract, aggregate, and export structured tabular subsets directly from visual nodes.",
+        "Extract, aggregate, and export structured tabular subsets directly from visual nodes[cite: 6].",
     )
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not numeric_cols or not cat_cols:
-        st.warning("⚠️ Data extraction requires both categorical and numeric columns.")
+        st.warning("⚠️ Data extraction requires both categorical and numeric columns[cite: 6].")
         return
 
     col1, col2, col3 = st.columns(3)
@@ -739,7 +737,7 @@ def main():
 
     hero_card(
         "📈 Visualization Studio & Executive Dashboard Hub (Premium)",
-        "Consolidated enterprise visualization platform featuring advanced multi-dimensional charting, a data-driven AI recommendation engine, executive dashboards, a downloadable presentation deck generator, and chart data extraction.",
+        "Consolidated enterprise visualization platform featuring advanced multi-dimensional charting, a data-driven AI recommendation engine, executive dashboards, a downloadable presentation deck generator, and chart data extraction[cite: 6].",
         badge_text="VISUALIZATION STUDIO • PREMIUM TIER",
     )
 

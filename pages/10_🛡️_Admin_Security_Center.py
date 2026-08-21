@@ -908,6 +908,76 @@ def main():
     
     render_standard_footer("ADMIN & SECURITY CENTER  SOVEREIGN EDITION V4.3")
 
+def main():
+    setup_page("Admin & Security Center", "🔒", initial_sidebar_state="expanded")
+
+    try:
+        from modules.user_preferences import render_readability_fix, render_accent_color_css
+        render_readability_fix()
+        render_accent_color_css()
+    except ImportError:
+        pass
+
+    hero_card("Admin & Security Center", "Hardened enterprise administration & AI forensics command plane.", badge_text="ELITE SOVEREIGN EDITION V4.3 CHRISHEM")
+    conn = _nexus_conn()
+
+    # Define tabs - Aidify Audit and Nexus Workspace are open to all users
+    tabs = st.tabs([
+        "📊 Diagnostics (Admin)", 
+        "👥 Users (Admin)", 
+        "💳 Billing (Admin)", 
+        "🛡️ Verification (Admin)", 
+        "🔑 Vault Settings", 
+        "🤖 Aidify Audit Hub", 
+        "📁 Nexus Workspace", 
+        "⚙️ Settings (Admin)"
+    ])
+    
+    # Admin-Gated Tabs
+    with tabs[0]: 
+        if check_is_admin():
+            render_system_diagnostics(conn)
+        else:
+            st.error("Access Denied: Administrator clearance required for System Diagnostics.")
+            
+    with tabs[1]: 
+        if check_is_admin():
+            render_user_management(conn)
+        else:
+            st.error("Access Denied: Administrator clearance required for User Management.")
+            
+    with tabs[2]: 
+        if check_is_admin():
+            render_billing(conn)
+        else:
+            st.error("Access Denied: Administrator clearance required for Billing.")
+            
+    with tabs[3]: 
+        if check_is_admin():
+            render_verification_queue()
+        else:
+            st.error("Access Denied: Administrator clearance required for Verification Queue.")
+            
+    # Open / User-Accessible or Configurable Tabs
+    with tabs[4]: 
+        # Vault settings can be open for users to manage their own tokens/keys securely
+        render_security_vault(conn)
+        
+    with tabs[5]: 
+        # Open to all users (Professors, Researchers, and Students)
+        render_audit_forensics()
+        
+    with tabs[6]: 
+        # Open to all users as requested (Google Workspace clone)
+        render_nexus_vault()
+        
+    with tabs[7]: 
+        if check_is_admin():
+            render_settings()
+        else:
+            st.error("Access Denied: Administrator clearance required for Platform Settings.")
+    
+    render_standard_footer("CHRISHEM SOVEREIGN APEX HUB • ADMIN & SECURITY CENTER")
+
 if __name__ == "__main__":
     main()
-

@@ -181,7 +181,6 @@ def render_network(df):
 
         edges_df = pd.DataFrame(edges).sort_values("|Correlation|", ascending=False)
         
-        # Build NetworkX Graph for Advanced Topology Metrics
         if NETWORKX_AVAILABLE:
             G = nx.Graph()
             for _, row in edges_df.iterrows():
@@ -209,7 +208,6 @@ def render_network(df):
             st.dataframe(metrics_df, use_container_width=True, hide_index=True)
 
             if PLOTLY_AVAILABLE:
-                # Layout selection
                 if layout_type == "Circular":
                     pos = nx.circular_layout(G)
                 elif layout_type == "Kamada-Kawai":
@@ -325,7 +323,6 @@ def _cached_country_list():
         from modules.world_data_connector import fetch_country_list
         return fetch_country_list()
     except Exception:
-        # Fallback dataset if external module fails
         return pd.DataFrame([
             {"name": "Uganda", "iso3": "UGA"},
             {"name": "Kenya", "iso3": "KEN"},
