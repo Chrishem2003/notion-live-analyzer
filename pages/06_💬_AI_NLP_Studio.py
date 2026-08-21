@@ -1,617 +1,650 @@
-﻿import os
+﻿import io
+import os
 import sys
-import re
-import html
-import json
-import logging
-from typing import Tuple, Optional, List, Dict, Any
+import pickle
+import hashlib
+import numpy as np
+import pandas as pd
+import scipy.stats as sps
+import streamlit as st
 
-_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# Ensure root path accessibility
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-import numpy as np
-import pandas as pd
-import streamlit as st
-import streamlit.components.v1 as components
-
-from modules.page_bootstrap import setup_page, render_standard_footer
-from modules.session_manager import get_active_dataframe
-from modules.shared_ui import (
-    hero_card,
-    section_header,
-    render_dataset_context_banner,
-    render_export_buttons,
-)
-
-# Setup Logger
-logger = logging.getLogger("AINLPStudio")
-logger.setLevel(logging.INFO)
-
-# Optional Imports
+# Core ML Libraries Initialization
 try:
-    import plotly.express as px
-    import plotly.graph_objects as go
-    PLOTLY_AVAILABLE = True
+    import joblib
+    JOBLIB_AVAILABLE = True
 except ImportError:
-    PLOTLY_AVAILABLE = False
+    JOBLIB_AVAILABLE = False
 
 try:
-    from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-    VADER_AVAILABLE = True
+    from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+    from sklearn.preprocessing import StandardScaler, LabelEncoder, PolynomialFeatures
+    from sklearn.impute import SimpleImputer
+    from sklearn.ensemble import (
+        RandomForestClassifier,
+        RandomForestRegressor,
+        GradientBoostingClassifier,
+        GradientBoostingRegressor,
+    )
+    from sklearn.linear_model import LogisticRegression, Ridge
+    from sklearn.metrics import accuracy_score, r2_score, mean_squared_error, roc_auc_score
+    from sklearn.feature_selection import SelectKBest, f_classif, f_regression
+    SKLEARN_AVAILABLE = True
 except ImportError:
-    VADER_AVAILABLE = False
+    SKLEARN_AVAILABLE = False
 
-try:
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.cluster import KMeans
-    SKLEARN_TEXT_AVAILABLE = True
-except ImportError:
-    SKLEARN_TEXT_AVAILABLE = False
+# Module Fallback Wrappers
+def setup_page(title, icon, initial_sidebar_state="expanded"):
+    st.set_page_config(page_title=title, page_icon=icon, layout="wide", initial_sidebar_state=initial_sidebar_state)
 
-# Pre-compiled Regex Patterns
-RE_WORDS = re.compile(r"[a-zA-Z']+")
-RE_CLEAN = re.compile(r"[^\w\s]")
-RE_ROWS = re.compile(r"how many rows|row count|number of records|dataset size", re.IGNORECASE)
-RE_CORR = re.compile(r"correlation between (.+?) and (.+)", re.IGNORECASE)
-RE_TOP = re.compile(r"top (\d+)\s+(.+?)\s+by\s+(.+)", re.IGNORECASE)
-RE_AGG_GROUP = re.compile(
-    r"(average|avg|mean|sum|total|count|max|maximum|highest|min|minimum|lowest|median|std|standard deviation)\s+(?:of\s+)?(.+?)\s+by\s+(.+)",
-    re.IGNORECASE
-)
-RE_AGG_SINGLE = re.compile(
-    r"(average|avg|mean|sum|total|count|max|maximum|highest|min|minimum|lowest|median|std|standard deviation)\s+(?:of\s+)?(.+)",
-    re.IGNORECASE
-)
+def render_standard_footer(title):
+    st.markdown("---")
+    st.caption(f"© Enterprise AI Engine — {title}")
 
-_POSITIVE_WORDS = frozenset([
-    "great", "excellent", "outstanding", "good", "fast", "high", "reliable", "seamless", 
-    "clear", "impressive", "robust", "exceptional", "optimal", "love", "best", "amazing", 
-    "wonderful", "helpful", "efficient", "smooth", "intuitive", "responsive", "stable", 
-    "accurate", "easy", "simple", "flexible", "powerful", "strong"
-])
+def hero_card(title, subtitle, badge_text):
+    st.markdown(
+        f"""
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 1.5rem; border-radius: 10px; border: 1px solid #334155; margin-bottom: 1.5rem;">
+            <span style="background-color: #3b82f6; color: white; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">{badge_text}</span>
+            <h2 style="color: white; margin-top: 0.5rem; margin-bottom: 0.25rem;">{title}</h2>
+            <p style="color: #94a3b8; font-size: 0.95rem; margin: 0;">{subtitle}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-_NEGATIVE_WORDS = frozenset([
-    "slow", "bad", "error", "bug", "limited", "issue", "minor", "problems", "need", 
-    "missing", "failed", "delay", "poor", "terrible", "awful", "confusing", "broken", 
-    "crash", "fail", "difficult", "hard", "weak", "inconsistent", "frustrating", 
-    "buggy", "unstable", "lacking", "disappointing"
-])
+def section_header(title, subtitle):
+    st.markdown(f"### {title}")
+    st.markdown(f"*{subtitle}*")
 
-_AGG_WORDS = {
-    "average": "mean", "avg": "mean", "mean": "mean",
-    "sum": "sum", "total": "sum",
-    "count": "count",
-    "max": "max", "maximum": "max", "highest": "max",
-    "min": "min", "minimum": "min", "lowest": "min",
-    "median": "median",
-    "std": "std", "standard deviation": "std",
+def render_dataset_context_banner():
+    pass
+
+def render_export_buttons(df_export, base_name="data_export"):
+    csv = df_export.to_csv(index=False).encode("utf-8")
+    st.download_button("📥 Download Export (CSV)", data=csv, file_name=f"{base_name}.csv", mime="text/csv")
+
+def get_active_dataframe():
+    return st.session_state.get("active_df", None)
+
+def set_active_dataframe(df, source_name="dataset.csv"):
+    st.session_state["active_df"] = df
+    st.session_state["source_name"] = source_name
+
+PARAM_GRIDS = {
+    "Random Forest": {"n_estimators": [100, 200], "max_depth": [None, 10, 20]},
+    "Gradient Boosting": {"n_estimators": [100, 150], "learning_rate": [0.05, 0.1]},
+    "Logistic Regression": {"C": [0.1, 1.0, 10.0]},
+    "Ridge Regression": {"alpha": [0.1, 1.0, 10.0]},
 }
 
-def get_df() -> pd.DataFrame:
-    """Retrieve active session dataframe or produce synchronized mock data."""
+def get_df():
     df = get_active_dataframe()
-    if df is None or df.empty:
-        records = [
-            "System performance and analytical throughput are exceptionally high.",
-            "Encountered limited network access during remote synchronization.",
-            "User interface clarity and workflow navigation are intuitive.",
-            "Algorithm cross-validation requires extended processing time with larger datasets.",
-            "Excellent automated chart recommendations for bioinformatics gene expression analysis.",
-            "Clinical reference range auditor flagged elevated glucose levels effectively.",
-            "Fast execution speeds and high-precision bioinformatics calculations.",
-            "Minor bugs encountered uploading multi-page document archives.",
-            "Custom chart studio provides outstanding visual export features.",
-            "Data security compliance and encryption standards are well maintained.",
-            "UI color scheme is vibrant, ergonomic, and easy to read.",
-            "Need more granular options for automated time-series forecasting.",
-            "Great overall experience using the integrated ML pipeline controller.",
-            "Slow response times querying large databases without prior indexing.",
-            "Seamless export options for publication-ready visual assets.",
-            "Clear feedback messages provided on invalid column types during data setup.",
-            "Outstanding qualitative coding summary for academic research synthesis.",
-            "High performance, reliability, and robust stability across analytics platforms.",
-            "Advanced integration capabilities streamline complex workflow orchestrations.",
-            "Scalable architecture handles high-density data workloads with absolute precision."
-        ]
-        categories = ["Clinical", "UX", "Performance", "Features"]
+    if df is None:
         np.random.seed(42)
-        return pd.DataFrame({
-            "Record_ID": [f"REC-{i:03d}" for i in range(1, 21)],
-            "Feedback_Text": records,
-            "Category": np.random.choice(categories, 20),
-            "Metric_Value": np.random.uniform(10.0, 99.0, 20).round(2)
+        df = pd.DataFrame({
+            "Feature_A": np.random.normal(12.5, 2.1, 200),
+            "Feature_B": np.random.normal(8.3, 1.4, 200),
+            "Feature_C": np.random.uniform(0.1, 5.0, 200),
+            "Category_X": np.random.choice(["Type 1", "Type 2", "Type 3"], 200),
+            "Target": np.random.choice([0, 1], p=[0.4, 0.6], size=200),
         })
-    return df.copy()
+        set_active_dataframe(df, "synthetic_default.csv")
+    return df
 
-def _lexicon_sentiment(text: str) -> Tuple[str, float]:
-    tokens = RE_WORDS.findall(str(text).lower())
-    if not tokens:
-        return "Neutral", 0.0
-    pos = sum(1 for t in tokens if t in _POSITIVE_WORDS)
-    neg = sum(1 for t in tokens if t in _NEGATIVE_WORDS)
-    compound = (pos - neg) / (pos + neg + 1.0)
-    label = "Positive" if compound > 0.05 else ("Negative" if compound < -0.05 else "Neutral")
-    return label, round(compound, 4)
+def _build_model_registry(task: str) -> dict:
+    if task == "Classification":
+        return {
+            "Random Forest": RandomForestClassifier(random_state=42),
+            "Gradient Boosting": GradientBoostingClassifier(random_state=42),
+            "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
+        }
+    return {
+        "Random Forest": RandomForestRegressor(random_state=42),
+        "Gradient Boosting": GradientBoostingRegressor(random_state=42),
+        "Ridge Regression": Ridge(random_state=42),
+    }
 
-@st.cache_resource
-def _get_vader_analyzer():
-    if VADER_AVAILABLE:
-        return SentimentIntensityAnalyzer()
-    return None
+def _serialize_pipeline(bundle: dict) -> bytes:
+    buf = io.BytesIO()
+    if JOBLIB_AVAILABLE:
+        joblib.dump(bundle, buf)
+    else:
+        pickle.dump(bundle, buf)
+    return buf.getvalue()
 
-def score_sentiment(text: str) -> Tuple[str, float]:
-    analyzer = _get_vader_analyzer()
-    if analyzer is not None:
-        scores = analyzer.polarity_scores(str(text))
-        compound = scores["compound"]
-        label = "Positive" if compound >= 0.05 else ("Negative" if compound <= -0.05 else "Neutral")
-        return label, round(compound, 4)
-    return _lexicon_sentiment(text)
+def _deserialize_pipeline(raw_bytes: bytes) -> dict:
+    buf = io.BytesIO(raw_bytes)
+    if JOBLIB_AVAILABLE:
+        return joblib.load(buf)
+    return pickle.load(buf)
 
-@st.cache_data(show_spinner=False)
-def _perform_tfidf_kmeans(texts: List[str], n_clusters: int) -> Tuple[List[int], pd.DataFrame]:
-    n_clusters = max(1, min(n_clusters, len(texts)))
-    vectorizer = TfidfVectorizer(stop_words="english", max_features=500, min_df=1)
-    X = vectorizer.fit_transform(texts)
-    
-    km = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
-    labels = km.fit_predict(X).tolist()
-    
-    terms = vectorizer.get_feature_names_out()
-    order_centroids = km.cluster_centers_.argsort()[:, ::-1]
-    
-    themes = []
-    for i in range(n_clusters):
-        top_terms = [terms[ind] for ind in order_centroids[i, :6] if ind < len(terms)]
-        doc_count = int(sum(1 for lbl in labels if lbl == i))
-        themes.append({
-            "Cluster": i, 
-            "Top Terms": ", ".join(top_terms), 
-            "Document Count": doc_count
-        })
-    return labels, pd.DataFrame(themes)
+def render_automl_tab(df):
+    section_header("🤖 Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate production-ready machine learning pipelines.")
 
-def render_text_analysis(df: pd.DataFrame) -> None:
-    section_header(
-        "💬 Advanced Text Mining & Sentiment Intelligence", 
-        "Extract keyword frequencies, sentiment polarities, and semantic n-gram phrase structures."
-    )
-    if not VADER_AVAILABLE:
-        st.caption("ℹ️ Using built-in fallback lexicon. Install vaderSentiment for accurate sentiment intensity analysis.")
-
-    text_cols = list(df.select_dtypes(include=["object", "string"]).columns)
-    if not text_cols:
-        st.warning("⚠️ No string or text columns detected in the active dataset.")
+    if not SKLEARN_AVAILABLE:
+        st.error("⚠️ `scikit-learn` is required to run machine learning workflows.")
         return
 
-    col = st.selectbox("Select Text Corpus Column", text_cols, key="nlp_text_col_v2")
-    tab_freq, tab_sent, tab_ngram = st.tabs(["🔤 Keyword Frequency", "😊 Sentiment Engine", "🔗 N-Gram Phrase Mining"])
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    if not numeric_cols:
+        st.warning("No numeric features available for processing.")
+        return
 
-    with tab_freq:
-        st.markdown("#### High-Frequency Token Analysis")
-        series_data = df[col].dropna().astype(str)
-        all_words = [
-            w.lower().strip(".,!?()[]{}\"'") 
-            for text in series_data 
-            for w in text.split() 
-            if len(w) > 3
-        ]
-        
-        if not all_words:
-            st.info("No tokens longer than 3 characters were found.")
-        else:
-            freq = pd.Series(all_words).value_counts().head(20).reset_index()
-            freq.columns = ["Keyword", "Frequency"]
+    target = st.selectbox("Select Target Variable", df.columns, key="ml_target")
+    available_features = [c for c in df.columns if c != target]
+    features = st.multiselect("Select Feature Predictors", available_features, default=available_features[:min(4, len(available_features))], key="ml_features")
 
-            col1, col2 = st.columns([1, 1])
-            with col1:
-                st.dataframe(freq, use_container_width=True, hide_index=True)
-            with col2:
-                if PLOTLY_AVAILABLE:
-                    fig = px.bar(
-                        freq.head(10), x="Frequency", y="Keyword", orientation="h",
-                        template="plotly_dark", height=380, title="Top 10 Token Frequencies"
-                    )
-                    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=30, b=0))
-                    st.plotly_chart(fig, use_container_width=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        test_size = st.slider("Test Split (%)", 10, 50, 20, 5, key="ml_test")
+    with col2:
+        task = st.radio("Task Type", ["Classification", "Regression"], horizontal=True, key="ml_task")
+    with col3:
+        cv_folds = st.slider("Cross-Validation Folds", 3, 10, 5, key="ml_cv")
+
+    tune = st.checkbox("🔧 Enable Hyperparameter Tuning (GridSearchCV)", value=False, key="ml_tune")
+
+    models = _build_model_registry(task)
+    selected_models = st.multiselect("Select Algorithms to Evaluate", list(models.keys()), default=list(models.keys()), key="ml_algos")
+
+    if st.button("🚀 Run AutoML & Cross-Validation Suite", type="primary", key="run_ml"):
+        if not features:
+            st.error("Select at least one feature.")
+            return
+        if not selected_models:
+            st.error("Select at least one algorithm.")
+            return
+        if task == "Regression" and not pd.api.types.is_numeric_dtype(pd.to_numeric(df[target], errors="coerce")):
+            st.error(f"⛔ Target `{target}` cannot be converted to numeric values for regression.")
+            return
+
+        with st.spinner("Processing pipeline transformations and training models..."):
+            try:
+                X_raw = df[features].copy()
+                X_encoded = pd.get_dummies(X_raw, drop_first=True)
+                y_raw = df[target].copy()
+
+                label_encoder = None
+                if task == "Classification":
+                    if y_raw.dtype == "object" or str(y_raw.dtype) == "category" or y_raw.dtype == "bool":
+                        label_encoder = LabelEncoder()
+                        y_processed = label_encoder.fit_transform(y_raw.astype(str))
+                    else:
+                        y_processed = y_raw.values
+                    scoring = "accuracy"
                 else:
-                    st.bar_chart(freq.set_index("Keyword").head(10))
+                    y_num = pd.to_numeric(y_raw, errors="coerce")
+                    valid_mask = y_num.notnull()
+                    if valid_mask.sum() < 10:
+                        st.error("⛔ Less than 10 valid non-null target samples available.")
+                        return
+                    X_encoded = X_encoded.loc[valid_mask]
+                    y_processed = y_num.loc[valid_mask].values
+                    scoring = "r2"
 
-    with tab_sent:
-        engine_label = "VADER Engine" if VADER_AVAILABLE else "Lexicon Fallback"
-        st.markdown(f"#### Sentiment Polarity Audit ({engine_label})")
+                X_train, X_test, y_train, y_test = train_test_split(X_encoded, y_processed, test_size=test_size / 100, random_state=42)
 
-        if st.button("😊 Run Sentiment Audit", type="primary", key="run_sentiment_v2"):
-            anal_df = df[[col]].dropna().copy()
-            anal_df[col] = anal_df[col].astype(str)
-            
-            results = anal_df[col].apply(score_sentiment)
-            anal_df["Sentiment_Label"] = [r[0] for r in results]
-            anal_df["Sentiment_Score"] = [r[1] for r in results]
+                imputer = SimpleImputer(strategy="median")
+                X_tr_imp = imputer.fit_transform(X_train)
+                X_te_imp = imputer.transform(X_test)
 
-            counts = anal_df["Sentiment_Label"].value_counts()
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Positive", int(counts.get("Positive", 0)))
-            c2.metric("Neutral", int(counts.get("Neutral", 0)))
-            c3.metric("Negative", int(counts.get("Negative", 0)))
+                scaler = StandardScaler()
+                X_tr = scaler.fit_transform(X_tr_imp)
+                X_te = scaler.transform(X_te_imp)
 
-            if PLOTLY_AVAILABLE:
-                col_chart1, col_chart2 = st.columns(2)
-                with col_chart1:
-                    fig_pie = px.pie(names=counts.index, values=counts.values, hole=0.4, template="plotly_dark", height=280, title="Sentiment Split")
-                    fig_pie.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=30, b=0))
-                    st.plotly_chart(fig_pie, use_container_width=True)
-                with col_chart2:
-                    fig_hist = px.histogram(anal_df, x="Sentiment_Score", nbins=15, template="plotly_dark", height=280, title="Score Distribution")
-                    fig_hist.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=30, b=0))
-                    st.plotly_chart(fig_hist, use_container_width=True)
+                results = []
+                trained_models = {}
+                best_name, best_score, best_model = None, -np.inf, None
 
-            st.dataframe(anal_df, use_container_width=True, hide_index=True)
-            render_export_buttons(anal_df, base_name="sentiment_analysis_results")
+                for name in selected_models:
+                    base_model = models[name]
+                    best_params_note = "default"
 
-    with tab_ngram:
-        st.markdown("#### N-Gram Phrase Collocation Mining")
-        depth = st.selectbox("N-Gram Depth", ["Bi-grams (2-word)", "Tri-grams (3-word)"], key="ngram_depth_v2")
-        n = 2 if "Bi-grams" in depth else 3
-        
-        raw_texts = df[col].dropna().astype(str).tolist()
-        phrases = []
-        for text in raw_texts:
-            tokens = [w.lower().strip(".,!?()[]") for w in text.split() if len(w) > 2]
-            if len(tokens) >= n:
-                phrases.extend([" ".join(tokens[i:i+n]) for i in range(len(tokens) - n + 1)])
+                    if tune and name in PARAM_GRIDS:
+                        grid = GridSearchCV(base_model, PARAM_GRIDS[name], cv=cv_folds, scoring=scoring, n_jobs=-1)
+                        grid.fit(X_tr, y_train)
+                        model = grid.best_estimator_
+                        cv_mean, cv_std = grid.best_score_, np.nan
+                        best_params_note = str(grid.best_params_)
+                    else:
+                        cv_scores = cross_val_score(base_model, X_tr, y_train, cv=cv_folds, scoring=scoring)
+                        cv_mean, cv_std = cv_scores.mean(), cv_scores.std()
+                        model = base_model
+                        model.fit(X_tr, y_train)
 
-        if not phrases:
-            st.info("Insufficient token length to form n-grams.")
-        else:
-            freq_ngrams = pd.Series(phrases).value_counts().head(15).reset_index()
-            freq_ngrams.columns = ["Collocation Phrase", "Frequency Count"]
-            st.dataframe(freq_ngrams, use_container_width=True, hide_index=True)
+                    y_pred = model.predict(X_te)
 
-def render_ai_insights(df: pd.DataFrame) -> None:
-    section_header("🤖 AI Insights & Executive Intelligence Reporting", "Automated exploratory data profiling, collinearity detection, and executive summary generation.")
+                    if task == "Classification":
+                        test_metric = accuracy_score(y_test, y_pred)
+                        auc_str = "N/A"
+                        if hasattr(model, "predict_proba"):
+                            try:
+                                y_proba = model.predict_proba(X_te)
+                                if len(np.unique(y_test)) == 2:
+                                    auc_str = f"{roc_auc_score(y_test, y_proba[:, 1]):.4f}"
+                                else:
+                                    auc_str = f"{roc_auc_score(y_test, y_proba, multi_class='ovr'):.4f}"
+                            except Exception:
+                                pass
+                        results.append({
+                            "Algorithm": name,
+                            "CV Accuracy": f"{cv_mean * 100:.2f}%" + (f" (±{cv_std*100:.2f}%)" if not np.isnan(cv_std) else ""),
+                            "Test Accuracy": f"{test_metric * 100:.2f}%",
+                            "ROC-AUC": auc_str,
+                            "Params": best_params_note,
+                        })
+                    else:
+                        test_metric = r2_score(y_test, y_pred)
+                        test_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+                        results.append({
+                            "Algorithm": name,
+                            "CV R²": f"{cv_mean:.4f}" + (f" (±{cv_std:.4f})" if not np.isnan(cv_std) else ""),
+                            "Test R²": f"{test_metric:.4f}",
+                            "Test RMSE": f"{test_rmse:.4f}",
+                            "Params": best_params_note,
+                        })
 
-    rows, cols = df.shape
-    missing = int(df.isnull().sum().sum())
-    numeric_df = df.select_dtypes(include=[np.number])
+                    trained_models[name] = model
+                    if test_metric > best_score:
+                        best_score, best_name, best_model = test_metric, name, model
 
-    st.markdown("### 📊 Automated Structural Findings")
-    insights: List[str] = []
-    insights.append(f"**Dataset Architecture:** Dimensions of `{rows:,}` rows by `{cols}` features.")
-    
-    if missing > 0:
-        insights.append(f"**Data Completeness:** Detected `{missing:,}` missing cells requiring handling or imputation.")
+                res_df = pd.DataFrame(results)
+                st.markdown("#### 📊 Model Performance Leaderboard")
+                st.dataframe(res_df, use_container_width=True, hide_index=True)
+                st.success(f"✅ Optimal Algorithm: **{best_name}** (Test Metric Score: {best_score:.4f})")
+
+                if "Random Forest" in trained_models and hasattr(trained_models["Random Forest"], "feature_importances_"):
+                    st.markdown("#### 🔍 Feature Importances (Random Forest)")
+                    importances = pd.Series(trained_models["Random Forest"].feature_importances_, index=X_encoded.columns).sort_values(ascending=False)
+                    st.bar_chart(importances)
+
+                st.session_state["ml_active_pipeline"] = {
+                    "model": best_model,
+                    "imputer": imputer,
+                    "scaler": scaler,
+                    "feature_columns": list(X_encoded.columns),
+                    "raw_features": features,
+                    "task": task,
+                    "target": target,
+                    "label_encoder": label_encoder,
+                    "algorithm": best_name,
+                    "test_score": float(best_score),
+                    "trained_at": pd.Timestamp.now().isoformat(),
+                }
+
+            except Exception as e:
+                st.error(f"Training Exception: {e}")
+
+    pipeline = st.session_state.get("ml_active_pipeline")
+    if pipeline:
+        st.markdown("---")
+        st.markdown("#### 💾 Model Persistence & Export")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.caption(f"Active Model: **{pipeline['algorithm']}** ({pipeline['task']}, target=`{pipeline['target']}`, score={pipeline['test_score']:.4f})")
+            raw_bytes = _serialize_pipeline(pipeline)
+            st.download_button(
+                "⬇️ Export Trained Pipeline (.pkl)",
+                data=raw_bytes,
+                file_name=f"ml_pipeline_{pipeline['algorithm'].lower().replace(' ', '_')}.pkl",
+                mime="application/octet-stream",
+                key="dl_pipeline",
+            )
+        with c2:
+            uploaded_pipeline = st.file_uploader("📤 Import Trained Pipeline (.pkl)", type=["pkl"], key="upload_pipeline")
+            if uploaded_pipeline is not None and st.button("Load Pipeline", key="load_pipeline"):
+                try:
+                    loaded = _deserialize_pipeline(uploaded_pipeline.getvalue())
+                    st.session_state["ml_active_pipeline"] = loaded
+                    st.success(f"✅ Pipeline Loaded: {loaded.get('algorithm', 'Unknown')} ({loaded.get('task', 'Unknown')})")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Pipeline Deserialization Failed: {e}")
+
+def render_predict_tab(df):
+    section_header("🔮 Interactive Prediction Engine", "Generate real-time inferences using the persisted model pipeline.")
+
+    if not SKLEARN_AVAILABLE:
+        st.error("`scikit-learn` required.")
+        return
+
+    pipeline = st.session_state.get("ml_active_pipeline")
+    if not pipeline:
+        st.warning("⚠️ Active pipeline non-existent. Train a model in **AutoML & Training** tab to execute predictions.")
+        return
+
+    model, imputer, scaler = pipeline["model"], pipeline["imputer"], pipeline["scaler"]
+    feature_cols, raw_features = pipeline["feature_columns"], pipeline["raw_features"]
+    task, target, label_encoder = pipeline["task"], pipeline["target"], pipeline["label_encoder"]
+
+    st.info(f"Active Architecture: **{pipeline['algorithm']}** | Target: `{target}` | Task: {task} | Trained: {pipeline['trained_at'][:19]}")
+
+    mode = st.radio("Inference Strategy", ["Single Record Ingestion", "Batch CSV Inference"], horizontal=True, key="pred_mode")
+
+    def _predict(input_df: pd.DataFrame):
+        encoded = pd.get_dummies(input_df[raw_features], drop_first=True)
+        encoded = encoded.reindex(columns=feature_cols, fill_value=0)
+        imp = imputer.transform(encoded)
+        scaled = scaler.transform(imp)
+        preds = model.predict(scaled)
+        proba, interval = None, None
+        if task == "Classification":
+            if hasattr(model, "predict_proba"):
+                try:
+                    proba = model.predict_proba(scaled)
+                except Exception:
+                    proba = None
+            if label_encoder is not None:
+                preds = label_encoder.inverse_transform(preds.astype(int))
+        elif hasattr(model, "estimators_"):
+            tree_preds = np.array([est.predict(scaled) for est in model.estimators_])
+            interval = (np.percentile(tree_preds, 5, axis=0), np.percentile(tree_preds, 95, axis=0))
+        return preds, proba, interval
+
+    if mode == "Single Record Ingestion":
+        st.markdown("#### Input Feature Values")
+        inputs = {}
+        cols = st.columns(min(4, max(1, len(raw_features))))
+        for i, feat in enumerate(raw_features):
+            col = cols[i % len(cols)]
+            if pd.api.types.is_numeric_dtype(df[feat]):
+                inputs[feat] = col.number_input(feat, value=float(df[feat].mean()), key=f"pred_in_{feat}")
+            else:
+                options = df[feat].dropna().unique().tolist()
+                inputs[feat] = col.selectbox(feat, options if options else ["None"], key=f"pred_in_{feat}")
+
+        if st.button("🔮 Compute Prediction", type="primary", key="run_predict"):
+            try:
+                input_df = pd.DataFrame([inputs])
+                preds, proba, interval = _predict(input_df)
+                if task == "Classification":
+                    st.metric(f"Predicted Target ({target})", str(preds[0]))
+                    if proba is not None:
+                        classes = label_encoder.classes_ if label_encoder is not None else getattr(model, "classes_", range(proba.shape[1]))
+                        proba_df = pd.DataFrame({"Class": classes, "Probability": proba[0]}).sort_values("Probability", ascending=False)
+                        st.dataframe(proba_df, use_container_width=True, hide_index=True)
+                else:
+                    st.metric(f"Predicted Target ({target})", f"{preds[0]:.4f}")
+                    if interval is not None:
+                        st.caption(f"Estimated 90% Confidence Interval: [{interval[0][0]:.4f}, {interval[1][0]:.4f}]")
+            except Exception as e:
+                st.error(f"Inference Exception: {e}")
+
     else:
-        insights.append("**Data Completeness Optimal:** Zero missing values detected across active records.")
-
-    if not numeric_df.empty and numeric_df.shape[1] >= 2:
-        corr = numeric_df.corr(numeric_only=True).abs()
-        np.fill_diagonal(corr.values, 0)
-        max_corr = corr.max().max()
-        if max_corr > 0.75:
-            col_max = corr.max().idxmax()
-            row_max = corr[col_max].idxmax()
-            insights.append(f"**Multivariate Collinearity:** Strong correlation between `{row_max}` and `{col_max}` ($r = {max_corr:.2f}$).")
-
-    dup_count = int(df.duplicated().sum())
-    if dup_count > 0:
-        pct = (dup_count / rows) * 100 if rows > 0 else 0
-        insights.append(f"**Duplicate Records:** `{dup_count:,}` duplicate rows detected ({pct:.1f}% of total).")
-
-    for ins in insights:
-        st.markdown(
-            f'<div style="background:#0b1321; border-left:4px solid #00f2fe; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:#f8fafc;">{ins}</div>', 
-            unsafe_allow_html=True
-        )
-
-    st.markdown("### 📄 Executive Report Generation")
-    report_lines = [
-        "# EXECUTIVE DATA INTELLIGENCE REPORT",
-        f"**Generated timestamp:** {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        f"**Active Source:** {st.session_state.get('source_name', 'active_dataset.csv')}",
-        "",
-        "## Core Metrics",
-        f"- Total Record Count: {rows:,}",
-        f"- Total Feature Count: {cols}",
-        f"- Missing Cell Count: {missing:,}",
-        f"- Duplicate Rows: {dup_count:,}",
-        "",
-        "## Key Analytical Insights"
-    ] + [f"- {ins}" for ins in insights]
-
-    report = "\n".join(report_lines)
-    st.download_button(
-        "⬇️ Download Enterprise Markdown Report", 
-        data=report, 
-        file_name="executive_intelligence_report.md", 
-        mime="text/markdown", 
-        use_container_width=True
-    )
-
-def _find_column(text: str, columns: List[str]) -> Optional[str]:
-    text_clean = RE_CLEAN.sub("", text).lower().strip()
-    col_map = {RE_CLEAN.sub("", c).lower().strip(): c for c in columns}
-    
-    if text_clean in col_map:
-        return col_map[text_clean]
-        
-    for cleaned_name, original_name in sorted(col_map.items(), key=lambda x: -len(x[0])):
-        if cleaned_name in text_clean or text_clean in cleaned_name:
-            return original_name
-            
-    tokens = set(text_clean.split())
-    best, max_overlap = None, 0
-    for cleaned_name, original_name in col_map.items():
-        overlap = len(tokens & set(cleaned_name.split()))
-        if overlap > max_overlap:
-            best = original_name
-            max_overlap = overlap
-    return best
-
-def parse_and_execute_nl_query(query: str, df: pd.DataFrame) -> Tuple[str, Any, Optional[str]]:
-    q = query.strip()
-    if not q:
-        return "error", "Query string cannot be empty.", None
-
-    all_cols = list(df.columns)
-    num_cols = list(df.select_dtypes(include=[np.number]).columns)
-
-    if RE_ROWS.search(q):
-        return "metric", f"{len(df):,} rows", "Total Row Count"
-
-    m = RE_CORR.search(q)
-    if m:
-        c1 = _find_column(m.group(1), all_cols)
-        c2 = _find_column(m.group(2), all_cols)
-        if c1 and c2 and c1 in num_cols and c2 in num_cols:
-            val = df[c1].corr(df[c2])
-            return "metric", f"r = {val:.4f}", f"Correlation between '{c1}' and '{c2}'"
-        return "error", "Could not identify valid numeric columns for correlation analysis.", None
-
-    m = RE_TOP.search(q)
-    if m:
-        n_str, dim_raw, metric_raw = m.groups()
-        dim_col = _find_column(dim_raw, all_cols)
-        metric_col = _find_column(metric_raw, num_cols)
-        if dim_col and metric_col:
-            res = df.groupby(dim_col, as_index=False)[metric_col].mean().sort_values(metric_col, ascending=False).head(int(n_str))
-            return "table", res, f"Top {n_str} '{dim_col}' grouped by mean '{metric_col}'"
-        return "error", f"Could not match dimension '{dim_raw}' or numeric metric '{metric_raw}'.", None
-
-    m = RE_AGG_GROUP.search(q)
-    if m:
-        func_word, metric_raw, group_raw = m.groups()
-        func = _AGG_WORDS.get(func_word.lower(), "mean")
-        metric_col = _find_column(metric_raw, num_cols if func != "count" else all_cols)
-        group_col = _find_column(group_raw, all_cols)
-        if metric_col and group_col:
-            res = df.groupby(group_col, as_index=False).agg({metric_col: func}).sort_values(metric_col, ascending=False)
-            return "table", res, f"{func.title()} of '{metric_col}' grouped by '{group_col}'"
-        return "error", f"Unable to resolve columns: metric '{metric_raw}', group '{group_raw}'.", None
-
-    m = RE_AGG_SINGLE.search(q)
-    if m:
-        func_word, metric_raw = m.groups()
-        func = _AGG_WORDS.get(func_word.lower(), "mean")
-        metric_col = _find_column(metric_raw, num_cols if func != "count" else all_cols)
-        if metric_col:
-            if func == "count":
-                val = df[metric_col].count()
-                return "metric", f"{val:,}", f"Count of non-null entries in '{metric_col}'"
-            val = getattr(df[metric_col], func)()
-            return "metric", f"{val:,.4f}", f"{func.title()} of '{metric_col}'"
-        return "error", f"Could not identify target numeric column '{metric_raw}'.", None
-
-    return "unrecognized", None, None
-
-def render_nl_query(df: pd.DataFrame) -> None:
-    section_header("💬 Natural Language Query Console", "Pattern-matched NL-to-Pandas execution engine operating over active dataset columns.")
-
-    with st.expander("ℹ️ Supported Analytical Question Patterns"):
-        st.markdown(
-            "- `how many rows are there`\n"
-            "- `average of <column>` / `sum of <column>` / `max of <column>` / `median of <column>`\n"
-            "- `average <metric_column> by <group_column>`\n"
-            "- `correlation between <column_a> and <column_b>`\n"
-            "- `top 5 <group_column> by <metric_column>`"
-        )
-
-    query = st.text_area("Enter your analytical query", placeholder="e.g., average Metric_Value by Category", key="nl_query_input_v2")
-
-    if st.button("🔍 Execute Query", type="primary", key="run_nl_query_v2"):
-        kind, payload, caption = parse_and_execute_nl_query(query, df)
-        if kind == "metric":
-            st.success(f"✅ {caption}")
-            st.metric(caption, payload)
-        elif kind == "table":
-            st.success(f"✅ {caption}")
-            st.dataframe(payload, use_container_width=True, hide_index=True)
-            render_export_buttons(payload, base_name="nl_query_results")
-        elif kind == "error":
-            st.error(f"🚫 {payload}")
-        else:
-            st.warning("⚠️ Pattern not recognized. Review the supported format structure above.")
-
-def render_synth_and_gap(df: pd.DataFrame) -> None:
-    section_header("🔬 Research Synthesis & Methodology Checklist", "Data-derived thematic clustering of corpus data with dynamic methodology auditing.")
-
-    tab_synth, tab_gap = st.tabs(["🧩 Research Synthesizer", "💡 Methodology Checklist"])
-
-    with tab_synth:
-        st.markdown("#### Data-Derived Thematic Clustering")
-        text_cols = list(df.select_dtypes(include=["object", "string"]).columns)
-        if text_cols:
-            col = st.selectbox("Select Target Text Column", text_cols, key="synth_col_v2")
-            n_clusters = st.slider("Number of Themes (Clusters)", 2, 8, 3, key="synth_n_clusters_v2")
-            
-            if st.button("🧩 Synthesize Corpus Findings", type="primary", key="run_synth_v2"):
-                texts = df[col].dropna().astype(str).tolist()
-                if len(texts) < 2:
-                    st.warning("Cluster analysis requires at least 2 non-empty records.")
-                elif SKLEARN_TEXT_AVAILABLE:
-                    labels, themes_df = _perform_tfidf_kmeans(texts, n_clusters)
-                    st.markdown(f"**Extracted {len(themes_df)} themes via TF-IDF Vectorization & KMeans Clustering:**")
-                    st.dataframe(themes_df, use_container_width=True, hide_index=True)
-                    
-                    selected_cluster = st.selectbox("Inspect cluster sample records", themes_df["Cluster"].tolist(), key="synth_cluster_inspect")
-                    samples = [t for t, l in zip(texts, labels) if l == selected_cluster][:5]
-                    st.markdown("**Cluster Sample Documents:**")
-                    for s in samples:
-                        st.markdown(f"> {s}")
-                    render_export_buttons(themes_df, base_name="research_clusters")
+        st.markdown("#### Batch Prediction Suite")
+        st.caption(f"Required Schema Predictors: {', '.join(raw_features)}")
+        batch_file = st.file_uploader("Upload Target CSV Payload", type=["csv"], key="pred_batch_upload")
+        if batch_file is not None and st.button("🔮 Execute Batch Inference", type="primary", key="run_batch_predict"):
+            try:
+                batch_df = pd.read_csv(batch_file)
+                missing = [c for c in raw_features if c not in batch_df.columns]
+                if missing:
+                    st.error(f"⛔ Missing baseline columns: {', '.join(missing)}")
                 else:
-                    st.info("Scikit-learn is unavailable; using basic frequency counting.")
-                    words = [w.lower().strip(".,!?") for t in texts for w in t.split() if len(w) > 4]
-                    top_words = pd.Series(words).value_counts().head(n_clusters).reset_index()
-                    top_words.columns = ["Keyword", "Count"]
-                    st.dataframe(top_words, use_container_width=True, hide_index=True)
+                    preds, proba, interval = _predict(batch_df)
+                    out = batch_df.copy()
+                    out[f"Predicted_{target}"] = preds
+                    if interval is not None:
+                        out["Interval_Low_90"], out["Interval_High_90"] = interval[0], interval[1]
+                    st.dataframe(out, use_container_width=True)
+                    render_export_buttons(out, base_name="batch_predictions")
+            except Exception as e:
+                st.error(f"Batch Execution Exception: {e}")
+
+def render_feature_engineering_tab(df):
+    section_header("⚡ Feature Engineering Studio", "Transform and expand target datasets using advanced operations.")
+
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+
+    tab_interact, tab_bin, tab_poly, tab_select = st.tabs([
+        "✖️ Interactions", "📦 Binning & Quantiles", "📈 Polynomials", "🎯 Feature Selection"
+    ])
+
+    with tab_interact:
+        if len(numeric_cols) >= 2:
+            f1 = st.selectbox("Feature 1", numeric_cols, key="fe_f1")
+            f2 = st.selectbox("Feature 2", [c for c in numeric_cols if c != f1], key="fe_f2")
+            op = st.selectbox("Mathematical Operation", ["Multiply (X * Y)", "Divide (X / Y)", "Difference (X - Y)", "Sum (X + Y)"], key="fe_op")
+
+            if st.button("➕ Generate Feature", type="primary", key="run_fe_interact"):
+                working = df.copy()
+                if "Multiply" in op:
+                    new_col, values = f"{f1}_mul_{f2}", working[f1] * working[f2]
+                elif "Divide" in op:
+                    new_col, values = f"{f1}_div_{f2}", working[f1] / working[f2].replace(0, np.nan)
+                elif "Difference" in op:
+                    new_col, values = f"{f1}_sub_{f2}", working[f1] - working[f2]
+                else:
+                    new_col, values = f"{f1}_add_{f2}", working[f1] + working[f2]
+
+                working[new_col] = values
+                set_active_dataframe(working, st.session_state.get("source_name", "engineered.csv"))
+                st.success(f"✅ Generated engineered feature '{new_col}'")
+                st.rerun()
         else:
-            st.info("No categorical/string text columns found.")
+            st.info("Requires at least 2 numeric features.")
 
-    with tab_gap:
-        st.markdown("#### Dataset-Grounded Methodology Checklist")
-        domain = st.selectbox("Research Domain Context", ["Bioinformatics & Genomics", "Clinical Trials & Health", "Agritech & Food Security", "Artificial Intelligence & ML", "Educational Analytics", "General"], key="gap_domain_v2")
+    with tab_bin:
+        if numeric_cols:
+            col = st.selectbox("Target Binning Feature", numeric_cols, key="fe_bin_col")
+            strategy = st.radio("Bin Strategy", ["Equal Width (Uniform)", "Equal Frequency (Quantiles)"], horizontal=True, key="fe_bin_strat")
+            n_bins = st.slider("Bin Split Count", 2, 10, 4, key="fe_bin_n")
 
-        if st.button("💡 Generate Checklist", type="primary", key="run_gap_v2"):
-            n = len(df)
-            datetime_cols = df.select_dtypes(include=["datetime64[ns]", "datetime64[ns, UTC]"]).columns.tolist()
-            cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
-            dup_rate = (df.duplicated().mean() * 100) if n > 0 else 0.0
-            missing_rate = (df.isnull().mean().mean() * 100) if n > 0 else 0.0
+            if st.button("📦 Execute Binning", type="primary", key="run_fe_bin"):
+                working = df.copy()
+                if "Uniform" in strategy:
+                    working[f"{col}_bin"] = pd.cut(working[col], bins=n_bins, labels=[f"Bin_{i+1}" for i in range(n_bins)])
+                else:
+                    working[f"{col}_bin"] = pd.qcut(working[col], q=n_bins, labels=[f"Q_{i+1}" for i in range(n_bins)], duplicates="drop")
+                set_active_dataframe(working, st.session_state.get("source_name", "binned.csv"))
+                st.success(f"✅ Feature '{col}' transformed into {n_bins} distinct bins.")
+                st.rerun()
+        else:
+            st.info("No numeric features available.")
 
-            findings = []
-            if n < 100:
-                findings.append(f"**Sample Size Limit:** Small size ($n={n}$). Ensure statistical power calculations are applied.")
+    with tab_poly:
+        if numeric_cols:
+            mode = st.radio("Polynomial Processing Mode", ["Single Column Powers", "Multi-Column Polynomial Sets"], key="fe_poly_mode")
+            if mode == "Single Column Powers":
+                col = st.selectbox("Select Target Column", numeric_cols, key="fe_poly_col")
+                degree = st.slider("Max Polynomial Degree", 2, 4, 2, key="fe_poly_deg")
+                if st.button("📈 Compute Polynomials", type="primary", key="run_fe_poly"):
+                    working = df.copy()
+                    for d in range(2, degree + 1):
+                        working[f"{col}_pow{d}"] = working[col] ** d
+                    set_active_dataframe(working, st.session_state.get("source_name", "polynomial.csv"))
+                    st.success(f"✅ Created polynomial features up to degree {degree}.")
+                    st.rerun()
             else:
-                findings.append(f"**Sample Size:** Sufficient volume ($n={n:,}$) for parametric inference.")
+                if not SKLEARN_AVAILABLE:
+                    st.error("`scikit-learn` required for multi-column polynomial expansions.")
+                else:
+                    cols_sel = st.multiselect("Select Target Features", numeric_cols, default=numeric_cols[:min(2, len(numeric_cols))], key="fe_poly_cols")
+                    degree = st.slider("Degree Expansion", 2, 3, 2, key="fe_poly_multi_deg")
+                    if len(cols_sel) >= 2 and st.button("📈 Expand Polynomial Set", type="primary", key="run_fe_poly_multi"):
+                        working = df.copy()
+                        clean = working[cols_sel].dropna()
+                        poly = PolynomialFeatures(degree=degree, include_bias=False)
+                        expanded = poly.fit_transform(clean)
+                        names = poly.get_feature_names_out(cols_sel)
+                        expanded_df = pd.DataFrame(expanded, columns=names, index=clean.index)
+                        new_names = [n for n in names if n not in cols_sel]
+                        for n in new_names:
+                            working.loc[clean.index, n] = expanded_df[n]
+                        set_active_dataframe(working, st.session_state.get("source_name", "polynomial_expanded.csv"))
+                        st.success(f"✅ Poly expansion completed: {len(new_names)} features derived.")
+                        st.rerun()
+        else:
+            st.info("No numeric columns available.")
 
-            if not datetime_cols:
-                findings.append("**Temporal Dimension:** Lack of time-series indices limits cross-sectional sequence tracking.")
+    with tab_select:
+        st.markdown("#### Automated Feature Selection (SelectKBest)")
+        if len(df.columns) >= 3:
+            target_col = st.selectbox("Target Variable", df.columns, key="fs_target")
+            is_classification = not pd.api.types.is_numeric_dtype(df[target_col]) or df[target_col].nunique() <= 10
+            st.caption(f"Inferred Execution: **{'Classification (f_classif)' if is_classification else 'Regression (f_regression)'}**")
+
+            features_pool = [c for c in numeric_cols if c != target_col]
+            if not features_pool:
+                st.info("Numeric predictors required.")
             else:
-                findings.append(f"**Temporal Depth:** Detected time tracking column `{datetime_cols[0]}`.")
+                k_val = st.slider("Top K Features to Extract", 1, min(len(features_pool), 10), min(len(features_pool), 3), key="fs_k")
 
-            if cat_cols:
-                max_card = max(df[c].nunique() for c in cat_cols)
-                findings.append(f"**Categorical Diversity:** `{len(cat_cols)}` factor variables identified. High cardinality at level `{max_card}`.")
+                if st.button("🎯 Execute Selection", type="primary", key="run_fs"):
+                    clean_df = df[features_pool + [target_col]].dropna()
+                    X_sel = clean_df[features_pool]
+                    y_raw = clean_df[target_col]
 
-            if dup_rate > 0:
-                findings.append(f"**Data Integrity Warning:** `{dup_rate:.1f}%` duplicate records detected.")
-            if missing_rate > 0:
-                findings.append(f"**Completeness:** Overall missingness metric stands at `{missing_rate:.1f}%`.")
+                    if is_classification:
+                        y_sel = LabelEncoder().fit_transform(y_raw.astype(str)) if not pd.api.types.is_numeric_dtype(y_raw) else y_raw
+                        selector = SelectKBest(score_func=f_classif, k=k_val)
+                    else:
+                        y_sel = y_raw
+                        selector = SelectKBest(score_func=f_regression, k=k_val)
 
-            findings.append(f"**Domain Alignment ({domain}):** Verify compliance with standards applicable to {domain}.")
+                    selector.fit(X_sel, y_sel)
+                    scores = pd.Series(selector.scores_, index=features_pool).fillna(0).sort_values(ascending=False)
 
-            for f in findings:
-                st.markdown(f"- {f}")
-            
-            md_export = "\n".join(f"- {f}" for f in findings)
-            st.download_button("⬇️ Download Checklist (.md)", data=md_export, file_name="methodology_checklist.md", mime="text/markdown")
+                    st.markdown("#### 📊 Feature Significance Scores")
+                    st.bar_chart(scores)
+                    top_feats = scores.head(k_val).index.tolist()
+                    st.success(f"✅ Top {k_val} Optimal Features: {', '.join(top_feats)}")
+        else:
+            st.info("Dataset requires a minimum of 3 features for selection scanning.")
 
-def render_audio() -> None:
-    section_header("🎙️ Text-to-Speech Narration Engine", "Browser-based speech synthesis using Web Speech API.")
-    
-    st.info("Utilizes native client-side browser speech engines. Supported voices depend on system runtime platform.")
+def _mission_outlier_sweep(df: pd.DataFrame) -> pd.DataFrame:
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    rows = []
+    for c in numeric_cols:
+        s = df[c].dropna()
+        if s.empty:
+            continue
+        q1, q3 = np.percentile(s, 25), np.percentile(s, 75)
+        iqr = q3 - q1
+        mask = (s < q1 - 1.5 * iqr) | (s > q3 + 1.5 * iqr)
+        rows.append({"Column": c, "Outliers Found": int(mask.sum()), "Outlier Rate (%)": round(100 * mask.sum() / len(s), 2)})
+    return pd.DataFrame(rows).sort_values("Outliers Found", ascending=False) if rows else pd.DataFrame()
 
-    text_input = st.text_area("Text to Narrate", value="This is a live test of the narration engine, reading directly from your browser.", height=100, key="tts_input_v2")
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        rate = st.slider("Speech Rate", 0.5, 2.0, 1.0, 0.1, key="tts_rate_v2")
-    with c2:
-        pitch = st.slider("Pitch", 0.0, 2.0, 1.0, 0.1, key="tts_pitch_v2")
+def _mission_quality_audit(df: pd.DataFrame) -> pd.DataFrame:
+    return pd.DataFrame({
+        "Column": df.columns,
+        "Null Count": df.isnull().sum().values,
+        "Null %": (df.isnull().mean() * 100).round(2).values,
+        "Duplicate Rows (Dataset Wide)": [int(df.duplicated().sum())] * len(df.columns),
+    })
 
-    safe_text_json = json.dumps(text_input)
+def _mission_trend_check(df: pd.DataFrame) -> pd.DataFrame:
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    rows = []
+    x = np.arange(len(df))
+    for c in numeric_cols:
+        y = df[c].values
+        mask = ~pd.isnull(y)
+        if mask.sum() < 5 or np.std(y[mask]) == 0:
+            continue
+        slope, intercept, r, p, se = sps.linregress(x[mask], y[mask])
+        state = "Degrading" if (slope < 0 and p < 0.05) else ("Improving" if (slope > 0 and p < 0.05) else "Stable")
+        rows.append({"Column": c, "Trend Slope": round(slope, 5), "P-Value": round(p, 5), "Assessment": state})
+    return pd.DataFrame(rows) if rows else pd.DataFrame()
 
-    components.html(
-        f"""
-        <div style="font-family: system-ui, -apple-system, sans-serif; color: #f8fafc;">
-            <button id="speakBtn" style="background:#38BDF8; color:#0b1321; border:none; border-radius:6px; padding:0.6rem 1.2rem; font-weight:700; cursor:pointer;">
-                🔊 Speak Text
-            </button>
-            <button id="stopBtn" style="background:#334155; color:#f8fafc; border:none; border-radius:6px; padding:0.6rem 1.2rem; font-weight:700; cursor:pointer; margin-left:0.5rem;">
-                ⏹️ Stop
-            </button>
-            <p id="ttsStatus" style="margin-top:0.6rem; color:#94a3b8; font-size:0.85rem;"></p>
-        </div>
-        <script>
-            const payloadText = {safe_text_json};
-            const rate = {rate};
-            const pitch = {pitch};
-            const statusEl = document.getElementById('ttsStatus');
+def _mission_executive_report(df: pd.DataFrame) -> str:
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    lines = [
+        "# AUTOMATED EXECUTIVE DATA REPORT",
+        f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "",
+        f"- Total Samples: {df.shape[0]:,} | Total Columns: {df.shape[1]}",
+        f"- Missing Values: {int(df.isnull().sum().sum()):,}",
+        f"- Duplicate Records: {int(df.duplicated().sum()):,}",
+    ]
+    if numeric_cols:
+        lines.append("\n## Numeric Distribution Overview")
+        lines.append(df[numeric_cols].describe().T.round(3).to_string())
+        if len(numeric_cols) >= 2:
+            corr = df[numeric_cols].corr().abs()
+            upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
+            stacked = upper.stack()
+            if not stacked.empty:
+                top_pair = stacked.idxmax()
+                lines.append(f"\n## Top Collinear Feature Pair\n`{top_pair[0]}` ↔ `{top_pair[1]}`: r = {stacked.max():.3f}")
+    return "\n".join(lines)
 
-            document.getElementById('speakBtn').onclick = function() {{
-                if (!('speechSynthesis' in window)) {{
-                    statusEl.innerText = 'Speech synthesis is not supported in this browser environment.';
-                    return;
-                }
-                window.speechSynthesis.cancel();
-                const utter = new SpeechSynthesisUtterance(payloadText);
-                utter.rate = rate;
-                utter.pitch = pitch;
-                utter.onstart = () => statusEl.innerText = 'Status: Speaking...';
-                utter.onend = () => statusEl.innerText = 'Status: Playback complete.';
-                utter.onerror = (e) => statusEl.innerText = 'Status: Error - ' + e.error;
-                window.speechSynthesis.speak(utter);
-            };
+def render_agents_tab():
+    section_header("🤖 Autonomous Data Agents", "Execute non-simulated, autonomous dataset diagnostics.")
 
-            document.getElementById('stopBtn').onclick = function() {{
-                if ('speechSynthesis' in window) {{
-                    window.speechSynthesis.cancel();
-                    statusEl.innerText = 'Status: Stopped.';
-                }
-            };
-        </script>
-        """,
-        height=130,
-    )
+    df = get_active_dataframe()
+    if df is None:
+        st.warning("⚠️ Active dataset required for scanning.")
+        return
 
-def main() -> None:
-    try:
-        from modules.subscription import require_active_subscription
-        require_active_subscription(hub_id="nlp")
-    except ImportError:
-        pass
+    mission = st.selectbox("Select Diagnostic Mission", [
+        "Outlier Detection & IQR Sweep",
+        "Data Quality & Completeness Audit",
+        "Trend & Monotonicity Analysis",
+        "Executive Report Generation",
+    ], key="agent_mission")
 
-    setup_page("AI & NLP Studio", "💬", initial_sidebar_state="expanded")
+    if st.button("🚀 Execute Mission", type="primary", key="deploy_agent"):
+        with st.spinner(f"Executing: {mission}..."):
+            if mission == "Outlier Detection & IQR Sweep":
+                result = _mission_outlier_sweep(df)
+                if result.empty:
+                    st.info("No numeric features available.")
+                else:
+                    st.dataframe(result, use_container_width=True, hide_index=True)
+                    render_export_buttons(result, base_name="agent_outliers")
 
-    try:
-        from modules.user_preferences import render_readability_fix, render_accent_color_css
-        render_readability_fix()
-        render_accent_color_css()
-    except ImportError:
-        pass
+            elif mission == "Data Quality & Completeness Audit":
+                result = _mission_quality_audit(df)
+                st.dataframe(result, use_container_width=True, hide_index=True)
+                render_export_buttons(result, base_name="agent_quality")
+
+            elif mission == "Trend & Monotonicity Analysis":
+                result = _mission_trend_check(df)
+                if result.empty:
+                    st.info("Insufficient variance or data points for trend analysis.")
+                else:
+                    st.dataframe(result, use_container_width=True, hide_index=True)
+                    render_export_buttons(result, base_name="agent_trends")
+
+            elif mission == "Executive Report Generation":
+                report = _mission_executive_report(df)
+                st.code(report, language="markdown")
+                st.download_button("⬇️ Download Report (.md)", data=report, file_name="executive_report.md", mime="text/markdown")
+
+def main():
+    setup_page("ML & Predictive Studio", "🤖", initial_sidebar_state="expanded")
 
     hero_card(
-        "💬 AI & NLP Studio — Consolidated AI & Text Analytics Hub",
-        "Natural language processing studio featuring text mining, sentiment analysis, custom query parsing, data synthesis, methodology auditing, and text-to-speech capabilities.",
-        badge_text="AI & NLP STUDIO • ENTERPRISE TIER"
+        "🤖 Enterprise ML & Predictive Studio",
+        "Unified Machine Learning Suite with Automated Preprocessing, Model Tuning, Persistence, and Real-Time Predictions.",
+        badge_text="ENTERPRISE STACK",
     )
-
-    render_dataset_context_banner()
 
     df = get_df()
 
     tabs = st.tabs([
-        "💬 Text Mining & Sentiment",
-        "🤖 AI Insights & Reports",
-        "💬 Natural Language Query",
-        "🔬 Research Synthesis & Checklist",
-        "🎙️ Voice & Audio Engine",
+        "🤖 AutoML & Training",
+        "🔮 Prediction Engine",
+        "⚡ Feature Engineering",
+        "🤖 Autonomous Data Agents",
     ])
 
     with tabs[0]:
-        render_text_analysis(df)
+        render_automl_tab(df)
     with tabs[1]:
-        render_ai_insights(df)
+        render_predict_tab(df)
     with tabs[2]:
-        render_nl_query(df)
+        render_feature_engineering_tab(df)
     with tabs[3]:
-        render_synth_and_gap(df)
-    with tabs[4]:
-        render_audio()
+        render_agents_tab()
 
-    render_standard_footer("AI & NLP STUDIO")
+    render_standard_footer("ML & PREDICTIVE STUDIO")
 
 if __name__ == "__main__":
     main()
