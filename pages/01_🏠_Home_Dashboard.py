@@ -8,7 +8,6 @@ navigation hubs, and secure user account management.
 import sys
 from pathlib import Path
 
-# Ensure the root project directory is in sys.path so 'modules' can always be resolved
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -17,6 +16,7 @@ import datetime
 import hashlib
 import io
 import json
+import os
 import shutil
 import sqlite3
 import zipfile
@@ -39,19 +39,15 @@ DB_PATH = "sovereign_apex_engine.db"
 GENESIS_HASH = "0" * 64
 
 
-# ──────────────────────────────────────────────────────────────────────────
-# Database Layer & Schema Upgrades
-# ──────────────────────────────────────────────────────────────────────────
-
 @st.cache_resource
 def get_db_connection():
-    """Singleton-managed thread-safe SQLite connection for the enterprise engine."""
+    """Singleton-managed thread-safe SQLite connection."""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     return conn
 
 
 def init_db(conn):
-    """Ensure core sovereign tables—including subscriptions and telemetry chains—exist with proper schema definitions."""
+    """Ensure core sovereign tables exist with proper schema definitions."""
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS saved_analyses (
@@ -83,28 +79,25 @@ def init_db(conn):
         )
     """)
     
-    # Safe runtime schema migrations for pre-existing databases
     try:
         cursor.execute("ALTER TABLE system_telemetry_logs ADD COLUMN prev_hash TEXT")
     except sqlite3.OperationalError:
-        pass  # Column already exists
+        pass
 
     try:
         cursor.execute("ALTER TABLE subscriptions ADD COLUMN renews_at TEXT")
     except sqlite3.OperationalError:
-        pass  # Column already exists
+        pass
 
     conn.commit()
 
 
 def _row_hash(prev_hash: str, timestamp: str, module_name: str, severity: str, details: str) -> str:
-    """Deterministic SHA-256 hash chaining this row's content to the previous row's hash."""
     payload = f"{prev_hash}|{timestamp}|{module_name}|{severity}|{details}".encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 
 
 def log_telemetry(conn, module_name: str, severity: str, details: str):
-    """Append a chained, tamper-evident telemetry record safely."""
     cursor = conn.cursor()
     cursor.execute("SELECT crypto_hash FROM system_telemetry_logs ORDER BY id DESC LIMIT 1")
     row = cursor.fetchone()
@@ -120,7 +113,6 @@ def log_telemetry(conn, module_name: str, severity: str, details: str):
 
 
 def verify_telemetry_chain(conn):
-    """Recompute the hash chain end-to-end and confirm zero records have been altered or removed."""
     cursor = conn.cursor()
     cursor.execute(
         "SELECT id, timestamp, module_name, severity, details, crypto_hash, prev_hash "
@@ -133,18 +125,13 @@ def verify_telemetry_chain(conn):
             return {"valid": False, "reason": f"Row #{rid} broke the chain (prev_hash mismatch).", "records": len(rows)}
         recomputed = _row_hash(stored_prev, ts, mod, sev, details)
         if recomputed != stored_hash:
-            return {"valid": False, "reason": f"Row #{rid} content does not match its stored hash — tampering suspected.", "records": len(rows)}
+            return {"valid": False, "reason": f"Row #{rid} content does not match stored hash — tampering suspected.", "records": len(rows)}
         expected_prev = stored_hash
     return {"valid": True, "records": len(rows)}
 
 
-# ──────────────────────────────────────────────────────────────────────────
-# Live System Health Diagnostics
-# ──────────────────────────────────────────────────────────────────────────
-
 @st.cache_resource
 def _process_start_time():
-    """Persists for the process lifetime to maintain an accurate uptime ticker."""
     return datetime.datetime.utcnow()
 
 
@@ -161,7 +148,6 @@ def _format_duration(delta: datetime.timedelta) -> str:
 
 
 def measure_system_health(conn):
-    """Measures actual application health metrics on-demand."""
     uptime = datetime.datetime.utcnow() - _process_start_time()
 
     t0 = datetime.datetime.now().timestamp()
@@ -169,7 +155,7 @@ def measure_system_health(conn):
     db_latency_ms = (datetime.datetime.now().timestamp() - t0) * 1000
 
     try:
-        db_size_kb = __import__("os").path.getsize(DB_PATH) / 1024
+        db_size_kb = os.path.getsize(DB_PATH) / 1024
     except OSError:
         db_size_kb = 0.0
 
@@ -189,14 +175,10 @@ def measure_system_health(conn):
     }
 
 
-# ──────────────────────────────────────────────────────────────────────────
-# Vault Rendering & Management Module
-# ──────────────────────────────────────────────────────────────────────────
-
 def render_saved_analyses_vault(conn):
     section_header(
         "💾 Saved Analyses & Reports Vault",
-        "Review, filter, export, and inspect analytical reports and execution outputs securely stored in the database.",
+        "Review, filter, export, and inspect analytical reports securely stored in the SQLite database.",
     )
 
     cursor = conn.cursor()
@@ -204,7 +186,7 @@ def render_saved_analyses_vault(conn):
     saved_rows = cursor.fetchall()
 
     if not saved_rows:
-        st.info("ℹ️ No saved analyses found yet. Execute analyses across analytical hubs and save them to populate your vault.")
+        st.info("ℹ️ No saved analyses found yet.")
         return
 
     df_vault = pd.DataFrame(saved_rows, columns=["ID", "Title", "Timestamp", "Category", "Content"])
@@ -291,14 +273,10 @@ def render_saved_analyses_vault(conn):
                     st.rerun()
 
 
-# ──────────────────────────────────────────────────────────────────────────
-# Live Telemetry & Audit Ledger Module
-# ──────────────────────────────────────────────────────────────────────────
-
 def render_live_telemetry(conn):
     section_header(
         "📡 Real-Time System Telemetry & Operational Health",
-        "Live tracking of system resources, database response times, and the cryptographically secure audit trail.",
+        "Live tracking of system resources and cryptographically chained audit trail.",
     )
 
     health = measure_system_health(conn)
@@ -319,7 +297,7 @@ def render_live_telemetry(conn):
         if st.button("🔍 Verify Chain Integrity", key="verify_home_chain"):
             result = verify_telemetry_chain(conn)
             if result["valid"]:
-                st.success(f"✅ Chain verified — {result['records']} entries intact, zero modifications found.")
+                st.success(f"✅ Chain verified — {result['records']} entries intact.")
             else:
                 st.error(f"🚨 TAMPER DETECTED: {result['reason']}")
 
@@ -336,39 +314,28 @@ def render_live_telemetry(conn):
         st.dataframe(logs_df, use_container_width=True, hide_index=True)
         render_export_buttons(logs_df, base_name="system_telemetry_logs")
     else:
-        st.info("ℹ️ No system telemetry logs recorded yet for this session cycle.")
+        st.info("ℹ️ No system telemetry logs recorded yet.")
 
-
-# ──────────────────────────────────────────────────────────────────────────
-# Main Application Entrypoint
-# ──────────────────────────────────────────────────────────────────────────
 
 def render_automated_intelligence_report():
     section_header(
-        "🤖 Automated Intelligence — Scheduled, Unattended Runs",
-        "Real output from the scheduled GitHub Actions workflow (.github/workflows/automated_intelligence_run.yml), "
-        "not something triggered by clicking a button here. It pulls fresh World Bank data and runs the chaos "
-        "detector on a watchlist automatically on a schedule and commits the results back to the repo.",
+        "🤖 Automated Intelligence — Scheduled Runs",
+        "Real output from the scheduled background runs.",
     )
-    from pathlib import Path
     repo_root = Path(__file__).resolve().parent.parent
     report_path = repo_root / "reports" / "latest_report.md"
     alert_path = repo_root / "reports" / "latest_alert_summary.txt"
 
     if not report_path.exists():
-        st.info(
-            "No automated run has completed yet. Once `automated_intelligence_run.yml` runs on its schedule "
-            "(or you trigger it manually from the repo's Actions tab), the latest results will appear here "
-            "automatically — nothing to configure in the app itself."
-        )
+        st.info("No automated run completed yet.")
         return
 
     if alert_path.exists():
         alert_text = alert_path.read_text().strip()
         if alert_text and alert_text != "No changes since last run.":
-            st.warning(f"🚨 **Changes detected in the latest run:**\n\n{alert_text}")
+            st.warning(f"🚨 **Changes detected in latest run:**\n\n{alert_text}")
         else:
-            st.success("✅ No verdict changes since the previous scheduled run.")
+            st.success("✅ No verdict changes since previous scheduled run.")
 
     with st.expander("📄 Full latest report", expanded=False):
         st.markdown(report_path.read_text())
@@ -383,7 +350,7 @@ def main():
 
     hero_card(
         "🏠 Chrishem Sovereign Enterprise Platform — Home Command Center",
-        "Welcome to your consolidated sovereign workspace. Use the sidebar hubs or quick access cards to navigate advanced analytical pipelines.",
+        "Welcome to your consolidated sovereign workspace. Navigate advanced analytical pipelines via sidebar hubs.",
         badge_text="SOVEREIGN ENTERPRISE PLATFORM v11.0",
     )
 
@@ -391,7 +358,7 @@ def main():
     init_db(conn)
 
     identity = st.session_state.get("user_identity", {})
-    name = identity.get("name", "Analyst")
+    name = identity.get("name", "CHRISHEM")[cite: 2]
     role = identity.get("role", "Data Analyst & Researcher")
 
     from modules.user_preferences import get_user_timezone, compute_greeting, render_accent_color_css
@@ -434,11 +401,11 @@ def main():
             f"| Numeric: `{summary.get('numeric', 0)}` | Categorical: `{summary.get('categorical', 0)}`"
         )
     else:
-        st.warning("📭 **No active dataset loaded.** Upload or ingest data via the **📁 Data Studio** hub to jumpstart your analytics.")
+        st.warning("📭 **No active dataset loaded.** Ingest data via **📁 Data Studio**.")
 
     st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
 
-    section_header("🚀 Quick Access — Enterprise Workspace Hubs", "Select an operational hub below to load modular capabilities.")
+    section_header("🚀 Quick Access — Enterprise Workspace Hubs", "Select an operational hub below.")
     hub_quick_access_cards()
 
     st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
@@ -457,7 +424,7 @@ def main():
         render_automated_intelligence_report()
 
     with tab_account:
-        section_header("👤 Settings & Control Center", "Subscription, timezone, accent color, dependencies, focus engine, and creator profile — all managed in one place.")
+        section_header("👤 Settings & Control Center", "Subscription, timezone, accent color, and creator profile.")
         from modules import subscription, verification
         acct_email = identity.get("email", "analyst@sovereign.enterprise")
         if acct_email:
@@ -486,23 +453,12 @@ def main():
 
             with settings_tabs[3]:
                 from modules.audio_engine import render_generative_synthesizer, render_ambient_library_picker
-                st.caption(
-                    "The generative synthesizer runs live in your browser — no files, no dead links. "
-                    "Streamlit recreates this widget on page navigation, so playback resumes automatically "
-                    "from where it left off (via your browser's local storage) rather than continuing "
-                    "gaplessly — that's a real platform constraint, not a bug."
-                )
                 render_generative_synthesizer()
                 st.markdown("---")
-                st.markdown("#### 🌿 Ambient Library")
                 render_ambient_library_picker()
 
             with settings_tabs[4]:
                 from modules.app_settings import get_creator_photo_b64, set_creator_photo_b64
-                st.caption(
-                    "Replaces the old hardcoded local file path (which only worked on one person's own "
-                    "Windows machine) with a real upload stored in the shared database."
-                )
                 current_photo = get_creator_photo_b64()
                 if current_photo:
                     st.image(current_photo, width=150)
@@ -521,27 +477,9 @@ def main():
         section_header("ℹ️ About the Chrishem Sovereign Intelligence Platform")
         st.markdown(
             """
-            **CHRISHEM Sovereign Intelligence Platform v11.0** is an enterprise architecture consolidating core workflows into **15 high-performance hubs**:
+            **CHRISHEM Sovereign Intelligence Platform v11.0** is an enterprise architecture consolidating core workflows into high-performance hubs[cite: 2].
 
-            | Operational Hub | Core Capabilities |
-            |-----------------|-----------------------------------|
-            | 🏠 **Home Dashboard** | Enterprise dashboard, vault, telemetry, automated intelligence |
-            | 📁 **Data Studio** | Data ingestion, quality assurance, anomaly testing |
-            | 📊 **Statistics Studio** | Hypothesis testing, causal modeling, inference |
-            | 🤖 **ML & Predictive Studio**| AutoML pipelines, feature analysis, real-world chaos detection |
-            | 📈 **Visualization Studio** | Interactive mapping, presentation dashboards |
-            | 💬 **AI & NLP Studio** | Natural language analytics, synthesis engines |
-            | 📚 **Literature Hub** | Meta-analysis tools, reference generation |
-            | 🔬 **Domain Analytics** | Clinical tracking, geospatial processing |
-            | 🔗 **Integrations Hub** | API routing, sync modules, real World Bank data |
-            | 🛡️ **Admin & Security** | Access governance, diagnostics, audit forensics, nexus workspace |
-            | 🤝 **Collaboration** | Workspace sharing, team pipelines |
-            | 🕵️ **Forensics Intelligence** | Investigative and forensic analysis tools |
-            | 🔄 **Universal Converter** | Format and encoding conversion utilities |
-            | 🛡️ **Threat & Scanner Suite** | PII/secret scanning, threat detection |
-            | 🌍 **Global Mission Control** | Live global health & weather telemetry |
-
-            *Engineered by Kula Chris (CHRISHEM).*
+            *Engineered by Kula Chris (CHRISHEM).*[cite: 1, 2]
             """
         )
 
