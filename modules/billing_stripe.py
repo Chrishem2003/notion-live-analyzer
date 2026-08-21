@@ -39,7 +39,6 @@ try:
 except ImportError:
     STRIPE_SDK_AVAILABLE = False
 
-# Fixed: Use absolute import instead of relative dot notation to prevent ModuleNotFoundError in Streamlit
 from modules import subscription as sub_module
 
 
@@ -59,8 +58,6 @@ def _price_id(plan: str, cycle: str) -> str | None:
 
 
 def get_or_create_customer(email: str) -> str | None:
-    """Returns a Stripe customer id, creating one if this email doesn't
-    have one yet, and persisting it on the subscriptions row."""
     if not is_configured():
         return None
     email = email.strip().lower()
@@ -83,9 +80,6 @@ def get_or_create_customer(email: str) -> str | None:
 
 
 def create_checkout_session(email: str, plan: str, cycle: str = "monthly") -> str | None:
-    """Creates a real Stripe Checkout Session and returns its hosted URL.
-    The session's success_url carries a real session_id token that gets
-    re-verified against Stripe's API on return -- never trust it blindly."""
     if not is_configured():
         return None
     price_id = _price_id(plan, cycle)
@@ -101,7 +95,7 @@ def create_checkout_session(email: str, plan: str, cycle: str = "monthly") -> st
         mode="subscription",
         customer=customer_id,
         line_items=[{"price": price_id, "quantity": 1}],
-        success_url=f"{base_url}?checkout=success&session_id={{CHECKOUT_SESSION_ID}",
+        success_url=f"{base_url}?checkout=success&session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{base_url}?checkout=cancelled",
         client_reference_id=email,
         metadata={"plan": plan, "cycle": cycle, "email": email},
@@ -111,8 +105,6 @@ def create_checkout_session(email: str, plan: str, cycle: str = "monthly") -> st
 
 
 def create_billing_portal_session(email: str) -> str | None:
-    """Real Stripe Customer Portal -- lets a subscriber update their card,
-    cancel, or change plans themselves without any custom UI on our end."""
     if not is_configured():
         return None
     conn = sub_module.get_conn()
@@ -144,7 +136,6 @@ def _apply_subscription_state(email: str, plan: str, stripe_subscription_id: str
         "past_due" if status_raw == "past_due" else "expired"
     )
     
-    # Modernized timestamp evaluation to avoid deprecation warnings
     period_end_iso = datetime.datetime.fromtimestamp(current_period_end, datetime.UTC).isoformat() if current_period_end else None
     now = datetime.datetime.now(datetime.UTC).isoformat()
     
@@ -164,9 +155,6 @@ def _apply_subscription_state(email: str, plan: str, stripe_subscription_id: str
 
 
 def verify_checkout_session(session_id: str) -> dict | None:
-    """Re-fetches the Checkout Session from Stripe's API (server to server)
-    and, only if it's genuinely paid, applies the resulting plan. Call this
-    when the app loads with ?checkout=success&session_id=... in the URL."""
     if not is_configured():
         return None
     client = _client()
@@ -194,11 +182,6 @@ def verify_checkout_session(session_id: str) -> dict | None:
 
 
 def reconcile_subscription(email: str) -> dict | None:
-    """Pulls the current, real subscription state straight from Stripe for
-    this customer and re-applies it locally. Use this for admin "resync",
-    or opportunistically on login for anyone marked premium/pro, so a
-    cancellation made in the Stripe portal (or a failed renewal) doesn't
-    silently keep granting access forever between webhook events."""
     if not is_configured():
         return None
     email = email.strip().lower()
@@ -221,9 +204,6 @@ def reconcile_subscription(email: str) -> dict | None:
 
 
 def verify_webhook(payload: bytes, sig_header: str):
-    """For an optional sidecar webhook receiver (see module docstring).
-    Verifies Stripe's signature and returns the parsed event, or raises on
-    a bad signature -- never process an unverified webhook body."""
     if not is_configured():
         raise RuntimeError("Stripe not configured")
     secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
