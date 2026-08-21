@@ -54,6 +54,7 @@ def render_enterprise_ai_nlp_studio():
         st.markdown("### ⚙️ Engine Configurations")
         min_token_len = st.slider("Min Token Length", 1, 5, 3, key="ent_min_token")
         filter_stops = st.checkbox("Exclude Stop-Words", value=True, key="ent_stopwords")
+        case_sensitive = st.checkbox("Case-Sensitive Analysis", value=False, key="ent_case_sens")
         sensitivity_mode = st.selectbox("Polarity Threshold", ["Standard", "Strict (Biomedical/Legal)", "Permissive"], key="ent_sens")
         st.markdown("---")
         st.info("🔐 **Security Protocol:** AES-256 Text Stream Encryption Active.")
@@ -100,7 +101,8 @@ Research verification confirms successful execution of mobile colistin resistanc
         return
 
     # --- Real-Time Telemetry Metrics ---
-    words = re.findall(r'\b\w+\b', raw_text.lower())
+    words_raw = re.findall(r'\b\w+\b', raw_text)
+    words = words_raw if case_sensitive else [w.lower() for w in words_raw]
     sentences = [s.strip() for s in re.split(r'[.!?]+', raw_text) if s.strip()]
     paragraphs = [p.strip() for p in raw_text.split('\n') if p.strip()]
 
@@ -132,7 +134,7 @@ Research verification confirms successful execution of mobile colistin resistanc
     with tab_tokens:
         st.markdown("#### Frequency Distribution & Vocabulary Analysis")
         stop_words = {"the", "and", "to", "of", "a", "in", "is", "it", "that", "for", "on", "with", "as", "this", "an", "by", "or", "at", "from"} if filter_stops else set()
-        filtered_tokens = [w for w in words if w not in stop_words and len(w) >= min_token_len]
+        filtered_tokens = [w for w in words if w.lower() not in stop_words and len(w) >= min_token_len]
 
         if filtered_tokens:
             freq_df = pd.Series(filtered_tokens).value_counts().reset_index()
@@ -143,6 +145,10 @@ Research verification confirms successful execution of mobile colistin resistanc
                 st.bar_chart(freq_df.set_index("Token").head(12), color="#3b82f6")
             with c_table:
                 st.dataframe(freq_df.head(15), use_container_width=True, hide_index=True)
+                
+                # Consolidated CSV export for frequency table
+                freq_csv = freq_df.to_csv(index=False).encode("utf-8")
+                st.download_button("📥 Export Frequencies (.csv)", data=freq_csv, file_name="token_frequencies.csv", mime="text/csv", key="download_freq_csv")
         else:
             st.info("No tokens match current filtering thresholds.")
 
@@ -152,8 +158,8 @@ Research verification confirms successful execution of mobile colistin resistanc
         pos_lexicon = {"apex", "hub", "success", "secure", "advanced", "seamless", "integrity", "optimal", "clean", "robust", "operational", "successful", "efficiency"}
         neg_lexicon = {"error", "fail", "warning", "breach", "degrading", "unstable", "missing", "risk", "latency", "minor", "anomaly"}
         
-        pos_matches = [w for w in words if w in pos_lexicon]
-        neg_matches = [w for w in words if w in neg_lexicon]
+        pos_matches = [w for w in words if w.lower() in pos_lexicon]
+        neg_matches = [w for w in words if w.lower() in neg_lexicon]
         
         score = len(pos_matches) - len(neg_matches)
         if score > 0:
@@ -180,6 +186,7 @@ Research verification confirms successful execution of mobile colistin resistanc
             "Email Addresses",
             "ISO Dates / Timestamps",
             "Numeric Codes / Digits",
+            "Genomic Variables ($mcr$ genes / tags)",
             "Custom Regex Input"
         ], key="ent_regex_preset")
 
@@ -188,6 +195,7 @@ Research verification confirms successful execution of mobile colistin resistanc
             "Email Addresses": r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+",
             "ISO Dates / Timestamps": r"\d{4}-\d{2}-\d{2}",
             "Numeric Codes / Digits": r"\b\d+\b",
+            "Genomic Variables ($mcr$ genes / tags)": r"\b[a-z]{3}-?[0-9]*\b",
             "Custom Regex Input": r"\b[A-Za-z]+\b"
         }
 
