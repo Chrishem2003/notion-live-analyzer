@@ -2,7 +2,7 @@
 🏠 Home Dashboard — Sovereign Enterprise Platform Landing Hub (Premium)
 Consolidated unified enterprise workspace featuring interactive session telemetry, real-time SQLite vault
 management, LIVE system health metrics, a cryptographically chained audit ledger, interactive quick-access
-navigation hubs, and secure user account management.
+navigation hubs, dynamic browser-localized time detection, and secure user account management.
 """
 
 import datetime
@@ -14,6 +14,7 @@ import shutil
 import sqlite3
 import sys
 import zipfile
+import zoneinfo
 from pathlib import Path
 
 import pandas as pd
@@ -25,8 +26,8 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 # Core Modules Import
-from modules.page_bootstrap import render_standard_footer, setup_page
 from modules.navigation import hub_quick_access_cards, visible_hubs
+from modules.page_bootstrap import render_standard_footer, setup_page
 from modules.session_manager import dataset_summary, get_active_dataframe
 from modules.shared_ui import hero_card, metric_card, render_export_buttons, section_header
 
@@ -38,6 +39,33 @@ except ImportError:
 
 DB_PATH = "sovereign_apex_engine.db"
 GENESIS_HASH = "0" * 64
+
+
+def get_user_local_datetime() -> datetime.datetime:
+    """
+    Detects user timezone dynamically from the client browser context.
+    Falls back gracefully to session state or UTC.
+    """
+    detected_tz = None
+
+    # 1. Inspect Streamlit client context for dynamic browser timezone
+    try:
+        browser_tz = getattr(st.context, "timezone", None)
+        if browser_tz and browser_tz != "None":
+            zoneinfo.ZoneInfo(browser_tz)  # Verify validity against IANA database
+            detected_tz = browser_tz
+    except Exception:
+        pass
+
+    # 2. Fall back to user preferences session state if browser context is masked
+    if not detected_tz:
+        detected_tz = st.session_state.get("user_timezone", "UTC")
+
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
+    try:
+        return utc_now.astimezone(zoneinfo.ZoneInfo(detected_tz))
+    except Exception:
+        return utc_now
 
 
 @st.cache_resource
@@ -79,7 +107,7 @@ def init_db(conn):
             status TEXT
         )
     """)
-    
+
     try:
         cursor.execute("ALTER TABLE system_telemetry_logs ADD COLUMN prev_hash TEXT")
     except sqlite3.OperationalError:
@@ -345,7 +373,7 @@ def render_automated_intelligence_report():
 def main():
     setup_page("Home Dashboard", "🏠", initial_sidebar_state="expanded")
 
-    from modules.user_preferences import render_accent_color_css, render_readability_fix
+    from modules.user_preferences import compute_greeting, render_accent_color_css, render_readability_fix
     render_readability_fix()
     render_accent_color_css()
 
@@ -362,12 +390,8 @@ def main():
     name = identity.get("name", "CHRISHEM")
     role = identity.get("role", "Data Analyst & Researcher")
 
-    import zoneinfo
-    from modules.user_preferences import compute_greeting, get_user_timezone, render_accent_color_css
-    render_accent_color_css()
-
-    user_tz_name = get_user_timezone()
-    now_dt = datetime.datetime.now(zoneinfo.ZoneInfo(user_tz_name))
+    # Dynamic Location-Based Local Datetime Detection
+    now_dt = get_user_local_datetime()
     greeting = compute_greeting(now_dt)
 
     summary = dataset_summary()
@@ -385,7 +409,7 @@ def main():
             <div>
                 <div style="font-size:1.25rem; font-weight:800; color:#F8FAFC;">{greeting}, {name}! 👋</div>
                 <div style="font-size:0.9rem; color:#38BDF8; font-weight:600; margin-top:0.2rem;">
-                    Active Session Role: {role} | Your Local Time: {now_dt.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}
+                    Active Session Role: {role} | Your Local Time: {now_dt.strftime('%A, %Y-%m-%d %H:%M:%S %Z')} ({now_dt.tzinfo})
                 </div>
             </div>
             <div>
