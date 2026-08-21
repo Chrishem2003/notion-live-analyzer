@@ -235,8 +235,8 @@ def render_sheets():
 
     with tab_export:
         st.markdown("#### Service Account Dynamic Append")
-        st.caption("Upload a Service Account JSON Key or provide credentials to append data directly to Google Sheets via API v4.")
-        sa_json = st.text_area("Service Account JSON Key Credentials", type="password", key="sa_json_key")
+        st.caption("Provide your Service Account JSON Key credentials to append data directly to Google Sheets via API v4.")
+        sa_json = st.text_area("Service Account JSON Key Credentials", key="sa_json_key")
         append_data = st.text_input("Comma-Separated Values to Append (e.g., Value1, Value2, Value3)", key="sa_append_val")
 
         if st.button("📤 Execute API Append", type="primary", key="sa_append_btn"):
