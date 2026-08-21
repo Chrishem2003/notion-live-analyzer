@@ -14,23 +14,7 @@ if _ROOT not in sys.path:
 
 from modules.page_bootstrap import setup_page, render_standard_footer
 from modules.shared_ui import hero_card, section_header, metric_card, render_export_buttons
-from modules.file_converter import (
-    convert_dataframe,
-    dataframe_to_csv,
-    dataframe_to_excel,
-    dataframe_to_json,
-    auto_detect_encoding,
-    encode_data,
-    decode_data,
-    wide_to_long,
-    long_to_wide,
-    transpose_df,
-    stack_columns,
-    convert_unit,
-    decimal_to_dms,
-    dms_to_decimal,
-    extract_pdf_text,
-)
+from modules.file_converter import convert_dataframe, dataframe_to_csv, dataframe_to_excel, dataframe_to_json, auto_detect_encoding, encode_data, decode_data, wide_to_long, long_to_wide, transpose_df, stack_columns, convert_unit, decimal_to_dms, dms_to_decimal, extract_pdf_text
 
 try:
     from PIL import Image

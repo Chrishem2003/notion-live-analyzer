@@ -18,13 +18,7 @@ import streamlit as st
 
 from modules.page_bootstrap import setup_page, render_standard_footer
 from modules.shared_ui import hero_card, section_header, metric_card, render_export_buttons
-from modules.mission_control import (
-    fetch_global_health_hotspots,
-    fetch_weather_telemetry,
-    get_global_impact_scorecard,
-    get_problem_solver_registry,
-    get_mission_telemetry,
-)
+from modules.mission_control import fetch_global_health_hotspots, fetch_weather_telemetry, get_global_impact_scorecard, get_problem_solver_registry, get_mission_telemetry
 
 try:
     import plotly.express as px
