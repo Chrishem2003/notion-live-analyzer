@@ -367,7 +367,7 @@ def extract_pdf_text(raw: bytes) -> Dict[str, Any]:
     to a raw stream scanner that pulls printable text blocks.
     """
     try:
-        from pypdf import PdfReader
+        from pypdf import PdfReader  # type: ignore[import-not-found]
 
         reader = PdfReader(io.BytesIO(raw))
         pages = []
