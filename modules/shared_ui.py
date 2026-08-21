@@ -7,34 +7,25 @@ import streamlit as st
 
 from modules.theme import get_theme
 
-
-def hero_card(title: str, subtitle: str, badge_text: str = "", watermark: str = "CHRISHEM"):
-    """
-    Render the standard hero card banner used across all hub pages.
-    """
-    t = get_theme()
+def hero_card(title, subtitle, badge_text=None):
+    # Retrieve current theme safely with fallback defaults
+    t = st.session_state.get("theme", {})
+    grad_start = t.get("gradient_start", "#38BDF8")
+    grad_end = t.get("gradient_end", "#818CF8")
+    
+    badge_html = f'<div style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-block; margin-bottom: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.4);">{badge_text}</div>' if badge_text else ''
+    
     st.markdown(
         f"""
-        <div style="display:flex; justify-content:space-between; align-items:center; 
-             background: linear-gradient(135deg, {t['gradient_start']} 0%, {t['gradient_end']} 100%); 
-             border: 2px solid {t['accent']}; padding: 1.5rem; border-radius: 14px; 
-             margin-bottom: 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
-            <div>
-                <span class='badge-primary'>{badge_text}</span>
-                <h1 style='font-size: 2.2rem; margin: 0.4rem 0 0.2rem 0; color: {t['accent']} !important;'>{title}</h1>
-                <p style='color: {t['text_secondary']}; margin: 0; font-size: 0.95rem; line-height:1.5;'>{subtitle}</p>
-            </div>
-            <div style="text-align: right;">
-                <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
-                    <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Engine</div>
-                    <div style='color: #10b981; font-size: 0.95rem; font-weight: 900;'>{watermark}</div>
-                </div>
-            </div>
+        <div style="background: linear-gradient(135deg, {grad_start} 0%, {grad_end} 100%); 
+             border-radius: 16px; padding: 2rem; color: #F8FAFC; margin-bottom: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);">
+            {badge_html}
+            <div style="font-size: 1.75rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem;">{title}</div>
+            <div style="font-size: 1rem; opacity: 0.9; font-weight: 400; max-width: 90%;">{subtitle}</div>
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
-
 
 def section_header(title: str, desc: str = ""):
     """
