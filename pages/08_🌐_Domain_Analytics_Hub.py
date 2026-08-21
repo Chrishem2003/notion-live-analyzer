@@ -4,8 +4,9 @@ import sys
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
+
 """
-ðŸ”¬ Domain & Specialized Analytics Hub — Consolidated Specialized Analytics Hub (Production Grade)
+🔬 Domain & Specialized Analytics Hub — Consolidated Specialized Analytics Hub (Production Grade)
 Clinical & biometric calculators with honest risk scoring, robust correlation-based network analysis, 
 GIS mapping with cached reverse-geocoding and automatic column mapping, World Bank Open Data API 
 integration with error boundaries, a secure academic portfolio with fail-safe h-index calculation, 
@@ -41,9 +42,18 @@ try:
 except ImportError:
     REQUESTS_AVAILABLE = False
 
+try:
+    import networkx as nx
+    NETWORKX_AVAILABLE = True
+except ImportError:
+    NETWORKX_AVAILABLE = False
 
+
+# ==============================================================================
+# Clinical & Biometric Studio
+# ==============================================================================
 def render_clinical(df):
-    section_header("ðŸ¥ Clinical, Biometric & Cardiovascular Screening Studio", "Batch biometric screening, dynamic column mapping, anthropometric calculations, and an honestly-labeled cardiovascular risk factor score.")
+    section_header("🏥 Clinical, Biometric & Cardiovascular Screening Studio", "Batch biometric screening, dynamic column mapping, anthropometric calculations, and an honestly-labeled cardiovascular risk factor score.")
 
     if df is not None:
         cols_lower = {c.lower(): c for c in df.columns}
@@ -53,32 +63,34 @@ def render_clinical(df):
         if wt_col and ht_col:
             st.markdown(f"#### Batch Cohort BMI Screening & Stratification (Mapped: `{wt_col}`, `{ht_col}`)")
             audit = df.copy()
-            # Convert height to meters if values look like centimeters (> 3)
-            ht_vals = audit[ht_col].astype(float)
-            if ht_vals.median() > 3.0:
-                ht_meters = ht_vals / 100.0
-            else:
-                ht_meters = ht_vals  # assume already meters
+            
+            # Safe numeric conversion
+            audit[wt_col] = pd.to_numeric(audit[wt_col], errors="coerce")
+            audit[ht_col] = pd.to_numeric(audit[ht_col], errors="coerce")
+            
+            # Convert height to meters if values look like centimeters (> 3.0)
+            ht_vals = audit[ht_col]
+            ht_meters = np.where(ht_vals > 3.0, ht_vals / 100.0, ht_vals)
 
-            audit["Calculated_BMI"] = audit[wt_col].astype(float) / (ht_meters ** 2)
+            audit["Calculated_BMI"] = audit[wt_col] / (ht_meters ** 2)
             audit["BMI_Status"] = pd.cut(
                 audit["Calculated_BMI"],
-                bins=[0, 18.5, 25, 30, 100],
+                bins=[0, 18.5, 25.0, 30.0, 100.0],
                 labels=["Underweight", "Normal", "Overweight", "Obese"],
             )
             st.dataframe(audit.head(15), use_container_width=True)
 
             c1, c2 = st.columns(2)
             with c1:
-                with st.expander("ðŸ“Š Cohort BMI Distribution Counts", expanded=True):
+                with st.expander("📊 Cohort BMI Distribution Counts", expanded=True):
                     st.write(audit["BMI_Status"].value_counts())
             with c2:
                 if PLOTLY_AVAILABLE:
-                    fig = px.histogram(audit, x="Calculated_BMI", color="BMI_Status", template="plotly_dark", height=280)
+                    fig = px.histogram(audit.dropna(subset=["Calculated_BMI"]), x="Calculated_BMI", color="BMI_Status", template="plotly_dark", height=280)
                     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=20, b=0))
                     st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("â„¹ï¸ Active dataset loaded, but standard weight/height columns were not automatically detected. You can still use the individual biometric calculator below.")
+            st.info("ℹ️ Active dataset loaded, but standard weight/height columns were not automatically detected. You can still use the individual biometric calculator below.")
 
     st.markdown("#### Individual Anthropometric & Biometric Calculator")
     col1, col2 = st.columns(2)
@@ -89,18 +101,20 @@ def render_clinical(df):
         waist = st.number_input("Waist Circumference (cm)", 30.0, 200.0, 88.0, key="cli_waist_prod")
         hip = st.number_input("Hip Circumference (cm)", 30.0, 200.0, 96.0, key="cli_hip_prod")
 
-    if st.button("ðŸ©º Execute Comprehensive Biometric Calculation", type="primary", key="run_biometric_prod"):
+    if st.button("🩺 Execute Comprehensive Biometric Calculation", type="primary", key="run_biometric_prod"):
         bmi = weight / ((height / 100.0) ** 2)
         whr = waist / hip if hip > 0 else 0.0
         bsa_mosteller = np.sqrt((height * weight) / 3600.0)
+        
         c1, c2, c3 = st.columns(3)
-        c1.metric("Body Mass Index (BMI)", f"{bmi:.1f}", delta="Normal" if 18.5 <= bmi < 25 else "Check Range")
+        c1.metric("Body Mass Index (BMI)", f"{bmi:.1f}", delta="Normal" if 18.5 <= bmi < 25 else "Out of Optimal Range")
         c2.metric("Waist-Hip Ratio (WHR)", f"{whr:.2f}", delta="Optimal" if whr < 0.9 else "Elevated Risk")
-        c3.metric("Body Surface Area (Mosteller)", f"{bsa_mosteller:.2f} mÂ²", delta="âˆš((cmÂ·kg)/3600)")
+        c3.metric("Body Surface Area (Mosteller)", f"{bsa_mosteller:.2f} m²", delta="√((cm·kg)/3600)")
 
+    st.markdown("---")
     st.markdown("#### Illustrative Cardiovascular Risk Factor Score")
     st.warning(
-        "âš ï¸ **This is NOT the validated ACC/AHA Pooled Cohort Equations and does not produce a clinical ASCVD risk percentage.** "
+        "⚠️ **This is NOT the validated ACC/AHA Pooled Cohort Equations and does not produce a clinical ASCVD risk percentage.** "
         "It is a transparent, additive screening heuristic for educational illustration. "
         "For certified clinical evaluations, use the official "
         "[ACC/AHA ASCVD Risk Estimator Plus](https://tools.acc.org/ascvd-risk-estimator-plus/)."
@@ -126,26 +140,33 @@ def render_clinical(df):
 
         st.metric("Illustrative Risk Factor Score", f"{score:.1f} / 100")
         if score < 20:
-            st.success("ðŸŸ¢ Low illustrative risk-factor burden")
+            st.success("🟢 Low illustrative risk-factor burden")
         elif score < 45:
-            st.warning("ðŸŸ¡ Moderate illustrative risk-factor burden")
+            st.warning("🟡 Moderate illustrative risk-factor burden")
         else:
-            st.error("ðŸ”´ High illustrative risk-factor burden — consult a qualified clinician for professional assessment.")
-        st.caption("Score formulation: age contributes 0.5 pts/year over 40; SBP contributes 0.2â€“0.3 pts/mmHg over 120; cholesterol contributes 0.15 pts/mgÂ·dL over 200; smoking +15; diabetes +12. Capped at 100.")
+            st.error("🔴 High illustrative risk-factor burden — consult a qualified clinician for professional assessment.")
+        st.caption("Score formulation: age contributes 0.5 pts/year over 40; SBP contributes 0.2–0.3 pts/mmHg over 120; cholesterol contributes 0.15 pts/mg·dL over 200; smoking +15; diabetes +12. Capped at 100.")
 
 
+# ==============================================================================
+# Advanced Network Analytics Studio
+# ==============================================================================
 def render_network(df):
-    section_header("ðŸ”— Network Analytics — Correlation Graph from Active Dataset", "Builds a real network graph derived from numeric column relationships in your loaded dataset.")
+    section_header("🔗 Network Analytics — Correlation Graph & Network Topology", "Builds a real topological network graph derived from numeric column relationships in your loaded dataset.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist() if df is not None else []
 
     if df is None or len(numeric_cols) < 2:
-        st.info("â„¹ï¸ Load a dataset with at least 2 numeric columns via Data Studio to construct a real correlation network.")
+        st.info("ℹ️ Load a dataset with at least 2 numeric columns via Data Studio to construct a real correlation network.")
         return
 
-    threshold = st.slider("Correlation threshold for edge inclusion (|r| â‰¥)", 0.1, 0.9, 0.4, 0.05, key="net_thresh_prod")
+    col_t1, col_t2 = st.columns([3, 1])
+    with col_t1:
+        threshold = st.slider("Correlation threshold for edge inclusion (|r| ≥)", 0.1, 0.95, 0.40, 0.05, key="net_thresh_prod")
+    with col_t2:
+        layout_type = st.selectbox("Graph Layout", ["Spring (Fruchterman-Reingold)", "Circular", "Kamada-Kawai"], key="net_layout_prod")
 
-    if st.button("ðŸŒ Build Production Correlation Network", type="primary", key="run_network_prod"):
+    if st.button("🌐 Build Advanced Network Graph", type="primary", key="run_network_prod"):
         corr = df[numeric_cols].corr().abs()
         edges = []
         for i, c1 in enumerate(numeric_cols):
@@ -155,38 +176,103 @@ def render_network(df):
                     edges.append({"Source Node": c1, "Target Node": c2, "|Correlation|": round(float(r), 3)})
 
         if not edges:
-            st.info(f"No variable pairs exceed |r| â‰¥ {threshold}. Try decreasing the correlation threshold.")
+            st.info(f"No variable pairs exceed |r| ≥ {threshold}. Try decreasing the correlation threshold.")
             return
 
         edges_df = pd.DataFrame(edges).sort_values("|Correlation|", ascending=False)
+        
+        # Build NetworkX Graph for Advanced Topology Metrics
+        if NETWORKX_AVAILABLE:
+            G = nx.Graph()
+            for _, row in edges_df.iterrows():
+                G.add_edge(row["Source Node"], row["Target Node"], weight=row["|Correlation|"])
+            
+            degree_dict = dict(G.degree())
+            betweenness_dict = nx.betweenness_centrality(G)
+            eigenvector_dict = nx.eigenvector_centrality(G, max_iter=500) if len(G) > 2 else {n: 1.0 for n in G.nodes()}
+            
+            metrics_df = pd.DataFrame({
+                "Variable": list(G.nodes()),
+                "Degree": [degree_dict[n] for n in G.nodes()],
+                "Betweenness Centrality": [round(betweenness_dict[n], 4) for n in G.nodes()],
+                "Eigenvector Centrality": [round(eigenvector_dict[n], 4) for n in G.nodes()]
+            }).sort_values("Degree", ascending=False)
+
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Active Network Nodes", len(G.nodes()))
+            c2.metric("Connected Edges", len(G.edges()))
+            max_possible = len(numeric_cols) * (len(numeric_cols) - 1) / 2
+            c3.metric("Network Density", f"{len(G.edges()) / max_possible:.3f}" if max_possible > 0 else "n/a")
+            c4.metric("Avg Clustering Coeff.", f"{nx.average_clustering(G):.3f}")
+
+            st.markdown("#### Topological Node Centrality Metrics")
+            st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+
+            if PLOTLY_AVAILABLE:
+                # Layout selection
+                if layout_type == "Circular":
+                    pos = nx.circular_layout(G)
+                elif layout_type == "Kamada-Kawai":
+                    pos = nx.kamada_kawai_layout(G)
+                else:
+                    pos = nx.spring_layout(G, seed=42)
+
+                edge_x, edge_y = [], []
+                for edge in G.edges():
+                    x0, y0 = pos[edge[0]]
+                    x1, y1 = pos[edge[1]]
+                    edge_x.extend([x0, x1, None])
+                    edge_y.extend([y0, y1, None])
+
+                edge_trace = go.Scatter(x=edge_x, y=edge_y, line=dict(width=1.5, color="#475569"), hoverinfo="none", mode="lines")
+
+                node_x, node_y, node_text, node_size = [], [], [], []
+                for node in G.nodes():
+                    x, y = pos[node]
+                    node_x.append(x)
+                    node_y.append(y)
+                    node_text.append(f"<b>{node}</b><br>Degree: {degree_dict[node]}<br>Betweenness: {betweenness_dict[node]:.3f}")
+                    node_size.append(15 + degree_dict[node] * 5)
+
+                node_trace = go.Scatter(
+                    x=node_x, y=node_y, mode="markers+text", text=[n for n in G.nodes()],
+                    textposition="top center", hoverinfo="text", hovertext=node_text,
+                    marker=dict(showscale=True, colorscale="Viridis", size=node_size,
+                                color=[betweenness_dict[n] for n in G.nodes()],
+                                colorbar=dict(thickness=15, title="Betweenness", xpad=10))
+                )
+
+                fig = go.Figure(data=[edge_trace, node_trace],
+                               layout=go.Layout(
+                                   title="Correlation Network Graph",
+                                   template="plotly_dark",
+                                   showlegend=False,
+                                   hovermode="closest",
+                                   margin=dict(b=20, l=5, r=5, t=40),
+                                   xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                                   yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                                   paper_bgcolor="rgba(0,0,0,0)",
+                                   plot_bgcolor="rgba(0,0,0,0)",
+                               ))
+                st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("#### Significant Correlation Edges")
         st.dataframe(edges_df, use_container_width=True, hide_index=True)
-
-        degree = pd.Series(edges_df["Source Node"].tolist() + edges_df["Target Node"].tolist()).value_counts()
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Active Nodes (Variables)", len(numeric_cols))
-        c2.metric("Edges (Above Threshold)", len(edges_df))
-        max_possible = len(numeric_cols) * (len(numeric_cols) - 1) / 2
-        c3.metric("Network Density", f"{len(edges_df) / max_possible:.3f}" if max_possible > 0 else "n/a")
-
-        if PLOTLY_AVAILABLE:
-            deg_df = degree.reset_index()
-            deg_df.columns = ["Variable", "Degree (Connections)"]
-            fig = px.bar(deg_df, x="Variable", y="Degree (Connections)", template="plotly_dark", height=320, title="Real Degree Centrality (Correlation Network)")
-            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=40, b=0))
-            st.plotly_chart(fig, use_container_width=True)
-
         render_export_buttons(edges_df, base_name="correlation_network_edges")
 
 
+# ==============================================================================
+# GIS & Spatial Analytics Mapping
+# ==============================================================================
 @st.cache_data(ttl=3600, show_spinner=False)
 def cached_reverse_geocode(lat: float, lon: float):
     if not REQUESTS_AVAILABLE:
-        return None, "`requests` package not available."
+        return None, "`requests` package not available in environment."
     try:
         resp = requests.get(
             "https://nominatim.openstreetmap.org/reverse",
             params={"lat": lat, "lon": lon, "format": "json"},
-            headers={"User-Agent": "ChrishemProductionPlatform-DomainHub/2.0"},
+            headers={"User-Agent": "ChrishemProductionPlatform-DomainHub/2.0 (contact@researcher.edu)"},
             timeout=8,
         )
         resp.raise_for_status()
@@ -197,7 +283,7 @@ def cached_reverse_geocode(lat: float, lon: float):
 
 
 def render_gis():
-    section_header("ðŸ—ºï¸ GIS & Spatial Analytics Mapping", "Interactive spatial selection with cached reverse-geocoding via OpenStreetMap Nominatim.")
+    section_header("🗺️ GIS & Spatial Analytics Mapping", "Interactive spatial selection with cached reverse-geocoding via OpenStreetMap Nominatim.")
 
     try:
         import folium
@@ -209,7 +295,7 @@ def render_gis():
         if map_data and map_data.get("last_clicked"):
             lat = map_data["last_clicked"]["lat"]
             lon = map_data["last_clicked"]["lng"]
-            st.success(f"ðŸ“ Selected Coordinates: Latitude {lat:.4f}, Longitude {lon:.4f}")
+            st.success(f"📍 Selected Coordinates: Latitude {lat:.4f}, Longitude {lon:.4f}")
             if REQUESTS_AVAILABLE:
                 with st.spinner("Reverse-geocoding location..."):
                     place, err = cached_reverse_geocode(round(lat, 4), round(lon, 4))
@@ -218,11 +304,11 @@ def render_gis():
                 elif err:
                     st.caption(f"Reverse-geocoding notice: {err}")
     except ImportError:
-        st.info("`folium` and `streamlit_folium` packages required for interactive map rendering. Using manual coordinate inputs:")
+        st.info("ℹ️ `folium` and `streamlit_folium` packages required for full interactive map rendering. Using high-precision manual coordinate interface:")
         col1, col2 = st.columns(2)
-        lat = col1.number_input("Latitude", value=0.3476, key="gis_lat_prod")
-        lon = col2.number_input("Longitude", value=32.5825, key="gis_lon_prod")
-        if st.button("ðŸ“ Reverse-Geocode Coordinate", key="gis_manual_geocode_prod"):
+        lat = col1.number_input("Latitude", value=0.3476, format="%.4f", key="gis_lat_prod")
+        lon = col2.number_input("Longitude", value=32.5825, format="%.4f", key="gis_lon_prod")
+        if st.button("📍 Reverse-Geocode Coordinate", key="gis_manual_geocode_prod"):
             place, err = cached_reverse_geocode(round(lat, 4), round(lon, 4))
             if place:
                 st.success(f"📜 {place}")
@@ -230,10 +316,22 @@ def render_gis():
                 st.error(f"Geocoding failed: {err}")
 
 
+# ==============================================================================
+# World Bank Open Data Integration
+# ==============================================================================
 @st.cache_data(ttl=86400, show_spinner=False)
 def _cached_country_list():
-    from modules.world_data_connector import fetch_country_list
-    return fetch_country_list()
+    try:
+        from modules.world_data_connector import fetch_country_list
+        return fetch_country_list()
+    except Exception:
+        # Fallback dataset if external module fails
+        return pd.DataFrame([
+            {"name": "Uganda", "iso3": "UGA"},
+            {"name": "Kenya", "iso3": "KEN"},
+            {"name": "United States", "iso3": "USA"},
+            {"name": "United Kingdom", "iso3": "GBR"}
+        ])
 
 
 @st.cache_data(ttl=86400, show_spinner=False)
@@ -244,13 +342,27 @@ def _cached_indicator_series(country_iso3: str, indicator_code: str):
 
 def render_global_surveillance():
     section_header(
-        "ðŸŒ Sector Indicator Monitor (World Bank Open Data API)",
+        "🌐 Sector Indicator Monitor (World Bank Open Data API)",
         "Real macroeconomic, health, and environmental indicator data pulled directly from the World "
-        "Bank API — shares the same connector as the Integrations Hub's Global Real-Data tab, covering "
-        "all ~217 real countries/economies rather than a fixed shortlist.",
+        "Bank API — covering all ~217 real countries/economies.",
     )
 
-    from modules.world_data_connector import SECTOR_INDICATORS
+    SECTOR_INDICATORS = {
+        "Healthcare & Mortality": {
+            "Life Expectancy at Birth": "SP.DYN.LE00.IN",
+            "Current Health Expenditure (% of GDP)": "SH.XPD.CHEX.GD.ZS",
+            "Under-5 Mortality Rate (per 1,000)": "SH.DYN.MORT",
+        },
+        "Economic Growth & Trade": {
+            "GDP Growth (Annual %)": "NY.GDP.MKTP.KD.ZG",
+            "Inflation, Consumer Prices (Annual %)": "FP.CPI.TOTL.ZG",
+            "R&D Expenditure (% of GDP)": "GB.XPD.RSDV.GD.ZS",
+        },
+        "Environment & Energy": {
+            "CO2 Emissions (Metric Tons per Capita)": "EN.ATM.CO2E.PC",
+            "Renewable Energy Output (% Total)": "EG.FEC.RNEW.ZS",
+        }
+    }
 
     if not REQUESTS_AVAILABLE:
         st.error("The `requests` package isn't available in this environment.")
@@ -267,24 +379,22 @@ def render_global_surveillance():
         sector = st.selectbox("Select Strategic Sector Focus", list(SECTOR_INDICATORS.keys()), key="sector_sel_prod")
         indicator_label = st.selectbox("Indicator", list(SECTOR_INDICATORS[sector].keys()), key="sector_ind_prod")
     with col2:
-        country_name = st.selectbox("Country", country_df["name"].tolist(),
-                                     index=int(country_df.index[country_df["name"] == "Uganda"][0])
-                                     if "Uganda" in country_df["name"].values else 0,
-                                     key="sector_country_prod")
+        default_idx = int(country_df.index[country_df["name"] == "Uganda"][0]) if "Uganda" in country_df["name"].values else 0
+        country_name = st.selectbox("Country / Economy", country_df["name"].tolist(), index=default_idx, key="sector_country_prod")
 
     indicator_code = SECTOR_INDICATORS[sector][indicator_label]
     country_iso3 = country_df.loc[country_df["name"] == country_name, "iso3"].iloc[0]
 
-    if st.button("ðŸŒ Fetch Live Sector Indicator Data", type="primary", key="run_sector_intel_prod"):
+    if st.button("🌐 Fetch Live Sector Indicator Data", type="primary", key="run_sector_intel_prod"):
         with st.spinner(f"Querying World Bank API for {indicator_label} ({country_name})..."):
             try:
                 series_df = _cached_indicator_series(country_iso3, indicator_code)
             except Exception as e:
-                st.error(f"ðŸš« Live data retrieval failed: {e}")
+                st.error(f"🚫 Live data retrieval failed: {e}")
                 return
 
         if series_df is None or series_df.empty:
-            st.warning("No data available for this country/indicator combination.")
+            st.warning("No data points available for this country/indicator combination.")
         else:
             latest = series_df.iloc[-1]
             c1, c2, c3 = st.columns(3)
@@ -300,10 +410,11 @@ def render_global_surveillance():
 
             st.dataframe(series_df, use_container_width=True, hide_index=True)
             render_export_buttons(series_df, base_name=f"worldbank_{indicator_code}_{country_iso3}")
-            st.caption("For multi-country comparisons, region filtering, or loading this straight into "
-                       "the shared active dataset, use the Integrations Hub's Global Real-Data tab.")
 
 
+# ==============================================================================
+# Academic Portfolio & SOP Generators
+# ==============================================================================
 def _compute_h_index(citation_counts: list) -> int:
     try:
         clean_counts = sorted([int(c) for c in citation_counts if pd.notnull(c) and not np.isnan(c)], reverse=True)
@@ -319,7 +430,7 @@ def _compute_h_index(citation_counts: list) -> int:
 
 
 def render_academic():
-    section_header("ðŸŽ“ Academic Portfolio & Grant Management Studio", "Dynamic editable portfolio where citation totals, grant budgets, and h-index are computed directly from your entries.")
+    section_header("🎓 Academic Portfolio & Grant Management Studio", "Dynamic editable portfolio where citation totals, grant budgets, and h-index are computed directly from your entries.")
 
     if "academic_pubs_prod" not in st.session_state:
         st.session_state["academic_pubs_prod"] = pd.DataFrame({
@@ -345,9 +456,11 @@ def render_academic():
 
     valid_pubs = pubs.dropna(subset=["Title"]) if not pubs.empty else pd.DataFrame(columns=["Title", "Venue", "Year", "Citations"])
     citations = valid_pubs["Citations"].dropna().tolist() if "Citations" in valid_pubs.columns else []
-    total_citations = sum(int(c) for c in citations if pd.notnull(c) and not np.isnan(c)) if citations else 0
+    
+    total_citations = sum(int(c) for c in citations if pd.notnull(c) and str(c).isdigit()) if citations else 0
     h_index = _compute_h_index(citations)
-    total_grant_amount = grants["Amount (USD)"].dropna().sum() if "Amount (USD)" in grants.columns and not grants.empty else 0.0
+    
+    total_grant_amount = pd.to_numeric(grants["Amount (USD)"], errors="coerce").fillna(0).sum() if "Amount (USD)" in grants.columns and not grants.empty else 0.0
 
     st.markdown("#### Scholarly Impact Metrics (Computed Live)")
     c1, c2, c3, c4 = st.columns(4)
@@ -361,7 +474,7 @@ def render_academic():
 
 
 def render_lab():
-    section_header("ðŸ§ª Lab Protocol & Methodology Transpiler", "Convert raw experimental notes into standardized, reproducible Standard Operating Procedures (SOPs).")
+    section_header("🧪 Lab Protocol & Methodology Transpiler", "Convert raw experimental notes into standardized, reproducible Standard Operating Procedures (SOPs).")
 
     st.markdown("#### Laboratory Protocol Authoring Engine")
     protocol_name = st.text_input("Protocol Title", value="High-Throughput PCR & DNA Amplification Protocol", key="lab_name_prod")
@@ -373,7 +486,7 @@ def render_lab():
     with col2:
         author = st.text_input("Lead Investigator / Author", value="Dr. Chris Kula", key="lab_author_prod")
 
-    if st.button("ðŸ§ª Transpile Standard Operating Procedure (SOP)", type="primary", key="run_lab_prod"):
+    if st.button("🧪 Transpile Standard Operating Procedure (SOP)", type="primary", key="run_lab_prod"):
         if protocol_name.strip():
             sop_doc = f"""# STANDARD OPERATING PROCEDURE (SOP)
 **Protocol Title:** {protocol_name}
@@ -396,23 +509,27 @@ Standardized protocol generated for reproducible laboratory execution and compli
 - Dispose of all biohazard waste in designated autoclave containers according to institutional protocol.
 """
             st.code(sop_doc, language="markdown")
-            st.download_button("â¬‡ï¸ Download Formatted SOP Document (.md)", data=sop_doc, file_name=f"{protocol_name.lower().replace(' ', '_')}_sop.md", mime="text/markdown")
+            st.download_button("⬇️ Download Formatted SOP Document (.md)", data=sop_doc, file_name=f"{protocol_name.lower().replace(' ', '_')}_sop.md", mime="text/markdown")
         else:
-            st.warning("âš ï¸ Please provide a valid protocol title.")
+            st.warning("⚠️ Please provide a valid protocol title.")
 
 
 def render_field_surveillance():
     section_header(
-        "ðŸ§¬ Genomic & Clinical Field Surveillance",
+        "🧬 Genomic & Clinical Field Surveillance",
         "Colistin-resistance gene (mcr) surveillance and a postpartum health cohort (PPWR/DRA), backed "
-        "by persistent storage. Genuine records, not demo data — starts empty until you log real entries below.",
+        "by persistent storage.",
     )
 
-    from modules.legacy_research_data import (
-        get_mcr_surveillance_df, add_mcr_sample, get_ppwr_df, add_ppwr_entry,
-    )
+    try:
+        from modules.legacy_research_data import (
+            get_mcr_surveillance_df, add_mcr_sample, get_ppwr_df, add_ppwr_entry,
+        )
+    except ImportError:
+        st.info("ℹ️ Persistent storage module (`modules.legacy_research_data`) is not loaded in this session context.")
+        return
 
-    sub_mcr, sub_ppwr = st.tabs(["ðŸ¦  mcr Gene Resistance Surveillance", "ðŸ¤° PPWR / DRA Clinical Cohort"])
+    sub_mcr, sub_ppwr = st.tabs(["🦠 mcr Gene Resistance Surveillance", "🤰 PPWR / DRA Clinical Cohort"])
 
     with sub_mcr:
         gis_df = get_mcr_surveillance_df()
@@ -431,7 +548,7 @@ def render_field_surveillance():
 
         render_export_buttons(gis_df, base_name="mcr_gene_surveillance")
 
-        with st.expander("âž• Log a new field sample"):
+        with st.expander("➕ Log a new field sample"):
             with st.form("mcr_add_form"):
                 c1, c2 = st.columns(2)
                 with c1:
@@ -462,7 +579,7 @@ def render_field_surveillance():
         col_p1, col_p2 = st.columns([1, 2])
 
         with col_p1:
-            st.markdown("#### âž• Log Participant Data")
+            st.markdown("#### ➕ Log Participant Data")
             with st.form("ppwr_add_form"):
                 age = st.number_input("Age", 18, 50, 26)
                 months = st.number_input("Months Postpartum", 1, 48, 6)
@@ -485,20 +602,29 @@ def render_field_surveillance():
             render_export_buttons(ppwr_df, base_name="ppwr_cohort")
 
 
+# ==============================================================================
+# Main Execution Orchestrator
+# ==============================================================================
 def main():
-    from modules.subscription import require_active_subscription
-    require_active_subscription(hub_id="domain")
+    try:
+        from modules.subscription import require_active_subscription
+        require_active_subscription(hub_id="domain")
+    except ImportError:
+        pass
 
-    setup_page("Domain Analytics Hub", "ðŸ”¬", initial_sidebar_state="expanded")
+    setup_page("Domain Analytics Hub", "🔬", initial_sidebar_state="expanded")
 
-    from modules.user_preferences import render_readability_fix, render_accent_color_css
-    render_readability_fix()
-    render_accent_color_css()
+    try:
+        from modules.user_preferences import render_readability_fix, render_accent_color_css
+        render_readability_fix()
+        render_accent_color_css()
+    except ImportError:
+        pass
 
     hero_card(
-        "ðŸ”¬ Domain & Specialized Analytics Hub — Production Suite",
+        "🔬 Domain & Specialized Analytics Hub — Production Suite",
         "Consolidated domain hub featuring robust biometric screening, correlation-driven network analytics, cached GIS reverse-geocoding, live World Bank sector data, and an editable academic portfolio.",
-        badge_text="DOMAIN ANALYTICS HUB â€¢ PRODUCTION TIER",
+        badge_text="DOMAIN ANALYTICS HUB • PRODUCTION TIER",
     )
 
     render_dataset_context_banner()
@@ -506,13 +632,13 @@ def main():
     df = get_active_dataframe()
 
     tabs = st.tabs([
-        "ðŸ¥ Clinical & Biometric",
-        "ðŸ”— Network Analysis",
-        "ðŸ—ºï¸ GIS & Spatial",
-        "ðŸŒ Sector Indicators",
-        "ðŸŽ“ Academic Portfolio",
-        "ðŸ§ª Lab Protocols",
-        "ðŸ§¬ Field Surveillance (mcr/PPWR)",
+        "🏥 Clinical & Biometric",
+        "🔗 Network Analysis",
+        "🗺️ GIS & Spatial",
+        "🌐 Sector Indicators",
+        "🎓 Academic Portfolio",
+        "🧪 Lab Protocols",
+        "🧬 Field Surveillance (mcr/PPWR)",
     ])
 
     with tabs[0]:
