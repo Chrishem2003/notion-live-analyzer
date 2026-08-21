@@ -1,4 +1,4 @@
-
+﻿
 import streamlit as st
 import json
 import sqlite3
@@ -7,7 +7,7 @@ from datetime import datetime
 from modules.schema_engine import DB_FILE, init_db, log_provenance
 
 def render_master_automation_control_center():
-    st.subheader("âš¡ ResearchOS Master Multi-System Automation Engine")
+    st.subheader("Ã¢Å¡Â¡ ResearchOS Master Multi-System Automation Engine")
     st.caption("Centralized orchestration hub running cross-module event triggers, automated WHO surveillance syncs, and cryptographic audit proofs.")
 
     init_db()
@@ -29,19 +29,19 @@ def render_master_automation_control_center():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("### âš™ï¸ Global Pipeline Automation Triggers")
+        st.markdown("### Ã¢Å¡â„¢Ã¯Â¸Â Global Pipeline Automation Triggers")
         st.caption("Execute full-system synchronization across all 22 active research and sponsorship modules.")
         
         selected_pipeline = st.selectbox("Select Master Workflow", [
-            "Sync Genomics âž” WHO Pathogen Mesh",
-            "Trigger Satellite Telemetry âž” Agri-Grant Impact Audit",
+            "Sync Genomics Ã¢Å¾â€ WHO Pathogen Mesh",
+            "Trigger Satellite Telemetry Ã¢Å¾â€ Agri-Grant Impact Audit",
             "Run Anti-Rot Deterministic Snapshot (SHA-256)",
-            "Compile All Active Nodes âž” UN/WHO Policy Brief",
+            "Compile All Active Nodes Ã¢Å¾â€ UN/WHO Policy Brief",
             "Execute Full Multi-System Health & Integrity Sweep"
         ])
 
-        if st.button("ðŸš€ Execute Autonomous Pipeline", type="primary"):
-            timestamp_id = f"EXEC-{int(datetime.utcnow().timestamp())}"
+        if st.button("Ã°Å¸Å¡â‚¬ Execute Autonomous Pipeline", type="primary"):
+            timestamp_id = f"EXEC-{int(datetime.utcnow().timestamp())}}"
             cursor.execute('''
                 INSERT OR REPLACE INTO automated_pipeline_logs (trigger_id, source_module, action_executed, status)
                 VALUES (?, ?, ?, ?)
@@ -49,7 +49,7 @@ def render_master_automation_control_center():
             conn.commit()
             
             log_provenance(timestamp_id, "EXECUTE_MASTER_AUTOMATION", "chief.investigator@lab.org", {"pipeline": selected_pipeline})
-            st.success(f"Pipeline successfully executed! Transaction ID: `{timestamp_id}`")
+            st.success(f"Pipeline successfully executed! Transaction ID: `{timestamp_id}}`")
             st.balloons()
 
     with col2:
@@ -61,3 +61,4 @@ def render_master_automation_control_center():
             st.info("No automated pipelines executed in current session.")
 
     conn.close()
+

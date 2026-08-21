@@ -1,27 +1,27 @@
-"""
-agents.py — The actual multi-agent problem solver, distinct from the
+﻿"""
+agents.py â€” The actual multi-agent problem solver, distinct from the
 deterministic "Autonomous Agent Console" already in 4___ML_Predictive_Studio.py
 (that one runs a single pre-picked analysis; this one runs three specialist
 agents against ONE problem statement, in parallel, and has a synthesis agent
 combine their real findings).
 
 Three nodes:
-  - research_node   : real CrossRef search — same API the Literature hub and
+  - research_node   : real CrossRef search â€” same API the Literature hub and
                        tasks.harvest_literature_task use, kept lightweight
                        (this runs inline in a graph call, not queued).
   - audit_node       : real pandas/IQR data-quality audit of whatever
                        DataFrame the caller passes in (or an honest "no
-                       dataset supplied" note — never a fabricated audit).
+                       dataset supplied" note â€” never a fabricated audit).
   - synthesis_node    : if GEMINI_API_KEY is configured, a real Gemini call
                        grounded in the other two agents' actual findings.
                        If not configured, this does NOT fake an AI response
                        (see portal.py's changelog on why that's a hard line
-                       for this project) — it returns a structured merge of
+                       for this project) â€” it returns a structured merge of
                        the real findings and says plainly that no LLM is
                        wired up.
 
 Every node catches its own exceptions and records them in state["errors"]
-rather than crashing the whole run — a literature-API outage shouldn't take
+rather than crashing the whole run â€” a literature-API outage shouldn't take
 down the audit findings too.
 """
 
@@ -50,9 +50,9 @@ class SwarmState(TypedDict):
     errors: Annotated[list, operator.add]
 
 
-# ──────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Agent 1: Research & Literature Specialist
-# ──────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def research_node(state: SwarmState) -> dict:
     query = state["problem"]
     try:
@@ -94,20 +94,20 @@ def research_node(state: SwarmState) -> dict:
     except Exception as e:
         return {
             "literature_findings": None,
-            "errors": [f"research_node: literature search failed — {e}"],
+            "errors": [f"research_node: literature search failed â€” {e}}"],
         }
 
 
-# ──────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Agent 2: Data & Technical Auditor
-# ──────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def audit_node(state: SwarmState) -> dict:
     df = state.get("dataset")
     if df is None or not isinstance(df, pd.DataFrame) or df.empty:
         return {
             "audit_findings": {
                 "status": "no dataset supplied",
-                "note": "This agent only reports on data actually provided — no dataset means no findings, not a fabricated one.",
+                "note": "This agent only reports on data actually provided â€” no dataset means no findings, not a fabricated one.",
             }
         }
     try:
@@ -137,37 +137,37 @@ def audit_node(state: SwarmState) -> dict:
     except Exception as e:
         return {
             "audit_findings": None,
-            "errors": [f"audit_node: data audit failed — {e}"],
+            "errors": [f"audit_node: data audit failed â€” {e}}"],
         }
 
 
-# ──────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Agent 3: Synthesis & Strategy Architect
-# ──────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def synthesis_node(state: SwarmState) -> dict:
     lit = state.get("literature_findings")
     audit = state.get("audit_findings")
     api_key = os.environ.get("GEMINI_API_KEY")
 
     if not (GENAI_AVAILABLE and api_key):
-        # Honest fallback — a structured merge of real findings, clearly
+        # Honest fallback â€” a structured merge of real findings, clearly
         # labeled as not LLM-synthesized. No canned prose pretending to be
         # AI reasoning (see portal.py's changelog on the "AI Intelligence
         # Daemon" that used to fake this).
-        lines = [f"## Structured Findings for: {state['problem']}",
-                 "_No LLM configured (set GEMINI_API_KEY) — showing a direct merge of the two agents' real findings, not an AI-synthesized plan._", ""]
+        lines = [f"## Structured Findings for: {state['problem']}}",
+                 "_No LLM configured (set GEMINI_API_KEY) â€” showing a direct merge of the two agents' real findings, not an AI-synthesized plan._", ""]
         if lit:
-            lines.append(f"### Literature ({lit['n_found']} papers found via CrossRef)")
+            lines.append(f"### Literature ({lit['n_found']}} papers found via CrossRef)")
             for p in lit["top_papers"][:5]:
-                lines.append(f"- {p['title']} ({p['year']}, {p['citations']} citations)")
+                lines.append(f"- {p['title']}} ({p['year']}}, {p['citations']}} citations)")
         else:
-            lines.append("### Literature\nNo findings (search failed — see errors).")
+            lines.append("### Literature\nNo findings (search failed â€” see errors).")
         if audit and audit.get("status") == "ok":
-            lines.append(f"\n### Data Audit\n{audit['n_rows']} rows, {audit['n_cols']} cols, "
-                          f"{audit['missing_cells']} missing cells, {audit['duplicate_rows']} duplicate rows.")
+            lines.append(f"\n### Data Audit\n{audit['n_rows']}} rows, {audit['n_cols']}} cols, "
+                          f"{audit['missing_cells']}} missing cells, {audit['duplicate_rows']}} duplicate rows.")
             if audit["numeric_columns_with_outliers"]:
                 lines.append("Outliers detected in: " + ", ".join(
-                    f"{c['column']} ({c['outlier_count']})" for c in audit["numeric_columns_with_outliers"]))
+                    f"{c['column']}} ({c['outlier_count']}})" for c in audit["numeric_columns_with_outliers"]))
         else:
             lines.append("\n### Data Audit\n" + (audit.get("note", "No findings.") if audit else "No findings (audit failed)."))
         return {"synthesis": "\n".join(lines)}
@@ -176,25 +176,25 @@ def synthesis_node(state: SwarmState) -> dict:
     try:
         client = genai.Client(api_key=api_key)
         prompt = (
-            f"You are a strategy synthesis agent. A user posed this challenge:\n{state['problem']}\n\n"
-            f"Literature agent findings (real CrossRef results, do not invent papers beyond these):\n{lit}\n\n"
-            f"Data audit agent findings (real computation on the user's actual dataset, do not invent statistics beyond these):\n{audit}\n\n"
+            f"You are a strategy synthesis agent. A user posed this challenge:\n{state['problem']}}\n\n"
+            f"Literature agent findings (real CrossRef results, do not invent papers beyond these):\n{lit}}\n\n"
+            f"Data audit agent findings (real computation on the user's actual dataset, do not invent statistics beyond these):\n{audit}}\n\n"
             "Write a concise, actionable synthesis: what the literature suggests, what the data quality "
             "issues mean for any analysis, and 3-5 concrete next steps. Ground every claim in the findings "
-            "above — do not cite facts that aren't in them."
+            "above â€” do not cite facts that aren't in them."
         )
         response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
         return {"synthesis": response.text}
     except Exception as e:
         return {
             "synthesis": None,
-            "errors": [f"synthesis_node: Gemini call failed — {e}"],
+            "errors": [f"synthesis_node: Gemini call failed â€” {e}}"],
         }
 
 
-# ──────────────────────────────────────────────────────────────────
-# Graph assembly — research and audit run in parallel, synthesis waits on both
-# ──────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Graph assembly â€” research and audit run in parallel, synthesis waits on both
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def build_swarm_graph():
     graph = StateGraph(SwarmState)
     graph.add_node("research", research_node)
@@ -202,7 +202,7 @@ def build_swarm_graph():
     graph.add_node("synthesis", synthesis_node)
 
     # Real fan-out/fan-in: research (network call) and audit (local computation)
-    # have no dependency on each other, so they run concurrently — synthesis
+    # have no dependency on each other, so they run concurrently â€” synthesis
     # waits for both branches to complete before it sees either result.
     graph.add_edge(START, "research")
     graph.add_edge(START, "audit")

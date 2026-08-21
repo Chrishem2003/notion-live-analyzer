@@ -1,4 +1,4 @@
-
+﻿
 import streamlit as st
 import streamlit.components.v1 as components
 import requests
@@ -102,7 +102,7 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
     return html_code
 
 def render_structure_viewer_tab():
-    st.subheader("ðŸ” 3D Macromolecular Structure WebGL Viewer")
+    st.subheader("Ã°Å¸â€Â 3D Macromolecular Structure WebGL Viewer")
     st.caption("Interactive WebGL viewport powered by 3Dmol.js for structural proteomics.")
 
     col1, col2 = st.columns([1, 2.5])
@@ -116,14 +116,14 @@ def render_structure_viewer_tab():
         if source == "RCSB PDB ID":
             pdb_id = st.text_input("Enter 4-letter PDB Code", value="1TUP", max_chars=4).upper().strip()
             if pdb_id:
-                with st.spinner(f"Fetching `{pdb_id}` from RCSB..."):
-                    url = f"https://files.rcsb.org/download/{pdb_id}.pdb"
+                with st.spinner(f"Fetching `{pdb_id}}` from RCSB..."):
+                    url = f"https://files.rcsb.org/download/{pdb_id}}.pdb"
                     resp = requests.get(url, timeout=10)
                     if resp.status_code == 200:
                         pdb_content = resp.text
-                        st.success(f"Loaded PDB: `{pdb_id}` ({len(pdb_content):,} bytes)")
+                        st.success(f"Loaded PDB: `{pdb_id}}` ({len(pdb_content):,}} bytes)")
                     else:
-                        st.error(f"Failed to fetch `{pdb_id}` from RCSB.")
+                        st.error(f"Failed to fetch `{pdb_id}}` from RCSB.")
         else:
             uploaded_file = st.file_uploader("Upload PDB file", type=["pdb"])
             if uploaded_file is not None:
@@ -156,7 +156,8 @@ def render_structure_viewer_tab():
                 height=viewer_height
             )
             components.html(html_content, height=viewer_height + 20)
-            st.info("ðŸ” **Controls:** Click  Drag to rotate | Scroll to zoom | Right-Click  Drag to pan")
+            st.info("Ã°Å¸â€Â **Controls:** Click  Drag to rotate | Scroll to zoom | Right-Click  Drag to pan")
         else:
             st.warning("Enter a valid PDB ID or upload a structure file to render.")
+
 

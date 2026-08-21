@@ -1,28 +1,28 @@
-"""
-CHRISHEM Unified Navigation Engine — role-based hub routing + global command search.
+﻿"""
+CHRISHEM Unified Navigation Engine â€” role-based hub routing + global command search.
 Defines the 11 consolidated hubs and their tool inventory.
 """
 
 import streamlit as st
 
-# ═══════════════════════════════════════════════════════════════════════
-# HUB REGISTRY — THE SINGLE SOURCE OF TRUTH FOR NAVIGATION
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# HUB REGISTRY â€” THE SINGLE SOURCE OF TRUTH FOR NAVIGATION
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 HUBS = [
     {
         "id": "home",
-        "icon": "🏠",
+        "icon": "ðŸ ",
         "name": "Home Dashboard",
-        "page": "pages/1_🏠_Home_Dashboard.py",
+        "page": "pages/1_ðŸ _Home_Dashboard.py",
         "role": "all",
         "description": "System overview, quick access, saved analyses, live telemetry.",
         "tools": ["System Health", "Saved Analyses Vault", "Quick Access", "Live Telemetry"],
     },
     {
         "id": "data",
-        "icon": "📁",
+        "icon": "ðŸ“",
         "name": "Data Studio",
-        "page": "pages/2_📁_Data_Studio.py",
+        "page": "pages/2_ðŸ“_Data_Studio.py",
         "role": "all",
         "description": "Ingest, inspect, clean, transform, simulate, and manage datasets.",
         "tools": [
@@ -33,9 +33,9 @@ HUBS = [
     },
     {
         "id": "statistics",
-        "icon": "📊",
+        "icon": "ðŸ“Š",
         "name": "Statistics Studio",
-        "page": "pages/3_📊_Statistics_Studio.py",
+        "page": "pages/3_ðŸ“Š_Statistics_Studio.py",
         "role": "all",
         "description": "Hypothesis testing, ANOVA, regression, power analysis, causal & Bayesian inference.",
         "tools": [
@@ -47,9 +47,9 @@ HUBS = [
     },
     {
         "id": "ml",
-        "icon": "🤖",
+        "icon": "ðŸ¤–",
         "name": "ML & Predictive Studio",
-        "page": "pages/4_🤖_ML_Predictive_Studio.py",
+        "page": "pages/4_ðŸ¤–_ML_Predictive_Studio.py",
         "role": "all",
         "description": "Automated machine learning, feature engineering, AI insights & anomaly detection.",
         "tools": [
@@ -59,9 +59,9 @@ HUBS = [
     },
     {
         "id": "visualization",
-        "icon": "📈",
+        "icon": "ðŸ“ˆ",
         "name": "Visualization Studio",
-        "page": "pages/5_📈_Visualization_Studio.py",
+        "page": "pages/5_ðŸ“ˆ_Visualization_Studio.py",
         "role": "all",
         "description": "Chart builder, dashboard canvas, presentations, and network graphs.",
         "tools": [
@@ -71,9 +71,9 @@ HUBS = [
     },
     {
         "id": "nlp",
-        "icon": "💬",
+        "icon": "ðŸ’¬",
         "name": "AI & NLP Studio",
-        "page": "pages/6_💬_AI_NLP_Studio.py",
+        "page": "pages/6_ðŸ’¬_AI_NLP_Studio.py",
         "role": "all",
         "description": "Text mining, sentiment analysis, NL queries, research synthesis, audio engine.",
         "tools": [
@@ -84,9 +84,9 @@ HUBS = [
     },
     {
         "id": "literature",
-        "icon": "📚",
+        "icon": "ðŸ“š",
         "name": "Literature & Publishing Hub",
-        "page": "pages/7_📚_Literature_Publishing_Hub.py",
+        "page": "pages/7_ðŸ“š_Literature_Publishing_Hub.py",
         "role": "all",
         "description": "Literature search, meta-analysis, APA formatting, citations, grants, references.",
         "tools": [
@@ -97,9 +97,9 @@ HUBS = [
     },
     {
         "id": "domain",
-        "icon": "🔬",
+        "icon": "ðŸ”¬",
         "name": "Domain Analytics Hub",
-        "page": "pages/8_🔬_Domain_Analytics_Hub.py",
+        "page": "pages/8_ðŸ”¬_Domain_Analytics_Hub.py",
         "role": "all",
         "description": "Specialized analytics: clinical, GIS, research quality, localization, protocols.",
         "tools": [
@@ -110,9 +110,9 @@ HUBS = [
     },
     {
         "id": "integrations",
-        "icon": "🔗",
+        "icon": "ðŸ”—",
         "name": "Integrations Hub",
-        "page": "pages/9_🔗_Integrations_Hub.py",
+        "page": "pages/9_ðŸ”—_Integrations_Hub.py",
         "role": "all",
         "description": "Connect external systems: Notion, Google Sheets, Git, APIs, databases.",
         "tools": [
@@ -122,9 +122,9 @@ HUBS = [
     },
     {
         "id": "admin",
-        "icon": "🛡️",
+        "icon": "ðŸ›¡ï¸",
         "name": "Admin & Security Center",
-        "page": "pages/10_🛡️_Admin_Security_Center.py",
+        "page": "pages/10_ðŸ›¡ï¸_Admin_Security_Center.py",
         "role": "admin",
         "description": "Settings, diagnostics, security vault, audit compliance, licensing, telemetry.",
         "tools": [
@@ -135,9 +135,9 @@ HUBS = [
     },
     {
         "id": "collaboration",
-        "icon": "🤝",
+        "icon": "ðŸ¤",
         "name": "Collaboration & Portfolio",
-        "page": "pages/11_🤝_Collaboration_Portfolio.py",
+        "page": "pages/11_ðŸ¤_Collaboration_Portfolio.py",
         "role": "all",
         "description": "Project collaboration, application pipeline, agent swarms, academic portfolio.",
         "tools": [
@@ -147,9 +147,9 @@ HUBS = [
     },
     {
         "id": "forensics",
-        "icon": "🕵️",
+        "icon": "ðŸ•µï¸",
         "name": "Forensics Intelligence",
-        "page": "pages/12_🕵️_Forensics_Intelligence.py",
+        "page": "pages/12_ðŸ•µï¸_Forensics_Intelligence.py",
         "role": "all",
         "description": "Digital evidence lab, metadata & EXIF extraction, steganography detection, phishing analysis, chain-of-custody.",
         "tools": [
@@ -160,9 +160,9 @@ HUBS = [
     },
     {
         "id": "converter",
-        "icon": "🔄",
+        "icon": "ðŸ”„",
         "name": "Universal Converter",
-        "page": "pages/13_🔄_Universal_Converter.py",
+        "page": "pages/13_ðŸ”„_Universal_Converter.py",
         "role": "all",
         "description": "Convert formats, encodings, reshape data, units, coordinates, and extract PDFs.",
         "tools": [
@@ -172,9 +172,9 @@ HUBS = [
     },
     {
         "id": "threat",
-        "icon": "🛡️",
+        "icon": "ðŸ›¡ï¸",
         "name": "Threat & Scanner Suite",
-        "page": "pages/14_🛡️_Threat_Scanner_Suite.py",
+        "page": "pages/14_ðŸ›¡ï¸_Threat_Scanner_Suite.py",
         "role": "all",
         "description": "PII/secret scanning, live CVE, malware signatures, integrity monitoring, port scanning, threat intelligence, incident playbooks.",
         "tools": [
@@ -185,9 +185,9 @@ HUBS = [
     },
     {
         "id": "mission",
-        "icon": "🌍",
+        "icon": "ðŸŒ",
         "name": "Global Mission Control",
-        "page": "pages/15_🌍_Global_Mission_Control.py",
+        "page": "pages/15_ðŸŒ_Global_Mission_Control.py",
         "role": "all",
         "description": "Live global health feed, real-time climate telemetry, impact scorecard, problem-solver registry.",
         "tools": [
@@ -224,8 +224,8 @@ def render_sidebar_navigation():
     """
     hubs = visible_hubs()
 
-    st.sidebar.markdown("### 🧭 Navigation Hub")
-    nav_labels = [f"{h['icon']} {h['name']}" for h in hubs]
+    st.sidebar.markdown("### ðŸ§­ Navigation Hub")
+    nav_labels = [f"{h['icon']}} {h['name']}}" for h in hubs]
 
     # Preserve selection across reruns
     if "nav_selection" not in st.session_state:
@@ -239,12 +239,12 @@ def render_sidebar_navigation():
     st.session_state["nav_selection"] = selection
 
     # Find selected hub
-    selected = next((h for h in hubs if f"{h['icon']} {h['name']}" == selection), hubs[0])
+    selected = next((h for h in hubs if f"{h['icon']}} {h['name']}}" == selection), hubs[0])
 
     # Tool discovery under selected hub
-    with st.sidebar.expander(f"🔍 {selected['name']} Tools", expanded=False):
+    with st.sidebar.expander(f"ðŸ” {selected['name']}} Tools", expanded=False):
         for tool in selected["tools"]:
-            st.markdown(f"- {tool}")
+            st.markdown(f"- {tool}}")
 
     return selected
 
@@ -254,7 +254,7 @@ def render_global_command_search():
     Render a global tool search box that helps users find any tool across hubs.
     """
     st.sidebar.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
-    st.sidebar.markdown("### 🔎 Command Search")
+    st.sidebar.markdown("### ðŸ”Ž Command Search")
     query = st.sidebar.text_input("Search all tools...", placeholder="e.g., ANOVA, sentiment, git")
 
     if query and len(query.strip()) >= 2:
@@ -266,9 +266,9 @@ def render_global_command_search():
                     results.append((hub["icon"], hub["name"], tool))
 
         if results:
-            with st.sidebar.expander(f"Found {len(results)} tool(s)", expanded=True):
+            with st.sidebar.expander(f"Found {len(results)}} tool(s)", expanded=True):
                 for hub_icon, hub_name, tool in results[:8]:
-                    st.markdown(f"{hub_icon} **{hub_name}** → `{tool}`")
+                    st.markdown(f"{hub_icon}} **{hub_name}}** â†’ `{tool}}`")
         else:
             st.sidebar.caption("No matching tools found.")
 
@@ -281,9 +281,9 @@ def render_sidebar_footer():
     st.sidebar.info("[SECURE] Sovereign Enclave")
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # HOME QUICK-ACCESS CARDS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def hub_quick_access_cards():
     """Render quick-access cards for all hubs (used on Home Dashboard)."""
     hubs = visible_hubs()
@@ -301,3 +301,4 @@ def hub_quick_access_cards():
                 """,
                 unsafe_allow_html=True,
             )
+

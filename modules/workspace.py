@@ -1,4 +1,4 @@
-"""
+﻿"""
 workspace.py  multi-workspace / agency mode.
 
 Lets one account manage several Notion workspaces (e.g. a consultant's
@@ -30,9 +30,9 @@ class WorkspaceRole(str, Enum):
 class Workspace:
     id: str
     owner_user_id: str              # the subscriber who connected it
-    name: str                       # display name, e.g. "Acme Co — Notion"
+    name: str                       # display name, e.g. "Acme Co â€” Notion"
     notion_workspace_id: str        # Notion's own workspace identifier
-    notion_token_ref: str           # reference/key into your secrets store —
+    notion_token_ref: str           # reference/key into your secrets store â€”
                                      # NEVER store the raw Notion API token in
                                      # the row itself; keep it in a secrets
                                      # manager or encrypted column
@@ -70,7 +70,7 @@ def user_workspace_role(
 
 
 # ---------------------------------------------------------------------------
-# Subscription gating — agency mode is a paid tier feature
+# Subscription gating â€” agency mode is a paid tier feature
 # ---------------------------------------------------------------------------
 
 MAX_WORKSPACES_BY_TIER = {
@@ -111,7 +111,7 @@ def connect_workspace(
     if not can_connect_another_workspace(owner_user_id, plan_tier, count_workspaces_fn):
         limit = MAX_WORKSPACES_BY_TIER.get(plan_tier, 1)
         raise PermissionError(
-            f"Plan '{plan_tier}' allows at most {limit} "
+            f"Plan '{plan_tier}}' allows at most {limit}} "
             "connected workspace(s). Upgrade to Agency to add more."
         )
 
@@ -157,7 +157,7 @@ def aggregate_health_across_workspaces(
         health = get_latest_health_fn(ws)
         if health is not None:
             summaries.append(health)
-    # Worst health first — that's what an agency user wants to see on login.
+    # Worst health first â€” that's what an agency user wants to see on login.
     summaries.sort(key=lambda s: s.health_score)
     return summaries
 
@@ -188,3 +188,4 @@ def render_workspace_switcher(
     choice = st.selectbox("Workspace", options.keys())
     st.session_state["active_workspace_id"] = options[choice]
     return options[choice]
+

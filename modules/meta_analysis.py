@@ -1,4 +1,4 @@
-
+﻿
 """
 Meta-Analysis Engine + Combine effect sizes across studies, assess heterogeneity,
 detect publication bias, and generate publication-ready forest/funnel plots.
@@ -7,7 +7,7 @@ Core capabilities:
   - Fixed-effects and random-effects (DerSimonian-Laird) models
   - Forest plots with study-level and summary estimates
   - Funnel plots with Egger's regression test for publication bias
-  - Heterogeneity analysis (Cochran's Q, IÂ², Ï„Â²)
+  - Heterogeneity analysis (Cochran's Q, IÃ‚Â², Ãâ€žÃ‚Â²)
   - Cumulative meta-analysis (evidence accumulation over time)
   - Meta-regression with moderators
   - Subgroup analysis
@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-# â”€â”€â”€ Imports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Imports Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 try:
     from scipy import stats as scipy_stats
     from scipy.stats import norm, chi2
@@ -42,9 +42,9 @@ except ImportError:
     add_constant = None
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 1. EFFECT SIZE CONVERTERS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 class EffectSizeConverter:
     """Convert between various effect size metrics."""
 
@@ -99,9 +99,9 @@ class EffectSizeConverter:
         return d * correction
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 2. META-ANALYSIS ENGINE
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 class MetaAnalysisEngine:
     """
     Perform meta-analysis on a collection of effect sizes.
@@ -115,7 +115,7 @@ class MetaAnalysisEngine:
         if not HAS_SCIPY:
             raise ImportError("scipy is required for meta-analysis. Install: pip install scipy")
 
-    # â”€â”€â”€ Fixed Effects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Fixed Effects Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     @staticmethod
     def fixed_effects(effects: List[float], variances: List[float]) -> Dict[str, Any]:
         """
@@ -156,7 +156,7 @@ class MetaAnalysisEngine:
             "total_weight": total_weight,
         }
 
-    # â”€â”€â”€ Random Effects (DerSimonian-Laird) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Random Effects (DerSimonian-Laird) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     @staticmethod
     def random_effects(effects: List[float], variances: List[float]) -> Dict[str, Any]:
         """
@@ -169,7 +169,7 @@ class MetaAnalysisEngine:
 
         Returns
         -------
-        Dict with pooled estimate, Ï„Â², IÂ², Q, SE, z, p, CI
+        Dict with pooled estimate, Ãâ€žÃ‚Â², IÃ‚Â², Q, SE, z, p, CI
         """
         if not effects or not variances or len(effects) != len(variances):
             return {"error": "Effects and variances must be non-empty and same length"}
@@ -184,12 +184,12 @@ class MetaAnalysisEngine:
         # Step 2: Cochran's Q
         q = sum(w * (e - fe_pooled)**2 for w, e in zip(fe_weights, effects))
 
-        # Step 3: DerSimonian-Laird Ï„Â²
+        # Step 3: DerSimonian-Laird Ãâ€žÃ‚Â²
         df = k - 1
         c = fe_total_weight - sum(w**2 for w in fe_weights) / fe_total_weight
         tau2 = max(0, (q - df) / c) if c > 0 else 0
 
-        # Step 4: IÂ²
+        # Step 4: IÃ‚Â²
         i2 = max(0, (q - df) / q * 100) if q > 0 else 0
 
         # Step 5: Random effects weights
@@ -225,7 +225,7 @@ class MetaAnalysisEngine:
             "total_weight": re_total_weight,
         }
 
-    # â”€â”€â”€ Full Meta-Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Full Meta-Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def meta_analyze(
         self,
         effects: List[float],
@@ -252,7 +252,7 @@ class MetaAnalysisEngine:
 
         k = len(effects)
         if study_labels is None:
-            study_labels = [f"Study {i1}" for i in range(k)]
+            study_labels = [f"Study {i1}}" for i in range(k)]
 
         results = {"k": k, "method": method, "study_labels": study_labels}
 
@@ -288,13 +288,13 @@ class MetaAnalysisEngine:
 
         return results
 
-    # â”€â”€â”€ Publication Bias â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Publication Bias Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     @staticmethod
     def eggers_test(effects: List[float], variances: List[float]) -> Dict[str, Any]:
         """
         Egger's regression test for funnel plot asymmetry.
         Regresses standard normal deviate (effect/se) on precision (1/se).
-        Significant intercept â†’ asymmetry â†’ possible publication bias.
+        Significant intercept Ã¢â€ â€™ asymmetry Ã¢â€ â€™ possible publication bias.
         """
         if not effects or not variances or len(effects) < 3:
             return {"error": "Need at least 3 studies for Egger's test"}
@@ -375,8 +375,8 @@ class MetaAnalysisEngine:
             "fail_safe_n": n_fs,
             "tolerance": tolerance,
             "robust": n_fs >= tolerance,
-            "interpretation": f"Would need {n_fs} null studies to nullify effect"
-            f" (tolerance = {tolerance})",
+            "interpretation": f"Would need {n_fs}} null studies to nullify effect"
+            f" (tolerance = {tolerance}})",
         }
 
     @staticmethod
@@ -431,17 +431,17 @@ class MetaAnalysisEngine:
             "adjusted_i2": adjusted.get("i2"),
         }
 
-    # â”€â”€â”€ Heterogeneity Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Heterogeneity Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     @staticmethod
     def heterogeneity_analysis(effects: List[float], variances: List[float]) -> Dict[str, Any]:
-        """Cochran's Q, IÂ², Ï„Â², and HÂ²."""
+        """Cochran's Q, IÃ‚Â², Ãâ€žÃ‚Â², and HÃ‚Â²."""
         if not effects or not variances or len(effects) < 2:
             return {"error": "Need at least 2 studies"}
 
         re = MetaAnalysisEngine.random_effects(effects, variances)
         k = len(effects)
 
-        # HÂ² = Q / (k-1)
+        # HÃ‚Â² = Q / (k-1)
         q = re.get("q_statistic", 0)
         h2 = q / max(k - 1, 1)
 
@@ -454,14 +454,14 @@ class MetaAnalysisEngine:
             "h2": round(float(h2), 4),
             "heterogeneity": re.get("heterogeneity"),
             "interpretation": {
-                "i2 + _low": "IÂ² < 25%  Low heterogeneity",
-                "i2 + _moderate": "IÂ² 25-50%  Moderate heterogeneity",
-                "i2 + _substantial": "IÂ² 50-75%  Substantial heterogeneity",
-                "i2 + _high": "IÂ² > 75%  High heterogeneity",
+                "i2 + _low": "IÃ‚Â² < 25%  Low heterogeneity",
+                "i2 + _moderate": "IÃ‚Â² 25-50%  Moderate heterogeneity",
+                "i2 + _substantial": "IÃ‚Â² 50-75%  Substantial heterogeneity",
+                "i2 + _high": "IÃ‚Â² > 75%  High heterogeneity",
             },
         }
 
-    # â”€â”€â”€ Subgroup Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Subgroup Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     @staticmethod
     def subgroup_analysis(
         effects: List[float],
@@ -484,7 +484,7 @@ class MetaAnalysisEngine:
             indices = [i for i, g in enumerate(subgroups) if g == group]
             group_effects = [effects[i] for i in indices]
             group_variances = [variances[i] for i in indices]
-            group_labels = [f"{study_labels[i]} ({group})" if study_labels else f"Study {i1} ({group})"
+            group_labels = [f"{study_labels[i]}} ({group}})" if study_labels else f"Study {i1}} ({group}})"
                           for i in indices]
 
             engine = MetaAnalysisEngine()
@@ -512,7 +512,7 @@ class MetaAnalysisEngine:
             "forest_data": forest_data,
         }
 
-    # â”€â”€â”€ Cumulative Meta-Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Cumulative Meta-Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     @staticmethod
     def cumulative_meta_analysis(
         effects: List[float],
@@ -541,7 +541,7 @@ class MetaAnalysisEngine:
             indices = sorted_indices[:i]
             cum_effects = [effects[j] for j in indices]
             cum_variances = [variances[j] for j in indices]
-            cum_label = study_labels[indices[-1]] if study_labels else f"Step {i}"
+            cum_label = study_labels[indices[-1]] if study_labels else f"Step {i}}"
 
             if i == 1:
                 # Single study
@@ -572,7 +572,7 @@ class MetaAnalysisEngine:
 
         return {"cumulative": cumulative, "k": k}
 
-    # â”€â”€â”€ Leave-One-Out Sensitivity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Leave-One-Out Sensitivity Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     @staticmethod
     def leave_one_out(
         effects: List[float],
@@ -587,7 +587,7 @@ class MetaAnalysisEngine:
 
         k = len(effects)
         if study_labels is None:
-            study_labels = [f"Study {i1}" for i in range(k)]
+            study_labels = [f"Study {i1}}" for i in range(k)]
 
         engine = MetaAnalysisEngine()
         results = []
@@ -631,7 +631,7 @@ class MetaAnalysisEngine:
             ],
         }
 
-    # â”€â”€â”€ Meta-Regression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Meta-Regression Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     @staticmethod
     def meta_regression(
         effects: List[float],
@@ -652,7 +652,7 @@ class MetaAnalysisEngine:
 
         n_mods = len(moderators)
         if moderator_names is None:
-            moderator_names = [f"Moderator {i1}" for i in range(n_mods)]
+            moderator_names = [f"Moderator {i1}}" for i in range(n_mods)]
 
         # Build design matrix (including intercept)
         X = np.column_stack([[1.0] * k] + moderators)
@@ -699,18 +699,18 @@ class MetaAnalysisEngine:
                 "coefficients": coefficients,
                 "r_squared": round(float(r2), 4),
                 "model_fit_p": round(float(1 - chi2.cdf(ss_res, k - n_mods - 1)) if chi2 else 0, 4),
-                "interpretation": f"Meta-regression with {n_mods} moderator(s). RÂ² = {r2:.2%}",
+                "interpretation": f"Meta-regression with {n_mods}} moderator(s). RÃ‚Â² = {r2:.2%}}",
             }
 
         except np.linalg.LinAlgError:
             return {"error": "Singular matrix + moderators may be collinear"}
         except Exception as e:
-            return {"error": f"Meta-regression failed: {str(e)}"}
+            return {"error": f"Meta-regression failed: {str(e)}}"}
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 3. PLOT DATA GENERATORS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 class MetaPlotData:
     """Generate data structures for forest plots and funnel plots."""
 
@@ -740,7 +740,7 @@ class MetaPlotData:
         # Add summary row
         if pooled_re:
             rows.append({
-                "Study": f"RE Model (IÂ²={pooled_re.get('i2', '?')}%)",
+                "Study": f"RE Model (IÃ‚Â²={pooled_re.get('i2', '?')}}%)",
                 "Effect": pooled_re.get("pooled_effect"),
                 "SE": pooled_re.get("se"),
                 "CI Lower": pooled_re.get("ci_lower"),
@@ -771,9 +771,9 @@ class MetaPlotData:
         return pd.DataFrame(cumulative)
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 4. UI RENDERER
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 def render_meta_analysis_ui():
     """Render the Meta-Analysis page in Streamlit."""
     import streamlit as st
@@ -782,37 +782,37 @@ def render_meta_analysis_ui():
     st.markdown("*Combine effect sizes across studies, assess heterogeneity, detect publication bias*")
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📥 Input Studies",
+        "ðŸ“¥ Input Studies",
         " Meta-Analysis Results",
-        "📈 Forest Plot",
-        "ðŸ•³ï¸ Publication Bias",
-        "ðŸ”¬ Advanced",
+        "ðŸ“ˆ Forest Plot",
+        "Ã°Å¸â€¢Â³Ã¯Â¸Â Publication Bias",
+        "Ã°Å¸â€Â¬ Advanced",
     ])
 
-    # â”€â”€â”€ Session state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Session state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     if "meta_studies" not in st.session_state:
         st.session_state["meta_studies"] = []
     if "meta_results" not in st.session_state:
         st.session_state["meta_results"] = None
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 1: INPUT STUDIES
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     with tab1:
-        st.subheader("📥 Input Effect Sizes")
+        st.subheader("ðŸ“¥ Input Effect Sizes")
 
         input_method = st.radio(
             "Input method",
             options=[
-                "âœï¸ Manual Entry",
-                "📋 Paste from Clipboard",
-                "ðŸ“ Load from Data",
+                "Ã¢Å“ÂÃ¯Â¸Â Manual Entry",
+                "ðŸ“‹ Paste from Clipboard",
+                "Ã°Å¸â€œÂ Load from Data",
             ],
             horizontal=True,
             key="meta_input_method",
         )
 
-        if input_method == "âœï¸ Manual Entry":
+        if input_method == "Ã¢Å“ÂÃ¯Â¸Â Manual Entry":
             with st.form("meta_manual_form"):
                 st.markdown("**Add a study:**")
                 col1, col2, col3 = st.columns(3)
@@ -829,7 +829,7 @@ def render_meta_analysis_ui():
                 with col2:
                     n2 = st.number_input("N2 (optional)", min_value=0, value=0, key="meta_n2")
 
-                if st.form_submit_button("âž• Add Study", type="primary"):
+                if st.form_submit_button("Ã¢Å¾â€¢ Add Study", type="primary"):
                     if study_name.strip() and effect_size != 0:
                         st.session_state["meta_studies"].append({
                             "study": study_name.strip(),
@@ -838,14 +838,14 @@ def render_meta_analysis_ui():
                             "n1": n1,
                             "n2": n2,
                         })
-                        st.success(f"✅ Added '{study_name}'")
+                        st.success(f"âœ… Added '{study_name}}'")
 
-        elif input_method == "📋 Paste from Clipboard":
+        elif input_method == "ðŸ“‹ Paste from Clipboard":
             st.markdown("Paste data as: `Label, Effect, Variance` (one per line)")
             pasted = st.text_area("Paste data", height=150, placeholder="""Smith 2020, 0.45, 0.032
 Jones 2019, 0.78, 0.045
 Lee 2021, 0.23, 0.028""", key="meta_paste")
-            if st.button("📋 Parse & Add", type="primary"):
+            if st.button("ðŸ“‹ Parse & Add", type="primary"):
                 studies = []
                 for line in pasted.strip().split("\n"):
                     line = line.strip()
@@ -871,9 +871,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             st.session_state["meta_studies"].append(s)
                             existing_names.add(s["study"])
                             new_count = 1
-                    st.success(f"✅ Added {new_count} new studies ({len(studies) - new_count} duplicates skipped)")
+                    st.success(f"âœ… Added {new_count}} new studies ({len(studies) - new_count}} duplicates skipped)")
 
-        elif input_method == "ðŸ“ Load from Data":
+        elif input_method == "Ã°Å¸â€œÂ Load from Data":
             st.info("Load effect sizes from the active dataset.")
             df = st.session_state.get("active_df")
             if df is not None and not df.empty:
@@ -883,13 +883,13 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     var_col = st.selectbox("Variance/SE column", options=[c for c in numeric_cols if c != es_col], key="meta_var_col")
                     label_col = st.selectbox("Study label column (optional)", options=[""] + df.columns.tolist(), key="meta_label_col")
 
-                    if st.button("📥 Load from Data", type="primary"):
+                    if st.button("ðŸ“¥ Load from Data", type="primary"):
                         studies = []
                         for _, row in df.iterrows():
                             es_val = row[es_col]
                             var_val = row[var_col]
                             if pd.notna(es_val) and pd.notna(var_val) and var_val > 0:
-                                label = str(row[label_col]) if label_col else f"Study {len(studies) + 1}"
+                                label = str(row[label_col]) if label_col else f"Study {len(studies) + 1}}"
                                 studies.append({
                                     "study": label,
                                     "effect": float(es_val),
@@ -898,17 +898,17 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 })
                         if studies:
                             st.session_state["meta_studies"] = studies
-                            st.success(f"✅ Loaded {len(studies)} studies")
+                            st.success(f"âœ… Loaded {len(studies)}} studies")
                 else:
                     st.warning("Need at least 2 numeric columns (effect size + variance/SE)")
             else:
                 st.warning("No data loaded. Upload a file or connect a data source first.")
 
-        # â”€â”€â”€ Current Studies Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Current Studies Table Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
         studies = st.session_state.get("meta_studies", [])
         if studies:
             st.markdown("---")
-            st.subheader(f"📋 Current Studies ({len(studies)})")
+            st.subheader(f"ðŸ“‹ Current Studies ({len(studies)}})")
 
             studies_df = pd.DataFrame(studies)
             col_config = {
@@ -923,12 +923,12 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("ðŸ—‘ï¸ Clear All Studies", use_container_width=True):
+                if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â Clear All Studies", use_container_width=True):
                     st.session_state["meta_studies"] = []
                     st.session_state["meta_results"] = None
                     st.rerun()
             with col2:
-                if st.button("ðŸš€ Run Meta-Analysis", type="primary", use_container_width=True):
+                if st.button("Ã°Å¸Å¡â‚¬ Run Meta-Analysis", type="primary", use_container_width=True):
                     if len(studies) >= 2:
                         with st.spinner("Running meta-analysis..."):
                             engine = MetaAnalysisEngine()
@@ -954,16 +954,16 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 results["loo"] = engine.leave_one_out(effects, variances, labels)
 
                             st.session_state["meta_results"] = results
-                        st.success("✅ Meta-analysis complete!")
+                        st.success("âœ… Meta-analysis complete!")
                         st.rerun()
                     else:
                         st.warning("Need at least 2 studies for meta-analysis")
         else:
-            st.info("ðŸ‘† Add at least 2 studies to run a meta-analysis")
+            st.info("Ã°Å¸â€˜â€  Add at least 2 studies to run a meta-analysis")
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 2: META-ANALYSIS RESULTS
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     with tab2:
         results = st.session_state.get("meta_results")
         if not results:
@@ -971,7 +971,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         else:
             st.subheader(" Meta-Analysis Results")
 
-            # â”€â”€â”€ Model Comparison â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Model Comparison Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
             col1, col2 = st.columns(2)
 
             with col1:
@@ -988,7 +988,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             [{fe.get('ci_lower', 0):.3 + f}, {fe.get('ci_upper', 0):.3 + f}]
                         </div>
                         <div style="font-size:0.85 + rem;">
-                            z = {fe.get('z_value', 0):.2 + f}, {'✅' if fe_sig else 'âŒ'} p = {fe.get('p_value', 1):.4 + f}
+                            z = {fe.get('z_value', 0):.2 + f}, {'âœ…' if fe_sig else 'Ã¢ÂÅ’'} p = {fe.get('p_value', 1):.4 + f}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1007,27 +1007,27 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             [{re.get('ci_lower', 0):.3 + f}, {re.get('ci_upper', 0):.3 + f}]
                         </div>
                         <div style="font-size:0.85 + rem;">
-                            z = {re.get('z_value', 0):.2 + f}, {'✅' if re_sig else 'âŒ'} p = {re.get('p_value', 1):.4 + f}
+                            z = {re.get('z_value', 0):.2 + f}, {'âœ…' if re_sig else 'Ã¢ÂÅ’'} p = {re.get('p_value', 1):.4 + f}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
 
-            # â”€â”€â”€ Heterogeneity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Heterogeneity Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
             het = results.get("heterogeneity", {})
             if het and "error" not in het:
-                st.subheader("📈 Heterogeneity")
+                st.subheader("ðŸ“ˆ Heterogeneity")
                 het_color = "#2 + ecc71" if het.get("i2", 0) < 25 else "#e67 + e22" if het.get("i2", 0) < 50 else "#e74 + c3c"
                 st.markdown(f"""
                 <div style="padding:0.8 + rem;border-radius:12 + px;border:1 + px solid {het_color}40;
                             background:{het_color}08;margin:0.5 + rem 0;">
-                    <span style="font-weight:600;">IÂ² = {het.get('i2', 0):.1 + f}%</span>  {het.get('heterogeneity', 'unknown').title()}
-                    <span style="margin-left:1 + rem;color:#64748 + b;">Q({het.get('q_df', 0)}) = {het.get('q_statistic', 0):.2 + f}, p = {het.get('q_p_value', 1):.4 + f}</span>
-                    <span style="margin-left:1 + rem;color:#64748 + b;">Ï„Â² = {het.get('tau2', 0):.4 + f}</span>
+                    <span style="font-weight:600;">IÃ‚Â² = {het.get('i2', 0):.1 + f}%</span>  {het.get('heterogeneity', 'unknown').title()}
+                    <span style="margin-left:1 + rem;color:#64748 + b;">Q({het.get('q_df', 0)}}) = {het.get('q_statistic', 0):.2 + f}, p = {het.get('q_p_value', 1):.4 + f}</span>
+                    <span style="margin-left:1 + rem;color:#64748 + b;">Ãâ€žÃ‚Â² = {het.get('tau2', 0):.4 + f}</span>
                 </div>
                 """, unsafe_allow_html=True)
 
-            # â”€â”€â”€ Study Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            st.subheader("📋 Study-Level Details")
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Study Details Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+            st.subheader("ðŸ“‹ Study-Level Details")
             forest_data = results.get("forest_data", [])
             if forest_data:
                 detail_rows = []
@@ -1036,13 +1036,13 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         "Study": fd["study"],
                         "Effect": fd["effect"],
                         "SE": fd["se"],
-                        "95% CI": f"[{fd['ci_lower']:.3 + f}, {fd['ci_upper']:.3 + f}]",
-                        "Weight (FE)": f"{fd['weight_fe']:.1%}" if fd.get("weight_fe") else "",
-                        "Weight (RE)": f"{fd['weight_re']:.1%}" if fd.get("weight_re") else "",
+                        "95% CI": f"[{fd['ci_lower']:.3 + f}}, {fd['ci_upper']:.3 + f}}]",
+                        "Weight (FE)": f"{fd['weight_fe']:.1%}}" if fd.get("weight_fe") else "",
+                        "Weight (RE)": f"{fd['weight_re']:.1%}}" if fd.get("weight_re") else "",
                     })
                 st.dataframe(pd.DataFrame(detail_rows), use_container_width=True, hide_index=True)
 
-            # â”€â”€â”€ Key Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Key Stats Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
             st.subheader(" Key Statistics")
             re_stats = results.get("random", {})
             fe_stats = results.get("fixed", {})
@@ -1051,21 +1051,21 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             with col1:
                 st.metric("Studies (k)", results.get("k", 0))
             with col2:
-                st.metric("Pooled Effect (RE)", f"{re_stats.get('pooled_effect', 0):.3 + f}" if re_stats else "N/A")
+                st.metric("Pooled Effect (RE)", f"{re_stats.get('pooled_effect', 0):.3 + f}}" if re_stats else "N/A")
             with col3:
-                st.metric("IÂ² Heterogeneity", f"{het.get('i2', 0):.1 + f}%" if het else "N/A")
+                st.metric("IÃ‚Â² Heterogeneity", f"{het.get('i2', 0):.1 + f}}%" if het else "N/A")
             with col4:
-                st.metric("Ï„Â² (tau-squared)", f"{het.get('tau2', 0):.4 + f}" if het else "N/A")
+                st.metric("Ãâ€žÃ‚Â² (tau-squared)", f"{het.get('tau2', 0):.4 + f}}" if het else "N/A")
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 3: FOREST PLOT
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     with tab3:
         results = st.session_state.get("meta_results")
         if not results:
             st.info("Run a meta-analysis first.")
         else:
-            st.subheader("📈 Forest Plot")
+            st.subheader("ðŸ“ˆ Forest Plot")
 
             forest_data = results.get("forest_data", [])
             if forest_data:
@@ -1102,7 +1102,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         color="rgba(29,78,216,0.4)",
                     ),
                     name="Studies",
-                    text=[f"{d['study']}: {d['effect']:.3 + f} [{d['ci_lower']:.3 + f}, {d['ci_upper']:.3 + f}]"
+                    text=[f"{d['study']}}: {d['effect']:.3 + f}} [{d['ci_lower']:.3 + f}}, {d['ci_upper']:.3 + f}}]"
                           for d in study_data],
                     hoverinfo="text",
                     showlegend=False,
@@ -1123,9 +1123,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             fillcolor="rgba(29,78,216,0.3)",
                             line=dict(color="#1 + d4ed8", width=2),
                             marker=dict(size=6, color="#1 + d4ed8"),
-                            name=f"RE Model: {sd['effect']:.3 + f} [{sd['ci_lower']:.3 + f}, {sd['ci_upper']:.3 + f}]",
+                            name=f"RE Model: {sd['effect']:.3 + f}} [{sd['ci_lower']:.3 + f}}, {sd['ci_upper']:.3 + f}}]",
                             hoverinfo="text",
-                            text=f"Pooled Effect: {sd['effect']:.3 + f} [{sd['ci_lower']:.3 + f}, {sd['ci_upper']:.3 + f}]",
+                            text=f"Pooled Effect: {sd['effect']:.3 + f}} [{sd['ci_lower']:.3 + f}}, {sd['ci_upper']:.3 + f}}]",
                         ))
 
                 # Add reference line at 0
@@ -1148,21 +1148,21 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 st.plotly_chart(fig, use_container_width=True)
 
                 # Data table
-                with st.expander("📋 Forest Plot Data"):
+                with st.expander("ðŸ“‹ Forest Plot Data"):
                     forest_df = pd.DataFrame(forest_data)
                     st.dataframe(forest_df, use_container_width=True, hide_index=True)
             else:
                 st.info("No forest plot data available.")
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 4: PUBLICATION BIAS
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     with tab4:
         results = st.session_state.get("meta_results")
         if not results:
             st.info("Run a meta-analysis first.")
         else:
-            st.subheader("ðŸ•³ï¸ Publication Bias Assessment")
+            st.subheader("Ã°Å¸â€¢Â³Ã¯Â¸Â Publication Bias Assessment")
 
             eggers = results.get("eggers", {})
             fail_safe = results.get("fail_safe", {})
@@ -1179,7 +1179,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 background:{egger_color}08;text-align:center;">
                         <h4>Egger's Regression Test</h4>
                         <div style="font-size:1.5 + rem;font-weight:700;color:{egger_color};">
-                            {'ðŸ”´ Bias Detected' if egger_sig else 'ðŸŸ¢ No Significant Bias'}
+                            {'Ã°Å¸â€Â´ Bias Detected' if egger_sig else 'Ã°Å¸Å¸Â¢ No Significant Bias'}
                         </div>
                         <div style="font-size:0.9 + rem;color:#64748 + b;">
                             Intercept = {eggers.get('intercept', 0):.3 + f} (SE = {eggers.get('intercept_se', 0):.3 + f})<br>
@@ -1188,7 +1188,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     </div>
                     """, unsafe_allow_html=True)
                 else:
-                    st.info("Egger's test requires â‰¥3 studies")
+                    st.info("Egger's test requires Ã¢â€°Â¥3 studies")
 
             with col2:
                 if fail_safe and "error" not in fail_safe:
@@ -1200,7 +1200,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         <h4>Rosenthal's Fail-Safe N</h4>
                         <div style="font-size:1.5 + rem;font-weight:700;color:{fs_color};">{fail_safe.get('fail_safe_n', 0)}</div>
                         <div style="font-size:0.85 + rem;color:#64748 + b;">
-                            {'✅ Robust (N > tolerance of ' + str(fail_safe.get('tolerance', 0)) + ')' if fs_robust else '⚠️ Below tolerance'}
+                            {'âœ… Robust (N > tolerance of ' + str(fail_safe.get('tolerance', 0)) + ')' if fs_robust else 'âš ï¸ Below tolerance'}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1211,11 +1211,11 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 with col1:
                     st.metric("Imputed Studies", trim_fill.get("n_imputed", 0))
                 with col2:
-                    st.metric("Adjusted Effect", f"{trim_fill.get('adjusted_pooled', 'N/A'):.3 + f}" if trim_fill.get("adjusted_pooled") else "N/A")
+                    st.metric("Adjusted Effect", f"{trim_fill.get('adjusted_pooled', 'N/A'):.3 + f}}" if trim_fill.get("adjusted_pooled") else "N/A")
                 with col3:
-                    st.metric("Adjusted CI", f"[{trim_fill.get('adjusted_ci_lower', 0):.3 + f}, {trim_fill.get('adjusted_ci_upper', 0):.3 + f}]")
+                    st.metric("Adjusted CI", f"[{trim_fill.get('adjusted_ci_lower', 0):.3 + f}}, {trim_fill.get('adjusted_ci_upper', 0):.3 + f}}]")
 
-            # â”€â”€â”€ Funnel Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Funnel Plot Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
             st.subheader(" Funnel Plot")
             effects = results.get("raw_effects", [])
             variances = results.get("raw_variances", [])
@@ -1241,14 +1241,14 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         line=dict(color="white", width=1),
                     ),
                     name="Studies",
-                    text=results.get("raw_labels", [f"Study {i1}" for i in range(len(effects))]),
+                    text=results.get("raw_labels", [f"Study {i1}}" for i in range(len(effects))]),
                     hovertemplate="<b>%{text}</b><br>Effect: %{x:.3 + f}<br>SE: %{y:.4 + f}<extra></extra>",
                 ))
 
                 # Pooled effect line
                 pooled = re_result.get("pooled_effect", 0)
                 fig.add_vline(x=pooled, line=dict(color="red", width=2, dash="dash"),
-                             annotation_text=f"RE Pooled: {pooled:.3 + f}")
+                             annotation_text=f"RE Pooled: {pooled:.3 + f}}")
 
                 # Pseudo-confidence intervals (95%)
                 max_se = max(se) * 1.3
@@ -1310,9 +1310,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             else:
                 st.info("Need at least 3 studies for funnel plot")
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 5: ADVANCED
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     with tab5:
         results = st.session_state.get("meta_results")
         raw_effects = results.get("raw_effects", []) if results else []
@@ -1323,10 +1323,10 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             st.info("Run a meta-analysis first to access advanced features.")
         else:
             engine = MetaAnalysisEngine()
-            st.subheader("ðŸ”¬ Advanced Meta-Analysis Tools")
+            st.subheader("Ã°Å¸â€Â¬ Advanced Meta-Analysis Tools")
 
-            # â”€â”€â”€ Cumulative Meta-Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            with st.expander("📈 Cumulative Meta-Analysis", expanded=False):
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Cumulative Meta-Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+            with st.expander("ðŸ“ˆ Cumulative Meta-Analysis", expanded=False):
                 st.markdown("Add studies one by one to see how evidence accumulates.")
 
                 sort_method = st.radio("Sort studies by", options=["Year (chronological)", "Effect Size", "Precision"],
@@ -1389,19 +1389,19 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
                         st.plotly_chart(fig, use_container_width=True)
 
-            # â”€â”€â”€ Leave-One-Out Sensitivity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            with st.expander("ðŸ” Leave-One-Out Sensitivity Analysis", expanded=False):
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Leave-One-Out Sensitivity Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+            with st.expander("Ã°Å¸â€Â Leave-One-Out Sensitivity Analysis", expanded=False):
                 st.markdown("Omit one study at a time to check robustness.")
 
                 if len(raw_effects) >= 3:
-                    if st.button("ðŸ”¬ Run Sensitivity Analysis", use_container_width=True):
+                    if st.button("Ã°Å¸â€Â¬ Run Sensitivity Analysis", use_container_width=True):
                         loo = engine.leave_one_out(raw_effects, raw_variances, raw_labels)
 
                         overall = loo.get("overall_pooled", 0)
                         overall_ci_lower = loo.get("overall_ci_lower", 0)
                         overall_ci_upper = loo.get("overall_ci_upper", 0)
 
-                        st.markdown(f"**Overall (all studies):** {overall:.3 + f} [{overall_ci_lower:.3 + f}, {overall_ci_upper:.3 + f}]")
+                        st.markdown(f"**Overall (all studies):** {overall:.3 + f}} [{overall_ci_lower:.3 + f}}, {overall_ci_upper:.3 + f}}]")
 
                         loo_results = loo.get("results", [])
                         loo_df = pd.DataFrame(loo_results)
@@ -1432,7 +1432,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 ))
 
                         fig.add_vline(x=overall, line=dict(color="red", width=2, dash="dash"),
-                                     annotation_text=f"Overall: {overall:.3 + f}")
+                                     annotation_text=f"Overall: {overall:.3 + f}}")
                         fig.add_vrect(x0=overall_ci_lower, x1=overall_ci_upper,
                                      fillcolor="red", opacity=0.05, line_width=0)
 
@@ -1446,12 +1446,12 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         st.plotly_chart(fig, use_container_width=True)
 
                         if loo.get("influential_studies"):
-                            st.warning(f"âš ï¸ {len(loo['influential_studies'])} influential study(ies) detected!")
+                            st.warning(f"Ã¢Å¡Â Ã¯Â¸Â {len(loo['influential_studies'])}} influential study(ies) detected!")
                 else:
                     st.info("Need at least 3 studies for leave-one-out analysis")
 
-            # â”€â”€â”€ Subgroup Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            with st.expander("ðŸ“‚ Subgroup Analysis", expanded=False):
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Subgroup Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+            with st.expander("Ã°Å¸â€œâ€š Subgroup Analysis", expanded=False):
                 st.markdown("Define subgroups to compare pooled effects across groups.")
 
                 n_studies = len(raw_effects)
@@ -1468,15 +1468,15 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
                     for group_name, group_res in sg_groups.items():
                         re = group_res.get("random", {})
-                        st.markdown(f"**{group_name}** (k = {group_res.get('k', 0)})")
-                        st.markdown(f"Pooled (RE): {re.get('pooled_effect', 'N/A'):.3 + f} "
-                                   f"[{re.get('ci_lower', 0):.3 + f}, {re.get('ci_upper', 0):.3 + f}]"
-                                   f"  IÂ² = {re.get('i2', 0):.1 + f}%")
+                        st.markdown(f"**{group_name}}** (k = {group_res.get('k', 0)}})")
+                        st.markdown(f"Pooled (RE): {re.get('pooled_effect', 'N/A'):.3 + f}} "
+                                   f"[{re.get('ci_lower', 0):.3 + f}}, {re.get('ci_upper', 0):.3 + f}}]"
+                                   f"  IÃ‚Â² = {re.get('i2', 0):.1 + f}}%")
                 elif subgroup_names and len(subgroup_names) != n_studies:
-                    st.error(f"Expected {n_studies} subgroup labels, got {len(subgroup_names)}")
+                    st.error(f"Expected {n_studies}} subgroup labels, got {len(subgroup_names)}}")
 
-            # â”€â”€â”€ Meta-Regression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            with st.expander("ðŸ“ Meta-Regression", expanded=False):
+            # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Meta-Regression Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+            with st.expander("Ã°Å¸â€œÂ Meta-Regression", expanded=False):
                 st.markdown("Test continuous moderators (e.g., year, sample size, mean age).")
 
                 st.info("Enter a numeric moderator value for each study (comma-separated):")
@@ -1495,7 +1495,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     except ValueError:
                         pass
 
-                if st.button("ðŸ“ Run Meta-Regression") and len(mod_values) == n_studies:
+                if st.button("Ã°Å¸â€œÂ Run Meta-Regression") and len(mod_values) == n_studies:
                     mr = engine.meta_regression(
                         raw_effects, raw_variances,
                         [mod_values],
@@ -1504,31 +1504,31 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     if "error" in mr:
                         st.error(mr["error"])
                     else:
-                        st.markdown(f"**RÂ² = {mr.get('r_squared', 0):.3 + f}**")
+                        st.markdown(f"**RÃ‚Â² = {mr.get('r_squared', 0):.3 + f}}**")
                         coeff_df = pd.DataFrame(mr.get("coefficients", []))
                         st.dataframe(coeff_df, use_container_width=True, hide_index=True)
                 elif mod_values and len(mod_values) != n_studies:
-                    st.error(f"Expected {n_studies} values, got {len(mod_values)}")
+                    st.error(f"Expected {n_studies}} values, got {len(mod_values)}}")
 
-    # â”€â”€â”€ Sidebar: Download Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar: Download Results Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     results = st.session_state.get("meta_results")
     if results:
         st.sidebar.markdown("---")
-        st.sidebar.markdown("### 📥 Export Meta-Analysis")
+        st.sidebar.markdown("### ðŸ“¥ Export Meta-Analysis")
 
         report_lines = [
             "# Meta-Analysis Results",
-            f"Generated: {datetime.now():%Y-%m-%d %H:%M:%S}",
-            f"k = {results.get('k', 0)} studies",
+            f"Generated: {datetime.now():%Y-%m-%d %H:%M:%S}}",
+            f"k = {results.get('k', 0)}} studies",
             "",
             "## Fixed Effects Model",
         ]
         fe = results.get("fixed", {})
         if fe:
             report_lines.extend([
-                f"Pooled Effect: {fe.get('pooled_effect', 'N/A')}",
-                f"95% CI: [{fe.get('ci_lower', 'N/A')}, {fe.get('ci_upper', 'N/A')}]",
-                f"z = {fe.get('z_value', 'N/A')}, p = {fe.get('p_value', 'N/A')}",
+                f"Pooled Effect: {fe.get('pooled_effect', 'N/A')}}",
+                f"95% CI: [{fe.get('ci_lower', 'N/A')}}, {fe.get('ci_upper', 'N/A')}}]",
+                f"z = {fe.get('z_value', 'N/A')}}, p = {fe.get('p_value', 'N/A')}}",
                 "",
             ])
 
@@ -1536,9 +1536,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         report_lines.append("## Random Effects Model (DerSimonian-Laird)")
         if re:
             report_lines.extend([
-                f"Pooled Effect: {re.get('pooled_effect', 'N/A')}",
-                f"95% CI: [{re.get('ci_lower', 'N/A')}, {re.get('ci_upper', 'N/A')}]",
-                f"z = {re.get('z_value', 'N/A')}, p = {re.get('p_value', 'N/A')}",
+                f"Pooled Effect: {re.get('pooled_effect', 'N/A')}}",
+                f"95% CI: [{re.get('ci_lower', 'N/A')}}, {re.get('ci_upper', 'N/A')}}]",
+                f"z = {re.get('z_value', 'N/A')}}, p = {re.get('p_value', 'N/A')}}",
                 "",
             ])
 
@@ -1546,9 +1546,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         report_lines.append("## Heterogeneity")
         if het:
             report_lines.extend([
-                f"IÂ² = {het.get('i2', 'N/A')}%",
-                f"Q({het.get('q_df', 'N/A')}) = {het.get('q_statistic', 'N/A')}, p = {het.get('q_p_value', 'N/A')}",
-                f"Ï„Â² = {het.get('tau2', 'N/A')}",
+                f"IÃ‚Â² = {het.get('i2', 'N/A')}}%",
+                f"Q({het.get('q_df', 'N/A')}}) = {het.get('q_statistic', 'N/A')}}, p = {het.get('q_p_value', 'N/A')}}",
+                f"Ãâ€žÃ‚Â² = {het.get('tau2', 'N/A')}}",
                 "",
             ])
 
@@ -1558,9 +1558,10 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
         st.sidebar.markdown(
             f"""<button onclick="navigator.clipboard.writeText(`{report_text_escaped}`).then(
-                () => {{this.innerHTML='✅ Copied!';setTimeout(()=>this.innerHTML='📋 Copy Report',2000)}})"
+                () => {{this.innerHTML='âœ… Copied!';setTimeout(()=>this.innerHTML='ðŸ“‹ Copy Report',2000)}})"
                 style="padding:8 + px 16 + px;background:#1 + d4ed8;color:white;border:none;border-radius:6 + px;
-                cursor:pointer;font-weight:600;width:100%;">📋 Copy Report</button>""",
+                cursor:pointer;font-weight:600;width:100%;">ðŸ“‹ Copy Report</button>""",
             unsafe_allow_html=True,
         )
+
 

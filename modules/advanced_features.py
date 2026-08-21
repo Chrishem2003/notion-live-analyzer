@@ -1,4 +1,4 @@
-
+﻿
 """
 Enhanced Security, Geolocation, and Advanced Features."""
 import os
@@ -16,9 +16,9 @@ from enum import Enum
 import streamlit as st
 import requests
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # SECURITY MODULE
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 class SecurityManager:
     """Security and anti-spoofing controls."""
@@ -70,7 +70,7 @@ class SecurityManager:
         # Use ip-api.com for basic info
         try:
             response = requests.get(
-                f"http://ip-api.com/json/{ip}",
+                f"http://ip-api.com/json/{ip}}",
                 params={"fields": "status,country,regionName,city,isp,org,as,mobile,proxy",
                        "timeout": 5},
             )
@@ -97,7 +97,7 @@ class SecurityManager:
                                     "AWS", "Azure", "GCP", "Linode", "Vultr"]:
                         if provider.lower() in org.lower() or provider.lower() in isp.lower():
                             result["risk_score"] = 30
-                            result["details"].append(f"Hosting provider: {isp}")
+                            result["details"].append(f"Hosting provider: {isp}}")
                             break
         except Exception:
             pass
@@ -145,9 +145,9 @@ def get_security_manager() -> SecurityManager:
     """Get cached security manager."""
     return SecurityManager()
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # GEOLOCATION & GREETINGS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•==============
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â==============
 
 class GeoManager:
     """Geolocation and smart greetings."""
@@ -164,15 +164,15 @@ class GeoManager:
     
     # Major holidays
     HOLIDAYS = {
-        "01-01": "ðŸŽŠ New Year's Day",
-        "01-07": "ðŸŽ„ Orthodox Christmas",
-        "02-14": "ðŸ’• Valentine's Day",
-        "03-08": "ðŸŒ¸ International Women's Day",
+        "01-01": "Ã°Å¸Å½Å  New Year's Day",
+        "01-07": "Ã°Å¸Å½â€ž Orthodox Christmas",
+        "02-14": "Ã°Å¸â€™â€¢ Valentine's Day",
+        "03-08": "Ã°Å¸Å’Â¸ International Women's Day",
         "04-21": "Easter Sunday",
-        "05-01": "ðŸ” åœ‹éš› Labour Day",
+        "05-01": "Ã°Å¸â€Â Ã¥Å“â€¹Ã©Å¡â€º Labour Day",
         "07-10": "Eid al-Fitr (estimated)",
-        "12-25": "ðŸŽ„ Christmas Day",
-        "12-26": "ðŸŽ Boxing Day",
+        "12-25": "Ã°Å¸Å½â€ž Christmas Day",
+        "12-26": "Ã°Å¸Å½Â Boxing Day",
     }
     
     # User birthday (would be stored in DB)
@@ -182,7 +182,7 @@ class GeoManager:
         """Get country info from IP."""
         try:
             response = requests.get(
-                f"http://ip-api.com/json/{ip}",
+                f"http://ip-api.com/json/{ip}}",
                 params={"fields": "country,countryCode,regionName,city,currency,timezone",
                        "timeout": 5},
             )
@@ -223,29 +223,29 @@ class GeoManager:
         # Base greeting
         hour = datetime.now().hour
         if hour < 12:
-            base = "â˜€ï¸ Good morning"
+            base = "Ã¢Ëœâ‚¬Ã¯Â¸Â Good morning"
         elif hour < 17:
-            base = "ðŸŒ¤ï¸ Good afternoon"
+            base = "Ã°Å¸Å’Â¤Ã¯Â¸Â Good afternoon"
         else:
-            base = "ðŸŒ™ Good evening"
+            base = "Ã°Å¸Å’â„¢ Good evening"
         
         # Add holiday
         holiday = self.check_holiday()
         if holiday:
-            base = f"{holiday}! {base}"
+            base = f"{holiday}}! {base}}"
         
         # Add independence day
         if country_code:
             indep = self.check_independence_day(country_code)
             if indep:
-                base = f"ðŸŽ‰ Happy Independence Day ({indep})! {base}"
+                base = f"Ã°Å¸Å½â€° Happy Independence Day ({indep}})! {base}}"
         
         # Add birthday
         # In production, check user's actual birthday
         
         # Add name
         if user_name:
-            base = f"{base}, {user_name}!"
+            base = f"{base}}, {user_name}}!"
         
         return base
 
@@ -253,9 +253,9 @@ def get_geo_manager() -> GeoManager:
     """Get cached geo manager."""
     return GeoManager()
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•==============
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â==============
 # PROFESSOR VAULT
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•==============
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â==============
 
 class ProfessorVault:
     """AES-256 encrypted review storage."""
@@ -301,9 +301,9 @@ def get_professor_vault() -> ProfessorVault:
     """Get professor vault instance."""
     return ProfessorVault()
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # STREAMLIT UI
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•==============
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â==============
 
 def render_security_dashboard():
     """Render security and geolocation UI."""
@@ -316,7 +316,7 @@ def render_security_dashboard():
         margin-bottom: 1.5rem;
         border: 1px solid #334155;
     ">
-        <h2 style="margin:0; color: white;">ðŸ›¡ï¸ Security & Location</h2>
+        <h2 style="margin:0; color: white;">Ã°Å¸â€ºÂ¡Ã¯Â¸Â Security & Location</h2>
         <p style="color: #94a3b8; margin-top: 0.5rem;">
             VPN detection, geolocation, and smart greetings
         </p>
@@ -326,7 +326,7 @@ def render_security_dashboard():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("ðŸ” Session Security")
+        st.subheader("Ã°Å¸â€Â Session Security")
         
         # Security check
         security = get_security_manager()
@@ -336,20 +336,20 @@ def render_security_dashboard():
         
         # Status
         if check["is_safe"]:
-            st.success(f"✅ Secure Session (Score: {check['security_score']}%)")
+            st.success(f"âœ… Secure Session (Score: {check['security_score']}}%)")
         else:
-            st.warning(f"âš ï¸ Elevated Risk (Score: {check['security_score']}%)")
+            st.warning(f"Ã¢Å¡Â Ã¯Â¸Â Elevated Risk (Score: {check['security_score']}}%)")
         
-        st.caption(f"IP: {ip}")
+        st.caption(f"IP: {ip}}")
         
         # Warnings
         if check["warnings"]:
             st.markdown("**Detected:**")
             for w in check["warnings"]:
-                st.warning(f"â€¢ {w}")
+                st.warning(f"Ã¢â‚¬Â¢ {w}}")
         
         # Blocked IPs
-        with st.expander("ðŸš« Blocked IPs"):
+        with st.expander("Ã°Å¸Å¡Â« Blocked IPs"):
             blocked = security.get_blocked_ips()
             if blocked:
                 for bip in blocked:
@@ -357,14 +357,14 @@ def render_security_dashboard():
                     with col_a:
                         st.code(bip)
                     with col_b:
-                        if st.button("Unblock", key=f"unb_{bip}"):
+                        if st.button("Unblock", key=f"unb_{bip}}"):
                             security.unblock_ip(bip)
                             st.rerun()
             else:
                 st.info("No blocked IPs")
     
     with col2:
-        st.subheader("ðŸŒ Smart Greeting")
+        st.subheader("Ã°Å¸Å’Â Smart Greeting")
         
         # Manual test
         test_country = st.selectbox("Test Country", 
@@ -376,17 +376,17 @@ def render_security_dashboard():
                                     }.get(x, x))
         
         greeting = get_geo_manager().get_greeting("Dr. Researcher", test_country)
-        st.markdown(f"### {greeting}")
+        st.markdown(f"### {greeting}}")
         
         # Check holiday
         holiday = get_geo_manager().check_holiday()
         if holiday:
-            st.success(f"Today: {holiday}")
+            st.success(f"Today: {holiday}}")
         
         # Check independence
         indep = get_geo_manager().check_independence_day(test_country)
         if indep:
-            st.success(f"ðŸŽ‰ {indep}")
+            st.success(f"Ã°Å¸Å½â€° {indep}}")
         
         # IP lookup
         st.divider()
@@ -406,14 +406,14 @@ def render_security_dashboard():
 
 def render_professor_vault():
     """Render professor vault UI."""
-    st.subheader("ðŸ”’ Professor Vault")
+    st.subheader("Ã°Å¸â€â€™ Professor Vault")
     
     st.markdown("""
     Secure, encrypted storage for grading submissions.
     Set a project password to protect student reviews.
     """)
     
-    tab1, tab2 = st.tabs(["ðŸ” Encrypt Review", "ðŸ”“ Decrypt Review"])
+    tab1, tab2 = st.tabs(["Ã°Å¸â€Â Encrypt Review", "Ã°Å¸â€â€œ Decrypt Review"])
     
     with tab1:
         st.markdown("#### Encrypt a Submission")
@@ -421,7 +421,7 @@ def render_professor_vault():
         content = st.text_area("Submission Content", height=150)
         password = st.text_input("Project Password", type="password")
         
-        if st.button("Encrypt ðŸ”’", type="primary") and content and password:
+        if st.button("Encrypt Ã°Å¸â€â€™", type="primary") and content and password:
             vault = get_professor_vault()
             encrypted = vault.encrypt_review(content, password)
             
@@ -429,7 +429,7 @@ def render_professor_vault():
             st.code(encrypted)
             
             st.download_button(
-                "📥 Download Encrypted",
+                "ðŸ“¥ Download Encrypted",
                 data=encrypted,
                 file_name="encrypted_review.sec",
                 mime="text/plain",
@@ -450,7 +450,7 @@ def render_professor_vault():
         
         password = st.text_input("Decryption Password", type="password")
         
-        if st.button("Decrypt ðŸ”“", type="primary") and encrypted_data and password:
+        if st.button("Decrypt Ã°Å¸â€â€œ", type="primary") and encrypted_data and password:
             vault = get_professor_vault()
             
             if vault.verify_password(encrypted_data, password):
@@ -462,13 +462,13 @@ def render_professor_vault():
 
 def render_settings_new():
     """Enhanced settings page with all features."""
-    st.title("âš™ï¸ Settings")
+    st.title("Ã¢Å¡â„¢Ã¯Â¸Â Settings")
     st.markdown("---")
     
     # New tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "ðŸ” Credentials", "ðŸ’³ Subscription", "ðŸ”— Integrations", 
-        "ðŸ›¡ï¸ Security", "ðŸ”§ System",
+        "Ã°Å¸â€Â Credentials", "Ã°Å¸â€™Â³ Subscription", "Ã°Å¸â€â€” Integrations", 
+        "Ã°Å¸â€ºÂ¡Ã¯Â¸Â Security", "Ã°Å¸â€Â§ System",
     ])
     
     with tab1:
@@ -516,7 +516,7 @@ def render_subscription_tab():
         st.info("Subscription management requires database")
 
 def render_integrations_tab():
-    st.subheader("ðŸ”— Integrations")
+    st.subheader("Ã°Å¸â€â€” Integrations")
     
     # Academic integrations redirect
     st.info("Access Academic Integrations from the main navigation")
@@ -526,7 +526,7 @@ def render_integrations_tab():
         pass
 
 def render_system_tab():
-    st.subheader("ðŸ”§ System")
+    st.subheader("Ã°Å¸â€Â§ System")
     
     col1, col2 = st.columns(2)
     
@@ -544,5 +544,6 @@ def render_system_tab():
             st.rerun()
     
     # Debug info
-    with st.expander("ðŸ” Debug Info"):
+    with st.expander("Ã°Å¸â€Â Debug Info"):
         st.write("Session State Keys:", list(st.session_state.keys())[:10])
+

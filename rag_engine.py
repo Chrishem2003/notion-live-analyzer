@@ -1,4 +1,4 @@
-"""
+﻿"""
 rag_engine.py
 Graph-Enhanced Retrieval-Augmented Generation (RAG) Pipeline.
 
@@ -153,7 +153,7 @@ def index_document(
             cursor = conn.execute(
                 "INSERT INTO chunks (doc_id, title, body, entities_json, vector_json) VALUES (?, ?, ?, ?, ?)",
                 (
-                    f"{doc_id}:{i}",
+                    f"{doc_id}}:{i}}",
                     title,
                     chunk,
                     json.dumps(ents),
@@ -244,7 +244,7 @@ def build_knowledge_graph() -> Any:
                 ents = json.loads(row["entities_json"])
             except Exception:
                 ents = []
-            doc_node = f"📄 {row['title'][:40]}" or row["doc_id"]
+            doc_node = f"ðŸ“„ {row['title'][:40]}}" or row["doc_id"]
             G.add_node(doc_node, type="document")
             for e in ents:
                 G.add_node(e, type="entity")
@@ -309,10 +309,10 @@ def register_rag_task_handlers() -> None:
     def handler(text: str = "", title: str = "Untitled", doc_id: str = "doc",
                 progress_cb=None, task_id=None, **kwargs):
         if progress_cb:
-            progress_cb(10, "Building RAG index…")
+            progress_cb(10, "Building RAG indexâ€¦")
         n = index_document(doc_id, title, text)
         if progress_cb:
-            progress_cb(100, f"Indexed {n} chunks")
+            progress_cb(100, f"Indexed {n}} chunks")
         return {"indexed_chunks": n, "doc_id": doc_id}
 
     register_task_handler("index_document", handler)
@@ -321,3 +321,4 @@ def register_rag_task_handlers() -> None:
 def query_rag(query: str, top_k: int = 5) -> Dict[str, Any]:
     """Public query entry point (vector + graph)."""
     return multi_hop_retrieval(query, top_k=top_k)
+

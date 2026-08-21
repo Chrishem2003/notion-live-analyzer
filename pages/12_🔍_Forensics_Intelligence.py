@@ -53,10 +53,10 @@ def _get_or_open_case(data: bytes, filename: str) -> str:
     
     if fp not in registry:
         try:
-            case = open_evidence_case(filename, summary=f"Forensic evidentiary ingestion: {filename}")
-            case_id = case.get("case_id", f"CASE-{fp[:8].upper()}") if isinstance(case, dict) else f"CASE-{fp[:8].upper()}"
+            case = open_evidence_case(filename, summary=f"Forensic evidentiary ingestion: {filename}}")
+            case_id = case.get("case_id", f"CASE-{fp[:8].upper()}}") if isinstance(case, dict) else f"CASE-{fp[:8].upper()}}"
         except Exception:
-            case_id = f"CASE-{fp[:8].upper()}"
+            case_id = f"CASE-{fp[:8].upper()}}"
         registry[fp] = {"case_id": case_id, "filename": filename}
         
     st.session_state["fe_current_fingerprint"] = fp
@@ -83,7 +83,7 @@ def render_evidence_lab_tab() -> None:
 
     case_id = _get_or_open_case(data, filename)
 
-    st.success(f"🔗 Immutable Chain-of-Custody Case Bound: **{case_id}** (Scoped exclusively to this evidence artifact)")
+    st.success(f"🔗 Immutable Chain-of-Custody Case Bound: **{case_id}}** (Scoped exclusively to this evidence artifact)")
     
     try:
         user_name = st.session_state.get("user_identity", {}).get("name", "Forensic Analyst")
@@ -95,7 +95,7 @@ def render_evidence_lab_tab() -> None:
         try:
             report = investigate_bytes(data, filename) or {}
         except Exception as e:
-            st.error(f"🚨 Byte investigation engine error: {e}")
+            st.error(f"🚨 Byte investigation engine error: {e}}")
             return
 
     hashes = report.get("hashes", {})
@@ -107,7 +107,7 @@ def render_evidence_lab_tab() -> None:
             {"Algorithm": "SHA-1", "Value": hashes.get("sha1", hashlib.sha1(data).hexdigest())},
             {"Algorithm": "MD5", "Value": hashes.get("md5", hashlib.md5(data).hexdigest())},
             {"Algorithm": "CRC32", "Value": str(hashes.get("crc32", "N/A"))},
-            {"Algorithm": "Payload Size", "Value": f"{hashes.get('size_bytes', len(data)):,} bytes"},
+            {"Algorithm": "Payload Size", "Value": f"{hashes.get('size_bytes', len(data)):,}} bytes"},
         ]
     )
     st.dataframe(hash_df, use_container_width=True, hide_index=True)
@@ -121,7 +121,7 @@ def render_evidence_lab_tab() -> None:
     c2.metric("Signature Confidence", det.get("confidence", "N/A"))
     c3.metric("Extension Status", ext.get("verdict", "N/A"))
     
-    st.info(f"**Forensic Verdict:** Declared extension `{ext.get('declared_extension', 'n/a')}` vs Inferred Magic Signature `{det.get('detected_type', 'Unknown')}`")
+    st.info(f"**Forensic Verdict:** Declared extension `{ext.get('declared_extension', 'n/a')}}` vs Inferred Magic Signature `{det.get('detected_type', 'Unknown')}}`")
 
     st.markdown("#### 🔍 Embedded IOCs, Artifact Carving & Strings")
     meta = report.get("embedded", {}) or {}
@@ -140,7 +140,7 @@ def render_evidence_lab_tab() -> None:
 
     if meta.get("printable_strings"):
         strings_list = meta["printable_strings"]
-        with st.expander(f"Extracted ASCII/Unicode Strings ({len(strings_list)} tokens)", expanded=False):
+        with st.expander(f"Extracted ASCII/Unicode Strings ({len(strings_list)}} tokens)", expanded=False):
             st.code("\n".join(strings_list[:200]), language="text")
 
     st.markdown("#### 📊 Shannon Entropy Distribution")
@@ -150,7 +150,7 @@ def render_evidence_lab_tab() -> None:
     except (ValueError, TypeError):
         entropy_val = 0.0
 
-    st.metric("Shannon Entropy (bits/byte)", f"{entropy_val:.4f} / 8.0000")
+    st.metric("Shannon Entropy (bits/byte)", f"{entropy_val:.4f}} / 8.0000")
     
     if PLOTLY_AVAILABLE:
         fig = go.Figure(go.Indicator(
@@ -176,7 +176,7 @@ def render_evidence_lab_tab() -> None:
     st.download_button(
         "⬇️ Download Complete Evidence Dossier (JSON)", 
         data=dossier, 
-        file_name=f"evidence_dossier_{case_id}.json", 
+        file_name=f"evidence_dossier_{case_id}}.json", 
         mime="application/json", 
         key="fe_download_upg"
     )
@@ -199,7 +199,7 @@ def render_metadata_tab() -> None:
     try:
         exif = extract_exif(data) or {}
     except Exception as e:
-        exif = {"has_exif": False, "note": f"Extraction error: {e}"}
+        exif = {"has_exif": False, "note": f"Extraction error: {e}}"}
 
     if exif.get("has_exif"):
         col1, col2, col3 = st.columns(3)
@@ -213,7 +213,7 @@ def render_metadata_tab() -> None:
             if lat is not None and lon is not None:
                 try:
                     lat_f, lon_f = float(lat), float(lon)
-                    st.success(f"📍 Geolocation Coordinates Discovered: `{lat_f}, {lon_f}`")
+                    st.success(f"📍 Geolocation Coordinates Discovered: `{lat_f}}, {lon_f}}`")
                     map_df = pd.DataFrame([{"lat": lat_f, "lon": lon_f}])
                     st.map(map_df, zoom=12)
                 except (ValueError, TypeError):
@@ -235,7 +235,7 @@ def render_metadata_tab() -> None:
                 append_custody_record(case_id, "METADATA_EXIF_EXTRACTED", user_name)
                 st.success("✅ Metadata extraction successfully logged to that evidence's custody ledger.")
             except Exception as e:
-                st.error(f"🚨 Failed to write audit record: {e}")
+                st.error(f"🚨 Failed to write audit record: {e}}")
         else:
             st.warning("⚠️ No active case found. Ingest this file in the Evidence Lab tab first to open its case.")
 
@@ -256,11 +256,11 @@ def render_stego_tab() -> None:
         try:
             result = analyze_lsb_steganography(data) or {}
         except Exception as e:
-            result = {"supported": False, "note": f"Analysis execution error: {e}"}
+            result = {"supported": False, "note": f"Analysis execution error: {e}}"}
 
     if result.get("supported"):
         c1, c2, c3 = st.columns(3)
-        c1.metric("Bits Sampled", f"{result.get('bits_sampled', 0):,}" if isinstance(result.get('bits_sampled'), (int, float)) else "—")
+        c1.metric("Bits Sampled", f"{result.get('bits_sampled', 0):,}}" if isinstance(result.get('bits_sampled'), (int, float)) else "—")
         c2.metric("Ones Ratio", str(result.get("ones_ratio", "—")))
         c3.metric("Bitstream Entropy", str(result.get("entropy", "—")))
 
@@ -295,21 +295,21 @@ def render_phishing_tab() -> None:
         try:
             result = analyze_email_headers(raw_email) or {}
         except Exception as e:
-            st.error(f"🚨 Email parser exception: {e}")
+            st.error(f"🚨 Email parser exception: {e}}")
             return
 
         risk = str(result.get("phishing_risk", "LOW")).upper()
         if risk == "HIGH":
-            st.error(f"🚨 **{result.get('verdict', 'Potential Phishing')}** — Assessed Risk Level: **{risk}**")
+            st.error(f"🚨 **{result.get('verdict', 'Potential Phishing')}}** — Assessed Risk Level: **{risk}}**")
         elif risk == "MEDIUM":
-            st.warning(f"⚠️ **{result.get('verdict', 'Suspicious Headers')}** — Assessed Risk Level: **{risk}**")
+            st.warning(f"⚠️ **{result.get('verdict', 'Suspicious Headers')}}** — Assessed Risk Level: **{risk}}**")
         else:
-            st.success(f"✅ **{result.get('verdict', 'Clean Headers')}** — Assessed Risk Level: **{risk}**")
+            st.success(f"✅ **{result.get('verdict', 'Clean Headers')}}** — Assessed Risk Level: **{risk}}**")
 
         if result.get("suspicious_findings"):
             st.markdown("#### 🚩 Identified Indicator Anomalies (IoCs)")
             for finding in result["suspicious_findings"]:
-                st.warning(f"• {finding}")
+                st.warning(f"• {finding}}")
 
         if result.get("keyword_hits"):
             st.markdown("#### 🔑 Social Engineering Trigger Keywords")
@@ -322,9 +322,9 @@ def render_phishing_tab() -> None:
         cols[2].metric("Return-Path Domain", str(result.get("return_path_domain", "—")))
 
         st.info(
-            f"**Authentication Status:** SPF Present: `{result.get('spf_present', False)}` | "
-            f"DKIM Present: `{result.get('dkim_present', False)}` | "
-            f"Relay Hop Count: `{result.get('received_chain_count', 0)}`"
+            f"**Authentication Status:** SPF Present: `{result.get('spf_present', False)}}` | "
+            f"DKIM Present: `{result.get('dkim_present', False)}}` | "
+            f"Relay Hop Count: `{result.get('received_chain_count', 0)}}`"
         )
 
 
@@ -339,7 +339,7 @@ def render_custody_tab() -> None:
         st.info("ℹ️ No forensic cases opened this session. Ingest an evidentiary artifact in the Evidence Lab to initialize a case.")
         return
 
-    options = {f"{v['case_id']} — {v['filename']}": v["case_id"] for v in registry.values()}
+    options = {f"{v['case_id']}} — {v['filename']}}": v["case_id"] for v in registry.values()}
     selected_label = st.selectbox("Select Case to Inspect", list(options.keys()), key="fe_case_selector")
     case_id = options[selected_label]
 
@@ -353,11 +353,11 @@ def render_custody_tab() -> None:
 
         if result.get("valid"):
             records_count = result.get('records', 'Unknown')
-            st.success(f"🔒 Chain integrity verified successfully — {records_count} immutable ledger entries intact for this case.")
+            st.success(f"🔒 Chain integrity verified successfully — {records_count}} immutable ledger entries intact for this case.")
         else:
-            st.error(f"🚨 **CHAIN TAMPER DETECTED:** {result.get('reason', 'Unknown cryptographic integrity mismatch.')}")
+            st.error(f"🚨 **CHAIN TAMPER DETECTED:** {result.get('reason', 'Unknown cryptographic integrity mismatch.')}}")
 
-    st.caption(f"{len(registry)} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
+    st.caption(f"{len(registry)}} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
 
     st.markdown("#### About Cryptographic Chain-of-Custody")
     st.markdown("""

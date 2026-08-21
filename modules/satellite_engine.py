@@ -1,4 +1,4 @@
-
+﻿
 import requests
 from datetime import datetime
 
@@ -9,7 +9,7 @@ def fetch_field_site_telemetry(lat: float, lon: float) -> dict:
     ndvi_value = round(0.45 + ((lat + lon) % 0.35), 2)
     
     return {
-        "coordinates": f"{lat:.4f}, {lon:.4f}",
+        "coordinates": f"{lat:.4f}}, {lon:.4f}}",
         "timestamp": timestamp,
         "satellite_source": "Sentinel-2 / NASA MODIS",
         "ndvi_index": ndvi_value,
@@ -17,3 +17,4 @@ def fetch_field_site_telemetry(lat: float, lon: float) -> dict:
         "surface_temp_c": round(24.5 + (lat % 5), 1),
         "moisture_index": "72%"
     }
+

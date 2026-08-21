@@ -1,8 +1,8 @@
-"""
+﻿"""
 Integration example: drop into 11___Collaboration_Portfolio.py or
 10____Admin_Security_Center.py's Meet tab (replacing the fixed NexusMeet
 UI's placeholder "video isn't configured yet" state once this is deployed
-— set MEET_BASE_URL to wherever api_server.py is actually reachable).
+â€” set MEET_BASE_URL to wherever api_server.py is actually reachable).
 
 Scope reminder (see meet_backend.py's docstring): mesh topology, good for
 2-4 participants. Each browser connects directly to every other browser
@@ -20,25 +20,25 @@ WS_BASE_URL = os.environ.get("WS_BASE_URL", "ws://localhost:8000")
 def get_chat_token(user_email: str) -> str | None:
     try:
         resp = requests.post(
-            f"{API_BASE_URL}/api/v1/chat/token", params={"email": user_email},
+            f"{API_BASE_URL}}/api/v1/chat/token", params={"email": user_email},
             headers={"X-API-Key": os.environ.get("PLATFORM_API_KEY", "")}, timeout=5,
         )
         resp.raise_for_status()
         return resp.json()["token"]
     except Exception as e:
-        st.error(f"Meet backend unavailable: {e}")
+        st.error(f"Meet backend unavailable: {e}}")
         return None
 
 
 def render_video_call(user_email: str, room_id: str):
-    st.markdown(f"### 🎥 Live Call: {room_id}")
-    st.caption("Direct peer-to-peer video (mesh) — works well for small groups (2-4 people).")
+    st.markdown(f"### ðŸŽ¥ Live Call: {room_id}}")
+    st.caption("Direct peer-to-peer video (mesh) â€” works well for small groups (2-4 people).")
 
     token = get_chat_token(user_email)
     if not token:
         return
 
-    ws_url = f"{WS_BASE_URL}/ws/meet/{room_id}?token={token}"
+    ws_url = f"{WS_BASE_URL}}/ws/meet/{room_id}}?token={token}}"
 
     widget_html = f"""
     <div id="meet-status" style="font-size:0.85em;color:#94a3b8;margin-bottom:8px;">Requesting camera/mic access...</div>
@@ -47,9 +47,9 @@ def render_video_call(user_email: str, room_id: str):
                style="width:220px;height:165px;background:#000;border-radius:8px;border:2px solid #00f2fe;"></video>
     </div>
     <div style="margin-top:8px;">
-        <button id="mute-btn" style="padding:6px 14px;border-radius:6px;background:#334155;color:#fff;border:none;">🎤 Mute</button>
-        <button id="video-btn" style="padding:6px 14px;border-radius:6px;background:#334155;color:#fff;border:none;">📷 Camera Off</button>
-        <button id="leave-btn" style="padding:6px 14px;border-radius:6px;background:#b91c1c;color:#fff;border:none;">📞 Leave</button>
+        <button id="mute-btn" style="padding:6px 14px;border-radius:6px;background:#334155;color:#fff;border:none;">ðŸŽ¤ Mute</button>
+        <button id="video-btn" style="padding:6px 14px;border-radius:6px;background:#334155;color:#fff;border:none;">ðŸ“· Camera Off</button>
+        <button id="leave-btn" style="padding:6px 14px;border-radius:6px;background:#b91c1c;color:#fff;border:none;">ðŸ“ž Leave</button>
     </div>
     <script>
     (function() {{
@@ -103,7 +103,7 @@ def render_video_call(user_email: str, room_id: str):
         navigator.mediaDevices.getUserMedia({{video: true, audio: true}}).then(stream => {{
             localStream = stream;
             localVideo.srcObject = stream;
-            statusEl.textContent = 'Camera ready — connecting to call...';
+            statusEl.textContent = 'Camera ready â€” connecting to call...';
         }}).catch(err => {{
             statusEl.textContent = 'Camera/mic access denied or unavailable: ' + err.message + ' (you can still join audio-only if you retry with mic-only permissions)';
         }});
@@ -142,7 +142,7 @@ def render_video_call(user_email: str, room_id: str):
         }};
 
         ws.onclose = (event) => {{
-            statusEl.textContent = event.code === 4401 ? 'Session expired — refresh.' : 'Call ended.';
+            statusEl.textContent = event.code === 4401 ? 'Session expired â€” refresh.' : 'Call ended.';
         }};
 
         document.getElementById('mute-btn').onclick = () => {{
@@ -163,9 +163,9 @@ def render_video_call(user_email: str, room_id: str):
     """
     st.components.v1.html(widget_html, height=380)
     st.caption(
-        "⚠️ Real limitations, stated plainly: (1) mesh topology — beyond ~4 participants, "
+        "âš ï¸ Real limitations, stated plainly: (1) mesh topology â€” beyond ~4 participants, "
         "upload bandwidth per person becomes the bottleneck; (2) uses Google's public STUN "
-        "server only — some strict corporate/mobile NATs need a TURN server (relay) to connect "
+        "server only â€” some strict corporate/mobile NATs need a TURN server (relay) to connect "
         "at all, which isn't configured here; (3) this specific browser code has not been "
-        "run against a real browser in this environment — the signaling server it depends on has."
+        "run against a real browser in this environment â€” the signaling server it depends on has."
     )

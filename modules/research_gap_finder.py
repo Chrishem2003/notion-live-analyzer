@@ -1,4 +1,4 @@
-
+﻿
 """
 Novelty & Unexplored Research Gap Finder
 A cross-synthesis engine that analyzes clusters of papers to identify unaddressed
@@ -70,7 +70,7 @@ class ResearchGapFinder:
 
         corpus = []
         for p in papers:
-            text = f"{p.get('title', '')} {p.get('abstract', '')} {p.get('findings', '')}"
+            text = f"{p.get('title', '')}} {p.get('abstract', '')}} {p.get('findings', '')}}"
             corpus.append({
                 "title": p.get("title", "Untitled"),
                 "text": text.lower(),
@@ -216,7 +216,7 @@ class ResearchGapFinder:
                         "finding_2": finding2[:200],
                         "source_2": source2,
                         "contradiction_score": round(contradiction_score, 2),
-                        "description": f"Papers disagree on: {finding1[:60]} vs {finding2[:60]}",
+                        "description": f"Papers disagree on: {finding1[:60]}} vs {finding2[:60]}}",
                         "resolution_needed": self._suggest_resolution(finding1, finding2),
                     })
 
@@ -295,18 +295,18 @@ class ResearchGapFinder:
             if label and label not in seen:
                 seen.add(label)
                 hypotheses.append({
-                    "hypothesis": f"The relationship between {label} remains unexplored in current literature.",
+                    "hypothesis": f"The relationship between {label}} remains unexplored in current literature.",
                     "source": "gap_analysis",
                     "category": gap.get("category", "theoretical"),
                     "confidence": gap.get("confidence", 0.5),
                     "proposed_approach": self._suggest_approach(gap.get("category", "theoretical")),
                 })
         for conflict in conflicts:
-            h = f"Reconciling discrepancy between {conflict.get('finding_1','')[:60]} and {conflict.get('finding_2','')[:60]}"
+            h = f"Reconciling discrepancy between {conflict.get('finding_1','')[:60]}} and {conflict.get('finding_2','')[:60]}}"
             if h not in seen:
                 seen.add(h)
                 hypotheses.append({
-                    "hypothesis": f"Controlled study needed to resolve: {conflict.get('description','')}",
+                    "hypothesis": f"Controlled study needed to resolve: {conflict.get('description','')}}",
                     "source": "conflict_resolution",
                     "category": "methodological",
                     "confidence": 0.7,
@@ -348,19 +348,19 @@ class ResearchGapFinder:
             return {"title": "General Research Proposal", "sections": []}
         if gaps:
             top_gap = gaps[0].get("label", "Research Gap")
-            title = f"Investigating {top_gap}: A Comprehensive Investigation"
+            title = f"Investigating {top_gap}}: A Comprehensive Investigation"
         elif conflicts:
-            title = f"Resolving Contradictory Evidence in {domain.replace('_', ' ').title()}"
+            title = f"Resolving Contradictory Evidence in {domain.replace('_', ' ').title()}}"
         else:
-            title = f"Novel Approaches in {domain.replace('_', ' ').title()} Research"
+            title = f"Novel Approaches in {domain.replace('_', ' ').title()}} Research"
 
         sections = [
             {"title": "Background & Rationale",
-             "prompt": f"Current literature in {domain.replace('_',' ').title()} reveals significant gaps.",
+             "prompt": f"Current literature in {domain.replace('_',' ').title()}} reveals significant gaps.",
              "key_gaps": [g.get("label","") for g in gaps[:3]], "word_count": 300},
             {"title": "Research Questions & Hypotheses",
              "prompt": "Based on identified gaps, the following research questions are proposed:",
-             "questions": [f"RQ{i1}: {h.get('hypothesis','')[:100]}" for i, h in enumerate(unexplored[:3])],
+             "questions": [f"RQ{i1}}: {h.get('hypothesis','')[:100]}}" for i, h in enumerate(unexplored[:3])],
              "word_count": 200},
             {"title": "Methodology",
              "prompt": self._suggest_approach(domain),
@@ -412,26 +412,26 @@ def render_research_gap_finder_ui():
                     if paper.get("title"):
                         papers.append({"title": paper.get("title",""), "abstract": paper.get("abstract",""), "authors": paper.get("authors",""), "year": paper.get("year")})
                 if papers:
-                    st.success(f" Parsed {len(papers)} papers")
+                    st.success(f" Parsed {len(papers)}} papers")
         else:
             try:
                 from modules.literature_engine import LiteratureDatabase
                 db = LiteratureDatabase()
                 projects = db.get_projects()
                 if projects:
-                    selected = st.selectbox("Select project", projects, format_func=lambda p: f"{p.get('name','')} ({p.get('topic','')})", key="gap_proj_sel")
+                    selected = st.selectbox("Select project", projects, format_func=lambda p: f"{p.get('name','')}} ({p.get('topic','')}})", key="gap_proj_sel")
                     if selected:
                         db_papers, _ = db.get_papers(selected["id"], checked_only=True)
                         for p in db_papers[:15]:
                             papers.append({"title": p.get("title",""), "abstract": p.get("abstract",""), "findings": p.get("user_findings",""), "authors": p.get("authors",""), "year": p.get("year")})
                         if papers:
-                            st.success(f" Loaded {len(papers)} papers")
+                            st.success(f" Loaded {len(papers)}} papers")
             except Exception as e:
-                st.warning(f"Could not load: {e}")
+                st.warning(f"Could not load: {e}}")
 
         if papers and len(papers) >= 3:
             if st.button(" Analyze Research Gaps", type="primary", use_container_width=True):
-                with st.spinner(f"Analyzing {len(papers)} papers..."):
+                with st.spinner(f"Analyzing {len(papers)}} papers..."):
                     results = gap_finder.analyze_papers(papers)
                 if "error" in results:
                     st.error(results["error"])
@@ -439,7 +439,7 @@ def render_research_gap_finder_ui():
                     st.session_state["_gap_analysis_results"] = results
                     st.success(" Analysis complete!")
         elif papers and len(papers) < 3:
-            st.warning(f"Need at least 3 papers (have {len(papers)}).")
+            st.warning(f"Need at least 3 papers (have {len(papers)}}).")
 
     with tab2:
         results = st.session_state.get("_gap_analysis_results")
@@ -455,22 +455,22 @@ def render_research_gap_finder_ui():
         with col4: st.metric("Hypotheses", len(results.get("unexplored_hypotheses",[])))
 
         novelty = results.get("novelty_scores", {})
-        st.markdown(f"**Novelty Score:** {novelty.get('overall_novelty',0)}/100  {novelty.get('label','N/A')}")
+        st.markdown(f"**Novelty Score:** {novelty.get('overall_novelty',0)}}/100  {novelty.get('label','N/A')}}")
         st.progress(novelty.get("overall_novelty",0)/100)
 
         st.subheader(" Identified Research Gaps")
         for i, gap in enumerate(results.get("gaps",[])):
             conf_pct = int(gap.get("confidence",0.5)*100)
-            st.info(f"**Gap {i1}: {gap.get('label','')}** (Conf: {conf_pct}% | Cat: {gap.get('category','theoretical')})\n\n{gap.get('evidence','')[:200]}")
+            st.info(f"**Gap {i1}}: {gap.get('label','')}}** (Conf: {conf_pct}}% | Cat: {gap.get('category','theoretical')}})\n\n{gap.get('evidence','')[:200]}}")
 
         st.subheader(" Conflicting Findings")
         for i, c in enumerate(results.get("conflicting_findings",[])):
-            st.warning(f"**Conflict {i1}** - {c.get('source_1','')} vs {c.get('source_2','')}\n\n{c.get('finding_1','')[:100]}...\n\n{c.get('finding_2','')[:100]}...\n\n*Resolution: {c.get('resolution_needed','')}*")
+            st.warning(f"**Conflict {i1}}** - {c.get('source_1','')}} vs {c.get('source_2','')}}\n\n{c.get('finding_1','')[:100]}}...\n\n{c.get('finding_2','')[:100]}}...\n\n*Resolution: {c.get('resolution_needed','')}}*")
 
         st.subheader(" Unexplored Hypotheses")
         for i, h in enumerate(results.get("unexplored_hypotheses",[])[:8]):
             conf_pct = int(h.get("confidence",0.5)*100)
-            st.info(f"**H{i1}:** {h.get('hypothesis','')[:200]}\n\n*Approach: {h.get('proposed_approach','')[:150]}*")
+            st.info(f"**H{i1}}:** {h.get('hypothesis','')[:200]}}\n\n*Approach: {h.get('proposed_approach','')[:150]}}*")
 
     with tab3:
         results = st.session_state.get("_gap_analysis_results")
@@ -482,26 +482,27 @@ def render_research_gap_finder_ui():
             st.info("No proposal generated.")
             return
 
-        st.subheader(f" {proposal.get('title', 'Research Proposal')}")
+        st.subheader(f" {proposal.get('title', 'Research Proposal')}}")
         for section in proposal["sections"]:
-            with st.expander(f"**{section['title']}**", expanded=(section==proposal["sections"][0])):
-                st.markdown(f"*{section.get('prompt','')}*")
+            with st.expander(f"**{section['title']}}**", expanded=(section==proposal["sections"][0])):
+                st.markdown(f"*{section.get('prompt','')}}*")
                 if section.get("key_gaps"):
                     for g in section["key_gaps"]:
-                        st.markdown(f"-  {g}")
+                        st.markdown(f"-  {g}}")
                 if section.get("questions"):
                     for q in section["questions"]:
-                        st.markdown(f"-  {q}")
+                        st.markdown(f"-  {q}}")
                 if section.get("expected_outcomes"):
                     for o in section["expected_outcomes"]:
-                        st.markdown(f"-  {o}")
+                        st.markdown(f"-  {o}}")
                 if section.get("phases"):
                     for phase in section["phases"]:
-                        st.markdown(f"**{phase['phase']}** ({phase['duration']}): {phase['description']}")
+                        st.markdown(f"**{phase['phase']}}** ({phase['duration']}}): {phase['description']}}")
                 if section.get("approach"):
-                    st.info(f" {section['approach']}")
+                    st.info(f" {section['approach']}}")
 
         import base64
         proposal_text = json.dumps(proposal, indent=2)
         b64 = base64.b64encode(proposal_text.encode()).decode()
-        st.markdown(f'<a href="data:application/json;base64,{b64}" download="research_proposal.json" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;"> Download Proposal</a>', unsafe_allow_html=True)
+        st.markdown(f'<a href="data:application/json;base64,{b64}}" download="research_proposal.json" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;"> Download Proposal</a>', unsafe_allow_html=True)
+

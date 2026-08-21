@@ -1,4 +1,4 @@
-
+﻿
 """
 Autonomous Agent & Self-Healing Pipeline Engine
 Handles automated data validation, anomaly correction, and task execution workflows.
@@ -23,11 +23,12 @@ class AutonomousAgentHub:
                 if pd.api.types.is_numeric_dtype(df_clean[col]):
                     median_val = df_clean[col].median()
                     df_clean[col] = df_clean[col].fillna(median_val)
-                    actions.append(f"Auto-filled missing numeric values in '{col}' with median ({median_val}).")
+                    actions.append(f"Auto-filled missing numeric values in '{col}}' with median ({median_val}}).")
                 else:
                     df_clean[col] = df_clean[col].fillna("Unspecified Enterprise")
-                    actions.append(f"Auto-filled missing text values in '{col}' with default fallback.")
+                    actions.append(f"Auto-filled missing text values in '{col}}' with default fallback.")
 
         actions.append("Cognitive scan completed successfully.")
         return df_clean, actions
+
 

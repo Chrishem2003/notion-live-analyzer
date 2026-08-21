@@ -1,4 +1,4 @@
-
+﻿
 from fastapi import FastAPI, HTTPException
 import sqlite3
 import pandas as pd
@@ -17,7 +17,7 @@ def health_check():
 def get_system_logs(limit: int = 50):
     try:
         conn = sqlite3.connect("chrishem_engine.db")
-        df = pd.read_sql_query(f"SELECT * FROM system_logs ORDER BY id DESC LIMIT {limit}", conn)
+        df = pd.read_sql_query(f"SELECT * FROM system_logs ORDER BY id DESC LIMIT {limit}}", conn)
         conn.close()
         return df.to_dict(orient="records")
     except Exception as e:
@@ -32,3 +32,4 @@ def get_user_sessions():
         return df.to_dict(orient="records")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

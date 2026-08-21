@@ -48,10 +48,10 @@ except ImportError:
                 st.warning("Ã¢Å¡Â Ã¯Â¸Â Google Sheets packages installed but still not importable + restart the app.")
         else:
             logger.error("Google Sheets dependency auto-install failed: %s", result.stderr[:500])
-            st.warning(f"Ã¢Å¡Â Ã¯Â¸Â Auto-install failed: {result.stderr[:200]}")
+            st.warning(f"Ã¢Å¡Â Ã¯Â¸Â Auto-install failed: {result.stderr[:200]}}")
     except Exception as e:
         logger.exception("Google Sheets dependency auto-install raised an error")
-        st.warning(f"Ã¢Å¡Â Ã¯Â¸Â Could not auto-install: {str(e)}")
+        st.warning(f"Ã¢Å¡Â Ã¯Â¸Â Could not auto-install: {str(e)}}")
 
 
 class GoogleSheetsClient:
@@ -79,7 +79,7 @@ class GoogleSheetsClient:
             self.client = gspread.authorize(creds)
             return True
         except Exception as e:
-            st.error(f"Google Sheets connection error: {str(e)}")
+            st.error(f"Google Sheets connection error: {str(e)}}")
             return False
 
     def connect_with_token(self, token: str) -> bool:
@@ -92,7 +92,7 @@ class GoogleSheetsClient:
             self.client.login()
             return True
         except Exception as e:
-            st.error(f"Connection error: {str(e)}")
+            st.error(f"Connection error: {str(e)}}")
             return False
 
     def list_sheets(self) -> List[Dict[str, str]]:
@@ -103,7 +103,7 @@ class GoogleSheetsClient:
             sheets = self.client.openall()
             return [{"id": s.id, "title": s.title, "url": s.url} for s in sheets]
         except Exception as e:
-            st.error(f"Error listing sheets: {str(e)}")
+            st.error(f"Error listing sheets: {str(e)}}")
             return []
 
     def read_sheet(
@@ -151,7 +151,7 @@ class GoogleSheetsClient:
             return df
 
         except Exception as e:
-            st.error(f"Error reading sheet: {str(e)}")
+            st.error(f"Error reading sheet: {str(e)}}")
             return None
 
     def write_sheet(
@@ -195,7 +195,7 @@ class GoogleSheetsClient:
             return True
 
         except Exception as e:
-            st.error(f"Error writing to sheet: {str(e)}")
+            st.error(f"Error writing to sheet: {str(e)}}")
             return False
 
     def append_to_sheet(
@@ -219,7 +219,7 @@ class GoogleSheetsClient:
             return True
 
         except Exception as e:
-            st.error(f"Error appending to sheet: {str(e)}")
+            st.error(f"Error appending to sheet: {str(e)}}")
             return False
 
     def get_worksheet_names(self, sheet_url_or_id: str) -> List[str]:
@@ -234,7 +234,7 @@ class GoogleSheetsClient:
                 sh = self.client.open_by_key(sheet_url_or_id)
             return [ws.title for ws in sh.worksheets()]
         except Exception as e:
-            st.error(f"Error fetching worksheets: {str(e)}")
+            st.error(f"Error fetching worksheets: {str(e)}}")
             return []
 
 
@@ -295,7 +295,7 @@ def render_google_sheets_ui(df: pd.DataFrame):
                 if connected:
                     st.sidebar.success("Ã¢Å“â€¦ Connected to Google Sheets")
             except Exception as e:
-                st.sidebar.error(f"Error: {str(e)}")
+                st.sidebar.error(f"Error: {str(e)}}")
 
     if not connected:
         st.info("Ã°Å¸â€â€˜ Use the sidebar to connect your Google account or service account.")
@@ -315,9 +315,9 @@ def render_google_sheets_ui(df: pd.DataFrame):
         sheets = client.list_sheets()
         if sheets:
             for s in sheets[:20]:
-                st.markdown(f"- **{s['title']}** (`{s['id'][:20]}...`)")
+                st.markdown(f"- **{s['title']}}** (`{s['id'][:20]}}...`)")
             if len(sheets) > 20:
-                st.caption(f"... and {len(sheets) - 20} more")
+                st.caption(f"... and {len(sheets) - 20}} more")
         else:
             st.info("No spreadsheets found. Create one first.")
 
@@ -343,7 +343,7 @@ def render_google_sheets_ui(df: pd.DataFrame):
                             read_df = client.read_sheet(sheet_input, ws_name, header_row=1 if has_header else 0)
 
                         if read_df is not None and not read_df.empty:
-                            st.success(f"Ã¢Å“â€¦ Read {len(read_df)} rows Ãƒ— {len(read_df.columns)} columns")
+                            st.success(f"Ã¢Å“â€¦ Read {len(read_df)}} rows Ãƒ— {len(read_df.columns)}} columns")
                             st.dataframe(read_df.head(50), use_container_width=True, hide_index=True)
 
                             # Option to use as active data
@@ -354,14 +354,14 @@ def render_google_sheets_ui(df: pd.DataFrame):
                         else:
                             st.warning("No data found or unable to read sheet.")
             except Exception as e:
-                st.error(f"Error accessing sheet: {str(e)}")
+                st.error(f"Error accessing sheet: {str(e)}}")
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ TAB 2: Write Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     with tab2:
         st.subheader("Ã°Å¸â€œÂ¤ Write Data to Google Sheets")
 
         if df is not None and not df.empty:
-            st.info(f"**Data to write**: {len(df)} rows Ãƒ— {len(df.columns)} columns from '{st.session_state.get('data_source', 'active dataset')}'")
+            st.info(f"**Data to write**: {len(df)}} rows Ãƒ— {len(df.columns)}} columns from '{st.session_state.get('data_source', 'active dataset')}}'")
 
             sheet_target = st.text_input(
                 "Target Sheet URL or ID (or leave blank to create new)",
@@ -387,5 +387,6 @@ def render_google_sheets_ui(df: pd.DataFrame):
                     st.error("Failed to write data. Check connection and permissions.")
         else:
             st.warning("No active dataset to write. Load or create data first.")
+
 
 

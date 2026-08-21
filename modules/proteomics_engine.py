@@ -1,4 +1,4 @@
-
+﻿
 import requests
 
 def translate_dna_to_protein(dna_seq: str) -> dict:
@@ -41,7 +41,7 @@ def translate_dna_to_protein(dna_seq: str) -> dict:
 
 def fetch_pdb_metadata(pdb_id: str) -> dict:
     """Fetches structure metadata from RCSB Protein Data Bank."""
-    url = f"https://data.rcsb.org/rest/v1/core/entry/{pdb_id.lower()}"
+    url = f"https://data.rcsb.org/rest/v1/core/entry/{pdb_id.lower()}}"
     try:
         res = requests.get(url, timeout=5)
         if res.status_code == 200:
@@ -53,9 +53,10 @@ def fetch_pdb_metadata(pdb_id: str) -> dict:
                 "pdb_id": pdb_id.upper(),
                 "title": title,
                 "method": method,
-                "resolution": f"{resolution} Ã…" if resolution != "N/A" else "N/A",
+                "resolution": f"{resolution}} Ãƒâ€¦" if resolution != "N/A" else "N/A",
                 "valid": True
             }
     except Exception:
         pass
     return {"pdb_id": pdb_id.upper(), "valid": False, "error": "PDB ID not found or API unavailable"}
+

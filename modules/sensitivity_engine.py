@@ -1,4 +1,4 @@
-
+﻿
 """
 Sensitivity & Robustness Analysis Engine  Influence diagnostics, subgroup analysis,
 specification curve analysis, multiverse analysis, and robustness value analysis.
@@ -77,7 +77,7 @@ class SensitivityEngine:
             "n": n,
             "n_predictors": len(predictors),
             "influential": influential,
-            "interpretation": f"{influential['n_influential_cooks']} of {n} observations have Cook's D > {cooks_threshold:.4f}",
+            "interpretation": f"{influential['n_influential_cooks']}} of {n}} observations have Cook's D > {cooks_threshold:.4f}}",
         }
 
     def specification_curve(
@@ -143,8 +143,8 @@ class SensitivityEngine:
             "min_coefficient": round(float(results_df["coefficient"].min()), 4),
             "max_coefficient": round(float(results_df["coefficient"].max()), 4),
             "sd_coefficient": round(float(results_df["coefficient"].std()), 4),
-            "interpretation": f"Across {len(results)} specifications, median effect = {median_coef:.3f} "
-                              f"({pct_significant:.0f}% significant)",
+            "interpretation": f"Across {len(results)}} specifications, median effect = {median_coef:.3f}} "
+                              f"({pct_significant:.0f}}% significant)",
         }
 
     def robustness_value(
@@ -198,8 +198,8 @@ class SensitivityEngine:
             "impact_threshold": round(float(impact), 4),
             "rir_count": rir,
             "rir_percentage": round(float(rir_pct), 1),
-            "interpretation": f"A confound would need {rir} ({rir_pct:.0f}%) replacement cases to nullify the effect. "
-                              f"Impact threshold = {impact:.3f}.",
+            "interpretation": f"A confound would need {rir}} ({rir_pct:.0f}}%) replacement cases to nullify the effect. "
+                              f"Impact threshold = {impact:.3f}}.",
         }
 
     def subgroup_analysis(
@@ -251,8 +251,8 @@ class SensitivityEngine:
             "subgroup_variable": subgroup_col,
             "n_subgroups": len(results),
             "results": pd.DataFrame(results),
-            "interpretation": f"Effect varies across {len(results)} subgroups. "
-                              f"Range: [{min(r['coefficient'] for r in results):.3f}, {max(r['coefficient'] for r in results):.3f}]",
+            "interpretation": f"Effect varies across {len(results)}} subgroups. "
+                              f"Range: [{min(r['coefficient'] for r in results):.3f}}, {max(r['coefficient'] for r in results):.3f}}]",
         }
 
     def multiverse_analysis(
@@ -271,7 +271,7 @@ class SensitivityEngine:
             return {"error": "statsmodels required"}
 
         base_specs = [
-            {"controls": controls[:i], "name": f"Controls_{i}"}
+            {"controls": controls[:i], "name": f"Controls_{i}}"}
             for i in range(len(controls) + 1)
         ]
         specs = base_specs[:]  # Limit to base specs for performance
@@ -312,13 +312,13 @@ class SensitivityEngine:
         }
 
 
-# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 def render_sensitivity_analysis_ui():
     """Render the Sensitivity Analysis page."""
     import streamlit as st
     import plotly.express as px
 
-    st.markdown("## ðŸ” Sensitivity & Robustness Analysis")
+    st.markdown("## Ã°Å¸â€Â Sensitivity & Robustness Analysis")
     st.markdown("*Assess how robust your findings are to alternative specifications*")
 
     df = st.session_state.get("active_df")
@@ -330,8 +330,8 @@ def render_sensitivity_analysis_ui():
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        " Influence Diagnostics", "ðŸ“ Spec Curve",
-        "ðŸ›¡ï¸ Robustness Value", "ðŸ“‚ Subgroup Analysis", "ðŸŒŒ Multiverse"
+        " Influence Diagnostics", "Ã°Å¸â€œÂ Spec Curve",
+        "Ã°Å¸â€ºÂ¡Ã¯Â¸Â Robustness Value", "Ã°Å¸â€œâ€š Subgroup Analysis", "Ã°Å¸Å’Å’ Multiverse"
     ])
 
     with tab1:
@@ -355,11 +355,11 @@ def render_sensitivity_analysis_ui():
                     cooks_df = pd.DataFrame({"Observation": range(len(inf["cooks_d"])), "Cook's D": inf["cooks_d"]})
                     fig = px.bar(cooks_df, x="Observation", y="Cook's D", title="Cook's Distance")
                     fig.add_hline(y=inf.get("cooks_threshold", 0), line_dash="dash", line_color="red",
-                                  annotation_text=f"Threshold: {inf.get('cooks_threshold', 0):.4f}")
+                                  annotation_text=f"Threshold: {inf.get('cooks_threshold', 0):.4f}}")
                     st.plotly_chart(fig, use_container_width=True)
 
     with tab2:
-        st.subheader("ðŸ“ Specification Curve Analysis")
+        st.subheader("Ã°Å¸â€œÂ Specification Curve Analysis")
         col1, col2 = st.columns(2)
         with col1:
             sc_outcome = st.selectbox("Outcome", options=numeric_cols, key="sc_outcome")
@@ -367,7 +367,7 @@ def render_sensitivity_analysis_ui():
         with col2:
             sc_controls = st.multiselect("Control variables", options=[c for c in numeric_cols if c not in (sc_outcome, sc_treatment)], key="sc_controls")
 
-        if st.button("ðŸ“ Run Spec Curve", type="primary", use_container_width=True) and sc_controls:
+        if st.button("Ã°Å¸â€œÂ Run Spec Curve", type="primary", use_container_width=True) and sc_controls:
             result = engine.specification_curve(df, sc_outcome, sc_treatment, sc_controls)
             if "error" in result:
                 st.error(result["error"])
@@ -382,7 +382,7 @@ def render_sensitivity_analysis_ui():
                     st.plotly_chart(fig, use_container_width=True)
 
     with tab3:
-        st.subheader("ðŸ›¡ï¸ Robustness Value Analysis")
+        st.subheader("Ã°Å¸â€ºÂ¡Ã¯Â¸Â Robustness Value Analysis")
         col1, col2 = st.columns(2)
         with col1:
             rv_outcome = st.selectbox("Outcome", options=numeric_cols, key="rv_outcome")
@@ -390,19 +390,19 @@ def render_sensitivity_analysis_ui():
         with col2:
             rv_controls = st.multiselect("Controls", options=[c for c in numeric_cols if c not in (rv_outcome, rv_treatment)], key="rv_controls")
 
-        if st.button("ðŸ›¡ï¸ Compute Robustness", type="primary", use_container_width=True):
+        if st.button("Ã°Å¸â€ºÂ¡Ã¯Â¸Â Compute Robustness", type="primary", use_container_width=True):
             result = engine.robustness_value(df, rv_outcome, rv_treatment, rv_controls)
             if "error" in result:
                 st.error(result["error"])
             else:
                 col1, col2, col3 = st.columns(3)
-                with col1: st.metric("Coefficient", f"{result['coefficient']:.4f}")
-                with col2: st.metric("Impact Threshold", f"{result['impact_threshold']:.4f}")
+                with col1: st.metric("Coefficient", f"{result['coefficient']:.4f}}")
+                with col2: st.metric("Impact Threshold", f"{result['impact_threshold']:.4f}}")
                 with col3: st.metric("RIR (count)", result['rir_count'])
                 st.info(result["interpretation"])
 
     with tab4:
-        st.subheader("ðŸ“‚ Subgroup Analysis")
+        st.subheader("Ã°Å¸â€œâ€š Subgroup Analysis")
         col1, col2 = st.columns(2)
         with col1:
             sg_outcome = st.selectbox("Outcome", options=numeric_cols, key="sg_outcome")
@@ -411,7 +411,7 @@ def render_sensitivity_analysis_ui():
             sg_subgroup = st.selectbox("Subgroup variable", options=[c for c in df.columns if c not in (sg_outcome, sg_treatment) and df[c].nunique() <= 10], key="sg_subgroup")
             sg_controls = st.multiselect("Controls (optional)", options=[c for c in numeric_cols if c not in (sg_outcome, sg_treatment)], key="sg_controls")
 
-        if st.button("ðŸ“‚ Run Subgroup Analysis", type="primary", use_container_width=True):
+        if st.button("Ã°Å¸â€œâ€š Run Subgroup Analysis", type="primary", use_container_width=True):
             result = engine.subgroup_analysis(df, sg_outcome, sg_treatment, sg_subgroup, sg_controls)
             if "error" in result:
                 st.error(result["error"])
@@ -426,7 +426,7 @@ def render_sensitivity_analysis_ui():
                     st.plotly_chart(fig, use_container_width=True)
 
     with tab5:
-        st.subheader("ðŸŒŒ Multiverse Analysis")
+        st.subheader("Ã°Å¸Å’Å’ Multiverse Analysis")
         col1, col2 = st.columns(2)
         with col1:
             mv_outcome = st.selectbox("Outcome", options=numeric_cols, key="mv_outcome")
@@ -434,14 +434,15 @@ def render_sensitivity_analysis_ui():
         with col2:
             mv_controls = st.multiselect("Control variables", options=[c for c in numeric_cols if c not in (mv_outcome, mv_treatment)], key="mv_controls")
 
-        if st.button("ðŸŒŒ Run Multiverse", type="primary", use_container_width=True):
+        if st.button("Ã°Å¸Å’Å’ Run Multiverse", type="primary", use_container_width=True):
             result = engine.multiverse_analysis(df, mv_outcome, mv_treatment, mv_controls)
             if "error" in result:
                 st.error(result["error"])
             else:
                 st.info(result["interpretation"])
                 col1, col2, col3 = st.columns(3)
-                with col1: st.metric("Median Coef", f"{result['median_coefficient']:.4f}")
-                with col2: st.metric("SD Coef", f"{result['sd_coefficient']:.4f}")
-                with col3: st.metric("% Significant", f"{result['pct_significant']}%")
+                with col1: st.metric("Median Coef", f"{result['median_coefficient']:.4f}}")
+                with col2: st.metric("SD Coef", f"{result['sd_coefficient']:.4f}}")
+                with col3: st.metric("% Significant", f"{result['pct_significant']}}%")
+
 

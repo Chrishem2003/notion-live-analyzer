@@ -1,4 +1,4 @@
-
+﻿
 import streamlit as st
 import hashlib
 import time
@@ -22,7 +22,7 @@ def render_secure_vault():
     if st.session_state.failed_attempts >= 3:
         remaining_cooldown = int(30 - (current_time - st.session_state.lockout_time))
         if remaining_cooldown > 0:
-            st.error(f" Too many failed attempts. Vault temporarily locked for {remaining_cooldown} seconds.")
+            st.error(f" Too many failed attempts. Vault temporarily locked for {remaining_cooldown}} seconds.")
             return
         else:
             # Reset after cooldown
@@ -40,13 +40,13 @@ def render_secure_vault():
                 st.rerun()
             else:
                 st.session_state.failed_attempts = 1
-                log_backend_event("WARN", f"Failed vault unlock attempt ({st.session_state.failed_attempts}/3).")
+                log_backend_event("WARN", f"Failed vault unlock attempt ({st.session_state.failed_attempts}}/3).")
                 if st.session_state.failed_attempts >= 3:
                     st.session_state.lockout_time = time.time()
                     st.error(" Maximum attempts reached. 30-second cooldown initiated.")
                     st.rerun()
                 else:
-                    st.error(f"Invalid passkey. Attempts remaining: {3 - st.session_state.failed_attempts}")
+                    st.error(f"Invalid passkey. Attempts remaining: {3 - st.session_state.failed_attempts}}")
     else:
         st.success("Vault is currently unlocked and operational.")
         secret_note = st.text_area("Secure Vault Record / Configuration Entry", "Enter confidential research notes or API tokens here...")
@@ -58,3 +58,4 @@ def render_secure_vault():
             st.session_state.vault_unlocked = False
             log_backend_event("INFO", "Administrative Vault locked manually.")
             st.rerun()
+

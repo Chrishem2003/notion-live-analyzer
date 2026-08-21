@@ -1,28 +1,28 @@
-"""
-User Preferences — timezone, accent color, and a defensive readability fix
+﻿"""
+User Preferences â€” timezone, accent color, and a defensive readability fix
 =============================================================================
 Three real, working things, not decoration:
 
 1. Timezone: auto-detects the visitor's real browser timezone via a small
-   JS snippet (Intl.DateTimeFormat — every modern browser supports this,
+   JS snippet (Intl.DateTimeFormat â€” every modern browser supports this,
    no extra package needed) and lets them override it manually from the
-   full real IANA timezone list (Python's stdlib zoneinfo — not a
+   full real IANA timezone list (Python's stdlib zoneinfo â€” not a
    hand-picked shortlist). Stored in st.session_state so every page's
    timestamps/greetings can use it.
 
 2. Accent color: a real st.color_picker wired to actual CSS custom
-   properties that buttons/highlights use — picking a color changes
+   properties that buttons/highlights use â€” picking a color changes
    what's on screen, unlike the old dead selectbox that was removed
    earlier in this audit.
 
 3. Text contrast fix: some text areas/inputs were reported as
-   unreadable — text color blending into the input background. The
+   unreadable â€” text color blending into the input background. The
    likely cause is a blanket ".stApp { color: X }" rule in the app's
    base theme CSS cascading into Streamlit's text_area/text_input
    internals, which keep their own default background regardless.
    This injects a targeted, defensive override that forces a correct
    high-contrast pairing specifically for input/textarea elements,
-   regardless of what any other page's CSS does — so it fixes the
+   regardless of what any other page's CSS does â€” so it fixes the
    symptom immediately while the actual theme source (not yet shared)
    can be fixed at the root.
 """
@@ -65,7 +65,7 @@ def render_readability_fix():
 def _detect_browser_timezone():
     """Real browser-side detection via Intl.DateTimeFormat. Writes the
     result into a query param and triggers one reload the first time a
-    visitor loads the app in a session — after that it's cached in
+    visitor loads the app in a session â€” after that it's cached in
     session_state and this doesn't run again."""
     components.html(
         """
@@ -77,7 +77,7 @@ def _detect_browser_timezone():
                 params.set('detected_tz', tz);
                 window.parent.location.search = params.toString();
             }
-        } catch (e) { /* Intl not supported — manual selection still works */ }
+        } catch (e) { /* Intl not supported â€” manual selection still works */ }
         </script>
         """,
         height=0,
@@ -85,7 +85,7 @@ def _detect_browser_timezone():
 
 
 def get_user_timezone() -> str:
-    """Returns the IANA timezone name to use for this session — detected,
+    """Returns the IANA timezone name to use for this session â€” detected,
     manually overridden, or a safe UTC fallback. Never guesses silently:
     if nothing is known yet, it's UTC until detection/selection completes."""
     if "user_timezone" in st.session_state:
@@ -104,9 +104,9 @@ def get_user_timezone() -> str:
 
 
 def render_timezone_and_accent_settings():
-    """Real, working preference controls — put this in a Settings/Account
+    """Real, working preference controls â€” put this in a Settings/Account
     tab. Both values persist in session_state and take effect immediately."""
-    st.markdown("#### 🌐 Timezone")
+    st.markdown("#### ðŸŒ Timezone")
     current_tz = get_user_timezone()
     all_tz = sorted(zoneinfo.available_timezones())
     try:
@@ -115,7 +115,7 @@ def render_timezone_and_accent_settings():
         default_idx = all_tz.index("UTC")
 
     chosen_tz = st.selectbox(
-        "Your timezone (auto-detected from your browser — override if it's wrong)",
+        "Your timezone (auto-detected from your browser â€” override if it's wrong)",
         all_tz, index=default_idx, key="tz_selector_widget",
     )
     if chosen_tz != st.session_state.get("user_timezone"):
@@ -123,9 +123,9 @@ def render_timezone_and_accent_settings():
         st.rerun()
 
     now_local = datetime.datetime.now(zoneinfo.ZoneInfo(chosen_tz))
-    st.caption(f"Your local time right now: **{now_local.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}**")
+    st.caption(f"Your local time right now: **{now_local.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}}**")
 
-    st.markdown("#### 🎨 Accent Color")
+    st.markdown("#### ðŸŽ¨ Accent Color")
     current_accent = st.session_state.get("user_accent_color", DEFAULT_ACCENT)
     chosen_accent = st.color_picker("Pick an accent color for buttons and highlights", value=current_accent, key="accent_picker_widget")
     if chosen_accent != current_accent:
@@ -137,7 +137,7 @@ def render_timezone_and_accent_settings():
 
 def render_accent_color_css():
     """Applies the chosen accent color to real UI elements. Call on every
-    page (cheap — just a <style> tag) to keep the accent consistent."""
+    page (cheap â€” just a <style> tag) to keep the accent consistent."""
     accent = st.session_state.get("user_accent_color", DEFAULT_ACCENT)
     st.markdown(
         f"""

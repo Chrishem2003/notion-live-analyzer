@@ -1,11 +1,11 @@
-"""
-INTEGRATION SNIPPET — not a standalone file to run.
+﻿"""
+INTEGRATION SNIPPET â€” not a standalone file to run.
 
 Two places to wire the new modules/subscription.py + modules/billing_stripe.py
 into the app that already exists:
 
 1. Once, near the top of your main app entrypoint (wherever portal.py hands
-   off to a logged-in session) — handles the Stripe Checkout return leg:
+   off to a logged-in session) â€” handles the Stripe Checkout return leg:
 """
 
 import streamlit as st
@@ -17,13 +17,13 @@ def handle_checkout_return():
         result = billing_stripe.verify_checkout_session(qp["session_id"])
         st.query_params.clear()
         if result:
-            st.toast(f"Upgraded to {result['plan'].title()} — welcome aboard.", icon="✅")
+            st.toast(f"Upgraded to {result['plan'].title()}} â€” welcome aboard.", icon="âœ…")
         else:
             st.warning("We couldn't confirm that payment yet. If you were charged, "
                        "use 'Resync billing' in Settings or contact support.")
     elif qp.get("checkout") == "cancelled":
         st.query_params.clear()
-        st.info("Checkout cancelled — no charge was made.")
+        st.info("Checkout cancelled â€” no charge was made.")
 
 
 """
@@ -36,7 +36,7 @@ def handle_checkout_return():
         ...
 
    This already matches the call Global Mission Control makes today
-   (`require_active_subscription()`) — just add the hub_id kwarg so it
+   (`require_active_subscription()`) â€” just add the hub_id kwarg so it
    checks the right minimum plan instead of the default "free".
 
 3. Opportunistic resync (put in Settings, or silently on login for

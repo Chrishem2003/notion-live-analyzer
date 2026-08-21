@@ -57,7 +57,7 @@ def get_df():
     df = get_active_dataframe()
     if df is None:
         return pd.DataFrame({
-            "Record_ID": [f"REC-{i:03d}" for i in range(1, 21)],
+            "Record_ID": [f"REC-{i:03d}}" for i in range(1, 21)],
             "Feedback_Text": [
                 "System performance and analytical throughput are exceptionally high.",
                 "Encountered limited network access during remote synchronization.",
@@ -200,9 +200,9 @@ def render_ai_insights(df):
 
     st.markdown("### ðŸ“Š Automated Structural Findings")
     insights = []
-    insights.append(f"**Dataset Architecture:** Dimensions of `{rows:,}` rows by `{cols}` features.")
+    insights.append(f"**Dataset Architecture:** Dimensions of `{rows:,}}` rows by `{cols}}` features.")
     if missing > 0:
-        insights.append(f"**Data Completeness Warning:** Detected `{missing:,}` missing cells requiring imputation.")
+        insights.append(f"**Data Completeness Warning:** Detected `{missing:,}}` missing cells requiring imputation.")
     else:
         insights.append("**Data Completeness Optimal:** Zero missing values detected across active records.")
 
@@ -212,11 +212,11 @@ def render_ai_insights(df):
         stack = upper.stack()
         if not stack.empty and stack.max() > 0.75:
             pair = stack.idxmax()
-            insights.append(f"**Multivariate Collinearity:** Strong correlation identified between `{pair[0]}` and `{pair[1]}` at $r = {stack.max():.2f}$.")
+            insights.append(f"**Multivariate Collinearity:** Strong correlation identified between `{pair[0]}}` and `{pair[1]}}` at $r = {stack.max():.2f}}$.")
 
     dup_count = int(df.duplicated().sum())
     if dup_count > 0:
-        insights.append(f"**Duplicate Records:** `{dup_count:,}` exact duplicate rows detected ({dup_count/rows*100:.1f}% of dataset).")
+        insights.append(f"**Duplicate Records:** `{dup_count:,}}` exact duplicate rows detected ({dup_count/rows*100:.1f}}% of dataset).")
 
     for ins in insights:
         st.markdown(f"""<div style="background:#0b1321; border-left:4px solid #00f2fe; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:#f8fafc;">{ins}</div>""", unsafe_allow_html=True)
@@ -235,7 +235,7 @@ def render_ai_insights(df):
 ## Key Analytical Insights
 """
     for i in insights:
-        report += f"- {i}\n"
+        report += f"- {i}}\n"
 
     st.download_button("â¬‡ï¸ Download Enterprise Markdown Report", data=report, file_name="executive_intelligence_report.md", mime="text/markdown", use_container_width=True)
 
@@ -276,14 +276,14 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame):
     all_cols = df.columns.tolist()
 
     if re.search(r"how many rows|row count|number of records|dataset size", q):
-        return "metric", f"{len(df):,} rows", "Row count"
+        return "metric", f"{len(df):,}} rows", "Row count"
 
     m = re.search(r"correlation between (.+?) and (.+)", q)
     if m:
         c1, c2 = _find_column(m.group(1), all_cols), _find_column(m.group(2), all_cols)
         if c1 and c2 and c1 in numeric_cols and c2 in numeric_cols:
             r = df[c1].corr(df[c2])
-            return "metric", f"r = {r:.4f}", f"Correlation between {c1} and {c2}"
+            return "metric", f"r = {r:.4f}}", f"Correlation between {c1}} and {c2}}"
         return "error", "Could not identify two numeric columns for a correlation.", None
 
     m = re.search(r"top (\d+)\s+(.+?)\s+by\s+(.+)", q)
@@ -292,8 +292,8 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame):
         dim_col, metric_col = _find_column(dim_text, all_cols), _find_column(metric_text, all_cols)
         if dim_col and metric_col and metric_col in numeric_cols:
             result = df.groupby(dim_col)[metric_col].mean().reset_index().sort_values(metric_col, ascending=False).head(int(n))
-            return "table", result, f"Top {n} {dim_col} by mean {metric_col}"
-        return "error", f"Could not resolve columns from '{dim_text}' / '{metric_text}'.", None
+            return "table", result, f"Top {n}} {dim_col}} by mean {metric_col}}"
+        return "error", f"Could not resolve columns from '{dim_text}}' / '{metric_text}}'.", None
 
     m = re.search(r"(average|avg|mean|sum|total|count|max|maximum|highest|min|minimum|lowest|median|std|standard deviation)\s+(?:of\s+)?(.+?)\s+by\s+(.+)", q)
     if m:
@@ -306,8 +306,8 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame):
             else:
                 result = df.groupby(group_col)[metric_col].agg(func).reset_index()
             result = result.sort_values(metric_col, ascending=False)
-            return "table", result, f"{func.title()} of {metric_col}, grouped by {group_col}"
-        return "error", f"Could not resolve columns from '{metric_text}' / '{group_text}'.", None
+            return "table", result, f"{func.title()}} of {metric_col}}, grouped by {group_col}}"
+        return "error", f"Could not resolve columns from '{metric_text}}' / '{group_text}}'.", None
 
     m = re.search(r"(average|avg|mean|sum|total|count|max|maximum|highest|min|minimum|lowest|median|std|standard deviation)\s+(?:of\s+)?(.+)", q)
     if m:
@@ -316,9 +316,9 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame):
         metric_col = _find_column(metric_text, all_cols)
         if func and metric_col and metric_col in numeric_cols:
             val = getattr(df[metric_col], func)()
-            return "metric", f"{val:,.4f}", f"{func_word.title()} of {metric_col}"
+            return "metric", f"{val:,.4f}}", f"{func_word.title()}} of {metric_col}}"
         if func_word == "count" and metric_col:
-            return "metric", f"{df[metric_col].count():,}", f"Non-null count of {metric_col}"
+            return "metric", f"{df[metric_col].count():,}}", f"Non-null count of {metric_col}}"
 
     return "unrecognized", None, None
 
@@ -343,14 +343,14 @@ def render_nl_query(df):
         else:
             kind, payload, caption = parse_and_execute_nl_query(query, df)
             if kind == "metric":
-                st.success(f"✅ {caption}")
+                st.success(f"✅ {caption}}")
                 st.metric(caption, payload)
             elif kind == "table":
-                st.success(f"✅ {caption}")
+                st.success(f"✅ {caption}}")
                 st.dataframe(payload, use_container_width=True, hide_index=True)
                 render_export_buttons(payload, base_name="nl_query_result")
             elif kind == "error":
-                st.error(f"ðŸš« {payload}")
+                st.error(f"ðŸš« {payload}}")
             else:
                 st.warning("âš ï¸ Couldn't match this question to a supported pattern — see the examples above.")
 
@@ -400,12 +400,12 @@ def render_synth_and_gap(df):
                 else:
                     if SKLEARN_TEXT_AVAILABLE:
                         labels, themes_df = _tfidf_kmeans_themes(texts, n_clusters)
-                        st.markdown(f"**Derived {len(themes_df)} theme cluster(s) from {len(texts)} records via TF-IDF + KMeans:**")
+                        st.markdown(f"**Derived {len(themes_df)}} theme cluster(s) from {len(texts)}} records via TF-IDF + KMeans:**")
                         st.dataframe(themes_df, use_container_width=True, hide_index=True)
                         cluster_choice = st.selectbox("View example records from cluster", themes_df["Cluster"].tolist(), key="synth_cluster_view")
                         examples = [t for t, l in zip(texts, labels) if l == cluster_choice][:5]
                         for ex in examples:
-                            st.markdown(f"> {ex}")
+                            st.markdown(f"> {ex}}")
                     else:
                         themes_df = _keyword_frequency_themes(texts, n_clusters)
                         st.dataframe(themes_df, use_container_width=True, hide_index=True)
@@ -427,33 +427,33 @@ def render_synth_and_gap(df):
 
             findings = []
             if n < 100:
-                findings.append(f"**Sample Size:** n={n} is small — statistical power for detecting moderate effects will be limited.")
+                findings.append(f"**Sample Size:** n={n}} is small — statistical power for detecting moderate effects will be limited.")
             else:
-                findings.append(f"**Sample Size:** n={n:,} — adequate for standard inferential tests.")
+                findings.append(f"**Sample Size:** n={n:,}} — adequate for standard inferential tests.")
 
             if not datetime_cols:
                 findings.append("**Temporal Coverage:** No datetime column detected — this dataset appears to be a single time-point snapshot.")
             else:
                 span = (df[datetime_cols[0]].max() - df[datetime_cols[0]].min())
-                findings.append(f"**Temporal Coverage:** Datetime column `{datetime_cols[0]}` detected, spanning {span}.")
+                findings.append(f"**Temporal Coverage:** Datetime column `{datetime_cols[0]}}` detected, spanning {span}}.")
 
             if cat_cols:
                 max_card = max(df[c].nunique() for c in cat_cols)
-                findings.append(f"**Demographic/Categorical Diversity:** {len(cat_cols)} categorical column(s); largest has {max_card} distinct levels.")
+                findings.append(f"**Demographic/Categorical Diversity:** {len(cat_cols)}} categorical column(s); largest has {max_card}} distinct levels.")
             else:
                 findings.append("**Demographic/Categorical Diversity:** No categorical grouping columns detected.")
 
             if dup_rate > 1:
-                findings.append(f"**Data Validation:** {dup_rate:.1f}% of rows are exact duplicates.")
+                findings.append(f"**Data Validation:** {dup_rate:.1f}}% of rows are exact duplicates.")
             if missing_rate > 5:
-                findings.append(f"**Data Completeness:** Average missingness across columns is {missing_rate:.1f}%.")
+                findings.append(f"**Data Completeness:** Average missingness across columns is {missing_rate:.1f}}%.")
 
-            findings.append(f"**Domain Context ({domain}):** Cross-check these dataset-level findings against domain validation standards.")
+            findings.append(f"**Domain Context ({domain}}):** Cross-check these dataset-level findings against domain validation standards.")
 
             for f in findings:
-                st.markdown(f"- {f}")
+                st.markdown(f"- {f}}")
             st.success("✅ Checklist generated from the properties of your active dataset.")
-            st.download_button("â¬‡ï¸ Download Checklist (.md)", data="\n".join(f"- {f}" for f in findings), file_name="methodology_checklist.md", mime="text/markdown", key="dl_checklist")
+            st.download_button("â¬‡ï¸ Download Checklist (.md)", data="\n".join(f"- {f}}" for f in findings), file_name="methodology_checklist.md", mime="text/markdown", key="dl_checklist")
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -559,3 +559,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

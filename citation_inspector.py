@@ -1,4 +1,4 @@
-
+﻿
 """
 Real-Time Citation Integrity & Retraction Inspector
 Audits paper bibliographies against live databases to protect researchers
@@ -49,14 +49,14 @@ class CitationInspector:
             result["sources_checked"].append("crossref")
             result["details"]["crossref"] = cr_result
             if cr_result.get("retracted"):
-                result["flags"].append({"type": "retracted", "severity": "critical", "message": f"RETRACTED: {cr_result.get('retraction_reason', 'Unknown reason')}", "source": "CrossRef"})
+                result["flags"].append({"type": "retracted", "severity": "critical", "message": f"RETRACTED: {cr_result.get('retraction_reason', 'Unknown reason')}}", "source": "CrossRef"}})
                 result["health_score"] -= 60; result["status"] = "retracted"
             if cr_result.get("expression_of_concern"):
-                result["flags"].append({"type": "expression_of_concern", "severity": "high", "message": "Expression of concern issued", "source": "CrossRef"})
+                result["flags"].append({"type": "expression_of_concern", "severity": "high", "message": "Expression of concern issued", "source": "CrossRef"}})
                 result["health_score"] -= 40
                 if result["status"] == "clean": result["status"] = "concerned"
             if cr_result.get("erratum"):
-                result["flags"].append({"type": "erratum", "severity": "low", "message": "Correction/erratum published", "source": "CrossRef"})
+                result["flags"].append({"type": "erratum", "severity": "low", "message": "Correction/erratum published", "source": "CrossRef"}})
                 result["health_score"] -= 10
         if year and year < 2000: result["health_score"] -= 5
         if not doi and title:
@@ -71,7 +71,7 @@ class CitationInspector:
         """Check CrossRef API for retraction/concern status."""
         result = {"retracted": False, "expression_of_concern": False, "erratum": False}
         try:
-            url = f"https://api.crossref.org/works/{doi}"
+            url = f"https://api.crossref.org/works/{doi}}"
             resp = self.session.get(url, timeout=15)
             if resp.status_code != 200: return result
             data = resp.json().get("message", {})
@@ -80,7 +80,7 @@ class CitationInspector:
                 if indicator in title_lower:
                     if indicator in ("retract", "retracted", "withdrawn", "withdrawal"):
                         result["retracted"] = True
-                        result["retraction_reason"] = f"Title indicates: {indicator}"
+                        result["retraction_reason"] = f"Title indicates: {indicator}}"
                     elif "concern" in indicator:
                         result["expression_of_concern"] = True
                     elif indicator in ("erratum", "correction"):
@@ -91,7 +91,7 @@ class CitationInspector:
                 if indicator in subtitle:
                     if indicator in ("retract", "retracted", "withdrawn"):
                         result["retracted"] = True
-                        result["retraction_reason"] = f"Subtitle indicates: {indicator}"
+                        result["retraction_reason"] = f"Subtitle indicates: {indicator}}"
                     elif "concern" in indicator:
                         result["expression_of_concern"] = True
                     elif indicator in ("erratum", "correction"):
@@ -134,10 +134,10 @@ class CitationInspector:
         }
 
     def get_health_label(self, score: int) -> str:
-        if score >= 80: return "ðŸŸ¢ Healthy"
-        if score >= 60: return "ðŸŸ¡ Caution"
-        if score >= 40: return "ðŸŸ  Concerned"
-        return "ðŸ”´ Critical"
+        if score >= 80: return "Ã°Å¸Å¸Â¢ Healthy"
+        if score >= 60: return "Ã°Å¸Å¸Â¡ Caution"
+        if score >= 40: return "Ã°Å¸Å¸Â  Concerned"
+        return "Ã°Å¸â€Â´ Critical"
 
     def get_health_color(self, score: int) -> str:
         if score >= 80: return "#2ecc71"
@@ -149,15 +149,15 @@ class CitationInspector:
 def render_citation_inspector_ui():
     """Render the Citation Inspector UI for Streamlit."""
     import streamlit as st
-    st.markdown("## ðŸš¨ Citation Integrity & Retraction Inspector")
+    st.markdown("## Ã°Å¸Å¡Â¨ Citation Integrity & Retraction Inspector")
     st.markdown("*Audits references against live databases to protect against citing discredited work*")
 
-    tab1, tab2, tab3 = st.tabs(["ðŸ” Single Citation Check", "ðŸ“š Bibliography Audit", " Dashboard"])
+    tab1, tab2, tab3 = st.tabs(["Ã°Å¸â€Â Single Citation Check", "Ã°Å¸â€œÅ¡ Bibliography Audit", " Dashboard"])
 
     inspector = CitationInspector()
 
     with tab1:
-        st.subheader("ðŸ” Check a Single Citation")
+        st.subheader("Ã°Å¸â€Â Check a Single Citation")
         col1, col2 = st.columns(2)
         with col1:
             doi = st.text_input("DOI", placeholder="10.1000/xyz123")
@@ -165,7 +165,7 @@ def render_citation_inspector_ui():
         with col2:
             authors = st.text_input("Authors (optional)", placeholder="Smith et al.")
             year = st.number_input("Year (optional)", min_value=1900, max_value=2030, value=0, step=1)
-        if st.button("ðŸ” Check Citation", type="primary") and (doi or title):
+        if st.button("Ã°Å¸â€Â Check Citation", type="primary") and (doi or title):
             with st.spinner("Checking citation integrity..."):
                 result = inspector.inspect_citation(doi, title, authors, year if year > 0 else None)
             score = result["health_score"]
@@ -178,35 +178,35 @@ def render_citation_inspector_ui():
             </div>
             """, unsafe_allow_html=True)
             if result["flags"]:
-                st.subheader("âš ï¸ Flags")
+                st.subheader("Ã¢Å¡Â Ã¯Â¸Â Flags")
                 for flag in result["flags"]:
                     sev_color = "#e74c3c" if flag["severity"] == "critical" else "#e67e22" if flag["severity"] == "high" else "#f1c40f"
-                    st.markdown(f'<div style="padding:0.6rem;border-left:4px solid {sev_color};background:{sev_color}08;margin:0.3rem 0;border-radius:6px;">âš ï¸ <strong>{flag["message"]}</strong></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="padding:0.6rem;border-left:4px solid {sev_color}};background:{sev_color}}08;margin:0.3rem 0;border-radius:6px;">Ã¢Å¡Â Ã¯Â¸Â <strong>{flag["message"]}}</strong></div>', unsafe_allow_html=True)
             if not result["flags"]:
-                st.success("✅ No issues detected  citation appears healthy")
-            with st.expander("📋 Raw check data"):
+                st.success("âœ… No issues detected  citation appears healthy")
+            with st.expander("ðŸ“‹ Raw check data"):
                 st.json(result)
 
     with tab2:
-        st.subheader("ðŸ“š Batch Bibliography Audit")
+        st.subheader("Ã°Å¸â€œÅ¡ Batch Bibliography Audit")
         st.caption("Check all papers from the current literature project")
 
         papers = []
         db_papers = st.session_state.get("lit_db_papers", [])
         if db_papers:
-            st.info(f"ðŸ“š Found {len(db_papers)} papers in current project")
-            if st.button("ðŸš€ Audit All Papers", type="primary", use_container_width=True):
-                with st.spinner(f"Checking {len(db_papers)} papers..."):
+            st.info(f"Ã°Å¸â€œÅ¡ Found {len(db_papers)}} papers in current project")
+            if st.button("Ã°Å¸Å¡â‚¬ Audit All Papers", type="primary", use_container_width=True):
+                with st.spinner(f"Checking {len(db_papers)}} papers..."):
                     audit = inspector.inspect_bibliography(db_papers)
                 st.session_state["citation_audit"] = audit
                 st.rerun()
         else:
             st.info("No papers loaded. Use the Literature Engine to harvest papers first.")
             sample = st.text_area("Or paste DOIs (one per line)", placeholder="10.1000/xyz123\n10.1000/abc456", height=100)
-            if st.button("📋 Check Pasted DOIs") and sample:
+            if st.button("ðŸ“‹ Check Pasted DOIs") and sample:
                 dois = [d.strip() for d in sample.split("\n") if d.strip()]
-                papers = [{"doi": d, "title": f"Paper from DOI: {d}"} for d in dois]
-                with st.spinner(f"Checking {len(papers)} papers..."):
+                papers = [{"doi": d, "title": f"Paper from DOI: {d}}"} for d in dois]
+                with st.spinner(f"Checking {len(papers)}} papers..."):
                     audit = inspector.inspect_bibliography(papers)
                 st.session_state["citation_audit"] = audit
                 st.rerun()
@@ -223,9 +223,9 @@ def render_citation_inspector_ui():
             """, unsafe_allow_html=True)
             col1, col2, col3, col4 = st.columns(4)
             with col1: st.metric("Total Checked", audit.get("total_checked", 0))
-            with col2: st.metric("✅ Clean", audit.get("clean", 0))
-            with col3: st.metric("âš ï¸ Flagged", audit.get("flagged", 0))
-            with col4: st.metric("ðŸ”´ Retracted", audit.get("retracted", 0))
+            with col2: st.metric("âœ… Clean", audit.get("clean", 0))
+            with col3: st.metric("Ã¢Å¡Â Ã¯Â¸Â Flagged", audit.get("flagged", 0))
+            with col4: st.metric("Ã°Å¸â€Â´ Retracted", audit.get("retracted", 0))
 
             results = audit.get("results", [])
             if results:
@@ -253,10 +253,11 @@ def render_citation_inspector_ui():
                     status_counts = df["status"].value_counts()
                     st.bar_chart(status_counts)
                 with col2:
-                    st.metric("Mean Health Score", f"{df['health_score'].mean():.1f}")
+                    st.metric("Mean Health Score", f"{df['health_score'].mean():.1f}}")
                     st.metric("Min Health Score", df["health_score"].min())
                     st.metric("Max Health Score", df["health_score"].max())
                 st.dataframe(df[["paper_title", "doi", "health_score", "status"]], use_container_width=True, hide_index=True)
         else:
             st.info("Run a bibliography audit first to see the dashboard")
+
 

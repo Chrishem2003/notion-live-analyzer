@@ -1,4 +1,4 @@
-import sqlite3
+﻿import sqlite3
 import datetime
 import streamlit as st
 from modules.paywall import enforce_paywall
@@ -27,8 +27,8 @@ def render_notion_template_vault():
 
     user_email = st.session_state.get("user_identity", {}).get("email", "")
 
-    st.title("🗄️ Bio-Research Enterprise Planner - Notion Vault")
-    st.info("🔒 **Single-Duplication License:** This template is protected. Duplication link is restricted exclusively to active paid subscribers.")
+    st.title("ðŸ—„ï¸ Bio-Research Enterprise Planner - Notion Vault")
+    st.info("ðŸ”’ **Single-Duplication License:** This template is protected. Duplication link is restricted exclusively to active paid subscribers.")
 
     conn = sqlite3.connect("sovereign_apex_engine.db")
     cursor = conn.cursor()
@@ -45,15 +45,15 @@ def render_notion_template_vault():
 
     with col2:
         st.markdown("### Template Duplication Access")
-        st.write(f"**License Status:** Active Paid License (`{user_email}`)")
-        st.write(f"**Duplications Used:** `{claim_count} / 1`")
+        st.write(f"**License Status:** Active Paid License (`{user_email}}`)")
+        st.write(f"**Duplications Used:** `{claim_count}} / 1`")
 
         if claim_count >= 1:
-            st.warning("⚠️ You have already claimed your 1-time Notion duplication access.")
-            if st.button("🔗 Re-open Licensed Duplicate Link"):
-                st.markdown(f"👉 [Click to open Notion Workspace]({NOTION_TEMPLATE_URL})")
+            st.warning("âš ï¸ You have already claimed your 1-time Notion duplication access.")
+            if st.button("ðŸ”— Re-open Licensed Duplicate Link"):
+                st.markdown(f"ðŸ‘‰ [Click to open Notion Workspace]({NOTION_TEMPLATE_URL}})")
         else:
-            if st.button("⚡ Claim & Duplicate to Notion Space", type="primary"):
+            if st.button("âš¡ Claim & Duplicate to Notion Space", type="primary"):
                 now_str = datetime.datetime.now().isoformat()
                 cursor.execute(
                     "INSERT INTO template_claims (email, claimed_at, duplication_count) VALUES (?, ?, 1) "
@@ -61,8 +61,8 @@ def render_notion_template_vault():
                     (user_email, now_str)
                 )
                 conn.commit()
-                st.success("✅ Duplication clearance granted!")
-                st.markdown(f"👉 **[Click here to duplicate into your Notion Workspace]({NOTION_TEMPLATE_URL})**")
+                st.success("âœ… Duplication clearance granted!")
+                st.markdown(f"ðŸ‘‰ **[Click here to duplicate into your Notion Workspace]({NOTION_TEMPLATE_URL}})**")
                 st.rerun()
 
     conn.close()

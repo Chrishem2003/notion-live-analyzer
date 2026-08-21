@@ -1,11 +1,11 @@
-import streamlit as st
+﻿import streamlit as st
 from modules.paywall import enforce_paywall
 
 def render_brain_fm_studio():
     # Enforce strict paid paywall (No trials allowed)
     enforce_paywall(allowed_plans=["pro", "business", "premium"], feature_name="Brain FM Focus Soundscapes", allow_trial=False)
 
-    st.title("🧠 Brain FM & Neural Focus Soundscapes")
+    st.title("ðŸ§  Brain FM & Neural Focus Soundscapes")
     st.caption("Acoustic brainwave entrainment to enhance deep focus and cognitive flow.")
 
     sound_type = st.selectbox(
@@ -20,12 +20,12 @@ def render_brain_fm_studio():
         "Ambient Rain & Coffee Shop (Calm Flow)": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
     }
 
-    st.markdown(f"#### Currently Playing: **{sound_type}**")
+    st.markdown(f"#### Currently Playing: **{sound_type}}**")
     st.audio(audio_sources[sound_type], format="audio/mp3", loop=True)
 
     st.markdown("""
         ---
-        **🧠 How Brainwave Entrainment Works:**
+        **ðŸ§  How Brainwave Entrainment Works:**
         * **40Hz Beta/Gamma:** Stimulates neural synchronization for complex problem solving and coding.
         * **10Hz Alpha:** Reduces anxiety and visual clutter while maintaining cognitive alertness.
     """)

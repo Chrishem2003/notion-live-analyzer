@@ -1,6 +1,6 @@
-"""
-CHRISHEM Unified Session Manager — central data state management.
-Ensures datasets flow seamlessly across all hub pages (Data Studio → Statistics → ML → Visualization → Export).
+﻿"""
+CHRISHEM Unified Session Manager â€” central data state management.
+Ensures datasets flow seamlessly across all hub pages (Data Studio â†’ Statistics â†’ ML â†’ Visualization â†’ Export).
 """
 
 import hashlib
@@ -13,9 +13,9 @@ import pandas as pd
 import streamlit as st
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # SESSION STATE KEYS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 DATA_KEYS = ["uploaded_df", "active_df", "working_df", "working_transform_df", "notion_df"]
 
 ALIASES = {
@@ -142,7 +142,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
     np.random.seed(42)
     if kind == "clinical":
         return pd.DataFrame({
-            "Patient_ID": [f"PT-{i:04d}" for i in range(1, 151)],
+            "Patient_ID": [f"PT-{i:04d}}" for i in range(1, 151)],
             "Age": np.random.randint(22, 78, 150),
             "Gender": np.random.choice(["Male", "Female"], 150),
             "Weight_kg": np.round(np.random.normal(74, 14, 150), 1),
@@ -155,7 +155,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     elif kind == "marketing":
         return pd.DataFrame({
-            "Customer_ID": [f"CUST-{i:05d}" for i in range(1, 201)],
+            "Customer_ID": [f"CUST-{i:05d}}" for i in range(1, 201)],
             "Age": np.random.randint(18, 65, 200),
             "Region": np.random.choice(["North", "South", "East", "West"], 200),
             "Annual_Income": np.round(np.random.uniform(25000, 150000, 200), 2),
@@ -164,7 +164,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     elif kind == "sales":
         return pd.DataFrame({
-            "Order_ID": [f"ORD-{i:05d}" for i in range(1, 301)],
+            "Order_ID": [f"ORD-{i:05d}}" for i in range(1, 301)],
             "Date": pd.date_range(end=datetime.date.today(), periods=300, freq="D"),
             "Product_Category": np.random.choice(["Electronics", "Apparel", "Groceries", "Furniture"], 300),
             "Units_Sold": np.random.randint(1, 50, 300),
@@ -173,7 +173,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     elif kind == "genomic":
         return pd.DataFrame({
-            "Gene_ID": [f"GENE-{i:04d}" for i in range(1, 101)],
+            "Gene_ID": [f"GENE-{i:04d}}" for i in range(1, 101)],
             "Expression_Level": np.round(np.random.normal(12.5, 3.5, 100), 2),
             "Protein_Density": np.round(np.random.uniform(0.1, 8.0, 100), 2),
             "Mutation_Count": np.random.randint(0, 15, 100),
@@ -181,7 +181,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     elif kind == "survey":
         return pd.DataFrame({
-            "Respondent_ID": [f"RESP-{i:04d}" for i in range(1, 251)],
+            "Respondent_ID": [f"RESP-{i:04d}}" for i in range(1, 251)],
             "Age_Group": np.random.choice(["18-25", "26-35", "36-45", "46-60", "60+"], 250),
             "Satisfaction_Score": np.random.randint(1, 6, 250),
             "NPS_Category": np.random.choice(["Detractor", "Passive", "Promoter"], 250),
@@ -189,7 +189,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     else:  # research cohort
         return pd.DataFrame({
-            "Subject_ID": [f"SUBJ-{2000 + i}" for i in range(250)],
+            "Subject_ID": [f"SUBJ-{2000 + i}}" for i in range(250)],
             "Age": np.random.randint(18, 75, size=250),
             "Biomarker_A": np.round(np.random.normal(190.0, 30.0, size=250), 1),
             "Biomarker_B": np.round(np.random.normal(98.0, 15.0, size=250), 1),
@@ -204,11 +204,11 @@ def render_sidebar_data_hud():
     """
     summary = dataset_summary()
     st.sidebar.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
-    st.sidebar.markdown("### 📊 Active Dataset")
+    st.sidebar.markdown("### ðŸ“Š Active Dataset")
 
     if summary is None:
         st.sidebar.warning("No dataset loaded")
-        if st.sidebar.button("🎲 Load Sample Data", use_container_width=True):
+        if st.sidebar.button("ðŸŽ² Load Sample Data", use_container_width=True):
             set_active_dataframe(generate_sample_dataset(), "sample_research_cohort.csv")
             st.rerun()
         return
@@ -217,9 +217,9 @@ def render_sidebar_data_hud():
         f"""
         <div style="background:#0b1321; border:1px solid #1e293b; border-radius:10px; padding:0.8rem;">
             <div style="font-size:0.75rem; color:#94a3b8; text-transform:uppercase; font-weight:700;">{summary['source']}</div>
-            <div style="font-size:1.1rem; font-weight:800; color:#00f2fe; margin:0.2rem 0;">{summary['rows']:,} rows × {summary['cols']} cols</div>
+            <div style="font-size:1.1rem; font-weight:800; color:#00f2fe; margin:0.2rem 0;">{summary['rows']:,} rows Ã— {summary['cols']} cols</div>
             <div style="font-size:0.8rem; color:#cbd5e1;">
-                🔢 {summary['numeric']} numeric | 🏷️ {summary['categorical']} categorical | ⚠️ {summary['missing']:,} missing
+                ðŸ”¢ {summary['numeric']} numeric | ðŸ·ï¸ {summary['categorical']} categorical | âš ï¸ {summary['missing']:,} missing
             </div>
             <div style="font-size:0.7rem; color:#64748b; font-family:monospace; margin-top:0.3rem;">SHA: {summary['checksum']}...</div>
         </div>
@@ -227,9 +227,10 @@ def render_sidebar_data_hud():
         unsafe_allow_html=True,
     )
 
-    if st.sidebar.button("🗑️ Clear Dataset", use_container_width=True):
+    if st.sidebar.button("ðŸ—‘ï¸ Clear Dataset", use_container_width=True):
         for key in DATA_KEYS:
             if key in st.session_state:
                 del st.session_state[key]
         st.session_state["data_source"] = "none"
         st.rerun()
+

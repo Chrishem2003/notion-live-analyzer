@@ -1,4 +1,4 @@
-import sqlite3
+﻿import sqlite3
 import glob
 
 db_files = glob.glob('**/*.db', recursive=True)
@@ -6,7 +6,7 @@ if not db_files:
     db_files = ['sovereign_apex_engine.db']
 
 for db_path in db_files:
-    print(f"Patching database: {db_path}")
+    print(f"Patching database: {db_path}}")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -23,10 +23,10 @@ for db_path in db_files:
 
     for table, column, col_type in migrations:
         try:
-            cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
-            print(f"  -> Added missing column '{column}' to '{table}'.")
+            cursor.execute(f"ALTER TABLE {table}} ADD COLUMN {column}} {col_type}}")
+            print(f"  -> Added missing column '{column}}' to '{table}}'.")
         except sqlite3.OperationalError:
-            print(f"  -> Column '{column}' already exists in '{table}'.")
+            print(f"  -> Column '{column}}' already exists in '{table}}'.")
 
     conn.commit()
     conn.close()

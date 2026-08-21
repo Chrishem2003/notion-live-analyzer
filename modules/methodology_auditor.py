@@ -1,9 +1,9 @@
-
+﻿
 """
 Active Bias & Methodological Flaw Detector  AI-driven "Peer Reviewer"
 Critically audits research methodology sections, sample sizes, experimental setups.
 Flags small sample sizes, unaddressed confounding variables, statistical over-claims,
-p-hacking risks, selection bias, and assigns overall "Methodological Rigor Score" (0â€“100%).
+p-hacking risks, selection bias, and assigns overall "Methodological Rigor Score" (0Ã¢â‚¬â€œ100%).
 
 Core Capabilities:
   - Line-by-line methodology auditing with evidence citations
@@ -12,7 +12,7 @@ Core Capabilities:
   - Statistical over-claim detection
   - P-hacking risk assessment
   - Selection bias detection
-  - Overall Methodological Rigor Score (0â€“100%)
+  - Overall Methodological Rigor Score (0Ã¢â‚¬â€œ100%)
   - Publication-ready audit report generation
 """
 from __future__ import annotations
@@ -30,9 +30,9 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 1. METHODOLOGY FLAW KNOWLEDGE BASE
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 # Common methodological flaws with detection patterns and severity weights
 METHODOLOGY_FLAWS = {
@@ -136,12 +136,12 @@ METHODOLOGY_FLAWS = {
         "patterns": [
             r"\b(?:Cohens?\s*[dD]|[dD]\s*=)",
             r"\beta[- ]?squared\b",
-            r"\b(?:\u03b7|\u03b7)Â²\b",
-            r"\bpartial\s\u03b7Â²\b",
+            r"\b(?:\u03b7|\u03b7)Ã‚Â²\b",
+            r"\bpartial\s\u03b7Ã‚Â²\b",
             r"\b(?:odds\sratio|OR|risk\sratio|RR|hazards?\sratio|HR)",
             r"\beffect\ssize\b",
         ],
-        "recommendation": "Report effect sizes with confidence intervals for all primary analyses (Cohen's d, Î·Â², r, OR, etc.) as recommended by APA 7th edition.",
+        "recommendation": "Report effect sizes with confidence intervals for all primary analyses (Cohen's d, ÃŽÂ·Ã‚Â², r, OR, etc.) as recommended by APA 7th edition.",
     },
     "normality_unchecked": {
         "label": "Normality Assumption Not Checked",
@@ -214,9 +214,9 @@ STUDY_DESIGNS = {
 }
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 2. METHODOLOGY AUDITOR ENGINE
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 class MethodologyAuditor:
     """
     Full methodology audit engine  scans research text for methodological flaws,
@@ -273,8 +273,8 @@ class MethodologyAuditor:
 
         findings.append({
             "type": "design_detected",
-            "label": f"Study Design: {design_detected}",
-            "detail": f"Detected study design: {design_detected}",
+            "label": f"Study Design: {design_detected}}",
+            "detail": f"Detected study design: {design_detected}}",
             "severity": "info",
         })
 
@@ -300,7 +300,7 @@ class MethodologyAuditor:
                 if is_present:
                     findings.append({
                         "type": flaw_key,
-                        "label": f"✅ {flaw_def['label']}  Present",
+                        "label": f"âœ… {flaw_def['label']}}  Present",
                         "detail": "Power analysis or sample size justification was found.",
                         "severity": "good",
                         "recommendation": None,
@@ -308,7 +308,7 @@ class MethodologyAuditor:
                 else:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âŒ {flaw_def['label']}  Missing",
+                        "label": f"Ã¢ÂÅ’ {flaw_def['label']}}  Missing",
                         "detail": "No power analysis or sample size justification detected.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -318,7 +318,7 @@ class MethodologyAuditor:
                 if not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âŒ {flaw_def['label']}  Not Addressed",
+                        "label": f"Ã¢ÂÅ’ {flaw_def['label']}}  Not Addressed",
                         "detail": "No mention of confounding variables or covariate adjustment.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -328,7 +328,7 @@ class MethodologyAuditor:
                 if is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âš ï¸ {flaw_def['label']}  Possible Indicators",
+                        "label": f"Ã¢Å¡Â Ã¯Â¸Â {flaw_def['label']}}  Possible Indicators",
                         "detail": "Text contains phrases associated with p-hacking (multiple tests, data-driven, subgroup analyses without correction).",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -338,7 +338,7 @@ class MethodologyAuditor:
                 if is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âš ï¸ {flaw_def['label']}  Possible Indicators",
+                        "label": f"Ã¢Å¡Â Ã¯Â¸Â {flaw_def['label']}}  Possible Indicators",
                         "detail": "Text mentions sampling or selection methods that may introduce bias.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -348,8 +348,8 @@ class MethodologyAuditor:
                 if design_detected in ("RCT", "Experimental") and not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âŒ {flaw_def['label']}  Required but Not Mentioned",
-                        "detail": f"Study design '{design_detected}' requires randomization, but no randomization procedures are described.",
+                        "label": f"Ã¢ÂÅ’ {flaw_def['label']}}  Required but Not Mentioned",
+                        "detail": f"Study design '{design_detected}}' requires randomization, but no randomization procedures are described.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
                         "recommendation": flaw_def["recommendation"],
@@ -358,8 +358,8 @@ class MethodologyAuditor:
                 if design_detected in ("RCT", "Experimental") and not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âš ï¸ {flaw_def['label']}  Not Mentioned",
-                        "detail": f"Study design '{design_detected}' typically benefits from blinding, but no blinding procedures are described.",
+                        "label": f"Ã¢Å¡Â Ã¯Â¸Â {flaw_def['label']}}  Not Mentioned",
+                        "detail": f"Study design '{design_detected}}' typically benefits from blinding, but no blinding procedures are described.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
                         "recommendation": flaw_def["recommendation"],
@@ -368,7 +368,7 @@ class MethodologyAuditor:
                 if not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âŒ {flaw_def['label']}",
+                        "label": f"Ã¢ÂÅ’ {flaw_def['label']}}",
                         "detail": "No effect sizes detected in the methodology/results text.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -378,7 +378,7 @@ class MethodologyAuditor:
                 if not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âš ï¸ {flaw_def['label']}",
+                        "label": f"Ã¢Å¡Â Ã¯Â¸Â {flaw_def['label']}}",
                         "detail": "No mention of normality testing or assumption checking.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -388,7 +388,7 @@ class MethodologyAuditor:
                 if is_present and not re.search(r"(Bonferroni|FDR|Holm|Tukey|Sidak|Benjamini)", text_lower):
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âš ï¸ {flaw_def['label']}",
+                        "label": f"Ã¢Å¡Â Ã¯Â¸Â {flaw_def['label']}}",
                         "detail": "Multiple tests mentioned but no correction method detected.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -398,8 +398,8 @@ class MethodologyAuditor:
                 if design_detected in ("Longitudinal", "Cohort", "RCT") and not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âš ï¸ {flaw_def['label']}",
-                        "detail": f"Study design '{design_detected}' is longitudinal, but attrition/dropout is not reported.",
+                        "label": f"Ã¢Å¡Â Ã¯Â¸Â {flaw_def['label']}}",
+                        "detail": f"Study design '{design_detected}}' is longitudinal, but attrition/dropout is not reported.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
                         "recommendation": flaw_def["recommendation"],
@@ -408,7 +408,7 @@ class MethodologyAuditor:
                 if not is_present:
                     flaws.append({
                         "type": flaw_key,
-                        "label": f"âš ï¸ {flaw_def['label']}",
+                        "label": f"Ã¢Å¡Â Ã¯Â¸Â {flaw_def['label']}}",
                         "detail": "No data/code availability, preregistration, or reproducibility information found.",
                         "severity": flaw_def["severity"],
                         "weight": flaw_def["weight"],
@@ -420,7 +420,7 @@ class MethodologyAuditor:
         for claim in over_claims:
             flaws.append({
                 "type": "statistical_overclaim",
-                "label": f"âš ï¸ {claim['label']}",
+                "label": f"Ã¢Å¡Â Ã¯Â¸Â {claim['label']}}",
                 "detail": claim["detail"],
                 "severity": claim["severity"],
                 "weight": claim["weight"],
@@ -510,7 +510,7 @@ class MethodologyAuditor:
         if sample_size is None:
             return {
                 "type": "sample_size_unknown",
-                "label": "âŒ Sample Size Not Reported",
+                "label": "Ã¢ÂÅ’ Sample Size Not Reported",
                 "detail": "No sample size could be detected from the methodology text.",
                 "severity": "high",
                 "weight": 20,
@@ -521,17 +521,17 @@ class MethodologyAuditor:
         if sample_size < min_n:
             return {
                 "type": "sample_size_small",
-                "label": f"âŒ Small Sample Size (N = {sample_size})",
-                "detail": f"Detected sample size N = {sample_size}. For '{design}' designs, minimum recommended is {min_n} per group.",
+                "label": f"Ã¢ÂÅ’ Small Sample Size (N = {sample_size}})",
+                "detail": f"Detected sample size N = {sample_size}}. For '{design}}' designs, minimum recommended is {min_n}} per group.",
                 "severity": "high" if sample_size < min_n * 0.5 else "medium",
                 "weight": 25 if sample_size < min_n * 0.5 else 18,
-                "recommendation": f"Increase sample size to at least {min_n} per group. Consider power analysis to determine adequate N.",
+                "recommendation": f"Increase sample size to at least {min_n}} per group. Consider power analysis to determine adequate N.",
             }
         else:
             return {
                 "type": "sample_size_adequate",
-                "label": f"✅ Adequate Sample Size (N = {sample_size})",
-                "detail": f"Sample size N = {sample_size} meets minimum recommendation for '{design}' designs (â‰¥{min_n}).",
+                "label": f"âœ… Adequate Sample Size (N = {sample_size}})",
+                "detail": f"Sample size N = {sample_size}} meets minimum recommendation for '{design}}' designs (Ã¢â€°Â¥{min_n}}).",
                 "severity": "good",
                 "weight": 0,
                 "recommendation": None,
@@ -582,8 +582,8 @@ class MethodologyAuditor:
             })
 
         # Pattern: significance without effect size
-        if re.search(r"\b(?:significant|p\s*[<â‰¤]\s*0\.0\d)\b", text) and \
-           not re.search(r"\b(?:d\s*=|Î·Â²|eta[\s-]squared|Cram[eÃ¨]r|odds\sratio|cohen)", text):
+        if re.search(r"\b(?:significant|p\s*[<Ã¢â€°Â¤]\s*0\.0\d)\b", text) and \
+           not re.search(r"\b(?:d\s*=|ÃŽÂ·Ã‚Â²|eta[\s-]squared|Cram[eÃƒÂ¨]r|odds\sratio|cohen)", text):
             overclaims.append({
                 "label": "Statistical Significance Without Effect Size",
                 "detail": "Statistical significance is mentioned but no effect sizes are reported to indicate practical significance.",
@@ -654,31 +654,31 @@ class MethodologyAuditor:
     def generate_audit_report(self, audit_results: Dict[str, Any]) -> str:
         """Generate a formatted text report from audit results."""
         lines = [
-            "â•" * 70,
+            "Ã¢â€¢Â" * 70,
             "METHODOLOGICAL RIGOR AUDIT REPORT",
-            f"Generated: {audit_results.get('audited_at', 'N/A')}",
-            "â•" * 70,
+            f"Generated: {audit_results.get('audited_at', 'N/A')}}",
+            "Ã¢â€¢Â" * 70,
             "",
-            f"OVERALL RIGOR SCORE: {audit_results.get('rigor_score', 0)}/100  "
-            f"{audit_results.get('rigor_label', 'N/A')}",
-            f"Study Design: {audit_results.get('design_detected', 'Unknown')}",
-            f"Sample Size: {audit_results.get('detected_sample_size', 'Not detected')}",
+            f"OVERALL RIGOR SCORE: {audit_results.get('rigor_score', 0)}}/100  "
+            f"{audit_results.get('rigor_label', 'N/A')}}",
+            f"Study Design: {audit_results.get('design_detected', 'Unknown')}}",
+            f"Sample Size: {audit_results.get('detected_sample_size', 'Not detected')}}",
             "",
-            "â”€" * 40,
+            "Ã¢â€â‚¬" * 40,
             "FLAWS DETECTED",
-            "â”€" * 40,
+            "Ã¢â€â‚¬" * 40,
         ]
 
         flaws = audit_results.get("flaws", [])
         if flaws:
             for f in flaws:
-                severity_icon = {"high": "ðŸ”´", "medium": "ðŸŸ¡", "low": "ðŸŸ ", "good": "✅", "info": "â„¹ï¸"}.get(
-                    f.get("severity", "low"), "âšª"
+                severity_icon = {"high": "Ã°Å¸â€Â´", "medium": "Ã°Å¸Å¸Â¡", "low": "Ã°Å¸Å¸Â ", "good": "âœ…", "info": "Ã¢â€žÂ¹Ã¯Â¸Â"}.get(
+                    f.get("severity", "low"), "Ã¢Å¡Âª"
                 )
-                lines.append(f"{severity_icon} {f['label']}")
-                lines.append(f"   {f.get('detail', '')}")
+                lines.append(f"{severity_icon}} {f['label']}}")
+                lines.append(f"   {f.get('detail', '')}}")
                 if f.get("recommendation"):
-                    lines.append(f"   ðŸ’¡ {f['recommendation']}")
+                    lines.append(f"   Ã°Å¸â€™Â¡ {f['recommendation']}}")
                 lines.append("")
         else:
             lines.append("No methodological flaws detected.")
@@ -686,58 +686,58 @@ class MethodologyAuditor:
 
         recommendations = audit_results.get("recommendations", [])
         if recommendations:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("RECOMMENDATIONS FOR IMPROVEMENT")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for i, rec in enumerate(recommendations, 1):
-                lines.append(f"{i}. {rec}")
+                lines.append(f"{i}}. {rec}}")
             lines.append("")
 
         strengths = audit_results.get("strengths", [])
         if strengths:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("STRENGTHS")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for s in strengths:
-                lines.append(f"✅ {s}")
+                lines.append(f"âœ… {s}}")
             lines.append("")
 
-        lines.append("â•" * 70)
+        lines.append("Ã¢â€¢Â" * 70)
         lines.append("END OF AUDIT REPORT")
-        lines.append("â•" * 70)
+        lines.append("Ã¢â€¢Â" * 70)
 
         return "\n".join(lines)
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 3. UI RENDERER
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 def render_methodology_auditor_ui():
     """Render the Methodology Auditor UI for Streamlit."""
     import streamlit as st
 
-    st.markdown("## ðŸ”¬ Active Bias & Methodological Flaw Detector")
+    st.markdown("## Ã°Å¸â€Â¬ Active Bias & Methodological Flaw Detector")
     st.markdown("*AI-driven 'Peer Reviewer' that critically audits research methodology  flags flaws, assigns Rigor Score*")
 
     tab1, tab2, tab3 = st.tabs([
-        "ðŸ“ Input & Audit",
+        "Ã°Å¸â€œÂ Input & Audit",
         " Rigor Score Dashboard",
-        "ðŸ“„ Audit Report",
+        "Ã°Å¸â€œâ€ž Audit Report",
     ])
 
     auditor = MethodologyAuditor()
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 1: Input & Audit
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     with tab1:
-        st.subheader("ðŸ“ Enter Methodology Text for Audit")
+        st.subheader("Ã°Å¸â€œÂ Enter Methodology Text for Audit")
 
         input_method = st.radio(
             "Input method",
             options=[
-                "âœï¸ Paste Methodology Text",
-                "📋 Load from Active Report Sections",
+                "Ã¢Å“ÂÃ¯Â¸Â Paste Methodology Text",
+                "ðŸ“‹ Load from Active Report Sections",
             ],
             horizontal=True,
             key="audit_input_method",
@@ -747,7 +747,7 @@ def render_methodology_auditor_ui():
         detected_design = None
         detected_n = None
 
-        if input_method == "âœï¸ Paste Methodology Text":
+        if input_method == "Ã¢Å“ÂÃ¯Â¸Â Paste Methodology Text":
             text_to_audit = st.text_area(
                 "Paste the methodology section, experimental setup, or research description:",
                 height=300,
@@ -770,7 +770,7 @@ def render_methodology_auditor_ui():
                 )
                 detected_n = detected_n if detected_n > 0 else None
 
-        elif input_method == "📋 Load from Active Report Sections":
+        elif input_method == "ðŸ“‹ Load from Active Report Sections":
             st.info("Load methodology content from the Literature Engine's report sections.")
             db_path = None
             try:
@@ -781,7 +781,7 @@ def render_methodology_auditor_ui():
                     selected_project = st.selectbox(
                         "Select project",
                         options=projects,
-                        format_func=lambda p: f"{p.get('name', 'Untitled')}  {p.get('topic', '')}",
+                        format_func=lambda p: f"{p.get('name', 'Untitled')}}  {p.get('topic', '')}}",
                         key="audit_project_select",
                     )
                     if selected_project:
@@ -797,21 +797,21 @@ def render_methodology_auditor_ui():
                                 if sec.get("content", "").strip():
                                     text_to_audit = sec.get("content", "")
                                     break
-                        st.info(f"Loaded from project '{selected_project.get('name', '')}'  {len(text_to_audit)} characters")
+                        st.info(f"Loaded from project '{selected_project.get('name', '')}}'  {len(text_to_audit)}} characters")
                 else:
                     st.info("No projects found. Use the Literature Engine first.")
             except Exception as e:
-                st.warning(f"Could not load from Literature Engine: {e}")
+                st.warning(f"Could not load from Literature Engine: {e}}")
 
         # Audit button
         col1, col2 = st.columns([3, 1])
         with col1:
-            run_audit = st.button("ðŸ” Run Methodology Audit", type="primary", use_container_width=True)
+            run_audit = st.button("Ã°Å¸â€Â Run Methodology Audit", type="primary", use_container_width=True)
         with col2:
-            st.caption(f"Characters: {len(text_to_audit):,}")
+            st.caption(f"Characters: {len(text_to_audit):,}}")
 
         if run_audit and text_to_audit.strip():
-            with st.spinner("ðŸ” Auditing methodology..."):
+            with st.spinner("Ã°Å¸â€Â Auditing methodology..."):
                 results = auditor.audit_methodology(
                     text=text_to_audit,
                     study_design=detected_design,
@@ -822,7 +822,7 @@ def render_methodology_auditor_ui():
                 st.error(results["error"])
             else:
                 st.session_state["_last_audit_results"] = results
-                st.success(f"✅ Audit complete! Rigor Score: {results['rigor_score']}/100  {results['rigor_label']}")
+                st.success(f"âœ… Audit complete! Rigor Score: {results['rigor_score']}}/100  {results['rigor_label']}}")
                 st.rerun()
 
         elif run_audit:
@@ -840,14 +840,14 @@ def render_methodology_auditor_ui():
                 <span style="font-size:1.1rem;color:{color};">/100  {results['rigor_label']}</span>
                 <br>
                 <span style="font-size:0.9rem;color:#64748b;">
-                    ðŸ”´ {results.get('critical_flaws', 0)} critical | ðŸŸ¡ {results.get('moderate_flaws', 0)} moderate | ðŸŸ  {results.get('low_flaws', 0)} minor
+                    Ã°Å¸â€Â´ {results.get('critical_flaws', 0)} critical | Ã°Å¸Å¸Â¡ {results.get('moderate_flaws', 0)} moderate | Ã°Å¸Å¸Â  {results.get('low_flaws', 0)} minor
                 </span>
             </div>
             """, unsafe_allow_html=True)
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 2: Rigor Score Dashboard
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     with tab2:
         results = st.session_state.get("_last_audit_results")
         if not results:
@@ -883,12 +883,12 @@ def render_methodology_auditor_ui():
                          delta_color="inverse")
 
             # Flaw breakdown
-            st.subheader("ðŸ” Flaw Breakdown")
+            st.subheader("Ã°Å¸â€Â Flaw Breakdown")
             flaws = results.get("flaws", [])
             if flaws:
                 for f in flaws:
                     sev = f.get("severity", "low")
-                    sev_icon = {"high": "ðŸ”´", "medium": "ðŸŸ¡", "low": "ðŸŸ ", "good": "✅", "info": "â„¹ï¸"}.get(sev, "âšª")
+                    sev_icon = {"high": "Ã°Å¸â€Â´", "medium": "Ã°Å¸Å¸Â¡", "low": "Ã°Å¸Å¸Â ", "good": "âœ…", "info": "Ã¢â€žÂ¹Ã¯Â¸Â"}.get(sev, "Ã¢Å¡Âª")
                     sev_color = {"high": "#e74c3c", "medium": "#e67e22", "low": "#f39c12", "good": "#2ecc71", "info": "#3498db"}.get(sev, "#95a5a6")
 
                     st.markdown(f"""
@@ -896,40 +896,40 @@ def render_methodology_auditor_ui():
                                 border-left:4px solid {sev_color};background:{sev_color}08;">
                         <strong>{sev_icon} {f['label']}</strong><br>
                         <span style="font-size:0.9rem;">{f.get('detail', '')}</span>
-                        {f'<br><span style="font-size:0.85rem;color:#64748b;">ðŸ’¡ {f["recommendation"]}</span>' if f.get("recommendation") else ''}
+                        {f'<br><span style="font-size:0.85rem;color:#64748b;">Ã°Å¸â€™Â¡ {f["recommendation"]}}</span>' if f.get("recommendation") else ''}
                     </div>
                     """, unsafe_allow_html=True)
             else:
-                st.success("✅ No methodological flaws detected!")
+                st.success("âœ… No methodological flaws detected!")
 
             # Strengths
             strengths = results.get("strengths", [])
             if strengths:
-                st.subheader("✅ Strengths")
+                st.subheader("âœ… Strengths")
                 for s in strengths:
-                    st.markdown(f"✅ {s}")
+                    st.markdown(f"âœ… {s}}")
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 3: Audit Report
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     with tab3:
         results = st.session_state.get("_last_audit_results")
         if not results:
             st.info("Run an audit first in the **Input & Audit** tab.")
         else:
-            st.subheader("ðŸ“„ Audit Report")
+            st.subheader("Ã°Å¸â€œâ€ž Audit Report")
 
             report_text = auditor.generate_audit_report(results)
 
-            st.markdown(f"```\n{report_text}\n```")
+            st.markdown(f"```\n{report_text}}\n```")
 
             # Download
             import base64
             b64 = base64.b64encode(report_text.encode()).decode()
             st.markdown(
-                f'<a href="data:text/plain;base64,{b64}" download="methodology_audit_report.txt" '
+                f'<a href="data:text/plain;base64,{b64}}" download="methodology_audit_report.txt" '
                 f'style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;'
-                f'border-radius:8px;text-decoration:none;font-weight:600;">📥 Download Audit Report</a>',
+                f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download Audit Report</a>',
                 unsafe_allow_html=True,
             )
 
@@ -938,6 +938,7 @@ def render_methodology_auditor_ui():
             st.markdown(
                 f"""<button onclick="navigator.clipboard.writeText(`{escaped}`)"
                     style="padding:10px 20px;background:#059669;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;margin-left:0.5rem;">
-                    📋 Copy Report</button>""",
+                    ðŸ“‹ Copy Report</button>""",
                 unsafe_allow_html=True,
             )
+

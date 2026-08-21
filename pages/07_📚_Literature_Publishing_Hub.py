@@ -59,7 +59,7 @@ def search_crossref(query: str, n_results: int, sort_by: str, contact_email: str
             params["sort"], params["order"] = "score", "desc"
 
         email = contact_email.strip() if contact_email else "researcher@university.edu"
-        headers = {"User-Agent": f"ChrishemProductionHub/2.0 (mailto:{email})"}
+        headers = {"User-Agent": f"ChrishemProductionHub/2.0 (mailto:{email}})"}
         resp = requests.get(
             "https://api.crossref.org/works",
             params=params,
@@ -78,8 +78,8 @@ def search_crossref(query: str, n_results: int, sort_by: str, contact_email: str
             if authors:
                 first_fam = authors[0].get('family', 'Unknown')
                 first_giv = authors[0].get('given', '')
-                initial = f"{first_giv[0]}." if first_giv else ""
-                first_author = f"{first_fam}, {initial}".strip()
+                initial = f"{first_giv[0]}}." if first_giv else ""
+                first_author = f"{first_fam}}, {initial}}".strip()
                 if len(authors) > 1:
                     first_author += " et al."
             else:
@@ -193,13 +193,13 @@ def convert_to_ris(refs: list) -> str:
     ris_lines = []
     for r in refs:
         ris_lines.append("TY  - JOUR" if r.get("entry_type") == "article" else "TY  - GEN")
-        ris_lines.append(f"TI  - {r.get('title', '')}")
-        ris_lines.append(f"AU  - {r.get('authors', '')}")
-        ris_lines.append(f"JO  - {r.get('journal', '')}")
-        ris_lines.append(f"VL  - {r.get('volume', '')}")
-        ris_lines.append(f"SP  - {r.get('pages', '')}")
-        ris_lines.append(f"PY  - {r.get('year', '')}")
-        ris_lines.append(f"DO  - {r.get('doi', '')}")
+        ris_lines.append(f"TI  - {r.get('title', '')}}")
+        ris_lines.append(f"AU  - {r.get('authors', '')}}")
+        ris_lines.append(f"JO  - {r.get('journal', '')}}")
+        ris_lines.append(f"VL  - {r.get('volume', '')}}")
+        ris_lines.append(f"SP  - {r.get('pages', '')}}")
+        ris_lines.append(f"PY  - {r.get('year', '')}}")
+        ris_lines.append(f"DO  - {r.get('doi', '')}}")
         ris_lines.append("ER  - \n")
     return "\n".join(ris_lines)
 
@@ -234,18 +234,18 @@ def render_literature_search():
             if not query.strip():
                 st.warning("Please enter a valid search query.")
             else:
-                with st.spinner(f"Querying {db_engine} for '{query}'..."):
+                with st.spinner(f"Querying {db_engine}} for '{query}}'..."):
                     if "CrossRef" in db_engine:
                         results_df, error = search_crossref(query, n_results, sort_by, contact_email)
                     else:
                         results_df, error = search_pubmed(query, n_results)
 
                 if error:
-                    st.error(f"🚫 Search failed: {error}")
+                    st.error(f"🚫 Search failed: {error}}")
                 elif results_df is None or results_df.empty:
                     st.info("No publications found matching this query string.")
                 else:
-                    st.success(f"✅ Retrieved {len(results_df)} verified publications.")
+                    st.success(f"✅ Retrieved {len(results_df)}} verified publications.")
                     st.dataframe(results_df, use_container_width=True, hide_index=True)
                     render_export_buttons(results_df, base_name="literature_results")
                     st.session_state["lit_search_results"] = results_df
@@ -284,7 +284,7 @@ def render_literature_search():
                         "doi": doi.strip(),
                     }
                     st.session_state["lit_references"].append(new_ref)
-                    st.success(f"✅ Added reference `{citation_key}`.")
+                    st.success(f"✅ Added reference `{citation_key}}`.")
                 else:
                     st.warning("Citation key, authors, and title are required.")
 
@@ -308,7 +308,7 @@ def render_literature_search():
                     parsed_refs = parse_bibtex_string(bib_content)
                     if parsed_refs:
                         st.session_state["lit_references"].extend(parsed_refs)
-                        st.success(f"✅ Imported {len(parsed_refs)} entries from BibTeX.")
+                        st.success(f"✅ Imported {len(parsed_refs)}} entries from BibTeX.")
                         st.rerun()
 
             st.markdown("---")
@@ -483,10 +483,10 @@ def render_meta_analysis():
             st.dataframe(display_df, use_container_width=True, hide_index=True)
 
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric(f"Pooled Effect ({'RE' if 'Random' in model_type else 'FE'})", f"{pooled_effect:.3f}", delta=f"95% CI [{ci_low:.3f}, {ci_high:.3f}]")
-            c2.metric("Pooled p-value", f"{p_val:.5f}" if p_val >= 0.0001 else "< 0.0001")
-            c3.metric("Heterogeneity (I²)", f"{i_squared:.1f}%", delta=f"τ² = {tau_sq:.4f}")
-            c4.metric("Egger's Test Bias p", f"{p_egger:.4f}", delta="Asymmetry Detected" if p_egger < 0.05 else "Symmetrical")
+            c1.metric(f"Pooled Effect ({'RE' if 'Random' in model_type else 'FE'}})", f"{pooled_effect:.3f}}", delta=f"95% CI [{ci_low:.3f}}, {ci_high:.3f}}]")
+            c2.metric("Pooled p-value", f"{p_val:.5f}}" if p_val >= 0.0001 else "< 0.0001")
+            c3.metric("Heterogeneity (I²)", f"{i_squared:.1f}}%", delta=f"τ² = {tau_sq:.4f}}")
+            c4.metric("Egger's Test Bias p", f"{p_egger:.4f}}", delta="Asymmetry Detected" if p_egger < 0.05 else "Symmetrical")
 
             if PLOTLY_AVAILABLE:
                 t_forest, t_funnel = st.tabs(["🌲 Forest Plot", "🎯 Funnel Plot (Publication Bias)"])
@@ -505,7 +505,7 @@ def render_meta_analysis():
                         ))
                     fig.add_shape(type="line", x0=pooled_effect, y0=-0.8, x1=pooled_effect, y1=len(display_df) - 0.2, line=dict(color="#EF4444", width=2.5, dash="dash"))
                     fig.update_layout(
-                        title_text=f"Forest Plot (Pooled Effect = {pooled_effect:.3f}, 95% CI [{ci_low:.3f}, {ci_high:.3f}])",
+                        title_text=f"Forest Plot (Pooled Effect = {pooled_effect:.3f}}, 95% CI [{ci_low:.3f}}, {ci_high:.3f}}])",
                         xaxis_title="Effect Size & 95% CI", yaxis_title="Study",
                         yaxis=dict(tickmode="array", tickvals=list(range(len(display_df))), ticktext=display_df["Study"].tolist()),
                         template="plotly_dark", height=max(360, 60 * len(display_df))
@@ -571,7 +571,7 @@ def render_apa_outputs():
             "Multiple Linear Regression": "A multiple linear regression was calculated to predict [Dependent Variable] from [Predictor 1] and [Predictor 2]. A significant regression equation was found, F(df_reg, df_res) = [X.XX], p = [.XXX], with an R² of [X.XX].",
         }
         st.code(templates[test_type], language="markdown")
-        st.download_button("⬇️ Download Template (.md)", data=templates[test_type], file_name=f"apa_{test_type.lower().replace(' ', '_')}.md", mime="text/markdown")
+        st.download_button("⬇️ Download Template (.md)", data=templates[test_type], file_name=f"apa_{test_type.lower().replace(' ', '_')}}.md", mime="text/markdown")
 
     with tab_cite:
         st.markdown("#### Structural Citation Inspector (Heuristic APA Validator)")
@@ -580,11 +580,11 @@ def render_apa_outputs():
             if citation_input.strip():
                 checks, passed, total = inspect_apa_citation(citation_input)
                 for label, ok in checks:
-                    st.markdown(f"{'✅' if ok else '❌'} {label}")
+                    st.markdown(f"{'✅' if ok else '❌'}} {label}}")
                 if passed == total:
-                    st.success(f"✅ All {total} structural checks passed.")
+                    st.success(f"✅ All {total}} structural checks passed.")
                 else:
-                    st.warning(f"⚠️ Passed {passed}/{total} structural checks.")
+                    st.warning(f"⚠️ Passed {passed}}/{total}} structural checks.")
             else:
                 st.warning("Please enter a citation string.")
 
@@ -650,14 +650,14 @@ def render_grants_and_quality():
         scores = {}
         cols = st.columns(2)
         for i, dim in enumerate(dims):
-            scores[dim] = cols[i % 2].slider(dim, 0, 100, 75, key=f"quality_score_prod_{i}")
+            scores[dim] = cols[i % 2].slider(dim, 0, 100, 75, key=f"quality_score_prod_{i}}")
 
         if st.button("✅ Calculate Rigor Index", type="primary", key="run_quality_prod"):
             avg_score = float(np.mean(list(scores.values())))
-            st.metric("Overall Research Quality Index", f"{avg_score:.1f} / 100")
+            st.metric("Overall Research Quality Index", f"{avg_score:.1f}} / 100")
             st.progress(int(avg_score))
             verdict = "Strong — publication ready" if avg_score >= 85 else ("Moderate — minor revisions recommended" if avg_score >= 65 else "Weak — methodological overhaul required")
-            st.success(f"**Evaluation Verdict:** {verdict}")
+            st.success(f"**Evaluation Verdict:** {verdict}}")
 
 
 def render_publication_pipeline():
@@ -688,8 +688,8 @@ def render_academic_vault():
         from modules.legacy_research_data import get_academic_vault_df, add_academic_report
         reports_df = get_academic_vault_df()
         for _, row in reports_df.iterrows():
-            with st.expander(f"📖 [{row['course_code']}] {row['title']}"):
-                st.write(f"**Department:** {row['department']} | **Status:** `{row['status']}`")
+            with st.expander(f"📖 [{row['course_code']}}] {row['title']}}"):
+                st.write(f"**Department:** {row['department']}} | **Status:** `{row['status']}}`")
                 st.write(row["abstract_text"])
 
         with st.expander("➕ Add a report to the vault"):

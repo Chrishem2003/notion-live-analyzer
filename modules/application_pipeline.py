@@ -1,4 +1,4 @@
-
+﻿
 """
 Application Pipeline & Document Vault Module
 """
@@ -9,9 +9,9 @@ def init_pipeline_session_state():
     """Initializes session state keys for the pipeline module."""
     if "pipeline_records" not in st.session_state:
         st.session_state["pipeline_records"] = [
-            {"Document": "Resume_2026.pdf", "Category": "Professional", "Status": "✅ Verified", "Score": 95},
-            {"Document": "Cover_Letter.docx", "Category": "Administrative", "Status": "✅ Verified", "Score": 90},
-            {"Document": "Transcript_Muni.pdf", "Category": "Academic", "Status": "â³ Pending", "Score": 85}
+            {"Document": "Resume_2026.pdf", "Category": "Professional", "Status": "âœ… Verified", "Score": 95},
+            {"Document": "Cover_Letter.docx", "Category": "Administrative", "Status": "âœ… Verified", "Score": 90},
+            {"Document": "Transcript_Muni.pdf", "Category": "Academic", "Status": "Ã¢ÂÂ³ Pending", "Score": 85}
         ]
 
 def load_pipeline_stylesheet(is_dark: bool = False):
@@ -20,10 +20,10 @@ def load_pipeline_stylesheet(is_dark: bool = False):
 
 def render_pipeline_ui(operational_mode: str = "Kanban Board & Stage Analytics", base_currency: str = "USD ($)"):
     """Renders the main Application Pipeline UI based on selected operational mode."""
-    st.title("📋 Enterprise Application Pipeline & Document Vault")
-    st.markdown(f"**Current Operational Mode:** `{operational_mode}` | **Active Financial Denomination:** `{base_currency}`")
+    st.title("ðŸ“‹ Enterprise Application Pipeline & Document Vault")
+    st.markdown(f"**Current Operational Mode:** `{operational_mode}}` | **Active Financial Denomination:** `{base_currency}}`")
     
-    tab1, tab2, tab3 = st.tabs([" Pipeline Records", "ðŸ“ Document Vault", "âš™ï¸ Analytics & Risk Gates"])
+    tab1, tab2, tab3 = st.tabs([" Pipeline Records", "Ã°Å¸â€œÂ Document Vault", "Ã¢Å¡â„¢Ã¯Â¸Â Analytics & Risk Gates"])
     
     with tab1:
         st.subheader("Active Application Tracking")
@@ -36,15 +36,15 @@ def render_pipeline_ui(operational_mode: str = "Kanban Board & Stage Analytics",
         with col2:
             new_cat = st.selectbox("Category", ["Professional", "Administrative", "Academic", "Compliance"])
             
-        if st.button("âž• Ingest Document into Pipeline"):
+        if st.button("Ã¢Å¾â€¢ Ingest Document into Pipeline"):
             if new_doc:
                 st.session_state["pipeline_records"].append({
                     "Document": new_doc, 
                     "Category": new_cat, 
-                    "Status": "â³ Pending Review", 
+                    "Status": "Ã¢ÂÂ³ Pending Review", 
                     "Score": 88
                 })
-                st.success(f"Successfully ingested '{new_doc}' into the secure pipeline!")
+                st.success(f"Successfully ingested '{new_doc}}' into the secure pipeline!")
                 st.rerun()
 
     with tab2:
@@ -60,3 +60,4 @@ def render_pipeline_ui(operational_mode: str = "Kanban Board & Stage Analytics",
 
 if __name__ == "__main__":
     render_pipeline_ui()
+

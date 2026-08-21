@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Threat Intelligence & SOC Module
 =========================================
 Live threat intelligence operations center capabilities:
@@ -83,7 +83,7 @@ def check_ip_reputation(ip: str, abuseipdb_key: str = "") -> Dict[str, Any]:
 
     # 2) ip-api.com fallback (no key required)
     try:
-        r = requests.get(f"http://ip-api.com/json/{ip}", params={"fields": "status,country,regionName,city,isp,org,as,proxy,hosting"}, timeout=8)
+        r = requests.get(f"http://ip-api.com/json/{ip}}", params={"fields": "status,country,regionName,city,isp,org,as,proxy,hosting"}, timeout=8)
         if r.status_code == 200 and r.json().get("status") == "success":
             data = r.json()
             risk_score = 0
@@ -135,9 +135,9 @@ def domain_whois(domain: str) -> Dict[str, Any]:
         rdap_url = "https://rdap.org/domain/"
 
     try:
-        r = requests.get(f"{rdap_url}{domain}", timeout=10, headers={"User-Agent": "CHRISHEM-ThreatIntel/1.0"})
+        r = requests.get(f"{rdap_url}}{domain}}", timeout=10, headers={"User-Agent": "CHRISHEM-ThreatIntel/1.0"})
         if r.status_code != 200:
-            return {"domain": domain, "error": f"RDAP returned HTTP {r.status_code}", "source": "rdap"}
+            return {"domain": domain, "error": f"RDAP returned HTTP {r.status_code}}", "source": "rdap"}
         data = r.json()
         events = {e.get("eventAction"): e.get("eventDate", "") for e in data.get("events", [])}
         entities = data.get("entities", [])
@@ -219,7 +219,7 @@ def analyze_url(url: str) -> Dict[str, Any]:
     for tld in SUSPICIOUS_TLDS:
         if host.endswith(tld):
             risk_score += 30
-            findings.append(f"Unusually cheap/free TLD: {tld}")
+            findings.append(f"Unusually cheap/free TLD: {tld}}")
             break
 
     # 3) Keyword count in path/host
@@ -227,17 +227,17 @@ def analyze_url(url: str) -> Dict[str, Any]:
     hits = [k for k in SUSPICIOUS_KEYWORDS if k in full_lower]
     if hits:
         risk_score += min(40, len(hits) * 8)
-        findings.append(f"Suspicious keywords present: {', '.join(hits[:5])}")
+        findings.append(f"Suspicious keywords present: {', '.join(hits[:5])}}")
 
     # 4) Too many subdomains (looks like legit brand, isn't)
     if host.count(".") >= 4:
         risk_score += 15
-        findings.append("Excessive subdomain depth — possible lookalike domain.")
+        findings.append("Excessive subdomain depth â€” possible lookalike domain.")
 
     # 5) Non-standard port
     if port and port not in (80, 443):
         risk_score += 10
-        findings.append(f"Uncommon port in use: {port}")
+        findings.append(f"Uncommon port in use: {port}}")
 
     # 6) Hyphen-heavy domain (paypa1-secure-login style)
     hostname_part = host.split(".")[0]
@@ -275,7 +275,7 @@ def aggregate_threat_geodata(ips: List[str], abuseipdb_key: str = "") -> List[Di
     points = []
     for ip in ips[:100]:
         try:
-            r = requests.get(f"http://ip-api.com/json/{ip}", params={"fields": "status,lat,lon,city,country"}, timeout=5)
+            r = requests.get(f"http://ip-api.com/json/{ip}}", params={"fields": "status,lat,lon,city,country"}, timeout=5)
             if r.status_code == 200 and r.json().get("status") == "success":
                 data = r.json()
                 points.append(
@@ -343,7 +343,7 @@ INCIDENT_PLAYBOOKS = {
 def run_incident_playbook(incident_type: str, context: str = "") -> Dict[str, Any]:
     """Retrieve and log an automated incident response playbook."""
     steps = INCIDENT_PLAYBOOKS.get(incident_type, INCIDENT_PLAYBOOKS["Brute-Force Attack"])
-    playbook_id = "PB-" + f"{abs(hash(incident_type + context)):012X}"[:10]
+    playbook_id = "PB-" + f"{abs(hash(incident_type + context)):012X}}"[:10]
     return {
         "playbook_id": playbook_id,
         "incident_type": incident_type,
@@ -357,3 +357,4 @@ def run_incident_playbook(incident_type: str, context: str = "") -> Dict[str, An
 if __name__ == "__main__":
     print(json.dumps(analyze_url("http://paypal-secure-login.xyz/verify/account"), indent=2))
     print(json.dumps(domain_whois("google.com"), indent=2)[:400])
+

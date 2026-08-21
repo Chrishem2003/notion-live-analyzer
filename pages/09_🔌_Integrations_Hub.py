@@ -98,7 +98,7 @@ def render_notion():
                     try:
                         t0 = time.perf_counter()
                         headers = {
-                            "Authorization": f"Bearer {token.strip()}",
+                            "Authorization": f"Bearer {token.strip()}}",
                             "Notion-Version": "2022-06-28",
                             "Content-Type": "application/json"
                         }
@@ -110,17 +110,17 @@ def render_notion():
                             }
 
                         resp = requests.post(
-                            f"https://api.notion.com/v1/databases/{database_id.strip()}/query",
+                            f"https://api.notion.com/v1/databases/{database_id.strip()}}/query",
                             headers=headers,
                             json=payload,
                             timeout=15,
                         )
                         latency = (time.perf_counter() - t0) * 1000
-                        log_call("Notion Query", latency, resp.status_code, f"Returned {resp.status_code}")
+                        log_call("Notion Query", latency, resp.status_code, f"Returned {resp.status_code}}")
 
                         if resp.status_code != 200:
                             err_msg = resp.json().get("message", resp.text[:300]) if "application/json" in resp.headers.get("content-type", "") else resp.text[:300]
-                            st.error(f"🚫 Notion API HTTP {resp.status_code}: {err_msg}")
+                            st.error(f"🚫 Notion API HTTP {resp.status_code}}: {err_msg}}")
                         else:
                             data = resp.json()
                             results = data.get("results", [])
@@ -145,11 +145,11 @@ def render_notion():
 
                             real_df = pd.DataFrame(rows)
                             set_active_dataframe(real_df, "notion_live_data.csv")
-                            st.success(f"✅ Extracted {len(real_df)} real rows in {latency:.0f}ms.")
+                            st.success(f"✅ Extracted {len(real_df)}} real rows in {latency:.0f}}ms.")
                             st.dataframe(real_df, use_container_width=True)
                             render_export_buttons(real_df, base_name="notion_export")
                     except Exception as e:
-                        st.error(f"🚫 Notion Exception: {str(e)}")
+                        st.error(f"🚫 Notion Exception: {str(e)}}")
 
     with notion_tab2:
         st.markdown("#### Create New Row/Page in Notion Database")
@@ -164,7 +164,7 @@ def render_notion():
                     try:
                         t0 = time.perf_counter()
                         headers = {
-                            "Authorization": f"Bearer {token.strip()}",
+                            "Authorization": f"Bearer {token.strip()}}",
                             "Notion-Version": "2022-06-28",
                             "Content-Type": "application/json"
                         }
@@ -181,14 +181,14 @@ def render_notion():
 
                         resp = requests.post("https://api.notion.com/v1/pages", headers=headers, json=payload, timeout=15)
                         latency = (time.perf_counter() - t0) * 1000
-                        log_call("Notion Write", latency, resp.status_code, f"Created Page ID: {resp.json().get('id', 'N/A')}")
+                        log_call("Notion Write", latency, resp.status_code, f"Created Page ID: {resp.json().get('id', 'N/A')}}")
 
                         if resp.status_code == 200:
                             st.success("✅ Successfully created new item in Notion!")
                         else:
-                            st.error(f"🚫 Failed HTTP {resp.status_code}: {resp.text}")
+                            st.error(f"🚫 Failed HTTP {resp.status_code}}: {resp.text}}")
                     except Exception as e:
-                        st.error(f"🚫 Push Error: {str(e)}")
+                        st.error(f"🚫 Push Error: {str(e)}}")
 
 
 # ==============================================================================
@@ -217,21 +217,21 @@ def render_sheets():
                 with st.spinner("Streaming spreadsheet..."):
                     try:
                         t0 = time.perf_counter()
-                        csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid.strip()}"
+                        csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}}/export?format=csv&gid={gid.strip()}}"
                         resp = requests.get(csv_url, timeout=12)
                         latency = (time.perf_counter() - t0) * 1000
-                        log_call("Google Sheets", latency, resp.status_code, f"Fetched Sheet ID {sheet_id}")
+                        log_call("Google Sheets", latency, resp.status_code, f"Fetched Sheet ID {sheet_id}}")
 
                         if resp.status_code == 200:
                             real_df = pd.read_csv(io.StringIO(resp.text))
                             set_active_dataframe(real_df, "google_sheets_data.csv")
-                            st.success(f"✅ Imported {real_df.shape[0]:,} rows × {real_df.shape[1]} cols in {latency:.0f}ms.")
+                            st.success(f"✅ Imported {real_df.shape[0]:,}} rows × {real_df.shape[1]}} cols in {latency:.0f}}ms.")
                             st.dataframe(real_df, use_container_width=True)
                             render_export_buttons(real_df, base_name="sheets_export")
                         else:
-                            st.error(f"🚫 HTTP {resp.status_code}: Unable to fetch. Verify sharing permissions.")
+                            st.error(f"🚫 HTTP {resp.status_code}}: Unable to fetch. Verify sharing permissions.")
                     except Exception as e:
-                        st.error(f"🚫 Read Error: {str(e)}")
+                        st.error(f"🚫 Read Error: {str(e)}}")
 
     with tab_export:
         st.markdown("#### Service Account Dynamic Append")
@@ -259,7 +259,7 @@ def render_sheets():
                         log_call("Google Sheets SA Write", 120.0, 200, "Appended data to sheet successfully.")
                         st.success("✅ Row appended successfully via Google Sheets v4 API!")
                     except Exception as e:
-                        st.error(f"🚫 Auth/Execution Error: {str(e)}")
+                        st.error(f"🚫 Auth/Execution Error: {str(e)}}")
 
 
 # ==============================================================================
@@ -280,7 +280,7 @@ def render_github():
 
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "Enterprise-IntegrationsHub"}
     if token.strip():
-        headers["Authorization"] = f"Bearer {token.strip()}"
+        headers["Authorization"] = f"Bearer {token.strip()}}"
 
     with gh_tab1:
         if st.button("🔧 Sync Repository Data", type="primary", key="gh_sync_btn"):
@@ -289,21 +289,21 @@ def render_github():
             else:
                 try:
                     t0 = time.perf_counter()
-                    resp = requests.get(f"https://api.github.com/repos/{owner.strip()}/{repo.strip()}", headers=headers, timeout=10)
+                    resp = requests.get(f"https://api.github.com/repos/{owner.strip()}}/{repo.strip()}}", headers=headers, timeout=10)
                     latency = (time.perf_counter() - t0) * 1000
                     log_call("GitHub Repo", latency, resp.status_code)
 
                     if resp.status_code == 200:
                         data = resp.json()
-                        st.success(f"✅ Connected to `{data.get('full_name')}`")
+                        st.success(f"✅ Connected to `{data.get('full_name')}}`")
                         c1, c2, c3, c4 = st.columns(4)
-                        c1.metric("Stars", f"{data.get('stargazers_count', 0):,}")
-                        c2.metric("Forks", f"{data.get('forks_count', 0):,}")
-                        c3.metric("Open Issues", f"{data.get('open_issues_count', 0):,}")
+                        c1.metric("Stars", f"{data.get('stargazers_count', 0):,}}")
+                        c2.metric("Forks", f"{data.get('forks_count', 0):,}}")
+                        c3.metric("Open Issues", f"{data.get('open_issues_count', 0):,}}")
                         c4.metric("Branch", data.get("default_branch", "main"))
 
                         # Fetch Commits
-                        c_resp = requests.get(f"https://api.github.com/repos/{owner.strip()}/{repo.strip()}/commits?per_page=15", headers=headers, timeout=10)
+                        c_resp = requests.get(f"https://api.github.com/repos/{owner.strip()}}/{repo.strip()}}/commits?per_page=15", headers=headers, timeout=10)
                         if c_resp.status_code == 200:
                             commits = [{
                                 "SHA": c["sha"][:7],
@@ -315,9 +315,9 @@ def render_github():
                             st.markdown("#### Commit Audit Log")
                             st.dataframe(commits_df, use_container_width=True)
                     else:
-                        st.error(f"🚫 HTTP {resp.status_code}: {resp.text[:200]}")
+                        st.error(f"🚫 HTTP {resp.status_code}}: {resp.text[:200]}}")
                 except Exception as e:
-                    st.error(f"🚫 GitHub Error: {str(e)}")
+                    st.error(f"🚫 GitHub Error: {str(e)}}")
 
     with gh_tab2:
         st.markdown("#### Dispatch New Issue to GitHub")
@@ -331,16 +331,16 @@ def render_github():
                 try:
                     t0 = time.perf_counter()
                     payload = {"title": issue_title, "body": issue_body}
-                    i_resp = requests.post(f"https://api.github.com/repos/{owner.strip()}/{repo.strip()}/issues", headers=headers, json=payload, timeout=10)
+                    i_resp = requests.post(f"https://api.github.com/repos/{owner.strip()}}/{repo.strip()}}/issues", headers=headers, json=payload, timeout=10)
                     latency = (time.perf_counter() - t0) * 1000
                     log_call("GitHub Issue Create", latency, i_resp.status_code)
 
                     if i_resp.status_code == 201:
-                        st.success(f"✅ Issue Created: #{i_resp.json().get('number')}")
+                        st.success(f"✅ Issue Created: #{i_resp.json().get('number')}}")
                     else:
-                        st.error(f"🚫 Failed HTTP {i_resp.status_code}: {i_resp.text}")
+                        st.error(f"🚫 Failed HTTP {i_resp.status_code}}: {i_resp.text}}")
                 except Exception as e:
-                    st.error(f"🚫 Issue Creation Exception: {str(e)}")
+                    st.error(f"🚫 Issue Creation Exception: {str(e)}}")
 
 
 # ==============================================================================
@@ -366,12 +366,12 @@ def render_api_gateway():
                     t0 = time.perf_counter()
                     resp = requests.get(url, timeout=5, headers={"User-Agent": "Enterprise-HealthCheck/3.0"})
                     latency = (time.perf_counter() - t0) * 1000
-                    status = "🟢 Reachable" if resp.status_code < 500 else f"🟡 HTTP {resp.status_code}"
+                    status = "🟢 Reachable" if resp.status_code < 500 else f"🟡 HTTP {resp.status_code}}"
                     log_call(name, latency, resp.status_code)
                     rows.append({"Service": name, "Status": status, "Latency (ms)": round(latency, 1)})
                 except Exception as e:
-                    rows.append({"Service": name, "Status": f"🔴 Failed ({type(e).__name__})", "Latency (ms)": None})
-                    log_call(name, 0, f"error: {type(e).__name__}")
+                    rows.append({"Service": name, "Status": f"🔴 Failed ({type(e).__name__}})", "Latency (ms)": None})
+                    log_call(name, 0, f"error: {type(e).__name__}}")
             st.dataframe(pd.DataFrame(rows), use_container_width=True)
 
     with tab_web:
@@ -394,17 +394,17 @@ def render_api_gateway():
                     
                     if secret_key.strip():
                         signature = hmac.new(secret_key.strip().encode('utf-8'), payload_bytes, hashlib.sha256).hexdigest()
-                        headers["X-Hub-Signature-256"] = f"sha256={signature}"
+                        headers["X-Hub-Signature-256"] = f"sha256={signature}}"
 
                     t0 = time.perf_counter()
                     resp = requests.post(webhook_url.strip(), data=payload_bytes, headers=headers, timeout=8)
                     latency = (time.perf_counter() - t0) * 1000
-                    log_call("HMAC Webhook", latency, resp.status_code, f"Signature Sent: {secret_key != ''}")
+                    log_call("HMAC Webhook", latency, resp.status_code, f"Signature Sent: {secret_key != ''}}")
 
-                    st.success(f"✅ Webhook sent! Target responded with HTTP {resp.status_code} in {latency:.0f}ms.")
+                    st.success(f"✅ Webhook sent! Target responded with HTTP {resp.status_code}} in {latency:.0f}}ms.")
                     st.code(resp.text[:500] or "(Empty Body Received)")
                 except Exception as e:
-                    st.error(f"🚫 Webhook Exception: {str(e)}")
+                    st.error(f"🚫 Webhook Exception: {str(e)}}")
 
     with tab_telem:
         log = st.session_state.get("integration_call_log", [])
@@ -437,7 +437,7 @@ def render_reference_lookup():
             try:
                 t0 = time.perf_counter()
                 resp = requests.get(
-                    f"https://api.crossref.org/works/{clean_doi}",
+                    f"https://api.crossref.org/works/{clean_doi}}",
                     timeout=10,
                     headers={"User-Agent": "SovereignApexResearchPlatform/3.0 (mailto:admin@enterprise.internal)"}
                 )
@@ -447,15 +447,15 @@ def render_reference_lookup():
                 if resp.status_code == 200:
                     item = resp.json().get("message", {})
                     st.success("✅ Bibliographic Metadata Resolved!")
-                    st.markdown(f"**Title:** {item.get('title', ['N/A'])[0]}")
-                    authors = ", ".join([f"{a.get('given','')} {a.get('family','')}" for a in item.get('author', [])])
-                    st.markdown(f"**Authors:** {authors or 'N/A'}")
-                    st.markdown(f"**Journal:** {item.get('container-title', ['N/A'])[0]}")
-                    st.markdown(f"**Global Citation Count:** `{item.get('is-referenced-by-count', 0):,}`")
+                    st.markdown(f"**Title:** {item.get('title', ['N/A'])[0]}}")
+                    authors = ", ".join([f"{a.get('given','')}} {a.get('family','')}}" for a in item.get('author', [])])
+                    st.markdown(f"**Authors:** {authors or 'N/A'}}")
+                    st.markdown(f"**Journal:** {item.get('container-title', ['N/A'])[0]}}")
+                    st.markdown(f"**Global Citation Count:** `{item.get('is-referenced-by-count', 0):,}}`")
                 else:
-                    st.error(f"🚫 CrossRef HTTP {resp.status_code}: DOI not found.")
+                    st.error(f"🚫 CrossRef HTTP {resp.status_code}}: DOI not found.")
             except Exception as e:
-                st.error(f"🚫 DOI Lookup Exception: {str(e)}")
+                st.error(f"🚫 DOI Lookup Exception: {str(e)}}")
 
 
 # ==============================================================================
@@ -490,7 +490,7 @@ def render_world_data():
             try:
                 st.session_state["wdc_country_list"] = fetch_country_list()
             except Exception as e:
-                st.error(f"World Bank Connectivity Failed: {e}")
+                st.error(f"World Bank Connectivity Failed: {e}}")
                 return
 
     country_df = st.session_state["wdc_country_list"]
@@ -514,12 +514,12 @@ def render_world_data():
 
             with st.spinner("Fetching Live World Bank Records..."):
                 t0 = time.perf_counter()
-                merged_df, errors = fetch_multi_indicator(iso3_list, ind_codes, f"{year_range[0]}:{year_range[1]}")
+                merged_df, errors = fetch_multi_indicator(iso3_list, ind_codes, f"{year_range[0]}}:{year_range[1]}}")
                 latency = (time.perf_counter() - t0) * 1000
-                log_call("World Bank Open Data", latency, 200, f"Fetched {len(merged_df)} rows")
+                log_call("World Bank Open Data", latency, 200, f"Fetched {len(merged_df)}} rows")
 
                 if not merged_df.empty:
-                    st.success(f"✅ Retrieved {len(merged_df):,} records from World Bank API.")
+                    st.success(f"✅ Retrieved {len(merged_df):,}} records from World Bank API.")
                     st.dataframe(merged_df, use_container_width=True)
                     render_export_buttons(merged_df, base_name="worldbank_data")
                     set_active_dataframe(merged_df, "worldbank_active.csv")

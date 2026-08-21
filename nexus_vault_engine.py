@@ -1,5 +1,5 @@
-"""
-CHRISHEM Nexus Vault 2.0 — Google Workspace Clone
+﻿"""
+CHRISHEM Nexus Vault 2.0 â€” Google Workspace Clone
 ==================================================
 A real, self-contained personal productivity & secure storage suite that
 mirrors Google Workspace functionality (Calendar, Meet, Docs, Sheets, Contacts,
@@ -7,7 +7,7 @@ Tasks, Drive) with zero external dependencies beyond the stdlib + cryptography.
 
 Every feature persists to a local SQLite workspace database and performs real
 operations (scheduling, document editing, spreadsheet computation, contact
-management) — no fabricated data.
+management) â€” no fabricated data.
 
 Modules
   - NexusVault            : encrypted secure storage (AES-GCM-256) + file manager
@@ -88,9 +88,9 @@ def _now() -> str:
     return datetime.now().isoformat()
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# 1) NEXUS VAULT — AES-256-GCM encrypted file storage
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 1) NEXUS VAULT â€” AES-256-GCM encrypted file storage
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class NexusVault:
     @staticmethod
     def _key() -> bytes:
@@ -164,9 +164,9 @@ class NexusVault:
             conn.close()
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# 2) NEXUS CALENDAR — real scheduling, recurrence, reminders, conflicts
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 2) NEXUS CALENDAR â€” real scheduling, recurrence, reminders, conflicts
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class NexusCalendar:
     @staticmethod
     def add_event(title: str, start_dt: str, end_dt: str, location: str = "",
@@ -245,16 +245,16 @@ class NexusCalendar:
         return upcoming
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# 3) NEXUS MEET — meeting scheduling + agenda + build link
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 3) NEXUS MEET â€” meeting scheduling + agenda + build link
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class NexusMeet:
     @staticmethod
     def schedule(title: str, start_dt: str, duration_min: int, attendees: List[str],
                  agenda: str = "") -> Dict[str, Any]:
         conn = _conn()
         mid = str(uuid.uuid4())
-        link = f"https://nexus.chrishem/meet/{mid[:8]}"
+        link = f"https://nexus.chrishem/meet/{mid[:8]}}"
         try:
             conn.execute(
                 "INSERT INTO nexus_meetings (id,title,start_dt,duration_min,attendees,agenda,meeting_link,status) VALUES (?,?,?,?,?,?,?,?)",
@@ -293,9 +293,9 @@ class NexusMeet:
             conn.close()
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# 4) NEXUS DOCS — document editor with version history
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 4) NEXUS DOCS â€” document editor with version history
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class NexusDocs:
     @staticmethod
     def create(title: str, body: str = "") -> Dict[str, Any]:
@@ -375,9 +375,9 @@ class NexusDocs:
             conn.close()
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# 5) NEXUS SHEETS — spreadsheet with live cell formula evaluation
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 5) NEXUS SHEETS â€” spreadsheet with live cell formula evaluation
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class NexusSheets:
     @staticmethod
     def create(title: str, rows: List[List[Any]]) -> Dict[str, Any]:
@@ -461,9 +461,9 @@ class NexusSheets:
         return 0
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# 6) NEXUS CONTACTS — directory with groups & search
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 6) NEXUS CONTACTS â€” directory with groups & search
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class NexusContacts:
     @staticmethod
     def add(full_name: str, email: str, phone: str = "", company: str = "",
@@ -491,7 +491,7 @@ class NexusContacts:
                 params.append(group)
             if query:
                 sql += " AND (full_name LIKE ? OR email LIKE ? OR company LIKE ?)"
-                like = f"%{query}%"
+                like = f"%{query}}%"
                 params += [like, like, like]
             sql += " ORDER BY full_name"
             rows = conn.execute(sql, params).fetchall()
@@ -519,9 +519,9 @@ class NexusContacts:
             conn.close()
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# 7) NEXUS TASKS — task management with priorities & subtasks
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# 7) NEXUS TASKS â€” task management with priorities & subtasks
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class NexusTasks:
     @staticmethod
     def add(title: str, description: str = "", priority: str = "MEDIUM",
@@ -595,3 +595,4 @@ if __name__ == "__main__":
     NexusTasks.add("Ship feature", priority="HIGH", due_date="2026-12-31")
     print("Tasks:", len(NexusTasks.list_tasks()))
     print("Vault roundtrip:", NexusVault.store_file("secret.txt", b"top-secret data", "DOCUMENTS")["name"])
+

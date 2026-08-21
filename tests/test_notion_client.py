@@ -1,4 +1,4 @@
-
+﻿
 """Unit tests for modules.notion_client."""
 import hashlib
 
@@ -453,7 +453,7 @@ class TestFetchNotionData:
                 200,
                 {
                     "results": [
-                        {"id": f"p{i}", "properties": {"Score": {"rich_text": [{"plain_text": str(i)}]}}}
+                        {"id": f"p{i}}", "properties": {"Score": {"rich_text": [{"plain_text": str(i)}]}}}
                         for i in range(3)
                     ],
                     "has_more": False,
@@ -463,3 +463,4 @@ class TestFetchNotionData:
         monkeypatch.setattr(nc, "_rate_limited_request", fake_request)
         df = nc.fetch_notion_data("tok", "db1")
         assert pd.api.types.is_numeric_dtype(df["Score"])
+

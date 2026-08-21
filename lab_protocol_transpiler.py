@@ -1,4 +1,4 @@
-
+﻿
 """
 Theoretical-to-Practical Protocol Transpiler
 Converts dense paper methodology into actionable step-by-step laboratory,
@@ -21,21 +21,21 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 1. PROTOCOL EXTRACTION PATTERNS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 EXTRACTION_PATTERNS = {
     "chemicals_reagents": [
-        r"(\d(?:\.\d)?)\s*(?:mM|mM|ÂµM|nM|mM|M|mg/mL|g/L|%)\s(?:of\s)?([A-Za-z0-9\s\-]?)(?=[,.;])",
-        r"([A-Za-z0-9\s\-]?)\s*\((\d(?:\.\d)?)\s*(?:mM|mM|ÂµM|nM|mM|M|mg/mL|g/L|%)\)",
+        r"(\d(?:\.\d)?)\s*(?:mM|mM|Ã‚ÂµM|nM|mM|M|mg/mL|g/L|%)\s(?:of\s)?([A-Za-z0-9\s\-]?)(?=[,.;])",
+        r"([A-Za-z0-9\s\-]?)\s*\((\d(?:\.\d)?)\s*(?:mM|mM|Ã‚ÂµM|nM|mM|M|mg/mL|g/L|%)\)",
         r"\b(DMSO|PBS|TBS|SDS|EDTA|EGTA|HEPES|Tris|NaCl|KCl|MgCl2|CaCl2|NaOH|HCl|H2SO4|EtOH|MeOH|IPA|DTT|BME|BSA|FBS|RPMI|DMEM|PFA|TBST)\b",
     ],
     "temperatures": [
-        r"(\d(?:\.\d)?)\s*Â°[Cc]",
-        r"(\d(?:\.\d)?)\s*Â°[Ff]",
-        r"(?:at|to|for)\s(\d(?:\.\d)?)\s*Â°",
-        r"(?:incubat|heat|cool|warm|maintain)\s(?:at|to|for)\s(\d(?:\.\d)?)\s*Â°",
+        r"(\d(?:\.\d)?)\s*Ã‚Â°[Cc]",
+        r"(\d(?:\.\d)?)\s*Ã‚Â°[Ff]",
+        r"(?:at|to|for)\s(\d(?:\.\d)?)\s*Ã‚Â°",
+        r"(?:incubat|heat|cool|warm|maintain)\s(?:at|to|for)\s(\d(?:\.\d)?)\s*Ã‚Â°",
     ],
     "time_durations": [
         r"(\d)\s*(?:min|minute|minutes|h|hour|hours|sec|second|seconds|d|day|days)",
@@ -43,7 +43,7 @@ EXTRACTION_PATTERNS = {
         r"(?:incubat|centrifug|spin|heat|treat)\s(?:for\s)?(\d)\s*(?:min|h|sec)",
     ],
     "centrifugation": [
-        r"(\d(?:,\d{3})?)\s*(?:Ã—?\s*g|g|rpm|RPM|x\s*g)\s(?:for\s)?(\d)\s*(?:min|h)",
+        r"(\d(?:,\d{3})?)\s*(?:Ãƒâ€”?\s*g|g|rpm|RPM|x\s*g)\s(?:for\s)?(\d)\s*(?:min|h)",
         r"(?:centrifug|spin|pellet)\s(?:at\s)?(\d(?:,\d{3})?)\s*(?:g|rpm)",
     ],
     "gene_accessions": [
@@ -79,17 +79,17 @@ EXTRACTION_PATTERNS = {
         r"\b(?:flow\scytometer|FACS|HPLC|LC-MS|GC-MS|NMR|MRI|CT\sscan|X-ray)\b",
     ],
     "statistical_params": [
-        r"(?:Î±|alpha)\s*=\s*(\d\.?\d*)",
-        r"(?:Î²|beta)\s*=\s*(\d\.?\d*)",
+        r"(?:ÃŽÂ±|alpha)\s*=\s*(\d\.?\d*)",
+        r"(?:ÃŽÂ²|beta)\s*=\s*(\d\.?\d*)",
         r"power\s*=\s*(\d\.?\d*)",
         r"effect\ssize\s*=\s*(\d\.?\d*)",
-        r"(?:FDR|q-value|adjusted\sp)\s*[<â‰¤]\s*(\d\.?\d*)",
-        r"(?:p\s*[<â‰¤]\s*(\d\.?\d*))",
+        r"(?:FDR|q-value|adjusted\sp)\s*[<Ã¢â€°Â¤]\s*(\d\.?\d*)",
+        r"(?:p\s*[<Ã¢â€°Â¤]\s*(\d\.?\d*))",
     ],
     "concentrations": [
-        r"(\d(?:\.\d)?)\s*(?:Âµg|ng|mg|g)\s*/?\s*(?:mL|ÂµL|L)",
-        r"(\d(?:\.\d)?)\s*(?:mM|ÂµM|nM|pM|M)\s[A-Za-z]",
-        r"(?:concentration|dose|dosage)\s(?:of\s)?(\d(?:\.\d)?)\s*(?:Âµg|ng|mg|g|mM|ÂµM|nM)",
+        r"(\d(?:\.\d)?)\s*(?:Ã‚Âµg|ng|mg|g)\s*/?\s*(?:mL|Ã‚ÂµL|L)",
+        r"(\d(?:\.\d)?)\s*(?:mM|Ã‚ÂµM|nM|pM|M)\s[A-Za-z]",
+        r"(?:concentration|dose|dosage)\s(?:of\s)?(\d(?:\.\d)?)\s*(?:Ã‚Âµg|ng|mg|g|mM|Ã‚ÂµM|nM)",
     ],
 }
 
@@ -189,7 +189,7 @@ class ProtocolTranspiler:
             for m in matches:
                 value = m.group(1)
                 temps.append({
-                    "value": f"{value}Â°C",
+                    "value": f"{value}}Ã‚Â°C",
                     "context": self._get_context(text, m.start(), 60),
                 })
         return temps[:10]
@@ -342,11 +342,11 @@ class ProtocolTranspiler:
     def _estimate_duration(self, sentence: str) -> Optional[str]:
         """Estimate step duration from sentence."""
         duration_patterns = [
-            (r"(\d)\s*(?:h|hour)s?\s(\d)\s*(?:min|minute)", lambda m: f"{m.group(1)}h {m.group(2)}min"),
-            (r"(\d)\s*(?:h|hour)s?", lambda m: f"{m.group(1)} hours"),
-            (r"(\d)\s*(?:min|minute)s?", lambda m: f"{m.group(1)} min"),
-            (r"(\d)\s*(?:sec|second)s?", lambda m: f"{m.group(1)} sec"),
-            (r"(\d)\s*(?:d|day)s?", lambda m: f"{m.group(1)} days"),
+            (r"(\d)\s*(?:h|hour)s?\s(\d)\s*(?:min|minute)", lambda m: f"{m.group(1)}}h {m.group(2)}}min"),
+            (r"(\d)\s*(?:h|hour)s?", lambda m: f"{m.group(1)}} hours"),
+            (r"(\d)\s*(?:min|minute)s?", lambda m: f"{m.group(1)}} min"),
+            (r"(\d)\s*(?:sec|second)s?", lambda m: f"{m.group(1)}} sec"),
+            (r"(\d)\s*(?:d|day)s?", lambda m: f"{m.group(1)}} days"),
         ]
         for pattern, formatter in duration_patterns:
             m = re.search(pattern, sentence, re.IGNORECASE)
@@ -395,7 +395,7 @@ class ProtocolTranspiler:
                 "item": s,
                 "category": "safety",
                 "prepared": False,
-                "notes": "âš ï¸ Safety critical",
+                "notes": "Ã¢Å¡Â Ã¯Â¸Â Safety critical",
             })
 
         return checklist[:30]
@@ -435,7 +435,7 @@ class ProtocolTranspiler:
         patterns = [
             r"\([A-Z][a-z](?:\set\sal\.?)?,\s*\d{4}[^)]*\)",
             r"[A-Z][a-z](?:\set\sal\.?)?\s*\(\d{4}\)",
-            r"\[\d(?:[,â€“]\d)*\]",
+            r"\[\d(?:[,Ã¢â‚¬â€œ]\d)*\]",
         ]
         for pattern in patterns:
             matches = re.findall(pattern, text)
@@ -463,15 +463,15 @@ class ProtocolTranspiler:
         """Extract safety notes from a single sentence."""
         notes = []
         if re.search(r"(toxic|carcinogen|hazardous|flammable|corrosive)", sentence, re.IGNORECASE):
-            notes.append("âš ï¸ Handle hazardous material with appropriate PPE")
+            notes.append("Ã¢Å¡Â Ã¯Â¸Â Handle hazardous material with appropriate PPE")
         if re.search(r"centrifug|high\s*speed|ultracentrifug", sentence, re.IGNORECASE):
-            notes.append("âš ï¸ Balance tubes before centrifugation")
+            notes.append("Ã¢Å¡Â Ã¯Â¸Â Balance tubes before centrifugation")
         if re.search(r"(heat|incubat)\s(?:to\s)?(\d)", sentence, re.IGNORECASE):
             temp_match = re.search(r"(\d)", sentence)
             if temp_match and int(temp_match.group(1)) > 60:
-                notes.append("âš ï¸ Use heat-resistant gloves for hot equipment")
+                notes.append("Ã¢Å¡Â Ã¯Â¸Â Use heat-resistant gloves for hot equipment")
         if re.search(r"(electrophoresis|gel|voltage|current)", sentence, re.IGNORECASE):
-            notes.append("âš ï¸ Ensure electrophoresis lid is properly closed")
+            notes.append("Ã¢Å¡Â Ã¯Â¸Â Ensure electrophoresis lid is properly closed")
         return notes
 
     def _identify_database(self, accession: str) -> str:
@@ -515,135 +515,135 @@ class ProtocolTranspiler:
     def format_protocol_text(self, protocol: Dict[str, Any]) -> str:
         """Format the protocol as a structured text document."""
         lines = [
-            "â•" * 70,
-            f"PROTOCOL: {protocol.get('title', 'Untitled Protocol')}",
-            f"Generated: {protocol.get('extracted_at', 'N/A')}",
-            "â•" * 70,
+            "Ã¢â€¢Â" * 70,
+            f"PROTOCOL: {protocol.get('title', 'Untitled Protocol')}}",
+            f"Generated: {protocol.get('extracted_at', 'N/A')}}",
+            "Ã¢â€¢Â" * 70,
             "",
         ]
 
         # Materials & Reagents
         reagents = protocol.get("reagents", [])
         if reagents:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("MATERIALS & REAGENTS")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for r in reagents:
-                lines.append(f"  â€¢ {r['name']}")
+                lines.append(f"  Ã¢â‚¬Â¢ {r['name']}}")
             lines.append("")
 
         # Temperatures
         temps = protocol.get("temperatures", [])
         if temps:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("TEMPERATURE CONDITIONS")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for t in temps:
-                lines.append(f"  â€¢ {t['value']}  {t['context']}")
+                lines.append(f"  Ã¢â‚¬Â¢ {t['value']}}  {t['context']}}")
             lines.append("")
 
         # Durations
         durations = protocol.get("durations", [])
         if durations:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("TIME PARAMETERS")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for d in durations:
-                lines.append(f"  â€¢ {d['value']}")
+                lines.append(f"  Ã¢â‚¬Â¢ {d['value']}}")
             lines.append("")
 
         # Centrifugation
         spins = protocol.get("centrifugation", [])
         if spins:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("CENTRIFUGATION CONDITIONS")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for s in spins:
-                lines.append(f"  â€¢ {s['condition']}")
+                lines.append(f"  Ã¢â‚¬Â¢ {s['condition']}}")
             lines.append("")
 
         # Gene Accessions
         accessions = protocol.get("gene_accessions", [])
         if accessions:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("GENE / SEQUENCE ACCESSION IDs")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for a in accessions:
-                lines.append(f"  â€¢ {a['accession']} ({a['database']})")
+                lines.append(f"  Ã¢â‚¬Â¢ {a['accession']}} ({a['database']}})")
             lines.append("")
 
         # Software
         software = protocol.get("software", [])
         if software:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("SOFTWARE & TOOLS")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for s in software:
-                lines.append(f"  â€¢ {s['name']}")
+                lines.append(f"  Ã¢â‚¬Â¢ {s['name']}}")
             lines.append("")
 
         # Hardware
         hardware = protocol.get("hardware", [])
         if hardware:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("EQUIPMENT / HARDWARE")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for h in hardware:
-                lines.append(f"  â€¢ {h['device']}")
+                lines.append(f"  Ã¢â‚¬Â¢ {h['device']}}")
             lines.append("")
 
         # Step-by-step protocol
         steps = protocol.get("steps", [])
         if steps:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("STEP-BY-STEP PROTOCOL")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for step in steps:
-                duration = f" [{step.get('estimated_duration', '')}]" if step.get("estimated_duration") else ""
-                lines.append(f"\n  Step {step['step_number']}{duration}")
-                lines.append(f"  {step['instruction']}")
+                duration = f" [{step.get('estimated_duration', '')}}]" if step.get("estimated_duration") else ""
+                lines.append(f"\n  Step {step['step_number']}}{duration}}")
+                lines.append(f"  {step['instruction']}}")
                 if step.get("safety_notes"):
                     for note in step["safety_notes"]:
-                        lines.append(f"    {note}")
+                        lines.append(f"    {note}}")
             lines.append("")
 
         # Code blocks
         code_blocks = protocol.get("code_blocks", [])
         if code_blocks:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("CODE / COMMAND BLOCKS")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for cb in code_blocks:
-                lang = f" ({cb['language']})" if cb.get("language") else ""
-                lines.append(f"\n{lang}:")
-                lines.append(f"  ```{cb['language']}")
-                lines.append(f"  {cb['code']}")
+                lang = f" ({cb['language']}})" if cb.get("language") else ""
+                lines.append(f"\n{lang}}:")
+                lines.append(f"  ```{cb['language']}}")
+                lines.append(f"  {cb['code']}}")
                 lines.append("  ```")
             lines.append("")
 
         # Safety notes
         safety = protocol.get("safety_notes", [])
         if safety:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("SAFETY PRECAUTIONS")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for s in safety:
-                lines.append(f"  âš ï¸ {s}")
+                lines.append(f"  Ã¢Å¡Â Ã¯Â¸Â {s}}")
             lines.append("")
 
         # Bibliography
         citations = protocol.get("bib_citations", [])
         if citations:
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             lines.append("REFERENCES")
-            lines.append("â”€" * 40)
+            lines.append("Ã¢â€â‚¬" * 40)
             for c in citations:
-                lines.append(f"  â€¢ {c}")
+                lines.append(f"  Ã¢â‚¬Â¢ {c}}")
             lines.append("")
 
-        lines.append("â•" * 70)
+        lines.append("Ã¢â€¢Â" * 70)
         lines.append("END OF PROTOCOL")
-        lines.append("â•" * 70)
+        lines.append("Ã¢â€¢Â" * 70)
 
         return "\n".join(lines)
 
@@ -665,8 +665,8 @@ class ProtocolTranspiler:
                 commands.append("# BLAST search")
                 commands.append("blastn -query query.fasta -db nt -out results.txt")
             elif "bowtie" in name or "star" in name or "hisat" in name:
-                commands.append(f"# {tool['name']} alignment")
-                commands.append(f"{tool['name'].lower().replace(' ', '').replace('-', '')} --genomeDir /path/to/index --readFilesIn sample_R1.fastq --outFileNamePrefix sample_")
+                commands.append(f"# {tool['name']}} alignment")
+                commands.append(f"{tool['name'].lower().replace(' ', '').replace('-', '')}} --genomeDir /path/to/index --readFilesIn sample_R1.fastq --outFileNamePrefix sample_")
             elif "fastqc" in name:
                 commands.append("# Quality control")
                 commands.append("fastqc *.fastq -o qc_reports/")
@@ -682,27 +682,27 @@ class ProtocolTranspiler:
         return commands
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # 3. UI RENDERER
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 def render_lab_protocol_transpiler_ui():
     """Render the Lab Protocol Transpiler UI."""
     import streamlit as st
 
-    st.markdown("## ðŸ§ª Theoretical-to-Practical Protocol Transpiler")
+    st.markdown("## Ã°Å¸Â§Âª Theoretical-to-Practical Protocol Transpiler")
     st.markdown("*Converts dense paper methodology into actionable step-by-step protocols with reagents, equipment, code blocks, and safety notes*")
 
-    tab1, tab2, tab3 = st.tabs(["ðŸ“ Input & Transpile", "📋 Full Protocol", "ðŸ’» Code & Commands"])
+    tab1, tab2, tab3 = st.tabs(["Ã°Å¸â€œÂ Input & Transpile", "ðŸ“‹ Full Protocol", "Ã°Å¸â€™Â» Code & Commands"])
 
     transpiler = ProtocolTranspiler()
 
     with tab1:
-        st.subheader("ðŸ“ Enter Methodology Text")
+        st.subheader("Ã°Å¸â€œÂ Enter Methodology Text")
 
         text = st.text_area(
             "Paste methodology text from a paper:",
             height=250,
-            placeholder="Example: Cells were cultured in DMEM supplemented with 10% FBS and 1% penicillin-streptomycin at 37Â°C. Total RNA was extracted using TRIzol reagent. RNA purity was assessed using a NanoDrop spectrophotometer. cDNA was synthesized from 1Âµg RNA using the iScript cDNA Synthesis Kit. qPCR was performed using SYBR Green Master Mix on a CFX96 thermal cycler with the following conditions: 95Â°C for 3 min, followed by 40 cycles of 95Â°C for 10s and 60Â°C for 30s. Relative expression was calculated using the 2^-Î”Î”Ct method with GAPDH as a reference gene. All experiments were performed in triplicate...",
+            placeholder="Example: Cells were cultured in DMEM supplemented with 10% FBS and 1% penicillin-streptomycin at 37Ã‚Â°C. Total RNA was extracted using TRIzol reagent. RNA purity was assessed using a NanoDrop spectrophotometer. cDNA was synthesized from 1Ã‚Âµg RNA using the iScript cDNA Synthesis Kit. qPCR was performed using SYBR Green Master Mix on a CFX96 thermal cycler with the following conditions: 95Ã‚Â°C for 3 min, followed by 40 cycles of 95Ã‚Â°C for 10s and 60Ã‚Â°C for 30s. Relative expression was calculated using the 2^-ÃŽâ€ÃŽâ€Ct method with GAPDH as a reference gene. All experiments were performed in triplicate...",
             key="protocol_input_text",
         )
 
@@ -710,9 +710,9 @@ def render_lab_protocol_transpiler_ui():
 
         col1, col2 = st.columns([3, 1])
         with col1:
-            run = st.button("ðŸ§ª Transpile to Protocol", type="primary", use_container_width=True)
+            run = st.button("Ã°Å¸Â§Âª Transpile to Protocol", type="primary", use_container_width=True)
         with col2:
-            st.caption(f"Chars: {len(text):,}")
+            st.caption(f"Chars: {len(text):,}}")
 
         if run and text.strip():
             with st.spinner("Transpiling methodology..."):
@@ -720,7 +720,7 @@ def render_lab_protocol_transpiler_ui():
                 st.session_state["_last_protocol"] = protocol
 
             summary = protocol.get("summary", {})
-            st.success(f"✅ Protocol generated! {summary.get('total_steps', 0)} steps, {summary.get('total_reagents', 0)} reagents, {summary.get('total_tools', 0)} tools")
+            st.success(f"âœ… Protocol generated! {summary.get('total_steps', 0)}} steps, {summary.get('total_reagents', 0)}} reagents, {summary.get('total_tools', 0)}} tools")
 
             st.subheader("Quick Overview")
             col1, col2, col3, col4 = st.columns(4)
@@ -735,22 +735,22 @@ def render_lab_protocol_transpiler_ui():
 
             # Show extracted items
             if protocol.get("reagents"):
-                with st.expander("ðŸ§ª Extracted Reagents"):
+                with st.expander("Ã°Å¸Â§Âª Extracted Reagents"):
                     for r in protocol["reagents"]:
-                        st.markdown(f"- {r['name']}")
+                        st.markdown(f"- {r['name']}}")
 
             if protocol.get("gene_accessions"):
-                with st.expander("ðŸ§¬ Gene/Sequence Accessions"):
+                with st.expander("Ã°Å¸Â§Â¬ Gene/Sequence Accessions"):
                     for a in protocol["gene_accessions"]:
-                        st.markdown(f"- {a['accession']} ({a['database']})")
+                        st.markdown(f"- {a['accession']}} ({a['database']}})")
 
             if protocol.get("temperatures"):
-                with st.expander("ðŸŒ¡ï¸ Temperature Conditions"):
+                with st.expander("Ã°Å¸Å’Â¡Ã¯Â¸Â Temperature Conditions"):
                     for t in protocol["temperatures"]:
-                        st.markdown(f"- {t['value']}: {t['context']}")
+                        st.markdown(f"- {t['value']}}: {t['context']}}")
 
             if protocol.get("safety_notes"):
-                with st.expander("âš ï¸ Safety Notes"):
+                with st.expander("Ã¢Å¡Â Ã¯Â¸Â Safety Notes"):
                     for s in protocol["safety_notes"]:
                         st.warning(s)
 
@@ -762,33 +762,33 @@ def render_lab_protocol_transpiler_ui():
         if not protocol:
             st.info("Transpile a protocol first in the **Input & Transpile** tab.")
         else:
-            st.subheader("📋 Complete Protocol")
+            st.subheader("ðŸ“‹ Complete Protocol")
 
             protocol_text = transpiler.format_protocol_text(protocol)
-            st.markdown(f"```\n{protocol_text}\n```")
+            st.markdown(f"```\n{protocol_text}}\n```")
 
             import base64
             b64 = base64.b64encode(protocol_text.encode()).decode()
             st.markdown(
-                f'<a href="data:text/plain;base64,{b64}" download="protocol.txt" '
+                f'<a href="data:text/plain;base64,{b64}}" download="protocol.txt" '
                 f'style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;'
-                f'border-radius:8px;text-decoration:none;font-weight:600;">📥 Download Protocol</a>',
+                f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download Protocol</a>',
                 unsafe_allow_html=True,
             )
 
             # Interactive checklist
-            st.subheader("✅ Interactive Workbench Checklist")
+            st.subheader("âœ… Interactive Workbench Checklist")
             checklist = protocol.get("checklist", [])
             if checklist:
                 for i, item in enumerate(checklist):
                     col1, col2 = st.columns([0.1, 0.9])
                     with col1:
-                        st.checkbox("", key=f"checklist_{i}")
+                        st.checkbox("", key=f"checklist_{i}}")
                     with col2:
-                        cat_icon = {"reagent": "ðŸ§ª", "equipment": "ðŸ”¬", "software": "ðŸ’»", "safety": "âš ï¸"}.get(
-                            item.get("category", ""), "📋"
+                        cat_icon = {"reagent": "Ã°Å¸Â§Âª", "equipment": "Ã°Å¸â€Â¬", "software": "Ã°Å¸â€™Â»", "safety": "Ã¢Å¡Â Ã¯Â¸Â"}.get(
+                            item.get("category", ""), "ðŸ“‹"
                         )
-                        st.markdown(f"{cat_icon} **{item['item']}**")
+                        st.markdown(f"{cat_icon}} **{item['item']}}**")
                         if item.get("notes"):
                             st.caption(item["notes"])
 
@@ -797,19 +797,19 @@ def render_lab_protocol_transpiler_ui():
         if not protocol:
             st.info("Transpile a protocol first.")
         else:
-            st.subheader("ðŸ’» Copyable Code & Commands")
+            st.subheader("Ã°Å¸â€™Â» Copyable Code & Commands")
 
             code_blocks = protocol.get("code_blocks", [])
             if code_blocks:
                 for i, cb in enumerate(code_blocks):
                     lang = cb.get("language", "text")
-                    with st.expander(f"Code Block {i1} [{lang}]", expanded=(i == 0)):
+                    with st.expander(f"Code Block {i1}} [{lang}}]", expanded=(i == 0)):
                         st.code(cb["code"], language=lang if lang != "unknown" else "text")
             else:
                 st.info("No code blocks detected in the methodology text.")
 
             # Generate bash commands
-            st.subheader("ðŸ–¥ï¸ Generated Bash Commands")
+            st.subheader("Ã°Å¸â€“Â¥Ã¯Â¸Â Generated Bash Commands")
             commands = transpiler.generate_bash_commands(protocol)
             bash_script = "\n".join(commands)
             st.code(bash_script, language="bash")
@@ -817,17 +817,18 @@ def render_lab_protocol_transpiler_ui():
             import base64
             b64 = base64.b64encode(bash_script.encode()).decode()
             st.markdown(
-                f'<a href="data:text/plain;base64,{b64}" download="commands.sh" '
+                f'<a href="data:text/plain;base64,{b64}}" download="commands.sh" '
                 f'style="display:inline-block;padding:10px 20px;background:#059669;color:white;'
-                f'border-radius:8px;text-decoration:none;font-weight:600;">📥 Download Bash Script</a>',
+                f'border-radius:8px;text-decoration:none;font-weight:600;">ðŸ“¥ Download Bash Script</a>',
                 unsafe_allow_html=True,
             )
 
             # Timer presets
-            st.subheader("â±ï¸ Timer Presets")
+            st.subheader("Ã¢ÂÂ±Ã¯Â¸Â Timer Presets")
             durations = protocol.get("durations", [])
             if durations:
                 for d in durations:
-                    st.markdown(f"â±ï¸ {d['value']}")
+                    st.markdown(f"Ã¢ÂÂ±Ã¯Â¸Â {d['value']}}")
             else:
                 st.info("No durations detected to create timer presets.")
+

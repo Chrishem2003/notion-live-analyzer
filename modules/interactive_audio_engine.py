@@ -1,4 +1,4 @@
-
+﻿
 """
 Hands-Free 'Pause & Interrupt' Conversational Audio Engine
 Upgrades audio briefings into an interactive, voice-controlled learning space.
@@ -78,16 +78,16 @@ class InteractiveAudioEngine:
 
         if any(w in cmd_lower for w in ["pause", "stop", "wait", "hold up", "hold on"]):
             self.pause_playback()
-            response.update({"action": "pause", "response_text": "â¸ï¸ Paused. Say 'resume' or 'continue' when ready.", "success": True})
+            response.update({"action": "pause", "response_text": "Ã¢ÂÂ¸Ã¯Â¸Â Paused. Say 'resume' or 'continue' when ready.", "success": True})
         elif any(w in cmd_lower for w in ["resume", "continue", "play", "go on", "keep going"]):
             self.resume_playback() if self.is_paused else self.start_playback()
-            response.update({"action": "resume", "response_text": "â–¶ï¸ Resuming.", "success": True})
+            response.update({"action": "resume", "response_text": "Ã¢â€“Â¶Ã¯Â¸Â Resuming.", "success": True})
         elif any(w in cmd_lower for w in ["back", "previous", "go back", "repeat"]):
             self.skip_backward(1)
-            response.update({"action": "back", "response_text": "âª Previous segment.", "success": True})
+            response.update({"action": "back", "response_text": "Ã¢ÂÂª Previous segment.", "success": True})
         elif any(w in cmd_lower for w in ["next", "forward", "skip", "ahead"]):
             self.skip_forward(1)
-            response.update({"action": "next", "response_text": "â© Next segment.", "success": True})
+            response.update({"action": "next", "response_text": "Ã¢ÂÂ© Next segment.", "success": True})
         elif any(w in cmd_lower for w in ["explain", "what does", "what is", "clarify", "tell me more"]):
             response.update(self._handle_explain_request(cmd_lower))
         elif any(w in cmd_lower for w in ["sample size", "how many", "participants", "n="]):
@@ -104,9 +104,9 @@ class InteractiveAudioEngine:
                 idx = int(m.group(1)) - 1
                 if 0 <= idx < len(self.segments):
                     self.seek_to_segment(idx)
-                    response.update({"action": "seek", "response_text": f"ðŸ“ Segment {idx1}.", "success": True})
+                    response.update({"action": "seek", "response_text": f"Ã°Å¸â€œÂ Segment {idx1}}.", "success": True})
                 else:
-                    response.update({"response_text": f"Only {len(self.segments)} segments available."})
+                    response.update({"response_text": f"Only {len(self.segments)}} segments available."})
         elif any(w in cmd_lower for w in ["summarize", "summary", "key points", "overview"]):
             response.update(self._handle_summary_request())
         elif any(w in cmd_lower for w in ["help", "what can i say", "commands"]):
@@ -118,43 +118,43 @@ class InteractiveAudioEngine:
     def _handle_explain_request(self, cmd: str) -> Dict:
         segment = self.segments[self.current_segment_index] if self.segments else None
         if segment:
-            return {"action": "explain", "response_text": f"ðŸ“– Here's context on this section: {segment['text'][:300]}...", "success": True}
+            return {"action": "explain", "response_text": f"Ã°Å¸â€œâ€“ Here's context on this section: {segment['text'][:300]}}...", "success": True}
         return {"response_text": "No content loaded to explain.", "action": "explain"}
 
     def _handle_sample_size_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         n = paper.get("sample_size", paper.get("n", "not specified"))
-        return {"action": "sample_size", "response_text": f" The study sample size is: {n}", "success": True}
+        return {"action": "sample_size", "response_text": f" The study sample size is: {n}}", "success": True}
 
     def _handle_methodology_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         method = paper.get("methodology", paper.get("method", "not specified in context"))
-        return {"action": "methodology", "response_text": f"ðŸ”¬ Methodology: {method}", "success": True}
+        return {"action": "methodology", "response_text": f"Ã°Å¸â€Â¬ Methodology: {method}}", "success": True}
 
     def _handle_results_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         findings = paper.get("findings", paper.get("results", "not specified in context"))
-        return {"action": "results", "response_text": f"📈 Key findings: {findings}", "success": True}
+        return {"action": "results", "response_text": f"ðŸ“ˆ Key findings: {findings}}", "success": True}
 
     def _handle_statistics_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         stats = paper.get("statistics", paper.get("stats", "not specified"))
-        return {"action": "statistics", "response_text": f"ðŸ“‰ Statistical details: {stats}", "success": True}
+        return {"action": "statistics", "response_text": f"Ã°Å¸â€œâ€° Statistical details: {stats}}", "success": True}
 
     def _handle_summary_request(self) -> Dict:
         if not self.segments:
             return {"response_text": "No content loaded.", "action": "summary"}
         total_words = sum(s["word_count"] for s in self.segments)
         first_seg = self.segments[0]["text"][:200] if self.segments else ""
-        return {"action": "summary", "response_text": f"ðŸ“„ Briefing with {len(self.segments)} segments ({total_words} words). Starts with: {first_seg}...", "success": True}
+        return {"action": "summary", "response_text": f"Ã°Å¸â€œâ€ž Briefing with {len(self.segments)}} segments ({total_words}} words). Starts with: {first_seg}}...", "success": True}
 
     def _get_help_text(self) -> str:
-        return """ðŸŽ¯ **Available Commands:**
-â€¢ **Playback**: pause, resume, stop, next, back, go to segment [N]
-â€¢ **Questions**: explain this, what does this mean, clarify
-â€¢ **Paper Info**: sample size, methodology, results, statistics
-â€¢ **Navigation**: summarize, overview, key points
-â€¢ **Help**: help, commands, what can I say"""
+        return """Ã°Å¸Å½Â¯ **Available Commands:**
+Ã¢â‚¬Â¢ **Playback**: pause, resume, stop, next, back, go to segment [N]
+Ã¢â‚¬Â¢ **Questions**: explain this, what does this mean, clarify
+Ã¢â‚¬Â¢ **Paper Info**: sample size, methodology, results, statistics
+Ã¢â‚¬Â¢ **Navigation**: summarize, overview, key points
+Ã¢â‚¬Â¢ **Help**: help, commands, what can I say"""
 
     def get_current_segment(self) -> Optional[Dict]:
         if 0 <= self.current_segment_index < len(self.segments):
@@ -178,17 +178,17 @@ class InteractiveAudioEngine:
 def render_interactive_audio_ui():
     """Render the Interactive Audio Engine UI."""
     import streamlit as st
-    st.markdown("## ðŸŽ™ï¸ Interactive Audio Briefing Engine")
+    st.markdown("## Ã°Å¸Å½â„¢Ã¯Â¸Â Interactive Audio Briefing Engine")
     st.markdown("*Voice-controlled research briefing with pause & interrupt*")
 
     if "audio_engine" not in st.session_state:
         st.session_state["audio_engine"] = InteractiveAudioEngine()
     engine = st.session_state["audio_engine"]
 
-    tab1, tab2, tab3 = st.tabs(["ðŸŽ§ Player", "ðŸŽ¯ Voice Commands", "📋 History"])
+    tab1, tab2, tab3 = st.tabs(["Ã°Å¸Å½Â§ Player", "Ã°Å¸Å½Â¯ Voice Commands", "ðŸ“‹ History"])
 
     with tab1:
-        st.subheader("ðŸŽ§ Audio Briefing Player")
+        st.subheader("Ã°Å¸Å½Â§ Audio Briefing Player")
         col1, col2 = st.columns([2, 1])
         with col1:
             briefing_text = st.text_area("Briefing text to narrate", height=150,
@@ -200,42 +200,42 @@ def render_interactive_audio_ui():
             methodology = st.text_input("Methodology", placeholder="RCT, double-blind", key="audio_method")
             findings = st.text_area("Key findings", height=60, placeholder="Main results...", key="audio_findings")
 
-        if st.button("📥 Load Briefing", type="primary", use_container_width=True) and briefing_text:
+        if st.button("ðŸ“¥ Load Briefing", type="primary", use_container_width=True) and briefing_text:
             paper_ctx = {"sample_size": sample_size, "methodology": methodology, "findings": findings, "statistics": ""}
             engine.load_briefing(briefing_text, paper_ctx)
-            st.success(f"✅ Loaded {len(engine.segments)} segments")
+            st.success(f"âœ… Loaded {len(engine.segments)}} segments")
 
         if engine.segments:
             st.markdown("### Controls")
             col1, col2, col3, col4, col5 = st.columns(5)
             with col1:
-                if st.button("â®ï¸", use_container_width=True): engine.skip_backward(2); st.rerun()
+                if st.button("Ã¢ÂÂ®Ã¯Â¸Â", use_container_width=True): engine.skip_backward(2); st.rerun()
             with col2:
-                if st.button("âª", use_container_width=True): engine.skip_backward(1); st.rerun()
+                if st.button("Ã¢ÂÂª", use_container_width=True): engine.skip_backward(1); st.rerun()
             with col3:
                 if engine.is_paused:
-                    if st.button("â–¶ï¸ Resume", use_container_width=True): engine.resume_playback(); st.rerun()
+                    if st.button("Ã¢â€“Â¶Ã¯Â¸Â Resume", use_container_width=True): engine.resume_playback(); st.rerun()
                 else:
-                    if st.button("â¸ï¸ Pause", use_container_width=True): engine.pause_playback(); st.rerun()
+                    if st.button("Ã¢ÂÂ¸Ã¯Â¸Â Pause", use_container_width=True): engine.pause_playback(); st.rerun()
             with col4:
-                if st.button("â©", use_container_width=True): engine.skip_forward(1); st.rerun()
+                if st.button("Ã¢ÂÂ©", use_container_width=True): engine.skip_forward(1); st.rerun()
             with col5:
-                if st.button("â­ï¸", use_container_width=True): engine.skip_forward(2); st.rerun()
+                if st.button("Ã¢ÂÂ­Ã¯Â¸Â", use_container_width=True): engine.skip_forward(2); st.rerun()
 
             st.markdown("### Current Segment")
             seg = engine.get_current_segment()
             if seg:
-                st.info(f"**Segment {seg['index'] + 1}/{len(engine.segments)}** ({seg['word_count']} words)")
+                st.info(f"**Segment {seg['index'] + 1}}/{len(engine.segments)}}** ({seg['word_count']}} words)")
                 st.markdown(seg['text'])
                 st.progress(engine.get_progress() / 100)
             else:
                 st.info("No segment selected")
 
     with tab2:
-        st.subheader("ðŸŽ¯ Voice & Text Commands")
+        st.subheader("Ã°Å¸Å½Â¯ Voice & Text Commands")
         st.caption("Type a command or use voice input (if microphone is available)")
         command = st.text_input("Enter command", placeholder="e.g., pause, explain this, sample size...", key="audio_command")
-        if st.button("ðŸŽ¤ Send Command", type="primary") and command:
+        if st.button("Ã°Å¸Å½Â¤ Send Command", type="primary") and command:
             result = engine.process_voice_command(command)
             if result["success"]:
                 st.success(result["response_text"])
@@ -245,14 +245,15 @@ def render_interactive_audio_ui():
         st.markdown(engine._get_help_text())
 
     with tab3:
-        st.subheader("📋 Command History")
+        st.subheader("ðŸ“‹ Command History")
         if engine.command_history:
             for cmd in reversed(engine.command_history[-20:]):
                 ts = datetime.fromtimestamp(cmd["timestamp"]).strftime("%H:%M:%S")
-                st.text(f"[{ts}] {cmd['command']}")
+                st.text(f"[{ts}}] {cmd['command']}}")
         else:
             st.info("No commands processed yet")
         state = engine.get_state_summary()
         st.markdown("### Engine State")
         st.json(state)
+
 

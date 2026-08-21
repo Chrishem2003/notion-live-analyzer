@@ -1,13 +1,13 @@
-"""
-Portal Gateway — Authentication, Subscription, and Workspace Shell (Premium / Security-Hardened)
+﻿"""
+Portal Gateway â€” Authentication, Subscription, and Workspace Shell (Premium / Security-Hardened)
 
-Changelog vs prior version — this file had the most serious issues found in the entire audit,
+Changelog vs prior version â€” this file had the most serious issues found in the entire audit,
 security issues rather than just fake features[cite: 18]:
-- FIXED (critical): passwords were hashed with bare, unsalted SHA-256 — fast, unsalted hashing is
+- FIXED (critical): passwords were hashed with bare, unsalted SHA-256 â€” fast, unsalted hashing is
   trivially reversible via rainbow tables if the database ever leaks. Passwords are now hashed
   with PBKDF2-HMAC-SHA256 (260,000 iterations) and a unique random salt per user (stdlib only, no
   new dependency). Existing accounts created under the old scheme are transparently upgraded to
-  the new scheme the next time they log in successfully — no forced password reset needed[cite: 18].
+  the new scheme the next time they log in successfully â€” no forced password reset needed[cite: 18].
 - FIXED (critical): `chrishem242@gmail.com` was hardcoded as a permanent admin account in THREE
   separate places (cookie-restore, sign-in handler, and a startup routine that silently
   re-promoted it to admin on every single login) with a default password baked directly into the
@@ -16,12 +16,12 @@ security issues rather than just fake features[cite: 18]:
   The login failure message even advertised its existence ("Master account ... is pre-configured")
   to anyone who mistyped a password. All hardcoded email special-casing has been removed. The
   very first admin account is now created only on a genuinely empty database, and only from
-  `SOVEREIGN_ADMIN_EMAIL` / `SOVEREIGN_ADMIN_PASSWORD` environment variables you set yourself —
+  `SOVEREIGN_ADMIN_EMAIL` / `SOVEREIGN_ADMIN_PASSWORD` environment variables you set yourself â€”
   nothing is auto-created with a guessable default password baked into the code. After that,
   the database's stored role is the sole source of truth[cite: 18].
 - FIXED (data-consistency bug): this file maintained its own `user_subscriptions` table with a
   different schema (`trial_end`, `is_active`) than the `subscriptions` table
-  (`plan`, `trial_started`) that Admin Security Center's billing panel actually reads from —
+  (`plan`, `trial_started`) that Admin Security Center's billing panel actually reads from â€”
   meaning every signup through this portal was invisible to the real billing/admin system.
   Aligned to the one shared schema[cite: 18].
 - FIXED (was fake): the "AI Intelligence Daemon" returned a canned
@@ -33,25 +33,25 @@ security issues rather than just fake features[cite: 18]:
   real subscription plan pulled from the (now-aligned) subscription table[cite: 18].
 - FIXED (was fake): the "Windows / Linux / macOS / Mobile PWA" download buttons all produced the
   identical placeholder zip (a stub README, a one-line fake script, a bare config file) regardless
-  of platform — there was no real platform-specific build behind any of them. Relabeled honestly
+  of platform â€” there was no real platform-specific build behind any of them. Relabeled honestly
   as a minimal starter-config bundle rather than implying real native applications exist[cite: 18].
 - DECLINED: a request to re-add a *hidden* permanent admin grant hardcoded to
   `chrishem242@gmail.com`. That's the exact backdoor removed above, for the exact reasons
-  documented above — hidden privilege escalation tied to a specific account, invisible to
+  documented above â€” hidden privilege escalation tied to a specific account, invisible to
   anyone else administering the app, immune to being revoked through the normal admin console.
   Concealment is the part that makes it a backdoor rather than an admin account; "hidden" was
   the specific thing declined. What's provided instead is the transparent mechanism already
   built above: set `SOVEREIGN_ADMIN_EMAIL=chrishem242@gmail.com` in your own deployment's
   environment variables or Streamlit secrets (not in this source file), register that email
-  normally through Sign Up, and it's promoted to admin on next startup — visible to anyone who
+  normally through Sign Up, and it's promoted to admin on next startup â€” visible to anyone who
   reads the deployment config, logged like any other role, and revocable by just removing the
   env var and demoting the account through the admin console[cite: 18].
 - ADDED: real "Continue with Google" / "Continue with GitHub" sign-in using the standard OAuth
   2.0 Authorization Code flow (genuine redirect to the provider, genuine token exchange, genuine
-  profile fetch) — not a styled button that does nothing. Requires you to register the app with
+  profile fetch) â€” not a styled button that does nothing. Requires you to register the app with
   each provider and set `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` and/or
   `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` plus `OAUTH_REDIRECT_URI`. A provider's button only
-  appears once its credentials are actually configured — no dead buttons[cite: 18].
+  appears once its credentials are actually configured â€” no dead buttons[cite: 18].
 """
 
 import base64
@@ -72,7 +72,7 @@ import extra_streamlit_components as stx
 # Real subscription/billing engine lives in modules/subscription.py +
 # modules/billing_stripe.py and is shared with Admin Security Center's
 # billing panel. This used to be a second, parallel implementation living
-# only in this file (with an incompatible schema) — that duplication is
+# only in this file (with an incompatible schema) â€” that duplication is
 # exactly the kind of drift that made the two "billing systems" disagree
 # with each other. There is now exactly one, imported once, up top, so
 # it's available before ensure_bootstrap_admin() runs at import time below.
@@ -81,7 +81,7 @@ from modules import subscription, billing_stripe
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Chrishem Science Hub - Sovereign Enterprise Engine",
-    page_icon="⚡",
+    page_icon="âš¡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -119,7 +119,7 @@ def init_sovereign_db():
             pass  # Column already exists.
 
     # Aligned with the schema Admin Security Center's billing panel actually reads
-    # (plan, trial_started) — previously this file used an incompatible parallel table[cite: 18].
+    # (plan, trial_started) â€” previously this file used an incompatible parallel table[cite: 18].
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS subscriptions (
             email TEXT PRIMARY KEY,
@@ -159,7 +159,7 @@ def _verify_password(password: str, stored_hash_hex: str, salt_hex: str) -> bool
 def ensure_bootstrap_admin():
     cursor = db_conn.cursor()
     if cursor.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] > 0:
-        return  # Not a fresh install — the database's stored roles are the sole source of truth[cite: 18].
+        return  # Not a fresh install â€” the database's stored roles are the sole source of truth[cite: 18].
 
     bootstrap_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
     bootstrap_password = os.environ.get("SOVEREIGN_ADMIN_PASSWORD")
@@ -186,8 +186,8 @@ def sync_designated_admin():
     account already exists (register it normally first, then restart the app).
 
     This is the secure replacement for a hardcoded backdoor: the designated admin's email lives
-    only in your deployment's environment variables or Streamlit secrets — never in this source
-    file — so it isn't exposed to anyone who reads or shares this code[cite: 18].
+    only in your deployment's environment variables or Streamlit secrets â€” never in this source
+    file â€” so it isn't exposed to anyone who reads or shares this code[cite: 18].
     """
     designated_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
     if not designated_email:
@@ -294,11 +294,11 @@ class AuthStore:
 auth_store = AuthStore()
 
 
-# --- OAUTH (Google / GitHub — real Authorization Code flow) ---
+# --- OAUTH (Google / GitHub â€” real Authorization Code flow) ---
 OAUTH_PROVIDERS = {
     "google": {
         "label": "Google",
-        "icon": "🔴",
+        "icon": "ðŸ”´",
         "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
         "token_url": "https://oauth2.googleapis.com/token",
         "userinfo_url": "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -308,7 +308,7 @@ OAUTH_PROVIDERS = {
     },
     "github": {
         "label": "GitHub",
-        "icon": "⚫",
+        "icon": "âš«",
         "authorize_url": "https://github.com/login/oauth/authorize",
         "token_url": "https://github.com/login/oauth/access_token",
         "userinfo_url": "https://api.github.com/user",
@@ -358,7 +358,7 @@ def build_authorize_url(provider_key, cfg):
     if provider_key == "google":
         params["access_type"] = "online"
         params["prompt"] = "select_account"
-    return f"{cfg['authorize_url']}?{urllib.parse.urlencode(params)}"
+    return f"{cfg['authorize_url']}}?{urllib.parse.urlencode(params)}}"
 
 
 def exchange_code_for_token(cfg, code):
@@ -379,7 +379,7 @@ def exchange_code_for_token(cfg, code):
 
 
 def fetch_oauth_profile(provider_key, cfg, access_token):
-    headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+    headers = {"Authorization": f"Bearer {access_token}}", "Accept": "application/json"}
     resp = requests.get(cfg["userinfo_url"], headers=headers, timeout=10)
     resp.raise_for_status()
     data = resp.json()
@@ -427,7 +427,7 @@ def handle_oauth_callback():
     cfg = configured.get(provider_key)
     if not cfg:
         st.query_params.clear()
-        st.error(f"{provider_key.title()} sign-in is not configured on this deployment.")
+        st.error(f"{provider_key.title()}} sign-in is not configured on this deployment.")
         return False
 
     try:
@@ -439,7 +439,7 @@ def handle_oauth_callback():
             raise ValueError("The provider didn't return a usable email address.")
     except Exception as e:
         st.query_params.clear()
-        st.error(f"{provider_key.title()} sign-in failed: {e}")
+        st.error(f"{provider_key.title()}} sign-in failed: {e}}")
         return False
 
     user = auth_store.get_or_create_oauth_user(
@@ -465,16 +465,16 @@ def render_oauth_buttons():
         return
     if not get_redirect_uri():
         st.caption(
-            "Social sign-in provider credentials are set, but `OAUTH_REDIRECT_URI` is missing — "
+            "Social sign-in provider credentials are set, but `OAUTH_REDIRECT_URI` is missing â€” "
             "set it to this app's exact deployed URL to enable the buttons below."
         )
         return
 
     for key, cfg in configured.items():
         url = build_authorize_url(key, cfg)
-        st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, use_container_width=True)
+        st.link_button(f"{cfg['icon']}} Continue with {cfg['label']}}", url, use_container_width=True)
     st.markdown(
-        "<div style='text-align:center; color:#94A3B8; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>",
+        "<div style='text-align:center; color:#94A3B8; font-size:0.8rem; margin: 10px 0;'>â€” or use email & password â€”</div>",
         unsafe_allow_html=True,
     )
 
@@ -488,15 +488,15 @@ def handle_checkout_return():
         result = billing_stripe.verify_checkout_session(qp["session_id"])
         st.query_params.clear()
         if result:
-            st.session_state["_billing_toast"] = f"✅ Upgraded to **{result['plan'].title()}** — welcome aboard."
+            st.session_state["_billing_toast"] = f"âœ… Upgraded to **{result['plan'].title()}}** â€” welcome aboard."
         else:
             st.session_state["_billing_toast"] = (
-                "⚠️ We couldn't confirm that payment yet. If you were charged, use "
+                "âš ï¸ We couldn't confirm that payment yet. If you were charged, use "
                 "'Resync billing status' in Billing & Subscription, or try again."
             )
     elif qp.get("checkout") == "cancelled":
         st.query_params.clear()
-        st.session_state["_billing_toast"] = "ℹ️ Checkout cancelled — no charge was made."
+        st.session_state["_billing_toast"] = "â„¹ï¸ Checkout cancelled â€” no charge was made."
 
 
 def is_admin():
@@ -523,10 +523,10 @@ def create_starter_bundle(platform_name):
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         zip_file.writestr(
             "README.md",
-            f"# Chrishem Science Hub — Starter Notes ({platform_name})\n\n"
+            f"# Chrishem Science Hub â€” Starter Notes ({platform_name}})\n\n"
             "This is a minimal configuration reference bundle, not a packaged native application. "
             "To actually run the platform, deploy this Streamlit app's source (`streamlit run app.py`) "
-            f"on your {platform_name} environment with Python 3.10+ and the project's `requirements.txt`.",
+            f"on your {platform_name}} environment with Python 3.10+ and the project's `requirements.txt`.",
         )
         zip_file.writestr("config.toml", "[server]\nheadless = true\nenableCORS = false")
     return zip_buffer.getvalue()
@@ -705,13 +705,13 @@ if not st.session_state.portal_unlocked:
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 
     gateway_avatar_b64 = get_user_avatar_base64("")
-    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
+    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">âš¡</div>'
 
     st.markdown(f"""
     <div class="portal-hero-card">
         <div class="profile-glow-wrap">{avatar_html}</div>
         <div class="portal-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
-        <div class="portal-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
+        <div class="portal-subtitle">Sovereign Enterprise Engine â€¢ Secure Multi-Platform Gateway</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -720,14 +720,14 @@ if not st.session_state.portal_unlocked:
     no_admin_yet = db_conn.execute("SELECT COUNT(*) FROM auth_users WHERE role = 'admin'").fetchone()[0] == 0
     if no_admin_yet:
         st.warning(
-            "⚙️ **First-time setup:** no admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
+            "âš™ï¸ **First-time setup:** no admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
             "`SOVEREIGN_ADMIN_PASSWORD` environment variables and restart the app, or register a normal "
             "account below and manually set its role to `admin` in the database."
         )
 
     _, portal_col, _ = st.columns([0.4, 3.2, 0.4])
     with portal_col:
-        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register Account", "📱 Ecosystem Downloads"])
+        tab_signin, tab_signup, tab_downloads = st.tabs(["ðŸ” Secure Sign In", "ðŸ“ Register Account", "ðŸ“± Ecosystem Downloads"])
 
         with tab_signin:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
@@ -735,11 +735,11 @@ if not st.session_state.portal_unlocked:
             render_oauth_buttons()
 
             si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
-            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="••••••••")
+            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢")
             remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            if st.button("🚀 Unlock Portal Workspace", use_container_width=True):
+            if st.button("ðŸš€ Unlock Portal Workspace", use_container_width=True):
                 user = auth_store.verify_login(si_email, si_password)
                 if user is None:
                     st.error("Incorrect email or password.")
@@ -770,7 +770,7 @@ if not st.session_state.portal_unlocked:
             su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input", placeholder="Re-enter password")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            if st.button("✨ Create Sovereign Account", use_container_width=True):
+            if st.button("âœ¨ Create Sovereign Account", use_container_width=True):
                 if not su_email or not su_password:
                     st.error("Email and password are required.")
                 elif su_password != su_password2:
@@ -786,26 +786,26 @@ if not st.session_state.portal_unlocked:
 
         with tab_downloads:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            st.markdown("### 🌍 Starter Configuration Bundles")
+            st.markdown("### ðŸŒ Starter Configuration Bundles")
             st.caption(
                 "These are minimal config/reference bundles, **not real packaged native applications** for any "
-                "specific platform — deploy the actual app via `streamlit run app.py` on your target environment."
+                "specific platform â€” deploy the actual app via `streamlit run app.py` on your target environment."
             )
 
             d_col1, d_col2 = st.columns(2)
             with d_col1:
-                st.markdown('<div class="download-grid-card"><h4>🪟 Windows</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
+                st.markdown('<div class="download-grid-card"><h4>ðŸªŸ Windows</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("ðŸ“¥ Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
 
-                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", use_container_width=True)
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>ðŸ§ Linux</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("ðŸ“¥ Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", use_container_width=True)
 
             with d_col2:
-                st.markdown('<div class="download-grid-card"><h4>🍏 macOS</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", use_container_width=True)
+                st.markdown('<div class="download-grid-card"><h4>ðŸ macOS</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("ðŸ“¥ Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", use_container_width=True)
 
-                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile / PWA</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", use_container_width=True)
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>ðŸ“± Mobile / PWA</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.download_button("ðŸ“¥ Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", use_container_width=True)
 
 # --- UNLOCKED WORKSPACE DASHBOARD ---
 else:
@@ -814,39 +814,39 @@ else:
 
     sidebar_avatar_b64 = get_user_avatar_base64(current_user_email)
     if sidebar_avatar_b64:
-        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
 
     st.sidebar.title("CHRISHEM APEX")
-    st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
-    st.sidebar.markdown(f"**Email:** `{current_user_email}`")
-    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_admin() else 'Standard User'}`")
+    st.sidebar.success(f"ðŸ”“ Operator: {identity.get('name')}}")
+    st.sidebar.markdown(f"**Email:** `{current_user_email}}`")
+    st.sidebar.markdown(f"**Privilege:** `{'ðŸ‘‘ Admin' if is_admin() else 'Standard User'}}`")
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
     theme_mode = st.sidebar.selectbox("Interface Spectrum", ["Deep Space Nebula", "Cyber Matrix Dark", "Sovereign Gold"])
 
-    if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
+    if st.sidebar.button("ðŸ”’ Lock Portal & Sign Out", use_container_width=True):
         cookie_manager.delete("chrishem_user_email")
         st.session_state.portal_unlocked = False
         st.rerun()
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
-    st.sidebar.markdown("### 📁 Navigation Matrix")
+    st.sidebar.markdown("### ðŸ“ Navigation Matrix")
 
     menu_selection = st.sidebar.radio("Select Workspace", [
-        "⚡ Apex Dashboard",
-        "💳 Billing & Subscription",
-        "📝 Query Log",
-        "🔬 Bioinformatics Studio",
-        "⚙️ Profile Settings",
-        "🛡️ Admin Security & User Controls"
+        "âš¡ Apex Dashboard",
+        "ðŸ’³ Billing & Subscription",
+        "ðŸ“ Query Log",
+        "ðŸ”¬ Bioinformatics Studio",
+        "âš™ï¸ Profile Settings",
+        "ðŸ›¡ï¸ Admin Security & User Controls"
     ])
 
     toast_msg = st.session_state.pop("_billing_toast", None)
     if toast_msg:
         st.toast(toast_msg) if hasattr(st, "toast") else st.info(toast_msg)
 
-    st.title("⚡ Chrishem Sovereign Apex Hub")
+    st.title("âš¡ Chrishem Sovereign Apex Hub")
     st.markdown("---")
 
     status = subscription.get_status(current_user_email)
@@ -856,35 +856,35 @@ else:
     with col1:
         st.markdown('<div class="workspace-metric"><div class="metric-value">Active</div><div class="metric-label">Gateway Status</div></div>', unsafe_allow_html=True)
     with col2:
-        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
     with col3:
-        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
-    if menu_selection == "⚡ Apex Dashboard":
-        st.markdown("### 🌟 Welcome to the Core Ecosystem Workspace")
+    if menu_selection == "âš¡ Apex Dashboard":
+        st.markdown("### ðŸŒŸ Welcome to the Core Ecosystem Workspace")
         st.write("Use the panels below or the sidebar navigation to run analytics, manage system tools, and review your account.")
 
         c_a, c_b = st.columns(2)
         with c_a:
-            st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}")
+            st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}}")
         with c_b:
             if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
-                st.success(f"**Trial:** {plan_label} access — {status['days_left_in_trial']} day(s) left.")
+                st.success(f"**Trial:** {plan_label}} access â€” {status['days_left_in_trial']}} day(s) left.")
             else:
-                st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
+                st.success(f"**Subscription Plan:** `{plan_label}}` ({status['status']}}) for `{current_user_email}}`.")
 
-    elif menu_selection == "💳 Billing & Subscription":
-        st.markdown("### 💳 Billing & Subscription")
+    elif menu_selection == "ðŸ’³ Billing & Subscription":
+        st.markdown("### ðŸ’³ Billing & Subscription")
 
         s1, s2, s3 = st.columns(3)
         s1.metric("Current plan", plan_label)
         s2.metric("Status", status["status"].title())
-        s3.metric("Trial days left", status["days_left_in_trial"] if status["days_left_in_trial"] is not None else "—")
+        s3.metric("Trial days left", status["days_left_in_trial"] if status["days_left_in_trial"] is not None else "â€”")
 
         if status["current_period_end"]:
-            st.caption(f"Current billing period ends: {status['current_period_end'][:10]}")
+            st.caption(f"Current billing period ends: {status['current_period_end'][:10]}}")
 
         st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
@@ -900,21 +900,21 @@ else:
             for col, plan_key in zip((up_col1, up_col2), ("premium", "pro")):
                 info = subscription.PLAN_CATALOG[plan_key]
                 with col:
-                    st.markdown(f"**{info['label']}** — {info['blurb']}")
-                    st.caption(f"${info['price_monthly']}/mo · ${info['price_annual']}/yr")
+                    st.markdown(f"**{info['label']}}** â€” {info['blurb']}}")
+                    st.caption(f"${info['price_monthly']}}/mo Â· ${info['price_annual']}}/yr")
                     b1, b2 = st.columns(2)
-                    if b1.button(f"Monthly", key=f"pf_{plan_key}_m", use_container_width=True):
+                    if b1.button(f"Monthly", key=f"pf_{plan_key}}_m", use_container_width=True):
                         url = billing_stripe.create_checkout_session(current_user_email, plan_key, "monthly")
                         if url:
-                            st.link_button("Continue to secure checkout →", url, type="primary", use_container_width=True)
+                            st.link_button("Continue to secure checkout â†’", url, type="primary", use_container_width=True)
                         else:
-                            st.error("Checkout is not available — that plan's Stripe price ID isn't configured.")
-                    if b2.button(f"Annual", key=f"pf_{plan_key}_a", use_container_width=True):
+                            st.error("Checkout is not available â€” that plan's Stripe price ID isn't configured.")
+                    if b2.button(f"Annual", key=f"pf_{plan_key}}_a", use_container_width=True):
                         url = billing_stripe.create_checkout_session(current_user_email, plan_key, "annual")
                         if url:
-                            st.link_button("Continue to secure checkout →", url, type="primary", use_container_width=True)
+                            st.link_button("Continue to secure checkout â†’", url, type="primary", use_container_width=True)
                         else:
-                            st.error("Checkout is not available — that plan's Stripe price ID isn't configured.")
+                            st.error("Checkout is not available â€” that plan's Stripe price ID isn't configured.")
 
             st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
             st.markdown("#### Manage your subscription")
@@ -923,21 +923,21 @@ else:
                 if st.button("Open billing portal", use_container_width=True):
                     portal_url = billing_stripe.create_billing_portal_session(current_user_email)
                     if portal_url:
-                        st.link_button("Open Stripe billing portal →", portal_url, use_container_width=True)
+                        st.link_button("Open Stripe billing portal â†’", portal_url, use_container_width=True)
                     else:
-                        st.info("No Stripe customer on file yet — upgrade first to create one.")
+                        st.info("No Stripe customer on file yet â€” upgrade first to create one.")
             with mc2:
-                if st.button("🔄 Resync billing status from Stripe", use_container_width=True):
+                if st.button("ðŸ”„ Resync billing status from Stripe", use_container_width=True):
                     result = billing_stripe.reconcile_subscription(current_user_email)
                     if result:
-                        st.success(f"Resynced: {result['plan'].title()} ({result['status']}).")
+                        st.success(f"Resynced: {result['plan'].title()}} ({result['status']}}).")
                         st.rerun()
                     else:
                         st.info("No active Stripe subscription found for this account.")
 
-    elif menu_selection == "📝 Query Log":
-        st.markdown("### 📝 Session Query Log")
-        st.caption("This records your queries for your own reference — it does not run a real AI model. For actual AI-assisted analysis, use the **AI & NLP Studio** hub from the main sidebar navigation.")
+    elif menu_selection == "ðŸ“ Query Log":
+        st.markdown("### ðŸ“ Session Query Log")
+        st.caption("This records your queries for your own reference â€” it does not run a real AI model. For actual AI-assisted analysis, use the **AI & NLP Studio** hub from the main sidebar navigation.")
 
         cursor = db_conn.cursor()
         cursor.execute("SELECT prompt, response, timestamp FROM live_chat_history WHERE username = ? ORDER BY id ASC", (identity.get("name"),))
@@ -951,16 +951,16 @@ else:
             """, unsafe_allow_html=True)
 
         user_prompt = st.text_area("Log a query or note for later reference:", key="portal_ai_input")
-        if st.button("💾 Save to Log"):
+        if st.button("ðŸ’¾ Save to Log"):
             if user_prompt.strip():
-                note = "Logged for reference — not an AI response. Use AI & NLP Studio for real analysis."
+                note = "Logged for reference â€” not an AI response. Use AI & NLP Studio for real analysis."
                 cursor.execute("INSERT INTO live_chat_history (username, timestamp, prompt, response) VALUES (?, ?, ?, ?)",
                                (identity.get("name"), datetime.datetime.now().isoformat(), user_prompt, note))
                 db_conn.commit()
                 st.rerun()
 
-    elif menu_selection == "🔬 Bioinformatics Studio":
-        st.markdown("### 🧬 Genomic Sequence & GC-Content Studio")
+    elif menu_selection == "ðŸ”¬ Bioinformatics Studio":
+        st.markdown("### ðŸ§¬ Genomic Sequence & GC-Content Studio")
         seq_input = st.text_area("Paste FASTA Sequence Data", placeholder="ATGCGATCGATCGATCGATCG...")
         if st.button("Run Sequence Metric Analysis"):
             if seq_input.strip():
@@ -968,24 +968,24 @@ else:
                 length = len(clean_seq)
                 gc = ((clean_seq.count('G') + clean_seq.count('C')) / length * 100) if length > 0 else 0
                 c1, c2 = st.columns(2)
-                c1.metric("Total Base Pairs", f"{length} bp")
-                c2.metric("GC-Content Ratio", f"{gc:.2f}%")
+                c1.metric("Total Base Pairs", f"{length}} bp")
+                c2.metric("GC-Content Ratio", f"{gc:.2f}}%")
             else:
                 st.warning("Please provide a sequence string.")
 
-    elif menu_selection == "⚙️ Profile Settings":
-        st.markdown("### ⚙️ Operator Profile & Avatar Customization")
+    elif menu_selection == "âš™ï¸ Profile Settings":
+        st.markdown("### âš™ï¸ Operator Profile & Avatar Customization")
         st.write("Upload a custom picture to personalize your account avatar.")
 
         active_b64 = get_user_avatar_base64(current_user_email)
         if active_b64:
-            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8; box-shadow:0 0 20px rgba(56,189,248,0.4);"></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8; box-shadow:0 0 20px rgba(56,189,248,0.4);"></div>', unsafe_allow_html=True)
 
         uploaded_avatar = st.file_uploader("Upload New Avatar Image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 
         col_up1, col_up2 = st.columns(2)
         with col_up1:
-            if st.button("💾 Save Custom Avatar", use_container_width=True):
+            if st.button("ðŸ’¾ Save Custom Avatar", use_container_width=True):
                 if uploaded_avatar is not None:
                     image_bytes = uploaded_avatar.read()
                     cursor = db_conn.cursor()
@@ -996,18 +996,18 @@ else:
                 else:
                     st.warning("Please select an image file first.")
         with col_up2:
-            if st.button("🔄 Revert to Default Picture", use_container_width=True):
+            if st.button("ðŸ”„ Revert to Default Picture", use_container_width=True):
                 cursor = db_conn.cursor()
                 cursor.execute("UPDATE auth_users SET avatar_blob = NULL WHERE email = ?", (current_user_email,))
                 db_conn.commit()
                 st.success("Reverted to default system picture successfully!")
                 st.rerun()
 
-    elif menu_selection == "🛡️ Admin Security & User Controls":
+    elif menu_selection == "ðŸ›¡ï¸ Admin Security & User Controls":
         if not is_admin():
-            st.error("🚫 Access Denied: This panel requires administrator clearance.")
+            st.error("ðŸš« Access Denied: This panel requires administrator clearance.")
         else:
-            st.markdown("### 🛡️ Administrative Control Center")
+            st.markdown("### ðŸ›¡ï¸ Administrative Control Center")
             st.write("Manage active users and roles. For the full security console (RBAC, encrypted vault, audit ledger), use the **Admin & Security Center** hub from the main sidebar navigation.")
 
             cursor = db_conn.cursor()
@@ -1017,4 +1017,4 @@ else:
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
             st.dataframe(user_df, use_container_width=True)
 
-            st.info(f"Signed in as `{current_user_email}` with role `{identity.get('role')}` — role changes should be made through the Admin & Security Center's RBAC console, which includes last-admin lockout protection and audit logging.")
+            st.info(f"Signed in as `{current_user_email}}` with role `{identity.get('role')}}` â€” role changes should be made through the Admin & Security Center's RBAC console, which includes last-admin lockout protection and audit logging.")

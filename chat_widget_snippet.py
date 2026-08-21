@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration example: drop into 11___Collaboration_Portfolio.py as a new
 "Team Chat" tab. Two pieces:
   1. Streamlit fetches a short-lived chat token server-to-server (the
@@ -8,10 +8,10 @@ Integration example: drop into 11___Collaboration_Portfolio.py as a new
 
 Honesty note: the WebSocket backend (chat_backend.py, the /ws/chat/{room_id}
 endpoint in api_server.py) is verified end-to-end via the test suite shown
-in this session — real auth rejection, real cross-connection delivery, real
+in this session â€” real auth rejection, real cross-connection delivery, real
 typing indicators, all through FastAPI's actual WebSocket test client. What
 is NOT verified here is this specific browser-side JavaScript actually
-running in a real browser — this sandbox has no browser to run it in. The
+running in a real browser â€” this sandbox has no browser to run it in. The
 JS is syntactically checked and follows the same message protocol the
 backend test already proved correct; treat the first real browser test as
 the actual verification of this piece specifically.
@@ -28,7 +28,7 @@ WS_BASE_URL = os.environ.get("WS_BASE_URL", "ws://localhost:8000")
 def get_chat_token(user_email: str) -> str | None:
     try:
         resp = requests.post(
-            f"{API_BASE_URL}/api/v1/chat/token",
+            f"{API_BASE_URL}}/api/v1/chat/token",
             params={"email": user_email},
             headers={"X-API-Key": os.environ.get("PLATFORM_API_KEY", "")},
             timeout=5,
@@ -36,19 +36,19 @@ def get_chat_token(user_email: str) -> str | None:
         resp.raise_for_status()
         return resp.json()["token"]
     except Exception as e:
-        st.error(f"Chat backend unavailable: {e}")
+        st.error(f"Chat backend unavailable: {e}}")
         return None
 
 
 def render_team_chat(user_email: str, room_id: str = "general"):
-    st.markdown("### 💬 Team Chat")
+    st.markdown("### ðŸ’¬ Team Chat")
 
     token = get_chat_token(user_email)
     if not token:
-        st.warning("Chat is currently unavailable — the FastAPI backend (api_server.py) needs to be running and reachable at API_BASE_URL.")
+        st.warning("Chat is currently unavailable â€” the FastAPI backend (api_server.py) needs to be running and reachable at API_BASE_URL.")
         return
 
-    ws_url = f"{WS_BASE_URL}/ws/chat/{room_id}?token={token}"
+    ws_url = f"{WS_BASE_URL}}/ws/chat/{room_id}}?token={token}}"
 
     widget_html = f"""
     <div id="chat-container" style="border:1px solid #333;border-radius:8px;padding:10px;height:420px;display:flex;flex-direction:column;background:#0b1321;">
@@ -101,7 +101,7 @@ def render_team_chat(user_email: str, room_id: str = "general"):
 
         ws.onclose = (event) => {{
             typingEl.textContent = event.code === 4401
-                ? 'Chat session expired — refresh the page.'
+                ? 'Chat session expired â€” refresh the page.'
                 : 'Disconnected from chat.';
         }};
 

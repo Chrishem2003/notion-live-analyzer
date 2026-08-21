@@ -1,4 +1,4 @@
-
+﻿
 from notion_client import Client
 import streamlit as st
 
@@ -27,6 +27,7 @@ def auto_detect_database_ids(notion_token: str, required_titles: list) -> dict:
                     detected_databases[db_title] = db_id
                     
     except Exception as e:
-        st.error(f"Error scanning Notion workspace: {e}")
+        st.error(f"Error scanning Notion workspace: {e}}")
         
     return detected_databases
+

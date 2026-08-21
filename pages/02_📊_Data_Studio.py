@@ -168,7 +168,7 @@ def robust_parse_file(file_obj_or_path):
             return pd.read_pickle(file_obj_or_path)
         return None
     except Exception as e:
-        st.error(f"❌ Enterprise Parse Error: {e}")
+        st.error(f"❌ Enterprise Parse Error: {e}}")
         return None
 
 
@@ -249,18 +249,18 @@ def apply_recipe_step(df: pd.DataFrame, step: dict) -> pd.DataFrame:
                 out, columns=[col], prefix=col, drop_first=p.get("drop_first", False)
             )
         elif method == "Label / Categorical Encoding":
-            out[f"{col}_encoded"] = out[col].astype("category").cat.codes
+            out[f"{col}}_encoded"] = out[col].astype("category").cat.codes
         return out
 
     if kind == "Transform Feature":
         out = df.copy()
         col, method = p["column"], p["method"]
         if method == "Log Transformation (log1p)":
-            out[f"{col}_log"] = np.log1p(np.maximum(0, out[col]))
+            out[f"{col}}_log"] = np.log1p(np.maximum(0, out[col]))
         elif method == "Square Root":
-            out[f"{col}_sqrt"] = np.sqrt(np.maximum(0, out[col]))
+            out[f"{col}}_sqrt"] = np.sqrt(np.maximum(0, out[col]))
         elif method == "Polynomial (Degree 2)":
-            out[f"{col}_sq"] = np.power(out[col], 2)
+            out[f"{col}}_sq"] = np.power(out[col], 2)
         return out
 
     if kind == "Compute Feature":
@@ -333,7 +333,7 @@ def render_ingestion_tab():
         if uploaded_file is not None:
             file_size_mb = uploaded_file.size / (1024 * 1024)
             st.info(
-                f"📦 File detected: `{uploaded_file.name}` ({file_size_mb:.2f} MB)"
+                f"📦 File detected: `{uploaded_file.name}}` ({file_size_mb:.2f}} MB)"
             )
 
             with st.spinner("Processing & validating dataset..."):
@@ -341,14 +341,14 @@ def render_ingestion_tab():
                 if df is not None and not df.empty:
                     new_fp = dataset_fingerprint(df)
                     set_active_dataframe(df, uploaded_file.name)
-                    push_to_history(df, f"Ingested {uploaded_file.name}")
+                    push_to_history(df, f"Ingested {uploaded_file.name}}")
                     st.session_state["dataset_schema_meta"] = {
                         "fingerprint": new_fp,
                         "schema": schema_signature(df),
                     }
                     st.success(
-                        f"✅ Successfully ingested `{uploaded_file.name}` —"
-                        f" {df.shape[0]:,} rows × {df.shape[1]} columns"
+                        f"✅ Successfully ingested `{uploaded_file.name}}` —"
+                        f" {df.shape[0]:,}} rows × {df.shape[1]}} columns"
                     )
                     st.dataframe(df.head(10), use_container_width=True)
 
@@ -361,15 +361,15 @@ def render_ingestion_tab():
             "Genomic Microarray": "genomic",
         }
         for label, kind in sample_kinds.items():
-            if st.button(label, use_container_width=True, key=f"smp_{kind}"):
+            if st.button(label, use_container_width=True, key=f"smp_{kind}}"):
                 sample_df = generate_sample_dataset(kind)
-                set_active_dataframe(sample_df, f"{kind}_sample.csv")
-                push_to_history(sample_df, f"Loaded preset: {label}")
+                set_active_dataframe(sample_df, f"{kind}}_sample.csv")
+                push_to_history(sample_df, f"Loaded preset: {label}}")
                 st.session_state["dataset_schema_meta"] = {
                     "fingerprint": dataset_fingerprint(sample_df),
                     "schema": schema_signature(sample_df),
                 }
-                st.success(f"✅ Loaded {label}")
+                st.success(f"✅ Loaded {label}}")
                 st.rerun()
 
 
@@ -399,10 +399,10 @@ def render_quality_tab():
     )
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Completeness", f"{completeness:.2f}%")
-    c2.metric("Missing Values", f"{missing:,}")
-    c3.metric("Duplicate Rows", f"{dups:,}")
-    c4.metric("Dataset Health Index", f"{health_score:.1f}%")
+    c1.metric("Completeness", f"{completeness:.2f}}%")
+    c2.metric("Missing Values", f"{missing:,}}")
+    c3.metric("Duplicate Rows", f"{dups:,}}")
+    c4.metric("Dataset Health Index", f"{health_score:.1f}}%")
 
     tab1, tab2, tab3 = st.tabs(
         [
@@ -448,8 +448,8 @@ def render_quality_tab():
                 preds = clf.fit_predict(sub_df)
                 anomalies = sub_df[preds == -1]
                 st.warning(
-                    f"⚠️ Isolated {len(anomalies):,} potential anomalous rows"
-                    f" ({len(anomalies)/len(sub_df)*100:.2f}% of total)."
+                    f"⚠️ Isolated {len(anomalies):,}} potential anomalous rows"
+                    f" ({len(anomalies)/len(sub_df)*100:.2f}}% of total)."
                 )
                 st.dataframe(
                     df.loc[anomalies.index], use_container_width=True
@@ -487,7 +487,7 @@ def render_quality_tab():
                 cleaned, st.session_state.get("source_name", "remediated.csv")
             )
             log_transformation(
-                "Clean Dataset", f"Impute: {impute_strat}", params
+                "Clean Dataset", f"Impute: {impute_strat}}", params
             )
             st.success("✅ Dataset successfully remediated.")
             st.rerun()
@@ -530,7 +530,7 @@ def render_transform_tab():
             new_col = c4.text_input("New Column Name", value="computed_feature")
 
             if st.button("⚡ Compute", type="primary"):
-                push_to_history(df, f"Computed feature {new_col}")
+                push_to_history(df, f"Computed feature {new_col}}")
                 params = {
                     "col1": var_a,
                     "col2": var_b,
@@ -542,9 +542,9 @@ def render_transform_tab():
                 )
                 set_active_dataframe(updated, "transformed.csv")
                 log_transformation(
-                    "Compute Feature", f"{new_col} = {var_a} {op} {var_b}", params
+                    "Compute Feature", f"{new_col}} = {var_a}} {op}} {var_b}}", params
                 )
-                st.success(f"✅ Generated `{new_col}`.")
+                st.success(f"✅ Generated `{new_col}}`.")
                 st.rerun()
 
     with tab2:
@@ -555,13 +555,13 @@ def render_transform_tab():
                 ["One-Hot Encoding", "Label / Categorical Encoding"],
             )
             if st.button("🚀 Apply Encoder", type="primary"):
-                push_to_history(df, f"Encoded {enc_col}")
+                push_to_history(df, f"Encoded {enc_col}}")
                 params = {"column": enc_col, "method": enc_method}
                 updated = apply_recipe_step(
                     df, {"step": "Encode Feature", "params": params}
                 )
                 set_active_dataframe(updated, "encoded.csv")
-                log_transformation("Encode Feature", f"{enc_method} on {enc_col}", params)
+                log_transformation("Encode Feature", f"{enc_method}} on {enc_col}}", params)
                 st.success("✅ Feature encoded successfully.")
                 st.rerun()
 
@@ -577,7 +577,7 @@ def render_transform_tab():
                 ],
             )
             if st.button("📈 Apply Math Transform", type="primary"):
-                push_to_history(df, f"Transformed {trans_col}")
+                push_to_history(df, f"Transformed {trans_col}}")
                 params = {"column": trans_col, "method": trans_method}
                 updated = apply_recipe_step(
                     df, {"step": "Transform Feature", "params": params}
@@ -585,7 +585,7 @@ def render_transform_tab():
                 set_active_dataframe(updated, "transformed.csv")
                 log_transformation(
                     "Transform Feature",
-                    f"{trans_method} on {trans_col}",
+                    f"{trans_method}} on {trans_col}}",
                     params,
                 )
                 st.success("✅ Transformation complete.")
@@ -715,11 +715,11 @@ def render_explorer_sql_tab():
                 forbidden = [
                     kw
                     for kw in FORBIDDEN_SQL_KEYWORDS
-                    if re.search(rf"\b{kw}\b", upper_q)
+                    if re.search(rf"\b{kw}}\b", upper_q)
                 ]
                 if forbidden:
                     st.error(
-                        f"🚫 Query contains forbidden keywords: {forbidden}"
+                        f"🚫 Query contains forbidden keywords: {forbidden}}"
                     )
                 else:
                     try:
@@ -727,11 +727,11 @@ def render_explorer_sql_tab():
                         conn.register("df", df)
                         res = conn.execute(sql_query).df()
                         conn.close()
-                        st.success(f"✅ Executed — returned {len(res):,} rows.")
+                        st.success(f"✅ Executed — returned {len(res):,}} rows.")
                         st.dataframe(res, use_container_width=True)
                         render_export_buttons(res, base_name="query_results")
                     except Exception as e:
-                        st.error(f"SQL Execution Error: {e}")
+                        st.error(f"SQL Execution Error: {e}}")
         else:
             st.info("DuckDB engine not available in environment.")
 

@@ -1,10 +1,10 @@
-
+﻿
 import streamlit as st
 import pandas as pd
 from modules.schema_engine import DB_FILE, init_db, log_provenance
 
 def render_policy_generator_tab():
-    st.subheader("ðŸ“„ Automated UN / WHO Policy Brief & Whitepaper Generator")
+    st.subheader("Ã°Å¸â€œâ€ž Automated UN / WHO Policy Brief & Whitepaper Generator")
     st.caption("Instantly distill complex research data and epidemiological telemetry into standardized, policy-ready executive briefs.")
 
     init_db()
@@ -22,8 +22,8 @@ def render_policy_generator_tab():
             log_provenance(title, "GENERATE_POLICY_BRIEF", "chief.investigator@lab.org", {"target": target_body})
             
             st.markdown("---")
-            st.markdown(f"### ðŸ›ï¸ OFFICIAL BRIEFING DOCUMENT: {target_body.upper()}")
-            st.markdown(f"**Title:** {title}")
+            st.markdown(f"### Ã°Å¸Ââ€ºÃ¯Â¸Â OFFICIAL BRIEFING DOCUMENT: {target_body.upper()}}")
+            st.markdown(f"**Title:** {title}}")
             st.markdown(f"**Author / Node:** Kula Chris (ResearchOS Global Node)")
             st.markdown("#### 1. Executive Summary")
             st.write(exec_summary)
@@ -31,3 +31,4 @@ def render_policy_generator_tab():
             st.write(interventions)
             st.markdown("#### 3. Cryptographic Provenance Stamp")
             st.code("SHA-256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", language="text")
+

@@ -1,4 +1,4 @@
-
+﻿
 """
 One-Click Grant & Journal Transpiler
 Instantly reformats summaries, bibliographies, and proposal drafts into
@@ -114,15 +114,15 @@ class GrantFormatter:
     def _nature_format(self, content: str, title: str, authors: str) -> str:
         para = re.sub(r'\n\s*\n', '\n\n', content.strip())
         max_chars = 2000
-        return f"# {title}\n" + (f"**{authors}**\n\n" if authors else "") + para[:max_chars] + "\n\n*Nature format: ~2000-character limit for main text*"
+        return f"# {title}}\n" + (f"**{authors}}**\n\n" if authors else "") + para[:max_chars] + "\n\n*Nature format: ~2000-character limit for main text*"
 
     def _science_format(self, content: str, title: str, authors: str) -> str:
         para = re.sub(r'\n\s*\n', '\n\n', content.strip())
         max_chars = 3000
-        return f"# {title}\n" + (f"*{authors}*\n\n" if authors else "") + para[:max_chars] + "\n\n*Science format: ~3000-character limit*"
+        return f"# {title}}\n" + (f"*{authors}}*\n\n" if authors else "") + para[:max_chars] + "\n\n*Science format: ~3000-character limit*"
 
     def _ieee_format(self, content: str, title: str, authors: str) -> str:
-        return f"# {title}\n{content.strip()[:4000]}\n\n*IEEE format: ~4000-word limit*"
+        return f"# {title}}\n{content.strip()[:4000]}}\n\n*IEEE format: ~4000-word limit*"
 
     def _format_grant_proposal(self, content: str, grant_type: str, title: str,
                                 authors: str, abstract: str) -> Dict[str, Any]:
@@ -130,12 +130,12 @@ class GrantFormatter:
         sections = fmt_info.get("sections", ["Abstract", "Background", "Methodology", "Impact"])
         max_pages = fmt_info.get("max_pages", 12)
 
-        proposal = f"# {grant_type}: {title}\n"
-        if authors: proposal = f"**PI(s):** {authors}\n"
-        proposal = f"**Date:** {datetime.now().strftime('%B %d, %Y')}\n\n"
+        proposal = f"# {grant_type}}: {title}}\n"
+        if authors: proposal = f"**PI(s):** {authors}}\n"
+        proposal = f"**Date:** {datetime.now().strftime('%B %d, %Y')}}\n\n"
 
         abstract_text = abstract or "**Abstract:** [Write a compelling summary of your proposal]"
-        proposal = f"## Abstract\n{abstract_text}\n\n"
+        proposal = f"## Abstract\n{abstract_text}}\n\n"
 
         words = content.split()
         para_size = max(50, len(words) // max(1, len(sections) - 1))
@@ -143,9 +143,9 @@ class GrantFormatter:
             start = i * para_size
             end = min(len(words), (i + 1) * para_size) if i < len(sections) - 1 else len(words)
             section_text = " ".join(words[start:end]) if words else "[Add content here]"
-            proposal = f"## {section}\n{section_text}\n\n"
+            proposal = f"## {section}}\n{section_text}}\n\n"
 
-        proposal = f"\n*{grant_type} format: max {max_pages} pages*"
+        proposal = f"\n*{grant_type}} format: max {max_pages}} pages*"
         return {"format": grant_type, "content": proposal, "word_count": len(words), "formatting_notes": fmt_info}
 
     def format_references(self, papers: List[Dict], format_name: str = "APA 7") -> str:
@@ -161,20 +161,20 @@ class GrantFormatter:
                                     results: str = "", conclusion: str = "",
                                     format_name: str = "APA 7") -> str:
         templates = {
-            "APA 7": f"**Objective:** {background}\n**Method:** {methods}\n**Results:** {results}\n**Conclusions:** {conclusion}",
-            "NIH Grant": f"**Specific Aims:** {background}\n**Approach:** {methods}\n**Expected Outcomes:** {results}\n**Impact:** {conclusion}",
-            "Nature": f"**Background:** {background}\n**Methods:** {methods}\n**Findings:** {results}\n**Conclusions:** {conclusion}",
+            "APA 7": f"**Objective:** {background}}\n**Method:** {methods}}\n**Results:** {results}}\n**Conclusions:** {conclusion}}",
+            "NIH Grant": f"**Specific Aims:** {background}}\n**Approach:** {methods}}\n**Expected Outcomes:** {results}}\n**Impact:** {conclusion}}",
+            "Nature": f"**Background:** {background}}\n**Methods:** {methods}}\n**Findings:** {results}}\n**Conclusions:** {conclusion}}",
         }
         return templates.get(format_name, templates["APA 7"])
 
     def add_formatting_guide(self, format_name: str) -> str:
         info = self.FORMATS.get(format_name, {})
-        guide = f"## 📋 {info.get('name', format_name)} Formatting Guide\n\n"
+        guide = f"## ðŸ“‹ {info.get('name', format_name)}} Formatting Guide\n\n"
         for key, val in info.items():
             if key not in ("name", "citation_style", "sections"):
-                guide = f"- **{key.replace('_', ' ').title()}**: {val}\n"
+                guide = f"- **{key.replace('_', ' ').title()}}**: {val}}\n"
         if "sections" in info:
-            guide = "- **Required Sections**:\n" + "\n".join(f"  - {s}" for s in info["sections"])
+            guide = "- **Required Sections**:\n" + "\n".join(f"  - {s}}" for s in info["sections"])
         return guide
 
 
@@ -183,15 +183,15 @@ def render_grant_formatter_ui():
     import streamlit as st
     import base64
 
-    st.markdown("## 📜 One-Click Grant & Journal Transpiler")
+    st.markdown("## ðŸ“œ One-Click Grant & Journal Transpiler")
     st.markdown("*Instantly reformat for journals, grants, and institutions*")
 
     formatter = GrantFormatter()
 
-    tab1, tab2, tab3 = st.tabs(["ðŸ“ Content Formatter", "ðŸ“š Reference Formatter", "📋 Format Guides"])
+    tab1, tab2, tab3 = st.tabs(["Ã°Å¸â€œÂ Content Formatter", "Ã°Å¸â€œÅ¡ Reference Formatter", "ðŸ“‹ Format Guides"])
 
     with tab1:
-        st.subheader("ðŸ“ Reformat Your Content")
+        st.subheader("Ã°Å¸â€œÂ Reformat Your Content")
         col1, col2 = st.columns([3, 1])
         with col1:
             content = st.text_area("Paste your content", height=200,
@@ -203,30 +203,31 @@ def render_grant_formatter_ui():
             authors = st.text_input("Authors/PI (optional)", key="gf_authors")
             abstract = st.text_area("Abstract (optional, for grants)", height=80, key="gf_abstract")
 
-        if st.button("ðŸ”„ Reformat", type="primary", use_container_width=True) and content:
+        if st.button("Ã°Å¸â€â€ž Reformat", type="primary", use_container_width=True) and content:
             result = formatter.format_content(content, target, title, authors, abstract)
-            st.subheader(f"ðŸ“„ {target} Format")
+            st.subheader(f"Ã°Å¸â€œâ€ž {target}} Format")
             st.markdown(result["content"])
-            st.caption(f"Word count: {result.get('word_count', 0)}")
-            st.download_button("📥 Download", result["content"], file_name=f"{target.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
+            st.caption(f"Word count: {result.get('word_count', 0)}}")
+            st.download_button("ðŸ“¥ Download", result["content"], file_name=f"{target.lower().replace(' ', '_')}}.md", mime="text/markdown", use_container_width=True)
 
     with tab2:
-        st.subheader("ðŸ“š Format References")
+        st.subheader("Ã°Å¸â€œÅ¡ Format References")
         papers = []
         lit_papers = st.session_state.get("lit_db_papers", [])
         if lit_papers:
-            st.info(f"ðŸ“š {len(lit_papers)} papers available")
+            st.info(f"Ã°Å¸â€œÅ¡ {len(lit_papers)}} papers available")
             target_ref = st.selectbox("Reference format", options=formatter.get_format_options(), key="gf_ref_format", index=0)
-            if st.button("ðŸ“š Format References", type="primary", use_container_width=True):
+            if st.button("Ã°Å¸â€œÅ¡ Format References", type="primary", use_container_width=True):
                 refs = formatter.format_references(lit_papers, target_ref)
                 st.markdown(refs)
-                st.download_button("📥 Download References", refs, file_name=f"references_{target_ref.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
+                st.download_button("ðŸ“¥ Download References", refs, file_name=f"references_{target_ref.lower().replace(' ', '_')}}.md", mime="text/markdown", use_container_width=True)
         else:
             st.info("Load papers in the Literature Engine first.")
 
     with tab3:
-        st.subheader("📋 Formatting Guides")
+        st.subheader("ðŸ“‹ Formatting Guides")
         fmt_choice = st.selectbox("Select format for guide", options=formatter.get_format_options(), key="gf_guide")
         guide = formatter.add_formatting_guide(fmt_choice)
         st.markdown(guide)
+
 

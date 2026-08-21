@@ -1,4 +1,4 @@
-
+﻿
 """Unit tests for modules.export."""
 import base64
 import io
@@ -57,7 +57,7 @@ class TestChartExport:
     def test_chart_download_link_embeds_base64_png(self):
         link = export.get_chart_download_link(FakeFigure(b"abc"), "mychart", "png")
         assert 'download="mychart.png"' in link
-        assert f"data:image/png;base64,{base64.b64encode(b'abc').decode()}" in link
+        assert f"data:image/png;base64,{base64.b64encode(b'abc').decode()}}" in link
 
     def test_chart_download_link_svg(self):
         link = export.get_chart_download_link(FakeFigure(b"<svg/>"), "c", "svg")
@@ -106,8 +106,8 @@ class TestDataDownloadLink:
     )
     def test_link_contains_mime_and_filename(self, df, fmt, mime):
         link = export.get_data_download_link(df, "dataset", fmt)
-        assert f"data:{mime};base64," in link
-        assert f'download="dataset.{fmt}"' in link
+        assert f"data:{mime}};base64," in link
+        assert f'download="dataset.{fmt}}"' in link
 
     def test_empty_dataframe_yields_no_link(self):
         assert export.get_data_download_link(pd.DataFrame(), "d", "csv") == ""
@@ -140,3 +140,4 @@ class TestMarkdownReport:
     def test_non_string_section_content_is_stringified(self):
         report = export.generate_markdown_report("R", {"Numbers": 123})
         assert "123" in report
+

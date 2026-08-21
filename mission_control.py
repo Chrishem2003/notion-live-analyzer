@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Global Mission Control
 ===============================
 The human-impact command center. Replaces simulated feeds with real live APIs
@@ -29,7 +29,7 @@ from modules.satellite_engine import fetch_field_site_telemetry
 # Live data wrappers (all with graceful offline fallback)
 # ---------------------------------------------------------------------------
 
-# 1) Disease outbreak data — Our World in Data COVID-19 (real CSV)
+# 1) Disease outbreak data â€” Our World in Data COVID-19 (real CSV)
 OWID_COVID_URL = "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv"
 
 
@@ -83,7 +83,7 @@ def fetch_global_health_hotspots() -> Dict[str, Any]:
         }
 
 
-# 2) Live weather / climate telemetry — Open-Meteo (no key required)
+# 2) Live weather / climate telemetry â€” Open-Meteo (no key required)
 def fetch_weather_telemetry(lat: float = 0.3476, lon: float = 32.5825, daily: bool = False) -> Dict[str, Any]:
     """Fetch real current weather for a coordinate from Open-Meteo."""
     try:
@@ -113,19 +113,19 @@ def fetch_weather_telemetry(lat: float = 0.3476, lon: float = 32.5825, daily: bo
             if daily and "daily" in data:
                 result["forecast"] = data["daily"]
             return result
-        return {"source": "open-meteo", "error": f"HTTP {r.status_code}"}
+        return {"source": "open-meteo", "error": f"HTTP {r.status_code}}"}
     except Exception as e:
         return {"source": "open-meteo", "error": str(e), "coords": {"lat": lat, "lon": lon}}
 
 
 # 3) Global Impact Scorecard
 IMPACT_SECTORS = {
-    "Health & Epidemiology": {"icon": "🩺", "problems_solved": 37, "goal": 100, "description": "Outbreak tracking, clinical analytics, PII-safe health research"},
-    "Food & Agriculture": {"icon": "🌾", "problems_solved": 24, "goal": 80, "description": "Crop telemetry, supply-chain gap solving, market price prediction"},
-    "Energy & Climate": {"icon": "⚡", "problems_solved": 19, "goal": 70, "description": "Weather/climate telemetry, conservation analytics, smart grids"},
-    "Finance & Inclusion": {"icon": "💰", "problems_solved": 15, "goal": 60, "description": "Fraud detection, CVE scanning, financial risk modeling"},
-    "Security & Forensics": {"icon": "🛡️", "problems_solved": 28, "goal": 90, "description": "Threat intel, digital forensics, PII scanning, integrity monitoring"},
-    "Education & Research": {"icon": "🎓", "problems_solved": 41, "goal": 120, "description": "Literature synthesis, RAG Q&A, grant writing, protocol transparency"},
+    "Health & Epidemiology": {"icon": "ðŸ©º", "problems_solved": 37, "goal": 100, "description": "Outbreak tracking, clinical analytics, PII-safe health research"},
+    "Food & Agriculture": {"icon": "ðŸŒ¾", "problems_solved": 24, "goal": 80, "description": "Crop telemetry, supply-chain gap solving, market price prediction"},
+    "Energy & Climate": {"icon": "âš¡", "problems_solved": 19, "goal": 70, "description": "Weather/climate telemetry, conservation analytics, smart grids"},
+    "Finance & Inclusion": {"icon": "ðŸ’°", "problems_solved": 15, "goal": 60, "description": "Fraud detection, CVE scanning, financial risk modeling"},
+    "Security & Forensics": {"icon": "ðŸ›¡ï¸", "problems_solved": 28, "goal": 90, "description": "Threat intel, digital forensics, PII scanning, integrity monitoring"},
+    "Education & Research": {"icon": "ðŸŽ“", "problems_solved": 41, "goal": 120, "description": "Literature synthesis, RAG Q&A, grant writing, protocol transparency"},
 }
 
 
@@ -164,37 +164,37 @@ PROBLEM_SOLVER_REGISTRY = [
     {
         "problem": "How can rural farmers detect crop failure early?",
         "solution": "Satellite crop-index telemetry + weather API + predictive analytics (Domain Hub / ML Studio)",
-        "tools": ["🛰️ Satellite Telemetry", "🌤️ Live Weather", "🤖 ML Prediction"],
+        "tools": ["ðŸ›°ï¸ Satellite Telemetry", "ðŸŒ¤ï¸ Live Weather", "ðŸ¤– ML Prediction"],
         "impact": "Reduces post-harvest loss up to 35%",
     },
     {
         "problem": "How do we catch disease outbreaks before they spread?",
         "solution": "Real WHO/OWID health feeds + clinical analytics + epidemiological modeling",
-        "tools": ["🩺 Clinical Analytics", "🌍 Health Feed", "📊 Statistics Studio"],
+        "tools": ["ðŸ©º Clinical Analytics", "ðŸŒ Health Feed", "ðŸ“Š Statistics Studio"],
         "impact": "Enables early warning for epidemic response",
     },
     {
         "problem": "How do we trace a cyber attack or data breach?",
         "solution": "Forensics engine (hashing, metadata, stego) + threat intel (IP/WHOIS/phishing) + incident playbooks",
-        "tools": ["🕵️ Forensics", "🛡️ Threat Intel", "📋 Incident Playbooks"],
+        "tools": ["ðŸ•µï¸ Forensics", "ðŸ›¡ï¸ Threat Intel", "ðŸ“‹ Incident Playbooks"],
         "impact": "Court-ready chain-of-custody evidence",
     },
     {
         "problem": "How do we protect sensitive user data (GDPR/HIPAA)?",
         "solution": "PII/secret scanner + AES-256 vault + differential privacy guidance",
-        "tools": ["🔍 PII Scanner", "🔒 Secure Vault", "✅ Compliance"],
+        "tools": ["ðŸ” PII Scanner", "ðŸ”’ Secure Vault", "âœ… Compliance"],
         "impact": "Prevents costly data breaches",
     },
     {
         "problem": "How do unbanked communities access financial services safely?",
         "solution": "Fraud detection, credit-risk scoring, and financial analytics in the ML/Statistics hubs",
-        "tools": ["💰 Finance Analytics", "📊 Risk Scoring", "🤖 AutoML"],
+        "tools": ["ðŸ’° Finance Analytics", "ðŸ“Š Risk Scoring", "ðŸ¤– AutoML"],
         "impact": "Enables responsible micro-lending",
     },
     {
         "problem": "How do researchers accelerate publication and share knowledge?",
         "solution": "Literature engine + RAG document Q&A + APA formatting + grant tools",
-        "tools": ["📚 Literature", "🧠 RAG Q&A", "🎓 Grants"],
+        "tools": ["ðŸ“š Literature", "ðŸ§  RAG Q&A", "ðŸŽ“ Grants"],
         "impact": "Democratizes research access",
     },
 ]
@@ -245,7 +245,7 @@ def fetch_iss_position() -> Dict[str, Any]:
                 "longitude": float(pos.get("longitude", 0)),
                 "message": data.get("message", ""),
             }
-        return {"source": "open-notify-iss", "error": f"HTTP {r.status_code}"}
+        return {"source": "open-notify-iss", "error": f"HTTP {r.status_code}}"}
     except Exception as e:
         return {"source": "open-notify-iss", "error": str(e), "latitude": 0.0, "longitude": 0.0}
 
@@ -261,7 +261,7 @@ def fetch_astronaut_count() -> Dict[str, Any]:
                 "number": int(data.get("number", 0)),
                 "people": [p.get("name", "") for p in data.get("people", [])],
             }
-        return {"source": "open-notify-astros", "error": f"HTTP {r.status_code}"}
+        return {"source": "open-notify-astros", "error": f"HTTP {r.status_code}}"}
     except Exception as e:
         return {"source": "open-notify-astros", "error": str(e), "number": 0, "people": []}
 
@@ -315,9 +315,9 @@ def get_global_risk_dashboard() -> Dict[str, Any]:
     and satellite telemetry into sector risk indices.
     """
     health = fetch_global_health_hotspots()
-    # Sample a few global coordinates for climate risk sampling (Kampala, São Paulo, Jakarta)
+    # Sample a few global coordinates for climate risk sampling (Kampala, SÃ£o Paulo, Jakarta)
     coords = [{"name": "Kampala", "lat": 0.3476, "lon": 32.5825},
-              {"name": "São Paulo", "lat": -23.55, "lon": -46.63},
+              {"name": "SÃ£o Paulo", "lat": -23.55, "lon": -46.63},
               {"name": "Jakarta", "lat": -6.21, "lon": 106.84}]
     satellite_rows = []
     for c in coords:
@@ -379,7 +379,7 @@ def estimate_risk_from_telemetry(ndvi: float, surface_temp: float, moisture_pct:
         level = "MODERATE"
 
     recommendation = (
-        "Monitor closely — multiple risk signals elevated."
+        "Monitor closely â€” multiple risk signals elevated."
         if combined > 0.5
         else "Conditions within normal range. Standard monitoring continues."
     )
@@ -392,3 +392,4 @@ def estimate_risk_from_telemetry(ndvi: float, surface_temp: float, moisture_pct:
         "risk_level": level,
         "recommendation": recommendation,
     }
+

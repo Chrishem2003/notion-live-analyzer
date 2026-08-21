@@ -1,4 +1,4 @@
-
+﻿
 import os
 import streamlit as st
 
@@ -65,6 +65,7 @@ def generate_report(data):
         """
         return html_content
     except Exception as e:
-        st.error(f"Error generating report: {e}")
+        st.error(f"Error generating report: {e}}")
         return None
+
 

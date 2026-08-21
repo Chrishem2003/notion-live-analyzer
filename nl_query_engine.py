@@ -1,4 +1,4 @@
-
+﻿
 """
 Natural Language Data Query Engine + allows users to ask questions in plain English
 and get automatic analysis, visualizations, and insights.
@@ -67,15 +67,15 @@ class NaturalLanguageQueryEngine:
                 "result": result,
                 "chart_type": "histogram",
                 "chart_params": {"x": target_col},
-                "narrative": f"**{target_col}**: Mean = {result.iloc[0]['Mean']:.2 + f}, SD = {result.iloc[0]['Std Dev']:.2 + f}, N = {result.iloc[0]['N']}",
+                "narrative": f"**{target_col}}**: Mean = {result.iloc[0]['Mean']:.2 + f}}, SD = {result.iloc[0]['Std Dev']:.2 + f}}, N = {result.iloc[0]['N']}}",
                 "confidence": 90,
             }
 
         if numeric_cols:
             result = self.stats.descriptive_stats(df, numeric_cols[:5])
-            narrative_parts = [f"Dataset has {len(df):,} rows and {len(df.columns)} columns."]
+            narrative_parts = [f"Dataset has {len(df):,}} rows and {len(df.columns)}} columns."]
             for _, row in result.iterrows():
-                narrative_parts.append(f"- **{row['Variable']}**: M = {row['Mean']:.2 + f}, SD = {row['Std Dev']:.2 + f}")
+                narrative_parts.append(f"- **{row['Variable']}}**: M = {row['Mean']:.2 + f}}, SD = {row['Std Dev']:.2 + f}}")
             return {
                 "type": "descriptive",
                 "result": result,
@@ -105,7 +105,7 @@ class NaturalLanguageQueryEngine:
                     "result": result,
                     "chart_type": "box",
                     "chart_params": {"x": target_cat, "y": target_num},
-                    "narrative": f"Comparing **{target_num}** by **{target_cat}**: t({result.get('n_1', 0) + result.get('n_2', 0) - 2}) = {result.get('t_statistic', 0):.2 + f}, p = {result.get('p_value', 1):.3 + f}, d = {result.get('cohens_d', 0):.2 + f}",
+                    "narrative": f"Comparing **{target_num}}** by **{target_cat}}**: t({result.get('n_1', 0) + result.get('n_2', 0) - 2}}) = {result.get('t_statistic', 0):.2 + f}}, p = {result.get('p_value', 1):.3 + f}}, d = {result.get('cohens_d', 0):.2 + f}}",
                     "confidence": 95,
                 }
         elif len(groups) >= 3:
@@ -119,7 +119,7 @@ class NaturalLanguageQueryEngine:
                     "result": result,
                     "chart_type": "violin",
                     "chart_params": {"x": target_cat, "y": target_num},
-                    "narrative": f"Comparing **{target_num}** across {len(groups)} groups of **{target_cat}**: F({result.get('num_groups', 1) - 1}, ...) = {result.get('f_statistic', 0):.2 + f}, p = {result.get('p_value', 1):.3 + f}",
+                    "narrative": f"Comparing **{target_num}}** across {len(groups)}} groups of **{target_cat}}**: F({result.get('num_groups', 1) - 1}}, ...) = {result.get('f_statistic', 0):.2 + f}}, p = {result.get('p_value', 1):.3 + f}}",
                     "confidence": 90,
                 }
 
@@ -144,7 +144,7 @@ class NaturalLanguageQueryEngine:
                 "result": result,
                 "chart_type": "scatter",
                 "chart_params": {"x": col1, "y": col2},
-                "narrative": f"Correlation between {col1} and {col2}.",
+                "narrative": f"Correlation between {col1}} and {col2}}.",
                 "confidence": 90,
             }
         else:
@@ -176,7 +176,7 @@ class NaturalLanguageQueryEngine:
             y = y.loc[common_idx]
 
             if len(X) < 10:
-                return {"type": "error", "narrative": f"Only {len(X)} valid observations. Need at least 10 for regression.", "confidence": 0}
+                return {"type": "error", "narrative": f"Only {len(X)}} valid observations. Need at least 10 for regression.", "confidence": 0}
 
             model = LinearRegression()
             model.fit(X, y)
@@ -189,13 +189,13 @@ class NaturalLanguageQueryEngine:
                 "r_squared": r_squared,
                 "coefficients": dict(zip(predictors, model.coef_)),
                 "intercept": model.intercept_,
-                "narrative": f"Regression model for **{target_col}**: RÂ² = {r_squared:.3 + f}, {len(predictors)} predictor(s).",
+                "narrative": f"Regression model for **{target_col}}**: RÃ‚Â² = {r_squared:.3 + f}}, {len(predictors)}} predictor(s).",
                 "confidence": 80,
             }
         except ImportError:
             return {"type": "info", "narrative": "Regression requires scikit-learn. Install with: pip install scikit-learn", "confidence": 0}
         except Exception as e:
-            return {"type": "error", "narrative": f"Regression failed: {str(e)}", "confidence": 0}
+            return {"type": "error", "narrative": f"Regression failed: {str(e)}}", "confidence": 0}
 
     def _handle_visualization(self, query: str, df: pd.DataFrame, col_types: Dict[str, str]) -> Dict[str, Any]:
         """Handle visualization/chart queries."""
@@ -245,7 +245,7 @@ class NaturalLanguageQueryEngine:
             "type": "visualization",
             "chart_type": chart_type,
             "chart_params": chart_params,
-            "narrative": f"Generated {chart_type} chart.",
+            "narrative": f"Generated {chart_type}} chart.",
             "confidence": 85,
         }
 
@@ -270,7 +270,7 @@ class NaturalLanguageQueryEngine:
                 "value_col": value_col,
                 "chart_type": "line",
                 "chart_params": {"x": time_col, "y": value_col},
-                "narrative": f"Trend of **{value_col}** over **{time_col}** ({len(trend_data)} data points).",
+                "narrative": f"Trend of **{value_col}}** over **{time_col}}** ({len(trend_data)}} data points).",
                 "confidence": 85,
             }
         except Exception:
@@ -304,7 +304,7 @@ class NaturalLanguageQueryEngine:
             "type": "outliers",
             "outliers": outlier_info,
             "total_outliers": total_outliers,
-            "narrative": f"Found {total_outliers} outliers across {len(outlier_info)} columns." if outlier_info else "No significant outliers detected.",
+            "narrative": f"Found {total_outliers}} outliers across {len(outlier_info)}} columns." if outlier_info else "No significant outliers detected.",
             "confidence": 90,
         }
 
@@ -321,11 +321,11 @@ class NaturalLanguageQueryEngine:
                 "target": target_col,
                 "chart_type": "histogram",
                 "chart_params": {"x": target_col},
-                "narrative": f"Distribution of **{target_col}**: Min={desc['min']:.2 + f}, Max={desc['max']:.2 + f}, Mean={desc['mean']:.2 + f}, Median={desc['50%']:.2 + f}, Std={desc['std']:.2 + f}",
+                "narrative": f"Distribution of **{target_col}}**: Min={desc['min']:.2 + f}}, Max={desc['max']:.2 + f}}, Mean={desc['mean']:.2 + f}}, Median={desc['50%']:.2 + f}}, Std={desc['std']:.2 + f}}",
                 "confidence": 90,
             }
         except Exception:
-            return {"type": "error", "narrative": f"Could not compute distribution for {target_col}.", "confidence": 0}
+            return {"type": "error", "narrative": f"Could not compute distribution for {target_col}}.", "confidence": 0}
 
     def _handle_frequency(self, query: str, df: pd.DataFrame, cat_cols: List[str]) -> Dict[str, Any]:
         """Handle frequency/count queries."""
@@ -344,11 +344,11 @@ class NaturalLanguageQueryEngine:
                 "result": freq,
                 "chart_type": "bar",
                 "chart_params": {"x": target_col, "y": "Count"},
-                "narrative": f"Frequency distribution for **{target_col}**: {len(freq)} categories.",
+                "narrative": f"Frequency distribution for **{target_col}}**: {len(freq)}} categories.",
                 "confidence": 90,
             }
         except Exception:
-            return {"type": "error", "narrative": f"Could not compute frequency for {target_col}.", "confidence": 0}
+            return {"type": "error", "narrative": f"Could not compute frequency for {target_col}}.", "confidence": 0}
 
     def _handle_general(self, query: str, df: pd.DataFrame, col_types: Dict[str, str]) -> Dict[str, Any]:
         """Handle general/informational queries about the dataset."""
@@ -357,15 +357,15 @@ class NaturalLanguageQueryEngine:
         if "row" in query_lower or "shape" in query_lower or "size" in query_lower:
             return {
                 "type": "info",
-                "narrative": f"Dataset has **{len(df):,} rows** and **{len(df.columns):,} columns**.",
+                "narrative": f"Dataset has **{len(df):,}} rows** and **{len(df.columns):,}} columns**.",
                 "confidence": 100,
             }
 
         if "column" in query_lower or "variable" in query_lower or "field" in query_lower:
-            col_list = "\n".join(f"- **{c}** ({t})" for c, t in list(col_types.items())[:20])
+            col_list = "\n".join(f"- **{c}}** ({t}})" for c, t in list(col_types.items())[:20])
             return {
                 "type": "info",
-                "narrative": f"**Columns ({len(col_types)}):**\n{col_list}",
+                "narrative": f"**Columns ({len(col_types)}}):**\n{col_list}}",
                 "confidence": 100,
             }
 
@@ -373,10 +373,10 @@ class NaturalLanguageQueryEngine:
             missing = df.isnull().sum()
             missing = missing[missing > 0]
             if len(missing) > 0:
-                missing_str = "\n".join(f"- **{c}**: {v} missing ({v/len(df)*100:.1 + f}%)" for c, v in missing.items())
+                missing_str = "\n".join(f"- **{c}}**: {v}} missing ({v/len(df)*100:.1 + f}}%)" for c, v in missing.items())
                 return {
                     "type": "info",
-                    "narrative": f"**Missing Values:**\n{missing_str}",
+                    "narrative": f"**Missing Values:**\n{missing_str}}",
                     "confidence": 95,
                 }
             return {"type": "info", "narrative": "No missing values found in the dataset.", "confidence": 100}
@@ -389,7 +389,7 @@ class NaturalLanguageQueryEngine:
                 return {
                     "type": "data",
                     "result": sorted_df.head(20),
-                    "narrative": f"Data sorted by **{col}** ({'ascending' if ascending else 'descending'}).",
+                    "narrative": f"Data sorted by **{col}}** ({'ascending' if ascending else 'descending'}}).",
                     "confidence": 95,
                 }
             return {"type": "info", "narrative": "Specify a column to sort by.", "confidence": 0}
@@ -405,7 +405,7 @@ class NaturalLanguageQueryEngine:
         return {
             "type": "data",
             "result": df.head(10),
-            "narrative": f"Showing first 10 rows of {len(df):,} rows.",
+            "narrative": f"Showing first 10 rows of {len(df):,}} rows.",
             "confidence": 100,
         }
 
@@ -418,13 +418,13 @@ class NaturalLanguageQueryEngine:
         return None
 
 
-# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 def render_nl_query_ui(df: pd.DataFrame):
     """Render the natural language query UI."""
     import streamlit as st
 
-    st.markdown("## ðŸ’¬ Natural Language Data Query")
+    st.markdown("## Ã°Å¸â€™Â¬ Natural Language Data Query")
     st.markdown("*Ask questions about your data in plain English*")
 
     if df is None or df.empty:
@@ -437,7 +437,7 @@ def render_nl_query_ui(df: pd.DataFrame):
     engine = st.session_state["nl_engine"]
 
     # Example queries
-    with st.expander("ðŸ’¡ Example queries"):
+    with st.expander("Ã°Å¸â€™Â¡ Example queries"):
         examples = [
             "Show data",
             "Describe data",
@@ -453,19 +453,19 @@ def render_nl_query_ui(df: pd.DataFrame):
             "Help",
         ]
         for ex in examples:
-            st.markdown(f"- `{ex}`")
+            st.markdown(f"- `{ex}}`")
 
     # Query input
     col1, col2 = st.columns([4, 1])
     with col1:
-        query = st.text_input("ðŸ’¬ Ask a question about your data:", placeholder="e.g., Describe the data", key="nl_query_input")
+        query = st.text_input("Ã°Å¸â€™Â¬ Ask a question about your data:", placeholder="e.g., Describe the data", key="nl_query_input")
     with col2:
         st.caption("")
-        submit = st.button("ðŸ” Ask", type="primary", use_container_width=True)
+        submit = st.button("Ã°Å¸â€Â Ask", type="primary", use_container_width=True)
 
     # Process query
     if submit and query.strip():
-        with st.spinner("ðŸ” Analyzing..."):
+        with st.spinner("Ã°Å¸â€Â Analyzing..."):
             result = engine.process_query(query, df)
             st.session_state["last_nl_result"] = result
         st.rerun()
@@ -483,7 +483,7 @@ def render_nl_query_ui(df: pd.DataFrame):
         elif result_type == "help":
             commands = result.get("commands", [])
             for cmd in commands:
-                st.markdown(f"- `{cmd}`")
+                st.markdown(f"- `{cmd}}`")
         else:
             if narrative:
                 st.markdown(narrative)
@@ -505,3 +505,4 @@ def render_nl_query_ui(df: pd.DataFrame):
                         st.plotly_chart(fig, use_container_width=True)
                 except Exception:
                     pass
+

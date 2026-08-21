@@ -1,4 +1,4 @@
-
+﻿
 """
 Notion API Client + handles all interactions with the Notion API.
 Supports all 20 property types and automatic database detection.
@@ -22,7 +22,7 @@ NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
 PAGE_SIZE = 100
 
-# â”€â”€â”€ Simple In-Memory Cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Simple In-Memory Cache Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 # Avoids duplicate API calls within the same request cycle
 _request_cache: Dict[str, tuple] = {}
 _request_cache_ttl: int = 60  # seconds
@@ -36,7 +36,7 @@ def _cached_request(cache_key: str, ttl: int = 60):
             if kwargs.pop("force_refresh", False):
                 return func(*args, **kwargs)
             
-            full_key = f"{cache_key}:{hash(str(args) + str(kwargs))}"
+            full_key = f"{cache_key}}:{hash(str(args) + str(kwargs))}}"
             now = time.time()
             
             if full_key in _request_cache:
@@ -57,7 +57,7 @@ def clear_request_cache():
     """Clear the in-memory request cache."""
     _request_cache.clear()
 
-# â”€â”€â”€ Rate Limiter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Rate Limiter Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 # Notion API allows 3 requests per second; we pace ourselves.
 class RateLimiter:
     def __init__(self, max_calls: int = 3, per_seconds: float = 1.0):
@@ -89,7 +89,7 @@ def _rate_limited_request(method: str, url: str, **kwargs) -> requests.Response:
     
     return requests.request(method, url, **kwargs)
 
-# â”€â”€â”€ Universal Property Parser â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Universal Property Parser Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 def extract_rich_text(rich_text_list: list) -> str:
     """Extract plain text from a Notion rich text array."""
     if not rich_text_list:
@@ -145,17 +145,17 @@ NOTION_PROPERTY_PARSERS = {
     "last_edited_by": lambda p: p.get("last_edited_by", {}).get("name", "Unknown"),
     "last_edited_time": lambda p: p.get("last_edited_time"),
     "unique_id": lambda p: (
-        f"{p.get('unique_id', {}).get('prefix', '')}-{p.get('unique_id', {}).get('number', '')}"
+        f"{p.get('unique_id', {}}).get('prefix', '')}}-{p.get('unique_id', {}}).get('number', '')}}"
         if p.get("unique_id")
         else None
     ),
     "button": lambda p: p.get("button", {}).get("action", ""),
 }
 
-# â”€â”€â”€ API Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ API Utilities Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 def _make_headers(token: str) -> dict:
     return {
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {token}}",
         "Notion-Version": NOTION_VERSION,
         "Content-Type": "application/json",
     }
@@ -164,26 +164,26 @@ def _handle_api_error(response: requests.Response, token: str, db_id: str = None
     """Handle common Notion API errors and trigger credential reset if needed."""
     if response.status_code in (401, 403):
         st.session_state["creds_failed"] = True
-        st.error("ðŸ” Your Notion token is invalid or lacks access. Please re-enter your credentials below.")
+        st.error("Ã°Å¸â€Â Your Notion token is invalid or lacks access. Please re-enter your credentials below.")
         return True
     if response.status_code == 429:
-        st.warning("â³ Rate limited by Notion API. Waiting 1 second...")
+        st.warning("Ã¢ÂÂ³ Rate limited by Notion API. Waiting 1 second...")
         time.sleep(1)
         return False
     if response.status_code == 404 and db_id:
-        st.warning(f"Database {db_id} not found. It may have been deleted or the ID is incorrect.")
+        st.warning(f"Database {db_id}} not found. It may have been deleted or the ID is incorrect.")
         return True
     # Error boundary: catch 400 validation errors (e.g., Page ID passed instead of Database ID)
     if response.status_code == 400:
-        st.warning("âš ï¸ Invalid database ID. You may have passed a Page ID instead of a Database ID.")
+        st.warning("Ã¢Å¡Â Ã¯Â¸Â Invalid database ID. You may have passed a Page ID instead of a Database ID.")
         return pd.DataFrame()
     return False
 
-# â”€â”€â”€ Database Operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Database Operations Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 @_cached_request("get_database_options", ttl=300)  # Cache for 5 minutes
 def get_database_options(token: str) -> List[Dict]:
     """Search and list all accessible databases (cached for 5 min)."""
-    url = f"{NOTION_API_URL}/search"
+    url = f"{NOTION_API_URL}}/search"
     headers = _make_headers(token)
     payload = {
         "query": "",
@@ -208,7 +208,7 @@ def get_database_options(token: str) -> List[Dict]:
                 )
                 if not _handle_api_error(response, token):
                     st.error(
-                        f"Could not list Notion databases (HTTP {response.status_code}). "
+                        f"Could not list Notion databases (HTTP {response.status_code}}). "
                         "Showing any databases retrieved so far."
                     )
                 break
@@ -226,7 +226,7 @@ def get_database_options(token: str) -> List[Dict]:
             page_count = 1
     except Exception as e:
         logger.exception("Error fetching Notion databases")
-        st.error(f"Error fetching databases: {str(e)}")
+        st.error(f"Error fetching databases: {str(e)}}")
     return databases
 
 def fingerprint_database(properties: dict) -> str:
@@ -235,7 +235,7 @@ def fingerprint_database(properties: dict) -> str:
     for name, prop in sorted(properties.items()):
         if isinstance(prop, dict):
             prop_type = prop.get("type", "unknown")
-            schema_items.append(f"{name}:{prop_type}")
+            schema_items.append(f"{name}}:{prop_type}}")
     fingerprint_str = "|".join(schema_items)
     return hashlib.sha256(fingerprint_str.encode()).hexdigest()
 
@@ -252,7 +252,7 @@ def auto_find_duplicated_db(token: str, original_fingerprint: str) -> Optional[s
     # Second pass: try with property names only (more lenient)
     for db in databases:
         props = db.get("properties", {})
-        prop_types = sorted([f"{p.get('type', '')}" for p in props.values() if isinstance(p, dict)])
+        prop_types = sorted([f"{p.get('type', '')}}" for p in props.values() if isinstance(p, dict)])
         if prop_types:
             fp = hashlib.sha256("|".join(prop_types).encode()).hexdigest()
             if fp[:16] == original_fingerprint[:16]:
@@ -284,7 +284,7 @@ def discover_database_id(token: str) -> Optional[str]:
             best_match = db["id"]
     return best_match
 
-# â”€â”€â”€ Data Fetching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Data Fetching Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
     """
     Fetch all pages from a Notion database and return a DataFrame.
@@ -297,14 +297,14 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
         st.warning("No Database ID provided.")
         return pd.DataFrame()
     
-    url = f"{NOTION_API_URL}/databases/{db_id}/query"
+    url = f"{NOTION_API_URL}}/databases/{db_id}}/query"
     headers = _make_headers(token)
     rows = []
     has_more = True
     next_cursor = None
 
     # First, get the database schema (cached per request)
-    schema_url = f"{NOTION_API_URL}/databases/{db_id}"
+    schema_url = f"{NOTION_API_URL}}/databases/{db_id}}"
     try:
         schema_response = _rate_limited_request("GET", schema_url, headers=headers)
         property_definitions = {}
@@ -316,7 +316,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
                 return pd.DataFrame()
     except Exception as e:
         logger.exception("Error fetching schema for Notion database %s", db_id)
-        st.error(f"Error fetching database schema: {str(e)}")
+        st.error(f"Error fetching database schema: {str(e)}}")
         return pd.DataFrame()
 
     fetch_attempts = 0
@@ -337,7 +337,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
                     "Notion query failed for database %s: %s  %s",
                     db_id, response.status_code, response.text[:200],
                 )
-                st.error(f"Notion API Error: {response.status_code}  {response.text[:200]}")
+                st.error(f"Notion API Error: {response.status_code}}  {response.text[:200]}}")
                 fetch_attempts = 1
                 continue
 
@@ -374,12 +374,12 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
 
         except requests.exceptions.Timeout:
             logger.warning("Timeout querying Notion database %s + retrying", db_id)
-            st.warning("â±ï¸ Notion API timeout. Retrying...")
+            st.warning("Ã¢ÂÂ±Ã¯Â¸Â Notion API timeout. Retrying...")
             fetch_attempts = 1
             time.sleep(1)
         except Exception as e:
             logger.exception("Error fetching rows from Notion database %s", db_id)
-            st.error(f"Error fetching data: {str(e)}")
+            st.error(f"Error fetching data: {str(e)}}")
             fetch_attempts = 1
             time.sleep(0.5)
 
@@ -405,7 +405,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
 @_cached_request("get_database_schema", ttl=600)  # Cache for 10 minutes
 def get_database_schema(token: str, db_id: str) -> Dict:
     """Get the schema/property definitions of a Notion database (cached for 10 min)."""
-    url = f"{NOTION_API_URL}/databases/{db_id}"
+    url = f"{NOTION_API_URL}}/databases/{db_id}}"
     headers = _make_headers(token)
     try:
         response = _rate_limited_request("GET", url, headers=headers)
@@ -420,4 +420,5 @@ def get_database_schema(token: str, db_id: str) -> Dict:
     except Exception:
         logger.exception("Error fetching schema for Notion database %s", db_id)
         return {}
+
 

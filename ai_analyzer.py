@@ -1,4 +1,4 @@
-
+﻿
 """
 CHRISHEM Analyzer  automated data analysis, profiling, and insight generation.
 Provides smart test recommendations and natural language insights.
@@ -25,7 +25,7 @@ class CHRISHEMAnalyzer:
     def __init__(self):
         self.stats = StatisticalEngine()
 
-    # â”€â”€â”€ Full Automated Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Full Automated Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def auto_analyze(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Run a complete automated analysis pipeline on the dataset."""
         if df is None or df.empty:
@@ -43,7 +43,7 @@ class CHRISHEMAnalyzer:
         }
         return results
 
-    # â”€â”€â”€ Dataset Profiling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Dataset Profiling Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def profile_dataset(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Generate a human-readable data profile."""
         profile = profile_dataset(df)
@@ -56,14 +56,14 @@ class CHRISHEMAnalyzer:
             type_summary[ctype].append(col)
 
         summary_lines = [
-            f" **Dataset Overview**: {profile['rows']:,} rows Ã— {profile['columns']} columns",
-            f"📦 **Memory Usage**: {profile['memory_usage'] / 1024:.1f} KB",
-            f"â¬œ **Missing Values**: {profile['missing_cells']:,} ({profile['missing_pct']}%)",
-            f"ðŸ” **Duplicate Rows**: {profile['duplicate_rows']:,}",
+            f" **Dataset Overview**: {profile['rows']:,}} rows Ãƒâ€” {profile['columns']}} columns",
+            f"ðŸ“¦ **Memory Usage**: {profile['memory_usage'] / 1024:.1f}} KB",
+            f"Ã¢Â¬Å“ **Missing Values**: {profile['missing_cells']:,}} ({profile['missing_pct']}}%)",
+            f"Ã°Å¸â€Â **Duplicate Rows**: {profile['duplicate_rows']:,}}",
         ]
 
         for dtype, cols in type_summary.items():
-            summary_lines.append(f"  â€¢ **{dtype}**: {len(cols)} columns  {', '.join(cols[:5])}{'...' if len(cols) > 5 else ''}")
+            summary_lines.append(f"  Ã¢â‚¬Â¢ **{dtype}}**: {len(cols)}} columns  {', '.join(cols[:5])}}{'...' if len(cols) > 5 else ''}}")
 
         return {
             "raw": profile,
@@ -71,7 +71,7 @@ class CHRISHEMAnalyzer:
             "type_summary": type_summary,
         }
 
-    # â”€â”€â”€ Missing Value Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Missing Value Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def analyze_missing(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Analyze missing values across the dataset."""
         missing_df = pd.DataFrame({
@@ -84,7 +84,7 @@ class CHRISHEMAnalyzer:
         if missing_df.empty:
             return {
                 "has_missing": False,
-                "message": "✅ No missing values found in the dataset.",
+                "message": "âœ… No missing values found in the dataset.",
                 "data": missing_df,
             }
 
@@ -94,21 +94,21 @@ class CHRISHEMAnalyzer:
 
         suggestions = []
         if severity == "high":
-            suggestions.append("âš ï¸ High missing rate  consider removing or imputing affected columns")
+            suggestions.append("Ã¢Å¡Â Ã¯Â¸Â High missing rate  consider removing or imputing affected columns")
         for _, row in missing_df.iterrows():
             if row["Percentage"] > 50:
-                suggestions.append(f"  â€¢ `{row['Column']}` is {row['Percentage']}% missing  consider dropping")
+                suggestions.append(f"  Ã¢â‚¬Â¢ `{row['Column']}}` is {row['Percentage']}}% missing  consider dropping")
 
         return {
             "has_missing": True,
             "severity": severity,
             "total_missing": int(total_missing),
-            "message": f"âš ï¸ Found **{int(total_missing):,}** missing values ({severity} severity)",
+            "message": f"Ã¢Å¡Â Ã¯Â¸Â Found **{int(total_missing):,}}** missing values ({severity}} severity)",
             "suggestions": suggestions,
             "data": missing_df,
         }
 
-    # â”€â”€â”€ Outlier Detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Outlier Detection Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def find_outliers(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Detect outliers in numeric columns."""
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -139,10 +139,10 @@ class CHRISHEMAnalyzer:
             "columns_with_outliers": n_cols_with_outliers,
             "total_numeric_columns": total_columns,
             "details": outlier_results,
-            "summary": f"ðŸ” Found potential outliers in **{n_cols_with_outliers}** of **{total_columns}** numeric columns" if n_cols_with_outliers > 0 else "✅ No significant outliers detected",
+            "summary": f"Ã°Å¸â€Â Found potential outliers in **{n_cols_with_outliers}}** of **{total_columns}}** numeric columns" if n_cols_with_outliers > 0 else "âœ… No significant outliers detected",
         }
 
-    # â”€â”€â”€ Normality Tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Normality Tests Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def test_normality_all(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Test normality for all numeric columns."""
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -170,12 +170,12 @@ class CHRISHEMAnalyzer:
             "non_normal": non_normal_cols,
             "details": results,
             "summary": (
-                f"📈 **Normality**: {len(normal_cols)}/{len(results)} columns appear normally distributed"
-                if results else "â„¹ï¸ Insufficient data for normality testing"
+                f"ðŸ“ˆ **Normality**: {len(normal_cols)}}/{len(results)}} columns appear normally distributed"
+                if results else "Ã¢â€žÂ¹Ã¯Â¸Â Insufficient data for normality testing"
             ),
         }
 
-    # â”€â”€â”€ Correlation Discovery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Correlation Discovery Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def find_correlations(self, df: pd.DataFrame, threshold: float = 0.5) -> Dict[str, Any]:
         """Find strong correlations between numeric variables."""
         numeric_df = df.select_dtypes(include=[np.number])
@@ -215,13 +215,13 @@ class CHRISHEMAnalyzer:
             "top_positive": [p for p in strong_pairs if p["correlation"] >= 0][:5],
             "top_negative": [p for p in strong_pairs if p["correlation"] < 0][:5],
             "summary": (
-                f"ðŸ”— Found **{len(strong_pairs)}** strong correlations (|r| â‰¥ {threshold})"
+                f"Ã°Å¸â€â€” Found **{len(strong_pairs)}}** strong correlations (|r| Ã¢â€°Â¥ {threshold}})"
                 if strong_pairs
-                else "ðŸ”— No strong correlations found above threshold"
+                else "Ã°Å¸â€â€” No strong correlations found above threshold"
             ),
         }
 
-    # â”€â”€â”€ Smart Test Recommendation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Smart Test Recommendation Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def recommend_tests(self, df: pd.DataFrame) -> List[Dict[str, Any]]:
         """Recommend appropriate statistical tests based on data structure."""
         col_types = infer_column_types(df)
@@ -236,7 +236,7 @@ class CHRISHEMAnalyzer:
             recommendations.append({
                 "test": "One-Sample T-Test",
                 "variables": [numeric_cols[0]],
-                "description": f"Compare the mean of **{numeric_cols[0]}** against a hypothesized value (e.g., population mean)",
+                "description": f"Compare the mean of **{numeric_cols[0]}}** against a hypothesized value (e.g., population mean)",
                 "when_to_use": "When you have a single numeric variable and want to compare its mean to a known value",
                 "prerequisites": "Normally distributed data",
             })
@@ -249,16 +249,16 @@ class CHRISHEMAnalyzer:
                     recommendations.append({
                         "test": "Independent Samples T-Test",
                         "variables": [cat, numeric_cols[0]],
-                        "description": f"Compare **{numeric_cols[0]}** between 2 groups of **{cat}**",
-                        "when_to_use": f"Compare {numeric_cols[0]} across 2 categories of {cat}",
+                        "description": f"Compare **{numeric_cols[0]}}** between 2 groups of **{cat}}**",
+                        "when_to_use": f"Compare {numeric_cols[0]}} across 2 categories of {cat}}",
                         "prerequisites": "Normality within groups, homogeneity of variance",
                     })
                 elif n_groups >= 3:
                     recommendations.append({
                         "test": "One-Way ANOVA",
                         "variables": [cat, numeric_cols[0]],
-                        "description": f"Compare **{numeric_cols[0]}** across {n_groups} groups of **{cat}**",
-                        "when_to_use": f"Compare {numeric_cols[0]} across 3 groups",
+                        "description": f"Compare **{numeric_cols[0]}}** across {n_groups}} groups of **{cat}}**",
+                        "when_to_use": f"Compare {numeric_cols[0]}} across 3 groups",
                         "prerequisites": "Normality within groups, equal variances",
                     })
 
@@ -267,9 +267,9 @@ class CHRISHEMAnalyzer:
             recommendations.append({
                 "test": "Chi-Square Test of Independence",
                 "variables": [cat_cols[0], cat_cols[1]],
-                "description": f"Test association between **{cat_cols[0]}** and **{cat_cols[1]}**",
+                "description": f"Test association between **{cat_cols[0]}}** and **{cat_cols[1]}}**",
                 "when_to_use": "Check if two categorical variables are related",
-                "prerequisites": "Expected frequency â‰¥ 5 per cell",
+                "prerequisites": "Expected frequency Ã¢â€°Â¥ 5 per cell",
             })
 
         # Correlation
@@ -278,14 +278,14 @@ class CHRISHEMAnalyzer:
                 {
                     "test": "Pearson Correlation",
                     "variables": [numeric_cols[0], numeric_cols[1]],
-                    "description": f"Linear relationship between **{numeric_cols[0]}** and **{numeric_cols[1]}**",
+                    "description": f"Linear relationship between **{numeric_cols[0]}}** and **{numeric_cols[1]}}**",
                     "when_to_use": "Measure strength and direction of linear association",
                     "prerequisites": "Normally distributed, linear relationship",
                 },
                 {
                     "test": "Spearman Rank Correlation",
                     "variables": [numeric_cols[0], numeric_cols[1]],
-                    "description": f"Monotonic relationship between **{numeric_cols[0]}** and **{numeric_cols[1]}**",
+                    "description": f"Monotonic relationship between **{numeric_cols[0]}}** and **{numeric_cols[1]}}**",
                     "when_to_use": "When data violates normality assumption",
                     "prerequisites": "Monotonic relationship",
                 },
@@ -296,7 +296,7 @@ class CHRISHEMAnalyzer:
             recommendations.append({
                 "test": "Paired Samples T-Test",
                 "variables": [numeric_cols[0], numeric_cols[1] if len(numeric_cols) > 1 else None],
-                "description": f"Compare **{numeric_cols[0]}** and **{numeric_cols[1]}** (before/after or matched pairs)" if len(numeric_cols) > 1 else None,
+                "description": f"Compare **{numeric_cols[0]}}** and **{numeric_cols[1]}}** (before/after or matched pairs)" if len(numeric_cols) > 1 else None,
                 "when_to_use": "When you have paired/matched observations or before/after measurements",
                 "prerequisites": "Normally distributed differences",
             })
@@ -306,14 +306,14 @@ class CHRISHEMAnalyzer:
             recommendations.append({
                 "test": "Linear Regression",
                 "variables": [numeric_cols[0], numeric_cols[1]],
-                "description": f"Predict **{numeric_cols[0]}** using **{numeric_cols[1]}** and other variables",
+                "description": f"Predict **{numeric_cols[0]}}** using **{numeric_cols[1]}}** and other variables",
                 "when_to_use": "Model relationships between multiple predictors and an outcome",
                 "prerequisites": "Linearity, independence, homoscedasticity, normality",
             })
 
         return recommendations
 
-    # â”€â”€â”€ Natural Language Insights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Natural Language Insights Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def generate_insights(self, df: pd.DataFrame) -> List[str]:
         """Generate natural language insights about the data."""
         insights = []
@@ -322,15 +322,15 @@ class CHRISHEMAnalyzer:
 
         # Dataset size insight
         if profile["rows"] > 10000:
-            insights.append(f"ðŸ“ Large dataset: **{profile['rows']:,}** rows  consider using sampling for faster visualizations")
+            insights.append(f"Ã°Å¸â€œÂ Large dataset: **{profile['rows']:,}}** rows  consider using sampling for faster visualizations")
         elif profile["rows"] < 30:
-            insights.append(f"ðŸ“ Small dataset: **{profile['rows']}** rows  statistical tests may have limited power")
+            insights.append(f"Ã°Å¸â€œÂ Small dataset: **{profile['rows']}}** rows  statistical tests may have limited power")
 
         # Missing data insight
         if profile["missing_pct"] > 10:
-            insights.append(f"â¬œ **{profile['missing_pct']}%** of cells are missing  consider imputation or removal")
+            insights.append(f"Ã¢Â¬Å“ **{profile['missing_pct']}}%** of cells are missing  consider imputation or removal")
         elif profile["missing_pct"] > 0:
-            insights.append(f"â¬œ Minimal missing data ({profile['missing_pct']}%)  data quality is good")
+            insights.append(f"Ã¢Â¬Å“ Minimal missing data ({profile['missing_pct']}}%)  data quality is good")
 
         # Skewness insights
         numeric_cols = profile.get("numeric_columns", [])
@@ -340,7 +340,7 @@ class CHRISHEMAnalyzer:
                     skew = df[col].skew()
                     if abs(skew) > 1:
                         direction = "positively" if skew > 0 else "negatively"
-                        insights.append(f" **{col}** is {direction} skewed ({skew:.2f})  consider log transformation")
+                        insights.append(f" **{col}}** is {direction}} skewed ({skew:.2f}})  consider log transformation")
                 except Exception:
                     logger.warning("Skewness insight failed for column %r", col, exc_info=True)
 
@@ -353,7 +353,7 @@ class CHRISHEMAnalyzer:
                     top_pct = df[col].value_counts().iloc[0] / len(df) * 100
                     n_unique = df[col].nunique()
                     if top_pct > 50:
-                        insights.append(f"ðŸ† In **{col}**, **{top_val}** dominates ({top_pct:.0f}% of {n_unique} categories)")
+                        insights.append(f"Ã°Å¸Ââ€  In **{col}}**, **{top_val}}** dominates ({top_pct:.0f}}% of {n_unique}} categories)")
                 except Exception:
                     logger.warning("Categorical insight failed for column %r", col, exc_info=True)
 
@@ -364,18 +364,19 @@ class CHRISHEMAnalyzer:
                 try:
                     date_range = df[col].max() - df[col].min()
                     if hasattr(date_range, 'days'):
-                        insights.append(f"ðŸ“… **{col}** spans {date_range.days} days (from {df[col].min():%Y-%m-%d} to {df[col].max():%Y-%m-%d})")
+                        insights.append(f"Ã°Å¸â€œâ€¦ **{col}}** spans {date_range.days}} days (from {df[col].min():%Y-%m-%d}} to {df[col].max():%Y-%m-%d}})")
                 except Exception:
                     logger.warning("Temporal insight failed for column %r", col, exc_info=True)
 
         if not insights:
-            insights.append("✅ No notable patterns detected  data appears clean and simple")
+            insights.append("âœ… No notable patterns detected  data appears clean and simple")
 
         return insights
 
-    # â”€â”€â”€ Visualization Recommendations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Visualization Recommendations Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def recommend_visualizations(self, df: pd.DataFrame) -> List[Dict[str, Any]]:
         """Generate visualization suggestions based on data types."""
         from modules.viz_engine import auto_recommend_chart
         return auto_recommend_chart(df)[:8]
+
 

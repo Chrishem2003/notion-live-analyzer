@@ -1,4 +1,4 @@
-
+﻿
 from io import StringIO
 try:
     from Bio import SeqIO
@@ -38,15 +38,16 @@ def calculate_distance_matrix(records):
 def generate_simple_newick(names, dist_matrix):
     """Builds a basic Neighbor-Joining style Newick string representation."""
     # Build a simplified star/neighbor branch structure
-    branches = [f"{names[i]}:{dist_matrix[0][i]/2:.4f}" for i in range(1, len(names))]
-    newick_str = f"({names[0]}:0.01,(" + ",".join(branches) + "));"
+    branches = [f"{names[i]}}:{dist_matrix[0][i]/2:.4f}}" for i in range(1, len(names))]
+    newick_str = f"({names[0]}}:0.01,(" + ",".join(branches) + "));"
     return newick_str
 
 def render_ascii_tree(names):
     """Generates an ASCII visual phylogenetic tree structure."""
-    lines = [" Phylogeny Tree Visualizer", " â””â”€ Root"]
+    lines = [" Phylogeny Tree Visualizer", " Ã¢â€â€Ã¢â€â‚¬ Root"]
     for i, name in enumerate(names):
-        prefix = "    â”œâ”€â”€ " if i < len(names) - 1 else "    â””â”€â”€ "
-        lines.append(f"{prefix}{name}")
+        prefix = "    Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ " if i < len(names) - 1 else "    Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ "
+        lines.append(f"{prefix}}{name}}")
     return "\n".join(lines)
+
 

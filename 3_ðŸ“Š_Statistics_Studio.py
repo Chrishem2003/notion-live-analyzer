@@ -55,15 +55,15 @@ def get_df():
 def generate_ai_interpretation(test_name, p_value, effect=None, effect_label="Effect Size", assumption_warning=None):
     sig = p_value < 0.05
     narrative = (
-        f"> **Executive Summary:** The **{test_name}** result is "
-        f"{'**statistically significant** (p < 0.05)' if sig else 'not statistically significant (p â‰¥ 0.05)'} "
-        f"with p = **{p_value:.5f}**."
+        f"> **Executive Summary:** The **{test_name}}** result is "
+        f"{'**statistically significant** (p < 0.05)' if sig else 'not statistically significant (p â‰¥ 0.05)'}} "
+        f"with p = **{p_value:.5f}}**."
     )
     narrative += "\n> **Key Takeaway:** " + ("Reject $H_0$ — sufficient evidence of a reliable effect." if sig else "Fail to reject $H_0$ — insufficient evidence of an effect.")
     if effect is not None:
-        narrative += f"\n> **{effect_label}:** `{effect:.4f}`"
+        narrative += f"\n> **{effect_label}}:** `{effect:.4f}}`"
     if assumption_warning:
-        narrative += f"\n> **âš ï¸ Assumption Notice:** {assumption_warning}"
+        narrative += f"\n> **âš ï¸ Assumption Notice:** {assumption_warning}}"
     return narrative
 
 
@@ -75,7 +75,7 @@ def check_normality_shapiro(series):
         clean = clean.sample(5000, random_state=42)
     stat, p = stats.shapiro(clean)
     is_normal = p > 0.05
-    msg = f"Shapiro-Wilk p = {p:.4f} ({'Normal distribution assumed' if is_normal else 'Departure from normality detected'})"
+    msg = f"Shapiro-Wilk p = {p:.4f}} ({'Normal distribution assumed' if is_normal else 'Departure from normality detected'}})"
     return is_normal, msg
 
 
@@ -164,12 +164,12 @@ def render_param_tests(df):
                 _, norm_msg1 = check_normality_shapiro(pd.Series(groups[0]))
                 _, norm_msg2 = check_normality_shapiro(pd.Series(groups[1]))
                 levene_stat, levene_p = stats.levene(groups[0], groups[1])
-                homog_msg = f"Levene's Test p = {levene_p:.4f} ({'Homogeneity of variance met' if levene_p > 0.05 else 'Variance heterogeneity detected'})"
+                homog_msg = f"Levene's Test p = {levene_p:.4f}} ({'Homogeneity of variance met' if levene_p > 0.05 else 'Variance heterogeneity detected'}})"
 
                 with st.expander("ðŸ” Pre-flight Statistical Assumptions"):
-                    st.write(f"- Group 1 Normality: {norm_msg1}")
-                    st.write(f"- Group 2 Normality: {norm_msg2}")
-                    st.write(f"- Variance Homogeneity: {homog_msg}")
+                    st.write(f"- Group 1 Normality: {norm_msg1}}")
+                    st.write(f"- Group 2 Normality: {norm_msg2}}")
+                    st.write(f"- Variance Homogeneity: {homog_msg}}")
 
             if st.button("â–¶ï¸ Run t-Test", type="primary", key="run_ttest"):
                 if len(groups) == 2:
@@ -185,13 +185,13 @@ def render_param_tests(df):
                     d_ci = (cohens_d - 1.96 * se_d, cohens_d + 1.96 * se_d)
 
                     col_m1, col_m2 = st.columns(2)
-                    col_m1.metric("t-Statistic", f"{stat_val:.4f}")
-                    col_m2.metric("P-Value", f"{p_val:.6f}")
-                    st.metric("Cohen's d Effect Size", f"{cohens_d:.4f}", delta=f"95% CI [{d_ci[0]:.3f}, {d_ci[1]:.3f}]")
+                    col_m1.metric("t-Statistic", f"{stat_val:.4f}}")
+                    col_m2.metric("P-Value", f"{p_val:.6f}}")
+                    st.metric("Cohen's d Effect Size", f"{cohens_d:.4f}}", delta=f"95% CI [{d_ci[0]:.3f}}, {d_ci[1]:.3f}}]")
 
                     warning = None if equal_var else "Equal variance assumption violated; Welch's t-test variant applied."
                     st.markdown(generate_ai_interpretation("Independent t-Test", p_val, effect=cohens_d, effect_label="Cohen's d", assumption_warning=warning))
-                    log_test_result(f"Independent t-Test ({v} by {g})", p_val, "Cohen's d", cohens_d)
+                    log_test_result(f"Independent t-Test ({v}} by {g}})", p_val, "Cohen's d", cohens_d)
         else:
             st.info("Need a binary categorical + numeric variable.")
 
@@ -204,7 +204,7 @@ def render_param_tests(df):
             diffs = df[after].dropna() - df[before].dropna()
             _, diff_norm_msg = check_normality_shapiro(diffs)
             with st.expander("ðŸ” Pre-flight Statistical Assumptions"):
-                st.write(f"- Difference Score Normality: {diff_norm_msg}")
+                st.write(f"- Difference Score Normality: {diff_norm_msg}}")
 
             if st.button("â–¶ï¸ Run Paired t-Test", type="primary", key="run_paired"):
                 clean_df = df[[before, after]].dropna()
@@ -212,11 +212,11 @@ def render_param_tests(df):
                 diff_series = clean_df[after] - clean_df[before]
                 cohens_d_paired = diff_series.mean() / diff_series.std(ddof=1) if diff_series.std(ddof=1) > 0 else 0.0
 
-                st.metric("t-Statistic", f"{stat_val:.4f}")
-                st.metric("P-Value", f"{p_val:.6f}")
-                st.metric("Cohen's d (Paired)", f"{cohens_d_paired:.4f}")
+                st.metric("t-Statistic", f"{stat_val:.4f}}")
+                st.metric("P-Value", f"{p_val:.6f}}")
+                st.metric("Cohen's d (Paired)", f"{cohens_d_paired:.4f}}")
                 st.markdown(generate_ai_interpretation("Paired t-Test", p_val, effect=cohens_d_paired, effect_label="Cohen's d (paired)"))
-                log_test_result(f"Paired t-Test ({before} vs {after})", p_val, "Cohen's d", cohens_d_paired)
+                log_test_result(f"Paired t-Test ({before}} vs {after}})", p_val, "Cohen's d", cohens_d_paired)
         else:
             st.info("Need at least 2 numeric variables.")
 
@@ -233,11 +233,11 @@ def render_param_tests(df):
                     n = sum(len(gr) for gr in groups)
                     eta_sq = (f_val * (k - 1)) / (f_val * (k - 1) + (n - k)) if (n - k) > 0 else np.nan
 
-                    c1.metric("F-Statistic", f"{f_val:.4f}")
-                    c2.metric("P-Value", f"{p_val:.6f}")
-                    st.metric("Eta-Squared (Î·Â²)", f"{eta_sq:.4f}", help="Proportion of variance in the outcome explained by group membership.")
+                    c1.metric("F-Statistic", f"{f_val:.4f}}")
+                    c2.metric("P-Value", f"{p_val:.6f}}")
+                    st.metric("Eta-Squared (Î·Â²)", f"{eta_sq:.4f}}", help="Proportion of variance in the outcome explained by group membership.")
                     st.markdown(generate_ai_interpretation("One-Way ANOVA", p_val, effect=eta_sq, effect_label="Eta-Squared (Î·Â²)"))
-                    log_test_result(f"One-Way ANOVA ({v} by {g})", p_val, "Eta-Squared", eta_sq)
+                    log_test_result(f"One-Way ANOVA ({v}} by {g}})", p_val, "Eta-Squared", eta_sq)
         else:
             st.info("Need a categorical + numeric variable.")
 
@@ -248,7 +248,7 @@ def render_param_tests(df):
             dep = st.selectbox("Dependent", numeric_cols, key="twoway_dep")
             if st.button("â–¶ï¸ Run Two-Way ANOVA", type="primary", key="run_twoway"):
                 try:
-                    model = ols(f"{dep} ~ C({f1}) * C({f2})", data=df).fit()
+                    model = ols(f"{dep}} ~ C({f1}}) * C({f2}})", data=df).fit()
                     anova_table = sm.stats.anova_lm(model, typ=2)
                     st.dataframe(anova_table, use_container_width=True)
 
@@ -261,7 +261,7 @@ def render_param_tests(df):
                         partial_eta = ss_term / (ss_term + ss_resid) if (ss_term + ss_resid) > 0 else np.nan
                         p_term = anova_table.loc[term, "PR(>F)"]
                         breakdown.append({"Term": term, "F": anova_table.loc[term, "F"], "P-Value": p_term, "Partial Î·Â²": partial_eta})
-                        log_test_result(f"Two-Way ANOVA — {term} ({dep})", p_term, "Partial Î·Â²", partial_eta)
+                        log_test_result(f"Two-Way ANOVA — {term}} ({dep}})", p_term, "Partial Î·Â²", partial_eta)
 
                     breakdown_df = pd.DataFrame(breakdown)
                     st.markdown("#### Per-Term Breakdown (including interaction)")
@@ -271,10 +271,10 @@ def render_param_tests(df):
                     if not interaction_row.empty:
                         interaction_p = interaction_row.iloc[0]["P-Value"]
                         if interaction_p < 0.05:
-                            st.warning(f"âš ï¸ Significant interaction effect (p = {interaction_p:.5f}) — interpret the main effects of `{f1}` and `{f2}` with caution; their effect on `{dep}` depends on the level of the other factor.")
-                        st.markdown(generate_ai_interpretation(f"Two-Way ANOVA Interaction ({f1} Ã— {f2})", interaction_p, effect=interaction_row.iloc[0]["Partial Î·Â²"], effect_label="Partial Î·Â² (interaction)"))
+                            st.warning(f"âš ï¸ Significant interaction effect (p = {interaction_p:.5f}}) — interpret the main effects of `{f1}}` and `{f2}}` with caution; their effect on `{dep}}` depends on the level of the other factor.")
+                        st.markdown(generate_ai_interpretation(f"Two-Way ANOVA Interaction ({f1}} Ã— {f2}})", interaction_p, effect=interaction_row.iloc[0]["Partial Î·Â²"], effect_label="Partial Î·Â² (interaction)"))
                 except Exception as e:
-                    st.error(f"Two-Way ANOVA computation error: {e}")
+                    st.error(f"Two-Way ANOVA computation error: {e}}")
         else:
             st.info("Need 2 categorical + 1 numeric variable and statsmodels installed.")
 
@@ -285,10 +285,10 @@ def render_param_tests(df):
             v2 = c2.selectbox("Variable 2", [c for c in numeric_cols if c != v1], key="corr_v2")
             if st.button("â–¶ï¸ Run Correlation", type="primary", key="run_corr"):
                 r, p = stats.pearsonr(df[v1].dropna(), df[v2].dropna())
-                st.metric("Pearson r", f"{r:.4f}")
-                st.metric("P-Value", f"{p:.6f}")
+                st.metric("Pearson r", f"{r:.4f}}")
+                st.metric("P-Value", f"{p:.6f}}")
                 st.markdown(generate_ai_interpretation("Pearson Correlation", p, effect=r, effect_label="Pearson r"))
-                log_test_result(f"Pearson Correlation ({v1} vs {v2})", p, "r", r)
+                log_test_result(f"Pearson Correlation ({v1}} vs {v2}})", p, "r", r)
         else:
             st.info("Need at least 2 numeric variables.")
 
@@ -306,12 +306,12 @@ def render_param_tests(df):
                     r_sq = model.rsquared
                     adj_r_sq = model.rsquared_adj
                     f_p = model.f_pvalue
-                    st.metric("R-Squared", f"{r_sq:.4f}")
-                    st.metric("Adjusted R-Squared", f"{adj_r_sq:.4f}")
+                    st.metric("R-Squared", f"{r_sq:.4f}}")
+                    st.metric("Adjusted R-Squared", f"{adj_r_sq:.4f}}")
                     st.markdown(generate_ai_interpretation("Multiple OLS Regression", f_p, effect=r_sq, effect_label="RÂ²"))
-                    log_test_result(f"OLS Regression ({target} ~ {'+'.join(features)})", f_p, "RÂ²", r_sq)
+                    log_test_result(f"OLS Regression ({target}} ~ {'+'.join(features)}})", f_p, "RÂ²", r_sq)
                 except Exception as e:
-                    st.error(f"Regression error: {e}")
+                    st.error(f"Regression error: {e}}")
         else:
             st.info("Need at least 2 numeric variables and statsmodels.")
 
@@ -338,11 +338,11 @@ def render_nonparam_tests(df):
                     stat_val, p_val = stats.mannwhitneyu(groups[0], groups[1])
                     n1, n2 = len(groups[0]), len(groups[1])
                     rank_biserial = 1 - (2 * stat_val) / (n1 * n2)
-                    st.metric("U-Statistic", f"{stat_val:.4f}")
-                    st.metric("P-Value", f"{p_val:.6f}")
-                    st.metric("Rank-Biserial Correlation", f"{rank_biserial:.4f}")
+                    st.metric("U-Statistic", f"{stat_val:.4f}}")
+                    st.metric("P-Value", f"{p_val:.6f}}")
+                    st.metric("Rank-Biserial Correlation", f"{rank_biserial:.4f}}")
                     st.markdown(generate_ai_interpretation("Mann-Whitney U", p_val, effect=rank_biserial, effect_label="Rank-Biserial r"))
-                    log_test_result(f"Mann-Whitney U ({v} by {g})", p_val, "Rank-Biserial r", rank_biserial)
+                    log_test_result(f"Mann-Whitney U ({v}} by {g}})", p_val, "Rank-Biserial r", rank_biserial)
         else:
             st.info("Need binary categorical + numeric.")
 
@@ -356,11 +356,11 @@ def render_nonparam_tests(df):
                 k = len(groups)
                 n = sum(len(gr) for gr in groups)
                 eta_sq_h = (stat_val - k + 1) / (n - k) if (n - k) > 0 else np.nan
-                st.metric("H-Statistic", f"{stat_val:.4f}")
-                st.metric("P-Value", f"{p_val:.6f}")
-                st.metric("Eta-Squared (H)", f"{eta_sq_h:.4f}")
+                st.metric("H-Statistic", f"{stat_val:.4f}}")
+                st.metric("P-Value", f"{p_val:.6f}}")
+                st.metric("Eta-Squared (H)", f"{eta_sq_h:.4f}}")
                 st.markdown(generate_ai_interpretation("Kruskal-Wallis H", p_val, effect=eta_sq_h, effect_label="Eta-Squared (H)"))
-                log_test_result(f"Kruskal-Wallis H ({v} by {g})", p_val, "Eta-Squared (H)", eta_sq_h)
+                log_test_result(f"Kruskal-Wallis H ({v}} by {g}})", p_val, "Eta-Squared (H)", eta_sq_h)
         else:
             st.info("Need categorical + numeric.")
 
@@ -370,10 +370,10 @@ def render_nonparam_tests(df):
             a = st.selectbox("After", [c for c in numeric_cols if c != b], key="wx_after")
             if st.button("â–¶ï¸ Run Wilcoxon", type="primary", key="run_wx"):
                 stat_val, p_val = stats.wilcoxon(df[b].dropna(), df[a].dropna())
-                st.metric("Statistic", f"{stat_val:.4f}")
-                st.metric("P-Value", f"{p_val:.6f}")
+                st.metric("Statistic", f"{stat_val:.4f}}")
+                st.metric("P-Value", f"{p_val:.6f}}")
                 st.markdown(generate_ai_interpretation("Wilcoxon Signed-Rank", p_val))
-                log_test_result(f"Wilcoxon Signed-Rank ({b} vs {a})", p_val)
+                log_test_result(f"Wilcoxon Signed-Rank ({b}} vs {a}})", p_val)
         else:
             st.info("Need 2 numeric variables.")
 
@@ -388,21 +388,21 @@ def render_nonparam_tests(df):
                 min_dim = min(ct.shape[0] - 1, ct.shape[1] - 1)
                 cramers_v = np.sqrt(chi2 / (n * min_dim)) if min_dim > 0 and n > 0 else np.nan
 
-                st.metric("Chi-Square", f"{chi2:.4f}")
-                st.metric("P-Value", f"{p:.6f}")
-                st.metric("CramÃ©r's V", f"{cramers_v:.4f}", help="0.1 small, 0.3 medium, 0.5+ large association.")
+                st.metric("Chi-Square", f"{chi2:.4f}}")
+                st.metric("P-Value", f"{p:.6f}}")
+                st.metric("CramÃ©r's V", f"{cramers_v:.4f}}", help="0.1 small, 0.3 medium, 0.5+ large association.")
 
                 low_exp = (ex < 5).sum()
                 total_cells = ex.size
                 warning = None
                 if low_exp > 0:
-                    warning = f"Expected frequency count: {low_exp}/{total_cells} cells have < 5 expected counts."
+                    warning = f"Expected frequency count: {low_exp}}/{total_cells}} cells have < 5 expected counts."
                     if ct.shape == (2, 2):
                         warning += " Consider Fisher's Exact Test instead — it doesn't rely on this asymptotic assumption."
 
                 st.markdown(generate_ai_interpretation("Chi-Square Test of Independence", p, effect=cramers_v, effect_label="CramÃ©r's V", assumption_warning=warning))
                 st.dataframe(ct, use_container_width=True)
-                log_test_result(f"Chi-Square ({v1} vs {v2})", p, "CramÃ©r's V", cramers_v)
+                log_test_result(f"Chi-Square ({v1}} vs {v2}})", p, "CramÃ©r's V", cramers_v)
         else:
             st.info("Need 2 categorical variables.")
 
@@ -412,10 +412,10 @@ def render_nonparam_tests(df):
             v2 = st.selectbox("Variable 2", [c for c in numeric_cols if c != v1], key="sp_v2")
             if st.button("â–¶ï¸ Run Spearman", type="primary", key="run_sp"):
                 rho, p = stats.spearmanr(df[v1].dropna(), df[v2].dropna())
-                st.metric("Spearman Ï", f"{rho:.4f}")
-                st.metric("P-Value", f"{p:.6f}")
+                st.metric("Spearman Ï", f"{rho:.4f}}")
+                st.metric("P-Value", f"{p:.6f}}")
                 st.markdown(generate_ai_interpretation("Spearman Correlation", p, effect=rho, effect_label="Spearman Ï"))
-                log_test_result(f"Spearman Correlation ({v1} vs {v2})", p, "Ï", rho)
+                log_test_result(f"Spearman Correlation ({v1}} vs {v2}})", p, "Ï", rho)
         else:
             st.info("Need 2 numeric variables.")
 
@@ -427,10 +427,10 @@ def render_nonparam_tests(df):
                 ct = pd.crosstab(df[v1], df[v2])
                 if ct.shape == (2, 2):
                     or_val, p_val = stats.fisher_exact(ct)
-                    st.metric("Odds Ratio", f"{or_val:.4f}")
-                    st.metric("P-Value", f"{p_val:.6f}")
+                    st.metric("Odds Ratio", f"{or_val:.4f}}")
+                    st.metric("P-Value", f"{p_val:.6f}}")
                     st.markdown(generate_ai_interpretation("Fisher's Exact Test", p_val, effect=or_val, effect_label="Odds Ratio"))
-                    log_test_result(f"Fisher's Exact ({v1} vs {v2})", p_val, "Odds Ratio", or_val)
+                    log_test_result(f"Fisher's Exact ({v1}} vs {v2}})", p_val, "Odds Ratio", or_val)
                 else:
                     st.error("Requires 2Ã—2 table dimensions.")
         else:
@@ -445,10 +445,10 @@ def render_nonparam_tests(df):
                 ct = pd.crosstab(df[b], df[a])
                 if ct.shape == (2, 2):
                     res = stats.mcnemar(ct, exact=True)
-                    st.metric("Statistic", f"{res.statistic:.4f}")
-                    st.metric("P-Value", f"{res.pvalue:.6f}")
+                    st.metric("Statistic", f"{res.statistic:.4f}}")
+                    st.metric("P-Value", f"{res.pvalue:.6f}}")
                     st.markdown(generate_ai_interpretation("McNemar's Test", res.pvalue))
-                    log_test_result(f"McNemar's Test ({b} vs {a})", res.pvalue)
+                    log_test_result(f"McNemar's Test ({b}} vs {a}})", res.pvalue)
                 else:
                     st.error("Requires 2Ã—2 binary table.")
         else:
@@ -533,14 +533,14 @@ def render_sensitivity_tab(df):
             if len(z_clean) > 5:
                 r, p = _partial_corr(z_clean[x].values, z_clean[y].values, z_clean[z_col].values)
                 if not np.isnan(r):
-                    specs.append({"Specification": f"Partial correlation, controlling for {z_col}", "Coefficient": round(r, 4), "P-Value": round(p, 4) if not np.isnan(p) else None, "N": len(z_clean)})
+                    specs.append({"Specification": f"Partial correlation, controlling for {z_col}}", "Coefficient": round(r, 4), "P-Value": round(p, 4) if not np.isnan(p) else None, "N": len(z_clean)})
 
         if subgroup_col != "(None)":
             for level, sub in df.groupby(subgroup_col):
                 sub_clean = sub[[x, y]].dropna()
                 if len(sub_clean) >= 10:
                     r, p = stats.pearsonr(sub_clean[x], sub_clean[y])
-                    specs.append({"Specification": f"Pearson, subgroup {subgroup_col}={level}", "Coefficient": round(r, 4), "P-Value": round(p, 4), "N": len(sub_clean)})
+                    specs.append({"Specification": f"Pearson, subgroup {subgroup_col}}={level}}", "Coefficient": round(r, 4), "P-Value": round(p, 4), "N": len(sub_clean)})
 
         res_df = pd.DataFrame(specs)
         res_df["Robust (p<0.05)"] = res_df["P-Value"].apply(lambda v: v is not None and v < 0.05)
@@ -549,7 +549,7 @@ def render_sensitivity_tab(df):
         robust_pct = res_df["Robust (p<0.05)"].mean() * 100
         sign_consistent = (res_df["Coefficient"] > 0).all() or (res_df["Coefficient"] < 0).all()
         c1, c2 = st.columns(2)
-        c1.metric("Specifications Significant", f"{robust_pct:.1f}%")
+        c1.metric("Specifications Significant", f"{robust_pct:.1f}}%")
         c2.metric("Sign Consistent Across Specs", "Yes" if sign_consistent else "No")
 
         if robust_pct == 100 and sign_consistent:
@@ -586,10 +586,10 @@ def render_advanced_tests(df):
                     model = sm.OLS(y, X).fit()
                     st.text(str(model.summary()))
                     coef, p_val = model.params[predictor], model.pvalues[predictor]
-                    st.markdown(generate_ai_interpretation(f"Adjusted effect of {predictor} on {outcome}", p_val, effect=coef, effect_label=f"Î² ({predictor})"))
-                    log_test_result(f"Causal Regression ({predictor} â†’ {outcome}, controlling for {len(confounders)} covariates)", p_val, "Î²", coef)
+                    st.markdown(generate_ai_interpretation(f"Adjusted effect of {predictor}} on {outcome}}", p_val, effect=coef, effect_label=f"Î² ({predictor}})"))
+                    log_test_result(f"Causal Regression ({predictor}} â†’ {outcome}}, controlling for {len(confounders)}} covariates)", p_val, "Î²", coef)
                 except Exception as e:
-                    st.error(f"Causal regression error: {e}")
+                    st.error(f"Causal regression error: {e}}")
         else:
             st.info("Need at least 3 numeric variables and statsmodels installed.")
 
@@ -615,12 +615,12 @@ def render_advanced_tests(df):
                     posterior_var = 1.0 / posterior_precision
                     posterior_mean = posterior_var * (precision_prior * prior_mean + precision_data * sample_mean)
 
-                    st.metric("Sample Mean", f"{sample_mean:.3f}")
-                    st.metric("Posterior Mean (Î¼â‚™)", f"{posterior_mean:.3f}")
-                    st.metric("Posterior Variance (Ïƒâ‚™Â²)", f"{posterior_var:.4f}")
+                    st.metric("Sample Mean", f"{sample_mean:.3f}}")
+                    st.metric("Posterior Mean (Î¼â‚™)", f"{posterior_mean:.3f}}")
+                    st.metric("Posterior Variance (Ïƒâ‚™Â²)", f"{posterior_var:.4f}}")
                     st.markdown(
-                        f"> **Bayesian Update Summary:** Prior ~ N({prior_mean}, {prior_var}) updated with "
-                        f"N={n}, sample mean {sample_mean:.3f} â†’ Posterior N({posterior_mean:.3f}, {posterior_var:.4f})."
+                        f"> **Bayesian Update Summary:** Prior ~ N({prior_mean}}, {prior_var}}) updated with "
+                        f"N={n}}, sample mean {sample_mean:.3f}} â†’ Posterior N({posterior_mean:.3f}}, {posterior_var:.4f}})."
                     )
                 else:
                     st.error("Variance parameters must be strictly greater than zero.")
@@ -641,10 +641,10 @@ def render_advanced_tests(df):
                 rng = np.random.RandomState(42)
                 means = [rng.choice(data, size=len(data), replace=True).mean() for _ in range(n_boot)]
                 ci_low, ci_high = np.percentile(means, [2.5, 97.5])
-                st.metric("Observed Mean", f"{data.mean():.3f}")
-                st.metric("Bootstrap 95% CI Lower", f"{ci_low:.3f}")
-                st.metric("Bootstrap 95% CI Upper", f"{ci_high:.3f}")
-                st.markdown(f"> **Empirical 95% Confidence Interval:** [{ci_low:.3f}, {ci_high:.3f}]")
+                st.metric("Observed Mean", f"{data.mean():.3f}}")
+                st.metric("Bootstrap 95% CI Lower", f"{ci_low:.3f}}")
+                st.metric("Bootstrap 95% CI Upper", f"{ci_high:.3f}}")
+                st.markdown(f"> **Empirical 95% Confidence Interval:** [{ci_low:.3f}}, {ci_high:.3f}}]")
         else:
             st.info("Need a numeric variable.")
 
@@ -669,10 +669,10 @@ def render_advanced_tests(df):
                 n_per_group = int(np.ceil(2 * ((z_alpha + z_beta) ** 2) / (d ** 2)))
                 method_label = "Normal Approximation (statsmodels not installed)"
 
-            st.metric("Required Sample Size Per Group", f"{n_per_group:,}")
-            st.metric("Total Study Sample Size", f"{n_per_group * 2:,}")
-            st.caption(f"Method: {method_label}")
-            st.markdown(f"> **Design Parameters:** Cohen's d={d}, Î±={alpha}, Target Power={power:.2f}")
+            st.metric("Required Sample Size Per Group", f"{n_per_group:,}}")
+            st.metric("Total Study Sample Size", f"{n_per_group * 2:,}}")
+            st.caption(f"Method: {method_label}}")
+            st.markdown(f"> **Design Parameters:** Cohen's d={d}}, Î±={alpha}}, Target Power={power:.2f}}")
 
 
 def render_methodology_tab():
@@ -717,8 +717,8 @@ def render_methodology_tab():
         else:
             rec, rationale = "Chi-Square Test of Independence / Fisher's Exact Test", "Frequency analysis for contingency table categorical distributions."
 
-        st.success(f"✅ **Recommended Procedure:** {rec}")
-        st.info(f"ðŸ’¡ **Methodological Rationale:** {rationale}")
+        st.success(f"✅ **Recommended Procedure:** {rec}}")
+        st.info(f"ðŸ’¡ **Methodological Rationale:** {rationale}}")
 
         st.session_state["last_methodology_rec"] = {
             "objective": objective, "recommendation": rec, "rationale": rationale,
@@ -776,3 +776,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

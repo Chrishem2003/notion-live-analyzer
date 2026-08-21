@@ -1,4 +1,4 @@
-
+﻿
 import sqlite3
 import pandas as pd
 import streamlit as st
@@ -35,4 +35,5 @@ def render_database_audit_logs():
                 st.info("No active sessions registered.")
                 
     except Exception as e:
-        st.warning(f"Database inspection notice: {str(e)}")
+        st.warning(f"Database inspection notice: {str(e)}}")
+

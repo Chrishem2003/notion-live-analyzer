@@ -1,4 +1,4 @@
-"""
+﻿"""
 llm_router.py
 Hybrid LLM Router  the "Local Hybrid Fallback Wrapper".
 
@@ -74,7 +74,7 @@ class LLMRouter:
         if not HAS_REQUESTS:
             return False
         try:
-            r = requests.get(f"{self.ollama_base_url}/api/tags", timeout=2)
+            r = requests.get(f"{self.ollama_base_url}}/api/tags", timeout=2)
             return r.status_code == 200
         except Exception:
             return False
@@ -131,7 +131,7 @@ class LLMRouter:
             return None
         try:
             r = requests.post(
-                f"{self.ollama_base_url}/api/generate",
+                f"{self.ollama_base_url}}/api/generate",
                 json={
                     "model": self.ollama_model,
                     "prompt": prompt,
@@ -155,7 +155,7 @@ class LLMRouter:
         if task == "cross_sector_synthesis":
             return (
                 f"# Evidence-Based Action Plan\n\n"
-                f"**Objective:** {topic}\n\n"
+                f"**Objective:** {topic}}\n\n"
                 f"1. **Establish baseline telemetry** on all relevant sector indicators.\n"
                 f"2. **Ingest & audit** structured and unstructured data sources.\n"
                 f"3. **Deploy targeted interventions** validated by peer-reviewed literature.\n"
@@ -164,8 +164,8 @@ class LLMRouter:
             )
         if task == "summarize_short":
             words = prompt.split()[:60]
-            return " ".join(words) + ("…" if len(prompt.split()) > 60 else "")
-        return f"Routed response ({task}): {topic} — see enterprise guidelines."
+            return " ".join(words) + ("â€¦" if len(prompt.split()) > 60 else "")
+        return f"Routed response ({task}}): {topic}} â€” see enterprise guidelines."
 
     # ------------------------------------------------------------------
     # Embeddings (Graph-RAG support)
@@ -187,7 +187,7 @@ class LLMRouter:
             return None
         try:
             r = requests.post(
-                f"{self.ollama_base_url}/api/embeddings",
+                f"{self.ollama_base_url}}/api/embeddings",
                 json={"model": "nomic-embed-text", "prompt": text[:2000]},
                 timeout=30,
             )
@@ -220,3 +220,4 @@ def get_router() -> LLMRouter:
     if _router_instance is None:
         _router_instance = LLMRouter()
     return _router_instance
+

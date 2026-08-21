@@ -1,4 +1,4 @@
-
+﻿
 import streamlit as st
 import shutil
 import pandas as pd
@@ -16,7 +16,7 @@ def get_disk_metrics() -> pd.DataFrame:
     percent_used = (used / total) * 100
 
     data = [
-        {"Partition": "C:\\ (Root / Data)", "Total (GB)": total_gb, "Used (GB)": used_gb, "Free (GB)": free_gb, "Usage (%)": f"{percent_used:.1f}%", "Status": "HEALTHY"}
+        {"Partition": "C:\\ (Root / Data)", "Total (GB)": total_gb, "Used (GB)": used_gb, "Free (GB)": free_gb, "Usage (%)": f"{percent_used:.1f}}%", "Status": "HEALTHY"}
     ]
     return pd.DataFrame(data)
 
@@ -33,3 +33,4 @@ def render_disk_monitor_panel():
     if st.button(" Execute Storage Cache Cleanup"):
         log_backend_event("INFO", "User executed storage cache cleanup routine.")
         st.success("Storage cache purged successfully. Unused build artifacts cleared.")
+

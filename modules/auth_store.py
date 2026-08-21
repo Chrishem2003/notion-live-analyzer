@@ -1,11 +1,11 @@
-"""
+﻿"""
 modules/auth_store.py
 Real authentication: hashed passwords + server-side roles.
 
 Replaces the pattern in portal.py where "is_admin" was decided in the
 browser by matching a typed email, and app.py where the role was a
 selectbox the user picked for themselves. Neither of those is a security
-boundary — this module is.
+boundary â€” this module is.
 
 DB: sovereign_apex_engine.db (same file the rest of the app already uses)
 """
@@ -120,9 +120,9 @@ def get_role(email: str) -> str:
 
 
 def set_role(email: str, role: str):
-    """Admin-only operation — call this only from behind require_admin()."""
+    """Admin-only operation â€” call this only from behind require_admin()."""
     if role not in ROLES:
-        raise ValueError(f"Invalid role: {role}")
+        raise ValueError(f"Invalid role: {role}}")
     conn = get_conn()
     conn.execute("UPDATE auth_users SET role=? WHERE email=?", (role, email.strip().lower()))
     conn.commit()
@@ -139,5 +139,5 @@ def bootstrap_first_admin(email: str, name: str, password: str):
     count = conn.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0]
     conn.close()
     if count > 0:
-        return {"ok": False, "error": "Users already exist — bootstrap only runs on an empty database."}
+        return {"ok": False, "error": "Users already exist â€” bootstrap only runs on an empty database."}
     return create_user(email, name, password, role="admin")

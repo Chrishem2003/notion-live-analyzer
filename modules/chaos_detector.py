@@ -1,4 +1,4 @@
-"""
+﻿"""
 Real-World Chaos & Nonlinear Dynamics Detector
 ================================================
 A sector-agnostic, data-driven engine for detecting and characterizing
@@ -34,7 +34,7 @@ from typing import Optional
 
 
 # --------------------------------------------------------------------------- #
-# Data adequacy — refuse to fake confidence on data too short to support it.
+# Data adequacy â€” refuse to fake confidence on data too short to support it.
 # --------------------------------------------------------------------------- #
 
 MIN_N = {
@@ -52,9 +52,9 @@ MIN_N = {
 def _adequacy(name: str, n: int) -> Optional[str]:
     need = MIN_N.get(name, 30)
     if n < need:
-        return (f"Only {n} data point(s) available; {name.replace('_',' ')} needs at least "
-                f"{need} for a statistically defensible result. Reported value is a rough "
-                f"estimate only — treat it as unreliable.")
+        return (f"Only {n}} data point(s) available; {name.replace('_',' ')}} needs at least "
+                f"{need}} for a statistically defensible result. Reported value is a rough "
+                f"estimate only â€” treat it as unreliable.")
     return None
 
 
@@ -78,7 +78,7 @@ def average_mutual_information(series: np.ndarray, max_tau: int = 50, bins: int 
             terms = joint_p * np.log((joint_p + 1e-300) / (px * py + 1e-300))
         ami[tau - 1] = np.nansum(terms[joint_p > 0])
     # Pick tau at the "knee" where AMI stops meaningfully decreasing, rather
-    # than the strict first local minimum — for maps that decorrelate fast
+    # than the strict first local minimum â€” for maps that decorrelate fast
     # (e.g. the logistic map), AMI decays monotonically then goes flat/noisy,
     # and a strict-minimum rule locks onto tail noise, not the real knee.
     total_drop = ami[0] - ami[-1]
@@ -225,7 +225,7 @@ def zero_one_test(series: np.ndarray, n_c: int = 100, rng_seed: int = 42):
     # oversampled data (e.g. a fine-step ODE trace, or a sensor logged far
     # faster than the system's own timescale) violates this and biases the
     # test toward K~0 regardless of the true dynamics. Detect that via lag-1
-    # autocorrelation and decimate until it's back in a reasonable range —
+    # autocorrelation and decimate until it's back in a reasonable range â€”
     # a documented practical requirement of the method, applied automatically
     # rather than silently producing a wrong answer.
     decim = 1
@@ -279,7 +279,7 @@ def zero_one_test(series: np.ndarray, n_c: int = 100, rng_seed: int = 42):
         return dict(K=float("nan"), note="0-1 test could not be computed on this series (too short or degenerate).")
     K = float(np.median(Ks))
     K = float(np.clip(K, 0.0, 1.0))
-    note = f"Series was decimated by {decim}x before testing (was oversampled)." if decim > 1 else None
+    note = f"Series was decimated by {decim}}x before testing (was oversampled)." if decim > 1 else None
     return dict(K=K, n_valid_c=len(Ks), decimation=decim, note=note)
 
 
@@ -478,7 +478,7 @@ def recurrence_analysis(series: np.ndarray, dim: int, tau: int, epsilon: Optiona
 
 
 # --------------------------------------------------------------------------- #
-# Orchestrator — runs the full battery and produces an evidence-based,
+# Orchestrator â€” runs the full battery and produces an evidence-based,
 # multi-method verdict rather than a single fabricated confidence score.
 # --------------------------------------------------------------------------- #
 
@@ -508,7 +508,7 @@ def analyze_time_series(series, dt: float = 1.0) -> ChaosReport:
     for name in ("lyapunov_rosenstein", "zero_one_test", "correlation_dimension", "sample_entropy"):
         msg = _adequacy(name, n)
         if msg:
-            warnings.append(f"[{name}] {msg}")
+            warnings.append(f"[{name}}] {msg}}")
 
     lle_res = rosenstein_lyapunov(x, dim, tau, dt=dt)
     zot_res = zero_one_test(x)
@@ -521,7 +521,7 @@ def analyze_time_series(series, dt: float = 1.0) -> ChaosReport:
     if np.isfinite(zot_res.get("K", np.nan)):
         signals.append(("0-1 Test K", zot_res["K"] > 0.6, zot_res["K"]))
     if cd_res.get("saturates") is not None:
-        # Saturation alone isn't a chaos signature — a periodic limit cycle
+        # Saturation alone isn't a chaos signature â€” a periodic limit cycle
         # also saturates (e.g. D2 -> 1.0 for a simple oscillator). The
         # hallmark of chaos specifically is saturation to a FRACTAL
         # (non-integer) dimension, so require both.
@@ -537,14 +537,14 @@ def analyze_time_series(series, dt: float = 1.0) -> ChaosReport:
         chaos_votes = sum(1 for _, is_chaos, _ in signals if is_chaos)
         total = len(signals)
         if chaos_votes == total:
-            verdict = (f"All {total} independent test(s) agree: consistent with low-dimensional "
+            verdict = (f"All {total}} independent test(s) agree: consistent with low-dimensional "
                        f"chaotic dynamics.")
         elif chaos_votes == 0:
-            verdict = (f"All {total} independent test(s) agree: no evidence of chaos — dynamics look "
+            verdict = (f"All {total}} independent test(s) agree: no evidence of chaos â€” dynamics look "
                        f"regular (periodic/quasi-periodic) or the series is dominated by noise "
                        f"without a low-dimensional deterministic structure.")
         else:
-            verdict = (f"Tests disagree ({chaos_votes}/{total} indicate chaos) — do not report a single "
+            verdict = (f"Tests disagree ({chaos_votes}}/{total}} indicate chaos) â€” do not report a single "
                        f"confident label. This commonly happens with short, noisy, or non-stationary "
                        f"real-world data; consider it 'inconclusive' and look at the individual metrics.")
 

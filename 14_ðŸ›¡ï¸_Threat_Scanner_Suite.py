@@ -61,7 +61,7 @@ def render_pii_tab():
         if df is None:
             st.info("â„¹ï¸ No active dataset loaded in this session — load one via Data Studio, or switch to 'Upload New File' / 'Paste Raw Text' above.")
         else:
-            st.caption(f"Scanning the currently active dataset: {df.shape[0]:,} rows Ã— {df.shape[1]} columns.")
+            st.caption(f"Scanning the currently active dataset: {df.shape[0]:,}} rows Ã— {df.shape[1]}} columns.")
     elif source_mode == "Upload New File":
         uploaded = st.file_uploader("Upload structured dataset for PII inspection", type=["csv", "xlsx", "json"], key="ts_pii_upload_upg")
         if uploaded is not None:
@@ -74,7 +74,7 @@ def render_pii_tab():
                 elif ext == "json":
                     df = pd.read_json(uploaded)
             except Exception as e:
-                st.error(f"âš ï¸ Failed to parse uploaded file: {e}")
+                st.error(f"âš ï¸ Failed to parse uploaded file: {e}}")
     else:
         raw_text = st.text_area(
             "Paste unstructured raw text stream",
@@ -94,11 +94,11 @@ def render_pii_tab():
 
         overall = result.get("overall", "CLEAN")
         if "CRITICAL" in overall:
-            st.error(f"ðŸš¨ **{overall}** — Detected {result.get('total_matches', 0):,} severe compliance violations.")
+            st.error(f"ðŸš¨ **{overall}}** — Detected {result.get('total_matches', 0):,}} severe compliance violations.")
         elif "REVIEW" in overall:
-            st.warning(f"âš ï¸ **{overall}** — Potential exposure vectors identified.")
+            st.warning(f"âš ï¸ **{overall}}** — Potential exposure vectors identified.")
         else:
-            st.success(f"✅ **{overall}** — No regulatory compliance breaches detected.")
+            st.success(f"✅ **{overall}}** — No regulatory compliance breaches detected.")
 
         c1, c2, c3 = st.columns(3)
         c1.metric("Total Findings", result.get("total_findings", 0))
@@ -108,10 +108,10 @@ def render_pii_tab():
         if result.get("findings"):
             st.markdown("#### Detailed Findings Breakdown")
             for f in result["findings"]:
-                with st.expander(f"âš ï¸ {f.get('type', 'Unknown')} — {f.get('count', 0)} match(es) [Risk Level: {f.get('risk', 'MODERATE')}]"):
+                with st.expander(f"âš ï¸ {f.get('type', 'Unknown')}} — {f.get('count', 0)}} match(es) [Risk Level: {f.get('risk', 'MODERATE')}}]"):
                     st.write("Discovered Samples:", f.get("samples", []))
 
-        st.info(f"**Mitigation Recommendation:** {result.get('recommendation', 'Ensure proper token masking and encryption at rest.')}")
+        st.info(f"**Mitigation Recommendation:** {result.get('recommendation', 'Ensure proper token masking and encryption at rest.')}}")
 
 
 def render_cve_tab():
@@ -131,7 +131,7 @@ def render_cve_tab():
         with st.spinner("Polling NVD Vulnerability Database and local dependency tree..."):
             result = scan_cve_packages()
 
-        st.info(f"Database Feed Source: **{result.get('source', 'NVD Local Cache')}** | Packages Analyzed: `{result.get('package_count', 0)}`")
+        st.info(f"Database Feed Source: **{result.get('source', 'NVD Local Cache')}}** | Packages Analyzed: `{result.get('package_count', 0)}}`")
 
         c1, c2, c3 = st.columns(3)
         c1.metric("Critical / Review Items", result.get("critical_count", 0))
@@ -161,12 +161,12 @@ def render_yara_tab():
             result = scan_yara_lite(data, uploaded.name)
 
         if result.get("clean", True):
-            st.success(f"✅ **{result.get('verdict', 'CLEAN')}** — Analyzed `{result.get('bytes_scanned', 0):,}` bytes with zero signature matches.")
+            st.success(f"✅ **{result.get('verdict', 'CLEAN')}}** — Analyzed `{result.get('bytes_scanned', 0):,}}` bytes with zero signature matches.")
         else:
-            st.error(f"ðŸš¨ **{result.get('verdict', 'THREAT DETECTED')}**")
+            st.error(f"ðŸš¨ **{result.get('verdict', 'THREAT DETECTED')}}**")
             st.markdown("#### Triggered Signature Rules")
             for f in result.get("findings", []):
-                st.warning(f"â€¢ **Rule:** `{f.get('rule')}` | **Severity:** `{f.get('severity')}`")
+                st.warning(f"â€¢ **Rule:** `{f.get('rule')}}` | **Severity:** `{f.get('severity')}}`")
 
 
 def render_integrity_tab():
@@ -182,17 +182,17 @@ def render_integrity_tab():
             paths = [p.strip() for p in paths_input.split(",") if p.strip()]
             missing = [p for p in paths if not os.path.exists(p)]
             if missing:
-                st.warning(f"âš ï¸ These paths don't exist from the app's working directory and will be skipped: {', '.join(missing)}")
+                st.warning(f"âš ï¸ These paths don't exist from the app's working directory and will be skipped: {', '.join(missing)}}")
             result = create_integrity_baseline(paths)
-            st.success(f"✅ Baseline established successfully for `{result.get('baseline_files', 0)}` critical system files.")
+            st.success(f"✅ Baseline established successfully for `{result.get('baseline_files', 0)}}` critical system files.")
 
     with col_b:
         if st.button("✅ Verify File Integrity Ledger", key="ts_int_verify_upg", type="primary"):
             result = verify_integrity()
             if result.get("changed_or_deleted", 0) == 0:
-                st.success(f"ðŸ” **{result.get('verdict', 'INTEGRITY VERIFIED')}** — `{result.get('verified_unchanged', 0)}` files verified unchanged.")
+                st.success(f"ðŸ” **{result.get('verdict', 'INTEGRITY VERIFIED')}}** — `{result.get('verified_unchanged', 0)}}` files verified unchanged.")
             else:
-                st.warning(f"âš ï¸ **{result.get('verdict', 'MODIFICATIONS DETECTED')}**")
+                st.warning(f"âš ï¸ **{result.get('verdict', 'MODIFICATIONS DETECTED')}}**")
                 changes = result.get("changes", [])
                 if changes:
                     df_changes = pd.DataFrame(changes)
@@ -210,7 +210,7 @@ def render_port_tab():
         if not authorized:
             st.error("ðŸš¨ Authorization confirmation required prior to executing network scans.")
         else:
-            with st.spinner(f"Probing standard TCP ports on `{target}`..."):
+            with st.spinner(f"Probing standard TCP ports on `{target}}`..."):
                 result = scan_host_ports(target, timeout=0.8)
 
             c1, c2 = st.columns(2)
@@ -222,7 +222,7 @@ def render_port_tab():
                 st.markdown("#### Discovered Open Ports")
                 df_ports = pd.DataFrame([r for r in result.get("results", []) if r.get("status") == "OPEN"])
                 st.dataframe(df_ports, use_container_width=True, hide_index=True)
-                render_export_buttons(df_ports, base_name=f"port_scan_{target}")
+                render_export_buttons(df_ports, base_name=f"port_scan_{target}}")
             else:
                 st.success("✅ No open ports discovered among standard vectors.")
 
@@ -238,11 +238,11 @@ def render_threat_tab():
             result = check_ip_reputation(ip)
             risk = result.get("risk", "LOW")
             if risk == "HIGH":
-                st.error(f"ðŸš¨ Threat Risk Assessment: **{risk}** — Abuse Confidence Score: `{result.get('abuse_confidence', 0)}%`")
+                st.error(f"ðŸš¨ Threat Risk Assessment: **{risk}}** — Abuse Confidence Score: `{result.get('abuse_confidence', 0)}}%`")
             elif risk == "MEDIUM":
-                st.warning(f"âš ï¸ Threat Risk Assessment: **{risk}** — Abuse Confidence Score: `{result.get('abuse_confidence', 0)}%`")
+                st.warning(f"âš ï¸ Threat Risk Assessment: **{risk}}** — Abuse Confidence Score: `{result.get('abuse_confidence', 0)}}%`")
             else:
-                st.success(f"✅ Threat Risk Assessment: **{risk}** — Clean Reputation.")
+                st.success(f"✅ Threat Risk Assessment: **{risk}}** — Clean Reputation.")
             st.json({k: v for k, v in result.items() if k != "risk"})
 
     with tab_domain:
@@ -250,9 +250,9 @@ def render_threat_tab():
         if st.button("ðŸ” Execute WHOIS Lookup", key="ts_threat_domain_run_upg", type="primary"):
             result = domain_whois(domain)
             if "error" in result:
-                st.error(f"ðŸš¨ WHOIS Lookup Error: {result['error']}")
+                st.error(f"ðŸš¨ WHOIS Lookup Error: {result['error']}}")
             else:
-                st.success(f"✅ Domain Record Retrieved: **{result.get('domain', domain)}**")
+                st.success(f"✅ Domain Record Retrieved: **{result.get('domain', domain)}}**")
                 st.json({k: v for k, v in result.items() if k != "domain"})
 
     with tab_url:
@@ -261,16 +261,16 @@ def render_threat_tab():
             result = analyze_url(url)
             risk = result.get("risk", "LOW")
             if risk == "HIGH":
-                st.error(f"ðŸš¨ **{result.get('verdict', 'Malicious URL')}** — Risk Score: `{result.get('risk_score', 0)} / 100`")
+                st.error(f"ðŸš¨ **{result.get('verdict', 'Malicious URL')}}** — Risk Score: `{result.get('risk_score', 0)}} / 100`")
             elif risk == "MEDIUM":
-                st.warning(f"âš ï¸ **{result.get('verdict', 'Suspicious URL')}**")
+                st.warning(f"âš ï¸ **{result.get('verdict', 'Suspicious URL')}}**")
             else:
-                st.success(f"✅ **{result.get('verdict', 'Clean URL')}**")
+                st.success(f"✅ **{result.get('verdict', 'Clean URL')}}**")
 
             st.markdown("#### Heuristic Findings")
             for f in result.get("findings", []):
-                st.markdown(f"â€¢ {f}")
-            st.caption(f"**Recommendation:** {result.get('recommendation', 'Block domain at gateway.')}")
+                st.markdown(f"â€¢ {f}}")
+            st.caption(f"**Recommendation:** {result.get('recommendation', 'Block domain at gateway.')}}")
 
 
 def render_playbook_tab():
@@ -285,11 +285,11 @@ def render_playbook_tab():
 
     if st.button("ðŸš€ Generate Incident Response Playbook", key="ts_pb_run_upg", type="primary"):
         result = run_incident_playbook(incident, context)
-        st.success(f"✅ Playbook **{result.get('playbook_id', 'IR-001')}** generated successfully — Assessed Severity: **{result.get('severity_assessment', 'HIGH')}**")
+        st.success(f"✅ Playbook **{result.get('playbook_id', 'IR-001')}}** generated successfully — Assessed Severity: **{result.get('severity_assessment', 'HIGH')}}**")
         st.markdown("#### 📋 Structured Containment & Response Steps")
         for i, step in enumerate(result.get("steps", []), 1):
-            st.markdown(f"**{i}.** {step}")
-        st.caption(f"Generated Timestamp (UTC): {result.get('created', datetime.datetime.utcnow().isoformat())}")
+            st.markdown(f"**{i}}.** {step}}")
+        st.caption(f"Generated Timestamp (UTC): {result.get('created', datetime.datetime.utcnow().isoformat())}}")
 
 
 def main():
@@ -338,3 +338,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Audit & Compliance Forensic Engine
 ===========================================
 50 real, computationally-honest forensic and compliance scanners for
@@ -6,7 +6,7 @@ scientific integrity, AI-content detection, privacy, cryptography, and
 compliance reporting.
 
 Every scanner performs a genuine computation (regex detection, statistical
-tests, hashing, entropy analysis) — no fabricated "AI" percentages.
+tests, hashing, entropy analysis) â€” no fabricated "AI" percentages.
 
 Categories
   1-10  Statistical Integrity & Questionable Research Practices (QRP)
@@ -38,7 +38,7 @@ def statcheck_consistency(test_str: str) -> Dict[str, Any]:
     Parse a reported test statistic string (e.g. "t(248) = 4.12, p = .0001")
     and check internal consistency between the statistic and p-value.
     """
-    t_m = re.search(r"[tFrχz]\s*\(\s*(\d+)\s*\)\s*=\s*(-?[\d.]+)", test_str)
+    t_m = re.search(r"[tFrÏ‡z]\s*\(\s*(\d+)\s*\)\s*=\s*(-?[\d.]+)", test_str)
     p_m = re.search(r"[pP]\s*=\s*(\.?\d+)", test_str)
     if not t_m or not p_m:
         return {"ok": False, "reason": "Could not parse test statistic string.", "consistency": 0.0}
@@ -62,7 +62,7 @@ def statcheck_consistency(test_str: str) -> Dict[str, Any]:
         "reported_p": p,
         "computed_p": round(p_calc, 4),
         "consistency": round(min(100.0, consistency), 1),
-        "reason": "Consistent" if ok else "Inconsistent — statistic and p-value do not match",
+        "reason": "Consistent" if ok else "Inconsistent â€” statistic and p-value do not match",
     }
 
 
@@ -108,7 +108,7 @@ def grim_test(mean: float, n: int, decimals: int = 2) -> Dict[str, Any]:
         "valid": bool(valid),
         "mean": mean,
         "n": n,
-        "closest_possible": f"{min(possible, key=lambda x: abs(x-mean)):.{decimals}f}",
+        "closest_possible": f"{min(possible, key=lambda x: abs(x-mean)):.{decimals}}f}}",
         "reason": "Mean is mathematically possible." if valid else "Mean is IMPOSSIBLE for integer responses at this n.",
     }
 
@@ -229,10 +229,10 @@ def citation_fabrication_audit(text: str) -> Dict[str, Any]:
     plausible_years = [y for y in years if 1900 <= int(y) <= 2026]
     issues = []
     if not dois and years:
-        issues.append("Citations lack DOI identifiers — cannot verify against registry.")
+        issues.append("Citations lack DOI identifiers â€” cannot verify against registry.")
     questionable = [y for y in years if int(y) > 2026]
     if questionable:
-        issues.append(f"Future-dated citations found: {questionable}")
+        issues.append(f"Future-dated citations found: {questionable}}")
     return {
         "doi_count": len(dois),
         "year_count": len(years),
@@ -340,7 +340,7 @@ def pii_redactor(text: str) -> Dict[str, Any]:
         n = len(matches)
         counts[label] = n
         if n:
-            redacted = re.sub(pattern, f"[REDACTED:{label}]", redacted)
+            redacted = re.sub(pattern, f"[REDACTED:{label}}]", redacted)
     return {"redacted_text": redacted, "counts": counts, "total_found": sum(counts.values())}
 
 
@@ -358,7 +358,7 @@ def gdpr_purge_validator(fields: List[str]) -> Dict[str, Any]:
     required = ["name", "email", "phone", "address", "ip"]
     missing = [r for r in required if r.lower() not in [f.lower() for f in fields]]
     return {"eligible_fields": len(fields), "missing_personally_identifiable_fields": missing,
-            "verdict": "COMPLIANT" if not missing else "GAP — add missing fields"}
+            "verdict": "COMPLIANT" if not missing else "GAP â€” add missing fields"}
 
 
 def differential_privacy_audit(epsilon: float) -> Dict[str, Any]:
@@ -379,7 +379,7 @@ def gps_blur(coords: List[Tuple[float, float]], radius_km: float = 1.0) -> Dict[
     import random
     blurred = []
     for lat, lon in coords:
-        # ~0.01 deg lat ≈ 1.1km; jitter roughly within radius
+        # ~0.01 deg lat â‰ˆ 1.1km; jitter roughly within radius
         dlat = random.uniform(-radius_km / 111.0, radius_km / 111.0)
         dlon = random.uniform(-radius_km / 111.0, radius_km / 111.0)
         blurred.append(round(lat + dlat, 6), )
@@ -396,7 +396,7 @@ def irb_protocol_checker(protocol_id: str, has_consent: bool, has_approval: bool
         missing.append("institutional approval")
     if not has_consent:
         missing.append("informed consent documentation")
-    return {"protocol_id": protocol_id, "missing": missing, "verdict": "APPROVED" if not missing else f"MISSING: {', '.join(missing)}"}
+    return {"protocol_id": protocol_id, "missing": missing, "verdict": "APPROVED" if not missing else f"MISSING: {', '.join(missing)}}"}
 
 
 def consent_documentation_audit(signed: bool, timestamped: bool, witness: bool) -> Dict[str, Any]:
@@ -408,14 +408,14 @@ def consent_documentation_audit(signed: bool, timestamped: bool, witness: bool) 
         missing.append("timestamp")
     if not witness:
         missing.append("witness/verification")
-    return {"missing": missing, "verdict": "COMPLETE" if not missing else f"INCOMPLETE — missing {', '.join(missing)}"}
+    return {"missing": missing, "verdict": "COMPLETE" if not missing else f"INCOMPLETE â€” missing {', '.join(missing)}}"}
 
 
 def coi_disclosure_verification(disclosed: bool, amount: float = 0.0) -> Dict[str, Any]:
     """Verify Conflict-of-Interest disclosure."""
     threshold = 10000
     flag = disclosed is False and amount > threshold
-    return {"disclosed": disclosed, "amount_usd": amount, "flag": flag, "verdict": "PASS" if not flag else "FLAG — undisclosed COI above threshold"}
+    return {"disclosed": disclosed, "amount_usd": amount, "flag": flag, "verdict": "PASS" if not flag else "FLAG â€” undisclosed COI above threshold"}
 
 
 def durc_screening(text: str) -> Dict[str, Any]:
@@ -432,7 +432,7 @@ def durc_screening(text: str) -> Dict[str, Any]:
 def sha256_block(block_id: int, prev_hash: str, payload: str, auditor: str) -> Dict[str, Any]:
     """Create an immutable SHA-256 proof block (simple hash chain)."""
     timestamp = datetime.utcnow().isoformat()
-    block_hash = hashlib.sha256(f"{block_id}{timestamp}{prev_hash}{payload}{auditor}".encode()).hexdigest()
+    block_hash = hashlib.sha256(f"{block_id}}{timestamp}}{prev_hash}}{payload}}{auditor}}".encode()).hexdigest()
     return {"block": block_id, "timestamp": timestamp, "prev_hash": prev_hash[:16], "hash": block_hash, "auditor": auditor}
 
 
@@ -480,7 +480,7 @@ def data_lineage_provenance(transformations: List[str]) -> Dict[str, Any]:
     chain = []
     prev = "ROOT"
     for i, t in enumerate(transformations):
-        h = hashlib.sha256(f"{prev}|{t}".encode()).hexdigest()
+        h = hashlib.sha256(f"{prev}}|{t}}".encode()).hexdigest()
         chain.append({"step": i + 1, "transform": t, "prev_hash": prev[:12], "hash": h[:16]})
         prev = h
     return {"lineage_chain": chain, "root_hash": prev[:16], "steps": len(chain)}
@@ -488,7 +488,7 @@ def data_lineage_provenance(transformations: List[str]) -> Dict[str, Any]:
 
 def did_signature(author: str) -> Dict[str, Any]:
     """Generate a Decentralized Identifier (DID) style author signature."""
-    did = f"did:key:z6Mk{hashlib.sha256(author.encode()).hexdigest()[:44]}"
+    did = f"did:key:z6Mk{hashlib.sha256(author.encode()).hexdigest()[:44]}}"
     return {"did": did, "author": author}
 
 
@@ -556,7 +556,7 @@ def journal_requirements_checklist(journal: str, provided: List[str]) -> Dict[st
     }
     req = rules.get(journal, rules["PLOS ONE"])
     missing = [r for r in req if r not in [p.lower() for p in provided]]
-    return {"journal": journal, "missing": missing, "verdict": "COMPLETE" if not missing else f"MISSING: {', '.join(missing)}"}
+    return {"journal": journal, "missing": missing, "verdict": "COMPLETE" if not missing else f"MISSING: {', '.join(missing)}}"}
 
 
 def reproducibility_validator(env_ok: bool, deps_pinned: bool, seed_set: bool) -> Dict[str, Any]:
@@ -568,14 +568,14 @@ def reproducibility_validator(env_ok: bool, deps_pinned: bool, seed_set: bool) -
         missing.append("pinned dependencies")
     if not seed_set:
         missing.append("random seed")
-    return {"missing": missing, "verdict": "REPRODUCIBLE" if not missing else f"NOT FULLY REPRODUCIBLE — missing {', '.join(missing)}"}
+    return {"missing": missing, "verdict": "REPRODUCIBLE" if not missing else f"NOT FULLY REPRODUCIBLE â€” missing {', '.join(missing)}}"}
 
 
 def data_availability_statement_generator(zenodo_doi: str, repository: str = "GitHub") -> str:
     """Generate a standardized Data-Availability statement."""
     return (
         f"All raw and processed data supporting the findings of this study are archived at "
-        f"{repository} (DOI: {zenodo_doi}). Code is available at the project repository."
+        f"{repository}} (DOI: {zenodo_doi}}). Code is available at the project repository."
     )
 
 
@@ -584,8 +584,8 @@ def credit_taxonomy_mapping(contributions: List[str]) -> Dict[str, Any]:
     credit_roles = {
         "conceptualization": "Conceptualization", "methodology": "Methodology",
         "software": "Software", "formal analysis": "Formal analysis",
-        "investigation": "Investigation", "writing": "Writing – Original Draft",
-        "review": "Writing – Review & Editing", "supervision": "Supervision",
+        "investigation": "Investigation", "writing": "Writing â€“ Original Draft",
+        "review": "Writing â€“ Review & Editing", "supervision": "Supervision",
         "funding": "Funding acquisition",
     }
     mapped = []
@@ -598,7 +598,7 @@ def credit_taxonomy_mapping(contributions: List[str]) -> Dict[str, Any]:
 def compliance_certificate(auditor: str, findings: List[str]) -> Dict[str, Any]:
     """Generate a cryptographic compliance certificate with summary digest."""
     summary = "\n".join(findings)
-    digest = hashlib.sha256(f"{auditor}{summary}{datetime.utcnow().isoformat()}".encode()).hexdigest()
+    digest = hashlib.sha256(f"{auditor}}{summary}}{datetime.utcnow().isoformat()}}".encode()).hexdigest()
     return {"auditor": auditor, "findings": findings, "issue_time": datetime.utcnow().isoformat(),
             "certificate_hash": digest, "certificate_valid": True}
 
@@ -621,3 +621,4 @@ if __name__ == "__main__":
     print(pii_redactor("Contact john@example.com or call 256 700 123 456. SSN 123-45-6789"))
     print(sha256_block(1, "0000", "payload", "Kula Chris"))
     print(merkle_root([hashlib.sha256(b"a").hexdigest(), hashlib.sha256(b"b").hexdigest()]))
+

@@ -1,4 +1,4 @@
-
+﻿
 """Unit tests for modules.data_processor."""
 import numpy as np
 import pandas as pd
@@ -32,7 +32,7 @@ class TestInferColumnType:
         assert dp.infer_column_type(series) == "text"
 
     def test_string_for_short_high_cardinality_values(self):
-        series = object_series([f"id-{i}" for i in range(200)])
+        series = object_series([f"id-{i}}" for i in range(200)])
         assert dp.infer_column_type(series) == "string"
 
     def test_infer_column_types_maps_every_column(self, sample_df):
@@ -147,7 +147,7 @@ class TestAggregation:
     @pytest.mark.parametrize("agg_func", ["mean", "sum", "std"])
     def test_rolling_aggregate_adds_column(self, sample_df, agg_func):
         out = dp.rolling_aggregate(sample_df, "when", "score", window=3, agg_func=agg_func)
-        assert f"rolling_{agg_func}_3" in out.columns
+        assert f"rolling_{agg_func}}_3" in out.columns
         assert len(out) == len(sample_df)
 
     def test_rolling_aggregate_sorts_by_date(self):
@@ -278,3 +278,4 @@ class TestGetTrackerFromSession:
         tracker = dp.get_tracker_from_session()
         assert bare_session_state["_provenance_tracker"] is tracker
         assert dp.get_tracker_from_session() is tracker
+

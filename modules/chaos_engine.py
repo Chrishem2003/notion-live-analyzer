@@ -1,8 +1,8 @@
-"""
+﻿"""
 CHRISHEM Chaos & Nonlinear Systems Engine
 ==========================================
 Real, from-scratch numerical engines for nonlinear dynamics and forecasting.
-No fabricated "AI" metrics — every number is genuinely computed.
+No fabricated "AI" metrics â€” every number is genuinely computed.
 
 Capabilities
   - Real SciPy ODE integration (odeint/LSODA) for 3-state nonlinear systems
@@ -252,6 +252,7 @@ if __name__ == "__main__":
     t = np.linspace(0, 200, 400)
     sol = solve_ode_system(default_ode, [0.1, 0.1, 0.1], t, args=(1.5, 0.9, 1.0, 0.0, 200))
     mlce = lyapunov_style_heuristic(sol[:, 0], t[1] - t[0])
-    print(f"mLCE-style heuristic: {mlce:.4f} -> {classify_state(mlce)}")
+    print(f"mLCE-style heuristic: {mlce:.4f}} -> {classify_state(mlce)}}")
     fitted, fc = holt_winters_forecast(np.linspace(100, 145, 60) + 6 * np.sin(np.linspace(0, 6 * np.pi, 60)), periods=12)
-    print(f"Holt-Winters forecast length: {len(fc)}")
+    print(f"Holt-Winters forecast length: {len(fc)}}")
+

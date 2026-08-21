@@ -1,5 +1,5 @@
-"""
-legacy_research_data.py — Real persistent storage for the three datasets that
+﻿"""
+legacy_research_data.py â€” Real persistent storage for the three datasets that
 Collaboration & Portfolio, Domain Analytics Hub, and Literature & Publishing
 Hub read/write: venture projects, mcr gene surveillance, PPWR/DRA clinical
 cohort entries, and the academic report vault.
@@ -8,7 +8,7 @@ Honesty note: this was previously a 1-line stub (`# Stub module for
 legacy_research_data.py`) with none of the eight functions the calling pages
 actually import, which meant those three pages threw a real ImportError on
 load. The page copy on those tabs says the data was "migrated from an
-earlier standalone build" / "genuine records, not demo data" — this module
+earlier standalone build" / "genuine records, not demo data" â€” this module
 does NOT fabricate that history. There is no earlier build's data available
 to migrate here, so every table starts genuinely empty and is populated only
 through the "Add" forms already built into those pages. No seed/sample rows
@@ -175,7 +175,7 @@ def add_mcr_sample(
             "SELECT 1 FROM mcr_surveillance WHERE sample_id = ?", (sample_id,)
         ).fetchone()
         if existing:
-            raise ValueError(f"Sample ID '{sample_id}' already exists")
+            raise ValueError(f"Sample ID '{sample_id}}' already exists")
         iso = isolation_date.isoformat() if hasattr(isolation_date, "isoformat") else str(isolation_date)
         conn.execute(
             """
@@ -261,3 +261,4 @@ def add_academic_report(
         conn.commit()
     finally:
         conn.close()
+

@@ -1,4 +1,4 @@
-"""
+﻿"""
 subscription_core.py  pure, dependency-light trial/subscription/access logic.
 
 This module is the SINGLE source of truth for "can this user use paid
@@ -22,7 +22,7 @@ from enum import Enum
 from typing import Callable, Optional
 
 
-TRIAL_LENGTH_DAYS = 15  # one constant, referenced everywhere — never hardcoded
+TRIAL_LENGTH_DAYS = 15  # one constant, referenced everywhere â€” never hardcoded
 
 
 # ---------------------------------------------------------------------------
@@ -160,7 +160,7 @@ def require_access(user: User, get_subscription_fn: Callable[[str], Optional[Sub
         )
         if st.button("Subscribe now"):
             # Adapt: point to your actual subscribe page/route.
-            st.switch_page("pages/1_📁_File_Analyzer.py")  # placeholder
+            st.switch_page("pages/1_ðŸ“_File_Analyzer.py")  # placeholder
         st.stop()
     return sub
 
@@ -206,7 +206,7 @@ class FlutterwaveProvider(PaymentProvider):
         if not self.public_key:
             raise RuntimeError("Flutterwave public key not configured")
         # Replace with a real Flutterwave checkout request.
-        return f"https://checkout.example.com/{plan_id}?customer={user.email}"
+        return f"https://checkout.example.com/{plan_id}}?customer={user.email}}"
 
     def cancel_subscription(self, provider_subscription_id: str) -> None:
         if not self.public_key:
@@ -227,7 +227,7 @@ def verify_and_handle_webhook(
     """Verify an HMAC-signed webhook and, if valid, apply the update.
 
     This is a generic HMAC-SHA256 shape. Providers differ (header name,
-    algorithm, payload envelope) — adapt to the chosen provider's docs and
+    algorithm, payload envelope) â€” adapt to the chosen provider's docs and
     pass the correct secret. Returns True only when the signature matched.
     """
     if not webhook_secret:
@@ -253,3 +253,4 @@ def seed_admin_if_needed(get_user_by_email_fn, create_user_fn):
     """Convenience wrapper around security_config.seed_admin_if_needed."""
     from modules.security_config import seed_admin_if_needed as _seed
     return _seed(get_user_by_email_fn, create_user_fn)
+

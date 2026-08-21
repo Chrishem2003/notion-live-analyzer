@@ -1,4 +1,4 @@
-"""
+﻿"""
 agents.py
 Multi-Agent Problem Solver Swarm for the Multi-Problem Solver platform.
 
@@ -52,7 +52,7 @@ class BaseAgent:
 
     name: str = "base"
     role: str = ""
-    icon: str = "🤖"
+    icon: str = "ðŸ¤–"
 
     def __init__(self, progress_cb: Optional[Callable] = None):
         self.progress = progress_cb or (lambda p, m="": None)
@@ -62,7 +62,7 @@ class BaseAgent:
 
     def _emit(self, progress: float, message: str) -> None:
         try:
-            self.progress(progress, f"[{self.icon} {self.name}] {message}")
+            self.progress(progress, f"[{self.icon}} {self.name}}] {message}}")
         except Exception:
             pass
 
@@ -75,14 +75,14 @@ class ResearchLiteratureAgent(BaseAgent):
 
     name = "Research & Literature Specialist"
     role = "literature"
-    icon = "📚"
+    icon = "ðŸ“š"
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         query = context.get("query", context.get("topic", ""))
         country = context.get("country", "")
         limit = int(context.get("papers_limit", 20))
 
-        self._emit(5, f"Scanning global repositories for: '{query}'")
+        self._emit(5, f"Scanning global repositories for: '{query}}'")
 
         papers: List[Dict[str, Any]] = []
         if HAS_LIT:
@@ -98,31 +98,31 @@ class ResearchLiteratureAgent(BaseAgent):
 
         # Fallback synthetic corpus (deterministic, clearly marked SIMULATED)
         if not papers:
-            self._emit(30, "No live fetch — building simulated evidence corpus")
+            self._emit(30, "No live fetch â€” building simulated evidence corpus")
             for i in range(min(limit, 8)):
                 papers.append(
                     {
-                        "title": f"Empirical synthesis {i + 1}: {query}",
+                        "title": f"Empirical synthesis {i + 1}}: {query}}",
                         "authors": "Chrishem Research Collective",
                         "year": 2026,
                         "journal": "Sovereign Analytics Review",
                         "citations": 42 + i * 7,
-                        "doi": f"10.5555/synth.{i + 1}",
+                        "doi": f"10.5555/synth.{i + 1}}",
                         "url": "https://doi.org/",
-                        "abstract": f"Simulated abstract for challenge {query} (offline mode).",
+                        "abstract": f"Simulated abstract for challenge {query}} (offline mode).",
                     }
                 )
 
-        self._emit(65, f"Retrieved {len(papers)} candidate papers")
+        self._emit(65, f"Retrieved {len(papers)}} candidate papers")
 
         # Key takeaways (deterministic extraction, safe offline)
         takeaways: List[str] = []
         for p in papers[:5]:
             abstract = (p.get("abstract") or "")[:400]
-            takeaways.append(f"{p.get('title', 'Paper')} — {abstract[:80]}...")
+            takeaways.append(f"{p.get('title', 'Paper')}} â€” {abstract[:80]}}...")
 
         citations = [
-            f"{p.get('authors', 'Unknown')} ({p.get('year', 'n.d.')}). {p.get('title', '')}."
+            f"{p.get('authors', 'Unknown')}} ({p.get('year', 'n.d.')}}). {p.get('title', '')}}."
             for p in papers[:10]
         ]
 
@@ -144,7 +144,7 @@ class DataTechnicalAuditorAgent(BaseAgent):
 
     name = "Data & Technical Auditor"
     role = "data_audit"
-    icon = "📊"
+    icon = "ðŸ“Š"
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         self._emit(5, "Initializing data audit engine")
@@ -158,8 +158,8 @@ class DataTechnicalAuditorAgent(BaseAgent):
             missing = int(df.isnull().sum().sum())
             numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
             records.append(
-                f"Audited dataset: {n_rows:,} rows x {n_cols} cols, "
-                f"{missing:,} missing cells, {len(numeric_cols)} numeric features."
+                f"Audited dataset: {n_rows:,}} rows x {n_cols}} cols, "
+                f"{missing:,}} missing cells, {len(numeric_cols)}} numeric features."
             )
 
             if numeric_cols:
@@ -175,16 +175,16 @@ class DataTechnicalAuditorAgent(BaseAgent):
                             pair = (c1, c2)
                 if strongest > 0.8:
                     records.append(
-                        f"⚠️ High collinearity detected: {pair[0]} ↔ {pair[1]} (|r|={strongest:.2f})."
+                        f"âš ï¸ High collinearity detected: {pair[0]}} â†” {pair[1]}} (|r|={strongest:.2f}})."
                     )
-                records.append(f"Correlation matrix computed over {len(numeric_cols)} variables.")
+                records.append(f"Correlation matrix computed over {len(numeric_cols)}} variables.")
         else:
-            records.append("No DataFrame supplied — running domain indicator audit.")
+            records.append("No DataFrame supplied â€” running domain indicator audit.")
 
         # Indicator audit (ecological / biological / environmental)
         sector = context.get("sector", "General")
         for ind in indicators:
-            records.append(f"Sector indicator check [{sector}]: '{ind}' → within acceptable bounds (simulated).")
+            records.append(f"Sector indicator check [{sector}}]: '{ind}}' â†’ within acceptable bounds (simulated).")
 
         self._emit(80, "Data integrity & domain metrics verified")
         return {
@@ -203,7 +203,7 @@ class SynthesisStrategyAgent(BaseAgent):
 
     name = "Synthesis & Strategy Architect"
     role = "synthesis"
-    icon = "🧠"
+    icon = "ðŸ§ "
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         self._emit(10, "Aggregating agent outputs for strategic synthesis")
@@ -213,7 +213,7 @@ class SynthesisStrategyAgent(BaseAgent):
         for rep in reports:
             rtype = rep.get("role", "agent")
             if rtype == "literature":
-                combined.append(f"Literature corpus: {rep.get('count', 0)} papers uncovered; key theme: {context.get('query', '')}.")
+                combined.append(f"Literature corpus: {rep.get('count', 0)}} papers uncovered; key theme: {context.get('query', '')}}.")
                 combined.extend(rep.get("takeaways", [])[:3])
             elif rtype == "data_audit":
                 combined.extend(rep.get("records", [])[:3])
@@ -224,7 +224,7 @@ class SynthesisStrategyAgent(BaseAgent):
             try:
                 synthesis_text = _router.synthesize(
                     prompt=(
-                        f"Given a complex multi-sector challenge: '{context.get('query', '')}', "
+                        f"Given a complex multi-sector challenge: '{context.get('query', '')}}', "
                         f"propose a comprehensive evidence-based action plan. Insights:\n"
                         + "\n".join(combined[:20])
                     ),
@@ -251,20 +251,20 @@ def _deterministic_plan(context: Dict[str, Any], insights: List[str]) -> str:
     q = context.get("query", "the identified challenge")
     sector = context.get("sector", "Cross-Sector")
     lines = [
-        f"# Action Plan — {sector}",
-        f"**Challenge:** {q}",
+        f"# Action Plan â€” {sector}}",
+        f"**Challenge:** {q}}",
         "",
         "## Recommendations",
     ]
-    lines.extend(f"- {ins}" for ins in insights[:8])
+    lines.extend(f"- {ins}}" for ins in insights[:8])
     lines.extend(
         [
             "",
             "## Strategic Roadmap",
-            "1. **Immediate (0–30 days):** Baseline telemetry & stakeholder alignment.",
-            "2. **Short (1–3 months):** Deploy localized data audits and literature-backed interventions.",
-            "3. **Medium (3–6 months):** Scale validated pilots with continuous monitoring.",
-            "4. **Long (6–12 months):** Institutionalize policy + automated surveillance loops.",
+            "1. **Immediate (0â€“30 days):** Baseline telemetry & stakeholder alignment.",
+            "2. **Short (1â€“3 months):** Deploy localized data audits and literature-backed interventions.",
+            "3. **Medium (3â€“6 months):** Scale validated pilots with continuous monitoring.",
+            "4. **Long (6â€“12 months):** Institutionalize policy + automated surveillance loops.",
         ]
     )
     return "\n".join(lines)
@@ -295,7 +295,7 @@ def run_agent_swarm(
     `progress_cb(progress: float, message: str)` is invoked at each stage.
     """
     cb = progress_cb or (lambda p, m="": None)
-    cb(2, "Spawning agent swarm…")
+    cb(2, "Spawning agent swarmâ€¦")
 
     context: Dict[str, Any] = {
         "query": query,
@@ -329,18 +329,18 @@ def run_agent_swarm(
     final_report = {
         "query": query,
         "sector": sector,
-        "run_id": hashlib.sha256(f"{query}|{sector}|{time.time()}".encode()).hexdigest()[:12].upper(),
+        "run_id": hashlib.sha256(f"{query}}|{sector}}|{time.time()}}".encode()).hexdigest()[:12].upper(),
         "timestamp": datetime.datetime.utcnow().isoformat(),
         "agents": [
-            {"name": lit_agent.name, "role": "literature", "output_summary": f"{lit_report['count']} papers"},
-            {"name": audit_agent.name, "role": "data_audit", "output_summary": f"{audit_report['audit_count']} audit records"},
+            {"name": lit_agent.name, "role": "literature", "output_summary": f"{lit_report['count']}} papers"},
+            {"name": audit_agent.name, "role": "data_audit", "output_summary": f"{audit_report['audit_count']}} audit records"},
             {"name": synth_agent.name, "role": "synthesis", "output_summary": "action plan drafted"},
         ],
         "literature": lit_report,
         "data_audit": audit_report,
         "synthesis": synth_report,
     }
-    cb(100, "Swarm complete — report ready")
+    cb(100, "Swarm complete â€” report ready")
     return final_report
 
 
@@ -364,3 +364,4 @@ if __name__ == "__main__":
     # Quick self-test
     report = run_agent_swarm("Improve rural agricultural resilience in East Africa", sector="Agriculture")
     print(json.dumps(report, indent=2, default=str)[:1500])
+

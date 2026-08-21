@@ -1,4 +1,4 @@
-
+﻿
 import time
 import requests
 import logging
@@ -69,7 +69,8 @@ def safe_api_request(
         retry_after = response.headers.get("Retry-After")
         if retry_after and retry_after.isdigit():
             time.sleep(int(retry_after))
-        raise RateLimitException(f"Throttled by {service_type} (HTTP {response.status_code}). Retrying...")
+        raise RateLimitException(f"Throttled by {service_type}} (HTTP {response.status_code}}). Retrying...")
 
     response.raise_for_status()
     return response
+

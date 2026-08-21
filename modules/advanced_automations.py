@@ -1,4 +1,4 @@
-
+﻿
 """Advanced Automations & Scheduling Module."""
 import os
 import time
@@ -13,9 +13,9 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # AUTOMATION DEFINITIONS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 class AutomationType(Enum):
     SCHEDULED = "scheduled"
@@ -91,9 +91,9 @@ class Automation:
     last_run: datetime = None
     run_count: int = 0
     
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # ADVANCED AUTOMATION ENGINE
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 class AdvancedAutomationEngine:
     """Production-grade automation engine with scheduling & webhooks."""
@@ -109,7 +109,7 @@ class AdvancedAutomationEngine:
         prebuilt = [
             Automation(
                 id="auto_welcome",
-                name="ðŸ‘‹ Welcome New Members",
+                name="Ã°Å¸â€˜â€¹ Welcome New Members",
                 description="Send welcome message when user joins",
                 automation_type=AutomationType.TRIGGERED,
                 trigger=TriggerEvent.USER_JOINED,
@@ -118,7 +118,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_meeting_reminder",
-                name="ðŸ”” Meeting Reminder",
+                name="Ã°Å¸â€â€ Meeting Reminder",
                 description="Remind participants 15 min before meeting",
                 automation_type=AutomationType.SCHEDULED,
                 trigger=TriggerEvent.MEETING_REMINDER,
@@ -127,7 +127,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_task_overdue",
-                name="â° Overdue Task Alert",
+                name="Ã¢ÂÂ° Overdue Task Alert",
                 description="Alert when tasks become overdue",
                 automation_type=AutomationType.TRIGGERED,
                 trigger=TriggerEvent.TASK_OVERDUE,
@@ -146,7 +146,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_weekly_report",
-                name="📈 Weekly Team Report",
+                name="ðŸ“ˆ Weekly Team Report",
                 description="Weekly team progress report",
                 automation_type=AutomationType.SCHEDULED,
                 trigger=TriggerEvent.WEEKLY_REPORT,
@@ -156,7 +156,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_paper_alert",
-                name="ðŸ“° Relevant Paper Alert",
+                name="Ã°Å¸â€œÂ° Relevant Paper Alert",
                 description="Alert when new relevant papers published",
                 automation_type=AutomationType.TRIGGERED,
                 trigger=TriggerEvent.NEW_PAPER_RELEVANT,
@@ -165,7 +165,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_citation_found",
-                name="ðŸ”— Citation Alert",
+                name="Ã°Å¸â€â€” Citation Alert",
                 description="Alert when paper is cited",
                 automation_type=AutomationType.TRIGGERED,
                 trigger=TriggerEvent.CITATION_ALERT,
@@ -173,7 +173,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_new_member_intro",
-                name="ðŸŽ“ New Member Introduction",
+                name="Ã°Å¸Å½â€œ New Member Introduction",
                 description="Introduce new members to the team",
                 automation_type=AutomationType.TRIGGERED,
                 trigger=TriggerEvent.USER_JOINED,
@@ -182,7 +182,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_task_escalation",
-                name="âš ï¸ Task Escalation",
+                name="Ã¢Å¡Â Ã¯Â¸Â Task Escalation",
                 description="Escalate high-priority overdue tasks",
                 automation_type=AutomationType.CONDITIONAL,
                 trigger=TriggerEvent.TASK_OVERDUE,
@@ -191,7 +191,7 @@ class AdvancedAutomationEngine:
             ),
             Automation(
                 id="auto_data_backup",
-                name="ðŸ’¾ Data Backup",
+                name="Ã°Å¸â€™Â¾ Data Backup",
                 description="Automatically backup research data",
                 automation_type=AutomationType.SCHEDULED,
                 trigger=TriggerEvent.DAILY_DIGEST,
@@ -216,7 +216,7 @@ class AdvancedAutomationEngine:
     ) -> Automation:
         """Create new automation."""
         auto = Automation(
-            id=f"auto_{uuid.uuid4().hex[:10]}",
+            id=f"auto_{uuid.uuid4().hex[:10]}}",
             name=name,
             description=description,
             automation_type=automation_type,
@@ -332,7 +332,7 @@ class AdvancedAutomationEngine:
     
     def _action_create_task(self, auto: Automation, context: Dict) -> Dict:
         """Create a task."""
-        return {"task_id": f"task_{uuid.uuid4().hex[:8]}", "created": True}
+        return {"task_id": f"task_{uuid.uuid4().hex[:8]}}", "created": True}
     
     def _action_post_message(self, auto: Automation, context: Dict) -> Dict:
         """Post message to channel."""
@@ -388,9 +388,9 @@ def get_advanced_automation_engine() -> AdvancedAutomationEngine:
     """Get cached automation engine."""
     return AdvancedAutomationEngine()
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # SCHEDULING SYSTEM
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 class TaskScheduler:
     """Cron-like task scheduler for research workflows."""
@@ -456,9 +456,9 @@ def get_task_scheduler() -> TaskScheduler:
     """Get cached task scheduler."""
     return TaskScheduler()
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # ADVANCED NOTIFICATIONS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 @dataclass
 class Notification:
@@ -493,7 +493,7 @@ class NotificationManager:
     ) -> Notification:
         """Add notification for user."""
         notif = Notification(
-            id=f"notif_{uuid.uuid4().hex[:10]}",
+            id=f"notif_{uuid.uuid4().hex[:10]}}",
             user_id=user_id,
             title=title,
             message=message,
@@ -528,9 +528,9 @@ def get_notification_manager() -> NotificationManager:
     """Get cached notification manager."""
     return NotificationManager()
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # STREAMLIT UI
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 def render_automations_advanced():
     """Render the advanced automations UI."""
@@ -542,7 +542,7 @@ def render_automations_advanced():
         margin-bottom: 1.5rem;
         border: 1px solid #334155;
     ">
-        <h2 style="margin:0; color: white;">âš¡ Advanced Automations</h2>
+        <h2 style="margin:0; color: white;">Ã¢Å¡Â¡ Advanced Automations</h2>
         <p style="color: #94a3b8; margin-top: 0.5rem;">
             Scheduled workflows, triggers, and intelligent alerts
         </p>
@@ -559,16 +559,16 @@ def render_automations_advanced():
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Automations", stats["total"])
     col2.metric("Active", stats["enabled"])
-    col3.metric(f"âš™ï¸ Scheduled", stats["by_type"]["scheduled"])
-    col4.metric("ðŸ”„ Triggers", stats["by_type"]["triggered"])
+    col3.metric(f"Ã¢Å¡â„¢Ã¯Â¸Â Scheduled", stats["by_type"]["scheduled"])
+    col4.metric("Ã°Å¸â€â€ž Triggers", stats["by_type"]["triggered"])
     
     st.divider()
     
     # Main tabs
     tab1, tab2, tab3, tab4 = st.tabs([
-        "ðŸ¤– Automations",
-        "ðŸ“… Schedule",
-        "ðŸ”” Notifications",
+        "Ã°Å¸Â¤â€“ Automations",
+        "Ã°Å¸â€œâ€¦ Schedule",
+        "Ã°Å¸â€â€ Notifications",
         " Logs",
     ])
     
@@ -607,7 +607,7 @@ def render_automation_list(engine: AdvancedAutomationEngine):
         automations = [a for a in automations if search.lower() in a.name.lower()]
     
     # Create new
-    with st.expander("âž• Create New Automation", expanded=False):
+    with st.expander("Ã¢Å¾â€¢ Create New Automation", expanded=False):
         col1, col2 = st.columns(2)
         with col1:
             name = st.text_input("Name")
@@ -632,32 +632,32 @@ def render_automation_list(engine: AdvancedAutomationEngine):
     # List
     for auto in automations:
         type_badge = {
-            AutomationType.SCHEDULED: ("â° Scheduled", "ðŸ”µ"),
-            AutomationType.TRIGGERED: ("âš¡ Triggered", "ðŸŸ¢"),
-            AutomationType.CONDITIONAL: ("🔄 Conditional", "ðŸŸ¡"),
+            AutomationType.SCHEDULED: ("Ã¢ÂÂ° Scheduled", "Ã°Å¸â€Âµ"),
+            AutomationType.TRIGGERED: ("Ã¢Å¡Â¡ Triggered", "Ã°Å¸Å¸Â¢"),
+            AutomationType.CONDITIONAL: ("ðŸ”„ Conditional", "Ã°Å¸Å¸Â¡"),
         }
-        badge, emoji = type_badge.get(auto.automation_type, ("📜", "âšª"))
+        badge, emoji = type_badge.get(auto.automation_type, ("ðŸ“œ", "Ã¢Å¡Âª"))
         
         col1, col2, col3 = st.columns([3, 2, 1])
         
         with col1:
-            st.markdown(f"**{emoji} {auto.name}**")
+            st.markdown(f"**{emoji}} {auto.name}}**")
             st.caption(auto.description)
         
         with col2:
-            st.markdown(f"`{auto.trigger.value}` â†’ `{auto.action.value}`")
+            st.markdown(f"`{auto.trigger.value}}` Ã¢â€ â€™ `{auto.action.value}}`")
             if auto.schedule:
-                st.caption(f"Schedule: `{auto.schedule}`")
+                st.caption(f"Schedule: `{auto.schedule}}`")
         
         with col3:
             col_a, col_b = st.columns(2)
             with col_a:
-                enabled = st.checkbox("On", value=auto.enabled, key=f"auto_{auto.id}")
+                enabled = st.checkbox("On", value=auto.enabled, key=f"auto_{auto.id}}")
                 if enabled != auto.enabled:
                     engine.toggle_automation(auto.id, enabled)
                     st.rerun()
             with col_b:
-                if st.button("ðŸ—‘ï¸", key=f"del_{auto.id}"):
+                if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"del_{auto.id}}"):
                     engine.delete_automation(auto.id)
                     st.rerun()
         
@@ -665,7 +665,7 @@ def render_automation_list(engine: AdvancedAutomationEngine):
 
 def render_scheduler_ui(scheduler: TaskScheduler):
     """Render scheduler UI."""
-    st.subheader("ðŸ“… Scheduled Tasks")
+    st.subheader("Ã°Å¸â€œâ€¦ Scheduled Tasks")
     
     upcoming = scheduler.get_upcoming_tasks()
     
@@ -690,24 +690,24 @@ def render_scheduler_ui(scheduler: TaskScheduler):
         """, unsafe_allow_html=True)
     
     # Check now button
-    if st.button("â–¶ï¸ Check & Run Due Tasks"):
+    if st.button("Ã¢â€“Â¶Ã¯Â¸Â Check & Run Due Tasks"):
         results = scheduler.check_and_run()
         if results:
-            st.success(f"Ran {len(results)} tasks")
+            st.success(f"Ran {len(results)}} tasks")
         else:
             st.info("No tasks due")
 
 def render_notifications_ui(notif_mgr: NotificationManager):
     """Render notifications UI."""
-    st.subheader("ðŸ”” Notifications")
+    st.subheader("Ã°Å¸â€â€ Notifications")
     
     user_id = st.session_state.get("collab_user_id", "demo_user")
     
     # Demo notifications
     demo_notifs = [
         ("", "Weekly Report Ready", "Your weekly research summary is ready", "info"),
-        ("â°", "Task Reminder", "Review pending: Data analysis due in 2 hours", "warning"),
-        ("✅", "Task Completed", "Analysis complete for Project Alpha", "success"),
+        ("Ã¢ÂÂ°", "Task Reminder", "Review pending: Data analysis due in 2 hours", "warning"),
+        ("âœ…", "Task Completed", "Analysis complete for Project Alpha", "success"),
     ]
     
     for emoji, title, msg, ntype in demo_notifs:
@@ -755,3 +755,4 @@ def render_automation_logs(engine: AdvancedAutomationEngine):
             </span>
         </div>
         """, unsafe_allow_html=True)
+

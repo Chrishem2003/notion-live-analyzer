@@ -51,7 +51,7 @@ def render_clinical(df):
         ht_col = next((cols_lower[k] for k in ["height_cm", "height", "ht", "ht_cm"] if k in cols_lower), None)
 
         if wt_col and ht_col:
-            st.markdown(f"#### Batch Cohort BMI Screening & Stratification (Mapped: `{wt_col}`, `{ht_col}`)")
+            st.markdown(f"#### Batch Cohort BMI Screening & Stratification (Mapped: `{wt_col}}`, `{ht_col}}`)")
             audit = df.copy()
             # Convert height to meters if values look like centimeters (> 3)
             ht_vals = audit[ht_col].astype(float)
@@ -94,9 +94,9 @@ def render_clinical(df):
         whr = waist / hip if hip > 0 else 0.0
         bsa_mosteller = np.sqrt((height * weight) / 3600.0)
         c1, c2, c3 = st.columns(3)
-        c1.metric("Body Mass Index (BMI)", f"{bmi:.1f}", delta="Normal" if 18.5 <= bmi < 25 else "Check Range")
-        c2.metric("Waist-Hip Ratio (WHR)", f"{whr:.2f}", delta="Optimal" if whr < 0.9 else "Elevated Risk")
-        c3.metric("Body Surface Area (Mosteller)", f"{bsa_mosteller:.2f} mÂ²", delta="âˆš((cmÂ·kg)/3600)")
+        c1.metric("Body Mass Index (BMI)", f"{bmi:.1f}}", delta="Normal" if 18.5 <= bmi < 25 else "Check Range")
+        c2.metric("Waist-Hip Ratio (WHR)", f"{whr:.2f}}", delta="Optimal" if whr < 0.9 else "Elevated Risk")
+        c3.metric("Body Surface Area (Mosteller)", f"{bsa_mosteller:.2f}} mÂ²", delta="âˆš((cmÂ·kg)/3600)")
 
     st.markdown("#### Illustrative Cardiovascular Risk Factor Score")
     st.warning(
@@ -124,7 +124,7 @@ def render_clinical(df):
         points += 12.0 if diabetic else 0.0
         score = min(100.0, points)
 
-        st.metric("Illustrative Risk Factor Score", f"{score:.1f} / 100")
+        st.metric("Illustrative Risk Factor Score", f"{score:.1f}} / 100")
         if score < 20:
             st.success("ðŸŸ¢ Low illustrative risk-factor burden")
         elif score < 45:
@@ -155,7 +155,7 @@ def render_network(df):
                     edges.append({"Source Node": c1, "Target Node": c2, "|Correlation|": round(float(r), 3)})
 
         if not edges:
-            st.info(f"No variable pairs exceed |r| â‰¥ {threshold}. Try decreasing the correlation threshold.")
+            st.info(f"No variable pairs exceed |r| â‰¥ {threshold}}. Try decreasing the correlation threshold.")
             return
 
         edges_df = pd.DataFrame(edges).sort_values("|Correlation|", ascending=False)
@@ -166,7 +166,7 @@ def render_network(df):
         c1.metric("Active Nodes (Variables)", len(numeric_cols))
         c2.metric("Edges (Above Threshold)", len(edges_df))
         max_possible = len(numeric_cols) * (len(numeric_cols) - 1) / 2
-        c3.metric("Network Density", f"{len(edges_df) / max_possible:.3f}" if max_possible > 0 else "n/a")
+        c3.metric("Network Density", f"{len(edges_df) / max_possible:.3f}}" if max_possible > 0 else "n/a")
 
         if PLOTLY_AVAILABLE:
             deg_df = degree.reset_index()
@@ -209,14 +209,14 @@ def render_gis():
         if map_data and map_data.get("last_clicked"):
             lat = map_data["last_clicked"]["lat"]
             lon = map_data["last_clicked"]["lng"]
-            st.success(f"ðŸ“ Selected Coordinates: Latitude {lat:.4f}, Longitude {lon:.4f}")
+            st.success(f"ðŸ“ Selected Coordinates: Latitude {lat:.4f}}, Longitude {lon:.4f}}")
             if REQUESTS_AVAILABLE:
                 with st.spinner("Reverse-geocoding location..."):
                     place, err = cached_reverse_geocode(round(lat, 4), round(lon, 4))
                 if place:
-                    st.info(f"📜 **Resolved Location:** {place}")
+                    st.info(f"📜 **Resolved Location:** {place}}")
                 elif err:
-                    st.caption(f"Reverse-geocoding notice: {err}")
+                    st.caption(f"Reverse-geocoding notice: {err}}")
     except ImportError:
         st.info("`folium` and `streamlit_folium` packages required for interactive map rendering. Using manual coordinate inputs:")
         col1, col2 = st.columns(2)
@@ -225,9 +225,9 @@ def render_gis():
         if st.button("ðŸ“ Reverse-Geocode Coordinate", key="gis_manual_geocode_prod"):
             place, err = cached_reverse_geocode(round(lat, 4), round(lon, 4))
             if place:
-                st.success(f"📜 {place}")
+                st.success(f"📜 {place}}")
             else:
-                st.error(f"Geocoding failed: {err}")
+                st.error(f"Geocoding failed: {err}}")
 
 
 @st.cache_data(ttl=86400, show_spinner=False)
@@ -259,7 +259,7 @@ def render_global_surveillance():
     try:
         country_df = _cached_country_list()
     except Exception as e:
-        st.error(f"Could not reach the World Bank API for the country list: {e}")
+        st.error(f"Could not reach the World Bank API for the country list: {e}}")
         return
 
     col1, col2 = st.columns(2)
@@ -276,11 +276,11 @@ def render_global_surveillance():
     country_iso3 = country_df.loc[country_df["name"] == country_name, "iso3"].iloc[0]
 
     if st.button("ðŸŒ Fetch Live Sector Indicator Data", type="primary", key="run_sector_intel_prod"):
-        with st.spinner(f"Querying World Bank API for {indicator_label} ({country_name})..."):
+        with st.spinner(f"Querying World Bank API for {indicator_label}} ({country_name}})..."):
             try:
                 series_df = _cached_indicator_series(country_iso3, indicator_code)
             except Exception as e:
-                st.error(f"ðŸš« Live data retrieval failed: {e}")
+                st.error(f"ðŸš« Live data retrieval failed: {e}}")
                 return
 
         if series_df is None or series_df.empty:
@@ -288,18 +288,18 @@ def render_global_surveillance():
         else:
             latest = series_df.iloc[-1]
             c1, c2, c3 = st.columns(3)
-            c1.metric(indicator_label, f"{latest['value']:.2f}", delta=f"as of {int(latest['year'])}")
+            c1.metric(indicator_label, f"{latest['value']:.2f}}", delta=f"as of {int(latest['year'])}}")
             c2.metric("Data Points Retrieved", len(series_df))
             c3.metric("Data Source", "World Bank Open Data API")
 
             if PLOTLY_AVAILABLE:
                 fig = px.line(series_df, x="year", y="value", markers=True, template="plotly_dark", height=350,
-                              title=f"{indicator_label} — {country_name}")
+                              title=f"{indicator_label}} — {country_name}}")
                 fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=40, b=0))
                 st.plotly_chart(fig, use_container_width=True)
 
             st.dataframe(series_df, use_container_width=True, hide_index=True)
-            render_export_buttons(series_df, base_name=f"worldbank_{indicator_code}_{country_iso3}")
+            render_export_buttons(series_df, base_name=f"worldbank_{indicator_code}}_{country_iso3}}")
             st.caption("For multi-country comparisons, region filtering, or loading this straight into "
                        "the shared active dataset, use the Integrations Hub's Global Real-Data tab.")
 
@@ -354,7 +354,7 @@ def render_academic():
     c1.metric("Total Publications", len(valid_pubs))
     c2.metric("Total Citations", total_citations)
     c3.metric("Computed h-Index", h_index)
-    c4.metric("Total Grant Funding", f"${total_grant_amount:,.0f}")
+    c4.metric("Total Grant Funding", f"${total_grant_amount:,.0f}}")
 
     if not valid_pubs.empty:
         render_export_buttons(valid_pubs, base_name="academic_portfolio_publications")
@@ -396,7 +396,7 @@ Standardized protocol generated for reproducible laboratory execution and compli
 - Dispose of all biohazard waste in designated autoclave containers according to institutional protocol.
 """
             st.code(sop_doc, language="markdown")
-            st.download_button("â¬‡ï¸ Download Formatted SOP Document (.md)", data=sop_doc, file_name=f"{protocol_name.lower().replace(' ', '_')}_sop.md", mime="text/markdown")
+            st.download_button("â¬‡ï¸ Download Formatted SOP Document (.md)", data=sop_doc, file_name=f"{protocol_name.lower().replace(' ', '_')}}_sop.md", mime="text/markdown")
         else:
             st.warning("âš ï¸ Please provide a valid protocol title.")
 
@@ -452,10 +452,10 @@ def render_field_surveillance():
                         try:
                             add_mcr_sample(sample_id.strip(), sample_type, source_location, lat, lon,
                                           mcr_variant, colistin_mic, isolation_date, notes)
-                            st.success(f"Sample {sample_id} recorded.")
+                            st.success(f"Sample {sample_id}} recorded.")
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Could not save (duplicate Sample ID?): {e}")
+                            st.error(f"Could not save (duplicate Sample ID?): {e}}")
 
     with sub_ppwr:
         ppwr_df = get_ppwr_df()
@@ -535,3 +535,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

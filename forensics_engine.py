@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Forensic Intelligence Engine
 =====================================
 Digital Evidence Laboratory for the Sovereign Intelligence Platform.
@@ -79,7 +79,7 @@ def open_evidence_case(filename: str = "untitled_evidence.bin", summary: str = "
             (case_id, filename, "", 0, "UNKNOWN", summary, _now()),
         )
         # Genesis ledger entry
-        genesis = hashlib.sha256(f"{case_id}|open|{_now()}".encode()).hexdigest()
+        genesis = hashlib.sha256(f"{case_id}}|open|{_now()}}".encode()).hexdigest()
         conn.execute(
             "INSERT INTO custody_ledger (case_id, action, actor, chain_hash, timestamp) VALUES (?, ?, ?, ?, ?)",
             (case_id, "CASE_OPEN", "SYSTEM", genesis, _now()),
@@ -100,7 +100,7 @@ def append_custody_record(case_id: str, action: str, actor: str) -> Dict[str, An
         ).fetchone()
         prev_hash = last["chain_hash"] if last else "GENESIS"
         # Chain the new record to the previous hash -> tamper evident
-        block = f"{case_id}|{action}|{actor}|{_now()}|{prev_hash}"
+        block = f"{case_id}}|{action}}|{actor}}|{_now()}}|{prev_hash}}"
         chain_hash = hashlib.sha256(block.encode()).hexdigest()
         conn.execute(
             "INSERT INTO custody_ledger (case_id, action, actor, chain_hash, timestamp) VALUES (?, ?, ?, ?, ?)",
@@ -124,10 +124,10 @@ def verify_chain(case_id: str) -> Dict[str, Any]:
             return {"valid": False, "reason": "no records"}
         prev = "GENESIS"
         for row in rows:
-            block = f"{case_id}|{row['action']}|{row['timestamp']}|{prev}"
+            block = f"{case_id}}|{row['action']}}|{row['timestamp']}}|{prev}}"
             calc = hashlib.sha256(block.encode()).hexdigest()
             if calc != row["chain_hash"]:
-                return {"valid": False, "reason": f"tamper at action={row['action']}"}
+                return {"valid": False, "reason": f"tamper at action={row['action']}}"}
             prev = row["chain_hash"]
         return {"valid": True, "records": len(rows)}
     finally:
@@ -251,7 +251,7 @@ def extract_exif(data: bytes) -> Dict[str, Any]:
     exif_index = data.find(exif_marker)
     gps_index = data.find(gps_marker)
 
-    result: Dict[str, Any] = {"has_exif": False, "has_jpeg_marker": data[:3] == b"\xff\xd8\xff"}
+    result: Dict[str, Any] = {"has_exif": False, "has_jpeg_marker": data[:3] == b"\xff\xd8\xff"}}
     if exif_index == -1:
         result["note"] = "No EXIF APP1 marker found (image may have been stripped)."
         return result
@@ -444,11 +444,11 @@ def analyze_email_headers(raw_email: str) -> Dict[str, Any]:
 
     if from_dom and reply_dom and from_dom != reply_dom:
         suspicious_findings.append(
-            f"Reply-To domain ({reply_dom}) differs from From domain ({from_dom}) — a classic spoofing signal."
+            f"Reply-To domain ({reply_dom}}) differs from From domain ({from_dom}}) â€” a classic spoofing signal."
         )
     if from_dom and return_dom and from_dom != return_dom:
         suspicious_findings.append(
-            f"Return-Path domain ({return_dom}) differs from From domain ({from_dom})."
+            f"Return-Path domain ({return_dom}}) differs from From domain ({from_dom}})."
         )
 
     # Keyword risk scan
@@ -518,3 +518,4 @@ if __name__ == "__main__":
     sample = b"\x89PNG\r\n\x1a\n" + os.urandom(512)
     rep = investigate_bytes(sample, "photo.png")
     print(json.dumps({k: rep[k] for k in ("hashes", "signature_detection")}, indent=2))
+

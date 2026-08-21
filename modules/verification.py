@@ -1,11 +1,11 @@
-"""
+﻿"""
 modules/verification.py
 Student free-tier application: uploads go into a REVIEW QUEUE.
 
 Deliberately does NOT auto-approve government ID scans. See the chat
 response for why. If you later want to reduce the manual-review load,
 plug a real KYC vendor into `run_provider_check()` below (Persona,
-Stripe Identity, Smile Identity, Jumio) — even then, keep a human
+Stripe Identity, Smile Identity, Jumio) â€” even then, keep a human
 "approve" click before `subscription.grant_student_free()` is called,
 so no single automated match can silently grant access.
 """
@@ -46,7 +46,7 @@ def get_conn():
 def _save_upload(uploaded_file, email, tag):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     safe_email = email.replace("@", "_at_").replace(".", "_")
-    fname = f"{safe_email}_{tag}_{int(datetime.datetime.utcnow().timestamp())}_{uploaded_file.name}"
+    fname = f"{safe_email}}_{tag}}_{int(datetime.datetime.utcnow().timestamp())}}_{uploaded_file.name}}"
     path = os.path.join(UPLOAD_DIR, fname)
     with open(path, "wb") as f:
         f.write(uploaded_file.getbuffer())
@@ -56,9 +56,9 @@ def _save_upload(uploaded_file, email, tag):
 def run_provider_check(id_doc_path: str) -> dict:
     """
     Stub for a real KYC provider. Wire this up when you have API keys.
-    Returns a machine opinion ONLY — never auto-grants access on its own.
+    Returns a machine opinion ONLY â€” never auto-grants access on its own.
     """
-    return {"provider": "none_configured", "note": "Manual review required — no provider connected."}
+    return {"provider": "none_configured", "note": "Manual review required â€” no provider connected."}
 
 
 def submit_application(email, full_name, date_of_birth, institution, id_file, institution_file):
@@ -81,11 +81,11 @@ def submit_application(email, full_name, date_of_birth, institution, id_file, in
 
 def render_student_application_form():
     """Drop this into a page (e.g. Home Dashboard, 'Account' tab)."""
-    st.markdown("#### 🎓 Apply for Free Student Access")
+    st.markdown("#### ðŸŽ“ Apply for Free Student Access")
     st.caption(
         "Free access for verified students under 26. Upload a photo/scan of your "
         "institution ID and a government-issued ID. A human reviewer approves "
-        "applications — this is not instant."
+        "applications â€” this is not instant."
     )
     identity = st.session_state.get("user_identity", {})
     email = identity.get("email", "")
@@ -108,12 +108,12 @@ def render_student_application_form():
                     st.error("Free student access is limited to applicants under 26.")
                 else:
                     submit_application(email, full_name, dob, institution, id_file, inst_file)
-                    st.success("✅ Submitted. You'll be notified once an admin reviews your documents (usually within 2 business days).")
+                    st.success("âœ… Submitted. You'll be notified once an admin reviews your documents (usually within 2 business days).")
 
 
 def render_admin_review_queue():
     """Drop this into the Admin & Security Center as a new tab."""
-    st.markdown("#### 🎓 Student Verification — Review Queue")
+    st.markdown("#### ðŸŽ“ Student Verification â€” Review Queue")
     conn = get_conn()
     pending = conn.execute(
         "SELECT id, email, full_name, institution, submitted_at, id_doc_path, institution_doc_path "
@@ -126,8 +126,8 @@ def render_admin_review_queue():
         return
 
     for req_id, email, full_name, institution, submitted_at, id_path, inst_path in pending:
-        with st.expander(f"{full_name} — {institution} ({email})"):
-            st.caption(f"Submitted {submitted_at}")
+        with st.expander(f"{full_name}} â€” {institution}} ({email}})"):
+            st.caption(f"Submitted {submitted_at}}")
             c1, c2 = st.columns(2)
             with c1:
                 if id_path and os.path.exists(id_path):
@@ -138,16 +138,16 @@ def render_admin_review_queue():
 
             colA, colB = st.columns(2)
             reviewer = st.session_state.get("user_identity", {}).get("name", "Admin")
-            if colA.button("✅ Approve", key=f"approve_{req_id}"):
+            if colA.button("âœ… Approve", key=f"approve_{req_id}}"):
                 conn.execute(
                     "UPDATE verification_requests SET status='approved', reviewed_at=?, reviewed_by=? WHERE id=?",
                     (datetime.datetime.utcnow().isoformat(), reviewer, req_id),
                 )
                 conn.commit()
                 subscription.grant_student_free(email)
-                st.success(f"Approved. {email} now has free student access.")
+                st.success(f"Approved. {email}} now has free student access.")
                 st.rerun()
-            if colB.button("❌ Reject", key=f"reject_{req_id}"):
+            if colB.button("âŒ Reject", key=f"reject_{req_id}}"):
                 conn.execute(
                     "UPDATE verification_requests SET status='rejected', reviewed_at=?, reviewed_by=? WHERE id=?",
                     (datetime.datetime.utcnow().isoformat(), reviewer, req_id),
@@ -156,3 +156,4 @@ def render_admin_review_queue():
                 st.warning("Rejected.")
                 st.rerun()
     conn.close()
+

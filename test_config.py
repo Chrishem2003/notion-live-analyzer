@@ -1,4 +1,4 @@
-
+﻿
 """Unit tests for modules.config."""
 import pickle
 
@@ -112,10 +112,10 @@ class TestBackgroundImage:
         ],
     )
     def test_image_to_data_url_mime_types(self, tmp_path, suffix, mime):
-        path = tmp_path / f"img.{suffix}"
+        path = tmp_path / f"img.{suffix}}"
         path.write_bytes(b"abc")
         url = config.image_to_data_url(path)
-        assert url.startswith(f"data:{mime};base64,")
+        assert url.startswith(f"data:{mime}};base64,")
         assert url.endswith("YWJj")
 
 
@@ -147,3 +147,4 @@ class TestDiskCache:
     def test_clear_cache_is_safe_when_missing(self, cache_dir):
         config.clear_cache()
         assert not cache_dir.exists()
+

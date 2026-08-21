@@ -1,4 +1,4 @@
-
+﻿
 """
 Dashboard Enhancements Module
 Provides smart search filters, metric banners, caching helpers, and export suites.
@@ -23,7 +23,7 @@ def smart_search_filter(df: pd.DataFrame, search_cols=None) -> pd.DataFrame:
     if df.empty:
         return df
         
-    search_query = st.text_input("ðŸ” Global Smart Search", "", placeholder="Type to filter across records...")
+    search_query = st.text_input("Ã°Å¸â€Â Global Smart Search", "", placeholder="Type to filter across records...")
     if not search_query:
         return df
         
@@ -37,7 +37,7 @@ def smart_search_filter(df: pd.DataFrame, search_cols=None) -> pd.DataFrame:
             mask = mask | df[col].astype(str).str.contains(search_query, case=False, na=False)
             
     filtered_df = df[mask]
-    st.caption(f"Showing {len(filtered_df)} of {len(df)} matching records.")
+    st.caption(f"Showing {len(filtered_df)}} of {len(df)}} matching records.")
     return filtered_df
 
 def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
@@ -45,7 +45,7 @@ def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
     if df.empty:
         return
         
-    st.subheader("📥 Export Options")
+    st.subheader("ðŸ“¥ Export Options")
     col1, col2 = st.columns(2)
     
     with col1:
@@ -53,7 +53,7 @@ def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
         st.download_button(
             label="Download as CSV",
             data=csv_data,
-            file_name=f"{file_prefix}_{int(time.time())}.csv",
+            file_name=f"{file_prefix}}_{int(time.time())}}.csv",
             mime="text/csv"
         )
         
@@ -62,7 +62,7 @@ def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
         st.download_button(
             label="Download as JSON",
             data=json_data,
-            file_name=f"{file_prefix}_{int(time.time())}.json",
+            file_name=f"{file_prefix}}_{int(time.time())}}.json",
             mime="application/json"
         )
 
@@ -72,3 +72,4 @@ def cached_notion_fetcher(fetch_func, *args, **kwargs):
     def _cached_call(*a, **kw):
         return fetch_func(*a, **kw)
     return _cached_call(*args, **kwargs)
+

@@ -1,4 +1,4 @@
-
+﻿
 import time
 import subprocess
 import datetime
@@ -30,25 +30,25 @@ class GitAutoSyncHandler(FileSystemEventHandler):
             if not status.stdout.strip():
                 return
 
-            print("ðŸ”„ [Git Watchdog] Workspace modification detected! Auto-staging, committing, and pushing...")
+            print("Ã°Å¸â€â€ž [Git Watchdog] Workspace modification detected! Auto-staging, committing, and pushing...")
             
             # Stage all changes (handles both modified and staged-only files)
             subprocess.run(["git", "add", "-A"], cwd=self.watch_path, check=True)
             
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            commit_res = subprocess.run(["git", "commit", "-m", f"auto: full workspace autonomous sync - {timestamp}"], cwd=self.watch_path, capture_output=True, text=True)
+            commit_res = subprocess.run(["git", "commit", "-m", f"auto: full workspace autonomous sync - {timestamp}}"], cwd=self.watch_path, capture_output=True, text=True)
             
             if commit_res.returncode != 0 and "nothing to commit" in commit_res.stdout:
                 return
 
             push_res = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True, cwd=self.watch_path)
             if push_res.returncode == 0:
-                print(f"ðŸš€ [Git Watchdog] Successfully auto-pushed to GitHub at {timestamp}!")
+                print(f"Ã°Å¸Å¡â‚¬ [Git Watchdog] Successfully auto-pushed to GitHub at {timestamp}}!")
                 self.last_sync = time.time()
             else:
-                print(f"âš ï¸ [Git Watchdog] Push pending or authentication required: {push_res.stderr.strip()}")
+                print(f"Ã¢Å¡Â Ã¯Â¸Â [Git Watchdog] Push pending or authentication required: {push_res.stderr.strip()}}")
         except Exception as e:
-            print(f"âŒ [Git Watchdog Error]: {str(e)}")
+            print(f"Ã¢ÂÅ’ [Git Watchdog Error]: {str(e)}}")
 
 def start_watchdog():
     path = "."
@@ -56,7 +56,7 @@ def start_watchdog():
     observer = Observer()
     observer.schedule(event_handler, path, recursive=True)
     observer.start()
-    print("ðŸ›¡ï¸ [Git Watchdog Daemon] Active and monitoring all staged/unstaged changes for instant auto-sync...")
+    print("Ã°Å¸â€ºÂ¡Ã¯Â¸Â [Git Watchdog Daemon] Active and monitoring all staged/unstaged changes for instant auto-sync...")
     try:
         while True:
             time.sleep(1)
@@ -66,4 +66,5 @@ def start_watchdog():
 
 if __name__ == "__main__":
     start_watchdog()
+
 

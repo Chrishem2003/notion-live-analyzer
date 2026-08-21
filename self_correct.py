@@ -1,22 +1,22 @@
-"""
-self_correct.py — Enterprise addition #1 from the spec: catch Pandas/SQL
+﻿"""
+self_correct.py â€” Enterprise addition #1 from the spec: catch Pandas/SQL
 exceptions from agent-generated analysis code, feed the traceback back to
 the LLM, and retry with a corrected version.
 
 This executes LLM-generated code, which is a real risk surface regardless
-of how well-intentioned the LLM is — so this module is deliberately narrow:
+of how well-intentioned the LLM is â€” so this module is deliberately narrow:
 
   - It's for CODE THE SYSTEM ITSELF GENERATED (e.g. an agent's pandas
     analysis step), not arbitrary end-user input. Never wire a raw user
     text box into `code` here.
   - Execution happens in a restricted namespace with `__builtins__` reduced
-    to a small safe allowlist — no `open`, `eval`, `exec`, `__import__`,
+    to a small safe allowlist â€” no `open`, `eval`, `exec`, `__import__`,
     `os`, `subprocess`, `input`, or file/network access of any kind from
     inside the sandboxed code.
   - There is a hard retry ceiling (default 2) and a hard wall-clock timeout
-    per attempt — a self-correction loop that never terminates is worse
+    per attempt â€” a self-correction loop that never terminates is worse
     than the original bug.
-  - Without GEMINI_API_KEY, this does NOT attempt automatic correction —
+  - Without GEMINI_API_KEY, this does NOT attempt automatic correction â€”
     it returns the real error and traceback and says plainly that no
     auto-fix was attempted. Faking a "self-healed" result here would be
     exactly the kind of fabricated success message this whole project's
@@ -51,7 +51,7 @@ class SandboxTimeout(Exception):
 @contextlib.contextmanager
 def _time_limit(seconds: int):
     def _handler(signum, frame):
-        raise SandboxTimeout(f"Execution exceeded {seconds}s limit.")
+        raise SandboxTimeout(f"Execution exceeded {seconds}}s limit.")
     old_handler = signal.signal(signal.SIGALRM, _handler)
     signal.alarm(seconds)
     try:
@@ -93,13 +93,13 @@ def _run_in_sandbox(code: str, df: pd.DataFrame, timeout_seconds: int = 10):
     stdout_capture = io.StringIO()
     with _time_limit(timeout_seconds):
         with contextlib.redirect_stdout(stdout_capture):
-            exec(code, namespace)  # noqa: S102 — intentional, sandboxed, see module docstring
+            exec(code, namespace)  # noqa: S102 â€” intentional, sandboxed, see module docstring
     return namespace.get("result"), stdout_capture.getvalue()
 
 
 def _request_llm_fix(code: str, error: str, df_schema: dict) -> str | None:
     """Ask Gemini for a corrected version of `code`. Returns the corrected
-    code string, or None if no LLM is configured or the call fails —
+    code string, or None if no LLM is configured or the call fails â€”
     caller must treat None as "no correction available", not retry with
     the same broken code."""
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -110,9 +110,9 @@ def _request_llm_fix(code: str, error: str, df_schema: dict) -> str | None:
         client = genai.Client(api_key=api_key)
         prompt = (
             "The following pandas code failed. Fix it. The DataFrame `df` has "
-            f"columns and dtypes: {df_schema}\n\n"
-            f"Code:\n```python\n{code}\n```\n\n"
-            f"Error:\n{error}\n\n"
+            f"columns and dtypes: {df_schema}}\n\n"
+            f"Code:\n```python\n{code}}\n```\n\n"
+            f"Error:\n{error}}\n\n"
             "Return ONLY the corrected Python code (no explanation, no markdown fences). "
             "The code must assign its final output to a variable named `result`. "
             "Do not use imports, file I/O, network calls, or any builtin beyond basic "
@@ -146,10 +146,10 @@ def execute_with_self_correction(code: str, df: pd.DataFrame, max_retries: int =
                 final_code=current_code,
                 attempts=attempts,
                 auto_correction_used=attempt_num > 1,
-                message=f"Succeeded on attempt {attempt_num}" + (" after self-correction." if attempt_num > 1 else "."),
+                message=f"Succeeded on attempt {attempt_num}}" + (" after self-correction." if attempt_num > 1 else "."),
             )
         except Exception as e:
-            error_text = f"{type(e).__name__}: {e}\n{traceback.format_exc(limit=3)}"
+            error_text = f"{type(e).__name__}}: {e}}\n{traceback.format_exc(limit=3)}}"
             attempts.append(CorrectionAttempt(attempt_num, current_code, succeeded=False, error=error_text))
 
             if attempt_num > max_retries:
@@ -157,7 +157,7 @@ def execute_with_self_correction(code: str, df: pd.DataFrame, max_retries: int =
 
             fixed_code = _request_llm_fix(current_code, error_text, df_schema)
             if fixed_code is None:
-                # No LLM configured (or the call itself failed) — stop honestly
+                # No LLM configured (or the call itself failed) â€” stop honestly
                 # rather than retrying the same broken code and calling that "correction."
                 return SelfCorrectionResult(
                     success=False,
@@ -174,5 +174,5 @@ def execute_with_self_correction(code: str, df: pd.DataFrame, max_retries: int =
         success=False,
         attempts=attempts,
         auto_correction_used=True,
-        message=f"Failed after {len(attempts)} attempts (original + {max_retries} LLM-suggested corrections).",
+        message=f"Failed after {len(attempts)}} attempts (original + {max_retries}} LLM-suggested corrections).",
     )

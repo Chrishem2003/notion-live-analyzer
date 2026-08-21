@@ -1,4 +1,4 @@
-
+﻿
 import sqlite3
 import json
 import hashlib
@@ -94,7 +94,7 @@ def seed_sample_project():
 def log_provenance(entity_id: str, action: str, user: str, payload_data: dict) -> str:
     """Computes SHA-256 hash and logs activity to database."""
     stamp = datetime.utcnow().isoformat()
-    raw_str = f"{entity_id}:{action}:{user}:{stamp}:{json.dumps(payload_data, sort_keys=True)}"
+    raw_str = f"{entity_id}}:{action}}:{user}}:{stamp}}:{json.dumps(payload_data, sort_keys=True)}}"
     sha256 = hashlib.sha256(raw_str.encode('utf-8')).hexdigest()
     
     conn = sqlite3.connect(DB_FILE)
@@ -108,7 +108,7 @@ def log_provenance(entity_id: str, action: str, user: str, payload_data: dict) -
     return sha256
 
 def render_schema_engine_tab():
-    st.subheader("ðŸ—„ï¸ ResearchOS Unified Database Schema Explorer")
+    st.subheader("Ã°Å¸â€”â€žÃ¯Â¸Â ResearchOS Unified Database Schema Explorer")
     st.caption("Live relational database architecture orchestrating research artifacts, projects, and provenance logs.")
 
     init_db()
@@ -119,20 +119,20 @@ def render_schema_engine_tab():
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.markdown("### 📋 Active Research Projects")
+        st.markdown("### ðŸ“‹ Active Research Projects")
         projects_df = pd.read_sql_query("SELECT * FROM projects", conn)
         st.dataframe(projects_df, use_container_width=True)
 
-        st.markdown("### ðŸ“‚ Research Artifacts Ingested")
+        st.markdown("### Ã°Å¸â€œâ€š Research Artifacts Ingested")
         artifacts_df = pd.read_sql_query("SELECT * FROM research_artifacts", conn)
         st.dataframe(artifacts_df, use_container_width=True)
 
     with col2:
-        st.markdown("### ðŸ”’ Cryptographic Provenance Ledger")
+        st.markdown("### Ã°Å¸â€â€™ Cryptographic Provenance Ledger")
         provenance_df = pd.read_sql_query("SELECT * FROM provenance_logs ORDER BY timestamp DESC LIMIT 10", conn)
         st.dataframe(provenance_df, use_container_width=True)
 
-        st.markdown("### ðŸ’¡ Register New Project Artifact")
+        st.markdown("### Ã°Å¸â€™Â¡ Register New Project Artifact")
         with st.form("artifact_form"):
             art_id = st.text_input("Artifact ID", value="ART-909")
             proj_id = st.text_input("Project ID Target", value="PRJ-2026-001")
@@ -147,7 +147,8 @@ def render_schema_engine_tab():
                 ''', (art_id, proj_id, art_type, uri, json.dumps({"status": "verified"})))
                 conn.commit()
                 hash_val = log_provenance(art_id, "REGISTER_ARTIFACT", "chief.investigator@lab.org", {"uri": uri})
-                st.success(f"Artifact registered successfully! Provenance Hash: `{hash_val[:16]}...`")
+                st.success(f"Artifact registered successfully! Provenance Hash: `{hash_val[:16]}}...`")
                 st.rerun()
 
     conn.close()
+

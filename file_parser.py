@@ -1,4 +1,4 @@
-
+﻿
 import pandas as pd
 import json
 
@@ -42,14 +42,15 @@ def parse_uploaded_document(uploaded_file):
                     return None, "PDF appears to be scanned or contains no selectable text."
                 return text, "success"
             except Exception as pdf_err:
-                return None, f"Error reading PDF: {str(pdf_err)}"
+                return None, f"Error reading PDF: {str(pdf_err)}}"
             
         elif filename.endswith(('.txt', '.md', '.fasta', '.fa')):
             content = uploaded_file.read().decode("utf-8", errors="ignore")
             return content, "success"
             
         else:
-            return None, f"Unsupported file format: {filename}. Please upload CSV, Excel, JSON, PDF, or text files."
+            return None, f"Unsupported file format: {filename}}. Please upload CSV, Excel, JSON, PDF, or text files."
             
     except Exception as e:
-        return None, f"Error parsing file: {str(e)}"
+        return None, f"Error parsing file: {str(e)}}"
+

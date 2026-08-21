@@ -1,4 +1,4 @@
-"""
+﻿"""
 Subscription & tier engine.
 
 This is the single source of truth for "what is this account allowed to
@@ -110,7 +110,7 @@ def init_billing_schema(conn=None):
     ]:
         if col not in existing:
             try:
-                cur.execute(f"ALTER TABLE subscriptions ADD COLUMN {col} {coltype}")
+                cur.execute(f"ALTER TABLE subscriptions ADD COLUMN {col}} {coltype}}")
             except sqlite3.OperationalError:
                 pass
 
@@ -166,7 +166,7 @@ def ensure_trial_started(email: str):
         (email, now.isoformat(), trial_ends.isoformat(), now.isoformat()),
     )
     conn.commit()
-    _log_billing_event(conn, email, "trial_started", f"{TRIAL_LENGTH_DAYS}-day trial of {TRIAL_GRANTS_PLAN}")
+    _log_billing_event(conn, email, "trial_started", f"{TRIAL_LENGTH_DAYS}}-day trial of {TRIAL_GRANTS_PLAN}}")
 
 
 def _normalize_legacy_row(conn, email: str, row: dict) -> dict:
@@ -296,12 +296,12 @@ def require_active_subscription(min_plan: str = "free", hub_id: str | None = Non
 
     if have_rank >= need_rank:
         if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
-            st.info(f"Trial active — {status['days_left_in_trial']} day(s) left with full {TRIAL_GRANTS_PLAN.title()} access.")
+            st.info(f"Trial active â€” {status['days_left_in_trial']}} day(s) left with full {TRIAL_GRANTS_PLAN.title()}} access.")
         return
 
     from . import billing_stripe
-    st.warning(f"This section requires the **{PLAN_CATALOG[required]['label']}** plan. "
-               f"Your account is currently on **{PLAN_CATALOG[status['effective_plan']]['label']}**.")
+    st.warning(f"This section requires the **{PLAN_CATALOG[required]['label']}}** plan. "
+               f"Your account is currently on **{PLAN_CATALOG[status['effective_plan']]['label']}}**.")
     render_upgrade_prompt(email, required)
     st.stop()
 
@@ -311,21 +311,21 @@ def render_upgrade_prompt(email: str, target_plan: str):
     plan_info = PLAN_CATALOG[target_plan]
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown(f"**{plan_info['label']}** — ${plan_info['price_monthly']}/mo")
+        st.markdown(f"**{plan_info['label']}}** â€” ${plan_info['price_monthly']}}/mo")
         if billing_stripe.is_configured():
-            if st.button(f"Upgrade to {plan_info['label']} (monthly)", key=f"up_{target_plan}_m"):
+            if st.button(f"Upgrade to {plan_info['label']}} (monthly)", key=f"up_{target_plan}}_m"):
                 url = billing_stripe.create_checkout_session(email, target_plan, "monthly")
                 if url:
-                    st.link_button("Continue to secure checkout →", url, type="primary")
+                    st.link_button("Continue to secure checkout â†’", url, type="primary")
         else:
             st.caption("Payments aren't configured on this deployment yet (missing STRIPE_SECRET_KEY).")
     with c2:
-        st.markdown(f"**{plan_info['label']}** — ${plan_info['price_annual']}/yr")
+        st.markdown(f"**{plan_info['label']}}** â€” ${plan_info['price_annual']}}/yr")
         if billing_stripe.is_configured():
-            if st.button(f"Upgrade to {plan_info['label']} (annual)", key=f"up_{target_plan}_a"):
+            if st.button(f"Upgrade to {plan_info['label']}} (annual)", key=f"up_{target_plan}}_a"):
                 url = billing_stripe.create_checkout_session(email, target_plan, "annual")
                 if url:
-                    st.link_button("Continue to secure checkout →", url, type="primary")
+                    st.link_button("Continue to secure checkout â†’", url, type="primary")
 
 
 def check_and_consume_quota(email: str, counter_key: str, amount: int = 1, period: str = "day") -> tuple[bool, str]:
@@ -352,8 +352,8 @@ def check_and_consume_quota(email: str, counter_key: str, amount: int = 1, perio
     current = row[0] if row else 0
 
     if current + amount > limit:
-        return False, (f"You've used {current}/{limit} of your {plan.title()}-plan "
-                        f"{counter_key.replace('_', ' ')} quota for this {period}. Upgrade for a higher limit.")
+        return False, (f"You've used {current}}/{limit}} of your {plan.title()}}-plan "
+                        f"{counter_key.replace('_', ' ')}} quota for this {period}}. Upgrade for a higher limit.")
 
     cur.execute(
         "INSERT INTO usage_counters (email, counter_key, period, count) VALUES (?, ?, ?, ?) "
@@ -376,11 +376,11 @@ def admin_override_plan(actor_email: str, target_email: str, new_plan: str, new_
         "INSERT INTO subscriptions (email, plan, status, updated_at, updated_by) VALUES (?, ?, ?, ?, ?) "
         "ON CONFLICT(email) DO UPDATE SET plan=excluded.plan, status=excluded.status, "
         "updated_at=excluded.updated_at, updated_by=excluded.updated_by",
-        (target_email.strip().lower(), new_plan, new_status, now, f"admin:{actor_email}"),
+        (target_email.strip().lower(), new_plan, new_status, now, f"admin:{actor_email}}"),
     )
     conn.commit()
     _log_billing_event(conn, target_email.strip().lower(), "admin_override",
-                        f"plan={new_plan} status={new_status} by {actor_email}")
+                        f"plan={new_plan}} status={new_status}} by {actor_email}}")
 
 
 # Backwards-compatible alias for the SubscriptionManager instance style

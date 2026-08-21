@@ -1,4 +1,4 @@
-"""
+﻿"""
 Page Bootstrap Module
 Handles global page configuration, layouts, and guaranteed dark sidebar styling across all pages.
 """
@@ -174,7 +174,7 @@ def inject_global_dropdown_fix():
         </style>
     """, unsafe_allow_html=True)
 
-def setup_page(page_title="App", page_icon="📊", initial_sidebar_state="expanded"):
+def setup_page(page_title="App", page_icon="ðŸ“Š", initial_sidebar_state="expanded"):
     """Configures page layout, title, icon, and injects dark sidebar styling."""
     st.set_page_config(
         page_title=page_title,
@@ -189,7 +189,7 @@ def render_standard_footer(module_name="ANALYTICS STUDIO"):
     st.markdown("---")
     st.markdown(
         f"<p style='text-align: center; color: #94a3b8; font-size: 0.85rem; letter-spacing: 0.8px;'>"
-        f"🔒 Enterprise Analytics Hub • Module: <b style='color: #f8fafc;'>{module_name}</b>"
+        f"ðŸ”’ Enterprise Analytics Hub â€¢ Module: <b style='color: #f8fafc;'>{module_name}}</b>"
         f"</p>",
         unsafe_allow_html=True
     )

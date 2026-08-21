@@ -1,4 +1,4 @@
-
+﻿
 """Unit tests for modules.pandas_compat and its use across the app."""
 import pandas as pd
 
@@ -35,11 +35,11 @@ class TestInferenceWithoutObjectDtype:
     """Regression: text inference must not depend on the `object` dtype."""
 
     def test_long_strings_infer_as_text(self):
-        series = pd.Series([f"{'x' * 60}-{i}" for i in range(40)])
+        series = pd.Series([f"{'x' * 60}}-{i}}" for i in range(40)])
         assert infer_column_type(series) == "text"
 
     def test_short_unique_strings_infer_as_string(self):
-        series = pd.Series([f"code-{i}" for i in range(40)])
+        series = pd.Series([f"code-{i}}" for i in range(40)])
         assert infer_column_type(series) == "string"
 
 
@@ -50,6 +50,7 @@ class TestDataQualityWithoutObjectDtype:
         assert result["mixed_type_columns"] == ["mixed"]
 
     def test_unique_strings_flagged_as_high_cardinality(self):
-        df = pd.DataFrame({"id": [f"id-{i}" for i in range(200)]})
+        df = pd.DataFrame({"id": [f"id-{i}}" for i in range(200)]})
         result = DataQualityReport(df).assess_uniqueness()
         assert "id" in result["high_cardinality_cols"]
+

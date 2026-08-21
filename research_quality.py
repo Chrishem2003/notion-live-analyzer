@@ -1,4 +1,4 @@
-
+﻿
 """
 Research Quality & Reproducibility Checker  detects p-hacking, QRPs,
 assesses reproducibility, and provides transparency checks.
@@ -34,7 +34,7 @@ class ResearchQualityChecker:
             findings.append({
                 "type": "p_hacking",
                 "severity": "high",
-                "detail": f"{significant}/{total_tests} tests are significant ({sig_ratio:.0%}). This unusually high rate may indicate p-hacking or selective reporting.",
+                "detail": f"{significant}}/{total_tests}} tests are significant ({sig_ratio:.0%}}). This unusually high rate may indicate p-hacking or selective reporting.",
                 "recommendation": "Consider adjusting for multiple comparisons (Bonferroni, FDR). Report all tests conducted, not just significant ones.",
             })
 
@@ -43,7 +43,7 @@ class ResearchQualityChecker:
             findings.append({
                 "type": "p_hacking",
                 "severity": "medium",
-                "detail": f"{borderline} p-values cluster just below .05 ({[f'{p:.3f}' for p in sorted(p_values) if 0.04 <= p <= 0.06]}). This may indicate rounding down or optional stopping.",
+                "detail": f"{borderline}} p-values cluster just below .05 ({[f'{p:.3f}}' for p in sorted(p_values) if 0.04 <= p <= 0.06]}}). This may indicate rounding down or optional stopping.",
                 "recommendation": "Report exact p-values, not thresholds. Preregister analyses.",
             })
 
@@ -55,7 +55,7 @@ class ResearchQualityChecker:
                     findings.append({
                         "type": "low_power",
                         "severity": "medium",
-                        "detail": f"Significant result (p = {r.get('p_value', 0):.3f}) with small sample (N = {n}). Likely overestimated effect size.",
+                        "detail": f"Significant result (p = {r.get('p_value', 0):.3f}}) with small sample (N = {n}}). Likely overestimated effect size.",
                         "recommendation": "Report effect sizes with confidence intervals. Conduct a power analysis.",
                     })
 
@@ -65,8 +65,8 @@ class ResearchQualityChecker:
             findings.append({
                 "type": "reporting",
                 "severity": "medium",
-                "detail": f"{missing_es}/{total_tests} results missing effect sizes. APA 7th edition requires effect sizes for all statistical tests.",
-                "recommendation": "Report and interpret effect sizes for all statistical tests (d, Î·Â², r, V, etc.).",
+                "detail": f"{missing_es}}/{total_tests}} results missing effect sizes. APA 7th edition requires effect sizes for all statistical tests.",
+                "recommendation": "Report and interpret effect sizes for all statistical tests (d, ÃŽÂ·Ã‚Â², r, V, etc.).",
             })
 
         # Score
@@ -89,7 +89,7 @@ class ResearchQualityChecker:
             "total_tests": total_tests,
             "significant_count": significant,
             "borderline_count": borderline,
-            "summary": f"p-Hacking Risk: {'ðŸŸ¢ Low' if risk == 'low' else 'ðŸŸ¡ Moderate' if risk == 'moderate' else 'ðŸ”´ High'} ({score}/100)",
+            "summary": f"p-Hacking Risk: {'Ã°Å¸Å¸Â¢ Low' if risk == 'low' else 'Ã°Å¸Å¸Â¡ Moderate' if risk == 'moderate' else 'Ã°Å¸â€Â´ High'}} ({score}}/100)",
         }
 
     @staticmethod
@@ -105,7 +105,7 @@ class ResearchQualityChecker:
                 findings.append({
                     "type": "missing_data",
                     "severity": "high",
-                    "detail": f"{missing_pct:.1f}% of values are missing. Reproducibility requires clear documentation of missing data handling.",
+                    "detail": f"{missing_pct:.1f}}% of values are missing. Reproducibility requires clear documentation of missing data handling.",
                     "recommendation": "Document missing data mechanisms (MCAR, MAR, MNAR). Describe imputation methods.",
                 })
                 score -= 20
@@ -116,7 +116,7 @@ class ResearchQualityChecker:
             findings.append({
                 "type": "variable_naming",
                 "severity": "low",
-                "detail": f"{len(unclear_names)} columns have unclear names ({unclear_names[:5]}). Clear naming improves reproducibility.",
+                "detail": f"{len(unclear_names)}} columns have unclear names ({unclear_names[:5]}}). Clear naming improves reproducibility.",
                 "recommendation": "Use descriptive, standardized variable names with codebook.",
             })
             score -= 5
@@ -132,7 +132,7 @@ class ResearchQualityChecker:
             findings.append({
                 "type": "data_type",
                 "severity": "medium",
-                "detail": f"{len(mixed_types)} columns have mixed types ({mixed_types[:3]}). Clear data types are essential for reproducibility.",
+                "detail": f"{len(mixed_types)}} columns have mixed types ({mixed_types[:3]}}). Clear data types are essential for reproducibility.",
                 "recommendation": "Standardize data types. Document coding schemes for categorical variables.",
             })
             score -= 15
@@ -143,7 +143,7 @@ class ResearchQualityChecker:
             findings.append({
                 "type": "sample_size",
                 "severity": "medium",
-                "detail": f"Small sample (N = {n}). Reproducibility is harder with small samples due to instability.",
+                "detail": f"Small sample (N = {n}}). Reproducibility is harder with small samples due to instability.",
                 "recommendation": "Report confidence intervals. Consider bootstrap for robust inference. Preregister sample size justification.",
             })
             score -= 15
@@ -151,7 +151,7 @@ class ResearchQualityChecker:
             findings.append({
                 "type": "sample_size",
                 "severity": "low",
-                "detail": f"Moderate sample (N = {n}). Consider power analysis documentation.",
+                "detail": f"Moderate sample (N = {n}}). Consider power analysis documentation.",
                 "recommendation": "Document power analysis or sample size justification.",
             })
             score -= 5
@@ -174,7 +174,7 @@ class ResearchQualityChecker:
             "n_rows": n,
             "n_cols": len(df.columns),
             "missing_pct": round(float(df.isna().mean().mean() * 100), 1),
-            "summary": f"Reproducibility: {'ðŸŸ¢ Excellent' if quality == 'excellent' else 'ðŸŸ¡ Good' if quality == 'good' else 'ðŸŸ  Fair' if quality == 'fair' else 'ðŸ”´ Poor'} ({score}/100)",
+            "summary": f"Reproducibility: {'Ã°Å¸Å¸Â¢ Excellent' if quality == 'excellent' else 'Ã°Å¸Å¸Â¡ Good' if quality == 'good' else 'Ã°Å¸Å¸Â  Fair' if quality == 'fair' else 'Ã°Å¸â€Â´ Poor'}} ({score}}/100)",
         }
 
     @staticmethod
@@ -209,7 +209,7 @@ class ResearchQualityChecker:
                     findings.append({
                         "type": "cherry_picking",
                         "severity": "medium",
-                        "detail": f"One effect size ({max_es:.2f}) is {max_es/mean_es:.1f}x the average ({mean_es:.2f}). May indicate selective reporting of favorable results.",
+                        "detail": f"One effect size ({max_es:.2f}}) is {max_es/mean_es:.1f}}x the average ({mean_es:.2f}}). May indicate selective reporting of favorable results.",
                         "recommendation": "Report all analyses conducted. Consider correction for multiple comparisons.",
                     })
                     score -= 20
@@ -221,7 +221,7 @@ class ResearchQualityChecker:
                 findings.append({
                     "type": "optional_stopping",
                     "severity": "medium",
-                    "detail": f"Significant result with small sample (N = {n}). May indicate data-dependent stopping.",
+                    "detail": f"Significant result with small sample (N = {n}}). May indicate data-dependent stopping.",
                     "recommendation": "Preregister sample size. Use sequential analysis if interim looks are necessary.",
                 })
                 score -= 20
@@ -234,7 +234,7 @@ class ResearchQualityChecker:
             "risk": risk,
             "score": score,
             "findings": findings,
-            "summary": f"QRP Risk: {'ðŸŸ¢ Low' if risk == 'low' else 'ðŸŸ¡ Moderate' if risk == 'moderate' else 'ðŸ”´ High'} ({score}/100)",
+            "summary": f"QRP Risk: {'Ã°Å¸Å¸Â¢ Low' if risk == 'low' else 'Ã°Å¸Å¸Â¡ Moderate' if risk == 'moderate' else 'Ã°Å¸â€Â´ High'}} ({score}}/100)",
         }
 
     @staticmethod
@@ -258,28 +258,28 @@ class ResearchQualityChecker:
         ]
 
 
-# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
     """Render the research quality checker UI."""
     import streamlit as st
     from modules.ui_components import section_header, insight_card
 
-    st.markdown("## ✅ Research Quality & Reproducibility Checker")
+    st.markdown("## âœ… Research Quality & Reproducibility Checker")
     st.markdown("*Detect p-hacking, QRPs, assess reproducibility, and ensure transparency*")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "ðŸ” p-Hacking Detection", "📋 Reproducibility", "âš ï¸ QRP Detection", "ðŸ“ Transparency Checklist"
+        "Ã°Å¸â€Â p-Hacking Detection", "ðŸ“‹ Reproducibility", "Ã¢Å¡Â Ã¯Â¸Â QRP Detection", "Ã°Å¸â€œÂ Transparency Checklist"
     ])
 
     checker = ResearchQualityChecker()
 
     with tab1:
-        st.subheader("ðŸ” p-Hacking Detection")
+        st.subheader("Ã°Å¸â€Â p-Hacking Detection")
         st.caption("Analyzes statistical results for signs of p-hacking")
 
         if statistical_results:
-            if st.button("ðŸš€ Run p-Hacking Check", type="primary"):
+            if st.button("Ã°Å¸Å¡â‚¬ Run p-Hacking Check", type="primary"):
                 result = checker.check_p_hacking(statistical_results)
                 risk = result.get("risk", "unknown")
                 score = result.get("score", 0)
@@ -299,8 +299,8 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                     st.markdown(f"""
                     <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
                         border-left:4px solid {sev_color};background:{sev_color}08;">
-                        <strong style="color:{sev_color};">âš ï¸ {f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;">ðŸ’¡ {f['recommendation']}</span>
+                        <strong style="color:{sev_color};">Ã¢Å¡Â Ã¯Â¸Â {f['detail']}</strong><br>
+                        <span style="font-size:0.9rem;">Ã°Å¸â€™Â¡ {f['recommendation']}</span>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -309,16 +309,16 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
             n_sig = sum(1 for r in statistical_results if r.get("significant"))
             n_total = len(statistical_results)
             st.metric("Total Tests", n_total)
-            st.metric("Significant", n_sig, delta=f"{n_sig/max(n_total,1):.0%}")
+            st.metric("Significant", n_sig, delta=f"{n_sig/max(n_total,1):.0%}}")
         else:
-            st.info("No statistical results available. Run analyses on the **ðŸ”¬ Statistical Tests** page first.")
+            st.info("No statistical results available. Run analyses on the **Ã°Å¸â€Â¬ Statistical Tests** page first.")
 
     with tab2:
-        st.subheader("📋 Reproducibility Check")
+        st.subheader("ðŸ“‹ Reproducibility Check")
         st.caption("Assess how reproducible your research is")
 
         if df is not None:
-            if st.button("ðŸ” Check Reproducibility", type="primary"):
+            if st.button("Ã°Å¸â€Â Check Reproducibility", type="primary"):
                 result = checker.check_reproducibility(df)
                 quality = result.get("quality", "unknown")
                 score = result.get("score", 0)
@@ -339,28 +339,28 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                     <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
                         border-left:4px solid {sev_color};background:{sev_color}08;">
                         <strong>{f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;color:#64748b;">ðŸ’¡ {f['recommendation']}</span>
+                        <span style="font-size:0.9rem;color:#64748b;">Ã°Å¸â€™Â¡ {f['recommendation']}</span>
                     </div>
                     """, unsafe_allow_html=True)
 
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
-                    st.metric("Rows", f"{result.get('n_rows', 0):,}")
+                    st.metric("Rows", f"{result.get('n_rows', 0):,}}")
                 with col2:
                     st.metric("Columns", result.get("n_cols", 0))
                 with col3:
-                    st.metric("Missing %", f"{result.get('missing_pct', 0)}%")
+                    st.metric("Missing %", f"{result.get('missing_pct', 0)}}%")
                 with col4:
                     st.metric("Quality", quality.title())
         else:
             st.info("Load data first to check reproducibility readiness.")
 
     with tab3:
-        st.subheader("âš ï¸ Questionable Research Practices (QRP) Detection")
+        st.subheader("Ã¢Å¡Â Ã¯Â¸Â Questionable Research Practices (QRP) Detection")
         st.caption("Detects HARKing, cherry-picking, optional stopping, and other QRPs")
 
         if statistical_results:
-            if st.button("ðŸ” Check QRPs", type="primary"):
+            if st.button("Ã°Å¸â€Â Check QRPs", type="primary"):
                 result = checker.check_qrps(statistical_results)
                 risk = result.get("risk", "unknown")
                 score = result.get("score", 0)
@@ -381,14 +381,14 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
                     <div style="padding:0.8rem;margin:0.5rem 0;border-radius:10px;
                         border-left:4px solid {sev_color};background:{sev_color}08;">
                         <strong>{f['detail']}</strong><br>
-                        <span style="font-size:0.9rem;color:#64748b;">ðŸ’¡ {f['recommendation']}</span>
+                        <span style="font-size:0.9rem;color:#64748b;">Ã°Å¸â€™Â¡ {f['recommendation']}</span>
                     </div>
                     """, unsafe_allow_html=True)
         else:
             st.info("No statistical results available. Run analyses first.")
 
     with tab4:
-        st.subheader("ðŸ“ Transparency & Reproducibility Checklist")
+        st.subheader("Ã°Å¸â€œÂ Transparency & Reproducibility Checklist")
         st.caption("Essential items for transparent, reproducible research")
 
         checklist = checker.generate_transparency_checklist()
@@ -401,23 +401,24 @@ def render_research_quality_ui(statistical_results: List[Dict] = None, df=None):
             categories[cat].append(item)
 
         for cat, items in categories.items():
-            st.markdown(f"### {cat.capitalize()}")
+            st.markdown(f"### {cat.capitalize()}}")
             for item in items:
-                checked = st.checkbox(item["item"], key=f"check_{item['item']}")
+                checked = st.checkbox(item["item"], key=f"check_{item['item']}}")
                 if checked:
-                    st.caption(f"✅ {item['description']}")
+                    st.caption(f"âœ… {item['description']}}")
                 else:
-                    st.caption(f"📋 {item['description']}")
+                    st.caption(f"ðŸ“‹ {item['description']}}")
 
-        if st.button("📥 Download Checklist"):
+        if st.button("ðŸ“¥ Download Checklist"):
             import base64
             lines = ["# Transparency & Reproducibility Checklist", ""]
             for cat, items in categories.items():
-                lines.append(f"## {cat.capitalize()}")
+                lines.append(f"## {cat.capitalize()}}")
                 for item in items:
-                    lines.append(f"- [ ] {item['item']}: {item['description']}")
+                    lines.append(f"- [ ] {item['item']}}: {item['description']}}")
                 lines.append("")
             text = "\n".join(lines)
             b64 = base64.b64encode(text.encode()).decode()
-            st.markdown(f'<a href="data:text/markdown;base64,{b64}" download="transparency_checklist.md">📥 Download Checklist</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="data:text/markdown;base64,{b64}}" download="transparency_checklist.md">ðŸ“¥ Download Checklist</a>', unsafe_allow_html=True)
+
 

@@ -1,4 +1,4 @@
-
+﻿
 import streamlit as st
 from modules.webhook_manager import send_enterprise_webhook
 from modules.database import log_backend_event
@@ -19,8 +19,9 @@ def render_webhook_panel():
             result = send_enterprise_webhook(webhook_url, event_type, message, {"triggered_by": "Chrishem Admin"})
             
             if result["status"] == "success":
-                st.success(f"Webhook successfully dispatched! HTTP Status: {result['status_code']}")
+                st.success(f"Webhook successfully dispatched! HTTP Status: {result['status_code']}}")
             elif result["status"] == "skipped":
                 st.warning("Webhook dispatch skipped: Please provide a valid active endpoint URL.")
             else:
-                st.error(f"Webhook dispatch failed: {result.get('message', 'Unknown error')}")
+                st.error(f"Webhook dispatch failed: {result.get('message', 'Unknown error')}}")
+

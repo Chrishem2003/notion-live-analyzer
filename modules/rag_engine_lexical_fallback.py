@@ -1,21 +1,21 @@
-"""
-rag_engine.py — Hybrid vector + graph retrieval, so the agent swarm's
+﻿"""
+rag_engine.py â€” Hybrid vector + graph retrieval, so the agent swarm's
 Research node (agents.py) can search documents you've actually ingested,
 not just CrossRef.
 
 Honesty note on embeddings: real semantic embeddings need either an API
-call (Gemini) or a downloaded local model — this sandbox has network access
+call (Gemini) or a downloaded local model â€” this sandbox has network access
 to neither Hugging Face nor the Gemini API, so rather than fake a
 "semantic" embedding, the no-API-key path here is an honestly-labeled
 TF-IDF + SVD lexical fallback: it will find documents that share vocabulary
 with the query, not ones that are conceptually related but worded
-differently. That's a real, working retrieval method — it's just a
+differently. That's a real, working retrieval method â€” it's just a
 different (weaker) one than a proper embedding model, and the code says so
 rather than pretending otherwise.
 
 Honesty note on pgvector: the SQL and psycopg code below is correct and
 follows pgvector's documented API, but this sandbox has no local Postgres
-to run it against — I tested every pure-Python piece (chunking, the
+to run it against â€” I tested every pure-Python piece (chunking, the
 embedding fallback, entity extraction, graph construction, multi-hop
 expansion) for real, with assertions on actual output. The SQL layer needs
 to be verified against your real Postgres+pgvector instance before you
@@ -53,9 +53,9 @@ import os
 EMBEDDING_DIM = 768  # fixed so pgvector's VECTOR(768) column is consistent regardless of embedding source
 
 
-# ══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Chunking
-# ══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def chunk_text(text: str, chunk_size: int = 800, overlap: int = 120) -> list[str]:
     """Sliding-window character chunking with overlap so a fact split
     across a chunk boundary isn't lost to either chunk alone."""
@@ -70,7 +70,7 @@ def chunk_text(text: str, chunk_size: int = 800, overlap: int = 120) -> list[str
     while start < len(text):
         end = start + chunk_size
         chunk = text[start:end]
-        # Don't cut mid-word if we can help it — back off to the last space.
+        # Don't cut mid-word if we can help it â€” back off to the last space.
         if end < len(text):
             last_space = chunk.rfind(" ")
             if last_space > chunk_size * 0.5:
@@ -81,9 +81,9 @@ def chunk_text(text: str, chunk_size: int = 800, overlap: int = 120) -> list[str
     return [c for c in chunks if c]
 
 
-# ══════════════════════════════════════════════════════════════════
-# Embeddings — real Gemini call, or an honest TF-IDF/SVD lexical fallback
-# ══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Embeddings â€” real Gemini call, or an honest TF-IDF/SVD lexical fallback
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def embed_texts(texts: list[str]) -> tuple[np.ndarray, str]:
     """Returns (embeddings [n_texts, EMBEDDING_DIM], method_used)."""
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -98,14 +98,14 @@ def embed_texts(texts: list[str]) -> tuple[np.ndarray, str]:
             pass  # fall through to the honest lexical fallback below
 
     if not SKLEARN_AVAILABLE:
-        raise RuntimeError("Neither GEMINI_API_KEY nor scikit-learn is available — cannot embed text.")
+        raise RuntimeError("Neither GEMINI_API_KEY nor scikit-learn is available â€” cannot embed text.")
 
     vectorizer = TfidfVectorizer(max_features=4096, stop_words="english")
     tfidf = vectorizer.fit_transform(texts)
 
     n_components = min(EMBEDDING_DIM, tfidf.shape[0] - 1, tfidf.shape[1] - 1)
     if n_components < 2:
-        # Too few/short documents for SVD — pad a plain normalized TF-IDF-mean vector instead.
+        # Too few/short documents for SVD â€” pad a plain normalized TF-IDF-mean vector instead.
         dense = np.asarray(tfidf.todense())
         padded = np.zeros((dense.shape[0], EMBEDDING_DIM))
         padded[:, :min(dense.shape[1], EMBEDDING_DIM)] = dense[:, :EMBEDDING_DIM]
@@ -115,7 +115,7 @@ def embed_texts(texts: list[str]) -> tuple[np.ndarray, str]:
     reduced = svd.fit_transform(tfidf)
     padded = np.zeros((reduced.shape[0], EMBEDDING_DIM))
     padded[:, :n_components] = reduced
-    return padded, "tfidf-svd (lexical fallback — set GEMINI_API_KEY for real semantic embeddings)"
+    return padded, "tfidf-svd (lexical fallback â€” set GEMINI_API_KEY for real semantic embeddings)"
 
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -124,9 +124,9 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return a_norm @ b_norm.T
 
 
-# ══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Entity extraction (lightweight, no external NLP model dependency)
-# ══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 STOPWORDS = {"the", "and", "for", "with", "that", "this", "from", "have", "were", "are", "was", "will", "not"}
 
 
@@ -134,7 +134,7 @@ def extract_entities(chunk: str, top_n: int = 6) -> list[str]:
     """
     Two signal sources, both real: capitalized multi-word phrases (proper
     nouns / named concepts) and frequent significant unigrams. This is a
-    lexical heuristic, not a trained NER model — good enough to link chunks
+    lexical heuristic, not a trained NER model â€” good enough to link chunks
     that share a named concept, honestly not claiming more than that.
     """
     proper_phrases = re.findall(r"\b(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})\b", chunk)
@@ -148,26 +148,26 @@ def extract_entities(chunk: str, top_n: int = 6) -> list[str]:
     return entities[:top_n]
 
 
-# ══════════════════════════════════════════════════════════════════
-# Knowledge graph — chunks <-> entities, enabling multi-hop retrieval
-# ══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Knowledge graph â€” chunks <-> entities, enabling multi-hop retrieval
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def build_knowledge_graph(chunk_records: list[dict]) -> "nx.Graph":
     """
     chunk_records: [{"id": str, "text": str, "doc_title": str}, ...]
     Returns a bipartite-ish graph: chunk nodes + entity nodes, edges where
     an entity appears in a chunk. Two chunks that never cite each other
-    directly but both mention the same entity become reachable in 2 hops —
+    directly but both mention the same entity become reachable in 2 hops â€”
     that's the actual multi-hop reasoning capability, not a metaphor.
     """
     if not NETWORKX_AVAILABLE:
-        raise RuntimeError("networkx is not installed — required for the graph layer.")
+        raise RuntimeError("networkx is not installed â€” required for the graph layer.")
 
     graph = nx.Graph()
     for record in chunk_records:
         chunk_id = record["id"]
         graph.add_node(chunk_id, kind="chunk", doc_title=record.get("doc_title", ""))
         for entity in extract_entities(record["text"]):
-            entity_node = f"entity::{entity.lower()}"
+            entity_node = f"entity::{entity.lower()}}"
             if entity_node not in graph:
                 graph.add_node(entity_node, kind="entity", label=entity)
             graph.add_edge(chunk_id, entity_node)
@@ -200,11 +200,11 @@ def multi_hop_expand(graph: "nx.Graph", seed_chunk_ids: list[str], hops: int = 2
     return related[:max_results]
 
 
-# ══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # PostgreSQL + pgvector persistence layer
-# (correct against pgvector's documented API — not executable in this
+# (correct against pgvector's documented API â€” not executable in this
 # sandbox; verify against your real instance before production use)
-# ══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 SCHEMA_SQL = """
 CREATE EXTENSION IF NOT EXISTS vector;
 
@@ -241,7 +241,7 @@ CREATE TABLE IF NOT EXISTS rag_chunk_entities (
 
 def get_connection():
     if not PSYCOPG_AVAILABLE:
-        raise RuntimeError("psycopg is not installed — pip install 'psycopg[binary]'.")
+        raise RuntimeError("psycopg is not installed â€” pip install 'psycopg[binary]'.")
     dsn = os.environ.get("RAG_DATABASE_URL")
     if not dsn:
         raise RuntimeError("Set RAG_DATABASE_URL, e.g. postgresql://user:pass@localhost:5432/chrishem")
@@ -255,7 +255,7 @@ def init_schema(conn):
 
 
 def ingest_document(conn, title: str, text: str, source: Optional[str] = None) -> dict:
-    """Chunk, embed, extract entities, and persist — returns the chunk
+    """Chunk, embed, extract entities, and persist â€” returns the chunk
     records so the caller can also build/update the in-memory graph."""
     with conn.cursor() as cur:
         cur.execute("INSERT INTO rag_documents (title, source) VALUES (%s, %s) RETURNING id", (title, source))
@@ -270,7 +270,7 @@ def ingest_document(conn, title: str, text: str, source: Optional[str] = None) -
 
     with conn.cursor() as cur:
         for chunk_str, embedding in zip(chunks, embeddings):
-            chunk_id = hashlib.sha256(f"{document_id}:{chunk_str}".encode()).hexdigest()[:24]
+            chunk_id = hashlib.sha256(f"{document_id}}:{chunk_str}}".encode()).hexdigest()[:24]
             cur.execute(
                 "INSERT INTO rag_chunks (id, document_id, chunk_text, embedding, embedding_method) "
                 "VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",

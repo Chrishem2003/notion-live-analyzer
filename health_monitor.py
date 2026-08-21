@@ -1,4 +1,4 @@
-
+﻿
 import streamlit as st
 import os
 import psutil
@@ -31,10 +31,10 @@ def render_health_monitor():
 
     # Display Metrics in Columns
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("CPU Load", f"{cpu_usage}%", "-1.2%")
-    col2.metric("Memory Usage", f"{memory_usage}%", "0.4%")
-    col3.metric("Disk Utilization", f"{disk_usage}%", "Stable")
-    col4.metric("SQLite DB Size", f"{db_size_kb:.1f} KB", "Optimized")
+    col1.metric("CPU Load", f"{cpu_usage}}%", "-1.2%")
+    col2.metric("Memory Usage", f"{memory_usage}}%", "0.4%")
+    col3.metric("Disk Utilization", f"{disk_usage}}%", "Stable")
+    col4.metric("SQLite DB Size", f"{db_size_kb:.1f}} KB", "Optimized")
 
     st.markdown("---")
 
@@ -56,3 +56,4 @@ def render_health_monitor():
     if st.button(" Refresh System Telemetry"):
         st.toast("System metrics successfully refreshed!", icon="?")
         st.rerun()
+

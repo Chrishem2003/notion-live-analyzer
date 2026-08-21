@@ -1,4 +1,4 @@
-
+﻿
 import streamlit as st
 import numpy as np
 import datetime
@@ -8,7 +8,7 @@ import io
 # Page Configuration
 st.set_page_config(
     page_title="Sovereign Enterprise Master Control",
-    page_icon="🔍",
+    page_icon="ðŸ”",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -97,27 +97,27 @@ def render_enterprise_master_control_panel(st_instance, conn, mlce_val=0.1, stat
     with col1:
         st_instance.markdown('<div class="metric-card"><div class="metric-value">50</div><div class="metric-label">Active Advancements</div></div>', unsafe_allow_html=True)
     with col2:
-        st_instance.markdown(f'<div class="metric-card"><div class="metric-value">{mlce_val:.3f}</div><div class="metric-label">Lyapunov Heuristic</div></div>', unsafe_allow_html=True)
+        st_instance.markdown(f'<div class="metric-card"><div class="metric-value">{mlce_val:.3f}}</div><div class="metric-label">Lyapunov Heuristic</div></div>', unsafe_allow_html=True)
     with col3:
-        st_instance.markdown(f'<div class="metric-card"><div class="metric-value">{state_label}</div><div class="metric-label">System State</div></div>', unsafe_allow_html=True)
+        st_instance.markdown(f'<div class="metric-card"><div class="metric-value">{state_label}}</div><div class="metric-label">System State</div></div>', unsafe_allow_html=True)
     with col4:
         st_instance.markdown('<div class="metric-card"><div class="metric-value">Online</div><div class="metric-label">SQLite Persistent Store</div></div>', unsafe_allow_html=True)
     
     st_instance.markdown('<div class="glass-divider"></div>', unsafe_allow_html=True)
-    st_instance.info("ðŸ” All 50 advanced enterprise modules, analytical pipelines, and visualization engines have been fully integrated into the sovereign environment.")
+    st_instance.info("Ã°Å¸â€Â All 50 advanced enterprise modules, analytical pipelines, and visualization engines have been fully integrated into the sovereign environment.")
 
 # Main Application Execution
 def main():
-    st.title("ðŸ” Sovereign Nonlinear Systems & Resilience Engine v5.0")
+    st.title("Ã°Å¸â€Â Sovereign Nonlinear Systems & Resilience Engine v5.0")
     st.sidebar.title("Navigation & Control")
     
     menu_choice = st.sidebar.selectbox(
         "Select Operation Mode",
         [
             "? Master Dashboard", 
-            "ðŸ” Analytics & Simulation", 
-            "ðŸ” Data Import / Export", 
-            "ðŸ” System Self-Test & Diagnostics"
+            "Ã°Å¸â€Â Analytics & Simulation", 
+            "Ã°Å¸â€Â Data Import / Export", 
+            "Ã°Å¸â€Â System Self-Test & Diagnostics"
         ]
     )
 
@@ -130,19 +130,19 @@ def main():
         chart_data = np.random.randn(50, 3)
         st.line_chart(chart_data)
 
-    elif menu_choice == "ðŸ” Analytics & Simulation":
+    elif menu_choice == "Ã°Å¸â€Â Analytics & Simulation":
         st.subheader("Advanced Analytical Modules")
         st.write("Execute stochastic differential equations, topological data analysis, and Bayesian MCMC estimation.")
         if st.button("Run Simulation Sweep"):
             st.success("Simulation sequence completed successfully across all 50 operational nodes.")
 
-    elif menu_choice == "ðŸ” Data Import / Export":
+    elif menu_choice == "Ã°Å¸â€Â Data Import / Export":
         st.subheader("Institutional Data Vault")
         uploaded_file = st.file_uploader("Upload environmental or telemetry dataset (CSV / JSON)", type=["csv", "json"])
         if uploaded_file is not None:
-            st.success(f"Successfully ingested file: {uploaded_file.name}")
+            st.success(f"Successfully ingested file: {uploaded_file.name}}")
 
-    elif menu_choice == "ðŸ” System Self-Test & Diagnostics":
+    elif menu_choice == "Ã°Å¸â€Â System Self-Test & Diagnostics":
         st.subheader("System Integrity Audit")
         if st.button("Execute Integrity Audit"):
             st.metric("NaN Values Detected", "0")
@@ -151,4 +151,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

@@ -1,4 +1,4 @@
-
+﻿
 """
 Advanced Resampling & Validation  Bootstrap confidence intervals, permutation tests,
 cross-validation, Monte Carlo simulations.
@@ -78,7 +78,7 @@ class ResamplingEngine:
             ci_upper = np.percentile(bootstrap_stats, (1 - alpha / 2) * 100)
 
         return {
-            "method": f"Bootstrap (n={n_bootstrap}, {method})",
+            "method": f"Bootstrap (n={n_bootstrap}}, {method}})",
             "statistic": statistic.__name__ if hasattr(statistic, '__name__') else "custom",
             "point_estimate": round(float(statistic(data)), 4),
             "ci_lower": round(float(ci_lower), 4),
@@ -172,7 +172,7 @@ class ResamplingEngine:
             scores.append(score)
 
         return {
-            "method": f"{n_folds}-Fold Cross-Validation",
+            "method": f"{n_folds}}-Fold Cross-Validation",
             "n_folds": n_folds,
             "scoring": scoring,
             "scores": [round(float(s), 4) for s in scores],
@@ -263,33 +263,33 @@ class ResamplingEngine:
         }
 
 
-# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 def render_resampling_ui():
     """Render the Resampling & Validation page."""
     import streamlit as st
     import plotly.express as px
     import plotly.graph_objects as go
 
-    st.markdown("## ðŸ”„ Advanced Resampling & Validation")
+    st.markdown("## Ã°Å¸â€â€ž Advanced Resampling & Validation")
     st.markdown("*Bootstrap, permutation tests, cross-validation, Monte Carlo simulations*")
 
     df = st.session_state.get("active_df")
     engine = ResamplingEngine()
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "🎲 Bootstrap CI", "ðŸ”„ Permutation Test", " Cross-Validation",
-        "âš¡ Monte Carlo Power", "📈 Bootstrap Hypothesis Test"
+        "ðŸŽ² Bootstrap CI", "Ã°Å¸â€â€ž Permutation Test", " Cross-Validation",
+        "Ã¢Å¡Â¡ Monte Carlo Power", "ðŸ“ˆ Bootstrap Hypothesis Test"
     ])
 
     with tab1:
-        st.subheader("🎲 Bootstrap Confidence Intervals")
+        st.subheader("ðŸŽ² Bootstrap Confidence Intervals")
         if df is not None:
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             col = st.selectbox("Variable", options=numeric_cols, key="bs_col")
             stat = st.selectbox("Statistic", options=["mean", "median", "std", "var"], key="bs_stat")
             n_boot = st.slider("Number of bootstrap samples", 100, 5000, 1000, key="bs_n")
             ci_method = st.selectbox("CI method", options=["percentile", "bca", "basic"], key="bs_method")
-            if st.button("🎲 Compute Bootstrap CI", type="primary"):
+            if st.button("ðŸŽ² Compute Bootstrap CI", type="primary"):
                 stat_map = {"mean": np.mean, "median": np.median, "std": np.std, "var": np.var}
                 data = df[col].dropna().values
                 result = engine.bootstrap_ci(data, stat_map[stat], n_boot, 0.95, ci_method)
@@ -297,12 +297,12 @@ def render_resampling_ui():
                 with col1: st.metric("Point Estimate", result["point_estimate"])
                 with col2: st.metric("CI Lower", result["ci_lower"])
                 with col3: st.metric("CI Upper", result["ci_upper"])
-                st.info(f"Bootstrap SE = {result['bootstrap_se']:.4f}, Bias = {result['bias']:.4f}")
+                st.info(f"Bootstrap SE = {result['bootstrap_se']:.4f}}, Bias = {result['bias']:.4f}}")
         else:
             st.warning("No data loaded.")
 
     with tab2:
-        st.subheader("ðŸ”„ Permutation Test (Two-Group Comparison)")
+        st.subheader("Ã°Å¸â€â€ž Permutation Test (Two-Group Comparison)")
         if df is not None:
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             cat_cols = [c for c in df.columns if df[c].nunique() == 2]
@@ -310,14 +310,14 @@ def render_resampling_ui():
                 group_col = st.selectbox("Group variable (2 groups)", options=cat_cols, key="perm_group")
                 value_col = st.selectbox("Value variable", options=numeric_cols, key="perm_value")
                 alt = st.selectbox("Alternative", options=["two-sided", "greater", "less"], key="perm_alt")
-                if st.button("ðŸ”„ Run Permutation Test", type="primary"):
+                if st.button("Ã°Å¸â€â€ž Run Permutation Test", type="primary"):
                     groups = df[group_col].dropna().unique()
                     g1 = df[df[group_col] == groups[0]][value_col].dropna().values
                     g2 = df[df[group_col] == groups[1]][value_col].dropna().values
                     result = engine.permutation_test(g1, g2, alternative=alt)
                     st.metric("Observed Difference", result["observed_statistic"])
                     st.metric("p-value", result["p_value"])
-                    st.info(f"{'✅ Significant' if result['significant'] else 'âŒ Not significant'} (p {'<' if result['p_value'] < 0.001 else '='} {result['p_value']:.4f})")
+                    st.info(f"{'âœ… Significant' if result['significant'] else 'Ã¢ÂÅ’ Not significant'}} (p {'<' if result['p_value'] < 0.001 else '='}} {result['p_value']:.4f}})")
             else:
                 st.warning("Need a binary categorical and a numeric variable.")
         else:
@@ -337,40 +337,41 @@ def render_resampling_ui():
                 y = df[target].fillna(0).values
                 model = LinearRegression()
                 result = engine.cross_validate(X, y, model, n_folds, scoring="r2")
-                st.metric("Mean RÂ²", result["mean_score"])
-                st.metric("Std RÂ²", result["std_score"])
-                st.info(f"95% CI: [{result['ci_lower']:.4f}, {result['ci_upper']:.4f}]")
+                st.metric("Mean RÃ‚Â²", result["mean_score"])
+                st.metric("Std RÃ‚Â²", result["std_score"])
+                st.info(f"95% CI: [{result['ci_lower']:.4f}}, {result['ci_upper']:.4f}}]")
         else:
             st.warning("No data loaded.")
 
     with tab4:
-        st.subheader("âš¡ Monte Carlo Power Analysis")
+        st.subheader("Ã¢Å¡Â¡ Monte Carlo Power Analysis")
         es = st.number_input("Effect size (Cohen's d / correlation r)", value=0.5, step=0.05, key="mc_es")
         n = st.number_input("Sample size per group", value=50, step=5, key="mc_n")
         n_sim = st.slider("Number of simulations", 100, 5000, 1000, key="mc_sim")
         test = st.selectbox("Test type", options=["ttest", "correlation"], key="mc_test")
-        if st.button("âš¡ Estimate Power", type="primary"):
+        if st.button("Ã¢Å¡Â¡ Estimate Power", type="primary"):
             result = engine.monte_carlo_power(es, int(n), n_sim, 0.05, test)
-            st.metric("Estimated Power", f"{result['estimated_power']:.3f}")
-            st.info(f"Power = {result['estimated_power']:.2%}  {result['interpretation']}")
+            st.metric("Estimated Power", f"{result['estimated_power']:.3f}}")
+            st.info(f"Power = {result['estimated_power']:.2%}}  {result['interpretation']}}")
 
     with tab5:
-        st.subheader("📈 Bootstrap Hypothesis Test")
+        st.subheader("ðŸ“ˆ Bootstrap Hypothesis Test")
         if df is not None:
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             cat_cols = [c for c in df.columns if df[c].nunique() == 2]
             if cat_cols and numeric_cols:
                 bg_col = st.selectbox("Group variable", options=cat_cols, key="bht_group")
                 bv_col = st.selectbox("Value variable", options=numeric_cols, key="bht_value")
-                if st.button("📈 Run Bootstrap Test", type="primary"):
+                if st.button("ðŸ“ˆ Run Bootstrap Test", type="primary"):
                     groups = df[bg_col].dropna().unique()
                     g1 = df[df[bg_col] == groups[0]][bv_col].dropna().values
                     g2 = df[df[bg_col] == groups[1]][bv_col].dropna().values
                     result = engine.bootstrap_hypothesis_test(g1, g2)
                     st.metric("Observed Difference", result["observed_difference"])
                     st.metric("p-value", result["p_value"])
-                    st.info(f"95% CI of difference: [{result['bootstrap_ci_diff'][0]:.4f}, {result['bootstrap_ci_diff'][1]:.4f}]")
+                    st.info(f"95% CI of difference: [{result['bootstrap_ci_diff'][0]:.4f}}, {result['bootstrap_ci_diff'][1]:.4f}}]")
             else:
                 st.warning("Need a binary categorical and a numeric variable.")
         else:
             st.warning("No data loaded.")
+

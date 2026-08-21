@@ -1,4 +1,4 @@
-
+﻿
 import json
 import logging
 from modules.api_safeguards import safe_api_request
@@ -13,8 +13,8 @@ def send_backup_webhook_alert(webhook_url: str, record_count: int, db_id: str, p
     if not webhook_url:
         return False
 
-    title = "ðŸ’¾ Notion Database Backup Completed"
-    description = f"Successfully snapshotted Notion DB `{db_id}` with **{record_count} records**."
+    title = "Ã°Å¸â€™Â¾ Notion Database Backup Completed"
+    description = f"Successfully snapshotted Notion DB `{db_id}}` with **{record_count}} records**."
 
     if "discord.com" in webhook_url:
         payload = {
@@ -28,7 +28,7 @@ def send_backup_webhook_alert(webhook_url: str, record_count: int, db_id: str, p
     else:
         # Standard Slack-compatible webhook format
         payload = {
-            "text": f"*{title}*\n{description}"
+            "text": f"*{title}}*\n{description}}"
         }
 
     try:
@@ -41,5 +41,6 @@ def send_backup_webhook_alert(webhook_url: str, record_count: int, db_id: str, p
         )
         return True
     except Exception as e:
-        logger.error(f"Failed to dispatch webhook alert: {e}")
+        logger.error(f"Failed to dispatch webhook alert: {e}}")
         return False
+

@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 from modules import subscription, billing_stripe
 
 def enforce_paywall(allowed_plans=("pro", "business", "premium"), feature_name="this premium feature", allow_trial=False):
@@ -19,12 +19,12 @@ def enforce_paywall(allowed_plans=("pro", "business", "premium"), feature_name="
 
     # Block trial users if allow_trial is False
     if is_trial and not allow_trial:
-        st.warning(f"🔒 **Trial Access Restricted:** Trial accounts cannot access {feature_name}. Please upgrade to a paid subscription.")
+        st.warning(f"ðŸ”’ **Trial Access Restricted:** Trial accounts cannot access {feature_name}}. Please upgrade to a paid subscription.")
         render_paywall_cta()
         st.stop()
 
     if current_plan not in allowed_plans and status.get("status") != "active":
-        st.error(f"🔒 **Subscription Required:** You need an active paid plan ({', '.join(allowed_plans).upper()}) to access {feature_name}.")
+        st.error(f"ðŸ”’ **Subscription Required:** You need an active paid plan ({', '.join(allowed_plans).upper()}}) to access {feature_name}}.")
         render_paywall_cta()
         st.stop()
 
@@ -34,9 +34,9 @@ def render_paywall_cta():
     st.markdown("---")
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.subheader("⚡ Unlock Sovereign Apex Business Access")
+        st.subheader("âš¡ Unlock Sovereign Apex Business Access")
         st.write("Get instant access to Bio-Research Notion Planners, Brain FM Focus Soundscapes, and advanced analytics pipelines.")
     with col2:
-        if st.button("💳 Upgrade Subscription Now", type="primary", use_container_width=True):
-            st.session_state["menu_selection"] = "💳 Billing & Subscription"
+        if st.button("ðŸ’³ Upgrade Subscription Now", type="primary", use_container_width=True):
+            st.session_state["menu_selection"] = "ðŸ’³ Billing & Subscription"
             st.rerun()

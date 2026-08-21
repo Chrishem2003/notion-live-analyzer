@@ -1,4 +1,4 @@
-
+﻿
 import sqlite3
 import json
 import hashlib
@@ -8,7 +8,7 @@ import streamlit as st
 from modules.schema_engine import DB_FILE, init_db, log_provenance
 
 def render_blindspot_engine_tab():
-    st.subheader("ðŸ›¡ï¸ Advanced ResearchOS Resilience & Integrity Engine")
+    st.subheader("Ã°Å¸â€ºÂ¡Ã¯Â¸Â Advanced ResearchOS Resilience & Integrity Engine")
     st.caption("Mitigating silent data rot, indexing negative/null results to prevent duplicated labor, and monitoring live retraction tracking.")
 
     init_db()
@@ -38,11 +38,11 @@ def render_blindspot_engine_tab():
     ''')
     conn.commit()
 
-    tab_sub1, tab_sub2, tab_sub3 = st.tabs(["ðŸ§ª Negative Result Vault", "ðŸ§¬ Runtime Snapshot & Anti-Rot", "âš ï¸ Retraction Sentinel"])
+    tab_sub1, tab_sub2, tab_sub3 = st.tabs(["Ã°Å¸Â§Âª Negative Result Vault", "Ã°Å¸Â§Â¬ Runtime Snapshot & Anti-Rot", "Ã¢Å¡Â Ã¯Â¸Â Retraction Sentinel"])
 
     # SUBTAB 1: NEGATIVE RESULT VAULT
     with tab_sub1:
-        st.markdown("### ðŸ•³ï¸ The Negative Result & Null-Finding Repository")
+        st.markdown("### Ã°Å¸â€¢Â³Ã¯Â¸Â The Negative Result & Null-Finding Repository")
         st.caption("Prevent global duplication of failed experiments by securely logging null hypotheses and unviable assay parameters.")
 
         col_nr1, col_nr2 = st.columns(2)
@@ -50,7 +50,7 @@ def render_blindspot_engine_tab():
             with st.form("null_result_form"):
                 nr_id = st.text_input("Vault Entry ID", value="NULL-2026-01")
                 proj_ref = st.text_input("Project ID", value="PRJ-2026-001")
-                hyp_title = st.text_input("Tested Hypothesis / Assay", value="Taq polymerase optimization with modified buffer at 65Â°C")
+                hyp_title = st.text_input("Tested Hypothesis / Assay", value="Taq polymerase optimization with modified buffer at 65Ã‚Â°C")
                 fail_desc = st.text_area("Observed Failure / Null Outcome", value="Complete amplification failure; primer dimer formation dominated reaction kinetics.")
                 submitted_nr = st.form_submit_button("Securely Log Negative Result")
                 
@@ -65,7 +65,7 @@ def render_blindspot_engine_tab():
                     st.rerun()
 
         with col_nr2:
-            st.markdown("### ðŸ“‚ Global Null-Result Directory")
+            st.markdown("### Ã°Å¸â€œâ€š Global Null-Result Directory")
             null_df = pd.read_sql_query("SELECT vault_id, hypothesis_title, failure_reason, logged_at FROM null_results_vault", conn)
             if not null_df.empty:
                 st.dataframe(null_df, use_container_width=True)
@@ -74,11 +74,11 @@ def render_blindspot_engine_tab():
 
     # SUBTAB 2: RUNTIME SNAPSHOT & ANTI-ROT
     with tab_sub2:
-        st.markdown("### ðŸ”’ Deterministic Environment & Execution Snapshot")
+        st.markdown("### Ã°Å¸â€â€™ Deterministic Environment & Execution Snapshot")
         st.caption("Eliminates reproducibility failure by locking software versions, package hashes, and runtime specs.")
 
-        if st.button("ðŸ“¸ Generate Current Runtime Compliance Snapshot"):
-            snap_id = f"SNAP-{int(datetime.utcnow().timestamp())}"
+        if st.button("Ã°Å¸â€œÂ¸ Generate Current Runtime Compliance Snapshot"):
+            snap_id = f"SNAP-{int(datetime.utcnow().timestamp())}}"
             deps = {
                 "python": "3.10.12",
                 "streamlit": "1.35.0",
@@ -95,8 +95,8 @@ def render_blindspot_engine_tab():
             ''', (snap_id, "app.py", runtime_hash, raw_env))
             conn.commit()
 
-            st.success(f"Runtime Snapshot Locked! ID: `{snap_id}`")
-            st.code(f"SHA-256 Environment Fingerprint:\n{runtime_hash}", language="text")
+            st.success(f"Runtime Snapshot Locked! ID: `{snap_id}}`")
+            st.code(f"SHA-256 Environment Fingerprint:\n{runtime_hash}}", language="text")
 
         snaps_df = pd.read_sql_query("SELECT * FROM environment_snapshots ORDER BY created_at DESC", conn)
         if not snaps_df.empty:
@@ -104,12 +104,13 @@ def render_blindspot_engine_tab():
 
     # SUBTAB 3: RETRACTION SENTINEL
     with tab_sub3:
-        st.markdown("### ðŸš¨ Live Retraction & Citation Sentinel")
+        st.markdown("### Ã°Å¸Å¡Â¨ Live Retraction & Citation Sentinel")
         st.caption("Scans active literature database keys against global retraction registries.")
         
         check_doi = st.text_input("Verify Literature DOI / Identifier", value="10.1038/s41587-026-001")
         if st.button("Check Retraction Status"):
             # Simulated real-time cross-check against retraction databases
-            st.success(f"✅ DOI `{check_doi}` is verified active. No retractions or expressions of concern registered in cross-agency databases.")
+            st.success(f"âœ… DOI `{check_doi}}` is verified active. No retractions or expressions of concern registered in cross-agency databases.")
 
     conn.close()
+

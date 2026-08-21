@@ -1,4 +1,4 @@
-
+﻿
 """
 Secure Personal Vault
 Zero-knowledge encrypted personal storage vault with 2 + FA authentication,
@@ -41,14 +41,14 @@ except ImportError:
     logger.warning("cryptography package unavailable + vault falls back to a reduced crypto path")
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # ENUMS & CONSTANTS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 class VaultCategory(str, Enum):
-    DOCUMENTS = "ðŸ“„ Documents"
-    IMAGES = "ðŸ“· Images"
-    AUDIO = "ðŸŽ™ï¸ Audio Notes"
+    DOCUMENTS = "Ã°Å¸â€œâ€ž Documents"
+    IMAGES = "Ã°Å¸â€œÂ· Images"
+    AUDIO = "Ã°Å¸Å½â„¢Ã¯Â¸Â Audio Notes"
     DATASETS = " Datasets & Code"
 
 
@@ -62,9 +62,9 @@ CATEGORY_EXTENSIONS: Dict[VaultCategory, List[str]] = {
 }
 
 CATEGORY_ICONS: Dict[VaultCategory, str] = {
-    VaultCategory.DOCUMENTS: "ðŸ“„",
-    VaultCategory.IMAGES: "ðŸ“·",
-    VaultCategory.AUDIO: "ðŸŽ™ï¸",
+    VaultCategory.DOCUMENTS: "Ã°Å¸â€œâ€ž",
+    VaultCategory.IMAGES: "Ã°Å¸â€œÂ·",
+    VaultCategory.AUDIO: "Ã°Å¸Å½â„¢Ã¯Â¸Â",
     VaultCategory.DATASETS: "",
 }
 
@@ -83,9 +83,9 @@ AUTO_LOCK_TIMEOUT_SECONDS = 300  # 5 minutes of inactivity
 TOTP_INTERVAL = 30  # TOTP standard 30-second window
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # TOTP UTILITY (RFC 6238-compatible)
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 def _generate_totp(secret: str, interval: int = TOTP_INTERVAL) -> str:
     """Generate a 6-digit TOTP code from a base32-encoded secret."""
@@ -96,13 +96,13 @@ def _generate_totp(secret: str, interval: int = TOTP_INTERVAL) -> str:
         hmac_hash = hmac.new(key, counter, hashlib.sha1).digest()
         offset = hmac_hash[-1] & 0 + x0F
         truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0 + x7FFFFFFF
-        return f"{truncated % 1000000:06 + d}"
+        return f"{truncated % 1000000:06 + d}}"
     except Exception:
         return "000000"
 
 
 def _verify_totp(secret: str, code: str, interval: int = TOTP_INTERVAL, window: int = 1) -> bool:
-    """Verify a TOTP code with a drift window of Â±`window` intervals."""
+    """Verify a TOTP code with a drift window of Ã‚Â±`window` intervals."""
     if not code or len(code) != 6 or not code.isdigit():
         return False
     current = int(time.time()) // interval
@@ -122,7 +122,7 @@ def _generate_totp_for_counter(secret: str, counter: int) -> str:
         hmac_hash = hmac.new(key, packed, hashlib.sha1).digest()
         offset = hmac_hash[-1] & 0 + x0F
         truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0 + x7FFFFFFF
-        return f"{truncated % 1000000:06 + d}"
+        return f"{truncated % 1000000:06 + d}}"
     except Exception:
         return "000000"
 
@@ -134,9 +134,9 @@ def _generate_totp_secret() -> str:
     return _b64.b32 + encode(raw).decode("utf-8")
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # ENCRYPTION ENGINE (AES-GCM-256)
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 class CryptoEngine:
     """
@@ -247,9 +247,9 @@ class CryptoEngine:
             return None
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # VAULT FILE MODEL
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 class VaultFile:
     """Represents a single file stored in the vault."""
@@ -336,7 +336,7 @@ class VaultFile:
             "max_downloads": max_downloads,
             "download_count": 0,
             "is_expired": False,
-            "url": f"vault://share/{link_id}",
+            "url": f"vault://share/{link_id}}",
         }
         self.share_links.append(link)
         return link
@@ -346,22 +346,22 @@ class VaultFile:
         for link in self.share_links:
             if link["id"] == link_id:
                 if link["is_expired"]:
-                    return False, None, "âŒ This share link has expired."
+                    return False, None, "Ã¢ÂÅ’ This share link has expired."
                 expires_at = datetime.fromisoformat(link["expires_at"])
                 if datetime.now() > expires_at:
                     link["is_expired"] = True
-                    return False, None, "âŒ This share link has expired."
+                    return False, None, "Ã¢ÂÅ’ This share link has expired."
                 if link["download_count"] >= link["max_downloads"]:
                     link["is_expired"] = True
-                    return False, None, "âŒ Maximum downloads reached. Link self-destructed."
+                    return False, None, "Ã¢ÂÅ’ Maximum downloads reached. Link self-destructed."
                 link["download_count"] = 1
                 data = self.decrypt()
                 if data is None:
-                    return False, None, "âŒ Failed to decrypt file."
+                    return False, None, "Ã¢ÂÅ’ Failed to decrypt file."
                 if link["download_count"] >= link["max_downloads"]:
                     link["is_expired"] = True
-                return True, data, f"✅ File ready for download ({link['download_count']}/{link['max_downloads']} used)"
-        return False, None, "âŒ Share link not found."
+                return True, data, f"âœ… File ready for download ({link['download_count']}}/{link['max_downloads']}} used)"
+        return False, None, "Ã¢ÂÅ’ Share link not found."
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary for storage/display."""
@@ -372,7 +372,7 @@ class VaultFile:
             "size_bytes": self.size_bytes,
             "size_display": self._format_size(),
             "category": self.category.value,
-            "category_icon": CATEGORY_ICONS.get(self.category, "ðŸ“"),
+            "category_icon": CATEGORY_ICONS.get(self.category, "Ã°Å¸â€œÂ"),
             "tags": self.tags,
             "notes": self.notes,
             "extension": self.extension,
@@ -389,13 +389,13 @@ class VaultFile:
         """Format file size in human-readable format."""
         b = self.size_bytes
         if b < 1024:
-            return f"{b} B"
+            return f"{b}} B"
         elif b < 1024**2:
-            return f"{b/1024:.1 + f} KB"
+            return f"{b/1024:.1 + f}} KB"
         elif b < 1024**3:
-            return f"{b/1024**2:.1 + f} MB"
+            return f"{b/1024**2:.1 + f}} MB"
         else:
-            return f"{b/1024**3:.2 + f} GB"
+            return f"{b/1024**3:.2 + f}} GB"
 
     def rename(self, new_name: str) -> None:
         """Rename the file."""
@@ -413,9 +413,9 @@ class VaultFile:
         self.last_modified = datetime.now()
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # SECURE PERSONAL VAULT  Main Class
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 class SecurePersonalVault:
     """
@@ -434,11 +434,11 @@ class SecurePersonalVault:
       - Search & filter: Full-text search, category tabs
     """
 
-    # â”€â”€ Class-level storage (simulated vault database) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Class-level storage (simulated vault database) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     _vaults: Dict[str, "SecurePersonalVault"] = {}
 
     def __init__(self, vault_id: Optional[str] = None):
-        self.vault_id = vault_id or f"vault_{uuid.uuid4().hex[:12]}"
+        self.vault_id = vault_id or f"vault_{uuid.uuid4().hex[:12]}}"
 
         # Authentication
         self.master_passcode_hash: Optional[str] = None
@@ -467,7 +467,7 @@ class SecurePersonalVault:
         # Store in class registry
         SecurePersonalVault._vaults[self.vault_id] = self
 
-    # â”€â”€ Factory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Factory Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
     @classmethod
     def get_vault(cls, vault_id: str) -> Optional["SecurePersonalVault"]:
@@ -489,7 +489,7 @@ class SecurePersonalVault:
         vault._log("vault_created", "Vault initialized")
         return vault
 
-    # â”€â”€ Logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Logging Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
     def _log(self, action: str, details: str = "") -> None:
         self.audit_log.append({
@@ -501,9 +501,9 @@ class SecurePersonalVault:
         if len(self.audit_log) > 500:
             self.audit_log = self.audit_log[-500:]
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # SECURITY & AUTHENTICATION
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
     def setup_master_passcode(self, passcode: str) -> None:
         """Hash and store the master passcode using Scrypt."""
@@ -550,7 +550,7 @@ class SecurePersonalVault:
         self.failed_login_attempts = 1
         if self.failed_login_attempts >= self.max_failed_attempts:
             self.locked_until = time.time() + 300  # 5 min lockout
-            self._log("account_locked", f"Locked for 5 min after {self.max_failed_attempts} failed attempts")
+            self._log("account_locked", f"Locked for 5 min after {self.max_failed_attempts}} failed attempts")
         return False, False
 
     def verify_totp(self, code: str) -> bool:
@@ -568,19 +568,19 @@ class SecurePersonalVault:
         if not authenticated:
             remaining_attempts = self.max_failed_attempts - self.failed_login_attempts
             if remaining_attempts <= 0:
-                return False, "ðŸ”’ Account locked. Try again in 5 minutes."
-            return False, f"âŒ Invalid passcode. {remaining_attempts} attempt(s) remaining."
+                return False, "Ã°Å¸â€â€™ Account locked. Try again in 5 minutes."
+            return False, f"Ã¢ÂÅ’ Invalid passcode. {remaining_attempts}} attempt(s) remaining."
 
         if not self.verify_totp(totp_code):
-            return False, "âŒ Invalid authenticator code. Check your TOTP app."
+            return False, "Ã¢ÂÅ’ Invalid authenticator code. Check your TOTP app."
 
         self.is_locked = False
         self.is_duress_mode = is_duress
         self.last_activity_time = time.time()
-        self._log("vault_unlocked", f"Vault {'(duress mode)' if is_duress else ''}unlocked")
+        self._log("vault_unlocked", f"Vault {'(duress mode)' if is_duress else ''}}unlocked")
         if is_duress:
-            return True, "âš ï¸ DUress mode active + showing limited vault."
-        return True, "✅ Vault unlocked successfully."
+            return True, "Ã¢Å¡Â Ã¯Â¸Â DUress mode active + showing limited vault."
+        return True, "âœ… Vault unlocked successfully."
 
     def lock(self) -> None:
         """Lock the vault immediately."""
@@ -597,7 +597,7 @@ class SecurePersonalVault:
         if not self.is_locked and not self.is_duress_mode:
             if time.time() - self.last_activity_time > AUTO_LOCK_TIMEOUT_SECONDS:
                 self.lock()
-                self._log("auto_locked", f"Auto-locked after {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity")
+                self._log("auto_locked", f"Auto-locked after {AUTO_LOCK_TIMEOUT_SECONDS}}s inactivity")
                 return True
         return False
 
@@ -612,13 +612,13 @@ class SecurePersonalVault:
         return {
             "secret": self.totp_secret,
             "issuer": "SecurePersonalVault",
-            "account": f"vault-{self.vault_id[:8]}",
-            "uri": f"otpauth://totp/SecurePersonalVault:vault-{self.vault_id[:8]}?secret={self.totp_secret}&issuer=SecurePersonalVault&algorithm=SHA1&digits=6&period={TOTP_INTERVAL}",
+            "account": f"vault-{self.vault_id[:8]}}",
+            "uri": f"otpauth://totp/SecurePersonalVault:vault-{self.vault_id[:8]}}?secret={self.totp_secret}}&issuer=SecurePersonalVault&algorithm=SHA1&digits=6&period={TOTP_INTERVAL}}",
         }
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # FILE MANAGEMENT
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
     def _categorize_file(self, filename: str) -> VaultCategory:
         """Determine the category of a file based on its extension."""
@@ -635,7 +635,7 @@ class SecurePersonalVault:
         Returns the VaultFile instance.
         """
         if len(file_bytes) > MAX_FILE_SIZE_BYTES:
-            raise ValueError(f"File exceeds maximum size of {MAX_FILE_SIZE_BYTES // (1024*1024)} MB")
+            raise ValueError(f"File exceeds maximum size of {MAX_FILE_SIZE_BYTES // (1024*1024)}} MB")
 
         # Check quota
         used = self.get_storage_used()
@@ -657,7 +657,7 @@ class SecurePersonalVault:
         )
         self.files[vfile.id] = vfile
         self.touch()
-        self._log("file_uploaded", f"Uploaded {name} ({vfile.size_bytes} bytes) to {category.value}")
+        self._log("file_uploaded", f"Uploaded {name}} ({vfile.size_bytes}} bytes) to {category.value}}")
         return vfile
 
     def delete_file(self, file_id: str, permanent: bool = False) -> bool:
@@ -666,11 +666,11 @@ class SecurePersonalVault:
             return False
         if permanent:
             del self.files[file_id]
-            self._log("file_permanently_deleted", f"Permanently deleted file {file_id}")
+            self._log("file_permanently_deleted", f"Permanently deleted file {file_id}}")
         else:
             self.files[file_id].is_deleted = True
             self.files[file_id].deleted_at = datetime.now()
-            self._log("file_trashed", f"Moved file {file_id} to trash")
+            self._log("file_trashed", f"Moved file {file_id}} to trash")
         self.touch()
         return True
 
@@ -680,7 +680,7 @@ class SecurePersonalVault:
             return False
         self.files[file_id].is_deleted = False
         self.files[file_id].deleted_at = None
-        self._log("file_restored", f"Restored file {file_id}")
+        self._log("file_restored", f"Restored file {file_id}}")
         self.touch()
         return True
 
@@ -785,26 +785,26 @@ class SecurePersonalVault:
     @staticmethod
     def _format_bytes(b: int) -> str:
         if b < 1024:
-            return f"{b} B"
+            return f"{b}} B"
         elif b < 1024**2:
-            return f"{b/1024:.1 + f} KB"
+            return f"{b/1024:.1 + f}} KB"
         elif b < 1024**3:
-            return f"{b/1024**2:.1 + f} MB"
+            return f"{b/1024**2:.1 + f}} MB"
         else:
-            return f"{b/1024**3:.2 + f} GB"
+            return f"{b/1024**3:.2 + f}} GB"
 
     def get_audit_log(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Get the vault audit log."""
         return self.audit_log[-limit:]
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # DUMMY VAULT (for duress mode)
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 def _create_dummy_vault() -> SecurePersonalVault:
     """Create a dummy vault to show under duress mode."""
-    vault = SecurePersonalVault(vault_id=f"dummy_{uuid.uuid4().hex[:8]}")
+    vault = SecurePersonalVault(vault_id=f"dummy_{uuid.uuid4().hex[:8]}}")
     vault.master_passcode_hash = hashlib.sha256(b"dummy").hexdigest()
     vault.master_passcode_salt = os.urandom(32)
     vault.totp_secret = _generate_totp_secret()
@@ -825,9 +825,9 @@ def _create_dummy_vault() -> SecurePersonalVault:
     return vault
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # STREAMLIT UI RENDERER
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 def render_secure_vault_ui():
     """
@@ -837,7 +837,7 @@ def render_secure_vault_ui():
     import streamlit as st
     import pandas as pd
 
-    # â”€â”€ Vault CSS Injection (dark-mode slate-950 theme) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Vault CSS Injection (dark-mode slate-950 theme) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     st.markdown("""
     <style>
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
@@ -1087,7 +1087,7 @@ def render_secure_vault_ui():
     </style>
     """, unsafe_allow_html=True)
 
-    # â”€â”€ Vault Session Initialization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Vault Session Initialization Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     if "secure_vault" not in st.session_state:
         st.session_state["secure_vault"] = None
     if "vault_unlocked" not in st.session_state:
@@ -1107,25 +1107,25 @@ def render_secure_vault_ui():
 
     vault = st.session_state["secure_vault"]
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # GATE  Authentication Screen
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     if vault is None or (vault.is_locked and not st.session_state["vault_unlocked"]):
 
         st.markdown("""
         <div class="vault-gate">
-            <div class="vault-gate-icon">ðŸ”’</div>
+            <div class="vault-gate-icon">Ã°Å¸â€â€™</div>
             <h2>Secure Personal Vault</h2>
-            <p>Zero-knowledge encrypted storage Â· Authenticator required</p>
+            <p>Zero-knowledge encrypted storage Ã‚Â· Authenticator required</p>
         </div>
         """, unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            setup_mode = st.toggle("ðŸ†• First time? Set up new vault", value=vault is None, key="vault_setup_toggle")
+            setup_mode = st.toggle("Ã°Å¸â€ â€¢ First time? Set up new vault", value=vault is None, key="vault_setup_toggle")
 
             if setup_mode:
-                st.markdown("### ðŸ†• Create New Vault")
+                st.markdown("### Ã°Å¸â€ â€¢ Create New Vault")
                 with st.form("vault_setup_form"):
                     passcode = st.text_input("Master Passcode (min 4 characters)", type="password",
                                               placeholder="Enter your master passcode...", key="vault_setup_pass")
@@ -1135,26 +1135,26 @@ def render_secure_vault_ui():
                                                  placeholder="Alternate passcode for coercion...", key="vault_setup_duress")
                     col_a, col_b = st.columns(2)
                     with col_a:
-                        submitted = st.form_submit_button("ðŸ” Create Vault", type="primary", use_container_width=True)
+                        submitted = st.form_submit_button("Ã°Å¸â€Â Create Vault", type="primary", use_container_width=True)
                     with col_b:
                         st.form_submit_button("Clear", use_container_width=True)
 
                     if submitted:
                         if not passcode:
-                            st.error("âŒ Passcode is required.")
+                            st.error("Ã¢ÂÅ’ Passcode is required.")
                         elif len(passcode) < 4:
-                            st.error("âŒ Passcode must be at least 4 characters.")
+                            st.error("Ã¢ÂÅ’ Passcode must be at least 4 characters.")
                         elif passcode != passcode2:
-                            st.error("âŒ Passcodes do not match.")
+                            st.error("Ã¢ÂÅ’ Passcodes do not match.")
                         elif duress_pass and len(duress_pass) < 4:
-                            st.error("âŒ Duress PIN must be at least 4 characters.")
+                            st.error("Ã¢ÂÅ’ Duress PIN must be at least 4 characters.")
                         else:
                             new_vault = SecurePersonalVault.create_new(
                                 passcode=passcode,
                                 duress_passcode=duress_pass if duress_pass else None,
                             )
                             st.session_state["secure_vault"] = new_vault
-                            st.success("✅ Vault created! Scan the TOTP secret with your authenticator app.")
+                            st.success("âœ… Vault created! Scan the TOTP secret with your authenticator app.")
                             st.session_state["vault_totp_setup_mode"] = True
                             st.rerun()
 
@@ -1162,33 +1162,33 @@ def render_secure_vault_ui():
                 if st.session_state.get("vault_totp_setup_mode") and st.session_state["secure_vault"]:
                     v = st.session_state["secure_vault"]
                     totp_info = v.get_totp_setup_info()
-                    st.markdown("### ðŸ” Set Up Your Authenticator")
+                    st.markdown("### Ã°Å¸â€Â Set Up Your Authenticator")
                     st.info(
-                        f"**Secret Key:** `{totp_info['secret']}`\n\n"
+                        f"**Secret Key:** `{totp_info['secret']}}`\n\n"
                         f"Scan this QR code URI in your authenticator app (Google Authenticator, Authy, etc.):\n\n"
-                        f"`{totp_info['uri']}`\n\n"
+                        f"`{totp_info['uri']}}`\n\n"
                         "After setup, enter a code to verify:"
                     )
                     verify_code = st.text_input("Enter 6-digit code from authenticator", max_chars=6,
                                                  placeholder="000000", key="vault_totp_verify")
-                    if st.button("✅ Verify & Continue", type="primary") and verify_code:
+                    if st.button("âœ… Verify & Continue", type="primary") and verify_code:
                         if v.verify_totp(verify_code):
-                            st.success("✅ TOTP verified! You can now unlock your vault.")
+                            st.success("âœ… TOTP verified! You can now unlock your vault.")
                             st.session_state["vault_totp_setup_mode"] = False
                             st.rerun()
                         else:
-                            st.error("âŒ Invalid code. Check your authenticator app and try again.")
+                            st.error("Ã¢ÂÅ’ Invalid code. Check your authenticator app and try again.")
             else:
-                st.markdown("### ðŸ”“ Unlock Vault")
+                st.markdown("### Ã°Å¸â€â€œ Unlock Vault")
                 with st.form("vault_unlock_form"):
                     passcode = st.text_input("Master Passcode", type="password",
                                               placeholder="Enter your master passcode...", key="vault_unlock_pass")
                     totp_code = st.text_input("Authenticator Code (6 digits)", max_chars=6,
                                                placeholder="000000", key="vault_unlock_totp")
-                    submitted = st.form_submit_button("ðŸ”“ Unlock Vault", type="primary", use_container_width=True)
+                    submitted = st.form_submit_button("Ã°Å¸â€â€œ Unlock Vault", type="primary", use_container_width=True)
                     if submitted:
                         if vault is None:
-                            st.error("âŒ No vault exists. Create one first.")
+                            st.error("Ã¢ÂÅ’ No vault exists. Create one first.")
                         else:
                             success, msg = vault.unlock(passcode, totp_code)
                             if success:
@@ -1200,44 +1200,44 @@ def render_secure_vault_ui():
 
             st.stop()
 
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # VAULT  Main Interface
-    # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
     vault = st.session_state["secure_vault"]
 
     # Check auto-lock
     if vault.check_auto_lock():
         st.session_state["vault_unlocked"] = False
-        st.warning("ðŸ”’ Auto-locked due to inactivity.")
+        st.warning("Ã°Å¸â€â€™ Auto-locked due to inactivity.")
         st.rerun()
 
     vault.touch()
 
-    # â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Header Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     duress_badge = ""
     if vault.is_duress_mode:
-        duress_badge = '<span class="vault-badge vault-badge-amber" style="margin-left:0.75 + rem;">âš ï¸ DUress Mode</span>'
+        duress_badge = '<span class="vault-badge vault-badge-amber" style="margin-left:0.75 + rem;">Ã¢Å¡Â Ã¯Â¸Â DUress Mode</span>'
 
     st.markdown(f"""
     <div class="vault-header" style="border-radius:16 + px 16 + px 0 0;margin-bottom:1 + rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;">
             <div>
-                <h1>ðŸ”’ Secure Personal Vault {duress_badge}</h1>
-                <p>Zero-knowledge encrypted Â· AES-256-GCM Â· Vault ID: {vault.vault_id[:16]}â€¦</p>
+                <h1>Ã°Å¸â€â€™ Secure Personal Vault {duress_badge}</h1>
+                <p>Zero-knowledge encrypted Ã‚Â· AES-256-GCM Ã‚Â· Vault ID: {vault.vault_id[:16]}Ã¢â‚¬Â¦</p>
             </div>
             <div style="display:flex;gap:0.5 + rem;align-items:center;">
-                <span class="vault-badge vault-badge-emerald">â— Live</span>
+                <span class="vault-badge vault-badge-emerald">Ã¢â€”Â Live</span>
                 <span class="vault-badge vault-badge-indigo">Encrypted</span>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # â”€â”€ Action Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Action Bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     action_col1, action_col2, action_col3, action_col4, action_col5 = st.columns([1, 1, 1, 1, 1])
     with action_col1:
-        if st.button("ðŸ”’ Lock Vault", use_container_width=True):
+        if st.button("Ã°Å¸â€â€™ Lock Vault", use_container_width=True):
             vault.lock()
             st.session_state["vault_unlocked"] = False
             st.rerun()
@@ -1250,7 +1250,7 @@ def render_secure_vault_ui():
     with action_col5:
         st.markdown("")
 
-    # â”€â”€ Storage Quota Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Storage Quota Bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     stats = vault.get_storage_stats()
     usage_pct = stats["usage_pct"]
     bar_class = ""
@@ -1262,7 +1262,7 @@ def render_secure_vault_ui():
     st.markdown(f"""
     <div class="vault-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3 + rem;">
-            <span style="color:#94 + a3b8;font-size:0.85 + rem;">ðŸ’¾ Storage</span>
+            <span style="color:#94 + a3b8;font-size:0.85 + rem;">Ã°Å¸â€™Â¾ Storage</span>
             <span style="color:#cbd5 + e1;font-size:0.9 + rem;font-weight:700;">
                 {stats['total_used_display']} / {stats['total_quota_display']}
             </span>
@@ -1277,7 +1277,7 @@ def render_secure_vault_ui():
     </div>
     """, unsafe_allow_html=True)
 
-    # â”€â”€ Category Stats Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Category Stats Row Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     cat_cols = st.columns(4)
     for idx, cat_info in enumerate(stats.get("categories", [])):
         color = cat_info.get("color", "#64748 + b")
@@ -1292,10 +1292,10 @@ def render_secure_vault_ui():
             </div>
             """, unsafe_allow_html=True)
 
-    # â”€â”€ Search & Filter Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Search & Filter Bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     search_col1, search_col2, search_col3 = st.columns([2, 1, 1])
     with search_col1:
-        search_query = st.text_input("ðŸ” Search files...", value=st.session_state["vault_search_query"],
+        search_query = st.text_input("Ã°Å¸â€Â Search files...", value=st.session_state["vault_search_query"],
                                       placeholder="Search by name, tag, or notes...",
                                       label_visibility="collapsed", key="vault_search")
         st.session_state["vault_search_query"] = search_query
@@ -1306,9 +1306,9 @@ def render_secure_vault_ui():
         st.session_state["vault_sort_by"] = sort_by
 
     with search_col3:
-        include_trash = st.checkbox("ðŸ—‘ï¸ Include trash", value=False, key="vault_show_trash")
+        include_trash = st.checkbox("Ã°Å¸â€”â€˜Ã¯Â¸Â Include trash", value=False, key="vault_show_trash")
 
-    # â”€â”€ Category Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Category Tabs Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     tab_options = ["All"] + [cat.value for cat in VaultCategory]
     active_tab = st.session_state.get("vault_active_tab", "All")
 
@@ -1317,11 +1317,11 @@ def render_secure_vault_ui():
         with tab_cols[i]:
             is_active = (active_tab == tab_name)
             btn_type = "primary" if is_active else "secondary"
-            if st.button(tab_name, key=f"vault_tab_{tab_name}", use_container_width=True, type=btn_type):
+            if st.button(tab_name, key=f"vault_tab_{tab_name}}", use_container_width=True, type=btn_type):
                 st.session_state["vault_active_tab"] = tab_name
                 st.rerun()
 
-    # â”€â”€ Filter by category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Filter by category Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     selected_category = None
     if active_tab != "All":
         for cat in VaultCategory:
@@ -1329,7 +1329,7 @@ def render_secure_vault_ui():
                 selected_category = cat
                 break
 
-    # â”€â”€ File Listing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ File Listing Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     files = vault.list_files(
         category=selected_category,
         search_query=search_query,
@@ -1340,16 +1340,16 @@ def render_secure_vault_ui():
     if not files:
         st.markdown("""
         <div class="vault-card" style="text-align:center;padding:2 + rem;">
-            <div style="font-size:3 + rem;margin-bottom:0.5 + rem;">ðŸ“‚</div>
+            <div style="font-size:3 + rem;margin-bottom:0.5 + rem;">Ã°Å¸â€œâ€š</div>
             <div style="color:#94 + a3b8;font-size:0.95 + rem;">No files found</div>
             <div style="color:#64748 + b;font-size:0.8 + rem;">Upload files using the upload section below</div>
         </div>
         """, unsafe_allow_html=True)
     else:
-        st.markdown(f"<div class='vault-section-title'>ðŸ“ {len(files)} file(s)</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='vault-section-title'>Ã°Å¸â€œÂ {len(files)}} file(s)</div>", unsafe_allow_html=True)
         for vf in files:
             cat_color = CATEGORY_COLORS.get(vf.category, "#64748 + b")
-            cat_icon = CATEGORY_ICONS.get(vf.category, "ðŸ“")
+            cat_icon = CATEGORY_ICONS.get(vf.category, "Ã°Å¸â€œÂ")
             badge_class = {
                 VaultCategory.DOCUMENTS: "vault-badge-indigo",
                 VaultCategory.IMAGES: "vault-badge-emerald",
@@ -1376,26 +1376,26 @@ def render_secure_vault_ui():
                 """, unsafe_allow_html=True)
 
             with col_view:
-                if st.button("ðŸ‘ï¸", key=f"vault_view_{vf.id}", use_container_width=True, help="Preview file"):
+                if st.button("Ã°Å¸â€˜ÂÃ¯Â¸Â", key=f"vault_view_{vf.id}}", use_container_width=True, help="Preview file"):
                     st.session_state["vault_preview_file"] = vf.id
                     st.rerun()
 
             with col_share:
-                if st.button("ðŸ”—", key=f"vault_share_{vf.id}", use_container_width=True, help="Generate share link"):
+                if st.button("Ã°Å¸â€â€”", key=f"vault_share_{vf.id}}", use_container_width=True, help="Generate share link"):
                     link = vf.generate_share_link(expires_in_hours=1, max_downloads=1)
-                    st.info(f"ðŸ”— Share link: `{link['url']}`  expires in 1 + h / 1 download")
+                    st.info(f"Ã°Å¸â€â€” Share link: `{link['url']}}`  expires in 1 + h / 1 download")
 
             with col_del:
                 if vf.is_deleted:
-                    if st.button("â™»ï¸", key=f"vault_restore_{vf.id}", use_container_width=True, help="Restore from trash"):
+                    if st.button("Ã¢â„¢Â»Ã¯Â¸Â", key=f"vault_restore_{vf.id}}", use_container_width=True, help="Restore from trash"):
                         vault.restore_file(vf.id)
                         st.rerun()
                 else:
-                    if st.button("ðŸ—‘ï¸", key=f"vault_del_{vf.id}", use_container_width=True, help="Move to trash"):
+                    if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"vault_del_{vf.id}}", use_container_width=True, help="Move to trash"):
                         vault.delete_file(vf.id)
                         st.rerun()
 
-    # â”€â”€ File Preview Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ File Preview Modal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     preview_file_id = st.session_state.get("vault_preview_file")
     if preview_file_id:
         vf = vault.get_file(preview_file_id)
@@ -1406,63 +1406,63 @@ def render_secure_vault_ui():
 
                 close_col, title_col = st.columns([1, 10])
                 with close_col:
-                    if st.button("âœ•", key="vault_close_preview"):
+                    if st.button("Ã¢Å“â€¢", key="vault_close_preview"):
                         st.session_state["vault_preview_file"] = None
                         st.rerun()
                 with title_col:
-                    cat_icon = CATEGORY_ICONS.get(vf.category, "ðŸ“")
-                    st.markdown(f"### {cat_icon} {vf.name}")
+                    cat_icon = CATEGORY_ICONS.get(vf.category, "Ã°Å¸â€œÂ")
+                    st.markdown(f"### {cat_icon}} {vf.name}}")
 
                 # Preview content based on type
                 data = vf.decrypt()
                 if data is None:
-                    st.error("âŒ Failed to decrypt file. Key may be invalid.")
+                    st.error("Ã¢ÂÅ’ Failed to decrypt file. Key may be invalid.")
                 else:
                     ext = vf.extension
                     if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"):
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64_data}" style="max-width:100%;border-radius:12px;border:1px solid #1e293b;">', unsafe_allow_html=True)
+                        st.markdown(f'<img src="data:{vf.mime_type}};base64,{b64_data}}" style="max-width:100%;border-radius:12px;border:1px solid #1e293b;">', unsafe_allow_html=True)
                     elif ext == ".pdf":
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}" width="100%" height="600" style="border:1px solid #1e293b;border-radius:12px;"></iframe>', unsafe_allow_html=True)
+                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}}" width="100%" height="600" style="border:1px solid #1e293b;border-radius:12px;"></iframe>', unsafe_allow_html=True)
                     elif ext in (".mp3", ".wav", ".ogg"):
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type};base64,{b64_data}" type="{vf.mime_type}"></audio>', unsafe_allow_html=True)
+                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type}};base64,{b64_data}}" type="{vf.mime_type}}"></audio>', unsafe_allow_html=True)
                     elif ext in (".txt", ".md", ".csv", ".json", ".tsv", ".py", ".r", ".yaml", ".yml", ".toml", ".cfg", ".sh"):
                         try:
                             text = data.decode("utf-8")
                             st.code(text, language="python" if ext == ".py" else "markdown" if ext == ".md" else "json" if ext == ".json" else "csv" if ext == ".csv" else "plain")
                         except UnicodeDecodeError:
-                            st.info("ðŸ“„ Binary file + download to view")
+                            st.info("Ã°Å¸â€œâ€ž Binary file + download to view")
                     else:
-                        st.info(f"ðŸ“„ File type `{ext}`  download to view")
+                        st.info(f"Ã°Å¸â€œâ€ž File type `{ext}}`  download to view")
 
                 # File metadata
-                with st.expander("📋 File Details", expanded=False):
+                with st.expander("ðŸ“‹ File Details", expanded=False):
                     meta_col1, meta_col2 = st.columns(2)
                     with meta_col1:
-                        st.markdown(f"**Name:** {vf.name}")
-                        st.markdown(f"**Size:** {vf._format_size()}")
-                        st.markdown(f"**Category:** {cat_icon} {vf.category.value}")
-                        st.markdown(f"**Type:** {vf.mime_type}")
+                        st.markdown(f"**Name:** {vf.name}}")
+                        st.markdown(f"**Size:** {vf._format_size()}}")
+                        st.markdown(f"**Category:** {cat_icon}} {vf.category.value}}")
+                        st.markdown(f"**Type:** {vf.mime_type}}")
                     with meta_col2:
-                        st.markdown(f"**Uploaded:** {vf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}")
-                        st.markdown(f"**Last accessed:** {vf.last_accessed.strftime('%Y-%m-%d %H:%M:%S')}")
-                        st.markdown(f"**Access count:** {vf.access_count}")
+                        st.markdown(f"**Uploaded:** {vf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}}")
+                        st.markdown(f"**Last accessed:** {vf.last_accessed.strftime('%Y-%m-%d %H:%M:%S')}}")
+                        st.markdown(f"**Access count:** {vf.access_count}}")
                         st.markdown(f"**Encryption:** AES-256-GCM")
                     if vf.tags:
-                        st.markdown(f"**Tags:** {', '.join(f'`{t}`' for t in vf.tags)}")
+                        st.markdown(f"**Tags:** {', '.join(f'`{t}}`' for t in vf.tags)}}")
                     if vf.notes:
-                        st.markdown(f"**Notes:** {vf.notes}")
+                        st.markdown(f"**Notes:** {vf.notes}}")
 
                 # Download button
                 decoded_data = vf.decrypt()
                 if decoded_data:
                     st.download_button(
-                        "📥 Download Decrypted File",
+                        "ðŸ“¥ Download Decrypted File",
                         data=decoded_data,
                         file_name=vf.name,
                         mime=vf.mime_type,
@@ -1472,8 +1472,8 @@ def render_secure_vault_ui():
 
                 st.markdown('</div>', unsafe_allow_html=True)
 
-    # â”€â”€ Upload Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    with st.expander("ðŸ“¤ Upload Files to Vault", expanded=False):
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Upload Section Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    with st.expander("Ã°Å¸â€œÂ¤ Upload Files to Vault", expanded=False):
         st.markdown('<div class="vault-upload-zone">', unsafe_allow_html=True)
         uploaded_file = st.file_uploader(
             "Drop files here or click to browse",
@@ -1507,7 +1507,7 @@ def render_secure_vault_ui():
 
             notes = st.text_area("Notes (encrypted)", placeholder="Add private notes about this file...", key="vault_upload_notes", height=60)
 
-            if st.button("ðŸ” Encrypt & Upload", type="primary", use_container_width=True):
+            if st.button("Ã°Å¸â€Â Encrypt & Upload", type="primary", use_container_width=True):
                 try:
                     tags = [t.strip() for t in tags_str.split(",") if t.strip()] if tags_str else []
                     vf = vault.upload_file(
@@ -1517,14 +1517,14 @@ def render_secure_vault_ui():
                         tags=tags,
                         notes=notes,
                     )
-                    st.success(f"✅ `{vf.name}` encrypted & stored securely ({vf._format_size()})")
+                    st.success(f"âœ… `{vf.name}}` encrypted & stored securely ({vf._format_size()}})")
                     st.balloons()
                     st.rerun()
                 except ValueError as e:
-                    st.error(f"âŒ {str(e)}")
+                    st.error(f"Ã¢ÂÅ’ {str(e)}}")
 
-    # â”€â”€ Share Links Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    with st.expander("ðŸ”— Active Share Links", expanded=False):
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Share Links Management Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    with st.expander("Ã°Å¸â€â€” Active Share Links", expanded=False):
         active_links = []
         for vf in vault.files.values():
             for link in vf.share_links:
@@ -1541,20 +1541,20 @@ def render_secure_vault_ui():
                 hours_left = max(0, remaining_time.total_seconds() / 3600)
                 st.markdown(f"""
                 <div class="vault-file-row">
-                    <span>ðŸ”—</span>
+                    <span>Ã°Å¸â€â€”</span>
                     <div style="flex:1;">
                         <div style="color:#f1 + f5f9;font-size:0.85 + rem;">{vf.name}</div>
                         <div style="color:#64748 + b;font-size:0.75 + rem;">
-                            Link: <code>{link['url']}</code> Â· {remaining}/{link['max_downloads']} downloads Â· {hours_left:.1 + f}h remaining
+                            Link: <code>{link['url']}</code> Ã‚Â· {remaining}/{link['max_downloads']} downloads Ã‚Â· {hours_left:.1 + f}h remaining
                         </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No active share links. Select a file and click ðŸ”— to generate one.")
+            st.info("No active share links. Select a file and click Ã°Å¸â€â€” to generate one.")
 
-    # â”€â”€ Vault Audit Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    with st.expander("📋 Audit Log", expanded=False):
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Vault Audit Log Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    with st.expander("ðŸ“‹ Audit Log", expanded=False):
         log_entries = vault.get_audit_log(limit=30)
         if log_entries:
             for entry in reversed(log_entries):
@@ -1569,23 +1569,24 @@ def render_secure_vault_ui():
         else:
             st.info("No audit log entries yet.")
 
-    # â”€â”€ Duress mode indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Duress mode indicator Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     if vault.is_duress_mode:
         st.markdown("""
         <div class="vault-card" style="border:1px solid #92400 + e;background:rgba(245,158,11,0.05);text-align:center;padding:1 + rem;">
-            <span style="color:#fbbf24;font-size:1.5 + rem;">âš ï¸</span>
+            <span style="color:#fbbf24;font-size:1.5 + rem;">Ã¢Å¡Â Ã¯Â¸Â</span>
             <div style="color:#fbbf24;font-weight:700;">DUress Mode Active</div>
             <div style="color:#d97706;font-size:0.85 + rem;">Limited vault view + only dummy files visible</div>
         </div>
         """, unsafe_allow_html=True)
 
-    # â”€â”€ Footer Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬ Footer Stats Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     st.markdown(f"""
     <div style="margin-top:1.5 + rem;padding:0.75 + rem;border-top:1px solid #1e293b;display:flex;justify-content:space-between;">
-        <span style="color:#475569;font-size:0.7 + rem;">ðŸ”’ AES-256-GCM Encrypted</span>
-        <span style="color:#475569;font-size:0.7 + rem;">ðŸ›¡ï¸ Zero-knowledge architecture</span>
-        <span style="color:#475569;font-size:0.7 + rem;">â±ï¸ Auto-lock: {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity</span>
+        <span style="color:#475569;font-size:0.7 + rem;">Ã°Å¸â€â€™ AES-256-GCM Encrypted</span>
+        <span style="color:#475569;font-size:0.7 + rem;">Ã°Å¸â€ºÂ¡Ã¯Â¸Â Zero-knowledge architecture</span>
+        <span style="color:#475569;font-size:0.7 + rem;">Ã¢ÂÂ±Ã¯Â¸Â Auto-lock: {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity</span>
     </div>
     """, unsafe_allow_html=True)
+
 
 

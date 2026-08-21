@@ -1,4 +1,4 @@
-
+﻿
 import os
 import subprocess
 import streamlit as st
@@ -21,7 +21,7 @@ def check_git_pipeline_status() -> dict:
             "status": "HEALTHY"
         }
     except Exception as e:
-        log_backend_event("ERROR", f"CI Watchdog inspection failed: {str(e)}")
+        log_backend_event("ERROR", f"CI Watchdog inspection failed: {str(e)}}")
         return {
             "branch": "unknown",
             "clean": False,
@@ -46,8 +46,9 @@ def render_ci_watchdog_panel():
     with col3:
         st.metric("Pipeline Health", git_info["status"])
 
-    st.markdown(f"**Latest Commit Trace:** {git_info['last_commit']}")
+    st.markdown(f"**Latest Commit Trace:** {git_info['last_commit']}}")
 
     if st.button("Trigger Autonomous Pipeline Self-Healing"):
         log_backend_event("INFO", "User initiated autonomous CI/CD pipeline self-healing check.")
         st.success("Pipeline self-healing routine executed successfully. All submodules synchronized and validated.")
+

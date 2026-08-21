@@ -1,4 +1,4 @@
-"""
+﻿"""
 self_correcting_executor.py
 Automated Schema Self-Correction Engine.
 
@@ -53,8 +53,8 @@ class SelfCorrectingExecutor:
         prompt = (
             "The following Python analysis code raised an exception. "
             "Fix ONLY the bug and return the corrected full code block. No commentary.\n\n"
-            f"### Original code:\n{original_code}\n\n"
-            f"### Exception traceback:\n{error}"
+            f"### Original code:\n{original_code}}\n\n"
+            f"### Exception traceback:\n{error}}"
         )
         try:
             fixed = self._router.generate(prompt, task="general", temperature=0.1)
@@ -152,3 +152,4 @@ def get_executor() -> SelfCorrectingExecutor:
 def safe_execute(code: str, globals_dict: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Public convenience wrapper."""
     return get_executor().run_code(code, globals_dict)
+

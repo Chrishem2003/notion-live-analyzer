@@ -1,4 +1,4 @@
-
+﻿
 """
 Causal Inference Engine + Estimate causal effects from observational data.
 Provides propensity score matching, difference-in-differences, instrumental variable
@@ -47,7 +47,7 @@ class CausalInferenceEngine:
         if not HAS_SKLEARN:
             raise ImportError("scikit-learn required. Install: pip install scikit-learn")
 
-    # â”€â”€â”€ Propensity Score Matching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Propensity Score Matching Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def propensity_score_matching(
         self,
         df: pd.DataFrame,
@@ -87,7 +87,7 @@ class CausalInferenceEngine:
             pscores = model.predict(X)
             pscores = np.clip(pscores, 0.01, 0.99)
         else:
-            return {"error": f"Unknown method: {method}"}
+            return {"error": f"Unknown method: {method}}"}
 
         # Split treated and control
         treated_idx = np.where(T == 1)[0]
@@ -144,7 +144,7 @@ class CausalInferenceEngine:
             balance[cov] = round(float(abs(smd)), 4)
 
         return {
-            "method": f"Propensity Score Matching ({method})",
+            "method": f"Propensity Score Matching ({method}})",
             "estimand": "ATT",
             "att": round(float(att), 4),
             "se": round(float(att_se), 4),
@@ -156,10 +156,10 @@ class CausalInferenceEngine:
             "significant": float(att_p) < 0.05,
             "balance_smd": balance,
             "matched_pairs": matched_pairs[:10],  # Preview
-            "interpretation": f"Treatment effect (ATT) = {att:.3 + f} (SE = {att_se:.3 + f}, p = {att_p:.4 + f})",
+            "interpretation": f"Treatment effect (ATT) = {att:.3 + f}} (SE = {att_se:.3 + f}}, p = {att_p:.4 + f}})",
         }
 
-    # â”€â”€â”€ Difference-in-Differences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Difference-in-Differences Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def difference_in_differences(
         self,
         df: pd.DataFrame,
@@ -171,7 +171,7 @@ class CausalInferenceEngine:
         """
         Difference-in-Differences estimation.
         Requires: pre/post time periods, treated/control groups.
-        y = Î²â‚€  Î²â‚*Treat  Î²â‚‚*Post  Î²â‚ƒ*(TreatÃ—Post)  Îµ
+        y = ÃŽÂ²Ã¢â€šâ‚¬  ÃŽÂ²Ã¢â€šÂ*Treat  ÃŽÂ²Ã¢â€šâ€š*Post  ÃŽÂ²Ã¢â€šÆ’*(TreatÃƒâ€”Post)  ÃŽÂµ
         """
         if not HAS_STATSMODELS:
             return {"error": "statsmodels required for DiD. Install: pip install statsmodels"}
@@ -212,10 +212,10 @@ class CausalInferenceEngine:
             "control_post_mean": round(float(control_post), 4),
             "r_squared": round(float(model.rsquared), 4),
             "n_obs": int(model.nobs),
-            "interpretation": f"DiD estimate = {did_coef:.3 + f} (SE = {did_se:.3 + f}, p = {did_p:.4 + f})",
+            "interpretation": f"DiD estimate = {did_coef:.3 + f}} (SE = {did_se:.3 + f}}, p = {did_p:.4 + f}})",
         }
 
-    # â”€â”€â”€ Instrumental Variable Regression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Instrumental Variable Regression Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def instrumental_variable(
         self,
         df: pd.DataFrame,
@@ -266,12 +266,12 @@ class CausalInferenceEngine:
                 "second_stage_rsquared": round(float(second_stage.rsquared), 4),
                 "n_obs": int(second_stage.nobs),
                 "weak_instrument": f_stat < 10,
-                "interpretation": f"IV estimate = {iv_coef:.3 + f} (SE = {iv_se:.3 + f}, p = {iv_p:.4 + f})",
+                "interpretation": f"IV estimate = {iv_coef:.3 + f}} (SE = {iv_se:.3 + f}}, p = {iv_p:.4 + f}})",
             }
         except Exception as e:
-            return {"error": f"IV regression failed: {str(e)}"}
+            return {"error": f"IV regression failed: {str(e)}}"}
 
-    # â”€â”€â”€ Regression Discontinuity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Regression Discontinuity Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def regression_discontinuity(
         self,
         df: pd.DataFrame,
@@ -305,7 +305,7 @@ class CausalInferenceEngine:
         t_local = (x_local >= cutoff).astype(float)
 
         if len(x_local) < 10:
-            return {"error": f"Need more observations within bandwidth. Only {len(x_local)} found."}
+            return {"error": f"Need more observations within bandwidth. Only {len(x_local)}} found."}
 
         # Centered assignment variable
         x_centered = x_local - cutoff
@@ -340,10 +340,10 @@ class CausalInferenceEngine:
             "mean_above_cutoff": round(float(np.mean(above)), 4),
             "polynomial_order": polynomial_order,
             "r_squared": round(float(model.rsquared), 4),
-            "interpretation": f"RDD estimate = {rd_coef:.3 + f} (SE = {rd_se:.3 + f}, p = {rd_p:.4 + f})",
+            "interpretation": f"RDD estimate = {rd_coef:.3 + f}} (SE = {rd_se:.3 + f}}, p = {rd_p:.4 + f}})",
         }
 
-    # â”€â”€â”€ ATE Estimation via IPW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ ATE Estimation via IPW Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def inverse_probability_weighting(
         self,
         df: pd.DataFrame,
@@ -391,10 +391,10 @@ class CausalInferenceEngine:
             "p_value": round(float(ate_p), 4),
             "significant": float(ate_p) < 0.05,
             "n": len(data),
-            "interpretation": f"ATE (IPW) = {ate:.3 + f} (SE = {ate_se:.3 + f}, p = {ate_p:.4 + f})",
+            "interpretation": f"ATE (IPW) = {ate:.3 + f}} (SE = {ate_se:.3 + f}}, p = {ate_p:.4 + f}})",
         }
 
-    # â”€â”€â”€ DAG-based Adjustment Sets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ DAG-based Adjustment Sets Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def suggest_adjustment_set(
         self,
         treatment: str,
@@ -433,7 +433,7 @@ class CausalInferenceEngine:
             "backdoor_criterion_satisfied": len(confounders) > 0 or len(colliders) == 0,
         }
 
-    # â”€â”€â”€ CATE (Heterogeneous Treatment Effects) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ CATE (Heterogeneous Treatment Effects) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def estimate_cate(
         self,
         df: pd.DataFrame,
@@ -482,7 +482,7 @@ class CausalInferenceEngine:
         cate_estimates = dr_scores
 
         return {
-            "method": f"CATE ({method})",
+            "method": f"CATE ({method}})",
             "n_units": len(data),
             "mean_cate": round(float(np.mean(cate_estimates)), 4),
             "median_cate": round(float(np.median(cate_estimates)), 4),
@@ -492,19 +492,19 @@ class CausalInferenceEngine:
             "q25 + _cate": round(float(np.percentile(cate_estimates, 25)), 4),
             "q75 + _cate": round(float(np.percentile(cate_estimates, 75)), 4),
             "cate_distribution": cate_estimates.tolist(),
-            "interpretation": f"Average CATE = {np.mean(cate_estimates):.3 + f} (SD = {np.std(cate_estimates):.3 + f}). "
-                              f"Treatment effects range from {np.min(cate_estimates):.3 + f} to {np.max(cate_estimates):.3 + f}.",
+            "interpretation": f"Average CATE = {np.mean(cate_estimates):.3 + f}} (SD = {np.std(cate_estimates):.3 + f}}). "
+                              f"Treatment effects range from {np.min(cate_estimates):.3 + f}} to {np.max(cate_estimates):.3 + f}}.",
         }
 
 
-# â”€â”€â”€ UI Renderer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Renderer Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 def render_causal_inference_ui():
     """Render the Causal Inference page in Streamlit."""
     import streamlit as st
     import plotly.graph_objects as go
     import plotly.express as px
 
-    st.markdown("## ðŸ”¬ Causal Inference Engine")
+    st.markdown("## Ã°Å¸â€Â¬ Causal Inference Engine")
     st.markdown("*Estimate causal effects from observational data + PSM, DiD, IV, RDD, IPW, CATE*")
 
     df = st.session_state.get("active_df")
@@ -515,13 +515,13 @@ def render_causal_inference_ui():
     engine = CausalInferenceEngine()
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-        "ðŸŽ¯ Propensity Score Matching",
+        "Ã°Å¸Å½Â¯ Propensity Score Matching",
         " Diff-in-Diff",
-        "ðŸ“ IV Regression",
-        "âœ‚ï¸ RDD",
-        "âš–ï¸ IPW",
-        "🔄 CATE",
-        "ðŸ§© DAG Advisor",
+        "Ã°Å¸â€œÂ IV Regression",
+        "Ã¢Å“â€šÃ¯Â¸Â RDD",
+        "Ã¢Å¡â€“Ã¯Â¸Â IPW",
+        "ðŸ”„ CATE",
+        "Ã°Å¸Â§Â© DAG Advisor",
     ])
 
     # Get available columns
@@ -529,7 +529,7 @@ def render_causal_inference_ui():
     all_cols = df.columns.tolist()
 
     with tab1:
-        st.subheader("ðŸŽ¯ Propensity Score Matching (PSM)")
+        st.subheader("Ã°Å¸Å½Â¯ Propensity Score Matching (PSM)")
         col1, col2 = st.columns(2)
         with col1:
             treat_col = st.selectbox("Treatment (binary 0/1)", options=numeric_cols, key="psm_treat")
@@ -540,22 +540,22 @@ def render_causal_inference_ui():
             n_neighbors = st.slider("Neighbors per treated", 1, 10, 1, key="psm_nn")
             caliper = st.slider("Caliper (propensity score units)", 0.01, 0.5, 0.05, 0.01, key="psm_caliper")
 
-        if st.button("ðŸ”¬ Run PSM", type="primary", use_container_width=True) and covs:
+        if st.button("Ã°Å¸â€Â¬ Run PSM", type="primary", use_container_width=True) and covs:
             with st.spinner("Running propensity score matching..."):
                 result = engine.propensity_score_matching(df, treat_col, outcome_col, covs, method, n_neighbors, caliper)
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("✅ PSM complete!")
+                st.success("âœ… PSM complete!")
                 col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("ATT Estimate", f"{result['att']:.4 + f}")
-                with col2: st.metric("SE", f"{result['se']:.4 + f}")
-                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}")
+                with col1: st.metric("ATT Estimate", f"{result['att']:.4 + f}}")
+                with col2: st.metric("SE", f"{result['se']:.4 + f}}")
+                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}}")
                 with col4: st.metric("Matched Pairs", result['n_matched_pairs'])
                 st.info(result['interpretation'])
 
                 if result.get("balance_smd"):
-                    st.subheader("âš–ï¸ Covariate Balance (SMD)")
+                    st.subheader("Ã¢Å¡â€“Ã¯Â¸Â Covariate Balance (SMD)")
                     bal_df = pd.DataFrame(list(result["balance_smd"].items()), columns=["Covariate", "SMD"])
                     st.dataframe(bal_df, use_container_width=True, hide_index=True)
                     fig = px.bar(bal_df, x="Covariate", y="SMD", title="Standardized Mean Differences After Matching",
@@ -579,12 +579,12 @@ def render_causal_inference_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("✅ DiD complete!")
+                st.success("âœ… DiD complete!")
                 col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("DiD Estimate", f"{result['did_estimate']:.4 + f}")
-                with col2: st.metric("SE", f"{result['se']:.4 + f}")
-                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}")
-                with col4: st.metric("RÂ²", f"{result['r_squared']:.4 + f}")
+                with col1: st.metric("DiD Estimate", f"{result['did_estimate']:.4 + f}}")
+                with col2: st.metric("SE", f"{result['se']:.4 + f}}")
+                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}}")
+                with col4: st.metric("RÃ‚Â²", f"{result['r_squared']:.4 + f}}")
                 st.info(result['interpretation'])
 
                 # Means plot
@@ -599,7 +599,7 @@ def render_causal_inference_ui():
                 st.plotly_chart(fig, use_container_width=True)
 
     with tab3:
-        st.subheader("ðŸ“ Instrumental Variable Regression (2 + SLS)")
+        st.subheader("Ã°Å¸â€œÂ Instrumental Variable Regression (2 + SLS)")
         st.info("Requires: outcome, treatment (endogenous), instrument (exogenous), optional covariates")
         col1, col2 = st.columns(2)
         with col1:
@@ -609,22 +609,22 @@ def render_causal_inference_ui():
             iv_inst = st.selectbox("Instrument (exogenous)", options=[c for c in numeric_cols if c not in (iv_outcome, iv_treat)], key="iv_inst")
             iv_covs = st.multiselect("Covariates (optional)", options=[c for c in numeric_cols if c not in (iv_outcome, iv_treat, iv_inst)], key="iv_covs")
 
-        if st.button("ðŸ“ Run IV Regression", type="primary", use_container_width=True):
+        if st.button("Ã°Å¸â€œÂ Run IV Regression", type="primary", use_container_width=True):
             with st.spinner("Running 2 + SLS..."):
                 result = engine.instrumental_variable(df, iv_outcome, iv_treat, iv_inst, iv_covs or None)
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("✅ IV regression complete!")
+                st.success("âœ… IV regression complete!")
                 col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("IV Estimate", f"{result['iv_estimate']:.4 + f}")
-                with col2: st.metric("SE", f"{result['se']:.4 + f}")
-                with col3: st.metric("F-stat (1 + st stage)", f"{result['first_stage_f_stat']:.2 + f}")
-                with col4: st.metric("Weak IV?", "âš ï¸ Yes" if result.get('weak_instrument') else "✅ No")
+                with col1: st.metric("IV Estimate", f"{result['iv_estimate']:.4 + f}}")
+                with col2: st.metric("SE", f"{result['se']:.4 + f}}")
+                with col3: st.metric("F-stat (1 + st stage)", f"{result['first_stage_f_stat']:.2 + f}}")
+                with col4: st.metric("Weak IV?", "Ã¢Å¡Â Ã¯Â¸Â Yes" if result.get('weak_instrument') else "âœ… No")
                 st.info(result['interpretation'])
 
     with tab4:
-        st.subheader("âœ‚ï¸ Regression Discontinuity (Sharp RDD)")
+        st.subheader("Ã¢Å“â€šÃ¯Â¸Â Regression Discontinuity (Sharp RDD)")
         col1, col2 = st.columns(2)
         with col1:
             rdd_assign = st.selectbox("Assignment variable (running)", options=numeric_cols, key="rdd_assign")
@@ -634,23 +634,23 @@ def render_causal_inference_ui():
             rdd_bandwidth = st.number_input("Bandwidth (leave 0 for auto)", min_value=0.0, value=0.0, step=0.1, key="rdd_bandwidth")
             rdd_poly = st.slider("Polynomial order", 1, 4, 2, key="rdd_poly")
 
-        if st.button("âœ‚ï¸ Run RDD", type="primary", use_container_width=True):
+        if st.button("Ã¢Å“â€šÃ¯Â¸Â Run RDD", type="primary", use_container_width=True):
             bw = rdd_bandwidth if rdd_bandwidth > 0 else None
             with st.spinner("Running regression discontinuity..."):
                 result = engine.regression_discontinuity(df, rdd_assign, rdd_outcome, rdd_cutoff, bw, rdd_poly)
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("✅ RDD complete!")
+                st.success("âœ… RDD complete!")
                 col1, col2, col3, col4 = st.columns(4)
-                with col1: st.metric("RD Estimate", f"{result['rd_estimate']:.4 + f}")
-                with col2: st.metric("SE", f"{result['se']:.4 + f}")
-                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}")
+                with col1: st.metric("RD Estimate", f"{result['rd_estimate']:.4 + f}}")
+                with col2: st.metric("SE", f"{result['se']:.4 + f}}")
+                with col3: st.metric("p-value", f"{result['p_value']:.4 + f}}")
                 with col4: st.metric("N (bandwidth)", result['n_within_bandwidth'])
                 st.info(result['interpretation'])
 
     with tab5:
-        st.subheader("âš–ï¸ Inverse Probability Weighting (IPW)")
+        st.subheader("Ã¢Å¡â€“Ã¯Â¸Â Inverse Probability Weighting (IPW)")
         col1, col2 = st.columns(2)
         with col1:
             ipw_treat = st.selectbox("Treatment (0/1)", options=numeric_cols, key="ipw_treat")
@@ -658,18 +658,18 @@ def render_causal_inference_ui():
         with col2:
             ipw_covs = st.multiselect("Covariates", options=[c for c in numeric_cols if c not in (ipw_treat, ipw_outcome)], key="ipw_covs")
 
-        if st.button("âš–ï¸ Run IPW", type="primary", use_container_width=True) and ipw_covs:
+        if st.button("Ã¢Å¡â€“Ã¯Â¸Â Run IPW", type="primary", use_container_width=True) and ipw_covs:
             with st.spinner("Running IPW..."):
                 result = engine.inverse_probability_weighting(df, ipw_treat, ipw_outcome, ipw_covs)
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("✅ IPW complete!")
-                st.metric("ATE (IPW)", f"{result['ate']:.4 + f}")
+                st.success("âœ… IPW complete!")
+                st.metric("ATE (IPW)", f"{result['ate']:.4 + f}}")
                 st.info(result['interpretation'])
 
     with tab6:
-        st.subheader("🔄 Heterogeneous Treatment Effects (CATE)")
+        st.subheader("ðŸ”„ Heterogeneous Treatment Effects (CATE)")
         col1, col2 = st.columns(2)
         with col1:
             cate_treat = st.selectbox("Treatment (0/1)", options=numeric_cols, key="cate_treat")
@@ -677,17 +677,17 @@ def render_causal_inference_ui():
         with col2:
             cate_covs = st.multiselect("Features for heterogeneity", options=[c for c in numeric_cols if c not in (cate_treat, cate_outcome)], key="cate_covs")
 
-        if st.button("🔄 Estimate CATE", type="primary", use_container_width=True) and cate_covs:
+        if st.button("ðŸ”„ Estimate CATE", type="primary", use_container_width=True) and cate_covs:
             with st.spinner("Estimating CATE..."):
                 result = engine.estimate_cate(df, cate_treat, cate_outcome, cate_covs)
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.success("✅ CATE estimated!")
+                st.success("âœ… CATE estimated!")
                 col1, col2, col3 = st.columns(3)
-                with col1: st.metric("Mean CATE", f"{result['mean_cate']:.4 + f}")
-                with col2: st.metric("Median CATE", f"{result['median_cate']:.4 + f}")
-                with col3: st.metric("Std CATE", f"{result['std_cate']:.4 + f}")
+                with col1: st.metric("Mean CATE", f"{result['mean_cate']:.4 + f}}")
+                with col2: st.metric("Median CATE", f"{result['median_cate']:.4 + f}}")
+                with col3: st.metric("Std CATE", f"{result['std_cate']:.4 + f}}")
                 st.info(result['interpretation'])
 
                 # Distribution plot
@@ -700,7 +700,7 @@ def render_causal_inference_ui():
                     st.plotly_chart(fig, use_container_width=True)
 
     with tab7:
-        st.subheader("ðŸ§© DAG-Based Adjustment Set Advisor")
+        st.subheader("Ã°Å¸Â§Â© DAG-Based Adjustment Set Advisor")
         st.info("Specify your assumed causal structure to get adjustment recommendations.")
 
         treat_var = st.selectbox("Treatment variable", options=all_cols, key="dag_treat")
@@ -712,16 +712,17 @@ def render_causal_inference_ui():
         colliders = st.multiselect("Colliders (caused by both)",
                                    options=[c for c in all_cols if c not in (treat_var, outcome_var)], key="dag_coll")
 
-        if st.button("ðŸ§© Get Adjustment Set", type="primary", use_container_width=True):
+        if st.button("Ã°Å¸Â§Â© Get Adjustment Set", type="primary", use_container_width=True):
             result = engine.suggest_adjustment_set(treat_var, outcome_var, all_cols, confounders, mediators, colliders)
-            st.success("✅ DAG analysis complete!")
+            st.success("âœ… DAG analysis complete!")
             st.markdown(f"### Recommended Adjustment Set")
             if result["recommended_adjustment_set"]:
                 for v in result["recommended_adjustment_set"]:
-                    st.markdown(f"- **{v}**")
+                    st.markdown(f"- **{v}}**")
             else:
                 st.info("No adjustment needed (or no confounders specified).")
             st.markdown("### Variables to Exclude")
             for v in result["variables_to_exclude"]:
-                st.markdown(f"- âŒ {v}")
+                st.markdown(f"- Ã¢ÂÅ’ {v}}")
+
 

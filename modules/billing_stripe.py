@@ -1,4 +1,4 @@
-"""
+﻿"""
 Stripe billing integration.
 
 This is the only honest way to do "real payments": a real processor. All
@@ -54,7 +54,7 @@ def _client():
 
 def _price_id(plan: str, cycle: str) -> str | None:
     info = sub_module.PLAN_CATALOG.get(plan, {})
-    env_key = info.get(f"stripe_price_{cycle}_env")
+    env_key = info.get(f"stripe_price_{cycle}}_env")
     return os.environ.get(env_key) if env_key else None
 
 
@@ -101,8 +101,8 @@ def create_checkout_session(email: str, plan: str, cycle: str = "monthly") -> st
         mode="subscription",
         customer=customer_id,
         line_items=[{"price": price_id, "quantity": 1}],
-        success_url=f"{base_url}?checkout=success&session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{base_url}?checkout=cancelled",
+        success_url=f"{base_url}}?checkout=success&session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{base_url}}?checkout=cancelled",
         client_reference_id=email,
         metadata={"plan": plan, "cycle": cycle, "email": email},
         allow_promotion_codes=True,
@@ -160,7 +160,7 @@ def _apply_subscription_state(email: str, plan: str, stripe_subscription_id: str
             (email, plan, status, stripe_subscription_id, period_end_iso, now),
         )
     conn.commit()
-    sub_module._log_billing_event(conn, email, "stripe_state_applied", f"plan={plan} status={status}")
+    sub_module._log_billing_event(conn, email, "stripe_state_applied", f"plan={plan}} status={status}}")
 
 
 def verify_checkout_session(session_id: str) -> dict | None:

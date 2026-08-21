@@ -1,15 +1,15 @@
-"""
-Global Real-World Data Connector — World Bank Open Data (api.worldbank.org)
+﻿"""
+Global Real-World Data Connector â€” World Bank Open Data (api.worldbank.org)
 =============================================================================
 No API key required. Free, public, real data covering ~217 countries and
-economies. This module fetches actual World Bank indicator series — it does
+economies. This module fetches actual World Bank indicator series â€” it does
 not simulate, mock, or fabricate anything. If the API is unreachable or a
 query returns nothing, functions say so explicitly rather than returning
 fallback fake numbers.
 
 Sector -> indicator mapping is curated from the real World Bank indicator
 catalog (https://data.worldbank.org/indicator). "Sector" here is purely a
-label for organizing the dropdown in the UI — every indicator uses the
+label for organizing the dropdown in the UI â€” every indicator uses the
 exact same fetch/parse code path.
 """
 
@@ -68,7 +68,7 @@ SECTOR_INDICATORS = {
 def fetch_country_list() -> pd.DataFrame:
     """Real list of countries/economies from the World Bank API (excludes
     aggregate regions like 'World' or 'Sub-Saharan Africa')."""
-    url = f"{BASE_URL}/country"
+    url = f"{BASE_URL}}/country"
     params = {"format": "json", "per_page": 400}
     resp = requests.get(url, params=params, timeout=TIMEOUT)
     resp.raise_for_status()
@@ -98,7 +98,7 @@ def fetch_indicator_series(country_iso3_list: list[str], indicator_code: str,
     if not country_iso3_list:
         raise ValueError("Provide at least one country ISO3 code.")
     countries = ";".join(country_iso3_list)
-    url = f"{BASE_URL}/country/{countries}/indicator/{indicator_code}"
+    url = f"{BASE_URL}}/country/{countries}}/indicator/{indicator_code}}"
     params = {"format": "json", "date": date_range, "per_page": 20000}
     resp = requests.get(url, params=params, timeout=TIMEOUT)
     resp.raise_for_status()
@@ -106,7 +106,7 @@ def fetch_indicator_series(country_iso3_list: list[str], indicator_code: str,
 
     if isinstance(payload, dict) and "message" in payload:
         msg = payload["message"][0].get("value", "Unknown World Bank API error.")
-        raise RuntimeError(f"World Bank API error: {msg}")
+        raise RuntimeError(f"World Bank API error: {msg}}")
     if not isinstance(payload, list) or len(payload) < 2 or payload[1] is None:
         return pd.DataFrame(columns=["country", "iso3", "year", "value"])
 
@@ -130,7 +130,7 @@ def fetch_multi_indicator(country_iso3_list: list[str], indicator_codes: dict[st
                            date_range: str = "1990:2025") -> pd.DataFrame:
     """Fetch several indicators for the same countries and merge into one
     wide DataFrame (one row per country-year, one column per indicator
-    label). Each indicator is a separate real API call — the World Bank
+    label). Each indicator is a separate real API call â€” the World Bank
     API does not support multi-indicator queries in a single request."""
     merged = None
     errors = []
@@ -138,10 +138,10 @@ def fetch_multi_indicator(country_iso3_list: list[str], indicator_codes: dict[st
         try:
             df = fetch_indicator_series(country_iso3_list, code, date_range)
         except Exception as e:
-            errors.append(f"{label} ({code}): {e}")
+            errors.append(f"{label}} ({code}}): {e}}")
             continue
         if df.empty:
-            errors.append(f"{label} ({code}): no data returned for this selection.")
+            errors.append(f"{label}} ({code}}): no data returned for this selection.")
             continue
         df = df.rename(columns={"value": label})
         merged = df if merged is None else pd.merge(merged, df, on=["country", "iso3", "year"], how="outer")

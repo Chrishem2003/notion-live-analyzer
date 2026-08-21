@@ -1,4 +1,4 @@
-
+﻿
 """Audit Logger  Session & Event Telemetry Engine."""
 import streamlit as st
 from datetime import datetime
@@ -42,6 +42,7 @@ def export_audit_log() -> str:
         ts = entry.get("timestamp", "")
         et = entry.get("event_type", "")
         details = entry.get("details", {})
-        detail_str = ", ".join(f"{k}={v}" for k, v in details.items()) if details else ""
-        lines.append(f"[{ts}] {et} {detail_str}")
+        detail_str = ", ".join(f"{k}}={v}}" for k, v in details.items()) if details else ""
+        lines.append(f"[{ts}}] {et}} {detail_str}}")
     return "\n".join(lines)
+
