@@ -308,7 +308,7 @@ def exchange_code_for_token(cfg, code):
 
 
 def fetch_oauth_profile(provider_key, cfg, access_token):
-    headers = {"Authorization": f"Bearer {access_token}}", "Accept": "application/json"}
+    headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
     resp = requests.get(cfg["userinfo_url"], headers=headers, timeout=10)
     resp.raise_for_status()
     data = resp.json()
@@ -356,7 +356,7 @@ def handle_oauth_callback():
     cfg = configured.get(provider_key)
     if not cfg:
         st.query_params.clear()
-        st.error(f"{provider_key.title()}} sign-in is not configured on this deployment.")
+        st.error(f"{provider_key.title()} sign-in is not configured on this deployment.")
         return False
 
     try:
@@ -368,7 +368,7 @@ def handle_oauth_callback():
             raise ValueError("The provider didn't return a usable email address.")
     except Exception as e:
         st.query_params.clear()
-        st.error(f"{provider_key.title()}} sign-in failed: {e}}")
+        st.error(f"{provider_key.title()} sign-in failed: {e}")
         return False
 
     user = auth_store.get_or_create_oauth_user(
@@ -398,7 +398,7 @@ def render_oauth_buttons():
 
     for key, cfg in configured.items():
         url = build_authorize_url(key, cfg)
-        st.link_button(f"{cfg['icon']}} Continue with {cfg['label']}}", url, use_container_width=True)
+        st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, use_container_width=True)
     st.markdown("<div style='text-align:center; color:#94A3B8; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>", unsafe_allow_html=True)
 
 
@@ -408,7 +408,7 @@ def handle_checkout_return():
         result = billing_stripe.verify_checkout_session(qp["session_id"])
         st.query_params.clear()
         if result:
-            st.session_state["_billing_toast"] = f"✅ Upgraded to **{result['plan'].title()}}** — welcome aboard."
+            st.session_state["_billing_toast"] = f"✅ Upgraded to **{result['plan'].title()}** — welcome aboard."
         else:
             st.session_state["_billing_toast"] = "⚠️ Could not confirm payment yet. Try resyncing billing status."
     elif qp.get("checkout") == "cancelled":
@@ -440,7 +440,7 @@ def create_starter_bundle(platform_name):
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         zip_file.writestr(
             "README.md",
-            f"# Chrishem Science Hub — Starter Notes ({platform_name}})\n\n"
+            f"# Chrishem Science Hub — Starter Notes ({platform_name})\n\n"
             "This is a minimal configuration reference bundle. To run the platform, deploy `streamlit run app.py`.",
         )
         zip_file.writestr("config.toml", "[server]\nheadless = true\nenableCORS = false")
@@ -590,7 +590,7 @@ if not st.session_state.portal_unlocked:
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 
     gateway_avatar_b64 = get_user_avatar_base64("")
-    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
+    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
 
     st.markdown(f"""
     <div class="portal-hero-card">
@@ -681,12 +681,12 @@ else:
 
     sidebar_avatar_b64 = get_user_avatar_base64(current_user_email)
     if sidebar_avatar_b64:
-        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
 
     st.sidebar.title("CHRISHEM APEX")
-    st.sidebar.success(f"🔓 Operator: {identity.get('name')}}")
-    st.sidebar.markdown(f"**Email:** `{current_user_email}}`")
-    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_admin() else 'Standard User'}}`")
+    st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
+    st.sidebar.markdown(f"**Email:** `{current_user_email}`")
+    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_admin() else 'Standard User'}`")
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
@@ -739,9 +739,9 @@ else:
         with col1:
             st.markdown('<div class="workspace-metric"><div class="metric-value">Active</div><div class="metric-label">Gateway Status</div></div>', unsafe_allow_html=True)
         with col2:
-            st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="workspace-metric"><div class="metric-value">{identity.get("name")}</div><div class="metric-label">Active Operator</div></div>', unsafe_allow_html=True)
         with col3:
-            st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
 
         st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
         st.markdown("### 🌟 Welcome to the Core Ecosystem Workspace")
@@ -749,12 +749,12 @@ else:
 
         c_a, c_b = st.columns(2)
         with c_a:
-            st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}}")
+            st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}")
         with c_b:
             if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
-                st.success(f"**Trial:** {plan_label}} access — {status['days_left_in_trial']}} day(s) left.")
+                st.success(f"**Trial:** {plan_label} access — {status['days_left_in_trial']} day(s) left.")
             else:
-                st.success(f"**Subscription Plan:** `{plan_label}}` ({status['status']}}) for `{current_user_email}}`.")
+                st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
 
     elif menu_selection == "📝 Query Log":
         st.title("📝 Session Query Log")
@@ -789,8 +789,8 @@ else:
                 length = len(clean_seq)
                 gc = ((clean_seq.count('G') + clean_seq.count('C')) / length * 100) if length > 0 else 0
                 c1, c2 = st.columns(2)
-                c1.metric("Total Base Pairs", f"{length}} bp")
-                c2.metric("GC-Content Ratio", f"{gc:.2f}}%")
+                c1.metric("Total Base Pairs", f"{length} bp")
+                c2.metric("GC-Content Ratio", f"{gc:.2f}%")
             else:
                 st.warning("Please provide a sequence string.")
 
@@ -800,7 +800,7 @@ else:
 
         active_b64 = get_user_avatar_base64(current_user_email)
         if active_b64:
-            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8;"></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8;"></div>', unsafe_allow_html=True)
 
         uploaded_avatar = st.file_uploader("Upload New Avatar Image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 
