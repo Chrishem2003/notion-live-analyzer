@@ -1,4 +1,4 @@
-﻿"""
+"""
 Subscription & tier engine.
 
 This is the single source of truth for "what is this account allowed to
@@ -139,7 +139,7 @@ def _log_billing_event(conn, email: str, event_type: str, detail: str = ""):
     cur = conn.cursor()
     cur.execute(
         "INSERT INTO billing_events (email, event_type, detail, timestamp) VALUES (?, ?, ?, ?)",
-        (email, event_type, detail, datetime.datetime.utcnow().isoformat()),
+        (email, event_type, detail, datetime.datetime.now(datetime.UTC).isoformat()),
     )
     conn.commit()
 
@@ -158,7 +158,7 @@ def ensure_trial_started(email: str):
     cur.execute("SELECT email FROM subscriptions WHERE email = ?", (email,))
     if cur.fetchone():
         return
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.UTC)
     trial_ends = now + datetime.timedelta(days=TRIAL_LENGTH_DAYS)
     cur.execute(
         "INSERT INTO subscriptions (email, plan, status, trial_started, trial_ends, updated_at, updated_by) "
@@ -176,7 +176,7 @@ def _normalize_legacy_row(conn, email: str, row: dict) -> dict:
     if row.get("status"):
         return row
     legacy_plan = (row.get("plan") or "free").lower()
-    now = datetime.datetime.utcnow().isoformat()
+    now = datetime.datetime.now(datetime.UTC).isoformat()
     if legacy_plan == "active":
         new_plan, new_status = "premium", "active"
     elif legacy_plan == "trial":
@@ -221,7 +221,7 @@ def get_status(email: str) -> dict:
     ))
     data = _normalize_legacy_row(conn, email, data)
 
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.UTC)
     effective_plan = "free"
     days_left = None
 
@@ -296,7 +296,7 @@ def require_active_subscription(min_plan: str = "free", hub_id: str | None = Non
 
     if have_rank >= need_rank:
         if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
-            st.info(f"Trial active â€” {status['days_left_in_trial']}} day(s) left with full {TRIAL_GRANTS_PLAN.title()}} access.")
+            st.info(f"Trial active — {status['days_left_in_trial']}} day(s) left with full {TRIAL_GRANTS_PLAN.title()}} access.")
         return
 
     from . import billing_stripe
@@ -311,21 +311,21 @@ def render_upgrade_prompt(email: str, target_plan: str):
     plan_info = PLAN_CATALOG[target_plan]
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown(f"**{plan_info['label']}}** â€” ${plan_info['price_monthly']}}/mo")
+        st.markdown(f"**{plan_info['label']}}** — ${plan_info['price_monthly']}}/mo")
         if billing_stripe.is_configured():
             if st.button(f"Upgrade to {plan_info['label']}} (monthly)", key=f"up_{target_plan}}_m"):
                 url = billing_stripe.create_checkout_session(email, target_plan, "monthly")
                 if url:
-                    st.link_button("Continue to secure checkout â†’", url, type="primary")
+                    st.link_button("Continue to secure checkout →", url, type="primary")
         else:
             st.caption("Payments aren't configured on this deployment yet (missing STRIPE_SECRET_KEY).")
     with c2:
-        st.markdown(f"**{plan_info['label']}}** â€” ${plan_info['price_annual']}}/yr")
+        st.markdown(f"**{plan_info['label']}}** — ${plan_info['price_annual']}}/yr")
         if billing_stripe.is_configured():
             if st.button(f"Upgrade to {plan_info['label']}} (annual)", key=f"up_{target_plan}}_a"):
                 url = billing_stripe.create_checkout_session(email, target_plan, "annual")
                 if url:
-                    st.link_button("Continue to secure checkout â†’", url, type="primary")
+                    st.link_button("Continue to secure checkout →", url, type="primary")
 
 
 def check_and_consume_quota(email: str, counter_key: str, amount: int = 1, period: str = "day") -> tuple[bool, str]:
@@ -338,7 +338,7 @@ def check_and_consume_quota(email: str, counter_key: str, amount: int = 1, perio
     if limit is None:
         return True, ""
 
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.UTC)
     period_key = now.strftime("%Y-%m-%d") if period == "day" else now.strftime("%Y-%m")
 
     conn = get_conn()
@@ -370,7 +370,7 @@ def admin_override_plan(actor_email: str, target_email: str, new_plan: str, new_
     trace every time."""
     conn = get_conn()
     init_billing_schema(conn)
-    now = datetime.datetime.utcnow().isoformat()
+    now = datetime.datetime.now(datetime.UTC).isoformat()
     cur = conn.cursor()
     cur.execute(
         "INSERT INTO subscriptions (email, plan, status, updated_at, updated_by) VALUES (?, ?, ?, ?, ?) "
@@ -387,3 +387,4 @@ def admin_override_plan(actor_email: str, target_email: str, new_plan: str, new_
 # already used elsewhere (portal.py calls `subscription.ensure_trial_started(...)`,
 # Admin Security Center imports `subscription` as a module) -- this module
 # IS that interface now, so `from modules import subscription` keeps working.
+

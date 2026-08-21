@@ -140,7 +140,7 @@ def render_accent_color_css():
     page (cheap â€” just a <style> tag) to keep the accent consistent."""
     accent = st.session_state.get("user_accent_color", DEFAULT_ACCENT)
     st.markdown(
-        f"""
+        """
         <style>
         div.stButton > button[kind="primary"] {{
             background-color: {accent} !important;
@@ -162,3 +162,4 @@ def compute_greeting(dt: datetime.datetime) -> str:
         else "Good Evening" if 17 <= hour < 21
         else "Good Night"
     )
+

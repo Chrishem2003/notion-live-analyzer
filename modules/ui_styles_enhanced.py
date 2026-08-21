@@ -18,7 +18,7 @@ def apply_enhanced_styles():
     accent_gradient = "linear-gradient(135deg, #3b82f6, #8b5cf6)"
     
     # Enhanced CSS
-    css = f"""
+    css = """
     <style>
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
@@ -466,4 +466,5 @@ def render_location_greeting():
         greeting = f"{greeting}} {special}}"
     
     return greeting
+
 

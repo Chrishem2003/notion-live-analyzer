@@ -1,5 +1,5 @@
-﻿"""
-ðŸ  Home Dashboard â€” Sovereign Enterprise Platform Landing Hub (Premium)
+"""
+🏠 Home Dashboard — Sovereign Enterprise Platform Landing Hub (Premium)
 Consolidated unified enterprise workspace featuring interactive session telemetry, real-time SQLite vault
 management, LIVE system health metrics, a cryptographically chained audit ledger, interactive quick-access
 navigation hubs, and secure user account management.
@@ -39,9 +39,9 @@ DB_PATH = "sovereign_apex_engine.db"
 GENESIS_HASH = "0" * 64
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 # Database Layer & Schema Upgrades
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 
 @st.cache_resource
 def get_db_connection():
@@ -51,7 +51,7 @@ def get_db_connection():
 
 
 def init_db(conn):
-    """Ensure core sovereign tablesâ€”including subscriptions and telemetry chainsâ€”exist with proper schema definitions."""
+    """Ensure core sovereign tables—including subscriptions and telemetry chains—exist with proper schema definitions."""
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS saved_analyses (
@@ -109,7 +109,7 @@ def log_telemetry(conn, module_name: str, severity: str, details: str):
     cursor.execute("SELECT crypto_hash FROM system_telemetry_logs ORDER BY id DESC LIMIT 1")
     row = cursor.fetchone()
     prev_hash = row[0] if row and row[0] else GENESIS_HASH
-    ts = datetime.datetime.utcnow().isoformat()
+    ts = datetime.datetime.now(datetime.UTC).isoformat()
     new_hash = _row_hash(prev_hash, ts, module_name, severity, details)
     cursor.execute(
         "INSERT INTO system_telemetry_logs (timestamp, module_name, severity, details, crypto_hash, prev_hash) "
@@ -133,19 +133,19 @@ def verify_telemetry_chain(conn):
             return {"valid": False, "reason": f"Row #{rid}} broke the chain (prev_hash mismatch).", "records": len(rows)}
         recomputed = _row_hash(stored_prev, ts, mod, sev, details)
         if recomputed != stored_hash:
-            return {"valid": False, "reason": f"Row #{rid}} content does not match its stored hash â€” tampering suspected.", "records": len(rows)}
+            return {"valid": False, "reason": f"Row #{rid}} content does not match its stored hash — tampering suspected.", "records": len(rows)}
         expected_prev = stored_hash
     return {"valid": True, "records": len(rows)}
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 # Live System Health Diagnostics
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 
 @st.cache_resource
 def _process_start_time():
     """Persists for the process lifetime to maintain an accurate uptime ticker."""
-    return datetime.datetime.utcnow()
+    return datetime.datetime.now(datetime.UTC)
 
 
 def _format_duration(delta: datetime.timedelta) -> str:
@@ -162,7 +162,7 @@ def _format_duration(delta: datetime.timedelta) -> str:
 
 def measure_system_health(conn):
     """Measures actual application health metrics on-demand."""
-    uptime = datetime.datetime.utcnow() - _process_start_time()
+    uptime = datetime.datetime.now(datetime.UTC) - _process_start_time()
 
     t0 = datetime.datetime.now().timestamp()
     conn.execute("SELECT 1").fetchone()
@@ -189,13 +189,13 @@ def measure_system_health(conn):
     }
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 # Vault Rendering & Management Module
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 
 def render_saved_analyses_vault(conn):
     section_header(
-        "ðŸ’¾ Saved Analyses & Reports Vault",
+        "💾 Saved Analyses & Reports Vault",
         "Review, filter, export, and inspect analytical reports and execution outputs securely stored in the database.",
     )
 
@@ -204,7 +204,7 @@ def render_saved_analyses_vault(conn):
     saved_rows = cursor.fetchall()
 
     if not saved_rows:
-        st.info("â„¹ï¸ No saved analyses found yet. Execute analyses across analytical hubs and save them to populate your vault.")
+        st.info("ℹ️ No saved analyses found yet. Execute analyses across analytical hubs and save them to populate your vault.")
         return
 
     df_vault = pd.DataFrame(saved_rows, columns=["ID", "Title", "Timestamp", "Category", "Content"])
@@ -243,7 +243,7 @@ def render_saved_analyses_vault(conn):
             )
             zf.writestr("manifest.json", manifest)
         st.download_button(
-            "â¬‡ï¸ Bulk Export Filtered Reports (.zip)",
+            "⬇️ Bulk Export Filtered Reports (.zip)",
             data=zip_buffer.getvalue(),
             file_name=f"vault_export_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}}.zip",
             mime="application/zip",
@@ -257,18 +257,18 @@ def render_saved_analyses_vault(conn):
     page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1, key="vault_page")
     start = (page - 1) * page_size
     page_rows = filtered_rows[start:start + page_size]
-    st.caption(f"Showing records {start + 1}}â€“{min(start + page_size, len(filtered_rows))}} of {len(filtered_rows)}} (page {page}}/{total_pages}})")
+    st.caption(f"Showing records {start + 1}}–{min(start + page_size, len(filtered_rows))}} of {len(filtered_rows)}} (page {page}}/{total_pages}})")
 
     for s_id, s_title, s_ts, s_cat, s_content in page_rows:
         display_ts = s_ts[:19] if len(s_ts) >= 19 else s_ts
-        with st.expander(f"ðŸ“„ [{s_cat}}] {s_title}} â€” {display_ts}}", expanded=False):
+        with st.expander(f"📄 [{s_cat}}] {s_title}} — {display_ts}}", expanded=False):
             st.markdown(f"**Category:** `{s_cat}}` | **Timestamp:** `{s_ts}}`")
             st.markdown("---")
             st.markdown(s_content)
             col_dl1, col_dl2, col_dl3 = st.columns(3)
             with col_dl1:
                 st.download_button(
-                    label="â¬‡ï¸ Markdown",
+                    label="⬇️ Markdown",
                     data=str(s_content),
                     file_name=f"analysis_{s_id}}.md",
                     mime="text/markdown",
@@ -276,14 +276,14 @@ def render_saved_analyses_vault(conn):
                 )
             with col_dl2:
                 st.download_button(
-                    label="â¬‡ï¸ JSON",
+                    label="⬇️ JSON",
                     data=json.dumps({"id": s_id, "title": s_title, "timestamp": s_ts, "category": s_cat, "content": s_content}, indent=2),
                     file_name=f"analysis_{s_id}}.json",
                     mime="application/json",
                     key=f"dl_json_{s_id}}",
                 )
             with col_dl3:
-                if st.button("ðŸ—‘ï¸ Delete", key=f"del_{s_id}}"):
+                if st.button("🗑️ Delete", key=f"del_{s_id}}"):
                     conn.execute("DELETE FROM saved_analyses WHERE id = ?", (s_id,))
                     conn.commit()
                     log_telemetry(conn, "Home Dashboard", "INFO", f"Deleted saved analysis #{s_id}} ({s_title}})")
@@ -291,18 +291,18 @@ def render_saved_analyses_vault(conn):
                     st.rerun()
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 # Live Telemetry & Audit Ledger Module
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 
 def render_live_telemetry(conn):
     section_header(
-        "ðŸ“¡ Real-Time System Telemetry & Operational Health",
+        "📡 Real-Time System Telemetry & Operational Health",
         "Live tracking of system resources, database response times, and the cryptographically secure audit trail.",
     )
 
     health = measure_system_health(conn)
-    hub_count = len(visible_hubs()) if callable(visible_hubs) else "â€”"
+    hub_count = len(visible_hubs()) if callable(visible_hubs) else "—"
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Process Uptime", health["uptime"])
@@ -313,15 +313,15 @@ def render_live_telemetry(conn):
         c3.metric("Memory Utilization", "psutil inactive")
     c4.metric("Active Hubs", f"{hub_count}} Hubs", delta=f"Disk free: {health['disk_free_pct']:.1f}}%")
 
-    st.markdown("#### ðŸ”’ Cryptographically Chained Audit & Telemetry Ledger")
+    st.markdown("#### 🔒 Cryptographically Chained Audit & Telemetry Ledger")
     col_v1, _ = st.columns([1, 3])
     with col_v1:
-        if st.button("ðŸ” Verify Chain Integrity", key="verify_home_chain"):
+        if st.button("🔍 Verify Chain Integrity", key="verify_home_chain"):
             result = verify_telemetry_chain(conn)
             if result["valid"]:
-                st.success(f"âœ… Chain verified â€” {result['records']}} entries intact, zero modifications found.")
+                st.success(f"✅ Chain verified — {result['records']}} entries intact, zero modifications found.")
             else:
-                st.error(f"ðŸš¨ TAMPER DETECTED: {result['reason']}}")
+                st.error(f"🚨 TAMPER DETECTED: {result['reason']}}")
 
     cursor = conn.cursor()
     cursor.execute(
@@ -332,20 +332,20 @@ def render_live_telemetry(conn):
 
     if logs_data:
         logs_df = pd.DataFrame(logs_data, columns=["ID", "Timestamp", "Module", "Severity", "Details", "Crypto Hash"])
-        logs_df["Crypto Hash"] = logs_df["Crypto Hash"].str[:16] + "â€¦"
+        logs_df["Crypto Hash"] = logs_df["Crypto Hash"].str[:16] + "…"
         st.dataframe(logs_df, use_container_width=True, hide_index=True)
         render_export_buttons(logs_df, base_name="system_telemetry_logs")
     else:
-        st.info("â„¹ï¸ No system telemetry logs recorded yet for this session cycle.")
+        st.info("ℹ️ No system telemetry logs recorded yet for this session cycle.")
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 # Main Application Entrypoint
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────
 
 def render_automated_intelligence_report():
     section_header(
-        "ðŸ¤– Automated Intelligence â€” Scheduled, Unattended Runs",
+        "🤖 Automated Intelligence — Scheduled, Unattended Runs",
         "Real output from the scheduled GitHub Actions workflow (.github/workflows/automated_intelligence_run.yml), "
         "not something triggered by clicking a button here. It pulls fresh World Bank data and runs the chaos "
         "detector on a watchlist automatically on a schedule and commits the results back to the repo.",
@@ -359,30 +359,30 @@ def render_automated_intelligence_report():
         st.info(
             "No automated run has completed yet. Once `automated_intelligence_run.yml` runs on its schedule "
             "(or you trigger it manually from the repo's Actions tab), the latest results will appear here "
-            "automatically â€” nothing to configure in the app itself."
+            "automatically — nothing to configure in the app itself."
         )
         return
 
     if alert_path.exists():
         alert_text = alert_path.read_text().strip()
         if alert_text and alert_text != "No changes since last run.":
-            st.warning(f"ðŸš¨ **Changes detected in the latest run:**\n\n{alert_text}}")
+            st.warning(f"🚨 **Changes detected in the latest run:**\n\n{alert_text}}")
         else:
-            st.success("âœ… No verdict changes since the previous scheduled run.")
+            st.success("✅ No verdict changes since the previous scheduled run.")
 
-    with st.expander("ðŸ“„ Full latest report", expanded=False):
+    with st.expander("📄 Full latest report", expanded=False):
         st.markdown(report_path.read_text())
 
 
 def main():
-    setup_page("Home Dashboard", "ðŸ ", initial_sidebar_state="expanded")
+    setup_page("Home Dashboard", "🏠", initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "ðŸ  Chrishem Sovereign Enterprise Platform â€” Home Command Center",
+        "🏠 Chrishem Sovereign Enterprise Platform — Home Command Center",
         "Welcome to your consolidated sovereign workspace. Use the sidebar hubs or quick access cards to navigate advanced analytical pipelines.",
         badge_text="SOVEREIGN ENTERPRISE PLATFORM v11.0",
     )
@@ -415,13 +415,13 @@ def main():
              border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px;
              padding: 1.2rem 1.5rem; margin-bottom: 1.5rem;">
             <div>
-                <div style="font-size:1.25rem; font-weight:800; color:#F8FAFC;">{greeting}, {name}! ðŸ‘‹</div>
+                <div style="font-size:1.25rem; font-weight:800; color:#F8FAFC;">{greeting}, {name}! 👋</div>
                 <div style="font-size:0.9rem; color:#38BDF8; font-weight:600; margin-top:0.2rem;">
                     Active Session Role: {role} | Your Local Time: {now_dt.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}
                 </div>
             </div>
             <div>
-                <span style="background:rgba(16,185,129,0.2); color:#34d399; padding:0.4rem 0.8rem; border-radius:20px; font-weight:700; font-size:0.85rem; border:1px solid rgba(16,185,129,0.4);">â— SYSTEM OPERATIONAL</span>
+                <span style="background:rgba(16,185,129,0.2); color:#34d399; padding:0.4rem 0.8rem; border-radius:20px; font-weight:700; font-size:0.85rem; border:1px solid rgba(16,185,129,0.4);">● SYSTEM OPERATIONAL</span>
             </div>
         </div>
         """,
@@ -430,21 +430,21 @@ def main():
 
     if summary:
         st.success(
-            f"ðŸ“Š **Active Ingestion Dataset:** `{summary.get('source', 'Dataset')}}` â€” {summary.get('rows', 0):,}} rows Ã— {summary.get('cols', 0)}} columns "
+            f"📊 **Active Ingestion Dataset:** `{summary.get('source', 'Dataset')}}` — {summary.get('rows', 0):,}} rows × {summary.get('cols', 0)}} columns "
             f"| Numeric: `{summary.get('numeric', 0)}}` | Categorical: `{summary.get('categorical', 0)}}`"
         )
     else:
-        st.warning("ðŸ“­ **No active dataset loaded.** Upload or ingest data via the **ðŸ“ Data Studio** hub to jumpstart your analytics.")
+        st.warning("📭 **No active dataset loaded.** Upload or ingest data via the **📁 Data Studio** hub to jumpstart your analytics.")
 
     st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
 
-    section_header("ðŸš€ Quick Access â€” Enterprise Workspace Hubs", "Select an operational hub below to load modular capabilities.")
+    section_header("🚀 Quick Access — Enterprise Workspace Hubs", "Select an operational hub below to load modular capabilities.")
     hub_quick_access_cards()
 
     st.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
 
     tab_vault, tab_telemetry, tab_automation, tab_account, tab_about = st.tabs(
-        ["ðŸ’¾ Saved Analyses Vault", "ðŸ“¡ Live Telemetry", "ðŸ¤– Automated Intelligence", "ðŸ‘¤ My Account & Plan", "â„¹ï¸ About Platform"]
+        ["💾 Saved Analyses Vault", "📡 Live Telemetry", "🤖 Automated Intelligence", "👤 My Account & Plan", "ℹ️ About Platform"]
     )
 
     with tab_vault:
@@ -457,7 +457,7 @@ def main():
         render_automated_intelligence_report()
 
     with tab_account:
-        section_header("ðŸ‘¤ Settings & Control Center", "Subscription, timezone, accent color, dependencies, focus engine, and creator profile â€” all managed in one place.")
+        section_header("👤 Settings & Control Center", "Subscription, timezone, accent color, dependencies, focus engine, and creator profile — all managed in one place.")
         from modules import subscription, verification
         acct_email = identity.get("email", "analyst@sovereign.enterprise")
         if acct_email:
@@ -470,7 +470,7 @@ def main():
             c3.metric("Account Email", acct_email)
 
             settings_tabs = st.tabs([
-                "ðŸŽ“ Verification", "ðŸŒ Timezone & Color", "ðŸ“¦ Dependencies", "ðŸ§  Focus Engine", "ðŸ‘‘ Creator Profile",
+                "🎓 Verification", "🌐 Timezone & Color", "📦 Dependencies", "🧠 Focus Engine", "👑 Creator Profile",
             ])
 
             with settings_tabs[0]:
@@ -487,14 +487,14 @@ def main():
             with settings_tabs[3]:
                 from modules.audio_engine import render_generative_synthesizer, render_ambient_library_picker
                 st.caption(
-                    "The generative synthesizer runs live in your browser â€” no files, no dead links. "
+                    "The generative synthesizer runs live in your browser — no files, no dead links. "
                     "Streamlit recreates this widget on page navigation, so playback resumes automatically "
                     "from where it left off (via your browser's local storage) rather than continuing "
-                    "gaplessly â€” that's a real platform constraint, not a bug."
+                    "gaplessly — that's a real platform constraint, not a bug."
                 )
                 render_generative_synthesizer()
                 st.markdown("---")
-                st.markdown("#### ðŸŒ¿ Ambient Library")
+                st.markdown("#### 🌿 Ambient Library")
                 render_ambient_library_picker()
 
             with settings_tabs[4]:
@@ -515,31 +515,31 @@ def main():
                     st.success("Photo saved.")
                     st.rerun()
         else:
-            st.info("â„¹ï¸ Sign in with a registered user profile to check your subscription status.")
+            st.info("ℹ️ Sign in with a registered user profile to check your subscription status.")
 
     with tab_about:
-        section_header("â„¹ï¸ About the Chrishem Sovereign Intelligence Platform")
+        section_header("ℹ️ About the Chrishem Sovereign Intelligence Platform")
         st.markdown(
             """
             **CHRISHEM Sovereign Intelligence Platform v11.0** is an enterprise architecture consolidating core workflows into **15 high-performance hubs**:
 
             | Operational Hub | Core Capabilities |
             |-----------------|-----------------------------------|
-            | ðŸ  **Home Dashboard** | Enterprise dashboard, vault, telemetry, automated intelligence |
-            | ðŸ“ **Data Studio** | Data ingestion, quality assurance, anomaly testing |
-            | ðŸ“Š **Statistics Studio** | Hypothesis testing, causal modeling, inference |
-            | ðŸ¤– **ML & Predictive Studio**| AutoML pipelines, feature analysis, real-world chaos detection |
-            | ðŸ“ˆ **Visualization Studio** | Interactive mapping, presentation dashboards |
-            | ðŸ’¬ **AI & NLP Studio** | Natural language analytics, synthesis engines |
-            | ðŸ“š **Literature Hub** | Meta-analysis tools, reference generation |
-            | ðŸ”¬ **Domain Analytics** | Clinical tracking, geospatial processing |
-            | ðŸ”— **Integrations Hub** | API routing, sync modules, real World Bank data |
-            | ðŸ›¡ï¸ **Admin & Security** | Access governance, diagnostics, audit forensics, nexus workspace |
-            | ðŸ¤ **Collaboration** | Workspace sharing, team pipelines |
-            | ðŸ•µï¸ **Forensics Intelligence** | Investigative and forensic analysis tools |
-            | ðŸ”„ **Universal Converter** | Format and encoding conversion utilities |
-            | ðŸ›¡ï¸ **Threat & Scanner Suite** | PII/secret scanning, threat detection |
-            | ðŸŒ **Global Mission Control** | Live global health & weather telemetry |
+            | 🏠 **Home Dashboard** | Enterprise dashboard, vault, telemetry, automated intelligence |
+            | 📁 **Data Studio** | Data ingestion, quality assurance, anomaly testing |
+            | 📊 **Statistics Studio** | Hypothesis testing, causal modeling, inference |
+            | 🤖 **ML & Predictive Studio**| AutoML pipelines, feature analysis, real-world chaos detection |
+            | 📈 **Visualization Studio** | Interactive mapping, presentation dashboards |
+            | 💬 **AI & NLP Studio** | Natural language analytics, synthesis engines |
+            | 📚 **Literature Hub** | Meta-analysis tools, reference generation |
+            | 🔬 **Domain Analytics** | Clinical tracking, geospatial processing |
+            | 🔗 **Integrations Hub** | API routing, sync modules, real World Bank data |
+            | 🛡️ **Admin & Security** | Access governance, diagnostics, audit forensics, nexus workspace |
+            | 🤝 **Collaboration** | Workspace sharing, team pipelines |
+            | 🕵️ **Forensics Intelligence** | Investigative and forensic analysis tools |
+            | 🔄 **Universal Converter** | Format and encoding conversion utilities |
+            | 🛡️ **Threat & Scanner Suite** | PII/secret scanning, threat detection |
+            | 🌍 **Global Mission Control** | Live global health & weather telemetry |
 
             *Engineered by Kula Chris (CHRISHEM).*
             """
@@ -550,3 +550,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -1,5 +1,5 @@
-﻿"""
-legacy_research_data.py â€” Real persistent storage for the three datasets that
+"""
+legacy_research_data.py — Real persistent storage for the three datasets that
 Collaboration & Portfolio, Domain Analytics Hub, and Literature & Publishing
 Hub read/write: venture projects, mcr gene surveillance, PPWR/DRA clinical
 cohort entries, and the academic report vault.
@@ -8,7 +8,7 @@ Honesty note: this was previously a 1-line stub (`# Stub module for
 legacy_research_data.py`) with none of the eight functions the calling pages
 actually import, which meant those three pages threw a real ImportError on
 load. The page copy on those tabs says the data was "migrated from an
-earlier standalone build" / "genuine records, not demo data" â€” this module
+earlier standalone build" / "genuine records, not demo data" — this module
 does NOT fabricate that history. There is no earlier build's data available
 to migrate here, so every table starts genuinely empty and is populated only
 through the "Add" forms already built into those pages. No seed/sample rows
@@ -139,7 +139,7 @@ def add_business_project(
                 status=excluded.status
             """,
             (project_name, lead_entity, capital_ugx, roi_projection_pct, status,
-             datetime.datetime.utcnow().isoformat()),
+             datetime.datetime.now(datetime.UTC).isoformat()),
         )
         conn.commit()
     finally:
@@ -186,7 +186,7 @@ def add_mcr_sample(
             """,
             (sample_id, sample_type, source_location, latitude, longitude,
              mcr_variant, colistin_mic, iso, notes,
-             datetime.datetime.utcnow().isoformat()),
+             datetime.datetime.now(datetime.UTC).isoformat()),
         )
         conn.commit()
     finally:
@@ -221,7 +221,7 @@ def add_ppwr_entry(
             VALUES (?, ?, ?, ?, ?)
             """,
             (participant_age, months_postpartum, dra_gap_cm, ppwr_kg,
-             datetime.datetime.utcnow().isoformat()),
+             datetime.datetime.now(datetime.UTC).isoformat()),
         )
         conn.commit()
     finally:
@@ -256,9 +256,10 @@ def add_academic_report(
             VALUES (?, ?, ?, ?, ?, ?)
             """,
             (title, course_code, department, status, abstract_text,
-             datetime.datetime.utcnow().isoformat()),
+             datetime.datetime.now(datetime.UTC).isoformat()),
         )
         conn.commit()
     finally:
         conn.close()
+
 

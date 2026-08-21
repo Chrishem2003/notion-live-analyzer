@@ -23,7 +23,7 @@ def inject_client_keepalive(interval_sec: int = 300):
         return ""
 
     keep_alive_ms = interval_sec * 1000
-    script = f"""
+    script = """
     <script>
     // Keep-Alive Layer 1: Client-Side Heartbeat
     (function() {{
@@ -178,5 +178,6 @@ def stop_server_keepalive():
 def get_watchdog() -> Watchdog:
     """Get the watchdog singleton."""
     return _watchdog
+
 
 

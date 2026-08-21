@@ -1,10 +1,10 @@
-﻿"""
-chat_backend.py â€” Real-time messaging backend.
+"""
+chat_backend.py — Real-time messaging backend.
 
 Two storage layers, each doing the job it's actually suited for:
   - SQLite: durable message history, read receipts. Source of truth.
   - Redis pub/sub: real-time fan-out ONLY. A message is written to SQLite
-    first, then published â€” if Redis is briefly down, you lose real-time
+    first, then published — if Redis is briefly down, you lose real-time
     delivery to currently-connected clients, not the message itself (they
     get it on next history fetch/reconnect).
 
@@ -13,7 +13,7 @@ a production FastAPI deployment typically runs multiple worker processes
 (or multiple replicas). If Alice is connected to worker A and Bob to
 worker B, an in-memory broadcast on worker A never reaches Bob. Redis
 pub/sub is what makes the broadcast actually cross-process. This is a real
-bug class in naive chat tutorials â€” the in-memory version works perfectly
+bug class in naive chat tutorials — the in-memory version works perfectly
 in every local demo and silently drops messages in production.
 
 Presence: a Redis key per user with a TTL, renewed by a heartbeat the
@@ -66,11 +66,11 @@ class ChatMessage:
 
 
 def send_message(room_id: str, sender: str, content: str, conn: Optional[sqlite3.Connection] = None) -> ChatMessage:
-    """Persist first (source of truth), return the row with its real id â€”
+    """Persist first (source of truth), return the row with its real id —
     callers publish this to Redis themselves so the async publish can be
     awaited properly (this function stays sync/DB-only)."""
     conn = conn or _chat_conn()
-    ts = datetime.datetime.utcnow().isoformat()
+    ts = datetime.datetime.now(datetime.UTC).isoformat()
     cur = conn.execute(
         "INSERT INTO chat_messages (room_id, sender, content, sent_at) VALUES (?,?,?,?)",
         (room_id, sender, content, ts),
@@ -90,7 +90,7 @@ def get_history(room_id: str, since_id: int = 0, limit: int = 100, conn: Optiona
 
 def mark_read(room_id: str, user_email: str, up_to_message_id: int, conn: Optional[sqlite3.Connection] = None):
     conn = conn or _chat_conn()
-    ts = datetime.datetime.utcnow().isoformat()
+    ts = datetime.datetime.now(datetime.UTC).isoformat()
     conn.execute(
         "INSERT INTO chat_read_receipts (room_id, user_email, last_read_message_id, updated_at) VALUES (?,?,?,?) "
         "ON CONFLICT(room_id, user_email) DO UPDATE SET last_read_message_id = MAX(last_read_message_id, excluded.last_read_message_id), updated_at = excluded.updated_at",
@@ -100,7 +100,7 @@ def mark_read(room_id: str, user_email: str, up_to_message_id: int, conn: Option
 
 
 def get_read_receipts(room_id: str, conn: Optional[sqlite3.Connection] = None) -> dict:
-    """Returns {user_email: last_read_message_id} for a room â€” enough for
+    """Returns {user_email: last_read_message_id} for a room — enough for
     the UI to render WhatsApp-style double-check marks per message."""
     conn = conn or _chat_conn()
     rows = conn.execute(
@@ -109,14 +109,14 @@ def get_read_receipts(room_id: str, conn: Optional[sqlite3.Connection] = None) -
     return {r[0]: r[1] for r in rows}
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# Real-time layer (Redis pub/sub + presence) â€” async, used by the
+# ══════════════════════════════════════════════════════════════════
+# Real-time layer (Redis pub/sub + presence) — async, used by the
 # WebSocket endpoint in api_server.py
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
 class RealtimeChat:
     def __init__(self, redis_client):
         """`redis_client` is a redis.asyncio.Redis instance (or a
-        FakeAsyncRedis in tests) â€” dependency-injected so tests don't need
+        FakeAsyncRedis in tests) — dependency-injected so tests don't need
         a live Redis server."""
         self.redis = redis_client
 
@@ -136,7 +136,7 @@ class RealtimeChat:
         await self.redis.publish(self._typing_channel(room_id), json.dumps({"user": user_email, "is_typing": is_typing}))
 
     async def heartbeat(self, user_email: str):
-        """Renews presence TTL â€” call this on every heartbeat message the
+        """Renews presence TTL — call this on every heartbeat message the
         client sends, and once on connect."""
         await self.redis.set(self._presence_key(user_email), "1", ex=PRESENCE_TTL_SECONDS)
 
@@ -164,4 +164,5 @@ class RealtimeChat:
                 await pubsub.unsubscribe(self._channel(room_id), self._typing_channel(room_id))
                 await pubsub.close()
             except Exception:
-                pass  # best-effort cleanup during disconnect/cancellation â€” see meet_backend.py's subscribe_peer for the full rationale
+                pass  # best-effort cleanup during disconnect/cancellation — see meet_backend.py's subscribe_peer for the full rationale
+

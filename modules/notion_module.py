@@ -258,7 +258,7 @@ def render_notion_duplication():
             mark_notion_claimed()
             
             # Open Notion in new tab
-            st.markdown(f'''
+            st.markdown('''
             <script>
                 window.open("{TEMPLATE_URL}", "_blank");
             </script>
@@ -386,4 +386,5 @@ def get_notion_databases_cached(token: str) -> List[Dict]:
 def open_notion_link(url: str):
     """Open Notion link in new tab via JavaScript."""
     st.markdown(f'<script>window.open("{url}}", "_blank");</script>', unsafe_allow_html=True)
+
 

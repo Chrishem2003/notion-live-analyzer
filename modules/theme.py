@@ -1,13 +1,13 @@
-"""
-CHRISHEM Unified Theme Engine — Single source of truth for all UI styling.
+﻿"""
+CHRISHEM Unified Theme Engine â€” Single source of truth for all UI styling.
 Eliminates 66+ duplicate CSS blocks across pages.
 """
 
 import streamlit as st
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # COLOR PALETTE CONSTANTS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 THEME = {
     "dark": {
         "bg_primary": "#04080f",
@@ -61,7 +61,7 @@ def inject_global_css():
     """
     t = get_theme()
 
-    css = f"""
+    css = """
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
@@ -75,7 +75,7 @@ def inject_global_css():
             background-attachment: fixed;
         }}
 
-        /* ── Sidebar ── */
+        /* â”€â”€ Sidebar â”€â”€ */
         [data-testid="stSidebar"], section[data-testid="stSidebar"] {{
             background-color: {t['bg_sidebar']} !important;
             border-right: 1px solid {t['border']} !important;
@@ -114,7 +114,7 @@ def inject_global_css():
             font-weight: 700 !important;
         }}
 
-        /* ── Typography ── */
+        /* â”€â”€ Typography â”€â”€ */
         h1, h2, h3, h4, h5, h6 {{
             color: {t['accent']} !important;
             font-weight: 800 !important;
@@ -130,7 +130,7 @@ def inject_global_css():
             font-size: 0.85rem !important;
         }}
 
-        /* ── Cards ── */
+        /* â”€â”€ Cards â”€â”€ */
         .chris-card {{
             background: {t['bg_card']} !important;
             border: 1px solid {t['border_accent']} !important;
@@ -157,7 +157,7 @@ def inject_global_css():
             margin-bottom: 1.2rem;
         }}
 
-        /* ── Metrics ── */
+        /* â”€â”€ Metrics â”€â”€ */
         div[data-testid="stMetricValue"] {{
             color: {t['accent']} !important;
             font-size: 1.8rem !important;
@@ -170,7 +170,7 @@ def inject_global_css():
             font-size: 0.75rem;
         }}
 
-        /* ── Inputs ── */
+        /* â”€â”€ Inputs â”€â”€ */
         div.stSelectbox, div.stMultiSelect, div.stTextInput, div.stNumberInput, div.stSlider, div[data-testid="stRadio"] {{
             background-color: {t['bg_card']} !important;
             border-radius: 8px !important;
@@ -184,7 +184,7 @@ def inject_global_css():
             font-weight: 600 !important;
         }}
 
-        /* ── Buttons ── */
+        /* â”€â”€ Buttons â”€â”€ */
         .stButton button {{
             background: {t['bg_card']} !important;
             border: 1px solid {t['accent']} !important;
@@ -199,14 +199,14 @@ def inject_global_css():
             box-shadow: 0 0 16px rgba(0, 242, 254, 0.5);
         }}
 
-        /* ── DataFrames / Tables ── */
+        /* â”€â”€ DataFrames / Tables â”€â”€ */
         .stDataFrame, .stTable {{
             background-color: {t['bg_secondary']} !important;
             border: 1px solid {t['border']} !important;
             border-radius: 8px !important;
         }}
 
-        /* ── Tabs ── */
+        /* â”€â”€ Tabs â”€â”€ */
         div.stTabs [data-baseweb="tab-list"] {{
             gap: 8px;
             background-color: {t['bg_primary']};
@@ -229,7 +229,7 @@ def inject_global_css():
             border-bottom: 3px solid {t['accent']} !important;
         }}
 
-        /* ── Badges ── */
+        /* â”€â”€ Badges â”€â”€ */
         .badge-primary {{
             background: #172554;
             color: #93c5fd;
@@ -252,14 +252,14 @@ def inject_global_css():
             font-weight: 700;
         }}
 
-        /* ── Dividers ── */
+        /* â”€â”€ Dividers â”€â”€ */
         .chris-hr {{
             height: 1px;
             background: linear-gradient(90deg, transparent, {t['border']}, transparent);
             margin: 1.5rem 0;
         }}
 
-        /* ── Console Log ── */
+        /* â”€â”€ Console Log â”€â”€ */
         .console-box {{
             background: #030712;
             border: 1px solid {t['border']};
@@ -272,7 +272,7 @@ def inject_global_css():
             overflow-y: auto;
         }}
 
-        /* ── Progress / Status ── */
+        /* â”€â”€ Progress / Status â”€â”€ */
         .status-badge {{
             display: inline-block;
             padding: 0.25rem 0.75rem;
@@ -286,3 +286,4 @@ def inject_global_css():
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
+

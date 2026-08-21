@@ -1,12 +1,12 @@
-﻿"""
-drive_v2.py â€” Real cloud storage for Nexus Drive.
+"""
+drive_v2.py — Real cloud storage for Nexus Drive.
 
 No "unlimited storage" claim anywhere in this file, on purpose. Storage is
 backed by a real S3-compatible bucket (AWS S3, MinIO, Cloudflare R2,
-Backblaze B2 â€” anything speaking the S3 API works via S3_ENDPOINT_URL),
+Backblaze B2 — anything speaking the S3 API works via S3_ENDPOINT_URL),
 with a real, visible per-user quota you configure. If S3 isn't configured,
 this says so plainly and falls back to the existing local SQLite blob
-storage (NexusDrive from 10____Admin_Security_Center.py) â€” genuinely
+storage (NexusDrive from 10____Admin_Security_Center.py) — genuinely
 functional for development, just not durable across redeploys, and the UI
 should say that too.
 
@@ -16,7 +16,7 @@ Required env vars for real cloud storage (unset = local fallback):
     S3_SECRET_ACCESS_KEY
     S3_ENDPOINT_URL      (omit for real AWS S3; set for MinIO/R2/B2/etc.)
     S3_REGION            (default: us-east-1)
-    DRIVE_QUOTA_BYTES_PER_USER   (default: 5 GB â€” a real, stated number)
+    DRIVE_QUOTA_BYTES_PER_USER   (default: 5 GB — a real, stated number)
 """
 
 import os
@@ -35,7 +35,7 @@ except ImportError:
 
 from classification import LEVELS, can_access, can_delete, check_access
 
-DEFAULT_QUOTA_BYTES = 5 * 1024 * 1024 * 1024  # 5 GB â€” real, visible, configurable. Not "unlimited."
+DEFAULT_QUOTA_BYTES = 5 * 1024 * 1024 * 1024  # 5 GB — real, visible, configurable. Not "unlimited."
 
 
 def is_s3_configured() -> bool:
@@ -128,7 +128,7 @@ def store_file(name: str, data: bytes, category: str, notes: str, owner: str,
         raise QuotaExceeded(quota, len(data))
 
     file_hash = hashlib.sha256(data).hexdigest()
-    ts = datetime.datetime.utcnow().isoformat()
+    ts = datetime.datetime.now(datetime.UTC).isoformat()
 
     if is_s3_configured():
         client = _s3_client()
@@ -137,7 +137,7 @@ def store_file(name: str, data: bytes, category: str, notes: str, owner: str,
         client.put_object(Bucket=bucket, Key=s3_key, Body=data)
         backend = "s3"
     else:
-        # Honest local fallback â€” real storage, just not durable/scalable.
+        # Honest local fallback — real storage, just not durable/scalable.
         # The blob itself lives in this same row for simplicity here;
         # production should still route through the existing NexusDrive
         # encrypted-blob table rather than duplicating that column.
@@ -160,7 +160,7 @@ def store_file(name: str, data: bytes, category: str, notes: str, owner: str,
 def list_files(requester: str, requester_clearance: str, conn: Optional[sqlite3.Connection] = None) -> list:
     """Only returns files the requester can actually see: their own files,
     plus anyone's files at or below their clearance level. Real filtering,
-    not a UI-layer hide â€” the data itself is scoped here."""
+    not a UI-layer hide — the data itself is scoped here."""
     conn = conn or _drive_conn()
     rows = conn.execute(
         "SELECT id, name, size_bytes, classification, category, owner, storage_backend, created_at FROM drive_files_v2 ORDER BY id DESC"
@@ -181,7 +181,7 @@ def get_download(file_id: int, requester: str, requester_clearance: str,
                   conn: Optional[sqlite3.Connection] = None) -> dict:
     """Returns either a real presigned S3 URL (time-limited, real AWS
     signature) or, for the local fallback, a note that direct download
-    isn't wired up for that path yet â€” never a fake URL."""
+    isn't wired up for that path yet — never a fake URL."""
     conn = conn or _drive_conn()
     row = conn.execute(
         "SELECT name, s3_key, classification, owner, storage_backend FROM drive_files_v2 WHERE id = ?", (file_id,)
@@ -199,10 +199,10 @@ def get_download(file_id: int, requester: str, requester_clearance: str,
         url = client.generate_presigned_url(
             "get_object",
             Params={"Bucket": os.environ["S3_BUCKET"], "Key": s3_key},
-            ExpiresIn=300,  # 5 minutes â€” real expiry, not decorative
+            ExpiresIn=300,  # 5 minutes — real expiry, not decorative
         )
         return {"method": "presigned_url", "url": url, "expires_in_seconds": 300}
-    return {"method": "unavailable", "note": "This file used the local fallback backend â€” configure S3_* env vars for real downloadable links."}
+    return {"method": "unavailable", "note": "This file used the local fallback backend — configure S3_* env vars for real downloadable links."}
 
 
 def delete_file(file_id: int, requester: str, requester_clearance: str,
@@ -222,3 +222,4 @@ def delete_file(file_id: int, requester: str, requester_clearance: str,
 
     conn.execute("DELETE FROM drive_files_v2 WHERE id = ?", (file_id,))
     conn.commit()
+

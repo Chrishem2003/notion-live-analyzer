@@ -1,11 +1,11 @@
-﻿"""
+"""
 modules/auth_store.py
 Real authentication: hashed passwords + server-side roles.
 
 Replaces the pattern in portal.py where "is_admin" was decided in the
 browser by matching a typed email, and app.py where the role was a
 selectbox the user picked for themselves. Neither of those is a security
-boundary â€” this module is.
+boundary — this module is.
 
 DB: sovereign_apex_engine.db (same file the rest of the app already uses)
 """
@@ -63,7 +63,7 @@ def create_user(email: str, name: str, password: str, role: str = "user"):
     try:
         conn.execute(
             "INSERT INTO auth_users (email, name, pw_hash, pw_salt, role, created_at) VALUES (?,?,?,?,?,?)",
-            (email, name, pw_hash, pw_salt, role, datetime.datetime.utcnow().isoformat()),
+            (email, name, pw_hash, pw_salt, role, datetime.datetime.now(datetime.UTC).isoformat()),
         )
         conn.commit()
         return {"ok": True}
@@ -97,7 +97,7 @@ def verify_login(email: str, password: str):
         conn.commit()
         role = "admin"
 
-    conn.execute("UPDATE auth_users SET last_login=? WHERE id=?", (datetime.datetime.utcnow().isoformat(), uid))
+    conn.execute("UPDATE auth_users SET last_login=? WHERE id=?", (datetime.datetime.now(datetime.UTC).isoformat(), uid))
     conn.commit()
     conn.close()
     return {"id": uid, "email": email, "name": name, "role": role}
@@ -120,7 +120,7 @@ def get_role(email: str) -> str:
 
 
 def set_role(email: str, role: str):
-    """Admin-only operation â€” call this only from behind require_admin()."""
+    """Admin-only operation — call this only from behind require_admin()."""
     if role not in ROLES:
         raise ValueError(f"Invalid role: {role}}")
     conn = get_conn()
@@ -139,5 +139,6 @@ def bootstrap_first_admin(email: str, name: str, password: str):
     count = conn.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0]
     conn.close()
     if count > 0:
-        return {"ok": False, "error": "Users already exist â€” bootstrap only runs on an empty database."}
+        return {"ok": False, "error": "Users already exist — bootstrap only runs on an empty database."}
     return create_user(email, name, password, role="admin")
+

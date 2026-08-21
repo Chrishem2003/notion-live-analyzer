@@ -1,4 +1,4 @@
-﻿"""
+"""
 agents.py
 Multi-Agent Problem Solver Swarm for the Multi-Problem Solver platform.
 
@@ -52,7 +52,7 @@ class BaseAgent:
 
     name: str = "base"
     role: str = ""
-    icon: str = "ðŸ¤–"
+    icon: str = "🤖"
 
     def __init__(self, progress_cb: Optional[Callable] = None):
         self.progress = progress_cb or (lambda p, m="": None)
@@ -75,7 +75,7 @@ class ResearchLiteratureAgent(BaseAgent):
 
     name = "Research & Literature Specialist"
     role = "literature"
-    icon = "ðŸ“š"
+    icon = "📚"
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         query = context.get("query", context.get("topic", ""))
@@ -98,7 +98,7 @@ class ResearchLiteratureAgent(BaseAgent):
 
         # Fallback synthetic corpus (deterministic, clearly marked SIMULATED)
         if not papers:
-            self._emit(30, "No live fetch â€” building simulated evidence corpus")
+            self._emit(30, "No live fetch — building simulated evidence corpus")
             for i in range(min(limit, 8)):
                 papers.append(
                     {
@@ -119,7 +119,7 @@ class ResearchLiteratureAgent(BaseAgent):
         takeaways: List[str] = []
         for p in papers[:5]:
             abstract = (p.get("abstract") or "")[:400]
-            takeaways.append(f"{p.get('title', 'Paper')}} â€” {abstract[:80]}}...")
+            takeaways.append(f"{p.get('title', 'Paper')}} — {abstract[:80]}}...")
 
         citations = [
             f"{p.get('authors', 'Unknown')}} ({p.get('year', 'n.d.')}}). {p.get('title', '')}}."
@@ -144,7 +144,7 @@ class DataTechnicalAuditorAgent(BaseAgent):
 
     name = "Data & Technical Auditor"
     role = "data_audit"
-    icon = "ðŸ“Š"
+    icon = "📊"
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         self._emit(5, "Initializing data audit engine")
@@ -175,16 +175,16 @@ class DataTechnicalAuditorAgent(BaseAgent):
                             pair = (c1, c2)
                 if strongest > 0.8:
                     records.append(
-                        f"âš ï¸ High collinearity detected: {pair[0]}} â†” {pair[1]}} (|r|={strongest:.2f}})."
+                        f"⚠️ High collinearity detected: {pair[0]}} ↔ {pair[1]}} (|r|={strongest:.2f}})."
                     )
                 records.append(f"Correlation matrix computed over {len(numeric_cols)}} variables.")
         else:
-            records.append("No DataFrame supplied â€” running domain indicator audit.")
+            records.append("No DataFrame supplied — running domain indicator audit.")
 
         # Indicator audit (ecological / biological / environmental)
         sector = context.get("sector", "General")
         for ind in indicators:
-            records.append(f"Sector indicator check [{sector}}]: '{ind}}' â†’ within acceptable bounds (simulated).")
+            records.append(f"Sector indicator check [{sector}}]: '{ind}}' → within acceptable bounds (simulated).")
 
         self._emit(80, "Data integrity & domain metrics verified")
         return {
@@ -203,7 +203,7 @@ class SynthesisStrategyAgent(BaseAgent):
 
     name = "Synthesis & Strategy Architect"
     role = "synthesis"
-    icon = "ðŸ§ "
+    icon = "🧠"
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         self._emit(10, "Aggregating agent outputs for strategic synthesis")
@@ -251,7 +251,7 @@ def _deterministic_plan(context: Dict[str, Any], insights: List[str]) -> str:
     q = context.get("query", "the identified challenge")
     sector = context.get("sector", "Cross-Sector")
     lines = [
-        f"# Action Plan â€” {sector}}",
+        f"# Action Plan — {sector}}",
         f"**Challenge:** {q}}",
         "",
         "## Recommendations",
@@ -261,10 +261,10 @@ def _deterministic_plan(context: Dict[str, Any], insights: List[str]) -> str:
         [
             "",
             "## Strategic Roadmap",
-            "1. **Immediate (0â€“30 days):** Baseline telemetry & stakeholder alignment.",
-            "2. **Short (1â€“3 months):** Deploy localized data audits and literature-backed interventions.",
-            "3. **Medium (3â€“6 months):** Scale validated pilots with continuous monitoring.",
-            "4. **Long (6â€“12 months):** Institutionalize policy + automated surveillance loops.",
+            "1. **Immediate (0–30 days):** Baseline telemetry & stakeholder alignment.",
+            "2. **Short (1–3 months):** Deploy localized data audits and literature-backed interventions.",
+            "3. **Medium (3–6 months):** Scale validated pilots with continuous monitoring.",
+            "4. **Long (6–12 months):** Institutionalize policy + automated surveillance loops.",
         ]
     )
     return "\n".join(lines)
@@ -295,7 +295,7 @@ def run_agent_swarm(
     `progress_cb(progress: float, message: str)` is invoked at each stage.
     """
     cb = progress_cb or (lambda p, m="": None)
-    cb(2, "Spawning agent swarmâ€¦")
+    cb(2, "Spawning agent swarm…")
 
     context: Dict[str, Any] = {
         "query": query,
@@ -330,7 +330,7 @@ def run_agent_swarm(
         "query": query,
         "sector": sector,
         "run_id": hashlib.sha256(f"{query}}|{sector}}|{time.time()}}".encode()).hexdigest()[:12].upper(),
-        "timestamp": datetime.datetime.utcnow().isoformat(),
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         "agents": [
             {"name": lit_agent.name, "role": "literature", "output_summary": f"{lit_report['count']}} papers"},
             {"name": audit_agent.name, "role": "data_audit", "output_summary": f"{audit_report['audit_count']}} audit records"},
@@ -340,7 +340,7 @@ def run_agent_swarm(
         "data_audit": audit_report,
         "synthesis": synth_report,
     }
-    cb(100, "Swarm complete â€” report ready")
+    cb(100, "Swarm complete — report ready")
     return final_report
 
 
@@ -364,4 +364,5 @@ if __name__ == "__main__":
     # Quick self-test
     report = run_agent_swarm("Improve rural agricultural resilience in East Africa", sector="Agriculture")
     print(json.dumps(report, indent=2, default=str)[:1500])
+
 

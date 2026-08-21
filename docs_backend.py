@@ -1,17 +1,17 @@
-﻿"""
-docs_backend.py â€” Real collaborative editing, not last-write-wins.
+"""
+docs_backend.py — Real collaborative editing, not last-write-wins.
 
 Uses pycrdt (Python bindings for the same Rust `yrs` CRDT engine behind
-Yjs, which is what powers real production collaborative editors â€” Jupyter
+Yjs, which is what powers real production collaborative editors — Jupyter
 notebooks' RTC, for instance). Two people typing in different parts of the
 same document at the same time get a mathematically guaranteed
-conflict-free merge â€” this isn't "last save wins" with a lock, it's an
+conflict-free merge — this isn't "last save wins" with a lock, it's an
 actual CRDT: the merge function is commutative and associative regardless
 of what order updates arrive in.
 
 Wire format: pycrdt's update bytes are Yjs-update-format compatible, so a
 real Yjs client in the browser can apply updates this server produces, and
-vice versa â€” same binary protocol on both ends, not a custom one.
+vice versa — same binary protocol on both ends, not a custom one.
 
 Persistence: full-state snapshots to SQLite on every applied update. Simple
 and correct; for very high-frequency edits at scale you'd batch snapshots
@@ -42,7 +42,7 @@ def _docs_conn(db_path: str = "nexus_docs_crdt.db") -> sqlite3.Connection:
 
 
 class CollaborativeDoc:
-    """Wraps one pycrdt.Doc â€” the server's authoritative copy of one
+    """Wraps one pycrdt.Doc — the server's authoritative copy of one
     document. One instance per open document, held in memory while at
     least one client is connected; reloaded from its SQLite snapshot on
     first connect after a restart."""
@@ -61,12 +61,12 @@ class CollaborativeDoc:
 
     def apply_remote_update(self, update_bytes: bytes):
         """Apply an update that arrived from a client. This is the core
-        CRDT operation â€” merging is automatic and conflict-free regardless
+        CRDT operation — merging is automatic and conflict-free regardless
         of what else has happened to this doc since the client's last sync."""
         self.ydoc.apply_update(update_bytes)
 
     def get_full_state(self) -> bytes:
-        """The complete current document state as a single update â€” what a
+        """The complete current document state as a single update — what a
         newly-connecting client applies to initialize itself."""
         return self.ydoc.get_update()
 
@@ -75,7 +75,7 @@ class CollaborativeDoc:
 
     def insert_local(self, index: int, text: str) -> bytes:
         """Server-side edit (e.g. from a non-CRDT-aware caller like a REST
-        endpoint) â€” returns the update bytes produced, so callers can
+        endpoint) — returns the update bytes produced, so callers can
         broadcast them the same way a client update would be broadcast."""
         with self.ydoc.transaction():
             self.ytext.insert(index, text)
@@ -83,7 +83,7 @@ class CollaborativeDoc:
 
     def save_snapshot(self, title: str, owner: str):
         snapshot = self.get_full_state()
-        ts = datetime.datetime.utcnow().isoformat()
+        ts = datetime.datetime.now(datetime.UTC).isoformat()
         self.conn.execute(
             "INSERT INTO crdt_documents (doc_id, title, snapshot, version, owner, updated_at) VALUES (?,?,?,1,?,?) "
             "ON CONFLICT(doc_id) DO UPDATE SET snapshot = excluded.snapshot, version = version + 1, updated_at = excluded.updated_at",
@@ -128,4 +128,5 @@ class DocsRealtime:
                 await pubsub.unsubscribe(self._channel(doc_id))
                 await pubsub.close()
             except Exception:
-                pass  # best-effort cleanup during disconnect/cancellation â€” see meet_backend.py's subscribe_peer for the full rationale
+                pass  # best-effort cleanup during disconnect/cancellation — see meet_backend.py's subscribe_peer for the full rationale
+
