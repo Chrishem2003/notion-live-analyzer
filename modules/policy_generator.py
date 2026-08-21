@@ -22,8 +22,8 @@ def render_policy_generator_tab():
             log_provenance(title, "GENERATE_POLICY_BRIEF", "chief.investigator@lab.org", {"target": target_body})
             
             st.markdown("---")
-            st.markdown(f"### Ã°Å¸Ââ€ºÃ¯Â¸Â OFFICIAL BRIEFING DOCUMENT: {target_body.upper()}}")
-            st.markdown(f"**Title:** {title}}")
+            st.markdown(f"### Ã°Å¸Ââ€ºÃ¯Â¸Â OFFICIAL BRIEFING DOCUMENT: {target_body.upper()}")
+            st.markdown(f"**Title:** {title}")
             st.markdown(f"**Author / Node:** Kula Chris (ResearchOS Global Node)")
             st.markdown("#### 1. Executive Summary")
             st.write(exec_summary)

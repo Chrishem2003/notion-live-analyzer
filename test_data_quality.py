@@ -15,7 +15,7 @@ def clean_df():
         {
             "value": rng.normal(size=50),
             "other": rng.normal(size=50),
-            "label": object_series([f"row-{i}}" for i in range(50)]),
+            "label": object_series([f"row-{i}" for i in range(50)]),
         }
     )
 
@@ -84,7 +84,7 @@ class TestUniqueness:
         df = pd.DataFrame(
             {
                 "const": [1] * 200,
-                "ids": object_series([f"id-{i}}" for i in range(200)]),
+                "ids": object_series([f"id-{i}" for i in range(200)]),
             }
         )
         result = DataQualityReport(df).assess_uniqueness()

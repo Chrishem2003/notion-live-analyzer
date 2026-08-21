@@ -25,7 +25,7 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         )
         
         if bypass_files:
-            st.success(f"Ã°Å¸â€œâ€š Successfully loaded {len(bypass_files)}} file(s) with unlimited word indexing active!")
+            st.success(f"Ã°Å¸â€œâ€š Successfully loaded {len(bypass_files)} file(s) with unlimited word indexing active!")
             local_sources = bypass_files
             project_id = -999
 
@@ -51,7 +51,7 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         active_queue_len = 4
         if local_sources:
             active_queue_len = len(local_sources)
-            st.info(f"Ã°Å¸â€œÂ **Active Direct Ingestion Stream**: {len(local_sources)}} local file(s) queued for deep parsing.")
+            st.info(f"Ã°Å¸â€œÂ **Active Direct Ingestion Stream**: {len(local_sources)} local file(s) queued for deep parsing.")
 
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         col_m1.metric("ðŸ“¥ Total Submissions", str(active_queue_len), "3 today")
@@ -71,12 +71,12 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         if local_sources:
             for idx, file_obj in enumerate(local_sources):
                 mock_submissions.insert(0, {
-                    "id": f"BYPASS-{100 + idx}}", 
+                    "id": f"BYPASS-{100 + idx}", 
                     "student": "Local Browser User", 
                     "paper": file_obj.name, 
-                    "copying_pct": f"{random.randint(5, 88)}}%", 
-                    "ai_score": f"{random.randint(10, 95)}}%", 
-                    "time_taken": f"{random.randint(1, 30)}}m {random.randint(10, 59)}}s", 
+                    "copying_pct": f"{random.randint(5, 88)}%", 
+                    "ai_score": f"{random.randint(10, 95)}%", 
+                    "time_taken": f"{random.randint(1, 30)}m {random.randint(10, 59)}s", 
                     "status": "Ã°Å¸â€œâ€š Local Unlimited Upload"
                 })
 
@@ -87,17 +87,17 @@ def render_audit_tab(db, project_id, local_sources=None, clearance=False):
         
         if selected_sub:
             sub_detail = next(item for item in mock_submissions if item["id"] == selected_sub)
-            st.info(f"Inspecting **{selected_sub}}**  Candidate: **{sub_detail['student']}}** | File: **{sub_detail['paper']}}**")
+            st.info(f"Inspecting **{selected_sub}**  Candidate: **{sub_detail['student']}** | File: **{sub_detail['paper']}**")
             
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown("#### Ã°Å¸Â§Â¬ Paper Manipulation & Copying Trace")
-                st.write(f"- **Calculated Copying Index:** {sub_detail['copying_pct']}}")
+                st.write(f"- **Calculated Copying Index:** {sub_detail['copying_pct']}")
                 st.write("- **Clipboard Paste Events:** Multiple bulk injection blocks detected")
                 st.write("- **Font/Style Inconsistencies:** Source merging anomalies found")
             with c2:
                 st.markdown("#### Ã¢ÂÂ±Ã¯Â¸Â Behavioral Telemetry & Time")
-                st.write(f"- **Total Time Taken:** {sub_detail['time_taken']}}")
+                st.write(f"- **Total Time Taken:** {sub_detail['time_taken']}")
                 st.write("- **Keystroke Dynamics:** Burst velocity anomaly detected")
                 st.write("- **Focus Loss / Tab Switches:** 18 interruptions logged")
 
@@ -115,7 +115,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             st.download_button(
                 label="ðŸ“¥ Download Official Forensic Proof Report (TXT)",
                 data=report_content,
-                file_name=f"Forensic_Report_{selected_sub}}.txt",
+                file_name=f"Forensic_Report_{selected_sub}.txt",
                 mime="text/plain"
             )
 
@@ -125,13 +125,13 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         
         default_draft_text = ""
         if local_sources:
-            st.success(f"Ã°Å¸â€œâ€š Found {len(local_sources)}} local file(s) available for bulk import.")
+            st.success(f"Ã°Å¸â€œâ€š Found {len(local_sources)} local file(s) available for bulk import.")
             selected_import = st.selectbox("Import text from uploaded local file", [f.name for f in local_sources])
             matching_file = next((f for f in local_sources if f.name == selected_import), None)
             if matching_file and matching_file.type == "text/plain":
                 default_draft_text = matching_file.read().decode("utf-8", errors="ignore")
             elif matching_file:
-                default_draft_text = f"[Bulk Parsed Content from: {matching_file.name}}]  Unlimited word capacity loaded successfully for advanced academic humanization and compliance rewriting."
+                default_draft_text = f"[Bulk Parsed Content from: {matching_file.name}]  Unlimited word capacity loaded successfully for advanced academic humanization and compliance rewriting."
 
         col_txt1, col_txt2 = st.columns(2)
         
@@ -146,7 +146,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             )
             
             word_count = len(student_draft.split()) if student_draft else 0
-            st.caption(f" Total Word Count: {word_count:,}} words | Status: **Unlimited Capacity Active**")
+            st.caption(f" Total Word Count: {word_count:,} words | Status: **Unlimited Capacity Active**")
 
         with col_txt2:
             st.markdown("#### Ã¢Å“Â¨ High-Grade Humanizer Engine")
@@ -162,7 +162,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                 if not student_draft:
                     st.warning("Ã¢Å¡Â Ã¯Â¸Â Please provide or import text in the drafting workspace first.")
                 else:
-                    with st.spinner(f"Processing {word_count:,}} words through syntactic cadence engine..."):
+                    with st.spinner(f"Processing {word_count:,} words through syntactic cadence engine..."):
                         humanized_output = (
                             student_draft
                             .replace("Furthermore", "In parallel")
@@ -172,7 +172,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                         )
                         if not humanized_output.endswith("."):
                             humanized_output = "."
-                        humanized_output = f"\n\n[Aidify Compliance Verified + Total Words Processed: {word_count:,}}]"
+                        humanized_output = f"\n\n[Aidify Compliance Verified + Total Words Processed: {word_count:,}]"
                         
                         st.success("Ã¢Å“Â¨ Text successfully humanized at scale!")
                         st.text_area("Humanized Output Text:", value=humanized_output, height=180, key="humanized_result_box_unlimited")
@@ -193,7 +193,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         with tab_g1:
             st.markdown("#### Time Taken vs. Copying Percentage Scatter Matrix")
             chart_data = pd.DataFrame({
-                "Student": [f"Candidate {i}}" for i in range(1, 16)],
+                "Student": [f"Candidate {i}" for i in range(1, 16)],
                 "TimeTakenMinutes": [random.randint(5, 400) for _ in range(15)],
                 "CopyingPercentage": [random.randint(5, 95) for _ in range(15)],
                 "RiskLevel": random.choices(["Low", "Medium", "Critical Breach"], k=15)
@@ -248,5 +248,5 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             
             submitted_dispatch = st.form_submit_button("Ã°Å¸â€™Â¾ Save Dispatch Rules & Test Trigger")
             if submitted_dispatch:
-                st.success(f"âœ… Compliance dispatcher successfully configured for **{target_instructor}}**! Auto-reports will trigger when scores exceed **{threshold_alert}}%**.")
+                st.success(f"âœ… Compliance dispatcher successfully configured for **{target_instructor}**! Auto-reports will trigger when scores exceed **{threshold_alert}%**.")
 

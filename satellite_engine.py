@@ -9,7 +9,7 @@ def fetch_field_site_telemetry(lat: float, lon: float) -> dict:
     ndvi_value = round(0.45 + ((lat + lon) % 0.35), 2)
     
     return {
-        "coordinates": f"{lat:.4f}}, {lon:.4f}}",
+        "coordinates": f"{lat:.4f}, {lon:.4f}",
         "timestamp": timestamp,
         "satellite_source": "Sentinel-2 / NASA MODIS",
         "ndvi_index": ndvi_value,

@@ -52,7 +52,7 @@ class DashboardBuilder:
     ) -> Dict[str, Any]:
         """Add a chart to the dashboard."""
         chart_config = {
-            "id": f"chart_{len(dashboard['charts']) + 1}}_{datetime.now().timestamp():.0 + f}}",
+            "id": f"chart_{len(dashboard['charts']) + 1}_{datetime.now().timestamp():.0 + f}",
             "type": chart_type,
             "title": title,
             "params": params,
@@ -93,7 +93,7 @@ class DashboardBuilder:
     ) -> Dict[str, Any]:
         """Add a global filter to the dashboard."""
         filter_config = {
-            "id": f"filter_{len(dashboard['filters']) + 1}}",
+            "id": f"filter_{len(dashboard['filters']) + 1}",
             "column": column,
             "type": filter_type,
             "value": None,
@@ -125,7 +125,7 @@ class DashboardBuilder:
         if "saved_dashboards" not in st.session_state:
             st.session_state["saved_dashboards"] = {}
 
-        dash_name = dashboard.get("name", f"Dashboard_{len(st.session_state['saved_dashboards'])}}")
+        dash_name = dashboard.get("name", f"Dashboard_{len(st.session_state['saved_dashboards'])}")
         st.session_state["saved_dashboards"][dash_name] = dashboard
         return dash_name
 
@@ -185,7 +185,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         st.caption("")
         if st.button("Ã°Å¸â€™Â¾ Save Dashboard", use_container_width=True):
             DashboardBuilder.save_dashboard(dashboard, dash_name)
-            st.success(f"âœ… Saved '{dash_name}}'")
+            st.success(f"âœ… Saved '{dash_name}'")
     with col4:
         st.caption("")
         if st.button("Ã°Å¸â€â€ž Reset", use_container_width=True):
@@ -232,8 +232,8 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         if color_col: params["color"] = color_col
         params["height"] = {"small": 300, "medium": 430, "large": 550}.get(chart_size, 430)
 
-        DashboardBuilder.add_chart(dashboard, chart_type, chart_title or f"{chart_type.replace('_', ' ').title()}}", params, chart_size)
-        st.success(f"âœ… Added '{chart_title or chart_type}}' to dashboard")
+        DashboardBuilder.add_chart(dashboard, chart_type, chart_title or f"{chart_type.replace('_', ' ').title()}", params, chart_size)
+        st.success(f"âœ… Added '{chart_title or chart_type}' to dashboard")
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Global Filters Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     st.markdown("---")
@@ -250,33 +250,33 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
             col = f.get("column", "")
             c1, c2, c3 = st.columns([2, 3, 1])
             with c1:
-                st.markdown(f"**{col}}**")
+                st.markdown(f"**{col}**")
             with c2:
                 if col in df.columns:
                     unique_vals = df[col].dropna().unique().tolist()
                     if len(unique_vals) <= 20:
                         selected = st.selectbox("", options=["All"] + sorted([str(v) for v in unique_vals]),
-                                                key=f"dash_filter_{i}}")
+                                                key=f"dash_filter_{i}")
                         f["value"] = None if selected == "All" else selected
                     else:
                         selected_range = st.select_slider("Range", options=["All", "Low", "Medium", "High"],
-                                                          key=f"dash_filter_{i}}")
+                                                          key=f"dash_filter_{i}")
                         f["value"] = selected_range
             with c3:
-                if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"dash_del_filter_{i}}"):
+                if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"dash_del_filter_{i}"):
                     dashboard["filters"].remove(f)
                     st.rerun()
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Render Dashboard Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     st.markdown("---")
-    st.subheader(f" {dashboard.get('name', 'My Dashboard')}}")
+    st.subheader(f" {dashboard.get('name', 'My Dashboard')}")
 
     # Apply filters
     active_filters = dashboard.get("filters", [])
     if active_filters:
         filtered_df = DashboardBuilder.apply_filters(df, active_filters)
         if len(filtered_df) < len(df):
-            st.info(f"Ã°Å¸â€Â Filters active: showing {len(filtered_df)}} of {len(df)}} rows")
+            st.info(f"Ã°Å¸â€Â Filters active: showing {len(filtered_df)} of {len(df)} rows")
     else:
         filtered_df = df
 
@@ -333,14 +333,14 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
                         if fig:
                             st.plotly_chart(fig, use_container_width=True)
                         else:
-                            st.info(f"Could not render: {title}}")
+                            st.info(f"Could not render: {title}")
 
                         # Chart controls
                         c1, c2 = st.columns(2)
                         with c1:
                             st.caption(title)
                         with c2:
-                            if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"dash_rm_{chart_config.get('id', chart_idx)}}"):
+                            if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"dash_rm_{chart_config.get('id', chart_idx)}"):
                                 DashboardBuilder.remove_chart(dashboard, chart_config.get("id", ""))
                                 st.rerun()
 
@@ -355,7 +355,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
             if st.button("ðŸ“¥ Export Dashboard JSON", use_container_width=True):
                 json_str = DashboardBuilder.export_dashboard(dashboard)
                 st.code(json_str, language="json")
-                st.download_button("ðŸ“¥ Download", json_str, file_name=f"{dashboard.get('name', 'dashboard')}}.json")
+                st.download_button("ðŸ“¥ Download", json_str, file_name=f"{dashboard.get('name', 'dashboard')}.json")
         with col2:
             uploaded_json = st.file_uploader("Ã°Å¸â€œâ€š Import Dashboard JSON", type=["json"], key="dash_import")
             if uploaded_json:

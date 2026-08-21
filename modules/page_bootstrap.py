@@ -189,7 +189,7 @@ def render_standard_footer(module_name="ANALYTICS STUDIO"):
     st.markdown("---")
     st.markdown(
         f"<p style='text-align: center; color: #94a3b8; font-size: 0.85rem; letter-spacing: 0.8px;'>"
-        f"ðŸ”’ Enterprise Analytics Hub â€¢ Module: <b style='color: #f8fafc;'>{module_name}}</b>"
+        f"ðŸ”’ Enterprise Analytics Hub â€¢ Module: <b style='color: #f8fafc;'>{module_name}</b>"
         f"</p>",
         unsafe_allow_html=True
     )

@@ -216,7 +216,7 @@ class AdvancedAutomationEngine:
     ) -> Automation:
         """Create new automation."""
         auto = Automation(
-            id=f"auto_{uuid.uuid4().hex[:10]}}",
+            id=f"auto_{uuid.uuid4().hex[:10]}",
             name=name,
             description=description,
             automation_type=automation_type,
@@ -332,7 +332,7 @@ class AdvancedAutomationEngine:
     
     def _action_create_task(self, auto: Automation, context: Dict) -> Dict:
         """Create a task."""
-        return {"task_id": f"task_{uuid.uuid4().hex[:8]}}", "created": True}
+        return {"task_id": f"task_{uuid.uuid4().hex[:8]}", "created": True}
     
     def _action_post_message(self, auto: Automation, context: Dict) -> Dict:
         """Post message to channel."""
@@ -493,7 +493,7 @@ class NotificationManager:
     ) -> Notification:
         """Add notification for user."""
         notif = Notification(
-            id=f"notif_{uuid.uuid4().hex[:10]}}",
+            id=f"notif_{uuid.uuid4().hex[:10]}",
             user_id=user_id,
             title=title,
             message=message,
@@ -641,23 +641,23 @@ def render_automation_list(engine: AdvancedAutomationEngine):
         col1, col2, col3 = st.columns([3, 2, 1])
         
         with col1:
-            st.markdown(f"**{emoji}} {auto.name}}**")
+            st.markdown(f"**{emoji} {auto.name}**")
             st.caption(auto.description)
         
         with col2:
-            st.markdown(f"`{auto.trigger.value}}` Ã¢â€ â€™ `{auto.action.value}}`")
+            st.markdown(f"`{auto.trigger.value}` Ã¢â€ â€™ `{auto.action.value}`")
             if auto.schedule:
-                st.caption(f"Schedule: `{auto.schedule}}`")
+                st.caption(f"Schedule: `{auto.schedule}`")
         
         with col3:
             col_a, col_b = st.columns(2)
             with col_a:
-                enabled = st.checkbox("On", value=auto.enabled, key=f"auto_{auto.id}}")
+                enabled = st.checkbox("On", value=auto.enabled, key=f"auto_{auto.id}")
                 if enabled != auto.enabled:
                     engine.toggle_automation(auto.id, enabled)
                     st.rerun()
             with col_b:
-                if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"del_{auto.id}}"):
+                if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"del_{auto.id}"):
                     engine.delete_automation(auto.id)
                     st.rerun()
         
@@ -693,7 +693,7 @@ def render_scheduler_ui(scheduler: TaskScheduler):
     if st.button("Ã¢â€“Â¶Ã¯Â¸Â Check & Run Due Tasks"):
         results = scheduler.check_and_run()
         if results:
-            st.success(f"Ran {len(results)}} tasks")
+            st.success(f"Ran {len(results)} tasks")
         else:
             st.info("No tasks due")
 

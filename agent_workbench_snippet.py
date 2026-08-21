@@ -54,19 +54,19 @@ if run_swarm_btn:
             if node_name == "research":
                 lit = node_output.get("literature_findings")
                 if lit:
-                    research_box.success(f"âœ… Research agent: found {lit['n_found']}} papers (top: \"{lit['top_papers'][0]['title'][:70]}...\")" if lit["top_papers"] else f"âœ… Research agent: 0 matches for this query.")
+                    research_box.success(f"âœ… Research agent: found {lit['n_found']} papers (top: \"{lit['top_papers'][0]['title'][:70]}...\")" if lit["top_papers"] else f"âœ… Research agent: 0 matches for this query.")
                 else:
-                    research_box.error(f"âŒ Research agent failed: {node_output.get('errors', ['unknown error'])[-1]}}")
+                    research_box.error(f"âŒ Research agent failed: {node_output.get('errors', ['unknown error'])[-1]}")
 
             elif node_name == "audit":
                 audit = node_output.get("audit_findings")
                 if audit and audit.get("status") == "ok":
-                    audit_box.success(f"âœ… Data auditor: {audit['n_rows']}} rows, {audit['missing_cells']}} missing cells, "
-                                       f"{len(audit['numeric_columns_with_outliers'])}} column(s) with outliers.")
+                    audit_box.success(f"âœ… Data auditor: {audit['n_rows']} rows, {audit['missing_cells']} missing cells, "
+                                       f"{len(audit['numeric_columns_with_outliers'])} column(s) with outliers.")
                 elif audit:
-                    audit_box.warning(f"âš ï¸ Data auditor: {audit.get('note', audit.get('status'))}}")
+                    audit_box.warning(f"âš ï¸ Data auditor: {audit.get('note', audit.get('status'))}")
                 else:
-                    audit_box.error(f"âŒ Data auditor failed: {node_output.get('errors', ['unknown error'])[-1]}}")
+                    audit_box.error(f"âŒ Data auditor failed: {node_output.get('errors', ['unknown error'])[-1]}")
 
             elif node_name == "synthesis":
                 synthesis_box.success("âœ… Synthesis agent complete.")

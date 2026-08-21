@@ -97,9 +97,9 @@ def render_enterprise_master_control_panel(st_instance, conn, mlce_val=0.1, stat
     with col1:
         st_instance.markdown('<div class="metric-card"><div class="metric-value">50</div><div class="metric-label">Active Advancements</div></div>', unsafe_allow_html=True)
     with col2:
-        st_instance.markdown(f'<div class="metric-card"><div class="metric-value">{mlce_val:.3f}}</div><div class="metric-label">Lyapunov Heuristic</div></div>', unsafe_allow_html=True)
+        st_instance.markdown(f'<div class="metric-card"><div class="metric-value">{mlce_val:.3f}</div><div class="metric-label">Lyapunov Heuristic</div></div>', unsafe_allow_html=True)
     with col3:
-        st_instance.markdown(f'<div class="metric-card"><div class="metric-value">{state_label}}</div><div class="metric-label">System State</div></div>', unsafe_allow_html=True)
+        st_instance.markdown(f'<div class="metric-card"><div class="metric-value">{state_label}</div><div class="metric-label">System State</div></div>', unsafe_allow_html=True)
     with col4:
         st_instance.markdown('<div class="metric-card"><div class="metric-value">Online</div><div class="metric-label">SQLite Persistent Store</div></div>', unsafe_allow_html=True)
     
@@ -140,7 +140,7 @@ def main():
         st.subheader("Institutional Data Vault")
         uploaded_file = st.file_uploader("Upload environmental or telemetry dataset (CSV / JSON)", type=["csv", "json"])
         if uploaded_file is not None:
-            st.success(f"Successfully ingested file: {uploaded_file.name}}")
+            st.success(f"Successfully ingested file: {uploaded_file.name}")
 
     elif menu_choice == "Ã°Å¸â€Â System Self-Test & Diagnostics":
         st.subheader("System Integrity Audit")

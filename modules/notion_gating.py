@@ -45,13 +45,13 @@ def render_notion_template_vault():
 
     with col2:
         st.markdown("### Template Duplication Access")
-        st.write(f"**License Status:** Active Paid License (`{user_email}}`)")
-        st.write(f"**Duplications Used:** `{claim_count}} / 1`")
+        st.write(f"**License Status:** Active Paid License (`{user_email}`)")
+        st.write(f"**Duplications Used:** `{claim_count} / 1`")
 
         if claim_count >= 1:
             st.warning("âš ï¸ You have already claimed your 1-time Notion duplication access.")
             if st.button("ðŸ”— Re-open Licensed Duplicate Link"):
-                st.markdown(f"ðŸ‘‰ [Click to open Notion Workspace]({NOTION_TEMPLATE_URL}})")
+                st.markdown(f"ðŸ‘‰ [Click to open Notion Workspace]({NOTION_TEMPLATE_URL})")
         else:
             if st.button("âš¡ Claim & Duplicate to Notion Space", type="primary"):
                 now_str = datetime.datetime.now().isoformat()
@@ -62,7 +62,7 @@ def render_notion_template_vault():
                 )
                 conn.commit()
                 st.success("âœ… Duplication clearance granted!")
-                st.markdown(f"ðŸ‘‰ **[Click here to duplicate into your Notion Workspace]({NOTION_TEMPLATE_URL}})**")
+                st.markdown(f"ðŸ‘‰ **[Click here to duplicate into your Notion Workspace]({NOTION_TEMPLATE_URL})**")
                 st.rerun()
 
     conn.close()

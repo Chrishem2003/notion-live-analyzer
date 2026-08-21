@@ -67,7 +67,7 @@ class ChartDataExtractor:
             img = Image.open(io.BytesIO(image_bytes))
             width, height = img.size
         except Exception as e:
-            return {"error": f"Could not parse image: {e}}"}
+            return {"error": f"Could not parse image: {e}"}
 
         # Convert to numpy array for pixel analysis
         img_array = np.array(img.convert("RGB"))
@@ -158,7 +158,7 @@ class ChartDataExtractor:
         np.random.seed(42)
 
         if chart_type == "bar":
-            categories = [f"Group {chr(65 + i)}}" for i in range(6)]
+            categories = [f"Group {chr(65 + i)}" for i in range(6)]
             values = np.random.normal(50, 15, 6)
             errors = np.random.uniform(2, 8, 6)
             return pd.DataFrame({
@@ -178,12 +178,12 @@ class ChartDataExtractor:
             return pd.DataFrame({"X": x.round(2), "Y": y.round(2)})
 
         elif chart_type == "pie":
-            labels = [f"Category {chr(65 + i)}}" for i in range(5)]
+            labels = [f"Category {chr(65 + i)}" for i in range(5)]
             values = np.random.dirichlet(np.ones(5)) * 100
             return pd.DataFrame({"Label": labels, "Percentage": values.round(1)})
 
         elif chart_type == "horizontal_bar":
-            items = [f"Item {chr(65 + i)}}" for i in range(6)]
+            items = [f"Item {chr(65 + i)}" for i in range(6)]
             values = np.random.normal(50, 20, 6)
             return pd.DataFrame({"Item": items, "Value": values.round(1)})
 
@@ -369,7 +369,7 @@ Point 3, 4.0, 6.1""",
 
             if not df.empty:
                 st.session_state["_extracted_chart_data_desc"] = df
-                st.success(f"âœ… Parsed {len(df)}} data points!")
+                st.success(f"âœ… Parsed {len(df)} data points!")
 
                 st.subheader("ðŸ“‹ Parsed Data")
                 st.dataframe(df, use_container_width=True, hide_index=True)
@@ -410,7 +410,7 @@ Point 3, 4.0, 6.1""",
                 csv_data = extractor.to_csv(df)
                 b64 = base64.b64 + encode(csv_data.encode()).decode()
                 st.markdown(
-                    f'<a href="data:text/csv;base64,{b64}}" download="extracted_data.csv" '
+                    f'<a href="data:text/csv;base64,{b64}" download="extracted_data.csv" '
                     f'style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;'
                     f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download CSV</a>',
                     unsafe_allow_html=True,
@@ -420,7 +420,7 @@ Point 3, 4.0, 6.1""",
                 json_data = extractor.to_json(df)
                 b64 = base64.b64 + encode(json_data.encode()).decode()
                 st.markdown(
-                    f'<a href="data:application/json;base64,{b64}}" download="extracted_data.json" '
+                    f'<a href="data:application/json;base64,{b64}" download="extracted_data.json" '
                     f'style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;'
                     f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download JSON</a>',
                     unsafe_allow_html=True,

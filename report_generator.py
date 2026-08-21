@@ -53,8 +53,8 @@ def generate_report(data):
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                h1 {{ color: #333; }}
+                body {{ font-family: Arial, sans-serif; margin: 20px; }
+                h1 {{ color: #333; }
             </style>
         </head>
         <body>
@@ -65,7 +65,7 @@ def generate_report(data):
         """
         return html_content
     except Exception as e:
-        st.error(f"Error generating report: {e}}")
+        st.error(f"Error generating report: {e}")
         return None
 
 

@@ -36,6 +36,6 @@ def render_quantum_vault_panel():
         if st.button("? Verify Vault Integrity Hash"):
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             digest = hashlib.sha3_256(timestamp.encode()).hexdigest()[:16]
-            log_backend_event("INFO", f"Vault integrity verified. Hash: {digest}}")
-            st.success(f"Vault integrity verified. Secure hash: CHRISHEM-QV-{digest.upper()}}")
+            log_backend_event("INFO", f"Vault integrity verified. Hash: {digest}")
+            st.success(f"Vault integrity verified. Secure hash: CHRISHEM-QV-{digest.upper()}")
 

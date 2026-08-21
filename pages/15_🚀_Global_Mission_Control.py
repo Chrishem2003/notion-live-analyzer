@@ -56,19 +56,19 @@ def render_health_tab():
 
     if result:
         timestamp = result.get("as_of", datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
-        st.info(f"Feed Source: **{result.get('source', 'Global Health Registry')}}** | Synchronized: `{timestamp}}`")
+        st.info(f"Feed Source: **{result.get('source', 'Global Health Registry')}** | Synchronized: `{timestamp}`")
 
         total_cases = result.get("total_global_cases", 0)
         hotspots = result.get("hotspots", [])
         
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Total Tracked Cases", f"{total_cases:,}}")
+        c1.metric("Total Tracked Cases", f"{total_cases:,}")
         c2.metric("Active Hotspots", len(hotspots))
         c3.metric("Critical Regions", sum(1 for h in hotspots if h.get("new_cases", 0) > 1000))
         c4.metric("Surveillance Status", "ACTIVE")
 
         if result.get("error"):
-            st.warning(f"⚠️ Live API Notice: {result['error']}} — using cached/fallback telemetry.")
+            st.warning(f"⚠️ Live API Notice: {result['error']} — using cached/fallback telemetry.")
 
         if hotspots:
             df = pd.DataFrame(hotspots)
@@ -153,26 +153,26 @@ def render_weather_tab():
         lon = st.number_input("Target Longitude", value=default_lon, format="%.4f", key="mc_lon_upg")
 
     if st.button("🌦️ Execute Meteorological Query", key="mc_weather_fetch_upg", type="primary"):
-        with st.spinner(f"Querying Open-Meteo satellite grid for [{lat}}, {lon}}]..."):
+        with st.spinner(f"Querying Open-Meteo satellite grid for [{lat}, {lon}]..."):
             st.session_state.weather_data_cache = fetch_weather_telemetry(lat, lon, daily=True)
 
     res = st.session_state.weather_data_cache
 
     if res:
         if res.get("error"):
-            st.warning(f"⚠️ Meteorological Feed Notice: {res['error']}}")
+            st.warning(f"⚠️ Meteorological Feed Notice: {res['error']}")
         else:
-            st.info(f"Source Feed: **{res.get('source', 'Open-Meteo')}}** | Assigned Timezone: `{res.get('timezone', 'UTC')}}`")
+            st.info(f"Source Feed: **{res.get('source', 'Open-Meteo')}** | Assigned Timezone: `{res.get('timezone', 'UTC')}`")
 
             temp = res.get("temperature_c", 0)
             wind = res.get("windspeed_kmh", 0)
             wind_dir = res.get("wind_direction", 0)
 
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Current Temp", f"{temp}} °C")
-            c2.metric("Wind Speed", f"{wind}} km/h")
-            c3.metric("Wind Direction", f"{wind_dir}}°")
-            c4.metric("Coordinates", f"{lat:.2f}}, {lon:.2f}}")
+            c1.metric("Current Temp", f"{temp} °C")
+            c2.metric("Wind Speed", f"{wind} km/h")
+            c3.metric("Wind Direction", f"{wind_dir}°")
+            c4.metric("Coordinates", f"{lat:.2f}, {lon:.2f}")
 
             # Geographic Map Projection
             st.markdown("#### 🌍 Target Geospatial Coordinate")
@@ -189,7 +189,7 @@ def render_weather_tab():
                     "Precipitation Sum (mm)": forecast.get("precipitation_sum", []),
                 })
                 st.dataframe(df_fc, use_container_width=True, hide_index=True)
-                render_export_buttons(df_fc, base_name=f"weather_forecast_{lat}}_{lon}}")
+                render_export_buttons(df_fc, base_name=f"weather_forecast_{lat}_{lon}")
 
                 if PLOTLY_AVAILABLE:
                     fig = go.Figure()
@@ -225,8 +225,8 @@ def render_impact_tab():
     st.progress(overall_progress / 100)
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Total Data Pipelines Processed", f"{scorecard.get('total_problems_solved', 0):,}}")
-    c2.metric("System Completion Index", f"{overall_progress}}%")
+    c1.metric("Total Data Pipelines Processed", f"{scorecard.get('total_problems_solved', 0):,}")
+    c2.metric("System Completion Index", f"{overall_progress}%")
     c3.metric("Active Work Modules", len(scorecard.get("sectors", [])))
 
     st.markdown("#### 🌐 Sector Breakdown & Performance Metrics")
@@ -247,7 +247,7 @@ def render_impact_tab():
             )
 
     utc_now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    st.caption(f"Scorecard Synchronization Timestamp: {scorecard.get('as_of', utc_now)}}")
+    st.caption(f"Scorecard Synchronization Timestamp: {scorecard.get('as_of', utc_now)}")
 
 
 def render_problems_tab():
@@ -266,13 +266,13 @@ def render_problems_tab():
         or any(search.lower() in tool.lower() for tool in item.get("tools", []))
     ] if search else registry
 
-    st.caption(f"Showing {len(filtered_reg)}} of {len(registry)}} registered architectural workflows.")
+    st.caption(f"Showing {len(filtered_reg)} of {len(registry)} registered architectural workflows.")
 
     for i, item in enumerate(filtered_reg):
-        with st.expander(f"📜 Task Workflow: {item.get('problem', 'Challenge')}}", expanded=(i == 0)):
-            st.markdown(f"**🛠️ Implemented Solution:** {item.get('solution', 'N/A')}}")
-            st.markdown("**🔧 Active Toolchain:** " + ", ".join([f"`{t}}`" for t in item.get("tools", [])]))
-            st.success(f"**🎯 Validated Outcome:** {item.get('impact', 'Optimized resolution')}}")
+        with st.expander(f"📜 Task Workflow: {item.get('problem', 'Challenge')}", expanded=(i == 0)):
+            st.markdown(f"**🛠️ Implemented Solution:** {item.get('solution', 'N/A')}")
+            st.markdown("**🔧 Active Toolchain:** " + ", ".join([f"`{t}`" for t in item.get("tools", [])]))
+            st.success(f"**🎯 Validated Outcome:** {item.get('impact', 'Optimized resolution')}")
 
 
 def render_telemetry_tab():

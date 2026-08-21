@@ -56,10 +56,10 @@ def _get_or_open_case(data: bytes, filename: str) -> str:
     registry = st.session_state["fe_case_registry"]
     if fp not in registry:
         try:
-            case = open_evidence_case(filename, summary=f"Forensic evidentiary ingestion: {filename}}")
-            case_id = case.get("case_id", f"CASE-{fp[:8].upper()}}")
+            case = open_evidence_case(filename, summary=f"Forensic evidentiary ingestion: {filename}")
+            case_id = case.get("case_id", f"CASE-{fp[:8].upper()}")
         except Exception:
-            case_id = f"CASE-{fp[:8].upper()}}"
+            case_id = f"CASE-{fp[:8].upper()}"
         registry[fp] = {"case_id": case_id, "filename": filename}
     st.session_state["fe_current_fingerprint"] = fp
     return registry[fp]["case_id"]
@@ -82,7 +82,7 @@ def render_evidence_lab_tab():
 
     case_id = _get_or_open_case(data, filename)
 
-    st.success(f"ðŸ”— Immutable Chain-of-Custody Case Bound: **{case_id}}** (this evidence's own case — not shared with other uploads this session)")
+    st.success(f"ðŸ”— Immutable Chain-of-Custody Case Bound: **{case_id}** (this evidence's own case — not shared with other uploads this session)")
     try:
         append_custody_record(case_id, "EVIDENCE_INGESTED_AND_HASHED", st.session_state.get("user_identity", {}).get("name", "Forensic Analyst"))
     except Exception:
@@ -92,7 +92,7 @@ def render_evidence_lab_tab():
         try:
             report = investigate_bytes(data, filename) or {}
         except Exception as e:
-            st.error(f"ðŸš¨ Byte investigation engine error: {e}}")
+            st.error(f"ðŸš¨ Byte investigation engine error: {e}")
             return
 
     hashes = report.get("hashes", {})
@@ -103,7 +103,7 @@ def render_evidence_lab_tab():
             {"Algorithm": "SHA-1", "Value": hashes.get("sha1", hashlib.sha1(data).hexdigest())},
             {"Algorithm": "MD5", "Value": hashes.get("md5", hashlib.md5(data).hexdigest())},
             {"Algorithm": "CRC32", "Value": hashes.get("crc32", "N/A")},
-            {"Algorithm": "Payload Size", "Value": f"{hashes.get('size_bytes', len(data))}} bytes"},
+            {"Algorithm": "Payload Size", "Value": f"{hashes.get('size_bytes', len(data))} bytes"},
         ]
     )
     st.dataframe(hash_df, use_container_width=True, hide_index=True)
@@ -115,7 +115,7 @@ def render_evidence_lab_tab():
     c1.metric("Detected File Type", det.get("detected_type", "Unknown"))
     c2.metric("Signature Confidence", det.get("confidence", "N/A"))
     c3.metric("Extension Status", ext.get("verdict", "N/A"))
-    st.info(f"**Forensic Verdict:** Declared extension `{ext.get('declared_extension','n/a')}}` vs Inferred Magic Signature `{det.get('detected_type','Unknown')}}`")
+    st.info(f"**Forensic Verdict:** Declared extension `{ext.get('declared_extension','n/a')}` vs Inferred Magic Signature `{det.get('detected_type','Unknown')}`")
 
     st.markdown("#### ðŸ” Embedded IOCs, Artifact Carving & Strings")
     meta = report.get("embedded", {})
@@ -132,12 +132,12 @@ def render_evidence_lab_tab():
         st.write("**Discovered IP Addresses:**", ", ".join(meta["ip_addresses"]))
 
     if meta.get("printable_strings"):
-        with st.expander(f"Extracted ASCII/Unicode Strings ({len(meta['printable_strings'])}} tokens)", expanded=False):
+        with st.expander(f"Extracted ASCII/Unicode Strings ({len(meta['printable_strings'])} tokens)", expanded=False):
             st.text("\n".join(meta["printable_strings"][:200]))
 
     st.markdown("#### ðŸ“Š Shannon Entropy Distribution")
     entropy = report.get("entropy_bits_per_byte", 0.0)
-    st.metric("Shannon Entropy (bits/byte)", f"{entropy:.4f}} / 8.0")
+    st.metric("Shannon Entropy (bits/byte)", f"{entropy:.4f} / 8.0")
     if PLOTLY_AVAILABLE:
         fig = go.Figure(go.Indicator(
             mode="gauge+number",
@@ -159,7 +159,7 @@ def render_evidence_lab_tab():
 
     st.markdown("#### 📦 Export Cryptographic Evidence Dossier")
     dossier = json.dumps(report, indent=2)
-    st.download_button("â¬‡ï¸ Download Complete Evidence Dossier (JSON)", data=dossier, file_name=f"evidence_dossier_{case_id}}.json", mime="application/json", key="fe_download_upg")
+    st.download_button("â¬‡ï¸ Download Complete Evidence Dossier (JSON)", data=dossier, file_name=f"evidence_dossier_{case_id}.json", mime="application/json", key="fe_download_upg")
 
 
 def render_metadata_tab():
@@ -175,7 +175,7 @@ def render_metadata_tab():
     try:
         exif = extract_exif(data) or {}
     except Exception as e:
-        exif = {"has_exif": False, "note": f"Extraction error: {e}}"}
+        exif = {"has_exif": False, "note": f"Extraction error: {e}"}
 
     if exif.get("has_exif"):
         col1, col2, col3 = st.columns(3)
@@ -187,7 +187,7 @@ def render_metadata_tab():
             gps = exif["GPS"]
             lat, lon = gps.get("latitude"), gps.get("longitude")
             if lat is not None and lon is not None:
-                st.success(f"ðŸ“ Geolocation Coordinates Discovered: `{lat}}, {lon}}`")
+                st.success(f"ðŸ“ Geolocation Coordinates Discovered: `{lat}, {lon}`")
                 map_df = pd.DataFrame([{"lat": lat, "lon": lon}])
                 st.map(map_df, zoom=12)
             else:
@@ -205,7 +205,7 @@ def render_metadata_tab():
                 append_custody_record(case_id, "METADATA_EXIF_EXTRACTED", "Forensic Analyst")
                 st.success("✅ Metadata extraction successfully logged to that evidence's custody ledger.")
             except Exception as e:
-                st.error(f"ðŸš¨ Failed to write audit record: {e}}")
+                st.error(f"ðŸš¨ Failed to write audit record: {e}")
         else:
             st.warning("âš ï¸ No active case found. Ingest this file in the Evidence Lab tab first to open its case.")
 
@@ -223,7 +223,7 @@ def render_stego_tab():
         try:
             result = analyze_lsb_steganography(data) or {}
         except Exception as e:
-            result = {"supported": False, "note": f"Analysis execution error: {e}}"}
+            result = {"supported": False, "note": f"Analysis execution error: {e}"}
 
     if result.get("supported"):
         c1, c2, c3 = st.columns(3)
@@ -256,21 +256,21 @@ def render_phishing_tab():
         try:
             result = analyze_email_headers(raw_email) or {}
         except Exception as e:
-            st.error(f"ðŸš¨ Email parser exception: {e}}")
+            st.error(f"ðŸš¨ Email parser exception: {e}")
             return
 
         risk = result.get("phishing_risk", "LOW")
         if risk == "HIGH":
-            st.error(f"ðŸš¨ **{result.get('verdict', 'Potential Phishing')}}** — Assessed Risk Level: **{risk}}**")
+            st.error(f"ðŸš¨ **{result.get('verdict', 'Potential Phishing')}** — Assessed Risk Level: **{risk}**")
         elif risk == "MEDIUM":
-            st.warning(f"âš ï¸ **{result.get('verdict', 'Suspicious Headers')}}** — Assessed Risk Level: **{risk}}**")
+            st.warning(f"âš ï¸ **{result.get('verdict', 'Suspicious Headers')}** — Assessed Risk Level: **{risk}**")
         else:
-            st.success(f"✅ **{result.get('verdict', 'Clean Headers')}}** — Assessed Risk Level: **{risk}}**")
+            st.success(f"✅ **{result.get('verdict', 'Clean Headers')}** — Assessed Risk Level: **{risk}**")
 
         if result.get("suspicious_findings"):
             st.markdown("#### ðŸš© Identified Indicator Anomalies (IoCs)")
             for finding in result["suspicious_findings"]:
-                st.warning(f"â€¢ {finding}}")
+                st.warning(f"â€¢ {finding}")
 
         if result.get("keyword_hits"):
             st.markdown("#### ðŸ”‘ Social Engineering Trigger Keywords")
@@ -283,9 +283,9 @@ def render_phishing_tab():
         cols[2].metric("Return-Path Domain", result.get("return_path_domain", "—"))
 
         st.info(
-            f"**Authentication Status:** SPF Present: `{result.get('spf_present')}}` | "
-            f"DKIM Present: `{result.get('dkim_present')}}` | "
-            f"Relay Hop Count: `{result.get('received_chain_count')}}`"
+            f"**Authentication Status:** SPF Present: `{result.get('spf_present')}` | "
+            f"DKIM Present: `{result.get('dkim_present')}` | "
+            f"Relay Hop Count: `{result.get('received_chain_count')}`"
         )
 
 
@@ -297,7 +297,7 @@ def render_custody_tab():
         st.info("â„¹ï¸ No forensic cases opened this session. Ingest an evidentiary artifact in the Evidence Lab to initialize a case.")
         return
 
-    options = {f"{v['case_id']}} — {v['filename']}}": v["case_id"] for v in registry.values()}
+    options = {f"{v['case_id']} — {v['filename']}": v["case_id"] for v in registry.values()}
     selected_label = st.selectbox("Select Case to Inspect", list(options.keys()), key="fe_case_selector")
     case_id = options[selected_label]
 
@@ -309,11 +309,11 @@ def render_custody_tab():
             result = {"valid": False, "reason": str(e)}
 
         if result.get("valid"):
-            st.success(f"ðŸ” Chain integrity verified successfully — {result.get('records', 'Unknown')}} immutable ledger entries intact for this case.")
+            st.success(f"ðŸ” Chain integrity verified successfully — {result.get('records', 'Unknown')} immutable ledger entries intact for this case.")
         else:
-            st.error(f"ðŸš¨ **CHAIN TAMPER DETECTED:** {result.get('reason')}}")
+            st.error(f"ðŸš¨ **CHAIN TAMPER DETECTED:** {result.get('reason')}")
 
-    st.caption(f"{len(registry)}} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
+    st.caption(f"{len(registry)} independent case(s) opened this session — each piece of evidence has its own chain, so unrelated files can never contaminate each other's custody record.")
 
     st.markdown("#### About Cryptographic Chain-of-Custody")
     st.markdown("""

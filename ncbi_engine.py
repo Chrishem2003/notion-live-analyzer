@@ -20,7 +20,7 @@ def fetch_ncbi_gene_summary(term: str, api_key: str = None) -> dict:
     id_list = data.get("esearchresult", {}).get("idlist", [])
 
     if not id_list:
-        return {"error": f"No NCBI Gene entry found for term: {term}}"}
+        return {"error": f"No NCBI Gene entry found for term: {term}"}
 
     gene_id = id_list[0]
     summary_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"

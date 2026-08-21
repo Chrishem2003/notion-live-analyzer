@@ -104,8 +104,8 @@ class ExecutiveStoryteller:
                             "type": "one_sample_ttest",
                             "variable": col,
                             "result": result,
-                            "narrative": f"**{col}}** mean ({result.get('mean', 0):.2f}}) is significantly different from 0 "
-                                        f"(t({result.get('n', 0)-1}}) = {result.get('t_statistic', 0):.2f}}, p = {result.get('p_value', 1):.3f}}, d = {result.get('cohens_d', 0):.2f}})",
+                            "narrative": f"**{col}** mean ({result.get('mean', 0):.2f}) is significantly different from 0 "
+                                        f"(t({result.get('n', 0)-1}) = {result.get('t_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, d = {result.get('cohens_d', 0):.2f})",
                         })
             except Exception:
                 logger.warning("One-sample t-test failed for column %r", col, exc_info=True)
@@ -125,8 +125,8 @@ class ExecutiveStoryteller:
                                 "group_var": cat,
                                 "value_var": num,
                                 "result": result,
-                                "narrative": f"**{num}}** differs significantly between groups of **{cat}}** "
-                                            f"(t = {result.get('t_statistic', 0):.2f}}, p = {result.get('p_value', 1):.3f}}, d = {result.get('cohens_d', 0):.2f}})",
+                                "narrative": f"**{num}** differs significantly between groups of **{cat}** "
+                                            f"(t = {result.get('t_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, d = {result.get('cohens_d', 0):.2f})",
                             })
                     elif n_groups >= 3:
                         result = self.stats.anova_one_way(df, cat, num)
@@ -138,8 +138,8 @@ class ExecutiveStoryteller:
                                 "group_var": cat,
                                 "value_var": num,
                                 "result": result,
-                                "narrative": f"**{num}}** varies significantly across {n_groups}} groups of **{cat}}** "
-                                            f"(F = {result.get('f_statistic', 0):.2f}}, p = {result.get('p_value', 1):.3f}}, ÃŽÂ·Ã‚Â² = {result.get('eta_squared', 0):.2f}})",
+                                "narrative": f"**{num}** varies significantly across {n_groups} groups of **{cat}** "
+                                            f"(F = {result.get('f_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, ÃŽÂ·Ã‚Â² = {result.get('eta_squared', 0):.2f})",
                             })
                 except Exception:
                     logger.warning("Group comparison failed for %r by %r", num, cat, exc_info=True)
@@ -157,8 +157,8 @@ class ExecutiveStoryteller:
                             "var1": cat1,
                             "var2": cat2,
                             "result": result,
-                            "narrative": f"**{cat1}}** and **{cat2}}** are significantly associated "
-                                        f"(Ãâ€¡Ã‚Â² = {result.get('chi_square', 0):.2f}}, p = {result.get('p_value', 1):.3f}}, V = {result.get('cramers_v', 0):.2f}})",
+                            "narrative": f"**{cat1}** and **{cat2}** are significantly associated "
+                                        f"(Ãâ€¡Ã‚Â² = {result.get('chi_square', 0):.2f}, p = {result.get('p_value', 1):.3f}, V = {result.get('cramers_v', 0):.2f})",
                         })
                 except Exception:
                     logger.warning("Chi-square test failed for %r vs %r", cat1, cat2, exc_info=True)
@@ -177,8 +177,8 @@ class ExecutiveStoryteller:
                                 strong_corrs.append({
                                     "var1": col1, "var2": col2,
                                     "r": result.get("r", 0),
-                                    "narrative": f"Strong correlation: **{col1}}** Ã¢â€ â€ **{col2}}** "
-                                                f"(r = {result.get('r', 0):.2f}}, p = {result.get('p_value', 1):.3f}})",
+                                    "narrative": f"Strong correlation: **{col1}** Ã¢â€ â€ **{col2}** "
+                                                f"(r = {result.get('r', 0):.2f}, p = {result.get('p_value', 1):.3f})",
                                 })
                     except Exception:
                         logger.warning("Correlation test failed for %r vs %r", col1, col2, exc_info=True)
@@ -202,8 +202,8 @@ class ExecutiveStoryteller:
                                 "value_var": num,
                                 "rho": round(float(r), 4),
                                 "p_value": round(float(p), 4),
-                                "narrative": f"**{num}}** shows a significant {direction}} trend over time "
-                                            f"(ÃÂ = {r:.2f}}, p = {p:.3f}})",
+                                "narrative": f"**{num}** shows a significant {direction} trend over time "
+                                            f"(ÃÂ = {r:.2f}, p = {p:.3f})",
                             })
                     except Exception:
                         logger.warning("Temporal trend test failed for %r over %r", num, temp, exc_info=True)
@@ -276,24 +276,24 @@ class ExecutiveStoryteller:
         missing_pct = profile.get("missing_pct", 0)
         if missing_pct > 20:
             quality["score"] -= 25
-            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â High missing data rate ({missing_pct}}%)")
+            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â High missing data rate ({missing_pct}%)")
         elif missing_pct > 10:
             quality["score"] -= 15
-            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â Moderate missing data rate ({missing_pct}}%)")
+            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â Moderate missing data rate ({missing_pct}%)")
         elif missing_pct > 0:
-            quality["warnings"].append(f"ðŸ“‹ Minimal missing data ({missing_pct}}%)")
+            quality["warnings"].append(f"ðŸ“‹ Minimal missing data ({missing_pct}%)")
 
         duplicates = profile.get("duplicate_rows", 0)
         if duplicates > 0:
             quality["score"] -= 10
-            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â {duplicates}} duplicate rows detected")
+            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â {duplicates} duplicate rows detected")
 
         n_rows = profile.get("rows", 0)
         if n_rows < 30:
             quality["score"] -= 15
-            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â Small sample size (N={n_rows}})  results may be unstable")
+            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â Small sample size (N={n_rows})  results may be unstable")
         elif n_rows < 100:
-            quality["warnings"].append(f"ðŸ“‹ Moderate sample size (N={n_rows}})")
+            quality["warnings"].append(f"ðŸ“‹ Moderate sample size (N={n_rows})")
 
         numeric_cols = profile.get("numeric_columns", [])
         if len(numeric_cols) < 2:
@@ -309,8 +309,8 @@ class ExecutiveStoryteller:
         lines = []
         lines.append(f"##  Executive Data Summary")
         lines.append(f"")
-        lines.append(f"**Dataset**: {profile['rows']:,}} observations Ãƒâ€” {profile['columns']}} variables")
-        lines.append(f"**Analysis Time**: {datetime.now():%Y-%m-%d %H:%M}}")
+        lines.append(f"**Dataset**: {profile['rows']:,} observations Ãƒâ€” {profile['columns']} variables")
+        lines.append(f"**Analysis Time**: {datetime.now():%Y-%m-%d %H:%M}")
         lines.append(f"")
 
         # Key metrics
@@ -321,23 +321,23 @@ class ExecutiveStoryteller:
         lines.append(f"### ðŸ“ˆ Key Metrics")
         lines.append(f"| Metric | Value |")
         lines.append(f"|--------|-------|")
-        lines.append(f"| Statistical Tests Run | {total_tests}} |")
-        lines.append(f"| Significant Findings | {sig_count}} |")
-        lines.append(f"| Strong Correlations (|r| Ã¢â€°Â¥ 0.5) | {strong_corrs}} |")
-        lines.append(f"| Data Quality Score | {profile.get('missing_pct', 0):.1f}}% missing |")
+        lines.append(f"| Statistical Tests Run | {total_tests} |")
+        lines.append(f"| Significant Findings | {sig_count} |")
+        lines.append(f"| Strong Correlations (|r| Ã¢â€°Â¥ 0.5) | {strong_corrs} |")
+        lines.append(f"| Data Quality Score | {profile.get('missing_pct', 0):.1f}% missing |")
         lines.append(f"")
 
         # Top findings
         if test_battery.get("tests"):
             lines.append(f"### Ã°Å¸Ââ€  Top Statistical Findings")
             for i, test in enumerate(test_battery["tests"][:5]):
-                lines.append(f"{i1}}. {test.get('narrative', '')}}")
+                lines.append(f"{i1}. {test.get('narrative', '')}")
             lines.append(f"")
 
         if strong_corrs > 0:
             lines.append(f"### Ã°Å¸â€â€” Key Relationships")
             for pair in correlations["strong_pairs"][:3]:
-                lines.append(f"- **{pair['var1']}}** Ã¢â€ â€ **{pair['var2']}}**: r = {pair['r']:.2f}} ({pair['strength']}})")
+                lines.append(f"- **{pair['var1']}** Ã¢â€ â€ **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
             lines.append(f"")
 
         return "\n".join(lines)
@@ -350,26 +350,26 @@ class ExecutiveStoryteller:
 
         quality_grade = quality.get("grade", "N/A")
         quality_score = quality.get("score", 0)
-        lines.append(f"**Data Quality Grade**: {quality_grade}} (Score: {quality_score}}/100)")
+        lines.append(f"**Data Quality Grade**: {quality_grade} (Score: {quality_score}/100)")
         lines.append(f"")
 
         if quality.get("issues"):
             lines.append(f"### Data Quality Risks")
             for issue in quality["issues"]:
-                lines.append(f"- {issue}}")
+                lines.append(f"- {issue}")
             lines.append(f"")
 
         if quality.get("warnings"):
             lines.append(f"### Cautions")
             for warning in quality["warnings"]:
-                lines.append(f"- {warning}}")
+                lines.append(f"- {warning}")
             lines.append(f"")
 
         if anomalies.get("total_outliers", 0) > 0:
             severity = anomalies.get("severity", "low")
             sev_icon = "Ã°Å¸â€Â´" if severity == "high" else "Ã°Å¸Å¸Â¡" if severity == "medium" else "Ã°Å¸Å¸Â¢"
-            lines.append(f"### Outlier Risk {sev_icon}}")
-            lines.append(f"- {anomalies['total_outliers']}} outliers detected across {anomalies['columns_with_outliers']}} columns ({severity}} severity)")
+            lines.append(f"### Outlier Risk {sev_icon}")
+            lines.append(f"- {anomalies['total_outliers']} outliers detected across {anomalies['columns_with_outliers']} columns ({severity} severity)")
             lines.append(f"")
 
         # Statistical risks
@@ -408,7 +408,7 @@ class ExecutiveStoryteller:
                 "type": "relationship",
                 "severity": "medium",
                 "icon": "Ã°Å¸â€â€”",
-                "text": f"Strong {'positive' if pair['r'] > 0 else 'negative'}} relationship between {pair['var1']}} and {pair['var2']}} (r = {pair['r']:.2f}})",
+                "text": f"Strong {'positive' if pair['r'] > 0 else 'negative'} relationship between {pair['var1']} and {pair['var2']} (r = {pair['r']:.2f})",
             })
 
         # Quality takeaways
@@ -427,7 +427,7 @@ class ExecutiveStoryteller:
                 "type": "anomaly",
                 "severity": anomalies.get("severity", "low"),
                 "icon": "",
-                "text": f"{anomalies['total_outliers']}} anomalous data points detected  review before modeling",
+                "text": f"{anomalies['total_outliers']} anomalous data points detected  review before modeling",
             })
 
         # Data size takeaways
@@ -437,14 +437,14 @@ class ExecutiveStoryteller:
                 "type": "scale",
                 "severity": "low",
                 "icon": "Ã°Å¸â€œÂ",
-                "text": f"Large dataset ({n:,}} rows)  consider sampling for faster iterative analysis",
+                "text": f"Large dataset ({n:,} rows)  consider sampling for faster iterative analysis",
             })
         elif n < 50:
             takeaways.append({
                 "type": "scale",
                 "severity": "high",
                 "icon": "Ã°Å¸â€œÂ",
-                "text": f"Small dataset ({n}} rows)  interpret results with caution, consider Bayesian methods",
+                "text": f"Small dataset ({n} rows)  interpret results with caution, consider Bayesian methods",
             })
 
         # Sort by severity
@@ -502,7 +502,7 @@ def render_executive_storyteller_ui():
     ds = report.get("dataset", {})
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric(" Rows", f"{ds.get('rows', 0):,}}")
+        st.metric(" Rows", f"{ds.get('rows', 0):,}")
     with col2:
         st.metric("ðŸ“‹ Columns", ds.get("columns", 0))
     with col3:
@@ -521,7 +521,7 @@ def render_executive_storyteller_ui():
             for test in tests:
                 p = test.get("result", {}).get("p_value", 1)
                 sig_badge = "âœ… Significant" if p < 0.05 else "Ã¢ÂÅ’ Not significant"
-                p_str = f"p = {p:.4f}}" if p >= 0.0001 else "p < .0001"
+                p_str = f"p = {p:.4f}" if p >= 0.0001 else "p < .0001"
                 st.markdown(f"""
                 <div style="padding:0.6rem;margin:0.3rem 0;border-radius:8px;
                             border-left:4px solid {'#2ecc71' if p < 0.05 else '#e74c3c'};
@@ -536,7 +536,7 @@ def render_executive_storyteller_ui():
     if strong_pairs:
         with st.expander("Ã°Å¸â€â€” View Strong Correlations", expanded=False):
             for pair in strong_pairs:
-                st.markdown(f"- **{pair['var1']}}** Ã¢â€ â€ **{pair['var2']}}**: r = {pair['r']:.2f}} ({pair['strength']}})")
+                st.markdown(f"- **{pair['var1']}** Ã¢â€ â€ **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Risk Assessment Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     st.markdown("---")
@@ -570,7 +570,7 @@ def render_executive_storyteller_ui():
 {report.get('risk_assessment', '')}
 
 ## Core Takeaways
-{chr(10).join([f"- [{t.get('severity','').upper()}}] {t.get('text','')}}" for t in takeaways])}
+{chr(10).join([f"- [{t.get('severity','').upper()}] {t.get('text','')}" for t in takeaways])}
 
 ---
 Generated by CHRISHEM Executive Storyteller
@@ -581,7 +581,7 @@ Generated by CHRISHEM Executive Storyteller
         import base64
         b64 = base64.b64encode(report_text.encode()).decode()
         st.markdown(
-            f'<a href="data:text/markdown;base64,{b64}}" download="executive_report_{datetime.now():%Y%m%d}}.md">'
+            f'<a href="data:text/markdown;base64,{b64}" download="executive_report_{datetime.now():%Y%m%d}.md">'
             f'ðŸ“¥ Download Report (Markdown)</a>',
             unsafe_allow_html=True,
         )

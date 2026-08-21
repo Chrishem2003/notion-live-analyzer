@@ -49,14 +49,14 @@ class CitationInspector:
             result["sources_checked"].append("crossref")
             result["details"]["crossref"] = cr_result
             if cr_result.get("retracted"):
-                result["flags"].append({"type": "retracted", "severity": "critical", "message": f"RETRACTED: {cr_result.get('retraction_reason', 'Unknown reason')}}", "source": "CrossRef"}})
+                result["flags"].append({"type": "retracted", "severity": "critical", "message": f"RETRACTED: {cr_result.get('retraction_reason', 'Unknown reason')}", "source": "CrossRef"})
                 result["health_score"] -= 60; result["status"] = "retracted"
             if cr_result.get("expression_of_concern"):
-                result["flags"].append({"type": "expression_of_concern", "severity": "high", "message": "Expression of concern issued", "source": "CrossRef"}})
+                result["flags"].append({"type": "expression_of_concern", "severity": "high", "message": "Expression of concern issued", "source": "CrossRef"})
                 result["health_score"] -= 40
                 if result["status"] == "clean": result["status"] = "concerned"
             if cr_result.get("erratum"):
-                result["flags"].append({"type": "erratum", "severity": "low", "message": "Correction/erratum published", "source": "CrossRef"}})
+                result["flags"].append({"type": "erratum", "severity": "low", "message": "Correction/erratum published", "source": "CrossRef"})
                 result["health_score"] -= 10
         if year and year < 2000: result["health_score"] -= 5
         if not doi and title:
@@ -71,7 +71,7 @@ class CitationInspector:
         """Check CrossRef API for retraction/concern status."""
         result = {"retracted": False, "expression_of_concern": False, "erratum": False}
         try:
-            url = f"https://api.crossref.org/works/{doi}}"
+            url = f"https://api.crossref.org/works/{doi}"
             resp = self.session.get(url, timeout=15)
             if resp.status_code != 200: return result
             data = resp.json().get("message", {})
@@ -80,7 +80,7 @@ class CitationInspector:
                 if indicator in title_lower:
                     if indicator in ("retract", "retracted", "withdrawn", "withdrawal"):
                         result["retracted"] = True
-                        result["retraction_reason"] = f"Title indicates: {indicator}}"
+                        result["retraction_reason"] = f"Title indicates: {indicator}"
                     elif "concern" in indicator:
                         result["expression_of_concern"] = True
                     elif indicator in ("erratum", "correction"):
@@ -91,7 +91,7 @@ class CitationInspector:
                 if indicator in subtitle:
                     if indicator in ("retract", "retracted", "withdrawn"):
                         result["retracted"] = True
-                        result["retraction_reason"] = f"Subtitle indicates: {indicator}}"
+                        result["retraction_reason"] = f"Subtitle indicates: {indicator}"
                     elif "concern" in indicator:
                         result["expression_of_concern"] = True
                     elif indicator in ("erratum", "correction"):
@@ -181,7 +181,7 @@ def render_citation_inspector_ui():
                 st.subheader("Ã¢Å¡Â Ã¯Â¸Â Flags")
                 for flag in result["flags"]:
                     sev_color = "#e74c3c" if flag["severity"] == "critical" else "#e67e22" if flag["severity"] == "high" else "#f1c40f"
-                    st.markdown(f'<div style="padding:0.6rem;border-left:4px solid {sev_color}};background:{sev_color}}08;margin:0.3rem 0;border-radius:6px;">Ã¢Å¡Â Ã¯Â¸Â <strong>{flag["message"]}}</strong></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="padding:0.6rem;border-left:4px solid {sev_color};background:{sev_color}08;margin:0.3rem 0;border-radius:6px;">Ã¢Å¡Â Ã¯Â¸Â <strong>{flag["message"]}</strong></div>', unsafe_allow_html=True)
             if not result["flags"]:
                 st.success("âœ… No issues detected  citation appears healthy")
             with st.expander("ðŸ“‹ Raw check data"):
@@ -194,9 +194,9 @@ def render_citation_inspector_ui():
         papers = []
         db_papers = st.session_state.get("lit_db_papers", [])
         if db_papers:
-            st.info(f"Ã°Å¸â€œÅ¡ Found {len(db_papers)}} papers in current project")
+            st.info(f"Ã°Å¸â€œÅ¡ Found {len(db_papers)} papers in current project")
             if st.button("Ã°Å¸Å¡â‚¬ Audit All Papers", type="primary", use_container_width=True):
-                with st.spinner(f"Checking {len(db_papers)}} papers..."):
+                with st.spinner(f"Checking {len(db_papers)} papers..."):
                     audit = inspector.inspect_bibliography(db_papers)
                 st.session_state["citation_audit"] = audit
                 st.rerun()
@@ -205,8 +205,8 @@ def render_citation_inspector_ui():
             sample = st.text_area("Or paste DOIs (one per line)", placeholder="10.1000/xyz123\n10.1000/abc456", height=100)
             if st.button("ðŸ“‹ Check Pasted DOIs") and sample:
                 dois = [d.strip() for d in sample.split("\n") if d.strip()]
-                papers = [{"doi": d, "title": f"Paper from DOI: {d}}"} for d in dois]
-                with st.spinner(f"Checking {len(papers)}} papers..."):
+                papers = [{"doi": d, "title": f"Paper from DOI: {d}"} for d in dois]
+                with st.spinner(f"Checking {len(papers)} papers..."):
                     audit = inspector.inspect_bibliography(papers)
                 st.session_state["citation_audit"] = audit
                 st.rerun()
@@ -253,7 +253,7 @@ def render_citation_inspector_ui():
                     status_counts = df["status"].value_counts()
                     st.bar_chart(status_counts)
                 with col2:
-                    st.metric("Mean Health Score", f"{df['health_score'].mean():.1f}}")
+                    st.metric("Mean Health Score", f"{df['health_score'].mean():.1f}")
                     st.metric("Min Health Score", df["health_score"].min())
                     st.metric("Max Health Score", df["health_score"].max())
                 st.dataframe(df[["paper_title", "doi", "health_score", "status"]], use_container_width=True, hide_index=True)

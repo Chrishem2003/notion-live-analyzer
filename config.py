@@ -227,7 +227,7 @@ def init_session_state():
 # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Secret Resolution Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 def get_secret(name: str) -> Optional[str]:
     """Resolve a secret value  session override > st.secrets > env var."""
-    session_key = f"user_{name}}"
+    session_key = f"user_{name}"
     if session_key in st.session_state and st.session_state[session_key]:
         return st.session_state[session_key]
     try:
@@ -271,19 +271,19 @@ def image_to_data_url(path: Path) -> str:
     }
     mime = mime_map.get(ext, "application/octet-stream")
     b64 = base64.b64encode(path.read_bytes()).decode("utf-8")
-    return f"data:{mime}};base64,{b64}}"
+    return f"data:{mime};base64,{b64}"
 
 # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Cache Persistence Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 def save_cache(key: str, data: Any):
     """Save data to disk cache."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cache_file = CACHE_DIR / f"{key}}.pkl"
+    cache_file = CACHE_DIR / f"{key}.pkl"
     with open(cache_file, "wb") as f:
         pickle.dump(data, f)
 
 def load_cache(key: str) -> Optional[Any]:
     """Load data from disk cache."""
-    cache_file = CACHE_DIR / f"{key}}.pkl"
+    cache_file = CACHE_DIR / f"{key}.pkl"
     if cache_file.exists():
         with open(cache_file, "rb") as f:
             return pickle.load(f)

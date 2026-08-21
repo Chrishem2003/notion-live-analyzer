@@ -62,7 +62,7 @@ def apply_custom_styles():
         font-weight: 700 !important;
     }
     /* Base */
-    .stApp {{ background-color: {bg_color}; color: {text_color}; }}
+    .stApp {{ background-color: {bg_color}; color: {text_color}; }
     
     /* Cards */
     .metric-card {{
@@ -71,44 +71,44 @@ def apply_custom_styles():
         border-radius: 12px;
         padding: 1rem;
         transition: transform 0.2s, box-shadow 0.2s;
-    }}
+    }
     .metric-card:hover {{
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    }}
+    }
     
     /* Sidebar */
     [data-testid="stSidebar"] {{
         background: {card_bg};
         border-right: 1px solid {border_color};
-    }}
+    }
     
     /* Buttons */
     .stButton > button {{
         border-radius: 8px !important;
         font-weight: 600 !important;
         transition: all 0.2s ease;
-    }}
+    }
     .stButton > button:hover {{
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(59,130,246,0.3);
-    }}
+    }
     
     /* Inputs */
     .stTextInput input, .stSelectbox, .stTextarea textarea {{
         border-radius: 8px !important;
         border: 1px solid {border_color} !important;
-    }}
+    }
     .stTextInput input:focus {{
         border-color: {accent} !important;
         box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
-    }}
+    }
     
     /* Tables */
     [data-testid="stDataFrame"] {{
         border-radius: 8px;
         border: 1px solid {border_color};
-    }}
+    }
     
     /* Status indicators */
     .status-connected {{
@@ -121,7 +121,7 @@ def apply_custom_styles():
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 600;
-    }}
+    }
     .status-disconnected {{
         display: inline-flex;
         align-items: center;
@@ -132,13 +132,13 @@ def apply_custom_styles():
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 600;
-    }}
+    }
     
     /* Tabs */
     .stTabs [data-baseweb="tab"] {{
         border-radius: 8px 8px 0 0 !important;
         font-weight: 600;
-    }}
+    }
     
     /* Metrics */
     [data-testid="stMetric"] {{
@@ -146,7 +146,7 @@ def apply_custom_styles():
         border: 1px solid {border_color};
         border-radius: 12px;
         padding: 1rem;
-    }}
+    }
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)

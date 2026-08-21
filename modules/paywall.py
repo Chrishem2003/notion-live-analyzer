@@ -19,12 +19,12 @@ def enforce_paywall(allowed_plans=("pro", "business", "premium"), feature_name="
 
     # Block trial users if allow_trial is False
     if is_trial and not allow_trial:
-        st.warning(f"ðŸ”’ **Trial Access Restricted:** Trial accounts cannot access {feature_name}}. Please upgrade to a paid subscription.")
+        st.warning(f"ðŸ”’ **Trial Access Restricted:** Trial accounts cannot access {feature_name}. Please upgrade to a paid subscription.")
         render_paywall_cta()
         st.stop()
 
     if current_plan not in allowed_plans and status.get("status") != "active":
-        st.error(f"ðŸ”’ **Subscription Required:** You need an active paid plan ({', '.join(allowed_plans).upper()}}) to access {feature_name}}.")
+        st.error(f"ðŸ”’ **Subscription Required:** You need an active paid plan ({', '.join(allowed_plans).upper()}) to access {feature_name}.")
         render_paywall_cta()
         st.stop()
 

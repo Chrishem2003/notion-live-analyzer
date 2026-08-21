@@ -50,7 +50,7 @@ bulk_result = render_task_progress("lit_bulk_harvest")
 if bulk_result is not None:
     df_bulk = pd.DataFrame(bulk_result["records"])
     st.success(
-        f"Harvested {bulk_result['returned']}} / {bulk_result['requested']}} requested records"
+        f"Harvested {bulk_result['returned']} / {bulk_result['requested']} requested records"
         + (" (stopped early â€” CrossRef had no more matches or the time limit was reached)."
            if bulk_result.get("truncated") else ".")
     )

@@ -93,7 +93,7 @@ def robust_parse_file(file_obj_or_path):
             return pd.read_pickle(file_obj_or_path)
         return None
     except Exception as e:
-        st.error(f"âŒ Enterprise Parse Error: {e}}")
+        st.error(f"âŒ Enterprise Parse Error: {e}")
         return None
 
 
@@ -166,7 +166,7 @@ def apply_recipe_step(df: pd.DataFrame, step: dict) -> pd.DataFrame:
         out = df.copy()
         col1, col2, op, new_col = p["col1"], p["col2"], p["operation"], p["new_col"]
         if col1 not in out.columns or col2 not in out.columns:
-            raise KeyError(f"Replay requires columns '{col1}}' and '{col2}}', not present in the new dataset.")
+            raise KeyError(f"Replay requires columns '{col1}' and '{col2}', not present in the new dataset.")
         if "+" in op:
             out[new_col] = out[col1] + out[col2]
         elif "-" in op:
@@ -183,25 +183,25 @@ def apply_recipe_step(df: pd.DataFrame, step: dict) -> pd.DataFrame:
         out = df.copy()
         col, n_bins, bin_name = p["column"], p["bins"], p["bin_name"]
         if col not in out.columns:
-            raise KeyError(f"Replay requires column '{col}}', not present in the new dataset.")
-        out[bin_name] = pd.qcut(out[col], q=n_bins, labels=[f"Tier_{i+1}}" for i in range(n_bins)], duplicates="drop")
+            raise KeyError(f"Replay requires column '{col}', not present in the new dataset.")
+        out[bin_name] = pd.qcut(out[col], q=n_bins, labels=[f"Tier_{i+1}" for i in range(n_bins)], duplicates="drop")
         return out
 
     if kind == "Scale Feature":
         out = df.copy()
         col, method = p["column"], p["method"]
         if col not in out.columns:
-            raise KeyError(f"Replay requires column '{col}}', not present in the new dataset.")
+            raise KeyError(f"Replay requires column '{col}', not present in the new dataset.")
         if method == "Z-Score Standardization":
             std_val = out[col].std()
             if std_val and not pd.isna(std_val):
-                out[f"{col}}_z"] = (out[col] - out[col].mean()) / std_val
+                out[f"{col}_z"] = (out[col] - out[col].mean()) / std_val
         elif method == "Min-Max Normalization":
             min_v, max_v = out[col].min(), out[col].max()
             if min_v != max_v:
-                out[f"{col}}_mm"] = (out[col] - min_v) / (max_v - min_v)
+                out[f"{col}_mm"] = (out[col] - min_v) / (max_v - min_v)
         else:
-            out[f"{col}}_pct"] = out[col].rank(pct=True)
+            out[f"{col}_pct"] = out[col].rank(pct=True)
         return out
 
     if kind == "Enforce Schema":
@@ -219,7 +219,7 @@ def apply_recipe_step(df: pd.DataFrame, step: dict) -> pd.DataFrame:
                 out[col] = out[col].astype(str)
         return out
 
-    raise ValueError(f"Unknown recipe step type: {kind}}")
+    raise ValueError(f"Unknown recipe step type: {kind}")
 
 
 def apply_recipe(df: pd.DataFrame, recipe: list) -> pd.DataFrame:
@@ -246,9 +246,9 @@ def render_ingestion_tab():
         )
         if uploaded_file is not None:
             file_size_mb = uploaded_file.size / (1024 * 1024)
-            st.info(f"📦 File detected: `{uploaded_file.name}}` ({file_size_mb:.2f}} MB)")
+            st.info(f"📦 File detected: `{uploaded_file.name}` ({file_size_mb:.2f} MB)")
 
-            with st.spinner(f"Parsing and running structural validation on '{uploaded_file.name}}'..."):
+            with st.spinner(f"Parsing and running structural validation on '{uploaded_file.name}'..."):
                 df = robust_parse_file(uploaded_file)
                 if df is not None and not df.empty:
                     new_fp = dataset_fingerprint(df)
@@ -273,8 +273,8 @@ def render_ingestion_tab():
                     st.session_state["transform_recipe"] = []
                     st.session_state["dataset_schema_meta"] = {"fingerprint": new_fp, "schema": schema_signature(df)}
 
-                    st.success(f"✅ Successfully ingested `{uploaded_file.name}}` — {df.shape[0]:,}} rows Ã— {df.shape[1]}} columns")
-                    st.caption(f"ðŸ” Dataset fingerprint (SHA-256): `{new_fp[:24]}}â€¦`")
+                    st.success(f"✅ Successfully ingested `{uploaded_file.name}` — {df.shape[0]:,} rows Ã— {df.shape[1]} columns")
+                    st.caption(f"ðŸ” Dataset fingerprint (SHA-256): `{new_fp[:24]}â€¦`")
                     st.dataframe(df.head(10), use_container_width=True)
 
     with col_sample:
@@ -289,16 +289,16 @@ def render_ingestion_tab():
             "Research Cohort (250)": "research",
         }
         for label, kind in sample_kinds.items():
-            if st.button(label, use_container_width=True, key=f"smp_ent_{kind}}"):
+            if st.button(label, use_container_width=True, key=f"smp_ent_{kind}"):
                 sample_df = generate_sample_dataset(kind)
-                set_active_dataframe(sample_df, f"{kind}}_sample.csv")
+                set_active_dataframe(sample_df, f"{kind}_sample.csv")
                 initialize_recipe_engine()
                 st.session_state["transform_recipe"] = []
                 st.session_state["dataset_schema_meta"] = {
                     "fingerprint": dataset_fingerprint(sample_df),
                     "schema": schema_signature(sample_df),
                 }
-                st.success(f"✅ Loaded {label}}")
+                st.success(f"✅ Loaded {label}")
                 st.rerun()
 
 
@@ -317,10 +317,10 @@ def render_quality_tab():
     health_score = max(0.0, 100.0 - (missing / max(total_cells, 1) * 50) - (dups / max(df.shape[0], 1) * 50))
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Completeness Rate", f"{completeness:.2f}}%")
-    c2.metric("Missing Cells", f"{missing:,}}")
-    c3.metric("Duplicate Rows", f"{dups:,}}")
-    c4.metric("Health Score", f"{health_score:.1f}}%")
+    c1.metric("Completeness Rate", f"{completeness:.2f}%")
+    c2.metric("Missing Cells", f"{missing:,}")
+    c3.metric("Duplicate Rows", f"{dups:,}")
+    c4.metric("Health Score", f"{health_score:.1f}%")
 
     tab_audit, tab_outlier, tab_clean = st.tabs(["ðŸ“Š Schema & Missingness", "âš ï¸ Advanced Outlier Engine", "ðŸ› ï¸ Automated Cleaning Pipeline"])
 
@@ -337,14 +337,14 @@ def render_quality_tab():
 
         report_lines = [
             "# DATA QUALITY AUDIT REPORT",
-            f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}}",
-            f"Fingerprint: {st.session_state.get('dataset_schema_meta', {}}).get('fingerprint', 'n/a')}}",
+            f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"Fingerprint: {st.session_state.get('dataset_schema_meta', {}).get('fingerprint', 'n/a')}",
             "",
-            f"- Rows: {df.shape[0]:,}} | Columns: {df.shape[1]}}",
-            f"- Completeness: {completeness:.2f}}%",
-            f"- Missing cells: {missing:,}}",
-            f"- Duplicate rows: {dups:,}}",
-            f"- Health score: {health_score:.1f}}%",
+            f"- Rows: {df.shape[0]:,} | Columns: {df.shape[1]}",
+            f"- Completeness: {completeness:.2f}%",
+            f"- Missing cells: {missing:,}",
+            f"- Duplicate rows: {dups:,}",
+            f"- Health score: {health_score:.1f}%",
             "",
             "## Per-Column Breakdown",
             schema_df.to_string(index=False),
@@ -379,10 +379,10 @@ def render_quality_tab():
                     series = df[col].dropna()
                     mask = _outlier_mask(series)
                     outliers = df.loc[series[mask].index]
-                    st.metric("Outlier Records Isolated", f"{len(outliers):,}}")
+                    st.metric("Outlier Records Isolated", f"{len(outliers):,}")
                     if len(outliers):
                         st.dataframe(outliers, use_container_width=True)
-                        render_export_buttons(outliers, base_name=f"outliers_{col}}")
+                        render_export_buttons(outliers, base_name=f"outliers_{col}")
             else:
                 if st.button("ðŸ” Execute Batch Outlier Scan", type="primary", key="ent_run_outlier_batch"):
                     summary = []
@@ -407,7 +407,7 @@ def render_quality_tab():
             cleaned = apply_recipe_step(df, {"step": "Clean Dataset", "params": params})
 
             set_active_dataframe(cleaned, st.session_state.get("source_name", "cleaned_dataset.csv"))
-            log_transformation("Clean Dataset", f"strip_ws={strip_ws}}, drop_dups={drop_dups}}, impute={impute_strat}}", params)
+            log_transformation("Clean Dataset", f"strip_ws={strip_ws}, drop_dups={drop_dups}, impute={impute_strat}", params)
             st.success("✅ Cleaning pipeline executed securely. Active state updated.")
             st.dataframe(cleaned.head(10), use_container_width=True)
 
@@ -442,11 +442,11 @@ def render_transform_tab():
                     params = {"new_col": new_col, "col1": col1, "operation": op, "col2": col2}
                     working = apply_recipe_step(working, {"step": "Compute Feature", "params": params})
                     set_active_dataframe(working, st.session_state.get("source_name", "transformed.csv"))
-                    log_transformation("Compute Feature", f"{new_col}} = {col1}} {op}} {col2}}", params)
-                    st.success(f"✅ Successfully computed feature column `{new_col}}`.")
+                    log_transformation("Compute Feature", f"{new_col} = {col1} {op} {col2}", params)
+                    st.success(f"✅ Successfully computed feature column `{new_col}`.")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Computation failure: {e}}")
+                    st.error(f"Computation failure: {e}")
 
     with tab_bin:
         st.markdown("#### Quantile & Equal-Interval Binning")
@@ -455,18 +455,18 @@ def render_transform_tab():
         else:
             col = st.selectbox("Select variable to bin", num_columns, key="ent_bin_col")
             n_bins = st.slider("Bin partitions", 2, 10, 4, key="ent_bin_count")
-            bin_name = st.text_input("Output bin column name", value=f"{col}}_tier", key="ent_bin_name")
+            bin_name = st.text_input("Output bin column name", value=f"{col}_tier", key="ent_bin_name")
 
             if st.button("ðŸ“Š Generate Quantile Bins", type="primary", key="ent_run_bin"):
                 try:
                     params = {"column": col, "bins": n_bins, "bin_name": bin_name}
                     working = apply_recipe_step(working, {"step": "Quantile Binning", "params": params})
                     set_active_dataframe(working, st.session_state.get("source_name", "binned.csv"))
-                    log_transformation("Quantile Binning", f"{bin_name}} = qcut({col}}, {n_bins}})", params)
-                    st.success(f"✅ Created binned variable `{bin_name}}`.")
+                    log_transformation("Quantile Binning", f"{bin_name} = qcut({col}, {n_bins})", params)
+                    st.success(f"✅ Created binned variable `{bin_name}`.")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Binning error: {e}}")
+                    st.error(f"Binning error: {e}")
 
     with tab_scale:
         st.markdown("#### Robust Statistical Scaling")
@@ -481,11 +481,11 @@ def render_transform_tab():
                     params = {"column": col, "method": method}
                     working = apply_recipe_step(working, {"step": "Scale Feature", "params": params})
                     set_active_dataframe(working, st.session_state.get("source_name", "scaled.csv"))
-                    log_transformation("Scale Feature", f"{method}} on {col}}", params)
-                    st.success(f"✅ Applied {method}} to `{col}}`.")
+                    log_transformation("Scale Feature", f"{method} on {col}", params)
+                    st.success(f"✅ Applied {method} to `{col}`.")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Scaling error: {e}}")
+                    st.error(f"Scaling error: {e}")
 
     with tab_recipe:
         st.markdown("#### Reproducible Pipeline Recipe")
@@ -507,11 +507,11 @@ def render_transform_tab():
                 else:
                     try:
                         replayed = apply_recipe(fresh_df, recipe)
-                        st.success(f"✅ Replay succeeded — {replayed.shape[0]:,}} rows Ã— {replayed.shape[1]}} columns.")
+                        st.success(f"✅ Replay succeeded — {replayed.shape[0]:,} rows Ã— {replayed.shape[1]} columns.")
                         st.dataframe(replayed.head(10), use_container_width=True)
                         render_export_buttons(replayed, base_name="recipe_replayed_dataset")
                     except (KeyError, ValueError) as e:
-                        st.error(f"ðŸš¨ Replay failed at a step that doesn't match this file's schema: {e}}")
+                        st.error(f"ðŸš¨ Replay failed at a step that doesn't match this file's schema: {e}")
 
             if st.button("ðŸ—‘ï¸ Clear Recipe Log", key="ent_clear_recipe"):
                 st.session_state["transform_recipe"] = []
@@ -553,13 +553,13 @@ def render_variable_editor_tab():
     if st.button("ðŸš€ Enforce Enterprise Schema Types", type="primary", key="ent_apply_var"):
         try:
             type_map = {row["Variable"]: row["Type"] for _, row in edited.iterrows()}
-            typed_df = apply_recipe_step(df, {"step": "Enforce Schema", "params": {"types": type_map}})
+            typed_df = apply_recipe_step(df, {"step": "Enforce Schema", "params": {"types": type_map})
             set_active_dataframe(typed_df, st.session_state.get("source_name", "typed_dataset.csv"))
             log_transformation("Enforce Schema", "Type casting enforced via metadata manager", {"types": type_map})
             st.success("✅ Enterprise schema successfully applied across all workspace hubs.")
             st.dataframe(typed_df.dtypes.astype(str).reset_index().rename(columns={"index": "Column", 0: "Enforced Type"}), use_container_width=True, hide_index=True)
         except Exception as e:
-            st.error(f"Schema enforcement error: {e}}")
+            st.error(f"Schema enforcement error: {e}")
 
 
 def render_simulator_tab():
@@ -574,7 +574,7 @@ def render_simulator_tab():
         rng = np.random.default_rng(42)
         if template == "Clinical Trial Cohort":
             df = pd.DataFrame({
-                "Subject_ID": [f"SUBJ-{i:05d}}" for i in range(n_rows)],
+                "Subject_ID": [f"SUBJ-{i:05d}" for i in range(n_rows)],
                 "Age": rng.integers(20, 80, n_rows),
                 "BMI": np.round(rng.normal(27.0, 4.5, n_rows), 1),
                 "Systolic_BP": rng.integers(100, 175, n_rows),
@@ -583,7 +583,7 @@ def render_simulator_tab():
             })
         elif template == "Customer Segmentation Analytics":
             df = pd.DataFrame({
-                "Customer_ID": [f"CUST-{i:06d}}" for i in range(n_rows)],
+                "Customer_ID": [f"CUST-{i:06d}" for i in range(n_rows)],
                 "Age": rng.integers(18, 65, n_rows),
                 "Region": rng.choice(["North America", "Europe", "Asia-Pacific", "Latin America"], n_rows),
                 "Annual_Spend_USD": np.round(rng.exponential(1250, n_rows), 2),
@@ -606,11 +606,11 @@ def render_simulator_tab():
                 "Category_Tag": rng.choice(["Alpha", "Beta", "Gamma"], n_rows),
             })
 
-        set_active_dataframe(df, f"synthetic_{template.lower().replace(' ', '_')}}.csv")
+        set_active_dataframe(df, f"synthetic_{template.lower().replace(' ', '_')}.csv")
         initialize_recipe_engine()
         st.session_state["transform_recipe"] = []
         st.session_state["dataset_schema_meta"] = {"fingerprint": dataset_fingerprint(df), "schema": schema_signature(df)}
-        st.success(f"✅ Generated {n_rows:,}} records for `{template}}`.")
+        st.success(f"✅ Generated {n_rows:,} records for `{template}`.")
         st.dataframe(df.head(10), use_container_width=True)
 
 
@@ -626,8 +626,8 @@ def validate_readonly_sql(query: str):
         return False, "Only SELECT / WITH (CTE) statements are permitted — this console is read-only."
     upper_q = stripped.upper()
     for kw in FORBIDDEN_SQL_KEYWORDS:
-        if re.search(rf"\b{kw}}\b", upper_q):
-            return False, f"Statement contains a restricted keyword: `{kw}}`. This console cannot touch the filesystem, extensions, or anything outside the active in-memory dataset."
+        if re.search(rf"\b{kw}\b", upper_q):
+            return False, f"Statement contains a restricted keyword: `{kw}`. This console cannot touch the filesystem, extensions, or anything outside the active in-memory dataset."
     return True, stripped
 
 
@@ -647,12 +647,12 @@ def render_explorer_tab():
     with tab_sql:
         if DUCKDB_AVAILABLE:
             st.markdown("#### In-Memory SQL Query Engine (DuckDB) — Read-Only Sandbox")
-            st.caption(f"SELECT-only. No filesystem/extension access. Results capped at {SQL_RESULT_ROW_CAP:,}} rows.")
+            st.caption(f"SELECT-only. No filesystem/extension access. Results capped at {SQL_RESULT_ROW_CAP:,} rows.")
             sql_query = st.text_area("SQL Query Statement", value="SELECT * FROM df LIMIT 50", height=100, key="ent_sql_input")
             if st.button("ðŸš€ Execute SQL Query", type="primary", key="ent_run_sql"):
                 ok, msg_or_query = validate_readonly_sql(sql_query)
                 if not ok:
-                    st.error(f"ðŸš« Query rejected: {msg_or_query}}")
+                    st.error(f"ðŸš« Query rejected: {msg_or_query}")
                 else:
                     try:
                         conn = duckdb.connect(database=":memory:")
@@ -662,11 +662,11 @@ def render_explorer_tab():
                         truncated = len(result_df) > SQL_RESULT_ROW_CAP
                         if truncated:
                             result_df = result_df.head(SQL_RESULT_ROW_CAP)
-                        st.success(f"✅ Query executed — returned {len(result_df):,}} rows" + (f" (truncated to {SQL_RESULT_ROW_CAP:,}})" if truncated else "") + ".")
+                        st.success(f"✅ Query executed — returned {len(result_df):,} rows" + (f" (truncated to {SQL_RESULT_ROW_CAP:,})" if truncated else "") + ".")
                         st.dataframe(result_df, use_container_width=True)
                         render_export_buttons(result_df, base_name="sql_query_result")
                     except Exception as e:
-                        st.error(f"SQL Execution Error: {e}}")
+                        st.error(f"SQL Execution Error: {e}")
         else:
             st.info("DuckDB engine package not detected in current environment.")
 

@@ -44,7 +44,7 @@ def compute_variable(
         df[new_var_name] = result
         return df
     except Exception as e:
-        st.error(f"Compute error: {str(e)}}")
+        st.error(f"Compute error: {str(e)}")
         return df
 
 
@@ -112,7 +112,7 @@ def rank_cases(
     Methods: average, min, max, dense, ordinal, pct, percentile
     """
     df = df.copy()
-    rank_col = new_col or f"{col}}_rank"
+    rank_col = new_col or f"{col}_rank"
 
     rank_methods = {
         "average": "average",
@@ -154,7 +154,7 @@ def count_occurrences(
     Count occurrences of a value across multiple columns (Like SPSS Count).
     """
     df = df.copy()
-    count_col = new_col or f"count_{value}}"
+    count_col = new_col or f"count_{value}"
     df[count_col] = df[columns].apply(
         lambda row: sum(1 for v in row if pd.notna(v) and str(v) == str(value)),
         axis=1
@@ -176,7 +176,7 @@ def shift_variable(
     Positive periods = lag (previous values), negative = lead (next values).
     """
     df = df.copy()
-    shift_col = new_col or f"{col}}_lag{abs(periods)}}"
+    shift_col = new_col or f"{col}_lag{abs(periods)}"
     if group_col:
         df[shift_col] = df.groupby(group_col)[col].shift(periods)
     else:
@@ -198,7 +198,7 @@ def bin_variable(
     Bin/discretize a numeric variable (like SPSS Visual Binning).
     """
     df = df.copy()
-    bin_col = new_col or f"{col}}_binned"
+    bin_col = new_col or f"{col}_binned"
 
     if isinstance(bins, int):
         df[bin_col] = pd.cut(
@@ -270,7 +270,7 @@ def select_cases(
             df["_filter_$"] = mask
             return df
     except Exception as e:
-        st.error(f"Selection error: {str(e)}}")
+        st.error(f"Selection error: {str(e)}")
         return df
 
 
@@ -289,7 +289,7 @@ def weight_cases(df: pd.DataFrame, weight_col: str) -> pd.DataFrame:
         repeated = repeated.drop(columns=[weight_col], errors="ignore")
         return repeated
     except Exception as e:
-        st.error(f"Weighting error: {str(e)}}")
+        st.error(f"Weighting error: {str(e)}")
         return df
 
 
@@ -326,7 +326,7 @@ def render_compute_ui(df: pd.DataFrame) -> pd.DataFrame:
         if expression and new_var:
             result_df = compute_variable(df, expression, new_var)
             if new_var in result_df.columns:
-                st.success(f"âœ… Created '{new_var}}'")
+                st.success(f"âœ… Created '{new_var}'")
                 return result_df
 
     return df
@@ -351,9 +351,9 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
         for i in range(int(num_mappings)):
             c1, c2, c3 = st.columns(3)
             with c1:
-                old_val = st.text_input(f"Old value {i1}}", key=f"rec_old_{i}}")
+                old_val = st.text_input(f"Old value {i1}", key=f"rec_old_{i}")
             with c2:
-                new_val = st.text_input(f"New value {i1}}", key=f"rec_new_{i}}")
+                new_val = st.text_input(f"New value {i1}", key=f"rec_new_{i}")
             with c3:
                 st.caption("Ã¢â€ â€™")
             if old_val:
@@ -382,7 +382,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     elif recode_type == "Into Different Variable":
         col = st.selectbox("Select variable", options=cols, key="rec_diff_col")
-        new_col = st.text_input("New variable name", value=f"{col}}_recoded", key="rec_diff_new")
+        new_col = st.text_input("New variable name", value=f"{col}_recoded", key="rec_diff_new")
         df_result = df.copy()
 
         mappings = {}
@@ -391,9 +391,9 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
         for i in range(int(num_mappings)):
             c1, c2 = st.columns(2)
             with c1:
-                old_val = st.text_input(f"Old value {i1}}", key=f"rec_dold_{i}}")
+                old_val = st.text_input(f"Old value {i1}", key=f"rec_dold_{i}")
             with c2:
-                new_val = st.text_input(f"New value {i1}}", key=f"rec_dnew_{i}}")
+                new_val = st.text_input(f"New value {i1}", key=f"rec_dnew_{i}")
             if old_val:
                 try:
                     old_converted = float(old_val) if "." in old_val else int(old_val)
@@ -407,12 +407,12 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
 
         if st.button("Ã¢â€“Â¶Ã¯Â¸Â Recode into Different", type="primary"):
             df_result = recode_same(df, col, mappings, new_var=new_col)
-            st.success(f"âœ… Created '{new_col}}'")
+            st.success(f"âœ… Created '{new_col}'")
             return df_result
 
     else:  # Into Different Variable (Ranges)
         col = st.selectbox("Select numeric variable", options=df.select_dtypes(include=[np.number]).columns.tolist(), key="rec_range_col")
-        new_col = st.text_input("New variable name", value=f"{col}}_grouped", key="rec_range_new")
+        new_col = st.text_input("New variable name", value=f"{col}_grouped", key="rec_range_new")
         df_result = df.copy()
 
         num_ranges = st.number_input("Number of ranges", min_value=1, max_value=10, value=3, key="n_ranges")
@@ -420,11 +420,11 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
         for i in range(int(num_ranges)):
             c1, c2, c3 = st.columns(3)
             with c1:
-                lower = st.number_input(f"Lower bound {i1}}", value=float('-inf') if i == 0 else 0.0, key=f"rng_low_{i}}", format="%f")
+                lower = st.number_input(f"Lower bound {i1}", value=float('-inf') if i == 0 else 0.0, key=f"rng_low_{i}", format="%f")
             with c2:
-                upper = st.number_input(f"Upper bound {i1}}", value=float('inf') if i == int(num_ranges)-1 else 100.0, key=f"rng_high_{i}}", format="%f")
+                upper = st.number_input(f"Upper bound {i1}", value=float('inf') if i == int(num_ranges)-1 else 100.0, key=f"rng_high_{i}", format="%f")
             with c3:
-                new_val = st.text_input(f"New value {i1}}", value=str(i1), key=f"rng_val_{i}}")
+                new_val = st.text_input(f"New value {i1}", value=str(i1), key=f"rng_val_{i}")
             try:
                 new_val_converted = float(new_val) if "." in new_val else int(new_val)
             except ValueError:
@@ -433,7 +433,7 @@ def render_recode_ui(df: pd.DataFrame) -> pd.DataFrame:
 
         if st.button("Ã¢â€“Â¶Ã¯Â¸Â Recode Ranges", type="primary"):
             df_result = recode_different(df, col, new_col, ranges)
-            st.success(f"âœ… Created '{new_col}}'")
+            st.success(f"âœ… Created '{new_col}'")
             return df_result
 
     return df
@@ -457,7 +457,7 @@ def render_rank_ui(df: pd.DataFrame) -> pd.DataFrame:
     )
     ascending = st.checkbox("Ascending order (lowest gets rank 1)", value=True, key="rank_asc")
     group_col = st.selectbox("Group by (optional)", options=[""] + cols, key="rank_group")
-    new_col = st.text_input("Rank variable name", value=f"{col}}_rank", key="rank_new")
+    new_col = st.text_input("Rank variable name", value=f"{col}_rank", key="rank_new")
 
     if st.button("Ã¢â€“Â¶Ã¯Â¸Â Rank Cases", type="primary"):
         result_df = rank_cases(
@@ -465,7 +465,7 @@ def render_rank_ui(df: pd.DataFrame) -> pd.DataFrame:
             group_col=group_col if group_col else None,
             new_col=new_col if new_col else None
         )
-        st.success(f"âœ… Created '{new_col}}'")
+        st.success(f"âœ… Created '{new_col}'")
         return result_df
     return df
 
@@ -478,11 +478,11 @@ def render_count_ui(df: pd.DataFrame) -> pd.DataFrame:
     cols = df.columns.tolist()
     value = st.text_input("Value to count", value="1", key="count_val")
     selected_cols = st.multiselect("Count across variables", options=cols, key="count_cols")
-    new_col = st.text_input("Count variable name", value=f"count_{value}}", key="count_new")
+    new_col = st.text_input("Count variable name", value=f"count_{value}", key="count_new")
 
     if st.button("Ã¢â€“Â¶Ã¯Â¸Â Count Occurrences", type="primary"):
         result_df = count_occurrences(df, value, selected_cols, new_col)
-        st.success(f"âœ… Created '{new_col}}'")
+        st.success(f"âœ… Created '{new_col}'")
         return result_df
     return df
 
@@ -496,11 +496,11 @@ def render_shift_ui(df: pd.DataFrame) -> pd.DataFrame:
     col = st.selectbox("Variable to shift", options=cols, key="shift_col")
     periods = st.number_input("Periods (positive=lag, negative=lead)", value=1, key="shift_periods")
     group_col = st.selectbox("Group by (optional for panel data)", options=[""] + cols, key="shift_group")
-    new_col = st.text_input("New variable name", value=f"{col}}_lag{abs(periods)}}", key="shift_new")
+    new_col = st.text_input("New variable name", value=f"{col}_lag{abs(periods)}", key="shift_new")
 
     if st.button("Ã¢â€“Â¶Ã¯Â¸Â Create Shift", type="primary"):
         result_df = shift_variable(df, col, periods=int(periods), group_col=group_col or None, new_col=new_col)
-        st.success(f"âœ… Created '{new_col}}'")
+        st.success(f"âœ… Created '{new_col}'")
         return result_df
     return df
 
@@ -516,7 +516,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     col = st.selectbox("Variable to bin", options=numeric_cols, key="bin_col")
-    new_col = st.text_input("Binned variable name", value=f"{col}}_binned", key="bin_new")
+    new_col = st.text_input("Binned variable name", value=f"{col}_binned", key="bin_new")
 
     bin_method = st.radio("Binning method", ["Equal-width bins", "Custom cut points"], horizontal=True)
 
@@ -530,7 +530,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
 
         if st.button("Ã¢â€“Â¶Ã¯Â¸Â Bin Variable", type="primary"):
             result_df = bin_variable(df, col, bins=n_bins, labels=labels, new_col=new_col)
-            st.success(f"âœ… Created '{new_col}}'")
+            st.success(f"âœ… Created '{new_col}'")
             # Show distribution
             st.dataframe(result_df[new_col].value_counts().reset_index(), use_container_width=True, hide_index=True)
             return result_df
@@ -540,7 +540,7 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
         max_val = float(series.max())
         cut_points_str = st.text_input(
             "Cut points (comma-separated, e.g.: 0, 10, 20, 30)",
-            value=f"{min_val:.1 + f}}, {(max_val-min_val)/3 + min_val:.1 + f}}, {2*(max_val-min_val)/3 + min_val:.1 + f}}, {max_val:.1 + f}}",
+            value=f"{min_val:.1 + f}, {(max_val-min_val)/3 + min_val:.1 + f}, {2*(max_val-min_val)/3 + min_val:.1 + f}, {max_val:.1 + f}",
             key="bin_cuts"
         )
         labels_str = st.text_input("Labels (comma-separated)", value="Low, Medium, High", key="bin_clabels")
@@ -553,11 +553,11 @@ def render_binning_ui(df: pd.DataFrame) -> pd.DataFrame:
                 else:
                     labels = None
                 result_df = bin_variable(df, col, bins=cuts, labels=labels, new_col=new_col)
-                st.success(f"âœ… Created '{new_col}}'")
+                st.success(f"âœ… Created '{new_col}'")
                 st.dataframe(result_df[new_col].value_counts().reset_index(), use_container_width=True, hide_index=True)
                 return result_df
             except Exception as e:
-                st.error(f"Binning error: {str(e)}}")
+                st.error(f"Binning error: {str(e)}")
 
     return df
 
@@ -572,12 +572,12 @@ def render_sort_ui(df: pd.DataFrame) -> pd.DataFrame:
     if sort_cols:
         sort_keys = []
         for col in sort_cols:
-            asc = st.checkbox(f"Ascending for {col}}", value=True, key=f"sort_asc_{col}}")
+            asc = st.checkbox(f"Ascending for {col}", value=True, key=f"sort_asc_{col}")
             sort_keys.append((col, asc))
 
         if st.button("Ã¢â€“Â¶Ã¯Â¸Â Sort Cases", type="primary"):
             result_df = sort_cases(df, sort_keys)
-            st.success(f"âœ… Sorted by {', '.join(sort_cols)}}")
+            st.success(f"âœ… Sorted by {', '.join(sort_cols)}")
             return result_df
     return df
 
@@ -598,7 +598,7 @@ def render_select_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("Ã¢â€“Â¶Ã¯Â¸Â Select Cases", type="primary") and condition:
         result_df = select_cases(df, condition, mode="filter" if "filter" in mode.lower() else "indicator")
-        st.success(f"âœ… Applied selection  {len(result_df)}} cases remaining")
+        st.success(f"âœ… Applied selection  {len(result_df)} cases remaining")
         return result_df
     return df
 
@@ -614,12 +614,12 @@ def render_weight_ui(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     weight_col = st.selectbox("Weight variable", options=numeric_cols, key="weight_col")
-    st.info(f"Weighting will expand the dataset based on values in '{weight_col}}'. "
+    st.info(f"Weighting will expand the dataset based on values in '{weight_col}'. "
             f"Larger weights = more replicated cases.")
 
     if st.button("Ã¢â€“Â¶Ã¯Â¸Â Weight Cases", type="primary"):
         result_df = weight_cases(df, weight_col)
-        st.success(f"âœ… Weighted  {len(result_df)}} cases after weighting (was {len(df)}})")
+        st.success(f"âœ… Weighted  {len(result_df)} cases after weighting (was {len(df)})")
         return result_df
     return df
 
@@ -636,9 +636,9 @@ def render_rename_ui(df: pd.DataFrame) -> pd.DataFrame:
     for i in range(int(num_renames)):
         c1, c2, c3 = st.columns(3)
         with c1:
-            old_name = st.selectbox(f"Current name {i1}}", options=cols, key=f"ren_old_{i}}")
+            old_name = st.selectbox(f"Current name {i1}", options=cols, key=f"ren_old_{i}")
         with c2:
-            new_name = st.text_input(f"New name {i1}}", value=old_name, key=f"ren_new_{i}}")
+            new_name = st.text_input(f"New name {i1}", value=old_name, key=f"ren_new_{i}")
         with c3:
             st.caption("Ã¢â€ â€™")
         if old_name and new_name and old_name != new_name:
@@ -646,7 +646,7 @@ def render_rename_ui(df: pd.DataFrame) -> pd.DataFrame:
 
     if st.button("Ã¢â€“Â¶Ã¯Â¸Â Rename Variables", type="primary") and rename_map:
         result_df = rename_variables(df, rename_map)
-        st.success(f"âœ… Renamed {len(rename_map)}} variables")
+        st.success(f"âœ… Renamed {len(rename_map)} variables")
         return result_df
     return df
 
@@ -694,7 +694,7 @@ def render_transformer_panel(df: pd.DataFrame) -> pd.DataFrame:
     st.markdown("---")
     st.subheader("ðŸ“‹ Transformed Data Preview")
     st.dataframe(result_df.head(20), use_container_width=True, hide_index=True)
-    st.caption(f"Dataset: {len(result_df)}} rows Ãƒâ€” {len(result_df.columns)}} columns")
+    st.caption(f"Dataset: {len(result_df)} rows Ãƒâ€” {len(result_df.columns)} columns")
 
     return result_df
 

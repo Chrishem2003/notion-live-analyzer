@@ -17,7 +17,7 @@ def handle_checkout_return():
         result = billing_stripe.verify_checkout_session(qp["session_id"])
         st.query_params.clear()
         if result:
-            st.toast(f"Upgraded to {result['plan'].title()}} â€” welcome aboard.", icon="âœ…")
+            st.toast(f"Upgraded to {result['plan'].title()} â€” welcome aboard.", icon="âœ…")
         else:
             st.warning("We couldn't confirm that payment yet. If you were charged, "
                        "use 'Resync billing' in Settings or contact support.")

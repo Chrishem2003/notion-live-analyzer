@@ -191,7 +191,7 @@ class RoomManager:
     ) -> ResearchRoom:
         """Create a new collaboration room."""
         room = ResearchRoom(
-            id=f"room_{uuid.uuid4().hex[:12]}}",
+            id=f"room_{uuid.uuid4().hex[:12]}",
             name=name,
             room_type=room_type,
             host_id=host_id,
@@ -259,7 +259,7 @@ class ChatSystem:
     ) -> ChatMessage:
         """Send a message to a room."""
         msg = ChatMessage(
-            id=f"msg_{uuid.uuid4().hex[:12]}}",
+            id=f"msg_{uuid.uuid4().hex[:12]}",
             room_id=room_id,
             sender_id=sender_id,
             sender_name=sender_name,
@@ -360,7 +360,7 @@ class TaskManager:
     ) -> Task:
         """Create a new task."""
         task = Task(
-            id=f"task_{uuid.uuid4().hex[:10]}}",
+            id=f"task_{uuid.uuid4().hex[:10]}",
             room_id=room_id,
             title=title,
             description=description,
@@ -418,7 +418,7 @@ class ResearchAssistant:
         # In production, integrate with OpenAI/LLM
         # For now, return a structured response
         response = {
-            "answer": f"Research insight for: {question[:50]}}...",
+            "answer": f"Research insight for: {question[:50]}...",
             "sources": [
                 {"title": "Related Paper 1", "url": "#", "relevance": 0.95},
                 {"title": "Related Paper 2", "url": "#", "relevance": 0.87},
@@ -460,14 +460,14 @@ class ResearchAssistant:
     def suggest_experts(self, topic: str, count: int = 5) -> List[Dict]:
         """Suggest experts for collaboration."""
         return [
-            {"name": f"Prof. {i1}}", "affiliation": "University", "expertise": topic, "h_index": 45-i*3}
+            {"name": f"Prof. {i1}", "affiliation": "University", "expertise": topic, "h_index": 45-i*3}
             for i in range(count)
         ]
     
     def generate_research_brief(self, topic: str) -> Dict[str, Any]:
         """Generate a research brief on a topic."""
         return {
-            "executive_summary": f"Brief on {topic}}...",
+            "executive_summary": f"Brief on {topic}...",
             "key_questions": ["Question 1", "Question 2"],
             "recommended_papers": 15,
             "estimated_reading_time": "4 hours",
@@ -550,7 +550,7 @@ class AutomationEngine:
     ) -> Automation:
         """Create a new automation."""
         auto = Automation(
-            id=f"auto_{uuid.uuid4().hex[:8]}}",
+            id=f"auto_{uuid.uuid4().hex[:8]}",
             name=name,
             trigger=trigger,
             action=action,
@@ -604,7 +604,7 @@ class TranslationService:
         """Translate text between languages."""
         # In production, use Google Translate API or DeepL
         return {
-            "translated_text": f"[{target_lang}}] {text}}",
+            "translated_text": f"[{target_lang}] {text}",
             "source_lang": source_lang,
             "target_lang": target_lang,
             "confidence": 0.95,
@@ -653,7 +653,7 @@ class FileManager:
     ) -> SharedFile:
         """Upload a file to the room."""
         file = SharedFile(
-            id=f"file_{uuid.uuid4().hex[:10]}}",
+            id=f"file_{uuid.uuid4().hex[:10]}",
             room_id=room_id,
             name=name,
             size=size,

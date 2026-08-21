@@ -152,14 +152,14 @@ def install_package(pip_name: str, timeout: int = 120) -> Tuple[bool, str]:
             capture_output=True, text=True, timeout=timeout
         )
         if result.returncode == 0:
-            return True, f"âœ… {pip_name}} installed successfully"
+            return True, f"âœ… {pip_name} installed successfully"
         else:
             error_msg = result.stderr[:300] if result.stderr else "Unknown error"
-            return False, f"Ã¢ÂÅ’ Failed to install {pip_name}}: {error_msg}}"
+            return False, f"Ã¢ÂÅ’ Failed to install {pip_name}: {error_msg}"
     except subprocess.TimeoutExpired:
-        return False, f"Ã¢ÂÅ’ Installation of {pip_name}} timed out after {timeout}}s"
+        return False, f"Ã¢ÂÅ’ Installation of {pip_name} timed out after {timeout}s"
     except Exception as e:
-        return False, f"Ã¢ÂÅ’ Installation error for {pip_name}}: {str(e)}}"
+        return False, f"Ã¢ÂÅ’ Installation error for {pip_name}: {str(e)}"
 
 
 def install_missing_packages(
@@ -173,7 +173,7 @@ def install_missing_packages(
 
     for i, name in enumerate(package_names):
         if progress_callback:
-            progress_callback(i, total, f"Installing {name}}...")
+            progress_callback(i, total, f"Installing {name}...")
 
         success, message = install_package(name, timeout=timeout)
         results[name] = (success, message)
@@ -221,12 +221,12 @@ def render_dependency_ui():
     pct = int(installed_count / total * 100) if total > 0 else 0
 
     # Overall progress
-    st.markdown(f"###  Overall Status: {installed_count}}/{total}} packages installed ({pct}}%)")
+    st.markdown(f"###  Overall Status: {installed_count}/{total} packages installed ({pct}%)")
 
     if pct == 100:
         st.success("âœ… **All packages are installed!** The application is ready to use.")
     else:
-        st.warning(f"Ã¢Å¡Â Ã¯Â¸Â **{len(missing_pkgs)}} packages** need to be installed for full functionality.")
+        st.warning(f"Ã¢Å¡Â Ã¯Â¸Â **{len(missing_pkgs)} packages** need to be installed for full functionality.")
 
     # Progress bar
     st.progress(pct)
@@ -241,7 +241,7 @@ def render_dependency_ui():
         icon = CATEGORY_ICONS.get(cat, "ðŸ“¦")
 
         with st.expander(
-            f"{icon}} **{cat}}**  {cat_data['installed']}}/{cat_data['total']}} installed",
+            f"{icon} **{cat}**  {cat_data['installed']}/{cat_data['total']} installed",
             expanded=cat_data["missing"] > 0,
         ):
             cols = st.columns(2)
@@ -249,16 +249,16 @@ def render_dependency_ui():
                 st.markdown("**âœ… Installed:**")
                 for name in cat_data["installed_names"]:
                     pkg = next((p for p in all_pkgs if p.pip_name == name), None)
-                    version = f" v{pkg.installed_version}}" if pkg and pkg.installed_version else ""
-                    st.markdown(f"- âœ… {name}}{version}}")
+                    version = f" v{pkg.installed_version}" if pkg and pkg.installed_version else ""
+                    st.markdown(f"- âœ… {name}{version}")
 
             with cols[1]:
                 if cat_data["missing_names"]:
                     st.markdown("**Ã¢ÂÅ’ Missing:**")
                     for name in cat_data["missing_names"]:
                         pkg = next((p for p in all_pkgs if p.pip_name == name), None)
-                        desc = f"  {pkg.description}}" if pkg else ""
-                        st.markdown(f"- Ã¢ÂÅ’ {name}}{desc}}")
+                        desc = f"  {pkg.description}" if pkg else ""
+                        st.markdown(f"- Ã¢ÂÅ’ {name}{desc}")
                 else:
                     st.markdown("**âœ… All installed!**")
 
@@ -270,7 +270,7 @@ def render_dependency_ui():
         col1, col2 = st.columns([2, 1])
         with col1:
             missing_names = [p.pip_name for p in missing_pkgs]
-            st.markdown(f"Will install: **{', '.join(missing_names)}}**")
+            st.markdown(f"Will install: **{', '.join(missing_names)}**")
             st.caption("This may take a few minutes. The app will update after installation.")
 
         with col2:
@@ -286,7 +286,7 @@ def render_dependency_ui():
 
             def progress_callback(current, total, message):
                 progress_bar.progress(int(current / total * 100))
-                status_text.text(f"[{current}}/{total}}] {message}}")
+                status_text.text(f"[{current}/{total}] {message}")
 
             with st.spinner("Installing packages... This may take several minutes."):
                 results = install_missing_packages(missing_names, progress_callback)
@@ -295,7 +295,7 @@ def render_dependency_ui():
             st.markdown("### ðŸ“‹ Installation Results")
             success_count = sum(1 for s, _ in results.values() if s)
             fail_count = sum(1 for s, _ in results.values() if not s)
-            st.markdown(f"**{success_count}} succeeded**, **{fail_count}} failed**")
+            st.markdown(f"**{success_count} succeeded**, **{fail_count} failed**")
 
             for name, (success, message) in results.items():
                 if success:
@@ -315,8 +315,8 @@ def render_dependency_ui():
         pkg_names = sorted([p.pip_name for p in ALL_PACKAGES])
         selected_pkg = st.selectbox("Select a package to install", options=pkg_names)
 
-        if st.button(f"ðŸ“¥ Install {selected_pkg}}"):
-            with st.spinner(f"Installing {selected_pkg}}..."):
+        if st.button(f"ðŸ“¥ Install {selected_pkg}"):
+            with st.spinner(f"Installing {selected_pkg}..."):
                 success, message = install_package(selected_pkg)
             if success:
                 st.success(message)
@@ -342,15 +342,15 @@ def auto_fix_missing_critical(quiet: bool = False) -> int:
             if success:
                 installed_count = 1
                 if not quiet:
-                    print(f"âœ… Auto-installed: {pkg.pip_name}}")
+                    print(f"âœ… Auto-installed: {pkg.pip_name}")
             else:
                 logger.error("Auto-install of %s failed: %s", pkg.pip_name, msg)
                 if not quiet:
-                    print(f"Ã¢Å¡Â Ã¯Â¸Â Failed: {pkg.pip_name}}  {msg}}")
+                    print(f"Ã¢Å¡Â Ã¯Â¸Â Failed: {pkg.pip_name}  {msg}")
         except Exception as e:
             logger.exception("Auto-install of %s raised an error", pkg.pip_name)
             if not quiet:
-                print(f"Ã¢Å¡Â Ã¯Â¸Â Error installing {pkg.pip_name}}: {e}}")
+                print(f"Ã¢Å¡Â Ã¯Â¸Â Error installing {pkg.pip_name}: {e}")
 
     return installed_count
 

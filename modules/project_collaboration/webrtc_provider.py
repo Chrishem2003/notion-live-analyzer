@@ -381,7 +381,7 @@ class ParticipantTrack:
             "jitter_ms": 0,
             "rtt_ms": 0,
             "frame_rate": 0,
-            "resolution": f"{VIDEO_QUALITY_PRESETS[quality]['width']}}x{VIDEO_QUALITY_PRESETS[quality]['height']}}",
+            "resolution": f"{VIDEO_QUALITY_PRESETS[quality]['width']}x{VIDEO_QUALITY_PRESETS[quality]['height']}",
         }
 
     def publish(self):
@@ -465,7 +465,7 @@ class Participant:
 
     def add_track(self, track_type: TrackType, quality: TrackQuality = TrackQuality.MEDIUM) -> ParticipantTrack:
         """Add a new media track."""
-        track_id = f"track_{self.id}}_{track_type.value}}_{uuid.uuid4().hex[:8]}}"
+        track_id = f"track_{self.id}_{track_type.value}_{uuid.uuid4().hex[:8]}"
         track = ParticipantTrack(track_id, track_type, quality)
         self.tracks[track_id] = track
         return track
@@ -826,7 +826,7 @@ class WebRTCProvider:
             camera = participant.get_track_by_type(TrackType.CAMERA)
             if camera:
                 camera.quality = quality
-                camera.stats["resolution"] = f"{preset['width']}}x{preset['height']}}"
+                camera.stats["resolution"] = f"{preset['width']}x{preset['height']}"
 
     def get_network_stats(self) -> Dict[str, Any]:
         """Get aggregate network statistics for the session."""
@@ -1039,9 +1039,9 @@ def render_webrtc_panel():
             with col1:
                 session_id = st.text_input("Session ID", value="session_001", key="webrtc_session_id")
             with col2:
-                display_name = st.text_input("Display Name", value=f"User_{uuid.uuid4().hex[:6]}}", key="webrtc_display_name")
+                display_name = st.text_input("Display Name", value=f"User_{uuid.uuid4().hex[:6]}", key="webrtc_display_name")
             with col3:
-                user_id = st.text_input("User ID", value=f"user_{uuid.uuid4().hex[:8]}}", key="webrtc_user_id")
+                user_id = st.text_input("User ID", value=f"user_{uuid.uuid4().hex[:8]}", key="webrtc_user_id")
 
             role = st.selectbox("Role", options=["host", "co_host", "researcher", "viewer"],
                                  index=3, key="webrtc_role")
@@ -1120,7 +1120,7 @@ def render_webrtc_panel():
                         <div style="color:#64748b;font-size:0.75rem;">@{local.id[:12]} Ã‚Â· {local.role}</div>
                     </div>
                     <div style="display:flex;gap:0.5rem;">
-                        <span class="webrtc-badge webrtc-badge-connected">Ã°Å¸â€œÂ¹ {'On' if local.is_video_on else 'Off'}}</span>
+                        <span class="webrtc-badge webrtc-badge-connected">Ã°Å¸â€œÂ¹ {'On' if local.is_video_on else 'Off'}</span>
                         <span class="webrtc-badge webrtc-badge-connected">Ã°Å¸Å½Â¤ {'On' if local.is_audio_on else 'Muted'}</span>
                     </div>
                 </div>
@@ -1190,16 +1190,16 @@ def render_webrtc_panel():
             with net_cols[0]:
                 st.metric("Participants", stats["active_participants"])
             with net_cols[1]:
-                st.metric("Packet Loss", f"{stats['packet_loss_rate']}}%")
+                st.metric("Packet Loss", f"{stats['packet_loss_rate']}%")
             with net_cols[2]:
-                st.metric("Avg RTT", f"{stats['avg_rtt_ms']}}ms")
+                st.metric("Avg RTT", f"{stats['avg_rtt_ms']}ms")
             with net_cols[3]:
-                st.metric("Jitter", f"{stats['avg_jitter_ms']}}ms")
+                st.metric("Jitter", f"{stats['avg_jitter_ms']}ms")
 
             st.json(stats)
 
         # Ã¢â€â‚¬Ã¢â€â‚¬ Remote Participants Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-        with st.expander(f"Ã°Å¸â€˜Â¥ Participants ({provider.get_participant_count()}})", expanded=True):
+        with st.expander(f"Ã°Å¸â€˜Â¥ Participants ({provider.get_participant_count()})", expanded=True):
             for pid, p in provider.participants.items():
                 if pid == provider.local_participant_id:
                     continue

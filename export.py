@@ -26,7 +26,7 @@ def export_chart_as_png(fig) -> Optional[bytes]:
         img_bytes = fig.to_image(format="png", width=1200, height=800, scale=2)
         return img_bytes
     except Exception as e:
-        st.warning(f"PNG export failed: {e}}. Install kaleido: pip install -U kaleido")
+        st.warning(f"PNG export failed: {e}. Install kaleido: pip install -U kaleido")
         return None
 
 def export_chart_as_svg(fig) -> Optional[bytes]:
@@ -37,7 +37,7 @@ def export_chart_as_svg(fig) -> Optional[bytes]:
         img_bytes = fig.to_image(format="svg", width=1200, height=800)
         return img_bytes
     except Exception as e:
-        st.warning(f"SVG export failed: {e}}")
+        st.warning(f"SVG export failed: {e}")
         return None
 
 def get_chart_download_link(fig, filename: str = "chart", format: str = "png") -> Optional[str]:
@@ -55,7 +55,7 @@ def get_chart_download_link(fig, filename: str = "chart", format: str = "png") -
         return None
 
     b64 = base64.b64encode(data).decode()
-    href = f'<a href="data:{mime}};base64,{b64}}" download="{filename}}.{format}}">ðŸ“¥ Download {format.upper()}}</a>'
+    href = f'<a href="data:{mime};base64,{b64}" download="{filename}.{format}">ðŸ“¥ Download {format.upper()}</a>'
     return href
 
 
@@ -109,7 +109,7 @@ def get_data_download_link(df: pd.DataFrame, filename: str = "data", format: str
     data = func(df)
     b64 = base64.b64encode(data).decode()
     ext = format
-    href = f'<a href="data:{mime}};base64,{b64}}" download="{filename}}.{ext}}">ðŸ“¥ Download {format.upper()}}</a>'
+    href = f'<a href="data:{mime};base64,{b64}" download="{filename}.{ext}">ðŸ“¥ Download {format.upper()}</a>'
     return href
 
 
@@ -118,23 +118,23 @@ def render_export_buttons(df: pd.DataFrame, fig=None, key_prefix: str = "export"
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        csv_link = get_data_download_link(df, f"data_{datetime.now():%Y%m%d_%H%M%S}}", "csv")
+        csv_link = get_data_download_link(df, f"data_{datetime.now():%Y%m%d_%H%M%S}", "csv")
         if csv_link:
             st.markdown(csv_link, unsafe_allow_html=True)
 
     with col2:
-        xlsx_link = get_data_download_link(df, f"data_{datetime.now():%Y%m%d_%H%M%S}}", "xlsx")
+        xlsx_link = get_data_download_link(df, f"data_{datetime.now():%Y%m%d_%H%M%S}", "xlsx")
         if xlsx_link:
             st.markdown(xlsx_link, unsafe_allow_html=True)
 
     with col3:
-        json_link = get_data_download_link(df, f"data_{datetime.now():%Y%m%d_%H%M%S}}", "json")
+        json_link = get_data_download_link(df, f"data_{datetime.now():%Y%m%d_%H%M%S}", "json")
         if json_link:
             st.markdown(json_link, unsafe_allow_html=True)
 
     with col4:
         if fig is not None:
-            png_link = get_chart_download_link(fig, f"chart_{datetime.now():%Y%m%d_%H%M%S}}", "png")
+            png_link = get_chart_download_link(fig, f"chart_{datetime.now():%Y%m%d_%H%M%S}", "png")
             if png_link:
                 st.markdown(png_link, unsafe_allow_html=True)
 
@@ -146,17 +146,17 @@ def generate_markdown_report(
     df_summary: pd.DataFrame = None,
 ) -> str:
     """Generate a markdown report from sections."""
-    lines = [f"# {title}}", f"**Generated**: {datetime.now():%Y-%m-%d %H:%M:%S}}", ""]
+    lines = [f"# {title}", f"**Generated**: {datetime.now():%Y-%m-%d %H:%M:%S}", ""]
 
     if df_summary is not None and not df_summary.empty:
         lines.append("## Dataset Summary")
-        lines.append(f"- **Rows**: {len(df_summary)}}")
-        lines.append(f"- **Columns**: {len(df_summary.columns)}}")
-        lines.append(f"- **Columns**: {', '.join(df_summary.columns[:20])}}")
+        lines.append(f"- **Rows**: {len(df_summary)}")
+        lines.append(f"- **Columns**: {len(df_summary.columns)}")
+        lines.append(f"- **Columns**: {', '.join(df_summary.columns[:20])}")
         lines.append("")
 
     for section_title, content in sections.items():
-        lines.append(f"## {section_title}}")
+        lines.append(f"## {section_title}")
         lines.append(str(content))
         lines.append("")
 

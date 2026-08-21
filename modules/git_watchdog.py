@@ -36,19 +36,19 @@ class GitAutoSyncHandler(FileSystemEventHandler):
             subprocess.run(["git", "add", "-A"], cwd=self.watch_path, check=True)
             
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            commit_res = subprocess.run(["git", "commit", "-m", f"auto: full workspace autonomous sync - {timestamp}}"], cwd=self.watch_path, capture_output=True, text=True)
+            commit_res = subprocess.run(["git", "commit", "-m", f"auto: full workspace autonomous sync - {timestamp}"], cwd=self.watch_path, capture_output=True, text=True)
             
             if commit_res.returncode != 0 and "nothing to commit" in commit_res.stdout:
                 return
 
             push_res = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True, cwd=self.watch_path)
             if push_res.returncode == 0:
-                print(f"Ã°Å¸Å¡â‚¬ [Git Watchdog] Successfully auto-pushed to GitHub at {timestamp}}!")
+                print(f"Ã°Å¸Å¡â‚¬ [Git Watchdog] Successfully auto-pushed to GitHub at {timestamp}!")
                 self.last_sync = time.time()
             else:
-                print(f"Ã¢Å¡Â Ã¯Â¸Â [Git Watchdog] Push pending or authentication required: {push_res.stderr.strip()}}")
+                print(f"Ã¢Å¡Â Ã¯Â¸Â [Git Watchdog] Push pending or authentication required: {push_res.stderr.strip()}")
         except Exception as e:
-            print(f"Ã¢ÂÅ’ [Git Watchdog Error]: {str(e)}}")
+            print(f"Ã¢ÂÅ’ [Git Watchdog Error]: {str(e)}")
 
 def start_watchdog():
     path = "."

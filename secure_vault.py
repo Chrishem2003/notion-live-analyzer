@@ -28,15 +28,15 @@ def render_vault_ui():
         for f in uploaded_files:
             if not any(x["name"] == f.name for x in st.session_state["vault_files"]):
                 st.session_state["vault_files"].insert(0, {
-                    "id": f"FILE-{len(st.session_state['vault_files']) + 1}}",
+                    "id": f"FILE-{len(st.session_state['vault_files']) + 1}",
                     "name": f.name,
                     "bytes": f.getvalue(),
-                    "size": f"{f.size / 1024:.1 + f}} KB" if f.size < 1048576 else f"{f.size / 1048576:.1 + f}} MB",
+                    "size": f"{f.size / 1024:.1 + f} KB" if f.size < 1048576 else f"{f.size / 1048576:.1 + f} MB",
                     "status": "Verified Encrypted Stream"
                 })
                 added_count = 1
         if added_count > 0:
-            st.success(f"Successfully loaded {added_count}} workspace file(s)!")
+            st.success(f"Successfully loaded {added_count} workspace file(s)!")
             st.rerun()
 
     st.markdown("---")
@@ -50,14 +50,14 @@ def render_vault_ui():
         for idx, item in enumerate(st.session_state["vault_files"]):
             with cols[idx % 3]:
                 with st.container(border=True):
-                    st.markdown(f"#### Ã°Å¸â€œâ€ž {item['name']}}")
-                    st.caption(f"**Size:** {item['size']}} | **Status:** {item['status']}}")
+                    st.markdown(f"#### Ã°Å¸â€œâ€ž {item['name']}")
+                    st.caption(f"**Size:** {item['size']} | **Status:** {item['status']}")
                     st.markdown("---")
                     
                     b1, b2 = st.columns(2)
-                    if b1.button("Ã°Å¸â€˜ÂÃ¯Â¸Â Open", key=f"open_mod_{idx}}"):
+                    if b1.button("Ã°Å¸â€˜ÂÃ¯Â¸Â Open", key=f"open_mod_{idx}"):
                         show_document_dialog(item)
-                    if b2.button("Ã°Å¸â€”â€˜Ã¯Â¸Â Delete", key=f"del_mod_{idx}}"):
+                    if b2.button("Ã°Å¸â€”â€˜Ã¯Â¸Â Delete", key=f"del_mod_{idx}"):
                         st.session_state["vault_files"] = [f for f in st.session_state["vault_files"] if f["name"] != item["name"]]
                         st.rerun()
 
@@ -66,8 +66,8 @@ def show_document_dialog(item):
     name = item["name"].lower()
     raw_bytes = item["bytes"]
 
-    st.markdown(f"### Ã°Å¸â€œâ€ž {item['name']}}")
-    st.caption(f"**Size:** {item['size']}}")
+    st.markdown(f"### Ã°Å¸â€œâ€ž {item['name']}")
+    st.caption(f"**Size:** {item['size']}")
 
     tab_view, tab_edit, tab_dl = st.tabs(["Ã°Å¸â€˜ÂÃ¯Â¸Â View / Read", "Ã¢Å“ÂÃ¯Â¸Â Edit (Docs/Sheets)", "ðŸ“¥ Download"])
 
@@ -77,10 +77,10 @@ def show_document_dialog(item):
             if HAS_PYPDF and raw_bytes:
                 try:
                     reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
-                    extracted_text = "\n\n".join([f"--- Page {i1}} ---\n" + (p.extract_text() or "") for i, p in enumerate(reader.pages)])
+                    extracted_text = "\n\n".join([f"--- Page {i1} ---\n" + (p.extract_text() or "") for i, p in enumerate(reader.pages)])
                     st.text_area("Extracted PDF Document Content", value=extracted_text, height=350)
                 except Exception as e:
-                    st.warning(f"Could not parse PDF text: {e}}")
+                    st.warning(f"Could not parse PDF text: {e}")
             else:
                 st.info("PDF binary stream loaded into memory.")
         
@@ -100,7 +100,7 @@ def show_document_dialog(item):
             st.markdown("####  Interactive Sheet Grid Editor")
             try:
                 df = pd.read_csv(io.BytesIO(raw_bytes))
-                edited_df = st.data_editor(df, num_rows="dynamic", key=f"edit_grid_{item['name']}}")
+                edited_df = st.data_editor(df, num_rows="dynamic", key=f"edit_grid_{item['name']}")
                 if st.button("Ã°Å¸â€™Â¾ Save Sheet Changes", type="primary"):
                     buf = io.StringIO()
                     edited_df.to_csv(buf, index=False)
@@ -108,11 +108,11 @@ def show_document_dialog(item):
                     st.success("Sheet saved successfully!")
                     st.rerun()
             except Exception as e:
-                st.error(f"Spreadsheet edit error: {e}}")
+                st.error(f"Spreadsheet edit error: {e}")
         else:
             st.markdown("#### Ã¢Å“ÂÃ¯Â¸Â Live Text Editor")
             text_val = raw_bytes.decode("utf-8", errors="ignore")
-            updated_txt = st.text_area("Modify file content:", value=text_val, height=300, key=f"edit_txt_{item['name']}}")
+            updated_txt = st.text_area("Modify file content:", value=text_val, height=300, key=f"edit_txt_{item['name']}")
             if st.button("Ã°Å¸â€™Â¾ Save Document Changes", type="primary"):
                 item["bytes"] = updated_txt.encode("utf-8")
                 st.success("Document updated successfully!")
@@ -121,7 +121,7 @@ def show_document_dialog(item):
     with tab_dl:
         st.markdown("### ðŸ“¥ Download File")
         st.download_button(
-            label=f"Ã¢Â¬â€¡Ã¯Â¸Â Download {item['name']}}",
+            label=f"Ã¢Â¬â€¡Ã¯Â¸Â Download {item['name']}",
             data=raw_bytes,
             file_name=item['name'],
             mime="application/octet-stream",

@@ -123,7 +123,7 @@ def render_timezone_and_accent_settings():
         st.rerun()
 
     now_local = datetime.datetime.now(zoneinfo.ZoneInfo(chosen_tz))
-    st.caption(f"Your local time right now: **{now_local.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}}**")
+    st.caption(f"Your local time right now: **{now_local.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}**")
 
     st.markdown("#### ðŸŽ¨ Accent Color")
     current_accent = st.session_state.get("user_accent_color", DEFAULT_ACCENT)
@@ -145,9 +145,9 @@ def render_accent_color_css():
         div.stButton > button[kind="primary"] {{
             background-color: {accent} !important;
             border-color: {accent} !important;
-        }}
-        div[data-testid="stMetricValue"] {{ color: {accent} !important; }}
-        a {{ color: {accent} !important; }}
+        }
+        div[data-testid="stMetricValue"] {{ color: {accent} !important; }
+        a {{ color: {accent} !important; }
         </style>
         """,
         unsafe_allow_html=True,

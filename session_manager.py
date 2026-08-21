@@ -142,7 +142,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
     np.random.seed(42)
     if kind == "clinical":
         return pd.DataFrame({
-            "Patient_ID": [f"PT-{i:04d}}" for i in range(1, 151)],
+            "Patient_ID": [f"PT-{i:04d}" for i in range(1, 151)],
             "Age": np.random.randint(22, 78, 150),
             "Gender": np.random.choice(["Male", "Female"], 150),
             "Weight_kg": np.round(np.random.normal(74, 14, 150), 1),
@@ -155,7 +155,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     elif kind == "marketing":
         return pd.DataFrame({
-            "Customer_ID": [f"CUST-{i:05d}}" for i in range(1, 201)],
+            "Customer_ID": [f"CUST-{i:05d}" for i in range(1, 201)],
             "Age": np.random.randint(18, 65, 200),
             "Region": np.random.choice(["North", "South", "East", "West"], 200),
             "Annual_Income": np.round(np.random.uniform(25000, 150000, 200), 2),
@@ -164,7 +164,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     elif kind == "sales":
         return pd.DataFrame({
-            "Order_ID": [f"ORD-{i:05d}}" for i in range(1, 301)],
+            "Order_ID": [f"ORD-{i:05d}" for i in range(1, 301)],
             "Date": pd.date_range(end=datetime.date.today(), periods=300, freq="D"),
             "Product_Category": np.random.choice(["Electronics", "Apparel", "Groceries", "Furniture"], 300),
             "Units_Sold": np.random.randint(1, 50, 300),
@@ -173,7 +173,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     elif kind == "genomic":
         return pd.DataFrame({
-            "Gene_ID": [f"GENE-{i:04d}}" for i in range(1, 101)],
+            "Gene_ID": [f"GENE-{i:04d}" for i in range(1, 101)],
             "Expression_Level": np.round(np.random.normal(12.5, 3.5, 100), 2),
             "Protein_Density": np.round(np.random.uniform(0.1, 8.0, 100), 2),
             "Mutation_Count": np.random.randint(0, 15, 100),
@@ -181,7 +181,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     elif kind == "survey":
         return pd.DataFrame({
-            "Respondent_ID": [f"RESP-{i:04d}}" for i in range(1, 251)],
+            "Respondent_ID": [f"RESP-{i:04d}" for i in range(1, 251)],
             "Age_Group": np.random.choice(["18-25", "26-35", "36-45", "46-60", "60+"], 250),
             "Satisfaction_Score": np.random.randint(1, 6, 250),
             "NPS_Category": np.random.choice(["Detractor", "Passive", "Promoter"], 250),
@@ -189,7 +189,7 @@ def generate_sample_dataset(kind: str = "clinical") -> pd.DataFrame:
         })
     else:  # research cohort
         return pd.DataFrame({
-            "Subject_ID": [f"SUBJ-{2000 + i}}" for i in range(250)],
+            "Subject_ID": [f"SUBJ-{2000 + i}" for i in range(250)],
             "Age": np.random.randint(18, 75, size=250),
             "Biomarker_A": np.round(np.random.normal(190.0, 30.0, size=250), 1),
             "Biomarker_B": np.round(np.random.normal(98.0, 15.0, size=250), 1),

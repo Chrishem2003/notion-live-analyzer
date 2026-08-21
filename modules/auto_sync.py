@@ -12,5 +12,5 @@ def auto_commit_and_push(commit_message="auto: routine application sync"):
         subprocess.run(["git", "push"], check=True)
         return True, "Successfully synced changes to remote repo!"
     except Exception as exc:
-        return False, f"Auto-sync skipped or failed: {exc}}"
+        return False, f"Auto-sync skipped or failed: {exc}"
 

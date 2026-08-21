@@ -77,7 +77,7 @@ class SensitivityEngine:
             "n": n,
             "n_predictors": len(predictors),
             "influential": influential,
-            "interpretation": f"{influential['n_influential_cooks']}} of {n}} observations have Cook's D > {cooks_threshold:.4f}}",
+            "interpretation": f"{influential['n_influential_cooks']} of {n} observations have Cook's D > {cooks_threshold:.4f}",
         }
 
     def specification_curve(
@@ -143,8 +143,8 @@ class SensitivityEngine:
             "min_coefficient": round(float(results_df["coefficient"].min()), 4),
             "max_coefficient": round(float(results_df["coefficient"].max()), 4),
             "sd_coefficient": round(float(results_df["coefficient"].std()), 4),
-            "interpretation": f"Across {len(results)}} specifications, median effect = {median_coef:.3f}} "
-                              f"({pct_significant:.0f}}% significant)",
+            "interpretation": f"Across {len(results)} specifications, median effect = {median_coef:.3f} "
+                              f"({pct_significant:.0f}% significant)",
         }
 
     def robustness_value(
@@ -198,8 +198,8 @@ class SensitivityEngine:
             "impact_threshold": round(float(impact), 4),
             "rir_count": rir,
             "rir_percentage": round(float(rir_pct), 1),
-            "interpretation": f"A confound would need {rir}} ({rir_pct:.0f}}%) replacement cases to nullify the effect. "
-                              f"Impact threshold = {impact:.3f}}.",
+            "interpretation": f"A confound would need {rir} ({rir_pct:.0f}%) replacement cases to nullify the effect. "
+                              f"Impact threshold = {impact:.3f}.",
         }
 
     def subgroup_analysis(
@@ -251,8 +251,8 @@ class SensitivityEngine:
             "subgroup_variable": subgroup_col,
             "n_subgroups": len(results),
             "results": pd.DataFrame(results),
-            "interpretation": f"Effect varies across {len(results)}} subgroups. "
-                              f"Range: [{min(r['coefficient'] for r in results):.3f}}, {max(r['coefficient'] for r in results):.3f}}]",
+            "interpretation": f"Effect varies across {len(results)} subgroups. "
+                              f"Range: [{min(r['coefficient'] for r in results):.3f}, {max(r['coefficient'] for r in results):.3f}]",
         }
 
     def multiverse_analysis(
@@ -271,7 +271,7 @@ class SensitivityEngine:
             return {"error": "statsmodels required"}
 
         base_specs = [
-            {"controls": controls[:i], "name": f"Controls_{i}}"}
+            {"controls": controls[:i], "name": f"Controls_{i}"}
             for i in range(len(controls) + 1)
         ]
         specs = base_specs[:]  # Limit to base specs for performance
@@ -355,7 +355,7 @@ def render_sensitivity_analysis_ui():
                     cooks_df = pd.DataFrame({"Observation": range(len(inf["cooks_d"])), "Cook's D": inf["cooks_d"]})
                     fig = px.bar(cooks_df, x="Observation", y="Cook's D", title="Cook's Distance")
                     fig.add_hline(y=inf.get("cooks_threshold", 0), line_dash="dash", line_color="red",
-                                  annotation_text=f"Threshold: {inf.get('cooks_threshold', 0):.4f}}")
+                                  annotation_text=f"Threshold: {inf.get('cooks_threshold', 0):.4f}")
                     st.plotly_chart(fig, use_container_width=True)
 
     with tab2:
@@ -396,8 +396,8 @@ def render_sensitivity_analysis_ui():
                 st.error(result["error"])
             else:
                 col1, col2, col3 = st.columns(3)
-                with col1: st.metric("Coefficient", f"{result['coefficient']:.4f}}")
-                with col2: st.metric("Impact Threshold", f"{result['impact_threshold']:.4f}}")
+                with col1: st.metric("Coefficient", f"{result['coefficient']:.4f}")
+                with col2: st.metric("Impact Threshold", f"{result['impact_threshold']:.4f}")
                 with col3: st.metric("RIR (count)", result['rir_count'])
                 st.info(result["interpretation"])
 
@@ -441,8 +441,8 @@ def render_sensitivity_analysis_ui():
             else:
                 st.info(result["interpretation"])
                 col1, col2, col3 = st.columns(3)
-                with col1: st.metric("Median Coef", f"{result['median_coefficient']:.4f}}")
-                with col2: st.metric("SD Coef", f"{result['sd_coefficient']:.4f}}")
-                with col3: st.metric("% Significant", f"{result['pct_significant']}}%")
+                with col1: st.metric("Median Coef", f"{result['median_coefficient']:.4f}")
+                with col2: st.metric("SD Coef", f"{result['sd_coefficient']:.4f}")
+                with col3: st.metric("% Significant", f"{result['pct_significant']}%")
 
 

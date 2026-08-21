@@ -41,7 +41,7 @@ def section_header(title: str, desc: str = ""):
     Render a consistent section header with optional caption.
     """
     st.markdown(
-        f"<h3 style='color:#00f2fe !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{title}}</h3>",
+        f"<h3 style='color:#00f2fe !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{title}</h3>",
         unsafe_allow_html=True,
     )
     if desc:
@@ -92,7 +92,7 @@ def render_footer(module_name: str, version: str = "1.0"):
 def tab_badge(label: str, active: bool = True):
     """Return an HTML badge for tab labels."""
     color = "#00f2fe" if active else "#94a3b8"
-    return f"<span style='color:{color}}; font-weight:800;'>{label}}</span>"
+    return f"<span style='color:{color}; font-weight:800;'>{label}</span>"
 
 
 def render_dataset_context_banner():
@@ -104,8 +104,8 @@ def render_dataset_context_banner():
     summary = dataset_summary()
     if summary:
         st.info(
-            f"ðŸ“Š **Active Dataset:** `{summary['source']}}` â€” {summary['rows']:,}} rows Ã— {summary['cols']}} cols "
-            f"| {summary['numeric']}} numeric | {summary['categorical']}} categorical | {summary['missing']:,}} missing"
+            f"ðŸ“Š **Active Dataset:** `{summary['source']}` â€” {summary['rows']:,} rows Ã— {summary['cols']} cols "
+            f"| {summary['numeric']} numeric | {summary['categorical']} categorical | {summary['missing']:,} missing"
         )
     else:
         st.warning("âš ï¸ **No active dataset loaded.** Load data in the **Data Studio** hub or generate sample data.")
@@ -131,7 +131,7 @@ def render_export_buttons(df, base_name: str = "export"):
         st.download_button(
             "ðŸ“¥ Download CSV",
             data=csv_data,
-            file_name=f"{base_name}}.csv",
+            file_name=f"{base_name}.csv",
             mime="text/csv",
             use_container_width=True,
         )
@@ -142,7 +142,7 @@ def render_export_buttons(df, base_name: str = "export"):
             st.download_button(
                 "ðŸ“¥ Download Excel",
                 data=excel_buffer.getvalue(),
-                file_name=f"{base_name}}.xlsx",
+                file_name=f"{base_name}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
             )
@@ -152,7 +152,7 @@ def render_export_buttons(df, base_name: str = "export"):
         st.download_button(
             "ðŸ“¥ Download JSON",
             data=df.to_json(orient="records").encode("utf-8"),
-            file_name=f"{base_name}}.json",
+            file_name=f"{base_name}.json",
             mime="application/json",
             use_container_width=True,
         )

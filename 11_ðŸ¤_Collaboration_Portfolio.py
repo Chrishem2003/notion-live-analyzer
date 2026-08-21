@@ -105,13 +105,13 @@ def render_meetings_hub(conn):
         enable_audio = st.checkbox("Enable Microphone Audio", value=True)
 
         if st.button("ðŸš€ Launch / Join Room", type="primary", key="launch_room_btn"):
-            st.success(f"✅ Connected to secure WebRTC channel: `{room_name}}` as **{user_alias}}**")
+            st.success(f"✅ Connected to secure WebRTC channel: `{room_name}` as **{user_alias}**")
             conn.execute("INSERT OR REPLACE INTO meeting_rooms (room_name, host, active_participants, created_at) VALUES (?,?,?,?)",
                          (room_name, user_alias, 1, datetime.datetime.now().isoformat()))
             conn.commit()
 
     with col2:
-        st.markdown(f"#### Live Stream Window — Room: `{room_name}}`")
+        st.markdown(f"#### Live Stream Window — Room: `{room_name}`")
         if WEBRTC_AVAILABLE and RTC_CONFIGURATION is not None:
             webrtc_streamer(
                 key=room_name,
@@ -150,7 +150,7 @@ def render_projects(conn):
                 (proj_name.strip(), proj_lead.strip() or "Unassigned", proj_stage, proj_progress, proj_budget, datetime.datetime.now().isoformat()),
             )
             conn.commit()
-            st.success(f"✅ Project `{proj_name}}` successfully initialized and persisted.")
+            st.success(f"✅ Project `{proj_name}` successfully initialized and persisted.")
             st.rerun()
 
 
@@ -178,7 +178,7 @@ def render_pipeline(conn):
                 (p_title.strip(), p_target.strip(), p_status, str(p_deadline), datetime.datetime.now().isoformat()),
             )
             conn.commit()
-            st.success(f"✅ Added `{p_title}}` to the pipeline.")
+            st.success(f"✅ Added `{p_title}` to the pipeline.")
             st.rerun()
 
     if not pipeline_df.empty:
@@ -196,7 +196,7 @@ def _mission_data_sync_clean(df):
     for c in cleaned.select_dtypes(include=["object"]).columns:
         cleaned[c] = cleaned[c].astype(str).str.strip()
     dups = cleaned.duplicated().sum()
-    return f"Scanned {before_rows:,}} rows across {df.shape[1]}} columns. Whitespace normalized. {dups:,}} exact duplicate row(s) detected."
+    return f"Scanned {before_rows:,} rows across {df.shape[1]} columns. Whitespace normalized. {dups:,} exact duplicate row(s) detected."
 
 
 def _mission_anomaly_detection(df):
@@ -212,7 +212,7 @@ def _mission_anomaly_detection(df):
         iqr = q3 - q1
         mask = (s < q1 - 1.5 * iqr) | (s > q3 + 1.5 * iqr)
         total_outliers += int(mask.sum())
-    return f"IQR outlier sweep across {len(numeric_cols)}} numeric column(s): {total_outliers:,}} outlier value(s) detected."
+    return f"IQR outlier sweep across {len(numeric_cols)} numeric column(s): {total_outliers:,} outlier value(s) detected."
 
 
 def _mission_literature_scrape(query):
@@ -260,25 +260,25 @@ def render_agents(conn):
             else:
                 titles, err = _mission_literature_scrape(literature_query)
                 if err:
-                    status, summary = "FAILED", f"CrossRef request failed: {err}}"
-                    st.error(f"ðŸš« {summary}}")
+                    status, summary = "FAILED", f"CrossRef request failed: {err}"
+                    st.error(f"ðŸš« {summary}")
                 else:
-                    summary = f"Retrieved {len(titles)}} real result(s) for '{literature_query}}'."
-                    st.success(f"✅ {summary}}")
+                    summary = f"Retrieved {len(titles)} real result(s) for '{literature_query}'."
+                    st.success(f"✅ {summary}")
                     for t in titles:
-                        st.markdown(f"- {t}}")
+                        st.markdown(f"- {t}")
         elif df is None:
             status, summary = "FAILED", "No active dataset loaded — this mission needs real data to inspect."
-            st.warning(f"âš ï¸ {summary}}")
+            st.warning(f"âš ï¸ {summary}")
         elif task == "Data Sync & Clean Agent":
             summary = _mission_data_sync_clean(df)
-            st.success(f"✅ {summary}}")
+            st.success(f"✅ {summary}")
         elif task == "Anomaly Detection Agent":
             summary = _mission_anomaly_detection(df)
-            st.success(f"✅ {summary}}")
+            st.success(f"✅ {summary}")
         elif task == "Automated Report Compilation Agent":
-            summary = f"Report compiled successfully across {df.shape[0]:,}} rows."
-            st.success(f"✅ {summary}}")
+            summary = f"Report compiled successfully across {df.shape[0]:,} rows."
+            st.success(f"✅ {summary}")
 
         conn.execute(
             "INSERT INTO collab_agent_runs (task, priority, status, result_summary, timestamp) VALUES (?,?,?,?,?)",
@@ -324,7 +324,7 @@ def render_team_workspace(conn):
 
     notes_df = pd.read_sql_query("SELECT author AS Author, note AS Note, timestamp AS Timestamp FROM collab_notes ORDER BY id DESC LIMIT 20", conn)
     for _, row in notes_df.iterrows():
-        st.markdown(f"- **[{row['Author']}}]** {row['Note']}} Â· _{row['Timestamp'][:16].replace('T', ' ')}}_")
+        st.markdown(f"- **[{row['Author']}]** {row['Note']} Â· _{row['Timestamp'][:16].replace('T', ' ')}_")
 
 
 def render_portfolio(conn):
@@ -373,7 +373,7 @@ def render_venture_portfolio():
             if st.form_submit_button("Save Venture"):
                 if name.strip():
                     add_business_project(name.strip(), lead, capital, roi, status)
-                    st.success(f"'{name}}' saved.")
+                    st.success(f"'{name}' saved.")
                     st.rerun()
                 else:
                     st.warning("Project name is required.")

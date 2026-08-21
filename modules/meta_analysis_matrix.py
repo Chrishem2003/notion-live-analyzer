@@ -83,7 +83,7 @@ class MetaAnalysisMatrix:
             "Citations": paper.get("citations", 0),
         }
 
-        combined_text = f"{paper.get('title', '')}} {paper.get('abstract', '')}} {paper.get('user_notes', '')}} {paper.get('user_findings', '')}}"
+        combined_text = f"{paper.get('title', '')} {paper.get('abstract', '')} {paper.get('user_notes', '')} {paper.get('user_findings', '')}"
 
         # Sample Size
         sample_size = self._extract_first(combined_text, "sample_size")
@@ -238,7 +238,7 @@ class MetaAnalysisMatrix:
             "avg_quality_score": round(avg_quality, 1),
             "significant_findings": sig_count,
             "non_significant": len(df) - sig_count,
-            "year_range": f"{df['Year'].min()}}Ã¢â‚¬â€œ{df['Year'].max()}}" if df["Year"].notna().any() else "N/A",
+            "year_range": f"{df['Year'].min()}Ã¢â‚¬â€œ{df['Year'].max()}" if df["Year"].notna().any() else "N/A",
             "most_cited": df.loc[df["Citations"].idxmax(), "Paper"][:60] if "Citations" in df.columns and not df["Citations"].isna().all() else "N/A",
         }
 
@@ -295,12 +295,12 @@ def render_meta_analysis_matrix_ui():
         papers = []
         lit_papers = st.session_state.get("lit_db_papers", [])
         if lit_papers:
-            st.info(f"Ã°Å¸â€œÅ¡ Found {len(lit_papers)}} papers in current literature project")
+            st.info(f"Ã°Å¸â€œÅ¡ Found {len(lit_papers)} papers in current literature project")
             if st.button("Ã°Å¸â€Â¨ Build Matrix from Literature Papers", type="primary", use_container_width=True):
-                with st.spinner(f"Extracting data from {len(lit_papers)}} papers..."):
+                with st.spinner(f"Extracting data from {len(lit_papers)} papers..."):
                     df = matrix_engine.build_matrix(lit_papers)
                     st.session_state["meta_matrix_df"] = df
-                    st.success(f"âœ… Built matrix with {len(df)}} papers")
+                    st.success(f"âœ… Built matrix with {len(df)} papers")
                     st.rerun()
         else:
             st.info("No literature papers loaded. Use Literature Engine to harvest papers, or enter manually below.")
@@ -324,18 +324,18 @@ def render_meta_analysis_matrix_ui():
                 paper_data = {
                     "title": title, "year": year, "authors": authors, "abstract": "",
                     "journal": "", "doi": "", "citations": 0,
-                    "user_notes": f"Methodology: {method}}. Outcome: {outcome}}. Limitations: {limitations}}",
-                    "user_findings": f"Effect: {effect}}. P-value: {pval}}",
+                    "user_notes": f"Methodology: {method}. Outcome: {outcome}. Limitations: {limitations}",
+                    "user_findings": f"Effect: {effect}. P-value: {pval}",
                 }
                 matrix_engine.add_to_session(paper_data)
                 st.session_state["meta_matrix_df"] = matrix_engine.matrix
-                st.success(f"âœ… Added '{title}}'")
+                st.success(f"âœ… Added '{title}'")
                 st.rerun()
 
     with tab2:
         df = st.session_state.get("meta_matrix_df")
         if df is not None and not df.empty:
-            st.subheader(f" Comparative Matrix ({len(df)}} papers)")
+            st.subheader(f" Comparative Matrix ({len(df)} papers)")
 
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -361,13 +361,13 @@ def render_meta_analysis_matrix_ui():
                 if csv_data:
                     import base64
                     b64 = base64.b64encode(csv_data.encode()).decode()
-                    st.markdown(f'<a href="data:text/csv;base64,{b64}}" download="meta_analysis_matrix.csv">ðŸ“¥ Download CSV</a>', unsafe_allow_html=True)
+                    st.markdown(f'<a href="data:text/csv;base64,{b64}" download="meta_analysis_matrix.csv">ðŸ“¥ Download CSV</a>', unsafe_allow_html=True)
             with col2:
                 json_data = matrix_engine.export_json()
                 if json_data:
                     import base64
                     b64 = base64.b64encode(json_data.encode()).decode()
-                    st.markdown(f'<a href="data:application/json;base64,{b64}}" download="meta_analysis_matrix.json">ðŸ“¥ Download JSON</a>', unsafe_allow_html=True)
+                    st.markdown(f'<a href="data:application/json;base64,{b64}" download="meta_analysis_matrix.json">ðŸ“¥ Download JSON</a>', unsafe_allow_html=True)
         else:
             st.info("Build the matrix first in the **Build Matrix** tab.")
 
@@ -379,7 +379,7 @@ def render_meta_analysis_matrix_ui():
                 st.subheader("ðŸ“ˆ Matrix Summary")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1: st.metric("Total Papers", stats.get("total_papers", 0))
-                with col2: st.metric("Avg Quality Score", f'{stats.get("avg_quality_score", 0)}}/100')
+                with col2: st.metric("Avg Quality Score", f'{stats.get("avg_quality_score", 0)}/100')
                 with col3: st.metric("âœ… Significant", stats.get("significant_findings", 0))
                 with col4: st.metric("Year Range", stats.get("year_range", "N/A"))
 

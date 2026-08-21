@@ -40,13 +40,13 @@ def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
             df = pd.read_pickle(uploaded_file)
         
         else:
-            error_msg = f"Unsupported: .{ext}}"
+            error_msg = f"Unsupported: .{ext}"
     
     except Exception as e:
         error_msg = str(e)
     
     if error_msg:
-        st.error(f"Error: {error_msg}}")
+        st.error(f"Error: {error_msg}")
         return None
     
     if df is not None:
@@ -99,7 +99,7 @@ def render_file_analyzer_page():
         df = parse_uploaded_file(uploaded_file)
         
         if df is not None and not df.empty:
-            st.success(f"Loaded: {len(df)}} rows Ãƒâ€” {len(df.columns)}} columns")
+            st.success(f"Loaded: {len(df)} rows Ãƒâ€” {len(df.columns)} columns")
             
             # Store in session
             st.session_state["uploaded_df"] = df
@@ -113,17 +113,17 @@ def render_file_analyzer_page():
             stats = get_column_stats(df)
             
             for col, col_stats in stats.items():
-                with st.expander(f"ðŸ“‹ {col}}"):
+                with st.expander(f"ðŸ“‹ {col}"):
                     cols = st.columns(4)
                     cols[0].metric("Type", col_stats["dtype"])
-                    cols[1].metric("Nulls", f"{col_stats['null_count']}} ({col_stats['missing_pct']}}%)")
+                    cols[1].metric("Nulls", f"{col_stats['null_count']} ({col_stats['missing_pct']}%)")
                     cols[2].metric("Unique", col_stats["unique_count"])
                     
                     if "mean" in col_stats:
                         cols[3].metric("Mean", col_stats["mean"])
-                        st.caption(f"Range: {col_stats['min']}} - {col_stats['max']}} | Median: {col_stats['median']}}")
+                        st.caption(f"Range: {col_stats['min']} - {col_stats['max']} | Median: {col_stats['median']}")
                     elif "min_len" in col_stats:
-                        st.caption(f"String length: {col_stats['min_len']}} - {col_stats['max_len']}}")
+                        st.caption(f"String length: {col_stats['min_len']} - {col_stats['max_len']}")
         else:
             st.info("No data loaded. Upload a file to begin.")
     else:

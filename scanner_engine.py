@@ -248,7 +248,7 @@ def _curated_advisory(name: str, version: str) -> Dict[str, Any]:
     cve = CURATED_ADVISORIES.get(name, "None")
     if cve == "None":
         return {"Package": name, "Version": version, "CVE_ID": "None", "Severity": "SECURE", "Status": "PASSED", "Detail": "No known advisory (curated)."}
-    return {"Package": name, "Version": version, "CVE_ID": cve, "Severity": "MEDIUM", "Status": "PATCH RECOMMENDED", "Detail": f"Curated advisory reference: {cve}}"}
+    return {"Package": name, "Version": version, "CVE_ID": cve, "Severity": "MEDIUM", "Status": "PATCH RECOMMENDED", "Detail": f"Curated advisory reference: {cve}"}
 
 
 # ---------------------------------------------------------------------------
@@ -313,7 +313,7 @@ def scan_duplicates(files_data: List[Dict[str, bytes]]) -> Dict[str, Any]:
         "groups": [
             {"hash": h[:16] + "...", "files": names, "size": len(names)} for h, names in list(dup_groups.items())[:20]
         ],
-        "savings_estimate": f"{sum(len(v) - 1 for v in dup_groups.values())}} redundant copies",
+        "savings_estimate": f"{sum(len(v) - 1 for v in dup_groups.values())} redundant copies",
     }
 
 
@@ -365,7 +365,7 @@ def verify_integrity() -> Dict[str, Any]:
         "verified_unchanged": verified,
         "changed_or_deleted": len(changes),
         "changes": changes,
-        "verdict": "INTEGRITY VERIFIED" if not changes else f"{len(changes)}} file(s) changed",
+        "verdict": "INTEGRITY VERIFIED" if not changes else f"{len(changes)} file(s) changed",
     }
 
 
@@ -443,7 +443,7 @@ def hash_reputation_lookup(file_hash: str, vt_api_key: str = "") -> Dict[str, An
         }
     try:
         r = requests.get(
-            f"https://www.virustotal.com/api/v3/files/{file_hash}}",
+            f"https://www.virustotal.com/api/v3/files/{file_hash}",
             headers={"x-apikey": vt_api_key},
             timeout=10,
         )
@@ -451,7 +451,7 @@ def hash_reputation_lookup(file_hash: str, vt_api_key: str = "") -> Dict[str, An
             data = r.json().get("data", {}).get("attributes", {})
             stats = data.get("last_analysis_stats", {})
             return {"hash": file_hash, "source": "live:virustotal", "stats": stats, "malicious": stats.get("malicious", 0)}
-        return {"hash": file_hash, "source": "virustotal", "error": f"HTTP {r.status_code}}"}
+        return {"hash": file_hash, "source": "virustotal", "error": f"HTTP {r.status_code}"}
     except Exception as e:
         return {"hash": file_hash, "source": "virustotal", "error": str(e)}
 
@@ -460,6 +460,6 @@ if __name__ == "__main__":
     # Self-test
     # Demo key is intentionally fabricated and split to avoid secret-scan false positives.
     demo_key = "sk" + "live" + "_" + "a" * 24
-    test = scan_pii(text=f"Contact john.doe@example.com or 0700-123-456. SSN 123-45-6789. Key {demo_key}}")
+    test = scan_pii(text=f"Contact john.doe@example.com or 0700-123-456. SSN 123-45-6789. Key {demo_key}")
     print(json.dumps({k: v for k, v in test.items() if k != "findings"}, indent=2))
 

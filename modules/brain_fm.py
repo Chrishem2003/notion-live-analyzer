@@ -20,7 +20,7 @@ def render_brain_fm_studio():
         "Ambient Rain & Coffee Shop (Calm Flow)": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
     }
 
-    st.markdown(f"#### Currently Playing: **{sound_type}}**")
+    st.markdown(f"#### Currently Playing: **{sound_type}**")
     st.audio(audio_sources[sound_type], format="audio/mp3", loop=True)
 
     st.markdown("""

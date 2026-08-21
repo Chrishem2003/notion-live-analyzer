@@ -225,7 +225,7 @@ def render_sidebar_navigation():
     hubs = visible_hubs()
 
     st.sidebar.markdown("### ðŸ§­ Navigation Hub")
-    nav_labels = [f"{h['icon']}} {h['name']}}" for h in hubs]
+    nav_labels = [f"{h['icon']} {h['name']}" for h in hubs]
 
     # Preserve selection across reruns
     if "nav_selection" not in st.session_state:
@@ -239,12 +239,12 @@ def render_sidebar_navigation():
     st.session_state["nav_selection"] = selection
 
     # Find selected hub
-    selected = next((h for h in hubs if f"{h['icon']}} {h['name']}}" == selection), hubs[0])
+    selected = next((h for h in hubs if f"{h['icon']} {h['name']}" == selection), hubs[0])
 
     # Tool discovery under selected hub
-    with st.sidebar.expander(f"ðŸ” {selected['name']}} Tools", expanded=False):
+    with st.sidebar.expander(f"ðŸ” {selected['name']} Tools", expanded=False):
         for tool in selected["tools"]:
-            st.markdown(f"- {tool}}")
+            st.markdown(f"- {tool}")
 
     return selected
 
@@ -266,9 +266,9 @@ def render_global_command_search():
                     results.append((hub["icon"], hub["name"], tool))
 
         if results:
-            with st.sidebar.expander(f"Found {len(results)}} tool(s)", expanded=True):
+            with st.sidebar.expander(f"Found {len(results)} tool(s)", expanded=True):
                 for hub_icon, hub_name, tool in results[:8]:
-                    st.markdown(f"{hub_icon}} **{hub_name}}** â†’ `{tool}}`")
+                    st.markdown(f"{hub_icon} **{hub_name}** â†’ `{tool}`")
         else:
             st.sidebar.caption("No matching tools found.")
 

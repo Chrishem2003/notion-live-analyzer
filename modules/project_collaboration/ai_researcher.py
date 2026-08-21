@@ -95,7 +95,7 @@ class TranscriptSegment:
                  source: TranscriptSource = TranscriptSource.LIVE_SPEECH,
                  timestamp: Optional[float] = None,
                  language: str = "en"):
-        self.id = f"ts_{uuid.uuid4().hex[:12]}}"
+        self.id = f"ts_{uuid.uuid4().hex[:12]}"
         self.text = text.strip()
         self.speaker_id = speaker_id
         self.speaker_name = speaker_name
@@ -144,7 +144,7 @@ class ActionItem:
                  assignee_name: Optional[str] = None,
                  priority: ActionItemPriority = ActionItemPriority.MEDIUM,
                  due_by: Optional[float] = None):
-        self.id = f"ai_{uuid.uuid4().hex[:12]}}"
+        self.id = f"ai_{uuid.uuid4().hex[:12]}"
         self.description = description
         self.extracted_by = extracted_by
         self.extracted_at = time.time()
@@ -186,7 +186,7 @@ class ActionItem:
         """Mark this action item as blocked."""
         self.status = ActionItemStatus.BLOCKED
         if reason:
-            self.context_notes.append(f"Blocked: {reason}}")
+            self.context_notes.append(f"Blocked: {reason}")
 
     def add_dependency(self, action_item_id: str):
         """Add a dependency on another action item."""
@@ -222,7 +222,7 @@ class MeetingNote:
     def __init__(self, title: str, content: str, category: NoteCategory,
                  generated_by: str,
                  source_segment_ids: Optional[List[str]] = None):
-        self.id = f"mn_{uuid.uuid4().hex[:12]}}"
+        self.id = f"mn_{uuid.uuid4().hex[:12]}"
         self.title = title
         self.content = content
         self.category = category
@@ -743,19 +743,19 @@ class TranscriptProcessor:
 
         summary = (
             f" **Meeting Summary**\n\n"
-            f"**Overview:** {total_segments}} segments Ã‚Â· {total_words}} words Ã‚Â· "
-            f"{len(active_speakers)}} active speakers\n\n"
+            f"**Overview:** {total_segments} segments Ã‚Â· {total_words} words Ã‚Â· "
+            f"{len(active_speakers)} active speakers\n\n"
         )
 
         if top_topics:
             summary = "**Key Topics:**\n"
             for t in top_topics[:5]:
-                summary = f"  Ã¢â‚¬Â¢ {t['topic']}} ({t['frequency']}} mentions)\n"
+                summary = f"  Ã¢â‚¬Â¢ {t['topic']} ({t['frequency']} mentions)\n"
 
         if active_speakers:
             summary = "\n**Speaker Participation:**\n"
             for s in sorted(active_speakers, key=lambda x: x["segments"], reverse=True)[:5]:
-                summary = f"  Ã¢â‚¬Â¢ {s['name']}}: {s['segments']}} segments ({s['participation_pct']}}%)\n"
+                summary = f"  Ã¢â‚¬Â¢ {s['name']}: {s['segments']} segments ({s['participation_pct']}%)\n"
 
         return summary
 
@@ -997,7 +997,7 @@ class AIResearcher:
 
         # Create final meeting note
         final_note = MeetingNote(
-            title=f"Meeting Summary: {self.meeting_title or 'Untitled'}}",
+            title=f"Meeting Summary: {self.meeting_title or 'Untitled'}",
             content=summary,
             category=NoteCategory.GENERAL,
             generated_by=self.researcher_id,
@@ -1014,7 +1014,7 @@ class AIResearcher:
         return {
             "meeting_title": self.meeting_title,
             "duration_seconds": duration,
-            "duration_display": f"{int(duration // 60)}}m {int(duration % 60)}}s",
+            "duration_display": f"{int(duration // 60)}m {int(duration % 60)}s",
             "total_segments": len(self.transcript_processor.segments),
             "summary": summary,
         }
@@ -1081,18 +1081,18 @@ class AIResearcher:
             ActionItemPriority.LOW: "Ã°Å¸Å¸Â¢",
         }.get(action_item.priority, "Ã¢Å¡Âª")
 
-        assignee = f" Ã¢â€ â€™ @{action_item.assignee_name}}" if action_item.assignee_name else ""
+        assignee = f" Ã¢â€ â€™ @{action_item.assignee_name}" if action_item.assignee_name else ""
 
         content = (
-            f"**Action Item** {priority_icon}}\n\n"
-            f"**{action_item.description}}**{assignee}}\n\n"
-            f"Priority: {action_item.priority.value}} | "
-            f"Confidence: {action_item.confidence:.0%}}\n"
-            f"Status: {action_item.status.value}}\n"
+            f"**Action Item** {priority_icon}\n\n"
+            f"**{action_item.description}**{assignee}\n\n"
+            f"Priority: {action_item.priority.value} | "
+            f"Confidence: {action_item.confidence:.0%}\n"
+            f"Status: {action_item.status.value}\n"
         )
 
         note = MeetingNote(
-            title=f"Action: {action_item.description[:60]}}{'...' if len(action_item.description) > 60 else ''}}",
+            title=f"Action: {action_item.description[:60]}{'...' if len(action_item.description) > 60 else ''}",
             content=content,
             category=NoteCategory.ACTION_ITEM,
             generated_by=self.researcher_id,
@@ -1125,7 +1125,7 @@ class AIResearcher:
         summary = self.transcript_processor.generate_summary()
 
         note = MeetingNote(
-            title=f"Ã¢ÂÂ±Ã¯Â¸Â Progress Update #{self._summary_count}}",
+            title=f"Ã¢ÂÂ±Ã¯Â¸Â Progress Update #{self._summary_count}",
             content=summary,
             category=NoteCategory.GENERAL,
             generated_by=self.researcher_id,
@@ -1169,7 +1169,7 @@ class AIResearcher:
             "is_recording": self.is_recording,
             "meeting_title": self.meeting_title,
             "duration": duration,
-            "duration_display": f"{int(duration // 60)}}m {int(duration % 60)}}s",
+            "duration_display": f"{int(duration // 60)}m {int(duration % 60)}s",
             "participants": len(self.participants),
             "segments_processed": len(self.transcript_processor.segments),
             "total_notes": len(self.notes),
@@ -1365,7 +1365,7 @@ def render_ai_researcher_panel():
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-        @keyframes pulse {{ 0%, 100% {{ opacity: 1; }} 50% {{ opacity: 0.5; }} }}
+        @keyframes pulse {{ 0%, 100% {{ opacity: 1; } 50% {{ opacity: 0.5; } }
         </style>
         """, unsafe_allow_html=True)
 
@@ -1406,7 +1406,7 @@ def render_ai_researcher_panel():
             for t in demo_texts:
                 researcher.ingest_transcript(
                     text=t,
-                    speaker_id=f"speaker_{random.randint(1,3)}}",
+                    speaker_id=f"speaker_{random.randint(1,3)}",
                     speaker_name=random.choice(["Dr. Chen", "Prof. Miller", "Dr. Watson"]),
                     source=TranscriptSource.LIVE_SPEECH,
                 )
@@ -1417,7 +1417,7 @@ def render_ai_researcher_panel():
         with col1:
             if st.button("Ã¢ÂÂ¹Ã¯Â¸Â End Meeting", use_container_width=True):
                 result = researcher.end_meeting()
-                st.success(f"âœ… Meeting ended  {result['duration_display']}}")
+                st.success(f"âœ… Meeting ended  {result['duration_display']}")
                 st.rerun()
         with col2:
             if st.button("ðŸ§¹ Clear Notes", use_container_width=True):
@@ -1431,7 +1431,7 @@ def render_ai_researcher_panel():
         ])
 
         with tab1:
-            st.markdown(f"### Action Items ({len(researcher.get_open_action_items())}} open)")
+            st.markdown(f"### Action Items ({len(researcher.get_open_action_items())} open)")
             open_items = researcher.get_open_action_items()
             if open_items:
                 for item in open_items:
@@ -1452,7 +1452,7 @@ def render_ai_researcher_panel():
                 st.info("No action items detected yet. Start speaking or paste transcript.")
 
         with tab2:
-            st.markdown(f"### Meeting Notes ({len(researcher.notes)}})")
+            st.markdown(f"### Meeting Notes ({len(researcher.notes)})")
             categories = list(NoteCategory)
             selected_cat = st.selectbox("Filter by category",
                                          options=["All"] + [c.value for c in categories],
@@ -1512,7 +1512,7 @@ def render_ai_researcher_panel():
 
             st.markdown("### Integration Hooks")
             for hook_name, active in ctx["integration_hooks"].items():
-                st.markdown(f"{'âœ…' if active else 'Ã¢ÂÅ’'}} `{hook_name}}`  {'Connected' if active else 'Not connected'}}")
+                st.markdown(f"{'âœ…' if active else 'Ã¢ÂÅ’'} `{hook_name}`  {'Connected' if active else 'Not connected'}")
 
             st.info("Ã°Å¸â€™Â¡ Connect hooks from Literature Engine, Hypothesis Generator, and AI Analyzer for enriched meeting intelligence.")
 

@@ -14,7 +14,7 @@ def render_secure_vault_auth():
     account_name = "vault-vault_0e"
     
     # Build the standard TOTP provisioning URI
-    provisioning_uri = f"otpauth://totp/{issuer}}:{account_name}}?secret={secret}}&issuer={issuer}}&algorithm=SHA1&digits=6&period=30"
+    provisioning_uri = f"otpauth://totp/{issuer}:{account_name}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
 
     col_qr, col_controls = st.columns([1, 1], gap="medium")
 

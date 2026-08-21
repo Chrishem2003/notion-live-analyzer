@@ -51,7 +51,7 @@ def render_ultimate_ecosystem_tab():
         uploaded_file = st.file_uploader("Upload Raw Research File (FASTA, CSV, JSON, TXT)", type=["fasta", "csv", "json", "txt"])
         if uploaded_file is not None:
             file_details = {"filename": uploaded_file.name, "size": uploaded_file.size}
-            st.success(f"File successfully ingested and normalized: `{uploaded_file.name}}`")
+            st.success(f"File successfully ingested and normalized: `{uploaded_file.name}`")
             st.json(file_details)
             log_provenance(uploaded_file.name, "NORMALIZE_POLYGLOT_DATA", "chief.investigator@lab.org", file_details)
 
@@ -81,7 +81,7 @@ def render_ultimate_ecosystem_tab():
                 "âœ… Sequence formatting matches standard NCBI FASTA guidelines.",
                 "Ã¢â€žÂ¹Ã¯Â¸Â Recommendation: Include statistical confidence intervals for variant metrics."
             ]
-            st.metric("Draft Integrity Score", f"{score}} / 100")
+            st.metric("Draft Integrity Score", f"{score} / 100")
             for f in findings:
                 st.markdown(f)
 

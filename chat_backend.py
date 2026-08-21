@@ -121,13 +121,13 @@ class RealtimeChat:
         self.redis = redis_client
 
     def _channel(self, room_id: str) -> str:
-        return f"chat:room:{room_id}}"
+        return f"chat:room:{room_id}"
 
     def _typing_channel(self, room_id: str) -> str:
-        return f"chat:typing:{room_id}}"
+        return f"chat:typing:{room_id}"
 
     def _presence_key(self, user_email: str) -> str:
-        return f"chat:presence:{user_email}}"
+        return f"chat:presence:{user_email}"
 
     async def publish_message(self, msg: ChatMessage):
         await self.redis.publish(self._channel(msg.room_id), json.dumps(asdict(msg)))

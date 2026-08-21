@@ -65,19 +65,19 @@ def dataframe_to_xml(df: pd.DataFrame, root_tag: str = "dataset", row_tag: str =
 def _xml_safe(tag: str) -> str:
     tag = re.sub(r"[^\w\-.]", "_", str(tag))
     if not tag or tag[0].isdigit():
-        tag = f"col_{tag}}"
+        tag = f"col_{tag}"
     return tag
 
 
 def dataframe_to_yaml(df: pd.DataFrame) -> bytes:
     records = df.astype(object).where(pd.notnull(df), None).to_dict(orient="records")
-    lines = ["# CHRISHEM Universal Converter â€” YAML Export", f"rows: {len(df)}}", "data:"]
+    lines = ["# CHRISHEM Universal Converter â€” YAML Export", f"rows: {len(df)}", "data:"]
     for i, rec in enumerate(records):
-        lines.append(f"  - id: {i}}")
+        lines.append(f"  - id: {i}")
         for k, v in rec.items():
             if isinstance(v, float) and (v != v):  # NaN
                 v = None
-            lines.append(f"    {str(k)}}: {json.dumps(v, default=str)}}")
+            lines.append(f"    {str(k)}: {json.dumps(v, default=str)}")
     return "\n".join(lines).encode("utf-8")
 
 
@@ -93,8 +93,8 @@ def dataframe_to_sql(df: pd.DataFrame, table_name: str = "converted_table") -> b
             ctype = "TEXT"
         else:
             ctype = "TEXT"
-        col_defs.append(f'"{col}}" {ctype}}')
-    create_sql = f'CREATE TABLE IF NOT EXISTS "{table_name}}" (\n  {", ".join(col_defs)}}\n);\n'
+        col_defs.append(f'"{col}" {ctype}')
+    create_sql = f'CREATE TABLE IF NOT EXISTS "{table_name}" (\n  {", ".join(col_defs)}\n);\n'
     insert_sql = []
     for _, row in df.iterrows():
         vals = []
@@ -105,8 +105,8 @@ def dataframe_to_sql(df: pd.DataFrame, table_name: str = "converted_table") -> b
             elif isinstance(v, (int, float)):
                 vals.append(str(v))
             else:
-                vals.append(f"'{str(v).replace(chr(39), chr(39) + chr(39))}}'")
-        insert_sql.append(f'INSERT INTO "{table_name}}" VALUES ({", ".join(vals)}});')
+                vals.append(f"'{str(v).replace(chr(39), chr(39) + chr(39))}'")
+        insert_sql.append(f'INSERT INTO "{table_name}" VALUES ({", ".join(vals)});')
     return (create_sql + "\n".join(insert_sql)).encode("utf-8")
 
 
@@ -115,10 +115,10 @@ def dataframe_to_html(df: pd.DataFrame, title: str = "CHRISHEM Data Export") -> 
     html_doc = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>{title}</title>
 <style>
-body {{ font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }}
-table.chris-table {{ border-collapse: collapse; width: 100%; font-size: 0.9rem; }}
-table.chris-table th {{ background: #0b1e36; color: #fff; padding: 8px 10px; text-align: left; }}
-table.chris-table td {{ border: 1px solid #e5e7eb; padding: 6px 10px; }}
+body {{ font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }
+table.chris-table {{ border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+table.chris-table th {{ background: #0b1e36; color: #fff; padding: 8px 10px; text-align: left; }
+table.chris-table td {{ border: 1px solid #e5e7eb; padding: 6px 10px; }
 </style></head><body>
 <h2>{title}</h2>
 <p><em>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} â€” CHRISHEM Universal Converter</em></p>
@@ -152,7 +152,7 @@ def convert_dataframe(df: pd.DataFrame, target_format: str, **kwargs) -> bytes:
         return dataframe_to_html(df, kwargs.get("title", "CHRISHEM Data Export"))
     if fmt in ("md", "markdown"):
         return dataframe_to_markdown(df)
-    raise ValueError(f"Unsupported target format: {target_format}}")
+    raise ValueError(f"Unsupported target format: {target_format}")
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -184,10 +184,10 @@ def encode_data(raw: bytes, target_encoding: str) -> bytes:
     if target in ("url", "urlencode", "percent"):
         return urllib.parse.quote_from_bytes(raw).encode("utf-8")
     if target in ("binary", "bin"):
-        return "".join(f"{b:08b}}" for b in raw).encode("utf-8")
+        return "".join(f"{b:08b}" for b in raw).encode("utf-8")
     if target in ("ascii85", "a85"):
         return base64.a85encode(raw)
-    raise ValueError(f"Unsupported encoding: {target_encoding}}")
+    raise ValueError(f"Unsupported encoding: {target_encoding}")
 
 
 def decode_data(raw: bytes, source_encoding: str) -> bytes:
@@ -205,7 +205,7 @@ def decode_data(raw: bytes, source_encoding: str) -> bytes:
         return int(cleaned or "0", 2).to_bytes((len(cleaned) + 7) // 8, "big")
     if source in ("ascii85", "a85"):
         return base64.a85decode(text)
-    raise ValueError(f"Unsupported source encoding: {source_encoding}}")
+    raise ValueError(f"Unsupported source encoding: {source_encoding}")
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -229,7 +229,7 @@ def long_to_wide(
 def transpose_df(df: pd.DataFrame, include_header: bool = True) -> pd.DataFrame:
     t = df.T
     if include_header:
-        t.columns = [f"col_{i}}" for i in range(t.shape[1])]
+        t.columns = [f"col_{i}" for i in range(t.shape[1])]
         t = t.reset_index()
         t.columns = ["Field"] + list(t.columns[1:])
     return t
@@ -273,7 +273,7 @@ def _to_celsius(v, unit):
         return (v - 32) * 5 / 9
     if unit in ("kelvin", "k"):
         return v - 273.15
-    raise ValueError(f"Unknown temperature unit: {unit}}")
+    raise ValueError(f"Unknown temperature unit: {unit}")
 
 
 def _from_celsius(v, unit):
@@ -284,7 +284,7 @@ def _from_celsius(v, unit):
         return v * 9 / 5 + 32
     if unit in ("kelvin", "k"):
         return v + 273.15
-    raise ValueError(f"Unknown temperature unit: {unit}}")
+    raise ValueError(f"Unknown temperature unit: {unit}")
 
 
 def convert_unit(value: float, from_unit: str, to_unit: str, category: str) -> Dict[str, Any]:
@@ -295,14 +295,14 @@ def convert_unit(value: float, from_unit: str, to_unit: str, category: str) -> D
         key_from = from_unit.lower().replace(" ", "_")
         key_to = to_unit.lower().replace(" ", "_")
         if key_from not in table or key_to not in table:
-            return {"error": f"Unknown {category}} unit. Choose from {list(table.keys())}}"}
+            return {"error": f"Unknown {category} unit. Choose from {list(table.keys())}"}
         result = value * table[key_from] / table[key_to]
     elif category in ("mass", "weight"):
         table = MASS_UNITS
         key_from = from_unit.lower().replace(" ", "_")
         key_to = to_unit.lower().replace(" ", "_")
         if key_from not in table or key_to not in table:
-            return {"error": f"Unknown {category}} unit. Choose from {list(table.keys())}}"}
+            return {"error": f"Unknown {category} unit. Choose from {list(table.keys())}"}
         result = value * table[key_from] / table[key_to]
     elif category == "temperature":
         result = _from_celsius(_to_celsius(value, from_unit), to_unit)
@@ -315,10 +315,10 @@ def convert_unit(value: float, from_unit: str, to_unit: str, category: str) -> D
         key_from = from_unit.lower()
         key_to = to_unit.lower()
         if key_from not in speed_table or key_to not in speed_table:
-            return {"error": f"Unknown speed unit. Choose from {list(speed_table.keys())}}"}
+            return {"error": f"Unknown speed unit. Choose from {list(speed_table.keys())}"}
         result = value * speed_table[key_from] / speed_table[key_to]
     else:
-        return {"error": f"Unsupported category: {category}}"}
+        return {"error": f"Unsupported category: {category}"}
     return {"value": value, "from": from_unit, "to": to_unit, "result": round(result, 8), "category": category}
 
 
@@ -338,9 +338,9 @@ def decimal_to_dms(lat: float, lon: float) -> Dict[str, Any]:
     d1, m1, s1, d1_dir = _to_dms(lat, "N", "S")
     d2, m2, s2, d2_dir = _to_dms(lon, "E", "W")
     return {
-        "lat_dms": f"{d1}}Â°{m1}}â€²{s1:.2f}}â€³{d1_dir}}",
-        "lon_dms": f"{d2}}Â°{m2}}â€²{s2:.2f}}â€³{d2_dir}}",
-        "formatted": f"{d1}}Â°{m1}}â€²{s1:.1f}}â€³{d1_dir}} {d2}}Â°{m2}}â€²{s2:.1f}}â€³{d2_dir}}",
+        "lat_dms": f"{d1}Â°{m1}â€²{s1:.2f}â€³{d1_dir}",
+        "lon_dms": f"{d2}Â°{m2}â€²{s2:.2f}â€³{d2_dir}",
+        "formatted": f"{d1}Â°{m1}â€²{s1:.1f}â€³{d1_dir} {d2}Â°{m2}â€²{s2:.1f}â€³{d2_dir}",
     }
 
 
@@ -350,7 +350,7 @@ def dms_to_decimal(lat_dms: str, lon_dms: str) -> Dict[str, Any]:
             r"([\d.]+)\s*[Â°d]\s*([\d.]+)\s*['â€²]\s*([\d.]*)\s*(?:\"|â€³|'')?\s*([NSEW])?", dms, re.I
         )
         if not regex:
-            raise ValueError(f"Cannot parse DMS: {dms}}")
+            raise ValueError(f"Cannot parse DMS: {dms}")
         deg, minutes, seconds = float(regex.group(1)), float(regex.group(2)), float(regex.group(3) or 0)
         direction = (regex.group(4) or "").upper()
         value = deg + minutes / 60 + seconds / 3600
@@ -358,7 +358,7 @@ def dms_to_decimal(lat_dms: str, lon_dms: str) -> Dict[str, Any]:
             value *= -1
         return value
 
-    return {"lat": _parse(lat_dms), "lon": _parse(lon_dms), "formatted": f"{_parse(lat_dms):.6f}}, {_parse(lon_dms):.6f}}"}
+    return {"lat": _parse(lat_dms), "lon": _parse(lon_dms), "formatted": f"{_parse(lat_dms):.6f}, {_parse(lon_dms):.6f}"}
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

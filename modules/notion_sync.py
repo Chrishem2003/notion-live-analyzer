@@ -29,7 +29,7 @@ class NotionSyncEngine:
 
     def _headers(self) -> Dict[str, str]:
         return {
-            "Authorization": f"Bearer {self.token}}",
+            "Authorization": f"Bearer {self.token}",
             "Notion-Version": NOTION_VERSION,
             "Content-Type": "application/json",
         }
@@ -42,7 +42,7 @@ class NotionSyncEngine:
         Update a single property on a Notion page.
         Supports: rich_text, title, number, select, status, checkbox, date, email, phone, url.
         """
-        url = f"{NOTION_API_URL}}/pages/{page_id}}"
+        url = f"{NOTION_API_URL}/pages/{page_id}"
         headers = self._headers()
 
         payload = self._build_property_payload(property_name, property_value, property_type)
@@ -52,19 +52,19 @@ class NotionSyncEngine:
         try:
             response = requests.patch(url, json={"properties": payload}, headers=headers, timeout=15)
             if response.status_code == 200:
-                return True, f"âœ… Updated '{property_name}}' on page {page_id[:8]}}..."
+                return True, f"âœ… Updated '{property_name}' on page {page_id[:8]}..."
             elif response.status_code == 401:
                 return False, "Ã¢ÂÅ’ Invalid token  please re-connect your Notion integration"
             elif response.status_code == 404:
-                return False, f"Ã¢ÂÅ’ Page {page_id[:8]}}... not found  it may have been deleted"
+                return False, f"Ã¢ÂÅ’ Page {page_id[:8]}... not found  it may have been deleted"
             else:
-                return False, f"Ã¢ÂÅ’ API Error {response.status_code}}: {response.text[:200]}}"
+                return False, f"Ã¢ÂÅ’ API Error {response.status_code}: {response.text[:200]}"
         except requests.exceptions.Timeout:
             logger.warning("Timeout updating property %r on Notion page %s", property_name, page_id)
             return False, "Ã¢ÂÂ±Ã¯Â¸Â Request timed out  check your network"
         except Exception as e:
             logger.exception("Failed to update property %r on Notion page %s", property_name, page_id)
-            return False, f"Ã¢ÂÅ’ Sync error: {str(e)}}"
+            return False, f"Ã¢ÂÅ’ Sync error: {str(e)}"
 
     def _build_property_payload(self, name: str, value: Any, ptype: str) -> Dict:
         """Build the Notion API property payload based on type."""
@@ -72,45 +72,45 @@ class NotionSyncEngine:
             return {name: None}
 
         if ptype == "rich_text":
-            return {name: {"rich_text": [{"text": {"content": str(value)}}]}}
+            return {name: {"rich_text": [{"text": {"content": str(value)}]}
         elif ptype == "title":
-            return {name: {"title": [{"text": {"content": str(value)}}]}}
+            return {name: {"title": [{"text": {"content": str(value)}]}
         elif ptype == "number":
             try:
-                return {name: {"number": float(value)}}
+                return {name: {"number": float(value)}
             except (ValueError, TypeError):
-                return {"error": f"Cannot convert '{value}}' to number"}
+                return {"error": f"Cannot convert '{value}' to number"}
         elif ptype == "select":
-            return {name: {"select": {"name": str(value)}}}
+            return {name: {"select": {"name": str(value)}}
         elif ptype == "status":
-            return {name: {"status": {"name": str(value)}}}
+            return {name: {"status": {"name": str(value)}}
         elif ptype == "checkbox":
-            return {name: {"checkbox": bool(value)}}
+            return {name: {"checkbox": bool(value)}
         elif ptype == "date":
-            return {name: {"date": {"start": str(value)}}}
+            return {name: {"date": {"start": str(value)}}
         elif ptype == "email":
-            return {name: {"email": str(value)}}
+            return {name: {"email": str(value)}
         elif ptype == "phone":
-            return {name: {"phone_number": str(value)}}
+            return {name: {"phone_number": str(value)}
         elif ptype == "url":
-            return {name: {"url": str(value)}}
+            return {name: {"url": str(value)}
         elif ptype == "multi_select":
             if isinstance(value, list):
-                return {name: {"multi_select": [{"name": v} for v in value]}}
-            return {name: {"multi_select": [{"name": str(value)}]}}
+                return {name: {"multi_select": [{"name": v} for v in value]}
+            return {name: {"multi_select": [{"name": str(value)}]}
         else:
             # Default to rich_text
-            return {name: {"rich_text": [{"text": {"content": str(value)}}]}}
+            return {name: {"rich_text": [{"text": {"content": str(value)}]}
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Add Comment to Page Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def add_page_comment(self, page_id: str, comment_text: str) -> Tuple[bool, str]:
         """Add a discussion comment to a Notion page (AI insight, note, etc.)."""
-        url = f"{NOTION_API_URL}}/comments"
+        url = f"{NOTION_API_URL}/comments"
         headers = self._headers()
 
         payload = {
             "parent": {"page_id": page_id},
-            "rich_text": [{"text": {"content": comment_text}}],
+            "rich_text": [{"text": {"content": comment_text}],
         }
 
         try:
@@ -122,10 +122,10 @@ class NotionSyncEngine:
                     "Failed to add comment to Notion page %s: %s  %s",
                     page_id, response.status_code, response.text[:200],
                 )
-                return False, f"Ã¢ÂÅ’ Failed to add comment: {response.status_code}}"
+                return False, f"Ã¢ÂÅ’ Failed to add comment: {response.status_code}"
         except Exception as e:
             logger.exception("Error adding comment to Notion page %s", page_id)
-            return False, f"Ã¢ÂÅ’ Comment error: {str(e)}}"
+            return False, f"Ã¢ÂÅ’ Comment error: {str(e)}"
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Create Database Entry Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def create_database_entry(
@@ -135,7 +135,7 @@ class NotionSyncEngine:
         Create a new entry (page) in a Notion database.
         Returns (success, message, new_page_id).
         """
-        url = f"{NOTION_API_URL}}/pages"
+        url = f"{NOTION_API_URL}/pages"
         headers = self._headers()
 
         # Build property payload
@@ -152,12 +152,12 @@ class NotionSyncEngine:
             payload = self._build_property_payload(prop_name, pvalue, ptype)
             if "error" in payload:
                 logger.warning("Skipping property %r: %s", prop_name, payload["error"])
-                rejected.append(f"{prop_name}} ({payload['error']}})")
+                rejected.append(f"{prop_name} ({payload['error']})")
                 continue
             notion_properties.update(payload)
 
         if not notion_properties:
-            return False, f"Ã¢ÂÅ’ No valid properties to write  {'; '.join(rejected)}}", None
+            return False, f"Ã¢ÂÅ’ No valid properties to write  {'; '.join(rejected)}", None
 
         payload = {
             "parent": {"database_id": db_id},
@@ -171,17 +171,17 @@ class NotionSyncEngine:
                 new_id = data.get("id", "")
                 message = "âœ… New entry created in Notion database"
                 if rejected:
-                    message = f"  skipped invalid properties: {'; '.join(rejected)}}"
+                    message = f"  skipped invalid properties: {'; '.join(rejected)}"
                 return True, message, new_id
             else:
                 logger.error(
                     "Failed to create entry in Notion database %s: %s  %s",
                     db_id, response.status_code, response.text[:200],
                 )
-                return False, f"Ã¢ÂÅ’ Failed to create entry: {response.status_code}}  {response.text[:200]}}", None
+                return False, f"Ã¢ÂÅ’ Failed to create entry: {response.status_code}  {response.text[:200]}", None
         except Exception as e:
             logger.exception("Error creating entry in Notion database %s", db_id)
-            return False, f"Ã¢ÂÅ’ Create error: {str(e)}}", None
+            return False, f"Ã¢ÂÅ’ Create error: {str(e)}", None
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Batch Sync Insights Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def batch_sync_insights(
@@ -229,16 +229,16 @@ class NotionSyncEngine:
 
                 # Also add as a comment
                 comment_ok, comment_msg = self.add_page_comment(
-                    page_id, f"Ã°Å¸Â¤â€“ AI Insight: {insight_text[:200]}}"
+                    page_id, f"Ã°Å¸Â¤â€“ AI Insight: {insight_text[:200]}"
                 )
                 if not comment_ok:
-                    errors.append(f"{page_id[:8]}}: {comment_msg}}")
+                    errors.append(f"{page_id[:8]}: {comment_msg}")
 
                 time.sleep(0.35)  # Rate limiting
 
         return {
             "success": synced > 0,
-            "message": f"Synced {synced}} insights, {failed}} failed",
+            "message": f"Synced {synced} insights, {failed} failed",
             "synced": synced,
             "failed": failed,
             "errors": errors[:5],
@@ -285,7 +285,7 @@ class NotionSyncEngine:
 
         return {
             "success": synced > 0,
-            "message": f"Synced '{column_name}}' to '{target}}'  {synced}} updated, {failed}} failed",
+            "message": f"Synced '{column_name}' to '{target}'  {synced} updated, {failed} failed",
             "synced": synced,
             "failed": failed,
         }
@@ -293,7 +293,7 @@ class NotionSyncEngine:
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Get Page Content Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def get_page_content(self, page_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve full page content including block children."""
-        url = f"{NOTION_API_URL}}/blocks/{page_id}}/children"
+        url = f"{NOTION_API_URL}/blocks/{page_id}/children"
         headers = self._headers()
 
         try:
@@ -312,7 +312,7 @@ class NotionSyncEngine:
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Append Block to Page Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     def append_block(self, page_id: str, block_type: str, content: Dict) -> Tuple[bool, str]:
         """Append a content block to a Notion page (e.g., callout, paragraph, heading)."""
-        url = f"{NOTION_API_URL}}/blocks/{page_id}}/children"
+        url = f"{NOTION_API_URL}/blocks/{page_id}/children"
         headers = self._headers()
 
         block = {
@@ -324,15 +324,15 @@ class NotionSyncEngine:
         try:
             response = requests.patch(url, json={"children": [block]}, headers=headers, timeout=15)
             if response.status_code == 200:
-                return True, f"âœ… Block appended to page {page_id[:8]}}..."
+                return True, f"âœ… Block appended to page {page_id[:8]}..."
             logger.error(
                 "Failed to append %s block to Notion page %s: %s  %s",
                 block_type, page_id, response.status_code, response.text[:200],
             )
-            return False, f"Ã¢ÂÅ’ Failed: {response.status_code}}"
+            return False, f"Ã¢ÂÅ’ Failed: {response.status_code}"
         except Exception as e:
             logger.exception("Error appending %s block to Notion page %s", block_type, page_id)
-            return False, f"Ã¢ÂÅ’ Error: {str(e)}}"
+            return False, f"Ã¢ÂÅ’ Error: {str(e)}"
 
 
 # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
@@ -361,7 +361,7 @@ def render_notion_sync_ui(df: pd.DataFrame):
 
         insights = st.session_state.get("generated_hypotheses", [])
         if insights:
-            st.info(f" {len(insights)}} insights available for sync")
+            st.info(f" {len(insights)} insights available for sync")
             insight_text = st.text_area(
                 "Insight to sync (edit as needed)",
                 value=insights[0].get("narrative", str(insights[0])) if insights else "",
@@ -399,7 +399,7 @@ def render_notion_sync_ui(df: pd.DataFrame):
         target_property = st.text_input("Target Notion property name", value=column_to_sync)
 
         if st.button("Ã°Å¸â€â€ž Sync Column to Notion", type="primary"):
-            with st.spinner(f"Syncing '{column_to_sync}}' to Notion..."):
+            with st.spinner(f"Syncing '{column_to_sync}' to Notion..."):
                 result = sync_engine.sync_cleaned_column(df, column_to_sync, target_property)
             if result["success"]:
                 st.success(result["message"])
@@ -442,7 +442,7 @@ def render_notion_sync_ui(df: pd.DataFrame):
                 stype = entry.get("type", "").replace("_", " ").title()
                 result = entry.get("result", {})
                 status = "âœ…" if result.get("success") else "Ã¢ÂÅ’"
-                st.markdown(f"{status}} **{ts}}**  {stype}}: {result.get('message', '')}}")
+                st.markdown(f"{status} **{ts}**  {stype}: {result.get('message', '')}")
         else:
             st.info("No sync history yet.")
 

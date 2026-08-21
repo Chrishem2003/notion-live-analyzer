@@ -145,7 +145,7 @@ def build_chart(chart_type, df, x=None, y=None, color=None, facet=None, size=Non
         )
         return fig
     except Exception as e:
-        st.error(f"âš ï¸ Chart execution error: {e}}")
+        st.error(f"âš ï¸ Chart execution error: {e}")
         return None
 
 
@@ -201,12 +201,12 @@ def render_custom_builder(df):
         
         # NEW PREMIUM FEATURE: Live Telemetry Summary Stats
         if y_col and y_col in numeric_cols:
-            st.info(f"📈 **Active Metric Telemetry (`{y_col}}`)**: Count: `{len(render_df)}}` | Mean: `{render_df[y_col].mean():,.2f}}` | Median: `{render_df[y_col].median():,.2f}}` | Std Dev: `{render_df[y_col].std():,.2f}}`")
+            st.info(f"📈 **Active Metric Telemetry (`{y_col}`)**: Count: `{len(render_df)}` | Mean: `{render_df[y_col].mean():,.2f}` | Median: `{render_df[y_col].median():,.2f}` | Std Dev: `{render_df[y_col].std():,.2f}`")
 
         st.markdown("#### 📥 Download & Copy Studio Assets")
         exp_col1, exp_col2 = st.columns(2)
         with exp_col1:
-            render_export_buttons(render_df, base_name=f"custom_viz_{chart_type.lower().replace(' ', '_')}}")
+            render_export_buttons(render_df, base_name=f"custom_viz_{chart_type.lower().replace(' ', '_')}")
         with exp_col2:
             csv_data = render_df.to_csv(index=False).encode('utf-8')
             st.download_button(
@@ -243,9 +243,9 @@ def render_auto_studio(df):
     for col in numeric_cols[:2]:
         skew = _skewness(df[col])
         if abs(skew) > 1.0:
-            recs.append(("Box Plot", {"y": col}, f"Distribution of '{col}}' — skew = {skew:.2f}}, box plot recommended."))
+            recs.append(("Box Plot", {"y": col}, f"Distribution of '{col}' — skew = {skew:.2f}, box plot recommended."))
         else:
-            recs.append(("Histogram", {"x": col}, f"Univariate Distribution Analysis of '{col}}' (skew = {skew:.2f}})"))
+            recs.append(("Histogram", {"x": col}, f"Univariate Distribution Analysis of '{col}' (skew = {skew:.2f})"))
 
     if len(numeric_cols) >= 2:
         corr = df[numeric_cols].corr().abs()
@@ -253,18 +253,18 @@ def render_auto_studio(df):
         stacked = upper.stack()
         if not stacked.empty:
             (best_x, best_y), best_r = stacked.idxmax(), stacked.max()
-            recs.append(("Scatter Plot", {"x": best_x, "y": best_y}, f"Strongest Bivariate Relationship: '{best_x}}' vs '{best_y}}' (|r| = {best_r:.2f}})."))
+            recs.append(("Scatter Plot", {"x": best_x, "y": best_y}, f"Strongest Bivariate Relationship: '{best_x}' vs '{best_y}' (|r| = {best_r:.2f})."))
 
     if datetime_cols and numeric_cols:
-        recs.append(("Line Chart", {"x": datetime_cols[0], "y": numeric_cols[0]}, f"Temporal Trend of '{numeric_cols[0]}}' over '{datetime_cols[0]}}'."))
+        recs.append(("Line Chart", {"x": datetime_cols[0], "y": numeric_cols[0]}, f"Temporal Trend of '{numeric_cols[0]}' over '{datetime_cols[0]}'."))
 
     if low_card_cats and numeric_cols:
         best_cat = min(low_card_cats, key=lambda c: df[c].nunique())
-        recs.append(("Bar Chart", {"x": best_cat, "y": numeric_cols[0]}, f"Categorical Comparison of '{numeric_cols[0]}}' across '{best_cat}}'."))
+        recs.append(("Bar Chart", {"x": best_cat, "y": numeric_cols[0]}, f"Categorical Comparison of '{numeric_cols[0]}' across '{best_cat}'."))
 
     for i, (ctype, params, rationale) in enumerate(recs):
         with st.container():
-            st.markdown(f"#### ðŸ’¡ Insight Perspective {i+1}}: {ctype}}")
+            st.markdown(f"#### ðŸ’¡ Insight Perspective {i+1}: {ctype}")
             st.caption(rationale)
             fig = build_chart(ctype, df, height=350, **params)
             if fig:
@@ -287,7 +287,7 @@ def render_exec_dashboard(df):
     for i, col_name in enumerate(numeric_cols[:4]):
         mean_val = df[col_name].mean()
         std_val = df[col_name].std()
-        kpi_cols[i].metric(label=f"Avg {col_name}}", value=f"{mean_val:,.2f}}", delta=f"Â±{std_val:.2f}} Ïƒ")
+        kpi_cols[i].metric(label=f"Avg {col_name}", value=f"{mean_val:,.2f}", delta=f"Â±{std_val:.2f} Ïƒ")
 
     st.markdown("---")
     st.markdown("#### Multi-Panel Executive Telemetry")
@@ -326,7 +326,7 @@ def _build_pptx(deck_title: str, slides_spec: list) -> bytes:
     title_slide = prs.slides.add_slide(title_layout)
     title_slide.shapes.title.text = deck_title
     if len(title_slide.placeholders) > 1:
-        title_slide.placeholders[1].text = f"Generated {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}}"
+        title_slide.placeholders[1].text = f"Generated {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}"
 
     blank_layout = prs.slide_layouts[6]
     for spec in slides_spec:
@@ -337,7 +337,7 @@ def _build_pptx(deck_title: str, slides_spec: list) -> bytes:
         tb.text_frame.paragraphs[0].font.bold = True
 
         metric_box = slide.shapes.add_textbox(Inches(0.5), Inches(1.1), Inches(6.0), Inches(0.6))
-        metric_box.text_frame.text = f"{spec['metric_label']}}: {spec['metric_value']}}"
+        metric_box.text_frame.text = f"{spec['metric_label']}: {spec['metric_value']}"
         metric_box.text_frame.paragraphs[0].font.size = Pt(18)
 
         if spec.get("image_bytes"):
@@ -379,30 +379,30 @@ def render_deck_builder(df):
                 try:
                     image_bytes = _fig_to_png_bytes(fig)
                 except Exception as e:
-                    st.caption(f"Slide {i+1}}: chart image render skipped ({e}})")
+                    st.caption(f"Slide {i+1}: chart image render skipped ({e})")
 
             slides_spec.append({
-                "title": f"Slide {i+1}}: {col_metric}} Briefing",
-                "metric_label": f"Average {col_metric}}",
-                "metric_value": f"{mean_val:,.2f}}",
+                "title": f"Slide {i+1}: {col_metric} Briefing",
+                "metric_label": f"Average {col_metric}",
+                "metric_value": f"{mean_val:,.2f}",
                 "image_bytes": image_bytes,
                 "fig": fig,
             })
 
         st.markdown("#### On-Screen Preview")
         for i, spec in enumerate(slides_spec):
-            with st.expander(f"{spec['title']}}", expanded=(i == 0)):
+            with st.expander(f"{spec['title']}", expanded=(i == 0)):
                 st.metric(spec["metric_label"], spec["metric_value"])
                 if spec["fig"]:
                     st.plotly_chart(spec["fig"], use_container_width=True)
 
         if PPTX_AVAILABLE:
             pptx_bytes = _build_pptx(deck_title, slides_spec)
-            st.success(f"✅ Presentation deck '{deck_title}}' compiled — {slide_count}} slides ready.")
+            st.success(f"✅ Presentation deck '{deck_title}' compiled — {slide_count} slides ready.")
             st.download_button(
                 "â¬‡ï¸ Download Presentation (.pptx)",
                 data=pptx_bytes,
-                file_name=f"{deck_title.lower().replace(' ', '_')}}.pptx",
+                file_name=f"{deck_title.lower().replace(' ', '_')}.pptx",
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
                 key="dl_pptx_deck",
             )

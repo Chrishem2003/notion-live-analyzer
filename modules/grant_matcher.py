@@ -88,8 +88,8 @@ def run_grant_matching_pipeline():
                 "Grant ID": g["grant_id"],
                 "Agency": g["agency_name"],
                 "Grant Call": g["call_title"],
-                "Funding Amount ($)": f"${g['funding_amount_usd']:,.2f}}",
-                "Match Alignment Score": f"{score}}%"
+                "Funding Amount ($)": f"${g['funding_amount_usd']:,.2f}",
+                "Match Alignment Score": f"{score}%"
             })
 
     conn.commit()

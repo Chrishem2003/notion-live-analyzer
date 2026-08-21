@@ -332,7 +332,7 @@ class GhostStage:
     """
 
     def __init__(self, cohost_id: str, display_name: str):
-        self.id = f"ghost_{uuid.uuid4().hex[:12]}}"
+        self.id = f"ghost_{uuid.uuid4().hex[:12]}"
         self.cohost_id = cohost_id
         self.display_name = display_name
         self.state = GhostStageState.IDLE
@@ -381,7 +381,7 @@ class GhostStage:
             "data": element.to_dict(),
             "timestamp": time.time(),
         })
-        self._log("element_added", f"Added {element.type.value}}: {element.id[:8]}}")
+        self._log("element_added", f"Added {element.type.value}: {element.id[:8]}")
 
     def update_element(self, element_id: str, updates: Dict[str, Any]) -> bool:
         """Update an element in the ghost stage."""
@@ -443,7 +443,7 @@ class GhostStage:
         """Mark the ghost stage as ready for review."""
         self.state = GhostStageState.PENDING_REVIEW
         self.review_notes = notes
-        self._log("staged_for_review", f"Ghost stage ready for review: {len(self.patches)}} patches")
+        self._log("staged_for_review", f"Ghost stage ready for review: {len(self.patches)} patches")
 
     def merge_to_main(self, main_elements: Dict[str, CRDTElement]) -> Dict[str, Any]:
         """
@@ -481,7 +481,7 @@ class GhostStage:
             "merged_at": datetime.now().isoformat(),
         }
 
-        self._log("merged", f"Merged to main: {added}} ~{updated}} -{deleted}}")
+        self._log("merged", f"Merged to main: {added} ~{updated} -{deleted}")
         return result
 
     def discard(self):
@@ -525,7 +525,7 @@ class CanvasSnapshot:
 
     def __init__(self, elements: Dict[str, CRDTElement], viewport: ViewportState,
                  label: str = ""):
-        self.id = f"snap_{uuid.uuid4().hex[:12]}}"
+        self.id = f"snap_{uuid.uuid4().hex[:12]}"
         self.timestamp = time.time()
         self.label = label
         self.element_count = len(elements)
@@ -646,7 +646,7 @@ class CollaborativeCanvas:
         if color is None:
             # Generate color from user_id hash
             hue = int(hashlib.md5(user_id.encode()).hexdigest()[:4], 16) % 360
-            color = f"hsl({hue}}, 70%, 60%)"
+            color = f"hsl({hue}, 70%, 60%)"
 
         cursor = CursorPosition(
             user_id=user_id,
@@ -733,7 +733,7 @@ class CollaborativeCanvas:
             x = round(x / self.grid_size) * self.grid_size
             y = round(y / self.grid_size) * self.grid_size
 
-        element_id = f"elem_{uuid.uuid4().hex[:16]}}"
+        element_id = f"elem_{uuid.uuid4().hex[:16]}"
         element = CRDTElement(
             element_id=element_id,
             element_type=element_type,

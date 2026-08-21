@@ -267,7 +267,7 @@ def build_histogram(df, x=None, **kwargs):
         opacity=0.8,
     )
     fig.update_layout(
-        title=kwargs.get("title", f"Distribution of {x}}"),
+        title=kwargs.get("title", f"Distribution of {x}"),
         xaxis_title=kwargs.get("x_label", x),
         yaxis_title="Frequency",
         bargap=0.05,
@@ -287,7 +287,7 @@ def build_scatter(df, x=None, y=None, color=None, size=None, **kwargs):
         opacity=0.7,
     )
     fig.update_layout(
-        title=kwargs.get("title", f"{y}} vs {x}}"),
+        title=kwargs.get("title", f"{y} vs {x}"),
         xaxis_title=kwargs.get("x_label", x),
         yaxis_title=kwargs.get("y_label", y),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
@@ -306,7 +306,7 @@ def build_bubble(df, x=None, y=None, size=None, color=None, **kwargs):
         opacity=0.7,
     )
     fig.update_layout(
-        title=kwargs.get("title", f"Bubble: {x}} vs {y}} (size: {size}})"),
+        title=kwargs.get("title", f"Bubble: {x} vs {y} (size: {size})"),
         xaxis_title=kwargs.get("x_label", x),
         yaxis_title=kwargs.get("y_label", y),
     )
@@ -342,7 +342,7 @@ def build_box(df, x=None, y=None, color=None, **kwargs):
     else:
         return None
     fig.update_layout(
-        title=kwargs.get("title", f"Box Plot of {y}}"),
+        title=kwargs.get("title", f"Box Plot of {y}"),
         xaxis_title=kwargs.get("x_label", x),
         yaxis_title=kwargs.get("y_label", y),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
@@ -361,7 +361,7 @@ def build_violin(df, x=None, y=None, color=None, **kwargs):
         height=kwargs.get("height", 430),
     )
     fig.update_layout(
-        title=kwargs.get("title", f"Violin Plot of {y}}"),
+        title=kwargs.get("title", f"Violin Plot of {y}"),
         xaxis_title=kwargs.get("x_label", x),
         yaxis_title=kwargs.get("y_label", y),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
@@ -454,7 +454,7 @@ def build_scatter_3d(df, x=None, y=None, z=None, color=None, **kwargs):
         opacity=0.8,
     )
     fig.update_layout(
-        title=kwargs.get("title", f"3D: {x}}, {y}}, {z}}"),
+        title=kwargs.get("title", f"3D: {x}, {y}, {z}"),
         scene=dict(
             xaxis_title=x, yaxis_title=y, zaxis_title=z,
             bgcolor="rgba(0,0,0,0)",
@@ -485,9 +485,9 @@ def build_waterfall(df, x=None, y=None, **kwargs):
     fig = go.Figure(go.Waterfall(
         x=df[x],
         y=df[y],
-        text=[f"{v:,}}" if "<change>" in str(k) else str(v) for k, v in zip(df[x], df[y])],
+        text=[f"{v:,}" if "<change>" in str(k) else str(v) for k, v in zip(df[x], df[y])],
         textposition="outside",
-        connector={"line": {"color": "rgb(63, 63, 63)"}},
+        connector={"line": {"color": "rgb(63, 63, 63)"},
     ))
     fig.update_layout(
         title=kwargs.get("title", "Waterfall Chart"),
@@ -519,7 +519,7 @@ def build_gauge(df, value_col=None, **kwargs):
         title = kwargs.get("title", "Gauge")
     else:
         value = float(df[value_col].mean()) if not df[value_col].isna().all() else 0
-        title = kwargs.get("title", f"Average {value_col}}")
+        title = kwargs.get("title", f"Average {value_col}")
 
     fig = go.Figure(go.Indicator(
         mode="gaugenumberdelta",
@@ -599,7 +599,7 @@ def build_chart(chart_type: str, df: pd.DataFrame, **kwargs) -> Optional[go.Figu
             return builder(df, **kwargs)
     except Exception as e:
         import streamlit as st
-        st.warning(f"Chart build error ({chart_type}}): {str(e)}}")
+        st.warning(f"Chart build error ({chart_type}): {str(e)}")
         return None
 
 

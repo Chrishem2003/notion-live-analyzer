@@ -45,7 +45,7 @@ def _send_via_smtp(msg: MIMEMultipart) -> bool:
         
         return True
     except Exception as e:
-        st.error(f"SMTP send failed: {e}}")
+        st.error(f"SMTP send failed: {e}")
         return False
 
 def _send_via_sendgrid(to_email: str, subject: str, html: str, attachments: List[tuple] = None) -> bool:
@@ -77,14 +77,14 @@ def _send_via_sendgrid(to_email: str, subject: str, html: str, attachments: List
         response = requests.post(
             url,
             headers={
-                "Authorization": f"Bearer {SENDGRID_API_KEY}}",
+                "Authorization": f"Bearer {SENDGRID_API_KEY}",
                 "Content-Type": "application/json",
             },
             json=msg,
         )
         return response.status_code in (200, 201, 202)
     except Exception as e:
-        st.error(f"SendGrid send failed: {e}}")
+        st.error(f"SendGrid send failed: {e}")
         return False
 
 def send_email(
@@ -130,7 +130,7 @@ def send_email(
     
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = f"{SMTP_FROM_NAME}} <{SMTP_FROM_EMAIL}}>"
+    msg["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
     msg["To"] = to_email
     msg["Date"] = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S 0000")
     
@@ -148,7 +148,7 @@ def send_email(
             encoders.encode_base64(part)
             part.add_header(
                 "Content-Disposition",
-                f'attachment; filename= {att.get("filename", "attachment")}}',
+                f'attachment; filename= {att.get("filename", "attachment")}',
             )
             msg.attach(part)
     
@@ -206,13 +206,13 @@ VERIFICATION_EMAIL_TEMPLATE = """
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-        body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }}
-        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }}
-        .btn {{ display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }}
-        .score-box {{ background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #22c55e; }}
+        body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header {{ background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }
+        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
+        .btn {{ display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+        .score-box {{ background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #22c55e; }
     </style>
 </head>
 <body>
@@ -300,17 +300,17 @@ AUDIT_REPORT_TEMPLATE = """
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-        body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }}
-        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }}
-        .score-card {{ display: inline-block; background: white; padding: 15px 25px; border-radius: 8px; margin: 10px; text-align: center; }}
-        .score-value {{ font-size: 24px; font-weight: bold; }}
-        .score-label {{ font-size: 12px; color: #64748b; }}
-        table {{ width: 100%; border-collapse: collapse; margin: 15px 0; }}
-        th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }}
-        th {{ background: #f1f5f9; }}
+        body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header {{ background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }
+        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
+        .score-card {{ display: inline-block; background: white; padding: 15px 25px; border-radius: 8px; margin: 10px; text-align: center; }
+        .score-value {{ font-size: 24px; font-weight: bold; }
+        .score-label {{ font-size: 12px; color: #64748b; }
+        table {{ width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th {{ background: #f1f5f9; }
     </style>
 </head>
 <body>
@@ -411,14 +411,14 @@ WELCOME_EMAIL_TEMPLATE = """
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-        body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }}
-        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }}
-        .features {{ list-style: none; padding: 0; }}
-        .features li {{ padding: 10px 0; border-bottom: 1px solid #e2e8f0; }}
-        .btn {{ display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }}
+        body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header {{ background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }
+        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
+        .features {{ list-style: none; padding: 0; }
+        .features li {{ padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+        .btn {{ display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -505,7 +505,7 @@ def send_audit_report(
     attachments = None
     if pdf_content:
         attachments = [{
-            "filename": f"audit_report_{datetime.now().strftime('%Y%m%d')}}.pdf",
+            "filename": f"audit_report_{datetime.now().strftime('%Y%m%d')}.pdf",
             "content": pdf_content,
             "mime_type": "application/pdf",
         }]
@@ -567,7 +567,7 @@ def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
             st.download_button(
                 "ðŸ“¥ Download PDF Report",
                 data=pdf_bytes,
-                file_name=f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M')}}.pdf",
+                file_name=f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
                 mime="application/pdf",
             )
         else:
@@ -578,7 +578,7 @@ def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
             st.download_button(
                 "ðŸ“¥ Download Text Report",
                 data=text_report,
-                file_name=f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M')}}.txt",
+                file_name=f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
                 mime="text/plain",
             )
     else:
@@ -597,7 +597,7 @@ def render_email_options(report_data: Dict, pdf_bytes: bytes = None):
                     with st.spinner("Sending..."):
                         success = send_audit_report(email, report_data, pdf_bytes)
                         if success:
-                            st.success(f"âœ… Report sent to {email}}")
+                            st.success(f"âœ… Report sent to {email}")
                         else:
                             st.error("Failed to send email. Please try again.")
 

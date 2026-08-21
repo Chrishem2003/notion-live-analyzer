@@ -41,15 +41,15 @@ class TableGenerator:
                     if len(sub) == 0:
                         continue
                     row = {"Variable": col, "Group": str(group), "N": len(sub)}
-                    if "Mean" in include: row["Mean"] = f"{sub.mean():.2f}}"
-                    if "SD" in include: row["SD"] = f"{sub.std():.2f}}"
-                    if "Min" in include: row["Min"] = f"{sub.min():.2f}}"
-                    if "Max" in include: row["Max"] = f"{sub.max():.2f}}"
-                    if "Median" in include: row["Median"] = f"{sub.median():.2f}}"
-                    if "Skewness" in include: row["Skewness"] = f"{sub.skew():.2f}}"
-                    if "Kurtosis" in include: row["Kurtosis"] = f"{sub.kurtosis():.2f}}"
-                    if "SE" in include: row["SE"] = f"{sub.std() / np.sqrt(len(sub)):.2f}}"
-                    if "IQR" in include: row["IQR"] = f"{sub.quantile(0.75) - sub.quantile(0.25):.2f}}"
+                    if "Mean" in include: row["Mean"] = f"{sub.mean():.2f}"
+                    if "SD" in include: row["SD"] = f"{sub.std():.2f}"
+                    if "Min" in include: row["Min"] = f"{sub.min():.2f}"
+                    if "Max" in include: row["Max"] = f"{sub.max():.2f}"
+                    if "Median" in include: row["Median"] = f"{sub.median():.2f}"
+                    if "Skewness" in include: row["Skewness"] = f"{sub.skew():.2f}"
+                    if "Kurtosis" in include: row["Kurtosis"] = f"{sub.kurtosis():.2f}"
+                    if "SE" in include: row["SE"] = f"{sub.std() / np.sqrt(len(sub)):.2f}"
+                    if "IQR" in include: row["IQR"] = f"{sub.quantile(0.75) - sub.quantile(0.25):.2f}"
                     all_rows.append(row)
             return pd.DataFrame(all_rows)
         else:
@@ -59,15 +59,15 @@ class TableGenerator:
                 if len(series) == 0:
                     continue
                 row = {"Variable": col, "N": len(series)}
-                if "Mean" in include: row["Mean"] = f"{series.mean():.2f}}"
-                if "SD" in include: row["SD"] = f"{series.std():.2f}}"
-                if "Min" in include: row["Min"] = f"{series.min():.2f}}"
-                if "Max" in include: row["Max"] = f"{series.max():.2f}}"
-                if "Median" in include: row["Median"] = f"{series.median():.2f}}"
-                if "Skewness" in include: row["Skewness"] = f"{series.skew():.2f}}"
-                if "Kurtosis" in include: row["Kurtosis"] = f"{series.kurtosis():.2f}}"
-                if "SE" in include: row["SE"] = f"{series.std() / np.sqrt(len(series)):.2f}}"
-                if "IQR" in include: row["IQR"] = f"{series.quantile(0.75) - series.quantile(0.25):.2f}}"
+                if "Mean" in include: row["Mean"] = f"{series.mean():.2f}"
+                if "SD" in include: row["SD"] = f"{series.std():.2f}"
+                if "Min" in include: row["Min"] = f"{series.min():.2f}"
+                if "Max" in include: row["Max"] = f"{series.max():.2f}"
+                if "Median" in include: row["Median"] = f"{series.median():.2f}"
+                if "Skewness" in include: row["Skewness"] = f"{series.skew():.2f}"
+                if "Kurtosis" in include: row["Kurtosis"] = f"{series.kurtosis():.2f}"
+                if "SE" in include: row["SE"] = f"{series.std() / np.sqrt(len(series)):.2f}"
+                if "IQR" in include: row["IQR"] = f"{series.quantile(0.75) - series.quantile(0.25):.2f}"
                 rows.append(row)
             return pd.DataFrame(rows)
 
@@ -101,11 +101,11 @@ class TableGenerator:
                                 if p < 0.001: stars = "***"
                                 elif p < 0.01: stars = "**"
                                 elif p < 0.05: stars = "*"
-                            row[v2] = f"{r:.3f}}{stars}}"
+                            row[v2] = f"{r:.3f}{stars}"
                         else:
-                            row[v2] = f"{r:.3f}}"
+                            row[v2] = f"{r:.3f}"
                     else:
-                        row[v2] = f"{r:.3f}}"
+                        row[v2] = f"{r:.3f}"
                 else:
                     row[v2] = ""
             data.append(row)
@@ -125,7 +125,7 @@ class TableGenerator:
         Format regression results as a publication-ready table.
         """
         if model_names is None:
-            model_names = [f"Model {i1}}" for i in range(len(models))]
+            model_names = [f"Model {i1}" for i in range(len(models))]
 
         rows = []
         for i, model in enumerate(models):
@@ -149,20 +149,20 @@ class TableGenerator:
                     rows.append({
                         "Model": model_names[i],
                         "Variable": var_name,
-                        "B": f"{coef:.3f}}" if isinstance(coef, (int, float)) else str(coef),
-                        "SE": f"{se:.3f}}" if isinstance(se, (int, float)) else str(se),
-                        "p": f"{p:.3f}}{stars}}" if isinstance(p, (int, float)) else str(p),
+                        "B": f"{coef:.3f}" if isinstance(coef, (int, float)) else str(coef),
+                        "SE": f"{se:.3f}" if isinstance(se, (int, float)) else str(se),
+                        "p": f"{p:.3f}{stars}" if isinstance(p, (int, float)) else str(p),
                     })
 
             # Model fit statistics
             if r2 is not None:
-                rows.append({"Model": model_names[i], "Variable": "RÃ‚Â²", "B": f"{r2:.3f}}", "SE": "", "p": ""})
+                rows.append({"Model": model_names[i], "Variable": "RÃ‚Â²", "B": f"{r2:.3f}", "SE": "", "p": ""})
             if adj_r2 is not None:
-                rows.append({"Model": model_names[i], "Variable": "Adj. RÃ‚Â²", "B": f"{adj_r2:.3f}}", "SE": "", "p": ""})
+                rows.append({"Model": model_names[i], "Variable": "Adj. RÃ‚Â²", "B": f"{adj_r2:.3f}", "SE": "", "p": ""})
             if n is not None:
                 rows.append({"Model": model_names[i], "Variable": "N", "B": str(n), "SE": "", "p": ""})
             if f_stat is not None:
-                rows.append({"Model": model_names[i], "Variable": "F", "B": f"{f_stat:.3f}}", "SE": "", "p": f"{f_p:.3f}}" if f_p else ""})
+                rows.append({"Model": model_names[i], "Variable": "F", "B": f"{f_stat:.3f}", "SE": "", "p": f"{f_p:.3f}" if f_p else ""})
 
         result = pd.DataFrame(rows)
         result.attrs["footnote"] = "*** p < .001, ** p < .01, * p < .05"
@@ -195,8 +195,8 @@ class TableGenerator:
         lines = [
             r"\begin{table}[htbp]",
             r"\centering",
-            rf"\caption{{{caption}}}",
-            rf"\label{{{label}}}",
+            rf"\caption{{{caption}}",
+            rf"\label{{{label}}",
             r"\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "}",
             r"\toprule",
             " & ".join(df.columns) + r" \\",
@@ -215,7 +215,7 @@ class TableGenerator:
     @staticmethod
     def to_apa_markdown(df: pd.DataFrame, title: str = "Table 1") -> str:
         """Convert a DataFrame to APA-style markdown table."""
-        lines = [f"**{title}}**", ""]
+        lines = [f"**{title}**", ""]
         footnote = df.attrs.get("footnote", "")
         # Header
         lines.append("| " + " | ".join(str(c) for c in df.columns) + " |")
@@ -224,7 +224,7 @@ class TableGenerator:
             lines.append("| " + " | ".join(str(v) for v in row.values) + " |")
         if footnote:
             lines.append("")
-            lines.append(f"*Note.* {footnote}}")
+            lines.append(f"*Note.* {footnote}")
         return "\n".join(lines)
 
 
@@ -312,5 +312,5 @@ def render_table_generator_ui():
             result = TableGenerator.frequency_table(df, freq_col)
             st.dataframe(result, use_container_width=True, hide_index=True)
             st.markdown("**ðŸ“‹ APA Markdown:**")
-            st.code(TableGenerator.to_apa_markdown(result, f"Table 4: Frequency Distribution of {freq_col}}"), language="markdown")
+            st.code(TableGenerator.to_apa_markdown(result, f"Table 4: Frequency Distribution of {freq_col}"), language="markdown")
 

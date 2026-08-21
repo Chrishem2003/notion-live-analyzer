@@ -28,14 +28,14 @@ from celery_app import celery_app
 def submit_task(session_key: str, task_name: str, args: tuple = (), kwargs: dict = None):
     """Fire a task and remember its id under `session_key` in session_state."""
     async_result = celery_app.send_task(task_name, args=args, kwargs=kwargs or {})
-    st.session_state[f"_task_id__{session_key}}"] = async_result.id
-    st.session_state[f"_task_done__{session_key}}"] = False
+    st.session_state[f"_task_id__{session_key}"] = async_result.id
+    st.session_state[f"_task_done__{session_key}"] = False
     return async_result.id
 
 
 def get_task_status(session_key: str):
     """Return (state, meta) for the job stored under `session_key`, or None if none submitted."""
-    task_id = st.session_state.get(f"_task_id__{session_key}}")
+    task_id = st.session_state.get(f"_task_id__{session_key}")
     if not task_id:
         return None, None
     result = AsyncResult(task_id, app=celery_app)
@@ -51,13 +51,13 @@ def render_task_progress(session_key: str, poll_seconds: float = 1.5):
     Call this on every rerun (it self-triggers reruns via st.rerun while a
     job is in flight â€” no external polling loop needed).
     """
-    task_id = st.session_state.get(f"_task_id__{session_key}}")
+    task_id = st.session_state.get(f"_task_id__{session_key}")
     if not task_id:
         return None
 
-    if st.session_state.get(f"_task_done__{session_key}}"):
+    if st.session_state.get(f"_task_done__{session_key}"):
         # Already finished on a prior rerun â€” don't re-poll, just return the cached value.
-        return st.session_state.get(f"_task_result__{session_key}}")
+        return st.session_state.get(f"_task_result__{session_key}")
 
     result = AsyncResult(task_id, app=celery_app)
     state = result.state
@@ -76,26 +76,26 @@ def render_task_progress(session_key: str, poll_seconds: float = 1.5):
         stage = meta.get("stage", "working...")
         with progress_box.container():
             st.progress(min(current / total, 1.0))
-            st.caption(f"ðŸ”„ {stage}}")
+            st.caption(f"ðŸ”„ {stage}")
         time_delay(poll_seconds)
         st.rerun()
 
     elif state == "SUCCESS":
         progress_box.success("âœ… Job complete.")
         value = result.result
-        st.session_state[f"_task_done__{session_key}}"] = True
-        st.session_state[f"_task_result__{session_key}}"] = value
+        st.session_state[f"_task_done__{session_key}"] = True
+        st.session_state[f"_task_result__{session_key}"] = value
         return value
 
     elif state == "FAILURE":
         error_msg = meta.get("error", str(result.result))
-        progress_box.error(f"âŒ Job failed: {error_msg}}")
-        st.session_state[f"_task_done__{session_key}}"] = True
-        st.session_state[f"_task_result__{session_key}}"] = None
+        progress_box.error(f"âŒ Job failed: {error_msg}")
+        st.session_state[f"_task_done__{session_key}"] = True
+        st.session_state[f"_task_result__{session_key}"] = None
         return None
 
     else:
-        progress_box.info(f"Status: {state}}")
+        progress_box.info(f"Status: {state}")
         time_delay(poll_seconds)
         st.rerun()
 
@@ -110,8 +110,8 @@ def time_delay(seconds: float):
 
 def cancel_task(session_key: str):
     """Revoke a running job and clear it from session_state."""
-    task_id = st.session_state.get(f"_task_id__{session_key}}")
+    task_id = st.session_state.get(f"_task_id__{session_key}")
     if task_id:
         celery_app.control.revoke(task_id, terminate=True)
     for suffix in ("_task_id__", "_task_done__", "_task_result__"):
-        st.session_state.pop(f"{suffix}}{session_key}}", None)
+        st.session_state.pop(f"{suffix}{session_key}", None)

@@ -18,25 +18,25 @@ WS_BASE_URL = os.environ.get("WS_BASE_URL", "ws://localhost:8000")
 def get_chat_token(user_email: str) -> str | None:
     try:
         resp = requests.post(
-            f"{API_BASE_URL}}/api/v1/chat/token", params={"email": user_email},
+            f"{API_BASE_URL}/api/v1/chat/token", params={"email": user_email},
             headers={"X-API-Key": os.environ.get("PLATFORM_API_KEY", "")}, timeout=5,
         )
         resp.raise_for_status()
         return resp.json()["token"]
     except Exception as e:
-        st.error(f"Docs backend unavailable: {e}}")
+        st.error(f"Docs backend unavailable: {e}")
         return None
 
 
 def render_live_doc(user_email: str, doc_id: str):
-    st.markdown(f"### ðŸ“ Live Doc: {doc_id}}")
+    st.markdown(f"### ðŸ“ Live Doc: {doc_id}")
     st.caption("Real-time collaborative editing â€” multiple people can type at once without overwriting each other.")
 
     token = get_chat_token(user_email)
     if not token:
         return
 
-    ws_url = f"{WS_BASE_URL}}/ws/docs/{doc_id}}?token={token}}"
+    ws_url = f"{WS_BASE_URL}/ws/docs/{doc_id}?token={token}"
 
     widget_html = f"""
     <div id="doc-status" style="font-size:0.8em;color:#94a3b8;margin-bottom:6px;">Connecting...</div>
@@ -55,17 +55,17 @@ def render_live_doc(user_email: str, doc_id: str):
 
         function b64ToBytes(b64) {{
             return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-        }}
+        }
         function bytesToB64(bytes) {{
             return btoa(String.fromCharCode(...bytes));
-        }}
+        }
 
         const ws = new WebSocket({ws_url!r});
 
-        ws.onopen = () => {{ statusEl.textContent = 'Connected â€” real-time sync active.'; }};
+        ws.onopen = () => {{ statusEl.textContent = 'Connected â€” real-time sync active.'; };
         ws.onclose = (event) => {{
             statusEl.textContent = event.code === 4401 ? 'Session expired â€” refresh the page.' : 'Disconnected.';
-        }};
+        };
 
         ws.onmessage = (event) => {{
             const data = JSON.parse(event.data);
@@ -74,12 +74,12 @@ def render_live_doc(user_email: str, doc_id: str):
             Y.applyUpdate(ydoc, bytes);
             applyingRemote = false;
             editorEl.innerText = ytext.toString();
-        }};
+        };
 
         ydoc.on('update', (update, origin) => {{
             if (applyingRemote) return;  // don't re-send updates that came from the server
-            ws.send(JSON.stringify({{type: 'update', update: bytesToB64(update)}}));
-        }});
+            ws.send(JSON.stringify({{type: 'update', update: bytesToB64(update)}));
+        });
 
         // Naive contenteditable -> Y.Text sync: on every keystroke, diff the
         // whole text and replace. This is intentionally simple (not
@@ -94,8 +94,8 @@ def render_live_doc(user_email: str, doc_id: str):
             ydoc.transact(() => {{
                 ytext.delete(0, ytext.length);
                 ytext.insert(0, newText);
-            }});
-        }});
+            });
+        });
     </script>
     """
     st.components.v1.html(widget_html, height=420)

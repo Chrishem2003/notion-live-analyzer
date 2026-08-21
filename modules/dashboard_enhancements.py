@@ -37,7 +37,7 @@ def smart_search_filter(df: pd.DataFrame, search_cols=None) -> pd.DataFrame:
             mask = mask | df[col].astype(str).str.contains(search_query, case=False, na=False)
             
     filtered_df = df[mask]
-    st.caption(f"Showing {len(filtered_df)}} of {len(df)}} matching records.")
+    st.caption(f"Showing {len(filtered_df)} of {len(df)} matching records.")
     return filtered_df
 
 def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
@@ -53,7 +53,7 @@ def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
         st.download_button(
             label="Download as CSV",
             data=csv_data,
-            file_name=f"{file_prefix}}_{int(time.time())}}.csv",
+            file_name=f"{file_prefix}_{int(time.time())}.csv",
             mime="text/csv"
         )
         
@@ -62,7 +62,7 @@ def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
         st.download_button(
             label="Download as JSON",
             data=json_data,
-            file_name=f"{file_prefix}}_{int(time.time())}}.json",
+            file_name=f"{file_prefix}_{int(time.time())}.json",
             mime="application/json"
         )
 

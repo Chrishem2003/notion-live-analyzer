@@ -178,7 +178,7 @@ def interpret_clinical_value(
         if matches:
             test_name = matches[0]
         else:
-            return {"error": f"Unknown test: {test_name}}", "test": test_name}
+            return {"error": f"Unknown test: {test_name}", "test": test_name}
 
     ref = CLINICAL_REFERENCE_RANGES[test_name]
     normal_low, normal_high = ref["normal"]
@@ -214,7 +214,7 @@ def interpret_clinical_value(
         "test": test_name,
         "value": value,
         "unit": unit,
-        "normal_range": f"{normal_low}}Ã¢â‚¬â€œ{normal_high}} {unit}}",
+        "normal_range": f"{normal_low}Ã¢â‚¬â€œ{normal_high} {unit}",
         "status": status,
         "severity": severity,
         "deviation_pct": deviation_pct,
@@ -371,12 +371,12 @@ def render_clinical_analytics_ui():
 
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.metric("Ideal Weight Range", f"{result.get('ideal_weight_min', 0):.0f}}Ã¢â‚¬â€œ{result.get('ideal_weight_max', 0):.0f}} kg")
+                    st.metric("Ideal Weight Range", f"{result.get('ideal_weight_min', 0):.0f}Ã¢â‚¬â€œ{result.get('ideal_weight_max', 0):.0f} kg")
                 with col2:
                     if result.get("weight_to_ideal", 0) > 0:
-                        st.metric("Weight to Lose", f"{result['weight_to_ideal']:.1f}} kg", delta=-result['weight_to_ideal'])
+                        st.metric("Weight to Lose", f"{result['weight_to_ideal']:.1f} kg", delta=-result['weight_to_ideal'])
                     elif result.get("weight_to_gain", 0) > 0:
-                        st.metric("Weight to Gain", f"{result['weight_to_gain']:.1f}} kg", delta=result['weight_to_gain'])
+                        st.metric("Weight to Gain", f"{result['weight_to_gain']:.1f} kg", delta=result['weight_to_gain'])
                     else:
                         st.metric("Weight Status", "âœ… Healthy")
                 with col3:
@@ -386,7 +386,7 @@ def render_clinical_analytics_ui():
                     z = result.get("z_score", 0)
                     pct = result.get("percentile", 50)
                     status = result.get("status_for_age", "")
-                    st.info(f"**BMI-for-age**: Z-score = {z:.2f}}, Percentile = {pct:.1f}}%  **{status}}**")
+                    st.info(f"**BMI-for-age**: Z-score = {z:.2f}, Percentile = {pct:.1f}%  **{status}**")
 
         # BMI Category reference
         with st.expander("Ã°Å¸â€œâ€“ WHO BMI Classification Reference"):
@@ -413,7 +413,7 @@ def render_clinical_analytics_ui():
         if filtered_tests:
             test_name = st.selectbox("Select a test", options=list(filtered_tests.keys()), key="clin_test")
             value = st.number_input("Enter value", value=0.0, step=0.1, key="clin_value",
-                                    help=f"Normal range: {filtered_tests[test_name]['normal'][0]}}Ã¢â‚¬â€œ{filtered_tests[test_name]['normal'][1]}} {filtered_tests[test_name]['unit']}}")
+                                    help=f"Normal range: {filtered_tests[test_name]['normal'][0]}Ã¢â‚¬â€œ{filtered_tests[test_name]['normal'][1]} {filtered_tests[test_name]['unit']}")
 
             if value != 0 and st.button("Ã°Å¸â€Â Interpret", type="primary"):
                 result = interpret_clinical_value(test_name, value)
@@ -436,9 +436,9 @@ def render_clinical_analytics_ui():
             for name, ref in CLINICAL_REFERENCE_RANGES.items():
                 ref_rows.append({
                     "Test": name,
-                    "Normal Range": f"{ref['normal'][0]}}Ã¢â‚¬â€œ{ref['normal'][1]}} {ref['unit']}}",
-                    "Critical Low": f"< {ref.get('flag_low', ref['normal'][0])}}",
-                    "Critical High": f"> {ref.get('flag_high', ref['normal'][1])}}",
+                    "Normal Range": f"{ref['normal'][0]}Ã¢â‚¬â€œ{ref['normal'][1]} {ref['unit']}",
+                    "Critical Low": f"< {ref.get('flag_low', ref['normal'][0])}",
+                    "Critical High": f"> {ref.get('flag_high', ref['normal'][1])}",
                 })
             ref_df = pd.DataFrame(ref_rows)
             st.dataframe(ref_df, use_container_width=True, hide_index=True)
@@ -461,9 +461,9 @@ def render_clinical_analytics_ui():
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Z-Score", f"{z:.2f}}")
+                st.metric("Z-Score", f"{z:.2f}")
             with col2:
-                st.metric("Percentile", f"{pct:.1f}}%")
+                st.metric("Percentile", f"{pct:.1f}%")
             with col3:
                 status = "Above average" if z > 0 else "Below average" if z < 0 else "Average"
                 st.metric("Interpretation", status)
@@ -478,7 +478,7 @@ def render_clinical_analytics_ui():
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=x_range, y=y_range, mode='lines', fill='tozeroy',
                                      name='Normal Distribution', line=dict(color='#1d4ed8')))
-            fig.add_vline(x=z, line_color='red', line_dash='dash', annotation_text=f'z = {z:.2f}}')
+            fig.add_vline(x=z, line_color='red', line_dash='dash', annotation_text=f'z = {z:.2f}')
 
             fig.update_layout(title='Standard Normal Distribution', height=300,
                               xaxis_title='Z-Score', yaxis_title='Density',
@@ -534,6 +534,6 @@ def render_clinical_analytics_ui():
 
             with st.expander("ðŸ“‹ Risk Factor Details"):
                 for factor, value in risk.get("risk_factors", {}).items():
-                    st.markdown(f"- **{factor.replace('_', ' ').title()}}**: {value}}")
+                    st.markdown(f"- **{factor.replace('_', ' ').title()}**: {value}")
 
 

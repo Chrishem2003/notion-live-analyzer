@@ -31,18 +31,18 @@ except ImportError:
     def setup_page(title, icon, initial_sidebar_state="expanded"):
         st.set_page_config(page_title=title, page_icon=icon, layout="wide", initial_sidebar_state=initial_sidebar_state)
     def render_standard_footer(title):
-        st.caption(f"© 2026 {title}} | Sovereign Apex Enterprise System")
+        st.caption(f"© 2026 {title} | Sovereign Apex Enterprise System")
     def get_active_dataframe():
         return st.session_state.get("active_df", None)
     def hero_card(title, description, badge_text=""):
-        st.title(f"{title}} ({badge_text}})" if badge_text else title)
+        st.title(f"{title} ({badge_text})" if badge_text else title)
         st.caption(description)
     def section_header(title, subtitle=""):
         st.subheader(title)
         if subtitle:
             st.caption(subtitle)
     def render_export_buttons(df, base_name="export"):
-        st.download_button("📥 Export CSV", df.to_csv(index=False).encode('utf-8'), f"{base_name}}.csv", "text/csv")
+        st.download_button("📥 Export CSV", df.to_csv(index=False).encode('utf-8'), f"{base_name}.csv", "text/csv")
 
 try:
     import plotly.express as px
@@ -131,7 +131,7 @@ def render_meetings_hub():
         enable_audio = st.checkbox("Enable Microphone Audio", value=True)
 
         if st.button("🚀 Launch / Join Room", type="primary", key="launch_room_btn"):
-            st.success(f"✅ Connected to secure WebRTC channel: `{room_name}}` as **{user_alias}}**")
+            st.success(f"✅ Connected to secure WebRTC channel: `{room_name}` as **{user_alias}**")
             with get_db_connection() as conn:
                 conn.execute(
                     "INSERT OR REPLACE INTO meeting_rooms (room_name, host, active_participants, created_at) VALUES (?,?,?,?)",
@@ -140,7 +140,7 @@ def render_meetings_hub():
                 conn.commit()
 
     with col2:
-        st.markdown(f"#### Live Stream Window — Room: `{room_name}}`")
+        st.markdown(f"#### Live Stream Window — Room: `{room_name}`")
         if WEBRTC_AVAILABLE and RTC_CONFIGURATION is not None:
             webrtc_streamer(
                 key=room_name,
@@ -193,7 +193,7 @@ def render_projects():
                     (proj_name.strip(), proj_lead.strip() or "CHRISHEM", proj_stage, proj_progress, proj_budget, datetime.datetime.now().isoformat()),
                 )
                 conn.commit()
-            st.success(f"✅ Project `{proj_name}}` successfully initialized and persisted.")
+            st.success(f"✅ Project `{proj_name}` successfully initialized and persisted.")
             st.rerun()
 
 
@@ -223,7 +223,7 @@ def render_pipeline():
                     (p_title.strip(), p_target.strip(), p_status, str(p_deadline), datetime.datetime.now().isoformat()),
                 )
                 conn.commit()
-            st.success(f"✅ Added `{p_title}}` to the pipeline.")
+            st.success(f"✅ Added `{p_title}` to the pipeline.")
             st.rerun()
 
     if not pipeline_df.empty:
@@ -241,7 +241,7 @@ def _mission_data_sync_clean(df):
     for c in cleaned.select_dtypes(include=["object"]).columns:
         cleaned[c] = cleaned[c].astype(str).str.strip()
     dups = cleaned.duplicated().sum()
-    return f"Scanned {before_rows:,}} rows across {df.shape[1]}} columns. Whitespace normalized. {dups:,}} exact duplicate row(s) detected."
+    return f"Scanned {before_rows:,} rows across {df.shape[1]} columns. Whitespace normalized. {dups:,} exact duplicate row(s) detected."
 
 
 def _mission_anomaly_detection(df):
@@ -257,7 +257,7 @@ def _mission_anomaly_detection(df):
         iqr = q3 - q1
         mask = (s < q1 - 1.5 * iqr) | (s > q3 + 1.5 * iqr)
         total_outliers += int(mask.sum())
-    return f"IQR outlier sweep across {len(numeric_cols)}} numeric column(s): {total_outliers:,}} outlier value(s) detected."
+    return f"IQR outlier sweep across {len(numeric_cols)} numeric column(s): {total_outliers:,} outlier value(s) detected."
 
 
 def _mission_literature_scrape(query):
@@ -305,25 +305,25 @@ def render_agents():
             else:
                 titles, err = _mission_literature_scrape(literature_query)
                 if err:
-                    status, summary = "FAILED", f"CrossRef request failed: {err}}"
-                    st.error(f"🚫 {summary}}")
+                    status, summary = "FAILED", f"CrossRef request failed: {err}"
+                    st.error(f"🚫 {summary}")
                 else:
-                    summary = f"Retrieved {len(titles)}} result(s) for '{literature_query}}'."
-                    st.success(f"✅ {summary}}")
+                    summary = f"Retrieved {len(titles)} result(s) for '{literature_query}'."
+                    st.success(f"✅ {summary}")
                     for t in titles:
-                        st.markdown(f"- {t}}")
+                        st.markdown(f"- {t}")
         elif df is None:
             status, summary = "FAILED", "No active dataset loaded — load data into session to execute."
-            st.warning(f"⚠️ {summary}}")
+            st.warning(f"⚠️ {summary}")
         elif task == "Data Sync & Clean Agent":
             summary = _mission_data_sync_clean(df)
-            st.success(f"✅ {summary}}")
+            st.success(f"✅ {summary}")
         elif task == "Anomaly Detection Agent":
             summary = _mission_anomaly_detection(df)
-            st.success(f"✅ {summary}}")
+            st.success(f"✅ {summary}")
         elif task == "Automated Report Compilation Agent":
-            summary = f"Report compiled successfully across {df.shape[0]:,}} rows."
-            st.success(f"✅ {summary}}")
+            summary = f"Report compiled successfully across {df.shape[0]:,} rows."
+            st.success(f"✅ {summary}")
 
         with get_db_connection() as conn:
             conn.execute(
@@ -377,7 +377,7 @@ def render_team_workspace():
         notes_df = pd.read_sql_query("SELECT author AS Author, note AS Note, timestamp AS Timestamp FROM collab_notes ORDER BY id DESC LIMIT 20", conn)
     
     for _, row in notes_df.iterrows():
-        st.markdown(f"- **[{row['Author']}}]** {row['Note']}} · _{str(row['Timestamp'])[:16].replace('T', ' ')}}_")
+        st.markdown(f"- **[{row['Author']}]** {row['Note']} · _{str(row['Timestamp'])[:16].replace('T', ' ')}_")
 
 
 def render_portfolio():
@@ -438,7 +438,7 @@ def render_venture_portfolio():
                     except NameError:
                         new_row = pd.DataFrame([{"project_name": name.strip(), "lead_entity": lead, "capital_ugx": capital, "roi_projection_pct": roi, "status": status}])
                         st.session_state.fallback_ventures = pd.concat([st.session_state.fallback_ventures, new_row], ignore_index=True)
-                    st.success(f"'{name}}' saved.")
+                    st.success(f"'{name}' saved.")
                     st.rerun()
                 else:
                     st.warning("Project name is required.")

@@ -28,7 +28,7 @@ WS_BASE_URL = os.environ.get("WS_BASE_URL", "ws://localhost:8000")
 def get_chat_token(user_email: str) -> str | None:
     try:
         resp = requests.post(
-            f"{API_BASE_URL}}/api/v1/chat/token",
+            f"{API_BASE_URL}/api/v1/chat/token",
             params={"email": user_email},
             headers={"X-API-Key": os.environ.get("PLATFORM_API_KEY", "")},
             timeout=5,
@@ -36,7 +36,7 @@ def get_chat_token(user_email: str) -> str | None:
         resp.raise_for_status()
         return resp.json()["token"]
     except Exception as e:
-        st.error(f"Chat backend unavailable: {e}}")
+        st.error(f"Chat backend unavailable: {e}")
         return None
 
 
@@ -48,7 +48,7 @@ def render_team_chat(user_email: str, room_id: str = "general"):
         st.warning("Chat is currently unavailable â€” the FastAPI backend (api_server.py) needs to be running and reachable at API_BASE_URL.")
         return
 
-    ws_url = f"{WS_BASE_URL}}/ws/chat/{room_id}}?token={token}}"
+    ws_url = f"{WS_BASE_URL}/ws/chat/{room_id}?token={token}"
 
     widget_html = f"""
     <div id="chat-container" style="border:1px solid #333;border-radius:8px;padding:10px;height:420px;display:flex;flex-direction:column;background:#0b1321;">
@@ -74,59 +74,59 @@ def render_team_chat(user_email: str, room_id: str = "general"):
         function appendMessage(sender, content, sentAt) {{
             const isSelf = sender === selfEmail;
             const bubble = document.createElement('div');
-            bubble.style.cssText = `margin:4px 0;display:flex;justify-content:${{isSelf ? 'flex-end' : 'flex-start'}};`;
+            bubble.style.cssText = `margin:4px 0;display:flex;justify-content:${{isSelf ? 'flex-end' : 'flex-start'};`;
             bubble.innerHTML = `
                 <div style="max-width:70%;padding:8px 12px;border-radius:12px;
-                            background:${{isSelf ? '#00838f' : '#1e293b'}};color:#fff;">
-                    ${{isSelf ? '' : `<div style="font-size:0.75em;color:#94a3b8;">${{sender}}</div>`}}
-                    <div>${{content}}</div>
-                    <div style="font-size:0.65em;color:#cbd5e1;text-align:right;">${{new Date(sentAt).toLocaleTimeString()}}</div>
+                            background:${{isSelf ? '#00838f' : '#1e293b'};color:#fff;">
+                    ${{isSelf ? '' : `<div style="font-size:0.75em;color:#94a3b8;">${{sender}</div>`}
+                    <div>${{content}</div>
+                    <div style="font-size:0.65em;color:#cbd5e1;text-align:right;">${{new Date(sentAt).toLocaleTimeString()}</div>
                 </div>`;
             messagesEl.appendChild(bubble);
             messagesEl.scrollTop = messagesEl.scrollHeight;
-        }}
+        }
 
         ws.onmessage = (event) => {{
             const data = JSON.parse(event.data);
             if (data.type === 'history') {{
                 data.messages.forEach(m => appendMessage(m.sender, m.content, m.sent_at));
-            }} else if (data.type === 'message') {{
+            } else if (data.type === 'message') {{
                 appendMessage(data.sender, data.content, data.sent_at);
-            }} else if (data.type === 'typing') {{
+            } else if (data.type === 'typing') {{
                 if (data.user !== selfEmail) {{
-                    typingEl.textContent = data.is_typing ? `${{data.user}} is typing...` : '';
-                }}
-            }}
-        }};
+                    typingEl.textContent = data.is_typing ? `${{data.user} is typing...` : '';
+                }
+            }
+        };
 
         ws.onclose = (event) => {{
             typingEl.textContent = event.code === 4401
                 ? 'Chat session expired â€” refresh the page.'
                 : 'Disconnected from chat.';
-        }};
+        };
 
         function sendMessage() {{
             const content = inputEl.value.trim();
             if (!content) return;
-            ws.send(JSON.stringify({{type: 'message', content: content}}));
+            ws.send(JSON.stringify({{type: 'message', content: content}));
             inputEl.value = '';
-        }}
+        }
 
         sendBtn.onclick = sendMessage;
         inputEl.addEventListener('keydown', (e) => {{
             if (e.key === 'Enter') sendMessage();
             else {{
-                ws.send(JSON.stringify({{type: 'typing', is_typing: true}}));
+                ws.send(JSON.stringify({{type: 'typing', is_typing: true}));
                 clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => ws.send(JSON.stringify({{type: 'typing', is_typing: false}})), 2000);
-            }}
-        }});
+                typingTimeout = setTimeout(() => ws.send(JSON.stringify({{type: 'typing', is_typing: false})), 2000);
+            }
+        });
 
         // Heartbeat every 20s so presence doesn't expire (PRESENCE_TTL_SECONDS=45 server-side)
         setInterval(() => {{
-            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({{type: 'heartbeat'}}));
-        }}, 20000);
-    }})();
+            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({{type: 'heartbeat'}));
+        }, 20000);
+    })();
     </script>
     """
 

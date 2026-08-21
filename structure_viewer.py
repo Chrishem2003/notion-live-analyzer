@@ -56,8 +56,8 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-            body {{ margin: 0; padding: 0; overflow: hidden; background-color: #0e1117; }}
-            #mol-container {{ width: 100vw; height: {height}px; position: relative; }}
+            body {{ margin: 0; padding: 0; overflow: hidden; background-color: #0e1117; }
+            #mol-container {{ width: 100vw; height: {height}px; position: relative; }
         </style>
     </head>
     <body>
@@ -66,35 +66,35 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
             let viewer = null;
             document.addEventListener("DOMContentLoaded", function() {{
                 let element = document.getElementById('mol-container');
-                let config = {{ backgroundColor: '#0e1117' }};
+                let config = {{ backgroundColor: '#0e1117' };
                 viewer = $3Dmol.createViewer(element, config);
                 
                 let pdbData = `{escaped_pdb}`;
                 viewer.addModel(pdbData, "pdb");
                 
-                let styleObj = {{}};
+                let styleObj = {{};
                 let styleType = "{style_type}";
                 let colorScheme = "{color_scheme}";
                 
                 if (styleType === "cartoon") {{
-                    styleObj = {{ cartoon: {{ color: colorScheme }} }};
-                }} else if (styleType === "stick") {{
-                    styleObj = {{ stick: {{ colorscheme: colorScheme }} }};
-                }} else if (styleType === "sphere") {{
-                    styleObj = {{ sphere: {{ colorscheme: colorScheme }} }};
-                }} else {{
-                    styleObj = {{ cartoon: {{ color: colorScheme }}, stick: {{}} }};
-                }}
+                    styleObj = {{ cartoon: {{ color: colorScheme } };
+                } else if (styleType === "stick") {{
+                    styleObj = {{ stick: {{ colorscheme: colorScheme } };
+                } else if (styleType === "sphere") {{
+                    styleObj = {{ sphere: {{ colorscheme: colorScheme } };
+                } else {{
+                    styleObj = {{ cartoon: {{ color: colorScheme }, stick: {{} };
+                }
                 
-                viewer.setStyle({{}}, styleObj);
+                viewer.setStyle({{}, styleObj);
                 
                 if ("{str(show_surface).lower()}" === "true") {{
-                    viewer.addSurface($3Dmol.SurfaceType.VDW, {{ opacity: 0.4, color: 'white' }});
-                }}
+                    viewer.addSurface($3Dmol.SurfaceType.VDW, {{ opacity: 0.4, color: 'white' });
+                }
                 
                 viewer.zoomTo();
                 viewer.render();
-            }});
+            });
         </script>
     </body>
     </html>
@@ -116,14 +116,14 @@ def render_structure_viewer_tab():
         if source == "RCSB PDB ID":
             pdb_id = st.text_input("Enter 4-letter PDB Code", value="1TUP", max_chars=4).upper().strip()
             if pdb_id:
-                with st.spinner(f"Fetching `{pdb_id}}` from RCSB..."):
-                    url = f"https://files.rcsb.org/download/{pdb_id}}.pdb"
+                with st.spinner(f"Fetching `{pdb_id}` from RCSB..."):
+                    url = f"https://files.rcsb.org/download/{pdb_id}.pdb"
                     resp = requests.get(url, timeout=10)
                     if resp.status_code == 200:
                         pdb_content = resp.text
-                        st.success(f"Loaded PDB: `{pdb_id}}` ({len(pdb_content):,}} bytes)")
+                        st.success(f"Loaded PDB: `{pdb_id}` ({len(pdb_content):,} bytes)")
                     else:
-                        st.error(f"Failed to fetch `{pdb_id}}` from RCSB.")
+                        st.error(f"Failed to fetch `{pdb_id}` from RCSB.")
         else:
             uploaded_file = st.file_uploader("Upload PDB file", type=["pdb"])
             if uploaded_file is not None:

@@ -357,7 +357,7 @@ def recommend_statistical_test(
             else:
                 recommendations.append({
                     "test": "One-Way ANOVA",
-                    "purpose": f"Compare means across {n_groups}} independent groups",
+                    "purpose": f"Compare means across {n_groups} independent groups",
                     "alternative": "Kruskal-Wallis H Test",
                     "confidence": 95 if assumptions_met else 70,
                 })
@@ -441,8 +441,8 @@ def estimate_sample_size(
         results["total_n"] = int(np.ceil(n * n_groups))
         results["formula"] = "Two-sample t-test power analysis (Cohen's d)"
         results["interpretation"] = (
-            f"Need **{results['n_per_group']}}** participants per group "
-            f"({results['total_n']}} total) to detect d={effect_size}} with {power*100:.0f}}% power"
+            f"Need **{results['n_per_group']}** participants per group "
+            f"({results['total_n']} total) to detect d={effect_size} with {power*100:.0f}% power"
         )
 
     elif design_type == "paired" or design_type == "Paired T-Test":
@@ -453,8 +453,8 @@ def estimate_sample_size(
         results["n_per_group"] = int(np.ceil(n))
         results["formula"] = "Paired t-test power analysis"
         results["interpretation"] = (
-            f"Need **{results['total_n']}}** paired observations to detect d={effect_size}} "
-            f"with {power*100:.0f}}% power"
+            f"Need **{results['total_n']}** paired observations to detect d={effect_size} "
+            f"with {power*100:.0f}% power"
         )
 
     elif design_type == "anova" or design_type == "One-Way ANOVA":
@@ -465,8 +465,8 @@ def estimate_sample_size(
         results["total_n"] = int(np.ceil(n * n_groups))
         results["formula"] = "One-way ANOVA power analysis (Cohen's f)"
         results["interpretation"] = (
-            f"Need **{results['n_per_group']}}** participants per group "
-            f"({results['total_n']}} total, {n_groups}} groups) to detect f={effect_size}} with {power*100:.0f}}% power"
+            f"Need **{results['n_per_group']}** participants per group "
+            f"({results['total_n']} total, {n_groups} groups) to detect f={effect_size} with {power*100:.0f}% power"
         )
 
     elif design_type == "correlation" or design_type == "Pearson Correlation":
@@ -479,7 +479,7 @@ def estimate_sample_size(
         results["n_per_group"] = int(np.ceil(n))
         results["formula"] = "Correlation power analysis (Fisher's z)"
         results["interpretation"] = (
-            f"Need **{results['total_n']}}** observations to detect r={effect_size}} with {power*100:.0f}}% power"
+            f"Need **{results['total_n']}** observations to detect r={effect_size} with {power*100:.0f}% power"
         )
 
     elif design_type == "chi-square" or design_type == "Chi-Square":
@@ -490,7 +490,7 @@ def estimate_sample_size(
         results["n_per_group"] = int(np.ceil(n))
         results["formula"] = "Chi-square power analysis (Cohen's w)"
         results["interpretation"] = (
-            f"Need **{results['total_n']}}** observations for chi-square test with {power*100:.0f}}% power"
+            f"Need **{results['total_n']}** observations for chi-square test with {power*100:.0f}% power"
         )
 
     elif design_type == "survey":
@@ -506,8 +506,8 @@ def estimate_sample_size(
         results["n_per_group"] = int(np.ceil(n_adj))
         results["formula"] = "Survey sample size (Cochran's formula)"
         results["interpretation"] = (
-            f"Need **{results['total_n']}}** survey responses (Ã‚Â±{e*100:.1f}}% margin of error, "
-            f"{power*100:.0f}}% confidence level)"
+            f"Need **{results['total_n']}** survey responses (Ã‚Â±{e*100:.1f}% margin of error, "
+            f"{power*100:.0f}% confidence level)"
         )
 
     return results
@@ -525,16 +525,16 @@ def generate_methodology_section(
     lines = ["## Method", ""]
     lines.append("### Research Design")
     design_info = STUDY_DESIGNS.get(design, {})
-    lines.append(design_info.get("description", f"A {design}} design was used."))
+    lines.append(design_info.get("description", f"A {design} design was used."))
     lines.append("")
 
     # Participants
     lines.append("### Participants")
     total_n = sample_size.get("total_n", "N/A") if isinstance(sample_size, dict) else "N/A"
-    lines.append(f"A total of {total_n}} participants were recruited for this study. "
+    lines.append(f"A total of {total_n} participants were recruited for this study. "
                  f"Power analysis indicated that this sample size was sufficient to detect "
-                 f"the expected effects (ÃŽÂ± = {sample_size.get('alpha', 0.05)}}, "
-                 f"power = {sample_size.get('power', 0.80)}}).")
+                 f"the expected effects (ÃŽÂ± = {sample_size.get('alpha', 0.05)}, "
+                 f"power = {sample_size.get('power', 0.80)}).")
     lines.append("")
 
     # Variables
@@ -542,22 +542,22 @@ def generate_methodology_section(
     ivs = variables.get("independent", [])
     dvs = variables.get("dependent", [])
     if ivs:
-        lines.append(f"**Independent Variable(s):** {', '.join(ivs)}}")
+        lines.append(f"**Independent Variable(s):** {', '.join(ivs)}")
     if dvs:
-        lines.append(f"**Dependent Variable(s):** {', '.join(dvs)}}")
+        lines.append(f"**Dependent Variable(s):** {', '.join(dvs)}")
     lines.append("")
 
     # Statistical Analysis
     lines.append("### Statistical Analysis")
     if tests:
-        lines.append(f"Data were analyzed using {', '.join(tests)}}. ")
+        lines.append(f"Data were analyzed using {', '.join(tests)}. ")
         test_details = []
         for test in tests:
             guide = STATISTICAL_TEST_GUIDE.get(test, {})
             if guide:
-                test_details.append(f"{test}} was used to {guide.get('purpose', '').lower()}}")
+                test_details.append(f"{test} was used to {guide.get('purpose', '').lower()}")
         if test_details:
-            lines.extend([f"- {d}}" for d in test_details])
+            lines.extend([f"- {d}" for d in test_details])
     lines.append("")
 
     lines.append("All analyses were conducted using the Advanced Research Data Analyzer "
@@ -608,21 +608,21 @@ def render_methodology_advisor_ui():
 
             for i, rec in enumerate(recommendations):
                 with st.container():
-                    st.markdown(f"### {i1}}. **{rec['design']}}**")
-                    st.markdown(f"*{rec['description']}}*")
-                    st.markdown(f"**Best for:** {rec['best_for']}}")
-                    st.markdown(f"**When to use:** {rec['when_to_use']}}")
-                    st.markdown(f"**Recommended tests:** {', '.join(rec['statistical_tests'][:4])}}")
+                    st.markdown(f"### {i1}. **{rec['design']}**")
+                    st.markdown(f"*{rec['description']}*")
+                    st.markdown(f"**Best for:** {rec['best_for']}")
+                    st.markdown(f"**When to use:** {rec['when_to_use']}")
+                    st.markdown(f"**Recommended tests:** {', '.join(rec['statistical_tests'][:4])}")
 
                     col1, col2 = st.columns(2)
                     with col1:
                         st.markdown("**Pros:**")
                         for p in rec['pros']:
-                            st.markdown(f"- âœ… {p}}")
+                            st.markdown(f"- âœ… {p}")
                     with col2:
                         st.markdown("**Cons:**")
                         for c in rec['cons']:
-                            st.markdown(f"- Ã¢Å¡Â Ã¯Â¸Â {c}}")
+                            st.markdown(f"- Ã¢Å¡Â Ã¯Â¸Â {c}")
                     st.markdown("---")
 
     with tab2:
@@ -646,15 +646,15 @@ def render_methodology_advisor_ui():
                 for test in tests:
                     with st.container():
                         confidence_color = "Ã°Å¸Å¸Â¢" if test["confidence"] >= 85 else "Ã°Å¸Å¸Â¡" if test["confidence"] >= 70 else "Ã°Å¸Å¸Â "
-                        st.markdown(f"### {confidence_color}} {test['test']}} (Match: {test['confidence']}}%)")
-                        st.markdown(f"**Purpose:** {test['purpose']}}")
+                        st.markdown(f"### {confidence_color} {test['test']} (Match: {test['confidence']}%)")
+                        st.markdown(f"**Purpose:** {test['purpose']}")
                         if test.get("alternative"):
-                            st.markdown(f"**If violated:** {test['alternative']}}")
+                            st.markdown(f"**If violated:** {test['alternative']}")
                         guide = STATISTICAL_TEST_GUIDE.get(test["test"], {})
                         if guide:
-                            st.markdown(f"**Assumptions:** {', '.join(guide.get('assumptions', []))}}")
+                            st.markdown(f"**Assumptions:** {', '.join(guide.get('assumptions', []))}")
                             if guide.get("effect_size"):
-                                st.markdown(f"**Effect size:** {guide['effect_size']}}")
+                                st.markdown(f"**Effect size:** {guide['effect_size']}")
                         st.markdown("---")
             else:
                 st.info("No specific test recommendation. Try different variable types.")
@@ -698,9 +698,9 @@ def render_methodology_advisor_ui():
             with col3:
                 st.metric("Effect Size", effect_size)
             with col4:
-                st.metric("Power", f"{power*100:.0f}}%")
+                st.metric("Power", f"{power*100:.0f}%")
 
-            st.info(f"**Formula**: {result.get('formula', '')}}")
+            st.info(f"**Formula**: {result.get('formula', '')}")
 
             # Interpretation guide
             st.markdown("""

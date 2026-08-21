@@ -206,7 +206,7 @@ class FlutterwaveProvider(PaymentProvider):
         if not self.public_key:
             raise RuntimeError("Flutterwave public key not configured")
         # Replace with a real Flutterwave checkout request.
-        return f"https://checkout.example.com/{plan_id}}?customer={user.email}}"
+        return f"https://checkout.example.com/{plan_id}?customer={user.email}"
 
     def cancel_subscription(self, provider_subscription_id: str) -> None:
         if not self.public_key:

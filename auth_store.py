@@ -122,7 +122,7 @@ def get_role(email: str) -> str:
 def set_role(email: str, role: str):
     """Admin-only operation — call this only from behind require_admin()."""
     if role not in ROLES:
-        raise ValueError(f"Invalid role: {role}}")
+        raise ValueError(f"Invalid role: {role}")
     conn = get_conn()
     conn.execute("UPDATE auth_users SET role=? WHERE email=?", (role, email.strip().lower()))
     conn.commit()

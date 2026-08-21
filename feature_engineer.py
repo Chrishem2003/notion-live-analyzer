@@ -69,7 +69,7 @@ class FeatureEngineer:
                     interactions.append({
                         "variable_1": v1,
                         "variable_2": v2,
-                        "interaction": f"{v1}} Ãƒâ€” {v2}}",
+                        "interaction": f"{v1} Ãƒâ€” {v2}",
                         "mutual_info_score": round(score, 4),
                     })
                 except Exception:
@@ -93,7 +93,7 @@ class FeatureEngineer:
         result = df.copy()
         for col in columns:
             for degree in range(2, max_degree + 1):
-                new_col = f"{col}}^{degree}}"
+                new_col = f"{col}^{degree}"
                 result[new_col] = df[col] ** degree
         return result
 
@@ -123,14 +123,14 @@ class FeatureEngineer:
         result = df.copy()
         try:
             dates = pd.to_datetime(df[date_col])
-            result[f"{date_col}}_year"] = dates.dt.year
-            result[f"{date_col}}_month"] = dates.dt.month
-            result[f"{date_col}}_day"] = dates.dt.day
-            result[f"{date_col}}_dayofweek"] = dates.dt.dayofweek
-            result[f"{date_col}}_quarter"] = dates.dt.quarter
-            result[f"{date_col}}_is_weekend"] = (dates.dt.dayofweek >= 5).astype(int)
-            result[f"{date_col}}_dayofyear"] = dates.dt.dayofyear
-            result[f"{date_col}}_weekofyear"] = dates.dt.isocalendar().week.astype(int)
+            result[f"{date_col}_year"] = dates.dt.year
+            result[f"{date_col}_month"] = dates.dt.month
+            result[f"{date_col}_day"] = dates.dt.day
+            result[f"{date_col}_dayofweek"] = dates.dt.dayofweek
+            result[f"{date_col}_quarter"] = dates.dt.quarter
+            result[f"{date_col}_is_weekend"] = (dates.dt.dayofweek >= 5).astype(int)
+            result[f"{date_col}_dayofyear"] = dates.dt.dayofyear
+            result[f"{date_col}_weekofyear"] = dates.dt.isocalendar().week.astype(int)
         except Exception:
             pass
         return result
@@ -152,7 +152,7 @@ class FeatureEngineer:
             feature_names = vectorizer.get_feature_names_out()
             tfidf_df = pd.DataFrame(
                 tfidf_matrix.toarray(),
-                columns=[f"tfidf_{w}}" for w in feature_names],
+                columns=[f"tfidf_{w}" for w in feature_names],
                 index=df.index,
             )
             result = pd.concat([result, tfidf_df], axis=1)
@@ -196,7 +196,7 @@ class FeatureEngineer:
             estimator.fit(X, y)
             scores = np.abs(estimator.coef_[0]) if hasattr(estimator, 'coef_') and len(estimator.coef_.shape) > 1 else np.abs(estimator.coef_)
         else:
-            return {"error": f"Unknown method: {method}}"}
+            return {"error": f"Unknown method: {method}"}
 
         selected = []
         for i, col in enumerate(feature_cols):
@@ -247,7 +247,7 @@ def render_feature_engineering_ui():
             if "error" in result:
                 st.error(result["error"])
             else:
-                st.info(f"Discovered {result['n_discovered']}} potential interactions")
+                st.info(f"Discovered {result['n_discovered']} potential interactions")
                 if result.get("interactions"):
                     int_df = pd.DataFrame(result["interactions"])
                     st.dataframe(int_df, use_container_width=True, hide_index=True)
@@ -259,7 +259,7 @@ def render_feature_engineering_ui():
         if st.button("Ã°Å¸â€œÂ Generate Polynomials", type="primary", use_container_width=True) and poly_cols:
             result = engine.generate_polynomials(df, poly_cols, max_deg)
             new_features = [c for c in result.columns if c not in df.columns]
-            st.success(f"âœ… Generated {len(new_features)}} new features")
+            st.success(f"âœ… Generated {len(new_features)} new features")
             st.dataframe(result[new_features].head(10), use_container_width=True)
 
     with tab3:
@@ -269,7 +269,7 @@ def render_feature_engineering_ui():
         n_bins = st.slider("Number of bins", 2, 10, 4, key="fe_n_bins")
         if st.button(" Apply Binning", type="primary", use_container_width=True):
             binned = engine.auto_bin(df, bin_col, bin_method, n_bins)
-            st.success(f"âœ… Binned into {binned.nunique()}} bins")
+            st.success(f"âœ… Binned into {binned.nunique()} bins")
             st.dataframe(binned.value_counts().reset_index(), use_container_width=True)
 
     with tab4:
@@ -279,7 +279,7 @@ def render_feature_engineering_ui():
         if st.button("Ã°Å¸â€œâ€¦ Extract Date Features", type="primary", use_container_width=True):
             result = engine.extract_date_features(df, date_col)
             new_features = [c for c in result.columns if c not in df.columns and date_col in c]
-            st.success(f"âœ… Generated {len(new_features)}} date features")
+            st.success(f"âœ… Generated {len(new_features)} date features")
             st.dataframe(result[new_features].head(10), use_container_width=True)
 
     with tab5:

@@ -111,7 +111,7 @@ def connect_workspace(
     if not can_connect_another_workspace(owner_user_id, plan_tier, count_workspaces_fn):
         limit = MAX_WORKSPACES_BY_TIER.get(plan_tier, 1)
         raise PermissionError(
-            f"Plan '{plan_tier}}' allows at most {limit}} "
+            f"Plan '{plan_tier}' allows at most {limit} "
             "connected workspace(s). Upgrade to Agency to add more."
         )
 

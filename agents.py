@@ -62,7 +62,7 @@ class BaseAgent:
 
     def _emit(self, progress: float, message: str) -> None:
         try:
-            self.progress(progress, f"[{self.icon}} {self.name}}] {message}}")
+            self.progress(progress, f"[{self.icon} {self.name}] {message}")
         except Exception:
             pass
 
@@ -82,7 +82,7 @@ class ResearchLiteratureAgent(BaseAgent):
         country = context.get("country", "")
         limit = int(context.get("papers_limit", 20))
 
-        self._emit(5, f"Scanning global repositories for: '{query}}'")
+        self._emit(5, f"Scanning global repositories for: '{query}'")
 
         papers: List[Dict[str, Any]] = []
         if HAS_LIT:
@@ -102,27 +102,27 @@ class ResearchLiteratureAgent(BaseAgent):
             for i in range(min(limit, 8)):
                 papers.append(
                     {
-                        "title": f"Empirical synthesis {i + 1}}: {query}}",
+                        "title": f"Empirical synthesis {i + 1}: {query}",
                         "authors": "Chrishem Research Collective",
                         "year": 2026,
                         "journal": "Sovereign Analytics Review",
                         "citations": 42 + i * 7,
-                        "doi": f"10.5555/synth.{i + 1}}",
+                        "doi": f"10.5555/synth.{i + 1}",
                         "url": "https://doi.org/",
-                        "abstract": f"Simulated abstract for challenge {query}} (offline mode).",
+                        "abstract": f"Simulated abstract for challenge {query} (offline mode).",
                     }
                 )
 
-        self._emit(65, f"Retrieved {len(papers)}} candidate papers")
+        self._emit(65, f"Retrieved {len(papers)} candidate papers")
 
         # Key takeaways (deterministic extraction, safe offline)
         takeaways: List[str] = []
         for p in papers[:5]:
             abstract = (p.get("abstract") or "")[:400]
-            takeaways.append(f"{p.get('title', 'Paper')}} — {abstract[:80]}}...")
+            takeaways.append(f"{p.get('title', 'Paper')} — {abstract[:80]}...")
 
         citations = [
-            f"{p.get('authors', 'Unknown')}} ({p.get('year', 'n.d.')}}). {p.get('title', '')}}."
+            f"{p.get('authors', 'Unknown')} ({p.get('year', 'n.d.')}). {p.get('title', '')}."
             for p in papers[:10]
         ]
 
@@ -158,8 +158,8 @@ class DataTechnicalAuditorAgent(BaseAgent):
             missing = int(df.isnull().sum().sum())
             numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
             records.append(
-                f"Audited dataset: {n_rows:,}} rows x {n_cols}} cols, "
-                f"{missing:,}} missing cells, {len(numeric_cols)}} numeric features."
+                f"Audited dataset: {n_rows:,} rows x {n_cols} cols, "
+                f"{missing:,} missing cells, {len(numeric_cols)} numeric features."
             )
 
             if numeric_cols:
@@ -175,16 +175,16 @@ class DataTechnicalAuditorAgent(BaseAgent):
                             pair = (c1, c2)
                 if strongest > 0.8:
                     records.append(
-                        f"⚠️ High collinearity detected: {pair[0]}} ↔ {pair[1]}} (|r|={strongest:.2f}})."
+                        f"⚠️ High collinearity detected: {pair[0]} ↔ {pair[1]} (|r|={strongest:.2f})."
                     )
-                records.append(f"Correlation matrix computed over {len(numeric_cols)}} variables.")
+                records.append(f"Correlation matrix computed over {len(numeric_cols)} variables.")
         else:
             records.append("No DataFrame supplied — running domain indicator audit.")
 
         # Indicator audit (ecological / biological / environmental)
         sector = context.get("sector", "General")
         for ind in indicators:
-            records.append(f"Sector indicator check [{sector}}]: '{ind}}' → within acceptable bounds (simulated).")
+            records.append(f"Sector indicator check [{sector}]: '{ind}' → within acceptable bounds (simulated).")
 
         self._emit(80, "Data integrity & domain metrics verified")
         return {
@@ -213,7 +213,7 @@ class SynthesisStrategyAgent(BaseAgent):
         for rep in reports:
             rtype = rep.get("role", "agent")
             if rtype == "literature":
-                combined.append(f"Literature corpus: {rep.get('count', 0)}} papers uncovered; key theme: {context.get('query', '')}}.")
+                combined.append(f"Literature corpus: {rep.get('count', 0)} papers uncovered; key theme: {context.get('query', '')}.")
                 combined.extend(rep.get("takeaways", [])[:3])
             elif rtype == "data_audit":
                 combined.extend(rep.get("records", [])[:3])
@@ -224,7 +224,7 @@ class SynthesisStrategyAgent(BaseAgent):
             try:
                 synthesis_text = _router.synthesize(
                     prompt=(
-                        f"Given a complex multi-sector challenge: '{context.get('query', '')}}', "
+                        f"Given a complex multi-sector challenge: '{context.get('query', '')}', "
                         f"propose a comprehensive evidence-based action plan. Insights:\n"
                         + "\n".join(combined[:20])
                     ),
@@ -251,12 +251,12 @@ def _deterministic_plan(context: Dict[str, Any], insights: List[str]) -> str:
     q = context.get("query", "the identified challenge")
     sector = context.get("sector", "Cross-Sector")
     lines = [
-        f"# Action Plan — {sector}}",
-        f"**Challenge:** {q}}",
+        f"# Action Plan — {sector}",
+        f"**Challenge:** {q}",
         "",
         "## Recommendations",
     ]
-    lines.extend(f"- {ins}}" for ins in insights[:8])
+    lines.extend(f"- {ins}" for ins in insights[:8])
     lines.extend(
         [
             "",
@@ -329,11 +329,11 @@ def run_agent_swarm(
     final_report = {
         "query": query,
         "sector": sector,
-        "run_id": hashlib.sha256(f"{query}}|{sector}}|{time.time()}}".encode()).hexdigest()[:12].upper(),
+        "run_id": hashlib.sha256(f"{query}|{sector}|{time.time()}".encode()).hexdigest()[:12].upper(),
         "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         "agents": [
-            {"name": lit_agent.name, "role": "literature", "output_summary": f"{lit_report['count']}} papers"},
-            {"name": audit_agent.name, "role": "data_audit", "output_summary": f"{audit_report['audit_count']}} audit records"},
+            {"name": lit_agent.name, "role": "literature", "output_summary": f"{lit_report['count']} papers"},
+            {"name": audit_agent.name, "role": "data_audit", "output_summary": f"{audit_report['audit_count']} audit records"},
             {"name": synth_agent.name, "role": "synthesis", "output_summary": "action plan drafted"},
         ],
         "literature": lit_report,

@@ -68,22 +68,22 @@ def inject_global_css():
         html, body, [class*="css"] {{
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             color: {t['text_primary']} !important;
-        }}
+        }
 
         .stApp {{
             background: {t['bg_primary']};
             background-attachment: fixed;
-        }}
+        }
 
         /* â”€â”€ Sidebar â”€â”€ */
         [data-testid="stSidebar"], section[data-testid="stSidebar"] {{
             background-color: {t['bg_sidebar']} !important;
             border-right: 1px solid {t['border']} !important;
-        }}
+        }
 
         [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {{
             color: {t['text_primary']} !important;
-        }}
+        }
 
         [data-testid="stSidebarNav"] span, 
         [data-testid="stSidebarNav"] a,
@@ -91,13 +91,13 @@ def inject_global_css():
         [data-testid="stSidebarHeader"] {{
             color: {t['text_primary']} !important;
             font-weight: 600 !important;
-        }}
+        }
 
         [data-testid="stSidebarNavLink"]:hover,
         [data-testid="stSidebarNav"] a:hover {{
             background-color: {t['bg_card']} !important;
             border-radius: 8px !important;
-        }}
+        }
 
         [data-testid="stSidebarNavLink"][aria-current="page"],
         [data-testid="stSidebarNav"] a[aria-selected="true"] {{
@@ -105,30 +105,30 @@ def inject_global_css():
             color: {t['accent']} !important;
             font-weight: 700 !important;
             border-radius: 8px !important;
-        }}
+        }
 
         section[data-testid="stSidebar"] .stSelectbox label,
         section[data-testid="stSidebar"] .stRadio label,
         section[data-testid="stSidebar"] .stMultiSelect label {{
             color: {t['accent_alt']} !important;
             font-weight: 700 !important;
-        }}
+        }
 
         /* â”€â”€ Typography â”€â”€ */
         h1, h2, h3, h4, h5, h6 {{
             color: {t['accent']} !important;
             font-weight: 800 !important;
             letter-spacing: -0.025em !important;
-        }}
+        }
 
         p, span, label, div, .stMarkdown, .stCaption, .stRadio label, .stCheckbox label, .stSelectbox label {{
             color: {t['text_primary']} !important;
-        }}
+        }
 
         .stCaption {{
             color: {t['text_muted']} !important;
             font-size: 0.85rem !important;
-        }}
+        }
 
         /* â”€â”€ Cards â”€â”€ */
         .chris-card {{
@@ -138,7 +138,7 @@ def inject_global_css():
             padding: 1.25rem;
             margin-bottom: 1.2rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        }}
+        }
 
         .chris-card-accent {{
             background: {t['bg_card']} !important;
@@ -147,7 +147,7 @@ def inject_global_css():
             padding: 1.25rem;
             margin-bottom: 1.2rem;
             box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
-        }}
+        }
 
         .chris-card-success {{
             background: #062419 !important;
@@ -155,26 +155,26 @@ def inject_global_css():
             border-radius: 12px;
             padding: 1.25rem;
             margin-bottom: 1.2rem;
-        }}
+        }
 
         /* â”€â”€ Metrics â”€â”€ */
         div[data-testid="stMetricValue"] {{
             color: {t['accent']} !important;
             font-size: 1.8rem !important;
             font-weight: 900 !important;
-        }}
+        }
         div[data-testid="stMetricLabel"] {{
             color: {t['text_secondary']} !important;
             font-weight: 700 !important;
             text-transform: uppercase;
             font-size: 0.75rem;
-        }}
+        }
 
         /* â”€â”€ Inputs â”€â”€ */
         div.stSelectbox, div.stMultiSelect, div.stTextInput, div.stNumberInput, div.stSlider, div[data-testid="stRadio"] {{
             background-color: {t['bg_card']} !important;
             border-radius: 8px !important;
-        }}
+        }
 
         .stTextInput input, .stSelectbox div, .stNumberInput input, .stTextArea textarea {{
             background-color: {t['bg_card']} !important;
@@ -182,7 +182,7 @@ def inject_global_css():
             border: 1px solid {t['accent']}88 !important;
             border-radius: 8px !important;
             font-weight: 600 !important;
-        }}
+        }
 
         /* â”€â”€ Buttons â”€â”€ */
         .stButton button {{
@@ -192,19 +192,19 @@ def inject_global_css():
             border-radius: 8px !important;
             font-weight: 700 !important;
             transition: all 0.2s ease-in-out;
-        }}
+        }
         .stButton button:hover {{
             background: {t['accent']} !important;
             color: {t['bg_primary']} !important;
             box-shadow: 0 0 16px rgba(0, 242, 254, 0.5);
-        }}
+        }
 
         /* â”€â”€ DataFrames / Tables â”€â”€ */
         .stDataFrame, .stTable {{
             background-color: {t['bg_secondary']} !important;
             border: 1px solid {t['border']} !important;
             border-radius: 8px !important;
-        }}
+        }
 
         /* â”€â”€ Tabs â”€â”€ */
         div.stTabs [data-baseweb="tab-list"] {{
@@ -213,7 +213,7 @@ def inject_global_css():
             padding: 6px;
             border-radius: 10px;
             border: 1px solid {t['border']};
-        }}
+        }
         div.stTabs [data-baseweb="tab"] {{
             height: 42px;
             background-color: transparent;
@@ -222,12 +222,12 @@ def inject_global_css():
             font-weight: 700 !important;
             border: none;
             padding: 0 18px;
-        }}
+        }
         div.stTabs [aria-selected="true"] {{
             background: {t['bg_card']} !important;
             color: {t['accent']} !important;
             border-bottom: 3px solid {t['accent']} !important;
-        }}
+        }
 
         /* â”€â”€ Badges â”€â”€ */
         .badge-primary {{
@@ -240,7 +240,7 @@ def inject_global_css():
             font-family: monospace;
             letter-spacing: 0.05em;
             font-weight: 700;
-        }}
+        }
         .badge-success {{
             background: #064e3b;
             color: #34d399;
@@ -250,14 +250,14 @@ def inject_global_css():
             font-size: 0.7rem;
             font-family: monospace;
             font-weight: 700;
-        }}
+        }
 
         /* â”€â”€ Dividers â”€â”€ */
         .chris-hr {{
             height: 1px;
             background: linear-gradient(90deg, transparent, {t['border']}, transparent);
             margin: 1.5rem 0;
-        }}
+        }
 
         /* â”€â”€ Console Log â”€â”€ */
         .console-box {{
@@ -270,7 +270,7 @@ def inject_global_css():
             color: {t['accent_alt']};
             max-height: 180px;
             overflow-y: auto;
-        }}
+        }
 
         /* â”€â”€ Progress / Status â”€â”€ */
         .status-badge {{
@@ -279,10 +279,10 @@ def inject_global_css():
             border-radius: 9999px;
             font-weight: 700;
             font-size: 0.8rem;
-        }}
-        .status-stable {{ background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid #059669; }}
-        .status-critical {{ background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid #DC2626; }}
-        .status-warning {{ background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid #D97706; }}
+        }
+        .status-stable {{ background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid #059669; }
+        .status-critical {{ background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid #DC2626; }
+        .status-warning {{ background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid #D97706; }
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)

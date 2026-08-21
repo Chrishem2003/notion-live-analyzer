@@ -19,8 +19,8 @@ def render_spatial_audio_panel():
     col1, col2 = st.columns(2)
     with col1:
         if st.button("? Start Spatial Atmosphere"):
-            log_backend_event("INFO", f"Activated spatial soundscape: {soundscape}} at {volume}}% volume.")
-            st.success(f"Atmosphere '{soundscape}}' initialized in background channel.")
+            log_backend_event("INFO", f"Activated spatial soundscape: {soundscape} at {volume}% volume.")
+            st.success(f"Atmosphere '{soundscape}' initialized in background channel.")
     with col2:
         if st.button("? Stop Audio Stream"):
             log_backend_event("INFO", "Deactivated spatial soundscape.")

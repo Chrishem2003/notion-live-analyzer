@@ -31,7 +31,7 @@ ADMIN_EMAILS = [
 def _get_service_headers() -> dict:
     return {
         "apikey": SUPABASE_SERVICE_KEY,
-        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}}",
+        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
         "Content-Type": "application/json",
     }
 
@@ -94,13 +94,13 @@ def get_all_users(limit: int = 100) -> List[Dict]:
     
     try:
         response = requests.get(
-            f"{SUPABASE_URL}}/rest/v1/users?select=*&order=created_at.desc&limit={limit}}",
+            f"{SUPABASE_URL}/rest/v1/users?select=*&order=created_at.desc&limit={limit}",
             headers=_get_service_headers(),
         )
         if response.status_code == 200:
             return response.json()
     except Exception as e:
-        st.error(f"Failed to fetch users: {e}}")
+        st.error(f"Failed to fetch users: {e}")
     
     return []
 
@@ -111,7 +111,7 @@ def get_user_by_id(user_id: str) -> Optional[Dict]:
     
     try:
         response = requests.get(
-            f"{SUPABASE_URL}}/rest/v1/users?id=eq.{user_id}}",
+            f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}",
             headers=_get_service_headers(),
         )
         if response.status_code == 200:
@@ -130,7 +130,7 @@ def update_user_subscription(user_id: str, tier: str, status: str = "active") ->
     
     try:
         response = requests.patch(
-            f"{SUPABASE_URL}}/rest/v1/users?id=eq.{user_id}}",
+            f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}",
             headers=_get_service_headers(),
             json={
                 "tier": tier,
@@ -140,7 +140,7 @@ def update_user_subscription(user_id: str, tier: str, status: str = "active") ->
         )
         return response.status_code in (200, 204)
     except Exception as e:
-        st.error(f"Update failed: {e}}")
+        st.error(f"Update failed: {e}")
         return False
 
 def create_promo_code(code: str, discount: int, expires_days: int) -> Dict:
@@ -157,12 +157,12 @@ def create_promo_code(code: str, discount: int, expires_days: int) -> Dict:
     if SUPABASE_URL:
         try:
             requests.post(
-                f"{SUPABASE_URL}}/rest/v1/promo_codes",
+                f"{SUPABASE_URL}/rest/v1/promo_codes",
                 headers=_get_service_headers(),
                 json=promo_data,
             )
         except Exception as e:
-            st.error(f"Failed to create promo: {e}}")
+            st.error(f"Failed to create promo: {e}")
     
     return promo_data
 
@@ -233,7 +233,7 @@ def get_recent_activity(hours: int = 24) -> List[Dict]:
     
     try:
         response = requests.get(
-            f"{SUPABASE_URL}}/rest/v1/audit_ledger?order=timestamp.desc&limit=50",
+            f"{SUPABASE_URL}/rest/v1/audit_ledger?order=timestamp.desc&limit=50",
             headers=_get_service_headers(),
         )
         if response.status_code == 200:
@@ -262,7 +262,7 @@ def render_admin_portal():
     col1.metric("Total Users", analytics["total_users"])
     col2.metric("Premium Users", analytics["tier_distribution"]["premium"])
     col3.metric("Verified Students", analytics["verified_students"])
-    col4.metric("MRR", f"${analytics['mrr']}}")
+    col4.metric("MRR", f"${analytics['mrr']}")
     
     # Tier distribution
     col1, col2, col3 = st.columns(3)
@@ -310,7 +310,7 @@ def render_admin_portal():
             user_row = df[df["email"] == selected_user].iloc[0]
             success = update_user_subscription(user_row["id"], new_tier)
             if success:
-                st.success(f"Updated {selected_user}} to {new_tier}}")
+                st.success(f"Updated {selected_user} to {new_tier}")
                 st.rerun()
             else:
                 st.error("Update failed")
@@ -330,7 +330,7 @@ def render_admin_portal():
     
     if st.button("Create Promo Code"):
         code = create_promo_code(promo_code, discount, expires)
-        st.success(f"Created promo: {code['code']}} ({discount}}% off)")
+        st.success(f"Created promo: {code['code']} ({discount}% off)")
     
     st.divider()
     

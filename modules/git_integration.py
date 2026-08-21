@@ -67,24 +67,24 @@ class GitIntegration:
             try:
                 self.repo = self.github_client.get_repo(repo_name)
             except Exception:
-                return False, f"Ã¢ÂÅ’ Repository '{repo_name}}' not found. Check the URL and your access token."
+                return False, f"Ã¢ÂÅ’ Repository '{repo_name}' not found. Check the URL and your access token."
 
             # Create local temp directory for cloning
             self.local_path = tempfile.mkdtemp(prefix="chrishem_git_")
 
             # Clone the repo
-            clone_url = f"https://x-access-token:{token}}@github.com/{repo_name}}.git"
+            clone_url = f"https://x-access-token:{token}@github.com/{repo_name}.git"
             try:
                 git.Repo.clone_from(clone_url, self.local_path)
                 self.local_repo = git.Repo(self.local_path)
             except Exception as e:
-                return False, f"Ã¢ÂÅ’ Failed to clone repository: {str(e)}}"
+                return False, f"Ã¢ÂÅ’ Failed to clone repository: {str(e)}"
 
             self.connected = True
-            return True, f"âœ… Connected to {repo_name}}"
+            return True, f"âœ… Connected to {repo_name}"
 
         except Exception as e:
-            return False, f"Ã¢ÂÅ’ Connection failed: {str(e)}}"
+            return False, f"Ã¢ÂÅ’ Connection failed: {str(e)}"
 
     def disconnect(self):
         """Disconnect from GitHub and clean up."""
@@ -117,7 +117,7 @@ class GitIntegration:
                 })
             return files
         except Exception as e:
-            st.warning(f"Failed to list files: {str(e)}}")
+            st.warning(f"Failed to list files: {str(e)}")
             return []
 
     def pull_dataset(self, file_path: str) -> Optional[pd.DataFrame]:
@@ -154,7 +154,7 @@ class GitIntegration:
                 elif file_ext == ".pkl":
                     df = pd.read_pickle(tmp_path)
                 else:
-                    st.warning(f"Unsupported file format: {file_ext}}")
+                    st.warning(f"Unsupported file format: {file_ext}")
                     os.unlink(tmp_path)
                     return None
 
@@ -163,11 +163,11 @@ class GitIntegration:
 
             except Exception as e:
                 os.unlink(tmp_path)
-                st.error(f"Failed to parse dataset: {str(e)}}")
+                st.error(f"Failed to parse dataset: {str(e)}")
                 return None
 
         except Exception as e:
-            st.error(f"Failed to pull dataset: {str(e)}}")
+            st.error(f"Failed to pull dataset: {str(e)}")
             return None
 
     def commit_and_push(self, file_path: str, message: str, branch: str = "main") -> Tuple[bool, str]:
@@ -192,12 +192,12 @@ class GitIntegration:
 
             # Push
             origin = self.local_repo.remotes.origin
-            origin.push(refspec=f"HEAD:refs/heads/{branch}}")
+            origin.push(refspec=f"HEAD:refs/heads/{branch}")
 
-            return True, f"âœ… Committed and pushed to {branch}}"
+            return True, f"âœ… Committed and pushed to {branch}"
 
         except Exception as e:
-            return False, f"Ã¢ÂÅ’ Commit/push failed: {str(e)}}"
+            return False, f"Ã¢ÂÅ’ Commit/push failed: {str(e)}"
 
     def push_analysis_script(self, df: pd.DataFrame, analysis_type: str,
                               branch: str = "main") -> Tuple[bool, str]:
@@ -209,7 +209,7 @@ class GitIntegration:
             # Generate script content
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             script_content = self._generate_analysis_script(df, analysis_type)
-            script_name = f"analysis_{analysis_type}}_{timestamp}}.py"
+            script_name = f"analysis_{analysis_type}_{timestamp}.py"
 
             # Write to temp file
             script_path = os.path.join(tempfile.gettempdir(), script_name)
@@ -217,10 +217,10 @@ class GitIntegration:
                 f.write(script_content)
 
             # Commit and push
-            return self.commit_and_push(script_path, f"Auto-generated {analysis_type}} analysis ({timestamp}})", branch)
+            return self.commit_and_push(script_path, f"Auto-generated {analysis_type} analysis ({timestamp})", branch)
 
         except Exception as e:
-            return False, f"Ã¢ÂÅ’ Script generation failed: {str(e)}}"
+            return False, f"Ã¢ÂÅ’ Script generation failed: {str(e)}"
 
     def push_cleaned_dataset(self, df: pd.DataFrame, dataset_name: str = None,
                               format: str = "csv", branch: str = "main") -> Tuple[bool, str]:
@@ -230,8 +230,8 @@ class GitIntegration:
 
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            name = dataset_name or f"cleaned_data_{timestamp}}"
-            file_name = f"{name}}.{format}}"
+            name = dataset_name or f"cleaned_data_{timestamp}"
+            file_name = f"{name}.{format}"
             file_path = os.path.join(tempfile.gettempdir(), file_name)
 
             # Export
@@ -242,24 +242,24 @@ class GitIntegration:
             elif format == "json":
                 df.to_json(file_path, orient="records", indent=2)
             else:
-                return False, f"Unsupported format: {format}}"
+                return False, f"Unsupported format: {format}"
 
             # Commit to data/ directory
-            dest_in_repo = f"data/{file_name}}"
+            dest_in_repo = f"data/{file_name}"
             dest_local = os.path.join(self.local_path, "data")
             os.makedirs(dest_local, exist_ok=True)
             import shutil
             shutil.copy2(file_path, os.path.join(dest_local, file_name))
 
-            self.local_repo.index.add([f"data/{file_name}}"])
-            self.local_repo.index.commit(f"Add cleaned dataset: {file_name}}")
+            self.local_repo.index.add([f"data/{file_name}"])
+            self.local_repo.index.commit(f"Add cleaned dataset: {file_name}")
             origin = self.local_repo.remotes.origin
-            origin.push(refspec=f"HEAD:refs/heads/{branch}}")
+            origin.push(refspec=f"HEAD:refs/heads/{branch}")
 
-            return True, f"âœ… Pushed {file_name}} to {branch}}"
+            return True, f"âœ… Pushed {file_name} to {branch}"
 
         except Exception as e:
-            return False, f"Ã¢ÂÅ’ Failed to push dataset: {str(e)}}"
+            return False, f"Ã¢ÂÅ’ Failed to push dataset: {str(e)}"
 
     def list_commits(self, path: str = None, max_count: int = 20) -> List[Dict[str, Any]]:
         """List commit history for the repo, optionally filtered by file path."""
@@ -278,7 +278,7 @@ class GitIntegration:
                 })
             return commits
         except Exception as e:
-            st.warning(f"Failed to list commits: {str(e)}}")
+            st.warning(f"Failed to list commits: {str(e)}")
             return []
 
     def _generate_analysis_script(self, df: pd.DataFrame, analysis_type: str) -> str:
@@ -328,9 +328,9 @@ for i in range(len(numeric_cols)):
     for j in range(i1, len(numeric_cols)):
         r = corr_matrix.iloc[i, j]
         if abs(r) > 0.5:
-            strong.append({{"var1": numeric_cols[i], "var2": numeric_cols[j], "r": r}})
+            strong.append({{"var1": numeric_cols[i], "var2": numeric_cols[j], "r": r})
 
-print(f"\\nFound {{len(strong)}} strong correlations (|r| > 0.5)")
+print(f"\\nFound {{len(strong)} strong correlations (|r| > 0.5)")
 corr_matrix.to_csv("correlation_matrix.csv")
 ''',
             "regression": f'''"""
@@ -352,8 +352,8 @@ if features:
     model = LinearRegression()
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    print(f"RÃ‚Â² = {{r2_score(y_test, y_pred):.4f}}")
-    print(f"RMSE = {{np.sqrt(mean_squared_error(y_test, y_pred)):.4f}}")
+    print(f"RÃ‚Â² = {{r2_score(y_test, y_pred):.4f}")
+    print(f"RMSE = {{np.sqrt(mean_squared_error(y_test, y_pred)):.4f}")
 ''',
         }
 
@@ -364,8 +364,8 @@ import pandas as pd
 import numpy as np
 
 print("Analysis script generated by CHRISHEM")
-print(f"Dataset shape: {df.shape}}")
-print(f"Columns: {cols}}")
+print(f"Dataset shape: {df.shape}")
+print(f"Columns: {cols}")
 ''')
 
     @property
@@ -444,7 +444,7 @@ def render_git_integration_ui():
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Connected View Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     status = engine.status
-    st.success(f"âœ… Connected to **{status.get('repo', 'Unknown')}}**")
+    st.success(f"âœ… Connected to **{status.get('repo', 'Unknown')}**")
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
@@ -471,8 +471,8 @@ def render_git_integration_ui():
         if files:
             for f in files:
                 icon = "Ã°Å¸â€œÂ" if f["type"] == "dir" else "Ã°Å¸â€œâ€ž"
-                size_str = f" ({f['size'] / 1024:.1f}} KB)" if f["type"] == "file" else ""
-                st.markdown(f"{icon}} **{f['name']}}**{size_str}}  `{f['path']}}`")
+                size_str = f" ({f['size'] / 1024:.1f} KB)" if f["type"] == "file" else ""
+                st.markdown(f"{icon} **{f['name']}**{size_str}  `{f['path']}`")
         else:
             st.info("No files found at this path")
 
@@ -490,13 +490,13 @@ def render_git_integration_ui():
                 )
 
                 if st.button("ðŸ“¥ Pull & Load Dataset", type="primary", use_container_width=True):
-                    with st.spinner(f"Pulling {file_to_pull['name']}}..."):
+                    with st.spinner(f"Pulling {file_to_pull['name']}..."):
                         pulled_df = engine.pull_dataset(file_to_pull["path"])
                     if pulled_df is not None:
                         st.session_state["uploaded_df"] = pulled_df
                         st.session_state["active_df"] = pulled_df
                         st.session_state["data_source"] = "github"
-                        st.success(f"âœ… Loaded '{file_to_pull['name']}}'  {len(pulled_df)}} rows Ãƒâ€” {len(pulled_df.columns)}} columns")
+                        st.success(f"âœ… Loaded '{file_to_pull['name']}'  {len(pulled_df)} rows Ãƒâ€” {len(pulled_df.columns)} columns")
                         st.dataframe(pulled_df.head(20), use_container_width=True, hide_index=True)
             else:
                 st.info("No supported data files found in the current directory. Navigate to a different path.")
@@ -509,7 +509,7 @@ def render_git_integration_ui():
 
         active_df = st.session_state.get("active_df")
         if active_df is not None and not active_df.empty:
-            st.info(f" Current active dataset: {len(active_df)}} rows Ãƒâ€” {len(active_df.columns)}} columns")
+            st.info(f" Current active dataset: {len(active_df)} rows Ãƒâ€” {len(active_df.columns)} columns")
 
             col1, col2 = st.columns(2)
             with col1:

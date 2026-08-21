@@ -159,8 +159,8 @@ def hash_password(plaintext: str) -> str:
         dklen=_HASH_BYTES,
     )
     return (
-        f"scrypt${_SCRYPT_N}}${_SCRYPT_R}}${_SCRYPT_P}}"
-        f"${salt.hex()}}${digest.hex()}}"
+        f"scrypt${_SCRYPT_N}${_SCRYPT_R}${_SCRYPT_P}"
+        f"${salt.hex()}${digest.hex()}"
     )
 
 

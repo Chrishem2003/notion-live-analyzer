@@ -26,7 +26,7 @@ def encrypt_vault_record(plaintext: str, base64_key: str) -> dict:
             "nonce": base64.b64encode(nonce).decode('utf-8')
         }
     except Exception as e:
-        log_backend_event("ERROR", f"AES-256-GCM encryption failure: {str(e)}}")
+        log_backend_event("ERROR", f"AES-256-GCM encryption failure: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 def decrypt_vault_record(b64_ciphertext: str, b64_nonce: str, base64_key: str) -> str:
@@ -42,6 +42,6 @@ def decrypt_vault_record(b64_ciphertext: str, b64_nonce: str, base64_key: str) -
         plaintext = aesgcm.decrypt(nonce, ciphertext, None)
         return plaintext.decode('utf-8')
     except Exception as e:
-        log_backend_event("ERROR", f"AES-256-GCM decryption failure: {str(e)}}")
+        log_backend_event("ERROR", f"AES-256-GCM decryption failure: {str(e)}")
         return ""
 

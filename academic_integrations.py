@@ -37,7 +37,7 @@ class ZoteroClient:
         
         try:
             response = requests.get(
-                f"{self.base_url}}/users/{self.user_id}}/collections",
+                f"{self.base_url}/users/{self.user_id}/collections",
                 headers=self._headers(),
                 timeout=10,
             )
@@ -52,11 +52,11 @@ class ZoteroClient:
         if not self.api_key:
             return []
         
-        url = f"{self.base_url}}/users/{self.user_id}}/items"
+        url = f"{self.base_url}/users/{self.user_id}/items"
         params = {"limit": limit, "format": "json"}
         
         if collection_id:
-            url = f"/collections/{collection_id}}"
+            url = f"/collections/{collection_id}"
         
         try:
             response = requests.get(url, headers=self._headers(), params=params, timeout=10)
@@ -73,7 +73,7 @@ class ZoteroClient:
         
         try:
             response = requests.post(
-                f"{self.base_url}}/users/{self.user_id}}/items",
+                f"{self.base_url}/users/{self.user_id}/items",
                 headers=self._headers(),
                 json=[item_data],
                 timeout=10,
@@ -124,7 +124,7 @@ class MendeleyClient:
         
         try:
             response = requests.post(
-                f"{self.base_url}}/oauth/token",
+                f"{self.base_url}/oauth/token",
                 data={
                     "grant_type": "client_credentials",
                     "client_id": self.client_id,
@@ -146,8 +146,8 @@ class MendeleyClient:
         
         try:
             response = requests.get(
-                f"{self.base_url}}/documents",
-                headers={"Authorization": f"Bearer {self.access_token}}"},
+                f"{self.base_url}/documents",
+                headers={"Authorization": f"Bearer {self.access_token}"},
                 params={"limit": limit},
                 timeout=10,
             )

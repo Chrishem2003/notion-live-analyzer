@@ -185,7 +185,7 @@ class GISEngine:
                 c = geom.centroid
                 folium.Marker(
                     [c.y, c.x],
-                    popup=f"{row.get(value_col, '')}}",
+                    popup=f"{row.get(value_col, '')}",
                     icon=folium.Icon(color="red", icon="info-sign"),
                 ).add_to(m)
         return m
@@ -267,9 +267,9 @@ def render_gis_ui() -> None:
                     lon = st.selectbox("Longitude column", [c for c in df.columns if c != lat])
                     if st.button("Build spatial layer from CSV"):
                         gdf = engine.load_coordinates_csv(df, lat, lon)
-                        source_label = f"{upload.name}} (lat/lon)"
+                        source_label = f"{upload.name} (lat/lon)"
         except Exception as ex:
-            st.error(f"Failed to load spatial file: {ex}}")
+            st.error(f"Failed to load spatial file: {ex}")
 
     if gdf is None and df is not None and not df.empty:
         # offer coordinate build from active dataframe
@@ -287,7 +287,7 @@ def render_gis_ui() -> None:
         st.info("No spatial layer loaded. Upload a file or build from an active dataset.")
         return
 
-    st.success(f"âœ… Spatial layer loaded: **{source_label}}** â€” {gdf.shape[0]:,}} features.")
+    st.success(f"âœ… Spatial layer loaded: **{source_label}** â€” {gdf.shape[0]:,} features.")
     st.markdown("---")
 
     tab1, tab2, tab3, tab4 = st.tabs([
@@ -337,7 +337,7 @@ def render_gis_ui() -> None:
             if st.button("Apply Dissolve"):
                 res = engine.dissolve(gdf, None if group_col == "None" else group_col)
                 if res is not None:
-                    st.success(f"Dissolved into {len(res)}} features.")
+                    st.success(f"Dissolved into {len(res)} features.")
                     st.dataframe(res.drop(columns=["geometry"]), use_container_width=True)
         elif op == "Centroids":
             if st.button("Compute Centroids"):
@@ -357,7 +357,7 @@ def render_gis_ui() -> None:
                     st.dataframe(gdf.drop(columns=["geometry"])[agg].describe().to_frame(), use_container_width=True)
         areas = engine.area_ha(gdf)
         if areas:
-            st.metric("Total Area (approx. ha)", f"{sum(areas):,.2f}}")
+            st.metric("Total Area (approx. ha)", f"{sum(areas):,.2f}")
             st.metric("Features", gdf.shape[0])
 
     with tab4:

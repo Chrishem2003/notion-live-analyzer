@@ -52,9 +52,9 @@ def _render_featured(engine: OpportunityFeedEngine, country: str):
             badge = VerificationScorer.verification_badge(ver)
             amount = ""
             if opp.get("amount_min_usd") and opp.get("amount_max_usd"):
-                amount = f"${opp['amount_min_usd']:,.0f}}â€“${opp['amount_max_usd']:,.0f}}"
+                amount = f"${opp['amount_min_usd']:,.0f}â€“${opp['amount_max_usd']:,.0f}"
             elif opp.get("amount_max_usd"):
-                amount = f"${opp['amount_max_usd']:,.0f}}"
+                amount = f"${opp['amount_max_usd']:,.0f}"
             st.markdown(
                 f"""
                 <div style="background:#0b1321;border:1px solid #6366f155;border-radius:14px;padding:1rem;height:100%;">
@@ -77,7 +77,7 @@ def _render_stats(engine: OpportunityFeedEngine):
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("ðŸŒ Total Opportunities", stats["total"])
     c2.metric("âœ… High-Verified (80+)", stats["high_verified"])
-    c3.metric("â­ Avg Verification", f"{stats['avg_verification']:.0f}}%")
+    c3.metric("â­ Avg Verification", f"{stats['avg_verification']:.0f}%")
     c4.metric("ðŸ—‚ï¸ Types", len(stats.get("by_type", {})))
 
 
@@ -92,7 +92,7 @@ def render_opportunity_feed_tab():
 
     engine = _get_engine()
     country = _user_country()
-    st.caption(f"Geo-prioritized for: **{country}}** {get_country_flag(country)}}")
+    st.caption(f"Geo-prioritized for: **{country}** {get_country_flag(country)}")
 
     # â”€â”€ Stat Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     _render_stats(engine)
@@ -129,7 +129,7 @@ def render_opportunity_feed_tab():
 
     results = feed.get("results", [])
     total = feed.get("total", 0)
-    st.markdown(f"**{total}} opportunities match your criteria**")
+    st.markdown(f"**{total} opportunities match your criteria**")
 
     if not results:
         st.info("No opportunities match the current filters. Try widening your search.")
@@ -143,9 +143,9 @@ def render_opportunity_feed_tab():
         type_icon = OpportunityType.icon(otype)
         amount = ""
         if opp.get("amount_min_usd") and opp.get("amount_max_usd"):
-            amount = f"${opp['amount_min_usd']:,.0f}}â€“${opp['amount_max_usd']:,.0f}}"
+            amount = f"${opp['amount_min_usd']:,.0f}â€“${opp['amount_max_usd']:,.0f}"
         elif opp.get("amount_max_usd"):
-            amount = f"${opp['amount_max_usd']:,.0f}}"
+            amount = f"${opp['amount_max_usd']:,.0f}"
         deadline = opp.get("deadline", "")
         deadline_str = ""
         if deadline:
@@ -153,7 +153,7 @@ def render_opportunity_feed_tab():
                 from datetime import datetime as _dt
                 dd = _dt.fromisoformat(deadline).date()
                 days = (dd - _dt.now().date()).days
-                deadline_str = f"ðŸ“… {dd.strftime('%b %d, %Y')}} ({days}}d left)" if days >= 0 else f"âš ï¸ Closed {abs(days)}}d ago"
+                deadline_str = f"ðŸ“… {dd.strftime('%b %d, %Y')} ({days}d left)" if days >= 0 else f"âš ï¸ Closed {abs(days)}d ago"
             except Exception:
                 deadline_str = deadline
             catch = deadline_str
@@ -189,11 +189,11 @@ def render_opportunity_feed_tab():
             src_url = opp.get("source_url", "")
             b1, b2 = st.columns([1, 5])
             with b1:
-                if st.button("â­ Save to Pipeline", key=f"save_{opp['id']}}", use_container_width=True):
-                    st.success(f"Saved **{opp.get('title','')}}** to your application pipeline.")
+                if st.button("â­ Save to Pipeline", key=f"save_{opp['id']}", use_container_width=True):
+                    st.success(f"Saved **{opp.get('title','')}** to your application pipeline.")
             with b2:
                 if src_url and str(src_url).startswith("http"):
-                    st.markdown(f"[ðŸ”— Official Source]({src_url}}) Â· {opp.get('source_authority','')}} source")
+                    st.markdown(f"[ðŸ”— Official Source]({src_url}) Â· {opp.get('source_authority','')} source")
 
     # â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     total_pages = feed.get("total_pages", 1)
@@ -203,7 +203,7 @@ def render_opportunity_feed_tab():
         with pg:
             p = st.selectbox("Page", list(range(1, total_pages + 1)), index=feed.get("page", 0), key="opp_page")
         with info:
-            st.caption(f"Showing page {p}} of {total_pages}} Â· {feed.get('per_page', 20)}} per page")
+            st.caption(f"Showing page {p} of {total_pages} Â· {feed.get('per_page', 20)} per page")
 
 
 if __name__ == "__main__":

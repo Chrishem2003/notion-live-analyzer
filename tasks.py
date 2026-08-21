@@ -62,7 +62,7 @@ def _run_registered(name: str, task_id: str, **kwargs) -> Any:
     """Execute a registered handler inside a worker and mirror progress."""
     fn = _REGISTRY.get(name)
     if fn is None:
-        raise ValueError(f"Unknown task handler: {name}}")
+        raise ValueError(f"Unknown task handler: {name}")
 
     def progress_cb(progress: float, message: str = "") -> None:
         update_task(task_id, progress=progress, message=message)
@@ -74,7 +74,7 @@ def _run_registered(name: str, task_id: str, **kwargs) -> Any:
         mark_done(task_id, result, message="Completed successfully")
         return result
     except Exception as exc:  # noqa: BLE001
-        mark_failed(task_id, f"{exc}}\n{traceback.format_exc()}}")
+        mark_failed(task_id, f"{exc}\n{traceback.format_exc()}")
         raise
 
 
@@ -106,7 +106,7 @@ def dispatch_task(name: str, **kwargs) -> Dict[str, Any]:
     if name in _REGISTRY:
         _executor.submit(_run_registered, name, task_id, **kwargs)
     else:
-        mark_failed(task_id, f"Unknown task handler: {name}}")
+        mark_failed(task_id, f"Unknown task handler: {name}")
     return get_task(task_id) or {"id": task_id, "status": "PENDING"}
 
 
@@ -124,7 +124,7 @@ def _echo_handler(progress_cb=None, task_id=None, message: str = "hello", **kwar
     for i in range(total):
         time.sleep(0.1)
         if progress_cb:
-            progress_cb((i + 1) / total * 100, f"Echoing: {message}} ({i + 1}}/{total}})")
+            progress_cb((i + 1) / total * 100, f"Echoing: {message} ({i + 1}/{total})")
     return {"echo": message, "received": bool(kwargs)}
 
 
@@ -139,9 +139,9 @@ def _sample_pipeline_handler(
     outputs = []
     for i in range(steps):
         time.sleep(0.2)
-        outputs.append(f"step-{i + 1}}")
+        outputs.append(f"step-{i + 1}")
         if progress_cb:
-            progress_cb((i + 1) / steps * 100, f"{label}}: executed step {i + 1}}/{steps}}")
+            progress_cb((i + 1) / steps * 100, f"{label}: executed step {i + 1}/{steps}")
     return {"pipeline": label, "steps": outputs, "total_steps": steps}
 
 

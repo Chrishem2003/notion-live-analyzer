@@ -10,7 +10,7 @@ def get_container_telemetry() -> pd.DataFrame:
     """
     try:
         result = subprocess.run(
-            ["docker", "ps", "--format", "{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}"],
+            ["docker", "ps", "--format", "{{.Names}|{{.Image}|{{.Status}|{{.Ports}"],
             capture_output=True, text=True, timeout=3
         )
         if result.returncode == 0 and result.stdout.strip():

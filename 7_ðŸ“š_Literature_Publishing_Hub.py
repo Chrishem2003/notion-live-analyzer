@@ -58,7 +58,7 @@ def search_crossref(query: str, n_results: int, sort_by: str, contact_email: str
         elif sort_by == "Relevance":
             params["sort"], params["order"] = "score", "desc"
 
-        headers = {"User-Agent": f"ChrishemProductionHub/2.0 (mailto:{contact_email}})"}
+        headers = {"User-Agent": f"ChrishemProductionHub/2.0 (mailto:{contact_email})"}
         resp = requests.get(
             "https://api.crossref.org/works",
             params=params,
@@ -77,8 +77,8 @@ def search_crossref(query: str, n_results: int, sort_by: str, contact_email: str
             if authors:
                 first_fam = authors[0].get('family', 'Unknown')
                 first_giv = authors[0].get('given', '')
-                initial = f"{first_giv[0]}}." if first_giv else ""
-                first_author = f"{first_fam}}, {initial}}".strip()
+                initial = f"{first_giv[0]}." if first_giv else ""
+                first_author = f"{first_fam}, {initial}".strip()
                 if len(authors) > 1:
                     first_author += " et al."
             else:
@@ -144,14 +144,14 @@ def render_literature_search():
             if not query.strip():
                 st.warning("Please enter a valid search query.")
             else:
-                with st.spinner(f"Querying CrossRef API for '{query}}'..."):
+                with st.spinner(f"Querying CrossRef API for '{query}'..."):
                     results_df, error = search_crossref(query, n_results, sort_by, contact_email)
                 if error:
-                    st.error(f"ðŸš« Live search unavailable: {error}}. No synthetic results are generated.")
+                    st.error(f"ðŸš« Live search unavailable: {error}. No synthetic results are generated.")
                 elif results_df is None or results_df.empty:
                     st.info("No publications found matching this query string.")
                 else:
-                    st.success(f"✅ Successfully retrieved {len(results_df)}} verified publications.")
+                    st.success(f"✅ Successfully retrieved {len(results_df)} verified publications.")
                     st.dataframe(results_df, use_container_width=True, hide_index=True)
                     render_export_buttons(results_df, base_name="crossref_literature_results")
                     st.session_state["lit_search_results"] = results_df
@@ -190,7 +190,7 @@ def render_literature_search():
                         "doi": doi.strip(),
                     }
                     st.session_state["lit_references"].append(new_ref)
-                    st.success(f"✅ Added reference key `{citation_key}}` successfully.")
+                    st.success(f"✅ Added reference key `{citation_key}` successfully.")
                 else:
                     st.warning("Citation key, authors, and title are mandatory.")
 
@@ -213,26 +213,26 @@ def render_literature_search():
                         imported_data = json.load(uploaded_lib)
                         if isinstance(imported_data, list):
                             st.session_state["lit_references"] = imported_data
-                            st.success(f"✅ Imported {len(imported_data)}} references.")
+                            st.success(f"✅ Imported {len(imported_data)} references.")
                             st.rerun()
                     except Exception as e:
-                        st.error(f"Failed to parse JSON library file: {e}}")
+                        st.error(f"Failed to parse JSON library file: {e}")
 
             st.markdown("---")
             selected_key = st.selectbox("Select Reference for BibTeX Generation", [r["citation_key"] for r in refs], key="bibtex_sel_prod")
             if st.button("📋 Generate Production BibTeX", key="gen_bibtex_prod"):
                 ref = next(r for r in refs if r["citation_key"] == selected_key)
                 bibtex_str = f"""@{ref['entry_type']}{{{escape_bibtex(ref['citation_key'])},
-  author = {{{escape_bibtex(ref['authors'])}}},
-  title = {{{escape_bibtex(ref['title'])}}},
-  journal = {{{escape_bibtex(ref['journal'] or 'Unknown')}}},
-  volume = {{{escape_bibtex(ref['volume'] or 'n/a')}}},
-  pages = {{{escape_bibtex(ref['pages'] or 'n/a')}}},
-  year = {{{escape_bibtex(ref['year'] or 'n/a')}}},
-  doi = {{{escape_bibtex(ref['doi'] or 'n/a')}}}
-}}"""
+  author = {{{escape_bibtex(ref['authors'])}},
+  title = {{{escape_bibtex(ref['title'])}},
+  journal = {{{escape_bibtex(ref['journal'] or 'Unknown')}},
+  volume = {{{escape_bibtex(ref['volume'] or 'n/a')}},
+  pages = {{{escape_bibtex(ref['pages'] or 'n/a')}},
+  year = {{{escape_bibtex(ref['year'] or 'n/a')}},
+  doi = {{{escape_bibtex(ref['doi'] or 'n/a')}}
+}"""
                 st.code(bibtex_str, language="bibtex")
-                st.download_button("â¬‡ï¸ Download .bib File", data=bibtex_str, file_name=f"{ref['citation_key']}}.bib", mime="text/plain", key="dl_bibtex_prod")
+                st.download_button("â¬‡ï¸ Download .bib File", data=bibtex_str, file_name=f"{ref['citation_key']}.bib", mime="text/plain", key="dl_bibtex_prod")
 
     with tab_cluster:
         st.markdown("#### Bibliometric Map — Year vs. Citation Count")
@@ -336,10 +336,10 @@ def render_meta_analysis():
             st.dataframe(display_df, use_container_width=True, hide_index=True)
 
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Pooled Effect Size", f"{pooled_effect:.3f}}", delta=f"95% CI [{ci_low:.3f}}, {ci_high:.3f}}]")
-            c2.metric("Pooled p-value", f"{p_val:.5f}}" if p_val >= 0.0001 else "< 0.0001")
-            c3.metric("Heterogeneity (IÂ²)", f"{i_squared:.1f}}%", delta="High" if i_squared >= 75 else ("Moderate" if i_squared >= 50 else "Low"))
-            c4.metric("Cochran's Q", f"{q_stat:.2f}}", delta=f"df={df_val}}, p={q_p_value:.4f}}" if not np.isnan(q_p_value) else None)
+            c1.metric("Pooled Effect Size", f"{pooled_effect:.3f}", delta=f"95% CI [{ci_low:.3f}, {ci_high:.3f}]")
+            c2.metric("Pooled p-value", f"{p_val:.5f}" if p_val >= 0.0001 else "< 0.0001")
+            c3.metric("Heterogeneity (IÂ²)", f"{i_squared:.1f}%", delta="High" if i_squared >= 75 else ("Moderate" if i_squared >= 50 else "Low"))
+            c4.metric("Cochran's Q", f"{q_stat:.2f}", delta=f"df={df_val}, p={q_p_value:.4f}" if not np.isnan(q_p_value) else None)
 
             if i_squared >= 75:
                 st.warning("âš ï¸ High statistical heterogeneity detected (IÂ² â‰¥ 75%). Consider evaluating subgroup moderators or applying DerSimonian-Laird random-effects variance adjustments.")
@@ -364,7 +364,7 @@ def render_meta_analysis():
                 fig.add_shape(type="line", x0=pooled_effect, y0=-0.8, x1=pooled_effect, y1=len(display_df) - 0.2, line=dict(color="#EF4444", width=2.5, dash="dash"))
                 
                 fig.update_layout(
-                    title_text=f"Meta-Analysis Forest Plot (Pooled Effect = {pooled_effect:.3f}}, 95% CI [{ci_low:.3f}}, {ci_high:.3f}}])",
+                    title_text=f"Meta-Analysis Forest Plot (Pooled Effect = {pooled_effect:.3f}, 95% CI [{ci_low:.3f}, {ci_high:.3f}])",
                     xaxis_title="Effect Size & 95% Confidence Interval",
                     yaxis_title="Included Studies",
                     yaxis=dict(tickmode="array", tickvals=list(range(len(display_df))), ticktext=display_df["Study"].tolist()),
@@ -410,7 +410,7 @@ def render_apa_outputs():
             "Multiple Linear Regression": "A multiple linear regression was calculated to predict [Dependent Variable] from [Predictor 1] and [Predictor 2]. A significant regression equation was found, F(df_reg, df_res) = [X.XX], p = [.XXX], with an RÂ² of [X.XX].",
         }
         st.code(templates[test_type], language="markdown")
-        st.download_button("â¬‡ï¸ Download Template Code (.md)", data=templates[test_type], file_name=f"apa_{test_type.lower().replace(' ', '_')}}.md", mime="text/markdown")
+        st.download_button("â¬‡ï¸ Download Template Code (.md)", data=templates[test_type], file_name=f"apa_{test_type.lower().replace(' ', '_')}.md", mime="text/markdown")
 
     with tab_cite:
         st.markdown("#### Structural Citation Inspector (Heuristic APA Validator)")
@@ -419,13 +419,13 @@ def render_apa_outputs():
             if citation_input.strip():
                 checks, passed, total = inspect_apa_citation(citation_input)
                 for label, ok in checks:
-                    st.markdown(f"{'✅' if ok else 'âŒ'}} {label}}")
+                    st.markdown(f"{'✅' if ok else 'âŒ'} {label}")
                 if passed == total:
-                    st.success(f"✅ All {total}} structural heuristic checks passed.")
+                    st.success(f"✅ All {total} structural heuristic checks passed.")
                 elif passed >= total - 1:
-                    st.warning(f"âš ï¸ {passed}}/{total}} checks passed — minor formatting adjustments recommended.")
+                    st.warning(f"âš ï¸ {passed}/{total} checks passed — minor formatting adjustments recommended.")
                 else:
-                    st.error(f"ðŸš¨ Only {passed}}/{total}} checks passed — citation format deviates significantly from APA 7th standards.")
+                    st.error(f"ðŸš¨ Only {passed}/{total} checks passed — citation format deviates significantly from APA 7th standards.")
             else:
                 st.warning("Please provide a citation string to inspect.")
 
@@ -493,16 +493,16 @@ def render_grants_and_quality():
         scores = {}
         cols = st.columns(2)
         for i, dim in enumerate(dims):
-            scores[dim] = cols[i % 2].slider(dim, 0, 100, 75, key=f"quality_score_prod_{i}}")
+            scores[dim] = cols[i % 2].slider(dim, 0, 100, 75, key=f"quality_score_prod_{i}")
 
         if st.button("✅ Calculate Rigor Index", type="primary", key="run_quality_prod"):
             avg_score = np.mean(list(scores.values()))
-            st.metric("Overall Research Quality Index", f"{avg_score:.1f}} / 100")
+            st.metric("Overall Research Quality Index", f"{avg_score:.1f} / 100")
             st.progress(int(avg_score))
             verdict = "Strong — publication ready" if avg_score >= 85 else ("Moderate — minor revisions recommended" if avg_score >= 65 else "Weak — comprehensive methodological overhaul required")
-            st.success(f"**Evaluation Verdict:** {verdict}}")
+            st.success(f"**Evaluation Verdict:** {verdict}")
             weakest = min(scores, key=scores.get)
-            st.info(f"ðŸ’¡ Priority Improvement Target: **{weakest}}** ({scores[weakest]}}/100) — focus protocol enhancements here.")
+            st.info(f"ðŸ’¡ Priority Improvement Target: **{weakest}** ({scores[weakest]}/100) — focus protocol enhancements here.")
 
 
 def render_publication_pipeline():
@@ -537,8 +537,8 @@ def render_academic_vault():
 
     reports_df = get_academic_vault_df()
     for _, row in reports_df.iterrows():
-        with st.expander(f"ðŸ“– [{row['course_code']}}] {row['title']}}"):
-            st.write(f"**Department:** {row['department']}} | **Status:** `{row['status']}}`")
+        with st.expander(f"ðŸ“– [{row['course_code']}] {row['title']}"):
+            st.write(f"**Department:** {row['department']} | **Status:** `{row['status']}`")
             st.write(row["abstract_text"])
 
     with st.expander("âž• Add a real report to the vault"):

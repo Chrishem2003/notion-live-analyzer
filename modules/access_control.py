@@ -74,7 +74,7 @@ def render_access_control_panel():
                 if nat_id_front and nat_id_back and univ_id_front and univ_id_back and student_id_no:
                     st.session_state.student_verified = True
                     st.session_state.user_tier = "Standard (Verified Student)"
-                    log_backend_event("INFO", f"Student verification approved for verified applicant at {university_name}} ({country_select}}).")
+                    log_backend_event("INFO", f"Student verification approved for verified applicant at {university_name} ({country_select}).")
                     st.success("Verification Successful! Your account has been upgraded to Free Standard Access.")
                     st.rerun()
                 else:

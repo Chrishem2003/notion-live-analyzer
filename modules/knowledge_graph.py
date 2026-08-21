@@ -16,34 +16,34 @@ def build_research_knowledge_graph(entities: list, output_html: str = "graph.htm
                 border: 1px solid #334155;
                 background-color: #0F172A;
                 border-radius: 8px;
-            }}
+            }
         </style>
     </head>
     <body>
     <div id="network"></div>
     <script type="text/javascript">
         var nodes = new vis.DataSet([
-            {{id: 1, label: 'Research Workspace', color: '#3B82F6', shape: 'diamond'}},
-            {{id: 2, label: 'Genomic Target (NCBI)', color: '#10B981'}},
-            {{id: 3, label: 'Notion Database DB-1', color: '#8B5CF6'}},
-            {{id: 4, label: 'PubMed Citation Graph', color: '#F59E0B'}},
-            {{id: 5, label: 'Field Telemetry (Satellite)', color: '#EC4899'}}
+            {{id: 1, label: 'Research Workspace', color: '#3B82F6', shape: 'diamond'},
+            {{id: 2, label: 'Genomic Target (NCBI)', color: '#10B981'},
+            {{id: 3, label: 'Notion Database DB-1', color: '#8B5CF6'},
+            {{id: 4, label: 'PubMed Citation Graph', color: '#F59E0B'},
+            {{id: 5, label: 'Field Telemetry (Satellite)', color: '#EC4899'}
         ]);
 
         var edges = new vis.DataSet([
-            {{from: 1, to: 2}},
-            {{from: 1, to: 3}},
-            {{from: 1, to: 4}},
-            {{from: 1, to: 5}},
-            {{from: 2, to: 4}}
+            {{from: 1, to: 2},
+            {{from: 1, to: 3},
+            {{from: 1, to: 4},
+            {{from: 1, to: 5},
+            {{from: 2, to: 4}
         ]);
 
         var container = document.getElementById('network');
-        var data = {{ nodes: nodes, edges: edges }};
+        var data = {{ nodes: nodes, edges: edges };
         var options = {{
-            nodes: {{ font: {{ color: '#ffffff' }} }},
-            physics: {{ stabilization: true }}
-        }};
+            nodes: {{ font: {{ color: '#ffffff' } },
+            physics: {{ stabilization: true }
+        };
         var network = new vis.Network(container, data, options);
     </script>
     </body>

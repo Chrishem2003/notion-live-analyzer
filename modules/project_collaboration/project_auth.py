@@ -145,7 +145,7 @@ class ProjectTokenPayload:
         self.sub = user_id
         self.project_id = project_id
         self.role = role
-        self.display_name = display_name or f"User_{user_id[:8]}}"
+        self.display_name = display_name or f"User_{user_id[:8]}"
         self.avatar_url = avatar_url
         self.metadata = metadata or {}
         self.iat = int(time.time())
@@ -209,9 +209,9 @@ class ProjectTokenPayload:
 
     def __repr__(self) -> str:
         return (
-            f"ProjectTokenPayload(user={self.sub[:12]}}..., "
-            f"project={self.project_id[:12]}}..., "
-            f"role={self.role.label}}, expires_in={self.time_remaining()/3600:.1f}}h)"
+            f"ProjectTokenPayload(user={self.sub[:12]}..., "
+            f"project={self.project_id[:12]}..., "
+            f"role={self.role.label}, expires_in={self.time_remaining()/3600:.1f}h)"
         )
 
 
@@ -360,7 +360,7 @@ class ProjectAuthManager:
             return new_token, payload, "âœ… Token refreshed successfully."
 
         except Exception as e:
-            return None, None, f"Ã¢ÂÅ’ Token refresh failed: {str(e)}}"
+            return None, None, f"Ã¢ÂÅ’ Token refresh failed: {str(e)}"
 
     # Ã¢â€â‚¬Ã¢â€â‚¬ Token Validation Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
@@ -390,7 +390,7 @@ class ProjectAuthManager:
             return True, payload, "âœ… Token valid."
 
         except Exception as e:
-            return False, None, f"Ã¢ÂÅ’ Token validation error: {str(e)}}"
+            return False, None, f"Ã¢ÂÅ’ Token validation error: {str(e)}"
 
     def revoke_token(self, jti: str) -> bool:
         """Revoke a token by adding it to the blacklist."""
@@ -500,14 +500,14 @@ class ProjectAuthManager:
         header = {"alg": "HS256", "typ": "JWT"}
         header_b64 = self._b64encode(json.dumps(header).encode())
         payload_b64 = self._b64encode(json.dumps(payload).encode())
-        message = f"{header_b64}}.{payload_b64}}"
+        message = f"{header_b64}.{payload_b64}"
         signature = hmac.new(
             self.signing_key.encode(),
             message.encode(),
             hashlib.sha256,
         ).digest()
         sig_b64 = self._b64encode(signature)
-        return f"{message}}.{sig_b64}}"
+        return f"{message}.{sig_b64}"
 
     def _manual_jwt_decode(self, token: str) -> Optional[Dict[str, Any]]:
         """Manual JWT decoding with signature verification (fallback)."""
@@ -518,7 +518,7 @@ class ProjectAuthManager:
             header_b64, payload_b64, sig_b64 = parts
 
             # Verify signature
-            message = f"{header_b64}}.{payload_b64}}"
+            message = f"{header_b64}.{payload_b64}"
             expected_sig = hmac.new(
                 self.signing_key.encode(),
                 message.encode(),
@@ -621,8 +621,8 @@ def require_role(minimum_role: ProjectRole):
                 return func(token_payload, *args, **kwargs)
             else:
                 raise PermissionError(
-                    f"Requires {minimum_role.label}} role, "
-                    f"but user has {token_payload.role.label}} role."
+                    f"Requires {minimum_role.label} role, "
+                    f"but user has {token_payload.role.label} role."
                 )
         return wrapper
     return decorator
@@ -731,8 +731,8 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
         st.markdown('<div class="auth-card">', unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         with col1:
-            user_id = st.text_input("User ID", value=f"user_{uuid.uuid4().hex[:8]}}", key="auth_user_id")
-            project_id = st.text_input("Project ID", value=f"proj_{uuid.uuid4().hex[:8]}}", key="auth_project_id")
+            user_id = st.text_input("User ID", value=f"user_{uuid.uuid4().hex[:8]}", key="auth_user_id")
+            project_id = st.text_input("Project ID", value=f"proj_{uuid.uuid4().hex[:8]}", key="auth_project_id")
             display_name = st.text_input("Display Name", value="Researcher", key="auth_display_name")
         with col2:
             role_str = st.selectbox(
@@ -800,7 +800,7 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
         if st.button("âœ… Validate Token", type="primary", use_container_width=True) and token_to_validate:
             is_valid, payload, message = manager.validate_token(token_to_validate.strip())
             if is_valid and payload:
-                st.success(f"âœ… {message}}")
+                st.success(f"âœ… {message}")
                 badge_class = {
                     "Host": "auth-role-host",
                     "Co-Host": "auth-role-cohost",
@@ -843,9 +843,9 @@ def render_project_auth_ui(auth_manager: Optional[ProjectAuthManager] = None):
 
     # Stats
     stats = manager.get_stats()
-    st.caption(f"Ã°Å¸â€Â Active tokens: {stats['active_tokens']}} | "
-               f"Blacklisted: {stats['blacklisted_tokens']}} | "
-               f"Algorithm: {stats['algorithm']}}")
+    st.caption(f"Ã°Å¸â€Â Active tokens: {stats['active_tokens']} | "
+               f"Blacklisted: {stats['blacklisted_tokens']} | "
+               f"Algorithm: {stats['algorithm']}")
 
 
 

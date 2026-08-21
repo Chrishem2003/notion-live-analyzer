@@ -44,7 +44,7 @@ def render_data_cleaner():
                     numeric_cols = processed_df.select_dtypes(include='number').columns
                     processed_df[numeric_cols] = processed_df[numeric_cols].fillna(processed_df[numeric_cols].mean())
 
-                st.success(f"Dataset successfully cleaned! Rows remaining: {len(processed_df)}}")
+                st.success(f"Dataset successfully cleaned! Rows remaining: {len(processed_df)}")
                 st.write("### Cleaned Dataset Preview", processed_df.head())
 
                 csv_bytes = processed_df.to_csv(index=False).encode('utf-8')
@@ -56,7 +56,7 @@ def render_data_cleaner():
                 )
                 log_backend_event("INFO", "Processed and cleaned uploaded dataset successfully.")
         except Exception as e:
-            st.error(f"Error processing file: {str(e)}}")
+            st.error(f"Error processing file: {str(e)}")
     else:
         st.info("Awaiting dataset upload. Drop a CSV file above to begin cleaning.")
 

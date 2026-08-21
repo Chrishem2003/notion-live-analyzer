@@ -67,12 +67,12 @@ def apply_enhanced_styles():
     .stApp {{
         background-color: {bg_color};
         color: {text_color};
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Background Image with Watermark Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     [data-testid="stAppViewContainer"] {{
         position: relative;
-    }}
+    }
     [data-testid="stAppViewContainer"]::before {{
         content: "";
         position: fixed;
@@ -85,7 +85,7 @@ def apply_enhanced_styles():
         background-position: center;
         opacity: 0.08;
         z-index: -1;
-    }}
+    }
     
     /* CHRISHEM Watermark */
     .app-watermark {{
@@ -98,7 +98,7 @@ def apply_enhanced_styles():
         letter-spacing: 2px;
         text-transform: uppercase;
         z-index: 1000;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Cards Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .metric-card {{
@@ -107,50 +107,50 @@ def apply_enhanced_styles():
         border-radius: 12px;
         padding: 1rem;
         transition: all 0.3s ease;
-    }}
+    }
     .metric-card:hover {{
         transform: translateY(-4px);
         box-shadow: 0 12px 32px rgba(0,0,0,0.2);
         border-color: {accent};
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Breathing Gradient Animation Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @keyframes breathe-gradient {{
         0%, 100% {{
             background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
-        }}
+        }
         50% {{
             background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.15));
-        }}
-    }}
+        }
+    }
     
     .breathing-card {{
         animation: breathe-gradient 4s ease-in-out infinite;
         border-radius: 12px;
         padding: 1rem;
-    }}
+    }
     
     /* Sidebar breathing effect */
     [data-testid="stSidebar"] {{
         animation: breathe-gradient 6s ease-in-out infinite;
-    }}
+    }
     
     /* Primary action button animation */
     .stButton > button[kind="primary"] {{
         background: {accent_gradient};
         border: none;
         transition: all 0.3s ease;
-    }}
+    }
     .stButton > button[kind="primary"]:hover {{
         transform: scale(1.02);
         box-shadow: 0 8px 24px rgba(59,130,246,0.4);
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     [data-testid="stSidebar"] {{
         background: {card_bg};
         border-right: 1px solid {border_color};
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Status Indicators Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .status-connected, .status-active {{
@@ -163,7 +163,7 @@ def apply_enhanced_styles():
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 600;
-    }}
+    }
     .status-disconnected, .status-inactive {{
         display: inline-flex;
         align-items: center;
@@ -174,7 +174,7 @@ def apply_enhanced_styles():
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 600;
-    }}
+    }
     .status-trial {{
         display: inline-flex;
         align-items: center;
@@ -185,7 +185,7 @@ def apply_enhanced_styles():
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 600;
-    }}
+    }
     .status-verified {{
         display: inline-flex;
         align-items: center;
@@ -196,7 +196,7 @@ def apply_enhanced_styles():
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 600;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Tier Badges Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .tier-badge {{
@@ -206,48 +206,48 @@ def apply_enhanced_styles():
         font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
-    }}
+    }
     .tier-free {{
         background: rgba(107,114,128,0.2);
         color: #9ca3af;
-    }}
+    }
     .tier-standard {{
         background: rgba(59,130,246,0.2);
         color: #3b82f6;
-    }}
+    }
     .tier-premium {{
         background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(59,130,246,0.2));
         color: #8b5cf6;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Tab Styling Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .stTabs [data-baseweb="tab"] {{
         border-radius: 8px 8px 0 0 !important;
         font-weight: 600;
         transition: all 0.2s;
-    }}
+    }
     .stTabs [data-baseweb="tab"]:hover {{
         background: rgba(59,130,246,0.1);
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ DataFrames & Tables Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     [data-testid="stDataFrame"] {{
         border-radius: 12px;
         border: 1px solid {border_color};
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Input Focus Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .stTextInput input:focus, .stTextarea textarea:focus {{
         border-color: {accent} !important;
         box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Expanders Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .streamlit-expanderHeader {{
         background: {card_bg};
         border-radius: 12px !important;
         font-weight: 600;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Hero Section Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .hero-card {{
@@ -256,47 +256,47 @@ def apply_enhanced_styles():
         padding: 2rem;
         border-radius: 16px;
         margin-bottom: 1.5rem;
-    }}
+    }
     .hero-card h1 {{
         margin: 0;
         font-size: 2rem;
-    }}
+    }
     .hero-card p {{
         margin: 0.5rem 0 0 0;
         opacity: 0.9;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Feature Cards Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .feature-grid {{
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1rem;
-    }}
+    }
     .feature-card {{
         background: {card_bg};
         border: 1px solid {border_color};
         border-radius: 12px;
         padding: 1.25rem;
         transition: all 0.3s ease;
-    }}
+    }
     .feature-card:hover {{
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(0,0,0,0.15);
         border-color: {accent};
-    }}
+    }
     .feature-icon {{
         font-size: 2rem;
         margin-bottom: 0.5rem;
-    }}
+    }
     .feature-title {{
         font-weight: 700;
         font-size: 1rem;
         margin-bottom: 0.25rem;
-    }}
+    }
     .feature-desc {{
         font-size: 0.85rem;
         color: {'#94a3b8' if is_dark else '#64748b'};
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Notification Badge Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .notification-badge {{
@@ -312,22 +312,22 @@ def apply_enhanced_styles():
         display: flex;
         align-items: center;
         justify-content: center;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Loading Spinner Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @keyframes pulse {{
-        0%, 100% {{ opacity: 1; }}
-        50% {{ opacity: 0.5; }}
-    }}
+        0%, 100% {{ opacity: 1; }
+        50% {{ opacity: 0.5; }
+    }
     .loading-pulse {{
         animation: pulse 1.5s ease-in-out infinite;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Tooltips Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     .tooltip {{
         position: relative;
         display: inline-block;
-    }}
+    }
     .tooltip .tooltiptext {{
         visibility: hidden;
         background: {text_color};
@@ -341,35 +341,35 @@ def apply_enhanced_styles():
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
-    }}
+    }
     .tooltip:hover .tooltiptext {{
         visibility: visible;
-    }}
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Responsive Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @media (max-width: 768px) {{
         .block-container {{
             padding-left: 1rem !important;
             padding-right: 1rem !important;
-        }}
+        }
         .hero-card h1 {{
             font-size: 1.5rem;
-        }}
+        }
         [data-testid="column"] {{
             min-width: 100% !important;
-        }}
-    }}
+        }
+    }
     
     /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Print Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
     @media print {{
         .app-watermark {{
             display: block !important;
             color: #999;
-        }}
+        }
         [data-testid="stSidebar"] {{
             display: none !important;
-        }}
-    }}
+        }
+    }
     </style>
     
     <!-- Watermark -->
@@ -394,7 +394,7 @@ def render_tier_badge(tier: str):
     cls = tier_classes.get(tier.lower(), "tier-free")
     name = tier_names.get(tier.lower(), "Free")
     
-    st.markdown(f'<span class="tier-badge {cls}}">{name}}</span>', unsafe_allow_html=True)
+    st.markdown(f'<span class="tier-badge {cls}">{name}</span>', unsafe_allow_html=True)
 
 def render_status_indicator(status: str):
     """Render a status indicator."""
@@ -410,7 +410,7 @@ def render_status_indicator(status: str):
     cls = status_classes.get(status.lower(), "status-inactive")
     display = status.replace("_", " ").title()
     
-    st.markdown(f'<span class="{cls}}">Ã¢â€”Â {display}}</span>', unsafe_allow_html=True)
+    st.markdown(f'<span class="{cls}">Ã¢â€”Â {display}</span>', unsafe_allow_html=True)
 
 def render_feature_card(icon: str, title: str, description: str):
     """Render a feature card."""
@@ -427,7 +427,7 @@ def render_hero_section(title: str, subtitle: str = ""):
     st.markdown(f"""
     <div class="hero-card">
         <h1>{title}</h1>
-        {f'<p>{subtitle}}</p>' if subtitle else ''}
+        {f'<p>{subtitle}</p>' if subtitle else ''}
     </div>
     """, unsafe_allow_html=True)
 
@@ -463,7 +463,7 @@ def render_location_greeting():
     special = special_days.get(date_key, "")
     
     if special:
-        greeting = f"{greeting}} {special}}"
+        greeting = f"{greeting} {special}"
     
     return greeting
 

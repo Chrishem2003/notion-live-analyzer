@@ -63,10 +63,10 @@ def analyze_sequence_batch(fasta_data: str) -> pd.DataFrame:
                 "C_Count": base_counts.get('C', 0)
             })
             
-        log_backend_event("INFO", f"Successfully analyzed {len(results)}} genomic sequences.")
+        log_backend_event("INFO", f"Successfully analyzed {len(results)} genomic sequences.")
         return pd.DataFrame(results)
         
     except Exception as e:
-        log_backend_event("ERROR", f"Bioinformatics pipeline failure: {str(e)}}")
+        log_backend_event("ERROR", f"Bioinformatics pipeline failure: {str(e)}")
         return pd.DataFrame()
 

@@ -68,10 +68,10 @@ def generate_research_pdf_report(data_dict=None, report_title="Research Analysis
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-            body {{ font-family: Arial, sans-serif; margin: 40px; color: #333; }}
-            h1 {{ color: #0066cc; border-bottom: 2px solid #eee; padding-bottom: 10px; }}
-            .meta {{ background: #f9f9f9; padding: 15px; border-left: 4px solid #0066cc; margin-bottom: 20px; }}
-            ul {{ line-height: 1.6; }}
+            body {{ font-family: Arial, sans-serif; margin: 40px; color: #333; }
+            h1 {{ color: #0066cc; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+            .meta {{ background: #f9f9f9; padding: 15px; border-left: 4px solid #0066cc; margin-bottom: 20px; }
+            ul {{ line-height: 1.6; }
         </style>
     </head>
     <body>

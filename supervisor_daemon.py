@@ -36,7 +36,7 @@ def render_supervisor_panel():
     with col3:
         st.metric("Database Persistence", "Connected" if health["database_active"] else "Offline")
 
-    st.markdown(f"**Last Telemetry Check:** {health['timestamp']}}")
+    st.markdown(f"**Last Telemetry Check:** {health['timestamp']}")
 
     if st.button("Run Supervisor Health Diagnostic"):
         log_backend_event("INFO", "Manual runtime supervisor health diagnostic triggered.")

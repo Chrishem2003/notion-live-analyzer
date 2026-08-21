@@ -93,8 +93,8 @@ class QuotaExceeded(Exception):
         self.status = status
         self.requested_bytes = requested_bytes
         super().__init__(
-            f"Upload of {requested_bytes:,}} bytes would exceed quota "
-            f"({status.used_bytes:,}} used + {requested_bytes:,}} requested > {status.limit_bytes:,}} limit)."
+            f"Upload of {requested_bytes:,} bytes would exceed quota "
+            f"({status.used_bytes:,} used + {requested_bytes:,} requested > {status.limit_bytes:,} limit)."
         )
 
 
@@ -120,7 +120,7 @@ def get_quota_status(owner: str, conn: Optional[sqlite3.Connection] = None) -> Q
 def store_file(name: str, data: bytes, category: str, notes: str, owner: str,
                 classification: str = "INTERNAL", conn: Optional[sqlite3.Connection] = None) -> dict:
     if classification.upper() not in LEVELS:
-        raise ValueError(f"classification must be one of {LEVELS}}")
+        raise ValueError(f"classification must be one of {LEVELS}")
 
     conn = conn or _drive_conn()
     quota = get_quota_status(owner, conn)
@@ -133,7 +133,7 @@ def store_file(name: str, data: bytes, category: str, notes: str, owner: str,
     if is_s3_configured():
         client = _s3_client()
         bucket = os.environ["S3_BUCKET"]
-        s3_key = f"{owner}}/{file_hash[:16]}}_{name}}"
+        s3_key = f"{owner}/{file_hash[:16]}_{name}"
         client.put_object(Bucket=bucket, Key=s3_key, Body=data)
         backend = "s3"
     else:
@@ -187,7 +187,7 @@ def get_download(file_id: int, requester: str, requester_clearance: str,
         "SELECT name, s3_key, classification, owner, storage_backend FROM drive_files_v2 WHERE id = ?", (file_id,)
     ).fetchone()
     if not row:
-        raise ValueError(f"No file with id {file_id}}")
+        raise ValueError(f"No file with id {file_id}")
     name, s3_key, classification, owner, backend = row
 
     check = check_access(requester_clearance, classification, is_owner=(owner == requester))
@@ -210,11 +210,11 @@ def delete_file(file_id: int, requester: str, requester_clearance: str,
     conn = conn or _drive_conn()
     row = conn.execute("SELECT s3_key, classification, owner, storage_backend FROM drive_files_v2 WHERE id = ?", (file_id,)).fetchone()
     if not row:
-        raise ValueError(f"No file with id {file_id}}")
+        raise ValueError(f"No file with id {file_id}")
     s3_key, classification, owner, backend = row
 
     if not can_delete(requester_clearance, classification, is_owner=(owner == requester)):
-        raise AccessDenied(f"Deleting a {classification}} file requires ownership or RESTRICTED clearance.")
+        raise AccessDenied(f"Deleting a {classification} file requires ownership or RESTRICTED clearance.")
 
     if backend == "s3" and s3_key:
         client = _s3_client()

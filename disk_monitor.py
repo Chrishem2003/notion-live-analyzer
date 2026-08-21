@@ -16,7 +16,7 @@ def get_disk_metrics() -> pd.DataFrame:
     percent_used = (used / total) * 100
 
     data = [
-        {"Partition": "C:\\ (Root / Data)", "Total (GB)": total_gb, "Used (GB)": used_gb, "Free (GB)": free_gb, "Usage (%)": f"{percent_used:.1f}}%", "Status": "HEALTHY"}
+        {"Partition": "C:\\ (Root / Data)", "Total (GB)": total_gb, "Used (GB)": used_gb, "Free (GB)": free_gb, "Usage (%)": f"{percent_used:.1f}%", "Status": "HEALTHY"}
     ]
     return pd.DataFrame(data)
 

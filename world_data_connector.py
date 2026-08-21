@@ -68,7 +68,7 @@ SECTOR_INDICATORS = {
 def fetch_country_list() -> pd.DataFrame:
     """Real list of countries/economies from the World Bank API (excludes
     aggregate regions like 'World' or 'Sub-Saharan Africa')."""
-    url = f"{BASE_URL}}/country"
+    url = f"{BASE_URL}/country"
     params = {"format": "json", "per_page": 400}
     resp = requests.get(url, params=params, timeout=TIMEOUT)
     resp.raise_for_status()
@@ -98,7 +98,7 @@ def fetch_indicator_series(country_iso3_list: list[str], indicator_code: str,
     if not country_iso3_list:
         raise ValueError("Provide at least one country ISO3 code.")
     countries = ";".join(country_iso3_list)
-    url = f"{BASE_URL}}/country/{countries}}/indicator/{indicator_code}}"
+    url = f"{BASE_URL}/country/{countries}/indicator/{indicator_code}"
     params = {"format": "json", "date": date_range, "per_page": 20000}
     resp = requests.get(url, params=params, timeout=TIMEOUT)
     resp.raise_for_status()
@@ -106,7 +106,7 @@ def fetch_indicator_series(country_iso3_list: list[str], indicator_code: str,
 
     if isinstance(payload, dict) and "message" in payload:
         msg = payload["message"][0].get("value", "Unknown World Bank API error.")
-        raise RuntimeError(f"World Bank API error: {msg}}")
+        raise RuntimeError(f"World Bank API error: {msg}")
     if not isinstance(payload, list) or len(payload) < 2 or payload[1] is None:
         return pd.DataFrame(columns=["country", "iso3", "year", "value"])
 
@@ -138,10 +138,10 @@ def fetch_multi_indicator(country_iso3_list: list[str], indicator_codes: dict[st
         try:
             df = fetch_indicator_series(country_iso3_list, code, date_range)
         except Exception as e:
-            errors.append(f"{label}} ({code}}): {e}}")
+            errors.append(f"{label} ({code}): {e}")
             continue
         if df.empty:
-            errors.append(f"{label}} ({code}}): no data returned for this selection.")
+            errors.append(f"{label} ({code}): no data returned for this selection.")
             continue
         df = df.rename(columns={"value": label})
         merged = df if merged is None else pd.merge(merged, df, on=["country", "iso3", "year"], how="outer")

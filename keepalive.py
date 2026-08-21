@@ -30,27 +30,27 @@ def inject_client_keepalive(interval_sec: int = 300):
         // Clear any existing interval
         if (window._ka_interval) {{
             clearInterval(window._ka_interval);
-        }}
+        }
         window._ka_interval = setInterval(function() {{
-            fetch(window.location.href, {{ method: 'HEAD', cache: 'no-store' }})
+            fetch(window.location.href, {{ method: 'HEAD', cache: 'no-store' })
                 .then(r => console.log('[Keep-Alive] Ping OK @', new Date().toISOString()))
                 .catch(e => console.warn('[Keep-Alive] Ping failed', e));
-        }}, {keep_alive_ms});
+        }, {keep_alive_ms});
 
         // Visibility change: re-enable keep-alive when tab becomes visible
         document.addEventListener('visibilitychange', function() {{
             if (!document.hidden && !window._ka_interval) {{
                 console.log('[Keep-Alive] Tab visible  re-establishing heartbeat');
                 window._ka_interval = setInterval(function() {{
-                    fetch(window.location.href, {{ method: 'HEAD', cache: 'no-store' }})
+                    fetch(window.location.href, {{ method: 'HEAD', cache: 'no-store' })
                         .then(r => console.log('[Keep-Alive] Ping OK @', new Date().toISOString()))
                         .catch(e => console.warn('[Keep-Alive] Ping failed', e));
-                }}, {keep_alive_ms});
-            }}
-        }});
+                }, {keep_alive_ms});
+            }
+        });
 
         console.log('[Keep-Alive] Heartbeat started  interval: {keep_alive_ms}ms');
-    }})();
+    })();
     </script>
     """
     return script
@@ -73,7 +73,7 @@ class ServerKeepAliveThread:
         self._running = True
         self._thread = threading.Thread(target=self._run, daemon=True, name="keepalive-server")
         self._thread.start()
-        logger.info(f"[Keep-Alive Layer 2] Server thread started  pinging {self.app_url}} every {self.interval}}s")
+        logger.info(f"[Keep-Alive Layer 2] Server thread started  pinging {self.app_url} every {self.interval}s")
 
     def stop(self):
         """Stop the background keep-alive thread."""
@@ -85,11 +85,11 @@ class ServerKeepAliveThread:
         while self._running:
             try:
                 response = requests.head(self.app_url, timeout=10)
-                logger.debug(f"[Keep-Alive] Server ping Ã¢â€ â€™ {response.status_code}}")
+                logger.debug(f"[Keep-Alive] Server ping Ã¢â€ â€™ {response.status_code}")
             except requests.exceptions.RequestException as e:
-                logger.warning(f"[Keep-Alive] Server ping failed: {e}}")
+                logger.warning(f"[Keep-Alive] Server ping failed: {e}")
             except Exception as e:
-                logger.error(f"[Keep-Alive] Unexpected error: {e}}")
+                logger.error(f"[Keep-Alive] Unexpected error: {e}")
             time.sleep(self.interval)
 
     @property
@@ -150,7 +150,7 @@ class Watchdog:
         """Check if the app is healthy. Returns False if restart needed."""
         elapsed = time.time() - self._last_healthy
         if elapsed > self.max_stale:
-            logger.warning(f"[Watchdog] App appears stale ({elapsed:.0f}}s since last check)")
+            logger.warning(f"[Watchdog] App appears stale ({elapsed:.0f}s since last check)")
             return False
         self._last_healthy = time.time()
         return True

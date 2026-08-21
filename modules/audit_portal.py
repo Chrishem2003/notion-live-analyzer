@@ -63,7 +63,7 @@ def decrypt_text(ciphertext: str, password: str) -> str:
         f = Fernet(derive_fernet_key(password))
         return f.decrypt(ciphertext.encode()).decode()
     except Exception as e:
-        return f"[Ã°Å¸â€â€™ Decryption failed: {str(e)}}]"
+        return f"[Ã°Å¸â€â€™ Decryption failed: {str(e)}]"
 
 
 # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
@@ -133,7 +133,7 @@ class CHRISHEMSubmissionSystem:
         ts = time.time()
 
         # Generate blockchain-style hash for this submission
-        block_raw = f"{student_name}}-{title}}-{ts}}-{encrypted[:50]}}"
+        block_raw = f"{student_name}-{title}-{ts}-{encrypted[:50]}"
         block_hash = hashlib.sha256(block_raw.encode()).hexdigest()
 
         with self._get_conn() as conn:
@@ -153,10 +153,10 @@ class CHRISHEMSubmissionSystem:
             from modules.audit_engine import get_audit_orchestrator
             orch = get_audit_orchestrator(project_id)
             orch.ledger.record_node(
-                session_id=f"portal_{project_id}}",
+                session_id=f"portal_{project_id}",
                 student_id=student_name,
                 event_type="STUDENT_SUBMISSION",
-                text_snapshot=f"Submitted: {title}}",
+                text_snapshot=f"Submitted: {title}",
                 payload_metrics=json.dumps({"sub_id": sub_id, "hash": block_hash}),
                 project_id=project_id,
             )

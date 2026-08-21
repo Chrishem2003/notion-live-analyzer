@@ -8,7 +8,7 @@ def cached_query_processor(query_string: str) -> str:
     """
     Bounded LRU cache for high-frequency analytical queries to prevent RAM bloat.
     """
-    return f"Processed result for: {query_string}}"
+    return f"Processed result for: {query_string}"
 
 def check_ram_utilization_guard(max_threshold_percent: float = 85.0) -> bool:
     """
@@ -16,7 +16,7 @@ def check_ram_utilization_guard(max_threshold_percent: float = 85.0) -> bool:
     """
     mem = psutil.virtual_memory()
     if mem.percent > max_threshold_percent:
-        log_backend_event("WARNING", f"High RAM usage detected: {mem.percent}}% utilized.")
+        log_backend_event("WARNING", f"High RAM usage detected: {mem.percent}% utilized.")
         return False
     return True
 
@@ -32,5 +32,5 @@ def chunked_file_reader(file_path: str, chunk_size: int = 1024 * 1024):
                     break
                 yield chunk
     except Exception as e:
-        log_backend_event("ERROR", f"Chunked file reader exception on {file_path}}: {str(e)}}")
+        log_backend_event("ERROR", f"Chunked file reader exception on {file_path}: {str(e)}")
 

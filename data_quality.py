@@ -85,11 +85,11 @@ class DataQualityReport:
         issues = []
         recommendations = []
         if missing_pct > 20:
-            issues.append(f"Critical: {missing_pct}}% of all cells are missing")
+            issues.append(f"Critical: {missing_pct}% of all cells are missing")
             recommendations.append("Consider removing columns with >50% missing values")
             recommendations.append("Use imputation (mean/median/mode) for numeric missing values")
         elif missing_pct > 10:
-            issues.append(f"Warning: {missing_pct}}% of cells are missing")
+            issues.append(f"Warning: {missing_pct}% of cells are missing")
             recommendations.append("Investigate causes of missing data")
             recommendations.append("Consider imputation strategies")
         elif missing_pct > 0:
@@ -100,8 +100,8 @@ class DataQualityReport:
         if len(high_missing) > 0:
             for col in high_missing.index:
                 pct = high_missing[col] / len(self.df) * 100
-                issues.append(f"Column '{col}}' has {pct:.1f}}% missing values")
-                recommendations.append(f"Consider dropping or imputing '{col}}'")
+                issues.append(f"Column '{col}' has {pct:.1f}% missing values")
+                recommendations.append(f"Consider dropping or imputing '{col}'")
 
         return {
             "missing_cells": missing_cells,
@@ -124,10 +124,10 @@ class DataQualityReport:
         recommendations = []
 
         if duplicate_pct > 20:
-            issues.append(f"Critical: {duplicate_pct}}% of rows are duplicates")
+            issues.append(f"Critical: {duplicate_pct}% of rows are duplicates")
             recommendations.append("Remove duplicate rows")
         elif duplicate_pct > 5:
-            issues.append(f"{duplicate_pct}}% of rows are duplicates")
+            issues.append(f"{duplicate_pct}% of rows are duplicates")
             recommendations.append("Investigate duplicate causes (data entry errors?)")
 
         # Column uniqueness
@@ -142,9 +142,9 @@ class DataQualityReport:
                 high_cardinality.append(col)
 
         if low_cardinality:
-            recommendations.append(f"Low cardinality columns (potential constants): {', '.join(low_cardinality[:5])}}")
+            recommendations.append(f"Low cardinality columns (potential constants): {', '.join(low_cardinality[:5])}")
         if high_cardinality:
-            recommendations.append(f"High cardinality columns (potential IDs): {', '.join(high_cardinality[:5])}}")
+            recommendations.append(f"High cardinality columns (potential IDs): {', '.join(high_cardinality[:5])}")
 
         # Score
         score = max(0, 100 - duplicate_pct * 3)
@@ -176,7 +176,7 @@ class DataQualityReport:
                     mixed_types.append(col)
 
         if mixed_types:
-            issues.append(f"Mixed types detected: {', '.join(mixed_types[:5])}}")
+            issues.append(f"Mixed types detected: {', '.join(mixed_types[:5])}")
             recommendations.append("Clean mixed-type columns  convert to appropriate type")
 
         # Check date consistency
@@ -193,7 +193,7 @@ class DataQualityReport:
                 pass
 
         if date_issues:
-            recommendations.append(f"Convert mixed date columns: {', '.join(date_issues[:3])}}")
+            recommendations.append(f"Convert mixed date columns: {', '.join(date_issues[:3])}")
 
         # Check categorical consistency (unique values vs expected)
         cat_issues = []
@@ -205,7 +205,7 @@ class DataQualityReport:
                     cat_issues.append(col)
 
         if cat_issues:
-            issues.append(f"Whitespace in categorical data: {', '.join(cat_issues[:5])}}")
+            issues.append(f"Whitespace in categorical data: {', '.join(cat_issues[:5])}")
             recommendations.append("Strip whitespace from categorical columns")
 
         # Score
@@ -251,14 +251,14 @@ class DataQualityReport:
                 invalid_values[col] = {
                     "count": len(extreme),
                     "pct": round(len(extreme) / len(series) * 100, 1),
-                    "range": f"[{lower:.1f}}, {upper:.1f}}]",
+                    "range": f"[{lower:.1f}, {upper:.1f}]",
                     "min_val": float(series.min()),
                     "max_val": float(series.max()),
                 }
 
         if invalid_values:
             for col, info in invalid_values.items():
-                issues.append(f"'{col}}': {info['count']}} values ({info['pct']}}%) outside expected range {info['range']}}")
+                issues.append(f"'{col}': {info['count']} values ({info['pct']}%) outside expected range {info['range']}")
             recommendations.append("Review extreme values  check for data entry errors")
             recommendations.append("Consider winsorizing or transforming extreme values")
 
@@ -267,8 +267,8 @@ class DataQualityReport:
             if (self.df[col] < 0).any():
                 neg_count = (self.df[col] < 0).sum()
                 if "age" in col.lower() or "count" in col.lower() or "frequency" in col.lower():
-                    issues.append(f"'{col}}' has {neg_count}} negative values (should be non-negative)")
-                    recommendations.append(f"Flag or correct negative values in '{col}}'")
+                    issues.append(f"'{col}' has {neg_count} negative values (should be non-negative)")
+                    recommendations.append(f"Flag or correct negative values in '{col}'")
 
         # Score: deduct per column with validity issues
         score = max(0, 100 - len(invalid_values) * 10 - len(numeric_cols) * 2)
@@ -297,19 +297,19 @@ class DataQualityReport:
                         duplicate_cols.append((col_corr.columns[i], col_corr.columns[j]))
 
         if duplicate_cols:
-            issues.append(f"Potential duplicate columns (r > 0.999): {', '.join([f'{a}}={b}}' for a,b in duplicate_cols[:3]])}}")
+            issues.append(f"Potential duplicate columns (r > 0.999): {', '.join([f'{a}={b}' for a,b in duplicate_cols[:3]])}")
             recommendations.append("Remove or merge duplicate columns")
 
         # Check constant columns
         constant_cols = [col for col in self.df.columns if self.df[col].nunique() <= 1]
         if constant_cols:
-            issues.append(f"Constant columns (no variance): {', '.join(constant_cols[:5])}}")
+            issues.append(f"Constant columns (no variance): {', '.join(constant_cols[:5])}")
             recommendations.append("Remove constant columns  they add no predictive value")
 
         # Check for columns with all NaN
         all_nan = [col for col in self.df.columns if self.df[col].isna().all()]
         if all_nan:
-            issues.append(f"Empty columns (all NaN): {', '.join(all_nan)}}")
+            issues.append(f"Empty columns (all NaN): {', '.join(all_nan)}")
             recommendations.append("Remove completely empty columns")
 
         # Score
@@ -320,7 +320,7 @@ class DataQualityReport:
         score = max(0, score)
 
         return {
-            "duplicate_columns": [f"{a}}Ã¢â€°Ë†{b}}" for a, b in duplicate_cols],
+            "duplicate_columns": [f"{a}Ã¢â€°Ë†{b}" for a, b in duplicate_cols],
             "constant_columns": constant_cols,
             "all_nan_columns": all_nan,
             "score": round(score, 1),
@@ -353,13 +353,13 @@ class DataQualityReport:
                 if len(dates) > 0:
                     date_range = (dates.max() - dates.min()).days
                     recency = (pd.Timestamp.now() - dates.max()).days
-                    result[f"{col}}_range_days"] = date_range
-                    result[f"{col}}_recency_days"] = recency
+                    result[f"{col}_range_days"] = date_range
+                    result[f"{col}_recency_days"] = recency
 
                     if date_range > 0:
                         result["score"] = 100
                     if recency > 365:
-                        issues.append(f"Data in '{col}}' is {recency}} days old")
+                        issues.append(f"Data in '{col}' is {recency} days old")
                         recommendations.append("Update data for more current analysis")
                         result["score"] = 40
                     elif recency > 30:
@@ -449,14 +449,14 @@ def render_data_quality_ui(df: pd.DataFrame):
         overview = report.get("overview", {})
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Rows", f"{overview.get('rows', 0):,}}")
+            st.metric("Rows", f"{overview.get('rows', 0):,}")
         with col2:
             st.metric("Columns", overview.get("columns", 0))
         with col3:
-            st.metric("Memory", f"{overview.get('memory_mb', 0)}} MB")
+            st.metric("Memory", f"{overview.get('memory_mb', 0)} MB")
         with col4:
             completeness = report.get("completeness", {})
-            st.metric("Completeness", f"{completeness.get('missing_pct', 0)}}% missing")
+            st.metric("Completeness", f"{completeness.get('missing_pct', 0)}% missing")
 
         # Column Quality Table
         st.subheader("ðŸ“‹ Column-by-Column Quality")
@@ -497,15 +497,15 @@ def render_data_quality_ui(df: pd.DataFrame):
         st.subheader(" Quick Dataset Statistics")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Rows", f"{len(df):,}}")
+            st.metric("Rows", f"{len(df):,}")
         with col2:
             st.metric("Columns", len(df.columns))
         with col3:
             missing = df.isna().sum().sum()
-            st.metric("Missing Cells", f"{missing:,}}")
+            st.metric("Missing Cells", f"{missing:,}")
         with col4:
             dups = df.duplicated().sum()
-            st.metric("Duplicates", f"{dups:,}}")
+            st.metric("Duplicates", f"{dups:,}")
 
 
 def insight_card(icon: str, text: str):
@@ -513,7 +513,7 @@ def insight_card(icon: str, text: str):
     st.markdown(
         f'<div class="insight-card" style="padding:0.6rem 0.8rem;margin:0.3rem 0;'
         f'border-radius:10px;border-left:4px solid #1d4ed8;background:rgba(29,78,216,0.05);">'
-        f'{icon}} {text}}</div>',
+        f'{icon} {text}</div>',
         unsafe_allow_html=True,
     )
 

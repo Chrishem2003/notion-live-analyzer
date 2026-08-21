@@ -94,7 +94,7 @@ def research_node(state: SwarmState) -> dict:
     except Exception as e:
         return {
             "literature_findings": None,
-            "errors": [f"research_node: literature search failed â€” {e}}"],
+            "errors": [f"research_node: literature search failed â€” {e}"],
         }
 
 
@@ -137,7 +137,7 @@ def audit_node(state: SwarmState) -> dict:
     except Exception as e:
         return {
             "audit_findings": None,
-            "errors": [f"audit_node: data audit failed â€” {e}}"],
+            "errors": [f"audit_node: data audit failed â€” {e}"],
         }
 
 
@@ -154,20 +154,20 @@ def synthesis_node(state: SwarmState) -> dict:
         # labeled as not LLM-synthesized. No canned prose pretending to be
         # AI reasoning (see portal.py's changelog on the "AI Intelligence
         # Daemon" that used to fake this).
-        lines = [f"## Structured Findings for: {state['problem']}}",
+        lines = [f"## Structured Findings for: {state['problem']}",
                  "_No LLM configured (set GEMINI_API_KEY) â€” showing a direct merge of the two agents' real findings, not an AI-synthesized plan._", ""]
         if lit:
-            lines.append(f"### Literature ({lit['n_found']}} papers found via CrossRef)")
+            lines.append(f"### Literature ({lit['n_found']} papers found via CrossRef)")
             for p in lit["top_papers"][:5]:
-                lines.append(f"- {p['title']}} ({p['year']}}, {p['citations']}} citations)")
+                lines.append(f"- {p['title']} ({p['year']}, {p['citations']} citations)")
         else:
             lines.append("### Literature\nNo findings (search failed â€” see errors).")
         if audit and audit.get("status") == "ok":
-            lines.append(f"\n### Data Audit\n{audit['n_rows']}} rows, {audit['n_cols']}} cols, "
-                          f"{audit['missing_cells']}} missing cells, {audit['duplicate_rows']}} duplicate rows.")
+            lines.append(f"\n### Data Audit\n{audit['n_rows']} rows, {audit['n_cols']} cols, "
+                          f"{audit['missing_cells']} missing cells, {audit['duplicate_rows']} duplicate rows.")
             if audit["numeric_columns_with_outliers"]:
                 lines.append("Outliers detected in: " + ", ".join(
-                    f"{c['column']}} ({c['outlier_count']}})" for c in audit["numeric_columns_with_outliers"]))
+                    f"{c['column']} ({c['outlier_count']})" for c in audit["numeric_columns_with_outliers"]))
         else:
             lines.append("\n### Data Audit\n" + (audit.get("note", "No findings.") if audit else "No findings (audit failed)."))
         return {"synthesis": "\n".join(lines)}
@@ -176,9 +176,9 @@ def synthesis_node(state: SwarmState) -> dict:
     try:
         client = genai.Client(api_key=api_key)
         prompt = (
-            f"You are a strategy synthesis agent. A user posed this challenge:\n{state['problem']}}\n\n"
-            f"Literature agent findings (real CrossRef results, do not invent papers beyond these):\n{lit}}\n\n"
-            f"Data audit agent findings (real computation on the user's actual dataset, do not invent statistics beyond these):\n{audit}}\n\n"
+            f"You are a strategy synthesis agent. A user posed this challenge:\n{state['problem']}\n\n"
+            f"Literature agent findings (real CrossRef results, do not invent papers beyond these):\n{lit}\n\n"
+            f"Data audit agent findings (real computation on the user's actual dataset, do not invent statistics beyond these):\n{audit}\n\n"
             "Write a concise, actionable synthesis: what the literature suggests, what the data quality "
             "issues mean for any analysis, and 3-5 concrete next steps. Ground every claim in the findings "
             "above â€” do not cite facts that aren't in them."
@@ -188,7 +188,7 @@ def synthesis_node(state: SwarmState) -> dict:
     except Exception as e:
         return {
             "synthesis": None,
-            "errors": [f"synthesis_node: Gemini call failed â€” {e}}"],
+            "errors": [f"synthesis_node: Gemini call failed â€” {e}"],
         }
 
 

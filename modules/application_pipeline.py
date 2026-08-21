@@ -21,7 +21,7 @@ def load_pipeline_stylesheet(is_dark: bool = False):
 def render_pipeline_ui(operational_mode: str = "Kanban Board & Stage Analytics", base_currency: str = "USD ($)"):
     """Renders the main Application Pipeline UI based on selected operational mode."""
     st.title("ðŸ“‹ Enterprise Application Pipeline & Document Vault")
-    st.markdown(f"**Current Operational Mode:** `{operational_mode}}` | **Active Financial Denomination:** `{base_currency}}`")
+    st.markdown(f"**Current Operational Mode:** `{operational_mode}` | **Active Financial Denomination:** `{base_currency}`")
     
     tab1, tab2, tab3 = st.tabs([" Pipeline Records", "Ã°Å¸â€œÂ Document Vault", "Ã¢Å¡â„¢Ã¯Â¸Â Analytics & Risk Gates"])
     
@@ -44,7 +44,7 @@ def render_pipeline_ui(operational_mode: str = "Kanban Board & Stage Analytics",
                     "Status": "Ã¢ÂÂ³ Pending Review", 
                     "Score": 88
                 })
-                st.success(f"Successfully ingested '{new_doc}}' into the secure pipeline!")
+                st.success(f"Successfully ingested '{new_doc}' into the secure pipeline!")
                 st.rerun()
 
     with tab2:

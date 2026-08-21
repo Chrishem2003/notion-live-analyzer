@@ -565,7 +565,7 @@ class OpportunityDatabase:
             # Type filter
             if types and len(types) > 0:
                 placeholders = ",".join("?" for _ in types)
-                conditions.append(f"type IN ({placeholders}})")
+                conditions.append(f"type IN ({placeholders})")
                 params.extend(types)
 
             # Amount range
@@ -584,26 +584,26 @@ class OpportunityDatabase:
             # Full-text search
             if query:
                 conditions.append("(title LIKE ? OR organization LIKE ? OR description LIKE ? OR country LIKE ?)")
-                like_q = f"%{query}}%"
+                like_q = f"%{query}%"
                 params.extend([like_q, like_q, like_q, like_q])
 
             # Field of study
             if field and field != "All Fields":
                 conditions.append("(field_of_study LIKE ? OR field_of_study = '')")
-                params.append(f"%{field}}%")
+                params.append(f"%{field}%")
 
             where_clause = " AND ".join(conditions)
 
             # Count
             count_row = conn.execute(
-                f"SELECT COUNT(*) as cnt FROM opportunities WHERE {where_clause}}",
+                f"SELECT COUNT(*) as cnt FROM opportunities WHERE {where_clause}",
                 params,
             ).fetchone()
             total = count_row["cnt"] if count_row else 0
 
             # Fetch
             rows = conn.execute(
-                f"SELECT * FROM opportunities WHERE {where_clause}} ORDER BY verification_score DESC LIMIT ? OFFSET ?",
+                f"SELECT * FROM opportunities WHERE {where_clause} ORDER BY verification_score DESC LIMIT ? OFFSET ?",
                 params  [limit, offset],
             ).fetchall()
 
@@ -808,23 +808,23 @@ class OpportunityFeedEngine:
         country = opp.get("country", "")
         amount = ""
         if opp.get("amount_min_usd") and opp.get("amount_max_usd"):
-            amount = f" ${opp['amount_min_usd']:,.0f}}-${opp['amount_max_usd']:,.0f}}"
+            amount = f" ${opp['amount_min_usd']:,.0f}-${opp['amount_max_usd']:,.0f}"
         elif opp.get("amount_max_usd"):
-            amount = f" ${opp['amount_max_usd']:,.0f}}"
+            amount = f" ${opp['amount_max_usd']:,.0f}"
 
         deadline = opp.get("deadline", "")
         notes = (
-            f"From Opportunity Feed: {title}}\n"
-            f"Organization: {org}}\n"
-            f"Country: {country}}\n"
-            f"Amount: {amount}}\n"
-            f"Source: {opp.get('source_authority', '')}}"
+            f"From Opportunity Feed: {title}\n"
+            f"Organization: {org}\n"
+            f"Country: {country}\n"
+            f"Amount: {amount}\n"
+            f"Source: {opp.get('source_authority', '')}"
         )
         if opp.get("source_url"):
-            notes = f"\nURL: {opp['source_url']}}"
+            notes = f"\nURL: {opp['source_url']}"
 
         # Use opportunity ID as opportunity_id for traceability
-        opportunity_id = f"feed_{opp_id[:12]}}"
+        opportunity_id = f"feed_{opp_id[:12]}"
 
         app = pipeline_manager.add_to_pipeline(
             user_id=user_id,

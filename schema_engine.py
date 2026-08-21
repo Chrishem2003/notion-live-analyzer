@@ -94,7 +94,7 @@ def seed_sample_project():
 def log_provenance(entity_id: str, action: str, user: str, payload_data: dict) -> str:
     """Computes SHA-256 hash and logs activity to database."""
     stamp = datetime.utcnow().isoformat()
-    raw_str = f"{entity_id}}:{action}}:{user}}:{stamp}}:{json.dumps(payload_data, sort_keys=True)}}"
+    raw_str = f"{entity_id}:{action}:{user}:{stamp}:{json.dumps(payload_data, sort_keys=True)}"
     sha256 = hashlib.sha256(raw_str.encode('utf-8')).hexdigest()
     
     conn = sqlite3.connect(DB_FILE)
@@ -147,7 +147,7 @@ def render_schema_engine_tab():
                 ''', (art_id, proj_id, art_type, uri, json.dumps({"status": "verified"})))
                 conn.commit()
                 hash_val = log_provenance(art_id, "REGISTER_ARTIFACT", "chief.investigator@lab.org", {"uri": uri})
-                st.success(f"Artifact registered successfully! Provenance Hash: `{hash_val[:16]}}...`")
+                st.success(f"Artifact registered successfully! Provenance Hash: `{hash_val[:16]}...`")
                 st.rerun()
 
     conn.close()

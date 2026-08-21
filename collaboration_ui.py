@@ -503,7 +503,7 @@ def render_lobby():
         
         with col2:
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Join", key=f"join_{room.id}}"):
+            if st.button("Join", key=f"join_{room.id}"):
                 st.session_state["active_room"] = room.id
                 st.rerun()
 
@@ -530,7 +530,7 @@ def render_video_rooms():
     # Header
     col1, col2, col3 = st.columns([3, 1, 1])
     with col1:
-        st.subheader(f"Ã°Å¸â€œÂ¹ {room.name}}")
+        st.subheader(f"Ã°Å¸â€œÂ¹ {room.name}")
     with col2:
         if st.button("Ã°Å¸â€â€™ Lock Room"):
             room.is_locked = not room.is_locked
@@ -540,7 +540,7 @@ def render_video_rooms():
             st.session_state["active_room"] = None
             st.rerun()
     
-    st.markdown(f"*{room.description or ''}}*")
+    st.markdown(f"*{room.description or ''}*")
     
     # Video Grid
     st.subheader("Ã°Å¸â€˜Â¥ Participants")
@@ -618,7 +618,7 @@ def render_video_rooms():
         st.subheader("Participants")
         
         for p in demo_participants:
-            status_class = f"status-{p['status']}}"
+            status_class = f"status-{p['status']}"
             st.markdown(f"""
             <div class="participant-item">
                 <div class="participant-avatar">Ã°Å¸â€˜Â¤</div>
@@ -770,7 +770,7 @@ def render_tasks():
 def render_task_list(tasks, task_mgr):
     """Render a list of tasks."""
     for task in tasks:
-        priority_class = f"task-priority-{task.priority}}"
+        priority_class = f"task-priority-{task.priority}"
         status_emoji = {"todo": "Ã¢Â­â€¢", "in_progress": "Ã°Å¸â€â€ž", "review": "Ã°Å¸â€˜â‚¬", "done": "âœ…"}
         
         st.markdown(f"""
@@ -793,15 +793,15 @@ def render_task_list(tasks, task_mgr):
         # Action buttons
         col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
-            if task.status != "todo" and st.button(f"Ã¢â€ Â Todo", key=f"todo_{task.id}}"):
+            if task.status != "todo" and st.button(f"Ã¢â€ Â Todo", key=f"todo_{task.id}"):
                 task_mgr.update_task_status(task.id, "todo")
                 st.rerun()
         with col2:
-            if task.status != "done" and st.button(f"Done Ã¢Å“â€œ", key=f"done_{task.id}}"):
+            if task.status != "done" and st.button(f"Done Ã¢Å“â€œ", key=f"done_{task.id}"):
                 task_mgr.update_task_status(task.id, "done")
                 st.rerun()
         with col3:
-            if st.button(f"Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"del_{task.id}}"):
+            if st.button(f"Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"del_{task.id}"):
                 st.rerun()
 
 # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
@@ -850,13 +850,13 @@ def render_ai_assistant():
             if response.get("sources"):
                 st.markdown("**Ã°Å¸â€œÅ¡ Sources:**")
                 for source in response["sources"]:
-                    st.markdown(f"- [{source['title']}}]({source['url']}}) ({source['relevance']*100:.0f}}%)")
+                    st.markdown(f"- [{source['title']}]({source['url']}) ({source['relevance']*100:.0f}%)")
             
             # Follow-up questions
             if response.get("follow_up"):
                 st.markdown("**Ã°Å¸â€™Â­ Follow-up questions:**")
                 for q in response["follow_up"]:
-                    if st.button(f"Ã¢Ââ€œ {q}}"):
+                    if st.button(f"Ã¢Ââ€œ {q}"):
                         st.rerun()
     
     st.divider()
@@ -876,7 +876,7 @@ def render_ai_assistant():
             experts = assistant.suggest_experts("machine learning", 5)
             st.write("**Suggested Experts:**")
             for exp in experts:
-                st.markdown(f"- **{exp['name']}}** ({exp['affiliation']}}) - h-index: {exp['h_index']}}")
+                st.markdown(f"- **{exp['name']}** ({exp['affiliation']}) - h-index: {exp['h_index']}")
     
     with col3:
         if st.button("ðŸ“‹ Generate Brief"):
@@ -928,14 +928,14 @@ def render_automations():
         col1, col2, col3 = st.columns([3, 2, 1])
         
         with col1:
-            st.markdown(f"**{auto.name}}**")
-            st.caption(f"Trigger: `{auto.trigger}}` Ã¢â€ â€™ Action: `{auto.action}}`")
+            st.markdown(f"**{auto.name}**")
+            st.caption(f"Trigger: `{auto.trigger}` Ã¢â€ â€™ Action: `{auto.action}`")
         
         with col2:
             st.markdown(status)
         
         with col3:
-            toggle = st.checkbox("Enable", value=auto.enabled, key=f"auto_{auto.id}}")
+            toggle = st.checkbox("Enable", value=auto.enabled, key=f"auto_{auto.id}")
             if toggle != auto.enabled:
                 engine.toggle_automation(auto.id, toggle)
                 st.rerun()
@@ -958,8 +958,8 @@ def render_automations():
     
     for i, (title, desc) in enumerate(templates):
         with template_cols[i % 3]:
-            if st.button(f"**{title}}**", key=f"template_{i}}"):
-                st.info(f"Adding: {title}}")
+            if st.button(f"**{title}**", key=f"template_{i}"):
+                st.info(f"Adding: {title}")
 
 # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # TRANSLATION & FILE SHARING
@@ -985,7 +985,7 @@ def render_file_sharing_sidebar():
     uploaded = st.file_uploader("Upload File", type=None)
     
     if uploaded:
-        st.success(f"Uploaded: {uploaded.name}}")
+        st.success(f"Uploaded: {uploaded.name}")
     
     # Demo files
     st.markdown("**Recent Files:**")
@@ -996,7 +996,7 @@ def render_file_sharing_sidebar():
     ]
     
     for name, size in demo_files:
-        st.markdown(f"{name}} - {size}}")
+        st.markdown(f"{name} - {size}")
 
 # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 # INIT FUNCTION

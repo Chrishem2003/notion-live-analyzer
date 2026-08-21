@@ -59,7 +59,7 @@ class SPSSSuite:
             return {"error": "statsmodels required for ANCOVA"}
         try:
             model = sm_ols(
-                f"{value_col}} ~ C({group_col}}) + {covariate_col}}", data=df
+                f"{value_col} ~ C({group_col}) + {covariate_col}", data=df
             ).fit()
             anova = sm.stats.anova_lm(model, typ=2)
             return {
@@ -166,7 +166,7 @@ class SPSSSuite:
         alpha = (1 - ci) / 2
         lo, hi = np.percentile(boot, [alpha * 100, (1 - alpha) * 100])
         return {
-            "test": f"Bootstrapped {stat_fn}}",
+            "test": f"Bootstrapped {stat_fn}",
             "statistic": round(float(fn(series)), 4),
             "ci_lower": round(float(lo), 4),
             "ci_upper": round(float(hi), 4),
@@ -202,18 +202,18 @@ class SPSSSuite:
         if "t_statistic" in stats:
             parts.append(
                 f"An independent-samples t-test revealed "
-                f"{'a significant' if sig else 'no significant'}} difference, "
-                f"t = {stats.get('t_statistic')}}, p = {stats.get('p_value')}}, "
-                f"d = {stats.get('cohens_d', 'N/A')}}."
+                f"{'a significant' if sig else 'no significant'} difference, "
+                f"t = {stats.get('t_statistic')}, p = {stats.get('p_value')}, "
+                f"d = {stats.get('cohens_d', 'N/A')}."
             )
         elif "f_statistic" in stats:
             parts.append(
-                f"A one-way ANOVA revealed {'a significant' if sig else 'no significant'}} effect, "
-                f"F = {stats.get('f_statistic')}}, p = {stats.get('p_value')}}, "
-                f"Î·Â² = {stats.get('eta_squared', 'N/A')}}."
+                f"A one-way ANOVA revealed {'a significant' if sig else 'no significant'} effect, "
+                f"F = {stats.get('f_statistic')}, p = {stats.get('p_value')}, "
+                f"Î·Â² = {stats.get('eta_squared', 'N/A')}."
             )
         else:
-            parts.append(f"{test_name}}: {json_safe(stats)}}")
+            parts.append(f"{test_name}: {json_safe(stats)}")
         return " ".join(parts)
 
 

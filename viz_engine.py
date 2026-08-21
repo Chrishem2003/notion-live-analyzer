@@ -82,11 +82,11 @@ def auto_recommend_chart(
     if len(numeric_cols) >= 1:
         recommendations.extend([
             {"chart": "histogram", "x": numeric_cols[0], "y": None,
-             "reason": f"Distribution of {numeric_cols[0]}}", "score": 95},
+             "reason": f"Distribution of {numeric_cols[0]}", "score": 95},
             {"chart": "box", "x": None, "y": numeric_cols[0],
-             "reason": f"Box plot of {numeric_cols[0]}}", "score": 85},
+             "reason": f"Box plot of {numeric_cols[0]}", "score": 85},
             {"chart": "violin", "x": None, "y": numeric_cols[0],
-             "reason": f"Distribution density of {numeric_cols[0]}}", "score": 80},
+             "reason": f"Distribution density of {numeric_cols[0]}", "score": 80},
         ])
 
     # 2. Categorical  Numeric Ã¢â€ â€™ Bar/comparison charts
@@ -95,16 +95,16 @@ def auto_recommend_chart(
             for num in numeric_cols[:2]:
                 recommendations.extend([
                     {"chart": "bar", "x": cat, "y": num,
-                     "reason": f"Compare {num}} across {cat}}", "score": 95},
+                     "reason": f"Compare {num} across {cat}", "score": 95},
                     {"chart": "box", "x": cat, "y": num,
-                     "reason": f"Distribution of {num}} by {cat}}", "score": 88},
+                     "reason": f"Distribution of {num} by {cat}", "score": 88},
                     {"chart": "violin", "x": cat, "y": num,
-                     "reason": f"Density of {num}} by {cat}}", "score": 82},
+                     "reason": f"Density of {num} by {cat}", "score": 82},
                 ])
                 if len(cat_cols) >= 2:
                     recommendations.append(
                         {"chart": "grouped_bar", "x": cat_cols[0], "y": num, "color": cat_cols[1],
-                         "reason": f"Compare {num}} by {cat_cols[0]}} and {cat_cols[1]}}", "score": 90}
+                         "reason": f"Compare {num} by {cat_cols[0]} and {cat_cols[1]}", "score": 90}
                     )
 
     # 3. Categorical only Ã¢â€ â€™ Frequency charts
@@ -112,11 +112,11 @@ def auto_recommend_chart(
         for cat in cat_cols[:2]:
             recommendations.extend([
                 {"chart": "bar", "x": cat, "y": None,
-                 "reason": f"Frequency of {cat}}", "score": 90},
+                 "reason": f"Frequency of {cat}", "score": 90},
                 {"chart": "pie", "x": cat, "y": None,
-                 "reason": f"Proportion of {cat}}", "score": 80},
+                 "reason": f"Proportion of {cat}", "score": 80},
                 {"chart": "treemap", "x": cat, "y": None,
-                 "reason": f"Hierarchy of {cat}}", "score": 75},
+                 "reason": f"Hierarchy of {cat}", "score": 75},
             ])
 
     # 4. Temporal  Numeric Ã¢â€ â€™ Trend charts
@@ -125,18 +125,18 @@ def auto_recommend_chart(
             for num in numeric_cols[:2]:
                 recommendations.extend([
                     {"chart": "line", "x": temp, "y": num,
-                     "reason": f"Trend of {num}} over time", "score": 98},
+                     "reason": f"Trend of {num} over time", "score": 98},
                     {"chart": "area", "x": temp, "y": num,
-                     "reason": f"Area trend of {num}}", "score": 85},
+                     "reason": f"Area trend of {num}", "score": 85},
                 ])
 
     # 5. Two numeric columns Ã¢â€ â€™ Correlation charts
     if len(numeric_cols) >= 2:
         recommendations.extend([
             {"chart": "scatter", "x": numeric_cols[0], "y": numeric_cols[1],
-             "reason": f"Relationship: {numeric_cols[0]}} vs {numeric_cols[1]}}", "score": 95},
+             "reason": f"Relationship: {numeric_cols[0]} vs {numeric_cols[1]}", "score": 95},
             {"chart": "bubble", "x": numeric_cols[0], "y": numeric_cols[1],
-             "reason": f"Bubble: {numeric_cols[0]}} vs {numeric_cols[1]}}",
+             "reason": f"Bubble: {numeric_cols[0]} vs {numeric_cols[1]}",
              "size": numeric_cols[2] if len(numeric_cols) >= 3 else None, "score": 85},
             {"chart": "heatmap", "x": None, "y": None,
              "reason": "Correlation heatmap of numeric variables", "score": 80},
@@ -146,7 +146,7 @@ def auto_recommend_chart(
     if len(numeric_cols) >= 3:
         recommendations.append(
             {"chart": "scatter_3d", "x": numeric_cols[0], "y": numeric_cols[1], "z": numeric_cols[2],
-             "reason": f"3D: {numeric_cols[0]}}, {numeric_cols[1]}}, {numeric_cols[2]}}", "score": 85}
+             "reason": f"3D: {numeric_cols[0]}, {numeric_cols[1]}, {numeric_cols[2]}", "score": 85}
         )
     if len(numeric_cols) >= 4:
         recommendations.append(
@@ -158,7 +158,7 @@ def auto_recommend_chart(
     if cat_cols and temporal_cols and numeric_cols:
         recommendations.append(
             {"chart": "stacked_area", "x": temporal_cols[0], "y": numeric_cols[0], "color": cat_cols[0],
-             "reason": f"Composition of {numeric_cols[0]}} over time by {cat_cols[0]}}", "score": 85}
+             "reason": f"Composition of {numeric_cols[0]} over time by {cat_cols[0]}", "score": 85}
         )
 
     # 8. Hierarchical (two categoricals) Ã¢â€ â€™ Treemap, Sunburst
@@ -174,7 +174,7 @@ def auto_recommend_chart(
     if len(numeric_cols) >= 3 and cat_cols:
         recommendations.append(
             {"chart": "radar", "categories": numeric_cols, "color": cat_cols[0],
-             "reason": f"Multi-dimensional profiles by {cat_cols[0]}}", "score": 75}
+             "reason": f"Multi-dimensional profiles by {cat_cols[0]}", "score": 75}
         )
 
     # Sort by score descending and remove duplicates
@@ -196,7 +196,7 @@ def explain_chart_recommendation(rec: Dict[str, Any]) -> str:
     score = rec.get("score", 0)
 
     confidence = "Ã°Å¸â€Âµ Highly Recommended" if score >= 90 else "Ã°Å¸Å¸Â¢ Recommended" if score >= 80 else "Ã°Å¸Å¸Â¡ Suggested"
-    return f"{confidence}}  **{chart_name}}**: {reason}}"
+    return f"{confidence}  **{chart_name}**: {reason}"
 
 
 def get_chart_search_results(query: str) -> List[Tuple[str, str]]:

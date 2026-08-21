@@ -20,11 +20,11 @@ def render_live_telemetry_panel():
     disk = psutil.disk_usage('/')
     
     with col1:
-        st.metric("CPU Load", f"{cpu_usage}}%", delta=f"{-1.5 if cpu_usage < 50 else 2.1}}%")
+        st.metric("CPU Load", f"{cpu_usage}%", delta=f"{-1.5 if cpu_usage < 50 else 2.1}%")
     with col2:
-        st.metric("Memory Utilized", f"{memory.percent}}%", delta=f"{memory.used // (1024**2)}} MB")
+        st.metric("Memory Utilized", f"{memory.percent}%", delta=f"{memory.used // (1024**2)} MB")
     with col3:
-        st.metric("Storage Available", f"{disk.free // (1024**3)}} GB", delta="Stable")
+        st.metric("Storage Available", f"{disk.free // (1024**3)} GB", delta="Stable")
     with col4:
         st.metric("System Uptime Status", "99.98%", delta="Optimal")
 

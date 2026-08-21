@@ -41,7 +41,7 @@ def render_master_automation_control_center():
         ])
 
         if st.button("Ã°Å¸Å¡â‚¬ Execute Autonomous Pipeline", type="primary"):
-            timestamp_id = f"EXEC-{int(datetime.utcnow().timestamp())}}"
+            timestamp_id = f"EXEC-{int(datetime.utcnow().timestamp())}"
             cursor.execute('''
                 INSERT OR REPLACE INTO automated_pipeline_logs (trigger_id, source_module, action_executed, status)
                 VALUES (?, ?, ?, ?)
@@ -49,7 +49,7 @@ def render_master_automation_control_center():
             conn.commit()
             
             log_provenance(timestamp_id, "EXECUTE_MASTER_AUTOMATION", "chief.investigator@lab.org", {"pipeline": selected_pipeline})
-            st.success(f"Pipeline successfully executed! Transaction ID: `{timestamp_id}}`")
+            st.success(f"Pipeline successfully executed! Transaction ID: `{timestamp_id}`")
             st.balloons()
 
     with col2:

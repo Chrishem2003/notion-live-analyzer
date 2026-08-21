@@ -70,7 +70,7 @@ class SecurityManager:
         # Use ip-api.com for basic info
         try:
             response = requests.get(
-                f"http://ip-api.com/json/{ip}}",
+                f"http://ip-api.com/json/{ip}",
                 params={"fields": "status,country,regionName,city,isp,org,as,mobile,proxy",
                        "timeout": 5},
             )
@@ -97,7 +97,7 @@ class SecurityManager:
                                     "AWS", "Azure", "GCP", "Linode", "Vultr"]:
                         if provider.lower() in org.lower() or provider.lower() in isp.lower():
                             result["risk_score"] = 30
-                            result["details"].append(f"Hosting provider: {isp}}")
+                            result["details"].append(f"Hosting provider: {isp}")
                             break
         except Exception:
             pass
@@ -182,7 +182,7 @@ class GeoManager:
         """Get country info from IP."""
         try:
             response = requests.get(
-                f"http://ip-api.com/json/{ip}}",
+                f"http://ip-api.com/json/{ip}",
                 params={"fields": "country,countryCode,regionName,city,currency,timezone",
                        "timeout": 5},
             )
@@ -232,20 +232,20 @@ class GeoManager:
         # Add holiday
         holiday = self.check_holiday()
         if holiday:
-            base = f"{holiday}}! {base}}"
+            base = f"{holiday}! {base}"
         
         # Add independence day
         if country_code:
             indep = self.check_independence_day(country_code)
             if indep:
-                base = f"Ã°Å¸Å½â€° Happy Independence Day ({indep}})! {base}}"
+                base = f"Ã°Å¸Å½â€° Happy Independence Day ({indep})! {base}"
         
         # Add birthday
         # In production, check user's actual birthday
         
         # Add name
         if user_name:
-            base = f"{base}}, {user_name}}!"
+            base = f"{base}, {user_name}!"
         
         return base
 
@@ -336,17 +336,17 @@ def render_security_dashboard():
         
         # Status
         if check["is_safe"]:
-            st.success(f"âœ… Secure Session (Score: {check['security_score']}}%)")
+            st.success(f"âœ… Secure Session (Score: {check['security_score']}%)")
         else:
-            st.warning(f"Ã¢Å¡Â Ã¯Â¸Â Elevated Risk (Score: {check['security_score']}}%)")
+            st.warning(f"Ã¢Å¡Â Ã¯Â¸Â Elevated Risk (Score: {check['security_score']}%)")
         
-        st.caption(f"IP: {ip}}")
+        st.caption(f"IP: {ip}")
         
         # Warnings
         if check["warnings"]:
             st.markdown("**Detected:**")
             for w in check["warnings"]:
-                st.warning(f"Ã¢â‚¬Â¢ {w}}")
+                st.warning(f"Ã¢â‚¬Â¢ {w}")
         
         # Blocked IPs
         with st.expander("Ã°Å¸Å¡Â« Blocked IPs"):
@@ -357,7 +357,7 @@ def render_security_dashboard():
                     with col_a:
                         st.code(bip)
                     with col_b:
-                        if st.button("Unblock", key=f"unb_{bip}}"):
+                        if st.button("Unblock", key=f"unb_{bip}"):
                             security.unblock_ip(bip)
                             st.rerun()
             else:
@@ -376,17 +376,17 @@ def render_security_dashboard():
                                     }.get(x, x))
         
         greeting = get_geo_manager().get_greeting("Dr. Researcher", test_country)
-        st.markdown(f"### {greeting}}")
+        st.markdown(f"### {greeting}")
         
         # Check holiday
         holiday = get_geo_manager().check_holiday()
         if holiday:
-            st.success(f"Today: {holiday}}")
+            st.success(f"Today: {holiday}")
         
         # Check independence
         indep = get_geo_manager().check_independence_day(test_country)
         if indep:
-            st.success(f"Ã°Å¸Å½â€° {indep}}")
+            st.success(f"Ã°Å¸Å½â€° {indep}")
         
         # IP lookup
         st.divider()

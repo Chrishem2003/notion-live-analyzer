@@ -89,12 +89,12 @@ def update_task(task_id: str, **fields: Any) -> None:
     if not updates:
         return
     updates["updated_at"] = datetime.utcnow().isoformat()
-    set_clause = ", ".join(f"{k}} = ?" for k in updates.keys())
+    set_clause = ", ".join(f"{k} = ?" for k in updates.keys())
     values = list(updates.values()) + [task_id]
     conn = _conn()
     try:
         with _lock:
-            conn.execute(f"UPDATE tasks SET {set_clause}} WHERE id = ?", values)
+            conn.execute(f"UPDATE tasks SET {set_clause} WHERE id = ?", values)
             conn.commit()
     finally:
         conn.close()

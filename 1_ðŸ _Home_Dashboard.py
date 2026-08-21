@@ -99,7 +99,7 @@ def init_db(conn):
 
 def _row_hash(prev_hash: str, timestamp: str, module_name: str, severity: str, details: str) -> str:
     """Deterministic SHA-256 hash chaining this row's content to the previous row's hash."""
-    payload = f"{prev_hash}}|{timestamp}}|{module_name}}|{severity}}|{details}}".encode("utf-8")
+    payload = f"{prev_hash}|{timestamp}|{module_name}|{severity}|{details}".encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 
 
@@ -130,10 +130,10 @@ def verify_telemetry_chain(conn):
     expected_prev = GENESIS_HASH
     for rid, ts, mod, sev, details, stored_hash, stored_prev in rows:
         if stored_prev != expected_prev:
-            return {"valid": False, "reason": f"Row #{rid}} broke the chain (prev_hash mismatch).", "records": len(rows)}
+            return {"valid": False, "reason": f"Row #{rid} broke the chain (prev_hash mismatch).", "records": len(rows)}
         recomputed = _row_hash(stored_prev, ts, mod, sev, details)
         if recomputed != stored_hash:
-            return {"valid": False, "reason": f"Row #{rid}} content does not match its stored hash — tampering suspected.", "records": len(rows)}
+            return {"valid": False, "reason": f"Row #{rid} content does not match its stored hash — tampering suspected.", "records": len(rows)}
         expected_prev = stored_hash
     return {"valid": True, "records": len(rows)}
 
@@ -154,10 +154,10 @@ def _format_duration(delta: datetime.timedelta) -> str:
     hours, rem = divmod(rem, 3600)
     minutes, _ = divmod(rem, 60)
     if days:
-        return f"{days}}d {hours}}h {minutes}}m"
+        return f"{days}d {hours}h {minutes}m"
     if hours:
-        return f"{hours}}h {minutes}}m"
-    return f"{minutes}}m"
+        return f"{hours}h {minutes}m"
+    return f"{minutes}m"
 
 
 def measure_system_health(conn):
@@ -229,13 +229,13 @@ def render_saved_analyses_vault(conn):
     c1, c2, c3 = st.columns(3)
     c1.metric("Total Stored Artifacts", len(saved_rows))
     c2.metric("Filtered View Count", len(filtered_rows))
-    c3.metric("Total Vault Word Count", f"{sum(len(str(r[4]).split()) for r in filtered_rows):,}}")
+    c3.metric("Total Vault Word Count", f"{sum(len(str(r[4]).split()) for r in filtered_rows):,}")
 
     if filtered_rows:
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
             for s_id, s_title, s_ts, s_cat, s_content in filtered_rows:
-                safe_name = f"{s_id}}_{s_title.lower().replace(' ', '_').replace('/', '_')}}.md"
+                safe_name = f"{s_id}_{s_title.lower().replace(' ', '_').replace('/', '_')}.md"
                 zf.writestr(safe_name, str(s_content))
             manifest = json.dumps(
                 [{"id": r[0], "title": r[1], "timestamp": r[2], "category": r[3]} for r in filtered_rows],
@@ -245,7 +245,7 @@ def render_saved_analyses_vault(conn):
         st.download_button(
             "⬇️ Bulk Export Filtered Reports (.zip)",
             data=zip_buffer.getvalue(),
-            file_name=f"vault_export_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}}.zip",
+            file_name=f"vault_export_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
             mime="application/zip",
             key="vault_bulk_zip",
         )
@@ -257,12 +257,12 @@ def render_saved_analyses_vault(conn):
     page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1, key="vault_page")
     start = (page - 1) * page_size
     page_rows = filtered_rows[start:start + page_size]
-    st.caption(f"Showing records {start + 1}}–{min(start + page_size, len(filtered_rows))}} of {len(filtered_rows)}} (page {page}}/{total_pages}})")
+    st.caption(f"Showing records {start + 1}–{min(start + page_size, len(filtered_rows))} of {len(filtered_rows)} (page {page}/{total_pages})")
 
     for s_id, s_title, s_ts, s_cat, s_content in page_rows:
         display_ts = s_ts[:19] if len(s_ts) >= 19 else s_ts
-        with st.expander(f"📄 [{s_cat}}] {s_title}} — {display_ts}}", expanded=False):
-            st.markdown(f"**Category:** `{s_cat}}` | **Timestamp:** `{s_ts}}`")
+        with st.expander(f"📄 [{s_cat}] {s_title} — {display_ts}", expanded=False):
+            st.markdown(f"**Category:** `{s_cat}` | **Timestamp:** `{s_ts}`")
             st.markdown("---")
             st.markdown(s_content)
             col_dl1, col_dl2, col_dl3 = st.columns(3)
@@ -270,24 +270,24 @@ def render_saved_analyses_vault(conn):
                 st.download_button(
                     label="⬇️ Markdown",
                     data=str(s_content),
-                    file_name=f"analysis_{s_id}}.md",
+                    file_name=f"analysis_{s_id}.md",
                     mime="text/markdown",
-                    key=f"dl_md_{s_id}}",
+                    key=f"dl_md_{s_id}",
                 )
             with col_dl2:
                 st.download_button(
                     label="⬇️ JSON",
                     data=json.dumps({"id": s_id, "title": s_title, "timestamp": s_ts, "category": s_cat, "content": s_content}, indent=2),
-                    file_name=f"analysis_{s_id}}.json",
+                    file_name=f"analysis_{s_id}.json",
                     mime="application/json",
-                    key=f"dl_json_{s_id}}",
+                    key=f"dl_json_{s_id}",
                 )
             with col_dl3:
-                if st.button("🗑️ Delete", key=f"del_{s_id}}"):
+                if st.button("🗑️ Delete", key=f"del_{s_id}"):
                     conn.execute("DELETE FROM saved_analyses WHERE id = ?", (s_id,))
                     conn.commit()
-                    log_telemetry(conn, "Home Dashboard", "INFO", f"Deleted saved analysis #{s_id}} ({s_title}})")
-                    st.success(f"Deleted record #{s_id}}.")
+                    log_telemetry(conn, "Home Dashboard", "INFO", f"Deleted saved analysis #{s_id} ({s_title})")
+                    st.success(f"Deleted record #{s_id}.")
                     st.rerun()
 
 
@@ -306,12 +306,12 @@ def render_live_telemetry(conn):
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Process Uptime", health["uptime"])
-    c2.metric("Database Latency", f"{health['db_latency_ms']:.2f}} ms", delta=f"{health['db_size_kb']:.1f}} KB on disk")
+    c2.metric("Database Latency", f"{health['db_latency_ms']:.2f} ms", delta=f"{health['db_size_kb']:.1f} KB on disk")
     if health["mem_percent"] is not None:
-        c3.metric("Memory Utilization", f"{health['mem_percent']:.1f}}%", delta=f"CPU {health['cpu_percent']:.1f}}%")
+        c3.metric("Memory Utilization", f"{health['mem_percent']:.1f}%", delta=f"CPU {health['cpu_percent']:.1f}%")
     else:
         c3.metric("Memory Utilization", "psutil inactive")
-    c4.metric("Active Hubs", f"{hub_count}} Hubs", delta=f"Disk free: {health['disk_free_pct']:.1f}}%")
+    c4.metric("Active Hubs", f"{hub_count} Hubs", delta=f"Disk free: {health['disk_free_pct']:.1f}%")
 
     st.markdown("#### 🔒 Cryptographically Chained Audit & Telemetry Ledger")
     col_v1, _ = st.columns([1, 3])
@@ -319,9 +319,9 @@ def render_live_telemetry(conn):
         if st.button("🔍 Verify Chain Integrity", key="verify_home_chain"):
             result = verify_telemetry_chain(conn)
             if result["valid"]:
-                st.success(f"✅ Chain verified — {result['records']}} entries intact, zero modifications found.")
+                st.success(f"✅ Chain verified — {result['records']} entries intact, zero modifications found.")
             else:
-                st.error(f"🚨 TAMPER DETECTED: {result['reason']}}")
+                st.error(f"🚨 TAMPER DETECTED: {result['reason']}")
 
     cursor = conn.cursor()
     cursor.execute(
@@ -366,7 +366,7 @@ def render_automated_intelligence_report():
     if alert_path.exists():
         alert_text = alert_path.read_text().strip()
         if alert_text and alert_text != "No changes since last run.":
-            st.warning(f"🚨 **Changes detected in the latest run:**\n\n{alert_text}}")
+            st.warning(f"🚨 **Changes detected in the latest run:**\n\n{alert_text}")
         else:
             st.success("✅ No verdict changes since the previous scheduled run.")
 
@@ -405,7 +405,7 @@ def main():
     summary = dataset_summary()
 
     if "home_session_logged" not in st.session_state:
-        log_telemetry(conn, "Home Dashboard", "INFO", f"Session initialized for {name}} ({role}})")
+        log_telemetry(conn, "Home Dashboard", "INFO", f"Session initialized for {name} ({role})")
         st.session_state["home_session_logged"] = True
 
     st.markdown(
@@ -430,8 +430,8 @@ def main():
 
     if summary:
         st.success(
-            f"📊 **Active Ingestion Dataset:** `{summary.get('source', 'Dataset')}}` — {summary.get('rows', 0):,}} rows × {summary.get('cols', 0)}} columns "
-            f"| Numeric: `{summary.get('numeric', 0)}}` | Categorical: `{summary.get('categorical', 0)}}`"
+            f"📊 **Active Ingestion Dataset:** `{summary.get('source', 'Dataset')}` — {summary.get('rows', 0):,} rows × {summary.get('cols', 0)} columns "
+            f"| Numeric: `{summary.get('numeric', 0)}` | Categorical: `{summary.get('categorical', 0)}`"
         )
     else:
         st.warning("📭 **No active dataset loaded.** Upload or ingest data via the **📁 Data Studio** hub to jumpstart your analytics.")
@@ -510,7 +510,7 @@ def main():
                 if uploaded_photo:
                     import base64 as _b64
                     encoded = _b64.b64encode(uploaded_photo.read()).decode("utf-8")
-                    data_uri = f"data:{uploaded_photo.type}};base64,{encoded}}"
+                    data_uri = f"data:{uploaded_photo.type};base64,{encoded}"
                     set_creator_photo_b64(data_uri)
                     st.success("Photo saved.")
                     st.rerun()

@@ -172,11 +172,11 @@ class LiteratureDatabase:
         if not updates:
             return False
         updates["updated_at"] = datetime.now().isoformat()
-        set_clause = ", ".join(f"{k}} = ?" for k in updates.keys())
+        set_clause = ", ".join(f"{k} = ?" for k in updates.keys())
         values = list(updates.values())  [project_id]
         conn = self._get_conn()
         try:
-            conn.execute(f"UPDATE projects SET {set_clause}} WHERE id = ?", values)
+            conn.execute(f"UPDATE projects SET {set_clause} WHERE id = ?", values)
             conn.commit()
             return True
         finally:
@@ -314,13 +314,13 @@ class LiteratureDatabase:
                 where = " AND is_checked = 1"
 
             count_row = conn.execute(
-                f"SELECT COUNT(*) as cnt FROM fetched_papers WHERE {where}}", params
+                f"SELECT COUNT(*) as cnt FROM fetched_papers WHERE {where}", params
             ).fetchone()
             total = count_row["cnt"] if count_row else 0
 
             offset = page * per_page
             rows = conn.execute(
-                f"SELECT * FROM fetched_papers WHERE {where}} ORDER BY is_cited DESC, citations DESC, year DESC LIMIT ? OFFSET ?",
+                f"SELECT * FROM fetched_papers WHERE {where} ORDER BY is_cited DESC, citations DESC, year DESC LIMIT ? OFFSET ?",
                 params  [per_page, offset],
             ).fetchall()
             return [dict(r) for r in rows], total
@@ -485,7 +485,7 @@ class LiteratureDatabase:
                 "checked_papers": checked,
                 "cited_papers": cited,
                 "max_citations": max_cited,
-                "year_range": f"{earliest_year}}-{recent_year}}" if earliest_year and recent_year else "N/A",
+                "year_range": f"{earliest_year}-{recent_year}" if earliest_year and recent_year else "N/A",
             }
         finally:
             conn.close()
@@ -536,7 +536,7 @@ class PaperHarvester:
                 if current_batch <= 0:
                     break
 
-                url = f"{self.SEMANTIC_SCHOLAR_URL}}/paper/search"
+                url = f"{self.SEMANTIC_SCHOLAR_URL}/paper/search"
                 params = {
                     "query": query,
                     "limit": current_batch,
@@ -574,7 +574,7 @@ class PaperHarvester:
             st.warning("⚠️ Could not connect to Semantic Scholar API. Check your internet."),
         except Exception as e:
             logger.exception("Semantic Scholar search failed for query %r", query)
-            st.warning(f"⚠️ Semantic Scholar search error: {str(e)[:100]}}")
+            st.warning(f"⚠️ Semantic Scholar search error: {str(e)[:100]}")
 
         return papers[:limit]
 
@@ -612,7 +612,7 @@ class PaperHarvester:
 
             url = paper.get("url", "")
             if not url and doi:
-                url = f"https://doi.org/{doi}}"
+                url = f"https://doi.org/{doi}"
 
             return {
                 "title": title,
@@ -645,7 +645,7 @@ class PaperHarvester:
                     "CrossRef search for %r failed: %s  %s",
                     query, resp.status_code, resp.text[:200],
                 )
-                st.warning(f"⚠️ CrossRef returned HTTP {resp.status_code}}  no results from this source.")
+                st.warning(f"⚠️ CrossRef returned HTTP {resp.status_code}  no results from this source.")
                 return papers
 
             data = resp.json()
@@ -664,7 +664,7 @@ class PaperHarvester:
             st.warning("Could not connect to CrossRef API.")
         except Exception as e:
             logger.exception("CrossRef search failed for query %r", query)
-            st.warning(f"⚠️ CrossRef search error: {str(e)[:100]}}")
+            st.warning(f"⚠️ CrossRef search error: {str(e)[:100]}")
 
         return papers[:limit]
 
@@ -681,7 +681,7 @@ class PaperHarvester:
                 given = a.get("given", "")
                 family = a.get("family", "")
                 if given and family:
-                    authors_list.append(f"{family}}, {given}}")
+                    authors_list.append(f"{family}, {given}")
                 elif family:
                     authors_list.append(family)
             authors_str = ", ".join(authors_list[:10])
@@ -695,7 +695,7 @@ class PaperHarvester:
             journal = journal[0] if journal else ""
 
             doi = item.get("DOI", "")
-            url = f"https://doi.org/{doi}}" if doi else item.get("URL", "")
+            url = f"https://doi.org/{doi}" if doi else item.get("URL", "")
 
             return {
                 "title": title,
@@ -740,7 +740,7 @@ class PaperHarvester:
 
         # Country boost
         if country and len(deduped) > 5:
-            country_query = f"{query}} {country.strip()}}"
+            country_query = f"{query} {country.strip()}"
             country_papers = self.search_semantic_scholar(country_query, limit=30)
             if country_papers:
                 country_dois = {p.get("doi", "") for p in country_papers if p.get("doi")}
@@ -787,7 +787,7 @@ class ReferenceFormatter:
         authors = paper.get("authors", "")
         year = paper.get("year")
         if not authors:
-            return f"({year}})" if year else "(Unknown)"
+            return f"({year})" if year else "(Unknown)"
 
         first_author = authors.split(",")[0].strip()
         if "et al" in first_author:
@@ -795,15 +795,15 @@ class ReferenceFormatter:
         last_name = first_author.split()[-1] if first_author else "Unknown"
 
         styles = {
-            "apa": (f"{last_name}} ({year}})" if year else last_name,
-                    f"({last_name}}, {year}})" if year else f"({last_name}})"),
-            "harvard": (f"{last_name}} ({year}})" if year else last_name,
-                        f"({last_name}}, {year}})" if year else f"({last_name}})"),
-            "chicago": (f"{last_name}} {year}}" if year else last_name,
-                        f"({last_name}} {year}})" if year else f"({last_name}})"),
-            "mla": (f"({last_name}} {year}})" if year else f"({last_name}})",
-                    f"({last_name}} {year}})" if year else f"({last_name}})"),
-            "vancouver": (f"[{paper.get('id', '?')}}]", f"[{paper.get('id', '?')}}]"),
+            "apa": (f"{last_name} ({year})" if year else last_name,
+                    f"({last_name}, {year})" if year else f"({last_name})"),
+            "harvard": (f"{last_name} ({year})" if year else last_name,
+                        f"({last_name}, {year})" if year else f"({last_name})"),
+            "chicago": (f"{last_name} {year}" if year else last_name,
+                        f"({last_name} {year})" if year else f"({last_name})"),
+            "mla": (f"({last_name} {year})" if year else f"({last_name})",
+                    f"({last_name} {year})" if year else f"({last_name})"),
+            "vancouver": (f"[{paper.get('id', '?')}]", f"[{paper.get('id', '?')}]"),
         }
         result = styles.get(style, styles["apa"])
         return result[0] if inline else result[1]
@@ -838,7 +838,7 @@ class ReferenceFormatter:
 
     def _paper_to_csl_json(self, paper: Dict, index: int) -> Optional[Dict]:
         try:
-            csl = {"id": f"ref-{index}}", "type": "article-journal", "title": paper.get("title", "")}
+            csl = {"id": f"ref-{index}", "type": "article-journal", "title": paper.get("title", "")}
             authors_str = paper.get("authors", "")
             if authors_str:
                 csl["author"] = []
@@ -878,59 +878,59 @@ class ReferenceFormatter:
         journal = paper.get("journal", "")
         doi = paper.get("doi", "")
         url = paper.get("url", "")
-        year_str = f"({year}})" if year else "(n.d.)"
+        year_str = f"({year})" if year else "(n.d.)"
 
         if style == "apa":
-            ref = f"{authors}} {year_str}}. {title}}."
+            ref = f"{authors} {year_str}. {title}."
             if journal:
-                ref = f" *{journal}}*."
+                ref = f" *{journal}*."
             if doi:
-                ref = f" https://doi.org/{doi}}"
+                ref = f" https://doi.org/{doi}"
             elif url:
-                ref = f" {url}}"
+                ref = f" {url}"
         elif style == "harvard":
-            ref = f"{authors}} {year_str}}, '{title}}-,"
+            ref = f"{authors} {year_str}, '{title}-,"
             if journal:
-                ref = f" *{journal}}*,"
+                ref = f" *{journal}*,"
             if doi:
-                ref = f" doi:{doi}}"
+                ref = f" doi:{doi}"
             elif url:
-                ref = f" Available at: {url}}"
+                ref = f" Available at: {url}"
         elif style == "chicago":
-            ref = f"{authors}}. {year_str}}. \"{title}.\""
+            ref = f"{authors}. {year_str}. \"{title}.\""
             if journal:
-                ref = f" *{journal}}*."
+                ref = f" *{journal}*."
             if doi:
-                ref = f" https://doi.org/{doi}}"
+                ref = f" https://doi.org/{doi}"
             elif url:
-                ref = f" {url}}"
+                ref = f" {url}"
         elif style == "mla":
-            ref = f"{authors}}. \"{title}.\""
+            ref = f"{authors}. \"{title}.\""
             if journal:
-                ref = f" *{journal}}*,"
-            ref = f" {year_str}}."
+                ref = f" *{journal}*,"
+            ref = f" {year_str}."
             if doi:
-                ref = f" doi:{doi}}"
+                ref = f" doi:{doi}"
         elif style == "vancouver":
-            ref = f"{index}}. {authors}}. {title}}."
+            ref = f"{index}. {authors}. {title}."
             if journal:
-                ref = f" {journal}}."
-            ref = f" {year_str}}."
+                ref = f" {journal}."
+            ref = f" {year_str}."
             if doi:
-                ref = f" DOI: {doi}}"
+                ref = f" DOI: {doi}"
         else:
-            ref = f"{authors}} {year_str}}. {title}}."
+            ref = f"{authors} {year_str}. {title}."
             if journal:
-                ref = f" {journal}}."
+                ref = f" {journal}."
             if doi:
-                ref = f" doi:{doi}}"
+                ref = f" doi:{doi}"
         return ref.strip()
 
     def generate_bibtex(self, papers: List[Dict]) -> str:
         lines = [
             "% BibTeX file generated by CHRISHEM Literature Engine",
-            f"% Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}",
-            f"% Total entries: {len(papers)}}",
+            f"% Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"% Total entries: {len(papers)}",
             "% ZERO AI-hallucinated content. Metadata sourced from real academic APIs.",
             "",
         ]
@@ -943,18 +943,18 @@ class ReferenceFormatter:
             journal = paper.get("journal", "")
             url = paper.get("url", "")
 
-            bib = [f"@article{{{cite_key}},", f"  title = {{{title}}},"]
+            bib = [f"@article{{{cite_key},", f"  title = {{{title}},"]
             if authors:
                 bib_authors = self._authors_to_bibtex(authors)
-                bib.append(f"  author = {{{bib_authors}}},")
+                bib.append(f"  author = {{{bib_authors}},")
             if year:
-                bib.append(f"  year = {{{year}}},")
+                bib.append(f"  year = {{{year}},")
             if journal:
-                bib.append(f"  journal = {{{journal}}},")
+                bib.append(f"  journal = {{{journal}},")
             if doi:
-                bib.append(f"  doi = {{{doi}}},")
+                bib.append(f"  doi = {{{doi}},")
             if url:
-                bib.append(f"  url = {{{url}}},")
+                bib.append(f"  url = {{{url}},")
             bib.append("}")
             lines.append("\n".join(bib))
             lines.append("")
@@ -969,14 +969,14 @@ class ReferenceFormatter:
         year = paper.get("year", "0000")
         title_words = paper.get("title", "").split()[:3]
         title_part = "_".join(w.lower().strip(".,;:!?") for w in title_words)
-        return f"{last_name}}{year}}_{title_part}}" if title_part else f"{last_name}}{year}}_{index}}"
+        return f"{last_name}{year}_{title_part}" if title_part else f"{last_name}{year}_{index}"
 
     def _authors_to_bibtex(self, authors_str: str) -> str:
         authors_list = []
         for author in authors_str.split(", "):
             name_parts = author.strip().split()
             if len(name_parts) >= 2:
-                authors_list.append(f"{name_parts[-1]}}, {' '.join(name_parts[:-1])}}")
+                authors_list.append(f"{name_parts[-1]}, {' '.join(name_parts[:-1])}")
             else:
                 authors_list.append(author.strip())
         return " and ".join(authors_list)
@@ -995,7 +995,7 @@ class ExportEngine:
     def get_markdown_download_link(content: str, filename: str, label: str = "Download") -> str:
         """Generate a base64 download link for markdown content."""
         b64 = base64.b64 + encode(content.encode()).decode()
-        return f'<a href="data:text/markdown;base64,{b64}}" download="{filename}}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â {label}}</a>'
+        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â {label}</a>'
 
     @staticmethod
     def get_html_download_link(content_md: str, filename: str, label: str = "Download HTML") -> str:
@@ -1003,21 +1003,21 @@ class ExportEngine:
         # Basic markdown to HTML conversion
         html_content = content_md.replace("&", "&amp;").replace("<", "<").replace(">", ">")
         html_lines = ["<!DOCTYPE html><html><head><meta charset='utf-8'>",
-                      f"<title>{filename}}</title>",]
+                      f"<title>{filename}</title>",]
         html_lines.append("</head><body>")
         for line in html_content.split("\n"):
             if line.startswith("# "):
-                html_lines.append(f"<h1>{line[2:]}}</h1>")
+                html_lines.append(f"<h1>{line[2:]}</h1>")
             elif line.startswith("## "):
-                html_lines.append(f"<h2>{line[3:]}}</h2>")
+                html_lines.append(f"<h2>{line[3:]}</h2>")
             elif line.startswith("### "):
-                html_lines.append(f"<h3>{line[4:]}}</h3>")
+                html_lines.append(f"<h3>{line[4:]}</h3>")
             else:
-                html_lines.append(f"<p>{line}}</p>")
+                html_lines.append(f"<p>{line}</p>")
         html_lines.append("</body></html>")
         full_html = "\n".join(html_lines)
         b64 = base64.b64 + encode(full_html.encode()).decode()
-        return f'<a href="data:text/html;base64,{b64}}" download="{filename}}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â {label}}</a>'
+        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â {label}</a>'
 
     @staticmethod
     def render_sidebar_styles():
@@ -1046,20 +1046,20 @@ class ExportEngine:
     def get_txt_download_link(content: str, filename: str, label: str = "Download TXT") -> str:
         """Generate a base64 download link for plain text."""
         b64 = base64.b64 + encode(content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}}" download="{filename}}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â Download .BIB</a>'
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â Download .BIB</a>'
 
     @staticmethod
     def get_bib_download_link(bib_content: str, filename: str) -> str:
         """Generate a download link for .bib file."""
         b64 = base64.b64 + encode(bib_content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}}" download="{filename}}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â Download .BIB</a>'
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Ã°Å¸â€Â Download .BIB</a>'
 
     @staticmethod
     def get_copy_js(text: str, button_label: str = "⚠️ Copy to Clipboard") -> str:
         """Generate a JavaScript-powered copy button."""
         escaped = html.escape(text.replace("`", "\\`").replace("${", "\\${"))
         return f"""
-    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#0284c7;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
+    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)})" style="padding:8px 16px;background:#0284c7;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
                 style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
             {button_label}
         </button>
@@ -1336,10 +1336,10 @@ class DraftingEngine:
         project_name = "Research Paper"
         if sections:
             project_name = sections[0].get("project_name", "Research Paper")
-        parts.append(f"# {project_name}}\n")
+        parts.append(f"# {project_name}\n")
         if author_name:
-            parts.append(f"**Author:** {author_name}}\n")
-        parts.append(f"**Date:** {datetime.now().strftime('%B %d, %Y')}}\n")
+            parts.append(f"**Author:** {author_name}\n")
+        parts.append(f"**Date:** {datetime.now().strftime('%B %d, %Y')}\n")
         parts.append("---\n")
 
         if include_abstract:
@@ -1350,7 +1350,7 @@ class DraftingEngine:
             title = section.get("section_title", "Section")
             content = section.get("content", "").strip()
             if content:
-                parts.append(f"## {title}}\n\n{content}}\n\n---\n")
+                parts.append(f"## {title}\n\n{content}\n\n---\n")
 
         if bibliography:
             parts.append("## References\n\n")
@@ -1373,7 +1373,7 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
         checked = st.checkbox(
             "",
             value=bool(paper["is_checked"]),
-            key=f"check_{paper['id']}}",
+            key=f"check_{paper['id']}",
             label_visibility="collapsed",
             on_change=lambda pid=paper["id"], c=not paper["is_checked"]: db.toggle_paper_check(pid, c),
         )
@@ -1383,15 +1383,15 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
             cited_badge = " Ã°Å¸â€Â Cited" if paper.get("is_cited") else ""
             meta_parts = []
             if paper.get("authors"):
-                meta_parts.append(f"Ã°Å¸â€Â {paper['authors']}}")
+                meta_parts.append(f"Ã°Å¸â€Â {paper['authors']}")
             if paper.get("year"):
-                meta_parts.append(f"Ã°Å¸â€Â {paper['year']}}")
+                meta_parts.append(f"Ã°Å¸â€Â {paper['year']}")
             if paper.get("citations"):
-                meta_parts.append(f"Ã°Å¸â€Â {paper['citations']:,}} citations")
+                meta_parts.append(f"Ã°Å¸â€Â {paper['citations']:,} citations")
             if paper.get("journal"):
-                meta_parts.append(f"Ã°Å¸â€Â {paper['journal']}}")
+                meta_parts.append(f"Ã°Å¸â€Â {paper['journal']}")
             if paper.get("doi"):
-                meta_parts.append(f"DOI: {paper['doi']}}")
+                meta_parts.append(f"DOI: {paper['doi']}")
 
         st.caption(" | ".join(meta_parts))
 
@@ -1404,12 +1404,12 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
                 else:
                     st.info("No abstract available for this paper.")
                 if paper["url"]:
-                    st.markdown(f"[' Open paper ']({paper['url']}})")
+                    st.markdown(f"[' Open paper ']({paper['url']})")
 
             with tab_b:
                 current_notes = paper.get("user_notes", "") or ""
                 new_notes = st.text_area("Your personal notes", value=current_notes,
-                    key=f"notes_{paper['id']}}", height=80,
+                    key=f"notes_{paper['id']}", height=80,
                     placeholder="Add your observations, critiques, or key takeaways...",
                     label_visibility="collapsed")
                 if new_notes != current_notes:
@@ -1419,7 +1419,7 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
             with tab_c:
                 current_finding = paper.get("user_findings", "") or ""
                 new_finding = st.text_area("Your finding / contribution", value=current_finding,
-                    key=f"finding_{paper['id']}}", height=100,
+                    key=f"finding_{paper['id']}", height=100,
                     placeholder="What key finding does this paper contribute to YOUR research?",
                     label_visibility="collapsed")
                 if new_finding != current_finding:
@@ -1446,21 +1446,21 @@ def render_report_builder(sections, bibliography, db, project_id):
     for section in sections:
         sid = section["id"]
         title = section["section_title"]
-        with st.expander(f"{title}}", expanded=(title == "Introduction")):
-            content = st.text_area(f"Write your {title}}", value=section_contents.get(sid, ""),
-                key=f"report_{sid}}", height=200, placeholder=f"Write your {title}} content here...",
+        with st.expander(f"{title}", expanded=(title == "Introduction")):
+            content = st.text_area(f"Write your {title}", value=section_contents.get(sid, ""),
+                key=f"report_{sid}", height=200, placeholder=f"Write your {title} content here...",
                 label_visibility="collapsed")
             if content != section_contents.get(sid, ""):
                 db.update_report_section(sid, content)
-                st.success(f"{title}} saved!", icon="✅")
+                st.success(f"{title} saved!", icon="✅")
 
             # Citation insertion helper
             if bibliography and content:
                 st.markdown("**Insert citation:**")
-                bib_options = {f"{p['title'][:60]}}... ({p.get('year', 'n.d.')}})": p for p in bibliography}
+                bib_options = {f"{p['title'][:60]}... ({p.get('year', 'n.d.')})": p for p in bibliography}
                 if bib_options:
                     selected = st.selectbox("Select a paper to cite", options=list(bib_options.keys()),
-                        key=f"cite_{sid}}", label_visibility="collapsed")
+                        key=f"cite_{sid}", label_visibility="collapsed")
                     if selected:
                         paper = bib_options[selected]
                         citation = formatter.format_citation(paper, style, inline=False)
@@ -1468,7 +1468,7 @@ def render_report_builder(sections, bibliography, db, project_id):
                         db.mark_paper_cited(paper["id"], True)
                         st.code(citation, language="text")
                         st.markdown(f"""
-    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#0284c7;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
+    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)})" style="padding:8px 16px;background:#0284c7;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
                                 style="padding:6px 16px;border-radius:6px;border:1px solid #1d4ed8;"
                                 background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:600;">"
                             ' Copy Citation'
@@ -1521,13 +1521,13 @@ def render_report_builder(sections, bibliography, db, project_id):
         st.markdown("#### 📥 Download Options")
         col_a, col_b, col_c, col_d = st.columns(4)
         with col_a:
-            st.markdown(exporter.get_markdown_download_link(report_text, f"report_{timestamp}}.md", "Download MD"), unsafe_allow_html=True)
+            st.markdown(exporter.get_markdown_download_link(report_text, f"report_{timestamp}.md", "Download MD"), unsafe_allow_html=True)
         with col_b:
-            st.markdown(exporter.get_html_download_link(report_text, f"report_{timestamp}}.html", "Download HTML"), unsafe_allow_html=True)
+            st.markdown(exporter.get_html_download_link(report_text, f"report_{timestamp}.html", "Download HTML"), unsafe_allow_html=True)
         with col_c:
-            st.markdown(exporter.get_txt_download_link(report_text, f"report_{timestamp}}.txt", "Download TXT"), unsafe_allow_html=True)
+            st.markdown(exporter.get_txt_download_link(report_text, f"report_{timestamp}.txt", "Download TXT"), unsafe_allow_html=True)
         with col_d:
-            st.markdown(exporter.get_bib_download_link(bib_content, f"references_{timestamp}}.bib"), unsafe_allow_html=True)
+            st.markdown(exporter.get_bib_download_link(bib_content, f"references_{timestamp}.bib"), unsafe_allow_html=True)
 
         # Copy to clipboard
         st.markdown("#### 📋 Copy to Clipboard")

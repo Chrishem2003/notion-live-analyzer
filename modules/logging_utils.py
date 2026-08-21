@@ -39,5 +39,5 @@ def _configure_root_logger() -> None:
 def get_logger(name: str) -> logging.Logger:
     """Return a namespaced logger for the given module."""
     _configure_root_logger()
-    return logging.getLogger(f"notion_live_analyzer.{name}}")
+    return logging.getLogger(f"notion_live_analyzer.{name}")
 

@@ -126,8 +126,8 @@ class LiteratureContext:
             "large_threshold": benchmarks["large"],
             "discipline": self.discipline,
             "discipline_description": benchmarks["description"],
-            "interpretation": f"Your effect (d = {effect_size:.2f}}) is {label}}, "
-                              f"at the {percentile:.0f}}th percentile of typical effects in {self.discipline}}.",
+            "interpretation": f"Your effect (d = {effect_size:.2f}) is {label}, "
+                              f"at the {percentile:.0f}th percentile of typical effects in {self.discipline}.",
         }
 
     def _estimate_percentile(self, value: float, mean: float, sd: float) -> float:
@@ -174,9 +174,9 @@ class LiteratureContext:
             "required_n_for_80pct_power": required_n,
             "adequacy": adequacy,
             "effect_size_assumed": effect_size,
-            "interpretation": f"Your N = {n:,}}. Field typical N = {typical_n:,}}. "
-                              f"Need N = {required_n:,}} for 80% power at d = {effect_size:.2f}}. "
-                              f"Your sample is {'âœ… ' if adequacy == 'adequate' else 'Ã¢Å¡Â Ã¯Â¸Â '}}{adequacy}}.",
+            "interpretation": f"Your N = {n:,}. Field typical N = {typical_n:,}. "
+                              f"Need N = {required_n:,} for 80% power at d = {effect_size:.2f}. "
+                              f"Your sample is {'âœ… ' if adequacy == 'adequate' else 'Ã¢Å¡Â Ã¯Â¸Â '}{adequacy}.",
         }
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Citation Suggestions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
@@ -244,35 +244,35 @@ class LiteratureContext:
 
         lines = [
             "## Ã°Å¸â€œÅ¡ Literature Context Report",
-            f"**Discipline:** {self.discipline}}",
-            f"**Effect Type:** {effect_type}}",
-            f"**Your Effect Size:** {effect_size:.3f}}",
+            f"**Discipline:** {self.discipline}",
+            f"**Effect Type:** {effect_type}",
+            f"**Your Effect Size:** {effect_size:.3f}",
             "",
             "### Effect Size Benchmarking",
-            f"- **Label:** {es_context['label'].title()}}",
-            f"- **Percentile:** {es_context['percentile']:.0f}}th",
-            f"- **Typical Effect in Field:** {es_context['typical_effect']:.3f}}",
-            f"- **Small:** < {es_context['small_threshold']:.2f}}",
-            f"- **Medium:** < {es_context['medium_threshold']:.2f}}",
-            f"- **Large:** < {es_context['large_threshold']:.2f}}",
+            f"- **Label:** {es_context['label'].title()}",
+            f"- **Percentile:** {es_context['percentile']:.0f}th",
+            f"- **Typical Effect in Field:** {es_context['typical_effect']:.3f}",
+            f"- **Small:** < {es_context['small_threshold']:.2f}",
+            f"- **Medium:** < {es_context['medium_threshold']:.2f}",
+            f"- **Large:** < {es_context['large_threshold']:.2f}",
             "",
-            f"**Interpretation:** {es_context['interpretation']}}",
+            f"**Interpretation:** {es_context['interpretation']}",
             "",
         ]
 
         if sample_size:
             ss_context = self.benchmark_sample_size(sample_size, effect_size, self.discipline)
             lines.append("### Sample Size Benchmarking")
-            lines.append(f"- **Your N:** {ss_context['your_n']:,}}")
-            lines.append(f"- **Typical N in Field:** {ss_context['typical_n_in_field']:,}}")
-            lines.append(f"- **Required for 80% Power:** {ss_context['required_n_for_80pct_power']:,}}")
-            lines.append(f"- **Adequacy:** {ss_context['adequacy'].title()}}")
-            lines.append(f"**Interpretation:** {ss_context['interpretation']}}")
+            lines.append(f"- **Your N:** {ss_context['your_n']:,}")
+            lines.append(f"- **Typical N in Field:** {ss_context['typical_n_in_field']:,}")
+            lines.append(f"- **Required for 80% Power:** {ss_context['required_n_for_80pct_power']:,}")
+            lines.append(f"- **Adequacy:** {ss_context['adequacy'].title()}")
+            lines.append(f"**Interpretation:** {ss_context['interpretation']}")
             lines.append("")
 
         lines.append("### Suggested Citations")
         for i, s in enumerate(citation_suggestions, 1):
-            lines.append(f"{i}}. {s['citation']}}  *{s['context']}}*")
+            lines.append(f"{i}. {s['citation']}  *{s['context']}*")
 
         return "\n".join(lines)
 
@@ -304,7 +304,7 @@ def render_literature_context_ui():
             lc = LiteratureContext(discipline)
             result = lc.compare_effect_size(es, es_type, n if n > 0 else None)
             st.metric("Effect Size Label", result["label"].title())
-            st.metric("Percentile", f"{result['percentile']:.0f}}th")
+            st.metric("Percentile", f"{result['percentile']:.0f}th")
             st.info(result["interpretation"])
 
             if n > 0:

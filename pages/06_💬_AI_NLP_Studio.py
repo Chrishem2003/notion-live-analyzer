@@ -117,7 +117,7 @@ def get_df() -> pd.DataFrame:
         categories = ["Clinical", "UX", "Performance", "Features"]
         np.random.seed(42)
         return pd.DataFrame({
-            "Record_ID": [f"REC-{i:03d}}" for i in range(1, 21)],
+            "Record_ID": [f"REC-{i:03d}" for i in range(1, 21)],
             "Feedback_Text": records,
             "Category": np.random.choice(categories, 20),
             "Metric_Value": np.random.uniform(10.0, 99.0, 20).round(2)
@@ -220,7 +220,7 @@ def render_text_analysis(df: pd.DataFrame) -> None:
 
     with tab_sent:
         engine_label = "VADER Engine" if VADER_AVAILABLE else "Lexicon Fallback"
-        st.markdown(f"#### Sentiment Polarity Audit ({engine_label}})")
+        st.markdown(f"#### Sentiment Polarity Audit ({engine_label})")
 
         if st.button("😊 Run Sentiment Audit", type="primary", key="run_sentiment_v2"):
             anal_df = df[[col]].dropna().copy()
@@ -278,10 +278,10 @@ def render_ai_insights(df: pd.DataFrame) -> None:
 
     st.markdown("### 📊 Automated Structural Findings")
     insights: List[str] = []
-    insights.append(f"**Dataset Architecture:** Dimensions of `{rows:,}}` rows by `{cols}}` features.")
+    insights.append(f"**Dataset Architecture:** Dimensions of `{rows:,}` rows by `{cols}` features.")
     
     if missing > 0:
-        insights.append(f"**Data Completeness:** Detected `{missing:,}}` missing cells requiring handling or imputation.")
+        insights.append(f"**Data Completeness:** Detected `{missing:,}` missing cells requiring handling or imputation.")
     else:
         insights.append("**Data Completeness Optimal:** Zero missing values detected across active records.")
 
@@ -292,33 +292,33 @@ def render_ai_insights(df: pd.DataFrame) -> None:
         if max_corr > 0.75:
             col_max = corr.max().idxmax()
             row_max = corr[col_max].idxmax()
-            insights.append(f"**Multivariate Collinearity:** Strong correlation between `{row_max}}` and `{col_max}}` ($r = {max_corr:.2f}}$).")
+            insights.append(f"**Multivariate Collinearity:** Strong correlation between `{row_max}` and `{col_max}` ($r = {max_corr:.2f}$).")
 
     dup_count = int(df.duplicated().sum())
     if dup_count > 0:
         pct = (dup_count / rows) * 100 if rows > 0 else 0
-        insights.append(f"**Duplicate Records:** `{dup_count:,}}` duplicate rows detected ({pct:.1f}}% of total).")
+        insights.append(f"**Duplicate Records:** `{dup_count:,}` duplicate rows detected ({pct:.1f}% of total).")
 
     for ins in insights:
         st.markdown(
-            f'<div style="background:#0b1321; border-left:4px solid #00f2fe; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:#f8fafc;">{ins}}</div>', 
+            f'<div style="background:#0b1321; border-left:4px solid #00f2fe; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:#f8fafc;">{ins}</div>', 
             unsafe_allow_html=True
         )
 
     st.markdown("### 📄 Executive Report Generation")
     report_lines = [
         "# EXECUTIVE DATA INTELLIGENCE REPORT",
-        f"**Generated timestamp:** {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}}",
-        f"**Active Source:** {st.session_state.get('source_name', 'active_dataset.csv')}}",
+        f"**Generated timestamp:** {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"**Active Source:** {st.session_state.get('source_name', 'active_dataset.csv')}",
         "",
         "## Core Metrics",
-        f"- Total Record Count: {rows:,}}",
-        f"- Total Feature Count: {cols}}",
-        f"- Missing Cell Count: {missing:,}}",
-        f"- Duplicate Rows: {dup_count:,}}",
+        f"- Total Record Count: {rows:,}",
+        f"- Total Feature Count: {cols}",
+        f"- Missing Cell Count: {missing:,}",
+        f"- Duplicate Rows: {dup_count:,}",
         "",
         "## Key Analytical Insights"
-    ] + [f"- {ins}}" for ins in insights]
+    ] + [f"- {ins}" for ins in insights]
 
     report = "\n".join(report_lines)
     st.download_button(
@@ -358,7 +358,7 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame) -> Tuple[str, Any, 
     num_cols = list(df.select_dtypes(include=[np.number]).columns)
 
     if RE_ROWS.search(q):
-        return "metric", f"{len(df):,}} rows", "Total Row Count"
+        return "metric", f"{len(df):,} rows", "Total Row Count"
 
     m = RE_CORR.search(q)
     if m:
@@ -366,7 +366,7 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame) -> Tuple[str, Any, 
         c2 = _find_column(m.group(2), all_cols)
         if c1 and c2 and c1 in num_cols and c2 in num_cols:
             val = df[c1].corr(df[c2])
-            return "metric", f"r = {val:.4f}}", f"Correlation between '{c1}}' and '{c2}}'"
+            return "metric", f"r = {val:.4f}", f"Correlation between '{c1}' and '{c2}'"
         return "error", "Could not identify valid numeric columns for correlation analysis.", None
 
     m = RE_TOP.search(q)
@@ -376,8 +376,8 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame) -> Tuple[str, Any, 
         metric_col = _find_column(metric_raw, num_cols)
         if dim_col and metric_col:
             res = df.groupby(dim_col, as_index=False)[metric_col].mean().sort_values(metric_col, ascending=False).head(int(n_str))
-            return "table", res, f"Top {n_str}} '{dim_col}}' grouped by mean '{metric_col}}'"
-        return "error", f"Could not match dimension '{dim_raw}}' or numeric metric '{metric_raw}}'.", None
+            return "table", res, f"Top {n_str} '{dim_col}' grouped by mean '{metric_col}'"
+        return "error", f"Could not match dimension '{dim_raw}' or numeric metric '{metric_raw}'.", None
 
     m = RE_AGG_GROUP.search(q)
     if m:
@@ -387,8 +387,8 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame) -> Tuple[str, Any, 
         group_col = _find_column(group_raw, all_cols)
         if metric_col and group_col:
             res = df.groupby(group_col, as_index=False).agg({metric_col: func}).sort_values(metric_col, ascending=False)
-            return "table", res, f"{func.title()}} of '{metric_col}}' grouped by '{group_col}}'"
-        return "error", f"Unable to resolve columns: metric '{metric_raw}}', group '{group_raw}}'.", None
+            return "table", res, f"{func.title()} of '{metric_col}' grouped by '{group_col}'"
+        return "error", f"Unable to resolve columns: metric '{metric_raw}', group '{group_raw}'.", None
 
     m = RE_AGG_SINGLE.search(q)
     if m:
@@ -398,10 +398,10 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame) -> Tuple[str, Any, 
         if metric_col:
             if func == "count":
                 val = df[metric_col].count()
-                return "metric", f"{val:,}}", f"Count of non-null entries in '{metric_col}}'"
+                return "metric", f"{val:,}", f"Count of non-null entries in '{metric_col}'"
             val = getattr(df[metric_col], func)()
-            return "metric", f"{val:,.4f}}", f"{func.title()}} of '{metric_col}}'"
-        return "error", f"Could not identify target numeric column '{metric_raw}}'.", None
+            return "metric", f"{val:,.4f}", f"{func.title()} of '{metric_col}'"
+        return "error", f"Could not identify target numeric column '{metric_raw}'.", None
 
     return "unrecognized", None, None
 
@@ -422,14 +422,14 @@ def render_nl_query(df: pd.DataFrame) -> None:
     if st.button("🔍 Execute Query", type="primary", key="run_nl_query_v2"):
         kind, payload, caption = parse_and_execute_nl_query(query, df)
         if kind == "metric":
-            st.success(f"✅ {caption}}")
+            st.success(f"✅ {caption}")
             st.metric(caption, payload)
         elif kind == "table":
-            st.success(f"✅ {caption}}")
+            st.success(f"✅ {caption}")
             st.dataframe(payload, use_container_width=True, hide_index=True)
             render_export_buttons(payload, base_name="nl_query_results")
         elif kind == "error":
-            st.error(f"🚫 {payload}}")
+            st.error(f"🚫 {payload}")
         else:
             st.warning("⚠️ Pattern not recognized. Review the supported format structure above.")
 
@@ -451,14 +451,14 @@ def render_synth_and_gap(df: pd.DataFrame) -> None:
                     st.warning("Cluster analysis requires at least 2 non-empty records.")
                 elif SKLEARN_TEXT_AVAILABLE:
                     labels, themes_df = _perform_tfidf_kmeans(texts, n_clusters)
-                    st.markdown(f"**Extracted {len(themes_df)}} themes via TF-IDF Vectorization & KMeans Clustering:**")
+                    st.markdown(f"**Extracted {len(themes_df)} themes via TF-IDF Vectorization & KMeans Clustering:**")
                     st.dataframe(themes_df, use_container_width=True, hide_index=True)
                     
                     selected_cluster = st.selectbox("Inspect cluster sample records", themes_df["Cluster"].tolist(), key="synth_cluster_inspect")
                     samples = [t for t, l in zip(texts, labels) if l == selected_cluster][:5]
                     st.markdown("**Cluster Sample Documents:**")
                     for s in samples:
-                        st.markdown(f"> {s}}")
+                        st.markdown(f"> {s}")
                     render_export_buttons(themes_df, base_name="research_clusters")
                 else:
                     st.info("Scikit-learn is unavailable; using basic frequency counting.")
@@ -482,30 +482,30 @@ def render_synth_and_gap(df: pd.DataFrame) -> None:
 
             findings = []
             if n < 100:
-                findings.append(f"**Sample Size Limit:** Small size ($n={n}}$). Ensure statistical power calculations are applied.")
+                findings.append(f"**Sample Size Limit:** Small size ($n={n}$). Ensure statistical power calculations are applied.")
             else:
-                findings.append(f"**Sample Size:** Sufficient volume ($n={n:,}}$) for parametric inference.")
+                findings.append(f"**Sample Size:** Sufficient volume ($n={n:,}$) for parametric inference.")
 
             if not datetime_cols:
                 findings.append("**Temporal Dimension:** Lack of time-series indices limits cross-sectional sequence tracking.")
             else:
-                findings.append(f"**Temporal Depth:** Detected time tracking column `{datetime_cols[0]}}`.")
+                findings.append(f"**Temporal Depth:** Detected time tracking column `{datetime_cols[0]}`.")
 
             if cat_cols:
                 max_card = max(df[c].nunique() for c in cat_cols)
-                findings.append(f"**Categorical Diversity:** `{len(cat_cols)}}` factor variables identified. High cardinality at level `{max_card}}`.")
+                findings.append(f"**Categorical Diversity:** `{len(cat_cols)}` factor variables identified. High cardinality at level `{max_card}`.")
 
             if dup_rate > 0:
-                findings.append(f"**Data Integrity Warning:** `{dup_rate:.1f}}%` duplicate records detected.")
+                findings.append(f"**Data Integrity Warning:** `{dup_rate:.1f}%` duplicate records detected.")
             if missing_rate > 0:
-                findings.append(f"**Completeness:** Overall missingness metric stands at `{missing_rate:.1f}}%`.")
+                findings.append(f"**Completeness:** Overall missingness metric stands at `{missing_rate:.1f}%`.")
 
-            findings.append(f"**Domain Alignment ({domain}}):** Verify compliance with standards applicable to {domain}}.")
+            findings.append(f"**Domain Alignment ({domain}):** Verify compliance with standards applicable to {domain}.")
 
             for f in findings:
-                st.markdown(f"- {f}}")
+                st.markdown(f"- {f}")
             
-            md_export = "\n".join(f"- {f}}" for f in findings)
+            md_export = "\n".join(f"- {f}" for f in findings)
             st.download_button("⬇️ Download Checklist (.md)", data=md_export, file_name="methodology_checklist.md", mime="text/markdown")
 
 def render_audio() -> None:
@@ -544,7 +544,7 @@ def render_audio() -> None:
                 if (!('speechSynthesis' in window)) {{
                     statusEl.innerText = 'Speech synthesis is not supported in this browser environment.';
                     return;
-                }}
+                }
                 window.speechSynthesis.cancel();
                 const utter = new SpeechSynthesisUtterance(payloadText);
                 utter.rate = rate;
@@ -553,14 +553,14 @@ def render_audio() -> None:
                 utter.onend = () => statusEl.innerText = 'Status: Playback complete.';
                 utter.onerror = (e) => statusEl.innerText = 'Status: Error - ' + e.error;
                 window.speechSynthesis.speak(utter);
-            }};
+            };
 
             document.getElementById('stopBtn').onclick = function() {{
                 if ('speechSynthesis' in window) {{
                     window.speechSynthesis.cancel();
                     statusEl.innerText = 'Status: Stopped.';
-                }}
-            }};
+                }
+            };
         </script>
         """,
         height=130,

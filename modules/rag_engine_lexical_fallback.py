@@ -167,7 +167,7 @@ def build_knowledge_graph(chunk_records: list[dict]) -> "nx.Graph":
         chunk_id = record["id"]
         graph.add_node(chunk_id, kind="chunk", doc_title=record.get("doc_title", ""))
         for entity in extract_entities(record["text"]):
-            entity_node = f"entity::{entity.lower()}}"
+            entity_node = f"entity::{entity.lower()}"
             if entity_node not in graph:
                 graph.add_node(entity_node, kind="entity", label=entity)
             graph.add_edge(chunk_id, entity_node)
@@ -270,7 +270,7 @@ def ingest_document(conn, title: str, text: str, source: Optional[str] = None) -
 
     with conn.cursor() as cur:
         for chunk_str, embedding in zip(chunks, embeddings):
-            chunk_id = hashlib.sha256(f"{document_id}}:{chunk_str}}".encode()).hexdigest()[:24]
+            chunk_id = hashlib.sha256(f"{document_id}:{chunk_str}".encode()).hexdigest()[:24]
             cur.execute(
                 "INSERT INTO rag_chunks (id, document_id, chunk_text, embedding, embedding_method) "
                 "VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",

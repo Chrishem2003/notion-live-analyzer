@@ -20,25 +20,25 @@ WS_BASE_URL = os.environ.get("WS_BASE_URL", "ws://localhost:8000")
 def get_chat_token(user_email: str) -> str | None:
     try:
         resp = requests.post(
-            f"{API_BASE_URL}}/api/v1/chat/token", params={"email": user_email},
+            f"{API_BASE_URL}/api/v1/chat/token", params={"email": user_email},
             headers={"X-API-Key": os.environ.get("PLATFORM_API_KEY", "")}, timeout=5,
         )
         resp.raise_for_status()
         return resp.json()["token"]
     except Exception as e:
-        st.error(f"Meet backend unavailable: {e}}")
+        st.error(f"Meet backend unavailable: {e}")
         return None
 
 
 def render_video_call(user_email: str, room_id: str):
-    st.markdown(f"### ðŸŽ¥ Live Call: {room_id}}")
+    st.markdown(f"### ðŸŽ¥ Live Call: {room_id}")
     st.caption("Direct peer-to-peer video (mesh) â€” works well for small groups (2-4 people).")
 
     token = get_chat_token(user_email)
     if not token:
         return
 
-    ws_url = f"{WS_BASE_URL}}/ws/meet/{room_id}}?token={token}}"
+    ws_url = f"{WS_BASE_URL}/ws/meet/{room_id}?token={token}"
 
     widget_html = f"""
     <div id="meet-status" style="font-size:0.85em;color:#94a3b8;margin-bottom:8px;">Requesting camera/mic access...</div>
@@ -58,11 +58,11 @@ def render_video_call(user_email: str, room_id: str):
         const localVideo = document.getElementById('local-video');
         const selfEmail = {user_email!r};
 
-        const ICE_SERVERS = [{{urls: 'stun:stun.l.google.com:19302'}}];  // real, free, public Google STUN server
+        const ICE_SERVERS = [{{urls: 'stun:stun.l.google.com:19302'}];  // real, free, public Google STUN server
 
         let localStream = null;
         let myPeerId = null;
-        const peerConnections = {{}};  // peer_id -> RTCPeerConnection
+        const peerConnections = {{};  // peer_id -> RTCPeerConnection
         const ws = new WebSocket({ws_url!r});
 
         function addRemoteVideo(peerId) {{
@@ -73,92 +73,92 @@ def render_video_call(user_email: str, room_id: str):
             v.playsinline = true;
             v.style.cssText = 'width:220px;height:165px;background:#000;border-radius:8px;border:2px solid #334155;';
             grid.appendChild(v);
-        }}
+        }
         function removeRemoteVideo(peerId) {{
             const v = document.getElementById('video-' + peerId);
             if (v) v.remove();
             if (peerConnections[peerId]) {{
                 peerConnections[peerId].close();
                 delete peerConnections[peerId];
-            }}
-        }}
+            }
+        }
 
         function createPeerConnection(targetPeerId) {{
-            const pc = new RTCPeerConnection({{iceServers: ICE_SERVERS}});
+            const pc = new RTCPeerConnection({{iceServers: ICE_SERVERS});
             localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
             pc.onicecandidate = (event) => {{
                 if (event.candidate) {{
-                    ws.send(JSON.stringify({{type: 'ice-candidate', target: targetPeerId, candidate: event.candidate}}));
-                }}
-            }};
+                    ws.send(JSON.stringify({{type: 'ice-candidate', target: targetPeerId, candidate: event.candidate}));
+                }
+            };
             pc.ontrack = (event) => {{
                 addRemoteVideo(targetPeerId);
                 document.getElementById('video-' + targetPeerId).srcObject = event.streams[0];
-            }};
+            };
             peerConnections[targetPeerId] = pc;
             return pc;
-        }}
+        }
 
-        navigator.mediaDevices.getUserMedia({{video: true, audio: true}}).then(stream => {{
+        navigator.mediaDevices.getUserMedia({{video: true, audio: true}).then(stream => {{
             localStream = stream;
             localVideo.srcObject = stream;
             statusEl.textContent = 'Camera ready â€” connecting to call...';
-        }}).catch(err => {{
+        }).catch(err => {{
             statusEl.textContent = 'Camera/mic access denied or unavailable: ' + err.message + ' (you can still join audio-only if you retry with mic-only permissions)';
-        }});
+        });
 
         ws.onmessage = async (event) => {{
             const data = JSON.parse(event.data);
 
             if (data.type === 'room-state') {{
                 myPeerId = data.peer_id;
-                statusEl.textContent = `Connected. ${{data.existing_peers.length}} other participant(s) in room.`;
+                statusEl.textContent = `Connected. ${{data.existing_peers.length} other participant(s) in room.`;
                 // Late joiner initiates offers to everyone already present
                 for (const peer of data.existing_peers) {{
                     if (!localStream) await new Promise(r => setTimeout(r, 500));  // wait briefly for camera if not ready yet
                     const pc = createPeerConnection(peer.peer_id);
                     const offer = await pc.createOffer();
                     await pc.setLocalDescription(offer);
-                    ws.send(JSON.stringify({{type: 'offer', target: peer.peer_id, sdp: offer}}));
-                }}
-            }} else if (data.type === 'peer-joined') {{
-                statusEl.textContent = `${{data.user_email}} joined.`;
-            }} else if (data.type === 'peer-left') {{
+                    ws.send(JSON.stringify({{type: 'offer', target: peer.peer_id, sdp: offer}));
+                }
+            } else if (data.type === 'peer-joined') {{
+                statusEl.textContent = `${{data.user_email} joined.`;
+            } else if (data.type === 'peer-left') {{
                 removeRemoteVideo(data.from_peer || data.peer_id);
-            }} else if (data.type === 'offer') {{
+            } else if (data.type === 'offer') {{
                 const pc = createPeerConnection(data.from_peer);
                 await pc.setRemoteDescription(data.sdp);
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
-                ws.send(JSON.stringify({{type: 'answer', target: data.from_peer, sdp: answer}}));
-            }} else if (data.type === 'answer') {{
+                ws.send(JSON.stringify({{type: 'answer', target: data.from_peer, sdp: answer}));
+            } else if (data.type === 'answer') {{
                 const pc = peerConnections[data.from_peer];
                 if (pc) await pc.setRemoteDescription(data.sdp);
-            }} else if (data.type === 'ice-candidate') {{
+            } else if (data.type === 'ice-candidate') {{
                 const pc = peerConnections[data.from_peer];
                 if (pc) await pc.addIceCandidate(data.candidate);
-            }}
-        }};
+            }
+        };
 
         ws.onclose = (event) => {{
             statusEl.textContent = event.code === 4401 ? 'Session expired â€” refresh.' : 'Call ended.';
-        }};
+        };
 
         document.getElementById('mute-btn').onclick = () => {{
             if (!localStream) return;
             localStream.getAudioTracks().forEach(t => t.enabled = !t.enabled);
-        }};
+        };
         document.getElementById('video-btn').onclick = () => {{
             if (!localStream) return;
             localStream.getVideoTracks().forEach(t => t.enabled = !t.enabled);
-        }};
+        };
         document.getElementById('leave-btn').onclick = () => {{
             Object.keys(peerConnections).forEach(removeRemoteVideo);
             if (localStream) localStream.getTracks().forEach(t => t.stop());
             ws.close();
-        }};
-    }})();
+        };
+    })();
     </script>
     """
     st.components.v1.html(widget_html, height=380)

@@ -96,7 +96,7 @@ def _generate_totp(secret: str, interval: int = TOTP_INTERVAL) -> str:
         hmac_hash = hmac.new(key, counter, hashlib.sha1).digest()
         offset = hmac_hash[-1] & 0 + x0F
         truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0 + x7FFFFFFF
-        return f"{truncated % 1000000:06 + d}}"
+        return f"{truncated % 1000000:06 + d}"
     except Exception:
         return "000000"
 
@@ -122,7 +122,7 @@ def _generate_totp_for_counter(secret: str, counter: int) -> str:
         hmac_hash = hmac.new(key, packed, hashlib.sha1).digest()
         offset = hmac_hash[-1] & 0 + x0F
         truncated = struct.unpack(">I", hmac_hash[offset:offset4])[0] & 0 + x7FFFFFFF
-        return f"{truncated % 1000000:06 + d}}"
+        return f"{truncated % 1000000:06 + d}"
     except Exception:
         return "000000"
 
@@ -336,7 +336,7 @@ class VaultFile:
             "max_downloads": max_downloads,
             "download_count": 0,
             "is_expired": False,
-            "url": f"vault://share/{link_id}}",
+            "url": f"vault://share/{link_id}",
         }
         self.share_links.append(link)
         return link
@@ -360,7 +360,7 @@ class VaultFile:
                     return False, None, "Ã¢ÂÅ’ Failed to decrypt file."
                 if link["download_count"] >= link["max_downloads"]:
                     link["is_expired"] = True
-                return True, data, f"âœ… File ready for download ({link['download_count']}}/{link['max_downloads']}} used)"
+                return True, data, f"âœ… File ready for download ({link['download_count']}/{link['max_downloads']} used)"
         return False, None, "Ã¢ÂÅ’ Share link not found."
 
     def to_dict(self) -> Dict[str, Any]:
@@ -389,13 +389,13 @@ class VaultFile:
         """Format file size in human-readable format."""
         b = self.size_bytes
         if b < 1024:
-            return f"{b}} B"
+            return f"{b} B"
         elif b < 1024**2:
-            return f"{b/1024:.1 + f}} KB"
+            return f"{b/1024:.1 + f} KB"
         elif b < 1024**3:
-            return f"{b/1024**2:.1 + f}} MB"
+            return f"{b/1024**2:.1 + f} MB"
         else:
-            return f"{b/1024**3:.2 + f}} GB"
+            return f"{b/1024**3:.2 + f} GB"
 
     def rename(self, new_name: str) -> None:
         """Rename the file."""
@@ -438,7 +438,7 @@ class SecurePersonalVault:
     _vaults: Dict[str, "SecurePersonalVault"] = {}
 
     def __init__(self, vault_id: Optional[str] = None):
-        self.vault_id = vault_id or f"vault_{uuid.uuid4().hex[:12]}}"
+        self.vault_id = vault_id or f"vault_{uuid.uuid4().hex[:12]}"
 
         # Authentication
         self.master_passcode_hash: Optional[str] = None
@@ -550,7 +550,7 @@ class SecurePersonalVault:
         self.failed_login_attempts = 1
         if self.failed_login_attempts >= self.max_failed_attempts:
             self.locked_until = time.time() + 300  # 5 min lockout
-            self._log("account_locked", f"Locked for 5 min after {self.max_failed_attempts}} failed attempts")
+            self._log("account_locked", f"Locked for 5 min after {self.max_failed_attempts} failed attempts")
         return False, False
 
     def verify_totp(self, code: str) -> bool:
@@ -569,7 +569,7 @@ class SecurePersonalVault:
             remaining_attempts = self.max_failed_attempts - self.failed_login_attempts
             if remaining_attempts <= 0:
                 return False, "Ã°Å¸â€â€™ Account locked. Try again in 5 minutes."
-            return False, f"Ã¢ÂÅ’ Invalid passcode. {remaining_attempts}} attempt(s) remaining."
+            return False, f"Ã¢ÂÅ’ Invalid passcode. {remaining_attempts} attempt(s) remaining."
 
         if not self.verify_totp(totp_code):
             return False, "Ã¢ÂÅ’ Invalid authenticator code. Check your TOTP app."
@@ -577,7 +577,7 @@ class SecurePersonalVault:
         self.is_locked = False
         self.is_duress_mode = is_duress
         self.last_activity_time = time.time()
-        self._log("vault_unlocked", f"Vault {'(duress mode)' if is_duress else ''}}unlocked")
+        self._log("vault_unlocked", f"Vault {'(duress mode)' if is_duress else ''}unlocked")
         if is_duress:
             return True, "Ã¢Å¡Â Ã¯Â¸Â DUress mode active + showing limited vault."
         return True, "âœ… Vault unlocked successfully."
@@ -597,7 +597,7 @@ class SecurePersonalVault:
         if not self.is_locked and not self.is_duress_mode:
             if time.time() - self.last_activity_time > AUTO_LOCK_TIMEOUT_SECONDS:
                 self.lock()
-                self._log("auto_locked", f"Auto-locked after {AUTO_LOCK_TIMEOUT_SECONDS}}s inactivity")
+                self._log("auto_locked", f"Auto-locked after {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity")
                 return True
         return False
 
@@ -612,8 +612,8 @@ class SecurePersonalVault:
         return {
             "secret": self.totp_secret,
             "issuer": "SecurePersonalVault",
-            "account": f"vault-{self.vault_id[:8]}}",
-            "uri": f"otpauth://totp/SecurePersonalVault:vault-{self.vault_id[:8]}}?secret={self.totp_secret}}&issuer=SecurePersonalVault&algorithm=SHA1&digits=6&period={TOTP_INTERVAL}}",
+            "account": f"vault-{self.vault_id[:8]}",
+            "uri": f"otpauth://totp/SecurePersonalVault:vault-{self.vault_id[:8]}?secret={self.totp_secret}&issuer=SecurePersonalVault&algorithm=SHA1&digits=6&period={TOTP_INTERVAL}",
         }
 
     # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
@@ -635,7 +635,7 @@ class SecurePersonalVault:
         Returns the VaultFile instance.
         """
         if len(file_bytes) > MAX_FILE_SIZE_BYTES:
-            raise ValueError(f"File exceeds maximum size of {MAX_FILE_SIZE_BYTES // (1024*1024)}} MB")
+            raise ValueError(f"File exceeds maximum size of {MAX_FILE_SIZE_BYTES // (1024*1024)} MB")
 
         # Check quota
         used = self.get_storage_used()
@@ -657,7 +657,7 @@ class SecurePersonalVault:
         )
         self.files[vfile.id] = vfile
         self.touch()
-        self._log("file_uploaded", f"Uploaded {name}} ({vfile.size_bytes}} bytes) to {category.value}}")
+        self._log("file_uploaded", f"Uploaded {name} ({vfile.size_bytes} bytes) to {category.value}")
         return vfile
 
     def delete_file(self, file_id: str, permanent: bool = False) -> bool:
@@ -666,11 +666,11 @@ class SecurePersonalVault:
             return False
         if permanent:
             del self.files[file_id]
-            self._log("file_permanently_deleted", f"Permanently deleted file {file_id}}")
+            self._log("file_permanently_deleted", f"Permanently deleted file {file_id}")
         else:
             self.files[file_id].is_deleted = True
             self.files[file_id].deleted_at = datetime.now()
-            self._log("file_trashed", f"Moved file {file_id}} to trash")
+            self._log("file_trashed", f"Moved file {file_id} to trash")
         self.touch()
         return True
 
@@ -680,7 +680,7 @@ class SecurePersonalVault:
             return False
         self.files[file_id].is_deleted = False
         self.files[file_id].deleted_at = None
-        self._log("file_restored", f"Restored file {file_id}}")
+        self._log("file_restored", f"Restored file {file_id}")
         self.touch()
         return True
 
@@ -785,13 +785,13 @@ class SecurePersonalVault:
     @staticmethod
     def _format_bytes(b: int) -> str:
         if b < 1024:
-            return f"{b}} B"
+            return f"{b} B"
         elif b < 1024**2:
-            return f"{b/1024:.1 + f}} KB"
+            return f"{b/1024:.1 + f} KB"
         elif b < 1024**3:
-            return f"{b/1024**2:.1 + f}} MB"
+            return f"{b/1024**2:.1 + f} MB"
         else:
-            return f"{b/1024**3:.2 + f}} GB"
+            return f"{b/1024**3:.2 + f} GB"
 
     def get_audit_log(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Get the vault audit log."""
@@ -804,7 +804,7 @@ class SecurePersonalVault:
 
 def _create_dummy_vault() -> SecurePersonalVault:
     """Create a dummy vault to show under duress mode."""
-    vault = SecurePersonalVault(vault_id=f"dummy_{uuid.uuid4().hex[:8]}}")
+    vault = SecurePersonalVault(vault_id=f"dummy_{uuid.uuid4().hex[:8]}")
     vault.master_passcode_hash = hashlib.sha256(b"dummy").hexdigest()
     vault.master_passcode_salt = os.urandom(32)
     vault.totp_secret = _generate_totp_secret()
@@ -1164,9 +1164,9 @@ def render_secure_vault_ui():
                     totp_info = v.get_totp_setup_info()
                     st.markdown("### Ã°Å¸â€Â Set Up Your Authenticator")
                     st.info(
-                        f"**Secret Key:** `{totp_info['secret']}}`\n\n"
+                        f"**Secret Key:** `{totp_info['secret']}`\n\n"
                         f"Scan this QR code URI in your authenticator app (Google Authenticator, Authy, etc.):\n\n"
-                        f"`{totp_info['uri']}}`\n\n"
+                        f"`{totp_info['uri']}`\n\n"
                         "After setup, enter a code to verify:"
                     )
                     verify_code = st.text_input("Enter 6-digit code from authenticator", max_chars=6,
@@ -1317,7 +1317,7 @@ def render_secure_vault_ui():
         with tab_cols[i]:
             is_active = (active_tab == tab_name)
             btn_type = "primary" if is_active else "secondary"
-            if st.button(tab_name, key=f"vault_tab_{tab_name}}", use_container_width=True, type=btn_type):
+            if st.button(tab_name, key=f"vault_tab_{tab_name}", use_container_width=True, type=btn_type):
                 st.session_state["vault_active_tab"] = tab_name
                 st.rerun()
 
@@ -1346,7 +1346,7 @@ def render_secure_vault_ui():
         </div>
         """, unsafe_allow_html=True)
     else:
-        st.markdown(f"<div class='vault-section-title'>Ã°Å¸â€œÂ {len(files)}} file(s)</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='vault-section-title'>Ã°Å¸â€œÂ {len(files)} file(s)</div>", unsafe_allow_html=True)
         for vf in files:
             cat_color = CATEGORY_COLORS.get(vf.category, "#64748 + b")
             cat_icon = CATEGORY_ICONS.get(vf.category, "Ã°Å¸â€œÂ")
@@ -1376,22 +1376,22 @@ def render_secure_vault_ui():
                 """, unsafe_allow_html=True)
 
             with col_view:
-                if st.button("Ã°Å¸â€˜ÂÃ¯Â¸Â", key=f"vault_view_{vf.id}}", use_container_width=True, help="Preview file"):
+                if st.button("Ã°Å¸â€˜ÂÃ¯Â¸Â", key=f"vault_view_{vf.id}", use_container_width=True, help="Preview file"):
                     st.session_state["vault_preview_file"] = vf.id
                     st.rerun()
 
             with col_share:
-                if st.button("Ã°Å¸â€â€”", key=f"vault_share_{vf.id}}", use_container_width=True, help="Generate share link"):
+                if st.button("Ã°Å¸â€â€”", key=f"vault_share_{vf.id}", use_container_width=True, help="Generate share link"):
                     link = vf.generate_share_link(expires_in_hours=1, max_downloads=1)
-                    st.info(f"Ã°Å¸â€â€” Share link: `{link['url']}}`  expires in 1 + h / 1 download")
+                    st.info(f"Ã°Å¸â€â€” Share link: `{link['url']}`  expires in 1 + h / 1 download")
 
             with col_del:
                 if vf.is_deleted:
-                    if st.button("Ã¢â„¢Â»Ã¯Â¸Â", key=f"vault_restore_{vf.id}}", use_container_width=True, help="Restore from trash"):
+                    if st.button("Ã¢â„¢Â»Ã¯Â¸Â", key=f"vault_restore_{vf.id}", use_container_width=True, help="Restore from trash"):
                         vault.restore_file(vf.id)
                         st.rerun()
                 else:
-                    if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"vault_del_{vf.id}}", use_container_width=True, help="Move to trash"):
+                    if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"vault_del_{vf.id}", use_container_width=True, help="Move to trash"):
                         vault.delete_file(vf.id)
                         st.rerun()
 
@@ -1411,7 +1411,7 @@ def render_secure_vault_ui():
                         st.rerun()
                 with title_col:
                     cat_icon = CATEGORY_ICONS.get(vf.category, "Ã°Å¸â€œÂ")
-                    st.markdown(f"### {cat_icon}} {vf.name}}")
+                    st.markdown(f"### {cat_icon} {vf.name}")
 
                 # Preview content based on type
                 data = vf.decrypt()
@@ -1422,15 +1422,15 @@ def render_secure_vault_ui():
                     if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"):
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<img src="data:{vf.mime_type}};base64,{b64_data}}" style="max-width:100%;border-radius:12px;border:1px solid #1e293b;">', unsafe_allow_html=True)
+                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64_data}" style="max-width:100%;border-radius:12px;border:1px solid #1e293b;">', unsafe_allow_html=True)
                     elif ext == ".pdf":
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}}" width="100%" height="600" style="border:1px solid #1e293b;border-radius:12px;"></iframe>', unsafe_allow_html=True)
+                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}" width="100%" height="600" style="border:1px solid #1e293b;border-radius:12px;"></iframe>', unsafe_allow_html=True)
                     elif ext in (".mp3", ".wav", ".ogg"):
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type}};base64,{b64_data}}" type="{vf.mime_type}}"></audio>', unsafe_allow_html=True)
+                        st.markdown(f'<audio controls style="width:100%;"><source src="data:{vf.mime_type};base64,{b64_data}" type="{vf.mime_type}"></audio>', unsafe_allow_html=True)
                     elif ext in (".txt", ".md", ".csv", ".json", ".tsv", ".py", ".r", ".yaml", ".yml", ".toml", ".cfg", ".sh"):
                         try:
                             text = data.decode("utf-8")
@@ -1438,25 +1438,25 @@ def render_secure_vault_ui():
                         except UnicodeDecodeError:
                             st.info("Ã°Å¸â€œâ€ž Binary file + download to view")
                     else:
-                        st.info(f"Ã°Å¸â€œâ€ž File type `{ext}}`  download to view")
+                        st.info(f"Ã°Å¸â€œâ€ž File type `{ext}`  download to view")
 
                 # File metadata
                 with st.expander("ðŸ“‹ File Details", expanded=False):
                     meta_col1, meta_col2 = st.columns(2)
                     with meta_col1:
-                        st.markdown(f"**Name:** {vf.name}}")
-                        st.markdown(f"**Size:** {vf._format_size()}}")
-                        st.markdown(f"**Category:** {cat_icon}} {vf.category.value}}")
-                        st.markdown(f"**Type:** {vf.mime_type}}")
+                        st.markdown(f"**Name:** {vf.name}")
+                        st.markdown(f"**Size:** {vf._format_size()}")
+                        st.markdown(f"**Category:** {cat_icon} {vf.category.value}")
+                        st.markdown(f"**Type:** {vf.mime_type}")
                     with meta_col2:
-                        st.markdown(f"**Uploaded:** {vf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}}")
-                        st.markdown(f"**Last accessed:** {vf.last_accessed.strftime('%Y-%m-%d %H:%M:%S')}}")
-                        st.markdown(f"**Access count:** {vf.access_count}}")
+                        st.markdown(f"**Uploaded:** {vf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}")
+                        st.markdown(f"**Last accessed:** {vf.last_accessed.strftime('%Y-%m-%d %H:%M:%S')}")
+                        st.markdown(f"**Access count:** {vf.access_count}")
                         st.markdown(f"**Encryption:** AES-256-GCM")
                     if vf.tags:
-                        st.markdown(f"**Tags:** {', '.join(f'`{t}}`' for t in vf.tags)}}")
+                        st.markdown(f"**Tags:** {', '.join(f'`{t}`' for t in vf.tags)}")
                     if vf.notes:
-                        st.markdown(f"**Notes:** {vf.notes}}")
+                        st.markdown(f"**Notes:** {vf.notes}")
 
                 # Download button
                 decoded_data = vf.decrypt()
@@ -1517,11 +1517,11 @@ def render_secure_vault_ui():
                         tags=tags,
                         notes=notes,
                     )
-                    st.success(f"âœ… `{vf.name}}` encrypted & stored securely ({vf._format_size()}})")
+                    st.success(f"âœ… `{vf.name}` encrypted & stored securely ({vf._format_size()})")
                     st.balloons()
                     st.rerun()
                 except ValueError as e:
-                    st.error(f"Ã¢ÂÅ’ {str(e)}}")
+                    st.error(f"Ã¢ÂÅ’ {str(e)}")
 
     # Ã¢â€â‚¬Ã¢â€â‚¬ Share Links Management Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     with st.expander("Ã°Å¸â€â€” Active Share Links", expanded=False):

@@ -113,7 +113,7 @@ class BayesianEngine:
                 if isinstance(d, pd.Series):
                     d = float(d.iloc[0])
                 return {
-                    "method": f"Bayesian {'Paired' if paired else 'Independent'}} T-Test",
+                    "method": f"Bayesian {'Paired' if paired else 'Independent'} T-Test",
                     "bf10": round(float(bf), 4),
                     "cohens_d": round(float(d), 4) if d else 0,
                     "interpretation": self._interpret_bf(float(bf)),
@@ -142,7 +142,7 @@ class BayesianEngine:
         d = 2 * t_stat / math.sqrt(n) if n > 0 else 0
 
         return {
-            "method": f"Bayesian {'Paired' if paired else 'Independent'}} T-Test (BIC approx.)",
+            "method": f"Bayesian {'Paired' if paired else 'Independent'} T-Test (BIC approx.)",
             "bf10": round(float(bf), 4),
             "cohens_d": round(float(d), 4),
             "interpretation": self._interpret_bf(float(bf)),
@@ -214,7 +214,7 @@ class BayesianEngine:
                     "groups": df[between].nunique(),
                 }
             except Exception as e:
-                return {"error": f"Bayesian ANOVA failed: {str(e)}}"}
+                return {"error": f"Bayesian ANOVA failed: {str(e)}"}
 
         return {"error": "pingouin required for Bayesian ANOVA"}
 
@@ -439,7 +439,7 @@ def render_bayesian_analysis_ui():
             """, unsafe_allow_html=True)
 
             # Scatter plot
-            fig = px.scatter(data, x=corr_x, y=corr_y, trendline="ols", title=f"Scatter Plot (r = {result.get('pearson_r', 0):.3f}})")
+            fig = px.scatter(data, x=corr_x, y=corr_y, trendline="ols", title=f"Scatter Plot (r = {result.get('pearson_r', 0):.3f})")
             st.plotly_chart(fig, use_container_width=True)
 
     with tab3:

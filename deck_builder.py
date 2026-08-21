@@ -120,21 +120,21 @@ class DeckBuilder:
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-    body {{ font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; color: #0f172a; }}
-    .slide {{ min-height: 100vh; padding: 3rem 4rem; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #e2e8f0; }}
-    .slide-section {{ background: linear-gradient(135deg, #1e3a5f, #1d4ed8); color: white; text-align: center; }}
-    .slide-section h1 {{ font-size: 3rem; margin-bottom: 1rem; }}
-    .slide-section p {{ font-size: 1.3rem; opacity: 0.9; }}
-    .slide-title {{ font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1d4ed8; }}
-    .slide-content {{ font-size: 1.1rem; line-height: 1.7; color: #334155; }}
-    .slide-data {{ overflow-x: auto; }}
-    .slide-data table {{ width: 100%; border-collapse: collapse; font-size: 0.9rem; }}
-    .slide-data th {{ background: #1d4ed8; color: white; padding: 0.6rem; text-align: left; }}
-    .slide-data td {{ padding: 0.5rem; border-bottom: 1px solid #e2e8f0; }}
-    .chart-container {{ width: 100%; height: 60vh; }}
-    .footer {{ margin-top: auto; font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 1rem; }}
-    @media print {{ .slide {{ page-break-after: always; min-height: 100vh; }} }}
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }
+    body {{ font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; color: #0f172a; }
+    .slide {{ min-height: 100vh; padding: 3rem 4rem; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #e2e8f0; }
+    .slide-section {{ background: linear-gradient(135deg, #1e3a5f, #1d4ed8); color: white; text-align: center; }
+    .slide-section h1 {{ font-size: 3rem; margin-bottom: 1rem; }
+    .slide-section p {{ font-size: 1.3rem; opacity: 0.9; }
+    .slide-title {{ font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1d4ed8; }
+    .slide-content {{ font-size: 1.1rem; line-height: 1.7; color: #334155; }
+    .slide-data {{ overflow-x: auto; }
+    .slide-data table {{ width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .slide-data th {{ background: #1d4ed8; color: white; padding: 0.6rem; text-align: left; }
+    .slide-data td {{ padding: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+    .chart-container {{ width: 100%; height: 60vh; }
+    .footer {{ margin-top: auto; font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 1rem; }
+    @media print {{ .slide {{ page-break-after: always; min-height: 100vh; } }
 </style>
 </head>
 <body>
@@ -156,7 +156,7 @@ class DeckBuilder:
     <div class="slide-title">{slide['title']}</div>
     <div class="slide-content">{slide['content']}</div>
     <div class="chart-container">
-        <img src="data:image/png;base64,{{chart_placeholder}}" style="width:100%;height:100%;object-fit:contain;" />
+        <img src="data:image/png;base64,{{chart_placeholder}" style="width:100%;height:100%;object-fit:contain;" />
     </div>
     <div class="footer">CHRISHEM Research Suite</div>
 </div>
@@ -227,7 +227,7 @@ class DeckBuilder:
 
             return pdf.output(dest="S").encode("latin-1")
         except Exception as e:
-            st.warning(f"PDF export failed: {e}}")
+            st.warning(f"PDF export failed: {e}")
             return None
 
     def get_summary(self) -> Dict[str, Any]:
@@ -278,9 +278,9 @@ def render_deck_builder_ui():
                 df = st.session_state.get("active_df")
                 if df is not None and not df.empty:
                     deck.add_data_slide(
-                        f"Data Overview  {df.shape[0]}} rows Ãƒâ€” {df.shape[1]}} cols",
+                        f"Data Overview  {df.shape[0]} rows Ãƒâ€” {df.shape[1]} cols",
                         df.head(50),
-                        f"First {min(50, len(df))}} rows of the dataset"
+                        f"First {min(50, len(df))} rows of the dataset"
                     )
                     st.rerun()
         with col2:
@@ -289,7 +289,7 @@ def render_deck_builder_ui():
                 if charts_in_session:
                     for i, chart_info in enumerate(charts_in_session):
                         deck.add_chart_slide(
-                            chart_info.get("title", f"Chart {i1}}"),
+                            chart_info.get("title", f"Chart {i1}"),
                             chart_info.get("figure"),
                             chart_info.get("description", ""),
                         )
@@ -304,12 +304,12 @@ def render_deck_builder_ui():
                     profile = profile_dataset(df)
                     profile_text = (
                         f"**Dataset Profile**\n\n"
-                        f"- **Rows**: {profile['rows']:,}}\n"
-                        f"- **Columns**: {profile['columns']}}\n"
-                        f"- **Numeric**: {len(profile.get('numeric_columns', []))}}\n"
-                        f"- **Categorical**: {len(profile.get('categorical_columns', []))}}\n"
-                        f"- **Missing**: {profile['missing_pct']}}%\n"
-                        f"- **Duplicates**: {profile['duplicate_rows']:,}}"
+                        f"- **Rows**: {profile['rows']:,}\n"
+                        f"- **Columns**: {profile['columns']}\n"
+                        f"- **Numeric**: {len(profile.get('numeric_columns', []))}\n"
+                        f"- **Categorical**: {len(profile.get('categorical_columns', []))}\n"
+                        f"- **Missing**: {profile['missing_pct']}%\n"
+                        f"- **Duplicates**: {profile['duplicate_rows']:,}"
                     )
                     deck.add_slide("Dataset Profile", profile_text)
                     st.rerun()
@@ -318,9 +318,9 @@ def render_deck_builder_ui():
         insights = st.session_state.get("generated_hypotheses", [])
         if insights:
             for h in insights[:5]:
-                if st.button(f"Ã¢Å¾â€¢ Add: {h.get('id', 'Hypothesis')}}  {h.get('narrative', '')[:60]}}...", key=f"add_hyp_{h.get('id', '')}}"):
+                if st.button(f"Ã¢Å¾â€¢ Add: {h.get('id', 'Hypothesis')}  {h.get('narrative', '')[:60]}...", key=f"add_hyp_{h.get('id', '')}"):
                     deck.add_slide(
-                        f"Finding {h.get('id', '')}}: {h.get('type', '').replace('_', ' ').title()}}",
+                        f"Finding {h.get('id', '')}: {h.get('type', '').replace('_', ' ').title()}",
                         h.get('narrative', ''),
                         slide_type="content"
                     )
@@ -335,12 +335,12 @@ def render_deck_builder_ui():
                 test_name = r.get("test", r.get("test_name", "Statistical Test"))
                 p = r.get("p_value", 1)
                 sig_text = "âœ… Significant" if r.get("significant") else "Ã¢ÂÅ’ Not significant"
-                if st.button(f"Ã¢Å¾â€¢ Add: {test_name}} ({sig_text}}, p={p:.4f}})", key=f"add_stat_{test_name}}"):
-                    content_lines = [f"**Test**: {test_name}}"]
+                if st.button(f"Ã¢Å¾â€¢ Add: {test_name} ({sig_text}, p={p:.4f})", key=f"add_stat_{test_name}"):
+                    content_lines = [f"**Test**: {test_name}"]
                     for k, v in r.items():
                         if k not in ("error", "test") and not isinstance(v, pd.DataFrame):
-                            content_lines.append(f"- **{k.replace('_', ' ').title()}}**: {v}}")
-                    deck.add_slide(f"Statistical Result: {test_name}}", "\n".join(content_lines))
+                            content_lines.append(f"- **{k.replace('_', ' ').title()}**: {v}")
+                    deck.add_slide(f"Statistical Result: {test_name}", "\n".join(content_lines))
                     st.rerun()
         else:
             st.info("No statistical results yet. Run analyses on the Statistical Tests page.")
@@ -357,7 +357,7 @@ def render_deck_builder_ui():
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Deck Preview Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     st.markdown("---")
-    st.markdown(f"## Ã°Å¸Å½Â¬ Deck Preview ({len(deck.slides)}} slides)")
+    st.markdown(f"## Ã°Å¸Å½Â¬ Deck Preview ({len(deck.slides)} slides)")
 
     if not deck.slides:
         st.info("Ã°Å¸â€˜â€  Add slides from the options above to build your presentation.")
@@ -453,7 +453,7 @@ def render_deck_builder_ui():
             html = deck.export_html(st.session_state.get("deck_title", "Presentation"))
             b64 = base64.b64encode(html.encode()).decode()
             st.markdown(
-                f'<a href="data:text/html;base64,{b64}}" download="presentation_{datetime.now():%Y%m%d}}.html">'
+                f'<a href="data:text/html;base64,{b64}" download="presentation_{datetime.now():%Y%m%d}.html">'
                 f'ðŸ“¥ Click to Download HTML</a>',
                 unsafe_allow_html=True,
             )
@@ -463,7 +463,7 @@ def render_deck_builder_ui():
             if pdf_bytes:
                 b64 = base64.b64encode(pdf_bytes).decode()
                 st.markdown(
-                    f'<a href="data:application/pdf;base64,{b64}}" download="presentation_{datetime.now():%Y%m%d}}.pdf">'
+                    f'<a href="data:application/pdf;base64,{b64}" download="presentation_{datetime.now():%Y%m%d}.pdf">'
                     f'ðŸ“¥ Click to Download PDF</a>',
                     unsafe_allow_html=True,
                 )
@@ -471,9 +471,9 @@ def render_deck_builder_ui():
         if st.button("ðŸ“‹ Copy Deck Summary", use_container_width=True):
             summary = deck.get_summary()
             st.code(
-                f"Presentation: {st.session_state.get('deck_title', 'Untitled')}}\n"
-                f"Total Slides: {summary['total_slides']}}\n"
-                f"Types: {summary['type_counts']}}",
+                f"Presentation: {st.session_state.get('deck_title', 'Untitled')}\n"
+                f"Total Slides: {summary['total_slides']}\n"
+                f"Types: {summary['type_counts']}",
                 language="text",
             )
 

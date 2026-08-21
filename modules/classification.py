@@ -19,7 +19,7 @@ def _level_index(level: str) -> int:
     try:
         return LEVELS.index(level.upper())
     except ValueError:
-        raise ValueError(f"Unknown classification level {level!r}}. Must be one of {LEVELS}}.")
+        raise ValueError(f"Unknown classification level {level!r}. Must be one of {LEVELS}.")
 
 
 def can_access(user_clearance: str, file_classification: str) -> bool:
@@ -63,5 +63,5 @@ def check_access(user_clearance: str, file_classification: str, is_owner: bool =
         return ClassificationCheck(True, "authorized")
     return ClassificationCheck(
         False,
-        f"Requires {file_classification}} clearance or higher (you have {user_clearance}}).",
+        f"Requires {file_classification} clearance or higher (you have {user_clearance}).",
     )

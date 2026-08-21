@@ -84,7 +84,7 @@ def submit_swarm_run(payload: SwarmRequest, _auth: bool = Depends(require_api_ke
         "tasks.run_swarm_task",
         args=(payload.problem, payload.dataset_records),
     )
-    return {"task_id": async_result.id, "status_url": f"/api/v1/tasks/{async_result.id}}"}
+    return {"task_id": async_result.id, "status_url": f"/api/v1/tasks/{async_result.id}"}
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -111,7 +111,7 @@ def rag_ingest(payload: IngestRequest, _auth: bool = Depends(require_api_key)):
     except Exception as e:
         # Honest failure, not a swallowed 500 with no context â€” this almost
         # always means RAG_DATABASE_URL isn't set or Postgres/pgvector isn't reachable.
-        raise HTTPException(status_code=503, detail=f"RAG ingestion unavailable: {e}}")
+        raise HTTPException(status_code=503, detail=f"RAG ingestion unavailable: {e}")
 
 
 @app.post("/api/v1/rag/query")
@@ -122,7 +122,7 @@ def rag_query(payload: QueryRequest, _auth: bool = Depends(require_api_key)):
         hits = vector_search(conn, payload.query, top_k=payload.top_k)
         return {"query": payload.query, "hits": hits}
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"RAG query unavailable: {e}}")
+        raise HTTPException(status_code=503, detail=f"RAG query unavailable: {e}")
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

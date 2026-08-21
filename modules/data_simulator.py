@@ -30,7 +30,7 @@ class DataSimulator:
 
         # Demographics
         if add_demographics:
-            data['ID'] = [f"R{str(i).zfill(4)}}" for i in range(1, n_respondents + 1)]
+            data['ID'] = [f"R{str(i).zfill(4)}" for i in range(1, n_respondents + 1)]
             data['Age'] = np.random.normal(35, 12, n_respondents).astype(int).clip(18, 85)
             data['Gender'] = np.random.choice(['Male', 'Female', 'Non-binary', 'Prefer not to say'],
                                                size=n_respondents, p=[0.48, 0.48, 0.03, 0.01])
@@ -78,8 +78,8 @@ class DataSimulator:
                 "the training.", "the process.", "the tools.", "communication.",
                 "support.", "outcomes.", "resources.", "technology."
             ])
-            q_name = f"Q{i1}}"
-            q_label = f"{prefix}} {topic}}"
+            q_name = f"Q{i1}"
+            q_label = f"{prefix} {topic}"
 
             if scale_type == "continuous":
                 # Normal distribution with slight skew
@@ -130,7 +130,7 @@ class DataSimulator:
 
         for group_idx, group_name in enumerate(group_names):
             for i in range(n_per_group):
-                subject_id = f"S{group_name[0]}}{str(i1).zfill(3)}}"
+                subject_id = f"S{group_name[0]}{str(i1).zfill(3)}"
 
                 # Pre-test (baseline)
                 pre_test = np.random.normal(50, 10)
@@ -210,7 +210,7 @@ class DataSimulator:
             data = data + noise
 
         # Convert to DataFrame
-        var_names = [f"Var_{i1}}" for i in range(n_variables)]
+        var_names = [f"Var_{i1}" for i in range(n_variables)]
         df = pd.DataFrame(data, columns=var_names)
         df = df.round(2)
 
@@ -313,7 +313,7 @@ class DataSimulator:
                 score = base_score + time_effect + treatment_effect + np.random.normal(0, 5)
 
                 rows.append({
-                    'Subject_ID': f"S{str(subj).zfill(3)}}",
+                    'Subject_ID': f"S{str(subj).zfill(3)}",
                     'Time': tp,
                     'Group': group,
                     'Score': round(score, 1),
@@ -378,11 +378,11 @@ def render_data_simulator_ui() -> pd.DataFrame:
             add_demo = st.checkbox("Include demographics", value=True, key="sim_survey_demo")
 
         if st.button("ðŸŽ² Generate Survey Data", type="primary"):
-            with st.spinner(f"Generating {n_resp}} survey responses..."):
+            with st.spinner(f"Generating {n_resp} survey responses..."):
                 result_df = DataSimulator.simulate_survey_data(
                     int(n_resp), int(n_qs), scale, add_demo
                 )
-            st.success(f"âœ… Generated {len(result_df)}} rows Ãƒâ€” {len(result_df.columns)}} columns")
+            st.success(f"âœ… Generated {len(result_df)} rows Ãƒâ€” {len(result_df.columns)} columns")
 
     elif sim_type == "Experimental Data":
         st.subheader("Ã°Å¸Â§Âª Experimental Data Simulation")
@@ -400,7 +400,7 @@ def render_data_simulator_ui() -> pd.DataFrame:
                 result_df = DataSimulator.simulate_experimental_data(
                     int(n_group), int(n_groups), effect, add_covariate=add_cov
                 )
-            st.success(f"âœ… Generated {len(result_df)}} rows Ãƒâ€” {len(result_df.columns)}} columns")
+            st.success(f"âœ… Generated {len(result_df)} rows Ãƒâ€” {len(result_df.columns)} columns")
 
     elif sim_type == "Correlational Data":
         st.subheader("Ã°Å¸â€â€” Correlational Data Simulation")
@@ -418,7 +418,7 @@ def render_data_simulator_ui() -> pd.DataFrame:
                 result_df = DataSimulator.simulate_correlational_data(
                     int(n_obs), int(n_vars), corr_strength, add_noise
                 )
-            st.success(f"âœ… Generated {len(result_df)}} rows Ãƒâ€” {len(result_df.columns)}} columns")
+            st.success(f"âœ… Generated {len(result_df)} rows Ãƒâ€” {len(result_df.columns)} columns")
 
             # Show correlation matrix
             st.subheader(" Correlation Matrix")
@@ -445,7 +445,7 @@ def render_data_simulator_ui() -> pd.DataFrame:
                 result_df = DataSimulator.simulate_time_series_data(
                     int(n_periods), trend=trend_val, seasonality=use_season, noise_level=noise_lvl
                 )
-            st.success(f"âœ… Generated {len(result_df)}} rows Ãƒâ€” {len(result_df.columns)}} columns")
+            st.success(f"âœ… Generated {len(result_df)} rows Ãƒâ€” {len(result_df.columns)} columns")
 
     elif sim_type == "Longitudinal Data":
         st.subheader(" Longitudinal Data Simulation")
@@ -463,7 +463,7 @@ def render_data_simulator_ui() -> pd.DataFrame:
                 result_df = DataSimulator.simulate_longitudinal_data(
                     int(n_subj), int(n_tp), effect_long, int(n_grp)
                 )
-            st.success(f"âœ… Generated {len(result_df)}} rows Ãƒâ€” {len(result_df.columns)}} columns")
+            st.success(f"âœ… Generated {len(result_df)} rows Ãƒâ€” {len(result_df.columns)} columns")
 
     # Display result if generated
     if result_df is not None and not result_df.empty:
@@ -477,7 +477,7 @@ def render_data_simulator_ui() -> pd.DataFrame:
         with col2:
             st.metric("Columns", len(result_df.columns))
         with col3:
-            st.metric("Memory", f"{result_df.memory_usage(deep=True).sum() / 1024:.1f}} KB")
+            st.metric("Memory", f"{result_df.memory_usage(deep=True).sum() / 1024:.1f} KB")
 
         # Export
         st.subheader("ðŸ“¥ Use or Export")
@@ -491,7 +491,7 @@ def render_data_simulator_ui() -> pd.DataFrame:
             csv = result_df.to_csv(index=False).encode('utf-8')
             import base64
             b64 = base64.b64encode(csv).decode()
-            st.markdown(f'<a href="data:text/csv;base64,{b64}}" download="simulated_data.csv">ðŸ“¥ Download CSV</a>',
+            st.markdown(f'<a href="data:text/csv;base64,{b64}" download="simulated_data.csv">ðŸ“¥ Download CSV</a>',
                        unsafe_allow_html=True)
 
         # Simulation metadata
@@ -499,7 +499,7 @@ def render_data_simulator_ui() -> pd.DataFrame:
         if metadata:
             with st.expander("ðŸ“‹ Simulation Parameters"):
                 for k, v in metadata.items():
-                    st.markdown(f"**{k.replace('_', ' ').title()}}**: {v}}")
+                    st.markdown(f"**{k.replace('_', ' ').title()}**: {v}")
 
     return result_df or pd.DataFrame()
 

@@ -113,9 +113,9 @@ def fetch_weather_telemetry(lat: float = 0.3476, lon: float = 32.5825, daily: bo
             if daily and "daily" in data:
                 result["forecast"] = data["daily"]
             return result
-        return {"source": "open-meteo", "error": f"HTTP {r.status_code}}"}
+        return {"source": "open-meteo", "error": f"HTTP {r.status_code}"}
     except Exception as e:
-        return {"source": "open-meteo", "error": str(e), "coords": {"lat": lat, "lon": lon}}
+        return {"source": "open-meteo", "error": str(e), "coords": {"lat": lat, "lon": lon}
 
 
 # 3) Global Impact Scorecard
@@ -245,7 +245,7 @@ def fetch_iss_position() -> Dict[str, Any]:
                 "longitude": float(pos.get("longitude", 0)),
                 "message": data.get("message", ""),
             }
-        return {"source": "open-notify-iss", "error": f"HTTP {r.status_code}}"}
+        return {"source": "open-notify-iss", "error": f"HTTP {r.status_code}"}
     except Exception as e:
         return {"source": "open-notify-iss", "error": str(e), "latitude": 0.0, "longitude": 0.0}
 
@@ -261,7 +261,7 @@ def fetch_astronaut_count() -> Dict[str, Any]:
                 "number": int(data.get("number", 0)),
                 "people": [p.get("name", "") for p in data.get("people", [])],
             }
-        return {"source": "open-notify-astros", "error": f"HTTP {r.status_code}}"}
+        return {"source": "open-notify-astros", "error": f"HTTP {r.status_code}"}
     except Exception as e:
         return {"source": "open-notify-astros", "error": str(e), "number": 0, "people": []}
 

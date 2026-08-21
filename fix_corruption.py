@@ -111,7 +111,7 @@ def main() -> int:
             try:
                 src = f.read_text(encoding="utf-8", errors="replace")
             except OSError as e:
-                print(f"SKIP  {f}}: {e}}")
+                print(f"SKIP  {f}: {e}")
                 continue
             new_src, n = fix_source(src)
             if n == 0:
@@ -120,11 +120,11 @@ def main() -> int:
             total_fixes += n
             if apply:
                 f.write_text(new_src, encoding="utf-8")
-                print(f"FIXED {f}}  ({n}} gaps)")
+                print(f"FIXED {f}  ({n} gaps)")
             else:
-                print(f"WOULD FIX {f}}  ({n}} gaps)")
+                print(f"WOULD FIX {f}  ({n} gaps)")
 
-    print(f"\nSummary: {total_files}} file(s), {total_fixes}} gap(s).")
+    print(f"\nSummary: {total_files} file(s), {total_fixes} gap(s).")
     if not apply:
         print("Dry-run only. Re-run with --apply to write changes.")
     return 0

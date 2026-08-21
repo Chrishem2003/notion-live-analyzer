@@ -31,13 +31,13 @@ class MeetSignaling:
         self.redis = redis_client
 
     def _members_key(self, room_id: str) -> str:
-        return f"meet:members:{room_id}}"
+        return f"meet:members:{room_id}"
 
     def _room_channel(self, room_id: str) -> str:
-        return f"meet:room:{room_id}}"
+        return f"meet:room:{room_id}"
 
     def _peer_channel(self, room_id: str, peer_id: str) -> str:
-        return f"meet:peer:{room_id}}:{peer_id}}"
+        return f"meet:peer:{room_id}:{peer_id}"
 
     async def join_room(self, room_id: str, peer_id: str, user_email: str) -> list:
         """Registers this peer as a room member and returns the list of

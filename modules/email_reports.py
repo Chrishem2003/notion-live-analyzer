@@ -18,7 +18,7 @@ def send_audit_email(recipient_email: str, subject: str, html_content: str) -> d
     if sendgrid_api_key:
         url = "https://api.sendgrid.com/v3/mail/send"
         headers = {
-            "Authorization": f"Bearer {sendgrid_api_key}}",
+            "Authorization": f"Bearer {sendgrid_api_key}",
             "Content-Type": "application/json"
         }
         payload = {
@@ -30,10 +30,10 @@ def send_audit_email(recipient_email: str, subject: str, html_content: str) -> d
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=10)
             if response.status_code in [200, 202]:
-                log_backend_event("INFO", f"Audit report successfully dispatched via SendGrid to {recipient_email}}")
+                log_backend_event("INFO", f"Audit report successfully dispatched via SendGrid to {recipient_email}")
                 return {"status": "success", "method": "SendGrid"}
         except Exception as e:
-            log_backend_event("WARNING", f"SendGrid dispatch failed, attempting SMTP fallback: {str(e)}}")
+            log_backend_event("WARNING", f"SendGrid dispatch failed, attempting SMTP fallback: {str(e)}")
 
     # 2. Fallback SMTP Dispatch
     smtp_server = os.getenv("SMTP_SERVER")
@@ -54,10 +54,10 @@ def send_audit_email(recipient_email: str, subject: str, html_content: str) -> d
                 server.login(smtp_user, smtp_password)
                 server.sendmail(sender_email, recipient_email, msg.as_string())
                 
-            log_backend_event("INFO", f"Audit report successfully dispatched via SMTP to {recipient_email}}")
+            log_backend_event("INFO", f"Audit report successfully dispatched via SMTP to {recipient_email}")
             return {"status": "success", "method": "SMTP"}
         except Exception as e:
-            log_backend_event("ERROR", f"SMTP dispatch failed: {str(e)}}")
+            log_backend_event("ERROR", f"SMTP dispatch failed: {str(e)}")
             return {"status": "error", "message": str(e)}
 
     # 3. Graceful handling if email credentials are unconfigured

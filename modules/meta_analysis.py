@@ -252,7 +252,7 @@ class MetaAnalysisEngine:
 
         k = len(effects)
         if study_labels is None:
-            study_labels = [f"Study {i1}}" for i in range(k)]
+            study_labels = [f"Study {i1}" for i in range(k)]
 
         results = {"k": k, "method": method, "study_labels": study_labels}
 
@@ -375,8 +375,8 @@ class MetaAnalysisEngine:
             "fail_safe_n": n_fs,
             "tolerance": tolerance,
             "robust": n_fs >= tolerance,
-            "interpretation": f"Would need {n_fs}} null studies to nullify effect"
-            f" (tolerance = {tolerance}})",
+            "interpretation": f"Would need {n_fs} null studies to nullify effect"
+            f" (tolerance = {tolerance})",
         }
 
     @staticmethod
@@ -484,7 +484,7 @@ class MetaAnalysisEngine:
             indices = [i for i, g in enumerate(subgroups) if g == group]
             group_effects = [effects[i] for i in indices]
             group_variances = [variances[i] for i in indices]
-            group_labels = [f"{study_labels[i]}} ({group}})" if study_labels else f"Study {i1}} ({group}})"
+            group_labels = [f"{study_labels[i]} ({group})" if study_labels else f"Study {i1} ({group})"
                           for i in indices]
 
             engine = MetaAnalysisEngine()
@@ -541,7 +541,7 @@ class MetaAnalysisEngine:
             indices = sorted_indices[:i]
             cum_effects = [effects[j] for j in indices]
             cum_variances = [variances[j] for j in indices]
-            cum_label = study_labels[indices[-1]] if study_labels else f"Step {i}}"
+            cum_label = study_labels[indices[-1]] if study_labels else f"Step {i}"
 
             if i == 1:
                 # Single study
@@ -587,7 +587,7 @@ class MetaAnalysisEngine:
 
         k = len(effects)
         if study_labels is None:
-            study_labels = [f"Study {i1}}" for i in range(k)]
+            study_labels = [f"Study {i1}" for i in range(k)]
 
         engine = MetaAnalysisEngine()
         results = []
@@ -652,7 +652,7 @@ class MetaAnalysisEngine:
 
         n_mods = len(moderators)
         if moderator_names is None:
-            moderator_names = [f"Moderator {i1}}" for i in range(n_mods)]
+            moderator_names = [f"Moderator {i1}" for i in range(n_mods)]
 
         # Build design matrix (including intercept)
         X = np.column_stack([[1.0] * k] + moderators)
@@ -699,13 +699,13 @@ class MetaAnalysisEngine:
                 "coefficients": coefficients,
                 "r_squared": round(float(r2), 4),
                 "model_fit_p": round(float(1 - chi2.cdf(ss_res, k - n_mods - 1)) if chi2 else 0, 4),
-                "interpretation": f"Meta-regression with {n_mods}} moderator(s). RÃ‚Â² = {r2:.2%}}",
+                "interpretation": f"Meta-regression with {n_mods} moderator(s). RÃ‚Â² = {r2:.2%}",
             }
 
         except np.linalg.LinAlgError:
             return {"error": "Singular matrix + moderators may be collinear"}
         except Exception as e:
-            return {"error": f"Meta-regression failed: {str(e)}}"}
+            return {"error": f"Meta-regression failed: {str(e)}"}
 
 
 # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
@@ -740,7 +740,7 @@ class MetaPlotData:
         # Add summary row
         if pooled_re:
             rows.append({
-                "Study": f"RE Model (IÃ‚Â²={pooled_re.get('i2', '?')}}%)",
+                "Study": f"RE Model (IÃ‚Â²={pooled_re.get('i2', '?')}%)",
                 "Effect": pooled_re.get("pooled_effect"),
                 "SE": pooled_re.get("se"),
                 "CI Lower": pooled_re.get("ci_lower"),
@@ -838,7 +838,7 @@ def render_meta_analysis_ui():
                             "n1": n1,
                             "n2": n2,
                         })
-                        st.success(f"âœ… Added '{study_name}}'")
+                        st.success(f"âœ… Added '{study_name}'")
 
         elif input_method == "ðŸ“‹ Paste from Clipboard":
             st.markdown("Paste data as: `Label, Effect, Variance` (one per line)")
@@ -871,7 +871,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             st.session_state["meta_studies"].append(s)
                             existing_names.add(s["study"])
                             new_count = 1
-                    st.success(f"âœ… Added {new_count}} new studies ({len(studies) - new_count}} duplicates skipped)")
+                    st.success(f"âœ… Added {new_count} new studies ({len(studies) - new_count} duplicates skipped)")
 
         elif input_method == "Ã°Å¸â€œÂ Load from Data":
             st.info("Load effect sizes from the active dataset.")
@@ -889,7 +889,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             es_val = row[es_col]
                             var_val = row[var_col]
                             if pd.notna(es_val) and pd.notna(var_val) and var_val > 0:
-                                label = str(row[label_col]) if label_col else f"Study {len(studies) + 1}}"
+                                label = str(row[label_col]) if label_col else f"Study {len(studies) + 1}"
                                 studies.append({
                                     "study": label,
                                     "effect": float(es_val),
@@ -898,7 +898,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 })
                         if studies:
                             st.session_state["meta_studies"] = studies
-                            st.success(f"âœ… Loaded {len(studies)}} studies")
+                            st.success(f"âœ… Loaded {len(studies)} studies")
                 else:
                     st.warning("Need at least 2 numeric columns (effect size + variance/SE)")
             else:
@@ -908,7 +908,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         studies = st.session_state.get("meta_studies", [])
         if studies:
             st.markdown("---")
-            st.subheader(f"ðŸ“‹ Current Studies ({len(studies)}})")
+            st.subheader(f"ðŸ“‹ Current Studies ({len(studies)})")
 
             studies_df = pd.DataFrame(studies)
             col_config = {
@@ -1021,7 +1021,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 <div style="padding:0.8 + rem;border-radius:12 + px;border:1 + px solid {het_color}40;
                             background:{het_color}08;margin:0.5 + rem 0;">
                     <span style="font-weight:600;">IÃ‚Â² = {het.get('i2', 0):.1 + f}%</span>  {het.get('heterogeneity', 'unknown').title()}
-                    <span style="margin-left:1 + rem;color:#64748 + b;">Q({het.get('q_df', 0)}}) = {het.get('q_statistic', 0):.2 + f}, p = {het.get('q_p_value', 1):.4 + f}</span>
+                    <span style="margin-left:1 + rem;color:#64748 + b;">Q({het.get('q_df', 0)}) = {het.get('q_statistic', 0):.2 + f}, p = {het.get('q_p_value', 1):.4 + f}</span>
                     <span style="margin-left:1 + rem;color:#64748 + b;">Ãâ€žÃ‚Â² = {het.get('tau2', 0):.4 + f}</span>
                 </div>
                 """, unsafe_allow_html=True)
@@ -1036,9 +1036,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         "Study": fd["study"],
                         "Effect": fd["effect"],
                         "SE": fd["se"],
-                        "95% CI": f"[{fd['ci_lower']:.3 + f}}, {fd['ci_upper']:.3 + f}}]",
-                        "Weight (FE)": f"{fd['weight_fe']:.1%}}" if fd.get("weight_fe") else "",
-                        "Weight (RE)": f"{fd['weight_re']:.1%}}" if fd.get("weight_re") else "",
+                        "95% CI": f"[{fd['ci_lower']:.3 + f}, {fd['ci_upper']:.3 + f}]",
+                        "Weight (FE)": f"{fd['weight_fe']:.1%}" if fd.get("weight_fe") else "",
+                        "Weight (RE)": f"{fd['weight_re']:.1%}" if fd.get("weight_re") else "",
                     })
                 st.dataframe(pd.DataFrame(detail_rows), use_container_width=True, hide_index=True)
 
@@ -1051,11 +1051,11 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
             with col1:
                 st.metric("Studies (k)", results.get("k", 0))
             with col2:
-                st.metric("Pooled Effect (RE)", f"{re_stats.get('pooled_effect', 0):.3 + f}}" if re_stats else "N/A")
+                st.metric("Pooled Effect (RE)", f"{re_stats.get('pooled_effect', 0):.3 + f}" if re_stats else "N/A")
             with col3:
-                st.metric("IÃ‚Â² Heterogeneity", f"{het.get('i2', 0):.1 + f}}%" if het else "N/A")
+                st.metric("IÃ‚Â² Heterogeneity", f"{het.get('i2', 0):.1 + f}%" if het else "N/A")
             with col4:
-                st.metric("Ãâ€žÃ‚Â² (tau-squared)", f"{het.get('tau2', 0):.4 + f}}" if het else "N/A")
+                st.metric("Ãâ€žÃ‚Â² (tau-squared)", f"{het.get('tau2', 0):.4 + f}" if het else "N/A")
 
     # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     # TAB 3: FOREST PLOT
@@ -1102,7 +1102,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         color="rgba(29,78,216,0.4)",
                     ),
                     name="Studies",
-                    text=[f"{d['study']}}: {d['effect']:.3 + f}} [{d['ci_lower']:.3 + f}}, {d['ci_upper']:.3 + f}}]"
+                    text=[f"{d['study']}: {d['effect']:.3 + f} [{d['ci_lower']:.3 + f}, {d['ci_upper']:.3 + f}]"
                           for d in study_data],
                     hoverinfo="text",
                     showlegend=False,
@@ -1123,9 +1123,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                             fillcolor="rgba(29,78,216,0.3)",
                             line=dict(color="#1 + d4ed8", width=2),
                             marker=dict(size=6, color="#1 + d4ed8"),
-                            name=f"RE Model: {sd['effect']:.3 + f}} [{sd['ci_lower']:.3 + f}}, {sd['ci_upper']:.3 + f}}]",
+                            name=f"RE Model: {sd['effect']:.3 + f} [{sd['ci_lower']:.3 + f}, {sd['ci_upper']:.3 + f}]",
                             hoverinfo="text",
-                            text=f"Pooled Effect: {sd['effect']:.3 + f}} [{sd['ci_lower']:.3 + f}}, {sd['ci_upper']:.3 + f}}]",
+                            text=f"Pooled Effect: {sd['effect']:.3 + f} [{sd['ci_lower']:.3 + f}, {sd['ci_upper']:.3 + f}]",
                         ))
 
                 # Add reference line at 0
@@ -1211,9 +1211,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                 with col1:
                     st.metric("Imputed Studies", trim_fill.get("n_imputed", 0))
                 with col2:
-                    st.metric("Adjusted Effect", f"{trim_fill.get('adjusted_pooled', 'N/A'):.3 + f}}" if trim_fill.get("adjusted_pooled") else "N/A")
+                    st.metric("Adjusted Effect", f"{trim_fill.get('adjusted_pooled', 'N/A'):.3 + f}" if trim_fill.get("adjusted_pooled") else "N/A")
                 with col3:
-                    st.metric("Adjusted CI", f"[{trim_fill.get('adjusted_ci_lower', 0):.3 + f}}, {trim_fill.get('adjusted_ci_upper', 0):.3 + f}}]")
+                    st.metric("Adjusted CI", f"[{trim_fill.get('adjusted_ci_lower', 0):.3 + f}, {trim_fill.get('adjusted_ci_upper', 0):.3 + f}]")
 
             # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Funnel Plot Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
             st.subheader(" Funnel Plot")
@@ -1241,14 +1241,14 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         line=dict(color="white", width=1),
                     ),
                     name="Studies",
-                    text=results.get("raw_labels", [f"Study {i1}}" for i in range(len(effects))]),
+                    text=results.get("raw_labels", [f"Study {i1}" for i in range(len(effects))]),
                     hovertemplate="<b>%{text}</b><br>Effect: %{x:.3 + f}<br>SE: %{y:.4 + f}<extra></extra>",
                 ))
 
                 # Pooled effect line
                 pooled = re_result.get("pooled_effect", 0)
                 fig.add_vline(x=pooled, line=dict(color="red", width=2, dash="dash"),
-                             annotation_text=f"RE Pooled: {pooled:.3 + f}}")
+                             annotation_text=f"RE Pooled: {pooled:.3 + f}")
 
                 # Pseudo-confidence intervals (95%)
                 max_se = max(se) * 1.3
@@ -1401,7 +1401,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         overall_ci_lower = loo.get("overall_ci_lower", 0)
                         overall_ci_upper = loo.get("overall_ci_upper", 0)
 
-                        st.markdown(f"**Overall (all studies):** {overall:.3 + f}} [{overall_ci_lower:.3 + f}}, {overall_ci_upper:.3 + f}}]")
+                        st.markdown(f"**Overall (all studies):** {overall:.3 + f} [{overall_ci_lower:.3 + f}, {overall_ci_upper:.3 + f}]")
 
                         loo_results = loo.get("results", [])
                         loo_df = pd.DataFrame(loo_results)
@@ -1432,7 +1432,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                                 ))
 
                         fig.add_vline(x=overall, line=dict(color="red", width=2, dash="dash"),
-                                     annotation_text=f"Overall: {overall:.3 + f}}")
+                                     annotation_text=f"Overall: {overall:.3 + f}")
                         fig.add_vrect(x0=overall_ci_lower, x1=overall_ci_upper,
                                      fillcolor="red", opacity=0.05, line_width=0)
 
@@ -1446,7 +1446,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                         st.plotly_chart(fig, use_container_width=True)
 
                         if loo.get("influential_studies"):
-                            st.warning(f"Ã¢Å¡Â Ã¯Â¸Â {len(loo['influential_studies'])}} influential study(ies) detected!")
+                            st.warning(f"Ã¢Å¡Â Ã¯Â¸Â {len(loo['influential_studies'])} influential study(ies) detected!")
                 else:
                     st.info("Need at least 3 studies for leave-one-out analysis")
 
@@ -1468,12 +1468,12 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
                     for group_name, group_res in sg_groups.items():
                         re = group_res.get("random", {})
-                        st.markdown(f"**{group_name}}** (k = {group_res.get('k', 0)}})")
-                        st.markdown(f"Pooled (RE): {re.get('pooled_effect', 'N/A'):.3 + f}} "
-                                   f"[{re.get('ci_lower', 0):.3 + f}}, {re.get('ci_upper', 0):.3 + f}}]"
-                                   f"  IÃ‚Â² = {re.get('i2', 0):.1 + f}}%")
+                        st.markdown(f"**{group_name}** (k = {group_res.get('k', 0)})")
+                        st.markdown(f"Pooled (RE): {re.get('pooled_effect', 'N/A'):.3 + f} "
+                                   f"[{re.get('ci_lower', 0):.3 + f}, {re.get('ci_upper', 0):.3 + f}]"
+                                   f"  IÃ‚Â² = {re.get('i2', 0):.1 + f}%")
                 elif subgroup_names and len(subgroup_names) != n_studies:
-                    st.error(f"Expected {n_studies}} subgroup labels, got {len(subgroup_names)}}")
+                    st.error(f"Expected {n_studies} subgroup labels, got {len(subgroup_names)}")
 
             # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Meta-Regression Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
             with st.expander("Ã°Å¸â€œÂ Meta-Regression", expanded=False):
@@ -1504,11 +1504,11 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
                     if "error" in mr:
                         st.error(mr["error"])
                     else:
-                        st.markdown(f"**RÃ‚Â² = {mr.get('r_squared', 0):.3 + f}}**")
+                        st.markdown(f"**RÃ‚Â² = {mr.get('r_squared', 0):.3 + f}**")
                         coeff_df = pd.DataFrame(mr.get("coefficients", []))
                         st.dataframe(coeff_df, use_container_width=True, hide_index=True)
                 elif mod_values and len(mod_values) != n_studies:
-                    st.error(f"Expected {n_studies}} values, got {len(mod_values)}}")
+                    st.error(f"Expected {n_studies} values, got {len(mod_values)}")
 
     # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar: Download Results Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     results = st.session_state.get("meta_results")
@@ -1518,17 +1518,17 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
         report_lines = [
             "# Meta-Analysis Results",
-            f"Generated: {datetime.now():%Y-%m-%d %H:%M:%S}}",
-            f"k = {results.get('k', 0)}} studies",
+            f"Generated: {datetime.now():%Y-%m-%d %H:%M:%S}",
+            f"k = {results.get('k', 0)} studies",
             "",
             "## Fixed Effects Model",
         ]
         fe = results.get("fixed", {})
         if fe:
             report_lines.extend([
-                f"Pooled Effect: {fe.get('pooled_effect', 'N/A')}}",
-                f"95% CI: [{fe.get('ci_lower', 'N/A')}}, {fe.get('ci_upper', 'N/A')}}]",
-                f"z = {fe.get('z_value', 'N/A')}}, p = {fe.get('p_value', 'N/A')}}",
+                f"Pooled Effect: {fe.get('pooled_effect', 'N/A')}",
+                f"95% CI: [{fe.get('ci_lower', 'N/A')}, {fe.get('ci_upper', 'N/A')}]",
+                f"z = {fe.get('z_value', 'N/A')}, p = {fe.get('p_value', 'N/A')}",
                 "",
             ])
 
@@ -1536,9 +1536,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         report_lines.append("## Random Effects Model (DerSimonian-Laird)")
         if re:
             report_lines.extend([
-                f"Pooled Effect: {re.get('pooled_effect', 'N/A')}}",
-                f"95% CI: [{re.get('ci_lower', 'N/A')}}, {re.get('ci_upper', 'N/A')}}]",
-                f"z = {re.get('z_value', 'N/A')}}, p = {re.get('p_value', 'N/A')}}",
+                f"Pooled Effect: {re.get('pooled_effect', 'N/A')}",
+                f"95% CI: [{re.get('ci_lower', 'N/A')}, {re.get('ci_upper', 'N/A')}]",
+                f"z = {re.get('z_value', 'N/A')}, p = {re.get('p_value', 'N/A')}",
                 "",
             ])
 
@@ -1546,9 +1546,9 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
         report_lines.append("## Heterogeneity")
         if het:
             report_lines.extend([
-                f"IÃ‚Â² = {het.get('i2', 'N/A')}}%",
-                f"Q({het.get('q_df', 'N/A')}}) = {het.get('q_statistic', 'N/A')}}, p = {het.get('q_p_value', 'N/A')}}",
-                f"Ãâ€žÃ‚Â² = {het.get('tau2', 'N/A')}}",
+                f"IÃ‚Â² = {het.get('i2', 'N/A')}%",
+                f"Q({het.get('q_df', 'N/A')}) = {het.get('q_statistic', 'N/A')}, p = {het.get('q_p_value', 'N/A')}",
+                f"Ãâ€žÃ‚Â² = {het.get('tau2', 'N/A')}",
                 "",
             ])
 
@@ -1558,7 +1558,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
         st.sidebar.markdown(
             f"""<button onclick="navigator.clipboard.writeText(`{report_text_escaped}`).then(
-                () => {{this.innerHTML='âœ… Copied!';setTimeout(()=>this.innerHTML='ðŸ“‹ Copy Report',2000)}})"
+                () => {{this.innerHTML='âœ… Copied!';setTimeout(()=>this.innerHTML='ðŸ“‹ Copy Report',2000)})"
                 style="padding:8 + px 16 + px;background:#1 + d4ed8;color:white;border:none;border-radius:6 + px;
                 cursor:pointer;font-weight:600;width:100%;">ðŸ“‹ Copy Report</button>""",
             unsafe_allow_html=True,

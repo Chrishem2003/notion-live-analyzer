@@ -309,7 +309,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
         st.warning("Selected column has too few unique text values. Select a different column.")
         return
 
-    st.info(f"**Analyzing**: {len(texts)}} text entries from '{text_col}}'")
+    st.info(f"**Analyzing**: {len(texts)} text entries from '{text_col}'")
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         " Summary", "Ã°Å¸ËœÅ  Sentiment", "ðŸ“ˆ Word Frequency",
@@ -325,11 +325,11 @@ def render_text_analysis_ui(df: pd.DataFrame):
                 with col1:
                     st.metric("Total Texts", summary.get("total_texts", 0))
                 with col2:
-                    st.metric("Total Words", f"{summary.get('total_words', 0):,}}")
+                    st.metric("Total Words", f"{summary.get('total_words', 0):,}")
                 with col3:
-                    st.metric("Unique Words", f"{summary.get('total_unique_words', 0):,}}")
+                    st.metric("Unique Words", f"{summary.get('total_unique_words', 0):,}")
                 with col4:
-                    st.metric("Type-Token Ratio", f"{summary.get('type_token_ratio', 0):.3f}}")
+                    st.metric("Type-Token Ratio", f"{summary.get('type_token_ratio', 0):.3f}")
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric("Avg Word Length", summary.get("avg_word_length", 0))
@@ -362,10 +362,10 @@ def render_text_analysis_ui(df: pd.DataFrame):
                 avg_subj = sentiment_df['Subjectivity'].mean()
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.metric("Avg Polarity", f"{avg_pol:.3f}}",
+                    st.metric("Avg Polarity", f"{avg_pol:.3f}",
                               delta="Positive" if avg_pol > 0 else "Negative" if avg_pol < 0 else "Neutral")
                 with col2:
-                    st.metric("Avg Subjectivity", f"{avg_subj:.3f}}",
+                    st.metric("Avg Subjectivity", f"{avg_subj:.3f}",
                               delta="Subjective" if avg_subj > 0.5 else "Objective")
 
                 # Polarity distribution chart
@@ -401,7 +401,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
                 # Bar chart
                 import plotly.express as px
                 fig = px.bar(freq_df.head(20), x='Word', y='Frequency',
-                             title=f'Top {min(20, len(freq_df))}} Words by Frequency',
+                             title=f'Top {min(20, len(freq_df))} Words by Frequency',
                              color='Frequency', color_continuous_scale='Viridis')
                 fig.update_layout(xaxis_tickangle=-45)
                 st.plotly_chart(fig, use_container_width=True)
@@ -410,7 +410,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
                 csv = freq_df.to_csv(index=False).encode('utf-8')
                 import base64
                 b64 = base64.b64encode(csv).decode()
-                st.markdown(f'<a href="data:text/csv;base64,{b64}}" download="word_frequencies.csv">ðŸ“¥ Download CSV</a>',
+                st.markdown(f'<a href="data:text/csv;base64,{b64}" download="word_frequencies.csv">ðŸ“¥ Download CSV</a>',
                            unsafe_allow_html=True)
 
     with tab4:
@@ -442,7 +442,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
                     buf = io.BytesIO()
                     wc.to_image().save(buf, format='PNG')
                     b64 = base64.b64encode(buf.getvalue()).decode()
-                    st.markdown(f'<a href="data:image/png;base64,{b64}}" download="wordcloud.png">ðŸ“¥ Download PNG</a>',
+                    st.markdown(f'<a href="data:image/png;base64,{b64}" download="wordcloud.png">ðŸ“¥ Download PNG</a>',
                                unsafe_allow_html=True)
                 else:
                     st.warning("Could not generate word cloud. Not enough text data.")
@@ -456,7 +456,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
         col1, col2 = st.columns(2)
         with col1:
             n_gram_size = st.selectbox("N-gram size", options=[2, 3, 4, 5], index=0, key="ng_size",
-                                       format_func=lambda x: f"{x}}-grams ({['Bi', 'Tri', '4', '5'][x-2]}}grams)")
+                                       format_func=lambda x: f"{x}-grams ({['Bi', 'Tri', '4', '5'][x-2]}grams)")
         with col2:
             ng_top = st.slider("Top N", 10, 50, 20, key="ng_top")
 
@@ -468,7 +468,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
 
                 import plotly.express as px
                 fig = px.bar(ng_df.head(15), x='N-Gram', y='Frequency',
-                             title=f'Top {min(15, len(ng_df))}} {n_gram_size}}-grams',
+                             title=f'Top {min(15, len(ng_df))} {n_gram_size}-grams',
                              color='Frequency', color_continuous_scale='Viridis')
                 fig.update_layout(xaxis_tickangle=-45)
                 st.plotly_chart(fig, use_container_width=True)

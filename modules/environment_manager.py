@@ -57,7 +57,7 @@ def render_environment_manager():
     for pip_name, import_name in OPTIONAL_PACKAGES.items():
         available = check_package(import_name)
         col1, col2 = st.columns([4, 1])
-        col1.write(f"{'âœ…' if available else 'âŒ'}} `{pip_name}}`")
+        col1.write(f"{'âœ…' if available else 'âŒ'} `{pip_name}`")
         if not available:
             missing.append(pip_name)
 
@@ -65,12 +65,12 @@ def render_environment_manager():
         st.success("Every optional package checked is already available.")
         return
 
-    st.warning(f"{len(missing)}} package(s) missing: {', '.join(missing)}}")
-    if st.button(f"âš¡ Install {len(missing)}} missing package(s) now (this session only)", type="primary"):
+    st.warning(f"{len(missing)} package(s) missing: {', '.join(missing)}")
+    if st.button(f"âš¡ Install {len(missing)} missing package(s) now (this session only)", type="primary"):
         results = []
         progress = st.progress(0)
         for i, pkg in enumerate(missing):
-            with st.spinner(f"Installing {pkg}}..."):
+            with st.spinner(f"Installing {pkg}..."):
                 try:
                     proc = subprocess.run(
                         [sys.executable, "-m", "pip", "install", "--quiet", pkg],
@@ -84,9 +84,9 @@ def render_environment_manager():
 
         for pkg, ok, err in results:
             if ok:
-                st.success(f"âœ… {pkg}} installed for this session.")
+                st.success(f"âœ… {pkg} installed for this session.")
             else:
-                st.error(f"âŒ {pkg}} failed: {err}}")
+                st.error(f"âŒ {pkg} failed: {err}")
 
         st.info(
             "Add the successfully installed packages to `requirements.txt` and redeploy to make this "

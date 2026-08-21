@@ -175,7 +175,7 @@ def add_mcr_sample(
             "SELECT 1 FROM mcr_surveillance WHERE sample_id = ?", (sample_id,)
         ).fetchone()
         if existing:
-            raise ValueError(f"Sample ID '{sample_id}}' already exists")
+            raise ValueError(f"Sample ID '{sample_id}' already exists")
         iso = isolation_date.isoformat() if hasattr(isolation_date, "isoformat") else str(isolation_date)
         conn.execute(
             """

@@ -611,11 +611,11 @@ def _render_connection_gate(auth: ProjectAuthManager,
     with col1:
         st.markdown("### Ã°Å¸Å½Å¸Ã¯Â¸Â Generate Token")
         with st.form("collab_gate_form"):
-            user_id = st.text_input("User ID", value=f"user_{uuid.uuid4().hex[:8]}}",
+            user_id = st.text_input("User ID", value=f"user_{uuid.uuid4().hex[:8]}",
                                     key="gate_user_id")
-            project_id = st.text_input("Project ID", value=f"proj_{uuid.uuid4().hex[:8]}}",
+            project_id = st.text_input("Project ID", value=f"proj_{uuid.uuid4().hex[:8]}",
                                        key="gate_project_id")
-            display_name = st.text_input("Display Name", value=f"Researcher_{uuid.uuid4().hex[:4]}}",
+            display_name = st.text_input("Display Name", value=f"Researcher_{uuid.uuid4().hex[:4]}",
                                         key="gate_display_name")
             role_str = st.selectbox("Role", options=["host", "co_host", "researcher", "viewer"],
                                     index=2, key="gate_role")
@@ -648,7 +648,7 @@ def _render_connection_gate(auth: ProjectAuthManager,
 
                 # Initialize AI Researcher
                 ai = AIResearcher(project_id, user_id)
-                ai.start_meeting(f"Research Sync  {project_id[:12]}}")
+                ai.start_meeting(f"Research Sync  {project_id[:12]}")
                 st.session_state["collab_ai"] = ai
 
                 st.rerun()
@@ -682,14 +682,14 @@ def _render_connection_gate(auth: ProjectAuthManager,
                         st.session_state["collab_canvas"] = canvas
 
                         ai = AIResearcher(payload.project_id, payload.sub)
-                        ai.start_meeting(f"Research Sync  {payload.project_id[:12]}}")
+                        ai.start_meeting(f"Research Sync  {payload.project_id[:12]}")
                         st.session_state["collab_ai"] = ai
                         st.rerun()
                     else:
                         st.error(msg)
                 else:
                     # Assume session ID
-                    st.info(f"Ã°Å¸â€Â Looking up session: {token_input[:16]}}...")
+                    st.info(f"Ã°Å¸â€Â Looking up session: {token_input[:16]}...")
                     st.warning("Session lookup not implemented in demo mode. Generate a new token to start.")
 
     # Show token if generated
@@ -723,7 +723,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
     # Ã¢â€â‚¬Ã¢â€â‚¬ Canvas Toolbar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     tool_cols = st.columns([2, 1, 1, 1, 1, 1])
     with tool_cols[0]:
-        st.caption(f"Ã°Å¸â€œÂ Canvas Ã‚Â· {len(canvas.list_elements())}} elements")
+        st.caption(f"Ã°Å¸â€œÂ Canvas Ã‚Â· {len(canvas.list_elements())} elements")
     with tool_cols[1]:
         if st.button("Ã¢Å¾â€¢ Add Note", key="canvas_add_note", use_container_width=True,
                     disabled=not can_edit):
@@ -802,7 +802,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
                     <span style="color:#64748b;font-size:0.6rem;margin-left:auto;">v{elem.version}</span>
                 </div>
                 <div style="color:#94a3b8;font-size:0.75rem;">{content_text[:80]}</div>
-                {f'<div style="color:#64748b;font-size:0.6rem;margin-top:0.3rem;">Ã¢Å“ÂÃ¯Â¸Â {elem.owner_id[:8]}}</div>' if can_edit else ''}
+                {f'<div style="color:#64748b;font-size:0.6rem;margin-top:0.3rem;">Ã¢Å“ÂÃ¯Â¸Â {elem.owner_id[:8]}</div>' if can_edit else ''}
             </div>
             """, unsafe_allow_html=True)
     else:
@@ -851,9 +851,9 @@ def _render_floating_dock(webrtc: Optional[WebRTCProvider],
             role_icon = "" if p.role == "host" else "Ã°Å¸Â¤Â" if p.role == "co_host" else ""
             # Kept on one line: indented lines would be rendered as a markdown code block.
             video_html = (
-                f'<div class="collab-dock-video{speaking_class}}{active_class}}">'
-                f'<span style="font-size:1.5rem;font-weight:700;color:#475569;">{initials}}</span>'
-                f'<div class="collab-dock-video-label">{p.name[:12]}} {mic_icon}} {role_icon}}</div>'
+                f'<div class="collab-dock-video{speaking_class}{active_class}">'
+                f'<span style="font-size:1.5rem;font-weight:700;color:#475569;">{initials}</span>'
+                f'<div class="collab-dock-video-label">{p.name[:12]} {mic_icon} {role_icon}</div>'
                 '</div>'
             )
         video_html = "</div>"
@@ -946,16 +946,16 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
     # Ã¢â€â‚¬Ã¢â€â‚¬ Section: Reactions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     st.markdown('<div class="collab-ibar-section">', unsafe_allow_html=True)
     for r in PROFESSIONAL_REACTIONS[:4]:
-        btn_key = f"reaction_{r['id']}}"
+        btn_key = f"reaction_{r['id']}"
         is_active = st.session_state.get(f"collab_reaction_active") == r['id']
         active_class = " active" if is_active else ""
 
-        if st.button(f"{r['emoji']}} {r['label']}}", key=btn_key,
-                    help=f"Send '{r['label']}}' reaction"):
+        if st.button(f"{r['emoji']} {r['label']}", key=btn_key,
+                    help=f"Send '{r['label']}' reaction"):
             if ai_researcher:
                 ai_researcher.generate_note(
-                    title=f"Reaction: {r['label']}}",
-                    content=f"**{r['label']}}**  {local.name if local else 'Someone'}} reacted with {r['emoji']}}",
+                    title=f"Reaction: {r['label']}",
+                    content=f"**{r['label']}**  {local.name if local else 'Someone'} reacted with {r['emoji']}",
                     category=NoteCategory.GENERAL,
                     tags=["reaction", r['id']],
                 )
@@ -968,12 +968,12 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
     # Ã¢â€â‚¬Ã¢â€â‚¬ Section: More Reactions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     st.markdown('<div class="collab-ibar-section">', unsafe_allow_html=True)
     for r in PROFESSIONAL_REACTIONS[4:]:
-        if st.button(f"{r['emoji']}} {r['label']}}", key=f"reaction_{r['id']}}_2",
-                    help=f"Send '{r['label']}}' reaction"):
+        if st.button(f"{r['emoji']} {r['label']}", key=f"reaction_{r['id']}_2",
+                    help=f"Send '{r['label']}' reaction"):
             if ai_researcher:
                 ai_researcher.generate_note(
-                    title=f"Reaction: {r['label']}}",
-                    content=f"**{r['label']}}**  {local.name if local else 'Someone'}} reacted",
+                    title=f"Reaction: {r['label']}",
+                    content=f"**{r['label']}**  {local.name if local else 'Someone'} reacted",
                     category=NoteCategory.GENERAL,
                     tags=["reaction", r['id']],
                 )
@@ -1030,7 +1030,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
             if st.button("Ã°Å¸â€˜Â» Merge", key="ibar_ghost_merge", help="Push staged changes live"):
                 if ghost_stage:
                     result = ghost_stage.merge_to_main(canvas.elements)
-                    st.success(f"Merged: {result['added']}} ~{result['updated']}} -{result['deleted']}}")
+                    st.success(f"Merged: {result['added']} ~{result['updated']} -{result['deleted']}")
                     st.session_state["collab_ghost_active"] = False
                     st.session_state["collab_ghost_stage"] = None
                     st.rerun()
@@ -1079,7 +1079,7 @@ def _render_sidebar(active_tab: str, webrtc: Optional[WebRTCProvider],
     tab_html = '<div class="collab-sb-tabs">'
     for t in tabs:
         active = " active" if active_tab == t["id"] else ""
-        tab_html = f'<div class="collab-sb-tab{active}}" onclick="alert(\'tab\')">{t["label"]}</div>'
+        tab_html = f'<div class="collab-sb-tab{active}" onclick="alert(\'tab\')">{t["label"]}</div>'
     tab_html = '</div>'
     st.markdown(tab_html, unsafe_allow_html=True)
 
@@ -1149,7 +1149,7 @@ def _render_aifeed_tab(ai_researcher: Optional[AIResearcher]):
                         <span>{item.confidence:.0%} confidence</span>
                     </div>
                     <div style="color:#e2e8f0;">{item.description[:80]}</div>
-                    {f'<div style="color:#64748b;font-size:0.65rem;margin-top:0.2rem;">Ã°Å¸â€˜Â¤ {item.assignee_name}}</div>' if item.assignee_name else ''}
+                    {f'<div style="color:#64748b;font-size:0.65rem;margin-top:0.2rem;">Ã°Å¸â€˜Â¤ {item.assignee_name}</div>' if item.assignee_name else ''}
                 </div>
                 """, unsafe_allow_html=True)
         else:
@@ -1246,7 +1246,7 @@ def _render_participants_tab(webrtc: Optional[WebRTCProvider],
         cursor_info = ""
         if canvas and pid in canvas.cursors:
             c = canvas.cursors[pid]
-            cursor_info = f"Ã°Å¸â€œÂ ({c.x:.0f}}, {c.y:.0f}})"
+            cursor_info = f"Ã°Å¸â€œÂ ({c.x:.0f}, {c.y:.0f})"
 
         st.markdown(f"""
         <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;
@@ -1264,7 +1264,7 @@ def _render_participants_tab(webrtc: Optional[WebRTCProvider],
                     <span>{role_icon} {p.role.replace('_', ' ').title()}</span>
                     <span>{'Ã°Å¸Å½Â¤' if p.is_audio_on else 'Ã°Å¸â€â€¡'}</span>
                     <span>{'Ã°Å¸â€œÂ¹' if p.is_video_on else 'Ã°Å¸â€œÂ¹Ã¢ÂÅ’'}</span>
-                    {f'<span style="color:#64748b;">{cursor_info}}</span>' if cursor_info else ''}
+                    {f'<span style="color:#64748b;">{cursor_info}</span>' if cursor_info else ''}
                 </div>
             </div>
             {f'<span class="collab-ibar-btn">Ã°Å¸Â¤Å¡</span>' if p.is_hand_raised else ''}

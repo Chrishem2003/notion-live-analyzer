@@ -48,7 +48,7 @@ def harvest_literature_task(self, query: str, target_count: int, contact_email: 
     harvest shows real, incrementing feedback instead of a spinner.
     """
     target_count = max(1, min(target_count, 2000))  # hard ceiling â€” this is a queue job, not a scraper
-    headers = {"User-Agent": f"ChrishemPlatform/2.0 (mailto:{contact_email}})"}
+    headers = {"User-Agent": f"ChrishemPlatform/2.0 (mailto:{contact_email})"}
     sort_params = {
         "Citation Count": ("is-referenced-by-count", "desc"),
         "Publication Date": ("published", "desc"),
@@ -86,7 +86,7 @@ def harvest_literature_task(self, query: str, target_count: int, contact_email: 
                 if authors:
                     fam = authors[0].get("family", "Unknown")
                     giv = authors[0].get("given", "")
-                    first_author = f"{fam}}, {giv[0]}}." if giv else fam
+                    first_author = f"{fam}, {giv[0]}." if giv else fam
                     if len(authors) > 1:
                         first_author += " et al."
                 else:
@@ -117,7 +117,7 @@ def harvest_literature_task(self, query: str, target_count: int, contact_email: 
                 meta={
                     "current": len(records),
                     "total": target_count,
-                    "stage": f"fetched {len(records)}} / {target_count}} records from CrossRef",
+                    "stage": f"fetched {len(records)} / {target_count} records from CrossRef",
                 },
             )
 
@@ -204,7 +204,7 @@ def bulk_dataset_audit_task(self, csv_bytes: bytes, filename: str):
             meta={
                 "current": i + 1,
                 "total": n_cols,
-                "stage": f"profiled column {i + 1}}/{n_cols}}: {col}}",
+                "stage": f"profiled column {i + 1}/{n_cols}: {col}",
             },
         )
 
@@ -250,7 +250,7 @@ def run_swarm_task(self, problem: str, dataset_records: list = None):
         completed += 1
         self.update_state(
             state="PROGRESS",
-            meta={"current": completed, "total": 3, "stage": f"{node_name}} agent complete"},
+            meta={"current": completed, "total": 3, "stage": f"{node_name} agent complete"},
         )
 
     # Strip the DataFrame back out before returning â€” Celery results are

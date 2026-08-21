@@ -75,10 +75,10 @@ def _load_dataframe(uploaded):
             df, _ = {"sav": pyreadstat.read_sav, "sas7bdat": pyreadstat.read_sas7bdat, "dta": pyreadstat.read_dta}[ext](io.BytesIO(content_bytes))
             return df
         else:
-            st.error(f"âš ï¸ Unsupported file extension: `.{ext}}`")
+            st.error(f"âš ï¸ Unsupported file extension: `.{ext}`")
             return None
     except Exception as e:
-        st.error(f"âš ï¸ Parsing Error: {e}}")
+        st.error(f"âš ï¸ Parsing Error: {e}")
     return None
 
 
@@ -114,9 +114,9 @@ def render_format_tab():
             return
 
         c1, c2, c3 = st.columns(3)
-        c1.metric("Total Rows", f"{df.shape[0]:,}}")
-        c2.metric("Total Columns", f"{df.shape[1]:,}}")
-        c3.metric("Memory Footprint", f"{df.memory_usage(deep=True).sum() / 1024:.2f}} KB")
+        c1.metric("Total Rows", f"{df.shape[0]:,}")
+        c2.metric("Total Columns", f"{df.shape[1]:,}")
+        c3.metric("Memory Footprint", f"{df.memory_usage(deep=True).sum() / 1024:.2f} KB")
 
         st.markdown("#### Dataset Preview")
         st.dataframe(df.head(5), use_container_width=True, hide_index=True)
@@ -126,16 +126,16 @@ def render_format_tab():
                 try:
                     data = convert_dataframe(df, fmt_map[target])
                     out_name = uploaded.name.rsplit(".", 1)[0]
-                    st.success(f"✅ Conversion successful! Generated `{len(data):,}}` bytes.")
+                    st.success(f"✅ Conversion successful! Generated `{len(data):,}` bytes.")
                     st.download_button(
-                        f"â¬‡ï¸ Download Converted {target}} File",
+                        f"â¬‡ï¸ Download Converted {target} File",
                         data=data,
-                        file_name=f"{out_name}}_converted.{ext_map[target]}}",
+                        file_name=f"{out_name}_converted.{ext_map[target]}",
                         mime=mime_map[target],
                         key="uc_fmt_dl_upg",
                     )
                 except Exception as e:
-                    st.error(f"ðŸš¨ Conversion Engine Error: {e}}")
+                    st.error(f"ðŸš¨ Conversion Engine Error: {e}")
     else:
         uploaded_files = st.file_uploader(
             "Upload multiple source files", type=["csv", "xlsx", "xls", "json", "parquet", "sav", "dta"],
@@ -145,9 +145,9 @@ def render_format_tab():
             st.info("â„¹ï¸ Upload two or more files to batch-convert them all to the target format in one ZIP.")
             return
 
-        st.caption(f"{len(uploaded_files)}} file(s) queued for conversion to {target}}.")
+        st.caption(f"{len(uploaded_files)} file(s) queued for conversion to {target}.")
 
-        if st.button(f"ðŸ”„ Convert All {len(uploaded_files)}} Files & Bundle ZIP", type="primary", key="uc_fmt_batch_convert"):
+        if st.button(f"ðŸ”„ Convert All {len(uploaded_files)} Files & Bundle ZIP", type="primary", key="uc_fmt_batch_convert"):
             zip_buffer = io.BytesIO()
             results = []
             with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -158,22 +158,22 @@ def render_format_tab():
                         continue
                     try:
                         data = convert_dataframe(df, fmt_map[target])
-                        out_name = f"{uf.name.rsplit('.', 1)[0]}}_converted.{ext_map[target]}}"
+                        out_name = f"{uf.name.rsplit('.', 1)[0]}_converted.{ext_map[target]}"
                         zf.writestr(out_name, data)
-                        results.append({"File": uf.name, "Status": f"✅ Converted ({len(data):,}} bytes)"})
+                        results.append({"File": uf.name, "Status": f"✅ Converted ({len(data):,} bytes)"})
                     except Exception as e:
-                        results.append({"File": uf.name, "Status": f"âŒ Error: {e}}"})
+                        results.append({"File": uf.name, "Status": f"âŒ Error: {e}"})
 
             results_df = pd.DataFrame(results)
             st.dataframe(results_df, use_container_width=True, hide_index=True)
 
             success_count = sum(1 for r in results if r["Status"].startswith("✅"))
             if success_count:
-                st.success(f"✅ {success_count}}/{len(uploaded_files)}} file(s) converted successfully.")
+                st.success(f"✅ {success_count}/{len(uploaded_files)} file(s) converted successfully.")
                 st.download_button(
-                    f"â¬‡ï¸ Download Batch ZIP ({success_count}} file(s))",
+                    f"â¬‡ï¸ Download Batch ZIP ({success_count} file(s))",
                     data=zip_buffer.getvalue(),
-                    file_name=f"batch_converted_{target.lower().replace(' ', '_')}}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}}.zip",
+                    file_name=f"batch_converted_{target.lower().replace(' ', '_')}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
                     mime="application/zip",
                     key="uc_fmt_batch_dl",
                 )
@@ -211,7 +211,7 @@ def render_encoding_tab():
                 st.text_area("Transformation Result Output", value=result_text, height=160, key="uc_enc_out_upg")
                 st.download_button("â¬‡ï¸ Download Result Payload", data=result, file_name="transformed_payload.txt", mime="text/plain", key="uc_enc_dl_upg")
             except Exception as e:
-                st.error(f"ðŸš¨ Transformation Error: {e}} — verify payload formatting.")
+                st.error(f"ðŸš¨ Transformation Error: {e} — verify payload formatting.")
 
 
 def render_reshape_tab():
@@ -238,7 +238,7 @@ def render_reshape_tab():
                 st.dataframe(result.head(20), use_container_width=True, hide_index=True)
                 render_export_buttons(result, base_name="melted_long_format")
             except Exception as e:
-                st.error(f"ðŸš¨ Melt Error: {e}}")
+                st.error(f"ðŸš¨ Melt Error: {e}")
 
     elif operation == "Long â†’ Wide (Pivot)":
         id_col = st.selectbox("Row Identifier Column", df.columns.tolist(), key="uc_rs_pid_upg")
@@ -250,7 +250,7 @@ def render_reshape_tab():
                 st.dataframe(result.head(20), use_container_width=True, hide_index=True)
                 render_export_buttons(result, base_name="pivoted_wide_format")
             except Exception as e:
-                st.error(f"ðŸš¨ Pivot Error: {e}}")
+                st.error(f"ðŸš¨ Pivot Error: {e}")
 
     elif operation == "Transpose Matrix":
         if st.button("â†• Execute Matrix Transposition", key="uc_rs_tp_upg", type="primary"):
@@ -259,7 +259,7 @@ def render_reshape_tab():
                 st.dataframe(result.head(20), use_container_width=True, hide_index=True)
                 render_export_buttons(result, base_name="transposed_matrix")
             except Exception as e:
-                st.error(f"ðŸš¨ Transposition Error: {e}}")
+                st.error(f"ðŸš¨ Transposition Error: {e}")
 
     else:
         cols = st.multiselect("Select Columns to Stack", df.columns.tolist(), key="uc_rs_stack_upg")
@@ -269,7 +269,7 @@ def render_reshape_tab():
                 st.dataframe(result.head(20), use_container_width=True, hide_index=True)
                 render_export_buttons(result, base_name="stacked_columns")
             except Exception as e:
-                st.error(f"ðŸš¨ Stacking Error: {e}}")
+                st.error(f"ðŸš¨ Stacking Error: {e}")
 
 
 def render_unit_tab():
@@ -303,11 +303,11 @@ def render_unit_tab():
         try:
             result = convert_unit(value, from_unit, to_unit, cat_key)
             if not result or "error" in result:
-                st.error(f"ðŸš¨ {result.get('error', 'Conversion calculation failed.')}}")
+                st.error(f"ðŸš¨ {result.get('error', 'Conversion calculation failed.')}")
             else:
-                st.success(f"✅ `{value:,.4f}} {from_unit}}` = **{result['result']:,.6f}} {to_unit}}**")
+                st.success(f"✅ `{value:,.4f} {from_unit}` = **{result['result']:,.6f} {to_unit}**")
         except Exception as e:
-            st.error(f"ðŸš¨ Unit Engine Exception: {e}}")
+            st.error(f"ðŸš¨ Unit Engine Exception: {e}")
 
 
 def render_coord_tab():
@@ -324,13 +324,13 @@ def render_coord_tab():
         if st.button("âž¡ï¸ Convert to DMS Format", key="uc_to_dms_upg", type="primary"):
             try:
                 result = decimal_to_dms(lat, lon)
-                st.success(f"Formatted: `{result.get('formatted', '')}}`")
+                st.success(f"Formatted: `{result.get('formatted', '')}`")
                 c1, c2 = st.columns(2)
                 c1.metric("Latitude (DMS)", result.get("lat_dms", "—"))
                 c2.metric("Longitude (DMS)", result.get("lon_dms", "—"))
                 st.map(pd.DataFrame([{"lat": lat, "lon": lon}]))
             except Exception as e:
-                st.error(f"ðŸš¨ Geodetic Conversion Error: {e}}")
+                st.error(f"ðŸš¨ Geodetic Conversion Error: {e}")
 
     else:
         lat_dms = st.text_input("Latitude DMS String", value="0Â°20â€²51.4â€³N", key="uc_dms_lat_upg")
@@ -338,15 +338,15 @@ def render_coord_tab():
         if st.button("âž¡ï¸ Convert to Decimal Degrees", key="uc_to_dec_upg", type="primary"):
             try:
                 result = dms_to_decimal(lat_dms, lon_dms)
-                st.success(f"Formatted: `{result.get('formatted', '')}}`")
+                st.success(f"Formatted: `{result.get('formatted', '')}`")
                 c1, c2 = st.columns(2)
                 lat_val = result.get("lat", 0.0)
                 lon_val = result.get("lon", 0.0)
-                c1.metric("Latitude (Decimal)", f"{lat_val:.6f}}")
-                c2.metric("Longitude (Decimal)", f"{lon_val:.6f}}")
+                c1.metric("Latitude (Decimal)", f"{lat_val:.6f}")
+                c2.metric("Longitude (Decimal)", f"{lon_val:.6f}")
                 st.map(pd.DataFrame([{"lat": lat_val, "lon": lon_val}]))
             except Exception as e:
-                st.error(f"ðŸš¨ Parse Error: {e}} — ensure standard format like `0Â°20â€²51.4â€³N`")
+                st.error(f"ðŸš¨ Parse Error: {e} — ensure standard format like `0Â°20â€²51.4â€³N`")
 
 
 def render_pdf_tab():
@@ -362,12 +362,12 @@ def render_pdf_tab():
             try:
                 result = extract_pdf_text(uploaded.getvalue()) or {}
             except Exception as e:
-                st.error(f"ðŸš¨ PDF Engine Error: {e}}")
+                st.error(f"ðŸš¨ PDF Engine Error: {e}")
                 return
 
         c1, c2 = st.columns(2)
         c1.metric("Total Pages", result.get("pages", "—"))
-        c2.metric("Character Count", f"{result.get('total_chars', 0):,}}")
+        c2.metric("Character Count", f"{result.get('total_chars', 0):,}")
 
         text = result.get("text", "")
         if text.strip():

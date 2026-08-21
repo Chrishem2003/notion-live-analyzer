@@ -46,7 +46,7 @@ def get_conn():
 def _save_upload(uploaded_file, email, tag):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     safe_email = email.replace("@", "_at_").replace(".", "_")
-    fname = f"{safe_email}}_{tag}}_{int(datetime.datetime.now(datetime.UTC).timestamp())}}_{uploaded_file.name}}"
+    fname = f"{safe_email}_{tag}_{int(datetime.datetime.now(datetime.UTC).timestamp())}_{uploaded_file.name}"
     path = os.path.join(UPLOAD_DIR, fname)
     with open(path, "wb") as f:
         f.write(uploaded_file.getbuffer())
@@ -126,8 +126,8 @@ def render_admin_review_queue():
         return
 
     for req_id, email, full_name, institution, submitted_at, id_path, inst_path in pending:
-        with st.expander(f"{full_name}} — {institution}} ({email}})"):
-            st.caption(f"Submitted {submitted_at}}")
+        with st.expander(f"{full_name} — {institution} ({email})"):
+            st.caption(f"Submitted {submitted_at}")
             c1, c2 = st.columns(2)
             with c1:
                 if id_path and os.path.exists(id_path):
@@ -138,16 +138,16 @@ def render_admin_review_queue():
 
             colA, colB = st.columns(2)
             reviewer = st.session_state.get("user_identity", {}).get("name", "Admin")
-            if colA.button("✅ Approve", key=f"approve_{req_id}}"):
+            if colA.button("✅ Approve", key=f"approve_{req_id}"):
                 conn.execute(
                     "UPDATE verification_requests SET status='approved', reviewed_at=?, reviewed_by=? WHERE id=?",
                     (datetime.datetime.now(datetime.UTC).isoformat(), reviewer, req_id),
                 )
                 conn.commit()
                 subscription.grant_student_free(email)
-                st.success(f"Approved. {email}} now has free student access.")
+                st.success(f"Approved. {email} now has free student access.")
                 st.rerun()
-            if colB.button("❌ Reject", key=f"reject_{req_id}}"):
+            if colB.button("❌ Reject", key=f"reject_{req_id}"):
                 conn.execute(
                     "UPDATE verification_requests SET status='rejected', reviewed_at=?, reviewed_by=? WHERE id=?",
                     (datetime.datetime.now(datetime.UTC).isoformat(), reviewer, req_id),

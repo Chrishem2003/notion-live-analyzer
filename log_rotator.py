@@ -38,5 +38,5 @@ def prune_old_logs(max_records: int = 1000):
 
 if __name__ == "__main__":
     result = prune_old_logs()
-    print(f"Log Rotator Execution Result: {result}}")
+    print(f"Log Rotator Execution Result: {result}")
 

@@ -254,7 +254,7 @@ class NexusMeet:
                  agenda: str = "") -> Dict[str, Any]:
         conn = _conn()
         mid = str(uuid.uuid4())
-        link = f"https://nexus.chrishem/meet/{mid[:8]}}"
+        link = f"https://nexus.chrishem/meet/{mid[:8]}"
         try:
             conn.execute(
                 "INSERT INTO nexus_meetings (id,title,start_dt,duration_min,attendees,agenda,meeting_link,status) VALUES (?,?,?,?,?,?,?,?)",
@@ -491,7 +491,7 @@ class NexusContacts:
                 params.append(group)
             if query:
                 sql += " AND (full_name LIKE ? OR email LIKE ? OR company LIKE ?)"
-                like = f"%{query}}%"
+                like = f"%{query}%"
                 params += [like, like, like]
             sql += " ORDER BY full_name"
             rows = conn.execute(sql, params).fetchall()

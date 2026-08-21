@@ -104,9 +104,9 @@ class InteractiveAudioEngine:
                 idx = int(m.group(1)) - 1
                 if 0 <= idx < len(self.segments):
                     self.seek_to_segment(idx)
-                    response.update({"action": "seek", "response_text": f"Ã°Å¸â€œÂ Segment {idx1}}.", "success": True})
+                    response.update({"action": "seek", "response_text": f"Ã°Å¸â€œÂ Segment {idx1}.", "success": True})
                 else:
-                    response.update({"response_text": f"Only {len(self.segments)}} segments available."})
+                    response.update({"response_text": f"Only {len(self.segments)} segments available."})
         elif any(w in cmd_lower for w in ["summarize", "summary", "key points", "overview"]):
             response.update(self._handle_summary_request())
         elif any(w in cmd_lower for w in ["help", "what can i say", "commands"]):
@@ -118,35 +118,35 @@ class InteractiveAudioEngine:
     def _handle_explain_request(self, cmd: str) -> Dict:
         segment = self.segments[self.current_segment_index] if self.segments else None
         if segment:
-            return {"action": "explain", "response_text": f"Ã°Å¸â€œâ€“ Here's context on this section: {segment['text'][:300]}}...", "success": True}
+            return {"action": "explain", "response_text": f"Ã°Å¸â€œâ€“ Here's context on this section: {segment['text'][:300]}...", "success": True}
         return {"response_text": "No content loaded to explain.", "action": "explain"}
 
     def _handle_sample_size_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         n = paper.get("sample_size", paper.get("n", "not specified"))
-        return {"action": "sample_size", "response_text": f" The study sample size is: {n}}", "success": True}
+        return {"action": "sample_size", "response_text": f" The study sample size is: {n}", "success": True}
 
     def _handle_methodology_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         method = paper.get("methodology", paper.get("method", "not specified in context"))
-        return {"action": "methodology", "response_text": f"Ã°Å¸â€Â¬ Methodology: {method}}", "success": True}
+        return {"action": "methodology", "response_text": f"Ã°Å¸â€Â¬ Methodology: {method}", "success": True}
 
     def _handle_results_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         findings = paper.get("findings", paper.get("results", "not specified in context"))
-        return {"action": "results", "response_text": f"ðŸ“ˆ Key findings: {findings}}", "success": True}
+        return {"action": "results", "response_text": f"ðŸ“ˆ Key findings: {findings}", "success": True}
 
     def _handle_statistics_query(self, cmd: str) -> Dict:
         paper = self.context.get("paper", {})
         stats = paper.get("statistics", paper.get("stats", "not specified"))
-        return {"action": "statistics", "response_text": f"Ã°Å¸â€œâ€° Statistical details: {stats}}", "success": True}
+        return {"action": "statistics", "response_text": f"Ã°Å¸â€œâ€° Statistical details: {stats}", "success": True}
 
     def _handle_summary_request(self) -> Dict:
         if not self.segments:
             return {"response_text": "No content loaded.", "action": "summary"}
         total_words = sum(s["word_count"] for s in self.segments)
         first_seg = self.segments[0]["text"][:200] if self.segments else ""
-        return {"action": "summary", "response_text": f"Ã°Å¸â€œâ€ž Briefing with {len(self.segments)}} segments ({total_words}} words). Starts with: {first_seg}}...", "success": True}
+        return {"action": "summary", "response_text": f"Ã°Å¸â€œâ€ž Briefing with {len(self.segments)} segments ({total_words} words). Starts with: {first_seg}...", "success": True}
 
     def _get_help_text(self) -> str:
         return """Ã°Å¸Å½Â¯ **Available Commands:**
@@ -203,7 +203,7 @@ def render_interactive_audio_ui():
         if st.button("ðŸ“¥ Load Briefing", type="primary", use_container_width=True) and briefing_text:
             paper_ctx = {"sample_size": sample_size, "methodology": methodology, "findings": findings, "statistics": ""}
             engine.load_briefing(briefing_text, paper_ctx)
-            st.success(f"âœ… Loaded {len(engine.segments)}} segments")
+            st.success(f"âœ… Loaded {len(engine.segments)} segments")
 
         if engine.segments:
             st.markdown("### Controls")
@@ -225,7 +225,7 @@ def render_interactive_audio_ui():
             st.markdown("### Current Segment")
             seg = engine.get_current_segment()
             if seg:
-                st.info(f"**Segment {seg['index'] + 1}}/{len(engine.segments)}}** ({seg['word_count']}} words)")
+                st.info(f"**Segment {seg['index'] + 1}/{len(engine.segments)}** ({seg['word_count']} words)")
                 st.markdown(seg['text'])
                 st.progress(engine.get_progress() / 100)
             else:
@@ -249,7 +249,7 @@ def render_interactive_audio_ui():
         if engine.command_history:
             for cmd in reversed(engine.command_history[-20:]):
                 ts = datetime.fromtimestamp(cmd["timestamp"]).strftime("%H:%M:%S")
-                st.text(f"[{ts}}] {cmd['command']}}")
+                st.text(f"[{ts}] {cmd['command']}")
         else:
             st.info("No commands processed yet")
         state = engine.get_state_summary()

@@ -32,9 +32,9 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
     }
     
     # Gradients
-    hero_gradient = f"linear-gradient(135deg, {colors['primary']}} 0%, {colors['purple']}} 50%, {colors['secondary']}} 100%)"
+    hero_gradient = f"linear-gradient(135deg, {colors['primary']} 0%, {colors['purple']} 50%, {colors['secondary']} 100%)"
     card_gradient = f"linear-gradient(145deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)"
-    mesh_gradient = f"radial-gradient(at 40% 20%, {colors['primary']}}20 0px, transparent 50%), radial-gradient(at 80% 0%, {colors['secondary']}}20 0px, transparent 50%), radial-gradient(at 0% 50%, {colors['accent']}}20 0px, transparent 50%), radial-gradient(at 80% 50%, {colors['purple']}}20 0px, transparent 50%), radial-gradient(at 0% 100%, {colors['cyan']}}20 0px, transparent 50%)"
+    mesh_gradient = f"radial-gradient(at 40% 20%, {colors['primary']}20 0px, transparent 50%), radial-gradient(at 80% 0%, {colors['secondary']}20 0px, transparent 50%), radial-gradient(at 0% 50%, {colors['accent']}20 0px, transparent 50%), radial-gradient(at 80% 50%, {colors['purple']}20 0px, transparent 50%), radial-gradient(at 0% 100%, {colors['cyan']}20 0px, transparent 50%)"
     
     bg = "#0a0a0f" if is_dark else "#fafbfc"
     card_bg = "#12121a" if is_dark else "#ffffff"
@@ -50,7 +50,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         bg_url = image_to_data_url(background_path)
         background_css = (
             "background: linear-gradient(180deg, rgba(248, 251, 255, 0.94), rgba(238, 244, 255, 0.94)), "
-            f"url('{bg_url}}') center/cover no-repeat;"
+            f"url('{bg_url}') center/cover no-repeat;"
         )
     
     # Build overlay for dark/light mode
@@ -79,7 +79,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         bg_url = image_to_data_url(background_path)
         background_css = (
             "background: linear-gradient(180deg, rgba(248, 251, 255, 0.94), rgba(238, 244, 255, 0.94)), "
-            f"url('{bg_url}}') center/cover no-repeat;"
+            f"url('{bg_url}') center/cover no-repeat;"
         )
 
     if is_dark:
@@ -158,13 +158,13 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             background-attachment: fixed;
             min-height: 100vh;
             background-size: cover;
-        }}
+        }
         
         /* Animated mesh gradient background */
         [data-testid="stAppViewContainer"] {{
             position: relative;
             overflow: hidden;
-        }}
+        }
         [data-testid="stAppViewContainer"]::before {{
             content: "";
             position: fixed;
@@ -176,11 +176,11 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             opacity: 0.6;
             z-index: -1;
             animation: mesh-move 20s ease-in-out infinite;
-        }}
+        }
         @keyframes mesh-move {{
-            0%, 100% {{ transform: scale(1) rotate(0deg); }}
-            50% {{ transform: scale(1.1) rotate(2deg); }}
-        }}
+            0%, 100% {{ transform: scale(1) rotate(0deg); }
+            50% {{ transform: scale(1.1) rotate(2deg); }
+        }
         
         .stApp::after {{
             content: "";
@@ -189,23 +189,23 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             background: {"rgba(0,0,0,0.15)" if is_dark else "rgba(248, 251, 255, 0.20)"};
             pointer-events: none;
             z-index: 0;
-        }}
+        }
         .block-container {{
             position: relative;
             z-index: 1;
             padding-top: 1.75rem !important;
             padding-bottom: 2rem !important;
             max-width: 1320px !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Typography Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         h1, h2, h3 {{
             font-weight: 700 !important;
             letter-spacing: -0.02em !important;
-        }}
-        h1 {{ font-size: 2.5rem !important; background: linear-gradient(135deg, {colors['primary']}, {colors['secondary']}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }}
-        h2 {{ font-size: 1.75rem !important; color: {text} !important; }}
-        h3 {{ font-size: 1.25rem !important; }}
+        }
+        h1 {{ font-size: 2.5rem !important; background: linear-gradient(135deg, {colors['primary']}, {colors['secondary']}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        h2 {{ font-size: 1.75rem !important; color: {text} !important; }
+        h3 {{ font-size: 1.25rem !important; }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         [data-testid="stSidebar"] {{
@@ -213,13 +213,13 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             backdrop-filter: blur(16px);
             border-right: 1px solid rgba(189, 210, 255, 0.85);
             box-shadow: -12px 0 40px rgba(15, 23, 42, 0.10);
-        }}
+        }
         [data-testid="stSidebar"] h1 {{
             background: linear-gradient(135deg, {colors['primary']}, {colors['secondary']}) !important;
             -webkit-background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
             font-size: 1.5rem !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Hero Banner Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .hero-card {{
@@ -230,7 +230,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             position: relative;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
-        }}
+        }
         .hero-card::before {{
             content: "";
             position: absolute;
@@ -240,11 +240,11 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
             animation: hero-shimmer 3s ease-in-out infinite;
-        }}
+        }
         @keyframes hero-shimmer {{
-            0%, 100% {{ transform: translate(-10%, -10%); }}
-            50% {{ transform: translate(10%, 10%); }}
-        }}
+            0%, 100% {{ transform: translate(-10%, -10%); }
+            50% {{ transform: translate(10%, 10%); }
+        }
         .hero-card h1 {{
             color: white !important;
             -webkit-text-fill-color: white !important;
@@ -254,13 +254,13 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             margin-bottom: 0.15rem !important;
             font-size: 2rem !important;
             font-weight: 800 !important;
-        }}
+        }
         .hero-card p {{
             color: rgba(255,255,255,0.9);
             font-size: 1rem;
             position: relative;
             z-index: 1;
-        }}
+        }
         .status-pill {{
             display: inline-block;
             background: rgba(255,255,255,0.18);
@@ -271,7 +271,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-size: 0.85rem;
             margin-top: 0.55rem;
             font-weight: 700;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Metrics Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         [data-testid="stMetric"] {{
@@ -280,27 +280,27 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             border-radius: 16px;
             padding: 1.25rem;
             transition: all 0.3s;
-        }}
+        }
         [data-testid="stMetric"]:hover {{
             border-color: {border_bright};
             box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-        }}
+        }
         [data-testid="stMetricValue"] {{
             color: {colors['primary']} !important;
             font-size: 1.65rem !important;
             font-weight: 800 !important;
-        }}
+        }
         [data-testid="stMetricLabel"] {{
             color: {text_muted} !important;
             font-weight: 700 !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Charts Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã°Å¸â€Â */
         .stPlotlyChart > div {{
             border-radius: 18px;
             overflow: hidden;
             box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ DataFrame Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         [data-testid="stDataFrame"] {{
@@ -309,13 +309,13 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             border: 1px solid {border};
             overflow: hidden;
             box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-        }}
+        }
         [data-testid="stDataFrame"] thead th {{
             background: linear-gradient(135deg, {colors['primary']}, {colors['purple']}) !important;
             color: white !important;
             font-weight: 600;
             padding: 1rem !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Buttons Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .stButton > button {{
@@ -324,15 +324,15 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             padding: 0.75rem 1.5rem !important;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             border: none !important;
-        }}
+        }
         .stButton > button[kind="primary"] {{
             background: {hero_gradient} !important;
             box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
-        }}
+        }
         .stButton > button[kind="primary"]:hover {{
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4) !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Inputs Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .stTextInput input, .stTextArea textarea, .stSelectbox {{
@@ -341,30 +341,30 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             border-radius: 12px !important;
             padding: 0.75rem 1rem !important;
             transition: all 0.2s;
-        }}
+        }
         .stTextInput input:focus, .stTextArea textarea:focus {{
             border-color: {colors['primary']} !important;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Tabs Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .stTabs [data-baseweb="tab-list"] {{
             gap: 0.5rem;
-        }}
+        }
         .stTabs [data-baseweb="tab"] {{
             border-radius: 10px 10px 0 0 !important;
             padding: 0.75rem 1.5rem !important;
             font-weight: 600;
             background: transparent !important;
             transition: all 0.2s;
-        }}
+        }
         .stTabs [data-baseweb="tab"]:hover {{
             background: rgba(99, 102, 241, 0.1) !important;
-        }}
+        }
         .stTabs [aria-selected="true"] {{
             background: linear-gradient(135deg, {colors['primary']}, {colors['purple']}) !important;
             color: white !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar Card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .sidebar-card {{
@@ -374,26 +374,26 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             padding: 0.95rem;
             margin: 0.45rem 0 0.9rem 0;
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-        }}
+        }
         .sidebar-card .stSubheader,
         .sidebar-card .stCaption {{
             color: {text} !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Section Header Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .section-header {{
             margin-top: 0.25rem;
             margin-bottom: 0.35rem;
-        }}
+        }
         .section-header h3 {{
             color: {text} !important;
             font-size: 1.45rem !important;
             font-weight: 800 !important;
-        }}
+        }
         .stSubheader {{
             color: {text} !important;
             font-weight: 800 !important;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Live Badge Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .live-badge {{
@@ -405,7 +405,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-weight: 800;
             font-size: 0.85rem;
             margin-top: 0.5rem;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Insight & Recommendation Cards Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .insight-card {{
@@ -414,7 +414,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             border-radius: 10px;
             padding: 0.8rem 1rem;
             margin: 0.4rem 0;
-        }}
+        }
         .recommendation-card {{
             background: {card_bg};
             border: 1px solid {border};
@@ -423,11 +423,11 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             margin: 0.4rem 0;
             cursor: pointer;
             transition: all 0.2s;
-        }}
+        }
         .recommendation-card:hover {{
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sync Card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .sync-card {{
@@ -438,7 +438,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
             margin-bottom: 1rem;
             backdrop-filter: blur(10px);
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Stat Result Card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .stat-result-card {{
@@ -447,7 +447,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             padding: 1rem;
             border: 1px solid {border};
             margin: 0.5rem 0;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Watermark Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .app-watermark {{
@@ -463,7 +463,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             user-select: none;
             text-transform: uppercase;
             text-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Status Badges Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .badge {{
@@ -475,40 +475,40 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.03em;
-        }}
+        }
         .badge-success {{
             background: rgba(34, 197, 94, 0.15);
             color: {colors['success']};
-        }}
+        }
         .badge-warning {{
             background: rgba(245, 158, 11, 0.15);
             color: {colors['warning']};
-        }}
+        }
         .badge-error {{
             background: rgba(239, 68, 68, 0.15);
             color: {colors['error']};
-        }}
+        }
         .badge-primary {{
             background: rgba(99, 102, 241, 0.15);
             color: {colors['primary']};
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Animations Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         @keyframes fade-in {{
-            from {{ opacity: 0; transform: translateY(10px); }}
-            to {{ opacity: 1; transform: translateY(0); }}
-        }}
+            from {{ opacity: 0; transform: translateY(10px); }
+            to {{ opacity: 1; transform: translateY(0); }
+        }
         .animate-fade-in {{
             animation: fade-in 0.5s ease-out forwards;
-        }}
+        }
         
         @keyframes pulse-glow {{
-            0%, 100% {{ box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }}
-            50% {{ box-shadow: 0 0 40px rgba(99, 102, 241, 0.4); }}
-        }}
+            0%, 100% {{ box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+            50% {{ box-shadow: 0 0 40px rgba(99, 102, 241, 0.4); }
+        }
         .pulse-glow {{
             animation: pulse-glow 2s ease-in-out infinite;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Expanders Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .streamlit-expanderHeader {{
@@ -518,20 +518,20 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             font-weight: 600;
             padding: 1rem !important;
             transition: all 0.2s;
-        }}
+        }
         .streamlit-expanderHeader:hover {{
             border-color: {colors['primary']};
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Alerts Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         .stSuccess, .stInfo, .stWarning, .stError {{
             border-radius: 12px !important;
             border: none !important;
-        }}
-        .stSuccess {{ background: rgba(34, 197, 94, 0.15) !important; color: {colors['success']} !important; }}
-        .stInfo {{ background: rgba(99, 102, 241, 0.15) !important; color: {colors['primary']} !important; }}
-        .stWarning {{ background: rgba(245, 158, 11, 0.15) !important; color: {colors['warning']} !important; }}
-        .stError {{ background: rgba(239, 68, 68, 0.15) !important; color: {colors['error']} !important; }}
+        }
+        .stSuccess {{ background: rgba(34, 197, 94, 0.15) !important; color: {colors['success']} !important; }
+        .stInfo {{ background: rgba(99, 102, 241, 0.15) !important; color: {colors['primary']} !important; }
+        .stWarning {{ background: rgba(245, 158, 11, 0.15) !important; color: {colors['warning']} !important; }
+        .stError {{ background: rgba(239, 68, 68, 0.15) !important; color: {colors['error']} !important; }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Dividers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         hr {{
@@ -539,27 +539,27 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             height: 1px;
             background: linear-gradient(90deg, transparent, {border_bright}, transparent);
             margin: 2rem 0;
-        }}
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Responsive Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         @media (max-width: 768px) {{
-            .hero-card {{ padding: 1.5rem; }}
-            .hero-card h1 {{ font-size: 1.75rem !important; }}
+            .hero-card {{ padding: 1.5rem; }
+            .hero-card h1 {{ font-size: 1.75rem !important; }
             [data-testid="column"] {{
                 min-width: 100% !important;
-            }}
-        }}
+            }
+        }
         
         /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Print Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         @media print {{
             .app-watermark {{
                 display: block !important;
                 color: #999;
-            }}
+            }
             [data-testid="stSidebar"] {{
                 display: none !important;
-            }}
-        }}
+            }
+        }
         </style>
         
         <div class="app-watermark">CHRISHEM</div>
@@ -571,7 +571,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
 
 def hero_card(title: str, subtitle: str, badge_text: str = None):
     """Render a styled hero card at the top of the page."""
-    badge_html = f'<div class="status-pill">{badge_text}}</div>' if badge_text else ""
+    badge_html = f'<div class="status-pill">{badge_text}</div>' if badge_text else ""
     st.markdown(
         f"""
         <div class="hero-card">
@@ -585,7 +585,7 @@ def hero_card(title: str, subtitle: str, badge_text: str = None):
 
 def section_header(title: str):
     """Render a section header."""
-    st.markdown(f"<div class='section-header'><h3>{title}}</h3></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='section-header'><h3>{title}</h3></div>", unsafe_allow_html=True)
 
 def sync_status_card(database_id: str, source: str, last_sync: str):
     """Render the sync status card."""
@@ -622,7 +622,7 @@ def stat_result_card(title: str, content: Any):
         st.markdown(content)
     elif isinstance(content, dict):
         for k, v in content.items():
-            st.markdown(f"**{k}}**: {v}}")
+            st.markdown(f"**{k}**: {v}")
     else:
         st.write(content)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -630,7 +630,7 @@ def stat_result_card(title: str, content: Any):
 def insight_card(icon: str, text: str):
     """Render an insight in a styled card."""
     st.markdown(
-        f'<div class="insight-card">{icon}} {text}}</div>',
+        f'<div class="insight-card">{icon} {text}</div>',
         unsafe_allow_html=True,
     )
 
@@ -638,15 +638,15 @@ def recommendation_card(title: str, description: str, is_active: bool = False):
     """Render a recommendation card."""
     border = f"border-left: 4px solid #1d4ed8;" if is_active else ""
     st.markdown(
-        f'<div class="recommendation-card" style="{border}}">'
-        f'<strong>{title}}</strong><br><small>{description}}</small>'
+        f'<div class="recommendation-card" style="{border}">'
+        f'<strong>{title}</strong><br><small>{description}</small>'
         f'</div>',
         unsafe_allow_html=True,
     )
 
 def watermark(text: str = "CHRISHEM"):
     """Render the app watermark."""
-    st.markdown(f'<div class="app-watermark">{text}}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="app-watermark">{text}</div>', unsafe_allow_html=True)
 
 
 # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
@@ -660,7 +660,7 @@ def notion_embed_container():
     classes = "notion-embed-container"
     if compact:
         classes = " notion-compact"
-    st.markdown(f'<div class="{classes}}">', unsafe_allow_html=True)
+    st.markdown(f'<div class="{classes}">', unsafe_allow_html=True)
     return True  # For context manager usage
 
 def end_notion_embed_container():
@@ -682,10 +682,10 @@ def compact_metric(label: str, value, delta=None, help_text: str = None):
     with col1:
         st.caption(label)
     with col2:
-        st.markdown(f"<div style='font-size:1.3rem;font-weight:700;'>{value}}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='font-size:1.3rem;font-weight:700;'>{value}</div>", unsafe_allow_html=True)
     with col3:
         if delta:
-            st.markdown(f"<div style='font-size:0.9rem;color:#64748b;'>{delta}}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:0.9rem;color:#64748b;'>{delta}</div>", unsafe_allow_html=True)
     if help_text:
         st.caption(help_text)
 

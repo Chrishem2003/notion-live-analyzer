@@ -11,9 +11,9 @@ with n_tabs[0]:
     quota = drive_v2.get_quota_status(user_email)
     st.progress(min(quota.percent_used / 100, 1.0))
     st.caption(
-        f"{quota.used_bytes / (1024*1024):.1f}} MB used of "
-        f"{quota.limit_bytes / (1024*1024*1024):.1f}} GB "
-        f"({quota.percent_used:.1f}}%) â€” "
+        f"{quota.used_bytes / (1024*1024):.1f} MB used of "
+        f"{quota.limit_bytes / (1024*1024*1024):.1f} GB "
+        f"({quota.percent_used:.1f}%) â€” "
         + ("âœ… cloud storage active" if drive_v2.is_s3_configured() else "âš ï¸ local fallback (not durable â€” configure S3_* for real cloud storage)")
     )
 
@@ -26,9 +26,9 @@ with n_tabs[0]:
     if uploaded:
         try:
             result = drive_v2.store_file(uploaded.name, uploaded.getvalue(), c_cat, c_notes, user_email, classification=c_classification)
-            st.success(f"âœ… Uploaded **{uploaded.name}}** ({result['backend']}}, classified {result['classification']}}).")
+            st.success(f"âœ… Uploaded **{uploaded.name}** ({result['backend']}, classified {result['classification']}).")
         except drive_v2.QuotaExceeded as e:
-            st.error(f"âŒ Upload rejected â€” over quota. {e}}")
+            st.error(f"âŒ Upload rejected â€” over quota. {e}")
 
     files = drive_v2.list_files(user_email, requester_clearance)
     if files:
@@ -47,20 +47,20 @@ with n_tabs[0]:
                     st.success("âœ… File removed.")
                     st.rerun()
                 except drive_v2.AccessDenied as e:
-                    st.error(f"âŒ {e.reason}}")
+                    st.error(f"âŒ {e.reason}")
                 except ValueError as e:
-                    st.error(f"âŒ {e}}")
+                    st.error(f"âŒ {e}")
         with col_dl:
             if st.button("â¬‡ï¸ Get Download Link"):
                 try:
                     dl = drive_v2.get_download(int(dl_id), user_email, requester_clearance)
                     if dl["method"] == "presigned_url":
-                        st.success(f"Link (expires in {dl['expires_in_seconds']}}s): {dl['url']}}")
+                        st.success(f"Link (expires in {dl['expires_in_seconds']}s): {dl['url']}")
                     else:
                         st.warning(dl["note"])
                 except drive_v2.AccessDenied as e:
-                    st.error(f"âŒ Access denied: {e.reason}}")
+                    st.error(f"âŒ Access denied: {e.reason}")
                 except ValueError as e:
-                    st.error(f"âŒ {e}}")
+                    st.error(f"âŒ {e}")
     else:
         st.info("Your Drive is empty (or nothing at your clearance level has been shared here yet).")

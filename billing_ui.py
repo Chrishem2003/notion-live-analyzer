@@ -44,7 +44,7 @@ def render_notion_style_billing(user_email, user_name=""):
         c_biz = st.text_input("Business name (optional)", placeholder="Acme Inc.", key="bill_biz")
         
         st.markdown("**Payment Method**")
-        st.info(f"ðŸ”’ Payment Link verification active for **{user_email}}**")
+        st.info(f"ðŸ”’ Payment Link verification active for **{user_email}**")
         
         card_num = st.text_input("Card number", placeholder="1234 1234 1234 1234", key="bill_card")
         c_exp, c_cvc = st.columns(2)

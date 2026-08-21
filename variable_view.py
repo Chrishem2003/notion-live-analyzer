@@ -110,7 +110,7 @@ def render_variable_view_editor(df: pd.DataFrame):
     col1, col2, col3, col4 = st.columns([1, 1, 1, 3])
     with col1:
         if st.button("Ã¢Å¾â€¢ Add Variable", use_container_width=True):
-            new_name = f"var_{len(metadata)}}"
+            new_name = f"var_{len(metadata)}"
             df[new_name] = None
             metadata[new_name] = {
                 "label": new_name, "measurement_level": "Scale", "role": "Input",
@@ -121,7 +121,7 @@ def render_variable_view_editor(df: pd.DataFrame):
     with col2:
         if st.button("Ã¢Å“â€šÃ¯Â¸Â Delete Selected", use_container_width=True):
             for col in list(metadata.keys()):
-                if st.session_state.get(f"del_{col}}"):
+                if st.session_state.get(f"del_{col}"):
                     df.drop(columns=[col], inplace=True, errors="ignore")
                     del metadata[col]
                     st.rerun()
@@ -147,56 +147,56 @@ def render_variable_view_editor(df: pd.DataFrame):
         col_type_short = "numeric" if "float" in ctype or "int" in ctype else "string"
 
         html.append(f"<tr>")
-        html.append(f"<td>{idx1}}</td>")
+        html.append(f"<td>{idx1}</td>")
         # Delete checkbox
-        checked = "checked" if st.session_state.get(f"del_{col}}") else ""
-        html.append(f'<td><input type="checkbox" {"onchange" if not checked else ""}} '
-                    f'onclick="this.form.submit()" name="del_{col}}" {checked}}></td>')
+        checked = "checked" if st.session_state.get(f"del_{col}") else ""
+        html.append(f'<td><input type="checkbox" {"onchange" if not checked else ""} '
+                    f'onclick="this.form.submit()" name="del_{col}" {checked}></td>')
         # Name
-        html.append(f"<td><strong>{col}}</strong></td>")
+        html.append(f"<td><strong>{col}</strong></td>")
         # Label
-        label_val = st.session_state.get(f"label_{col}}", meta["label"])
-        html.append(f'<td><input type="text" value="{label_val}}" '
-                    f'onchange="this.form.submit()" name="label_{col}}"></td>')
+        label_val = st.session_state.get(f"label_{col}", meta["label"])
+        html.append(f'<td><input type="text" value="{label_val}" '
+                    f'onchange="this.form.submit()" name="label_{col}"></td>')
         # Type
-        html.append(f"<td>{col_type_short}}</td>")
+        html.append(f"<td>{col_type_short}</td>")
         # Width
-        width_val = st.session_state.get(f"width_{col}}", meta["width"])
-        html.append(f'<td><input type="number" value="{width_val}}" min="1" max="255" '
-                    f'onchange="this.form.submit()" name="width_{col}}" style="width:50px"></td>')
+        width_val = st.session_state.get(f"width_{col}", meta["width"])
+        html.append(f'<td><input type="number" value="{width_val}" min="1" max="255" '
+                    f'onchange="this.form.submit()" name="width_{col}" style="width:50px"></td>')
         # Decimals
-        dec_val = st.session_state.get(f"dec_{col}}", meta["decimals"])
-        html.append(f'<td><input type="number" value="{dec_val}}" min="0" max="10" '
-                    f'onchange="this.form.submit()" name="dec_{col}}" style="width:50px"></td>')
+        dec_val = st.session_state.get(f"dec_{col}", meta["decimals"])
+        html.append(f'<td><input type="number" value="{dec_val}" min="0" max="10" '
+                    f'onchange="this.form.submit()" name="dec_{col}" style="width:50px"></td>')
         # Measurement level
-        measure_val = st.session_state.get(f"measure_{col}}", meta["measurement_level"])
+        measure_val = st.session_state.get(f"measure_{col}", meta["measurement_level"])
         measure_options = "".join(
-            f'<option value="{m}}" {"selected" if m == measure_val else ""}}>{m}}</option>'
+            f'<option value="{m}" {"selected" if m == measure_val else ""}>{m}</option>'
             for m in MEASUREMENT_LEVELS
         )
-        html.append(f'<td><select onchange="this.form.submit()" name="measure_{col}}">{measure_options}}</select></td>')
+        html.append(f'<td><select onchange="this.form.submit()" name="measure_{col}">{measure_options}</select></td>')
         # Role
-        role_val = st.session_state.get(f"role_{col}}", meta["role"])
+        role_val = st.session_state.get(f"role_{col}", meta["role"])
         role_options = "".join(
-            f'<option value="{r}}" {"selected" if r == role_val else ""}}>{r}}</option>' for r in ROLES
+            f'<option value="{r}" {"selected" if r == role_val else ""}>{r}</option>' for r in ROLES
         )
-        html.append(f'<td><select onchange="this.form.submit()" name="role_{col}}">{role_options}}</select></td>')
+        html.append(f'<td><select onchange="this.form.submit()" name="role_{col}">{role_options}</select></td>')
         # Missing
         missing_str = ", ".join(str(m) for m in meta.get("missing_values", []))
-        html.append(f'<td style="max-width:80px;overflow:hidden;text-overflow:ellipsis">{missing_str or ""}}</td>')
+        html.append(f'<td style="max-width:80px;overflow:hidden;text-overflow:ellipsis">{missing_str or ""}</td>')
         # Value labels
         vl = meta.get("value_labels", {})
-        vl_str = ", ".join(f"{k}}={v}}" for k, v in list(vl.items())[:2])
+        vl_str = ", ".join(f"{k}={v}" for k, v in list(vl.items())[:2])
         if len(vl) > 2:
             vl_str = "..."
-        html.append(f'<td style="max-width:80px;overflow:hidden">{vl_str or ""}}</td>')
+        html.append(f'<td style="max-width:80px;overflow:hidden">{vl_str or ""}</td>')
         # Alignment
-        align_val = st.session_state.get(f"align_{col}}", meta["align"])
+        align_val = st.session_state.get(f"align_{col}", meta["align"])
         align_options = "".join(
-            f'<option value="{a}}" {"selected" if a == align_val else ""}}>{a}}</option>'
+            f'<option value="{a}" {"selected" if a == align_val else ""}>{a}</option>'
             for a in ["left", "center", "right"]
         )
-        html.append(f'<td><select onchange="this.form.submit()" name="align_{col}}">{align_options}}</select></td>')
+        html.append(f'<td><select onchange="this.form.submit()" name="align_{col}">{align_options}</select></td>')
         html.append("</tr>")
 
     html.append("</tbody></table>")
@@ -208,7 +208,7 @@ def render_variable_view_editor(df: pd.DataFrame):
     val_label_col = st.selectbox("Select variable to edit value labels", options=list(metadata.keys()))
     if val_label_col:
         meta = metadata[val_label_col]
-        st.caption(f"Editing value labels for: **{val_label_col}}**  {meta.get('measurement_level', 'Scale')}}")
+        st.caption(f"Editing value labels for: **{val_label_col}**  {meta.get('measurement_level', 'Scale')}")
 
         existing_labels = meta.get("value_labels", {})
         col1, col2 = st.columns([1, 3])
@@ -228,9 +228,9 @@ def render_variable_view_editor(df: pd.DataFrame):
             for k, v in existing_labels.items():
                 c1, c2 = st.columns([3, 1])
                 with c1:
-                    st.markdown(f"`{k}}` Ã¢â€ â€™ **{v}}**")
+                    st.markdown(f"`{k}` Ã¢â€ â€™ **{v}**")
                 with c2:
-                    if st.button(f"Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"del_vl_{val_label_col}}_{k}}"):
+                    if st.button(f"Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"del_vl_{val_label_col}_{k}"):
                         del existing_labels[k]
                         meta["value_labels"] = existing_labels
                         st.rerun()
@@ -251,7 +251,7 @@ def render_variable_view_editor(df: pd.DataFrame):
         if st.button("Ã°Å¸â€™Â¾ Save Missing Values"):
             parsed = [m.strip() for m in miss_input.split(",") if m.strip()]
             meta["missing_values"] = parsed
-            st.success(f"Saved missing values for {miss_col}}: {parsed}}")
+            st.success(f"Saved missing values for {miss_col}: {parsed}")
 
     # Summary
     st.markdown("---")

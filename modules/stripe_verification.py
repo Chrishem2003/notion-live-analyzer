@@ -17,7 +17,7 @@ def verify_student_eligibility(email: str) -> bool:
     
     is_student = any(domain.endswith(ind) or ind in domain for ind in valid_student_indicators)
     if is_student:
-        log_backend_event("INFO", f"Student eligibility verified for domain: {domain}}")
+        log_backend_event("INFO", f"Student eligibility verified for domain: {domain}")
     return is_student
 
 def render_subscription_panel():
@@ -37,7 +37,7 @@ def render_subscription_panel():
             st.info("Standard Professional Tier selected.")
             tier_price = ".00 / month (Enterprise Tier)"
 
-        st.markdown(f"**Selected Plan:** {tier_price}}")
+        st.markdown(f"**Selected Plan:** {tier_price}")
 
         if st.button("Proceed to Secure Stripe Checkout"):
             stripe_key = os.getenv("STRIPE_SECRET_KEY")
@@ -46,5 +46,5 @@ def render_subscription_panel():
                 st.warning("Stripe payment gateway currently operating in simulation mode (API keys not detected).")
             else:
                 st.success("Redirecting to secure Stripe checkout portal...")
-                log_backend_event("INFO", f"Initiated Stripe checkout session for {user_email}}")
+                log_backend_event("INFO", f"Initiated Stripe checkout session for {user_email}")
 

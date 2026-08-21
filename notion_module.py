@@ -20,8 +20,8 @@ NOTION_VERSION = "2022-06-28"
 
 # The Bio-Research Enterprise Research Planner template
 TEMPLATE_PAGE_ID = "35f9142806c6805286a5c6767a7c9cfd"
-TEMPLATE_URL = f"https://app.notion.so/p/{TEMPLATE_PAGE_ID}}"
-EMBED_URL = f"https://site.notion.site/Bio-Research-Enterprise-Research-Planner-{TEMPLATE_PAGE_ID}}"
+TEMPLATE_URL = f"https://app.notion.so/p/{TEMPLATE_PAGE_ID}"
+EMBED_URL = f"https://site.notion.site/Bio-Research-Enterprise-Research-Planner-{TEMPLATE_PAGE_ID}"
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
@@ -30,7 +30,7 @@ SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 def _get_service_headers() -> dict:
     return {
         "apikey": SUPABASE_SERVICE_KEY,
-        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}}",
+        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
         "Content-Type": "application/json",
     }
 
@@ -44,14 +44,14 @@ class NotionClient:
     def __init__(self, token: str):
         self.token = token
         self.headers = {
-            "Authorization": f"Bearer {token}}",
+            "Authorization": f"Bearer {token}",
             "Notion-Version": NOTION_VERSION,
             "Content-Type": "application/json",
         }
     
     def _request(self, method: str, endpoint: str, **kwargs) -> Optional[Dict]:
         """Make rate-limited API request."""
-        url = f"{NOTION_API_URL}}{endpoint}}"
+        url = f"{NOTION_API_URL}{endpoint}"
         kwargs.setdefault("headers", self.headers)
         kwargs.setdefault("timeout", 30)
         
@@ -69,15 +69,15 @@ class NotionClient:
                 st.warning("Ã°Å¸â€œâ€ž Notion resource not found.")
                 return None
             else:
-                st.error(f"Notion API error: {response.status_code}}")
+                st.error(f"Notion API error: {response.status_code}")
                 return None
         except Exception as e:
-            st.error(f"Request failed: {e}}")
+            st.error(f"Request failed: {e}")
             return None
     
     def get_page(self, page_id: str) -> Optional[Dict]:
         """Get a page by ID."""
-        return self._request("GET", f"/pages/{page_id}}")
+        return self._request("GET", f"/pages/{page_id}")
     
     def get_page_children(self, block_id: str) -> List[Dict]:
         """Get child blocks of a page."""
@@ -90,7 +90,7 @@ class NotionClient:
             if cursor:
                 params["start_cursor"] = cursor
             
-            data = self._request("GET", f"/blocks/{block_id}}/children", params=params)
+            data = self._request("GET", f"/blocks/{block_id}/children", params=params)
             if not data:
                 break
             
@@ -149,10 +149,10 @@ def check_notion_claimed(user_id: str = None) -> bool:
     if SUPABASE_URL:
         try:
             response = requests.get(
-                f"{SUPABASE_URL}}/rest/v1/users?id=eq.{user_id}}",
+                f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}",
                 headers={
                     "apikey": SUPABASE_KEY,
-                    "Authorization": f"Bearer {SUPABASE_KEY}}",
+                    "Authorization": f"Bearer {SUPABASE_KEY}",
                 },
             )
             if response.status_code == 200:
@@ -177,7 +177,7 @@ def mark_notion_claimed(user_id: str = None):
     if SUPABASE_URL:
         try:
             requests.patch(
-                f"{SUPABASE_URL}}/rest/v1/users?id=eq.{user_id}}",
+                f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}",
                 headers=_get_service_headers(),
                 json={"notion_claimed": True, "notion_claimed_at": datetime.utcnow().isoformat()},
             )
@@ -265,7 +265,7 @@ def render_notion_duplication():
             ''', unsafe_allow_html=True)
             
             st.success("âœ… Workspace duplication claimed!")
-            st.info(f"[Click here to open Notion]({TEMPLATE_URL}}) if the link didn't open automatically.")
+            st.info(f"[Click here to open Notion]({TEMPLATE_URL}) if the link didn't open automatically.")
             
             st.rerun()
 
@@ -310,7 +310,7 @@ def render_notion_embed():
         if st.button("Ã°Å¸â€â€ž Refresh"):
             st.rerun()
     with col2:
-        st.markdown(f"[Open Full Screen Ã¢â€ â€™]({EMBED_URL}})")
+        st.markdown(f"[Open Full Screen Ã¢â€ â€™]({EMBED_URL})")
     with col3:
         if st.button("ðŸ“‹ Copy Link"):
             st.code(EMBED_URL)
@@ -347,7 +347,7 @@ def render_notion_module():
                 if SUPABASE_URL and user_id:
                     try:
                         requests.patch(
-                            f"{SUPABASE_URL}}/rest/v1/users?id=eq.{user_id}}",
+                            f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}",
                             headers=_get_service_headers(),
                             json={"notion_claimed": False},
                         )
@@ -385,6 +385,6 @@ def get_notion_databases_cached(token: str) -> List[Dict]:
 
 def open_notion_link(url: str):
     """Open Notion link in new tab via JavaScript."""
-    st.markdown(f'<script>window.open("{url}}", "_blank");</script>', unsafe_allow_html=True)
+    st.markdown(f'<script>window.open("{url}", "_blank");</script>', unsafe_allow_html=True)
 
 

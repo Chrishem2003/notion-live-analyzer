@@ -35,7 +35,7 @@ def render_mfa_setup(username: str):
         st.image(byte_im, caption="Scan with Authenticator App", width=180)
 
     with col2:
-        st.markdown(f"**Manual Secret Key:** {secret}}")
+        st.markdown(f"**Manual Secret Key:** {secret}")
         st.info("Scan the QR code above with your authenticator app, then enter the 6-digit verification code below.")
         
         user_code = st.text_input("Enter 6-Digit TOTP Code", max_chars=6, key="mfa_verification_input")
@@ -44,8 +44,8 @@ def render_mfa_setup(username: str):
             if totp.verify(user_code):
                 st.success("MFA successfully verified and activated for this session!")
                 st.session_state.mfa_verified = True
-                log_backend_event("INFO", f"User {username}} successfully authenticated via MFA.")
+                log_backend_event("INFO", f"User {username} successfully authenticated via MFA.")
             else:
                 st.error("Invalid verification code. Please try again.")
-                log_backend_event("WARNING", f"Failed MFA attempt for user {username}}.")
+                log_backend_event("WARNING", f"Failed MFA attempt for user {username}.")
 

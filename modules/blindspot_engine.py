@@ -78,7 +78,7 @@ def render_blindspot_engine_tab():
         st.caption("Eliminates reproducibility failure by locking software versions, package hashes, and runtime specs.")
 
         if st.button("Ã°Å¸â€œÂ¸ Generate Current Runtime Compliance Snapshot"):
-            snap_id = f"SNAP-{int(datetime.utcnow().timestamp())}}"
+            snap_id = f"SNAP-{int(datetime.utcnow().timestamp())}"
             deps = {
                 "python": "3.10.12",
                 "streamlit": "1.35.0",
@@ -95,8 +95,8 @@ def render_blindspot_engine_tab():
             ''', (snap_id, "app.py", runtime_hash, raw_env))
             conn.commit()
 
-            st.success(f"Runtime Snapshot Locked! ID: `{snap_id}}`")
-            st.code(f"SHA-256 Environment Fingerprint:\n{runtime_hash}}", language="text")
+            st.success(f"Runtime Snapshot Locked! ID: `{snap_id}`")
+            st.code(f"SHA-256 Environment Fingerprint:\n{runtime_hash}", language="text")
 
         snaps_df = pd.read_sql_query("SELECT * FROM environment_snapshots ORDER BY created_at DESC", conn)
         if not snaps_df.empty:
@@ -110,7 +110,7 @@ def render_blindspot_engine_tab():
         check_doi = st.text_input("Verify Literature DOI / Identifier", value="10.1038/s41587-026-001")
         if st.button("Check Retraction Status"):
             # Simulated real-time cross-check against retraction databases
-            st.success(f"âœ… DOI `{check_doi}}` is verified active. No retractions or expressions of concern registered in cross-agency databases.")
+            st.success(f"âœ… DOI `{check_doi}` is verified active. No retractions or expressions of concern registered in cross-agency databases.")
 
     conn.close()
 

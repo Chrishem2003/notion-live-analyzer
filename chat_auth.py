@@ -42,7 +42,7 @@ def issue_chat_token(email: str, ttl_seconds: int = 3600) -> str:
     payload_bytes = json.dumps(payload, separators=(",", ":")).encode()
     payload_b64 = base64.urlsafe_b64encode(payload_bytes).decode()
     signature = hmac.new(_secret(), payload_b64.encode(), hashlib.sha256).hexdigest()
-    return f"{payload_b64}}.{signature}}"
+    return f"{payload_b64}.{signature}"
 
 
 def verify_chat_token(token: str) -> str:

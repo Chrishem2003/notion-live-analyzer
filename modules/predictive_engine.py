@@ -340,7 +340,7 @@ class PredictiveEngine:
 
         models_map = self.get_clustering_models()
         if algorithm not in models_map:
-            return {"error": f"Unknown algorithm: {algorithm}}"}
+            return {"error": f"Unknown algorithm: {algorithm}"}
 
         clusterer = models_map[algorithm]
         if algorithm == "K-Means":
@@ -494,7 +494,7 @@ class PredictiveEngine:
             joblib.dump(model_data, filepath)
             return True
         except Exception as e:
-            st.error(f"Model save failed: {str(e)}}")
+            st.error(f"Model save failed: {str(e)}")
             return False
 
     def load_model(self, filepath: str) -> bool:
@@ -511,7 +511,7 @@ class PredictiveEngine:
             self.is_trained = True
             return True
         except Exception as e:
-            st.error(f"Model load failed: {str(e)}}")
+            st.error(f"Model load failed: {str(e)}")
             return False
 
     # ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Prediction on New Data ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
@@ -533,7 +533,7 @@ class PredictiveEngine:
 
             return predictions
         except Exception as e:
-            st.error(f"Prediction error: {str(e)}}")
+            st.error(f"Prediction error: {str(e)}")
             return None
 
 
@@ -566,7 +566,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
         if target_col:
             nunique = df[target_col].nunique()
             if nunique > 20:
-                st.warning(f"ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â '{target_col}}' has {nunique}} unique values ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â consider Regression instead")
+                st.warning(f"ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â '{target_col}' has {nunique} unique values ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â consider Regression instead")
             elif nunique == 2:
                 st.info(f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Binary classification detected (2 classes)")
 
@@ -589,7 +589,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
             if "error" in results:
                 st.error(results["error"])
             else:
-                st.success(f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Best model: **{results.get('best_model', 'N/A')}}**")
+                st.success(f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Best model: **{results.get('best_model', 'N/A')}**")
                 st.dataframe(results["results"], use_container_width=True, hide_index=True)
 
                 # Feature importance
@@ -628,7 +628,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
             if "error" in results:
                 st.error(results["error"])
             else:
-                st.success(f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Best model: **{results.get('best_model', 'N/A')}}**")
+                st.success(f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Best model: **{results.get('best_model', 'N/A')}**")
                 st.dataframe(results["results"], use_container_width=True, hide_index=True)
 
                 imp_df = engine.get_feature_importance()
@@ -726,7 +726,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
             if "error" in results:
                 st.error(results["error"])
             else:
-                st.info(f"**Method**: {results.get('method', 'N/A')}}")
+                st.info(f"**Method**: {results.get('method', 'N/A')}")
 
                 hist = results.get("historical")
                 fore = results.get("forecast")
@@ -752,7 +752,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                             name='Confidence Interval'
                         ))
 
-                    fig.update_layout(title=f"Time Series Forecast for {value_col}}", height=500)
+                    fig.update_layout(title=f"Time Series Forecast for {value_col}", height=500)
                     st.plotly_chart(fig, use_container_width=True)
 
                     st.subheader("ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Forecast Values")
@@ -772,7 +772,7 @@ def render_predictive_modeling_ui(df: pd.DataFrame) -> None:
                     os.unlink(f.name)
 
                 b64 = base64.b64encode(model_bytes).decode()
-                href = f'<a href="data:application/octet-stream;base64,{b64}}" download="trained_model.joblib">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Click to Download</a>'
+                href = f'<a href="data:application/octet-stream;base64,{b64}" download="trained_model.joblib">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Click to Download</a>'
                 st.markdown(href, unsafe_allow_html=True)
 
 

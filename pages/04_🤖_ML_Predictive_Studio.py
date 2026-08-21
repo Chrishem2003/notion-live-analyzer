@@ -43,7 +43,7 @@ def setup_page(title, icon, initial_sidebar_state="expanded"):
 
 def render_standard_footer(title):
     st.markdown("---")
-    st.caption(f"© Enterprise AI Engine — {title}}")
+    st.caption(f"© Enterprise AI Engine — {title}")
 
 def hero_card(title, subtitle, badge_text):
     st.markdown(
@@ -58,15 +58,15 @@ def hero_card(title, subtitle, badge_text):
     )
 
 def section_header(title, subtitle):
-    st.markdown(f"### {title}}")
-    st.markdown(f"*{subtitle}}*")
+    st.markdown(f"### {title}")
+    st.markdown(f"*{subtitle}*")
 
 def render_dataset_context_banner():
     pass
 
 def render_export_buttons(df_export, base_name="data_export"):
     csv = df_export.to_csv(index=False).encode("utf-8")
-    st.download_button("📥 Download Export (CSV)", data=csv, file_name=f"{base_name}}.csv", mime="text/csv")
+    st.download_button("📥 Download Export (CSV)", data=csv, file_name=f"{base_name}.csv", mime="text/csv")
 
 def get_active_dataframe():
     return st.session_state.get("active_df", None)
@@ -160,7 +160,7 @@ def render_automl_tab(df):
             st.error("Select at least one algorithm.")
             return
         if task == "Regression" and not pd.api.types.is_numeric_dtype(pd.to_numeric(df[target], errors="coerce")):
-            st.error(f"⛔ Target `{target}}` cannot be converted to numeric values for regression.")
+            st.error(f"⛔ Target `{target}` cannot be converted to numeric values for regression.")
             return
 
         with st.spinner("Processing pipeline transformations and training models..."):
@@ -226,15 +226,15 @@ def render_automl_tab(df):
                             try:
                                 y_proba = model.predict_proba(X_te)
                                 if len(np.unique(y_test)) == 2:
-                                    auc_str = f"{roc_auc_score(y_test, y_proba[:, 1]):.4f}}"
+                                    auc_str = f"{roc_auc_score(y_test, y_proba[:, 1]):.4f}"
                                 else:
-                                    auc_str = f"{roc_auc_score(y_test, y_proba, multi_class='ovr'):.4f}}"
+                                    auc_str = f"{roc_auc_score(y_test, y_proba, multi_class='ovr'):.4f}"
                             except Exception:
                                 pass
                         results.append({
                             "Algorithm": name,
-                            "CV Accuracy": f"{cv_mean * 100:.2f}}%" + (f" (±{cv_std*100:.2f}}%)" if not np.isnan(cv_std) else ""),
-                            "Test Accuracy": f"{test_metric * 100:.2f}}%",
+                            "CV Accuracy": f"{cv_mean * 100:.2f}%" + (f" (±{cv_std*100:.2f}%)" if not np.isnan(cv_std) else ""),
+                            "Test Accuracy": f"{test_metric * 100:.2f}%",
                             "ROC-AUC": auc_str,
                             "Params": best_params_note,
                         })
@@ -243,9 +243,9 @@ def render_automl_tab(df):
                         test_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
                         results.append({
                             "Algorithm": name,
-                            "CV R²": f"{cv_mean:.4f}}" + (f" (±{cv_std:.4f}})" if not np.isnan(cv_std) else ""),
-                            "Test R²": f"{test_metric:.4f}}",
-                            "Test RMSE": f"{test_rmse:.4f}}",
+                            "CV R²": f"{cv_mean:.4f}" + (f" (±{cv_std:.4f})" if not np.isnan(cv_std) else ""),
+                            "Test R²": f"{test_metric:.4f}",
+                            "Test RMSE": f"{test_rmse:.4f}",
                             "Params": best_params_note,
                         })
 
@@ -256,7 +256,7 @@ def render_automl_tab(df):
                 res_df = pd.DataFrame(results)
                 st.markdown("#### 📊 Model Performance Leaderboard")
                 st.dataframe(res_df, use_container_width=True, hide_index=True)
-                st.success(f"✅ Optimal Algorithm: **{best_name}}** (Test Metric Score: {best_score:.4f}})")
+                st.success(f"✅ Optimal Algorithm: **{best_name}** (Test Metric Score: {best_score:.4f})")
 
                 if "Random Forest" in trained_models and hasattr(trained_models["Random Forest"], "feature_importances_"):
                     st.markdown("#### 🔍 Feature Importances (Random Forest)")
@@ -278,7 +278,7 @@ def render_automl_tab(df):
                 }
 
             except Exception as e:
-                st.error(f"Training Exception: {e}}")
+                st.error(f"Training Exception: {e}")
 
     pipeline = st.session_state.get("ml_active_pipeline")
     if pipeline:
@@ -286,12 +286,12 @@ def render_automl_tab(df):
         st.markdown("#### 💾 Model Persistence & Export")
         c1, c2 = st.columns(2)
         with c1:
-            st.caption(f"Active Model: **{pipeline['algorithm']}}** ({pipeline['task']}}, target=`{pipeline['target']}}`, score={pipeline['test_score']:.4f}})")
+            st.caption(f"Active Model: **{pipeline['algorithm']}** ({pipeline['task']}, target=`{pipeline['target']}`, score={pipeline['test_score']:.4f})")
             raw_bytes = _serialize_pipeline(pipeline)
             st.download_button(
                 "⬇️ Export Trained Pipeline (.pkl)",
                 data=raw_bytes,
-                file_name=f"ml_pipeline_{pipeline['algorithm'].lower().replace(' ', '_')}}.pkl",
+                file_name=f"ml_pipeline_{pipeline['algorithm'].lower().replace(' ', '_')}.pkl",
                 mime="application/octet-stream",
                 key="dl_pipeline",
             )
@@ -301,10 +301,10 @@ def render_automl_tab(df):
                 try:
                     loaded = _deserialize_pipeline(uploaded_pipeline.getvalue())
                     st.session_state["ml_active_pipeline"] = loaded
-                    st.success(f"✅ Pipeline Loaded: {loaded.get('algorithm', 'Unknown')}} ({loaded.get('task', 'Unknown')}})")
+                    st.success(f"✅ Pipeline Loaded: {loaded.get('algorithm', 'Unknown')} ({loaded.get('task', 'Unknown')})")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Pipeline Deserialization Failed: {e}}")
+                    st.error(f"Pipeline Deserialization Failed: {e}")
 
 def render_predict_tab(df):
     section_header("🔮 Interactive Prediction Engine", "Generate real-time inferences using the persisted model pipeline.")
@@ -322,7 +322,7 @@ def render_predict_tab(df):
     feature_cols, raw_features = pipeline["feature_columns"], pipeline["raw_features"]
     task, target, label_encoder = pipeline["task"], pipeline["target"], pipeline["label_encoder"]
 
-    st.info(f"Active Architecture: **{pipeline['algorithm']}}** | Target: `{target}}` | Task: {task}} | Trained: {pipeline['trained_at'][:19]}}")
+    st.info(f"Active Architecture: **{pipeline['algorithm']}** | Target: `{target}` | Task: {task} | Trained: {pipeline['trained_at'][:19]}")
 
     mode = st.radio("Inference Strategy", ["Single Record Ingestion", "Batch CSV Inference"], horizontal=True, key="pred_mode")
 
@@ -353,48 +353,48 @@ def render_predict_tab(df):
         for i, feat in enumerate(raw_features):
             col = cols[i % len(cols)]
             if pd.api.types.is_numeric_dtype(df[feat]):
-                inputs[feat] = col.number_input(feat, value=float(df[feat].mean()), key=f"pred_in_{feat}}")
+                inputs[feat] = col.number_input(feat, value=float(df[feat].mean()), key=f"pred_in_{feat}")
             else:
                 options = df[feat].dropna().unique().tolist()
-                inputs[feat] = col.selectbox(feat, options if options else ["None"], key=f"pred_in_{feat}}")
+                inputs[feat] = col.selectbox(feat, options if options else ["None"], key=f"pred_in_{feat}")
 
         if st.button("🔮 Compute Prediction", type="primary", key="run_predict"):
             try:
                 input_df = pd.DataFrame([inputs])
                 preds, proba, interval = _predict(input_df)
                 if task == "Classification":
-                    st.metric(f"Predicted Target ({target}})", str(preds[0]))
+                    st.metric(f"Predicted Target ({target})", str(preds[0]))
                     if proba is not None:
                         classes = label_encoder.classes_ if label_encoder is not None else getattr(model, "classes_", range(proba.shape[1]))
                         proba_df = pd.DataFrame({"Class": classes, "Probability": proba[0]}).sort_values("Probability", ascending=False)
                         st.dataframe(proba_df, use_container_width=True, hide_index=True)
                 else:
-                    st.metric(f"Predicted Target ({target}})", f"{preds[0]:.4f}}")
+                    st.metric(f"Predicted Target ({target})", f"{preds[0]:.4f}")
                     if interval is not None:
-                        st.caption(f"Estimated 90% Confidence Interval: [{interval[0][0]:.4f}}, {interval[1][0]:.4f}}]")
+                        st.caption(f"Estimated 90% Confidence Interval: [{interval[0][0]:.4f}, {interval[1][0]:.4f}]")
             except Exception as e:
-                st.error(f"Inference Exception: {e}}")
+                st.error(f"Inference Exception: {e}")
 
     else:
         st.markdown("#### Batch Prediction Suite")
-        st.caption(f"Required Schema Predictors: {', '.join(raw_features)}}")
+        st.caption(f"Required Schema Predictors: {', '.join(raw_features)}")
         batch_file = st.file_uploader("Upload Target CSV Payload", type=["csv"], key="pred_batch_upload")
         if batch_file is not None and st.button("🔮 Execute Batch Inference", type="primary", key="run_batch_predict"):
             try:
                 batch_df = pd.read_csv(batch_file)
                 missing = [c for c in raw_features if c not in batch_df.columns]
                 if missing:
-                    st.error(f"⛔ Missing baseline columns: {', '.join(missing)}}")
+                    st.error(f"⛔ Missing baseline columns: {', '.join(missing)}")
                 else:
                     preds, proba, interval = _predict(batch_df)
                     out = batch_df.copy()
-                    out[f"Predicted_{target}}"] = preds
+                    out[f"Predicted_{target}"] = preds
                     if interval is not None:
                         out["Interval_Low_90"], out["Interval_High_90"] = interval[0], interval[1]
                     st.dataframe(out, use_container_width=True)
                     render_export_buttons(out, base_name="batch_predictions")
             except Exception as e:
-                st.error(f"Batch Execution Exception: {e}}")
+                st.error(f"Batch Execution Exception: {e}")
 
 def render_feature_engineering_tab(df):
     section_header("⚡ Feature Engineering Studio", "Transform and expand target datasets using advanced operations.")
@@ -414,17 +414,17 @@ def render_feature_engineering_tab(df):
             if st.button("➕ Generate Feature", type="primary", key="run_fe_interact"):
                 working = df.copy()
                 if "Multiply" in op:
-                    new_col, values = f"{f1}}_mul_{f2}}", working[f1] * working[f2]
+                    new_col, values = f"{f1}_mul_{f2}", working[f1] * working[f2]
                 elif "Divide" in op:
-                    new_col, values = f"{f1}}_div_{f2}}", working[f1] / working[f2].replace(0, np.nan)
+                    new_col, values = f"{f1}_div_{f2}", working[f1] / working[f2].replace(0, np.nan)
                 elif "Difference" in op:
-                    new_col, values = f"{f1}}_sub_{f2}}", working[f1] - working[f2]
+                    new_col, values = f"{f1}_sub_{f2}", working[f1] - working[f2]
                 else:
-                    new_col, values = f"{f1}}_add_{f2}}", working[f1] + working[f2]
+                    new_col, values = f"{f1}_add_{f2}", working[f1] + working[f2]
 
                 working[new_col] = values
                 set_active_dataframe(working, st.session_state.get("source_name", "engineered.csv"))
-                st.success(f"✅ Generated engineered feature '{new_col}}'")
+                st.success(f"✅ Generated engineered feature '{new_col}'")
                 st.rerun()
         else:
             st.info("Requires at least 2 numeric features.")
@@ -438,11 +438,11 @@ def render_feature_engineering_tab(df):
             if st.button("📦 Execute Binning", type="primary", key="run_fe_bin"):
                 working = df.copy()
                 if "Uniform" in strategy:
-                    working[f"{col}}_bin"] = pd.cut(working[col], bins=n_bins, labels=[f"Bin_{i+1}}" for i in range(n_bins)])
+                    working[f"{col}_bin"] = pd.cut(working[col], bins=n_bins, labels=[f"Bin_{i+1}" for i in range(n_bins)])
                 else:
-                    working[f"{col}}_bin"] = pd.qcut(working[col], q=n_bins, labels=[f"Q_{i+1}}" for i in range(n_bins)], duplicates="drop")
+                    working[f"{col}_bin"] = pd.qcut(working[col], q=n_bins, labels=[f"Q_{i+1}" for i in range(n_bins)], duplicates="drop")
                 set_active_dataframe(working, st.session_state.get("source_name", "binned.csv"))
-                st.success(f"✅ Feature '{col}}' transformed into {n_bins}} distinct bins.")
+                st.success(f"✅ Feature '{col}' transformed into {n_bins} distinct bins.")
                 st.rerun()
         else:
             st.info("No numeric features available.")
@@ -456,9 +456,9 @@ def render_feature_engineering_tab(df):
                 if st.button("📈 Compute Polynomials", type="primary", key="run_fe_poly"):
                     working = df.copy()
                     for d in range(2, degree + 1):
-                        working[f"{col}}_pow{d}}"] = working[col] ** d
+                        working[f"{col}_pow{d}"] = working[col] ** d
                     set_active_dataframe(working, st.session_state.get("source_name", "polynomial.csv"))
-                    st.success(f"✅ Created polynomial features up to degree {degree}}.")
+                    st.success(f"✅ Created polynomial features up to degree {degree}.")
                     st.rerun()
             else:
                 if not SKLEARN_AVAILABLE:
@@ -477,7 +477,7 @@ def render_feature_engineering_tab(df):
                         for n in new_names:
                             working.loc[clean.index, n] = expanded_df[n]
                         set_active_dataframe(working, st.session_state.get("source_name", "polynomial_expanded.csv"))
-                        st.success(f"✅ Poly expansion completed: {len(new_names)}} features derived.")
+                        st.success(f"✅ Poly expansion completed: {len(new_names)} features derived.")
                         st.rerun()
         else:
             st.info("No numeric columns available.")
@@ -487,7 +487,7 @@ def render_feature_engineering_tab(df):
         if len(df.columns) >= 3:
             target_col = st.selectbox("Target Variable", df.columns, key="fs_target")
             is_classification = not pd.api.types.is_numeric_dtype(df[target_col]) or df[target_col].nunique() <= 10
-            st.caption(f"Inferred Execution: **{'Classification (f_classif)' if is_classification else 'Regression (f_regression)'}}**")
+            st.caption(f"Inferred Execution: **{'Classification (f_classif)' if is_classification else 'Regression (f_regression)'}**")
 
             features_pool = [c for c in numeric_cols if c != target_col]
             if not features_pool:
@@ -513,7 +513,7 @@ def render_feature_engineering_tab(df):
                     st.markdown("#### 📊 Feature Significance Scores")
                     st.bar_chart(scores)
                     top_feats = scores.head(k_val).index.tolist()
-                    st.success(f"✅ Top {k_val}} Optimal Features: {', '.join(top_feats)}}")
+                    st.success(f"✅ Top {k_val} Optimal Features: {', '.join(top_feats)}")
         else:
             st.info("Dataset requires a minimum of 3 features for selection scanning.")
 
@@ -556,11 +556,11 @@ def _mission_executive_report(df: pd.DataFrame) -> str:
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     lines = [
         "# AUTOMATED EXECUTIVE DATA REPORT",
-        f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}}",
+        f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}",
         "",
-        f"- Total Samples: {df.shape[0]:,}} | Total Columns: {df.shape[1]}}",
-        f"- Missing Values: {int(df.isnull().sum().sum()):,}}",
-        f"- Duplicate Records: {int(df.duplicated().sum()):,}}",
+        f"- Total Samples: {df.shape[0]:,} | Total Columns: {df.shape[1]}",
+        f"- Missing Values: {int(df.isnull().sum().sum()):,}",
+        f"- Duplicate Records: {int(df.duplicated().sum()):,}",
     ]
     if numeric_cols:
         lines.append("\n## Numeric Distribution Overview")
@@ -571,7 +571,7 @@ def _mission_executive_report(df: pd.DataFrame) -> str:
             stacked = upper.stack()
             if not stacked.empty:
                 top_pair = stacked.idxmax()
-                lines.append(f"\n## Top Collinear Feature Pair\n`{top_pair[0]}}` ↔ `{top_pair[1]}}`: r = {stacked.max():.3f}}")
+                lines.append(f"\n## Top Collinear Feature Pair\n`{top_pair[0]}` ↔ `{top_pair[1]}`: r = {stacked.max():.3f}")
     return "\n".join(lines)
 
 def render_agents_tab():
@@ -590,7 +590,7 @@ def render_agents_tab():
     ], key="agent_mission")
 
     if st.button("🚀 Execute Mission", type="primary", key="deploy_agent"):
-        with st.spinner(f"Executing: {mission}}..."):
+        with st.spinner(f"Executing: {mission}..."):
             if mission == "Outlier Detection & IQR Sweep":
                 result = _mission_outlier_sweep(df)
                 if result.empty:

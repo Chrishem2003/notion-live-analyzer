@@ -51,7 +51,7 @@ class SandboxTimeout(Exception):
 @contextlib.contextmanager
 def _time_limit(seconds: int):
     def _handler(signum, frame):
-        raise SandboxTimeout(f"Execution exceeded {seconds}}s limit.")
+        raise SandboxTimeout(f"Execution exceeded {seconds}s limit.")
     old_handler = signal.signal(signal.SIGALRM, _handler)
     signal.alarm(seconds)
     try:
@@ -110,9 +110,9 @@ def _request_llm_fix(code: str, error: str, df_schema: dict) -> str | None:
         client = genai.Client(api_key=api_key)
         prompt = (
             "The following pandas code failed. Fix it. The DataFrame `df` has "
-            f"columns and dtypes: {df_schema}}\n\n"
-            f"Code:\n```python\n{code}}\n```\n\n"
-            f"Error:\n{error}}\n\n"
+            f"columns and dtypes: {df_schema}\n\n"
+            f"Code:\n```python\n{code}\n```\n\n"
+            f"Error:\n{error}\n\n"
             "Return ONLY the corrected Python code (no explanation, no markdown fences). "
             "The code must assign its final output to a variable named `result`. "
             "Do not use imports, file I/O, network calls, or any builtin beyond basic "
@@ -146,10 +146,10 @@ def execute_with_self_correction(code: str, df: pd.DataFrame, max_retries: int =
                 final_code=current_code,
                 attempts=attempts,
                 auto_correction_used=attempt_num > 1,
-                message=f"Succeeded on attempt {attempt_num}}" + (" after self-correction." if attempt_num > 1 else "."),
+                message=f"Succeeded on attempt {attempt_num}" + (" after self-correction." if attempt_num > 1 else "."),
             )
         except Exception as e:
-            error_text = f"{type(e).__name__}}: {e}}\n{traceback.format_exc(limit=3)}}"
+            error_text = f"{type(e).__name__}: {e}\n{traceback.format_exc(limit=3)}"
             attempts.append(CorrectionAttempt(attempt_num, current_code, succeeded=False, error=error_text))
 
             if attempt_num > max_retries:
@@ -174,5 +174,5 @@ def execute_with_self_correction(code: str, df: pd.DataFrame, max_retries: int =
         success=False,
         attempts=attempts,
         auto_correction_used=True,
-        message=f"Failed after {len(attempts)}} attempts (original + {max_retries}} LLM-suggested corrections).",
+        message=f"Failed after {len(attempts)} attempts (original + {max_retries} LLM-suggested corrections).",
     )

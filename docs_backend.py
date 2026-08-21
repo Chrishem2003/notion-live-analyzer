@@ -109,7 +109,7 @@ class DocsRealtime:
         self.redis = redis_client
 
     def _channel(self, doc_id: str) -> str:
-        return f"docs:room:{doc_id}}"
+        return f"docs:room:{doc_id}"
 
     async def publish_update(self, doc_id: str, update_b64: str):
         await self.redis.publish(self._channel(doc_id), update_b64)

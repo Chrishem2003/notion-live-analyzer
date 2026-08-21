@@ -17,7 +17,7 @@ def health_check():
 def get_system_logs(limit: int = 50):
     try:
         conn = sqlite3.connect("chrishem_engine.db")
-        df = pd.read_sql_query(f"SELECT * FROM system_logs ORDER BY id DESC LIMIT {limit}}", conn)
+        df = pd.read_sql_query(f"SELECT * FROM system_logs ORDER BY id DESC LIMIT {limit}", conn)
         conn.close()
         return df.to_dict(orient="records")
     except Exception as e:
