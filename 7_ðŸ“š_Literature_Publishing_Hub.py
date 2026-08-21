@@ -223,13 +223,13 @@ def render_literature_search():
             if st.button("📋 Generate Production BibTeX", key="gen_bibtex_prod"):
                 ref = next(r for r in refs if r["citation_key"] == selected_key)
                 bibtex_str = f"""@{ref['entry_type']}{{{escape_bibtex(ref['citation_key'])},
-  author = {{{escape_bibtex(ref['authors'])}},
-  title = {{{escape_bibtex(ref['title'])}},
-  journal = {{{escape_bibtex(ref['journal'] or 'Unknown')}},
-  volume = {{{escape_bibtex(ref['volume'] or 'n/a')}},
-  pages = {{{escape_bibtex(ref['pages'] or 'n/a')}},
-  year = {{{escape_bibtex(ref['year'] or 'n/a')}},
-  doi = {{{escape_bibtex(ref['doi'] or 'n/a')}}
+  author = {{{escape_bibtex(ref['authors'])},
+  title = {{{escape_bibtex(ref['title'])},
+  journal = {{{escape_bibtex(ref['journal'] or 'Unknown')},
+  volume = {{{escape_bibtex(ref['volume'] or 'n/a')},
+  pages = {{{escape_bibtex(ref['pages'] or 'n/a')},
+  year = {{{escape_bibtex(ref['year'] or 'n/a')},
+  doi = {{{escape_bibtex(ref['doi'] or 'n/a')}
 }"""
                 st.code(bibtex_str, language="bibtex")
                 st.download_button("â¬‡ï¸ Download .bib File", data=bibtex_str, file_name=f"{ref['citation_key']}.bib", mime="text/plain", key="dl_bibtex_prod")

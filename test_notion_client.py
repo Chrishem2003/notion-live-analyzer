@@ -298,7 +298,7 @@ class TestGetDatabaseOptions:
 
 class TestGetDatabaseSchema:
     def test_returns_properties(self, monkeypatch):
-        payload = {"properties": {"Name": {"type": "title"}}
+        payload = {"properties": {"Name": {"type": "title"}
         monkeypatch.setattr(nc, "_rate_limited_request", lambda *a, **k: FakeResponse(200, payload))
         assert nc.get_database_schema("tok", "db1", force_refresh=True) == payload["properties"]
 
@@ -429,14 +429,14 @@ class TestFetchNotionData:
         assert df.loc[0, "Tags"] is None
 
     def test_unknown_property_type_is_stringified(self, monkeypatch):
-        schema = {"properties": {"Weird": {"type": "not_a_real_type"}}
+        schema = {"properties": {"Weird": {"type": "not_a_real_type"}
 
         def fake_request(method, url, **kwargs):
             if method == "GET":
                 return FakeResponse(200, schema)
             return FakeResponse(
                 200,
-                {"results": [{"id": "p1", "properties": {"Weird": {"x": 1}}], "has_more": False},
+                {"results": [{"id": "p1", "properties": {"Weird": {"x": 1}], "has_more": False},
             )
 
         monkeypatch.setattr(nc, "_rate_limited_request", fake_request)
@@ -444,7 +444,7 @@ class TestFetchNotionData:
         assert df.loc[0, "Weird"] == "{'x': 1}"
 
     def test_numeric_strings_are_coerced(self, monkeypatch):
-        schema = {"properties": {"Score": {"type": "rich_text"}}
+        schema = {"properties": {"Score": {"type": "rich_text"}
 
         def fake_request(method, url, **kwargs):
             if method == "GET":
@@ -453,7 +453,7 @@ class TestFetchNotionData:
                 200,
                 {
                     "results": [
-                        {"id": f"p{i}", "properties": {"Score": {"rich_text": [{"plain_text": str(i)}]}}
+                        {"id": f"p{i}", "properties": {"Score": {"rich_text": [{"plain_text": str(i)}]}
                         for i in range(3)
                     ],
                     "has_more": False,

@@ -5,7 +5,7 @@ _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-🌍 Global Mission Control � Sovereign Enterprise Command Center (Fully Production Real)
+🌍 Global Mission Control  Sovereign Enterprise Command Center (Fully Production Real)
 Live global health surveillance, real weather & climate telemetry (Open-Meteo), an impact
 scorecard, a problem-solver registry, and validated operational session telemetry.
 Cleaned of fake marketing metrics and unverified placeholders.
@@ -41,16 +41,16 @@ def render_health_tab():
         with st.spinner("Querying international epidemiological telemetry feeds..."):
             result = fetch_global_health_hotspots()
 
-        st.info(f"Feed Source: **{result.get('source', 'Global Health Registry')}}** | Last Synchronized: `{result.get('as_of', datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d'))}}`")
+        st.info(f"Feed Source: **{result.get('source', 'Global Health Registry')}** | Last Synchronized: `{result.get('as_of', datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d'))}`")
 
         total_cases = result.get('total_global_cases', 0)
         c1, c2, c3 = st.columns(3)
-        c1.metric("Total Global Tracked Cases", f"{total_cases:,}}")
+        c1.metric("Total Global Tracked Cases", f"{total_cases:,}")
         c2.metric("Active Hotspot Regions", len(result.get("hotspots", [])))
         c3.metric("Surveillance Status", "ONLINE")
 
         if result.get("error"):
-            st.warning(f"⚠️ Live API Notice: {result['error']}} � displaying fallback telemetry cache.")
+            st.warning(f"⚠️ Live API Notice: {result['error']}  displaying fallback telemetry cache.")
 
         hotspots = result.get("hotspots", [])
         if hotspots:
@@ -80,19 +80,19 @@ def render_weather_tab():
         lon = st.number_input("Target Longitude", value=32.5825, format="%.4f", key="mc_lon_upg")
 
     if st.button("🌤️ Execute Meteorological Query", key="mc_weather_fetch_upg", type="primary"):
-        with st.spinner(f"Querying Open-Meteo satellite grid for coordinates [{lat}}, {lon}}]..."):
+        with st.spinner(f"Querying Open-Meteo satellite grid for coordinates [{lat}, {lon}]..."):
             result = fetch_weather_telemetry(lat, lon, daily=True)
 
         if result.get("error"):
-            st.warning(f"⚠️ Live Meteorological API Notice: {result['error']}}")
+            st.warning(f"⚠️ Live Meteorological API Notice: {result['error']}")
         else:
-            st.info(f"Source Feed: **{result.get('source', 'Open-Meteo')}}** | Assigned Timezone: `{result.get('timezone', 'UTC')}}`")
+            st.info(f"Source Feed: **{result.get('source', 'Open-Meteo')}** | Assigned Timezone: `{result.get('timezone', 'UTC')}`")
 
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Current Temperature", f"{result.get('temperature_c', 0)}} °C")
-            c2.metric("Wind Speed", f"{result.get('windspeed_kmh', 0)}} km/h")
-            c3.metric("Wind Direction", f"{result.get('wind_direction', 0)}}°")
-            c4.metric("Coordinates", f"{lat}}, {lon}}")
+            c1.metric("Current Temperature", f"{result.get('temperature_c', 0)} °C")
+            c2.metric("Wind Speed", f"{result.get('windspeed_kmh', 0)} km/h")
+            c3.metric("Wind Direction", f"{result.get('wind_direction', 0)}°")
+            c4.metric("Coordinates", f"{lat}, {lon}")
 
             forecast = result.get("forecast")
             if forecast:
@@ -104,7 +104,7 @@ def render_weather_tab():
                     "Precipitation Sum (mm)": forecast.get("precipitation_sum", []),
                 })
                 st.dataframe(df_fc, use_container_width=True, hide_index=True)
-                render_export_buttons(df_fc, base_name=f"weather_forecast_{lat}}_{lon}}")
+                render_export_buttons(df_fc, base_name=f"weather_forecast_{lat}_{lon}")
 
                 if PLOTLY_AVAILABLE:
                     fig = go.Figure()
@@ -126,8 +126,8 @@ def render_impact_tab():
     st.progress(overall_progress / 100)
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Total Data Pipelines Processed", f"{scorecard.get('total_problems_solved', 0):,}}")
-    c2.metric("System Completion Index", f"{overall_progress}}%")
+    c1.metric("Total Data Pipelines Processed", f"{scorecard.get('total_problems_solved', 0):,}")
+    c2.metric("System Completion Index", f"{overall_progress}%")
     c3.metric("Active Work Modules", len(scorecard.get("sectors", [])))
 
     st.markdown("#### 🌐 Sector Breakdown & Performance Metrics")
@@ -146,7 +146,7 @@ def render_impact_tab():
                 """,
                 unsafe_allow_html=True,
             )
-    st.caption(f"Scorecard Synchronization Timestamp: {scorecard.get('as_of', datetime.datetime.now(datetime.UTC).isoformat())}}")
+    st.caption(f"Scorecard Synchronization Timestamp: {scorecard.get('as_of', datetime.datetime.now(datetime.UTC).isoformat())}")
 
 
 def render_problems_tab():
@@ -154,10 +154,10 @@ def render_problems_tab():
 
     registry = get_problem_solver_registry()
     for i, item in enumerate(registry):
-        with st.expander(f"?? Task Workflow: {item.get('problem', 'Challenge')}}", expanded=(i == 0)):
-            st.markdown(f"**🛠️ Implemented Solution:** {item.get('solution', 'N/A')}}")
+        with st.expander(f"?? Task Workflow: {item.get('problem', 'Challenge')}", expanded=(i == 0)):
+            st.markdown(f"**🛠️ Implemented Solution:** {item.get('solution', 'N/A')}")
             st.markdown("**🔧 Active Toolchain:** " + ", ".join(item.get("tools", [])))
-            st.success(f"**🎯 Validated Outcome:** {item.get('impact', 'Optimized resolution')}}")
+            st.success(f"**🎯 Validated Outcome:** {item.get('impact', 'Optimized resolution')}")
 
 
 def render_telemetry_tab():
@@ -197,7 +197,7 @@ def main():
     render_accent_color_css()
 
     hero_card(
-        "🌍 Global Mission Control � Sovereign Enterprise Command Center (Real)",
+        "🌍 Global Mission Control  Sovereign Enterprise Command Center (Real)",
         "The operational command center featuring live global health surveillance, real Open-Meteo climate telemetry, verified workload scorecards, workflow registries, and platform execution telemetry.",
         badge_text="GLOBAL MISSION CONTROL • PRODUCTION SUITE",
     )

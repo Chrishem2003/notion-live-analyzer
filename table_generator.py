@@ -195,8 +195,8 @@ class TableGenerator:
         lines = [
             r"\begin{table}[htbp]",
             r"\centering",
-            rf"\caption{{{caption}}",
-            rf"\label{{{label}}",
+            rf"\caption{{{caption}",
+            rf"\label{{{label}",
             r"\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "}",
             r"\toprule",
             " & ".join(df.columns) + r" \\",

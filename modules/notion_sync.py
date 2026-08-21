@@ -81,13 +81,13 @@ class NotionSyncEngine:
             except (ValueError, TypeError):
                 return {"error": f"Cannot convert '{value}' to number"}
         elif ptype == "select":
-            return {name: {"select": {"name": str(value)}}
+            return {name: {"select": {"name": str(value)}
         elif ptype == "status":
-            return {name: {"status": {"name": str(value)}}
+            return {name: {"status": {"name": str(value)}
         elif ptype == "checkbox":
             return {name: {"checkbox": bool(value)}
         elif ptype == "date":
-            return {name: {"date": {"start": str(value)}}
+            return {name: {"date": {"start": str(value)}
         elif ptype == "email":
             return {name: {"email": str(value)}
         elif ptype == "phone":

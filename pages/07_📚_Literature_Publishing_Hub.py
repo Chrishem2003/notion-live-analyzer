@@ -320,11 +320,11 @@ def render_literature_search():
                     bibtex_str = f"""@{ref['entry_type']}{{{escape_bibtex(ref['citation_key'])},
   author = {{{escape_bibtex(ref['authors'])},
   title = {{{escape_bibtex(ref['title'])},
-  journal = {{{escape_bibtex(ref.get('journal') or 'Unknown')}},
-  volume = {{{escape_bibtex(ref.get('volume') or 'n/a')}},
-  pages = {{{escape_bibtex(ref.get('pages') or 'n/a')}},
-  year = {{{escape_bibtex(ref.get('year') or 'n/a')}},
-  doi = {{{escape_bibtex(ref.get('doi') or 'n/a')}}
+  journal = {{{escape_bibtex(ref.get('journal') or 'Unknown')},
+  volume = {{{escape_bibtex(ref.get('volume') or 'n/a')},
+  pages = {{{escape_bibtex(ref.get('pages') or 'n/a')},
+  year = {{{escape_bibtex(ref.get('year') or 'n/a')},
+  doi = {{{escape_bibtex(ref.get('doi') or 'n/a')}
 }"""
                     st.code(bibtex_str, language="bibtex")
 

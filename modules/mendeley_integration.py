@@ -307,17 +307,17 @@ def export_bibtex(refs: Optional[List[Dict[str, Any]]] = None) -> str:
     for i, r in enumerate(refs, 1):
         key = _cite_key(r, i)
         lines.append(f"@article{{{key},")
-        lines.append(f"  title = {{{r.get('title', '')}},")
+        lines.append(f"  title = {{{r.get('title', '')},")
         if r.get("authors"):
-            lines.append(f"  author = {{{_bibtex_authors(r['authors'])}},")
+            lines.append(f"  author = {{{_bibtex_authors(r['authors'])},")
         if r.get("year"):
-            lines.append(f"  year = {{{r['year']}},")
+            lines.append(f"  year = {{{r['year']},")
         if r.get("journal"):
-            lines.append(f"  journal = {{{r['journal']}},")
+            lines.append(f"  journal = {{{r['journal']},")
         if r.get("doi"):
-            lines.append(f"  doi = {{{r['doi']}},")
+            lines.append(f"  doi = {{{r['doi']},")
         if r.get("url"):
-            lines.append(f"  url = {{{r['url']}},")
+            lines.append(f"  url = {{{r['url']},")
         lines.append("}")
         lines.append("")
     return "\n".join(lines)

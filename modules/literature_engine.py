@@ -943,18 +943,18 @@ class ReferenceFormatter:
             journal = paper.get("journal", "")
             url = paper.get("url", "")
 
-            bib = [f"@article{{{cite_key},", f"  title = {{{title}},"]
+            bib = [f"@article{{{cite_key},", f"  title = {{{title},"]
             if authors:
                 bib_authors = self._authors_to_bibtex(authors)
-                bib.append(f"  author = {{{bib_authors}},")
+                bib.append(f"  author = {{{bib_authors},")
             if year:
-                bib.append(f"  year = {{{year}},")
+                bib.append(f"  year = {{{year},")
             if journal:
-                bib.append(f"  journal = {{{journal}},")
+                bib.append(f"  journal = {{{journal},")
             if doi:
-                bib.append(f"  doi = {{{doi}},")
+                bib.append(f"  doi = {{{doi},")
             if url:
-                bib.append(f"  url = {{{url}},")
+                bib.append(f"  url = {{{url},")
             bib.append("}")
             lines.append("\n".join(bib))
             lines.append("")

@@ -160,7 +160,7 @@ def student_humanizer_engine(text: str) -> dict:
     for i, s in enumerate(sentences):
         words = s.split()
         if i % 2 == 0 and len(words) > 4:
-            s_mod = f"Furthermore, {s[0].lower()}}{s[1:]}}" if not s.lower().startswith("furthermore") else s
+            s_mod = f"Furthermore, {s[0].lower()}{s[1:]}" if not s.lower().startswith("furthermore") else s
         else:
             s_mod = s
         rewritten.append(s_mod)
@@ -207,10 +207,10 @@ def _nexus_conn():
 
     def ensure_column(table_name, column_name, column_type):
         try:
-            c.execute(f"PRAGMA table_info({table_name}})")
+            c.execute(f"PRAGMA table_info({table_name})")
             columns = [col[1] for col in c.fetchall()]
             if column_name not in columns:
-                c.execute(f"ALTER TABLE {table_name}} ADD COLUMN {column_name}} {column_type}}")
+                c.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}")
                 conn.commit()
         except Exception:
             pass
@@ -243,7 +243,7 @@ def log_admin_action(conn, module_name: str, severity: str, details: str):
     row = cursor.fetchone()
     prev_hash = row[0] if row and row[0] else GENESIS_HASH
     ts = datetime.datetime.now(datetime.UTC).isoformat()
-    payload = f"{prev_hash}}|{ts}}|{module_name}}|{severity}}|{details}}".encode("utf-8")
+    payload = f"{prev_hash}|{ts}|{module_name}|{severity}|{details}".encode("utf-8")
     new_hash = hashlib.sha256(payload).hexdigest()
     cursor.execute(
         "INSERT INTO system_telemetry_logs (timestamp, module_name, severity, details, crypto_hash, prev_hash) VALUES (?,?,?,?,?,?)",
@@ -299,8 +299,8 @@ class NexusMeet:
     @staticmethod
     def schedule(title, dt_iso, duration_min, attendees, agenda, host):
         conn = _nexus_conn()
-        meeting_id = hashlib.sha256(f"{title}}{dt_iso}}{host}}".encode()).hexdigest()[:10]
-        link = f"https://meet.nexus.internal/{meeting_id}}"
+        meeting_id = hashlib.sha256(f"{title}{dt_iso}{host}".encode()).hexdigest()[:10]
+        link = f"https://meet.nexus.internal/{meeting_id}"
         transcript = "Automated AI Transcript: Meeting commenced with participants reviewing project milestones. Key blockers identified in database latency."
         action_items = "- Review system telemetry logs\n- Finalize academic integrity benchmarks\n- Deploy update to production"
         conn.execute(
@@ -348,14 +348,14 @@ class NexusSheets:
         p = prompt.lower()
         nums = [float(x) for x in re.findall(r"[-+]?\d*\.\d+|\d+", prompt)]
         if "total" in p or "sum" in p:
-            return f"=SUM({', '.join(map(str, nums))}}) -> Result: {sum(nums)}}" if nums else "=SUM() -> Please provide valid numerical inputs."
+            return f"=SUM({', '.join(map(str, nums))}) -> Result: {sum(nums)}" if nums else "=SUM() -> Please provide valid numerical inputs."
         elif "average" in p or "mean" in p:
-            return f"=AVERAGE({', '.join(map(str, nums))}}) -> Result: {sum(nums)/len(nums):.2f}}" if nums else "=AVERAGE() -> Please provide valid numerical inputs."
+            return f"=AVERAGE({', '.join(map(str, nums))}) -> Result: {sum(nums)/len(nums):.2f}" if nums else "=AVERAGE() -> Please provide valid numerical inputs."
         elif "max" in p or "highest" in p:
-            return f"=MAX({', '.join(map(str, nums))}}) -> Result: {max(nums)}}" if nums else "=MAX() -> Please provide valid numerical inputs."
+            return f"=MAX({', '.join(map(str, nums))}) -> Result: {max(nums)}" if nums else "=MAX() -> Please provide valid numerical inputs."
         elif "min" in p or "lowest" in p:
-            return f"=MIN({', '.join(map(str, nums))}}) -> Result: {min(nums)}}" if nums else "=MIN() -> Please provide valid numerical inputs."
-        return f"#COPILOT_SYNTAX_ERROR: Unable to interpret query '{prompt}}'. Try asking for SUM, AVERAGE, MAX, or MIN."
+            return f"=MIN({', '.join(map(str, nums))}) -> Result: {min(nums)}" if nums else "=MIN() -> Please provide valid numerical inputs."
+        return f"#COPILOT_SYNTAX_ERROR: Unable to interpret query '{prompt}'. Try asking for SUM, AVERAGE, MAX, or MIN."
 
 
 class NexusSlides:
@@ -447,10 +447,10 @@ def render_system_diagnostics(conn):
     thread_count = threading.active_count()
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Process Uptime", f"{int(uptime.total_seconds() // 3600)}}h {int((uptime.total_seconds() % 3600) // 60)}}m")
-    c2.metric("Database Health", "Connected", delta=f"{db_latency_ms:.2f}}ms")
-    c3.metric("Memory Utilization", f"{mem_percent:.1f}}%" if mem_percent is not None else "N/A")
-    c4.metric("Active Threads", f"{thread_count}}")
+    c1.metric("Process Uptime", f"{int(uptime.total_seconds() // 3600)}h {int((uptime.total_seconds() % 3600) // 60)}m")
+    c2.metric("Database Health", "Connected", delta=f"{db_latency_ms:.2f}ms")
+    c3.metric("Memory Utilization", f"{mem_percent:.1f}%" if mem_percent is not None else "N/A")
+    c4.metric("Active Threads", f"{thread_count}")
 
     st.markdown("#### Immutable Blockchain-Style Tamper-Evident Ledger")
     cursor = conn.cursor()
@@ -494,7 +494,7 @@ def render_user_management(conn):
         else:
             st.info("?? No registered accounts detected.")
     except Exception as e:
-        st.info(f"?? User directory repository initializing: {e}}")
+        st.info(f"?? User directory repository initializing: {e}")
 
 
 def render_billing(conn):
@@ -516,7 +516,7 @@ def render_billing(conn):
         else:
             st.info("?? No subscription records found.")
     except Exception as e:
-        st.info(f"?? Subscription database schema syncing: {e}}")
+        st.info(f"?? Subscription database schema syncing: {e}")
 
 
 def render_verification_queue():
@@ -574,8 +574,8 @@ def render_audit_forensics():
         
         col_st1, col_st2, col_st3 = st.columns(3)
         col_st1.metric("Total Tracked Submissions", len(tracks_df))
-        col_st2.metric("Average AI Score", f"{tracks_df['ai_score'].mean():.1f}}%")
-        col_st3.metric("High AI Flag Rate (>50%)", f"{(tracks_df['ai_score'] > 50).mean() * 100:.1f}}%")
+        col_st2.metric("Average AI Score", f"{tracks_df['ai_score'].mean():.1f}%")
+        col_st3.metric("High AI Flag Rate (>50%)", f"{(tracks_df['ai_score'] > 50).mean() * 100:.1f}%")
 
         if PLOTLY_AVAILABLE and not tracks_df.empty:
             st.markdown("#### ?? Student AI Score Distribution & Trace Charts")
@@ -604,9 +604,9 @@ def render_audit_forensics():
                 analysis = advanced_ai_detector(eval_text)
                 
             col_m1, col_m2, col_m3 = st.columns(3)
-            col_m1.metric("AI Content Probability", f"{analysis['ai_probability']}}%", delta_color="inverse" if analysis['ai_probability'] > 50 else "normal", delta=f"{analysis['verdict']}}")
-            col_m2.metric("Human Authorship Index", f"{analysis['human_probability']}}%")
-            col_m3.metric("Stylometric TTR", f"{analysis['ttr']}}")
+            col_m1.metric("AI Content Probability", f"{analysis['ai_probability']}%", delta_color="inverse" if analysis['ai_probability'] > 50 else "normal", delta=f"{analysis['verdict']}")
+            col_m2.metric("Human Authorship Index", f"{analysis['human_probability']}%")
+            col_m3.metric("Stylometric TTR", f"{analysis['ttr']}")
             
             st.markdown("---")
             st.markdown("#### ?? Interactive Sentence-Level Heatmap Viewer")
@@ -616,7 +616,7 @@ def render_audit_forensics():
             for item in analysis["sentence_analyses"]:
                 bg_color = "rgba(239, 68, 68, 0.3)" if item["score"] > 50 else "rgba(16, 185, 129, 0.3)"
                 border_color = "#ef4444" if item["score"] > 50 else "#10b981"
-                heatmap_html += f"<span style='background: {bg_color}}; border-left: 3px solid {border_color}}; padding: 4px 8px; margin: 3px; display: inline-block; border-radius: 4px;' title='AI Score: {item['score']}}% ({item['classification']}})'>{item['sentence']}}</span> "
+                heatmap_html += f"<span style='background: {bg_color}; border-left: 3px solid {border_color}; padding: 4px 8px; margin: 3px; display: inline-block; border-radius: 4px;' title='AI Score: {item['score']}% ({item['classification']})'>{item['sentence']}</span> "
             heatmap_html += "</div>"
             st.markdown(heatmap_html, unsafe_allow_html=True)
             
@@ -638,7 +638,7 @@ Stylometric TTR: {analysis['ttr']}
             st.download_button(
                 label="?? Download Official Audit Certificate (TXT)",
                 data=report_payload,
-                file_name=f"Aidify_Audit_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}}.txt",
+                file_name=f"Aidify_Audit_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 mime="text/plain"
             )
 
@@ -652,15 +652,15 @@ Stylometric TTR: {analysis['ttr']}
         with col_s1:
             if st.button("??? Run Pre-Check AI Scan", type="primary"):
                 res_check = advanced_ai_detector(student_draft)
-                st.metric("Estimated AI Score", f"{res_check['ai_probability']}}%")
-                st.info(f"Verdict: {res_check['verdict']}}")
+                st.metric("Estimated AI Score", f"{res_check['ai_probability']}%")
+                st.info(f"Verdict: {res_check['verdict']}")
                 
         with col_s2:
             if st.button("? Humanize & Secure Draft"):
                 res_human = student_humanizer_engine(student_draft)
                 st.success("? Draft successfully optimized!")
                 st.text_area("Humanized & Secured Output", value=res_human["humanized_text"], height=120)
-                st.markdown(f"*{res_human['security_badge']}}*")
+                st.markdown(f"*{res_human['security_badge']}*")
                 st.download_button(
                     label="?? Download Secured Draft",
                     data=res_human["humanized_text"],
@@ -683,14 +683,14 @@ def render_nexus_vault():
     
     # 1. Google Drive
     with n_tabs[0]:
-        st.markdown("### ?? Nexus Drive — Cloud Storage & Vault")
+        st.markdown("### ?? Nexus Drive  Cloud Storage & Vault")
         uploaded = st.file_uploader("Upload file to cloud storage", key="nexus_drive_up")
         c_cat = st.selectbox("File Category", ["Documents", "Research Data", "Media", "Backups"], key="drive_cat")
         c_notes = st.text_input("File Description / Notes", key="drive_notes")
         
         if uploaded:
             NexusDrive.store_file(uploaded.name, uploaded.getvalue(), c_cat, c_notes, user_email)
-            st.success(f"? Successfully uploaded **{uploaded.name}}** to your secure Drive.")
+            st.success(f"? Successfully uploaded **{uploaded.name}** to your secure Drive.")
             
         files = NexusDrive.list_files(user_email)
         if files:
@@ -734,16 +734,16 @@ def render_nexus_vault():
             if st.button("Create Secure Meet Link & Initialize AI Transcription"):
                 att_list = [x.strip() for x in m_attendees.split(",") if x.strip()]
                 meet_res = NexusMeet.schedule(m_title, m_dt, int(m_dur), att_list, m_agenda, user_email)
-                st.success(f"? Meeting Scheduled! Secure URL: `{meet_res['meeting_link']}}`")
+                st.success(f"? Meeting Scheduled! Secure URL: `{meet_res['meeting_link']}`")
                 
             st.markdown("#### Past Meetings & Automated Transcripts")
             meetings = NexusMeet.list_meetings(user_email)
             if meetings:
                 for m in meetings:
-                    with st.expander(f"?? {m['title']}} ({m['meeting_dt']}})"):
-                        st.markdown(f"**Meet Link:** `{m['meeting_link']}}`")
-                        st.markdown(f"**Transcript:** {m['transcript']}}")
-                        st.markdown(f"**Action Items:**\n{m['action_items']}}")
+                    with st.expander(f"?? {m['title']} ({m['meeting_dt']})"):
+                        st.markdown(f"**Meet Link:** `{m['meeting_link']}`")
+                        st.markdown(f"**Transcript:** {m['transcript']}")
+                        st.markdown(f"**Action Items:**\n{m['action_items']}")
             else:
                 st.info("No recorded meetings found.")
                 
@@ -821,7 +821,7 @@ def render_nexus_vault():
         if st.button("Create Presentation Deck"):
             slides_list = slide_content.split("\n")
             NexusSlides.create(slide_title, slides_list, user_email)
-            st.success(f"? Presentation '{slide_title}}' created with {len(slides_list)}} slides.")
+            st.success(f"? Presentation '{slide_title}' created with {len(slides_list)} slides.")
             
     # 7. Google Contacts
     with n_tabs[6]:
@@ -856,7 +856,7 @@ def render_nexus_vault():
             complete_id = st.number_input("Task ID to complete", min_value=0, step=1, key="task_complete_id")
             if st.button("Mark Task Completed"):
                 NexusTasks.update_status(int(complete_id), "DONE")
-                st.success(f"? Task #{complete_id}} marked as DONE.")
+                st.success(f"? Task #{complete_id} marked as DONE.")
                 st.rerun()
         else:
             st.info("No open tasks pending.")
@@ -906,7 +906,7 @@ def main():
     with tabs[6]: render_nexus_vault()
     with tabs[7]: render_settings()
     
-    render_standard_footer("ADMIN & SECURITY CENTER — SOVEREIGN EDITION V4.3")
+    render_standard_footer("ADMIN & SECURITY CENTER  SOVEREIGN EDITION V4.3")
 
 if __name__ == "__main__":
     main()
