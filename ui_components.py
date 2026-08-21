@@ -103,7 +103,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         sidebar_bg = "linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(241, 245, 249, 0.92))"
 
     st.markdown(
-        f"""
+        """
         <style>
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
@@ -737,6 +737,7 @@ def render_onboarding_tour():
             if st.button("âœ… Got it! Hide this tour"):
                 st.session_state["show_onboarding"] = False
                 st.rerun()
+
 
 
 

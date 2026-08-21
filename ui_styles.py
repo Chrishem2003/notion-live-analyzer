@@ -1,4 +1,4 @@
-
+﻿
 """UI Styles  Design System & CSS Ingestion Engine."""
 import streamlit as st
 
@@ -16,7 +16,7 @@ def apply_custom_styles():
     border_color = "#334155" if is_dark else "#e2e8f0"
     accent = "#3b82f6"
     
-    css = f"""
+    css = """
     <style>
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
@@ -150,3 +150,4 @@ def apply_custom_styles():
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
+
