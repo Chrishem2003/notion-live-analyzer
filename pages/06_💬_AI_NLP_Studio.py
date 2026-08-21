@@ -31,14 +31,7 @@ try:
         GradientBoostingRegressor,
     )
     from sklearn.linear_model import LogisticRegression, Ridge
-    from sklearn.metrics import (
-        accuracy_score, 
-        r2_score, 
-        mean_squared_error, 
-        roc_auc_score, 
-        confusion_matrix, 
-        classification_report
-    )
+    from sklearn.metrics import accuracy_score, r2_score, mean_squared_error, roc_auc_score
     from sklearn.feature_selection import SelectKBest, f_classif, f_regression
     SKLEARN_AVAILABLE = True
 except ImportError:
@@ -68,6 +61,9 @@ def section_header(title, subtitle):
     st.markdown(f"### {title}")
     st.markdown(f"*{subtitle}*")
 
+def render_dataset_context_banner():
+    pass
+
 def render_export_buttons(df_export, base_name="data_export"):
     csv = df_export.to_csv(index=False).encode("utf-8")
     st.download_button("📥 Download Export (CSV)", data=csv, file_name=f"{base_name}.csv", mime="text/csv")
@@ -86,21 +82,17 @@ PARAM_GRIDS = {
     "Ridge Regression": {"alpha": [0.1, 1.0, 10.0]},
 }
 
-@st.cache_data
-def load_synthetic_dataset():
-    np.random.seed(42)
-    return pd.DataFrame({
-        "Feature_A": np.random.normal(12.5, 2.1, 200),
-        "Feature_B": np.random.normal(8.3, 1.4, 200),
-        "Feature_C": np.random.uniform(0.1, 5.0, 200),
-        "Category_X": np.random.choice(["Type 1", "Type 2", "Type 3"], 200),
-        "Target": np.random.choice([0, 1], p=[0.4, 0.6], size=200),
-    })
-
 def get_df():
     df = get_active_dataframe()
     if df is None:
-        df = load_synthetic_dataset()
+        np.random.seed(42)
+        df = pd.DataFrame({
+            "Feature_A": np.random.normal(12.5, 2.1, 200),
+            "Feature_B": np.random.normal(8.3, 1.4, 200),
+            "Feature_C": np.random.uniform(0.1, 5.0, 200),
+            "Category_X": np.random.choice(["Type 1", "Type 2", "Type 3"], 200),
+            "Target": np.random.choice([0, 1], p=[0.4, 0.6], size=200),
+        })
         set_active_dataframe(df, "synthetic_default.csv")
     return df
 
@@ -130,29 +122,6 @@ def _deserialize_pipeline(raw_bytes: bytes) -> dict:
     if JOBLIB_AVAILABLE:
         return joblib.load(buf)
     return pickle.load(buf)
-
-def render_sidebar():
-    st.sidebar.markdown("## 🎛️ Studio Controls")
-    st.sidebar.markdown("Manage your active dataset workspace.")
-    
-    uploaded_file = st.sidebar.file_uploader("📂 Upload Custom Dataset (CSV)", type=["csv"], key="sidebar_csv_upload")
-    if uploaded_file is not None:
-        try:
-            custom_df = pd.read_csv(uploaded_file)
-            set_active_dataframe(custom_df, uploaded_file.name)
-            st.sidebar.success(f"✅ Loaded: `{uploaded_file.name}` ({custom_df.shape[0]} rows)")
-        except Exception as e:
-            st.sidebar.error(f"Error loading file: {e}")
-
-    df = get_active_dataframe()
-    if df is not None:
-        st.sidebar.markdown("---")
-        st.sidebar.markdown(f"**Active Source:** `{st.session_state.get('source_name', 'dataset.csv')}`")
-        st.sidebar.markdown(f"**Shape:** {df.shape[0]:,} rows × {df.shape[1]} cols")
-        if st.sidebar.button("🔄 Reset to Synthetic Baseline", key="reset_synthetic"):
-            st.session_state["active_df"] = load_synthetic_dataset()
-            st.session_state["source_name"] = "synthetic_default.csv"
-            st.rerun()
 
 def render_automl_tab(df):
     section_header("🤖 Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate production-ready machine learning pipelines.")
@@ -191,7 +160,7 @@ def render_automl_tab(df):
             st.error("Select at least one algorithm.")
             return
         if task == "Regression" and not pd.api.types.is_numeric_dtype(pd.to_numeric(df[target], errors="coerce")):
-            st.error(f"⛔ Target `{target}` cannot be converted to numeric values for regression[cite: 1].")
+            st.error(f"⛔ Target `{target}` cannot be converted to numeric values for regression.")
             return
 
         with st.spinner("Processing pipeline transformations and training models..."):
@@ -289,22 +258,6 @@ def render_automl_tab(df):
                 st.dataframe(res_df, use_container_width=True, hide_index=True)
                 st.success(f"✅ Optimal Algorithm: **{best_name}** (Test Metric Score: {best_score:.4f})")
 
-                # Expanded evaluation details for best model
-                if task == "Classification":
-                    st.markdown("#### 🔍 Advanced Classification Metrics (Best Model)")
-                    best_preds = best_model.predict(X_te)
-                    cm = confusion_matrix(y_test, best_preds)
-                    
-                    col_cm, col_cr = st.columns(2)
-                    with col_cm:
-                        st.markdown("**Confusion Matrix**")
-                        cm_df = pd.DataFrame(cm)
-                        st.dataframe(cm_df, use_container_width=True)
-                    with col_cr:
-                        st.markdown("**Classification Report**")
-                        report_dict = classification_report(y_test, best_preds, output_dict=True)
-                        st.dataframe(pd.DataFrame(report_dict).transpose(), use_container_width=True)
-
                 if "Random Forest" in trained_models and hasattr(trained_models["Random Forest"], "feature_importances_"):
                     st.markdown("#### 🔍 Feature Importances (Random Forest)")
                     importances = pd.Series(trained_models["Random Forest"].feature_importances_, index=X_encoded.columns).sort_values(ascending=False)
@@ -354,15 +307,15 @@ def render_automl_tab(df):
                     st.error(f"Pipeline Deserialization Failed: {e}")
 
 def render_predict_tab(df):
-    section_header("🔮 Interactive Prediction Engine", "Generate real-time inferences using the persisted model pipeline[cite: 1].")
+    section_header("🔮 Interactive Prediction Engine", "Generate real-time inferences using the persisted model pipeline.")
 
     if not SKLEARN_AVAILABLE:
-        st.error("`scikit-learn` required[cite: 1].")
+        st.error("`scikit-learn` required.")
         return
 
     pipeline = st.session_state.get("ml_active_pipeline")
     if not pipeline:
-        st.warning("⚠️ Active pipeline non-existent. Train a model in **AutoML & Training** tab to execute predictions[cite: 1].")
+        st.warning("⚠️ Active pipeline non-existent. Train a model in **AutoML & Training** tab to execute predictions.")
         return
 
     model, imputer, scaler = pipeline["model"], pipeline["imputer"], pipeline["scaler"]
@@ -372,17 +325,6 @@ def render_predict_tab(df):
     st.info(f"Active Architecture: **{pipeline['algorithm']}** | Target: `{target}` | Task: {task} | Trained: {pipeline['trained_at'][:19]}")
 
     mode = st.radio("Inference Strategy", ["Single Record Ingestion", "Batch CSV Inference"], horizontal=True, key="pred_mode")
-
-    @st.cache_data
-    def cached_batch_predict(_model, _imputer, _scaler, batch_bytes, feature_cols_tuple, raw_features_tuple):
-        # Helper wrapper to enable caching on batch prediction frames
-        local_batch = pd.read_csv(io.BytesIO(batch_bytes))
-        encoded = pd.get_dummies(local_batch[list(raw_features_tuple)], drop_first=True)
-        encoded = encoded.reindex(columns=list(feature_cols_tuple), fill_value=0)
-        imp = _imputer.transform(encoded)
-        scaled = _scaler.transform(imp)
-        preds = _model.predict(scaled)
-        return local_batch, preds, scaled
 
     def _predict(input_df: pd.DataFrame):
         encoded = pd.get_dummies(input_df[raw_features], drop_first=True)
@@ -439,8 +381,7 @@ def render_predict_tab(df):
         batch_file = st.file_uploader("Upload Target CSV Payload", type=["csv"], key="pred_batch_upload")
         if batch_file is not None and st.button("🔮 Execute Batch Inference", type="primary", key="run_batch_predict"):
             try:
-                file_bytes = batch_file.getvalue()
-                batch_df = pd.read_csv(io.BytesIO(file_bytes))
+                batch_df = pd.read_csv(batch_file)
                 missing = [c for c in raw_features if c not in batch_df.columns]
                 if missing:
                     st.error(f"⛔ Missing baseline columns: {', '.join(missing)}")
@@ -456,7 +397,7 @@ def render_predict_tab(df):
                 st.error(f"Batch Execution Exception: {e}")
 
 def render_feature_engineering_tab(df):
-    section_header("⚡ Feature Engineering Studio", "Transform and expand target datasets using advanced operations[cite: 1].")
+    section_header("⚡ Feature Engineering Studio", "Transform and expand target datasets using advanced operations.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
@@ -494,17 +435,12 @@ def render_feature_engineering_tab(df):
             strategy = st.radio("Bin Strategy", ["Equal Width (Uniform)", "Equal Frequency (Quantiles)"], horizontal=True, key="fe_bin_strat")
             n_bins = st.slider("Bin Split Count", 2, 10, 4, key="fe_bin_n")
 
-            @st.cache_data
-            def compute_bins(data_frame, target_col, strat, bins_count):
-                df_work = data_frame.copy()
-                if "Uniform" in strat:
-                    df_work[f"{target_col}_bin"] = pd.cut(df_work[target_col], bins=bins_count, labels=[f"Bin_{i+1}" for i in range(bins_count)])
-                else:
-                    df_work[f"{target_col}_bin"] = pd.qcut(df_work[target_col], q=bins_count, labels=[f"Q_{i+1}" for i in range(bins_count)], duplicates="drop")
-                return df_work
-
             if st.button("📦 Execute Binning", type="primary", key="run_fe_bin"):
-                working = compute_bins(df, col, strategy, n_bins)
+                working = df.copy()
+                if "Uniform" in strategy:
+                    working[f"{col}_bin"] = pd.cut(working[col], bins=n_bins, labels=[f"Bin_{i+1}" for i in range(n_bins)])
+                else:
+                    working[f"{col}_bin"] = pd.qcut(working[col], q=n_bins, labels=[f"Q_{i+1}" for i in range(n_bins)], duplicates="drop")
                 set_active_dataframe(working, st.session_state.get("source_name", "binned.csv"))
                 st.success(f"✅ Feature '{col}' transformed into {n_bins} distinct bins.")
                 st.rerun()
@@ -526,7 +462,7 @@ def render_feature_engineering_tab(df):
                     st.rerun()
             else:
                 if not SKLEARN_AVAILABLE:
-                    st.error("`scikit-learn` required for multi-column polynomial expansions[cite: 1].")
+                    st.error("`scikit-learn` required for multi-column polynomial expansions.")
                 else:
                     cols_sel = st.multiselect("Select Target Features", numeric_cols, default=numeric_cols[:min(2, len(numeric_cols))], key="fe_poly_cols")
                     degree = st.slider("Degree Expansion", 2, 3, 2, key="fe_poly_multi_deg")
@@ -639,7 +575,7 @@ def _mission_executive_report(df: pd.DataFrame) -> str:
     return "\n".join(lines)
 
 def render_agents_tab():
-    section_header("🤖 Autonomous Data Agents", "Execute non-simulated, autonomous dataset diagnostics[cite: 1].")
+    section_header("🤖 Autonomous Data Agents", "Execute non-simulated, autonomous dataset diagnostics.")
 
     df = get_active_dataframe()
     if df is None:
@@ -683,8 +619,6 @@ def render_agents_tab():
 
 def main():
     setup_page("ML & Predictive Studio", "🤖", initial_sidebar_state="expanded")
-
-    render_sidebar()
 
     hero_card(
         "🤖 Enterprise ML & Predictive Studio",
