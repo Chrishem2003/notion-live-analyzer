@@ -5,13 +5,6 @@ management, LIVE system health metrics, a cryptographically chained audit ledger
 navigation hubs, and secure user account management.
 """
 
-import sys
-from pathlib import Path
-
-ROOT_DIR = Path(__file__).resolve().parent.parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
-
 import datetime
 import hashlib
 import io
@@ -19,15 +12,23 @@ import json
 import os
 import shutil
 import sqlite3
+import sys
 import zipfile
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
-from modules.page_bootstrap import setup_page, render_standard_footer
-from modules.session_manager import dataset_summary, get_active_dataframe
+# Path Setup
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+# Core Modules Import
+from modules.page_bootstrap import render_standard_footer, setup_page
 from modules.navigation import hub_quick_access_cards, visible_hubs
-from modules.shared_ui import hero_card, section_header, metric_card, render_export_buttons
+from modules.session_manager import dataset_summary, get_active_dataframe
+from modules.shared_ui import hero_card, metric_card, render_export_buttons, section_header
 
 try:
     import psutil
@@ -344,7 +345,7 @@ def render_automated_intelligence_report():
 def main():
     setup_page("Home Dashboard", "🏠", initial_sidebar_state="expanded")
 
-    from modules.user_preferences import render_readability_fix, render_accent_color_css
+    from modules.user_preferences import render_accent_color_css, render_readability_fix
     render_readability_fix()
     render_accent_color_css()
 
@@ -358,11 +359,11 @@ def main():
     init_db(conn)
 
     identity = st.session_state.get("user_identity", {})
-    name = identity.get("name", "CHRISHEM")[cite: 2]
+    name = identity.get("name", "CHRISHEM")
     role = identity.get("role", "Data Analyst & Researcher")
 
-    from modules.user_preferences import get_user_timezone, compute_greeting, render_accent_color_css
     import zoneinfo
+    from modules.user_preferences import compute_greeting, get_user_timezone, render_accent_color_css
     render_accent_color_css()
 
     user_tz_name = get_user_timezone()
@@ -452,7 +453,7 @@ def main():
                 render_environment_manager()
 
             with settings_tabs[3]:
-                from modules.audio_engine import render_generative_synthesizer, render_ambient_library_picker
+                from modules.audio_engine import render_ambient_library_picker, render_generative_synthesizer
                 render_generative_synthesizer()
                 st.markdown("---")
                 render_ambient_library_picker()
