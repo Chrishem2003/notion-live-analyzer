@@ -1,4 +1,4 @@
-﻿
+
 import requests
 
 def translate_dna_to_protein(dna_seq: str) -> dict:
@@ -53,7 +53,7 @@ def fetch_pdb_metadata(pdb_id: str) -> dict:
                 "pdb_id": pdb_id.upper(),
                 "title": title,
                 "method": method,
-                "resolution": f"{resolution} Ãƒâ€¦" if resolution != "N/A" else "N/A",
+                "resolution": f"{resolution} Å" if resolution != "N/A" else "N/A",
                 "valid": True
             }
     except Exception:

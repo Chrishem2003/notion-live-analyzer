@@ -1,4 +1,4 @@
-﻿
+
 """
 Visual Chart Data Extractor & CSV Re-Synthesizer
 A vision pipeline that extracts buried quantitative data from static PDF charts,
@@ -25,9 +25,9 @@ import pandas as pd
 from PIL import Image
 
 
-# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+# ═══════════════════════════════════════════════════════════════════════
 # 1. CHART DATA EXTRACTOR ENGINE
-# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+# ═══════════════════════════════════════════════════════════════════════
 class ChartDataExtractor:
     """
     Extract quantitative data from chart images using pixel analysis.
@@ -234,9 +234,9 @@ class ChartDataExtractor:
         return df.to_json(orient="records", indent=2)
 
 
-# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+# ═══════════════════════════════════════════════════════════════════════
 # 2. UI RENDERER
-# Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+# ═══════════════════════════════════════════════════════════════════════
 def render_chart_data_extractor_ui():
     """Render the Chart Data Extractor UI."""
     import streamlit as st
@@ -245,12 +245,12 @@ def render_chart_data_extractor_ui():
     st.markdown("##  Visual Chart Data Extractor & CSV Re-Synthesizer")
     st.markdown("*Extract numerical data from charts and figures + reconstruct raw datasets from static images*")
 
-    tab1, tab2, tab3 = st.tabs(["Ã°Å¸â€œÂ¤ Extract from Image", "Ã¢Å“ÂÃ¯Â¸Â Manual Description", "ðŸ“‹ Export Data"])
+    tab1, tab2, tab3 = st.tabs(["📤 Extract from Image", "✏️ Manual Description", "📋 Export Data"])
 
     extractor = ChartDataExtractor()
 
     with tab1:
-        st.subheader("Ã°Å¸â€œÂ¤ Upload Chart Image")
+        st.subheader("📤 Upload Chart Image")
         st.info("Upload a chart image (PNG, JPG) to extract the underlying numerical data. For best results, use clear charts with labeled axes.")
 
         uploaded_file = st.file_uploader(
@@ -271,7 +271,7 @@ def render_chart_data_extractor_ui():
             st.image(image_bytes, caption="Uploaded Chart", use_container_width=True)
 
             # Manual calibration UI
-            st.subheader("Ã°Å¸â€œÂ Axis Calibration")
+            st.subheader("📐 Axis Calibration")
             st.markdown("Provide at least 2 calibration points to map pixels to data values.")
 
             with st.form("calibration_form"):
@@ -295,7 +295,7 @@ def render_chart_data_extractor_ui():
                 with c4:
                     yv2 = st.number_input("Point 2 - Y value", value=100.0, key="cal_yv2")
 
-                submitted = st.form_submit_button("Ã°Å¸â€Â Extract Data", type="primary", use_container_width=True)
+                submitted = st.form_submit_button("🔍 Extract Data", type="primary", use_container_width=True)
 
                 if submitted:
                     calibration = [
@@ -311,7 +311,7 @@ def render_chart_data_extractor_ui():
                         st.error(result["error"])
                     else:
                         st.session_state["_extracted_chart_data"] = result
-                        st.success("âœ… Data extracted successfully!")
+                        st.success("✅ Data extracted successfully!")
 
             # Show current extraction if available
             result = st.session_state.get("_extracted_chart_data")
@@ -333,10 +333,10 @@ def render_chart_data_extractor_ui():
                         st.plotly_chart(fig, use_container_width=True)
 
         else:
-            st.info("Ã°Å¸â€˜â€  Upload a chart image to begin extraction.")
+            st.info("👆 Upload a chart image to begin extraction.")
 
     with tab2:
-        st.subheader("Ã¢Å“ÂÃ¯Â¸Â Enter Chart Description")
+        st.subheader("✏️ Enter Chart Description")
         st.markdown("Describe your chart data as structured text (one data point per line):")
 
         description = st.text_area(
@@ -369,9 +369,9 @@ Point 3, 4.0, 6.1""",
 
             if not df.empty:
                 st.session_state["_extracted_chart_data_desc"] = df
-                st.success(f"âœ… Parsed {len(df)} data points!")
+                st.success(f"✅ Parsed {len(df)} data points!")
 
-                st.subheader("ðŸ“‹ Parsed Data")
+                st.subheader("📋 Parsed Data")
                 st.dataframe(df, use_container_width=True, hide_index=True)
 
                 import plotly.express as px
@@ -387,7 +387,7 @@ Point 3, 4.0, 6.1""",
                 st.warning("Could not parse data from description. Use format: Label: Value or X, Y per line.")
 
     with tab3:
-        st.subheader("ðŸ“‹ Export Reconstructed Data")
+        st.subheader("📋 Export Reconstructed Data")
 
         # Get data from either source
         result = st.session_state.get("_extracted_chart_data", {})
@@ -403,7 +403,7 @@ Point 3, 4.0, 6.1""",
             st.subheader(" Current Dataset")
             st.dataframe(df, use_container_width=True, hide_index=True)
 
-            st.subheader("ðŸ“¥ Export Options")
+            st.subheader("📥 Export Options")
             col1, col2, col3 = st.columns(3)
 
             with col1:
@@ -412,7 +412,7 @@ Point 3, 4.0, 6.1""",
                 st.markdown(
                     f'<a href="data:text/csv;base64,{b64}" download="extracted_data.csv" '
                     f'style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;'
-                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download CSV</a>',
+                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">📥 Download CSV</a>',
                     unsafe_allow_html=True,
                 )
 
@@ -422,7 +422,7 @@ Point 3, 4.0, 6.1""",
                 st.markdown(
                     f'<a href="data:application/json;base64,{b64}" download="extracted_data.json" '
                     f'style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;'
-                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download JSON</a>',
+                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">📥 Download JSON</a>',
                     unsafe_allow_html=True,
                 )
 
@@ -430,7 +430,7 @@ Point 3, 4.0, 6.1""",
                 if st.button(" Use for Analysis", use_container_width=True):
                     st.session_state["active_df"] = df
                     st.session_state["data_source"] = "chart_extracted"
-                    st.success("âœ… Loaded into active dataset! Navigate to other pages to analyze.")
+                    st.success("✅ Loaded into active dataset! Navigate to other pages to analyze.")
         else:
             st.info("No extracted data available. Extract data from an image or description first.")
 

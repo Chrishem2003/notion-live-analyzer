@@ -1,11 +1,11 @@
-﻿"""
+"""
 CHRISHEM Advanced Scanner Suite
 ===============================
 Production-grade scanning engines that power the Threat & Scanner hub.
 
 Capabilities
   - PII & Secret Scanner (emails, SSNs, credit cards, API keys, phone numbers)
-  - Live CVE Vulnerability Scanner (NVD API â€” real data)
+  - Live CVE Vulnerability Scanner (NVD API — real data)
   - YARA-lite Signature Scanner (malware / suspicious byte-pattern matching)
   - Duplicate & Similarity Scanner (hash-based dedup across files)
   - File Integrity Baseline & Change Tracker (state persistence)
@@ -138,7 +138,7 @@ def scan_pii(df: Optional[pd.DataFrame] = None, text: str = "", column: str = ""
 
     overall = "CLEAN"
     if any(f["risk"] == "CRITICAL" for f in findings):
-        overall = "CRITICAL â€” PII/SECRETS EXPOSED"
+        overall = "CRITICAL — PII/SECRETS EXPOSED"
     elif findings:
         overall = "REVIEW NEEDED"
 

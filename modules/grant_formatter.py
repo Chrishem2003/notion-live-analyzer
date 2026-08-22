@@ -1,4 +1,4 @@
-﻿
+
 """
 One-Click Grant & Journal Transpiler
 Instantly reformats summaries, bibliographies, and proposal drafts into
@@ -169,7 +169,7 @@ class GrantFormatter:
 
     def add_formatting_guide(self, format_name: str) -> str:
         info = self.FORMATS.get(format_name, {})
-        guide = f"## ðŸ“‹ {info.get('name', format_name)} Formatting Guide\n\n"
+        guide = f"## 📋 {info.get('name', format_name)} Formatting Guide\n\n"
         for key, val in info.items():
             if key not in ("name", "citation_style", "sections"):
                 guide = f"- **{key.replace('_', ' ').title()}**: {val}\n"
@@ -183,15 +183,15 @@ def render_grant_formatter_ui():
     import streamlit as st
     import base64
 
-    st.markdown("## ðŸ“œ One-Click Grant & Journal Transpiler")
+    st.markdown("## 📜 One-Click Grant & Journal Transpiler")
     st.markdown("*Instantly reformat for journals, grants, and institutions*")
 
     formatter = GrantFormatter()
 
-    tab1, tab2, tab3 = st.tabs(["Ã°Å¸â€œÂ Content Formatter", "Ã°Å¸â€œÅ¡ Reference Formatter", "ðŸ“‹ Format Guides"])
+    tab1, tab2, tab3 = st.tabs(["📝 Content Formatter", "📚 Reference Formatter", "📋 Format Guides"])
 
     with tab1:
-        st.subheader("Ã°Å¸â€œÂ Reformat Your Content")
+        st.subheader("📝 Reformat Your Content")
         col1, col2 = st.columns([3, 1])
         with col1:
             content = st.text_area("Paste your content", height=200,
@@ -203,29 +203,29 @@ def render_grant_formatter_ui():
             authors = st.text_input("Authors/PI (optional)", key="gf_authors")
             abstract = st.text_area("Abstract (optional, for grants)", height=80, key="gf_abstract")
 
-        if st.button("Ã°Å¸â€â€ž Reformat", type="primary", use_container_width=True) and content:
+        if st.button("🔄 Reformat", type="primary", use_container_width=True) and content:
             result = formatter.format_content(content, target, title, authors, abstract)
-            st.subheader(f"Ã°Å¸â€œâ€ž {target} Format")
+            st.subheader(f"📄 {target} Format")
             st.markdown(result["content"])
             st.caption(f"Word count: {result.get('word_count', 0)}")
-            st.download_button("ðŸ“¥ Download", result["content"], file_name=f"{target.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
+            st.download_button("📥 Download", result["content"], file_name=f"{target.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
 
     with tab2:
-        st.subheader("Ã°Å¸â€œÅ¡ Format References")
+        st.subheader("📚 Format References")
         papers = []
         lit_papers = st.session_state.get("lit_db_papers", [])
         if lit_papers:
-            st.info(f"Ã°Å¸â€œÅ¡ {len(lit_papers)} papers available")
+            st.info(f"📚 {len(lit_papers)} papers available")
             target_ref = st.selectbox("Reference format", options=formatter.get_format_options(), key="gf_ref_format", index=0)
-            if st.button("Ã°Å¸â€œÅ¡ Format References", type="primary", use_container_width=True):
+            if st.button("📚 Format References", type="primary", use_container_width=True):
                 refs = formatter.format_references(lit_papers, target_ref)
                 st.markdown(refs)
-                st.download_button("ðŸ“¥ Download References", refs, file_name=f"references_{target_ref.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
+                st.download_button("📥 Download References", refs, file_name=f"references_{target_ref.lower().replace(' ', '_')}.md", mime="text/markdown", use_container_width=True)
         else:
             st.info("Load papers in the Literature Engine first.")
 
     with tab3:
-        st.subheader("ðŸ“‹ Formatting Guides")
+        st.subheader("📋 Formatting Guides")
         fmt_choice = st.selectbox("Select format for guide", options=formatter.get_format_options(), key="gf_guide")
         guide = formatter.add_formatting_guide(fmt_choice)
         st.markdown(guide)

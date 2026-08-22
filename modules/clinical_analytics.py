@@ -1,4 +1,4 @@
-﻿
+
 """
 Clinical & Health Analytics  BMI calculator, clinical reference ranges,
 Z-scores, growth percentiles, and health indicator analysis.
@@ -10,7 +10,7 @@ import streamlit as st
 from datetime import datetime, date
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ BMI Calculator Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── BMI Calculator ────────────────────────────────────────────────
 
 def calculate_bmi(weight_kg: float, height_cm: float) -> Dict[str, Any]:
     """Calculate BMI and provide clinical interpretation."""
@@ -132,13 +132,13 @@ def normal_cdf(x: float) -> float:
     return 0.5 * (1 + np.sign(x) * np.sqrt(1 - np.exp(-2 * x**2 / np.pi)))
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Clinical Reference Ranges Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Clinical Reference Ranges ──────────────────────────────────────
 
 CLINICAL_REFERENCE_RANGES = {
     "Blood Pressure (Systolic)": {"unit": "mmHg", "normal": [90, 120], "flag_low": 90, "flag_high": 140},
     "Blood Pressure (Diastolic)": {"unit": "mmHg", "normal": [60, 80], "flag_low": 60, "flag_high": 90},
     "Heart Rate (Resting)": {"unit": "bpm", "normal": [60, 100], "flag_low": 50, "flag_high": 120},
-    "Body Temperature": {"unit": "Ã‚Â°C", "normal": [36.1, 37.2], "flag_low": 35.0, "flag_high": 38.0},
+    "Body Temperature": {"unit": "°C", "normal": [36.1, 37.2], "flag_low": 35.0, "flag_high": 38.0},
     "Respiratory Rate": {"unit": "breaths/min", "normal": [12, 20], "flag_low": 8, "flag_high": 25},
     "Blood Glucose (Fasting)": {"unit": "mmol/L", "normal": [3.9, 5.6], "flag_low": 3.5, "flag_high": 7.0},
     "Blood Glucose (Random)": {"unit": "mmol/L", "normal": [3.9, 7.8], "flag_low": 3.5, "flag_high": 11.1},
@@ -149,19 +149,19 @@ CLINICAL_REFERENCE_RANGES = {
     "Triglycerides": {"unit": "mmol/L", "normal": [0.0, 1.7], "flag_low": 0.0, "flag_high": 2.3},
     "Hemoglobin (Male)": {"unit": "g/dL", "normal": [13.5, 17.5], "flag_low": 11.0, "flag_high": 19.0},
     "Hemoglobin (Female)": {"unit": "g/dL", "normal": [12.0, 15.5], "flag_low": 10.0, "flag_high": 17.0},
-    "White Blood Cell Count": {"unit": "Ãƒâ€”10Ã¢ÂÂ¹/L", "normal": [4.0, 11.0], "flag_low": 3.0, "flag_high": 15.0},
-    "Platelet Count": {"unit": "Ãƒâ€”10Ã¢ÂÂ¹/L", "normal": [150, 450], "flag_low": 100, "flag_high": 600},
+    "White Blood Cell Count": {"unit": "×10⁹/L", "normal": [4.0, 11.0], "flag_low": 3.0, "flag_high": 15.0},
+    "Platelet Count": {"unit": "×10⁹/L", "normal": [150, 450], "flag_low": 100, "flag_high": 600},
     "Sodium": {"unit": "mmol/L", "normal": [135, 145], "flag_low": 130, "flag_high": 150},
     "Potassium": {"unit": "mmol/L", "normal": [3.5, 5.0], "flag_low": 3.0, "flag_high": 5.5},
     "Calcium (Total)": {"unit": "mmol/L", "normal": [2.2, 2.6], "flag_low": 2.0, "flag_high": 2.8},
-    "Creatinine": {"unit": "Ã‚Âµmol/L", "normal": [60, 110], "flag_low": 40, "flag_high": 130},
-    "eGFR": {"unit": "mL/min/1.73mÃ‚Â²", "normal": [90, 120], "flag_low": 60, "flag_high": 150},
+    "Creatinine": {"unit": "µmol/L", "normal": [60, 110], "flag_low": 40, "flag_high": 130},
+    "eGFR": {"unit": "mL/min/1.73m²", "normal": [90, 120], "flag_low": 60, "flag_high": 150},
     "ALT": {"unit": "U/L", "normal": [10, 40], "flag_low": 5, "flag_high": 60},
     "AST": {"unit": "U/L", "normal": [10, 40], "flag_low": 5, "flag_high": 60},
     "TSH": {"unit": "mIU/L", "normal": [0.4, 4.0], "flag_low": 0.1, "flag_high": 10.0},
     "Vitamin D (25-OH)": {"unit": "nmol/L", "normal": [50, 125], "flag_low": 25, "flag_high": 200},
     "Vitamin B12": {"unit": "pmol/L", "normal": [145, 700], "flag_low": 100, "flag_high": 900},
-    "Iron (Serum)": {"unit": "Ã‚Âµg/dL", "normal": [60, 170], "flag_low": 40, "flag_high": 200},
+    "Iron (Serum)": {"unit": "µg/dL", "normal": [60, 170], "flag_low": 40, "flag_high": 200},
     "Ferritin": {"unit": "ng/mL", "normal": [20, 250], "flag_low": 10, "flag_high": 500},
 }
 
@@ -187,19 +187,19 @@ def interpret_clinical_value(
     unit = ref["unit"]
 
     if value < flag_low:
-        status = "Ã¢Â¬â€¡Ã¯Â¸Â Critically Low"
+        status = "⬇️ Critically Low"
         severity = "critical"
     elif value < normal_low:
-        status = "Ã¢â€ â€œ Low"
+        status = "↓ Low"
         severity = "moderate"
     elif value <= normal_high:
-        status = "âœ… Normal"
+        status = "✅ Normal"
         severity = "normal"
     elif value <= flag_high:
-        status = "Ã¢â€ â€˜ High"
+        status = "↑ High"
         severity = "moderate"
     else:
-        status = "Ã¢Â¬â€ Ã¯Â¸Â Critically High"
+        status = "⬆️ Critically High"
         severity = "critical"
 
     # Deviation
@@ -214,7 +214,7 @@ def interpret_clinical_value(
         "test": test_name,
         "value": value,
         "unit": unit,
-        "normal_range": f"{normal_low}Ã¢â‚¬â€œ{normal_high} {unit}",
+        "normal_range": f"{normal_low}–{normal_high} {unit}",
         "status": status,
         "severity": severity,
         "deviation_pct": deviation_pct,
@@ -233,7 +233,7 @@ def interpret_multiple_values(results: List[Dict[str, Any]]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Z-Score Calculator Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Z-Score Calculator ────────────────────────────────────────────
 
 def calculate_z_score(value: float, mean: float, sd: float) -> float:
     """Calculate Z-score for a given value."""
@@ -247,7 +247,7 @@ def calculate_percentile_from_z(z_score: float) -> float:
     return round(float(normal_cdf(z_score) * 100), 1)
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Health Risk Assessment Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Health Risk Assessment ────────────────────────────────────────
 
 def assess_cardiovascular_risk(
     age: int,
@@ -323,19 +323,19 @@ def assess_cardiovascular_risk(
     }
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ─────────────────────────────────────────────────────────────
 
 def render_clinical_analytics_ui():
     """Render the clinical analytics UI."""
-    st.markdown("## Ã°Å¸ÂÂ¥ Clinical & Health Analytics")
+    st.markdown("## 🏥 Clinical & Health Analytics")
     st.markdown("*BMI calculator, clinical reference ranges, Z-scores, and health risk assessment*")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "Ã¢Å¡â€“Ã¯Â¸Â BMI Calculator", "Ã°Å¸â€Â¬ Clinical Reference", " Z-Score Calculator", "Ã¢ÂÂ¤Ã¯Â¸Â Health Risk"
+        "⚖️ BMI Calculator", "🔬 Clinical Reference", " Z-Score Calculator", "❤️ Health Risk"
     ])
 
     with tab1:
-        st.subheader("Ã¢Å¡â€“Ã¯Â¸Â BMI Calculator")
+        st.subheader("⚖️ BMI Calculator")
         st.caption("Calculate Body Mass Index and get WHO classification")
 
         col1, col2 = st.columns(2)
@@ -371,14 +371,14 @@ def render_clinical_analytics_ui():
 
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.metric("Ideal Weight Range", f"{result.get('ideal_weight_min', 0):.0f}Ã¢â‚¬â€œ{result.get('ideal_weight_max', 0):.0f} kg")
+                    st.metric("Ideal Weight Range", f"{result.get('ideal_weight_min', 0):.0f}–{result.get('ideal_weight_max', 0):.0f} kg")
                 with col2:
                     if result.get("weight_to_ideal", 0) > 0:
                         st.metric("Weight to Lose", f"{result['weight_to_ideal']:.1f} kg", delta=-result['weight_to_ideal'])
                     elif result.get("weight_to_gain", 0) > 0:
                         st.metric("Weight to Gain", f"{result['weight_to_gain']:.1f} kg", delta=result['weight_to_gain'])
                     else:
-                        st.metric("Weight Status", "âœ… Healthy")
+                        st.metric("Weight Status", "✅ Healthy")
                 with col3:
                     st.metric("Health Risk", result.get("risk", "N/A"))
 
@@ -389,21 +389,21 @@ def render_clinical_analytics_ui():
                     st.info(f"**BMI-for-age**: Z-score = {z:.2f}, Percentile = {pct:.1f}%  **{status}**")
 
         # BMI Category reference
-        with st.expander("Ã°Å¸â€œâ€“ WHO BMI Classification Reference"):
+        with st.expander("📖 WHO BMI Classification Reference"):
             bmi_ref = pd.DataFrame({
                 "Category": ["Severe Thinness", "Moderate Thinness", "Mild Thinness", "Normal Range",
                               "Overweight", "Obese Class I", "Obese Class II", "Obese Class III"],
-                "BMI Range": ["< 16.0", "16.0Ã¢â‚¬â€œ16.9", "17.0Ã¢â‚¬â€œ18.4", "18.5Ã¢â‚¬â€œ24.9",
-                              "25.0Ã¢â‚¬â€œ29.9", "30.0Ã¢â‚¬â€œ34.9", "35.0Ã¢â‚¬â€œ39.9", "Ã¢â€°Â¥ 40.0"],
+                "BMI Range": ["< 16.0", "16.0–16.9", "17.0–18.4", "18.5–24.9",
+                              "25.0–29.9", "30.0–34.9", "35.0–39.9", "≥ 40.0"],
                 "Risk": ["Very High", "High", "Moderate", "Low", "Moderate", "High", "Very High", "Extremely High"],
             })
             st.dataframe(bmi_ref, use_container_width=True, hide_index=True)
 
     with tab2:
-        st.subheader("Ã°Å¸â€Â¬ Clinical Laboratory Reference Ranges")
+        st.subheader("🔬 Clinical Laboratory Reference Ranges")
         st.caption("Interpret lab values against clinical reference ranges")
 
-        search = st.text_input("Ã°Å¸â€Â Search test name", placeholder="e.g., glucose, cholesterol, hemoglobin", key="clin_search")
+        search = st.text_input("🔍 Search test name", placeholder="e.g., glucose, cholesterol, hemoglobin", key="clin_search")
 
         filtered_tests = {
             k: v for k, v in CLINICAL_REFERENCE_RANGES.items()
@@ -413,9 +413,9 @@ def render_clinical_analytics_ui():
         if filtered_tests:
             test_name = st.selectbox("Select a test", options=list(filtered_tests.keys()), key="clin_test")
             value = st.number_input("Enter value", value=0.0, step=0.1, key="clin_value",
-                                    help=f"Normal range: {filtered_tests[test_name]['normal'][0]}Ã¢â‚¬â€œ{filtered_tests[test_name]['normal'][1]} {filtered_tests[test_name]['unit']}")
+                                    help=f"Normal range: {filtered_tests[test_name]['normal'][0]}–{filtered_tests[test_name]['normal'][1]} {filtered_tests[test_name]['unit']}")
 
-            if value != 0 and st.button("Ã°Å¸â€Â Interpret", type="primary"):
+            if value != 0 and st.button("🔍 Interpret", type="primary"):
                 result = interpret_clinical_value(test_name, value)
                 if "error" not in result:
                     status_color = "#2ecc71" if result["severity"] == "normal" else "#e67e22" if result["severity"] == "moderate" else "#e74c3c"
@@ -431,12 +431,12 @@ def render_clinical_analytics_ui():
                     st.error(result["error"])
 
         # Reference table
-        with st.expander("ðŸ“‹ Complete Reference Range Table"):
+        with st.expander("📋 Complete Reference Range Table"):
             ref_rows = []
             for name, ref in CLINICAL_REFERENCE_RANGES.items():
                 ref_rows.append({
                     "Test": name,
-                    "Normal Range": f"{ref['normal'][0]}Ã¢â‚¬â€œ{ref['normal'][1]} {ref['unit']}",
+                    "Normal Range": f"{ref['normal'][0]}–{ref['normal'][1]} {ref['unit']}",
                     "Critical Low": f"< {ref.get('flag_low', ref['normal'][0])}",
                     "Critical High": f"> {ref.get('flag_high', ref['normal'][1])}",
                 })
@@ -451,9 +451,9 @@ def render_clinical_analytics_ui():
         with col1:
             z_value = st.number_input("Raw value (x)", value=100.0, step=1.0, key="z_x")
         with col2:
-            z_mean = st.number_input("Population mean (ÃŽÂ¼)", value=100.0, step=1.0, key="z_mean")
+            z_mean = st.number_input("Population mean (μ)", value=100.0, step=1.0, key="z_mean")
         with col3:
-            z_sd = st.number_input("Standard deviation (ÃÆ’)", value=15.0, min_value=0.01, step=1.0, key="z_sd")
+            z_sd = st.number_input("Standard deviation (σ)", value=15.0, min_value=0.01, step=1.0, key="z_sd")
 
         if st.button(" Calculate Z-Score", type="primary"):
             z = calculate_z_score(z_value, z_mean, z_sd)
@@ -486,19 +486,19 @@ def render_clinical_analytics_ui():
             st.plotly_chart(fig, use_container_width=True)
 
         # Z-score interpretation guide
-        with st.expander("Ã°Å¸â€œâ€“ Z-Score Interpretation Guide"):
+        with st.expander("📖 Z-Score Interpretation Guide"):
             st.markdown("""
             | Z-Score Range | Percentile Range | Interpretation |
             |--------------|-----------------|----------------|
-            | 2.0 to 3.0 | 97.7Ã¢â‚¬â€œ99.9% | Significantly above average |
-            | 1.0 to 2.0 | 84.1Ã¢â‚¬â€œ97.7% | Above average |
-            | -1.0 to 1.0 | 15.9Ã¢â‚¬â€œ84.1% | Average range |
-            | -2.0 to -1.0 | 2.3Ã¢â‚¬â€œ15.9% | Below average |
-            | -3.0 to -2.0 | 0.1Ã¢â‚¬â€œ2.3% | Significantly below average |
+            | 2.0 to 3.0 | 97.7–99.9% | Significantly above average |
+            | 1.0 to 2.0 | 84.1–97.7% | Above average |
+            | -1.0 to 1.0 | 15.9–84.1% | Average range |
+            | -2.0 to -1.0 | 2.3–15.9% | Below average |
+            | -3.0 to -2.0 | 0.1–2.3% | Significantly below average |
             """)
 
     with tab4:
-        st.subheader("Ã¢ÂÂ¤Ã¯Â¸Â Cardiovascular Risk Assessment")
+        st.subheader("❤️ Cardiovascular Risk Assessment")
         st.caption("Simplified risk assessment based on key health indicators")
 
         col1, col2 = st.columns(2)
@@ -513,7 +513,7 @@ def render_clinical_analytics_ui():
             cv_diabetic = st.checkbox("Diabetic", key="cv_diabetic")
             cv_htn = st.checkbox("Hypertensive (diagnosed)", key="cv_htn")
 
-        if st.button("Ã°Å¸Â«â‚¬ Assess Cardiovascular Risk", type="primary"):
+        if st.button("🫀 Assess Cardiovascular Risk", type="primary"):
             risk = assess_cardiovascular_risk(
                 cv_age, cv_sex, cv_sbp, cv_tc, cv_hdl,
                 cv_smoker, cv_diabetic, cv_htn
@@ -532,7 +532,7 @@ def render_clinical_analytics_ui():
             </div>
             """, unsafe_allow_html=True)
 
-            with st.expander("ðŸ“‹ Risk Factor Details"):
+            with st.expander("📋 Risk Factor Details"):
                 for factor, value in risk.get("risk_factors", {}).items():
                     st.markdown(f"- **{factor.replace('_', ' ').title()}**: {value}")
 

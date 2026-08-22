@@ -7,7 +7,7 @@ from typing import Dict, List, Any, Optional, Tuple
 import pandas as pd
 import numpy as np
 
-# â”€â”€â”€ Graceful Import of scipy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Graceful Import of scipy ────────────────────────────────────────
 try:
     from scipy import stats as scipy_stats
     from scipy.stats import (
@@ -26,7 +26,7 @@ except ImportError:
     kruskal = mannwhitneyu = wilcoxon = friedmanchisquare = None
     shapiro = normaltest = kstest = None
 
-# â”€â”€â”€ Graceful Import of statsmodels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Graceful Import of statsmodels ──────────────────────────────────
 try:
     from statsmodels.stats.multicomp import pairwise_tukeyhsd
     from statsmodels.stats.power import TTestIndPower, TTestPower
@@ -38,7 +38,7 @@ except ImportError:
     TTestIndPower = TTestPower = None
     proportions_ztest = None
 
-# â”€â”€â”€ Graceful Import of pingouin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Graceful Import of pingouin ─────────────────────────────────────
 try:
     import pingouin as pg
     HAS_PINGOUIN = True
@@ -58,25 +58,25 @@ class StatisticalEngine:
     def _require_scipy(self) -> Optional[str]:
         """Return error message if scipy is not available."""
         if not self._has_scipy:
-            return ("scipy is not installed. Click Settings â†’ Dependency Manager â†’ 'Fix All Missing Packages' "
+            return ("scipy is not installed. Click Settings → Dependency Manager → 'Fix All Missing Packages' "
                     "to install it automatically, or run: pip install scipy")
         return None
 
     def _require_statsmodels(self) -> Optional[str]:
         """Return error message if statsmodels is not available."""
         if not self._has_statsmodels:
-            return ("statsmodels is not installed. Click Settings â†’ Dependency Manager â†’ 'Fix All Missing Packages' "
+            return ("statsmodels is not installed. Click Settings → Dependency Manager → 'Fix All Missing Packages' "
                     "to install it automatically, or run: pip install statsmodels")
         return None
 
     def _require_pingouin(self) -> Optional[str]:
         """Return error message if pingouin is not available."""
         if not self._has_pingouin:
-            return ("pingouin is not installed. Click Settings â†’ Dependency Manager â†’ 'Fix All Missing Packages' "
+            return ("pingouin is not installed. Click Settings → Dependency Manager → 'Fix All Missing Packages' "
                     "to install it automatically, or run: pip install pingouin")
         return None
 
-    # â”€â”€â”€ DESCRIPTIVE STATISTICS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── DESCRIPTIVE STATISTICS ─────────────────────────────────────
     def descriptive_stats(self, df: pd.DataFrame, columns: List[str] = None) -> pd.DataFrame:
         """Compute comprehensive descriptive statistics."""
         if columns is None:
@@ -112,7 +112,7 @@ class StatisticalEngine:
             results.append(stats_dict)
         return pd.DataFrame(results)
 
-    # â”€â”€â”€ FREQUENCY ANALYSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── FREQUENCY ANALYSIS ─────────────────────────────────────────
     def frequency_table(self, df: pd.DataFrame, col: str) -> pd.DataFrame:
         """Generate frequency table with percentages."""
         freq = df[col].value_counts(dropna=False).reset_index()
@@ -129,7 +129,7 @@ class StatisticalEngine:
         )
         return cross
 
-    # â”€â”€â”€ T-TESTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── T-TESTS ────────────────────────────────────────────────────
     def independent_ttest(self, df: pd.DataFrame, group_col: str, value_col: str) -> Dict[str, Any]:
         """Independent samples t-test with Cohen's d effect size."""
         err = self._require_scipy()
@@ -214,7 +214,7 @@ class StatisticalEngine:
             "significant": p_val < 0.05,
         }
 
-    # â”€â”€â”€ ANOVA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── ANOVA ──────────────────────────────────────────────────────
     def anova_one_way(self, df: pd.DataFrame, group_col: str, value_col: str) -> Dict[str, Any]:
         """One-way ANOVA with post-hoc Tukey HSD."""
         err = self._require_scipy()
@@ -264,7 +264,7 @@ class StatisticalEngine:
         except Exception as e:
             return pd.DataFrame({"error": [str(e)]})
 
-    # â”€â”€â”€ CHI-SQUARE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── CHI-SQUARE ─────────────────────────────────────────────────
     def chi_square_test(self, df: pd.DataFrame, col1: str, col2: str) -> Dict[str, Any]:
         """Chi-square test of independence with Cramer's V."""
         err = self._require_scipy()
@@ -288,7 +288,7 @@ class StatisticalEngine:
             "expected_table": pd.DataFrame(expected, index=contingency.index, columns=contingency.columns),
         }
 
-    # â”€â”€â”€ CORRELATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── CORRELATION ────────────────────────────────────────────────
     def pearson_correlation(self, df: pd.DataFrame, col1: str, col2: str) -> Dict[str, Any]:
         """Pearson correlation coefficient."""
         err = self._require_scipy()
@@ -332,7 +332,7 @@ class StatisticalEngine:
             return pd.DataFrame()
         return numeric_df.corr(method=method)
 
-    # â”€â”€â”€ REGRESSION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── REGRESSION ─────────────────────────────────────────────────
     def linear_regression(self, df: pd.DataFrame, target: str, features: List[str]) -> Dict[str, Any]:
         """Simple/multiple linear regression using pingouin."""
         err = self._require_pingouin()
@@ -355,7 +355,7 @@ class StatisticalEngine:
         except Exception as e:
             return {"error": str(e)}
 
-    # â”€â”€â”€ NON-PARAMETRIC TESTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── NON-PARAMETRIC TESTS ───────────────────────────────────────
     def mann_whitney(self, df: pd.DataFrame, group_col: str, value_col: str) -> Dict[str, Any]:
         """Mann-Whitney U test (non-parametric alternative to independent t-test)."""
         err = self._require_scipy()
@@ -412,7 +412,7 @@ class StatisticalEngine:
             "significant": p_val < 0.05,
         }
 
-    # â”€â”€â”€ NORMALITY TESTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── NORMALITY TESTS ────────────────────────────────────────────
     def test_normality(self, df: pd.DataFrame, col: str) -> Dict[str, Any]:
         """Shapiro-Wilk test for normality."""
         err = self._require_scipy()
@@ -436,7 +436,7 @@ class StatisticalEngine:
             "n": len(series),
         }
 
-    # â”€â”€â”€ POWER ANALYSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── POWER ANALYSIS ─────────────────────────────────────────────
     def power_ttest(self, effect_size: float = 0.5, alpha: float = 0.05, power: float = 0.8, ratio: float = 1.0) -> Dict[str, Any]:
         """Power analysis for t-test  estimate required sample size."""
         err = self._require_statsmodels()
@@ -453,7 +453,7 @@ class StatisticalEngine:
             "total_n": int(np.ceil(n * (1 + ratio))),
         }
 
-    # â”€â”€â”€ RELIABILITY ANALYSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── RELIABILITY ANALYSIS ───────────────────────────────────────
     def cronbach_alpha(self, df: pd.DataFrame, items: List[str]) -> Dict[str, Any]:
         """Cronbach's alpha for scale reliability."""
         err = self._require_pingouin()
@@ -471,7 +471,7 @@ class StatisticalEngine:
         except Exception as e:
             return {"error": str(e)}
 
-    # â”€â”€â”€ FACTOR ANALYSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── FACTOR ANALYSIS ────────────────────────────────────────────
     def kmo_test(self, df: pd.DataFrame, variables: List[str]) -> Dict[str, Any]:
         """Kaiser-Meyer-Olkin measure of sampling adequacy."""
         try:
@@ -504,7 +504,7 @@ class StatisticalEngine:
         except Exception as e:
             return {"error": str(e)}
 
-    # â”€â”€â”€ DESCRIPTIVE BY GROUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── DESCRIPTIVE BY GROUP ───────────────────────────────────────
     def descriptive_by_group(self, df: pd.DataFrame, group_col: str, value_col: str) -> pd.DataFrame:
         """Descriptive statistics grouped by a categorical variable."""
         return df.groupby(group_col)[value_col].describe().round(4)

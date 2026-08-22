@@ -1,4 +1,4 @@
-﻿
+
 """
 Natural Language Data Query Engine + allows users to ask questions in plain English
 and get automatic analysis, visualizations, and insights.
@@ -189,7 +189,7 @@ class NaturalLanguageQueryEngine:
                 "r_squared": r_squared,
                 "coefficients": dict(zip(predictors, model.coef_)),
                 "intercept": model.intercept_,
-                "narrative": f"Regression model for **{target_col}**: RÃ‚Â² = {r_squared:.3 + f}, {len(predictors)} predictor(s).",
+                "narrative": f"Regression model for **{target_col}**: R² = {r_squared:.3 + f}, {len(predictors)} predictor(s).",
                 "confidence": 80,
             }
         except ImportError:
@@ -418,13 +418,13 @@ class NaturalLanguageQueryEngine:
         return None
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ─────────────────────────────────────────────────────────────
 
 def render_nl_query_ui(df: pd.DataFrame):
     """Render the natural language query UI."""
     import streamlit as st
 
-    st.markdown("## Ã°Å¸â€™Â¬ Natural Language Data Query")
+    st.markdown("## 💬 Natural Language Data Query")
     st.markdown("*Ask questions about your data in plain English*")
 
     if df is None or df.empty:
@@ -437,7 +437,7 @@ def render_nl_query_ui(df: pd.DataFrame):
     engine = st.session_state["nl_engine"]
 
     # Example queries
-    with st.expander("Ã°Å¸â€™Â¡ Example queries"):
+    with st.expander("💡 Example queries"):
         examples = [
             "Show data",
             "Describe data",
@@ -458,14 +458,14 @@ def render_nl_query_ui(df: pd.DataFrame):
     # Query input
     col1, col2 = st.columns([4, 1])
     with col1:
-        query = st.text_input("Ã°Å¸â€™Â¬ Ask a question about your data:", placeholder="e.g., Describe the data", key="nl_query_input")
+        query = st.text_input("💬 Ask a question about your data:", placeholder="e.g., Describe the data", key="nl_query_input")
     with col2:
         st.caption("")
-        submit = st.button("Ã°Å¸â€Â Ask", type="primary", use_container_width=True)
+        submit = st.button("🔍 Ask", type="primary", use_container_width=True)
 
     # Process query
     if submit and query.strip():
-        with st.spinner("Ã°Å¸â€Â Analyzing..."):
+        with st.spinner("🔍 Analyzing..."):
             result = engine.process_query(query, df)
             st.session_state["last_nl_result"] = result
         st.rerun()

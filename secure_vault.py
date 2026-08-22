@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import io
 import pandas as pd
@@ -10,7 +10,7 @@ except ImportError:
     HAS_PYPDF = False
 
 def render_vault_ui():
-    st.title("Ã°Å¸â€œÂ Secure Personal Workspace & Vault")
+    st.title("📁 Secure Personal Workspace & Vault")
     st.caption("Google Docs & Sheets style previewer, editor, and stream downloader.")
 
     if "vault_files" not in st.session_state:
@@ -45,35 +45,35 @@ def render_vault_ui():
     if not st.session_state["vault_files"]:
         st.info("No files currently loaded in your vault session. Upload a document above to test.")
     else:
-        st.subheader("Ã°Å¸â€”â€šÃ¯Â¸Â Stored Workspace Documents")
+        st.subheader("🗂️ Stored Workspace Documents")
         cols = st.columns(3)
         for idx, item in enumerate(st.session_state["vault_files"]):
             with cols[idx % 3]:
                 with st.container(border=True):
-                    st.markdown(f"#### Ã°Å¸â€œâ€ž {item['name']}")
+                    st.markdown(f"#### 📄 {item['name']}")
                     st.caption(f"**Size:** {item['size']} | **Status:** {item['status']}")
                     st.markdown("---")
                     
                     b1, b2 = st.columns(2)
-                    if b1.button("Ã°Å¸â€˜ÂÃ¯Â¸Â Open", key=f"open_mod_{idx}"):
+                    if b1.button("👁️ Open", key=f"open_mod_{idx}"):
                         show_document_dialog(item)
-                    if b2.button("Ã°Å¸â€”â€˜Ã¯Â¸Â Delete", key=f"del_mod_{idx}"):
+                    if b2.button("🗑️ Delete", key=f"del_mod_{idx}"):
                         st.session_state["vault_files"] = [f for f in st.session_state["vault_files"] if f["name"] != item["name"]]
                         st.rerun()
 
-@st.dialog("Ã°Å¸â€œâ€ž Workspace Document Suite", width="large")
+@st.dialog("📄 Workspace Document Suite", width="large")
 def show_document_dialog(item):
     name = item["name"].lower()
     raw_bytes = item["bytes"]
 
-    st.markdown(f"### Ã°Å¸â€œâ€ž {item['name']}")
+    st.markdown(f"### 📄 {item['name']}")
     st.caption(f"**Size:** {item['size']}")
 
-    tab_view, tab_edit, tab_dl = st.tabs(["Ã°Å¸â€˜ÂÃ¯Â¸Â View / Read", "Ã¢Å“ÂÃ¯Â¸Â Edit (Docs/Sheets)", "ðŸ“¥ Download"])
+    tab_view, tab_edit, tab_dl = st.tabs(["👁️ View / Read", "✏️ Edit (Docs/Sheets)", "📥 Download"])
 
     with tab_view:
         if name.endswith(".pdf"):
-            st.markdown("#### Ã°Å¸â€œâ€ž PDF Document View (Google Docs Mode)")
+            st.markdown("#### 📄 PDF Document View (Google Docs Mode)")
             if HAS_PYPDF and raw_bytes:
                 try:
                     reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
@@ -92,7 +92,7 @@ def show_document_dialog(item):
             except Exception:
                 st.text_area("Raw Stream Content", value=raw_bytes.decode("utf-8", errors="ignore"), height=300)
         else:
-            st.markdown("#### Ã°Å¸â€œÂ Plain Text / Code View")
+            st.markdown("#### 📝 Plain Text / Code View")
             st.code(raw_bytes.decode("utf-8", errors="ignore"))
 
     with tab_edit:
@@ -101,7 +101,7 @@ def show_document_dialog(item):
             try:
                 df = pd.read_csv(io.BytesIO(raw_bytes))
                 edited_df = st.data_editor(df, num_rows="dynamic", key=f"edit_grid_{item['name']}")
-                if st.button("Ã°Å¸â€™Â¾ Save Sheet Changes", type="primary"):
+                if st.button("💾 Save Sheet Changes", type="primary"):
                     buf = io.StringIO()
                     edited_df.to_csv(buf, index=False)
                     item["bytes"] = buf.getvalue().encode("utf-8")
@@ -110,18 +110,18 @@ def show_document_dialog(item):
             except Exception as e:
                 st.error(f"Spreadsheet edit error: {e}")
         else:
-            st.markdown("#### Ã¢Å“ÂÃ¯Â¸Â Live Text Editor")
+            st.markdown("#### ✏️ Live Text Editor")
             text_val = raw_bytes.decode("utf-8", errors="ignore")
             updated_txt = st.text_area("Modify file content:", value=text_val, height=300, key=f"edit_txt_{item['name']}")
-            if st.button("Ã°Å¸â€™Â¾ Save Document Changes", type="primary"):
+            if st.button("💾 Save Document Changes", type="primary"):
                 item["bytes"] = updated_txt.encode("utf-8")
                 st.success("Document updated successfully!")
                 st.rerun()
 
     with tab_dl:
-        st.markdown("### ðŸ“¥ Download File")
+        st.markdown("### 📥 Download File")
         st.download_button(
-            label=f"Ã¢Â¬â€¡Ã¯Â¸Â Download {item['name']}",
+            label=f"⬇️ Download {item['name']}",
             data=raw_bytes,
             file_name=item['name'],
             mime="application/octet-stream",

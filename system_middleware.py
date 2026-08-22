@@ -19,12 +19,12 @@ def handle_page_errors(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            st.error("âš ï¸ An unexpected runtime exception occurred.")
-            with st.expander("ðŸ”¬ View Diagnostic Traceback"):
+            st.error("⚠️ An unexpected runtime exception occurred.")
+            with st.expander("🔬 View Diagnostic Traceback"):
                 tb_str = traceback.format_exc()
                 st.code(tb_str, language="python")
                 st.session_state.error_logs.append(tb_str)
-            if st.button("ðŸ”„ Reset Session State"):
+            if st.button("🔄 Reset Session State"):
                 st.session_state.clear()
                 st.rerun()
     return wrapper

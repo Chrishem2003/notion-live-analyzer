@@ -1,4 +1,4 @@
-﻿
+
 """
 Dependency Manager  auto-detect, auto-install, and verify all required Python packages.
 Provides a one-click Streamlit UI for non-technical users to fix dependency issues.
@@ -13,7 +13,7 @@ from modules.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Package Registry Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Package Registry ─────────────────────────────────────────────────
 # Each package: pip_name -> (import_name, category, description, min_version)
 
 @dataclass
@@ -28,87 +28,87 @@ class PackageInfo:
 
 
 ALL_PACKAGES: List[PackageInfo] = [
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Core Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Core ──────────────────────────────────────────────────────
     PackageInfo("streamlit", "streamlit", "Core", "Web app framework"),
     PackageInfo("pandas", "pandas", "Core", "Data manipulation"),
     PackageInfo("numpy", "numpy", "Core", "Numerical computing"),
     PackageInfo("plotly", "plotly", "Core", "Interactive visualizations"),
     PackageInfo("requests", "requests", "Core", "HTTP requests"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ File Parsing Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── File Parsing ──────────────────────────────────────────────
     PackageInfo("openpyxl", "openpyxl", "File Parsing", "Excel .xlsx reading/writing"),
     PackageInfo("pyreadstat", "pyreadstat", "File Parsing", "SPSS/SAS/STATA reading"),
     PackageInfo("sas7bdat", "sas7bdat", "File Parsing", "SAS file fallback reader"),
     PackageInfo("xlrd", "xlrd", "File Parsing", "Older Excel format support"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Statistics Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Statistics ────────────────────────────────────────────────
     PackageInfo("scipy", "scipy", "Statistics", "Scientific computing & stats", "1.11.0"),
     PackageInfo("statsmodels", "statsmodels", "Statistics", "Statistical models & tests", "0.14.0"),
     PackageInfo("pingouin", "pingouin", "Statistics", "Statistical analysis toolkit", "0.5.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Factor Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Factor Analysis ───────────────────────────────────────────
     PackageInfo("factor-analyzer", "factor_analyzer", "Statistics", "Factor analysis (KMO, Bartlett)", "0.4.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Data Export Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Data Export ───────────────────────────────────────────────
     PackageInfo("kaleido", "kaleido", "Export", "Plotly static image export", "0.2.1"),
     PackageInfo("fpdf2", "fpdf2", "Export", "PDF report generation", "2.7.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ AI/ML Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── AI/ML ─────────────────────────────────────────────────────
     PackageInfo("scikit-learn", "sklearn", "AI/ML", "Machine learning library", "1.3.0"),
     PackageInfo("imbalanced-learn", "imblearn", "AI/ML", "Imbalanced dataset handling", "0.11.0"),
     PackageInfo("xgboost", "xgboost", "AI/ML", "Gradient boosting framework", "2.0.0"),
     PackageInfo("joblib", "joblib", "AI/ML", "Model persistence", "1.3.0"),
     PackageInfo("shap", "shap", "AI/ML", "SHAP model explanations", "0.42.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Text Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Text Analysis ─────────────────────────────────────────────
     PackageInfo("textblob", "textblob", "Text Analysis", "Text processing & sentiment"),
     PackageInfo("wordcloud", "wordcloud", "Text Analysis", "Word cloud generation", "1.9.0"),
     PackageInfo("nltk", "nltk", "Text Analysis", "Natural language toolkit", "3.8.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Encoding Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Encoding ──────────────────────────────────────────────────
     PackageInfo("chardet", "chardet", "Utilities", "Character encoding detection", "5.0.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Google Sheets Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Google Sheets ─────────────────────────────────────────────
     PackageInfo("gspread", "gspread", "Google Sheets", "Google Sheets API client", "5.0.0"),
     PackageInfo("oauth2client", "oauth2client", "Google Sheets", "OAuth 2.0 authentication", "4.1.3"),
     PackageInfo("google-auth", "google.auth", "Google Sheets", "Google authentication", "2.0.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Bayesian Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Bayesian ──────────────────────────────────────────────────
     PackageInfo("pymc", "pymc", "Advanced", "Probabilistic programming", "5.10.0"),
     PackageInfo("arviz", "arviz", "Advanced", "Bayesian visualization", "0.16.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Causal Inference Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Causal Inference ──────────────────────────────────────────
     PackageInfo("causalml", "causalml", "Advanced", "Causal inference methods", "0.14.0"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Network Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Network Analysis ──────────────────────────────────────────
     PackageInfo("networkx", "networkx", "Advanced", "Network analysis", "3.0.0"),
     PackageInfo("python-louvain", "community", "Advanced", "Community detection", "0.16"),
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Utilities Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Utilities ─────────────────────────────────────────────────
     PackageInfo("python-dateutil", "dateutil", "Utilities", "Date/time parsing", "2.8.0"),
     PackageInfo("tabulate", "tabulate", "Utilities", "Markdown table export", "0.9.0"),
     PackageInfo("prophet", "prophet", "Advanced", "Time series forecasting", "1.1.0"),
 ]
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Category groupings for UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Category groupings for UI ───────────────────────────────────────
 
 CATEGORY_ORDER = ["Core", "File Parsing", "Statistics", "Export", "AI/ML",
                   "Text Analysis", "Google Sheets", "Advanced", "Utilities"]
 
 CATEGORY_ICONS = {
-    "Core": "ðŸ“¦",
-    "File Parsing": "Ã°Å¸â€œÂ",
+    "Core": "📦",
+    "File Parsing": "📁",
     "Statistics": "",
-    "Export": "ðŸ“¥",
-    "AI/ML": "Ã°Å¸Â§Â ",
-    "Text Analysis": "Ã°Å¸â€™Â¬",
-    "Google Sheets": "Ã°Å¸â€â€”",
-    "Advanced": "Ã°Å¸â€Â¬",
-    "Utilities": "Ã°Å¸â€Â§",
+    "Export": "📥",
+    "AI/ML": "🧠",
+    "Text Analysis": "💬",
+    "Google Sheets": "🔗",
+    "Advanced": "🔬",
+    "Utilities": "🔧",
 }
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Dependency Checking Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Dependency Checking ─────────────────────────────────────────────
 
 def check_single_package(pkg: PackageInfo) -> bool:
     """Check if a single package is installed."""
@@ -152,14 +152,14 @@ def install_package(pip_name: str, timeout: int = 120) -> Tuple[bool, str]:
             capture_output=True, text=True, timeout=timeout
         )
         if result.returncode == 0:
-            return True, f"âœ… {pip_name} installed successfully"
+            return True, f"✅ {pip_name} installed successfully"
         else:
             error_msg = result.stderr[:300] if result.stderr else "Unknown error"
-            return False, f"Ã¢ÂÅ’ Failed to install {pip_name}: {error_msg}"
+            return False, f"❌ Failed to install {pip_name}: {error_msg}"
     except subprocess.TimeoutExpired:
-        return False, f"Ã¢ÂÅ’ Installation of {pip_name} timed out after {timeout}s"
+        return False, f"❌ Installation of {pip_name} timed out after {timeout}s"
     except Exception as e:
-        return False, f"Ã¢ÂÅ’ Installation error for {pip_name}: {str(e)}"
+        return False, f"❌ Installation error for {pip_name}: {str(e)}"
 
 
 def install_missing_packages(
@@ -204,13 +204,13 @@ def get_package_summary() -> Dict[str, Dict]:
     return summary
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Streamlit UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬----
+# ─── Streamlit UI ─────────────────────────────────────────────────----
 
 def render_dependency_ui():
     """Render a Streamlit UI for checking and fixing dependencies."""
     import streamlit as st
 
-    st.markdown("## Ã°Å¸â€Â§ Dependency Manager")
+    st.markdown("## 🔧 Dependency Manager")
     st.markdown("*Check, verify, and install all required Python packages with one click.*")
 
     # Check current status
@@ -224,21 +224,21 @@ def render_dependency_ui():
     st.markdown(f"###  Overall Status: {installed_count}/{total} packages installed ({pct}%)")
 
     if pct == 100:
-        st.success("âœ… **All packages are installed!** The application is ready to use.")
+        st.success("✅ **All packages are installed!** The application is ready to use.")
     else:
-        st.warning(f"Ã¢Å¡Â Ã¯Â¸Â **{len(missing_pkgs)} packages** need to be installed for full functionality.")
+        st.warning(f"⚠️ **{len(missing_pkgs)} packages** need to be installed for full functionality.")
 
     # Progress bar
     st.progress(pct)
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Per-category breakdown Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-    st.markdown("### ðŸ“‹ Package Breakdown by Category")
+    # ─── Per-category breakdown ────────────────────────────────────
+    st.markdown("### 📋 Package Breakdown by Category")
 
     summary = get_package_summary()
 
     for cat in categories:
         cat_data = summary[cat]
-        icon = CATEGORY_ICONS.get(cat, "ðŸ“¦")
+        icon = CATEGORY_ICONS.get(cat, "📦")
 
         with st.expander(
             f"{icon} **{cat}**  {cat_data['installed']}/{cat_data['total']} installed",
@@ -246,26 +246,26 @@ def render_dependency_ui():
         ):
             cols = st.columns(2)
             with cols[0]:
-                st.markdown("**âœ… Installed:**")
+                st.markdown("**✅ Installed:**")
                 for name in cat_data["installed_names"]:
                     pkg = next((p for p in all_pkgs if p.pip_name == name), None)
                     version = f" v{pkg.installed_version}" if pkg and pkg.installed_version else ""
-                    st.markdown(f"- âœ… {name}{version}")
+                    st.markdown(f"- ✅ {name}{version}")
 
             with cols[1]:
                 if cat_data["missing_names"]:
-                    st.markdown("**Ã¢ÂÅ’ Missing:**")
+                    st.markdown("**❌ Missing:**")
                     for name in cat_data["missing_names"]:
                         pkg = next((p for p in all_pkgs if p.pip_name == name), None)
                         desc = f"  {pkg.description}" if pkg else ""
-                        st.markdown(f"- Ã¢ÂÅ’ {name}{desc}")
+                        st.markdown(f"- ❌ {name}{desc}")
                 else:
-                    st.markdown("**âœ… All installed!**")
+                    st.markdown("**✅ All installed!**")
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Install missing packages Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Install missing packages ──────────────────────────────────
     if missing_pkgs:
         st.markdown("---")
-        st.markdown("### Ã°Å¸Å¡â‚¬ One-Click Install Missing Packages")
+        st.markdown("### 🚀 One-Click Install Missing Packages")
 
         col1, col2 = st.columns([2, 1])
         with col1:
@@ -275,7 +275,7 @@ def render_dependency_ui():
 
         with col2:
             install_clicked = st.button(
-                "Ã°Å¸â€Â§ Install All Missing Packages",
+                "🔧 Install All Missing Packages",
                 type="primary",
                 use_container_width=True,
             )
@@ -292,7 +292,7 @@ def render_dependency_ui():
                 results = install_missing_packages(missing_names, progress_callback)
 
             # Show results
-            st.markdown("### ðŸ“‹ Installation Results")
+            st.markdown("### 📋 Installation Results")
             success_count = sum(1 for s, _ in results.values() if s)
             fail_count = sum(1 for s, _ in results.values() if not s)
             st.markdown(f"**{success_count} succeeded**, **{fail_count} failed**")
@@ -304,18 +304,18 @@ def render_dependency_ui():
                     st.error(message)
 
             if fail_count == 0:
-                st.success("Ã°Å¸Å½â€° **All packages installed!** Please refresh the app to apply changes.")
-                if st.button("Ã°Å¸â€â€ž Refresh App Now", type="primary"):
+                st.success("🎉 **All packages installed!** Please refresh the app to apply changes.")
+                if st.button("🔄 Refresh App Now", type="primary"):
                     st.rerun()
             else:
-                st.warning("Ã¢Å¡Â Ã¯Â¸Â Some packages failed to install. Try installing them individually via terminal.")
+                st.warning("⚠️ Some packages failed to install. Try installing them individually via terminal.")
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Advanced: Manual install Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-    with st.expander("Ã°Å¸â€ºÂ Ã¯Â¸Â Advanced: Install Individual Package"):
+    # ─── Advanced: Manual install ──────────────────────────────────
+    with st.expander("🛠️ Advanced: Install Individual Package"):
         pkg_names = sorted([p.pip_name for p in ALL_PACKAGES])
         selected_pkg = st.selectbox("Select a package to install", options=pkg_names)
 
-        if st.button(f"ðŸ“¥ Install {selected_pkg}"):
+        if st.button(f"📥 Install {selected_pkg}"):
             with st.spinner(f"Installing {selected_pkg}..."):
                 success, message = install_package(selected_pkg)
             if success:
@@ -342,20 +342,20 @@ def auto_fix_missing_critical(quiet: bool = False) -> int:
             if success:
                 installed_count = 1
                 if not quiet:
-                    print(f"âœ… Auto-installed: {pkg.pip_name}")
+                    print(f"✅ Auto-installed: {pkg.pip_name}")
             else:
                 logger.error("Auto-install of %s failed: %s", pkg.pip_name, msg)
                 if not quiet:
-                    print(f"Ã¢Å¡Â Ã¯Â¸Â Failed: {pkg.pip_name}  {msg}")
+                    print(f"⚠️ Failed: {pkg.pip_name}  {msg}")
         except Exception as e:
             logger.exception("Auto-install of %s raised an error", pkg.pip_name)
             if not quiet:
-                print(f"Ã¢Å¡Â Ã¯Â¸Â Error installing {pkg.pip_name}: {e}")
+                print(f"⚠️ Error installing {pkg.pip_name}: {e}")
 
     return installed_count
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Safe Import Helper Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Safe Import Helper ──────────────────────────────────────────────
 
 def safe_import(import_name: str, pip_name: str, category: str = "Custom", description: str = ""):
     """

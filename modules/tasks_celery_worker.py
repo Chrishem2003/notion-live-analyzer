@@ -1,9 +1,9 @@
-﻿"""
-tasks.py â€” Long-running jobs that used to block the Streamlit thread.
+"""
+tasks.py — Long-running jobs that used to block the Streamlit thread.
 
 Each task reports real progress via `self.update_state(meta={...})` at each
 genuine unit of work completed (a page of results fetched, a column
-profiled) â€” not a fabricated percentage on a timer. `modules/task_client.py`
+profiled) — not a fabricated percentage on a timer. `modules/task_client.py`
 polls this same state to drive a progress bar in the UI.
 """
 
@@ -47,7 +47,7 @@ def harvest_literature_task(self, query: str, target_count: int, contact_email: 
     reasonably fetch. Reports progress after every page so a 500-paper
     harvest shows real, incrementing feedback instead of a spinner.
     """
-    target_count = max(1, min(target_count, 2000))  # hard ceiling â€” this is a queue job, not a scraper
+    target_count = max(1, min(target_count, 2000))  # hard ceiling — this is a queue job, not a scraper
     headers = {"User-Agent": f"ChrishemPlatform/2.0 (mailto:{contact_email})"}
     sort_params = {
         "Citation Count": ("is-referenced-by-count", "desc"),
@@ -77,7 +77,7 @@ def harvest_literature_task(self, query: str, target_count: int, contact_email: 
             resp.raise_for_status()
             items = resp.json().get("message", {}).get("items", [])
             if not items:
-                break  # exhausted CrossRef's matches â€” stop early rather than loop forever
+                break  # exhausted CrossRef's matches — stop early rather than loop forever
 
             for it in items:
                 title_list = it.get("title")
@@ -105,7 +105,7 @@ def harvest_literature_task(self, query: str, target_count: int, contact_email: 
                     "First Author": first_author,
                     "Year": year if year else "n/a",
                     "Citations": it.get("is-referenced-by-count", 0),
-                    "Journal": container[0] if container else "â€”",
+                    "Journal": container[0] if container else "—",
                     "DOI": it.get("DOI", "n/a"),
                     "Type": it.get("type", "journal-article"),
                 })
@@ -126,7 +126,7 @@ def harvest_literature_task(self, query: str, target_count: int, contact_email: 
             time.sleep(0.5)
 
     except SoftTimeLimitExceeded:
-        # Return what we harvested rather than throwing it all away â€”
+        # Return what we harvested rather than throwing it all away —
         # a partial 340-paper result is more useful than nothing.
         return {
             "records": records,
@@ -222,7 +222,7 @@ def run_swarm_task(self, problem: str, dataset_records: list = None):
     a pandas DataFrame isn't JSON-serializable, so the caller passes
     `dataset_records` as a list of row-dicts (df.to_dict("records")) and
     this reconstructs the DataFrame worker-side. This is what turns the
-    agent swarm from "call it inline and block" into "submit and poll" â€”
+    agent swarm from "call it inline and block" into "submit and poll" —
     the same pattern task_client.py already uses for the other two tasks.
     """
     from agents import build_swarm_graph  # imported here, not at module load,
@@ -253,7 +253,7 @@ def run_swarm_task(self, problem: str, dataset_records: list = None):
             meta={"current": completed, "total": 3, "stage": f"{node_name} agent complete"},
         )
 
-    # Strip the DataFrame back out before returning â€” Celery results are
+    # Strip the DataFrame back out before returning — Celery results are
     # JSON too, and we already have its findings in audit_findings.
     final_state.pop("dataset", None)
     return final_state

@@ -1,13 +1,13 @@
-﻿
+
 """
-File Uploader ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â handles file uploads in multiple formats (CSV, Excel, SPSS, SAS, STATA, JSON).
+File Uploader — handles file uploads in multiple formats (CSV, Excel, SPSS, SAS, STATA, JSON).
 """
 from typing import Optional, Dict, Any, List
 import pandas as pd
 import streamlit as st
 from pathlib import Path
 
-# ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Supported Formats ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+# ─── Supported Formats ────────────────────────────────────────────────
 SUPPORTED_FORMATS = {
     "CSV (.csv)": "csv",
     "Excel (.xlsx)": "xlsx",
@@ -68,9 +68,9 @@ def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
             if len(sheet_names) == 1:
                 df = pd.read_excel(uploaded_file, sheet_name=sheet_names[0])
             else:
-                # Multiple sheets ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â read first and store note
+                # Multiple sheets — read first and store note
                 df = pd.read_excel(uploaded_file, sheet_name=sheet_names[0])
-                st.info(f"ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Multiple sheets found. Loaded sheet '{sheet_names[0]}'. All sheets: {', '.join(sheet_names)}")
+                st.info(f"📋 Multiple sheets found. Loaded sheet '{sheet_names[0]}'. All sheets: {', '.join(sheet_names)}")
 
         elif file_ext == "json":
             df = pd.read_json(uploaded_file)
@@ -81,11 +81,11 @@ def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
                 import pyreadstat
                 df, meta = pyreadstat.read_sav(uploaded_file)
                 if hasattr(meta, 'variable_names'):
-                    st.caption(f"SPSS file loaded ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {meta.number_rows} rows, {meta.number_columns} columns")
+                    st.caption(f"SPSS file loaded — {meta.number_rows} rows, {meta.number_columns} columns")
                     if hasattr(meta, 'variable_labels'):
                         for i, label in enumerate(meta.variable_labels):
                             if label and i < len(df.columns):
-                                st.caption(f"  ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {df.columns[i]}: {label}")
+                                st.caption(f"  • {df.columns[i]}: {label}")
             except ImportError:
                 # Fallback: try with pandas_read_spss (supports older .sav)
                 df = pd.read_spss(uploaded_file)
@@ -123,7 +123,7 @@ def parse_uploaded_file(uploaded_file) -> Optional[pd.DataFrame]:
     if df is not None and not df.empty:
         # Clean column names
         df.columns = [str(col).strip() for col in df.columns]
-        st.success(f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Loaded '{uploaded_file.name}' ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {len(df)} rows ÃƒÆ’ {len(df.columns)} columns")
+        st.success(f"✅ Loaded '{uploaded_file.name}' — {len(df)} rows Ã {len(df.columns)} columns")
         return df
 
     return None
@@ -145,22 +145,22 @@ def merge_datasets(
 
     if merge_key and merge_key in notion_df.columns and merge_key in uploaded_df.columns:
         merged = pd.merge(notion_df, uploaded_df, on=merge_key, how=merge_how)
-        st.success(f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Merged on '{merge_key}' ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {len(merged)} rows")
+        st.success(f"✅ Merged on '{merge_key}' — {len(merged)} rows")
         return merged
 
-    # No merge key ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â concatenate (row-wise if same columns, column-wise otherwise)
+    # No merge key — concatenate (row-wise if same columns, column-wise otherwise)
     common_cols = set(notion_df.columns) & set(uploaded_df.columns)
     if len(common_cols) > 0:
         merged = pd.concat([notion_df, uploaded_df], ignore_index=True)
-        st.info(f"ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Appended datasets ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {len(merged)} rows total")
+        st.info(f"📊 Appended datasets — {len(merged)} rows total")
     else:
         merged = pd.concat([notion_df, uploaded_df], axis=1)
-        st.info(f"ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Combined datasets side-by-side ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {len(merged)} rows, {len(merged.columns)} columns")
+        st.info(f"📊 Combined datasets side-by-side — {len(merged)} rows, {len(merged.columns)} columns")
     return merged
 
 def manual_data_entry() -> pd.DataFrame:
     """Create a simple UI for manual data entry."""
-    st.subheader("ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Manual Data Entry")
+    st.subheader("📝 Manual Data Entry")
     st.caption("Enter small datasets quickly for analysis")
     col1, col2 = st.columns(2)
     with col1:
@@ -180,9 +180,9 @@ def manual_data_entry() -> pd.DataFrame:
                 val = st.text_input("Cell Value", key=f"man_val_{row_idx}_{col_idx}", label_visibility="collapsed")
                 data[col_name].append(val)
 
-    if st.button("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Create Dataset", type="primary"):
+    if st.button("✅ Create Dataset", type="primary"):
         df = pd.DataFrame(data)
-        st.success(f"Created dataset: {len(df)} rows ÃƒÆ’ {len(df.columns)} columns")
+        st.success(f"Created dataset: {len(df)} rows Ã {len(df.columns)} columns")
         return df
     return pd.DataFrame()
 

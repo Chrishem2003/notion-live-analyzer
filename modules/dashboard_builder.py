@@ -1,4 +1,4 @@
-﻿
+
 """
 Dashboard Builder + interactive drag-and-drop dashboard creation tool.
 Create custom multi-chart dashboards with cross-filtering.
@@ -149,7 +149,7 @@ class DashboardBuilder:
             return None
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ─────────────────────────────────────────────────────────────
 
 def render_dashboard_builder_ui(df: pd.DataFrame):
     """Render the interactive dashboard builder UI."""
@@ -171,7 +171,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
     col_types = infer_column_types(df)
     all_cols = df.columns.tolist()
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Dashboard Controls Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Dashboard Controls ───────────────────────────────────────
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
     with col1:
         dash_name = st.text_input("Dashboard name", value=dashboard.get("name", "My Dashboard"), key="dash_name")
@@ -183,29 +183,29 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         dashboard["layout"] = layout
     with col3:
         st.caption("")
-        if st.button("Ã°Å¸â€™Â¾ Save Dashboard", use_container_width=True):
+        if st.button("💾 Save Dashboard", use_container_width=True):
             DashboardBuilder.save_dashboard(dashboard, dash_name)
-            st.success(f"âœ… Saved '{dash_name}'")
+            st.success(f"✅ Saved '{dash_name}'")
     with col4:
         st.caption("")
-        if st.button("Ã°Å¸â€â€ž Reset", use_container_width=True):
+        if st.button("🔄 Reset", use_container_width=True):
             st.session_state["current_dashboard"] = DashboardBuilder.create_dashboard(df)
             st.rerun()
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Saved Dashboards Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Saved Dashboards ─────────────────────────────────────────
     saved = st.session_state.get("saved_dashboards", {})
     if saved:
-        with st.expander("Ã°Å¸â€œâ€š Load Saved Dashboard"):
+        with st.expander("📂 Load Saved Dashboard"):
             selected_dash = st.selectbox("Select dashboard", options=list(saved.keys()), key="load_dash")
-            if st.button("Ã°Å¸â€œâ€š Load", use_container_width=True):
+            if st.button("📂 Load", use_container_width=True):
                 loaded = DashboardBuilder.load_dashboard(selected_dash)
                 if loaded:
                     st.session_state["current_dashboard"] = loaded
                     st.rerun()
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Add Chart Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Add Chart ────────────────────────────────────────────────
     st.markdown("---")
-    st.subheader("Ã¢Å¾â€¢ Add Chart to Dashboard")
+    st.subheader("➕ Add Chart to Dashboard")
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -225,7 +225,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
     with col3:
         color_col = st.selectbox("Color by", options=[""] + all_cols, key="dash_color")
 
-    if st.button("Ã¢Å¾â€¢ Add to Dashboard", type="primary", use_container_width=True):
+    if st.button("➕ Add to Dashboard", type="primary", use_container_width=True):
         params = {}
         if x_col: params["x"] = x_col
         if y_col: params["y"] = y_col
@@ -233,14 +233,14 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         params["height"] = {"small": 300, "medium": 430, "large": 550}.get(chart_size, 430)
 
         DashboardBuilder.add_chart(dashboard, chart_type, chart_title or f"{chart_type.replace('_', ' ').title()}", params, chart_size)
-        st.success(f"âœ… Added '{chart_title or chart_type}' to dashboard")
+        st.success(f"✅ Added '{chart_title or chart_type}' to dashboard")
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Global Filters Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Global Filters ────────────────────────────────────────────
     st.markdown("---")
-    st.subheader("Ã°Å¸â€Â Global Filters")
+    st.subheader("🔍 Global Filters")
 
     filter_col = st.selectbox("Add filter column", options=[""] + all_cols, key="dash_filter_col")
-    if filter_col and st.button("Ã¢Å¾â€¢ Add Filter", use_container_width=True):
+    if filter_col and st.button("➕ Add Filter", use_container_width=True):
         DashboardBuilder.add_filter(dashboard, filter_col)
         st.rerun()
 
@@ -263,11 +263,11 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
                                                           key=f"dash_filter_{i}")
                         f["value"] = selected_range
             with c3:
-                if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"dash_del_filter_{i}"):
+                if st.button("🗑️", key=f"dash_del_filter_{i}"):
                     dashboard["filters"].remove(f)
                     st.rerun()
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Render Dashboard Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Render Dashboard ─────────────────────────────────────────
     st.markdown("---")
     st.subheader(f" {dashboard.get('name', 'My Dashboard')}")
 
@@ -276,17 +276,17 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
     if active_filters:
         filtered_df = DashboardBuilder.apply_filters(df, active_filters)
         if len(filtered_df) < len(df):
-            st.info(f"Ã°Å¸â€Â Filters active: showing {len(filtered_df)} of {len(df)} rows")
+            st.info(f"🔍 Filters active: showing {len(filtered_df)} of {len(df)} rows")
     else:
         filtered_df = df
 
     charts = dashboard.get("charts", [])
 
     if not charts:
-        st.info("Ã°Å¸â€˜â€  Add charts to your dashboard using the controls above. You can also load a saved dashboard.")
+        st.info("👆 Add charts to your dashboard using the controls above. You can also load a saved dashboard.")
 
         # Auto-recommend
-        if st.button("Ã°Å¸Â¤â€“ Auto-Generate Starter Dashboard"):
+        if st.button("🤖 Auto-Generate Starter Dashboard"):
             recs = auto_recommend_chart(df)[:6]
             for rec in recs:
                 ct = rec.get("chart", "bar")
@@ -297,7 +297,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
                     dashboard, ct, rec.get("reason", ct.replace("_", " ").title()),
                     params, "medium"
                 )
-            st.success("âœ… Auto-generated 6 charts! Scroll down to view.")
+            st.success("✅ Auto-generated 6 charts! Scroll down to view.")
             st.rerun()
     else:
         # Render charts based on layout
@@ -340,7 +340,7 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
                         with c1:
                             st.caption(title)
                         with c2:
-                            if st.button("Ã°Å¸â€”â€˜Ã¯Â¸Â", key=f"dash_rm_{chart_config.get('id', chart_idx)}"):
+                            if st.button("🗑️", key=f"dash_rm_{chart_config.get('id', chart_idx)}"):
                                 DashboardBuilder.remove_chart(dashboard, chart_config.get("id", ""))
                                 st.rerun()
 
@@ -352,17 +352,17 @@ def render_dashboard_builder_ui(df: pd.DataFrame):
         st.markdown("---")
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("ðŸ“¥ Export Dashboard JSON", use_container_width=True):
+            if st.button("📥 Export Dashboard JSON", use_container_width=True):
                 json_str = DashboardBuilder.export_dashboard(dashboard)
                 st.code(json_str, language="json")
-                st.download_button("ðŸ“¥ Download", json_str, file_name=f"{dashboard.get('name', 'dashboard')}.json")
+                st.download_button("📥 Download", json_str, file_name=f"{dashboard.get('name', 'dashboard')}.json")
         with col2:
-            uploaded_json = st.file_uploader("Ã°Å¸â€œâ€š Import Dashboard JSON", type=["json"], key="dash_import")
+            uploaded_json = st.file_uploader("📂 Import Dashboard JSON", type=["json"], key="dash_import")
             if uploaded_json:
                 imported = DashboardBuilder.import_dashboard(uploaded_json.read().decode())
                 if imported:
                     st.session_state["current_dashboard"] = imported
-                    st.success("âœ… Dashboard imported!")
+                    st.success("✅ Dashboard imported!")
                     st.rerun()
 
 

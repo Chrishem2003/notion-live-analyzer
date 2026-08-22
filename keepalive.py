@@ -1,4 +1,4 @@
-﻿
+
 """
 Keep-Alive System  multi-layer approach to prevent app sleep.
 5 layers: Client JS  Server Thread  Streamlit Config  Cron  Auto-Restart
@@ -13,7 +13,7 @@ import streamlit as st
 
 logger = logging.getLogger(__name__)
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Layer 1: Client-Side JS Heartbeat Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Layer 1: Client-Side JS Heartbeat ───────────────────────────────
 def inject_client_keepalive(interval_sec: int = 300):
     """
     Inject JavaScript that periodically pings the app to keep the session alive.
@@ -56,7 +56,7 @@ def inject_client_keepalive(interval_sec: int = 300):
     return script
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Layer 2: Server-Side Background Thread Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Layer 2: Server-Side Background Thread ──────────────────────────
 class ServerKeepAliveThread:
     """Background thread that pings the app from inside the server."""
 
@@ -85,7 +85,7 @@ class ServerKeepAliveThread:
         while self._running:
             try:
                 response = requests.head(self.app_url, timeout=10)
-                logger.debug(f"[Keep-Alive] Server ping Ã¢â€ â€™ {response.status_code}")
+                logger.debug(f"[Keep-Alive] Server ping → {response.status_code}")
             except requests.exceptions.RequestException as e:
                 logger.warning(f"[Keep-Alive] Server ping failed: {e}")
             except Exception as e:
@@ -98,7 +98,7 @@ class ServerKeepAliveThread:
         return self._thread is not None and self._thread.is_alive()
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Layer 3: Streamlit Config Heartbeat Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Layer 3: Streamlit Config Heartbeat ─────────────────────────────
 # Handled via .streamlit/config.toml:
 # [server]
 # heartbeatInterval = 5000
@@ -106,7 +106,7 @@ class ServerKeepAliveThread:
 # enableXsrfProtection = false
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Layer 4: External Cron / Health Monitor Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Layer 4: External Cron / Health Monitor ─────────────────────────
 def get_health_check_html() -> str:
     """Return a simple health check response for external monitors."""
     import json
@@ -121,7 +121,7 @@ def get_health_check_html() -> str:
     <html>
     <head><title>Health Check</title></head>
     <body style="font-family: monospace; padding: 2rem;">
-        <h1>âœ… Notion Live Analyzer  Healthy</h1>
+        <h1>✅ Notion Live Analyzer  Healthy</h1>
         <pre>{json.dumps(health_data, indent=2)}</pre>
         <p>Time: {time.ctime()}</p>
     </body>
@@ -135,7 +135,7 @@ def _get_start_time() -> float:
     return _start_time
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Layer 5: Auto-Restart Watchdog Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Layer 5: Auto-Restart Watchdog ──────────────────────────────────
 class Watchdog:
     """
     Monitors the application health and triggers auto-restart if needed.
@@ -160,7 +160,7 @@ class Watchdog:
         self._last_healthy = time.time()
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Singleton Instance Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Singleton Instance ───────────────────────────────────────────────
 _server_keepalive = ServerKeepAliveThread()
 _watchdog = Watchdog()
 

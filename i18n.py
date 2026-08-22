@@ -16,9 +16,9 @@ LOCALES = {
     },
     "French": {
         "title": "Moteur d'Intelligence d'Entreprise",
-        "subtitle": "Analytique Autonome et Espace de Recherche SðŸ” curisðŸ” ",
-        "select_lang": "SðŸ” lectionner la Langue d'Affichage",
-        "export": "Exporter les DonnðŸ” es LocalisðŸ” es"
+        "subtitle": "Analytique Autonome et Espace de Recherche S🔍 curis🔍 ",
+        "select_lang": "S🔍 lectionner la Langue d'Affichage",
+        "export": "Exporter les Donn🔍 es Localis🔍 es"
     },
     "Arabic": {
         "title": "  ",

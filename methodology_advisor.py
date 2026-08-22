@@ -1,4 +1,4 @@
-﻿
+
 """
 Research Methodology Advisor  CHRISHEM-powered expert system that recommends
 study designs, statistical tests, sample sizes, and research methodologies
@@ -10,7 +10,7 @@ import numpy as np
 import streamlit as st
 import json
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Knowledge Base Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Knowledge Base ─────────────────────────────────────────────────
 
 STUDY_DESIGNS = {
     "Experimental": {
@@ -35,7 +35,7 @@ STUDY_DESIGNS = {
         "description": "Examine relationships between variables without manipulation",
         "best_for": "Exploring associations between naturally occurring variables",
         "statistical_tests": ["Pearson Correlation", "Spearman Correlation", "Multiple Regression", "Factor Analysis"],
-        "sample_size_formula": "N Ã¢â€°Â¥ 50  8 Ãƒâ€” predictors (for regression)",
+        "sample_size_formula": "N ≥ 50  8 × predictors (for regression)",
         "pros": ["Can study many variables", "High external validity"],
         "cons": ["Cannot establish causality", "Directionality problem"],
         "when_to_use": "When you cannot or should not manipulate variables",
@@ -53,7 +53,7 @@ STUDY_DESIGNS = {
         "description": "Measure variables at a single point in time",
         "best_for": "Prevalence studies, surveys, and quick assessments",
         "statistical_tests": ["Descriptive Statistics", "Chi-Square", "T-Test", "ANOVA", "Correlation"],
-        "sample_size_formula": "N = (ZÃ‚Â² Ãƒâ€” p Ãƒâ€” (1-p)) / eÃ‚Â² (for surveys)",
+        "sample_size_formula": "N = (Z² × p × (1-p)) / e² (for surveys)",
         "pros": ["Quick and efficient", "Good for prevalence", "Can study multiple outcomes"],
         "cons": ["Cannot study change", "Temporal ambiguity"],
         "when_to_use": "When you need a snapshot of a population at one time point",
@@ -80,7 +80,7 @@ STUDY_DESIGNS = {
         "description": "Collect data using questionnaires or interviews",
         "best_for": "Measuring attitudes, opinions, beliefs, and behaviors",
         "statistical_tests": ["Descriptive Statistics", "Chi-Square", "T-Test", "ANOVA", "Factor Analysis", "Reliability Analysis"],
-        "sample_size_formula": "N = (ZÃ‚Â² Ãƒâ€” p Ãƒâ€” (1-p)) / eÃ‚Â²",
+        "sample_size_formula": "N = (Z² × p × (1-p)) / e²",
         "pros": ["Can reach large samples", "Cost-effective", "Versatile"],
         "cons": ["Response bias", "Low response rates", "Limited depth"],
         "when_to_use": "When measuring subjective experiences, attitudes, or behaviors at scale",
@@ -102,102 +102,102 @@ STATISTICAL_TEST_GUIDE = {
         "assumptions": ["Normality", "Homogeneity of variance", "Independence"],
         "alternative_if_violated": "Mann-Whitney U Test",
         "effect_size": "Cohen's d",
-        "example_hypothesis": "HÃ¢â€šÂ: There is a significant difference in test scores between Group A and Group B",
+        "example_hypothesis": "H₁: There is a significant difference in test scores between Group A and Group B",
     },
     "Paired T-Test": {
         "purpose": "Compare means from the same group at two time points",
         "assumptions": ["Normality of differences", "Independence of pairs"],
         "alternative_if_violated": "Wilcoxon Signed-Rank Test",
         "effect_size": "Cohen's dz",
-        "example_hypothesis": "HÃ¢â€šÂ: There is a significant change in scores from pre-test to post-test",
+        "example_hypothesis": "H₁: There is a significant change in scores from pre-test to post-test",
     },
     "One-Way ANOVA": {
         "purpose": "Compare means across three or more groups",
         "assumptions": ["Normality", "Homogeneity of variance", "Independence"],
         "alternative_if_violated": "Kruskal-Wallis H Test",
-        "effect_size": "Eta-squared (ÃŽÂ·Ã‚Â²)",
+        "effect_size": "Eta-squared (η²)",
         "post_hoc": "Tukey HSD, Bonferroni",
-        "example_hypothesis": "HÃ¢â€šÂ: There is a significant difference in scores across the four treatment groups",
+        "example_hypothesis": "H₁: There is a significant difference in scores across the four treatment groups",
     },
     "Two-Way ANOVA": {
         "purpose": "Examine effects of two factors and their interaction",
         "assumptions": ["Normality", "Homogeneity of variance", "Independence"],
         "alternative_if_violated": "Aligned Rank Transform",
-        "effect_size": "Partial eta-squared (ÃŽÂ·pÃ‚Â²)",
-        "example_hypothesis": "HÃ¢â€šÂ: There is a significant interaction between treatment and gender",
+        "effect_size": "Partial eta-squared (ηp²)",
+        "example_hypothesis": "H₁: There is a significant interaction between treatment and gender",
     },
     "Repeated Measures ANOVA": {
         "purpose": "Compare means across three or more time points",
         "assumptions": ["Sphericity", "Normality", "Independence"],
         "alternative_if_violated": "Friedman Test",
         "effect_size": "Partial eta-squared",
-        "example_hypothesis": "HÃ¢â€šÂ: Scores change significantly over the four time points",
+        "example_hypothesis": "H₁: Scores change significantly over the four time points",
     },
     "Pearson Correlation": {
         "purpose": "Measure linear relationship between two continuous variables",
         "assumptions": ["Linearity", "Normality", "Homoscedasticity"],
         "alternative_if_violated": "Spearman Rank Correlation",
         "effect_size": "r (coefficient)",
-        "example_hypothesis": "HÃ¢â€šÂ: There is a significant correlation between age and income",
+        "example_hypothesis": "H₁: There is a significant correlation between age and income",
     },
     "Spearman Correlation": {
         "purpose": "Measure monotonic relationship between two variables",
         "assumptions": ["Monotonic relationship"],
         "alternative_if_violated": "Kendall's Tau",
-        "effect_size": "Rho (ÃÂ)",
-        "example_hypothesis": "HÃ¢â€šÂ: There is a significant monotonic relationship between rank and score",
+        "effect_size": "Rho (ρ)",
+        "example_hypothesis": "H₁: There is a significant monotonic relationship between rank and score",
     },
     "Chi-Square Test": {
         "purpose": "Test association between two categorical variables",
-        "assumptions": ["Expected frequency Ã¢â€°Â¥ 5 per cell", "Independence"],
+        "assumptions": ["Expected frequency ≥ 5 per cell", "Independence"],
         "alternative_if_violated": "Fisher's Exact Test",
         "effect_size": "Cramer's V, Phi coefficient",
-        "example_hypothesis": "HÃ¢â€šÂ: There is a significant association between gender and voting preference",
+        "example_hypothesis": "H₁: There is a significant association between gender and voting preference",
     },
     "Linear Regression": {
         "purpose": "Predict a continuous outcome from one or more predictors",
         "assumptions": ["Linearity", "Independence", "Homoscedasticity", "Normality of residuals"],
         "alternative_if_violated": "Robust Regression, Transformations",
-        "effect_size": "RÃ‚Â², Adjusted RÃ‚Â²",
-        "example_hypothesis": "HÃ¢â€šÂ: The predictors significantly predict the outcome variable",
+        "effect_size": "R², Adjusted R²",
+        "example_hypothesis": "H₁: The predictors significantly predict the outcome variable",
     },
     "Logistic Regression": {
         "purpose": "Predict a binary outcome from predictors",
         "assumptions": ["Linearity of logit", "Independence", "No multicollinearity"],
         "alternative_if_violated": "Probit Regression",
-        "effect_size": "Odds Ratio, Pseudo RÃ‚Â²",
-        "example_hypothesis": "HÃ¢â€šÂ: The predictors significantly predict the likelihood of the outcome",
+        "effect_size": "Odds Ratio, Pseudo R²",
+        "example_hypothesis": "H₁: The predictors significantly predict the likelihood of the outcome",
     },
     "Mann-Whitney U": {
         "purpose": "Compare distributions between two independent groups (non-parametric)",
         "assumptions": ["Similar shape distributions", "Independence"],
         "effect_size": "Rank-biserial correlation",
-        "example_hypothesis": "HÃ¢â€šÂ: The distributions of the two groups are significantly different",
+        "example_hypothesis": "H₁: The distributions of the two groups are significantly different",
     },
     "Wilcoxon Signed-Rank": {
         "purpose": "Compare two related samples (non-parametric paired test)",
         "assumptions": ["Symmetric distribution of differences"],
         "effect_size": "Rank-biserial correlation",
-        "example_hypothesis": "HÃ¢â€šÂ: There is a significant difference between paired observations",
+        "example_hypothesis": "H₁: There is a significant difference between paired observations",
     },
     "Kruskal-Wallis H": {
         "purpose": "Compare three or more groups (non-parametric ANOVA alternative)",
         "assumptions": ["Independence", "Similar shape distributions"],
         "effect_size": "Epsilon-squared",
         "post_hoc": "Dunn's test",
-        "example_hypothesis": "HÃ¢â€šÂ: At least one group differs significantly from the others",
+        "example_hypothesis": "H₁: At least one group differs significantly from the others",
     },
     "Factor Analysis": {
         "purpose": "Identify underlying latent factors from observed variables",
-        "assumptions": ["Sample size N Ã¢â€°Â¥ 300", "Moderate correlations", "KMO Ã¢â€°Â¥ 0.6"],
+        "assumptions": ["Sample size N ≥ 300", "Moderate correlations", "KMO ≥ 0.6"],
         "alternative_if_violated": "PCA (if assumptions violated)",
         "effect_size": "Factor loadings, Variance explained",
-        "example_hypothesis": "HÃ¢â€šÂ: The observed variables are explained by underlying latent factors",
+        "example_hypothesis": "H₁: The observed variables are explained by underlying latent factors",
     },
 }
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Recommender Functions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Recommender Functions ─────────────────────────────────────────
 
 def recommend_study_design(
     research_question: str,
@@ -506,7 +506,7 @@ def estimate_sample_size(
         results["n_per_group"] = int(np.ceil(n_adj))
         results["formula"] = "Survey sample size (Cochran's formula)"
         results["interpretation"] = (
-            f"Need **{results['total_n']}** survey responses (Ã‚Â±{e*100:.1f}% margin of error, "
+            f"Need **{results['total_n']}** survey responses (±{e*100:.1f}% margin of error, "
             f"{power*100:.0f}% confidence level)"
         )
 
@@ -533,7 +533,7 @@ def generate_methodology_section(
     total_n = sample_size.get("total_n", "N/A") if isinstance(sample_size, dict) else "N/A"
     lines.append(f"A total of {total_n} participants were recruited for this study. "
                  f"Power analysis indicated that this sample size was sufficient to detect "
-                 f"the expected effects (ÃŽÂ± = {sample_size.get('alpha', 0.05)}, "
+                 f"the expected effects (α = {sample_size.get('alpha', 0.05)}, "
                  f"power = {sample_size.get('power', 0.80)}).")
     lines.append("")
 
@@ -561,26 +561,26 @@ def generate_methodology_section(
     lines.append("")
 
     lines.append("All analyses were conducted using the Advanced Research Data Analyzer "
-                 "(version 2.0). Statistical significance was set at ÃŽÂ± = .05 (two-tailed). "
+                 "(version 2.0). Statistical significance was set at α = .05 (two-tailed). "
                  "Effect sizes were interpreted using established guidelines (Cohen, 1988).")
     lines.append("")
 
     return "\n".join(lines)
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ─────────────────────────────────────────────────────────────
 
 def render_methodology_advisor_ui():
     """Render the methodology advisor UI."""
-    st.markdown("## ðŸ“‹ Research Methodology Advisor")
+    st.markdown("## 📋 Research Methodology Advisor")
     st.markdown("*Expert system for study design, test selection, and sample size estimation*")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "Ã°Å¸Å½Â¯ Study Design", "Ã°Å¸â€Â¬ Test Selector", "Ã°Å¸â€œÂ Sample Size", "Ã°Å¸â€œÂ Method Generator"
+        "🎯 Study Design", "🔬 Test Selector", "📏 Sample Size", "📝 Method Generator"
     ])
 
     with tab1:
-        st.subheader("Ã°Å¸Å½Â¯ Recommend Study Design")
+        st.subheader("🎯 Recommend Study Design")
         st.caption("Describe your research to get design recommendations")
 
         research_question = st.text_area(
@@ -598,7 +598,7 @@ def render_methodology_advisor_ui():
         with col3:
             data_type = st.selectbox("Data type", options=["quantitative", "qualitative", "mixed"], key="mq_data")
 
-        if st.button("Ã°Å¸â€Â Get Recommendations", type="primary") and research_question:
+        if st.button("🔍 Get Recommendations", type="primary") and research_question:
             recommendations = recommend_study_design(
                 research_question,
                 has_random_assignment=(has_random == "Yes") if has_random else None,
@@ -618,15 +618,15 @@ def render_methodology_advisor_ui():
                     with col1:
                         st.markdown("**Pros:**")
                         for p in rec['pros']:
-                            st.markdown(f"- âœ… {p}")
+                            st.markdown(f"- ✅ {p}")
                     with col2:
                         st.markdown("**Cons:**")
                         for c in rec['cons']:
-                            st.markdown(f"- Ã¢Å¡Â Ã¯Â¸Â {c}")
+                            st.markdown(f"- ⚠️ {c}")
                     st.markdown("---")
 
     with tab2:
-        st.subheader("Ã°Å¸â€Â¬ Statistical Test Selector")
+        st.subheader("🔬 Statistical Test Selector")
         st.caption("Describe your variables to find the right statistical test")
 
         col1, col2 = st.columns(2)
@@ -639,13 +639,13 @@ def render_methodology_advisor_ui():
 
         assumptions_met = st.checkbox("Parametric assumptions met? (normality, homogeneity)", value=True, key="ts_assumptions")
 
-        if st.button("Ã°Å¸â€Â Find Best Test", type="primary"):
+        if st.button("🔍 Find Best Test", type="primary"):
             tests = recommend_statistical_test(iv_type, dv_type, n_groups, is_paired, assumptions_met)
 
             if tests:
                 for test in tests:
                     with st.container():
-                        confidence_color = "Ã°Å¸Å¸Â¢" if test["confidence"] >= 85 else "Ã°Å¸Å¸Â¡" if test["confidence"] >= 70 else "Ã°Å¸Å¸Â "
+                        confidence_color = "🟢" if test["confidence"] >= 85 else "🟡" if test["confidence"] >= 70 else "🟠"
                         st.markdown(f"### {confidence_color} {test['test']} (Match: {test['confidence']}%)")
                         st.markdown(f"**Purpose:** {test['purpose']}")
                         if test.get("alternative"):
@@ -660,7 +660,7 @@ def render_methodology_advisor_ui():
                 st.info("No specific test recommendation. Try different variable types.")
 
     with tab3:
-        st.subheader("Ã°Å¸â€œÂ Sample Size Estimator")
+        st.subheader("📏 Sample Size Estimator")
         st.caption("Estimate required sample size (like SPSS SamplePower)")
 
         col1, col2 = st.columns(2)
@@ -678,8 +678,8 @@ def render_methodology_advisor_ui():
             effect_size = st.slider("Expected effect size", 0.1, 2.0, 0.5, 0.05, key="ss_effect",
                                     help="d=0.2=small, 0.5=medium, 0.8=large")
         with col2:
-            alpha = st.select_slider("Alpha (ÃŽÂ±)", options=[0.001, 0.01, 0.05, 0.10], value=0.05, key="ss_alpha")
-            power = st.select_slider("Power (1-ÃŽÂ²)", options=[0.50, 0.60, 0.70, 0.80, 0.85, 0.90, 0.95], value=0.80, key="ss_power")
+            alpha = st.select_slider("Alpha (α)", options=[0.001, 0.01, 0.05, 0.10], value=0.05, key="ss_alpha")
+            power = st.select_slider("Power (1-β)", options=[0.50, 0.60, 0.70, 0.80, 0.85, 0.90, 0.95], value=0.80, key="ss_power")
 
         if design_type == "anova":
             n_groups_ss = st.number_input("Number of groups", min_value=2, max_value=10, value=3, key="ss_anova_groups")
@@ -711,7 +711,7 @@ def render_methodology_advisor_ui():
             """)
 
     with tab4:
-        st.subheader("Ã°Å¸â€œÂ Methodology Section Generator")
+        st.subheader("📝 Methodology Section Generator")
         st.caption("Generate an APA-style Method section for your research proposal or paper")
 
         col1, col2 = st.columns(2)
@@ -736,7 +736,7 @@ def render_methodology_advisor_ui():
         with col3:
             mg_power = st.select_slider("Power", options=[0.50, 0.60, 0.70, 0.80, 0.90, 0.95], value=0.80, key="mg_power")
 
-        if st.button("Ã°Å¸â€œâ€ž Generate Method Section", type="primary"):
+        if st.button("📄 Generate Method Section", type="primary"):
             variables = {
                 "independent": [v.strip() for v in ivs.split(",") if v.strip()],
                 "dependent": [v.strip() for v in dvs.split(",") if v.strip()],

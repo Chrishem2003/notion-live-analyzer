@@ -1,4 +1,4 @@
-﻿
+
 """
 Publication-Ready Table Generator  APA-style tables, journal-specific formats,
 descriptive statistics tables, correlation matrices, regression tables.
@@ -156,9 +156,9 @@ class TableGenerator:
 
             # Model fit statistics
             if r2 is not None:
-                rows.append({"Model": model_names[i], "Variable": "RÃ‚Â²", "B": f"{r2:.3f}", "SE": "", "p": ""})
+                rows.append({"Model": model_names[i], "Variable": "R²", "B": f"{r2:.3f}", "SE": "", "p": ""})
             if adj_r2 is not None:
-                rows.append({"Model": model_names[i], "Variable": "Adj. RÃ‚Â²", "B": f"{adj_r2:.3f}", "SE": "", "p": ""})
+                rows.append({"Model": model_names[i], "Variable": "Adj. R²", "B": f"{adj_r2:.3f}", "SE": "", "p": ""})
             if n is not None:
                 rows.append({"Model": model_names[i], "Variable": "N", "B": str(n), "SE": "", "p": ""})
             if f_stat is not None:
@@ -228,12 +228,12 @@ class TableGenerator:
         return "\n".join(lines)
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ─────────────────────────────────────────────────────────────
 def render_table_generator_ui():
     """Render the Publication Tables page."""
     import streamlit as st
 
-    st.markdown("## Ã°Å¸â€œâ€˜ Publication-Ready Table Generator")
+    st.markdown("## 📑 Publication-Ready Table Generator")
     st.markdown("*APA-style tables, correlation matrices, regression tables, and more*")
 
     df = st.session_state.get("active_df")
@@ -244,8 +244,8 @@ def render_table_generator_ui():
     st.info("Generate publication-ready tables from your data. Copy to clipboard or download as Markdown/LaTeX.")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        " Descriptive Stats", "Ã°Å¸â€â€” Correlation Matrix",
-        "Ã°Å¸â€œÂ Regression Table", "ðŸ“‹ Frequency Table"
+        " Descriptive Stats", "🔗 Correlation Matrix",
+        "📐 Regression Table", "📋 Frequency Table"
     ])
 
     with tab1:
@@ -262,31 +262,31 @@ def render_table_generator_ui():
             if not result.empty:
                 st.dataframe(result, use_container_width=True, hide_index=True)
                 st.markdown("---")
-                st.markdown("**ðŸ“‹ APA Markdown:**")
+                st.markdown("**📋 APA Markdown:**")
                 st.code(TableGenerator.to_apa_markdown(result, "Table 1: Descriptive Statistics"), language="markdown")
 
     with tab2:
-        st.subheader("Ã°Å¸â€â€” Correlation Matrix")
+        st.subheader("🔗 Correlation Matrix")
         corr_vars = st.multiselect("Variables", options=numeric_cols, default=numeric_cols[:min(6, len(numeric_cols))], key="tb_corr_vars")
         corr_method = st.selectbox("Method", options=["pearson", "spearman", "kendall"], key="tb_corr_method")
-        if st.button("Ã°Å¸â€â€” Generate Matrix", type="primary") and len(corr_vars) >= 2:
+        if st.button("🔗 Generate Matrix", type="primary") and len(corr_vars) >= 2:
             result = TableGenerator.correlation_matrix_table(df, corr_vars, corr_method)
             st.dataframe(result, use_container_width=True, hide_index=True)
             st.caption(result.attrs.get("footnote", ""))
-            st.markdown("**ðŸ“‹ APA Markdown:**")
+            st.markdown("**📋 APA Markdown:**")
             st.code(TableGenerator.to_apa_markdown(result, "Table 2: Correlation Matrix"), language="markdown")
 
     with tab3:
-        st.subheader("Ã°Å¸â€œÂ Regression Results Table")
+        st.subheader("📐 Regression Results Table")
         st.info("Enter regression results manually or load from analysis. Provide coefficients, SEs, and p-values.")
         n_vars = st.number_input("Number of predictors", min_value=1, max_value=20, value=3, key="tb_reg_n")
         var_names = st.text_input("Variable names (comma-separated)", value="Predictor1, Predictor2, Predictor3", key="tb_reg_vars")
         coefs = st.text_input("Coefficients (comma-separated)", value="0.45, 0.32, 0.12", key="tb_reg_coefs")
         ses = st.text_input("Standard Errors (comma-separated)", value="0.12, 0.10, 0.08", key="tb_reg_ses")
-        r2 = st.number_input("RÃ‚Â²", value=0.45, step=0.01, key="tb_reg_r2")
+        r2 = st.number_input("R²", value=0.45, step=0.01, key="tb_reg_r2")
         n = st.number_input("N", value=100, step=1, key="tb_reg_n_val")
 
-        if st.button("Ã°Å¸â€œÂ Generate Table", type="primary"):
+        if st.button("📐 Generate Table", type="primary"):
             vars_list = [v.strip() for v in var_names.split(",") if v.strip()]
             coefs_list = [float(c.strip()) for c in coefs.split(",") if c.strip()]
             ses_list = [float(s.strip()) for s in ses.split(",") if s.strip()]
@@ -302,15 +302,15 @@ def render_table_generator_ui():
             result = TableGenerator.regression_results_table([model], ["Model 1"])
             st.dataframe(result, use_container_width=True, hide_index=True)
             st.caption(result.attrs.get("footnote", ""))
-            st.markdown("**ðŸ“‹ APA Markdown:**")
+            st.markdown("**📋 APA Markdown:**")
             st.code(TableGenerator.to_apa_markdown(result, "Table 3: Regression Results"), language="markdown")
 
     with tab4:
-        st.subheader("ðŸ“‹ Frequency Table")
+        st.subheader("📋 Frequency Table")
         freq_col = st.selectbox("Column", options=df.columns.tolist(), key="tb_freq_col")
-        if st.button("ðŸ“‹ Generate", type="primary"):
+        if st.button("📋 Generate", type="primary"):
             result = TableGenerator.frequency_table(df, freq_col)
             st.dataframe(result, use_container_width=True, hide_index=True)
-            st.markdown("**ðŸ“‹ APA Markdown:**")
+            st.markdown("**📋 APA Markdown:**")
             st.code(TableGenerator.to_apa_markdown(result, f"Table 4: Frequency Distribution of {freq_col}"), language="markdown")
 

@@ -1,4 +1,4 @@
-﻿
+
 import io
 import pyotp
 import qrcode
@@ -6,7 +6,7 @@ import streamlit as st
 
 def render_secure_vault_auth():
     """Renders the secure vault authentication interface with a scannable QR code."""
-    st.markdown("### Ã°Å¸â€Â Secure Personal Vault Authentication")
+    st.markdown("### 🔐 Secure Personal Vault Authentication")
     
     # Pre-configured secret specified for your secure personal vault
     secret = "PUQ4W55ZS6RPEJG6ZZ72X3CEX6XGKNCZ"
@@ -19,7 +19,7 @@ def render_secure_vault_auth():
     col_qr, col_controls = st.columns([1, 1], gap="medium")
 
     with col_qr:
-        st.markdown("#### Ã°Å¸â€œÂ± Scannable QR Code")
+        st.markdown("#### 📱 Scannable QR Code")
         # Generate scannable QR code image in-memory
         qr = qrcode.QRCode(
             version=1,
@@ -39,13 +39,13 @@ def render_secure_vault_auth():
         st.image(qr_bytes, caption="Scan with Google Authenticator or Authy", use_container_width=True)
 
     with col_controls:
-        st.markdown("#### Ã¢Å¡â„¢Ã¯Â¸Â Vault Credentials")
+        st.markdown("#### ⚙️ Vault Credentials")
         st.text_input("Secret Key", value=secret, type="password", disabled=True)
         
         with st.expander("View Provisioning URI"):
             st.code(provisioning_uri, language="text")
 
-        st.markdown("#### Ã°Å¸â€ºÂ¡Ã¯Â¸Â Verification")
+        st.markdown("#### 🛡️ Verification")
         entered_code = st.text_input("After setup, enter a code to verify:", max_chars=6, placeholder="123456")
 
         totp = pyotp.TOTP(secret)
@@ -60,7 +60,7 @@ def render_secure_vault_auth():
 
     if st.session_state.get("vault_unlocked", False):
         st.markdown("---")
-        st.success("Ã°Å¸Å¸Â¢ Vault Status: UNLOCKED  Encrypted Session Active")
+        st.success("🟢 Vault Status: UNLOCKED  Encrypted Session Active")
         st.json({
             "vault_id": account_name,
             "security_status": "Authenticated",

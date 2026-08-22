@@ -1,4 +1,4 @@
-﻿
+
 """
 Automated Hypothesis Generator  discovers patterns, formulates research hypotheses,
 and prioritizes them by statistical support and novelty.
@@ -17,7 +17,7 @@ from modules.statistical_engine import StatisticalEngine
 from scipy import stats as scipy_stats
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Literature Effect Size Benchmarks Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Literature Effect Size Benchmarks ─────────────────────────────
 DEFAULT_BENCHMARKS = {
     "psychology": {"small": 0.20, "medium": 0.50, "large": 0.80},
     "education": {"small": 0.15, "medium": 0.40, "large": 0.65},
@@ -44,7 +44,7 @@ class HypothesisGenerator:
         col_types = infer_column_types(df)
         hypotheses = []
 
-        # 1. Mean-difference hypotheses (categorical Ã¢â€ â€™ numeric)
+        # 1. Mean-difference hypotheses (categorical → numeric)
         cat_cols = [c for c, t in col_types.items() if t in ("categorical", "string")]
         num_cols = [c for c, t in col_types.items() if t in ("numeric", "integer")]
 
@@ -53,13 +53,13 @@ class HypothesisGenerator:
                 hyps = self._test_mean_difference(df, cat, num)
                 hypotheses.extend(hyps)
 
-        # 2. Correlation hypotheses (numeric Ã¢â€ â€™ numeric)
+        # 2. Correlation hypotheses (numeric → numeric)
         for i, num1 in enumerate(num_cols[:6]):
             for num2 in num_cols[i1:6]:
                 hyps = self._test_correlation(df, num1, num2)
                 hypotheses.extend(hyps)
 
-        # 3. Association hypotheses (categorical Ã¢â€ â€™ categorical)
+        # 3. Association hypotheses (categorical → categorical)
         for i, cat1 in enumerate(cat_cols[:5]):
             for cat2 in cat_cols[i1:5]:
                 hyps = self._test_association(df, cat1, cat2)
@@ -231,7 +231,7 @@ class HypothesisGenerator:
             pass
         return hypotheses
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Literature Gap Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Literature Gap Analysis ───────────────────────────────────
 
     def compare_against_literature(
         self,
@@ -330,19 +330,19 @@ class HypothesisGenerator:
 
                 if overlaps:
                     gap_type = "replication"
-                    gap_label = "âœ… Consistent with literature"
+                    gap_label = "✅ Consistent with literature"
                     novelty_score = 20  # Low novelty
                 elif es > lit_es * 1.5:
                     gap_type = "novel_larger"
-                    gap_label = "Ã°Å¸â€Â¬ Novel finding  larger than reported"
+                    gap_label = "🔬 Novel finding  larger than reported"
                     novelty_score = 85
                 elif es < lit_es * 0.5:
                     gap_type = "novel_smaller"
-                    gap_label = "Ã°Å¸â€Â¬ Novel finding  smaller than reported"
+                    gap_label = "🔬 Novel finding  smaller than reported"
                     novelty_score = 75
                 else:
                     gap_type = "inconsistent"
-                    gap_label = "Ã¢Å¡Â Ã¯Â¸Â Inconsistent with literature"
+                    gap_label = "⚠️ Inconsistent with literature"
                     novelty_score = 60
 
                 gap_analysis["literature_comparison"] = {
@@ -372,7 +372,7 @@ class HypothesisGenerator:
                 # No literature match  this is a potential knowledge gap
                 gap_analysis["literature_comparison"] = {
                     "type": "knowledge_gap",
-                    "label": "Ã°Å¸â€™Â¡ Potential knowledge gap  no literature comparison found",
+                    "label": "💡 Potential knowledge gap  no literature comparison found",
                     "novelty_score": 70,
                     "literature_effect": None,
                     "your_effect": round(es, 3),
@@ -423,14 +423,14 @@ class HypothesisGenerator:
         gap_type = gap.get("type", "")
 
         if gap_type == "replication":
-            return base_narrative + f" âœ… This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
+            return base_narrative + f" ✅ This finding is consistent with published literature (source: {gap.get('source', 'unknown')})."
         elif gap_type in ("novel_larger", "novel_smaller"):
             direction = "larger" if gap_type == "novel_larger" else "smaller"
-            return base_narrative + f" Ã°Å¸â€Â¬ This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
+            return base_narrative + f" 🔬 This effect is notably {direction} than previously reported (d_lit={gap.get('literature_effect', 0):.2f}). This may represent a novel finding."
         elif gap_type == "knowledge_gap":
-            return base_narrative + " Ã°Å¸â€™Â¡ This pattern has not been found in the literature review  potential knowledge gap worth exploring."
+            return base_narrative + " 💡 This pattern has not been found in the literature review  potential knowledge gap worth exploring."
         elif gap_type == "inconsistent":
-            return base_narrative + f" Ã¢Å¡Â Ã¯Â¸Â This finding diverges from published literature (d_lit={gap.get('literature_effect', 0):.2f}). Consider contextual or methodological factors."
+            return base_narrative + f" ⚠️ This finding diverges from published literature (d_lit={gap.get('literature_effect', 0):.2f}). Consider contextual or methodological factors."
         return base_narrative
 
     def _score_hypotheses(self, hypotheses: List[Dict]) -> List[Dict]:
@@ -499,7 +499,7 @@ class HypothesisGenerator:
             r2 = h.get("r_squared", 0)
             strength = "strong" if abs(r) >= 0.6 else "moderate" if abs(r) >= 0.3 else "weak"
             direction = h.get("direction", "")
-            return f"**{v1}** and **{v2}** show a {strength} {direction} linear relationship (r = {r:.2f}, rÃ‚Â² = {r2:.2f}, p {p_str})."
+            return f"**{v1}** and **{v2}** show a {strength} {direction} linear relationship (r = {r:.2f}, r² = {r2:.2f}, p {p_str})."
 
         elif htype == "association":
             v1 = h.get("variable_1", "X")
@@ -507,14 +507,14 @@ class HypothesisGenerator:
             chi2 = h.get("chi_square", 0)
             v = h.get("cramers_v", 0)
             strength = h.get("strength", "")
-            return f"**{v1}** and **{v2}** have a {strength} association (Ãâ€¡Ã‚Â² = {chi2:.2f}, V = {v:.2f}, p {p_str})."
+            return f"**{v1}** and **{v2}** have a {strength} association (χ² = {chi2:.2f}, V = {v:.2f}, p {p_str})."
 
         elif htype == "trend":
             dv = h.get("dependent_variable", "Y")
             rho = h.get("rho", 0)
             strength = h.get("strength", "")
             direction = h.get("direction", "")
-            return f"**{dv}** shows a {strength} {direction} trend over time (ÃÂ = {rho:.2f}, p {p_str})."
+            return f"**{dv}** shows a {strength} {direction} trend over time (ρ = {rho:.2f}, p {p_str})."
 
         elif htype == "multi_group_difference":
             dv = h.get("dependent_variable", "Y")
@@ -522,19 +522,19 @@ class HypothesisGenerator:
             ng = h.get("num_groups", 0)
             fstat = h.get("f_statistic", 0)
             eta2 = h.get("effect_size", 0)
-            return f"**{dv}** differs significantly across {ng} groups of **{gv}** (F = {fstat:.2f}, ÃŽÂ·Ã‚Â² = {eta2:.2f}, p {p_str})."
+            return f"**{dv}** differs significantly across {ng} groups of **{gv}** (F = {fstat:.2f}, η² = {eta2:.2f}, p {p_str})."
 
         return f"Hypothesis: {h.get('type', 'unknown')} relationship discovered (score: {h.get('priority_score', 0)})"
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ─────────────────────────────────────────────────────────────
 
 def render_hypothesis_generator_ui(df: pd.DataFrame):
     """Render the hypothesis generator UI."""
     import streamlit as st
     from modules.ui_components import section_header, insight_card
 
-    st.markdown("## Ã°Å¸â€™Â¡ Automated Hypothesis Generator")
+    st.markdown("## 💡 Automated Hypothesis Generator")
     st.markdown("*Discovers patterns, formulates research hypotheses, and prioritizes them by statistical support*")
 
     if df is None or df.empty:
@@ -545,10 +545,10 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
 
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.info(f" Dataset: {len(df)} rows Ãƒâ€” {len(df.columns)} columns  ready for hypothesis discovery")
+        st.info(f" Dataset: {len(df)} rows × {len(df.columns)} columns  ready for hypothesis discovery")
     with col2:
-        if st.button("Ã°Å¸Å¡â‚¬ Run Hypothesis Discovery", type="primary", use_container_width=True):
-            with st.spinner("Ã°Å¸â€Â Discovering patterns and formulating hypotheses..."):
+        if st.button("🚀 Run Hypothesis Discovery", type="primary", use_container_width=True):
+            with st.spinner("🔍 Discovering patterns and formulating hypotheses..."):
                 results = hg.discover_hypotheses(df)
 
             if "error" in results:
@@ -561,10 +561,10 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
     hypotheses = st.session_state.get("generated_hypotheses", [])
 
     if not hypotheses:
-        st.info("Ã°Å¸â€˜â€  Click **'Run Hypothesis Discovery'** to automatically discover patterns and generate research hypotheses from your data.")
+        st.info("👆 Click **'Run Hypothesis Discovery'** to automatically discover patterns and generate research hypotheses from your data.")
 
         st.markdown("""
-        ### Ã°Å¸â€Â How It Works
+        ### 🔍 How It Works
         The hypothesis generator systematically tests:
 
         1. **Mean Differences**  Does a categorical variable predict differences in a numeric outcome?
@@ -584,7 +584,7 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
         st.markdown(f"""
         <div style="text-align:center;padding:1.2rem;border-radius:14px;
                      border:2px solid {priority_color};background:{priority_color}10;margin-bottom:1rem;">
-            <div style="font-size:1.1rem;color:#64748b;">Ã°Å¸Ââ€  Top Hypothesis</div>
+            <div style="font-size:1.1rem;color:#64748b;">🏆 Top Hypothesis</div>
             <div style="font-size:1.3rem;font-weight:700;color:{priority_color};margin:0.3rem 0;">
                 {top.get('narrative', '')}
             </div>
@@ -636,15 +636,15 @@ def render_hypothesis_generator_ui(df: pd.DataFrame):
                 <div style="margin-top:0.3rem;">{h.get('narrative', '')}</div>
                 <div style="margin-top:0.2rem;font-size:0.8rem;color:#64748b;">
                     {h.get('test', '')} | {h.get('type', '').replace('_', ' ').title()}
-                    {' | âœ… Significant' if h.get('significant') else ' | Ã¢ÂÅ’ Not significant'}
+                    {' | ✅ Significant' if h.get('significant') else ' | ❌ Not significant'}
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
     # Export
     st.markdown("---")
-    st.subheader("ðŸ“¥ Export Hypotheses")
-    if st.button("ðŸ“‹ Copy All as Markdown"):
+    st.subheader("📥 Export Hypotheses")
+    if st.button("📋 Copy All as Markdown"):
         lines = ["# Generated Hypotheses", f"**Generated**: {datetime.now():%Y-%m-%d %H:%M:%S}", ""]
         for h in filtered:
             lines.append(f"### {h.get('id', '')}  {h.get('priority_label', '')}")

@@ -6,7 +6,7 @@ import streamlit as st
 from modules.schema_engine import DB_FILE, init_db, log_provenance
 
 def render_mastercard_impact_tab():
-    st.subheader("ðŸ’³ MasterCard Foundation Youth & Agri-Tech Economic Hub")
+    st.subheader("💳 MasterCard Foundation Youth & Agri-Tech Economic Hub")
     st.caption("Empowering grassroots digital entrepreneurship, local resource tracking, and transparent micro-grant financial auditing.")
 
     init_db()
@@ -28,7 +28,7 @@ def render_mastercard_impact_tab():
     col_m1, col_m2 = st.columns(2)
 
     with col_m1:
-        st.markdown("### ðŸš€ Register Local Youth Enterprise & Agri-Tech Venture")
+        st.markdown("### 🚀 Register Local Youth Enterprise & Agri-Tech Venture")
         with st.form("mcf_form"):
             v_id = st.text_input("Venture ID", value="MCF-ENT-2026-01")
             founder = st.text_input("Lead Entrepreneur / Researcher", value="Kula Chris")

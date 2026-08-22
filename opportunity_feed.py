@@ -1,4 +1,4 @@
-﻿
+
 """
 Live Verified Opportunity Feed Engine
 Real-time scholarship, grant, and fellowship discovery module for the
@@ -2402,7 +2402,7 @@ FEED_CSS = """
         color: #38bdf8 !important;
         font-weight: 700 !important;
     }
-/* Ã¢â€â‚¬Ã¢â€â‚¬ Live Opportunity Feed Styles Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* ── Live Opportunity Feed Styles ───────────────────────────── */
 .feed-container {
     background: #0f172a;
     border: 1px solid #1e293b;

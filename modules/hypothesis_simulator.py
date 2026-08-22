@@ -1,4 +1,4 @@
-﻿
+
 """
 Dynamic Hypothesis & Parameter Simulator
 Converts mathematical formulas and statistical relationships described in papers
@@ -44,7 +44,7 @@ class HypothesisSimulator:
             "required_n_per_group": int(np.ceil(required_n)) if not np.isnan(required_n) else None,
             "detectable_effect_size": round(float(detected_effect), 3) if not np.isnan(detected_effect) else None,
             "power_curve": power_curve,
-            "interpretation": f"Need {int(np.ceil(required_n))} participants per group to detect d={effect_size} with {power*100:.0f}% power (ÃŽÂ±={alpha})" if not np.isnan(required_n) else "Adjust parameters to compute required sample size",
+            "interpretation": f"Need {int(np.ceil(required_n))} participants per group to detect d={effect_size} with {power*100:.0f}% power (α={alpha})" if not np.isnan(required_n) else "Adjust parameters to compute required sample size",
         }
 
     def simulate_dosage_response(self, base_effect: float = 0.3, max_dose: float = 100,
@@ -117,7 +117,7 @@ class HypothesisSimulator:
             "estimated_intercept": round(float(intercept), 3),
             "r_squared": round(float(r2), 3),
             "p_value": round(float(p_val), 4),
-            "interpretation": f"Simulated Y = {beta_0}  {beta_1}Ã‚Â·X  ÃŽÂµ. Estimated slope = {slope:.3f} (p={p_val:.4f}), RÃ‚Â² = {r2:.3f}",
+            "interpretation": f"Simulated Y = {beta_0}  {beta_1}·X  ε. Estimated slope = {slope:.3f} (p={p_val:.4f}), R² = {r2:.3f}",
         }
 
     def simulate_bias_impact(self, true_effect: float = 0.5, bias_strength: float = 0.2,
@@ -162,14 +162,14 @@ def render_hypothesis_simulator_ui():
     import plotly.graph_objects as go
     import plotly.express as px
 
-    st.markdown("## ðŸ§® Dynamic Hypothesis & Parameter Simulator")
+    st.markdown("## 🧮 Dynamic Hypothesis & Parameter Simulator")
     st.markdown("*Interactive mathematical modeler  vary parameters to see predicted outcomes*")
 
     sim = HypothesisSimulator()
 
     sim_type = st.radio("Select simulation type", [
-        " Power Analysis", "Ã°Å¸â€™Å  Dose-Response", "Ã°Å¸â€â€” Correlation",
-        "Ã°Å¸â€œÂ Confidence Intervals", "ðŸ“ˆ Regression", "Ã¢Å¡Â Ã¯Â¸Â Bias Impact"
+        " Power Analysis", "💊 Dose-Response", "🔗 Correlation",
+        "📐 Confidence Intervals", "📈 Regression", "⚠️ Bias Impact"
     ], horizontal=True, key="sim_type_hyp")
 
     if sim_type == " Power Analysis":
@@ -177,12 +177,12 @@ def render_hypothesis_simulator_ui():
         col1, col2 = st.columns(2)
         with col1:
             es = st.slider("Effect size (Cohen's d)", 0.1, 2.0, 0.5, 0.05, key="sim_power_es")
-            alpha = st.select_slider("Alpha (ÃŽÂ±)", options=[0.001, 0.01, 0.05, 0.10], value=0.05, key="sim_power_alpha")
+            alpha = st.select_slider("Alpha (α)", options=[0.001, 0.01, 0.05, 0.10], value=0.05, key="sim_power_alpha")
         with col2:
-            power_target = st.slider("Target power (1-ÃŽÂ²)", 0.50, 0.99, 0.80, 0.05, key="sim_power_target")
+            power_target = st.slider("Target power (1-β)", 0.50, 0.99, 0.80, 0.05, key="sim_power_target")
             n_current = st.slider("Current N per group", 5, 500, 30, 5, key="sim_power_n")
 
-        if st.button("Ã¢â€“Â¶Ã¯Â¸Â Run Power Simulation", type="primary"):
+        if st.button("▶️ Run Power Simulation", type="primary"):
             result = sim.simulate_power_analysis(es, alpha, power_target, n_current)
             col1, col2 = st.columns(2)
             with col1:
@@ -197,8 +197,8 @@ def render_hypothesis_simulator_ui():
                 fig.update_layout(xaxis_title="Sample Size (per group)", yaxis_title="Power")
                 st.plotly_chart(fig, use_container_width=True)
 
-    elif sim_type == "Ã°Å¸â€™Å  Dose-Response":
-        st.subheader("Ã°Å¸â€™Å  Dose-Response Curve Simulator")
+    elif sim_type == "💊 Dose-Response":
+        st.subheader("💊 Dose-Response Curve Simulator")
         col1, col2 = st.columns(2)
         with col1:
             base = st.slider("Baseline effect", 0.0, 0.5, 0.3, 0.05, key="sim_dose_base")
@@ -207,7 +207,7 @@ def render_hypothesis_simulator_ui():
             ec50 = st.slider("EC50 (half-max dose)", 5, 200, 50, 5, key="sim_dose_ec50")
             hill = st.slider("Hill coefficient (steepness)", 0.5, 5.0, 1.0, 0.1, key="sim_dose_hill")
 
-        if st.button("Ã¢â€“Â¶Ã¯Â¸Â Run Dose-Response Simulation", type="primary"):
+        if st.button("▶️ Run Dose-Response Simulation", type="primary"):
             result = sim.simulate_dosage_response(base, max_d, ec50, hill)
             curve_df = pd.DataFrame(result["curve_data"])
             fig = go.Figure()
@@ -218,15 +218,15 @@ def render_hypothesis_simulator_ui():
             st.plotly_chart(fig, use_container_width=True)
             st.info(result["interpretation"])
 
-    elif sim_type == "Ã°Å¸â€â€” Correlation":
-        st.subheader("Ã°Å¸â€â€” Correlation Simulator")
+    elif sim_type == "🔗 Correlation":
+        st.subheader("🔗 Correlation Simulator")
         col1, col2 = st.columns(2)
         with col1:
             n_corr = st.slider("Sample size (N)", 10, 500, 100, 10, key="sim_corr_n")
         with col2:
-            r_true = st.slider("True correlation (ÃÂ)", -1.0, 1.0, 0.5, 0.05, key="sim_corr_r")
+            r_true = st.slider("True correlation (ρ)", -1.0, 1.0, 0.5, 0.05, key="sim_corr_r")
 
-        if st.button("Ã¢â€“Â¶Ã¯Â¸Â Generate Simulated Correlation", type="primary"):
+        if st.button("▶️ Generate Simulated Correlation", type="primary"):
             result = sim.simulate_correlation(n_corr, r_true)
             df_sim = result["simulated_data"]
             fig = px.scatter(df_sim, x="X", y="Y", trendline="ols", title=f"Simulated: r = {r_true:.2f}, Observed: r = {result['observed_r']:.3f}")
@@ -234,8 +234,8 @@ def render_hypothesis_simulator_ui():
             st.metric("Observed r", f"{result['observed_r']:.3f}")
             st.info(result["interpretation"])
 
-    elif sim_type == "Ã°Å¸â€œÂ Confidence Intervals":
-        st.subheader("Ã°Å¸â€œÂ Confidence Interval Coverage Simulator")
+    elif sim_type == "📐 Confidence Intervals":
+        st.subheader("📐 Confidence Interval Coverage Simulator")
         col1, col2 = st.columns(2)
         with col1:
             es_ci = st.slider("True effect size", 0.0, 2.0, 0.5, 0.05, key="sim_ci_es")
@@ -244,36 +244,36 @@ def render_hypothesis_simulator_ui():
             ci_level = st.select_slider("Confidence level", options=[0.80, 0.90, 0.95, 0.99], value=0.95, key="sim_ci_level")
             n_sim = st.slider("Number of simulations", 100, 5000, 1000, 100, key="sim_ci_nsim")
 
-        if st.button("Ã¢â€“Â¶Ã¯Â¸Â Run CI Simulation", type="primary"):
+        if st.button("▶️ Run CI Simulation", type="primary"):
             result = sim.simulate_confidence_interval(es_ci, n_ci, ci_level, n_sim)
             col1, col2 = st.columns(2)
             with col1: st.metric("Coverage Rate", f"{result['coverage_rate']:.1%}")
             with col2: st.metric("Expected", f"{result['expected_coverage']:.0%}")
             st.info(result["interpretation"])
 
-    elif sim_type == "ðŸ“ˆ Regression":
-        st.subheader("ðŸ“ˆ Linear Regression Simulator")
+    elif sim_type == "📈 Regression":
+        st.subheader("📈 Linear Regression Simulator")
         col1, col2 = st.columns(2)
         with col1:
             n_reg = st.slider("Sample size", 10, 500, 100, 10, key="sim_reg_n")
-            b0 = st.number_input("True intercept (ÃŽÂ²Ã¢â€šâ‚¬)", value=0.0, step=0.5, key="sim_reg_b0")
+            b0 = st.number_input("True intercept (β₀)", value=0.0, step=0.5, key="sim_reg_b0")
         with col2:
-            b1 = st.number_input("True slope (ÃŽÂ²Ã¢â€šÂ)", value=1.5, step=0.5, key="sim_reg_b1")
-            noise = st.slider("Noise (ÃÆ’)", 0.1, 5.0, 1.0, 0.1, key="sim_reg_noise")
+            b1 = st.number_input("True slope (β₁)", value=1.5, step=0.5, key="sim_reg_b1")
+            noise = st.slider("Noise (σ)", 0.1, 5.0, 1.0, 0.1, key="sim_reg_noise")
 
-        if st.button("Ã¢â€“Â¶Ã¯Â¸Â Generate Regression Data", type="primary"):
+        if st.button("▶️ Generate Regression Data", type="primary"):
             result = sim.simulate_regression(n_reg, b0, b1, noise)
             df_reg = result["simulated_data"]
             fig = px.scatter(df_reg, x="X", y="Y", trendline="ols", title=f"True: Y = {b0}  {b1}X | Estimated: slope = {result['estimated_slope']:.3f}")
             st.plotly_chart(fig, use_container_width=True)
             col1, col2, col3 = st.columns(3)
             with col1: st.metric("Estimated Slope", f"{result['estimated_slope']:.3f}")
-            with col2: st.metric("RÃ‚Â²", f"{result['r_squared']:.3f}")
+            with col2: st.metric("R²", f"{result['r_squared']:.3f}")
             with col3: st.metric("P-value", f"{result['p_value']:.4f}")
             st.info(result["interpretation"])
 
-    elif sim_type == "Ã¢Å¡Â Ã¯Â¸Â Bias Impact":
-        st.subheader("Ã¢Å¡Â Ã¯Â¸Â Publication Bias Simulator")
+    elif sim_type == "⚠️ Bias Impact":
+        st.subheader("⚠️ Publication Bias Simulator")
         col1, col2 = st.columns(2)
         with col1:
             true_eff = st.slider("True effect size", 0.0, 1.0, 0.5, 0.05, key="sim_bias_true")
@@ -282,14 +282,14 @@ def render_hypothesis_simulator_ui():
             n_studies_bias = st.slider("Number of studies", 10, 200, 50, 5, key="sim_bias_n")
             pub_bias = st.checkbox("Apply publication bias (only sig. results published)", value=True, key="sim_bias_pub")
 
-        if st.button("Ã¢â€“Â¶Ã¯Â¸Â Run Bias Simulation", type="primary"):
+        if st.button("▶️ Run Bias Simulation", type="primary"):
             result = sim.simulate_bias_impact(true_eff, bias_str, n_studies_bias, pub_bias)
             col1, col2, col3 = st.columns(3)
             with col1: st.metric("True Effect", f"{result['true_effect']:.3f}")
             with col2: st.metric("All Studies Mean", f"{result['all_studies_mean']:.3f}")
             with col3: st.metric("Published Mean", f"{result['published_mean']:.3f}")
             if pub_bias:
-                st.warning(f"Ã¢Å¡Â Ã¯Â¸Â Publication bias inflates estimate by {result['bias_impact']:.3f}")
+                st.warning(f"⚠️ Publication bias inflates estimate by {result['bias_impact']:.3f}")
             st.info(result["interpretation"])
 
 

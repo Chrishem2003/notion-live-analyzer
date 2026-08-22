@@ -1,4 +1,4 @@
-﻿"""
+"""
 CHRISHEM Threat Intelligence & SOC Module
 =========================================
 Live threat intelligence operations center capabilities:
@@ -232,7 +232,7 @@ def analyze_url(url: str) -> Dict[str, Any]:
     # 4) Too many subdomains (looks like legit brand, isn't)
     if host.count(".") >= 4:
         risk_score += 15
-        findings.append("Excessive subdomain depth â€” possible lookalike domain.")
+        findings.append("Excessive subdomain depth — possible lookalike domain.")
 
     # 5) Non-standard port
     if port and port not in (80, 443):

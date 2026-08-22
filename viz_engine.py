@@ -1,4 +1,4 @@
-﻿
+
 """
 Visualization Engine  intelligent auto-chart recommendation and selection.
 Analyzes data types and suggests the best visualization automatically.
@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from modules.data_processor import infer_column_types, infer_column_type
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Chart Category Definitions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Chart Category Definitions ───────────────────────────────────────
 CHART_CATEGORIES = {
     "Distribution": ["histogram", "box", "violin", "density"],
     "Comparison": ["bar", "grouped_bar", "stacked_bar", "horizontal_bar"],
@@ -78,7 +78,7 @@ def auto_recommend_chart(
     # --- Recommendations based on available columns ---
     all_cols = columns
 
-    # 1. Single numeric column Ã¢â€ â€™ Distribution plots
+    # 1. Single numeric column → Distribution plots
     if len(numeric_cols) >= 1:
         recommendations.extend([
             {"chart": "histogram", "x": numeric_cols[0], "y": None,
@@ -89,7 +89,7 @@ def auto_recommend_chart(
              "reason": f"Distribution density of {numeric_cols[0]}", "score": 80},
         ])
 
-    # 2. Categorical  Numeric Ã¢â€ â€™ Bar/comparison charts
+    # 2. Categorical  Numeric → Bar/comparison charts
     if cat_cols and numeric_cols:
         for cat in cat_cols[:2]:
             for num in numeric_cols[:2]:
@@ -107,7 +107,7 @@ def auto_recommend_chart(
                          "reason": f"Compare {num} by {cat_cols[0]} and {cat_cols[1]}", "score": 90}
                     )
 
-    # 3. Categorical only Ã¢â€ â€™ Frequency charts
+    # 3. Categorical only → Frequency charts
     if cat_cols and not numeric_cols:
         for cat in cat_cols[:2]:
             recommendations.extend([
@@ -119,7 +119,7 @@ def auto_recommend_chart(
                  "reason": f"Hierarchy of {cat}", "score": 75},
             ])
 
-    # 4. Temporal  Numeric Ã¢â€ â€™ Trend charts
+    # 4. Temporal  Numeric → Trend charts
     if temporal_cols and numeric_cols:
         for temp in temporal_cols[:1]:
             for num in numeric_cols[:2]:
@@ -130,7 +130,7 @@ def auto_recommend_chart(
                      "reason": f"Area trend of {num}", "score": 85},
                 ])
 
-    # 5. Two numeric columns Ã¢â€ â€™ Correlation charts
+    # 5. Two numeric columns → Correlation charts
     if len(numeric_cols) >= 2:
         recommendations.extend([
             {"chart": "scatter", "x": numeric_cols[0], "y": numeric_cols[1],
@@ -142,7 +142,7 @@ def auto_recommend_chart(
              "reason": "Correlation heatmap of numeric variables", "score": 80},
         ])
 
-    # 6. Three numeric columns Ã¢â€ â€™ Multi-dimensional
+    # 6. Three numeric columns → Multi-dimensional
     if len(numeric_cols) >= 3:
         recommendations.append(
             {"chart": "scatter_3d", "x": numeric_cols[0], "y": numeric_cols[1], "z": numeric_cols[2],
@@ -154,14 +154,14 @@ def auto_recommend_chart(
              "reason": "Multi-dimensional parallel coordinates", "score": 78}
         )
 
-    # 7. Categorical  Temporal Ã¢â€ â€™ Stacked area
+    # 7. Categorical  Temporal → Stacked area
     if cat_cols and temporal_cols and numeric_cols:
         recommendations.append(
             {"chart": "stacked_area", "x": temporal_cols[0], "y": numeric_cols[0], "color": cat_cols[0],
              "reason": f"Composition of {numeric_cols[0]} over time by {cat_cols[0]}", "score": 85}
         )
 
-    # 8. Hierarchical (two categoricals) Ã¢â€ â€™ Treemap, Sunburst
+    # 8. Hierarchical (two categoricals) → Treemap, Sunburst
     if len(cat_cols) >= 2:
         recommendations.extend([
             {"chart": "treemap", "path": cat_cols[:3], "values": numeric_cols[0] if numeric_cols else None,
@@ -195,7 +195,7 @@ def explain_chart_recommendation(rec: Dict[str, Any]) -> str:
     reason = rec.get("reason", "")
     score = rec.get("score", 0)
 
-    confidence = "Ã°Å¸â€Âµ Highly Recommended" if score >= 90 else "Ã°Å¸Å¸Â¢ Recommended" if score >= 80 else "Ã°Å¸Å¸Â¡ Suggested"
+    confidence = "🔵 Highly Recommended" if score >= 90 else "🟢 Recommended" if score >= 80 else "🟡 Suggested"
     return f"{confidence}  **{chart_name}**: {reason}"
 
 

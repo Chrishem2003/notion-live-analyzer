@@ -1,4 +1,4 @@
-﻿
+
 from io import StringIO
 try:
     from Bio import SeqIO
@@ -44,9 +44,9 @@ def generate_simple_newick(names, dist_matrix):
 
 def render_ascii_tree(names):
     """Generates an ASCII visual phylogenetic tree structure."""
-    lines = [" Phylogeny Tree Visualizer", " Ã¢â€â€Ã¢â€â‚¬ Root"]
+    lines = [" Phylogeny Tree Visualizer", " └─ Root"]
     for i, name in enumerate(names):
-        prefix = "    Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ " if i < len(names) - 1 else "    Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ "
+        prefix = "    ├── " if i < len(names) - 1 else "    └── "
         lines.append(f"{prefix}{name}")
     return "\n".join(lines)
 

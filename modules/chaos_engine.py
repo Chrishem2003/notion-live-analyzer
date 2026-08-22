@@ -1,8 +1,8 @@
-﻿"""
+"""
 CHRISHEM Chaos & Nonlinear Systems Engine
 ==========================================
 Real, from-scratch numerical engines for nonlinear dynamics and forecasting.
-No fabricated "AI" metrics â€” every number is genuinely computed.
+No fabricated "AI" metrics — every number is genuinely computed.
 
 Capabilities
   - Real SciPy ODE integration (odeint/LSODA) for 3-state nonlinear systems

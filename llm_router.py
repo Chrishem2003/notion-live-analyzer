@@ -1,4 +1,4 @@
-﻿"""
+"""
 llm_router.py
 Hybrid LLM Router  the "Local Hybrid Fallback Wrapper".
 
@@ -164,8 +164,8 @@ class LLMRouter:
             )
         if task == "summarize_short":
             words = prompt.split()[:60]
-            return " ".join(words) + ("â€¦" if len(prompt.split()) > 60 else "")
-        return f"Routed response ({task}): {topic} â€” see enterprise guidelines."
+            return " ".join(words) + ("…" if len(prompt.split()) > 60 else "")
+        return f"Routed response ({task}): {topic} — see enterprise guidelines."
 
     # ------------------------------------------------------------------
     # Embeddings (Graph-RAG support)

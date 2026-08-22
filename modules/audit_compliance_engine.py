@@ -1,4 +1,4 @@
-﻿"""
+"""
 CHRISHEM Audit & Compliance Forensic Engine
 ===========================================
 50 real, computationally-honest forensic and compliance scanners for
@@ -6,7 +6,7 @@ scientific integrity, AI-content detection, privacy, cryptography, and
 compliance reporting.
 
 Every scanner performs a genuine computation (regex detection, statistical
-tests, hashing, entropy analysis) â€” no fabricated "AI" percentages.
+tests, hashing, entropy analysis) — no fabricated "AI" percentages.
 
 Categories
   1-10  Statistical Integrity & Questionable Research Practices (QRP)
@@ -38,7 +38,7 @@ def statcheck_consistency(test_str: str) -> Dict[str, Any]:
     Parse a reported test statistic string (e.g. "t(248) = 4.12, p = .0001")
     and check internal consistency between the statistic and p-value.
     """
-    t_m = re.search(r"[tFrÏ‡z]\s*\(\s*(\d+)\s*\)\s*=\s*(-?[\d.]+)", test_str)
+    t_m = re.search(r"[tFrχz]\s*\(\s*(\d+)\s*\)\s*=\s*(-?[\d.]+)", test_str)
     p_m = re.search(r"[pP]\s*=\s*(\.?\d+)", test_str)
     if not t_m or not p_m:
         return {"ok": False, "reason": "Could not parse test statistic string.", "consistency": 0.0}
@@ -62,7 +62,7 @@ def statcheck_consistency(test_str: str) -> Dict[str, Any]:
         "reported_p": p,
         "computed_p": round(p_calc, 4),
         "consistency": round(min(100.0, consistency), 1),
-        "reason": "Consistent" if ok else "Inconsistent â€” statistic and p-value do not match",
+        "reason": "Consistent" if ok else "Inconsistent — statistic and p-value do not match",
     }
 
 
@@ -229,7 +229,7 @@ def citation_fabrication_audit(text: str) -> Dict[str, Any]:
     plausible_years = [y for y in years if 1900 <= int(y) <= 2026]
     issues = []
     if not dois and years:
-        issues.append("Citations lack DOI identifiers â€” cannot verify against registry.")
+        issues.append("Citations lack DOI identifiers — cannot verify against registry.")
     questionable = [y for y in years if int(y) > 2026]
     if questionable:
         issues.append(f"Future-dated citations found: {questionable}")
@@ -358,7 +358,7 @@ def gdpr_purge_validator(fields: List[str]) -> Dict[str, Any]:
     required = ["name", "email", "phone", "address", "ip"]
     missing = [r for r in required if r.lower() not in [f.lower() for f in fields]]
     return {"eligible_fields": len(fields), "missing_personally_identifiable_fields": missing,
-            "verdict": "COMPLIANT" if not missing else "GAP â€” add missing fields"}
+            "verdict": "COMPLIANT" if not missing else "GAP — add missing fields"}
 
 
 def differential_privacy_audit(epsilon: float) -> Dict[str, Any]:
@@ -379,7 +379,7 @@ def gps_blur(coords: List[Tuple[float, float]], radius_km: float = 1.0) -> Dict[
     import random
     blurred = []
     for lat, lon in coords:
-        # ~0.01 deg lat â‰ˆ 1.1km; jitter roughly within radius
+        # ~0.01 deg lat ≈ 1.1km; jitter roughly within radius
         dlat = random.uniform(-radius_km / 111.0, radius_km / 111.0)
         dlon = random.uniform(-radius_km / 111.0, radius_km / 111.0)
         blurred.append(round(lat + dlat, 6), )
@@ -408,14 +408,14 @@ def consent_documentation_audit(signed: bool, timestamped: bool, witness: bool) 
         missing.append("timestamp")
     if not witness:
         missing.append("witness/verification")
-    return {"missing": missing, "verdict": "COMPLETE" if not missing else f"INCOMPLETE â€” missing {', '.join(missing)}"}
+    return {"missing": missing, "verdict": "COMPLETE" if not missing else f"INCOMPLETE — missing {', '.join(missing)}"}
 
 
 def coi_disclosure_verification(disclosed: bool, amount: float = 0.0) -> Dict[str, Any]:
     """Verify Conflict-of-Interest disclosure."""
     threshold = 10000
     flag = disclosed is False and amount > threshold
-    return {"disclosed": disclosed, "amount_usd": amount, "flag": flag, "verdict": "PASS" if not flag else "FLAG â€” undisclosed COI above threshold"}
+    return {"disclosed": disclosed, "amount_usd": amount, "flag": flag, "verdict": "PASS" if not flag else "FLAG — undisclosed COI above threshold"}
 
 
 def durc_screening(text: str) -> Dict[str, Any]:
@@ -568,7 +568,7 @@ def reproducibility_validator(env_ok: bool, deps_pinned: bool, seed_set: bool) -
         missing.append("pinned dependencies")
     if not seed_set:
         missing.append("random seed")
-    return {"missing": missing, "verdict": "REPRODUCIBLE" if not missing else f"NOT FULLY REPRODUCIBLE â€” missing {', '.join(missing)}"}
+    return {"missing": missing, "verdict": "REPRODUCIBLE" if not missing else f"NOT FULLY REPRODUCIBLE — missing {', '.join(missing)}"}
 
 
 def data_availability_statement_generator(zenodo_doi: str, repository: str = "GitHub") -> str:
@@ -584,8 +584,8 @@ def credit_taxonomy_mapping(contributions: List[str]) -> Dict[str, Any]:
     credit_roles = {
         "conceptualization": "Conceptualization", "methodology": "Methodology",
         "software": "Software", "formal analysis": "Formal analysis",
-        "investigation": "Investigation", "writing": "Writing â€“ Original Draft",
-        "review": "Writing â€“ Review & Editing", "supervision": "Supervision",
+        "investigation": "Investigation", "writing": "Writing – Original Draft",
+        "review": "Writing – Review & Editing", "supervision": "Supervision",
         "funding": "Funding acquisition",
     }
     mapped = []

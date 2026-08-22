@@ -1,4 +1,4 @@
-﻿
+
 """
 Data Quality Module  automated data quality assessment, reporting, and improvement suggestions.
 Like SPSS Data Audit and Quality Assurance.
@@ -320,7 +320,7 @@ class DataQualityReport:
         score = max(0, score)
 
         return {
-            "duplicate_columns": [f"{a}Ã¢â€°Ë†{b}" for a, b in duplicate_cols],
+            "duplicate_columns": [f"{a}≈{b}" for a, b in duplicate_cols],
             "constant_columns": constant_cols,
             "all_nan_columns": all_nan,
             "score": round(score, 1),
@@ -370,18 +370,18 @@ class DataQualityReport:
         return result
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ─────────────────────────────────────────────────────────────
 
 def render_data_quality_ui(df: pd.DataFrame):
     """Render the data quality dashboard."""
-    st.markdown("## Ã°Å¸â€Â Data Quality Assessment")
+    st.markdown("## 🔍 Data Quality Assessment")
     st.markdown("*Automated data quality audit  completeness, uniqueness, consistency, validity, accuracy*")
 
     if df is None or df.empty:
         st.warning("No data available. Load data first.")
         return
 
-    if st.button("Ã°Å¸Å¡â‚¬ Run Full Quality Assessment", type="primary"):
+    if st.button("🚀 Run Full Quality Assessment", type="primary"):
         with st.spinner("Running comprehensive data quality audit..."):
             qa = DataQualityReport(df)
             report = qa.run_full_assessment()
@@ -406,12 +406,12 @@ def render_data_quality_ui(df: pd.DataFrame):
         st.subheader(" Quality Dimensions")
         dimensions = ["completeness", "uniqueness", "consistency", "validity", "accuracy", "timeliness"]
         dim_labels = {
-            "completeness": "âœ… Completeness",
-            "uniqueness": "Ã°Å¸â€â€˜ Uniqueness",
-            "consistency": "Ã°Å¸â€œÂ Consistency",
-            "validity": "âœ… Validity",
-            "accuracy": "Ã°Å¸Å½Â¯ Accuracy",
-            "timeliness": "Ã¢ÂÂ° Timeliness",
+            "completeness": "✅ Completeness",
+            "uniqueness": "🔑 Uniqueness",
+            "consistency": "📐 Consistency",
+            "validity": "✅ Validity",
+            "accuracy": "🎯 Accuracy",
+            "timeliness": "⏰ Timeliness",
         }
 
         cols = st.columns(3)
@@ -431,21 +431,21 @@ def render_data_quality_ui(df: pd.DataFrame):
         # Issues
         issues = report.get("issues", [])
         if issues:
-            st.subheader("Ã¢Å¡Â Ã¯Â¸Â Issues Found")
+            st.subheader("⚠️ Issues Found")
             for issue in issues:
                 st.warning(issue)
         else:
-            st.success("âœ… No significant quality issues detected!")
+            st.success("✅ No significant quality issues detected!")
 
         # Recommendations
         recommendations = report.get("recommendations", [])
         if recommendations:
-            st.subheader("Ã°Å¸â€™Â¡ Recommendations")
+            st.subheader("💡 Recommendations")
             for i, rec in enumerate(recommendations):
-                insight_card("Ã°Å¸â€™Â¡", rec)
+                insight_card("💡", rec)
 
         # Overview
-        st.subheader("ðŸ“‹ Dataset Overview")
+        st.subheader("📋 Dataset Overview")
         overview = report.get("overview", {})
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -459,7 +459,7 @@ def render_data_quality_ui(df: pd.DataFrame):
             st.metric("Completeness", f"{completeness.get('missing_pct', 0)}% missing")
 
         # Column Quality Table
-        st.subheader("ðŸ“‹ Column-by-Column Quality")
+        st.subheader("📋 Column-by-Column Quality")
         col_quality = []
         for col in df.columns:
             n_missing = int(df[col].isna().sum())
@@ -475,8 +475,8 @@ def render_data_quality_ui(df: pd.DataFrame):
             else:
                 n_outliers = 0
 
-            quality = "âœ…" if missing_pct < 5 and n_outliers == 0 else \
-                      "Ã¢Å¡Â Ã¯Â¸Â" if missing_pct < 30 else "Ã¢ÂÅ’"
+            quality = "✅" if missing_pct < 5 and n_outliers == 0 else \
+                      "⚠️" if missing_pct < 30 else "❌"
 
             col_quality.append({
                 "Column": col,
@@ -491,7 +491,7 @@ def render_data_quality_ui(df: pd.DataFrame):
         st.dataframe(col_quality_df, use_container_width=True, hide_index=True)
 
     else:
-        st.info("Ã°Å¸â€˜â€  Click **'Run Full Quality Assessment'** to audit your data")
+        st.info("👆 Click **'Run Full Quality Assessment'** to audit your data")
 
         # Quick stats
         st.subheader(" Quick Dataset Statistics")

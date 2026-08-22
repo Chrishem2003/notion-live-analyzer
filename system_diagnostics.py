@@ -40,7 +40,7 @@ def render_system_diagnostics_panel():
     """
     Renders the System Diagnostics & Health Status panel inside Streamlit.
     """
-    st.subheader("ðŸ©º System Diagnostics & Component Health Monitor")
+    st.subheader("🩺 System Diagnostics & Component Health Monitor")
     st.caption("Live integrity checks, module synchronization reports, and automated environment diagnostics.")
 
     c1, c2, c3, c4 = st.columns(4)

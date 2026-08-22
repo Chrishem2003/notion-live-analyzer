@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 
 def render_personal_workspace_panel():
-    st.subheader("ðŸ’» Universal Personal Workspace & Productivity Hub")
+    st.subheader("💻 Universal Personal Workspace & Productivity Hub")
     st.caption("Manage research milestones, bioinformatics pipelines, system configurations, and daily workflow tasks.")
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -12,8 +12,8 @@ def render_personal_workspace_panel():
     with c1:
         with st.container(border=True):
             st.caption("ACTIVE MILESTONES")
-            st.subheader("ðŸŽ¯ 4 Tracked")
-            st.caption("ðŸŸ¢ Up to Date")
+            st.subheader("🎯 4 Tracked")
+            st.caption("🟢 Up to Date")
     with c2:
         with st.container(border=True):
             st.caption("RESEARCH PROGRESS")
@@ -22,16 +22,16 @@ def render_personal_workspace_panel():
     with c3:
         with st.container(border=True):
             st.caption("WORKSPACE STATUS")
-            st.subheader("âš¡ Synced")
-            st.caption("ðŸ”’ Local Enclave")
+            st.subheader("⚡ Synced")
+            st.caption("🔒 Local Enclave")
     with c4:
         with st.container(border=True):
             st.caption("FOCUS SCORE")
-            st.subheader("ðŸ§  100%")
-            st.caption("ðŸ”¥ Deep Work")
+            st.subheader("🧠 100%")
+            st.caption("🔥 Deep Work")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### ðŸŽ¯ Active Research & Task Milestones")
+    st.markdown("#### 🎯 Active Research & Task Milestones")
 
     tasks_df = pd.DataFrame([
         {"Task Item": "Waterborne Pathogen Surveillance Batch Analysis", "Category": "Bioinformatics Research", "Priority": "Critical", "Status": "IN PROGRESS"},
@@ -42,5 +42,5 @@ def render_personal_workspace_panel():
     st.dataframe(tasks_df, use_container_width=True, hide_index=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### ðŸ“ Quick Notes & Code Snippet Vault")
+    st.markdown("#### 📝 Quick Notes & Code Snippet Vault")
     st.text_area("Jot down research notes, terminal commands, or project ideas:", height=120, placeholder="Type notes here...")

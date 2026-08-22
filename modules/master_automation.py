@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import json
 import sqlite3
@@ -7,7 +7,7 @@ from datetime import datetime
 from modules.schema_engine import DB_FILE, init_db, log_provenance
 
 def render_master_automation_control_center():
-    st.subheader("Ã¢Å¡Â¡ ResearchOS Master Multi-System Automation Engine")
+    st.subheader("⚡ ResearchOS Master Multi-System Automation Engine")
     st.caption("Centralized orchestration hub running cross-module event triggers, automated WHO surveillance syncs, and cryptographic audit proofs.")
 
     init_db()
@@ -29,18 +29,18 @@ def render_master_automation_control_center():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("### Ã¢Å¡â„¢Ã¯Â¸Â Global Pipeline Automation Triggers")
+        st.markdown("### ⚙️ Global Pipeline Automation Triggers")
         st.caption("Execute full-system synchronization across all 22 active research and sponsorship modules.")
         
         selected_pipeline = st.selectbox("Select Master Workflow", [
-            "Sync Genomics Ã¢Å¾â€ WHO Pathogen Mesh",
-            "Trigger Satellite Telemetry Ã¢Å¾â€ Agri-Grant Impact Audit",
+            "Sync Genomics ➔ WHO Pathogen Mesh",
+            "Trigger Satellite Telemetry ➔ Agri-Grant Impact Audit",
             "Run Anti-Rot Deterministic Snapshot (SHA-256)",
-            "Compile All Active Nodes Ã¢Å¾â€ UN/WHO Policy Brief",
+            "Compile All Active Nodes ➔ UN/WHO Policy Brief",
             "Execute Full Multi-System Health & Integrity Sweep"
         ])
 
-        if st.button("Ã°Å¸Å¡â‚¬ Execute Autonomous Pipeline", type="primary"):
+        if st.button("🚀 Execute Autonomous Pipeline", type="primary"):
             timestamp_id = f"EXEC-{int(datetime.utcnow().timestamp())}"
             cursor.execute('''
                 INSERT OR REPLACE INTO automated_pipeline_logs (trigger_id, source_module, action_executed, status)

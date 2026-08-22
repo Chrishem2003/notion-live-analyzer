@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 from modules import subscription, billing_stripe
 
 def render_notion_style_billing(user_email, user_name=""):
@@ -34,7 +34,7 @@ def render_notion_style_billing(user_email, user_name=""):
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("### ðŸ’³ Upgrade Your Subscription")
+    st.markdown("### 💳 Upgrade Your Subscription")
 
     col_left, col_right = st.columns([1.1, 0.9])
 
@@ -44,7 +44,7 @@ def render_notion_style_billing(user_email, user_name=""):
         c_biz = st.text_input("Business name (optional)", placeholder="Acme Inc.", key="bill_biz")
         
         st.markdown("**Payment Method**")
-        st.info(f"ðŸ”’ Payment Link verification active for **{user_email}**")
+        st.info(f"🔒 Payment Link verification active for **{user_email}**")
         
         card_num = st.text_input("Card number", placeholder="1234 1234 1234 1234", key="bill_card")
         c_exp, c_cvc = st.columns(2)
@@ -78,14 +78,14 @@ def render_notion_style_billing(user_email, user_name=""):
 
         agree_terms = st.checkbox("I agree to the auto-renewal terms & subscription agreement.", key="bill_terms")
 
-        if st.button("ðŸš€ Upgrade to Business", type="primary", use_container_width=True, disabled=not agree_terms):
+        if st.button("🚀 Upgrade to Business", type="primary", use_container_width=True, disabled=not agree_terms):
             if billing_stripe.is_configured():
                 checkout_url = billing_stripe.create_checkout_session(user_email, selected_plan_key, selected_interval)
                 if checkout_url:
-                    st.link_button("âž¡ï¸ Proceed to Stripe Secure Checkout", checkout_url, type="primary", use_container_width=True)
+                    st.link_button("➡️ Proceed to Stripe Secure Checkout", checkout_url, type="primary", use_container_width=True)
                 else:
                     st.error("Error creating Stripe checkout session. Check API keys.")
             else:
                 st.warning("Stripe credentials not fully configured in environment variables.")
 
-        st.button("ðŸ’¬ Contact Sales", use_container_width=True)
+        st.button("💬 Contact Sales", use_container_width=True)

@@ -1,4 +1,4 @@
-﻿"""
+"""
 CHRISHEM Forensic Intelligence Engine
 =====================================
 Digital Evidence Laboratory for the Sovereign Intelligence Platform.
@@ -444,7 +444,7 @@ def analyze_email_headers(raw_email: str) -> Dict[str, Any]:
 
     if from_dom and reply_dom and from_dom != reply_dom:
         suspicious_findings.append(
-            f"Reply-To domain ({reply_dom}) differs from From domain ({from_dom}) â€” a classic spoofing signal."
+            f"Reply-To domain ({reply_dom}) differs from From domain ({from_dom}) — a classic spoofing signal."
         )
     if from_dom and return_dom and from_dom != return_dom:
         suspicious_findings.append(

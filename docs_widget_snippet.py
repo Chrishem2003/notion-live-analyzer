@@ -1,6 +1,6 @@
-﻿"""
+"""
 Integration example: drop into 11___Collaboration_Portfolio.py as a new
-"Live Docs" tab. Uses actual Yjs (via CDN) in the browser â€” the same CRDT
+"Live Docs" tab. Uses actual Yjs (via CDN) in the browser — the same CRDT
 wire protocol as pycrdt server-side, proven compatible by design (both
 implement the Yjs update format; this session tested the Python side
 exhaustively, not this specific JS/Python interop pair over a real
@@ -29,8 +29,8 @@ def get_chat_token(user_email: str) -> str | None:
 
 
 def render_live_doc(user_email: str, doc_id: str):
-    st.markdown(f"### ðŸ“ Live Doc: {doc_id}")
-    st.caption("Real-time collaborative editing â€” multiple people can type at once without overwriting each other.")
+    st.markdown(f"### 📝 Live Doc: {doc_id}")
+    st.caption("Real-time collaborative editing — multiple people can type at once without overwriting each other.")
 
     token = get_chat_token(user_email)
     if not token:
@@ -62,9 +62,9 @@ def render_live_doc(user_email: str, doc_id: str):
 
         const ws = new WebSocket({ws_url!r});
 
-        ws.onopen = () => {{ statusEl.textContent = 'Connected â€” real-time sync active.'; };
+        ws.onopen = () => {{ statusEl.textContent = 'Connected — real-time sync active.'; };
         ws.onclose = (event) => {{
-            statusEl.textContent = event.code === 4401 ? 'Session expired â€” refresh the page.' : 'Disconnected.';
+            statusEl.textContent = event.code === 4401 ? 'Session expired — refresh the page.' : 'Disconnected.';
         };
 
         ws.onmessage = (event) => {{
@@ -83,7 +83,7 @@ def render_live_doc(user_email: str, doc_id: str):
 
         // Naive contenteditable -> Y.Text sync: on every keystroke, diff the
         // whole text and replace. This is intentionally simple (not
-        // cursor-position-preserving) â€” a production editor would use
+        // cursor-position-preserving) — a production editor would use
         // y-prosemirror or y-codemirror for proper cursor-aware binding.
         // The CRDT correctness underneath is real either way; this is just
         // a simple binding on top of it.
@@ -100,8 +100,8 @@ def render_live_doc(user_email: str, doc_id: str):
     """
     st.components.v1.html(widget_html, height=420)
     st.caption(
-        "âš ï¸ Known limitation of this simple binding: the cursor jumps to the end after each "
+        "⚠️ Known limitation of this simple binding: the cursor jumps to the end after each "
         "keystroke because the whole text is replaced rather than diffed at the cursor position. "
-        "The underlying CRDT merge is correct regardless â€” this is a UX polish item, not a "
+        "The underlying CRDT merge is correct regardless — this is a UX polish item, not a "
         "correctness one. Swap in y-codemirror or y-prosemirror for cursor-stable editing."
     )

@@ -1,5 +1,5 @@
-﻿"""
-modules/task_client.py â€” Streamlit <-> Celery bridge.
+"""
+modules/task_client.py — Streamlit <-> Celery bridge.
 
 Streamlit re-runs the whole script on every interaction, so "polling" here
 means: submit once, stash the task id in session_state, and on each rerun
@@ -49,14 +49,14 @@ def render_task_progress(session_key: str, poll_seconds: float = 1.5):
     still running / hasn't been submitted / failed.
 
     Call this on every rerun (it self-triggers reruns via st.rerun while a
-    job is in flight â€” no external polling loop needed).
+    job is in flight — no external polling loop needed).
     """
     task_id = st.session_state.get(f"_task_id__{session_key}")
     if not task_id:
         return None
 
     if st.session_state.get(f"_task_done__{session_key}"):
-        # Already finished on a prior rerun â€” don't re-poll, just return the cached value.
+        # Already finished on a prior rerun — don't re-poll, just return the cached value.
         return st.session_state.get(f"_task_result__{session_key}")
 
     result = AsyncResult(task_id, app=celery_app)
@@ -66,7 +66,7 @@ def render_task_progress(session_key: str, poll_seconds: float = 1.5):
     progress_box = st.empty()
 
     if state in ("PENDING",):
-        progress_box.info("â³ Job queued â€” waiting for a worker to pick it up...")
+        progress_box.info("⏳ Job queued — waiting for a worker to pick it up...")
         time_delay(poll_seconds)
         st.rerun()
 
@@ -76,12 +76,12 @@ def render_task_progress(session_key: str, poll_seconds: float = 1.5):
         stage = meta.get("stage", "working...")
         with progress_box.container():
             st.progress(min(current / total, 1.0))
-            st.caption(f"ðŸ”„ {stage}")
+            st.caption(f"🔄 {stage}")
         time_delay(poll_seconds)
         st.rerun()
 
     elif state == "SUCCESS":
-        progress_box.success("âœ… Job complete.")
+        progress_box.success("✅ Job complete.")
         value = result.result
         st.session_state[f"_task_done__{session_key}"] = True
         st.session_state[f"_task_result__{session_key}"] = value
@@ -89,7 +89,7 @@ def render_task_progress(session_key: str, poll_seconds: float = 1.5):
 
     elif state == "FAILURE":
         error_msg = meta.get("error", str(result.result))
-        progress_box.error(f"âŒ Job failed: {error_msg}")
+        progress_box.error(f"❌ Job failed: {error_msg}")
         st.session_state[f"_task_done__{session_key}"] = True
         st.session_state[f"_task_result__{session_key}"] = None
         return None

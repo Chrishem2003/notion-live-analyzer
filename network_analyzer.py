@@ -42,7 +42,7 @@ class NetworkAnalyzer:
         if not HAS_NETWORKX:
             raise ImportError("networkx required. Install: pip install networkx")
 
-    # â”€â”€â”€ Correlation Network â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── Correlation Network ──────────────────────────────────────
     def correlation_network(
         self,
         df: pd.DataFrame,
@@ -107,7 +107,7 @@ class NetworkAnalyzer:
             "threshold": threshold,
         }
 
-    # â”€â”€â”€ Co-occurrence Network â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── Co-occurrence Network ────────────────────────────────────
     def cooccurrence_network(
         self,
         df: pd.DataFrame,
@@ -163,7 +163,7 @@ class NetworkAnalyzer:
             },
         }
 
-    # â”€â”€â”€ Get Layout Positions for Plotting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ─── Get Layout Positions for Plotting ────────────────────────
     @staticmethod
     def get_layout_positions(G: nx.Graph, layout: str = "spring") -> Dict[str, Tuple[float, float]]:
         """Compute node positions using specified layout algorithm."""
@@ -242,14 +242,14 @@ class NetworkAnalyzer:
         return fig
 
 
-# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── UI ─────────────────────────────────────────────────────────────
 def render_network_analysis_ui():
     """Render the Network Analysis page."""
     import streamlit as st
     import plotly.graph_objects as go
     import plotly.express as px
 
-    st.markdown("## ðŸ”— Network Analysis Engine")
+    st.markdown("## 🔗 Network Analysis Engine")
     st.markdown("*Correlation networks, centrality metrics, community detection*")
 
     df = st.session_state.get("active_df")
@@ -260,16 +260,16 @@ def render_network_analysis_ui():
     engine = NetworkAnalyzer()
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
-    tab1, tab2 = st.tabs(["ðŸ”— Correlation Network", "ðŸ“ Co-occurrence Network"])
+    tab1, tab2 = st.tabs(["🔗 Correlation Network", "📝 Co-occurrence Network"])
 
     with tab1:
-        st.subheader("ðŸ”— Correlation Network")
+        st.subheader("🔗 Correlation Network")
         vars_for_network = st.multiselect("Select variables (3 recommended)", options=numeric_cols,
                                           default=numeric_cols[:min(10, len(numeric_cols))], key="net_vars")
         method = st.selectbox("Correlation method", options=["pearson", "spearman", "kendall"], key="net_method")
         min_corr = st.slider("Minimum absolute correlation", 0.0, 1.0, 0.3, 0.05, key="net_min_corr")
 
-        if st.button("ðŸ”— Build Network", type="primary", use_container_width=True) and len(vars_for_network) >= 2:
+        if st.button("🔗 Build Network", type="primary", use_container_width=True) and len(vars_for_network) >= 2:
             result = engine.correlation_network(df, vars_for_network, method, min_corr)
             G = result.get("graph")
             if G and G.number_of_edges() > 0:
@@ -304,14 +304,14 @@ def render_network_analysis_ui():
                 st.warning("No edges found. Try lowering the correlation threshold.")
 
     with tab2:
-        st.subheader("ðŸ“ Co-occurrence Network (from text)")
+        st.subheader("📝 Co-occurrence Network (from text)")
         text_cols = text_columns(df)
         if text_cols:
             text_col = st.selectbox("Text column", options=text_cols, key="net_text_col")
             top_n = st.slider("Top N words", 10, 100, 50, key="net_top_n")
             window = st.slider("Co-occurrence window", 1, 10, 3, key="net_window")
 
-            if st.button("ðŸ“ Build Co-occurrence Network", type="primary", use_container_width=True):
+            if st.button("📝 Build Co-occurrence Network", type="primary", use_container_width=True):
                 result = engine.cooccurrence_network(df, text_col, top_n, window)
                 G = result.get("graph")
                 if G and G.number_of_edges() > 0:

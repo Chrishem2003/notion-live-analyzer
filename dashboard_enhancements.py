@@ -1,4 +1,4 @@
-﻿
+
 """
 Dashboard Enhancements Module
 Provides smart search filters, metric banners, caching helpers, and export suites.
@@ -23,7 +23,7 @@ def smart_search_filter(df: pd.DataFrame, search_cols=None) -> pd.DataFrame:
     if df.empty:
         return df
         
-    search_query = st.text_input("Ã°Å¸â€Â Global Smart Search", "", placeholder="Type to filter across records...")
+    search_query = st.text_input("🔍 Global Smart Search", "", placeholder="Type to filter across records...")
     if not search_query:
         return df
         
@@ -45,7 +45,7 @@ def render_export_suite(df: pd.DataFrame, file_prefix: "notion_export"):
     if df.empty:
         return
         
-    st.subheader("ðŸ“¥ Export Options")
+    st.subheader("📥 Export Options")
     col1, col2 = st.columns(2)
     
     with col1:

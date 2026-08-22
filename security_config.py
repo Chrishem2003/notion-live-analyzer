@@ -1,4 +1,4 @@
-﻿"""
+"""
 security_config.py  centralized secret resolution, admin seeding, and password
 hashing for the Notion Live Analyzer platform.
 
@@ -26,14 +26,14 @@ from pathlib import Path
 from typing import Optional
 
 # ---------------------------------------------------------------------------
-# .env loading (tiny, dependency-free) â€” only reads a local git-ignored file.
+# .env loading (tiny, dependency-free) — only reads a local git-ignored file.
 # ---------------------------------------------------------------------------
 
 def _dotenv_values(path: str | Path) -> dict:
     """Parse a simple ``KEY=VALUE`` .env file into a dict.
 
     Lines starting with ``#`` are comments. Values may be quoted with single
-    or double quotes. This is intentionally minimal â€” no external dependency.
+    or double quotes. This is intentionally minimal — no external dependency.
     """
     values: dict = {}
     try:
@@ -50,7 +50,7 @@ def _dotenv_values(path: str | Path) -> dict:
                 if key:
                     values[key] = val
     except OSError:
-        # File missing or unreadable â€” fall through to env vars only.
+        # File missing or unreadable — fall through to env vars only.
         pass
     return values
 
@@ -133,7 +133,7 @@ def is_admin_email(email: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Password hashing (stdlib scrypt â€” memory-hard PBKDF)
+# Password hashing (stdlib scrypt — memory-hard PBKDF)
 # ---------------------------------------------------------------------------
 
 # scrypt parameters. Increase N for production/stronger hashing.
@@ -212,14 +212,14 @@ def seed_admin_if_needed(get_user_by_email_fn, create_user_fn):
     Returns:
         The existing or newly created admin user, or None if not configured.
 
-    This is *not* a Streamlit-rendering function â€” wire it into your app's
+    This is *not* a Streamlit-rendering function — wire it into your app's
     startup/database initialization path. The password is hashed and the
     env vars are only read here.
     """
     email = get_seed_admin_email()
     password = get_seed_admin_password()
     if not email or not password:
-        return None  # not configured â€” skip silently
+        return None  # not configured — skip silently
 
     existing = get_user_by_email_fn(email)
     if existing:

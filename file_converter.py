@@ -1,4 +1,4 @@
-﻿"""
+"""
 CHRISHEM Universal File & Data Converter Studio
 ================================================
 A comprehensive multi-format conversion engine supporting:
@@ -28,9 +28,9 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 # FORMAT CONVERTERS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 def dataframe_to_csv(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False).encode("utf-8")
 
@@ -71,7 +71,7 @@ def _xml_safe(tag: str) -> str:
 
 def dataframe_to_yaml(df: pd.DataFrame) -> bytes:
     records = df.astype(object).where(pd.notnull(df), None).to_dict(orient="records")
-    lines = ["# CHRISHEM Universal Converter â€” YAML Export", f"rows: {len(df)}", "data:"]
+    lines = ["# CHRISHEM Universal Converter — YAML Export", f"rows: {len(df)}", "data:"]
     for i, rec in enumerate(records):
         lines.append(f"  - id: {i}")
         for k, v in rec.items():
@@ -121,7 +121,7 @@ table.chris-table th {{ background: #0b1e36; color: #fff; padding: 8px 10px; tex
 table.chris-table td {{ border: 1px solid #e5e7eb; padding: 6px 10px; }
 </style></head><body>
 <h2>{title}</h2>
-<p><em>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} â€” CHRISHEM Universal Converter</em></p>
+<p><em>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} — CHRISHEM Universal Converter</em></p>
 {styled}
 </body></html>"""
     return html_doc.encode("utf-8")
@@ -155,9 +155,9 @@ def convert_dataframe(df: pd.DataFrame, target_format: str, **kwargs) -> bytes:
     raise ValueError(f"Unsupported target format: {target_format}")
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 # ENCODING CONVERTERS
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 def auto_detect_encoding(raw: bytes) -> str:
     """Best-effort encoding detection."""
     if raw.startswith(b"\xef\xbb\xbf"):
@@ -208,9 +208,9 @@ def decode_data(raw: bytes, source_encoding: str) -> bytes:
     raise ValueError(f"Unsupported source encoding: {source_encoding}")
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 # DATA RESHAPER
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 def wide_to_long(
     df: pd.DataFrame, id_vars: List[str], value_vars: List[str], var_name: str = "variable", value_name: str = "value"
 ) -> pd.DataFrame:
@@ -250,9 +250,9 @@ def stack_columns(df: pd.DataFrame, columns: List[str], stack_name: str = "stack
     return pd.concat(frames, ignore_index=True) if frames else df.copy()
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 # SCIENTIFIC UNIT CONVERTER
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 # length: meters
 LENGTH_UNITS = {
     "meters": 1.0, "kilometers": 1000.0, "centimeters": 0.01, "millimeters": 0.001,
@@ -322,9 +322,9 @@ def convert_unit(value: float, from_unit: str, to_unit: str, category: str) -> D
     return {"value": value, "from": from_unit, "to": to_unit, "result": round(result, 8), "category": category}
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 # COORDINATE CONVERTER
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 def decimal_to_dms(lat: float, lon: float) -> Dict[str, Any]:
     def _to_dms(value: float, pos: str, neg: str) -> Tuple[int, int, float, str]:
         direction = pos if value >= 0 else neg
@@ -338,16 +338,16 @@ def decimal_to_dms(lat: float, lon: float) -> Dict[str, Any]:
     d1, m1, s1, d1_dir = _to_dms(lat, "N", "S")
     d2, m2, s2, d2_dir = _to_dms(lon, "E", "W")
     return {
-        "lat_dms": f"{d1}Â°{m1}â€²{s1:.2f}â€³{d1_dir}",
-        "lon_dms": f"{d2}Â°{m2}â€²{s2:.2f}â€³{d2_dir}",
-        "formatted": f"{d1}Â°{m1}â€²{s1:.1f}â€³{d1_dir} {d2}Â°{m2}â€²{s2:.1f}â€³{d2_dir}",
+        "lat_dms": f"{d1}°{m1}′{s1:.2f}″{d1_dir}",
+        "lon_dms": f"{d2}°{m2}′{s2:.2f}″{d2_dir}",
+        "formatted": f"{d1}°{m1}′{s1:.1f}″{d1_dir} {d2}°{m2}′{s2:.1f}″{d2_dir}",
     }
 
 
 def dms_to_decimal(lat_dms: str, lon_dms: str) -> Dict[str, Any]:
     def _parse(dms: str) -> float:
         regex = re.search(
-            r"([\d.]+)\s*[Â°d]\s*([\d.]+)\s*['â€²]\s*([\d.]*)\s*(?:\"|â€³|'')?\s*([NSEW])?", dms, re.I
+            r"([\d.]+)\s*[°d]\s*([\d.]+)\s*['′]\s*([\d.]*)\s*(?:\"|″|'')?\s*([NSEW])?", dms, re.I
         )
         if not regex:
             raise ValueError(f"Cannot parse DMS: {dms}")
@@ -361,9 +361,9 @@ def dms_to_decimal(lat_dms: str, lon_dms: str) -> Dict[str, Any]:
     return {"lat": _parse(lat_dms), "lon": _parse(lon_dms), "formatted": f"{_parse(lat_dms):.6f}, {_parse(lon_dms):.6f}"}
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 # PDF TEXT EXTRACTION (zero-dep fallback)
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════
 def extract_pdf_text(raw: bytes) -> Dict[str, Any]:
     """
     Extract text from a PDF. Uses pypdf if available, otherwise falls back

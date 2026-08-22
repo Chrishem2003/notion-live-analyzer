@@ -1,4 +1,4 @@
-﻿"""
+"""
 Run this ONCE from your project root after the setup script has copied
 modules/auth_store.py into place:
 
@@ -17,7 +17,7 @@ password = getpass.getpass("Admin password: ")
 
 result = auth_store.bootstrap_first_admin(email, name, password)
 if result["ok"]:
-    print(f"âœ… Admin account created for {email}. You can now sign in through portal.py.")
+    print(f"✅ Admin account created for {email}. You can now sign in through portal.py.")
 else:
-    print(f"âŒ {result['error']}")
+    print(f"❌ {result['error']}")
 

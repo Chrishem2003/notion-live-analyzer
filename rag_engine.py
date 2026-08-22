@@ -1,4 +1,4 @@
-﻿"""
+"""
 rag_engine.py
 Graph-Enhanced Retrieval-Augmented Generation (RAG) Pipeline.
 
@@ -244,7 +244,7 @@ def build_knowledge_graph() -> Any:
                 ents = json.loads(row["entities_json"])
             except Exception:
                 ents = []
-            doc_node = f"ðŸ“„ {row['title'][:40]}" or row["doc_id"]
+            doc_node = f"📄 {row['title'][:40]}" or row["doc_id"]
             G.add_node(doc_node, type="document")
             for e in ents:
                 G.add_node(e, type="entity")
@@ -309,7 +309,7 @@ def register_rag_task_handlers() -> None:
     def handler(text: str = "", title: str = "Untitled", doc_id: str = "doc",
                 progress_cb=None, task_id=None, **kwargs):
         if progress_cb:
-            progress_cb(10, "Building RAG indexâ€¦")
+            progress_cb(10, "Building RAG index…")
         n = index_document(doc_id, title, text)
         if progress_cb:
             progress_cb(100, f"Indexed {n} chunks")

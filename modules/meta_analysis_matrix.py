@@ -1,4 +1,4 @@
-﻿
+
 """
 Multi-Paper Meta-Analysis Matrix Synthesizer
 Automatically constructs side-by-side comparative matrices across multiple studies.
@@ -171,16 +171,16 @@ class MetaAnalysisMatrix:
             return ""
         p_lower = p_value.lower()
         if "p < 0.001" in p_lower or "p<0.001" in p_lower:
-            return "âœ… Yes"
+            return "✅ Yes"
         if "p < 0.01" in p_lower or "p<0.01" in p_lower or "p < 0.05" in p_lower or "p<0.05" in p_lower:
-            return "âœ… Yes"
+            return "✅ Yes"
         if "p >" in p_lower or "p =" in p_lower or "p=" in p_lower:
             # Extract the actual p-value
             nums = re.findall(r"(\d\.?\d*)", p_value)
             if nums and float(nums[0]) < 0.05:
-                return "âœ… Yes"
+                return "✅ Yes"
             elif nums:
-                return "Ã¢ÂÅ’ No"
+                return "❌ No"
         return ""
 
     def _compute_quality_score(self, row: Dict) -> int:
@@ -231,14 +231,14 @@ class MetaAnalysisMatrix:
         avg_quality = quality_scores.mean() if not quality_scores.isna().all() else 0
 
         # Significant papers count
-        sig_count = sum(1 for v in df["Significant"] if "âœ…" in str(v))
+        sig_count = sum(1 for v in df["Significant"] if "✅" in str(v))
 
         return {
             "total_papers": len(df),
             "avg_quality_score": round(avg_quality, 1),
             "significant_findings": sig_count,
             "non_significant": len(df) - sig_count,
-            "year_range": f"{df['Year'].min()}Ã¢â‚¬â€œ{df['Year'].max()}" if df["Year"].notna().any() else "N/A",
+            "year_range": f"{df['Year'].min()}–{df['Year'].max()}" if df["Year"].notna().any() else "N/A",
             "most_cited": df.loc[df["Citations"].idxmax(), "Paper"][:60] if "Citations" in df.columns and not df["Citations"].isna().all() else "N/A",
         }
 
@@ -279,33 +279,33 @@ def render_meta_analysis_matrix_ui():
     import streamlit as st
     from modules.ui_components import section_header
 
-    st.markdown("## Ã°Å¸â€œâ€˜ Multi-Paper Meta-Analysis Matrix Synthesizer")
+    st.markdown("## 📑 Multi-Paper Meta-Analysis Matrix Synthesizer")
     st.markdown("*Side-by-side comparative matrix across multiple studies*")
 
     if "meta_matrix" not in st.session_state:
         st.session_state["meta_matrix"] = MetaAnalysisMatrix()
     matrix_engine = st.session_state["meta_matrix"]
 
-    tab1, tab2, tab3 = st.tabs(["ðŸ“¥ Build Matrix", " Matrix View", "ðŸ“ˆ Summary"])
+    tab1, tab2, tab3 = st.tabs(["📥 Build Matrix", " Matrix View", "📈 Summary"])
 
     with tab1:
-        st.subheader("ðŸ“¥ Build Comparative Matrix")
+        st.subheader("📥 Build Comparative Matrix")
         st.caption("Load papers from the current literature project or paste paper data")
 
         papers = []
         lit_papers = st.session_state.get("lit_db_papers", [])
         if lit_papers:
-            st.info(f"Ã°Å¸â€œÅ¡ Found {len(lit_papers)} papers in current literature project")
-            if st.button("Ã°Å¸â€Â¨ Build Matrix from Literature Papers", type="primary", use_container_width=True):
+            st.info(f"📚 Found {len(lit_papers)} papers in current literature project")
+            if st.button("🔨 Build Matrix from Literature Papers", type="primary", use_container_width=True):
                 with st.spinner(f"Extracting data from {len(lit_papers)} papers..."):
                     df = matrix_engine.build_matrix(lit_papers)
                     st.session_state["meta_matrix_df"] = df
-                    st.success(f"âœ… Built matrix with {len(df)} papers")
+                    st.success(f"✅ Built matrix with {len(df)} papers")
                     st.rerun()
         else:
             st.info("No literature papers loaded. Use Literature Engine to harvest papers, or enter manually below.")
 
-        with st.expander("Ã¢Å“ÂÃ¯Â¸Â Or enter paper details manually"):
+        with st.expander("✏️ Or enter paper details manually"):
             cols = st.columns(3)
             with cols[0]:
                 title = st.text_input("Paper title", key="mm_title")
@@ -320,7 +320,7 @@ def render_meta_analysis_matrix_ui():
                 pval = st.text_input("P-value", placeholder="p<0.05", key="mm_pval")
                 limitations = st.text_area("Limitations", height=60, key="mm_limitations")
 
-            if st.button("Ã¢Å¾â€¢ Add Paper to Matrix", use_container_width=True) and title:
+            if st.button("➕ Add Paper to Matrix", use_container_width=True) and title:
                 paper_data = {
                     "title": title, "year": year, "authors": authors, "abstract": "",
                     "journal": "", "doi": "", "citations": 0,
@@ -329,7 +329,7 @@ def render_meta_analysis_matrix_ui():
                 }
                 matrix_engine.add_to_session(paper_data)
                 st.session_state["meta_matrix_df"] = matrix_engine.matrix
-                st.success(f"âœ… Added '{title}'")
+                st.success(f"✅ Added '{title}'")
                 st.rerun()
 
     with tab2:
@@ -339,7 +339,7 @@ def render_meta_analysis_matrix_ui():
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                search_term = st.text_input("Ã°Å¸â€Â Search papers", placeholder="Type to filter...")
+                search_term = st.text_input("🔍 Search papers", placeholder="Type to filter...")
             with col2:
                 sort_col = st.selectbox("Sort by", options=df.columns.tolist(), key="mm_sort")
             with col3:
@@ -354,20 +354,20 @@ def render_meta_analysis_matrix_ui():
 
             st.dataframe(display_df, use_container_width=True, hide_index=True)
 
-            st.subheader("ðŸ“¥ Export")
+            st.subheader("📥 Export")
             col1, col2 = st.columns(2)
             with col1:
                 csv_data = matrix_engine.export_csv()
                 if csv_data:
                     import base64
                     b64 = base64.b64encode(csv_data.encode()).decode()
-                    st.markdown(f'<a href="data:text/csv;base64,{b64}" download="meta_analysis_matrix.csv">ðŸ“¥ Download CSV</a>', unsafe_allow_html=True)
+                    st.markdown(f'<a href="data:text/csv;base64,{b64}" download="meta_analysis_matrix.csv">📥 Download CSV</a>', unsafe_allow_html=True)
             with col2:
                 json_data = matrix_engine.export_json()
                 if json_data:
                     import base64
                     b64 = base64.b64encode(json_data.encode()).decode()
-                    st.markdown(f'<a href="data:application/json;base64,{b64}" download="meta_analysis_matrix.json">ðŸ“¥ Download JSON</a>', unsafe_allow_html=True)
+                    st.markdown(f'<a href="data:application/json;base64,{b64}" download="meta_analysis_matrix.json">📥 Download JSON</a>', unsafe_allow_html=True)
         else:
             st.info("Build the matrix first in the **Build Matrix** tab.")
 
@@ -376,17 +376,17 @@ def render_meta_analysis_matrix_ui():
         if df is not None and not df.empty:
             stats = matrix_engine.get_summary_statistics()
             if "error" not in stats:
-                st.subheader("ðŸ“ˆ Matrix Summary")
+                st.subheader("📈 Matrix Summary")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1: st.metric("Total Papers", stats.get("total_papers", 0))
                 with col2: st.metric("Avg Quality Score", f'{stats.get("avg_quality_score", 0)}/100')
-                with col3: st.metric("âœ… Significant", stats.get("significant_findings", 0))
+                with col3: st.metric("✅ Significant", stats.get("significant_findings", 0))
                 with col4: st.metric("Year Range", stats.get("year_range", "N/A"))
 
                 if "Citations" in df.columns and not df["Citations"].isna().all():
                     try:
                         top_cited = df.nlargest(5, "Citations")[["Paper", "Citations", "Year"]]
-                        st.subheader("Ã°Å¸Ââ€  Most Cited Papers")
+                        st.subheader("🏆 Most Cited Papers")
                         st.dataframe(top_cited, use_container_width=True, hide_index=True)
                     except Exception:
                         pass

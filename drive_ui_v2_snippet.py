@@ -1,10 +1,10 @@
-﻿# Replaces the "with n_tabs[0]:" Drive block inside render_nexus_vault().
+# Replaces the "with n_tabs[0]:" Drive block inside render_nexus_vault().
 
 import drive_v2
 from classification import LEVELS, clearance_for_user
 
 with n_tabs[0]:
-    st.markdown("### ðŸ“ Nexus Drive â€” Cloud Storage & Vault")
+    st.markdown("### 📁 Nexus Drive — Cloud Storage & Vault")
 
     requester_clearance = clearance_for_user(is_admin=is_admin())
 
@@ -13,8 +13,8 @@ with n_tabs[0]:
     st.caption(
         f"{quota.used_bytes / (1024*1024):.1f} MB used of "
         f"{quota.limit_bytes / (1024*1024*1024):.1f} GB "
-        f"({quota.percent_used:.1f}%) â€” "
-        + ("âœ… cloud storage active" if drive_v2.is_s3_configured() else "âš ï¸ local fallback (not durable â€” configure S3_* for real cloud storage)")
+        f"({quota.percent_used:.1f}%) — "
+        + ("✅ cloud storage active" if drive_v2.is_s3_configured() else "⚠️ local fallback (not durable — configure S3_* for real cloud storage)")
     )
 
     uploaded = st.file_uploader("Upload file to cloud storage", key="nexus_drive_up_v2")
@@ -26,9 +26,9 @@ with n_tabs[0]:
     if uploaded:
         try:
             result = drive_v2.store_file(uploaded.name, uploaded.getvalue(), c_cat, c_notes, user_email, classification=c_classification)
-            st.success(f"âœ… Uploaded **{uploaded.name}** ({result['backend']}, classified {result['classification']}).")
+            st.success(f"✅ Uploaded **{uploaded.name}** ({result['backend']}, classified {result['classification']}).")
         except drive_v2.QuotaExceeded as e:
-            st.error(f"âŒ Upload rejected â€” over quota. {e}")
+            st.error(f"❌ Upload rejected — over quota. {e}")
 
     files = drive_v2.list_files(user_email, requester_clearance)
     if files:
@@ -41,17 +41,17 @@ with n_tabs[0]:
 
         col_del, col_dl = st.columns(2)
         with col_del:
-            if st.button("ðŸ—‘ï¸ Delete Selected File"):
+            if st.button("🗑️ Delete Selected File"):
                 try:
                     drive_v2.delete_file(int(del_id), user_email, requester_clearance)
-                    st.success("âœ… File removed.")
+                    st.success("✅ File removed.")
                     st.rerun()
                 except drive_v2.AccessDenied as e:
-                    st.error(f"âŒ {e.reason}")
+                    st.error(f"❌ {e.reason}")
                 except ValueError as e:
-                    st.error(f"âŒ {e}")
+                    st.error(f"❌ {e}")
         with col_dl:
-            if st.button("â¬‡ï¸ Get Download Link"):
+            if st.button("⬇️ Get Download Link"):
                 try:
                     dl = drive_v2.get_download(int(dl_id), user_email, requester_clearance)
                     if dl["method"] == "presigned_url":
@@ -59,8 +59,8 @@ with n_tabs[0]:
                     else:
                         st.warning(dl["note"])
                 except drive_v2.AccessDenied as e:
-                    st.error(f"âŒ Access denied: {e.reason}")
+                    st.error(f"❌ Access denied: {e.reason}")
                 except ValueError as e:
-                    st.error(f"âŒ {e}")
+                    st.error(f"❌ {e}")
     else:
         st.info("Your Drive is empty (or nothing at your clearance level has been shared here yet).")

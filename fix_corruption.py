@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Repair the systemic encoding corruption where the binary ``+`` operator
 was replaced by two (or more) spaces, e.g.::
 
@@ -56,7 +56,7 @@ def fix_source(src: str) -> tuple[str, int]:
     try:
         tokens = list(tokenize.generate_tokens(io.StringIO(src).readline))
     except (tokenize.TokenError, IndentationError):
-        # Un-terminated string / inconsistent unindent â€” leave as-is; the file
+        # Un-terminated string / inconsistent unindent — leave as-is; the file
         # is reported separately (indentation corruption is a different bug).
         return src, 0
 

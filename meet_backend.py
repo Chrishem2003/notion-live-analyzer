@@ -1,18 +1,18 @@
-﻿"""
-meet_backend.py â€” WebRTC signaling server.
+"""
+meet_backend.py — WebRTC signaling server.
 
 Important scope note, stated once here rather than buried: this is a
-SIGNALING server, not a media server. It never touches audio/video bytes â€”
+SIGNALING server, not a media server. It never touches audio/video bytes —
 it only relays the SDP offers/answers and ICE candidates peers need to
 establish a DIRECT peer-to-peer connection with each other. Once that
 handshake completes, video/audio flows browser-to-browser (mesh topology),
 not through this server at all.
 
 That means: works well for 2-4 participants (each peer uploads its video
-stream N-1 times, once per other participant â€” fine for a small call, bad
+stream N-1 times, once per other participant — fine for a small call, bad
 for 10+ people). A real "Google Meet at scale" needs an SFU (Selective
 Forwarding Unit) that receives each stream once and re-distributes it
-server-side â€” that's substantially more infrastructure (media servers like
+server-side — that's substantially more infrastructure (media servers like
 mediasoup, Janus, or LiveKit) and is out of scope for this pass.
 
 Room membership and message routing are backed by Redis (not local
@@ -58,7 +58,7 @@ class MeetSignaling:
         await self.broadcast_to_room(room_id, {"type": "peer-left", "peer_id": peer_id})
 
     async def relay_to_peer(self, room_id: str, target_peer_id: str, message: dict):
-        """Targeted delivery â€” only the named peer's subscriber receives
+        """Targeted delivery — only the named peer's subscriber receives
         this. Used for offer/answer/ICE candidates, which must go to
         exactly one recipient, not the whole room."""
         await self.redis.publish(self._peer_channel(room_id, target_peer_id), json.dumps(message))
@@ -90,7 +90,7 @@ class MeetSignaling:
                 await pubsub.unsubscribe(self._peer_channel(room_id, peer_id), self._room_channel(room_id))
                 await pubsub.close()
             except Exception:
-                # Cleanup best-effort during disconnect/cancellation â€” a
+                # Cleanup best-effort during disconnect/cancellation — a
                 # failure here (e.g. the event loop tearing down mid-close,
                 # observed under some test-client threading models) must
                 # not mask the real error that triggered cleanup, nor crash

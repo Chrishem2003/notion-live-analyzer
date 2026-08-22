@@ -1,4 +1,4 @@
-﻿"""
+"""
 workspace.py  multi-workspace / agency mode.
 
 Lets one account manage several Notion workspaces (e.g. a consultant's
@@ -30,9 +30,9 @@ class WorkspaceRole(str, Enum):
 class Workspace:
     id: str
     owner_user_id: str              # the subscriber who connected it
-    name: str                       # display name, e.g. "Acme Co â€” Notion"
+    name: str                       # display name, e.g. "Acme Co — Notion"
     notion_workspace_id: str        # Notion's own workspace identifier
-    notion_token_ref: str           # reference/key into your secrets store â€”
+    notion_token_ref: str           # reference/key into your secrets store —
                                      # NEVER store the raw Notion API token in
                                      # the row itself; keep it in a secrets
                                      # manager or encrypted column
@@ -70,7 +70,7 @@ def user_workspace_role(
 
 
 # ---------------------------------------------------------------------------
-# Subscription gating â€” agency mode is a paid tier feature
+# Subscription gating — agency mode is a paid tier feature
 # ---------------------------------------------------------------------------
 
 MAX_WORKSPACES_BY_TIER = {
@@ -157,7 +157,7 @@ def aggregate_health_across_workspaces(
         health = get_latest_health_fn(ws)
         if health is not None:
             summaries.append(health)
-    # Worst health first â€” that's what an agency user wants to see on login.
+    # Worst health first — that's what an agency user wants to see on login.
     summaries.sort(key=lambda s: s.health_score)
     return summaries
 

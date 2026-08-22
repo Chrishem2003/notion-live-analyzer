@@ -1,4 +1,4 @@
-﻿
+
 """File Analyzer  Local File Parser & Fallback Analytics."""
 import pandas as pd
 import streamlit as st
@@ -99,7 +99,7 @@ def render_file_analyzer_page():
         df = parse_uploaded_file(uploaded_file)
         
         if df is not None and not df.empty:
-            st.success(f"Loaded: {len(df)} rows Ãƒâ€” {len(df.columns)} columns")
+            st.success(f"Loaded: {len(df)} rows × {len(df.columns)} columns")
             
             # Store in session
             st.session_state["uploaded_df"] = df
@@ -109,11 +109,11 @@ def render_file_analyzer_page():
                 st.dataframe(df.head(50), use_container_width=True)
             
             # Column statistics
-            st.subheader("ðŸ“ˆ Column Statistics")
+            st.subheader("📈 Column Statistics")
             stats = get_column_stats(df)
             
             for col, col_stats in stats.items():
-                with st.expander(f"ðŸ“‹ {col}"):
+                with st.expander(f"📋 {col}"):
                     cols = st.columns(4)
                     cols[0].metric("Type", col_stats["dtype"])
                     cols[1].metric("Nulls", f"{col_stats['null_count']} ({col_stats['missing_pct']}%)")

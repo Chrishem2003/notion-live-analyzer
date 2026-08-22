@@ -1,4 +1,4 @@
-﻿
+
 """
 Notion API Client + handles all interactions with the Notion API.
 Supports all 20 property types and automatic database detection.
@@ -22,7 +22,7 @@ NOTION_API_URL = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
 PAGE_SIZE = 100
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Simple In-Memory Cache Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Simple In-Memory Cache ──────────────────────────────────────────
 # Avoids duplicate API calls within the same request cycle
 _request_cache: Dict[str, tuple] = {}
 _request_cache_ttl: int = 60  # seconds
@@ -57,7 +57,7 @@ def clear_request_cache():
     """Clear the in-memory request cache."""
     _request_cache.clear()
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Rate Limiter Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Rate Limiter ────────────────────────────────────────────────────
 # Notion API allows 3 requests per second; we pace ourselves.
 class RateLimiter:
     def __init__(self, max_calls: int = 3, per_seconds: float = 1.0):
@@ -89,7 +89,7 @@ def _rate_limited_request(method: str, url: str, **kwargs) -> requests.Response:
     
     return requests.request(method, url, **kwargs)
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Universal Property Parser Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Universal Property Parser ────────────────────────────────────────
 def extract_rich_text(rich_text_list: list) -> str:
     """Extract plain text from a Notion rich text array."""
     if not rich_text_list:
@@ -152,7 +152,7 @@ NOTION_PROPERTY_PARSERS = {
     "button": lambda p: p.get("button", {}).get("action", ""),
 }
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ API Utilities Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── API Utilities ────────────────────────────────────────────────────
 def _make_headers(token: str) -> dict:
     return {
         "Authorization": f"Bearer {token}",
@@ -164,10 +164,10 @@ def _handle_api_error(response: requests.Response, token: str, db_id: str = None
     """Handle common Notion API errors and trigger credential reset if needed."""
     if response.status_code in (401, 403):
         st.session_state["creds_failed"] = True
-        st.error("Ã°Å¸â€Â Your Notion token is invalid or lacks access. Please re-enter your credentials below.")
+        st.error("🔐 Your Notion token is invalid or lacks access. Please re-enter your credentials below.")
         return True
     if response.status_code == 429:
-        st.warning("Ã¢ÂÂ³ Rate limited by Notion API. Waiting 1 second...")
+        st.warning("⏳ Rate limited by Notion API. Waiting 1 second...")
         time.sleep(1)
         return False
     if response.status_code == 404 and db_id:
@@ -175,11 +175,11 @@ def _handle_api_error(response: requests.Response, token: str, db_id: str = None
         return True
     # Error boundary: catch 400 validation errors (e.g., Page ID passed instead of Database ID)
     if response.status_code == 400:
-        st.warning("Ã¢Å¡Â Ã¯Â¸Â Invalid database ID. You may have passed a Page ID instead of a Database ID.")
+        st.warning("⚠️ Invalid database ID. You may have passed a Page ID instead of a Database ID.")
         return pd.DataFrame()
     return False
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Database Operations Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Database Operations ──────────────────────────────────────────────
 @_cached_request("get_database_options", ttl=300)  # Cache for 5 minutes
 def get_database_options(token: str) -> List[Dict]:
     """Search and list all accessible databases (cached for 5 min)."""
@@ -284,7 +284,7 @@ def discover_database_id(token: str) -> Optional[str]:
             best_match = db["id"]
     return best_match
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Data Fetching Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Data Fetching ────────────────────────────────────────────────────
 def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
     """
     Fetch all pages from a Notion database and return a DataFrame.
@@ -374,7 +374,7 @@ def fetch_notion_data(token: str, db_id: str) -> pd.DataFrame:
 
         except requests.exceptions.Timeout:
             logger.warning("Timeout querying Notion database %s + retrying", db_id)
-            st.warning("Ã¢ÂÂ±Ã¯Â¸Â Notion API timeout. Retrying...")
+            st.warning("⏱️ Notion API timeout. Retrying...")
             fetch_attempts = 1
             time.sleep(1)
         except Exception as e:

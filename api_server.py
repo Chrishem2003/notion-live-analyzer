@@ -1,18 +1,18 @@
-﻿"""
-api_server.py â€” FastAPI backend running alongside Streamlit.
+"""
+api_server.py — FastAPI backend running alongside Streamlit.
 
 Three real jobs:
   1. Let external systems (or Integrations Hub's webhook feature) trigger
      agent swarm runs and RAG queries over HTTP, without needing a
      Streamlit session.
   2. Receive inbound webhooks (e.g. from GitHub) with genuine HMAC
-     signature verification â€” not a stub that accepts anything and logs it.
+     signature verification — not a stub that accepts anything and logs it.
   3. Expose task status for anything submitted through celery_app, so a
      caller can poll a job the same way task_client.py does inside Streamlit.
 
 Auth: a single shared API key checked via header, constant-time compared.
 This is deliberately simple (not OAuth2/JWT) because it's meant for
-service-to-service calls (your own webhook forwarder, your own scripts) â€”
+service-to-service calls (your own webhook forwarder, your own scripts) —
 if you're exposing this beyond your own infrastructure, put a real auth
 layer in front of it.
 
@@ -40,7 +40,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-API_KEY = os.environ.get("PLATFORM_API_KEY")  # required â€” no default, no bypass
+API_KEY = os.environ.get("PLATFORM_API_KEY")  # required — no default, no bypass
 GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET")
 
 
@@ -48,16 +48,16 @@ def require_api_key(x_api_key: Optional[str] = Header(None)):
     if not API_KEY:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="PLATFORM_API_KEY is not configured on the server â€” API is disabled until it is set.",
+            detail="PLATFORM_API_KEY is not configured on the server — API is disabled until it is set.",
         )
     if not x_api_key or not hmac.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing X-API-Key header.")
     return True
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# Task status â€” generic poller for anything submitted to celery_app
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
+# Task status — generic poller for anything submitted to celery_app
+# ══════════════════════════════════════════════════════════════════
 @app.get("/api/v1/tasks/{task_id}")
 def get_task_status(task_id: str, _auth: bool = Depends(require_api_key)):
     result = AsyncResult(task_id, app=celery_app)
@@ -70,9 +70,9 @@ def get_task_status(task_id: str, _auth: bool = Depends(require_api_key)):
     }
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
 # Agent swarm
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
 class SwarmRequest(BaseModel):
     problem: str = Field(..., min_length=3, max_length=2000)
     dataset_records: Optional[list] = Field(None, description="Optional list of row-dicts, e.g. df.to_dict('records')")
@@ -87,9 +87,9 @@ def submit_swarm_run(payload: SwarmRequest, _auth: bool = Depends(require_api_ke
     return {"task_id": async_result.id, "status_url": f"/api/v1/tasks/{async_result.id}"}
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# RAG â€” ingest and query (thin HTTP wrapper over rag_engine.py)
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
+# RAG — ingest and query (thin HTTP wrapper over rag_engine.py)
+# ══════════════════════════════════════════════════════════════════
 class IngestRequest(BaseModel):
     title: str
     text: str = Field(..., min_length=10)
@@ -109,7 +109,7 @@ def rag_ingest(payload: IngestRequest, _auth: bool = Depends(require_api_key)):
         result = ingest_document(conn, payload.title, payload.text, payload.source)
         return {"document_id": result["document_id"], "n_chunks": len(result["chunks"]), "embedding_method": result.get("embedding_method")}
     except Exception as e:
-        # Honest failure, not a swallowed 500 with no context â€” this almost
+        # Honest failure, not a swallowed 500 with no context — this almost
         # always means RAG_DATABASE_URL isn't set or Postgres/pgvector isn't reachable.
         raise HTTPException(status_code=503, detail=f"RAG ingestion unavailable: {e}")
 
@@ -125,14 +125,14 @@ def rag_query(payload: QueryRequest, _auth: bool = Depends(require_api_key)):
         raise HTTPException(status_code=503, detail=f"RAG query unavailable: {e}")
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# Inbound webhooks â€” real HMAC-SHA256 signature verification (GitHub scheme)
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
+# Inbound webhooks — real HMAC-SHA256 signature verification (GitHub scheme)
+# ══════════════════════════════════════════════════════════════════
 def verify_github_signature(raw_body: bytes, signature_header: Optional[str]) -> bool:
     """
     GitHub signs webhook payloads as `sha256=<hexdigest>` using HMAC-SHA256
     over the raw request body with your configured webhook secret. This
-    recomputes it and compares in constant time â€” a real check, not a
+    recomputes it and compares in constant time — a real check, not a
     presence check on the header.
     """
     if not GITHUB_WEBHOOK_SECRET or not signature_header:
@@ -168,13 +168,13 @@ async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = 
 
 @app.get("/api/v1/health")
 def health():
-    """No auth required â€” deliberately, so uptime monitors don't need the API key."""
+    """No auth required — deliberately, so uptime monitors don't need the API key."""
     return {"status": "ok"}
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
 # Real-time chat WebSocket
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
 def _get_redis_client():
     """Real redis.asyncio client for production; tests inject a
     FakeAsyncRedis instead via dependency override (see test suite)."""
@@ -217,7 +217,7 @@ async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
 
     await rt.heartbeat(user_email)
 
-    # Send recent history on connect â€” real persisted messages, not just
+    # Send recent history on connect — real persisted messages, not just
     # whatever arrives after this point.
     history = get_history(room_id, limit=50, conn=conn)
     await websocket.send_json({
@@ -282,9 +282,9 @@ def issue_chat_token_endpoint(email: str, _auth: bool = Depends(require_api_key)
         raise HTTPException(status_code=503, detail=str(e))
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
 # Real-time collaborative documents (CRDT)
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
 _open_docs = {}  # doc_id -> CollaborativeDoc, one authoritative replica per doc per process
 
 
@@ -302,7 +302,7 @@ def get_docs_realtime():
 @app.websocket("/ws/docs/{doc_id}")
 async def docs_websocket(websocket: WebSocket, doc_id: str, token: str):
     """
-    Protocol: connect with ?token=<token> (same chat_auth tokens â€” this is
+    Protocol: connect with ?token=<token> (same chat_auth tokens — this is
     a generic authenticated-session token, not chat-specific despite the
     module name). Server sends the current full CRDT state as base64 on
     connect; client applies it via Y.applyUpdate. From then on both sides
@@ -330,7 +330,7 @@ async def docs_websocket(websocket: WebSocket, doc_id: str, token: str):
                     update_bytes = base64.b64decode(data["update"])
                     doc.apply_remote_update(update_bytes)
                     doc.save_snapshot(title=doc_id, owner=user_email)
-                    # Broadcast the RAW update (not the full state) â€” smaller
+                    # Broadcast the RAW update (not the full state) — smaller
                     # payload, and other replicas merge it via the same CRDT
                     # apply operation, which is what makes this correct
                     # regardless of arrival order.
@@ -351,11 +351,11 @@ async def docs_websocket(websocket: WebSocket, doc_id: str, token: str):
         writer_task.cancel()
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# Real-time video call signaling (WebRTC, mesh topology â€” see
+# ══════════════════════════════════════════════════════════════════
+# Real-time video call signaling (WebRTC, mesh topology — see
 # meet_backend.py's docstring for the honest scope limits: this relays
 # handshake messages only, video/audio never touches this server)
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════
 def get_meet_signaling() -> MeetSignaling:
     return MeetSignaling(get_realtime_chat().redis)
 
@@ -365,7 +365,7 @@ async def meet_websocket(websocket: WebSocket, room_id: str, token: str):
     """
     Protocol: connect with ?token=<token>. Server assigns this connection a
     peer_id and immediately sends {"type": "room-state", "peer_id": ...,
-    "existing_peers": [...]} â€” the new peer is responsible for initiating
+    "existing_peers": [...]} — the new peer is responsible for initiating
     WebRTC offers to each existing peer (standard "late joiner offers to
     everyone already there" convention, avoids duplicate offers).
 
@@ -413,4 +413,4 @@ async def meet_websocket(websocket: WebSocket, room_id: str, token: str):
         try:
             await sig.leave_room(room_id, peer_id)
         except Exception:
-            pass  # best-effort on disconnect â€” see meet_backend.py's subscribe_peer for why
+            pass  # best-effort on disconnect — see meet_backend.py's subscribe_peer for why

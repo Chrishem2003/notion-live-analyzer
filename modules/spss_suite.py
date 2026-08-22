@@ -1,4 +1,4 @@
-﻿"""
+"""
 spss_suite.py
 SPSS-Grade Advanced Statistical Suite.
 
@@ -210,7 +210,7 @@ class SPSSSuite:
             parts.append(
                 f"A one-way ANOVA revealed {'a significant' if sig else 'no significant'} effect, "
                 f"F = {stats.get('f_statistic')}, p = {stats.get('p_value')}, "
-                f"Î·Â² = {stats.get('eta_squared', 'N/A')}."
+                f"η² = {stats.get('eta_squared', 'N/A')}."
             )
         else:
             parts.append(f"{test_name}: {json_safe(stats)}")

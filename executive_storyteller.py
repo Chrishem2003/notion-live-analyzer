@@ -1,4 +1,4 @@
-﻿
+
 """
 Executive Auto-Insight Storyteller  automatically runs statistical test batteries
 on data load and generates a beautifully formatted executive summary,
@@ -41,19 +41,19 @@ class ExecutiveStoryteller:
         cat_cols = [c for c, t in col_types.items() if t in ("categorical", "string")]
         temporal_cols = [c for c, t in col_types.items() if t == "temporal"]
 
-        # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ 1. Automated Statistical Test Battery Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+        # ─── 1. Automated Statistical Test Battery ─────────────────
         test_battery = self._run_test_battery(df, numeric_cols, cat_cols, temporal_cols)
 
-        # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ 2. Anomaly Detection Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+        # ─── 2. Anomaly Detection ──────────────────────────────────
         anomalies = self._detect_anomalies(df, numeric_cols)
 
-        # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ 3. Correlation Analysis Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+        # ─── 3. Correlation Analysis ───────────────────────────────
         correlations = self._analyze_correlations(df, numeric_cols)
 
-        # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ 4. Data Quality Assessment Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+        # ─── 4. Data Quality Assessment ────────────────────────────
         quality = self._assess_quality(df, profile)
 
-        # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ 5. Generate Narrative Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+        # ─── 5. Generate Narrative ─────────────────────────────────
         executive_summary = self._generate_executive_summary(df, profile, test_battery, correlations)
         risk_assessment = self._generate_risk_assessment(quality, anomalies, test_battery)
         takeaways = self._generate_takeaways(df, test_battery, correlations, anomalies, quality)
@@ -139,7 +139,7 @@ class ExecutiveStoryteller:
                                 "value_var": num,
                                 "result": result,
                                 "narrative": f"**{num}** varies significantly across {n_groups} groups of **{cat}** "
-                                            f"(F = {result.get('f_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, ÃŽÂ·Ã‚Â² = {result.get('eta_squared', 0):.2f})",
+                                            f"(F = {result.get('f_statistic', 0):.2f}, p = {result.get('p_value', 1):.3f}, η² = {result.get('eta_squared', 0):.2f})",
                             })
                 except Exception:
                     logger.warning("Group comparison failed for %r by %r", num, cat, exc_info=True)
@@ -158,7 +158,7 @@ class ExecutiveStoryteller:
                             "var2": cat2,
                             "result": result,
                             "narrative": f"**{cat1}** and **{cat2}** are significantly associated "
-                                        f"(Ãâ€¡Ã‚Â² = {result.get('chi_square', 0):.2f}, p = {result.get('p_value', 1):.3f}, V = {result.get('cramers_v', 0):.2f})",
+                                        f"(χ² = {result.get('chi_square', 0):.2f}, p = {result.get('p_value', 1):.3f}, V = {result.get('cramers_v', 0):.2f})",
                         })
                 except Exception:
                     logger.warning("Chi-square test failed for %r vs %r", cat1, cat2, exc_info=True)
@@ -177,7 +177,7 @@ class ExecutiveStoryteller:
                                 strong_corrs.append({
                                     "var1": col1, "var2": col2,
                                     "r": result.get("r", 0),
-                                    "narrative": f"Strong correlation: **{col1}** Ã¢â€ â€ **{col2}** "
+                                    "narrative": f"Strong correlation: **{col1}** ↔ **{col2}** "
                                                 f"(r = {result.get('r', 0):.2f}, p = {result.get('p_value', 1):.3f})",
                                 })
                     except Exception:
@@ -203,7 +203,7 @@ class ExecutiveStoryteller:
                                 "rho": round(float(r), 4),
                                 "p_value": round(float(p), 4),
                                 "narrative": f"**{num}** shows a significant {direction} trend over time "
-                                            f"(ÃÂ = {r:.2f}, p = {p:.3f})",
+                                            f"(ρ = {r:.2f}, p = {p:.3f})",
                             })
                     except Exception:
                         logger.warning("Temporal trend test failed for %r over %r", num, temp, exc_info=True)
@@ -276,28 +276,28 @@ class ExecutiveStoryteller:
         missing_pct = profile.get("missing_pct", 0)
         if missing_pct > 20:
             quality["score"] -= 25
-            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â High missing data rate ({missing_pct}%)")
+            quality["issues"].append(f"⚠️ High missing data rate ({missing_pct}%)")
         elif missing_pct > 10:
             quality["score"] -= 15
-            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â Moderate missing data rate ({missing_pct}%)")
+            quality["issues"].append(f"⚠️ Moderate missing data rate ({missing_pct}%)")
         elif missing_pct > 0:
-            quality["warnings"].append(f"ðŸ“‹ Minimal missing data ({missing_pct}%)")
+            quality["warnings"].append(f"📋 Minimal missing data ({missing_pct}%)")
 
         duplicates = profile.get("duplicate_rows", 0)
         if duplicates > 0:
             quality["score"] -= 10
-            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â {duplicates} duplicate rows detected")
+            quality["issues"].append(f"⚠️ {duplicates} duplicate rows detected")
 
         n_rows = profile.get("rows", 0)
         if n_rows < 30:
             quality["score"] -= 15
-            quality["issues"].append(f"Ã¢Å¡Â Ã¯Â¸Â Small sample size (N={n_rows})  results may be unstable")
+            quality["issues"].append(f"⚠️ Small sample size (N={n_rows})  results may be unstable")
         elif n_rows < 100:
-            quality["warnings"].append(f"ðŸ“‹ Moderate sample size (N={n_rows})")
+            quality["warnings"].append(f"📋 Moderate sample size (N={n_rows})")
 
         numeric_cols = profile.get("numeric_columns", [])
         if len(numeric_cols) < 2:
-            quality["warnings"].append("ðŸ“‹ Few numeric variables  limited statistical analysis available")
+            quality["warnings"].append("📋 Few numeric variables  limited statistical analysis available")
 
         quality["score"] = max(0, quality["score"])
         quality["grade"] = "A" if quality["score"] >= 90 else "B" if quality["score"] >= 75 else "C" if quality["score"] >= 60 else "D"
@@ -309,7 +309,7 @@ class ExecutiveStoryteller:
         lines = []
         lines.append(f"##  Executive Data Summary")
         lines.append(f"")
-        lines.append(f"**Dataset**: {profile['rows']:,} observations Ãƒâ€” {profile['columns']} variables")
+        lines.append(f"**Dataset**: {profile['rows']:,} observations × {profile['columns']} variables")
         lines.append(f"**Analysis Time**: {datetime.now():%Y-%m-%d %H:%M}")
         lines.append(f"")
 
@@ -318,26 +318,26 @@ class ExecutiveStoryteller:
         total_tests = test_battery.get("tests_run", 0)
         strong_corrs = len(correlations.get("strong_pairs", []))
 
-        lines.append(f"### ðŸ“ˆ Key Metrics")
+        lines.append(f"### 📈 Key Metrics")
         lines.append(f"| Metric | Value |")
         lines.append(f"|--------|-------|")
         lines.append(f"| Statistical Tests Run | {total_tests} |")
         lines.append(f"| Significant Findings | {sig_count} |")
-        lines.append(f"| Strong Correlations (|r| Ã¢â€°Â¥ 0.5) | {strong_corrs} |")
+        lines.append(f"| Strong Correlations (|r| ≥ 0.5) | {strong_corrs} |")
         lines.append(f"| Data Quality Score | {profile.get('missing_pct', 0):.1f}% missing |")
         lines.append(f"")
 
         # Top findings
         if test_battery.get("tests"):
-            lines.append(f"### Ã°Å¸Ââ€  Top Statistical Findings")
+            lines.append(f"### 🏆 Top Statistical Findings")
             for i, test in enumerate(test_battery["tests"][:5]):
                 lines.append(f"{i1}. {test.get('narrative', '')}")
             lines.append(f"")
 
         if strong_corrs > 0:
-            lines.append(f"### Ã°Å¸â€â€” Key Relationships")
+            lines.append(f"### 🔗 Key Relationships")
             for pair in correlations["strong_pairs"][:3]:
-                lines.append(f"- **{pair['var1']}** Ã¢â€ â€ **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
+                lines.append(f"- **{pair['var1']}** ↔ **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
             lines.append(f"")
 
         return "\n".join(lines)
@@ -345,7 +345,7 @@ class ExecutiveStoryteller:
     def _generate_risk_assessment(self, quality: Dict, anomalies: Dict, test_battery: Dict) -> str:
         """Generate risk assessment narrative."""
         lines = []
-        lines.append(f"## Ã¢Å¡Â Ã¯Â¸Â Risk Assessment")
+        lines.append(f"## ⚠️ Risk Assessment")
         lines.append(f"")
 
         quality_grade = quality.get("grade", "N/A")
@@ -367,18 +367,18 @@ class ExecutiveStoryteller:
 
         if anomalies.get("total_outliers", 0) > 0:
             severity = anomalies.get("severity", "low")
-            sev_icon = "Ã°Å¸â€Â´" if severity == "high" else "Ã°Å¸Å¸Â¡" if severity == "medium" else "Ã°Å¸Å¸Â¢"
+            sev_icon = "🔴" if severity == "high" else "🟡" if severity == "medium" else "🟢"
             lines.append(f"### Outlier Risk {sev_icon}")
             lines.append(f"- {anomalies['total_outliers']} outliers detected across {anomalies['columns_with_outliers']} columns ({severity} severity)")
             lines.append(f"")
 
         # Statistical risks
         if test_battery.get("tests_run") == 0:
-            lines.append(f"### Ã°Å¸â€Â¬ Statistical Limitations")
+            lines.append(f"### 🔬 Statistical Limitations")
             lines.append(f"- No significant statistical findings  data may lack power or structure")
             lines.append(f"")
 
-        lines.append(f"### Ã°Å¸â€™Â¡ Recommendations")
+        lines.append(f"### 💡 Recommendations")
         if quality_score < 70:
             lines.append(f"- **Clean your data**: Address missing values and outliers before drawing conclusions")
         if anomalies.get("total_outliers", 0) > 0:
@@ -398,7 +398,7 @@ class ExecutiveStoryteller:
             takeaways.append({
                 "type": "finding",
                 "severity": "high" if test.get("result", {}).get("p_value", 1) < 0.01 else "medium",
-                "icon": "Ã°Å¸â€Â¬",
+                "icon": "🔬",
                 "text": test.get("narrative", "").replace("**", ""),
             })
 
@@ -407,7 +407,7 @@ class ExecutiveStoryteller:
             takeaways.append({
                 "type": "relationship",
                 "severity": "medium",
-                "icon": "Ã°Å¸â€â€”",
+                "icon": "🔗",
                 "text": f"Strong {'positive' if pair['r'] > 0 else 'negative'} relationship between {pair['var1']} and {pair['var2']} (r = {pair['r']:.2f})",
             })
 
@@ -417,8 +417,8 @@ class ExecutiveStoryteller:
                 takeaways.append({
                     "type": "quality",
                     "severity": "high" if "High" in issue else "medium",
-                    "icon": "Ã¢Å¡Â Ã¯Â¸Â",
-                    "text": issue.replace("Ã¢Å¡Â Ã¯Â¸Â ", ""),
+                    "icon": "⚠️",
+                    "text": issue.replace("⚠️ ", ""),
                 })
 
         # Anomaly takeaways
@@ -436,14 +436,14 @@ class ExecutiveStoryteller:
             takeaways.append({
                 "type": "scale",
                 "severity": "low",
-                "icon": "Ã°Å¸â€œÂ",
+                "icon": "📏",
                 "text": f"Large dataset ({n:,} rows)  consider sampling for faster iterative analysis",
             })
         elif n < 50:
             takeaways.append({
                 "type": "scale",
                 "severity": "high",
-                "icon": "Ã°Å¸â€œÂ",
+                "icon": "📏",
                 "text": f"Small dataset ({n} rows)  interpret results with caution, consider Bayesian methods",
             })
 
@@ -472,25 +472,25 @@ class ExecutiveStoryteller:
         return "low"
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ──────────────────────────────────────────────────────────────
 
 def render_executive_storyteller_ui():
     """Render the executive storyteller report in a beautifully formatted UI."""
     report = st.session_state.get("executive_report")
     if not report:
-        st.info("Ã°Å¸â€˜â€  The executive report will auto-generate when data is loaded.")
+        st.info("👆 The executive report will auto-generate when data is loaded.")
         return
 
     severity = report.get("severity", "medium")
     severity_colors = {"low": "#2ecc71", "medium": "#e67e22", "high": "#e74c3c"}
     severity_color = severity_colors.get(severity, "#64748b")
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Severity Banner Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Severity Banner ────────────────────────────────────────────
     st.markdown(f"""
     <div style="text-align:center;padding:0.8rem;border-radius:14px;
                 border:2px solid {severity_color};background:{severity_color}10;margin-bottom:1rem;">
         <span style="font-size:1.1rem;font-weight:700;color:{severity_color};">
-            {'Ã°Å¸Å¸Â¢ LOW RISK' if severity == 'low' else 'Ã°Å¸Å¸Â¡ MODERATE RISK' if severity == 'medium' else 'Ã°Å¸â€Â´ HIGH RISK'}
+            {'🟢 LOW RISK' if severity == 'low' else '🟡 MODERATE RISK' if severity == 'medium' else '🔴 HIGH RISK'}
         </span>
         <span style="color:#64748b;margin-left:1rem;">
             Overall Assessment  Generated {report.get('generated_at', '')}
@@ -498,29 +498,29 @@ def render_executive_storyteller_ui():
     </div>
     """, unsafe_allow_html=True)
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Dataset Overview Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Dataset Overview ───────────────────────────────────────────
     ds = report.get("dataset", {})
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric(" Rows", f"{ds.get('rows', 0):,}")
     with col2:
-        st.metric("ðŸ“‹ Columns", ds.get("columns", 0))
+        st.metric("📋 Columns", ds.get("columns", 0))
     with col3:
-        st.metric("Ã°Å¸â€Â¬ Tests Run", report.get("test_battery", {}).get("tests_run", 0))
+        st.metric("🔬 Tests Run", report.get("test_battery", {}).get("tests_run", 0))
     with col4:
-        st.metric("Ã°Å¸â€™Â¡ Significant", report.get("test_battery", {}).get("significant_findings", 0))
+        st.metric("💡 Significant", report.get("test_battery", {}).get("significant_findings", 0))
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Executive Summary Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Executive Summary ──────────────────────────────────────────
     st.markdown("---")
     st.markdown(report.get("executive_summary", ""), unsafe_allow_html=True)
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Detailed Tests Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Detailed Tests ─────────────────────────────────────────────
     tests = report.get("test_battery", {}).get("tests", [])
     if tests:
-        with st.expander("Ã°Å¸â€Â View All Statistical Test Results", expanded=False):
+        with st.expander("🔍 View All Statistical Test Results", expanded=False):
             for test in tests:
                 p = test.get("result", {}).get("p_value", 1)
-                sig_badge = "âœ… Significant" if p < 0.05 else "Ã¢ÂÅ’ Not significant"
+                sig_badge = "✅ Significant" if p < 0.05 else "❌ Not significant"
                 p_str = f"p = {p:.4f}" if p >= 0.0001 else "p < .0001"
                 st.markdown(f"""
                 <div style="padding:0.6rem;margin:0.3rem 0;border-radius:8px;
@@ -531,20 +531,20 @@ def render_executive_storyteller_ui():
                 </div>
                 """, unsafe_allow_html=True)
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Strong Correlations Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Strong Correlations ────────────────────────────────────────
     strong_pairs = report.get("correlations", {}).get("strong_pairs", [])
     if strong_pairs:
-        with st.expander("Ã°Å¸â€â€” View Strong Correlations", expanded=False):
+        with st.expander("🔗 View Strong Correlations", expanded=False):
             for pair in strong_pairs:
-                st.markdown(f"- **{pair['var1']}** Ã¢â€ â€ **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
+                st.markdown(f"- **{pair['var1']}** ↔ **{pair['var2']}**: r = {pair['r']:.2f} ({pair['strength']})")
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Risk Assessment Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Risk Assessment ────────────────────────────────────────────
     st.markdown("---")
     st.markdown(report.get("risk_assessment", ""), unsafe_allow_html=True)
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Core Takeaways Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Core Takeaways ─────────────────────────────────────────────
     st.markdown("---")
-    st.markdown("## Ã°Å¸Å½Â¯ Core Takeaways")
+    st.markdown("## 🎯 Core Takeaways")
     takeaways = report.get("takeaways", [])
     if takeaways:
         for t in takeaways:
@@ -559,7 +559,7 @@ def render_executive_storyteller_ui():
             </div>
             """, unsafe_allow_html=True)
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Export Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Export ─────────────────────────────────────────────────────
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
@@ -575,14 +575,14 @@ def render_executive_storyteller_ui():
 ---
 Generated by CHRISHEM Executive Storyteller
 """
-        if st.button("ðŸ“‹ Copy Report to Clipboard"):
+        if st.button("📋 Copy Report to Clipboard"):
             st.code(report_text, language="markdown")
     with col2:
         import base64
         b64 = base64.b64encode(report_text.encode()).decode()
         st.markdown(
             f'<a href="data:text/markdown;base64,{b64}" download="executive_report_{datetime.now():%Y%m%d}.md">'
-            f'ðŸ“¥ Download Report (Markdown)</a>',
+            f'📥 Download Report (Markdown)</a>',
             unsafe_allow_html=True,
         )
 

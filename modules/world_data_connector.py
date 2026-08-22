@@ -1,15 +1,15 @@
-﻿"""
-Global Real-World Data Connector â€” World Bank Open Data (api.worldbank.org)
+"""
+Global Real-World Data Connector — World Bank Open Data (api.worldbank.org)
 =============================================================================
 No API key required. Free, public, real data covering ~217 countries and
-economies. This module fetches actual World Bank indicator series â€” it does
+economies. This module fetches actual World Bank indicator series — it does
 not simulate, mock, or fabricate anything. If the API is unreachable or a
 query returns nothing, functions say so explicitly rather than returning
 fallback fake numbers.
 
 Sector -> indicator mapping is curated from the real World Bank indicator
 catalog (https://data.worldbank.org/indicator). "Sector" here is purely a
-label for organizing the dropdown in the UI â€” every indicator uses the
+label for organizing the dropdown in the UI — every indicator uses the
 exact same fetch/parse code path.
 """
 
@@ -130,7 +130,7 @@ def fetch_multi_indicator(country_iso3_list: list[str], indicator_codes: dict[st
                            date_range: str = "1990:2025") -> pd.DataFrame:
     """Fetch several indicators for the same countries and merge into one
     wide DataFrame (one row per country-year, one column per indicator
-    label). Each indicator is a separate real API call â€” the World Bank
+    label). Each indicator is a separate real API call — the World Bank
     API does not support multi-indicator queries in a single request."""
     merged = None
     errors = []

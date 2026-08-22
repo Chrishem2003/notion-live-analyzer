@@ -1,4 +1,4 @@
-﻿
+
 """
 Export Module  handles exporting charts and data to various formats.
 PNG, SVG, PDF for charts. CSV, Excel, JSON, Parquet for data.
@@ -55,7 +55,7 @@ def get_chart_download_link(fig, filename: str = "chart", format: str = "png") -
         return None
 
     b64 = base64.b64encode(data).decode()
-    href = f'<a href="data:{mime};base64,{b64}" download="{filename}.{format}">ðŸ“¥ Download {format.upper()}</a>'
+    href = f'<a href="data:{mime};base64,{b64}" download="{filename}.{format}">📥 Download {format.upper()}</a>'
     return href
 
 
@@ -109,7 +109,7 @@ def get_data_download_link(df: pd.DataFrame, filename: str = "data", format: str
     data = func(df)
     b64 = base64.b64encode(data).decode()
     ext = format
-    href = f'<a href="data:{mime};base64,{b64}" download="{filename}.{ext}">ðŸ“¥ Download {format.upper()}</a>'
+    href = f'<a href="data:{mime};base64,{b64}" download="{filename}.{ext}">📥 Download {format.upper()}</a>'
     return href
 
 
@@ -139,7 +139,7 @@ def render_export_buttons(df: pd.DataFrame, fig=None, key_prefix: str = "export"
                 st.markdown(png_link, unsafe_allow_html=True)
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Report Generation (Simplified) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── Report Generation (Simplified) ──────────────────────────────────
 def generate_markdown_report(
     title: str,
     sections: Dict[str, str],

@@ -1,4 +1,4 @@
-﻿
+
 """
 APA Formatter + formats statistical results in APA 7 + th edition style.
 Provides publication-ready output for all statistical tests.
@@ -24,7 +24,7 @@ class APAFormatter:
         elif p < 0.05:
             return f"p = {p:.3 + f}" + ("*" if stars else "")
         elif p < 0.10:
-            return f"p = {p:.3 + f}" + ("Ã¢â‚¬Â " if stars else "")
+            return f"p = {p:.3 + f}" + ("†" if stars else "")
         else:
             return f"p = {p:.3 + f}"
 
@@ -46,7 +46,7 @@ class APAFormatter:
                 return "small effect"
             else:
                 return "negligible effect"
-        elif name == "Eta-squared" or name == "ÃŽÂ·Ã‚Â²":
+        elif name == "Eta-squared" or name == "η²":
             if abs_val >= 0.14:
                 return "large effect"
             elif abs_val >= 0.06:
@@ -67,7 +67,7 @@ class APAFormatter:
                 return "moderate association"
             else:
                 return "weak association"
-        elif name == "RÃ‚Â²":
+        elif name == "R²":
             if abs_val >= 0.26:
                 return "large effect"
             elif abs_val >= 0.13:
@@ -86,7 +86,7 @@ class APAFormatter:
         """Format confidence interval in APA style."""
         return f"{confidence*100:.0 + f}% CI [{ci_lower:.2 + f}, {ci_upper:.2 + f}]"
 
-    # Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Test-Specific Formatters Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    # ─── Test-Specific Formatters ───────────────────────────────────
 
     @staticmethod
     def format_ttest(result: Dict[str, Any]) -> str:
@@ -177,7 +177,7 @@ class APAFormatter:
             parts.append(
                 f"There was a {'significant' if result.get('significant') else 'non-significant'} "
                 f"correlation between the variables, "
-                f"ÃÂ({result.get('n', 0) - 2}) = {result.get('rho', 0):.2 + f}, "
+                f"ρ({result.get('n', 0) - 2}) = {result.get('rho', 0):.2 + f}, "
                 f"{APAFormatter.format_p_value(result.get('p_value', 1))}."
             )
 
@@ -222,7 +222,7 @@ class APAFormatter:
                     parts.append(
                         f"The model was {'significant' if f_pval and f_pval < 0.05 else 'non-significant'}, "
                         f"F(_, _) = {float(f_stat):.2 + f}, {APAFormatter.format_p_value(float(f_pval))}, "
-                        f"{APAFormatter.format_effect_size(float(r2), 'RÃ‚Â²')}."
+                        f"{APAFormatter.format_effect_size(float(r2), 'R²')}."
                     )
                 return " ".join(parts)
             except Exception:
@@ -243,7 +243,7 @@ class APAFormatter:
         return (
             f"Cronbach's alpha was calculated to assess the internal consistency "
             f"of the {items}-item scale (N = {n}). "
-            f"The analysis yielded ÃŽÂ± = {alpha:.3 + f}, indicating {interp.lower()} reliability."
+            f"The analysis yielded α = {alpha:.3 + f}, indicating {interp.lower()} reliability."
         )
 
     @staticmethod
@@ -362,29 +362,29 @@ class APAFormatter:
             return " ".join(parts)
 
 
-# Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UI Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+# ─── UI ─────────────────────────────────────────────────────────────
 
 def render_apa_outputs_page(statistical_results: List[Dict[str, Any]] = None):
     """Render the APA outputs page."""
-    st.markdown("## Ã°Å¸â€œâ€˜ APA 7 + th Edition Results")
+    st.markdown("## 📑 APA 7 + th Edition Results")
     st.markdown("*Publication-ready statistical reporting*")
 
     if not statistical_results:
-        st.info("No statistical results to format. Run analyses on the **Ã°Å¸â€Â¬ Statistical Tests** page first.")
+        st.info("No statistical results to format. Run analyses on the **🔬 Statistical Tests** page first.")
         st.markdown("""
         ### APA Formatting Guide
 
         **Key APA 7 + th Edition reporting standards:**
 
         1. **T-Tests**: *t*(df) = value, *p* = value, Cohen's *d* = value
-        2. **ANOVA**: *F*(df1, df2) = value, *p* = value, ÃŽÂ·Ã‚Â² = value
+        2. **ANOVA**: *F*(df1, df2) = value, *p* = value, η² = value
         3. **Correlation**: *r*(df) = value, *p* = value
-        4. **Chi-Square**: Ãâ€¡Ã‚Â²(df, N = n) = value, *p* = value, V = value
-        5. **Regression**: *RÃ‚Â²* = value, *F*(df1, df2) = value, *p* = value
+        4. **Chi-Square**: χ²(df, N = n) = value, *p* = value, V = value
+        5. **Regression**: *R²* = value, *F*(df1, df2) = value, *p* = value
 
         **Effect size guidelines (Cohen, 1988):**
         - **Cohen's d**: 0.2 (small), 0.5 (medium), 0.8 (large)
-        - **ÃŽÂ·Ã‚Â²**: 0.01 (small), 0.06 (medium), 0.14 (large)
+        - **η²**: 0.01 (small), 0.06 (medium), 0.14 (large)
         - **r**: 0.1 (small), 0.3 (medium), 0.5 (large)
         """)
         return
@@ -408,7 +408,7 @@ def render_apa_outputs_page(statistical_results: List[Dict[str, Any]] = None):
             st.markdown("---")
 
     # Generate full results section
-    st.subheader("Ã°Å¸â€œâ€ž Complete Results Section")
+    st.subheader("📄 Complete Results Section")
     if st.button("Generate APA Results Section"):
         lines = ["## Results", ""]
         for i, result in enumerate(statistical_results):
@@ -423,7 +423,7 @@ def render_apa_outputs_page(statistical_results: List[Dict[str, Any]] = None):
 
 def render_apa_quick_format_ui():
     """Render quick APA formatting tool."""
-    st.subheader("Ã°Å¸â€Â§ Quick APA Formatter")
+    st.subheader("🔧 Quick APA Formatter")
     st.caption("Enter statistical values to get APA-formatted text")
 
     test_type = st.selectbox("Select test type", [
@@ -439,8 +439,8 @@ def render_apa_quick_format_ui():
             p_val = st.number_input("p-value", value=0.015, step=0.001, format="%.4 + f", key="apa_t_p")
             d_val = st.number_input("Cohen's d", value=0.65, step=0.01, format="%.2 + f", key="apa_t_d")
         with col3:
-            mean1 = st.number_input("MÃ¢â€šÂ", value=45.2, step=0.1, key="apa_t_m1")
-            mean2 = st.number_input("MÃ¢â€šâ€š", value=38.5, step=0.1, key="apa_t_m2")
+            mean1 = st.number_input("M₁", value=45.2, step=0.1, key="apa_t_m1")
+            mean2 = st.number_input("M₂", value=38.5, step=0.1, key="apa_t_m2")
 
         if st.button("Format T-Test"):
             result = {
@@ -459,10 +459,10 @@ def render_apa_quick_format_ui():
         col1, col2 = st.columns(2)
         with col1:
             f_val = st.number_input("F-value", value=5.82, step=0.1, format="%.2 + f", key="apa_f")
-            df1 = st.number_input("dfÃ¢â€šÂ (between)", value=2, step=1, key="apa_f_df1")
+            df1 = st.number_input("df₁ (between)", value=2, step=1, key="apa_f_df1")
         with col2:
             p_val = st.number_input("p-value", value=0.005, step=0.001, format="%.4 + f", key="apa_f_p")
-            eta2 = st.number_input("ÃŽÂ·Ã‚Â²", value=0.14, step=0.01, format="%.2 + f", key="apa_f_eta")
+            eta2 = st.number_input("η²", value=0.14, step=0.01, format="%.2 + f", key="apa_f_eta")
 
         if st.button("Format ANOVA"):
             result = {
@@ -498,7 +498,7 @@ def render_apa_quick_format_ui():
     elif test_type == "Chi-Square":
         col1, col2 = st.columns(2)
         with col1:
-            chi2 = st.number_input("Ãâ€¡Ã‚Â² value", value=12.5, step=0.1, format="%.2 + f", key="apa_chi")
+            chi2 = st.number_input("χ² value", value=12.5, step=0.1, format="%.2 + f", key="apa_chi")
             df_chi = st.number_input("df", value=2, step=1, key="apa_chi_df")
         with col2:
             p_val = st.number_input("p-value", value=0.002, step=0.001, format="%.4 + f", key="apa_chi_p")
