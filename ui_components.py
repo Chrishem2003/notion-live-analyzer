@@ -24,8 +24,8 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
         "secondary": "#ec4899",      # Pink
         "accent": "#14b8a6",         # Teal
         "success": "#22c55e",        # Green
-        "warning": "#f59e0b",        # Amber
-        "error": "#ef4444",          # Red
+        "warning": "#e8a33d",        # Amber
+        "error": "#e5484d",          # Red
         "purple": "#8b5cf6",
         "cyan": "#06b6d4",
         "orange": "#f97316",
@@ -38,8 +38,8 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
     
     bg = "#0a0a0f" if is_dark else "#fafbfc"
     card_bg = "#12121a" if is_dark else "#ffffff"
-    text = "#f8fafc" if is_dark else "#1e293b"
-    text_muted = "#94a3b8" if is_dark else "#64748b"
+    text = "#EDEFF2" if is_dark else "#262B33"
+    text_muted = "#6B7280" if is_dark else "#64748b"
     border = "rgba(99, 102, 241, 0.15)"
     border_bright = "rgba(99, 102, 241, 0.3)"
     
@@ -70,7 +70,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             radial-gradient(circle at top right, rgba(29, 78, 216, 0.28), transparent 55%),
             radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.18), transparent 45%);
         """
-        text_color = "#0f172a"
+        text_color = "#0B0E11"
         side_card_bg = "rgba(255, 255, 255, 0.78)"
         sidebar_bg = "linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(241, 245, 249, 0.92))"
     background_path = find_background_image()
@@ -98,7 +98,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             radial-gradient(circle at top right, rgba(29, 78, 216, 0.28), transparent 55%),
             radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.18), transparent 45%);
         """
-        text_color = "#0f172a"
+        text_color = "#0B0E11"
         card_bg = "rgba(255, 255, 255, 0.78)"
         sidebar_bg = "linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(241, 245, 249, 0.92))"
 
@@ -108,12 +108,12 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -121,21 +121,21 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -145,7 +145,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
         /* ═══════════════════════════════════════════════════════════════════
@@ -265,7 +265,7 @@ def load_css(is_dark: bool = False, accent_color: str = "#6366f1"):
             display: inline-block;
             background: rgba(255,255,255,0.18);
             border: 1px solid rgba(255,255,255,0.22);
-            color: #f8fafc;
+            color: #EDEFF2;
             padding: 0.35rem 0.8rem;
             border-radius: 999px;
             font-size: 0.85rem;
@@ -594,7 +594,7 @@ def sync_status_card(database_id: str, source: str, last_sync: str):
         <div class="sync-card">
             <div><strong>✅ Connected to Notion database</strong></div>
             <div class="live-badge">{database_id}</div>
-            <div style="margin-top: 0.45rem; color: #334155;">Source: {source}</div>
+            <div style="margin-top: 0.45rem; color: #3A4048;">Source: {source}</div>
             <div style="margin-top: 0.35rem; color: #475569;">Last sync: {last_sync}</div>
         </div>
         """,
@@ -704,7 +704,7 @@ def execution_card(title: str, content: str, severity: str = "low"):
     st.markdown(f"""
     <div class="executive-card" style="border-left: 4px solid {color};">
         <h4 style="margin:0 0 0.3rem 0;color:{color};">{title}</h4>
-        <p style="margin:0;color:#334155;font-size:0.95rem;">{content}</p>
+        <p style="margin:0;color:#3A4048;font-size:0.95rem;">{content}</p>
     </div>
     """, unsafe_allow_html=True)
 

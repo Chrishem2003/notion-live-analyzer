@@ -80,12 +80,12 @@ class DeckBuilder:
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -93,21 +93,21 @@ class DeckBuilder:
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -117,23 +117,23 @@ class DeckBuilder:
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
     * {{ margin: 0; padding: 0; box-sizing: border-box; }
-    body {{ font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; color: #0f172a; }
+    body {{ font-family: 'Inter', -apple-system, sans-serif; background: #EDEFF2; color: #0B0E11; }
     .slide {{ min-height: 100vh; padding: 3rem 4rem; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #e2e8f0; }
     .slide-section {{ background: linear-gradient(135deg, #1e3a5f, #1d4ed8); color: white; text-align: center; }
     .slide-section h1 {{ font-size: 3rem; margin-bottom: 1rem; }
     .slide-section p {{ font-size: 1.3rem; opacity: 0.9; }
     .slide-title {{ font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1d4ed8; }
-    .slide-content {{ font-size: 1.1rem; line-height: 1.7; color: #334155; }
+    .slide-content {{ font-size: 1.1rem; line-height: 1.7; color: #3A4048; }
     .slide-data {{ overflow-x: auto; }
     .slide-data table {{ width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     .slide-data th {{ background: #1d4ed8; color: white; padding: 0.6rem; text-align: left; }
     .slide-data td {{ padding: 0.5rem; border-bottom: 1px solid #e2e8f0; }
     .chart-container {{ width: 100%; height: 60vh; }
-    .footer {{ margin-top: auto; font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 1rem; }
+    .footer {{ margin-top: auto; font-size: 0.8rem; color: #6B7280; text-align: center; padding: 1rem; }
     @media print {{ .slide {{ page-break-after: always; min-height: 100vh; } }
 </style>
 </head>

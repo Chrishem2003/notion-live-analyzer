@@ -359,7 +359,7 @@ class VerificationScorer:
             return {
                 "label": "High Trust",
                 "icon": "\U0001f7e2",
-                "color": "#10b981",
+                "color": "#34c787",
                 "bg": "rgba(16,185,129,0.15)",
                 "border": "rgba(16,185,129,0.3)",
             }
@@ -367,7 +367,7 @@ class VerificationScorer:
             return {
                 "label": "Moderate Trust",
                 "icon": "\U0001f7e1",
-                "color": "#f59e0b",
+                "color": "#e8a33d",
                 "bg": "rgba(245,158,11,0.15)",
                 "border": "rgba(245,158,11,0.3)",
             }
@@ -375,7 +375,7 @@ class VerificationScorer:
             return {
                 "label": "Exercise Caution",
                 "icon": "\u26a0\ufe0f",
-                "color": "#ef4444",
+                "color": "#e5484d",
                 "bg": "rgba(239,68,68,0.15)",
                 "border": "rgba(239,68,68,0.3)",
             }
@@ -2362,12 +2362,12 @@ FEED_CSS = """
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -2375,21 +2375,21 @@ FEED_CSS = """
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -2399,45 +2399,45 @@ FEED_CSS = """
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
 /* ── Live Opportunity Feed Styles ───────────────────────────── */
 .feed-container {
-    background: #0f172a;
-    border: 1px solid #1e293b;
+    background: #0B0E11;
+    border: 1px solid #262B33;
     border-radius: 16px;
     overflow: hidden;
     margin-bottom: 1rem;
 }
 
 .feed-header {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-    border-bottom: 1px solid #1e293b;
+    background: linear-gradient(135deg, #0B0E11 0%, #1e1b4b 100%);
+    border-bottom: 1px solid #262B33;
     padding: 1rem 1.5rem;
 }
-.feed-header h2 { color: #f8fafc !important; font-size: 1.3rem !important; font-weight: 800 !important; margin: 0 !important; }
-.feed-header p { color: #94a3b8 !important; font-size: 0.8rem !important; margin: 0.2rem 0 0 0 !important; }
+.feed-header h2 { color: #EDEFF2 !important; font-size: 1.3rem !important; font-weight: 800 !important; margin: 0 !important; }
+.feed-header p { color: #6B7280 !important; font-size: 0.8rem !important; margin: 0.2rem 0 0 0 !important; }
 
 .feed-stats-row {
     display: flex;
     gap: 0.75rem;
     padding: 0.75rem 1.5rem;
-    background: #0f172a80;
-    border-bottom: 1px solid #1e293b;
+    background: #0B0E1180;
+    border-bottom: 1px solid #262B33;
 }
 .feed-stat {
     display: flex;
     align-items: center;
     gap: 0.3rem;
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: #6B7280;
 }
 .feed-stat-value { color: #f1f5f9; font-weight: 700; }
 
 .feed-card {
-    background: #0f172a;
-    border: 1px solid #1e293b;
+    background: #0B0E11;
+    border: 1px solid #262B33;
     border-radius: 14px;
     padding: 1rem;
     margin-bottom: 0.75rem;
@@ -2449,7 +2449,7 @@ FEED_CSS = """
 }
 
 .feed-card-featured {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    background: linear-gradient(135deg, #0B0E11 0%, #1e1b4b 100%);
     border: 1px solid #3730a3;
     box-shadow: 0 0 30px rgba(79,70,229,0.08);
 }
@@ -2470,7 +2470,7 @@ FEED_CSS = """
     line-height: 1.3;
 }
 .feed-card-org {
-    color: #818cf8;
+    color: #8b93a8;
     font-size: 0.75rem;
     font-weight: 500;
 }
@@ -2494,7 +2494,7 @@ FEED_CSS = """
 
 .feed-badge-type {
     background: rgba(99,102,241,0.15);
-    color: #818cf8;
+    color: #8b93a8;
     border: 1px solid rgba(99,102,241,0.3);
 }
 .feed-badge-amount {
@@ -2519,7 +2519,7 @@ FEED_CSS = """
 }
 
 .feed-card-desc {
-    color: #94a3b8;
+    color: #6B7280;
     font-size: 0.75rem;
     line-height: 1.5;
     margin-bottom: 0.5rem;
@@ -2533,7 +2533,7 @@ FEED_CSS = """
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid #262B33;
     padding-top: 0.5rem;
     margin-top: 0.25rem;
 }
@@ -2541,11 +2541,11 @@ FEED_CSS = """
     font-size: 0.6rem;
     color: #475569;
 }
-.feed-card-source a { color: #818cf8; text-decoration: none; }
+.feed-card-source a { color: #8b93a8; text-decoration: none; }
 
 .feed-featured-section {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-    border: 1px solid #1e293b;
+    background: linear-gradient(135deg, #0B0E11 0%, #1e1b4b 50%, #0B0E11 100%);
+    border: 1px solid #262B33;
     border-radius: 16px;
     padding: 1.25rem;
     margin-bottom: 1rem;
@@ -2570,9 +2570,9 @@ FEED_CSS = """
     border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 600;
-    background: #1e293b;
-    color: #94a3b8;
-    border: 1px solid #334155;
+    background: #262B33;
+    color: #6B7280;
+    border: 1px solid #3A4048;
     cursor: pointer;
     transition: all 0.2s;
 }

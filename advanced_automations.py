@@ -536,14 +536,14 @@ def render_automations_advanced():
     """Render the advanced automations UI."""
     st.markdown("""
     <div style="
-        background: linear-gradient(135deg, #1e293b, #0f172a);
+        background: linear-gradient(135deg, #262B33, #0B0E11);
         padding: 1.5rem;
         border-radius: 12px;
         margin-bottom: 1.5rem;
-        border: 1px solid #334155;
+        border: 1px solid #3A4048;
     ">
         <h2 style="margin:0; color: white;">⚡ Advanced Automations</h2>
-        <p style="color: #94a3b8; margin-top: 0.5rem;">
+        <p style="color: #6B7280; margin-top: 0.5rem;">
             Scheduled workflows, triggers, and intelligent alerts
         </p>
     </div>
@@ -675,7 +675,7 @@ def render_scheduler_ui(scheduler: TaskScheduler):
     for task in upcoming:
         st.markdown(f"""
         <div style="
-            background: #1e293b;
+            background: #262B33;
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 10px;
@@ -683,7 +683,7 @@ def render_scheduler_ui(scheduler: TaskScheduler):
         ">
             <strong>{task['task_id']}</strong>
             <br>
-            <span style="color: #94a3b8;">
+            <span style="color: #6B7280;">
                 Next run: {task['next_run'].strftime('%Y-%m-%d %H:%M')}
             </span>
         </div>
@@ -711,11 +711,11 @@ def render_notifications_ui(notif_mgr: NotificationManager):
     ]
     
     for emoji, title, msg, ntype in demo_notifs:
-        color = {"info": "#3b82f6", "warning": "#f59e0b", "success": "#22c55e", "error": "#ef4444"}[ntype]
+        color = {"info": "#3b82f6", "warning": "#e8a33d", "success": "#22c55e", "error": "#e5484d"}[ntype]
         
         st.markdown(f"""
         <div style="
-            background: #1e293b;
+            background: #262B33;
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 10px;
@@ -723,7 +723,7 @@ def render_notifications_ui(notif_mgr: NotificationManager):
         ">
             <span style="font-size: 20px;">{emoji}</span>
             <strong style="margin-left: 10px;">{title}</strong>
-            <p style="color: #94a3b8; margin: 5px 0 0 30px;">{msg}</p>
+            <p style="color: #6B7280; margin: 5px 0 0 30px;">{msg}</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -745,12 +745,12 @@ def render_automation_logs(engine: AdvancedAutomationEngine):
         success_count = sum(1 for r in results if r.get("status") == "success")
         
         st.markdown(f"""
-        <div style="background: #0f172a; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
-            <span style="color: #94a3b8;">{timestamp}</span>
+        <div style="background: #0B0E11; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+            <span style="color: #6B7280;">{timestamp}</span>
             |
             <code>{trigger}</code>
             |
-            <span style="color: {'#22c55e' if success_count else '#ef4444'};">
+            <span style="color: {'#22c55e' if success_count else '#e5484d'};">
                 {success_count}/{len(results)} succeeded
             </span>
         </div>

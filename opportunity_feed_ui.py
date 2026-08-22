@@ -57,14 +57,14 @@ def _render_featured(engine: OpportunityFeedEngine, country: str):
                 amount = f"${opp['amount_max_usd']:,.0f}"
             st.markdown(
                 f"""
-                <div style="background:#0b1321;border:1px solid #6366f155;border-radius:14px;padding:1rem;height:100%;">
+                <div style="background:#171B23;border:1px solid #6366f155;border-radius:14px;padding:1rem;height:100%;">
                     <div style="font-size:1.6rem;">{get_country_flag(opp.get('country',''))}</div>
                     <div style="font-weight:800;color:#f1f5f9;font-size:0.85rem;margin:0.3rem 0;">{opp.get('title','')}</div>
-                    <div style="color:#818cf8;font-size:0.75rem;">{opp.get('organization','')}</div>
+                    <div style="color:#8b93a8;font-size:0.75rem;">{opp.get('organization','')}</div>
                     <div style="margin:0.4rem 0;">
                         <span style="background:{badge['bg']};color:{badge['color']};border:1px solid {badge['border']};border-radius:999px;padding:0.1rem 0.5rem;font-size:0.65rem;">{badge['icon']} {badge['label']} {ver:.0f}</span>
                     </div>
-                    <div style="color:#94a3b8;font-size:0.75rem;">{amount or 'Amount varies'} · {opp.get('field_of_study','')}</div>
+                    <div style="color:#6B7280;font-size:0.75rem;">{amount or 'Amount varies'} · {opp.get('field_of_study','')}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -161,24 +161,24 @@ def render_opportunity_feed_tab():
         with st.container():
             st.markdown(
                 f"""
-                <div style="background:#0b1321;border:1px solid #1e293b;border-radius:14px;padding:1rem;margin-bottom:0.75rem;">
+                <div style="background:#171B23;border:1px solid #262B33;border-radius:14px;padding:1rem;margin-bottom:0.75rem;">
                     <div style="display:flex;gap:0.75rem;align-items:flex-start;">
                         <div style="font-size:1.8rem;">{type_icon} {get_country_flag(opp.get('country',''))}</div>
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
                                 <div>
                                     <div style="font-weight:800;color:#f1f5f9;font-size:0.95rem;">{opp.get('title','')}</div>
-                                    <div style="color:#818cf8;font-size:0.78rem;">{opp.get('organization','')} · {opp.get('source_authority','')}</div>
+                                    <div style="color:#8b93a8;font-size:0.78rem;">{opp.get('organization','')} · {opp.get('source_authority','')}</div>
                                 </div>
                                 <span style="background:{badge['bg']};color:{badge['color']};border:1px solid {badge['border']};border-radius:999px;padding:0.1rem 0.6rem;font-size:0.65rem;white-space:nowrap;">{badge['icon']} {badge['label']} {ver:.0f}</span>
                             </div>
                             <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin:0.4rem 0;">
-                                <span class="feed-badge" style="background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.3);border-radius:999px;padding:0.05rem 0.5rem;font-size:0.65rem;">{OpportunityType.emoji_badge(otype)}</span>
+                                <span class="feed-badge" style="background:rgba(99,102,241,.15);color:#8b93a8;border:1px solid rgba(99,102,241,.3);border-radius:999px;padding:0.05rem 0.5rem;font-size:0.65rem;">{OpportunityType.emoji_badge(otype)}</span>
                                 <span class="feed-badge" style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:999px;padding:0.05rem 0.5rem;font-size:0.65rem;">💰 {amount or 'Amount varies'}</span>
                                 <span class="feed-badge" style="background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3);border-radius:999px;padding:0.05rem 0.5rem;font-size:0.65rem;">🌍 {opp.get('region','')}</span>
                                 <span class="feed-badge" style="background:rgba(236,72,153,.15);color:#f472b6;border:1px solid rgba(236,72,153,.3);border-radius:999px;padding:0.05rem 0.5rem;font-size:0.65rem;">{opp.get('field_of_study','All Fields')}</span>
                             </div>
-                            <div style="color:#94a3b8;font-size:0.78rem;line-height:1.5;">{opp.get('description','')[:220]}{'…' if len(opp.get('description',''))>220 else ''}</div>
+                            <div style="color:#6B7280;font-size:0.78rem;line-height:1.5;">{opp.get('description','')[:220]}{'…' if len(opp.get('description',''))>220 else ''}</div>
                             <div style="color:#64748b;font-size:0.72rem;margin-top:0.4rem;">{deadline_str or 'Open / rolling deadline'}</div>
                         </div>
                     </div>

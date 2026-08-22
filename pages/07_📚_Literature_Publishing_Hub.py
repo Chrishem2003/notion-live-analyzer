@@ -351,7 +351,7 @@ def render_literature_search():
                 node=dict(
                     pad=15, thickness=20, line=dict(color="black", width=0.5),
                     label=["Identified", "Duplicates Removed", "Screened", "Excluded at Screening", "Full-Text Assessed", "Excluded at Full-Text", "Included Studies"],
-                    color=["#00F2FE", "#EF4444", "#38BDF8", "#F59E0B", "#818CF8", "#EF4444", "#10B981"]
+                    color=["#E8A33D", "#E5484D", "#4FB8A6", "#E8A33D", "#8B93A8", "#E5484D", "#34C787"]
                 ),
                 link=dict(
                     source=[0, 0, 2, 2, 4, 4],
@@ -493,14 +493,14 @@ def render_meta_analysis():
                     for i, (_, row) in enumerate(display_df.iterrows()):
                         fig.add_trace(go.Scatter(
                             x=[row["CI_Lower"], row["CI_Upper"]], y=[i, i],
-                            mode="lines", line=dict(color="#38BDF8", width=2.5), showlegend=False,
+                            mode="lines", line=dict(color="#4FB8A6", width=2.5), showlegend=False,
                         ))
                         fig.add_trace(go.Scatter(
                             x=[row["Effect_Size"]], y=[i], mode="markers",
-                            marker=dict(size=8 + row["Weight (%)"] / 2.5, color="#00F2FE"),
+                            marker=dict(size=8 + row["Weight (%)"] / 2.5, color="#E8A33D"),
                             name=row["Study"], showlegend=False,
                         ))
-                    fig.add_shape(type="line", x0=pooled_effect, y0=-0.8, x1=pooled_effect, y1=len(display_df) - 0.2, line=dict(color="#EF4444", width=2.5, dash="dash"))
+                    fig.add_shape(type="line", x0=pooled_effect, y0=-0.8, x1=pooled_effect, y1=len(display_df) - 0.2, line=dict(color="#E5484D", width=2.5, dash="dash"))
                     fig.update_layout(
                         title_text=f"Forest Plot (Pooled Effect = {pooled_effect:.3f}, 95% CI [{ci_low:.3f}, {ci_high:.3f}])",
                         xaxis_title="Effect Size & 95% CI", yaxis_title="Study",
@@ -513,13 +513,13 @@ def render_meta_analysis():
                     fig_f = go.Figure()
                     fig_f.add_trace(go.Scatter(
                         x=display_df["Effect_Size"], y=display_df["Standard_Error"],
-                        mode="markers", marker=dict(size=10, color="#00F2FE"), text=display_df["Study"]
+                        mode="markers", marker=dict(size=10, color="#E8A33D"), text=display_df["Study"]
                     ))
                     max_se = max(display_df["Standard_Error"]) * 1.1
                     se_seq = np.linspace(0.001, max_se, 50)
                     fig_f.add_trace(go.Scatter(x=pooled_effect - 1.96 * se_seq, y=se_seq, mode="lines", line=dict(color="gray", dash="dash"), showlegend=False))
                     fig_f.add_trace(go.Scatter(x=pooled_effect + 1.96 * se_seq, y=se_seq, mode="lines", line=dict(color="gray", dash="dash"), showlegend=False))
-                    fig_f.add_shape(type="line", x0=pooled_effect, y0=0, x1=pooled_effect, y1=max_se, line=dict(color="#EF4444", dash="solid"))
+                    fig_f.add_shape(type="line", x0=pooled_effect, y0=0, x1=pooled_effect, y1=max_se, line=dict(color="#E5484D", dash="solid"))
                     
                     fig_f.update_layout(
                         title_text="Funnel Plot for Publication Bias Inspection",
@@ -669,9 +669,9 @@ def render_publication_pipeline():
 
     for i, (title, desc) in enumerate(steps, 1):
         st.markdown(
-            f"""<div style="display:flex; gap:1rem; align-items:center; background:#0b1321; border:1px solid #1e293b; border-radius:10px; padding:1.0rem 1.2rem; margin-bottom:0.75rem;">
-                <div style="background:#00f2fe22; color:#00f2fe; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem;">{i}</div>
-                <div><div style="font-weight:700; color:#f8fafc; font-size:1.05rem;">{title}</div><div style="color:#94a3b8; font-size:0.9rem;">{desc}</div></div>
+            f"""<div style="display:flex; gap:1rem; align-items:center; background:#171B23; border:1px solid #262B33; border-radius:10px; padding:1.0rem 1.2rem; margin-bottom:0.75rem;">
+                <div style="background:#e8a33d22; color:#e8a33d; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem;">{i}</div>
+                <div><div style="font-weight:700; color:#EDEFF2; font-size:1.05rem;">{title}</div><div style="color:#6B7280; font-size:0.9rem;">{desc}</div></div>
             </div>""",
             unsafe_allow_html=True,
         )

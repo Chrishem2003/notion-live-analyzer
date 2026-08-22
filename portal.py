@@ -474,7 +474,7 @@ def render_oauth_buttons():
         url = build_authorize_url(key, cfg)
         st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, use_container_width=True)
     st.markdown(
-        "<div style='text-align:center; color:#94A3B8; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>",
+        "<div style='text-align:center; color:#6B7280; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>",
         unsafe_allow_html=True,
     )
 
@@ -544,7 +544,7 @@ st.markdown("""
 
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #F8FAFC !important;
+        color: #EDEFF2 !important;
     }
 
     .stApp {
@@ -567,7 +567,7 @@ st.markdown("""
     .portal-title {
         font-size: 2.3rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #F472B6 100%);
+        background: linear-gradient(135deg, #4FB8A6 0%, #8B93A8 50%, #F472B6 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
@@ -577,7 +577,7 @@ st.markdown("""
 
     .portal-subtitle {
         font-size: 0.95rem;
-        color: #94A3B8 !important;
+        color: #6B7280 !important;
         font-weight: 600;
         text-align: center;
         letter-spacing: 0.08em;
@@ -596,7 +596,7 @@ st.markdown("""
         height: 90px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #38BDF8;
+        border: 3px solid #4FB8A6;
         box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
     }
 
@@ -611,14 +611,14 @@ st.markdown("""
     .stTabs [data-baseweb="tab"] {
         height: 44px;
         border-radius: 10px;
-        color: #94A3B8;
+        color: #6B7280;
         font-weight: 600;
         font-size: 0.9rem;
     }
 
     .stTabs [aria-selected="true"] {
         background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2)) !important;
-        color: #38BDF8 !important;
+        color: #4FB8A6 !important;
         border: 1px solid rgba(56, 189, 248, 0.4);
     }
 
@@ -654,13 +654,13 @@ st.markdown("""
     .workspace-metric .metric-value {
         font-size: 1.8rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #38BDF8, #818CF8, #F472B6);
+        background: linear-gradient(90deg, #4FB8A6, #8B93A8, #F472B6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
     .workspace-metric .metric-label {
         font-size: 0.75rem;
-        color: #94A3B8 !important;
+        color: #6B7280 !important;
         text-transform: uppercase;
         letter-spacing: 0.08em;
         margin-top: 0.3rem;
@@ -794,17 +794,17 @@ if not st.session_state.portal_unlocked:
 
             d_col1, d_col2 = st.columns(2)
             with d_col1:
-                st.markdown('<div class="download-grid-card"><h4>🪟 Windows</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.markdown('<div class="download-grid-card"><h4>🪟 Windows</h4><p style="font-size: 0.8rem; color: #6B7280;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
                 st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
 
-                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux</h4><p style="font-size: 0.8rem; color: #6B7280;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
                 st.download_button("📥 Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", use_container_width=True)
 
             with d_col2:
-                st.markdown('<div class="download-grid-card"><h4>🍏 macOS</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.markdown('<div class="download-grid-card"><h4>🍏 macOS</h4><p style="font-size: 0.8rem; color: #6B7280;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
                 st.download_button("📥 Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", use_container_width=True)
 
-                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile / PWA</h4><p style="font-size: 0.8rem; color: #94A3B8;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
+                st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile / PWA</h4><p style="font-size: 0.8rem; color: #6B7280;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
                 st.download_button("📥 Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", use_container_width=True)
 
 # --- UNLOCKED WORKSPACE DASHBOARD ---
@@ -814,7 +814,7 @@ else:
 
     sidebar_avatar_b64 = get_user_avatar_base64(current_user_email)
     if sidebar_avatar_b64:
-        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8;"></div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #4FB8A6;"></div>', unsafe_allow_html=True)
 
     st.sidebar.title("CHRISHEM APEX")
     st.sidebar.success(f"🔓 Operator: {identity.get('name')}")
@@ -945,8 +945,8 @@ else:
         for p, r, ts in chat_rows:
             st.markdown(f"""
             <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem;">
-                <b style="color: #38BDF8;">[{ts[:19]}]:</b> {p}<br><br>
-                <b style="color: #818CF8;">Note:</b> {r}
+                <b style="color: #4FB8A6;">[{ts[:19]}]:</b> {p}<br><br>
+                <b style="color: #8B93A8;">Note:</b> {r}
             </div>
             """, unsafe_allow_html=True)
 
@@ -979,7 +979,7 @@ else:
 
         active_b64 = get_user_avatar_base64(current_user_email)
         if active_b64:
-            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #38BDF8; box-shadow:0 0 20px rgba(56,189,248,0.4);"></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="margin-bottom:15px;"><img src="data:image/png;base64,{active_b64}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #4FB8A6; box-shadow:0 0 20px rgba(56,189,248,0.4);"></div>', unsafe_allow_html=True)
 
         uploaded_avatar = st.file_uploader("Upload New Avatar Image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 

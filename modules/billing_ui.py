@@ -5,26 +5,26 @@ def render_notion_style_billing(user_email, user_name=""):
     st.markdown("""
         <style>
         .billing-container {
-            background: #0f172a;
+            background: #0B0E11;
             border: 1px solid rgba(56, 189, 248, 0.2);
             border-radius: 16px;
             padding: 24px;
-            color: #f8fafc;
+            color: #EDEFF2;
         }
         .billing-card {
-            background: #1e293b;
-            border: 1px solid #334155;
+            background: #262B33;
+            border: 1px solid #3A4048;
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
             cursor: pointer;
         }
         .billing-card-selected {
-            border: 2px solid #38bdf8 !important;
+            border: 2px solid #4fb8a6 !important;
             background: rgba(56, 189, 248, 0.05);
         }
         .badge-discount {
-            background: #0284c7;
+            background: #b5790e;
             color: white;
             font-size: 0.75rem;
             padding: 2px 8px;
@@ -69,8 +69,8 @@ def render_notion_style_billing(user_email, user_name=""):
 
         st.markdown(f"""
             <div class="billing-container" style="margin-top: 15px;">
-                <h2 style="margin:0; font-size: 2rem;">{price_display} <span style="font-size: 1rem; color: #94a3b8;">/ month</span></h2>
-                <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px;">
+                <h2 style="margin:0; font-size: 2rem;">{price_display} <span style="font-size: 1rem; color: #6B7280;">/ month</span></h2>
+                <p style="font-size: 0.85rem; color: #6B7280; margin-top: 8px;">
                     Your subscription auto-renews each period unless canceled.
                 </p>
             </div>

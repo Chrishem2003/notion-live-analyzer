@@ -219,7 +219,7 @@ def render_ai_insights(df):
         insights.append(f"**Duplicate Records:** `{dup_count:,}` exact duplicate rows detected ({dup_count/rows*100:.1f}% of dataset).")
 
     for ins in insights:
-        st.markdown(f"""<div style="background:#0b1321; border-left:4px solid #00f2fe; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:#f8fafc;">{ins}</div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div style="background:#171B23; border-left:4px solid #e8a33d; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:#EDEFF2;">{ins}</div>""", unsafe_allow_html=True)
 
     st.markdown("### 📄 Executive Report Generation")
     report = f"""# EXECUTIVE DATA INTELLIGENCE REPORT
@@ -476,14 +476,14 @@ def render_audio():
 
     components.html(
         f"""
-        <div style="font-family: Inter, sans-serif; color: #f8fafc;">
-            <button id="speakBtn" style="background:#38BDF8;color:#0b1321;border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;">
+        <div style="font-family: Inter, sans-serif; color: #EDEFF2;">
+            <button id="speakBtn" style="background:#4FB8A6;color:#171B23;border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;">
                 🔊 Speak Text
             </button>
-            <button id="stopBtn" style="background:#334155;color:#f8fafc;border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;margin-left:0.5rem;">
+            <button id="stopBtn" style="background:#3A4048;color:#EDEFF2;border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;margin-left:0.5rem;">
                 ⏹ Stop
             </button>
-            <p id="ttsStatus" style="margin-top:0.6rem;color:#94a3b8;font-size:0.85rem;"></p>
+            <p id="ttsStatus" style="margin-top:0.6rem;color:#6B7280;font-size:0.85rem;"></p>
         </div>
         <script>
             const text = `{safe_text}`;

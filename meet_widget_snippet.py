@@ -41,14 +41,14 @@ def render_video_call(user_email: str, room_id: str):
     ws_url = f"{WS_BASE_URL}/ws/meet/{room_id}?token={token}"
 
     widget_html = f"""
-    <div id="meet-status" style="font-size:0.85em;color:#94a3b8;margin-bottom:8px;">Requesting camera/mic access...</div>
+    <div id="meet-status" style="font-size:0.85em;color:#6B7280;margin-bottom:8px;">Requesting camera/mic access...</div>
     <div id="video-grid" style="display:flex;gap:8px;flex-wrap:wrap;">
         <video id="local-video" autoplay playsinline muted
-               style="width:220px;height:165px;background:#000;border-radius:8px;border:2px solid #00f2fe;"></video>
+               style="width:220px;height:165px;background:#000;border-radius:8px;border:2px solid #e8a33d;"></video>
     </div>
     <div style="margin-top:8px;">
-        <button id="mute-btn" style="padding:6px 14px;border-radius:6px;background:#334155;color:#fff;border:none;">🎤 Mute</button>
-        <button id="video-btn" style="padding:6px 14px;border-radius:6px;background:#334155;color:#fff;border:none;">📷 Camera Off</button>
+        <button id="mute-btn" style="padding:6px 14px;border-radius:6px;background:#3A4048;color:#fff;border:none;">🎤 Mute</button>
+        <button id="video-btn" style="padding:6px 14px;border-radius:6px;background:#3A4048;color:#fff;border:none;">📷 Camera Off</button>
         <button id="leave-btn" style="padding:6px 14px;border-radius:6px;background:#b91c1c;color:#fff;border:none;">📞 Leave</button>
     </div>
     <script>
@@ -71,7 +71,7 @@ def render_video_call(user_email: str, room_id: str):
             v.id = 'video-' + peerId;
             v.autoplay = true;
             v.playsinline = true;
-            v.style.cssText = 'width:220px;height:165px;background:#000;border-radius:8px;border:2px solid #334155;';
+            v.style.cssText = 'width:220px;height:165px;background:#000;border-radius:8px;border:2px solid #3A4048;';
             grid.appendChild(v);
         }
         function removeRemoteVideo(peerId) {{

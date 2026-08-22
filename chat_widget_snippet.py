@@ -51,13 +51,13 @@ def render_team_chat(user_email: str, room_id: str = "general"):
     ws_url = f"{WS_BASE_URL}/ws/chat/{room_id}?token={token}"
 
     widget_html = f"""
-    <div id="chat-container" style="border:1px solid #333;border-radius:8px;padding:10px;height:420px;display:flex;flex-direction:column;background:#0b1321;">
+    <div id="chat-container" style="border:1px solid #333;border-radius:8px;padding:10px;height:420px;display:flex;flex-direction:column;background:#171B23;">
       <div id="chat-messages" style="flex:1;overflow-y:auto;margin-bottom:8px;"></div>
-      <div id="chat-typing" style="font-size:0.8em;color:#94a3b8;height:18px;"></div>
+      <div id="chat-typing" style="font-size:0.8em;color:#6B7280;height:18px;"></div>
       <div style="display:flex;gap:6px;">
         <input id="chat-input" type="text" placeholder="Type a message..."
                style="flex:1;padding:8px;border-radius:6px;border:1px solid #444;background:#111;color:#fff;" />
-        <button id="chat-send" style="padding:8px 16px;border-radius:6px;background:#00f2fe;border:none;color:#000;font-weight:bold;">Send</button>
+        <button id="chat-send" style="padding:8px 16px;border-radius:6px;background:#e8a33d;border:none;color:#000;font-weight:bold;">Send</button>
       </div>
     </div>
     <script>
@@ -77,10 +77,10 @@ def render_team_chat(user_email: str, room_id: str = "general"):
             bubble.style.cssText = `margin:4px 0;display:flex;justify-content:${{isSelf ? 'flex-end' : 'flex-start'};`;
             bubble.innerHTML = `
                 <div style="max-width:70%;padding:8px 12px;border-radius:12px;
-                            background:${{isSelf ? '#00838f' : '#1e293b'};color:#fff;">
-                    ${{isSelf ? '' : `<div style="font-size:0.75em;color:#94a3b8;">${{sender}</div>`}
+                            background:${{isSelf ? '#00838f' : '#262B33'};color:#fff;">
+                    ${{isSelf ? '' : `<div style="font-size:0.75em;color:#6B7280;">${{sender}</div>`}
                     <div>${{content}</div>
-                    <div style="font-size:0.65em;color:#cbd5e1;text-align:right;">${{new Date(sentAt).toLocaleTimeString()}</div>
+                    <div style="font-size:0.65em;color:#A8B0BC;text-align:right;">${{new Date(sentAt).toLocaleTimeString()}</div>
                 </div>`;
             messagesEl.appendChild(bubble);
             messagesEl.scrollTop = messagesEl.scrollHeight;

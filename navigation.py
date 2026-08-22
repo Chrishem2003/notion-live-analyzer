@@ -294,8 +294,8 @@ def hub_quick_access_cards():
                 f"""
                 <div class="chris-card" style="cursor:pointer; min-height:120px;">
                     <div style="font-size:1.8rem;">{hub['icon']}</div>
-                    <div style="font-size:1.05rem; font-weight:800; color:#00f2fe; margin:0.3rem 0;">{hub['name']}</div>
-                    <div style="font-size:0.8rem; color:#94a3b8;">{hub['description']}</div>
+                    <div style="font-size:1.05rem; font-weight:800; color:#e8a33d; margin:0.3rem 0;">{hub['name']}</div>
+                    <div style="font-size:0.8rem; color:#6B7280;">{hub['description']}</div>
                     <div style="font-size:0.7rem; color:#64748b; margin-top:0.4rem; font-family:monospace;">{len(hub['tools'])} tools</div>
                 </div>
                 """,

@@ -282,7 +282,7 @@ def build_chart(
         fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#f8fafc", family="Inter, sans-serif"),
+            font=dict(color="#EDEFF2", family="Inter, sans-serif"),
             margin=dict(l=20, r=20, t=40, b=20),
             legend=dict(
                 orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1

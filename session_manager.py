@@ -215,10 +215,10 @@ def render_sidebar_data_hud():
 
     st.sidebar.markdown(
         f"""
-        <div style="background:#0b1321; border:1px solid #1e293b; border-radius:10px; padding:0.8rem;">
-            <div style="font-size:0.75rem; color:#94a3b8; text-transform:uppercase; font-weight:700;">{summary['source']}</div>
-            <div style="font-size:1.1rem; font-weight:800; color:#00f2fe; margin:0.2rem 0;">{summary['rows']:,} rows × {summary['cols']} cols</div>
-            <div style="font-size:0.8rem; color:#cbd5e1;">
+        <div style="background:#171B23; border:1px solid #262B33; border-radius:10px; padding:0.8rem;">
+            <div style="font-size:0.75rem; color:#6B7280; text-transform:uppercase; font-weight:700;">{summary['source']}</div>
+            <div style="font-size:1.1rem; font-weight:800; color:#e8a33d; margin:0.2rem 0;">{summary['rows']:,} rows × {summary['cols']} cols</div>
+            <div style="font-size:0.8rem; color:#A8B0BC;">
                 🔢 {summary['numeric']} numeric | 🏷️ {summary['categorical']} categorical | ⚠️ {summary['missing']:,} missing
             </div>
             <div style="font-size:0.7rem; color:#64748b; font-family:monospace; margin-top:0.3rem;">SHA: {summary['checksum']}...</div>

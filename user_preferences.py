@@ -32,7 +32,7 @@ import zoneinfo
 import streamlit as st
 import streamlit.components.v1 as components
 
-DEFAULT_ACCENT = "#38BDF8"
+DEFAULT_ACCENT = "#4FB8A6"
 
 
 def render_readability_fix():
@@ -46,10 +46,10 @@ def render_readability_fix():
         div[data-testid="stTextArea"] textarea,
         div[data-testid="stTextInput"] input,
         div[data-testid="stChatInput"] textarea {
-            background-color: #0B1321 !important;
-            color: #F8FAFC !important;
-            caret-color: #F8FAFC !important;
-            border: 1px solid #334155 !important;
+            background-color: #171B23 !important;
+            color: #EDEFF2 !important;
+            caret-color: #EDEFF2 !important;
+            border: 1px solid #3A4048 !important;
         }
         div[data-testid="stTextArea"] textarea::placeholder,
         div[data-testid="stTextInput"] input::placeholder {

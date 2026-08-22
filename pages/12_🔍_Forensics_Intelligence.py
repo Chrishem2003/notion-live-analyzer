@@ -160,7 +160,7 @@ def render_evidence_lab_tab() -> None:
             title={'text': "Entropy (8.0 = Max Randomness / Encrypted)"},
             gauge={
                 'axis': {'range': [0, 8]},
-                'bar': {'color': "#00f2fe"},
+                'bar': {'color': "#e8a33d"},
                 'steps': [
                     {'range': [0, 4], 'color': "rgba(0,255,0,0.2)"},
                     {'range': [4, 7], 'color': "rgba(255,255,0,0.2)"},

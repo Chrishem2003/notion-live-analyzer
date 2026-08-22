@@ -843,7 +843,7 @@ def render_secure_vault_ui():
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090 + d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
@@ -863,7 +863,7 @@ def render_secure_vault_ui():
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8 + px !important;
     }
 
@@ -885,14 +885,14 @@ def render_secure_vault_ui():
     }
     .vault-container {
         background: #0 + f172a;
-        border: 1px solid #1e293b;
+        border: 1px solid #262B33;
         border-radius: 16 + px;
         padding: 0;
         overflow: hidden;
     }
     .vault-header {
         background: linear-gradient(135 + deg, #0 + f172a 0%, #1 + e1b4b 100%);
-        border-bottom: 1px solid #1e293b;
+        border-bottom: 1px solid #262B33;
         padding: 1.2 + rem 1.5 + rem;
     }
     .vault-header h1 {
@@ -908,7 +908,7 @@ def render_secure_vault_ui():
     }
     .vault-card {
         background: #0 + f172a;
-        border: 1px solid #1e293b;
+        border: 1px solid #262B33;
         border-radius: 12px;
         padding: 1 + rem;
         margin-bottom: 0.75 + rem;
@@ -951,7 +951,7 @@ def render_secure_vault_ui():
     .vault-badge-slate { background: rgba(100,116,139,0.15); color: #94 + a3b8; border: 1px solid rgba(100,116,139,0.3); }
 
     .vault-storage-bar {
-        background: #1e293b;
+        background: #262B33;
         border-radius: 999 + px;
         height: 8 + px;
         overflow: hidden;
@@ -967,7 +967,7 @@ def render_secure_vault_ui():
         background: linear-gradient(90 + deg, #f59 + e0b, #fbbf24);
     }
     .vault-storage-critical .vault-storage-fill {
-        background: linear-gradient(90 + deg, #ef4444, #f87171);
+        background: linear-gradient(90 + deg, #e5484d, #f87171);
     }
 
     .vault-gate {
@@ -995,7 +995,7 @@ def render_secure_vault_ui():
     }
 
     .vault-upload-zone {
-        border: 2 + px dashed #334155;
+        border: 2 + px dashed #3A4048;
         border-radius: 16 + px;
         padding: 2.5 + rem 1.5 + rem;
         text-align: center;
@@ -1015,7 +1015,7 @@ def render_secure_vault_ui():
         align-items: center;
         gap: 0.75 + rem;
         padding: 0.6 + rem 0.75 + rem;
-        border-bottom: 1px solid #1e293b;
+        border-bottom: 1px solid #262B33;
         transition: background 0.2 + s;
     }
     .vault-file-row:hover {
@@ -1026,8 +1026,8 @@ def render_secure_vault_ui():
     }
 
     .vault-search-input {
-        background: #1e293b !important;
-        border: 1px solid #334155 !important;
+        background: #262B33 !important;
+        border: 1px solid #3A4048 !important;
         border-radius: 10 + px !important;
         color: #f1 + f5f9 !important;
         padding: 0.6 + rem 1 + rem !important;
@@ -1060,7 +1060,7 @@ def render_secure_vault_ui():
     }
     .vault-modal {
         background: #0 + f172a;
-        border: 1px solid #1e293b;
+        border: 1px solid #262B33;
         border-radius: 20 + px;
         padding: 1.5 + rem;
         max-width: 720 + px;
@@ -1079,9 +1079,9 @@ def render_secure_vault_ui():
     }
     .vault-modal-close:hover { color: #f1 + f5f9; }
 
-    div[data-testid="stTextInput"] input { background: #1e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
-    div[data-testid="stTextArea"] textarea { background: #1e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
-    div[data-testid="stSelectbox"] { background: #1e293b !important; border-color: #334155 !important; color: #f1 + f5f9 !important; }
+    div[data-testid="stTextInput"] input { background: #262B33 !important; border-color: #3A4048 !important; color: #f1 + f5f9 !important; }
+    div[data-testid="stTextArea"] textarea { background: #262B33 !important; border-color: #3A4048 !important; color: #f1 + f5f9 !important; }
+    div[data-testid="stSelectbox"] { background: #262B33 !important; border-color: #3A4048 !important; color: #f1 + f5f9 !important; }
     .stButton button[kind="primary"] { background: #6366 + f1 !important; border: none !important; color: white !important; font-weight: 700 !important; }
     .stButton button[kind="primary"]:hover { background: #818 + cf8 !important; }
     </style>
@@ -1422,11 +1422,11 @@ def render_secure_vault_ui():
                     if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"):
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64_data}" style="max-width:100%;border-radius:12px;border:1px solid #1e293b;">', unsafe_allow_html=True)
+                        st.markdown(f'<img src="data:{vf.mime_type};base64,{b64_data}" style="max-width:100%;border-radius:12px;border:1px solid #262B33;">', unsafe_allow_html=True)
                     elif ext == ".pdf":
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
-                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}" width="100%" height="600" style="border:1px solid #1e293b;border-radius:12px;"></iframe>', unsafe_allow_html=True)
+                        st.markdown(f'<iframe src="data:application/pdf;base64,{b64_data}" width="100%" height="600" style="border:1px solid #262B33;border-radius:12px;"></iframe>', unsafe_allow_html=True)
                     elif ext in (".mp3", ".wav", ".ogg"):
                         import base64 as _b64
                         b64_data = _b64.b64encode(data).decode()
@@ -1560,7 +1560,7 @@ def render_secure_vault_ui():
             for entry in reversed(log_entries):
                 ts = entry["timestamp"][:19] if "T" in entry["timestamp"] else entry["timestamp"]
                 st.markdown(f"""
-                <div style="display:flex;gap:0.75 + rem;padding:0.3 + rem 0;border-bottom:1px solid #1e293b;font-size:0.8 + rem;">
+                <div style="display:flex;gap:0.75 + rem;padding:0.3 + rem 0;border-bottom:1px solid #262B33;font-size:0.8 + rem;">
                     <span style="color:#64748 + b;min-width:140 + px;">{ts}</span>
                     <span style="color:#818 + cf8;">{entry['action']}</span>
                     <span style="color:#94 + a3b8;">{entry['details']}</span>
@@ -1581,7 +1581,7 @@ def render_secure_vault_ui():
 
     # ── Footer Stats ────────────────────────────────────────────────
     st.markdown(f"""
-    <div style="margin-top:1.5 + rem;padding:0.75 + rem;border-top:1px solid #1e293b;display:flex;justify-content:space-between;">
+    <div style="margin-top:1.5 + rem;padding:0.75 + rem;border-top:1px solid #262B33;display:flex;justify-content:space-between;">
         <span style="color:#475569;font-size:0.7 + rem;">🔒 AES-256-GCM Encrypted</span>
         <span style="color:#475569;font-size:0.7 + rem;">🛡️ Zero-knowledge architecture</span>
         <span style="color:#475569;font-size:0.7 + rem;">⏱️ Auto-lock: {AUTO_LOCK_TIMEOUT_SECONDS}s inactivity</span>

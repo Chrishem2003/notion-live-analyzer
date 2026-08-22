@@ -25,9 +25,9 @@ def hero_card(title: str, subtitle: str, badge_text: str = "", watermark: str = 
                 <p style='color: {t['text_secondary']}; margin: 0; font-size: 0.95rem; line-height:1.5;'>{subtitle}</p>
             </div>
             <div style="text-align: right;">
-                <div style='background: #111c2e; border: 1px solid #10b981; padding: 0.6rem 1.1rem; border-radius: 10px;'>
-                    <div style='font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800;'>Engine</div>
-                    <div style='color: #10b981; font-size: 0.95rem; font-weight: 900;'>{watermark}</div>
+                <div style='background: #111c2e; border: 1px solid #34c787; padding: 0.6rem 1.1rem; border-radius: 10px;'>
+                    <div style='font-size: 0.65rem; color: #6B7280; text-transform: uppercase; font-weight: 800;'>Engine</div>
+                    <div style='color: #34c787; font-size: 0.95rem; font-weight: 900;'>{watermark}</div>
                 </div>
             </div>
         </div>
@@ -41,33 +41,33 @@ def section_header(title: str, desc: str = ""):
     Render a consistent section header with optional caption.
     """
     st.markdown(
-        f"<h3 style='color:#00f2fe !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{title}</h3>",
+        f"<h3 style='color:#e8a33d !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{title}</h3>",
         unsafe_allow_html=True,
     )
     if desc:
         st.caption(desc)
 
 
-def metric_card(value: str, label: str, color: str = "#00f2fe"):
+def metric_card(value: str, label: str, color: str = "#e8a33d"):
     """Render a styled metric card."""
     st.markdown(
         f"""
-        <div style='background:#0b1321; border:1px solid #1e293b; border-radius:12px; padding:1rem; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.3);'>
+        <div style='background:#171B23; border:1px solid #262B33; border-radius:12px; padding:1rem; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.3);'>
             <div style='font-size:1.35rem; font-weight:800; color:{color} !important;'>{value}</div>
-            <div style='font-size:0.72rem; color:#94a3b8; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-top:0.3rem;'>{label}</div>
+            <div style='font-size:0.72rem; color:#6B7280; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-top:0.3rem;'>{label}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 
-def info_card(title: str, body: str, accent: str = "#00f2fe"):
+def info_card(title: str, body: str, accent: str = "#e8a33d"):
     """Render a contextual info card."""
     st.markdown(
         f"""
-        <div style='background:#0b1321; border:1px solid {accent}88; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;'>
+        <div style='background:#171B23; border:1px solid {accent}88; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;'>
             <div style='font-weight:800; color:{accent}; margin-bottom:0.25rem;'>{title}</div>
-            <div style='color:#cbd5e1; font-size:0.9rem;'>{body}</div>
+            <div style='color:#A8B0BC; font-size:0.9rem;'>{body}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -91,7 +91,7 @@ def render_footer(module_name: str, version: str = "1.0"):
 
 def tab_badge(label: str, active: bool = True):
     """Return an HTML badge for tab labels."""
-    color = "#00f2fe" if active else "#94a3b8"
+    color = "#e8a33d" if active else "#6B7280"
     return f"<span style='color:{color}; font-weight:800;'>{label}</span>"
 
 
@@ -167,8 +167,8 @@ def empty_state(icon: str, title: str, message: str, action_label: str = None, a
         f"""
         <div class="chris-card" style="text-align:center; padding:2rem;">
             <div style="font-size:2.5rem;">{icon}</div>
-            <div style="font-size:1.1rem; font-weight:800; color:#00f2fe; margin:0.6rem 0 0.2rem 0;">{title}</div>
-            <div style="color:#94a3b8; font-size:0.9rem;">{message}</div>
+            <div style="font-size:1.1rem; font-weight:800; color:#e8a33d; margin:0.6rem 0 0.2rem 0;">{title}</div>
+            <div style="color:#6B7280; font-size:0.9rem;">{message}</div>
         </div>
         """,
         unsafe_allow_html=True,

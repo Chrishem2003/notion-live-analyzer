@@ -39,10 +39,10 @@ def render_live_doc(user_email: str, doc_id: str):
     ws_url = f"{WS_BASE_URL}/ws/docs/{doc_id}?token={token}"
 
     widget_html = f"""
-    <div id="doc-status" style="font-size:0.8em;color:#94a3b8;margin-bottom:6px;">Connecting...</div>
+    <div id="doc-status" style="font-size:0.8em;color:#6B7280;margin-bottom:6px;">Connecting...</div>
     <div id="doc-editor" contenteditable="true"
          style="min-height:350px;border:1px solid #333;border-radius:8px;padding:14px;
-                background:#0b1321;color:#e2e8f0;font-family:monospace;white-space:pre-wrap;outline:none;"></div>
+                background:#171B23;color:#e2e8f0;font-family:monospace;white-space:pre-wrap;outline:none;"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/yjs/13.6.20/yjs.mjs" type="module"></script>
     <script type="module">
         import * as Y from "https://cdnjs.cloudflare.com/ajax/libs/yjs/13.6.20/yjs.mjs";

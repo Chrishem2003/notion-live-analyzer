@@ -7,30 +7,30 @@ import streamlit as st
 
 THEME = {
     "dark": {
-        "bg_primary": "#030712",
+        "bg_primary": "#0B0E11",
         "bg_secondary": "#0b0f19",
-        "bg_card": "#111827",
+        "bg_card": "#171B23",
         "bg_sidebar": "#090d16",
-        "text_primary": "#f8fafc",
-        "text_secondary": "#cbd5e1",
-        "text_muted": "#94a3b8",
-        "accent": "#00f2fe",
-        "accent_alt": "#38bdf8",
-        "border": "#1e293b",
-        "border_accent": "#334155",
+        "text_primary": "#EDEFF2",
+        "text_secondary": "#A8B0BC",
+        "text_muted": "#6B7280",
+        "accent": "#e8a33d",
+        "accent_alt": "#4fb8a6",
+        "border": "#262B33",
+        "border_accent": "#3A4048",
     },
     "light": {
-        "bg_primary": "#f8fafc",
+        "bg_primary": "#EDEFF2",
         "bg_secondary": "#f1f5f9",
         "bg_card": "#ffffff",
         "bg_sidebar": "#e2e8f0",
-        "text_primary": "#0f172a",
-        "text_secondary": "#334155",
+        "text_primary": "#0B0E11",
+        "text_secondary": "#3A4048",
         "text_muted": "#64748b",
-        "accent": "#0284c7",
+        "accent": "#b5790e",
         "accent_alt": "#0369a1",
-        "border": "#cbd5e1",
-        "border_accent": "#94a3b8",
+        "border": "#A8B0BC",
+        "border_accent": "#6B7280",
     },
 }
 
@@ -151,7 +151,7 @@ def inject_global_css():
 
         .chris-card-success {{
             background: #062419 !important;
-            border: 1px solid #10b981;
+            border: 1px solid #34c787;
             border-radius: 12px;
             padding: 1.25rem;
             margin-bottom: 1.2rem;
@@ -258,7 +258,7 @@ def inject_global_css():
 
         /* ── Console Log ── */
         .console-box {{
-            background: #030712;
+            background: #0B0E11;
             border: 1px solid {t['border']};
             border-radius: 8px;
             padding: 1rem;

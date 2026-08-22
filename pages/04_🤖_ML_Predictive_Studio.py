@@ -738,10 +738,10 @@ def render_realworld_chaos_tab(df):
         k_axis, mean_log_div = report.lyapunov.get("divergence_curve", (None, None))
         if k_axis is not None:
             fig = go.Figure(data=[go.Scatter(x=k_axis, y=mean_log_div, mode="lines",
-                                              line=dict(color="#00f2fe", width=2))])
+                                              line=dict(color="#e8a33d", width=2))])
             fit_region = report.lyapunov.get("fit_region")
             if fit_region:
-                fig.add_vrect(x0=fit_region[0], x1=fit_region[1], fillcolor="#00f2fe", opacity=0.15,
+                fig.add_vrect(x0=fit_region[0], x1=fit_region[1], fillcolor="#e8a33d", opacity=0.15,
                               line_width=0, annotation_text="fit region")
             fig.update_layout(title="Mean Log Divergence of Nearby Trajectories vs Time Step",
                                xaxis_title="Time step (× dt)", yaxis_title="⟨ln divergence⟩",
@@ -906,7 +906,7 @@ def render_chaos_tab():
 
     with tabs[3]:
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=("Rolling Variance (Critical Slowing Down)", "Rolling Autocorrelation (Lag-1)"))
-        fig.add_trace(go.Scatter(x=t, y=rolling_var, line=dict(color="#F59E0B")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=t, y=rolling_var, line=dict(color="#E8A33D")), row=1, col=1)
         fig.add_trace(go.Scatter(x=t, y=rolling_ac, line=dict(color="#EC4899")), row=2, col=1)
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=500, margin=dict(l=0, r=0, t=50, b=0))
         st.plotly_chart(fig, use_container_width=True)
@@ -961,9 +961,9 @@ def render_chaos_tab():
             x_hist = np.arange(len(series))
             x_fore = np.arange(len(series), len(series) + periods)
             fig = go.Figure()
-            fig.add_trace(go.Scatter(x=x_hist, y=series, name="Observed", line=dict(color="#94A3B8", width=2)))
-            fig.add_trace(go.Scatter(x=x_hist, y=fitted_hw, name="Holt-Winters Fit", line=dict(color="#38BDF8", width=2, dash="dot")))
-            fig.add_trace(go.Scatter(x=x_fore, y=forecast_hw, name="Holt-Winters Forecast", line=dict(color="#38BDF8", width=3)))
+            fig.add_trace(go.Scatter(x=x_hist, y=series, name="Observed", line=dict(color="#6B7280", width=2)))
+            fig.add_trace(go.Scatter(x=x_hist, y=fitted_hw, name="Holt-Winters Fit", line=dict(color="#4FB8A6", width=2, dash="dot")))
+            fig.add_trace(go.Scatter(x=x_fore, y=forecast_hw, name="Holt-Winters Forecast", line=dict(color="#4FB8A6", width=3)))
             fig.add_trace(go.Scatter(x=x_fore, y=forecast_ar, name=f"AR({lags}) Forecast", line=dict(color="#F472B6", width=3, dash="dash")))
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=460, margin=dict(l=0, r=0, t=30, b=0))
             st.plotly_chart(fig, use_container_width=True)

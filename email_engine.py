@@ -166,12 +166,12 @@ VERIFICATION_EMAIL_TEMPLATE = """
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -179,21 +179,21 @@ VERIFICATION_EMAIL_TEMPLATE = """
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -203,14 +203,14 @@ VERIFICATION_EMAIL_TEMPLATE = """
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
         body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }
         .header {{ background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }
-        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
+        .content {{ background: #EDEFF2; padding: 30px; border: 1px solid #e2e8f0; }
+        .footer {{ background: #262B33; color: #6B7280; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
         .btn {{ display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
         .score-box {{ background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #22c55e; }
     </style>
@@ -260,12 +260,12 @@ AUDIT_REPORT_TEMPLATE = """
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -273,21 +273,21 @@ AUDIT_REPORT_TEMPLATE = """
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -297,14 +297,14 @@ AUDIT_REPORT_TEMPLATE = """
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
         body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header {{ background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }
-        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
+        .header {{ background: linear-gradient(135deg, #0B0E11, #262B33); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content {{ background: #EDEFF2; padding: 30px; border: 1px solid #e2e8f0; }
+        .footer {{ background: #262B33; color: #6B7280; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
         .score-card {{ display: inline-block; background: white; padding: 15px 25px; border-radius: 8px; margin: 10px; text-align: center; }
         .score-value {{ font-size: 24px; font-weight: bold; }
         .score-label {{ font-size: 12px; color: #64748b; }
@@ -371,12 +371,12 @@ WELCOME_EMAIL_TEMPLATE = """
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -384,21 +384,21 @@ WELCOME_EMAIL_TEMPLATE = """
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -408,14 +408,14 @@ WELCOME_EMAIL_TEMPLATE = """
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
         body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }
         .header {{ background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content {{ background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }
-        .footer {{ background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
+        .content {{ background: #EDEFF2; padding: 30px; border: 1px solid #e2e8f0; }
+        .footer {{ background: #262B33; color: #6B7280; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
         .features {{ list-style: none; padding: 0; }
         .features li {{ padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
         .btn {{ display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
@@ -482,8 +482,8 @@ def send_audit_report(
     
     def get_color(score):
         if score < 30: return "#22c55e"
-        if score < 60: return "#f59e0b"
-        return "#ef4444"
+        if score < 60: return "#e8a33d"
+        return "#e5484d"
     
     html = AUDIT_REPORT_TEMPLATE.format(
         generated_date=datetime.utcnow().strftime("%Y-%m-%d %H:%M"),

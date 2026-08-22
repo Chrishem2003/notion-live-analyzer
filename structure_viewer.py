@@ -16,12 +16,12 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -29,21 +29,21 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -53,7 +53,7 @@ def render_3dmol_html(pdb_data: str, style_type: str = "cartoon", color_scheme: 
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
             body {{ margin: 0; padding: 0; overflow: hidden; background-color: #0e1117; }

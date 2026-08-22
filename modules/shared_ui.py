@@ -10,15 +10,15 @@ from modules.theme import get_theme
 def hero_card(title, subtitle, badge_text=None):
     # Retrieve current theme safely with fallback defaults
     t = st.session_state.get("theme", {})
-    grad_start = t.get("gradient_start", "#38BDF8")
-    grad_end = t.get("gradient_end", "#818CF8")
+    grad_start = t.get("gradient_start", "#4FB8A6")
+    grad_end = t.get("gradient_end", "#8B93A8")
     
-    badge_html = f'<div style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-block; margin-bottom: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.4);">{badge_text}</div>' if badge_text else ''
+    badge_html = f'<div style="background: rgba(56, 189, 248, 0.2); color: #4FB8A6; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-block; margin-bottom: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.4);">{badge_text}</div>' if badge_text else ''
     
     st.markdown(
         f"""
         <div style="background: linear-gradient(135deg, {grad_start} 0%, {grad_end} 100%); 
-             border-radius: 16px; padding: 2rem; color: #F8FAFC; margin-bottom: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);">
+             border-radius: 16px; padding: 2rem; color: #EDEFF2; margin-bottom: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);">
             {badge_html}
             <div style="font-size: 1.75rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem;">{title}</div>
             <div style="font-size: 1rem; opacity: 0.9; font-weight: 400; max-width: 90%;">{subtitle}</div>
@@ -32,33 +32,33 @@ def section_header(title: str, desc: str = ""):
     Render a consistent section header with optional caption.
     """
     st.markdown(
-        f"<h3 style='color:#00f2fe !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{title}</h3>",
+        f"<h3 style='color:#e8a33d !important; margin-top:1.4rem; margin-bottom:0.3rem; font-weight:800;'>{title}</h3>",
         unsafe_allow_html=True,
     )
     if desc:
         st.caption(desc)
 
 
-def metric_card(value: str, label: str, color: str = "#00f2fe"):
+def metric_card(value: str, label: str, color: str = "#e8a33d"):
     """Render a styled metric card."""
     st.markdown(
         f"""
-        <div style='background:#0b1321; border:1px solid #1e293b; border-radius:12px; padding:1rem; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.3);'>
+        <div style='background:#171B23; border:1px solid #262B33; border-radius:12px; padding:1rem; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.3);'>
             <div style='font-size:1.35rem; font-weight:800; color:{color} !important;'>{value}</div>
-            <div style='font-size:0.72rem; color:#94a3b8; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-top:0.3rem;'>{label}</div>
+            <div style='font-size:0.72rem; color:#6B7280; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-top:0.3rem;'>{label}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 
-def info_card(title: str, body: str, accent: str = "#00f2fe"):
+def info_card(title: str, body: str, accent: str = "#e8a33d"):
     """Render a contextual info card."""
     st.markdown(
         f"""
-        <div style='background:#0b1321; border:1px solid {accent}88; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;'>
+        <div style='background:#171B23; border:1px solid {accent}88; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;'>
             <div style='font-weight:800; color:{accent}; margin-bottom:0.25rem;'>{title}</div>
-            <div style='color:#cbd5e1; font-size:0.9rem;'>{body}</div>
+            <div style='color:#A8B0BC; font-size:0.9rem;'>{body}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -82,7 +82,7 @@ def render_footer(module_name: str, version: str = "1.0"):
 
 def tab_badge(label: str, active: bool = True):
     """Return an HTML badge for tab labels."""
-    color = "#00f2fe" if active else "#94a3b8"
+    color = "#e8a33d" if active else "#6B7280"
     return f"<span style='color:{color}; font-weight:800;'>{label}</span>"
 
 
@@ -158,8 +158,8 @@ def empty_state(icon: str, title: str, message: str, action_label: str = None, a
         f"""
         <div class="chris-card" style="text-align:center; padding:2rem;">
             <div style="font-size:2.5rem;">{icon}</div>
-            <div style="font-size:1.1rem; font-weight:800; color:#00f2fe; margin:0.6rem 0 0.2rem 0;">{title}</div>
-            <div style="color:#94a3b8; font-size:0.9rem;">{message}</div>
+            <div style="font-size:1.1rem; font-weight:800; color:#e8a33d; margin:0.6rem 0 0.2rem 0;">{title}</div>
+            <div style="color:#6B7280; font-size:0.9rem;">{message}</div>
         </div>
         """,
         unsafe_allow_html=True,

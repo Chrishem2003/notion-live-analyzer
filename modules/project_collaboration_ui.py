@@ -64,12 +64,12 @@ COLLAB_CSS = """
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -77,21 +77,21 @@ COLLAB_CSS = """
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -101,7 +101,7 @@ COLLAB_CSS = """
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
 /* ─── Main Layout ──────────────────────────────────────────────── */
@@ -120,8 +120,8 @@ COLLAB_CSS = """
     align-items: center;
     justify-content: space-between;
     padding: 0.5rem 1rem;
-    background: #0f172a;
-    border-bottom: 1px solid #1e293b;
+    background: #0B0E11;
+    border-bottom: 1px solid #262B33;
     gap: 1rem;
     flex-wrap: wrap;
 }
@@ -144,9 +144,9 @@ COLLAB_CSS = """
     font-weight: 700;
 }
 .collab-badge-host { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-.collab-badge-cohost { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
+.collab-badge-cohost { background: rgba(99,102,241,0.15); color: #8b93a8; border: 1px solid rgba(99,102,241,0.3); }
 .collab-badge-researcher { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-.collab-badge-viewer { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+.collab-badge-viewer { background: rgba(100,116,139,0.15); color: #6B7280; border: 1px solid rgba(100,116,139,0.3); }
 
 /* ─── Split Layout ─────────────────────────────────────────────── */
 .collab-split {
@@ -164,8 +164,8 @@ COLLAB_CSS = """
 }
 .collab-sidebar {
     width: 320px;
-    background: #0f172a;
-    border-left: 1px solid #1e293b;
+    background: #0B0E11;
+    border-left: 1px solid #262B33;
     overflow-y: auto;
     flex-shrink: 0;
     display: flex;
@@ -176,9 +176,9 @@ COLLAB_CSS = """
 /* ─── Canvas Area ──────────────────────────────────────────────── */
 .collab-canvas {
     flex: 1;
-    background: #0f172a;
+    background: #0B0E11;
     background-image:
-        radial-gradient(circle, #1e293b 1px, transparent 1px);
+        radial-gradient(circle, #262B33 1px, transparent 1px);
     background-size: 24px 24px;
     position: relative;
     overflow: hidden;
@@ -187,8 +187,8 @@ COLLAB_CSS = """
 .collab-canvas:active { cursor: grabbing; }
 .collab-canvas-element {
     position: absolute;
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #262B33;
+    border: 1px solid #3A4048;
     border-radius: 12px;
     padding: 0.75rem;
     min-width: 120px;
@@ -201,7 +201,7 @@ COLLAB_CSS = """
     box-shadow: 0 8px 24px rgba(99,102,241,0.15);
 }
 .collab-canvas-element.selected {
-    border-color: #818cf8;
+    border-color: #8b93a8;
     box-shadow: 0 0 0 2px rgba(129,140,248,0.3);
 }
 .collab-canvas-cursor {
@@ -220,7 +220,7 @@ COLLAB_CSS = """
     top: -4px;
     font-size: 0.6rem;
     white-space: nowrap;
-    color: #94a3b8;
+    color: #6B7280;
     background: rgba(15,23,42,0.8);
     padding: 1px 4px;
     border-radius: 4px;
@@ -240,7 +240,7 @@ COLLAB_CSS = """
     display: flex;
     gap: 0.5rem;
     background: rgba(15,23,42,0.9);
-    border: 1px solid #1e293b;
+    border: 1px solid #262B33;
     border-radius: 16px;
     padding: 0.75rem;
     backdrop-filter: blur(12px);
@@ -250,8 +250,8 @@ COLLAB_CSS = """
 .collab-dock-video {
     width: 120px;
     height: 90px;
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #262B33;
+    border: 1px solid #3A4048;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -272,13 +272,13 @@ COLLAB_CSS = """
     padding: 0.15rem 0.4rem;
     font-size: 0.6rem;
     text-align: center;
-    color: #94a3b8;
+    color: #6B7280;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .collab-dock-presentation {
-    background: #1e293b;
+    background: #262B33;
     border: 1px solid #6366f1;
     border-radius: 12px;
     padding: 0.5rem;
@@ -293,8 +293,8 @@ COLLAB_CSS = """
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: #0f172a;
-    border-top: 1px solid #1e293b;
+    background: #0B0E11;
+    border-top: 1px solid #262B33;
     flex-wrap: wrap;
 }
 .collab-ibar-section {
@@ -305,16 +305,16 @@ COLLAB_CSS = """
 .collab-ibar-divider {
     width: 1px;
     height: 24px;
-    background: #1e293b;
+    background: #262B33;
     margin: 0 0.25rem;
 }
 .collab-ibar-btn {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #262B33;
+    border: 1px solid #3A4048;
     border-radius: 8px;
     padding: 0.35rem 0.6rem;
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: #6B7280;
     cursor: pointer;
     transition: all 0.15s;
     display: inline-flex;
@@ -323,25 +323,25 @@ COLLAB_CSS = """
     white-space: nowrap;
 }
 .collab-ibar-btn:hover {
-    background: #334155;
+    background: #3A4048;
     border-color: #6366f1;
     color: #e2e8f0;
 }
 .collab-ibar-btn.active {
     background: rgba(99,102,241,0.15);
     border-color: #6366f1;
-    color: #818cf8;
+    color: #8b93a8;
 }
 .collab-ibar-btn.danger:hover {
-    border-color: #ef4444;
+    border-color: #e5484d;
     color: #f87171;
 }
 
 /* ─── Sidebar Tabs ─────────────────────────────────────────────── */
 .collab-sb-tabs {
     display: flex;
-    border-bottom: 1px solid #1e293b;
-    background: #0f172a;
+    border-bottom: 1px solid #262B33;
+    background: #0B0E11;
     flex-shrink: 0;
 }
 .collab-sb-tab {
@@ -354,9 +354,9 @@ COLLAB_CSS = """
     border-bottom: 2px solid transparent;
     transition: all 0.15s;
 }
-.collab-sb-tab:hover { color: #94a3b8; background: rgba(99,102,241,0.05); }
+.collab-sb-tab:hover { color: #6B7280; background: rgba(99,102,241,0.05); }
 .collab-sb-tab.active {
-    color: #818cf8;
+    color: #8b93a8;
     border-bottom-color: #6366f1;
     font-weight: 600;
 }
@@ -368,14 +368,14 @@ COLLAB_CSS = """
 
 /* ─── AI Feed Items ────────────────────────────────────────────── */
 .collab-ai-item {
-    background: #1e293b;
+    background: #262B33;
     border-left: 3px solid #6366f1;
     border-radius: 8px;
     padding: 0.6rem;
     margin-bottom: 0.5rem;
     font-size: 0.75rem;
 }
-.collab-ai-item.action-item { border-left-color: #f59e0b; }
+.collab-ai-item.action-item { border-left-color: #e8a33d; }
 .collab-ai-item.note { border-left-color: #6366f1; }
 .collab-ai-item.summary { border-left-color: #22c55e; }
 .collab-ai-item-header {
@@ -394,11 +394,11 @@ COLLAB_CSS = """
 }
 .collab-reaction-btn {
     background: transparent;
-    border: 1px solid #334155;
+    border: 1px solid #3A4048;
     border-radius: 999px;
     padding: 0.25rem 0.5rem;
     font-size: 0.7rem;
-    color: #94a3b8;
+    color: #6B7280;
     cursor: pointer;
     transition: all 0.15s;
 }
@@ -409,8 +409,8 @@ COLLAB_CSS = """
 }
 .collab-reaction-btn.active {
     background: rgba(99,102,241,0.2);
-    border-color: #818cf8;
-    color: #818cf8;
+    border-color: #8b93a8;
+    color: #8b93a8;
 }
 
 /* ─── Ghost Stage Banner ───────────────────────────────────────── */
@@ -581,7 +581,7 @@ def render_collaboration_shell():
         st.markdown(f"""
         <div class="collab-ghost-banner">
             <span>{state_icon} Ghost Stage Active  <strong>{ghost_stage.display_name}</strong></span>
-            <span style="color:#94a3b8;">{ghost_stage.state.value.replace('_', ' ').title()} · {len(ghost_stage.elements)} elements staged</span>
+            <span style="color:#6B7280;">{ghost_stage.state.value.replace('_', ' ').title()} · {len(ghost_stage.elements)} elements staged</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -717,7 +717,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
     can_edit = permissions.get("edit_canvas", False)
 
     st.markdown("""
-    <div style="position:relative;flex:1;display:flex;flex-direction:column;height:500px;border:1px solid #1e293b;border-radius:12px;overflow:hidden;background:#0f172a;">
+    <div style="position:relative;flex:1;display:flex;flex-direction:column;height:500px;border:1px solid #262B33;border-radius:12px;overflow:hidden;background:#0B0E11;">
     """, unsafe_allow_html=True)
 
     # ── Canvas Toolbar ─────────────────────────────────────────
@@ -733,7 +733,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
                 x=100 + len(canvas.elements) * 30,
                 y=100 + len(canvas.elements) * 30,
                 width=220, height=150,
-                content={"text": "New research note...", "color": "#1e293b"},
+                content={"text": "New research note...", "color": "#262B33"},
             )
             st.rerun()
     with tool_cols[2]:
@@ -801,7 +801,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
                     <span style="color:#f1f5f9;font-weight:600;font-size:0.8rem;">{elem.type.value.replace('_', ' ').title()}</span>
                     <span style="color:#64748b;font-size:0.6rem;margin-left:auto;">v{elem.version}</span>
                 </div>
-                <div style="color:#94a3b8;font-size:0.75rem;">{content_text[:80]}</div>
+                <div style="color:#6B7280;font-size:0.75rem;">{content_text[:80]}</div>
                 {f'<div style="color:#64748b;font-size:0.6rem;margin-top:0.3rem;">✏️ {elem.owner_id[:8]}</div>' if can_edit else ''}
             </div>
             """, unsafe_allow_html=True)
@@ -896,12 +896,12 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -909,21 +909,21 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -933,7 +933,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
     .collab-ibar-st { gap: 0.25rem; display: flex; flex-wrap: wrap; align-items: center; }
@@ -1136,8 +1136,8 @@ def _render_aifeed_tab(ai_researcher: Optional[AIResearcher]):
         if open_items:
             for item in open_items[:10]:
                 priority_colors = {
-                    ActionItemPriority.CRITICAL: "#ef4444",
-                    ActionItemPriority.HIGH: "#f59e0b",
+                    ActionItemPriority.CRITICAL: "#e5484d",
+                    ActionItemPriority.HIGH: "#e8a33d",
                     ActionItemPriority.MEDIUM: "#6366f1",
                     ActionItemPriority.LOW: "#64748b",
                 }
@@ -1193,7 +1193,7 @@ def _render_tools_tab(canvas: Optional[CollaborativeCanvas],
     with col1:
         if st.button("📝 Sticky Note", key="tool_sticky", disabled=not can_edit):
             canvas.add_element(CanvasElementType.STICKY, "user", 200, 200,
-                              content={"text": "New sticky note...", "color": "#1e293b"})
+                              content={"text": "New sticky note...", "color": "#262B33"})
             st.rerun()
         if st.button("📄 Text", key="tool_text", disabled=not can_edit):
             canvas.add_element(CanvasElementType.TEXT_NOTE, "user", 300, 300,
@@ -1250,10 +1250,10 @@ def _render_participants_tab(webrtc: Optional[WebRTCProvider],
 
         st.markdown(f"""
         <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;
-                    border-bottom:1px solid #1e293b;font-size:0.8rem;">
+                    border-bottom:1px solid #262B33;font-size:0.8rem;">
             <div style="width:32px;height:32px;border-radius:8px;
-                        background:linear-gradient(135deg,#1e293b,#334155);
-                        display:flex;align-items:center;justify-content:center;font-weight:700;color:#94a3b8;">
+                        background:linear-gradient(135deg,#262B33,#3A4048);
+                        display:flex;align-items:center;justify-content:center;font-weight:700;color:#6B7280;">
                 {p.name[0].upper()}
             </div>
             <div style="flex:1;min-width:0;">
@@ -1330,7 +1330,7 @@ def setup_demo_session():
 
     # Add remote cursors
     remote_users = [
-        ("cohost_001", "Prof. Miller", "#818cf8"),
+        ("cohost_001", "Prof. Miller", "#8b93a8"),
         ("researcher_001", "Dr. Watson", "#34d399"),
         ("viewer_001", "Alex Kim", "#fbbf24"),
     ]

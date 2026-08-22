@@ -187,7 +187,7 @@ def render_weather_tab():
 
                 if PLOTLY_AVAILABLE:
                     fig = go.Figure()
-                    fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Max Temperature (°C)"], name="Max Temp (°C)", line=dict(color="#00f2fe", width=3)))
+                    fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Max Temperature (°C)"], name="Max Temp (°C)", line=dict(color="#e8a33d", width=3)))
                     fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Min Temperature (°C)"], name="Min Temp (°C)", line=dict(color="#4facfe", width=3)))
                     fig.add_trace(go.Bar(x=df_fc["Date"], y=df_fc["Precipitation Sum (mm)"], name="Precipitation (mm)", opacity=0.3, yaxis="y2"))
 
@@ -230,11 +230,11 @@ def render_impact_tab():
         with cols[i % 3]:
             st.markdown(
                 f"""
-                <div style="background:#0b1321; border:1px solid #00f2fe44; border-radius:12px; padding:1.2rem; margin-bottom:1rem; text-align:center;">
+                <div style="background:#171B23; border:1px solid #e8a33d44; border-radius:12px; padding:1.2rem; margin-bottom:1rem; text-align:center;">
                     <div style="font-size:2.2rem;">{sector.get('icon', '⚡')}</div>
-                    <div style="font-weight:800; color:#00f2fe; margin:0.4rem 0; font-size:1.1rem;">{sector.get('sector', 'Sector')}</div>
-                    <div style="font-size:1.5rem; font-weight:800; color:white;">{sector.get('problems_solved', 0)}<span style="font-size:0.85rem; color:#94a3b8;"> / {sector.get('goal', 100)}</span></div>
-                    <div style="font-size:0.8rem; color:#94a3b8; margin-top:0.4rem;">{sector.get('description', '')}</div>
+                    <div style="font-weight:800; color:#e8a33d; margin:0.4rem 0; font-size:1.1rem;">{sector.get('sector', 'Sector')}</div>
+                    <div style="font-size:1.5rem; font-weight:800; color:white;">{sector.get('problems_solved', 0)}<span style="font-size:0.85rem; color:#6B7280;"> / {sector.get('goal', 100)}</span></div>
+                    <div style="font-size:0.8rem; color:#6B7280; margin-top:0.4rem;">{sector.get('description', '')}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,

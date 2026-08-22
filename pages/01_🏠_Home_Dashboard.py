@@ -407,8 +407,8 @@ def main():
              border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px;
              padding: 1.2rem 1.5rem; margin-bottom: 1.5rem;">
             <div>
-                <div style="font-size:1.25rem; font-weight:800; color:#F8FAFC;">{greeting}, {name}! 👋</div>
-                <div style="font-size:0.9rem; color:#38BDF8; font-weight:600; margin-top:0.2rem;">
+                <div style="font-size:1.25rem; font-weight:800; color:#EDEFF2;">{greeting}, {name}! 👋</div>
+                <div style="font-size:0.9rem; color:#4FB8A6; font-weight:600; margin-top:0.2rem;">
                     Active Session Role: {role} | Your Local Time: {now_dt.strftime('%A, %Y-%m-%d %H:%M:%S %Z')} ({now_dt.tzinfo})
                 </div>
             </div>

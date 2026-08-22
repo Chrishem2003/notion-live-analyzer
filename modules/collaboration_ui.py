@@ -23,12 +23,12 @@ COLLAB_CSS = """
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
     [data-testid="stSidebar"], section[data-testid="stSidebar"] {
         background-color: #090d16 !important;
-        border-right: 1px solid #1e293b !important;
+        border-right: 1px solid #262B33 !important;
     }
     
     /* Force all sidebar text, links, and headers to high-contrast off-white */
     [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
     }
 
     /* Target navigation links and text explicitly */
@@ -36,21 +36,21 @@ COLLAB_CSS = """
     [data-testid="stSidebarNav"] a,
     [data-testid="stSidebarNavLink"],
     [data-testid="stSidebarHeader"] {
-        color: #f8fafc !important;
+        color: #EDEFF2 !important;
         font-weight: 600 !important;
     }
 
     /* Navigation item hover state */
     [data-testid="stSidebarNavLink"]:hover,
     [data-testid="stSidebarNav"] a:hover {
-        background-color: #1e293b !important;
+        background-color: #262B33 !important;
         border-radius: 8px !important;
     }
 
     /* Currently selected navigation item active state */
     [data-testid="stSidebarNavLink"][aria-current="page"],
     [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #0284c7 !important;
+        background-color: #b5790e !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border-radius: 8px !important;
@@ -60,7 +60,7 @@ COLLAB_CSS = """
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] .stRadio label,
     section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #38bdf8 !important;
+        color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
 /* Video Grid Layout */
@@ -95,7 +95,7 @@ COLLAB_CSS = """
 
 /* Chat Panel */
 .chat-panel {
-    background: #0f172a;
+    background: #0B0E11;
     border-radius: 12px;
     height: 500px;
     display: flex;
@@ -108,7 +108,7 @@ COLLAB_CSS = """
 }
 .chat-input-area {
     padding: 15px;
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid #262B33;
 }
 .message {
     margin-bottom: 15px;
@@ -142,7 +142,7 @@ COLLAB_CSS = """
     margin-left: 10px;
 }
 .message-content {
-    background: #1e293b;
+    background: #262B33;
     padding: 10px 14px;
     border-radius: 12px;
     margin-top: 5px;
@@ -196,13 +196,13 @@ COLLAB_CSS = """
     margin-left: auto;
 }
 .status-online { background: #22c55e; }
-.status-away { background: #f59e0b; }
-.status-busy { background: #ef4444; }
+.status-away { background: #e8a33d; }
+.status-busy { background: #e5484d; }
 .status-offline { background: #64748b; }
 
 /* Task Cards */
 .task-card {
-    background: #1e293b;
+    background: #262B33;
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 10px;
@@ -212,8 +212,8 @@ COLLAB_CSS = """
 .task-card:hover {
     transform: translateX(5px);
 }
-.task-priority-urgent { border-color: #ef4444; }
-.task-priority-high { border-color: #f59e0b; }
+.task-priority-urgent { border-color: #e5484d; }
+.task-priority-high { border-color: #e8a33d; }
 .task-priority-medium { border-color: #3b82f6; }
 .task-priority-low { border-color: #64748b; }
 
@@ -222,7 +222,7 @@ COLLAB_CSS = """
     display: flex;
     gap: 10px;
     padding: 15px;
-    background: #1e293b;
+    background: #262B33;
     border-radius: 12px;
     margin: 10px 0;
 }
@@ -246,11 +246,11 @@ COLLAB_CSS = """
     color: white;
 }
 .control-btn.muted {
-    background: #ef4444;
+    background: #e5484d;
     color: white;
 }
 .control-btn.end-call {
-    background: #ef4444;
+    background: #e5484d;
     width: 80px;
     border-radius: 25px;
     color: white;
@@ -258,11 +258,11 @@ COLLAB_CSS = """
 
 /* Room Cards */
 .room-card {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
+    background: linear-gradient(135deg, #262B33, #0B0E11);
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 15px;
-    border: 1px solid #334155;
+    border: 1px solid #3A4048;
     transition: all 0.3s;
     cursor: pointer;
 }
@@ -282,7 +282,7 @@ COLLAB_CSS = """
 .room-type-video { background: rgba(59,130,246,0.2); color: #3b82f6; }
 .room-type-chat { background: rgba(34,197,94,0.2); color: #22c55e; }
 .room-type-whiteboard { background: rgba(168,85,247,0.2); color: #a855f7; }
-.room-type-panel { background: rgba(245,158,11,0.2); color: #f59e0b; }
+.room-type-panel { background: rgba(245,158,11,0.2); color: #e8a33d; }
 .room-type-webinar { background: rgba(236,72,153,0.2); color: #ec4899; }
 
 /* Whiteboard */
@@ -295,13 +295,13 @@ COLLAB_CSS = """
 
 /* AI Assistant */
 .ai-chat {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
+    background: linear-gradient(135deg, #262B33, #0B0E11);
     border-radius: 16px;
     padding: 20px;
-    border: 1px solid #334155;
+    border: 1px solid #3A4048;
 }
 .ai-response {
-    background: #0f172a;
+    background: #0B0E11;
     border-radius: 12px;
     padding: 15px;
     margin-top: 15px;
@@ -309,7 +309,7 @@ COLLAB_CSS = """
 }
 .sources-list {
     font-size: 12px;
-    color: #94a3b8;
+    color: #6B7280;
     margin-top: 10px;
 }
 
@@ -351,14 +351,14 @@ def render_command_center():
     
     st.markdown("""
     <div style="
-        background: linear-gradient(135deg, #1e293b, #0f172a);
+        background: linear-gradient(135deg, #262B33, #0B0E11);
         padding: 2rem;
         border-radius: 16px;
         margin-bottom: 1.5rem;
-        border: 1px solid #334155;
+        border: 1px solid #3A4048;
     ">
         <h1 style="margin:0; color: white;">🎯 Research Command Center</h1>
-        <p style="color: #94a3b8; margin-top: 0.5rem;">
+        <p style="color: #6B7280; margin-top: 0.5rem;">
             Unified collaboration hub  Video, Chat, Tasks, & AI Assistant
         </p>
     </div>
@@ -493,7 +493,7 @@ def render_lobby():
             <div class="room-card">
                 <span class="room-type-badge {badge_class}">{badge_text}</span>
                 <h3 style="margin: 10px 0; color: white;">{room.name}</h3>
-                <p style="color: #94a3b8; font-size: 14px;">{room.description or 'No description'}</p>
+                <p style="color: #6B7280; font-size: 14px;">{room.description or 'No description'}</p>
                 <div style="display: flex; gap: 15px; margin-top: 10px;">
                     <span style="color: #64748b; font-size: 13px;">👥 {len(room.members)} / {room.max_participants}</span>
                     <span style="color: #64748b; font-size: 13px;">🕐 {room.created_at.strftime('%H:%M')}</span>
@@ -563,7 +563,7 @@ def render_video_rooms():
                 <div style="text-align: center;">
                     <div style="font-size: 40px; margin-bottom: 10px;">👤</div>
                     <div style="color: white; font-weight: 600;">{participant['name']}</div>
-                    <div style="color: #94a3b8; font-size: 12px;">{participant['role']}</div>
+                    <div style="color: #6B7280; font-size: 12px;">{participant['role']}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -602,14 +602,14 @@ def render_video_rooms():
         st.subheader("🖥️ Screen Share")
         st.markdown("""
         <div style="
-            background: #0f172a;
+            background: #0B0E11;
             border-radius: 12px;
             padding: 60px;
             text-align: center;
-            border: 2px dashed #334155;
+            border: 2px dashed #3A4048;
         ">
             <div style="font-size: 50px; margin-bottom: 15px;">🖥️</div>
-            <p style="color: #94a3b8;">Click "Share Screen" to present</p>
+            <p style="color: #6B7280;">Click "Share Screen" to present</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -778,7 +778,7 @@ def render_task_list(tasks, task_mgr):
             <div style="display: flex; justify-content: space-between; align-items: start;">
                 <div>
                     <h4 style="margin: 0; color: white;">{status_emoji.get(task.status, '⬜')} {task.title}</h4>
-                    <p style="color: #94a3b8; font-size: 13px; margin: 5px 0;">
+                    <p style="color: #6B7280; font-size: 13px; margin: 5px 0;">
                         {task.description or 'No description'}
                     </p>
                     <span style="color: #64748b; font-size: 12px;">
@@ -839,7 +839,7 @@ def render_ai_assistant():
             st.markdown(f"""
             <div class="ai-chat">
                 <h4 style="color: white; margin: 0;">💡 Research Insight</h4>
-                <p style="color: #94a3b8;">{query}</p>
+                <p style="color: #6B7280;">{query}</p>
                 <div class="ai-response">
                     <p style="color: #e2e8f0;">{response['answer']}</p>
                 </div>

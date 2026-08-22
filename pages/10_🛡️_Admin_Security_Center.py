@@ -615,7 +615,7 @@ def render_audit_forensics():
             heatmap_html = "<div style='padding: 15px; background: #262730; color: #ffffff; border-radius: 8px; line-height: 1.8; font-family: sans-serif; border: 1px solid #464855;'>"
             for item in analysis["sentence_analyses"]:
                 bg_color = "rgba(239, 68, 68, 0.3)" if item["score"] > 50 else "rgba(16, 185, 129, 0.3)"
-                border_color = "#ef4444" if item["score"] > 50 else "#10b981"
+                border_color = "#e5484d" if item["score"] > 50 else "#34c787"
                 heatmap_html += f"<span style='background: {bg_color}; border-left: 3px solid {border_color}; padding: 4px 8px; margin: 3px; display: inline-block; border-radius: 4px;' title='AI Score: {item['score']}% ({item['classification']})'>{item['sentence']}</span> "
             heatmap_html += "</div>"
             st.markdown(heatmap_html, unsafe_allow_html=True)

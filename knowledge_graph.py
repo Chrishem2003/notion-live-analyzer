@@ -13,8 +13,8 @@ def build_research_knowledge_graph(entities: list, output_html: str = "graph.htm
             #network {{
                 width: 100%;
                 height: 450px;
-                border: 1px solid #334155;
-                background-color: #0F172A;
+                border: 1px solid #3A4048;
+                background-color: #0B0E11;
                 border-radius: 8px;
             }
         </style>
@@ -24,9 +24,9 @@ def build_research_knowledge_graph(entities: list, output_html: str = "graph.htm
     <script type="text/javascript">
         var nodes = new vis.DataSet([
             {{id: 1, label: 'Research Workspace', color: '#3B82F6', shape: 'diamond'},
-            {{id: 2, label: 'Genomic Target (NCBI)', color: '#10B981'},
+            {{id: 2, label: 'Genomic Target (NCBI)', color: '#34C787'},
             {{id: 3, label: 'Notion Database DB-1', color: '#8B5CF6'},
-            {{id: 4, label: 'PubMed Citation Graph', color: '#F59E0B'},
+            {{id: 4, label: 'PubMed Citation Graph', color: '#E8A33D'},
             {{id: 5, label: 'Field Telemetry (Satellite)', color: '#EC4899'}
         ]);
 

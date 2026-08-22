@@ -938,7 +938,7 @@ def render_provenance_ui(tracker: Optional[ProvenanceTracker] = None):
                 with st.container():
                     st.markdown(f"""
                     <div style="padding:0.5rem;margin:0.3rem 0;border-radius:8px;
-                                border:1px solid #e2e8f0;background:#f8fafc;">
+                                border:1px solid #e2e8f0;background:#EDEFF2;">
                         <strong>#{exec_order}: {op_name}</strong><br>
                         <span style="font-size:0.85rem;color:#64748b;">
                             {step.get('operation_desc', '')}

@@ -310,14 +310,14 @@ def render_security_dashboard():
     
     st.markdown("""
     <div style="
-        background: linear-gradient(135deg, #1e293b, #0f172a);
+        background: linear-gradient(135deg, #262B33, #0B0E11);
         padding: 1.5rem;
         border-radius: 12px;
         margin-bottom: 1.5rem;
-        border: 1px solid #334155;
+        border: 1px solid #3A4048;
     ">
         <h2 style="margin:0; color: white;">🛡️ Security & Location</h2>
-        <p style="color: #94a3b8; margin-top: 0.5rem;">
+        <p style="color: #6B7280; margin-top: 0.5rem;">
             VPN detection, geolocation, and smart greetings
         </p>
     </div>
