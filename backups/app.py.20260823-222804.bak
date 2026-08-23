@@ -1,3 +1,6 @@
+﻿
+# Auto-injected fallback for sub_module definition
+sub_module = st.session_state.get('sub_module', 'default')
 """
 Chrishem Science Hub â€” Sovereign Enterprise Engine (v4, single-file build)
 ===========================================================================
@@ -178,7 +181,7 @@ def render_paywall_cta():
         st.subheader("âš¡ Unlock Sovereign Apex Business Access")
         st.write("Get instant access to Bio-Research Notion Planners, Brain FM Focus Soundscapes, and advanced analytics pipelines.")
     with col2:
-        if st.button("ðŸ’³ Upgrade Subscription Now", type="primary", width='stretch'):
+        if st.button("ðŸ’³ Upgrade Subscription Now", type="primary", use_container_width=True):
             st.session_state["menu_selection"] = "ðŸ’³ Billing & Subscription"
             st.rerun()
 
@@ -426,7 +429,7 @@ DB_PATH = "sovereign_apex_engine.db"  # must match portal.py / Admin Security Ce
 # mirror here -- not a claim about what you should charge.
 # --------------------------------------------------------------------------- #
 
-PLAN_RANK = {"free": 0, "premium": 1, "pro": 2, "business": 3}
+PLAN_RANK = {"free": 0, "premium": 1, "pro": 2}
 TRIAL_GRANTS_PLAN = "pro"          # what the 15-day trial gives access to
 TRIAL_LENGTH_DAYS = 15
 
@@ -454,14 +457,6 @@ PLAN_CATALOG = {
         "stripe_price_monthly_env": "STRIPE_PRICE_PRO_MONTHLY",
         "stripe_price_annual_env": "STRIPE_PRICE_PRO_ANNUAL",
         "blurb": "Everything, including integrations, forensics, and unlimited quotas.",
-    },
-    "business": {
-        "label": "Business",
-        "price_monthly": 99,
-        "price_annual": 990,
-        "stripe_price_monthly_env": "STRIPE_PRICE_BUSINESS_MONTHLY",
-        "stripe_price_annual_env": "STRIPE_PRICE_BUSINESS_ANNUAL",
-        "blurb": "Team controls, collaboration, integrations, higher limits, and priority support.",
     },
 }
 
@@ -706,6 +701,7 @@ def require_active_subscription(min_plan: str = "free", hub_id: str | None = Non
             st.info(f"Trial active â€” {status['days_left_in_trial']} day(s) left with full {TRIAL_GRANTS_PLAN.title()} access.")
         return
 
+    from . import billing_stripe
     st.warning(f"This section requires the **{PLAN_CATALOG[required]['label']}** plan. "
                f"Your account is currently on **{PLAN_CATALOG[status['effective_plan']]['label']}**.")
     render_upgrade_prompt(email, required)
@@ -713,6 +709,7 @@ def require_active_subscription(min_plan: str = "free", hub_id: str | None = Non
 
 
 def render_upgrade_prompt(email: str, target_plan: str):
+    from . import billing_stripe
     plan_info = PLAN_CATALOG[target_plan]
     c1, c2 = st.columns(2)
     with c1:
@@ -813,7 +810,7 @@ API (never trusts client-supplied query params) before granting access.
 Required environment variables (set only what you need):
     STRIPE_SECRET_KEY
     STRIPE_PRICE_PREMIUM_MONTHLY, STRIPE_PRICE_PREMIUM_ANNUAL
-    STRIPE_PRICE_PRO_MONTHLY, STRIPE_PRICE_PRO_ANNUAL, STRIPE_PRICE_BUSINESS_MONTHLY, STRIPE_PRICE_BUSINESS_ANNUAL
+    STRIPE_PRICE_PRO_MONTHLY, STRIPE_PRICE_PRO_ANNUAL
     APP_BASE_URL                 (e.g. https://your-deployed-app-url)
     STRIPE_WEBHOOK_SECRET        (optional but recommended -- see verify_webhook)
 
@@ -855,7 +852,7 @@ def _client():
 
 
 def _price_id(plan: str, cycle: str) -> str | None:
-    info = PLAN_CATALOG.get(plan, {})
+    info = sub_module.PLAN_CATALOG.get(plan, {})
     env_key = info.get(f"stripe_price_{cycle}_env")
     return os.environ.get(env_key) if env_key else None
 
@@ -864,8 +861,8 @@ def get_or_create_customer(email: str) -> str | None:
     if not is_configured():
         return None
     email = email.strip().lower()
-    conn = get_conn()
-    init_billing_schema(conn)
+    conn = sub_module.get_conn()
+    sub_module.init_billing_schema(conn)
     cur = conn.cursor()
     cur.execute("SELECT stripe_customer_id FROM subscriptions WHERE email = ?", (email,))
     row = cur.fetchone()
@@ -882,7 +879,7 @@ def get_or_create_customer(email: str) -> str | None:
     return customer.id
 
 
-def create_checkout_session(email: str, plan: str, cycle: str = "monthly", student_discount: bool = False) -> str | None:
+def create_checkout_session(email: str, plan: str, cycle: str = "monthly") -> str | None:
     if not is_configured():
         return None
     price_id = _price_id(plan, cycle)
@@ -901,9 +898,8 @@ def create_checkout_session(email: str, plan: str, cycle: str = "monthly", stude
         success_url=f"{base_url}?checkout=success&session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{base_url}?checkout=cancelled",
         client_reference_id=email,
-        metadata={"plan": plan, "cycle": cycle, "email": email, "student_discount": "true" if student_discount else "false"},
+        metadata={"plan": plan, "cycle": cycle, "email": email},
         allow_promotion_codes=True,
-        **({"discounts": [{"coupon": os.environ["STRIPE_STUDENT_COUPON_ID"]}]} if student_discount and os.environ.get("STRIPE_STUDENT_COUPON_ID") else {}),
     )
     return session.url
 
@@ -911,7 +907,7 @@ def create_checkout_session(email: str, plan: str, cycle: str = "monthly", stude
 def create_billing_portal_session(email: str) -> str | None:
     if not is_configured():
         return None
-    conn = get_conn()
+    conn = sub_module.get_conn()
     cur = conn.cursor()
     cur.execute("SELECT stripe_customer_id FROM subscriptions WHERE email = ?", (email.strip().lower(),))
     row = cur.fetchone()
@@ -924,7 +920,7 @@ def create_billing_portal_session(email: str) -> str | None:
 
 
 def _plan_from_price_id(price_id: str) -> str | None:
-    for plan in ("premium", "pro", "business"):
+    for plan in ("premium", "pro"):
         for cycle in ("monthly", "annual"):
             if _price_id(plan, cycle) == price_id:
                 return plan
@@ -933,8 +929,8 @@ def _plan_from_price_id(price_id: str) -> str | None:
 
 def _apply_subscription_state(email: str, plan: str, stripe_subscription_id: str,
                                current_period_end, status_raw: str):
-    conn = get_conn()
-    init_billing_schema(conn)
+    conn = sub_module.get_conn()
+    sub_module.init_billing_schema(conn)
     cur = conn.cursor()
     status = "active" if status_raw in ("active", "trialing") else (
         "past_due" if status_raw == "past_due" else "expired"
@@ -955,7 +951,7 @@ def _apply_subscription_state(email: str, plan: str, stripe_subscription_id: str
             (email, plan, status, stripe_subscription_id, period_end_iso, now),
         )
     conn.commit()
-    _log_billing_event(conn, email, "stripe_state_applied", f"plan={plan} status={status}")
+    sub_module._log_billing_event(conn, email, "stripe_state_applied", f"plan={plan} status={status}")
 
 
 def verify_checkout_session(session_id: str) -> dict | None:
@@ -989,7 +985,7 @@ def reconcile_subscription(email: str) -> dict | None:
     if not is_configured():
         return None
     email = email.strip().lower()
-    conn = get_conn()
+    conn = sub_module.get_conn()
     cur = conn.cursor()
     cur.execute("SELECT stripe_customer_id FROM subscriptions WHERE email = ?", (email,))
     row = cur.fetchone()
@@ -1099,17 +1095,17 @@ def render_notion_style_billing(user_email, user_name=""):
 
         agree_terms = st.checkbox("I agree to the auto-renewal terms & subscription agreement.", key="bill_terms")
 
-        if st.button("ðŸš€ Upgrade to Business", type="primary", width='stretch', disabled=not agree_terms):
+        if st.button("ðŸš€ Upgrade to Business", type="primary", use_container_width=True, disabled=not agree_terms):
             if billing_stripe.is_configured():
-                checkout_url = billing_stripe.create_checkout_session(user_email, selected_plan_key, selected_interval, student_discount=student_discount_is_approved(user_email))
+                checkout_url = billing_stripe.create_checkout_session(user_email, selected_plan_key, selected_interval)
                 if checkout_url:
-                    st.link_button("âž¡ï¸ Proceed to Stripe Secure Checkout", checkout_url, type="primary", width='stretch')
+                    st.link_button("âž¡ï¸ Proceed to Stripe Secure Checkout", checkout_url, type="primary", use_container_width=True)
                 else:
                     st.error("Error creating Stripe checkout session. Check API keys.")
             else:
                 st.warning("Stripe credentials not fully configured in environment variables.")
 
-        st.button("ðŸ’¬ Contact Sales", width='stretch')
+        st.button("ðŸ’¬ Contact Sales", use_container_width=True)
 
 # ============================================================================
 # END modules/billing_ui.py
@@ -1965,904 +1961,6 @@ def get_cookie_manager():
 cookie_manager = get_cookie_manager()
 
 
-
-# ============================================================
-# STUDENT VERIFICATION / 50% DISCOUNT
-# ============================================================
-STUDENT_DOC_TYPES = ("Student ID", "National ID")
-
-def _student_cipher():
-    from cryptography.fernet import Fernet
-    key = os.environ.get("STUDENT_DOC_FERNET_KEY")
-    if not key:
-        try: key = st.secrets.get("STUDENT_DOC_FERNET_KEY")
-        except Exception: key = None
-    if not key: raise RuntimeError("STUDENT_DOC_FERNET_KEY is not configured.")
-    return Fernet(key.encode())
-
-def init_student_verification_schema(conn):
-    conn.execute("""CREATE TABLE IF NOT EXISTS student_verifications (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE,
-        full_name TEXT, document_type TEXT NOT NULL, document_name TEXT,
-        document_mime TEXT, document_blob BLOB NOT NULL,
-        status TEXT NOT NULL DEFAULT 'pending', submitted_at TEXT NOT NULL,
-        reviewed_at TEXT, reviewed_by TEXT, admin_notes TEXT)""")
-    conn.commit()
-
-def student_verification_status(email):
-    row = db_conn.execute("SELECT status,document_type,submitted_at,reviewed_at,reviewed_by,admin_notes FROM student_verifications WHERE email=?",(email.strip().lower(),)).fetchone()
-    if not row: return None
-    return dict(zip(["status","document_type","submitted_at","reviewed_at","reviewed_by","admin_notes"],row))
-
-def student_discount_is_approved(email):
-    row = db_conn.execute("SELECT status FROM student_verifications WHERE email=?",(email.strip().lower(),)).fetchone()
-    return bool(row and row[0] == "approved")
-
-def submit_student_verification(email, full_name, document_type, uploaded):
-    if document_type not in STUDENT_DOC_TYPES: return False,"Invalid document type."
-    if uploaded is None: return False,"Upload a Student ID or National ID."
-    raw = uploaded.getvalue()
-    if not raw: return False,"The uploaded file is empty."
-    if len(raw) > 8 * 1024 * 1024: return False,"Maximum document size is 8 MB."
-    encrypted = _student_cipher().encrypt(raw)
-    now = datetime.datetime.now(datetime.UTC).isoformat()
-    db_conn.execute("""INSERT INTO student_verifications
-        (email,full_name,document_type,document_name,document_mime,document_blob,status,submitted_at)
-        VALUES (?,?,?,?,?,?,'pending',?)
-        ON CONFLICT(email) DO UPDATE SET full_name=excluded.full_name,
-        document_type=excluded.document_type,document_name=excluded.document_name,
-        document_mime=excluded.document_mime,document_blob=excluded.document_blob,
-        status='pending',submitted_at=excluded.submitted_at,reviewed_at=NULL,
-        reviewed_by=NULL,admin_notes=NULL""",
-        (email.strip().lower(),full_name,document_type,uploaded.name,getattr(uploaded,"type",None),encrypted,now))
-    db_conn.commit()
-    return True,"Submitted. An administrator must approve your request before the 50% discount is activated."
-
-def set_student_status(email,status,reviewer,notes=""):
-    now = datetime.datetime.now(datetime.UTC).isoformat()
-    db_conn.execute("UPDATE student_verifications SET status=?,reviewed_at=?,reviewed_by=?,admin_notes=? WHERE email=?",(status,now,reviewer,notes,email.strip().lower()))
-    db_conn.commit()
-    log_backend_event("INFO",f"Student verification {status}: {email} by {reviewer}")
-
-def render_student_verification():
-    email = current_user_email
-    st.subheader("ðŸŽ“ Student Discount â€” 50% Off")
-    st.caption("Submit a Student ID or National ID. Approval is manual.")
-    status = student_verification_status(email)
-    if status:
-        if status["status"] == "approved": st.success("Approved â€” eligible checkout receives 50% off.")
-        elif status["status"] == "pending": st.info("Pending administrator review.")
-        else: st.warning("Previous request was rejected. You may submit again.")
-    with st.form("student_verification_form"):
-        doc_type = st.selectbox("Document type",STUDENT_DOC_TYPES)
-        uploaded = st.file_uploader("Upload ID document",type=["pdf","png","jpg","jpeg"],help="Maximum 8 MB. Upload only what is necessary.")
-        consent = st.checkbox("I consent to review of this document solely for student-discount verification.")
-        send = st.form_submit_button("Submit for Admin Verification",type="primary")
-    if send:
-        if not consent: st.error("Consent is required.")
-        else:
-            ok,msg = submit_student_verification(email,st.session_state.get("user_identity",{}).get("name",""),doc_type,uploaded)
-            (st.success if ok else st.error)(msg)
-            if ok: st.rerun()
-
-
-
-# ============================================================
-# DIRECT PAYMENT & MANUAL APPROVAL SYSTEM
-# ============================================================
-
-DIRECT_PAYMENT_PLANS = {
-    "monthly": {
-        "label": "Monthly",
-        "amount": 24.00,
-        "currency": "USD",
-        "duration_days": 31,
-        "description": "$24 per month",
-    },
-    "yearly": {
-        "label": "Yearly",
-        "amount": 240.00,
-        "currency": "USD",
-        "duration_days": 365,
-        "description": "$240 per year — equivalent to $20/month",
-    },
-}
-
-
-def get_payment_config(key, default=""):
-    try:
-        if key in st.secrets:
-            return st.secrets[key]
-    except Exception:
-        pass
-
-    return os.environ.get(key, default)
-
-
-def init_direct_payment_schema(conn):
-
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS payment_requests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            email TEXT NOT NULL,
-            full_name TEXT,
-
-            plan TEXT NOT NULL,
-            amount REAL NOT NULL,
-            currency TEXT NOT NULL DEFAULT 'USD',
-
-            payment_method TEXT NOT NULL,
-
-            payer_name TEXT,
-            transaction_reference TEXT,
-
-            proof_filename TEXT,
-            proof_mime TEXT,
-            proof_blob BLOB,
-
-            status TEXT NOT NULL DEFAULT 'pending',
-
-            submitted_at TEXT NOT NULL,
-            reviewed_at TEXT,
-
-            reviewed_by TEXT,
-            admin_notes TEXT
-        )
-    """)
-
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS payment_audit_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            payment_id INTEGER,
-
-            action TEXT NOT NULL,
-            actor TEXT,
-
-            details TEXT,
-
-            created_at TEXT NOT NULL
-        )
-    """)
-
-    conn.commit()
-
-
-def log_payment_event(payment_id, action, actor="", details=""):
-
-    try:
-
-        db_conn.execute(
-            """
-            INSERT INTO payment_audit_log
-            (payment_id, action, actor, details, created_at)
-
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                payment_id,
-                action,
-                actor,
-                details,
-                datetime.datetime.now(datetime.UTC).isoformat()
-            )
-        )
-
-        db_conn.commit()
-
-    except Exception:
-        pass
-
-
-def get_direct_payment_instructions():
-
-    return {
-        "bank_name":
-            get_payment_config("DIRECT_BANK_NAME"),
-
-        "account_name":
-            get_payment_config("DIRECT_ACCOUNT_NAME"),
-
-        "account_number":
-            get_payment_config("DIRECT_ACCOUNT_NUMBER"),
-
-        "routing_number":
-            get_payment_config("DIRECT_ROUTING_NUMBER"),
-
-        "account_type":
-            get_payment_config("DIRECT_ACCOUNT_TYPE", "Checking"),
-
-        "phone":
-            get_payment_config("DIRECT_PAYMENT_PHONE"),
-
-        "instructions":
-            get_payment_config(
-                "DIRECT_PAYMENT_INSTRUCTIONS",
-                "Make the payment using one of the available methods. "
-                "Then submit your transaction reference below."
-            )
-    }
-
-
-def submit_direct_payment_request(
-    email,
-    full_name,
-    plan_key,
-    payment_method,
-    payer_name,
-    transaction_reference,
-    proof_file
-):
-
-    if plan_key not in DIRECT_PAYMENT_PLANS:
-
-        return False, "Invalid subscription plan."
-
-    if not transaction_reference.strip():
-
-        return False, "A transaction reference or payment confirmation is required."
-
-    plan = DIRECT_PAYMENT_PLANS[plan_key]
-
-    proof_data = None
-    proof_filename = None
-    proof_mime = None
-
-    if proof_file is not None:
-
-        proof_data = proof_file.getvalue()
-
-        if len(proof_data) > 8 * 1024 * 1024:
-
-            return False, "Payment proof must be smaller than 8 MB."
-
-        proof_filename = proof_file.name
-        proof_mime = getattr(
-            proof_file,
-            "type",
-            "application/octet-stream"
-        )
-
-    now = datetime.datetime.now(datetime.UTC).isoformat()
-
-    cur = db_conn.cursor()
-
-    cur.execute(
-        """
-        INSERT INTO payment_requests (
-
-            email,
-            full_name,
-
-            plan,
-            amount,
-            currency,
-
-            payment_method,
-
-            payer_name,
-            transaction_reference,
-
-            proof_filename,
-            proof_mime,
-            proof_blob,
-
-            status,
-
-            submitted_at
-
-        )
-
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
-        """,
-
-        (
-            email.strip().lower(),
-
-            full_name,
-
-            plan_key,
-            plan["amount"],
-            plan["currency"],
-
-            payment_method,
-
-            payer_name,
-
-            transaction_reference.strip(),
-
-            proof_filename,
-            proof_mime,
-            proof_data,
-
-            now
-        )
-    )
-
-    db_conn.commit()
-
-    payment_id = cur.lastrowid
-
-    log_payment_event(
-        payment_id,
-        "payment_submitted",
-        email,
-        f"{plan_key} via {payment_method}"
-    )
-
-    return True, payment_id
-
-
-def approve_direct_payment(payment_id, admin_email, notes=""):
-
-    row = db_conn.execute(
-        """
-        SELECT email, plan
-
-        FROM payment_requests
-
-        WHERE id = ?
-        """,
-        (payment_id,)
-    ).fetchone()
-
-    if not row:
-
-        return False, "Payment request not found."
-
-    email, plan_key = row
-
-    plan = DIRECT_PAYMENT_PLANS.get(plan_key)
-
-    if not plan:
-
-        return False, "Invalid payment plan."
-
-    now = datetime.datetime.now(datetime.UTC)
-
-    expires_at = now + datetime.timedelta(
-        days=plan["duration_days"]
-    )
-
-    db_conn.execute(
-        """
-        UPDATE payment_requests
-
-        SET
-
-            status = 'approved',
-
-            reviewed_at = ?,
-
-            reviewed_by = ?,
-
-            admin_notes = ?
-
-        WHERE id = ?
-        """,
-
-        (
-            now.isoformat(),
-            admin_email,
-            notes,
-            payment_id
-        )
-    )
-
-    # Try to activate the subscription using the existing subscriptions table.
-
-    try:
-
-        db_conn.execute(
-            """
-            INSERT INTO subscriptions
-            (
-                email,
-                plan,
-                status,
-                current_period_end,
-                updated_at,
-                updated_by
-            )
-
-            VALUES (?, 'premium', 'active', ?, ?, ?)
-
-            ON CONFLICT(email)
-
-            DO UPDATE SET
-
-                plan='premium',
-
-                status='active',
-
-                current_period_end=excluded.current_period_end,
-
-                updated_at=excluded.updated_at,
-
-                updated_by=excluded.updated_by
-            """,
-
-            (
-                email,
-                expires_at.isoformat(),
-                now.isoformat(),
-                f"manual_payment:{admin_email}"
-            )
-        )
-
-    except Exception as exc:
-
-        db_conn.commit()
-
-        return False, f"Payment approved but subscription activation failed: {exc}"
-
-    db_conn.commit()
-
-    log_payment_event(
-        payment_id,
-        "payment_approved",
-        admin_email,
-        f"Subscription active until {expires_at.isoformat()}"
-    )
-
-    return True, "Payment approved and Premium access activated."
-
-
-def reject_direct_payment(payment_id, admin_email, notes=""):
-
-    db_conn.execute(
-        """
-        UPDATE payment_requests
-
-        SET
-
-            status='rejected',
-
-            reviewed_at=?,
-
-            reviewed_by=?,
-
-            admin_notes=?
-
-        WHERE id=?
-        """,
-
-        (
-            datetime.datetime.now(datetime.UTC).isoformat(),
-            admin_email,
-            notes,
-            payment_id
-        )
-    )
-
-    db_conn.commit()
-
-    log_payment_event(
-        payment_id,
-        "payment_rejected",
-        admin_email,
-        notes
-    )
-
-    return True
-
-
-def render_direct_payment_page():
-
-    identity = st.session_state.get(
-        "user_identity",
-        {}
-    )
-
-    email = identity.get("email", "")
-
-    full_name = identity.get(
-        "name",
-        ""
-    )
-
-    st.title("💳 Subscribe & Pay")
-
-    st.info(
-        "Choose a subscription, make your payment, "
-        "then submit your transaction reference for approval."
-    )
-
-    plan_key = st.radio(
-        "Choose your subscription",
-
-        ["monthly", "yearly"],
-
-        format_func=lambda key:
-            f"{DIRECT_PAYMENT_PLANS[key]['label']} — "
-            f"${DIRECT_PAYMENT_PLANS[key]['amount']:.2f}"
-    )
-
-    plan = DIRECT_PAYMENT_PLANS[plan_key]
-
-    st.success(
-        f"{plan['description']}"
-    )
-
-    st.markdown("---")
-
-    instructions = get_direct_payment_instructions()
-
-    method = st.radio(
-        "Payment method",
-
-        [
-            "🏦 Bank Transfer",
-            "📱 Direct / Mobile Payment"
-        ]
-    )
-
-    if method == "🏦 Bank Transfer":
-
-        st.subheader("🏦 Bank Transfer Instructions")
-
-        if instructions["bank_name"]:
-            st.write(
-                f"**Bank:** {instructions['bank_name']}"
-            )
-
-        if instructions["account_name"]:
-            st.write(
-                f"**Account Name:** {instructions['account_name']}"
-            )
-
-        if instructions["account_number"]:
-            st.code(
-                instructions["account_number"]
-            )
-
-        if instructions["routing_number"]:
-
-            st.write(
-                "**Routing Number:**"
-            )
-
-            st.code(
-                instructions["routing_number"]
-            )
-
-        st.write(
-            f"**Account Type:** "
-            f"{instructions['account_type']}"
-        )
-
-    else:
-
-        st.subheader("📱 Direct / Mobile Payment")
-
-        if instructions["phone"]:
-
-            st.code(
-                instructions["phone"]
-            )
-
-        else:
-
-            st.info(
-                "Contact the administrator for mobile payment instructions."
-            )
-
-    st.markdown("---")
-
-    st.write(
-        instructions["instructions"]
-    )
-
-    with st.form("direct_payment_form"):
-
-        payer_name = st.text_input(
-            "Name used to make the payment"
-        )
-
-        transaction_reference = st.text_input(
-            "Transaction ID / Reference Number"
-        )
-
-        proof = st.file_uploader(
-            "Optional payment proof",
-
-            type=[
-                "png",
-                "jpg",
-                "jpeg",
-                "pdf"
-            ]
-        )
-
-        confirm = st.checkbox(
-            "I confirm that I have made this payment."
-        )
-
-        submitted = st.form_submit_button(
-            "Submit Payment for Verification",
-            type="primary"
-        )
-
-        if submitted:
-
-            if not confirm:
-
-                st.error(
-                    "Please confirm your payment before submitting."
-                )
-
-            else:
-
-                method_name = (
-                    "bank_transfer"
-                    if method == "🏦 Bank Transfer"
-                    else "mobile_direct"
-                )
-
-                ok, result = submit_direct_payment_request(
-
-                    email,
-
-                    full_name,
-
-                    plan_key,
-
-                    method_name,
-
-                    payer_name,
-
-                    transaction_reference,
-
-                    proof
-                )
-
-                if ok:
-
-                    st.success(
-                        f"Payment request #{result} submitted successfully."
-                    )
-
-                    st.info(
-                        "Your subscription will activate after an administrator verifies the payment."
-                    )
-
-                else:
-
-                    st.error(result)
-
-
-def render_admin_payment_queue():
-
-    identity = st.session_state.get(
-        "user_identity",
-        {}
-    )
-
-    if not identity.get("is_admin"):
-
-        st.error(
-            "Administrator access required."
-        )
-
-        return
-
-    st.subheader(
-        "💰 Payment Approval Queue"
-    )
-
-    rows = db_conn.execute(
-        """
-        SELECT
-
-            id,
-            email,
-            full_name,
-
-            plan,
-            amount,
-            currency,
-
-            payment_method,
-
-            payer_name,
-            transaction_reference,
-
-            proof_filename,
-            proof_mime,
-            proof_blob,
-
-            status,
-            submitted_at
-
-        FROM payment_requests
-
-        ORDER BY
-
-            CASE status
-
-                WHEN 'pending' THEN 0
-                ELSE 1
-
-            END,
-
-            submitted_at DESC
-        """
-    ).fetchall()
-
-    if not rows:
-
-        st.info(
-            "No payment requests yet."
-        )
-
-        return
-
-    display_rows = []
-
-    for row in rows:
-
-        display_rows.append({
-
-            "ID": row[0],
-
-            "Email": row[1],
-
-            "Name": row[2],
-
-            "Plan": row[3],
-
-            "Amount":
-                f"{row[4]} {row[5]}",
-
-            "Method": row[6],
-
-            "Reference": row[8],
-
-            "Status": row[12],
-
-            "Submitted": row[13]
-        })
-
-    st.dataframe(
-        pd.DataFrame(display_rows),
-        width="stretch",
-        hide_index=True
-    )
-
-    pending = [
-        row
-        for row in rows
-        if row[12] == "pending"
-    ]
-
-    if not pending:
-
-        return
-
-    choices = {
-        f"#{row[0]} — {row[1]} — {row[3]} — {row[8]}":
-        row
-
-        for row in pending
-    }
-
-    selected_label = st.selectbox(
-        "Select payment to review",
-
-        list(choices.keys())
-    )
-
-    selected = choices[selected_label]
-
-    payment_id = selected[0]
-
-    st.markdown("---")
-
-    st.write(
-        f"**User:** {selected[1]}"
-    )
-
-    st.write(
-        f"**Plan:** {selected[3]}"
-    )
-
-    st.write(
-        f"**Amount:** "
-        f"{selected[4]} {selected[5]}"
-    )
-
-    st.write(
-        f"**Payment Method:** {selected[6]}"
-    )
-
-    st.write(
-        f"**Transaction Reference:** {selected[8]}"
-    )
-
-    if selected[11]:
-
-        st.download_button(
-
-            "Download Payment Proof",
-
-            data=selected[11],
-
-            file_name=(
-                selected[9]
-                or
-                "payment-proof"
-            ),
-
-            mime=(
-                selected[10]
-                or
-                "application/octet-stream"
-            )
-        )
-
-    notes = st.text_area(
-        "Admin notes"
-    )
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-
-        if st.button(
-            "✅ Approve Payment",
-            type="primary",
-            width="stretch"
-        ):
-
-            ok, message = approve_direct_payment(
-
-                payment_id,
-
-                identity.get(
-                    "email",
-                    "admin"
-                ),
-
-                notes
-            )
-
-            if ok:
-
-                st.success(message)
-
-                st.rerun()
-
-            else:
-
-                st.error(message)
-
-    with c2:
-
-        if st.button(
-            "❌ Reject Payment",
-            width="stretch"
-        ):
-
-            reject_direct_payment(
-
-                payment_id,
-
-                identity.get(
-                    "email",
-                    "admin"
-                ),
-
-                notes
-            )
-
-            st.warning(
-                "Payment request rejected."
-            )
-
-            st.rerun()
-
-
 # --- DATABASE INITIALIZATION ---
 def init_sovereign_db():
     conn = sqlite3.connect("sovereign_apex_engine.db", check_same_thread=False)
@@ -2908,8 +2006,6 @@ def init_sovereign_db():
 
 
 db_conn = init_sovereign_db()
-init_direct_payment_schema(db_conn)
-init_student_verification_schema(db_conn)
 
 
 # --- PASSWORD HASHING (PBKDF2-HMAC-SHA256) ---
@@ -3228,7 +2324,7 @@ def render_oauth_buttons():
 
     for key, cfg in configured.items():
         url = build_authorize_url(key, cfg)
-        st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, width='stretch')
+        st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, use_container_width=True)
     st.markdown("<div style='text-align:center; color:#6B7280; font-size:0.8rem; margin: 10px 0;'>â€” or use email & password â€”</div>", unsafe_allow_html=True)
 
 
@@ -3451,7 +2547,7 @@ if not st.session_state.portal_unlocked:
             remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            if st.button("ðŸš€ Unlock Portal Workspace", width='stretch'):
+            if st.button("ðŸš€ Unlock Portal Workspace", use_container_width=True):
                 user = auth_store.verify_login(si_email, si_password)
                 if user is None:
                     st.error("Incorrect email or password.")
@@ -3479,7 +2575,7 @@ if not st.session_state.portal_unlocked:
             su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input", placeholder="Re-enter password")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            if st.button("âœ¨ Create Sovereign Account", width='stretch'):
+            if st.button("âœ¨ Create Sovereign Account", use_container_width=True):
                 if not su_email or not su_password:
                     st.error("Email and password are required.")
                 elif su_password != su_password2:
@@ -3498,11 +2594,11 @@ if not st.session_state.portal_unlocked:
             st.markdown("### ðŸŒ Starter Configuration Bundles")
             d_col1, d_col2 = st.columns(2)
             with d_col1:
-                st.download_button("ðŸ“¥ Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", width='stretch')
-                st.download_button("ðŸ“¥ Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", width='stretch')
+                st.download_button("ðŸ“¥ Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
+                st.download_button("ðŸ“¥ Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", use_container_width=True)
             with d_col2:
-                st.download_button("ðŸ“¥ Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", width='stretch')
-                st.download_button("ðŸ“¥ Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", width='stretch')
+                st.download_button("ðŸ“¥ Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", use_container_width=True)
+                st.download_button("ðŸ“¥ Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", use_container_width=True)
 
 # --- UNLOCKED WORKSPACE DASHBOARD & ROUTING ---
 else:
@@ -3520,7 +2616,7 @@ else:
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
-    if st.sidebar.button("ðŸ”’ Lock Portal & Sign Out", width='stretch'):
+    if st.sidebar.button("ðŸ”’ Lock Portal & Sign Out", use_container_width=True):
         cookie_manager.delete("chrishem_user_email")
         st.session_state.portal_unlocked = False
         st.rerun()
@@ -3538,7 +2634,6 @@ else:
         "ðŸ“ Query Log",
         "ðŸ”¬ Bioinformatics Studio",
         "âš™ï¸ Profile Settings",
-        "ðŸŽ“ Student Discount Verification",
         "ðŸ›¡ï¸ Admin Security & User Controls"
     ])
 
@@ -3630,9 +2725,6 @@ else:
             else:
                 st.warning("Please provide a sequence string.")
 
-    elif menu_selection == "ðŸŽ“ Student Discount Verification":
-        render_student_verification()
-
     elif menu_selection == "âš™ï¸ Profile Settings":
         st.title("âš™ï¸ Operator Profile & Avatar Customization")
         st.write("Upload a custom picture to personalize your account avatar.")
@@ -3645,7 +2737,7 @@ else:
 
         col_up1, col_up2 = st.columns(2)
         with col_up1:
-            if st.button("ðŸ’¾ Save Custom Avatar", width='stretch'):
+            if st.button("ðŸ’¾ Save Custom Avatar", use_container_width=True):
                 if uploaded_avatar is not None:
                     image_bytes = uploaded_avatar.read()
                     cursor = db_conn.cursor()
@@ -3656,7 +2748,7 @@ else:
                 else:
                     st.warning("Please select an image file first.")
         with col_up2:
-            if st.button("ðŸ”„ Revert to Default Picture", width='stretch'):
+            if st.button("ðŸ”„ Revert to Default Picture", use_container_width=True):
                 cursor = db_conn.cursor()
                 cursor.execute("UPDATE auth_users SET avatar_blob = NULL WHERE email = ?", (current_user_email,))
                 db_conn.commit()
@@ -3672,30 +2764,4 @@ else:
             cursor.execute("SELECT email, name, role FROM auth_users")
             users = cursor.fetchall()
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
-            st.dataframe(user_df, width='stretch')
-            st.markdown("---")
-            st.subheader("ðŸŽ“ Student Verification Queue")
-            rows=db_conn.execute("SELECT id,email,full_name,document_type,document_name,status,submitted_at,reviewed_at,reviewed_by,admin_notes FROM student_verifications ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END,submitted_at DESC").fetchall()
-            if not rows: st.info("No student verification requests.")
-            else:
-                st.dataframe(pd.DataFrame(rows,columns=["ID","Email","Name","Document","Filename","Status","Submitted","Reviewed","Reviewer","Notes"]),width="stretch",hide_index=True)
-                pending=[r for r in rows if r[5]=="pending"]
-                if pending:
-                    choices={f"{r[1]} â€” {r[3]} â€” {r[6]}":r[1] for r in pending}
-                    label=st.selectbox("Pending request",list(choices),key="student_review")
-                    email=choices[label]
-                    row=db_conn.execute("SELECT email,full_name,document_type,document_name,document_mime,document_blob,status FROM student_verifications WHERE email=?",(email,)).fetchone()
-                    st.write(f"**Applicant:** {row[1]}  \n**Email:** {row[0]}  \n**Document:** {row[2]}")
-                    try:
-                        decrypted=_student_cipher().decrypt(row[5])
-                        st.download_button("ðŸ” Download document for review",decrypted,file_name=row[3] or "verification-document",mime=row[4] or "application/octet-stream",key="student_doc_download")
-                    except Exception as exc: st.error(f"Document decryption failed: {exc}")
-                    notes=st.text_area("Admin notes",key="student_review_notes")
-                    c1,c2=st.columns(2)
-                    with c1:
-                        if st.button("âœ… Approve 50% Discount",type="primary",width="stretch"):
-                            set_student_status(email,"approved",current_user_email,notes); st.success("Approved."); st.rerun()
-                    with c2:
-                        if st.button("âŒ Reject",width="stretch"):
-                            set_student_status(email,"rejected",current_user_email,notes); st.warning("Rejected."); st.rerun()
-
+            st.dataframe(user_df, use_container_width=True)
