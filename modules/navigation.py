@@ -1,28 +1,28 @@
 """
 CHRISHEM Unified Navigation Engine — role-based hub routing + global command search.
-Defines the 11 consolidated hubs and their tool inventory.
+Defines the 15 consolidated hubs and their tool inventory.
 """
 
 import streamlit as st
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # HUB REGISTRY — THE SINGLE SOURCE OF TRUTH FOR NAVIGATION
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 HUBS = [
     {
         "id": "home",
         "icon": "🏠",
         "name": "Home Dashboard",
-        "page": "pages/1_🏠_Home_Dashboard.py",
+        "page": "pages/01_🏠_Home_Dashboard.py",
         "role": "all",
         "description": "System overview, quick access, saved analyses, live telemetry.",
         "tools": ["System Health", "Saved Analyses Vault", "Quick Access", "Live Telemetry"],
     },
     {
         "id": "data",
-        "icon": "📁",
+        "icon": "📊",
         "name": "Data Studio",
-        "page": "pages/2_📁_Data_Studio.py",
+        "page": "pages/02_📊_Data_Studio.py",
         "role": "all",
         "description": "Ingest, inspect, clean, transform, simulate, and manage datasets.",
         "tools": [
@@ -33,9 +33,9 @@ HUBS = [
     },
     {
         "id": "statistics",
-        "icon": "📊",
+        "icon": "📈",
         "name": "Statistics Studio",
-        "page": "pages/3_📊_Statistics_Studio.py",
+        "page": "pages/03_📈_Statistics_Studio.py",
         "role": "all",
         "description": "Hypothesis testing, ANOVA, regression, power analysis, causal & Bayesian inference.",
         "tools": [
@@ -49,7 +49,7 @@ HUBS = [
         "id": "ml",
         "icon": "🤖",
         "name": "ML & Predictive Studio",
-        "page": "pages/4_🤖_ML_Predictive_Studio.py",
+        "page": "pages/04_🤖_ML_Predictive_Studio.py",
         "role": "all",
         "description": "Automated machine learning, feature engineering, AI insights & anomaly detection.",
         "tools": [
@@ -59,9 +59,9 @@ HUBS = [
     },
     {
         "id": "visualization",
-        "icon": "📈",
+        "icon": "🎨",
         "name": "Visualization Studio",
-        "page": "pages/5_📈_Visualization_Studio.py",
+        "page": "pages/05_🎨_Visualization_Studio.py",
         "role": "all",
         "description": "Chart builder, dashboard canvas, presentations, and network graphs.",
         "tools": [
@@ -73,7 +73,7 @@ HUBS = [
         "id": "nlp",
         "icon": "💬",
         "name": "AI & NLP Studio",
-        "page": "pages/6_💬_AI_NLP_Studio.py",
+        "page": "pages/06_💬_AI_NLP_Studio.py",
         "role": "all",
         "description": "Text mining, sentiment analysis, NL queries, research synthesis, audio engine.",
         "tools": [
@@ -86,7 +86,7 @@ HUBS = [
         "id": "literature",
         "icon": "📚",
         "name": "Literature & Publishing Hub",
-        "page": "pages/7_📚_Literature_Publishing_Hub.py",
+        "page": "pages/07_📚_Literature_Publishing_Hub.py",
         "role": "all",
         "description": "Literature search, meta-analysis, APA formatting, citations, grants, references.",
         "tools": [
@@ -97,9 +97,9 @@ HUBS = [
     },
     {
         "id": "domain",
-        "icon": "🔬",
+        "icon": "🌐",
         "name": "Domain Analytics Hub",
-        "page": "pages/8_🔬_Domain_Analytics_Hub.py",
+        "page": "pages/08_🌐_Domain_Analytics_Hub.py",
         "role": "all",
         "description": "Specialized analytics: clinical, GIS, research quality, localization, protocols.",
         "tools": [
@@ -110,9 +110,9 @@ HUBS = [
     },
     {
         "id": "integrations",
-        "icon": "🔗",
+        "icon": "🔌",
         "name": "Integrations Hub",
-        "page": "pages/9_🔗_Integrations_Hub.py",
+        "page": "pages/09_🔌_Integrations_Hub.py",
         "role": "all",
         "description": "Connect external systems: Notion, Google Sheets, Git, APIs, databases.",
         "tools": [
@@ -147,9 +147,9 @@ HUBS = [
     },
     {
         "id": "forensics",
-        "icon": "🕵️",
+        "icon": "🔍",
         "name": "Forensics Intelligence",
-        "page": "pages/12_🕵️_Forensics_Intelligence.py",
+        "page": "pages/12_🔍_Forensics_Intelligence.py",
         "role": "all",
         "description": "Digital evidence lab, metadata & EXIF extraction, steganography detection, phishing analysis, chain-of-custody.",
         "tools": [
@@ -172,9 +172,9 @@ HUBS = [
     },
     {
         "id": "threat",
-        "icon": "🛡️",
+        "icon": "☣️",
         "name": "Threat & Scanner Suite",
-        "page": "pages/14_🛡️_Threat_Scanner_Suite.py",
+        "page": "pages/14_☣️_Threat_Scanner_Suite.py",
         "role": "all",
         "description": "PII/secret scanning, live CVE, malware signatures, integrity monitoring, port scanning, threat intelligence, incident playbooks.",
         "tools": [
@@ -185,9 +185,9 @@ HUBS = [
     },
     {
         "id": "mission",
-        "icon": "🌍",
+        "icon": "🚀",
         "name": "Global Mission Control",
-        "page": "pages/15_🌍_Global_Mission_Control.py",
+        "page": "pages/15_🚀_Global_Mission_Control.py",
         "role": "all",
         "description": "Live global health feed, real-time climate telemetry, impact scorecard, problem-solver registry.",
         "tools": [
@@ -281,24 +281,27 @@ def render_sidebar_footer():
     st.sidebar.info("[SECURE] Sovereign Enclave")
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # HOME QUICK-ACCESS CARDS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def hub_quick_access_cards():
-    """Render quick-access cards for all hubs (used on Home Dashboard)."""
+    """Render clickable quick-access cards for all hubs (used on Home Dashboard).
+    Each card is a real st.page_link, not just decorative HTML - clicking it
+    actually navigates to that hub."""
     hubs = visible_hubs()
     cols = st.columns(3)
     for idx, hub in enumerate(hubs):
         with cols[idx % 3]:
             st.markdown(
                 f"""
-                <div class="chris-card" style="cursor:pointer; min-height:120px;">
+                <div class="chris-card" style="min-height:100px; margin-bottom:-14px;">
                     <div style="font-size:1.8rem;">{hub['icon']}</div>
-                    <div style="font-size:1.05rem; font-weight:800; color:#e8a33d; margin:0.3rem 0;">{hub['name']}</div>
-                    <div style="font-size:0.8rem; color:#6B7280;">{hub['description']}</div>
+                    <div style="font-size:1.05rem; font-weight:800; color:#00f2fe; margin:0.3rem 0;">{hub['name']}</div>
+                    <div style="font-size:0.8rem; color:#94a3b8;">{hub['description']}</div>
                     <div style="font-size:0.7rem; color:#64748b; margin-top:0.4rem; font-family:monospace;">{len(hub['tools'])} tools</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
+            st.page_link(hub["page"], label=f"Open {hub['name']}", icon=hub["icon"])
 

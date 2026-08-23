@@ -59,21 +59,9 @@ try:
 except ImportError:
     REQUESTS_AVAILABLE = False
 
-# WebRTC import for real-time video/audio conferencing
-try:
-    from streamlit_webrtc import webrtc_streamer, RTCConfiguration
-    WEBRTC_AVAILABLE = True
-except ImportError:
-    WEBRTC_AVAILABLE = False
+from meet_widget_snippet import render_video_call
 
 DB_PATH = "sovereign_apex_engine.db"
-
-if WEBRTC_AVAILABLE:
-    RTC_CONFIGURATION = RTCConfiguration(
-        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]}]}
-    )
-else:
-    RTC_CONFIGURATION = None
 
 
 @contextlib.contextmanager
@@ -118,40 +106,44 @@ def init_db():
 
 
 def render_meetings_hub():
-    section_header("📹 Real-Time Video Collaboration (Zoom / Google Meet Style)", "Host or join secure, low-latency WebRTC video rooms directly inside your workspace.")
-    
-    if not WEBRTC_AVAILABLE:
-        st.warning("⚠️ `streamlit-webrtc` is not installed in this environment. Video streaming is running in fallback mode — add `streamlit-webrtc>=0.47.0` to `requirements.txt` to enable live feeds.")
+    section_header(
+        "📹 Real-Time Video Collaboration",
+        "Real peer-to-peer WebRTC video via the signaling backend — direct browser-to-browser mesh, "
+        "good for small groups (2-4 people). See the caption below the call window for real limitations.",
+    )
+
+    api_base = os.environ.get("API_BASE_URL", "")
+    if not api_base:
+        st.warning(
+            "⚠️ `API_BASE_URL` is not configured in this environment, so the signaling backend "
+            "(api_server.py) isn't reachable yet. Set that environment variable to wherever "
+            "api_server.py is deployed to enable live calls."
+        )
 
     col1, col2 = st.columns([1, 2])
     with col1:
         st.markdown("#### Conference Controls")
         room_name = st.text_input("Meeting Room ID", value="Apex-Collab-Room-01", key="rtc_room_id")
-        user_alias = st.text_input("Display Name", value="CHRISHEM", key="rtc_user_alias")
-        
-        enable_video = st.checkbox("Enable Camera Feed", value=True)
-        enable_audio = st.checkbox("Enable Microphone Audio", value=True)
+        user_email = st.text_input(
+            "Your email", value=st.session_state.get("user_identity", {}).get("email", ""),
+            key="rtc_user_email",
+        )
+        join_clicked = st.button("🚀 Join Room", type="primary", key="launch_room_btn")
 
-        if st.button("🚀 Launch / Join Room", type="primary", key="launch_room_btn"):
-            st.success(f"✅ Connected to secure WebRTC channel: `{room_name}` as **{user_alias}**")
+    with col2:
+        st.markdown(f"#### Live Call — Room: `{room_name}`")
+        if join_clicked and user_email:
             with get_db_connection() as conn:
                 conn.execute(
                     "INSERT OR REPLACE INTO meeting_rooms (room_name, host, active_participants, created_at) VALUES (?,?,?,?)",
-                    (room_name, user_alias, 1, datetime.datetime.now().isoformat())
+                    (room_name, user_email, 1, datetime.datetime.now().isoformat())
                 )
                 conn.commit()
-
-    with col2:
-        st.markdown(f"#### Live Stream Window — Room: `{room_name}`")
-        if WEBRTC_AVAILABLE and RTC_CONFIGURATION is not None:
-            webrtc_streamer(
-                key=room_name,
-                rtc_configuration=RTC_CONFIGURATION,
-                media_stream_constraints={"video": enable_video, "audio": enable_audio},
-                async_processing=True,
-            )
+            render_video_call(user_email, room_name)
+        elif join_clicked:
+            st.warning("Enter your email to join.")
         else:
-            st.info("ℹ️ Video feed placeholder active — live WebRTC audio/video feeds will initialize once `streamlit-webrtc` is installed and the app is restarted.")
+            st.info("ℹ️ Enter your email and click **Join Room** to connect to the live call.")
 
 
 def render_projects():

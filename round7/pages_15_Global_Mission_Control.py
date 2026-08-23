@@ -17,6 +17,7 @@ import pandas as pd
 import streamlit as st
 
 from modules.page_bootstrap import setup_page, render_standard_footer
+from modules.theme import get_theme
 from modules.shared_ui import hero_card, section_header, metric_card, render_export_buttons
 from modules.mission_control import fetch_global_health_hotspots, fetch_weather_telemetry, get_global_impact_scorecard, get_problem_solver_registry, get_mission_telemetry
 
@@ -187,7 +188,7 @@ def render_weather_tab():
 
                 if PLOTLY_AVAILABLE:
                     fig = go.Figure()
-                    fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Max Temperature (°C)"], name="Max Temp (°C)", line=dict(color="#00f2fe", width=3)))
+                    fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Max Temperature (°C)"], name="Max Temp (°C)", line=dict(color="#e8a33d", width=3)))
                     fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Min Temperature (°C)"], name="Min Temp (°C)", line=dict(color="#4facfe", width=3)))
                     fig.add_trace(go.Bar(x=df_fc["Date"], y=df_fc["Precipitation Sum (mm)"], name="Precipitation (mm)", opacity=0.3, yaxis="y2"))
 
@@ -226,15 +227,16 @@ def render_impact_tab():
     st.markdown("#### 🌐 Sector Breakdown & Performance Metrics")
     sectors = scorecard.get("sectors", [])
     cols = st.columns(3)
+    t = get_theme()
     for i, sector in enumerate(sectors):
         with cols[i % 3]:
             st.markdown(
                 f"""
-                <div style="background:#0b1321; border:1px solid #00f2fe44; border-radius:12px; padding:1.2rem; margin-bottom:1rem; text-align:center;">
+                <div style="background:{t['bg_card']}; border:1px solid {t['accent']}44; border-radius:12px; padding:1.2rem; margin-bottom:1rem; text-align:center;">
                     <div style="font-size:2.2rem;">{sector.get('icon', '⚡')}</div>
-                    <div style="font-weight:800; color:#00f2fe; margin:0.4rem 0; font-size:1.1rem;">{sector.get('sector', 'Sector')}</div>
-                    <div style="font-size:1.5rem; font-weight:800; color:white;">{sector.get('problems_solved', 0)}<span style="font-size:0.85rem; color:#94a3b8;"> / {sector.get('goal', 100)}</span></div>
-                    <div style="font-size:0.8rem; color:#94a3b8; margin-top:0.4rem;">{sector.get('description', '')}</div>
+                    <div style="font-weight:800; color:{t['accent']}; margin:0.4rem 0; font-size:1.1rem;">{sector.get('sector', 'Sector')}</div>
+                    <div style="font-size:1.5rem; font-weight:800; color:{t['text_primary']};">{sector.get('problems_solved', 0)}<span style="font-size:0.85rem; color:{t['text_muted']};"> / {sector.get('goal', 100)}</span></div>
+                    <div style="font-size:0.8rem; color:{t['text_muted']}; margin-top:0.4rem;">{sector.get('description', '')}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -405,7 +407,7 @@ def render_systemic_risk_tab():
                                            line=dict(width=1, color="rgba(0,242,254,0.15)"),
                                            showlegend=False, hoverinfo="skip"))
             fig2.add_trace(go.Scatter(x=t, y=sol[:, 0], mode="lines",
-                                       line=dict(width=3, color="#00f2fe"), name=f"{state_names[0]} (baseline)"))
+                                       line=dict(width=3, color="#e8a33d"), name=f"{state_names[0]} (baseline)"))
             fig2.update_layout(
                 title=f"Monte Carlo Uncertainty Ensemble — {state_names[0]} under perturbed initial conditions",
                 height=340, template="plotly_dark",

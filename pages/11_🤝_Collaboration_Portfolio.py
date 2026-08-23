@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from project_collaboration.ai_researcher import render_ai_researcher_panel
+
 # Safe import for modular Streamlit wrappers
 try:
     from modules.page_bootstrap import setup_page, render_standard_footer
@@ -469,6 +471,7 @@ def main():
 
     tabs = st.tabs([
         "📹 Live Meet Rooms",
+        "🎙️ AI Co-Researcher",
         "🎯 Projects",
         "📋 Pipeline",
         "🤖 Agent Console",
@@ -480,16 +483,18 @@ def main():
     with tabs[0]:
         render_meetings_hub()
     with tabs[1]:
-        render_projects()
+        render_ai_researcher_panel()
     with tabs[2]:
-        render_pipeline()
+        render_projects()
     with tabs[3]:
-        render_agents()
+        render_pipeline()
     with tabs[4]:
-        render_team_workspace()
+        render_agents()
     with tabs[5]:
-        render_portfolio()
+        render_team_workspace()
     with tabs[6]:
+        render_portfolio()
+    with tabs[7]:
         render_venture_portfolio()
 
     render_standard_footer("COLLABORATION & PORTFOLIO HUB")

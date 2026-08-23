@@ -24,6 +24,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from modules.page_bootstrap import setup_page, render_standard_footer
+from modules.theme import get_theme
 from modules.session_manager import get_active_dataframe
 from modules.shared_ui import (
     hero_card,
@@ -218,8 +219,9 @@ def render_ai_insights(df):
     if dup_count > 0:
         insights.append(f"**Duplicate Records:** `{dup_count:,}` exact duplicate rows detected ({dup_count/rows*100:.1f}% of dataset).")
 
+    t = get_theme()
     for ins in insights:
-        st.markdown(f"""<div style="background:#0b1321; border-left:4px solid #00f2fe; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:#f8fafc;">{ins}</div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div style="background:{t['bg_card']}; border-left:4px solid {t['accent']}; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:{t['text_primary']};">{ins}</div>""", unsafe_allow_html=True)
 
     st.markdown("### 📄 Executive Report Generation")
     report = f"""# EXECUTIVE DATA INTELLIGENCE REPORT
@@ -473,17 +475,18 @@ def render_audio():
         pitch = st.slider("Pitch", 0.0, 2.0, 1.0, 0.1, key="audio_pitch_upg")
 
     safe_text = text_to_speak.replace("\\", "\\\\").replace("`", "\\`").replace("</script>", "<\\/script>")
+    t = get_theme()
 
     components.html(
         f"""
-        <div style="font-family: Inter, sans-serif; color: #f8fafc;">
-            <button id="speakBtn" style="background:#38BDF8;color:#0b1321;border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;">
+        <div style="font-family: Inter, sans-serif; color: {t['text_primary']};">
+            <button id="speakBtn" style="background:{t['accent_alt']};color:{t['bg_card']};border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;">
                 🔊 Speak Text
             </button>
-            <button id="stopBtn" style="background:#334155;color:#f8fafc;border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;margin-left:0.5rem;">
+            <button id="stopBtn" style="background:{t['border_accent']};color:{t['text_primary']};border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;margin-left:0.5rem;">
                 ⏹ Stop
             </button>
-            <p id="ttsStatus" style="margin-top:0.6rem;color:#94a3b8;font-size:0.85rem;"></p>
+            <p id="ttsStatus" style="margin-top:0.6rem;color:{t['text_muted']};font-size:0.85rem;"></p>
         </div>
         <script>
             const text = `{safe_text}`;

@@ -599,6 +599,122 @@ def render_field_surveillance():
             render_export_buttons(ppwr_df, base_name="ppwr_cohort")
 
 
+def render_chaos_lab(df):
+    """Real nonlinear-dynamics / chaos-detection lab. Runs the honest,
+    from-scratch analyze_time_series() pipeline (Rosenstein Lyapunov,
+    0-1 test, correlation dimension, sample entropy) on any numeric
+    column - your uploaded data or a built-in reference series."""
+    from modules.chaos_detector import analyze_time_series
+
+    st.markdown("#### 🌀 Chaos & Nonlinear Dynamics Detector")
+    st.caption(
+        "Runs four independent, real numerical tests — not a single black-box score — "
+        "and tells you plainly when they disagree instead of forcing a confident answer."
+    )
+
+    source = st.radio(
+        "Time series source",
+        ["Use my active dataset", "Reference: Lorenz-style chaotic series", "Reference: Pure sine wave (non-chaotic)"],
+        horizontal=True,
+        key="chaos_lab_source",
+    )
+
+    series = None
+    label = ""
+    dt = 1.0
+    if source == "Use my active dataset":
+        if df is None or df.empty:
+            st.info("No active dataset loaded. Upload one in Data Studio, or try a reference series below.")
+            return
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        if not numeric_cols:
+            st.warning("Your active dataset has no numeric columns to analyze.")
+            return
+        col = st.selectbox("Numeric column to analyze", numeric_cols, key="chaos_lab_col")
+        series = df[col].dropna().to_numpy(dtype=float)
+        label = col
+    elif source == "Reference: Lorenz-style chaotic series":
+        from scipy.integrate import odeint
+
+        def lorenz(state, t, sigma=10.0, rho=28.0, beta=8.0 / 3.0):
+            x, y, z = state
+            return [sigma * (y - x), x * (rho - z) - y, x * y - beta * z]
+
+        t = np.linspace(0, 40, 4000)
+        dt = t[1] - t[0]
+        sol = odeint(lorenz, [1.0, 1.0, 1.0], t)
+        series = sol[:, 0]
+        label = "Lorenz attractor (x-component, classic chaotic reference)"
+    else:
+        t = np.linspace(0, 200, 2000)
+        dt = t[1] - t[0]
+        series = np.sin(t) + 0.02 * np.random.default_rng(1).normal(size=len(t))
+        label = "Reference sine wave"
+
+    if series is None or len(series) < 30:
+        st.warning("Need at least ~30 points to run a meaningful analysis.")
+        return
+
+    st.line_chart(pd.Series(series, name=label))
+
+    if st.button("🔬 Run Chaos Analysis", type="primary", key="chaos_lab_run"):
+        with st.spinner("Running embedding, Lyapunov, 0-1 test, correlation dimension, sample entropy..."):
+            try:
+                report = analyze_time_series(series, dt=dt)
+            except Exception as e:
+                st.error(f"Analysis failed: {e}")
+                return
+
+        if report.verdict.startswith("All"):
+            if "chaotic" in report.verdict:
+                st.error(f"🌀 {report.verdict}")
+            else:
+                st.success(f"✅ {report.verdict}")
+        else:
+            st.warning(f"⚠️ {report.verdict}")
+
+        for w in report.warnings:
+            st.caption(f"⚠️ {w}")
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("n (points)", report.n)
+        c2.metric("Embedding delay τ", report.tau)
+        c3.metric("Embedding dim", report.embedding_dim)
+        lle = report.lyapunov.get("lle", float("nan"))
+        c4.metric("Rosenstein LLE", f"{lle:.4f}" if np.isfinite(lle) else "n/a")
+
+        c5, c6 = st.columns(2)
+        with c5:
+            k = report.zero_one.get("K", float("nan"))
+            st.metric("0-1 Test K", f"{k:.3f}" if np.isfinite(k) else "n/a",
+                       help="K near 1 suggests chaotic dynamics; K near 0 suggests regular/periodic.")
+        with c6:
+            se = report.sample_entropy.get("sampen", float("nan"))
+            st.metric("Sample Entropy", f"{se:.3f}" if np.isfinite(se) else "n/a",
+                       help="Higher = more unpredictable/complex; lower = more regular/repetitive.")
+
+        d2 = report.correlation_dim.get("d2_by_dim")
+        if d2:
+            st.markdown("**Correlation dimension by embedding dimension:**")
+            st.dataframe(pd.DataFrame({"embedding_dim": list(d2.keys()), "D2": list(d2.values())}),
+                         use_container_width=True, hide_index=True)
+
+        with st.expander("What do these tests mean?"):
+            st.markdown("""
+- **Rosenstein Lyapunov exponent (LLE):** measures how fast nearby trajectories diverge.
+  Positive → sensitive dependence on initial conditions (a hallmark of chaos).
+- **0-1 test (K statistic):** a newer, embedding-free chaos test. K→1 chaotic, K→0 regular.
+- **Correlation dimension (D2):** if D2 saturates to a non-integer value as embedding
+  dimension increases, that's a fractal attractor signature — real evidence of chaos, not
+  just noise or a simple periodic cycle.
+- **Sample entropy:** a general complexity/predictability measure, not chaos-specific on
+  its own, but useful alongside the others.
+
+These four tests can disagree, especially on short or noisy real-world data — that's
+reported honestly above rather than papered over with a single confident-sounding score.
+            """)
+
+
 # ==============================================================================
 # Main Execution Orchestrator
 # ==============================================================================
@@ -636,6 +752,7 @@ def main():
         "🎓 Academic Portfolio",
         "🧪 Lab Protocols",
         "🧬 Field Surveillance (mcr/PPWR)",
+        "🌀 Chaos & Nonlinear Dynamics",
     ])
 
     with tabs[0]:
@@ -652,6 +769,8 @@ def main():
         render_lab()
     with tabs[6]:
         render_field_surveillance()
+    with tabs[7]:
+        render_chaos_lab(df)
 
     render_standard_footer("DOMAIN ANALYTICS HUB")
 

@@ -25,53 +25,10 @@ def generate_research_pdf_report(data_dict=None, report_title="Research Analysis
     <head>
         <title>{report_title}</title>
         <style>
-    /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
-    [data-testid="stSidebar"], section[data-testid="stSidebar"] {
-        background-color: #090d16 !important;
-        border-right: 1px solid #262B33 !important;
-    }
-    
-    /* Force all sidebar text, links, and headers to high-contrast off-white */
-    [data-testid="stSidebar"] *, section[data-testid="stSidebar"] * {
-        color: #EDEFF2 !important;
-    }
-
-    /* Target navigation links and text explicitly */
-    [data-testid="stSidebarNav"] span, 
-    [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNavLink"],
-    [data-testid="stSidebarHeader"] {
-        color: #EDEFF2 !important;
-        font-weight: 600 !important;
-    }
-
-    /* Navigation item hover state */
-    [data-testid="stSidebarNavLink"]:hover,
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #262B33 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Currently selected navigation item active state */
-    [data-testid="stSidebarNavLink"][aria-current="page"],
-    [data-testid="stSidebarNav"] a[aria-selected="true"] {
-        background-color: #b5790e !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Custom form inputs inside sidebar */
-    section[data-testid="stSidebar"] .stSelectbox label,
-    section[data-testid="stSidebar"] .stRadio label,
-    section[data-testid="stSidebar"] .stMultiSelect label {
-        color: #4fb8a6 !important;
-        font-weight: 700 !important;
-    }
-            body {{ font-family: Arial, sans-serif; margin: 40px; color: #333; }
-            h1 {{ color: #0066cc; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-            .meta {{ background: #f9f9f9; padding: 15px; border-left: 4px solid #0066cc; margin-bottom: 20px; }
-            ul {{ line-height: 1.6; }
+            body {{ font-family: Arial, sans-serif; margin: 40px; color: #333; }}
+            h1 {{ color: #0066cc; border-bottom: 2px solid #eee; padding-bottom: 10px; }}
+            .meta {{ background: #f9f9f9; padding: 15px; border-left: 4px solid #0066cc; margin-bottom: 20px; }}
+            ul {{ line-height: 1.6; }}
         </style>
     </head>
     <body>

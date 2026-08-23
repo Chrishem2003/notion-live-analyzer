@@ -187,7 +187,7 @@ def render_weather_tab():
 
                 if PLOTLY_AVAILABLE:
                     fig = go.Figure()
-                    fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Max Temperature (°C)"], name="Max Temp (°C)", line=dict(color="#e8a33d", width=3)))
+                    fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Max Temperature (°C)"], name="Max Temp (°C)", line=dict(color="#00f2fe", width=3)))
                     fig.add_trace(go.Scatter(x=df_fc["Date"], y=df_fc["Min Temperature (°C)"], name="Min Temp (°C)", line=dict(color="#4facfe", width=3)))
                     fig.add_trace(go.Bar(x=df_fc["Date"], y=df_fc["Precipitation Sum (mm)"], name="Precipitation (mm)", opacity=0.3, yaxis="y2"))
 
@@ -230,11 +230,11 @@ def render_impact_tab():
         with cols[i % 3]:
             st.markdown(
                 f"""
-                <div style="background:#171B23; border:1px solid #e8a33d44; border-radius:12px; padding:1.2rem; margin-bottom:1rem; text-align:center;">
+                <div style="background:#0b1321; border:1px solid #00f2fe44; border-radius:12px; padding:1.2rem; margin-bottom:1rem; text-align:center;">
                     <div style="font-size:2.2rem;">{sector.get('icon', '⚡')}</div>
-                    <div style="font-weight:800; color:#e8a33d; margin:0.4rem 0; font-size:1.1rem;">{sector.get('sector', 'Sector')}</div>
-                    <div style="font-size:1.5rem; font-weight:800; color:white;">{sector.get('problems_solved', 0)}<span style="font-size:0.85rem; color:#6B7280;"> / {sector.get('goal', 100)}</span></div>
-                    <div style="font-size:0.8rem; color:#6B7280; margin-top:0.4rem;">{sector.get('description', '')}</div>
+                    <div style="font-weight:800; color:#00f2fe; margin:0.4rem 0; font-size:1.1rem;">{sector.get('sector', 'Sector')}</div>
+                    <div style="font-size:1.5rem; font-weight:800; color:white;">{sector.get('problems_solved', 0)}<span style="font-size:0.85rem; color:#94a3b8;"> / {sector.get('goal', 100)}</span></div>
+                    <div style="font-size:0.8rem; color:#94a3b8; margin-top:0.4rem;">{sector.get('description', '')}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -295,6 +295,140 @@ def render_telemetry_tab():
     )
 
 
+def render_systemic_risk_tab():
+    section_header(
+        "🌀 Systemic Risk Simulator",
+        "Real nonlinear ODE models for four classes of systemic crisis, backed by "
+        "modules/chaos_engine.py — actual SciPy integration, Monte Carlo uncertainty "
+        "ensembles, and an early-warning instability heuristic, not canned numbers.",
+    )
+
+    from modules.chaos_engine import (
+        solve_ode_system, grid_failure_model, food_model, macro_model, seir_model,
+        lyapunov_style_heuristic, classify_state, monte_carlo_ensemble,
+    )
+    import numpy as np
+
+    domain = st.selectbox(
+        "Crisis domain",
+        ["⚡ Energy Grid Stress", "🌾 Food Security", "💵 Macro-Financial Debt", "🦠 Pandemic (SEIR + ICU)"],
+        key="risk_domain",
+    )
+
+    t = np.linspace(0, 100, 300)
+
+    if domain == "⚡ Energy Grid Stress":
+        st.caption("State variables: grid instability, storage level, thermal strain.")
+        c1, c2 = st.columns(2)
+        with c1:
+            demand_mult = st.slider("Demand multiplier", 0.5, 3.0, 1.4, 0.1, key="grid_demand")
+        with c2:
+            renewables = st.slider("Renewables share (%)", 0, 100, 35, key="grid_renew")
+        args = (demand_mult, renewables)
+        y0 = [0.1, 0.8, 0.1]
+        model = grid_failure_model
+        state_names = ["Instability", "Storage Level", "Thermal Strain"]
+
+    elif domain == "🌾 Food Security":
+        st.caption("State variables: reserve stock, vulnerability index, price index.")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            consumption = st.slider("Consumption rate", 0.0, 500.0, 120.0, 10.0, key="food_consume")
+        with c2:
+            stress = st.slider("Supply shock stress", 0.0, 1.0, 0.15, 0.01, key="food_stress")
+        with c3:
+            fertil_inflate = st.slider("Fertilizer/input inflation", 0.0, 2.0, 0.3, 0.05, key="food_fertil")
+        args = (consumption, stress, fertil_inflate)
+        y0 = [100.0, 0.1, 1.0]
+        model = food_model
+        state_names = ["Reserve Stock", "Vulnerability", "Price Index"]
+
+    elif domain == "💵 Macro-Financial Debt":
+        st.caption("State variables: debt level, FX reserves, inflation.")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            rate = st.slider("Interest rate (%)", 0.0, 20.0, 7.0, 0.5, key="macro_rate")
+        with c2:
+            shock = st.slider("External shock magnitude", 0.0, 1.0, 0.2, 0.05, key="macro_shock")
+        with c3:
+            fx_depr = st.slider("Currency depreciation", 0.0, 2.0, 0.4, 0.05, key="macro_fx")
+        args = (rate, shock, fx_depr)
+        y0 = [50.0, 20.0, 5.0]
+        model = macro_model
+        state_names = ["Debt", "FX Reserves", "Inflation"]
+
+    else:
+        st.caption("State variables: Susceptible, Exposed, Infected, Recovered, ICU.")
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            beta = st.slider("Transmission rate (β)", 0.0, 1.0, 0.35, 0.01, key="seir_beta")
+        with c2:
+            gamma = st.slider("Recovery rate (γ)", 0.01, 1.0, 0.1, 0.01, key="seir_gamma")
+        with c3:
+            icu_rate = st.slider("ICU admission rate", 0.0, 0.5, 0.05, 0.01, key="seir_icu")
+        with c4:
+            mitigation = st.slider("Mitigation effectiveness", 0.0, 0.95, 0.2, 0.05, key="seir_mit")
+        args = (beta, gamma, icu_rate, mitigation)
+        y0 = [0.99, 0.01, 0.0, 0.0, 0.0]
+        model = seir_model
+        state_names = ["Susceptible", "Exposed", "Infected", "Recovered", "ICU"]
+
+    if st.button("▶️ Run Simulation", type="primary", key="risk_run"):
+        with st.spinner("Integrating the ODE system and running the Monte Carlo ensemble..."):
+            sol = solve_ode_system(model, y0, t, args=args)
+            mlce = lyapunov_style_heuristic(sol[:, 0], t[1] - t[0])
+            verdict = classify_state(mlce)
+            ensemble = monte_carlo_ensemble(model, y0, t, args, n_runs=25, noise_scale=0.02)
+
+        result_df = pd.DataFrame(sol, columns=state_names)
+        result_df["t"] = t
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Early-warning heuristic", f"{mlce:.4f}")
+        badge = {"STABLE": "🟢", "BORDERLINE": "🟡", "CRITICAL": "🔴"}.get(verdict, "⚪")
+        c2.metric("Classification", f"{badge} {verdict}")
+        c3.metric("Ensemble runs", ensemble.shape[1])
+
+        if PLOTLY_AVAILABLE:
+            fig = go.Figure()
+            for col in state_names:
+                fig.add_trace(go.Scatter(x=result_df["t"], y=result_df[col], name=col, mode="lines"))
+            fig.update_layout(
+                title=f"{domain} — Trajectory", height=380, template="plotly_dark",
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            fig2 = go.Figure()
+            for i in range(ensemble.shape[1]):
+                fig2.add_trace(go.Scatter(x=t, y=ensemble[:, i], mode="lines",
+                                           line=dict(width=1, color="rgba(0,242,254,0.15)"),
+                                           showlegend=False, hoverinfo="skip"))
+            fig2.add_trace(go.Scatter(x=t, y=sol[:, 0], mode="lines",
+                                       line=dict(width=3, color="#00f2fe"), name=f"{state_names[0]} (baseline)"))
+            fig2.update_layout(
+                title=f"Monte Carlo Uncertainty Ensemble — {state_names[0]} under perturbed initial conditions",
+                height=340, template="plotly_dark",
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            )
+            st.plotly_chart(fig2, use_container_width=True)
+        else:
+            st.line_chart(result_df.set_index("t"))
+
+        st.dataframe(result_df.tail(10), use_container_width=True, hide_index=True)
+        render_export_buttons(result_df, base_name=f"systemic_risk_{domain.split()[1].lower()}")
+
+        with st.expander("What is the early-warning heuristic?"):
+            st.markdown("""
+A finite-difference estimate of local trajectory expansion rate — a fast, honest
+proxy for sensitivity to initial conditions, disclosed as a **heuristic**, not a
+rigorous Lyapunov exponent (that requires a full Jacobian-based calculation, which
+this doesn't attempt). Negative → the system is settling down (STABLE). Near zero
+→ borderline. Clearly positive → small perturbations are growing (CRITICAL) —
+worth investigating further with the ensemble spread above.
+            """)
+
+
 def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="mission")
@@ -314,6 +448,7 @@ def main():
     tabs = st.tabs([
         "🌡️ Health Surveillance",
         "🌦️ Climate & Weather",
+        "🌀 Systemic Risk Simulator",
         "🏆 Impact Scorecard",
         "🧠 Workflow Registry",
         "📈 System Telemetry",
@@ -324,10 +459,12 @@ def main():
     with tabs[1]:
         render_weather_tab()
     with tabs[2]:
-        render_impact_tab()
+        render_systemic_risk_tab()
     with tabs[3]:
-        render_problems_tab()
+        render_impact_tab()
     with tabs[4]:
+        render_problems_tab()
+    with tabs[5]:
         render_telemetry_tab()
 
     render_standard_footer("GLOBAL MISSION CONTROL")

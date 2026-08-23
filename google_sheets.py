@@ -242,7 +242,7 @@ class GoogleSheetsClient:
 
 def render_google_sheets_ui(df: pd.DataFrame):
     """Render the Google Sheets integration UI."""
-    st.markdown("## Ã°Å¸â€— Google Sheets Integration")
+    st.markdown("## 📄 Google Sheets Integration")
     st.markdown("*Connect, read from, and write to Google Sheets*")
 
     if not HAS_GSPREAD:
