@@ -1,4 +1,4 @@
-﻿
+
 """Unit tests for modules.notion_client."""
 import hashlib
 
@@ -55,35 +55,35 @@ class TestRichTextAndParsers:
             ("title", {"title": [{"plain_text": "T"}]}, "T"),
             ("rich_text", {"rich_text": [{"plain_text": "R"}]}, "R"),
             ("number", {"number": 7}, 7),
-            ("select", {"select": {"name": "Alpha"}, "Alpha"),
+            ("select", {"select": {"name": "Alpha"}}, "Alpha"),
             ("select", {"select": None}, None),
             ("multi_select", {"multi_select": [{"name": "a"}, {"name": "b"}]}, ["a", "b"]),
             ("multi_select", {"multi_select": []}, []),
-            ("status", {"status": {"name": "Done"}, "Done"),
+            ("status", {"status": {"name": "Done"}}, "Done"),
             ("status", {"status": None}, None),
-            ("date", {"date": {"start": "2024-01-01"}, "2024-01-01"),
+            ("date", {"date": {"start": "2024-01-01"}}, "2024-01-01"),
             ("date", {"date": None}, None),
             ("checkbox", {"checkbox": True}, True),
             ("checkbox", {}, False),
             ("email", {"email": "a@b.c"}, "a@b.c"),
             ("phone", {"phone": "123"}, "123"),
             ("url", {"url": "https://x.dev"}, "https://x.dev"),
-            ("formula", {"formula": {"type": "number", "number": 1}, 1),
+            ("formula", {"formula": {"type": "number", "number": 1}}, 1),
             ("relation", {"relation": [{"id": "p1"}]}, ["p1"]),
             ("relation", {"relation": []}, []),
-            ("rollup", {"rollup": {"type": "number", "number": 2}, 2),
+            ("rollup", {"rollup": {"type": "number", "number": 2}}, 2),
             ("people", {"people": [{"name": "Ada"}, {"id": "u2"}]}, ["Ada", "u2"]),
             ("people", {"people": []}, []),
             ("files", {"files": [{"name": "f.png"}]}, ["f.png"]),
-            ("files", {"files": [{"external": {"url": "http://x/f.png"}]}, ["http://x/f.png"]),
-            ("created_by", {"created_by": {"name": "Ada"}, "Ada"),
-            ("created_by", {"created_by": {}, "Unknown"),
+            ("files", {"files": [{"external": {"url": "http://x/f.png"}}]}, ["http://x/f.png"]),
+            ("created_by", {"created_by": {"name": "Ada"}}, "Ada"),
+            ("created_by", {"created_by": {}}, "Unknown"),
             ("created_time", {"created_time": "2024-01-01T00:00:00Z"}, "2024-01-01T00:00:00Z"),
-            ("last_edited_by", {"last_edited_by": {}, "Unknown"),
+            ("last_edited_by", {"last_edited_by": {}}, "Unknown"),
             ("last_edited_time", {"last_edited_time": "2024-01-02T00:00:00Z"}, "2024-01-02T00:00:00Z"),
-            ("unique_id", {"unique_id": {"prefix": "TASK", "number": 12}, "TASK-12"),
+            ("unique_id", {"unique_id": {"prefix": "TASK", "number": 12}}, "TASK-12"),
             ("unique_id", {"unique_id": None}, None),
-            ("button", {"button": {"action": "run"}, "run"),
+            ("button", {"button": {"action": "run"}}, "run"),
         ],
     )
     def test_property_parsers(self, prop_type, payload, expected):
@@ -198,13 +198,13 @@ class TestHeadersAndErrors:
 
 class TestFingerprinting:
     def test_fingerprint_is_stable_and_order_independent(self):
-        props_a = {"Name": {"type": "title"}, "Score": {"type": "number"}
-        props_b = {"Score": {"type": "number"}, "Name": {"type": "title"}
+        props_a = {"Name": {"type": "title"}, "Score": {"type": "number"}}
+        props_b = {"Score": {"type": "number"}, "Name": {"type": "title"}}
         assert nc.fingerprint_database(props_a) == nc.fingerprint_database(props_b)
 
     def test_fingerprint_changes_with_schema(self):
-        base = nc.fingerprint_database({"Name": {"type": "title"})
-        assert base != nc.fingerprint_database({"Name": {"type": "rich_text"})
+        base = nc.fingerprint_database({"Name": {"type": "title"}})
+        assert base != nc.fingerprint_database({"Name": {"type": "rich_text"}})
 
     def test_non_dict_properties_are_ignored(self):
         assert nc.fingerprint_database({"Name": "oops"}) == hashlib.sha256(b"").hexdigest()
@@ -217,7 +217,7 @@ class TestDatabaseDiscovery:
             {
                 "id": "db-simple",
                 "title": "Simple",
-                "properties": {"Name": {"type": "title"},
+                "properties": {"Name": {"type": "title"}},
             },
             {
                 "id": "db-rich",
@@ -258,7 +258,7 @@ class TestGetDatabaseOptions:
                 {
                     "results": [
                         {"id": "db1", "title": [{"plain_text": "First"}], "properties": {},
-                    ],
+                    }],
                     "has_more": True,
                     "next_cursor": "cursor-1",
                 },
@@ -266,7 +266,7 @@ class TestGetDatabaseOptions:
             FakeResponse(
                 200,
                 {
-                    "results": [{"id": "db2", "title": [], "properties": {}],
+                    "results": [{"id": "db2", "title": [], "properties": {}}],
                     "has_more": False,
                 },
             ),
@@ -298,7 +298,7 @@ class TestGetDatabaseOptions:
 
 class TestGetDatabaseSchema:
     def test_returns_properties(self, monkeypatch):
-        payload = {"properties": {"Name": {"type": "title"}
+        payload = {"properties": {"Name": {"type": "title"}}}
         monkeypatch.setattr(nc, "_rate_limited_request", lambda *a, **k: FakeResponse(200, payload))
         assert nc.get_database_schema("tok", "db1", force_refresh=True) == payload["properties"]
 
@@ -429,14 +429,14 @@ class TestFetchNotionData:
         assert df.loc[0, "Tags"] is None
 
     def test_unknown_property_type_is_stringified(self, monkeypatch):
-        schema = {"properties": {"Weird": {"type": "not_a_real_type"}
+        schema = {"properties": {"Weird": {"type": "not_a_real_type"}}}
 
         def fake_request(method, url, **kwargs):
             if method == "GET":
                 return FakeResponse(200, schema)
             return FakeResponse(
                 200,
-                {"results": [{"id": "p1", "properties": {"Weird": {"x": 1}], "has_more": False},
+                {"results": [{"id": "p1", "properties": {"Weird": {"x": 1}}}], "has_more": False},
             )
 
         monkeypatch.setattr(nc, "_rate_limited_request", fake_request)
@@ -444,7 +444,7 @@ class TestFetchNotionData:
         assert df.loc[0, "Weird"] == "{'x': 1}"
 
     def test_numeric_strings_are_coerced(self, monkeypatch):
-        schema = {"properties": {"Score": {"type": "rich_text"}
+        schema = {"properties": {"Score": {"type": "rich_text"}}}
 
         def fake_request(method, url, **kwargs):
             if method == "GET":
@@ -453,7 +453,7 @@ class TestFetchNotionData:
                 200,
                 {
                     "results": [
-                        {"id": f"p{i}", "properties": {"Score": {"rich_text": [{"plain_text": str(i)}]}
+                        {"id": f"p{i}", "properties": {"Score": {"rich_text": [{"plain_text": str(i)}]}}}
                         for i in range(3)
                     ],
                     "has_more": False,

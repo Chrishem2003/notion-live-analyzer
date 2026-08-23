@@ -55,17 +55,17 @@ def render_live_doc(user_email: str, doc_id: str):
 
         function b64ToBytes(b64) {{
             return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-        }
+        }}
         function bytesToB64(bytes) {{
             return btoa(String.fromCharCode(...bytes));
-        }
+        }}
 
         const ws = new WebSocket({ws_url!r});
 
-        ws.onopen = () => {{ statusEl.textContent = 'Connected — real-time sync active.'; };
+        ws.onopen = () => {{ statusEl.textContent = 'Connected — real-time sync active.'; }};
         ws.onclose = (event) => {{
             statusEl.textContent = event.code === 4401 ? 'Session expired — refresh the page.' : 'Disconnected.';
-        };
+        }};
 
         ws.onmessage = (event) => {{
             const data = JSON.parse(event.data);
@@ -74,12 +74,12 @@ def render_live_doc(user_email: str, doc_id: str):
             Y.applyUpdate(ydoc, bytes);
             applyingRemote = false;
             editorEl.innerText = ytext.toString();
-        };
+        }};
 
         ydoc.on('update', (update, origin) => {{
             if (applyingRemote) return;  // don't re-send updates that came from the server
-            ws.send(JSON.stringify({{type: 'update', update: bytesToB64(update)}));
-        });
+            ws.send(JSON.stringify({{type: 'update', update: bytesToB64(update)}}));
+        }});
 
         // Naive contenteditable -> Y.Text sync: on every keystroke, diff the
         // whole text and replace. This is intentionally simple (not
@@ -94,8 +94,8 @@ def render_live_doc(user_email: str, doc_id: str):
             ydoc.transact(() => {{
                 ytext.delete(0, ytext.length);
                 ytext.insert(0, newText);
-            });
-        });
+            }});
+        }});
     </script>
     """
     st.components.v1.html(widget_html, height=420)

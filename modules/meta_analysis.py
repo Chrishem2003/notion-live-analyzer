@@ -1558,7 +1558,7 @@ Lee 2021, 0.23, 0.028""", key="meta_paste")
 
         st.sidebar.markdown(
             f"""<button onclick="navigator.clipboard.writeText(`{report_text_escaped}`).then(
-                () => {{this.innerHTML='✅ Copied!';setTimeout(()=>this.innerHTML='📋 Copy Report',2000)})"
+                () => {{this.innerHTML='✅ Copied!';setTimeout(()=>this.innerHTML='📋 Copy Report',2000)}})"
                 style="padding:8 + px 16 + px;background:#1 + d4ed8;color:white;border:none;border-radius:6 + px;
                 cursor:pointer;font-weight:600;width:100%;">📋 Copy Report</button>""",
             unsafe_allow_html=True,

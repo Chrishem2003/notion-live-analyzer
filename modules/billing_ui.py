@@ -44,14 +44,10 @@ def render_notion_style_billing(user_email, user_name=""):
         c_biz = st.text_input("Business name (optional)", placeholder="Acme Inc.", key="bill_biz")
         
         st.markdown("**Payment Method**")
-        st.info(f"🔒 Payment Link verification active for **{user_email}**")
-        
-        card_num = st.text_input("Card number", placeholder="1234 1234 1234 1234", key="bill_card")
-        c_exp, c_cvc = st.columns(2)
-        with c_exp:
-            st.text_input("Expiration date", placeholder="MM / YY", key="bill_exp")
-        with c_cvc:
-            st.text_input("Security code", placeholder="CVC", type="password", key="bill_cvc")
+        st.info(
+            f"🔒 You'll enter your card details on Stripe's own secure Checkout page, "
+            f"not here — {user_email} is never asked for card information by this app directly."
+        )
 
     with col_right:
         st.markdown("**Billing options**")

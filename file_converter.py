@@ -115,10 +115,10 @@ def dataframe_to_html(df: pd.DataFrame, title: str = "CHRISHEM Data Export") -> 
     html_doc = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>{title}</title>
 <style>
-body {{ font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }
-table.chris-table {{ border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-table.chris-table th {{ background: #0b1e36; color: #fff; padding: 8px 10px; text-align: left; }
-table.chris-table td {{ border: 1px solid #e5e7eb; padding: 6px 10px; }
+body {{ font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }}
+table.chris-table {{ border-collapse: collapse; width: 100%; font-size: 0.9rem; }}
+table.chris-table th {{ background: #0b1e36; color: #fff; padding: 8px 10px; text-align: left; }}
+table.chris-table td {{ border: 1px solid #e5e7eb; padding: 6px 10px; }}
 </style></head><body>
 <h2>{title}</h2>
 <p><em>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} — CHRISHEM Universal Converter</em></p>

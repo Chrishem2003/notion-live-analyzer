@@ -328,9 +328,9 @@ for i in range(len(numeric_cols)):
     for j in range(i1, len(numeric_cols)):
         r = corr_matrix.iloc[i, j]
         if abs(r) > 0.5:
-            strong.append({{"var1": numeric_cols[i], "var2": numeric_cols[j], "r": r})
+            strong.append({{"var1": numeric_cols[i], "var2": numeric_cols[j], "r": r}})
 
-print(f"\\nFound {{len(strong)} strong correlations (|r| > 0.5)")
+print(f"\\nFound {{len(strong)}} strong correlations (|r| > 0.5)")
 corr_matrix.to_csv("correlation_matrix.csv")
 ''',
             "regression": f'''"""
@@ -352,8 +352,8 @@ if features:
     model = LinearRegression()
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    print(f"R² = {{r2_score(y_test, y_pred):.4f}")
-    print(f"RMSE = {{np.sqrt(mean_squared_error(y_test, y_pred)):.4f}")
+    print(f"R² = {{r2_score(y_test, y_pred):.4f}}")
+    print(f"RMSE = {{np.sqrt(mean_squared_error(y_test, y_pred)):.4f}}")
 ''',
         }
 

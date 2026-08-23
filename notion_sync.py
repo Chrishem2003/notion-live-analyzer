@@ -72,35 +72,35 @@ class NotionSyncEngine:
             return {name: None}
 
         if ptype == "rich_text":
-            return {name: {"rich_text": [{"text": {"content": str(value)}]}
+            return {name: {"rich_text": [{"text": {"content": str(value)}}]}}
         elif ptype == "title":
-            return {name: {"title": [{"text": {"content": str(value)}]}
+            return {name: {"title": [{"text": {"content": str(value)}}]}}
         elif ptype == "number":
             try:
-                return {name: {"number": float(value)}
+                return {name: {"number": float(value)}}
             except (ValueError, TypeError):
                 return {"error": f"Cannot convert '{value}' to number"}
         elif ptype == "select":
-            return {name: {"select": {"name": str(value)}
+            return {name: {"select": {"name": str(value)}}}
         elif ptype == "status":
-            return {name: {"status": {"name": str(value)}
+            return {name: {"status": {"name": str(value)}}}
         elif ptype == "checkbox":
-            return {name: {"checkbox": bool(value)}
+            return {name: {"checkbox": bool(value)}}
         elif ptype == "date":
-            return {name: {"date": {"start": str(value)}
+            return {name: {"date": {"start": str(value)}}}
         elif ptype == "email":
-            return {name: {"email": str(value)}
+            return {name: {"email": str(value)}}
         elif ptype == "phone":
-            return {name: {"phone_number": str(value)}
+            return {name: {"phone_number": str(value)}}
         elif ptype == "url":
-            return {name: {"url": str(value)}
+            return {name: {"url": str(value)}}
         elif ptype == "multi_select":
             if isinstance(value, list):
-                return {name: {"multi_select": [{"name": v} for v in value]}
-            return {name: {"multi_select": [{"name": str(value)}]}
+                return {name: {"multi_select": [{"name": v} for v in value]}}
+            return {name: {"multi_select": [{"name": str(value)}]}}
         else:
             # Default to rich_text
-            return {name: {"rich_text": [{"text": {"content": str(value)}]}
+            return {name: {"rich_text": [{"text": {"content": str(value)}}]}}
 
     # ─── Add Comment to Page ──────────────────────────────────────────
     def add_page_comment(self, page_id: str, comment_text: str) -> Tuple[bool, str]:
@@ -110,7 +110,7 @@ class NotionSyncEngine:
 
         payload = {
             "parent": {"page_id": page_id},
-            "rich_text": [{"text": {"content": comment_text}],
+            "rich_text": [{"text": {"content": comment_text}}],
         }
 
         try:

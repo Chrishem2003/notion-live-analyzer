@@ -33,7 +33,7 @@ ALLOWED_TYPES = ["mp3", "wav", "ogg", "m4a"]
 
 def _init_music_table():
     conn = sqlite3.connect(DB_PATH)
-    conn.execute(\"\"\"
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS brain_fm_tracks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             owner TEXT NOT NULL,
@@ -44,7 +44,7 @@ def _init_music_table():
             blob BLOB NOT NULL,
             created_at TEXT NOT NULL
         )
-    \"\"\")
+    """)
     conn.commit()
     conn.close()
 
@@ -167,7 +167,7 @@ def render_brain_fm_studio():
         render_your_music_tab()
 
     with tab_info:
-        st.markdown(\"\"\"
+        st.markdown("""
 **🧠 How Brainwave Entrainment Works**
 
 * **Binaural beats (e.g. 15Hz Beta):** two slightly different tones, one per ear.
@@ -183,4 +183,4 @@ def render_brain_fm_studio():
 
 Evidence for brainwave entrainment's cognitive effects is mixed in the research
 literature — treat this as a focus *aid*, not a guaranteed cognitive intervention.
-        \"\"\")
+        """)

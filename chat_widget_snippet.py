@@ -74,59 +74,59 @@ def render_team_chat(user_email: str, room_id: str = "general"):
         function appendMessage(sender, content, sentAt) {{
             const isSelf = sender === selfEmail;
             const bubble = document.createElement('div');
-            bubble.style.cssText = `margin:4px 0;display:flex;justify-content:${{isSelf ? 'flex-end' : 'flex-start'};`;
+            bubble.style.cssText = `margin:4px 0;display:flex;justify-content:${{isSelf ? 'flex-end' : 'flex-start'}};`;
             bubble.innerHTML = `
                 <div style="max-width:70%;padding:8px 12px;border-radius:12px;
-                            background:${{isSelf ? '#00838f' : '#262B33'};color:#fff;">
-                    ${{isSelf ? '' : `<div style="font-size:0.75em;color:#6B7280;">${{sender}</div>`}
-                    <div>${{content}</div>
-                    <div style="font-size:0.65em;color:#A8B0BC;text-align:right;">${{new Date(sentAt).toLocaleTimeString()}</div>
+                            background:${{isSelf ? '#00838f' : '#262B33'}};color:#fff;">
+                    ${{isSelf ? '' : `<div style="font-size:0.75em;color:#6B7280;">${{sender}}</div>`}}
+                    <div>${{content}}</div>
+                    <div style="font-size:0.65em;color:#A8B0BC;text-align:right;">${{new Date(sentAt).toLocaleTimeString()}}</div>
                 </div>`;
             messagesEl.appendChild(bubble);
             messagesEl.scrollTop = messagesEl.scrollHeight;
-        }
+        }}
 
         ws.onmessage = (event) => {{
             const data = JSON.parse(event.data);
             if (data.type === 'history') {{
                 data.messages.forEach(m => appendMessage(m.sender, m.content, m.sent_at));
-            } else if (data.type === 'message') {{
+            }} else if (data.type === 'message') {{
                 appendMessage(data.sender, data.content, data.sent_at);
-            } else if (data.type === 'typing') {{
+            }} else if (data.type === 'typing') {{
                 if (data.user !== selfEmail) {{
-                    typingEl.textContent = data.is_typing ? `${{data.user} is typing...` : '';
-                }
-            }
-        };
+                    typingEl.textContent = data.is_typing ? `${{data.user}} is typing...` : '';
+                }}
+            }}
+        }};
 
         ws.onclose = (event) => {{
             typingEl.textContent = event.code === 4401
                 ? 'Chat session expired — refresh the page.'
                 : 'Disconnected from chat.';
-        };
+        }};
 
         function sendMessage() {{
             const content = inputEl.value.trim();
             if (!content) return;
-            ws.send(JSON.stringify({{type: 'message', content: content}));
+            ws.send(JSON.stringify({{type: 'message', content: content}}));
             inputEl.value = '';
-        }
+        }}
 
         sendBtn.onclick = sendMessage;
         inputEl.addEventListener('keydown', (e) => {{
             if (e.key === 'Enter') sendMessage();
             else {{
-                ws.send(JSON.stringify({{type: 'typing', is_typing: true}));
+                ws.send(JSON.stringify({{type: 'typing', is_typing: true}}));
                 clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => ws.send(JSON.stringify({{type: 'typing', is_typing: false})), 2000);
-            }
-        });
+                typingTimeout = setTimeout(() => ws.send(JSON.stringify({{type: 'typing', is_typing: false}})), 2000);
+            }}
+        }});
 
         // Heartbeat every 20s so presence doesn't expire (PRESENCE_TTL_SECONDS=45 server-side)
         setInterval(() => {{
-            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({{type: 'heartbeat'}));
-        }, 20000);
-    })();
+            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({{type: 'heartbeat'}}));
+        }}, 20000);
+    }})();
     </script>
     """
 

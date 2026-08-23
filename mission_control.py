@@ -115,7 +115,7 @@ def fetch_weather_telemetry(lat: float = 0.3476, lon: float = 32.5825, daily: bo
             return result
         return {"source": "open-meteo", "error": f"HTTP {r.status_code}"}
     except Exception as e:
-        return {"source": "open-meteo", "error": str(e), "coords": {"lat": lat, "lon": lon}
+        return {"source": "open-meteo", "error": str(e), "coords": {"lat": lat, "lon": lon}}
 
 
 # 3) Global Impact Scorecard

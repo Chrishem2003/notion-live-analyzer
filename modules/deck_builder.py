@@ -120,21 +120,21 @@ class DeckBuilder:
         color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
-    * {{ margin: 0; padding: 0; box-sizing: border-box; }
-    body {{ font-family: 'Inter', -apple-system, sans-serif; background: #EDEFF2; color: #0B0E11; }
-    .slide {{ min-height: 100vh; padding: 3rem 4rem; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #e2e8f0; }
-    .slide-section {{ background: linear-gradient(135deg, #1e3a5f, #1d4ed8); color: white; text-align: center; }
-    .slide-section h1 {{ font-size: 3rem; margin-bottom: 1rem; }
-    .slide-section p {{ font-size: 1.3rem; opacity: 0.9; }
-    .slide-title {{ font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1d4ed8; }
-    .slide-content {{ font-size: 1.1rem; line-height: 1.7; color: #3A4048; }
-    .slide-data {{ overflow-x: auto; }
-    .slide-data table {{ width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    .slide-data th {{ background: #1d4ed8; color: white; padding: 0.6rem; text-align: left; }
-    .slide-data td {{ padding: 0.5rem; border-bottom: 1px solid #e2e8f0; }
-    .chart-container {{ width: 100%; height: 60vh; }
-    .footer {{ margin-top: auto; font-size: 0.8rem; color: #6B7280; text-align: center; padding: 1rem; }
-    @media print {{ .slide {{ page-break-after: always; min-height: 100vh; } }
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    body {{ font-family: 'Inter', -apple-system, sans-serif; background: #EDEFF2; color: #0B0E11; }}
+    .slide {{ min-height: 100vh; padding: 3rem 4rem; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #e2e8f0; }}
+    .slide-section {{ background: linear-gradient(135deg, #1e3a5f, #1d4ed8); color: white; text-align: center; }}
+    .slide-section h1 {{ font-size: 3rem; margin-bottom: 1rem; }}
+    .slide-section p {{ font-size: 1.3rem; opacity: 0.9; }}
+    .slide-title {{ font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #1d4ed8; }}
+    .slide-content {{ font-size: 1.1rem; line-height: 1.7; color: #3A4048; }}
+    .slide-data {{ overflow-x: auto; }}
+    .slide-data table {{ width: 100%; border-collapse: collapse; font-size: 0.9rem; }}
+    .slide-data th {{ background: #1d4ed8; color: white; padding: 0.6rem; text-align: left; }}
+    .slide-data td {{ padding: 0.5rem; border-bottom: 1px solid #e2e8f0; }}
+    .chart-container {{ width: 100%; height: 60vh; }}
+    .footer {{ margin-top: auto; font-size: 0.8rem; color: #6B7280; text-align: center; padding: 1rem; }}
+    @media print {{ .slide {{ page-break-after: always; min-height: 100vh; }} }}
 </style>
 </head>
 <body>
@@ -156,7 +156,7 @@ class DeckBuilder:
     <div class="slide-title">{slide['title']}</div>
     <div class="slide-content">{slide['content']}</div>
     <div class="chart-container">
-        <img src="data:image/png;base64,{{chart_placeholder}" style="width:100%;height:100%;object-fit:contain;" />
+        <img src="data:image/png;base64,{{chart_placeholder}}" style="width:100%;height:100%;object-fit:contain;" />
     </div>
     <div class="footer">CHRISHEM Research Suite</div>
 </div>

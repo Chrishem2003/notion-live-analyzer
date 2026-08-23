@@ -1,9 +1,12 @@
 
 import sqlite3
 import os
-from datetime import datetime
+import datetime
 
-DB_PATH = "chrishem_engine.db"
+DB_PATH = "sovereign_apex_engine.db"  # matches app.py and modules/subscription.py — was
+# previously "chrishem_engine.db", a separate file the rest of the app never read from,
+# so every log_backend_event()/save_user_session() call was silently writing to a
+# SQLite file no admin panel or query ever looked at.
 
 def init_db():
     """
@@ -42,7 +45,7 @@ def log_backend_event(level: str, message: str):
     init_db()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute("INSERT INTO system_logs (timestamp, log_level, message) VALUES (?, ?, ?)", 
                    (timestamp, level, message))
     conn.commit()
@@ -55,7 +58,7 @@ def save_user_session(username: str, gateway: str, lang: str):
     init_db()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute("""
         INSERT INTO user_sessions (username, auth_gateway, last_login, preferred_language)
         VALUES (?, ?, ?, ?)

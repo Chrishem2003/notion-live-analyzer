@@ -1059,7 +1059,11 @@ class ExportEngine:
         """Generate a JavaScript-powered copy button."""
         escaped = html.escape(text.replace("`", "\\`").replace("${", "\\${"))
         return f"""
-    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)})" style="padding:8px 16px;background:#b5790e;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
+    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#b5790e;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
+                style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
+            {button_label}
+        </button>
+        <button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#b5790e;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
                 style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
             {button_label}
         </button>
@@ -1468,7 +1472,11 @@ def render_report_builder(sections, bibliography, db, project_id):
                         db.mark_paper_cited(paper["id"], True)
                         st.code(citation, language="text")
                         st.markdown(f"""
-    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)})" style="padding:8px 16px;background:#b5790e;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
+    html_code = f'''<button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#b5790e;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
+                                style="padding:6px 16px;border-radius:6px;border:1px solid #1d4ed8;"
+                                background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:600;">"
+                            ' Copy Citation'
+                        </button><button onclick="navigator.clipboard.writeText(`{escaped}`).then(() => {{this.innerHTML='Copied!';setTimeout(()=>this.innerHTML='{button_label}',2000)}})" style="padding:8px 16px;background:#b5790e;color:white;border:none;border-radius:6px;cursor:pointer;">{button_label}</button>'''
                                 style="padding:6px 16px;border-radius:6px;border:1px solid #1d4ed8;"
                                 background:#eff6ff;color:#1d4ed8;cursor:pointer;font-weight:600;">"
                             ' Copy Citation'

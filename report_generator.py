@@ -1,4 +1,4 @@
-﻿
+
 import os
 import streamlit as st
 
@@ -53,8 +53,8 @@ def generate_report(data):
         color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
-                body {{ font-family: Arial, sans-serif; margin: 20px; }
-                h1 {{ color: #333; }
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                h1 {{ color: #333; }}
             </style>
         </head>
         <body>

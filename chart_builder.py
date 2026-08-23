@@ -487,7 +487,7 @@ def build_waterfall(df, x=None, y=None, **kwargs):
         y=df[y],
         text=[f"{v:,}" if "<change>" in str(k) else str(v) for k, v in zip(df[x], df[y])],
         textposition="outside",
-        connector={"line": {"color": "rgb(63, 63, 63)"},
+        connector={"line": {"color": "rgb(63, 63, 63)"}},
     ))
     fig.update_layout(
         title=kwargs.get("title", "Waterfall Chart"),

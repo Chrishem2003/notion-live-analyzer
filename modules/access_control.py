@@ -20,28 +20,30 @@ def render_access_control_panel():
     st.markdown("### Sovereign Access Control & Tiered Licensing Hub")
     st.caption("Manage secure user licenses, African student verification portals, credential enclaves, and administrative privileges.")
 
-    # Session State Initialization
+    # Session State Initialization — derived from the REAL logged-in identity
+    # (st.session_state.user_identity, set by the real PBKDF2/OAuth login flow
+    # in app.py), not a hardcoded default. Previously this defaulted every new
+    # session to user_tier="Master Admin" / student_verified=True regardless
+    # of who was actually logged in, and let anyone overwrite a free-text
+    # email field with the admin's address to see "Verified (Admin)" displayed
+    # even though the real is_admin() check elsewhere never consulted this.
+    real_identity = st.session_state.get("user_identity", {})
+    real_email = real_identity.get("email", "")
+
     if "user_email" not in st.session_state:
-        st.session_state.user_email = "chrishem242@gmail.com"
+        st.session_state.user_email = real_email
     if "user_tier" not in st.session_state:
-        st.session_state.user_tier = "Master Admin"
+        st.session_state.user_tier = "Master Admin" if verify_master_admin(real_email) else "Free (Unverified)"
     if "student_verified" not in st.session_state:
-        st.session_state.student_verified = True
+        st.session_state.student_verified = verify_master_admin(real_email)
 
     # User Profile & Authentication Card with privacy masking
     st.markdown("#### Active User Session & License Profile")
     col_u1, col_u2, col_u3 = st.columns(3)
-    
+
     with col_u1:
-        input_email = st.text_input("User Email Address", value=st.session_state.user_email)
-        if input_email != st.session_state.user_email:
-            st.session_state.user_email = input_email
-            if verify_master_admin(input_email):
-                st.session_state.user_tier = "Master Admin"
-                st.session_state.student_verified = True
-            else:
-                st.session_state.user_tier = "Free (Unverified)"
-            st.rerun()
+        st.text_input("User Email Address", value=st.session_state.user_email, disabled=True)
+        st.caption("This reflects your authenticated session — it isn't editable here.")
 
     with col_u2:
         st.text_input("Assigned Access Tier", value=st.session_state.user_tier, disabled=True)

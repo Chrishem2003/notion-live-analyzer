@@ -101,7 +101,7 @@ def create_checkout_session(email: str, plan: str, cycle: str = "monthly") -> st
         mode="subscription",
         customer=customer_id,
         line_items=[{"price": price_id, "quantity": 1}],
-        success_url=f"{base_url}?checkout=success&session_id={{CHECKOUT_SESSION_ID}",
+        success_url=f"{base_url}?checkout=success&session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{base_url}?checkout=cancelled",
         client_reference_id=email,
         metadata={"plan": plan, "cycle": cycle, "email": email},
