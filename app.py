@@ -2976,8 +2976,7 @@ def render_direct_payment_page():
 
         [
             "🏦 Bank Transfer",
-            "📱 Direct / Mobile Payment",
-            "💰 PayPal"
+            "📱 Direct / Mobile Payment"
         ]
     )
 
@@ -3015,7 +3014,7 @@ def render_direct_payment_page():
             f"{instructions['account_type']}"
         )
 
-    elif method == "📱 Direct / Mobile Payment":
+    else:
 
         st.subheader("📱 Direct / Mobile Payment")
 
@@ -3029,23 +3028,6 @@ def render_direct_payment_page():
 
             st.info(
                 "Contact the administrator for mobile payment instructions."
-            )
-
-    else:
-
-        st.subheader("💰 PayPal")
-
-        if instructions["paypal_email"]:
-            st.write("Send payment to this PayPal email:")
-            st.code(instructions["paypal_email"])
-
-        if instructions["paypal_me_link"]:
-            st.write(f"Or pay directly via: {instructions['paypal_me_link']}")
-
-        if not instructions["paypal_email"] and not instructions["paypal_me_link"]:
-            st.info(
-                "PayPal isn't configured on this deployment yet. "
-                "Contact the administrator for PayPal payment instructions."
             )
 
     st.markdown("---")
