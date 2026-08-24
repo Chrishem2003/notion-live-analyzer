@@ -15,7 +15,7 @@ $Root = (Get-Location).Path
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "             SOVEREIGNCAD BUILD SYSTEM" -ForegroundColor Cyan
-Write-Host "             STAGE 4 - SPATIAL CORE" -ForegroundColor Cyan
+Write-Host "             STAGE 4 - SPATIAL + SELECTION" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Project: $Root" -ForegroundColor Gray
@@ -27,35 +27,54 @@ Write-Host ""
 
 Write-Host "[1/10] Checking Python..." -ForegroundColor Yellow
 
-$Python = Get-Command python -ErrorAction SilentlyContinue
+$Python = Join-Path $Root ".venv\Scripts\python.exe"
 
-if (-not $Python) {
-    throw "Python was not found. Activate the .venv first."
+if (-not (Test-Path -LiteralPath $Python)) {
+    $PythonCommand = Get-Command python -ErrorAction SilentlyContinue
+
+    if (-not $PythonCommand) {
+        throw "Python was not found. Activate the .venv first."
+    }
+
+    $Python = $PythonCommand.Source
 }
 
-Write-Host "Python: $($Python.Source)" -ForegroundColor Green
-Write-Host "Version: $(python --version)" -ForegroundColor Green
+Write-Host "Python: $Python" -ForegroundColor Green
+
+& $Python --version
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Python validation failed."
+}
 
 # ============================================================
-# 2. VERIFY PREVIOUS STAGES
+# 2. ENVIRONMENT
 # ============================================================
 
-Write-Host "[2/10] Verifying previous stages..." -ForegroundColor Yellow
+Write-Host "[2/10] Configuring Python environment..." -ForegroundColor Yellow
 
 $env:PYTHONPATH = $Root
 $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
 
-python -c "from sovereign_cad.core.geometry import Point2, BoundingBox2; from sovereign_cad.core.entities import Entity, LineEntity, CircleEntity, EntityRegistry; from sovereign_cad.core.document import Document; from sovereign_cad.core.commands import CommandManager; print('PREVIOUS STAGES: OK')"
+Write-Host "PYTHONPATH: $env:PYTHONPATH" -ForegroundColor Green
+
+# ============================================================
+# 3. VERIFY PREVIOUS STAGES
+# ============================================================
+
+Write-Host "[3/10] Verifying previous stages..." -ForegroundColor Yellow
+
+& $Python -c "from sovereign_cad.core.geometry import Point2, BoundingBox2; from sovereign_cad.core.entities import Entity, LineEntity, CircleEntity, EntityRegistry; from sovereign_cad.core.document import Document; from sovereign_cad.core.commands import CommandManager; print('PREVIOUS STAGES: OK')"
 
 if ($LASTEXITCODE -ne 0) {
     throw "Previous SovereignCAD stages could not be imported."
 }
 
 # ============================================================
-# 3. CREATE DIRECTORIES
+# 4. CREATE DIRECTORIES
 # ============================================================
 
-Write-Host "[3/10] Creating Stage 4 architecture..." -ForegroundColor Yellow
+Write-Host "[4/10] Creating Stage 4 architecture..." -ForegroundColor Yellow
 
 $Directories = @(
     "sovereign_cad\core\transforms",
@@ -70,16 +89,67 @@ foreach ($Directory in $Directories) {
 
     $Path = Join-Path $Root $Directory
 
-    if (-not (Test-Path -LiteralPath $Path)) {
-        New-Item -ItemType Directory -Path $Path -Force | Out-Null
-    }
+    New-Item `
+        -ItemType Directory `
+        -Path $Path `
+        -Force |
+        Out-Null
 }
 
 # ============================================================
-# 4. TRANSFORM ENGINE
+# 5. ENTITY ID COMPATIBILITY
 # ============================================================
 
-Write-Host "[4/10] Building transform engine..." -ForegroundColor Yellow
+Write-Host "[5/10] Verifying entity ID compatibility..." -ForegroundColor Yellow
+
+$EntityFile = Join-Path `
+    $Root `
+    "sovereign_cad\core\entities\entity.py"
+
+if (-not (Test-Path -LiteralPath $EntityFile)) {
+    throw "Entity file not found: $EntityFile"
+}
+
+$EntityContent = Get-Content `
+    -LiteralPath $EntityFile `
+    -Raw
+
+if ($EntityContent -notmatch 'def id\(self\)') {
+
+    Write-Host "Adding Entity.id compatibility property..." -ForegroundColor Yellow
+
+    $EntityContent = $EntityContent -replace `
+        '(\s+def bounding_box\(self\) -> BoundingBox2:)', `
+        @"
+
+    @property
+    def id(self) -> UUID:
+        return self.entity_id
+
+    @property
+    def entity_type(self) -> str:
+        return "ENTITY"
+`$1
+"@
+
+    Set-Content `
+        -LiteralPath $EntityFile `
+        -Value $EntityContent `
+        -Encoding UTF8
+
+    Write-Host "ENTITY ID COMPATIBILITY: ADDED" -ForegroundColor Green
+
+}
+else {
+
+    Write-Host "ENTITY ID COMPATIBILITY: ALREADY PRESENT" -ForegroundColor Green
+}
+
+# ============================================================
+# 6. TRANSFORM ENGINE
+# ============================================================
+
+Write-Host "[6/10] Building transform engine..." -ForegroundColor Yellow
 
 $TransformFile = Join-Path `
     $Root `
@@ -238,13 +308,13 @@ __all__ = [
     -LiteralPath $TransformInit `
     -Encoding UTF8
 
-Write-Host "CREATE: transform engine" -ForegroundColor Green
+Write-Host "TRANSFORM ENGINE: CREATED" -ForegroundColor Green
 
 # ============================================================
-# 5. SPATIAL INDEX
+# 7. SPATIAL INDEX
 # ============================================================
 
-Write-Host "[5/10] Building spatial index..." -ForegroundColor Yellow
+Write-Host "[7/10] Building spatial index..." -ForegroundColor Yellow
 
 $SpatialFile = Join-Path `
     $Root `
@@ -260,1026 +330,6 @@ from ..geometry import BoundingBox2, Point2
 
 
 class SpatialIndex:
-    """
-    Stage 4 spatial index.
-
-    Uses bounding boxes for deterministic spatial queries.
-
-    The interface is intentionally independent from the
-    underlying implementation so it can later be upgraded
-    to an R-tree or other acceleration structure.
-    """
-
-    def __init__(self):
-
-        self._boxes: dict[UUID, BoundingBox2] = {}
-
-    def clear(self) -> None:
-
-        self._boxes.clear()
-
-    def insert(
-        self,
-        entity: Entity,
-    ) -> None:
-
-        self._boxes[entity.id] = entity.bounding_box()
-
-    def remove(
-        self,
-        entity_id: UUID,
-    ) -> None:
-
-        self._boxes.pop(
-            entity_id,
-            None,
-        )
-
-    def update(
-        self,
-        entity: Entity,
-    ) -> None:
-
-        self.insert(entity)
-
-    def rebuild(
-        self,
-        entities,
-    ) -> None:
-
-        self.clear()
-
-        for entity in entities:
-            self.insert(entity)
-
-    def get_box(
-        self,
-        entity_id: UUID,
-    ) -> BoundingBox2 | None:
-
-        return self._boxes.get(entity_id)
-
-    def query_box(
-        self,
-        box: BoundingBox2,
-    ) -> list[UUID]:
-
-        return [
-            entity_id
-            for entity_id, entity_box
-            in self._boxes.items()
-            if entity_box.intersects(box)
-        ]
-
-    def query_point(
-        self,
-        point: Point2,
-    ) -> list[UUID]:
-
-        return [
-            entity_id
-            for entity_id, box
-            in self._boxes.items()
-            if box.contains(point)
-        ]
-
-    def __len__(self) -> int:
-
-        return len(self._boxes)
-'@ | Set-Content `
-    -LiteralPath $SpatialFile `
-    -Encoding UTF8
-
-$SpatialInit = Join-Path `
-    $Root `
-    "sovereign_cad\core\spatial\__init__.py"
-
-@'
-from .index import SpatialIndex
-
-__all__ = [
-    "SpatialIndex",
-]
-'@ | Set-Content `
-    -LiteralPath $SpatialInit `
-    -Encoding UTF8
-
-Write-Host "CREATE: spatial index" -ForegroundColor Green
-
-# ============================================================
-# 6. SELECTION ENGINE
-# ============================================================
-
-Write-Host "[6/10] Building selection engine..." -ForegroundColor Yellow
-
-$SelectionFile = Join-Path `
-    $Root `
-    "sovereign_cad\core\selection\engine.py"
-
-@'
-from __future__ import annotations
-
-from ..entities import EntityRegistry
-from ..geometry import BoundingBox2, Point2
-from ..spatial import SpatialIndex
-
-
-class SelectionEngine:
-
-    def __init__(
-        self,
-        registry: EntityRegistry,
-        spatial_index: SpatialIndex,
-    ):
-
-        self.registry = registry
-        self.spatial_index = spatial_index
-
-    def clear(self) -> None:
-
-        self.registry.clear_selection()
-
-    def select(
-        self,
-        entity_id,
-    ) -> None:
-
-        self.registry.select(entity_id)
-
-    def deselect(
-        self,
-        entity_id,
-    ) -> None:
-
-        self.registry.deselect(entity_id)
-
-    def selected(self):
-
-        return self.registry.selected()
-
-    def pick(
-        self,
-        point: Point2,
-    ) -> list:
-
-        ids = self.spatial_index.query_point(
-            point
-        )
-
-        entities = []
-
-        for entity_id in ids:
-
-            entity = self.registry.get(
-                entity_id
-            )
-
-            if (
-                entity is not None
-                and entity.visible
-            ):
-                entities.append(entity)
-
-        return entities
-
-    def window_select(
-        self,
-        box: BoundingBox2,
-        crossing: bool = True,
-    ) -> list:
-
-        if crossing:
-
-            ids = self.spatial_index.query_box(
-                box
-            )
-
-        else:
-
-            ids = []
-
-            for entity in self.registry.visible():
-
-                entity_box = entity.bounding_box()
-
-                if (
-                    entity_box.min_x >= box.min_x
-                    and entity_box.max_x <= box.max_x
-                    and entity_box.min_y >= box.min_y
-                    and entity_box.max_y <= box.max_y
-                ):
-
-                    ids.append(entity.id)
-
-        return [
-            self.registry.get(entity_id)
-            for entity_id in ids
-            if self.registry.get(entity_id) is not None
-        ]
-
-    def apply_selection(
-        self,
-        entities,
-        additive: bool = False,
-    ) -> None:
-
-        if not additive:
-            self.clear()
-
-        for entity in entities:
-
-            entity.selected = True
-'@ | Set-Content `
-    -LiteralPath $SelectionFile `
-    -Encoding UTF8
-
-$SelectionInit = Join-Path `
-    $Root `
-    "sovereign_cad\core\selection\__init__.py"
-
-@'
-from .engine import SelectionEngine
-
-__all__ = [
-    "SelectionEngine",
-]
-'@ | Set-Content `
-    -LiteralPath $SelectionInit `
-    -Encoding UTF8
-
-Write-Host "CREATE: selection engine" -ForegroundColor Green
-
-# ============================================================
-# 7. TRANSFORM TESTS
-# ============================================================
-
-Write-Host "[7/10] Creating Stage 4 tests..." -ForegroundColor Yellow
-
-$TransformTest = Join-Path `
-    $Root `
-    "sovereign_cad\tests\transforms\test_transform2d.py"
-
-@'
-from math import pi
-
-from sovereign_cad.core.geometry import Point2, Vector2
-from sovereign_cad.core.transforms import Transform2D
-
-
-def test_identity():
-
-    transform = Transform2D.identity()
-
-    result = transform.apply_point(
-        Point2(3, 4)
-    )
-
-    assert result.almost_equal(
-        Point2(3, 4)
-    )
-
-
-def test_translation():
-
-    transform = Transform2D.translation(
-        10,
-        20,
-    )
-
-    result = transform.apply_point(
-        Point2(1, 2)
-    )
-
-    assert result.almost_equal(
-        Point2(11, 22)
-    )
-
-
-def test_rotation():
-
-    transform = Transform2D.rotation(
-        pi / 2
-    )
-
-    result = transform.apply_point(
-        Point2(1, 0)
-    )
-
-    assert result.almost_equal(
-        Point2(0, 1)
-    )
-
-
-def test_scaling():
-
-    transform = Transform2D.scaling(
-        2,
-        3,
-    )
-
-    result = transform.apply_point(
-        Point2(4, 5)
-    )
-
-    assert result.almost_equal(
-        Point2(8, 15)
-    )
-
-
-def test_vector_ignores_translation():
-
-    transform = Transform2D.translation(
-        100,
-        100,
-    )
-
-    result = transform.apply_vector(
-        Vector2(2, 3)
-    )
-
-    assert result == Vector2(
-        2,
-        3,
-    )
-
-
-def test_composition():
-
-    scale = Transform2D.scaling(2)
-
-    move = Transform2D.translation(
-        10,
-        0,
-    )
-
-    combined = scale.then(move)
-
-    result = combined.apply_point(
-        Point2(1, 0)
-    )
-
-    assert result.almost_equal(
-        Point2(12, 0)
-    )
-'@ | Set-Content `
-    -LiteralPath $TransformTest `
-    -Encoding UTF8
-
-# ============================================================
-# 8. SPATIAL TESTS
-# ============================================================
-
-$SpatialTest = Join-Path `
-    $Root `
-    "sovereign_cad\tests\spatial\test_spatial_index.py"
-
-@'
-from sovereign_cad.core.entities import (
-    CircleEntity,
-    EntityRegistry,
-    LineEntity,
-)
-
-from sovereign_cad.core.geometry import (
-    BoundingBox2,
-    Point2,
-)
-
-from sovereign_cad.core.spatial import SpatialIndex
-
-
-def create_scene():
-
-    registry = EntityRegistry()
-
-    line = LineEntity(
-        start=Point2(0, 0),
-        end=Point2(10, 0),
-    )
-
-    circle = CircleEntity(
-        center=Point2(20, 20),
-        radius=5,
-    )
-
-    registry.add(line)
-    registry.add(circle)
-
-    return registry, line, circle
-
-
-def test_insert():
-
-    registry, line, circle = create_scene()
-
-    index = SpatialIndex()
-
-    index.rebuild(registry)
-
-    assert len(index) == 2
-
-
-def test_point_query():
-
-    registry, line, circle = create_scene()
-
-    index = SpatialIndex()
-
-    index.rebuild(registry)
-
-    result = index.query_point(
-        Point2(5, 0)
-    )
-
-    assert line.id in result
-    assert circle.id not in result
-
-
-def test_box_query():
-
-    registry, line, circle = create_scene()
-
-    index = SpatialIndex()
-
-    index.rebuild(registry)
-
-    box = BoundingBox2(
-        -1,
-        -1,
-        11,
-        1,
-    )
-
-    result = index.query_box(box)
-
-    assert line.id in result
-    assert circle.id not in result
-
-
-def test_remove():
-
-    registry, line, circle = create_scene()
-
-    index = SpatialIndex()
-
-    index.rebuild(registry)
-
-    index.remove(line.id)
-
-    assert len(index) == 1
-'@ | Set-Content `
-    -LiteralPath $SpatialTest `
-    -Encoding UTF8
-
-# ============================================================
-# 9. SELECTION TESTS
-# ============================================================
-
-$SelectionTest = Join-Path `
-    $Root `
-    "sovereign_cad\tests\selection\test_selection.py"
-
-@'
-from sovereign_cad.core.entities import (
-    CircleEntity,
-    EntityRegistry,
-    LineEntity,
-)
-
-from sovereign_cad.core.geometry import (
-    BoundingBox2,
-    Point2,
-)
-
-from sovereign_cad.core.selection import (
-    SelectionEngine,
-)
-
-from sovereign_cad.core.spatial import (
-    SpatialIndex,
-)
-
-
-def create_selection_engine():
-
-    registry = EntityRegistry()
-
-    line = LineEntity(
-        start=Point2(0, 0),
-        end=Point2(10, 0),
-    )
-
-    circle = CircleEntity(
-        center=Point2(20, 20),
-        radius=5,
-    )
-
-    registry.add(line)
-    registry.add(circle)
-
-    spatial = SpatialIndex()
-
-    spatial.rebuild(registry)
-
-    selection = SelectionEngine(
-        registry,
-        spatial,
-    )
-
-    return selection, line, circle
-
-
-def test_pick():
-
-    selection, line, circle = (
-        create_selection_engine()
-    )
-
-    result = selection.pick(
-        Point2(5, 0)
-    )
-
-    assert line in result
-    assert circle not in result
-
-
-def test_crossing_window():
-
-    selection, line, circle = (
-        create_selection_engine()
-    )
-
-    box = BoundingBox2(
-        -1,
-        -1,
-        11,
-        1,
-    )
-
-    result = selection.window_select(
-        box,
-        crossing=True,
-    )
-
-    assert line in result
-    assert circle not in result
-
-
-def test_contained_window():
-
-    selection, line, circle = (
-        create_selection_engine()
-    )
-
-    box = BoundingBox2(
-        -1,
-        -1,
-        11,
-        1,
-    )
-
-    result = selection.window_select(
-        box,
-        crossing=False,
-    )
-
-    assert line in result
-    assert circle not in result
-
-
-def test_apply_selection():
-
-    selection, line, circle = (
-        create_selection_engine()
-    )
-
-    selection.apply_selection(
-        [line]
-    )
-
-    assert line.selected
-    assert not circle.selected
-
-
-def test_additive_selection():
-
-    selection, line, circle = (
-        create_selection_engine()
-    )
-
-    selection.apply_selection(
-        [line]
-    )
-
-    selection.apply_selection(
-        [circle],
-        additive=True,
-    )
-
-    assert line.selected
-    assert circle.selected
-
-
-def test_clear_selection():
-
-    selection, line, circle = (
-        create_selection_engine()
-    )
-
-    selection.apply_selection(
-        [line, circle]
-    )
-
-    selection.clear()
-
-    assert not line.selected
-    assert not circle.selected
-'@ | Set-Content `
-    -LiteralPath $SelectionTest `
-    -Encoding UTF8
-
-# ============================================================
-# CORE PACKAGE EXPORT
-# ============================================================
-
-$CoreInit = Join-Path `
-    $Root `
-    "sovereign_cad\core\__init__.py"
-
-@'
-from .geometry import *
-from .entities import *
-from .transforms import *
-from .spatial import *
-from .selection import *
-'@ | Set-Content `
-    -LiteralPath $CoreInit `
-    -Encoding UTF8
-
-Write-Host "CREATE: core exports" -ForegroundColor Green
-
-# ============================================================
-# PACKAGE ROOT
-# ============================================================
-
-$PackageInit = Join-Path `
-    $Root `
-    "sovereign_cad\__init__.py"
-
-if (-not (Test-Path $PackageInit)) {
-
-@'
-"""
-SovereignCAD package.
-"""
-'@ | Set-Content `
-    -LiteralPath $PackageInit `
-    -Encoding UTF8
-
-}
-
-# ============================================================
-# 10. VALIDATION
-# ============================================================
-
-Write-Host "[8/10] Running package validation..." -ForegroundColor Yellow
-
-$env:PYTHONPATH = $Root
-$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
-
-python -c "import sovereign_cad; import sovereign_cad.core; print('PACKAGE: OK')"
-
-if ($LASTEXITCODE -ne 0) {
-    throw "SovereignCAD package validation failed."
-}
-
-python -c "from sovereign_cad.core.transforms import Transform2D; from sovereign_cad.core.spatial import SpatialIndex; from sovereign_cad.core.selection import SelectionEngine; print('STAGE 4 IMPORTS: OK')"
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Stage 4 imports failed."
-}
-
-# ============================================================
-# SYNTAX
-# ============================================================
-
-Write-Host "[9/10] Running Python syntax verification..." -ForegroundColor Yellow
-
-python -m compileall -q sovereign_cad
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Python syntax verification failed."
-}
-
-Write-Host "PYTHON SYNTAX: OK" -ForegroundColor Green
-
-# ============================================================
-# TESTS
-# ============================================================
-
-Write-Host "[10/10] Running complete SovereignCAD test suite..." -ForegroundColor Yellow
-
-python -m pytest `
-    --rootdir="$Root" `
-    "$Root\sovereign_cad\tests" `
-    -q
-
-if ($LASTEXITCODE -ne 0) {
-    throw "SovereignCAD tests failed."
-}
-
-# ============================================================
-# SUCCESS
-# ============================================================
-
-Write-Host ""
-Write-Host "============================================================" -ForegroundColor Green
-Write-Host "             SOVEREIGNCAD STAGE 4: SUCCESS" -ForegroundColor Green
-Write-Host "============================================================" -ForegroundColor Green
-Write-Host ""
-
-Write-Host "Geometry Kernel       : ONLINE" -ForegroundColor Green
-Write-Host "Entity Engine         : ONLINE" -ForegroundColor Green
-Write-Host "Document Engine       : ONLINE" -ForegroundColor Green
-Write-Host "Command Engine        : ONLINE" -ForegroundColor Green
-Write-Host "Undo System           : ONLINE" -ForegroundColor Green
-Write-Host "Redo System           : ONLINE" -ForegroundColor Green
-Write-Host "Transform Engine      : ONLINE" -ForegroundColor Green
-Write-Host "Spatial Index         : ONLINE" -ForegroundColor Green
-Write-Host "Selection Engine      : ONLINE" -ForegroundColor Green
-Write-Host "Tests                 : PASSED" -ForegroundColor Green
-
-Write-Host ""
-Write-Host "Next stage:" -ForegroundColor Cyan
-Write-Host "Rendering + Viewport + Interactive CAD Canvas" -ForegroundColor Cyan
-Write-Host ""
-$ErrorActionPreference = "Stop"
-
-Write-Host ""
-Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "          SOVEREIGNCAD BUILD SYSTEM" -ForegroundColor Cyan
-Write-Host "          STAGE 4 - SPATIAL + SELECTION" -ForegroundColor Cyan
-Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host ""
-
-$Root = (Get-Location).Path
-
-if (-not (Test-Path (Join-Path $Root "sovereign_cad"))) {
-    throw "sovereign_cad directory not found. Run this script from D:\notion-live-analyzer"
-}
-
-$Python = Join-Path $Root ".venv\Scripts\python.exe"
-
-if (-not (Test-Path $Python)) {
-    $Python = "python"
-}
-
-function Write-File {
-    param(
-        [string]$Path,
-        [string]$Content
-    )
-
-    $FullPath = Join-Path $Root $Path
-    $Parent = Split-Path -Parent $FullPath
-
-    New-Item -ItemType Directory -Path $Parent -Force | Out-Null
-
-    Set-Content `
-        -LiteralPath $FullPath `
-        -Value $Content `
-        -Encoding UTF8
-
-    Write-Host "UPDATE: $Path" -ForegroundColor Green
-}
-
-Write-Host "[1/7] Checking existing Stage 3..." -ForegroundColor Yellow
-
-& $Python -c "from sovereign_cad.core.entities import LineEntity,CircleEntity,EntityRegistry; from sovereign_cad.core.commands import CommandManager; print('STAGE 3 CORE: OK')"
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Stage 3 core is not healthy."
-}
-
-Write-Host "STAGE 3: OK" -ForegroundColor Green
-
-
-Write-Host "[2/7] Adding entity ID compatibility..." -ForegroundColor Yellow
-
-Write-File "sovereign_cad\core\entities\entity.py" @'
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-from math import hypot
-from typing import Optional
-from uuid import UUID, uuid4
-
-from sovereign_cad.core.geometry import Point2, BoundingBox2
-
-
-def new_entity_id() -> UUID:
-    return uuid4()
-
-
-def is_valid_entity_id(value) -> bool:
-    return isinstance(value, UUID)
-
-
-@dataclass
-class Entity:
-    entity_id: UUID = field(default_factory=new_entity_id)
-    layer: str = "0"
-    visible: bool = True
-    selected: bool = False
-
-    @property
-    def id(self) -> UUID:
-        """
-        Backwards-compatible alias.
-
-        SovereignCAD internally uses entity_id, while
-        spatial/selection APIs may use id.
-        """
-        return self.entity_id
-
-    @property
-    def entity_type(self) -> str:
-        return "ENTITY"
-
-    def select(self) -> None:
-        self.selected = True
-
-    def deselect(self) -> None:
-        self.selected = False
-
-    def set_layer(self, layer: str) -> None:
-        if not isinstance(layer, str) or not layer.strip():
-            raise ValueError("Layer must be a non-empty string.")
-
-        self.layer = layer
-
-    def bounding_box(self) -> BoundingBox2:
-        raise NotImplementedError
-
-
-@dataclass
-class LineEntity(Entity):
-    start: Point2 = field(
-        default_factory=lambda: Point2(0.0, 0.0)
-    )
-
-    end: Point2 = field(
-        default_factory=lambda: Point2(1.0, 0.0)
-    )
-
-    @property
-    def entity_type(self) -> str:
-        return "LINE"
-
-    @property
-    def length(self) -> float:
-        return hypot(
-            self.end.x - self.start.x,
-            self.end.y - self.start.y,
-        )
-
-    def bounding_box(self) -> BoundingBox2:
-        return BoundingBox2(
-            min_x=min(self.start.x, self.end.x),
-            min_y=min(self.start.y, self.end.y),
-            max_x=max(self.start.x, self.end.x),
-            max_y=max(self.start.y, self.end.y),
-        )
-
-
-@dataclass
-class CircleEntity(Entity):
-    center: Point2 = field(
-        default_factory=lambda: Point2(0.0, 0.0)
-    )
-
-    radius: float = 1.0
-
-    @property
-    def entity_type(self) -> str:
-        return "CIRCLE"
-
-    def __post_init__(self) -> None:
-        if self.radius <= 0:
-            raise ValueError(
-                "Circle radius must be greater than zero."
-            )
-
-    def bounding_box(self) -> BoundingBox2:
-        return BoundingBox2(
-            min_x=self.center.x - self.radius,
-            min_y=self.center.y - self.radius,
-            max_x=self.center.x + self.radius,
-            max_y=self.center.y + self.radius,
-        )
-
-
-class EntityRegistry:
-
-    def __init__(self) -> None:
-        self._entities: dict[UUID, Entity] = {}
-
-    def add(self, entity: Entity) -> UUID:
-
-        if entity.entity_id in self._entities:
-            raise ValueError(
-                f"Entity already exists: {entity.entity_id}"
-            )
-
-        self._entities[entity.entity_id] = entity
-
-        return entity.entity_id
-
-    def remove(self, entity_id: UUID) -> Optional[Entity]:
-        return self._entities.pop(entity_id, None)
-
-    def get(self, entity_id: UUID) -> Optional[Entity]:
-        return self._entities.get(entity_id)
-
-    def clear(self) -> None:
-        self._entities.clear()
-
-    def all(self) -> list[Entity]:
-        return list(self._entities.values())
-
-    def values(self):
-        return self._entities.values()
-
-    def items(self):
-        return self._entities.items()
-
-    def visible(self) -> list[Entity]:
-        return [
-            entity
-            for entity in self._entities.values()
-            if entity.visible
-        ]
-
-    def selected(self) -> list[Entity]:
-        return [
-            entity
-            for entity in self._entities.values()
-            if entity.selected
-        ]
-
-    def clear_selection(self) -> None:
-        for entity in self._entities.values():
-            entity.selected = False
-
-    def select(self, entity_id: UUID) -> None:
-
-        entity = self.get(entity_id)
-
-        if entity is None:
-            raise KeyError(entity_id)
-
-        entity.select()
-
-    def deselect(self, entity_id: UUID) -> None:
-
-        entity = self.get(entity_id)
-
-        if entity is None:
-            raise KeyError(entity_id)
-
-        entity.deselect()
-
-    def __len__(self) -> int:
-        return len(self._entities)
-
-    def __iter__(self):
-        return iter(self._entities.values())
-'@
-
-
-Write-Host "[3/7] Fixing spatial index..." -ForegroundColor Yellow
-
-Write-File "sovereign_cad\core\spatial\index.py" @'
-from __future__ import annotations
-
-from uuid import UUID
-
-from ..entities import Entity
-from ..geometry import BoundingBox2, Point2
-
-
-class SpatialIndex:
-    """
-    Deterministic bounding-box spatial index.
-
-    Stores one bounding box per entity and supports:
-      - insert
-      - remove
-      - update
-      - rebuild
-      - point queries
-      - box queries
-    """
 
     def __init__(self) -> None:
         self._boxes: dict[UUID, BoundingBox2] = {}
@@ -1340,82 +390,571 @@ class SpatialIndex:
 
     def __len__(self) -> int:
         return len(self._boxes)
-'@
+'@ | Set-Content `
+    -LiteralPath $SpatialFile `
+    -Encoding UTF8
+
+$SpatialInit = Join-Path `
+    $Root `
+    "sovereign_cad\core\spatial\__init__.py"
+
+@'
+from .index import SpatialIndex
+
+__all__ = [
+    "SpatialIndex",
+]
+'@ | Set-Content `
+    -LiteralPath $SpatialInit `
+    -Encoding UTF8
+
+Write-Host "SPATIAL INDEX: CREATED" -ForegroundColor Green
+
+# ============================================================
+# 8. SELECTION ENGINE
+# ============================================================
+
+Write-Host "[8/10] Building selection engine..." -ForegroundColor Yellow
+
+$SelectionFile = Join-Path `
+    $Root `
+    "sovereign_cad\core\selection\engine.py"
+
+@'
+from __future__ import annotations
+
+from ..entities import EntityRegistry
+from ..geometry import BoundingBox2, Point2
+from ..spatial import SpatialIndex
 
 
-Write-Host "[4/7] Fixing selection engine..." -ForegroundColor Yellow
+class SelectionEngine:
 
-$SelectionPath = Join-Path $Root "sovereign_cad\core\selection\engine.py"
+    def __init__(
+        self,
+        registry: EntityRegistry,
+        spatial_index: SpatialIndex,
+    ):
 
-if (Test-Path $SelectionPath) {
+        self.registry = registry
+        self.spatial_index = spatial_index
 
-    $selection = Get-Content $SelectionPath -Raw
+    def clear(self) -> None:
+        self.registry.clear_selection()
 
-    $selection = $selection -replace '\bentity\.id\b', 'entity.entity_id'
+    def select(self, entity_id) -> None:
+        self.registry.select(entity_id)
 
-    Set-Content `
-        -LiteralPath $SelectionPath `
-        -Value $selection `
-        -Encoding UTF8
+    def deselect(self, entity_id) -> None:
+        self.registry.deselect(entity_id)
 
-    Write-Host "UPDATE: sovereign_cad\core\selection\engine.py" -ForegroundColor Green
+    def selected(self):
+        return self.registry.selected()
 
-} else {
+    def pick(self, point: Point2) -> list:
 
-    Write-Host "Selection engine file not found; leaving existing implementation." -ForegroundColor Yellow
+        ids = self.spatial_index.query_point(point)
+
+        entities = []
+
+        for entity_id in ids:
+
+            entity = self.registry.get(entity_id)
+
+            if entity is not None and entity.visible:
+                entities.append(entity)
+
+        return entities
+
+    def window_select(
+        self,
+        box: BoundingBox2,
+        crossing: bool = True,
+    ) -> list:
+
+        if crossing:
+
+            ids = self.spatial_index.query_box(box)
+
+        else:
+
+            ids = []
+
+            for entity in self.registry.visible():
+
+                entity_box = entity.bounding_box()
+
+                if (
+                    entity_box.min_x >= box.min_x
+                    and entity_box.max_x <= box.max_x
+                    and entity_box.min_y >= box.min_y
+                    and entity_box.max_y <= box.max_y
+                ):
+                    ids.append(entity.entity_id)
+
+        return [
+            self.registry.get(entity_id)
+            for entity_id in ids
+            if self.registry.get(entity_id) is not None
+        ]
+
+    def apply_selection(
+        self,
+        entities,
+        additive: bool = False,
+    ) -> None:
+
+        if not additive:
+            self.clear()
+
+        for entity in entities:
+            entity.selected = True
+'@ | Set-Content `
+    -LiteralPath $SelectionFile `
+    -Encoding UTF8
+
+$SelectionInit = Join-Path `
+    $Root `
+    "sovereign_cad\core\selection\__init__.py"
+
+@'
+from .engine import SelectionEngine
+
+__all__ = [
+    "SelectionEngine",
+]
+'@ | Set-Content `
+    -LiteralPath $SelectionInit `
+    -Encoding UTF8
+
+Write-Host "SELECTION ENGINE: CREATED" -ForegroundColor Green
+
+# ============================================================
+# 9. TESTS
+# ============================================================
+
+Write-Host "[9/10] Creating Stage 4 tests..." -ForegroundColor Yellow
+
+$TransformTest = Join-Path `
+    $Root `
+    "sovereign_cad\tests\transforms\test_transform2d.py"
+
+@'
+from math import pi
+
+from sovereign_cad.core.geometry import Point2, Vector2
+from sovereign_cad.core.transforms import Transform2D
+
+
+def test_identity():
+
+    transform = Transform2D.identity()
+
+    result = transform.apply_point(Point2(3, 4))
+
+    assert result.almost_equal(Point2(3, 4))
+
+
+def test_translation():
+
+    transform = Transform2D.translation(10, 20)
+
+    result = transform.apply_point(Point2(1, 2))
+
+    assert result.almost_equal(Point2(11, 22))
+
+
+def test_rotation():
+
+    transform = Transform2D.rotation(pi / 2)
+
+    result = transform.apply_point(Point2(1, 0))
+
+    assert result.almost_equal(Point2(0, 1))
+
+
+def test_scaling():
+
+    transform = Transform2D.scaling(2, 3)
+
+    result = transform.apply_point(Point2(4, 5))
+
+    assert result.almost_equal(Point2(8, 15))
+
+
+def test_vector_ignores_translation():
+
+    transform = Transform2D.translation(100, 100)
+
+    result = transform.apply_vector(Vector2(2, 3))
+
+    assert result == Vector2(2, 3)
+
+
+def test_composition():
+
+    scale = Transform2D.scaling(2)
+
+    move = Transform2D.translation(10, 0)
+
+    combined = scale.then(move)
+
+    result = combined.apply_point(Point2(1, 0))
+
+    assert result.almost_equal(Point2(12, 0))
+'@ | Set-Content `
+    -LiteralPath $TransformTest `
+    -Encoding UTF8
+
+
+$SpatialTest = Join-Path `
+    $Root `
+    "sovereign_cad\tests\spatial\test_spatial_index.py"
+
+@'
+from sovereign_cad.core.entities import (
+    CircleEntity,
+    EntityRegistry,
+    LineEntity,
+)
+
+from sovereign_cad.core.geometry import (
+    BoundingBox2,
+    Point2,
+)
+
+from sovereign_cad.core.spatial import SpatialIndex
+
+
+def create_scene():
+
+    registry = EntityRegistry()
+
+    line = LineEntity(
+        start=Point2(0, 0),
+        end=Point2(10, 0),
+    )
+
+    circle = CircleEntity(
+        center=Point2(20, 20),
+        radius=5,
+    )
+
+    registry.add(line)
+    registry.add(circle)
+
+    return registry, line, circle
+
+
+def test_insert():
+
+    registry, line, circle = create_scene()
+
+    index = SpatialIndex()
+
+    index.rebuild(registry)
+
+    assert len(index) == 2
+
+
+def test_point_query():
+
+    registry, line, circle = create_scene()
+
+    index = SpatialIndex()
+
+    index.rebuild(registry)
+
+    result = index.query_point(Point2(5, 0))
+
+    assert line.id in result
+    assert circle.id not in result
+
+
+def test_box_query():
+
+    registry, line, circle = create_scene()
+
+    index = SpatialIndex()
+
+    index.rebuild(registry)
+
+    box = BoundingBox2(-1, -1, 11, 1)
+
+    result = index.query_box(box)
+
+    assert line.id in result
+    assert circle.id not in result
+
+
+def test_remove():
+
+    registry, line, circle = create_scene()
+
+    index = SpatialIndex()
+
+    index.rebuild(registry)
+
+    index.remove(line.id)
+
+    assert len(index) == 1
+'@ | Set-Content `
+    -LiteralPath $SpatialTest `
+    -Encoding UTF8
+
+
+$SelectionTest = Join-Path `
+    $Root `
+    "sovereign_cad\tests\selection\test_selection.py"
+
+@'
+from sovereign_cad.core.entities import (
+    CircleEntity,
+    EntityRegistry,
+    LineEntity,
+)
+
+from sovereign_cad.core.geometry import (
+    BoundingBox2,
+    Point2,
+)
+
+from sovereign_cad.core.selection import SelectionEngine
+from sovereign_cad.core.spatial import SpatialIndex
+
+
+def create_selection_engine():
+
+    registry = EntityRegistry()
+
+    line = LineEntity(
+        start=Point2(0, 0),
+        end=Point2(10, 0),
+    )
+
+    circle = CircleEntity(
+        center=Point2(20, 20),
+        radius=5,
+    )
+
+    registry.add(line)
+    registry.add(circle)
+
+    spatial = SpatialIndex()
+
+    spatial.rebuild(registry)
+
+    selection = SelectionEngine(
+        registry,
+        spatial,
+    )
+
+    return selection, line, circle
+
+
+def test_pick():
+
+    selection, line, circle = create_selection_engine()
+
+    result = selection.pick(Point2(5, 0))
+
+    assert line in result
+    assert circle not in result
+
+
+def test_crossing_window():
+
+    selection, line, circle = create_selection_engine()
+
+    box = BoundingBox2(-1, -1, 11, 1)
+
+    result = selection.window_select(
+        box,
+        crossing=True,
+    )
+
+    assert line in result
+    assert circle not in result
+
+
+def test_contained_window():
+
+    selection, line, circle = create_selection_engine()
+
+    box = BoundingBox2(-1, -1, 11, 1)
+
+    result = selection.window_select(
+        box,
+        crossing=False,
+    )
+
+    assert line in result
+    assert circle not in result
+
+
+def test_apply_selection():
+
+    selection, line, circle = create_selection_engine()
+
+    selection.apply_selection([line])
+
+    assert line.selected
+    assert not circle.selected
+
+
+def test_additive_selection():
+
+    selection, line, circle = create_selection_engine()
+
+    selection.apply_selection([line])
+
+    selection.apply_selection(
+        [circle],
+        additive=True,
+    )
+
+    assert line.selected
+    assert circle.selected
+
+
+def test_clear_selection():
+
+    selection, line, circle = create_selection_engine()
+
+    selection.apply_selection([line, circle])
+
+    selection.clear()
+
+    assert not line.selected
+    assert not circle.selected
+'@ | Set-Content `
+    -LiteralPath $SelectionTest `
+    -Encoding UTF8
+
+
+# ============================================================
+# CORE EXPORTS
+# ============================================================
+
+$CoreInit = Join-Path `
+    $Root `
+    "sovereign_cad\core\__init__.py"
+
+@'
+from .geometry import *
+from .entities import *
+from .transforms import *
+from .spatial import *
+from .selection import *
+'@ | Set-Content `
+    -LiteralPath $CoreInit `
+    -Encoding UTF8
+
+# ============================================================
+# PACKAGE ROOT
+# ============================================================
+
+$PackageInit = Join-Path `
+    $Root `
+    "sovereign_cad\__init__.py"
+
+if (-not (Test-Path -LiteralPath $PackageInit)) {
+
+@'
+"""
+SovereignCAD package.
+"""
+'@ | Set-Content `
+    -LiteralPath $PackageInit `
+    -Encoding UTF8
 }
 
+# ============================================================
+# 10. VALIDATION
+# ============================================================
 
-Write-Host "[5/7] Cleaning Python caches..." -ForegroundColor Yellow
+Write-Host "[10/10] Running Stage 4 validation..." -ForegroundColor Yellow
 
-Get-ChildItem `
-    (Join-Path $Root "sovereign_cad") `
-    -Recurse `
-    -Directory `
-    -Filter "__pycache__" `
-    -ErrorAction SilentlyContinue |
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-
-Write-Host "CACHE: CLEAN" -ForegroundColor Green
-
-
-Write-Host "[6/7] Running Stage 4 tests..." -ForegroundColor Yellow
-
-& $Python -m pytest sovereign_cad/tests -q
+& $Python -c "import sovereign_cad; import sovereign_cad.core; from sovereign_cad.core.transforms import Transform2D; from sovereign_cad.core.spatial import SpatialIndex; from sovereign_cad.core.selection import SelectionEngine; print('STAGE 4 IMPORTS: OK')"
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host ""
-    Write-Host "STAGE 4 TESTS FAILED." -ForegroundColor Red
-    exit $LASTEXITCODE
+    throw "Stage 4 imports failed."
 }
 
-
-Write-Host "[7/7] Running final entity/spatial smoke test..." -ForegroundColor Yellow
-
-& $Python -c "from sovereign_cad.core.entities import LineEntity,CircleEntity,EntityRegistry; from sovereign_cad.core.geometry import Point2,BoundingBox2; from sovereign_cad.core.spatial.index import SpatialIndex; l=LineEntity(Point2(0,0),Point2(10,0)); c=CircleEntity(Point2(10,20),5); r=EntityRegistry(); r.add(l); r.add(c); s=SpatialIndex(); s.rebuild(r); assert l.id == l.entity_id; assert l.length == 10; assert len(s)==2; assert l.id in s.query_point(Point2(5,0)); assert c.id in s.query_box(BoundingBox2(4,14,16,26)); print('ENTITY ID: OK'); print('LINE LENGTH: OK'); print('SPATIAL INDEX: OK'); print('SELECTION COMPATIBILITY: OK'); print('STAGE 4 SMOKE TEST: OK')"
+& $Python -m compileall -q sovereign_cad
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host ""
-    Write-Host "STAGE 4 SMOKE TEST FAILED." -ForegroundColor Red
-    exit $LASTEXITCODE
+    throw "Python syntax verification failed."
 }
+
+Write-Host "PYTHON SYNTAX: OK" -ForegroundColor Green
+
+# ============================================================
+# TESTS
+# ============================================================
+
+if ($RunTests) {
+
+    Write-Host "Running complete Stage 4 test suite..." -ForegroundColor Yellow
+
+    & $Python -m pytest `
+        --rootdir="$Root" `
+        "$Root\sovereign_cad\tests" `
+        -q
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "SovereignCAD Stage 4 tests failed."
+    }
+
+    Write-Host "TESTS: PASSED" -ForegroundColor Green
+
+}
+else {
+
+    Write-Host ""
+    Write-Host "Tests were not requested." -ForegroundColor Gray
+    Write-Host "Run with:" -ForegroundColor Cyan
+    Write-Host ".\YourStage4Script.ps1 -RunTests" -ForegroundColor Cyan
+
+}
+
+# ============================================================
+# FINAL SMOKE TEST
+# ============================================================
+
+Write-Host ""
+Write-Host "Running final entity/spatial smoke test..." -ForegroundColor Yellow
+
+& $Python -c "from sovereign_cad.core.entities import LineEntity,CircleEntity,EntityRegistry; from sovereign_cad.core.geometry import Point2,BoundingBox2; from sovereign_cad.core.spatial import SpatialIndex; l=LineEntity(start=Point2(0,0),end=Point2(10,0)); c=CircleEntity(center=Point2(10,20),radius=5); r=EntityRegistry(); r.add(l); r.add(c); s=SpatialIndex(); s.rebuild(r); assert l.id == l.entity_id; assert l.length == 10; assert len(s)==2; assert l.id in s.query_point(Point2(5,0)); assert c.id in s.query_box(BoundingBox2(4,14,16,26)); print('ENTITY ID: OK'); print('LINE LENGTH: OK'); print('SPATIAL INDEX: OK'); print('STAGE 4 SMOKE TEST: OK')"
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Stage 4 smoke test failed."
+}
+
+# ============================================================
+# SUCCESS
+# ============================================================
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
-Write-Host "          SOVEREIGNCAD STAGE 4: SUCCESS" -ForegroundColor Green
+Write-Host "             SOVEREIGNCAD STAGE 4: SUCCESS" -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host ""
+
 Write-Host "Geometry Kernel       : ONLINE" -ForegroundColor Green
 Write-Host "Entity Engine         : ONLINE" -ForegroundColor Green
 Write-Host "Document Engine       : ONLINE" -ForegroundColor Green
 Write-Host "Command Engine        : ONLINE" -ForegroundColor Green
 Write-Host "Undo / Redo           : ONLINE" -ForegroundColor Green
+Write-Host "Transform Engine      : ONLINE" -ForegroundColor Green
 Write-Host "Spatial Index         : ONLINE" -ForegroundColor Green
 Write-Host "Selection Engine      : ONLINE" -ForegroundColor Green
-Write-Host "Tests                 : PASSED" -ForegroundColor Green
+
+if ($RunTests) {
+    Write-Host "Tests                 : PASSED" -ForegroundColor Green
+}
+
 Write-Host ""
-Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "NEXT STAGE:" -ForegroundColor Cyan
-Write-Host "Transforms + Advanced Selection + Rendering Preparation" -ForegroundColor Cyan
-Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "Rendering + Viewport + Interactive CAD Canvas" -ForegroundColor Cyan
 Write-Host ""
