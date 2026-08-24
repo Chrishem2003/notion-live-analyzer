@@ -90,7 +90,7 @@ class SelectionEngine:
                     and entity_box.max_y <= box.max_y
                 ):
 
-                    ids.append(entity.entity_id)
+                    ids.append(entity.id)
 
         return [
             self.registry.get(entity_id)
@@ -110,5 +110,3 @@ class SelectionEngine:
         for entity in entities:
 
             entity.selected = True
-
-

@@ -30,17 +30,6 @@ class Entity:
     def entity_type(self) -> str:
         return self.__class__.__name__.replace("Entity", "").upper()
 
-    def select(self) -> None:
-        """Mark this entity as selected."""
-        self.selected = True
-
-    def deselect(self) -> None:
-        """Mark this entity as not selected."""
-        self.selected = False
-
-    def is_selected(self) -> bool:
-        """Return whether this entity is currently selected."""
-        return self.selected
     def set_layer(self, layer: str) -> None:
         if not isinstance(layer, str) or not layer.strip():
             raise ValueError("Layer must be a non-empty string.")
@@ -133,4 +122,3 @@ __all__ = [
     "LineEntity",
     "CircleEntity",
 ]
-

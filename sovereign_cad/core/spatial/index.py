@@ -30,7 +30,7 @@ class SpatialIndex:
         entity: Entity,
     ) -> None:
 
-        self._boxes[entity.entity_id] = entity.bounding_box()
+        self._boxes[entity.id] = entity.bounding_box()
 
     def remove(
         self,
@@ -93,5 +93,3 @@ class SpatialIndex:
     def __len__(self) -> int:
 
         return len(self._boxes)
-
-

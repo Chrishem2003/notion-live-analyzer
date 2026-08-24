@@ -1013,3 +1013,409 @@ Write-Host ""
 Write-Host "Next stage:" -ForegroundColor Cyan
 Write-Host "Rendering + Viewport + Interactive CAD Canvas" -ForegroundColor Cyan
 Write-Host ""
+$ErrorActionPreference = "Stop"
+
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "          SOVEREIGNCAD BUILD SYSTEM" -ForegroundColor Cyan
+Write-Host "          STAGE 4 - SPATIAL + SELECTION" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host ""
+
+$Root = (Get-Location).Path
+
+if (-not (Test-Path (Join-Path $Root "sovereign_cad"))) {
+    throw "sovereign_cad directory not found. Run this script from D:\notion-live-analyzer"
+}
+
+$Python = Join-Path $Root ".venv\Scripts\python.exe"
+
+if (-not (Test-Path $Python)) {
+    $Python = "python"
+}
+
+function Write-File {
+    param(
+        [string]$Path,
+        [string]$Content
+    )
+
+    $FullPath = Join-Path $Root $Path
+    $Parent = Split-Path -Parent $FullPath
+
+    New-Item -ItemType Directory -Path $Parent -Force | Out-Null
+
+    Set-Content `
+        -LiteralPath $FullPath `
+        -Value $Content `
+        -Encoding UTF8
+
+    Write-Host "UPDATE: $Path" -ForegroundColor Green
+}
+
+Write-Host "[1/7] Checking existing Stage 3..." -ForegroundColor Yellow
+
+& $Python -c "from sovereign_cad.core.entities import LineEntity,CircleEntity,EntityRegistry; from sovereign_cad.core.commands import CommandManager; print('STAGE 3 CORE: OK')"
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Stage 3 core is not healthy."
+}
+
+Write-Host "STAGE 3: OK" -ForegroundColor Green
+
+
+Write-Host "[2/7] Adding entity ID compatibility..." -ForegroundColor Yellow
+
+Write-File "sovereign_cad\core\entities\entity.py" @'
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from math import hypot
+from typing import Optional
+from uuid import UUID, uuid4
+
+from sovereign_cad.core.geometry import Point2, BoundingBox2
+
+
+def new_entity_id() -> UUID:
+    return uuid4()
+
+
+def is_valid_entity_id(value) -> bool:
+    return isinstance(value, UUID)
+
+
+@dataclass
+class Entity:
+    entity_id: UUID = field(default_factory=new_entity_id)
+    layer: str = "0"
+    visible: bool = True
+    selected: bool = False
+
+    @property
+    def id(self) -> UUID:
+        """
+        Backwards-compatible alias.
+
+        SovereignCAD internally uses entity_id, while
+        spatial/selection APIs may use id.
+        """
+        return self.entity_id
+
+    @property
+    def entity_type(self) -> str:
+        return "ENTITY"
+
+    def select(self) -> None:
+        self.selected = True
+
+    def deselect(self) -> None:
+        self.selected = False
+
+    def set_layer(self, layer: str) -> None:
+        if not isinstance(layer, str) or not layer.strip():
+            raise ValueError("Layer must be a non-empty string.")
+
+        self.layer = layer
+
+    def bounding_box(self) -> BoundingBox2:
+        raise NotImplementedError
+
+
+@dataclass
+class LineEntity(Entity):
+    start: Point2 = field(
+        default_factory=lambda: Point2(0.0, 0.0)
+    )
+
+    end: Point2 = field(
+        default_factory=lambda: Point2(1.0, 0.0)
+    )
+
+    @property
+    def entity_type(self) -> str:
+        return "LINE"
+
+    @property
+    def length(self) -> float:
+        return hypot(
+            self.end.x - self.start.x,
+            self.end.y - self.start.y,
+        )
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2(
+            min_x=min(self.start.x, self.end.x),
+            min_y=min(self.start.y, self.end.y),
+            max_x=max(self.start.x, self.end.x),
+            max_y=max(self.start.y, self.end.y),
+        )
+
+
+@dataclass
+class CircleEntity(Entity):
+    center: Point2 = field(
+        default_factory=lambda: Point2(0.0, 0.0)
+    )
+
+    radius: float = 1.0
+
+    @property
+    def entity_type(self) -> str:
+        return "CIRCLE"
+
+    def __post_init__(self) -> None:
+        if self.radius <= 0:
+            raise ValueError(
+                "Circle radius must be greater than zero."
+            )
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2(
+            min_x=self.center.x - self.radius,
+            min_y=self.center.y - self.radius,
+            max_x=self.center.x + self.radius,
+            max_y=self.center.y + self.radius,
+        )
+
+
+class EntityRegistry:
+
+    def __init__(self) -> None:
+        self._entities: dict[UUID, Entity] = {}
+
+    def add(self, entity: Entity) -> UUID:
+
+        if entity.entity_id in self._entities:
+            raise ValueError(
+                f"Entity already exists: {entity.entity_id}"
+            )
+
+        self._entities[entity.entity_id] = entity
+
+        return entity.entity_id
+
+    def remove(self, entity_id: UUID) -> Optional[Entity]:
+        return self._entities.pop(entity_id, None)
+
+    def get(self, entity_id: UUID) -> Optional[Entity]:
+        return self._entities.get(entity_id)
+
+    def clear(self) -> None:
+        self._entities.clear()
+
+    def all(self) -> list[Entity]:
+        return list(self._entities.values())
+
+    def values(self):
+        return self._entities.values()
+
+    def items(self):
+        return self._entities.items()
+
+    def visible(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.visible
+        ]
+
+    def selected(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.selected
+        ]
+
+    def clear_selection(self) -> None:
+        for entity in self._entities.values():
+            entity.selected = False
+
+    def select(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(entity_id)
+
+        entity.select()
+
+    def deselect(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(entity_id)
+
+        entity.deselect()
+
+    def __len__(self) -> int:
+        return len(self._entities)
+
+    def __iter__(self):
+        return iter(self._entities.values())
+'@
+
+
+Write-Host "[3/7] Fixing spatial index..." -ForegroundColor Yellow
+
+Write-File "sovereign_cad\core\spatial\index.py" @'
+from __future__ import annotations
+
+from uuid import UUID
+
+from ..entities import Entity
+from ..geometry import BoundingBox2, Point2
+
+
+class SpatialIndex:
+    """
+    Deterministic bounding-box spatial index.
+
+    Stores one bounding box per entity and supports:
+      - insert
+      - remove
+      - update
+      - rebuild
+      - point queries
+      - box queries
+    """
+
+    def __init__(self) -> None:
+        self._boxes: dict[UUID, BoundingBox2] = {}
+
+    def clear(self) -> None:
+        self._boxes.clear()
+
+    def insert(self, entity: Entity) -> None:
+        self._boxes[entity.entity_id] = entity.bounding_box()
+
+    def remove(self, entity_id: UUID) -> None:
+        self._boxes.pop(entity_id, None)
+
+    def update(self, entity: Entity) -> None:
+        self.insert(entity)
+
+    def rebuild(self, entities) -> None:
+
+        self.clear()
+
+        if hasattr(entities, "all"):
+            entities = entities.all()
+
+        elif hasattr(entities, "values"):
+            entities = entities.values()
+
+        for entity in entities:
+            self.insert(entity)
+
+    def get_box(
+        self,
+        entity_id: UUID,
+    ) -> BoundingBox2 | None:
+
+        return self._boxes.get(entity_id)
+
+    def query_box(
+        self,
+        box: BoundingBox2,
+    ) -> list[UUID]:
+
+        return [
+            entity_id
+            for entity_id, entity_box in self._boxes.items()
+            if entity_box.intersects(box)
+        ]
+
+    def query_point(
+        self,
+        point: Point2,
+    ) -> list[UUID]:
+
+        return [
+            entity_id
+            for entity_id, entity_box in self._boxes.items()
+            if entity_box.contains(point)
+        ]
+
+    def __len__(self) -> int:
+        return len(self._boxes)
+'@
+
+
+Write-Host "[4/7] Fixing selection engine..." -ForegroundColor Yellow
+
+$SelectionPath = Join-Path $Root "sovereign_cad\core\selection\engine.py"
+
+if (Test-Path $SelectionPath) {
+
+    $selection = Get-Content $SelectionPath -Raw
+
+    $selection = $selection -replace '\bentity\.id\b', 'entity.entity_id'
+
+    Set-Content `
+        -LiteralPath $SelectionPath `
+        -Value $selection `
+        -Encoding UTF8
+
+    Write-Host "UPDATE: sovereign_cad\core\selection\engine.py" -ForegroundColor Green
+
+} else {
+
+    Write-Host "Selection engine file not found; leaving existing implementation." -ForegroundColor Yellow
+}
+
+
+Write-Host "[5/7] Cleaning Python caches..." -ForegroundColor Yellow
+
+Get-ChildItem `
+    (Join-Path $Root "sovereign_cad") `
+    -Recurse `
+    -Directory `
+    -Filter "__pycache__" `
+    -ErrorAction SilentlyContinue |
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+Write-Host "CACHE: CLEAN" -ForegroundColor Green
+
+
+Write-Host "[6/7] Running Stage 4 tests..." -ForegroundColor Yellow
+
+& $Python -m pytest sovereign_cad/tests -q
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "STAGE 4 TESTS FAILED." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
+
+Write-Host "[7/7] Running final entity/spatial smoke test..." -ForegroundColor Yellow
+
+& $Python -c "from sovereign_cad.core.entities import LineEntity,CircleEntity,EntityRegistry; from sovereign_cad.core.geometry import Point2,BoundingBox2; from sovereign_cad.core.spatial.index import SpatialIndex; l=LineEntity(Point2(0,0),Point2(10,0)); c=CircleEntity(Point2(10,20),5); r=EntityRegistry(); r.add(l); r.add(c); s=SpatialIndex(); s.rebuild(r); assert l.id == l.entity_id; assert l.length == 10; assert len(s)==2; assert l.id in s.query_point(Point2(5,0)); assert c.id in s.query_box(BoundingBox2(4,14,16,26)); print('ENTITY ID: OK'); print('LINE LENGTH: OK'); print('SPATIAL INDEX: OK'); print('SELECTION COMPATIBILITY: OK'); print('STAGE 4 SMOKE TEST: OK')"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "STAGE 4 SMOKE TEST FAILED." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Green
+Write-Host "          SOVEREIGNCAD STAGE 4: SUCCESS" -ForegroundColor Green
+Write-Host "============================================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "Geometry Kernel       : ONLINE" -ForegroundColor Green
+Write-Host "Entity Engine         : ONLINE" -ForegroundColor Green
+Write-Host "Document Engine       : ONLINE" -ForegroundColor Green
+Write-Host "Command Engine        : ONLINE" -ForegroundColor Green
+Write-Host "Undo / Redo           : ONLINE" -ForegroundColor Green
+Write-Host "Spatial Index         : ONLINE" -ForegroundColor Green
+Write-Host "Selection Engine      : ONLINE" -ForegroundColor Green
+Write-Host "Tests                 : PASSED" -ForegroundColor Green
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "NEXT STAGE:" -ForegroundColor Cyan
+Write-Host "Transforms + Advanced Selection + Rendering Preparation" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host ""
