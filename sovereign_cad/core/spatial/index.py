@@ -7,54 +7,31 @@ from ..geometry import BoundingBox2, Point2
 
 
 class SpatialIndex:
-    """
-    Stage 4 spatial index.
 
-    Uses bounding boxes for deterministic spatial queries.
-
-    The interface is intentionally independent from the
-    underlying implementation so it can later be upgraded
-    to an R-tree or other acceleration structure.
-    """
-
-    def __init__(self):
-
+    def __init__(self) -> None:
         self._boxes: dict[UUID, BoundingBox2] = {}
 
     def clear(self) -> None:
-
         self._boxes.clear()
 
-    def insert(
-        self,
-        entity: Entity,
-    ) -> None:
+    def insert(self, entity: Entity) -> None:
+        self._boxes[entity.entity_id] = entity.bounding_box()
 
-        self._boxes[entity.id] = entity.bounding_box()
+    def remove(self, entity_id: UUID) -> None:
+        self._boxes.pop(entity_id, None)
 
-    def remove(
-        self,
-        entity_id: UUID,
-    ) -> None:
-
-        self._boxes.pop(
-            entity_id,
-            None,
-        )
-
-    def update(
-        self,
-        entity: Entity,
-    ) -> None:
-
+    def update(self, entity: Entity) -> None:
         self.insert(entity)
 
-    def rebuild(
-        self,
-        entities,
-    ) -> None:
+    def rebuild(self, entities) -> None:
 
         self.clear()
+
+        if hasattr(entities, "all"):
+            entities = entities.all()
+
+        elif hasattr(entities, "values"):
+            entities = entities.values()
 
         for entity in entities:
             self.insert(entity)
@@ -73,8 +50,7 @@ class SpatialIndex:
 
         return [
             entity_id
-            for entity_id, entity_box
-            in self._boxes.items()
+            for entity_id, entity_box in self._boxes.items()
             if entity_box.intersects(box)
         ]
 
@@ -85,11 +61,9 @@ class SpatialIndex:
 
         return [
             entity_id
-            for entity_id, box
-            in self._boxes.items()
-            if box.contains(point)
+            for entity_id, entity_box in self._boxes.items()
+            if entity_box.contains(point)
         ]
 
     def __len__(self) -> int:
-
         return len(self._boxes)

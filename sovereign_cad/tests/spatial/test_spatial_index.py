@@ -51,9 +51,7 @@ def test_point_query():
 
     index.rebuild(registry)
 
-    result = index.query_point(
-        Point2(5, 0)
-    )
+    result = index.query_point(Point2(5, 0))
 
     assert line.id in result
     assert circle.id not in result
@@ -67,12 +65,7 @@ def test_box_query():
 
     index.rebuild(registry)
 
-    box = BoundingBox2(
-        -1,
-        -1,
-        11,
-        1,
-    )
+    box = BoundingBox2(-1, -1, 11, 1)
 
     result = index.query_box(box)
 

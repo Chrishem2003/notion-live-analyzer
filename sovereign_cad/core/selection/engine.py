@@ -17,48 +17,28 @@ class SelectionEngine:
         self.spatial_index = spatial_index
 
     def clear(self) -> None:
-
         self.registry.clear_selection()
 
-    def select(
-        self,
-        entity_id,
-    ) -> None:
-
+    def select(self, entity_id) -> None:
         self.registry.select(entity_id)
 
-    def deselect(
-        self,
-        entity_id,
-    ) -> None:
-
+    def deselect(self, entity_id) -> None:
         self.registry.deselect(entity_id)
 
     def selected(self):
-
         return self.registry.selected()
 
-    def pick(
-        self,
-        point: Point2,
-    ) -> list:
+    def pick(self, point: Point2) -> list:
 
-        ids = self.spatial_index.query_point(
-            point
-        )
+        ids = self.spatial_index.query_point(point)
 
         entities = []
 
         for entity_id in ids:
 
-            entity = self.registry.get(
-                entity_id
-            )
+            entity = self.registry.get(entity_id)
 
-            if (
-                entity is not None
-                and entity.visible
-            ):
+            if entity is not None and entity.visible:
                 entities.append(entity)
 
         return entities
@@ -71,9 +51,7 @@ class SelectionEngine:
 
         if crossing:
 
-            ids = self.spatial_index.query_box(
-                box
-            )
+            ids = self.spatial_index.query_box(box)
 
         else:
 
@@ -89,8 +67,7 @@ class SelectionEngine:
                     and entity_box.min_y >= box.min_y
                     and entity_box.max_y <= box.max_y
                 ):
-
-                    ids.append(entity.id)
+                    ids.append(entity.entity_id)
 
         return [
             self.registry.get(entity_id)
@@ -108,5 +85,4 @@ class SelectionEngine:
             self.clear()
 
         for entity in entities:
-
             entity.selected = True

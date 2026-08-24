@@ -9,13 +9,8 @@ from sovereign_cad.core.geometry import (
     Point2,
 )
 
-from sovereign_cad.core.selection import (
-    SelectionEngine,
-)
-
-from sovereign_cad.core.spatial import (
-    SpatialIndex,
-)
+from sovereign_cad.core.selection import SelectionEngine
+from sovereign_cad.core.spatial import SpatialIndex
 
 
 def create_selection_engine():
@@ -49,13 +44,9 @@ def create_selection_engine():
 
 def test_pick():
 
-    selection, line, circle = (
-        create_selection_engine()
-    )
+    selection, line, circle = create_selection_engine()
 
-    result = selection.pick(
-        Point2(5, 0)
-    )
+    result = selection.pick(Point2(5, 0))
 
     assert line in result
     assert circle not in result
@@ -63,16 +54,9 @@ def test_pick():
 
 def test_crossing_window():
 
-    selection, line, circle = (
-        create_selection_engine()
-    )
+    selection, line, circle = create_selection_engine()
 
-    box = BoundingBox2(
-        -1,
-        -1,
-        11,
-        1,
-    )
+    box = BoundingBox2(-1, -1, 11, 1)
 
     result = selection.window_select(
         box,
@@ -85,16 +69,9 @@ def test_crossing_window():
 
 def test_contained_window():
 
-    selection, line, circle = (
-        create_selection_engine()
-    )
+    selection, line, circle = create_selection_engine()
 
-    box = BoundingBox2(
-        -1,
-        -1,
-        11,
-        1,
-    )
+    box = BoundingBox2(-1, -1, 11, 1)
 
     result = selection.window_select(
         box,
@@ -107,13 +84,9 @@ def test_contained_window():
 
 def test_apply_selection():
 
-    selection, line, circle = (
-        create_selection_engine()
-    )
+    selection, line, circle = create_selection_engine()
 
-    selection.apply_selection(
-        [line]
-    )
+    selection.apply_selection([line])
 
     assert line.selected
     assert not circle.selected
@@ -121,13 +94,9 @@ def test_apply_selection():
 
 def test_additive_selection():
 
-    selection, line, circle = (
-        create_selection_engine()
-    )
+    selection, line, circle = create_selection_engine()
 
-    selection.apply_selection(
-        [line]
-    )
+    selection.apply_selection([line])
 
     selection.apply_selection(
         [circle],
@@ -140,13 +109,9 @@ def test_additive_selection():
 
 def test_clear_selection():
 
-    selection, line, circle = (
-        create_selection_engine()
-    )
+    selection, line, circle = create_selection_engine()
 
-    selection.apply_selection(
-        [line, circle]
-    )
+    selection.apply_selection([line, circle])
 
     selection.clear()
 
