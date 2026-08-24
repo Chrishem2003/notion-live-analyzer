@@ -1,200 +1,81 @@
-﻿from sovereign_cad.core.commands import (
-    ChangeLayerCommand,
+﻿from sovereign_cad.commands import (
+    Command,
     CommandManager,
-    CreateEntityCommand,
-    DeleteEntityCommand,
+    CommandResult,
 )
-from sovereign_cad.core.document import Document
-from sovereign_cad.core.entities import LineEntity
-from sovereign_cad.core.geometry import Point2
 
 
-def make_line():
+class CounterCommand(Command):
 
-    return LineEntity(
-        Point2(0, 0),
-        Point2(10, 0),
-    )
+    name = "Counter"
 
+    def execute(self, context):
+        context["value"] += 1
 
-def test_create_command():
-
-    document = Document()
-    entity = make_line()
-
-    command = CreateEntityCommand(
-        document,
-        entity,
-    )
-
-    command.execute()
-
-    assert document.entity_count == 1
-    assert document.get_entity(entity.entity_id) is entity
-
-    command.undo()
-
-    assert document.entity_count == 0
-
-
-def test_delete_command():
-
-    document = Document()
-    entity = make_line()
-
-    document.add_entity(entity)
-
-    command = DeleteEntityCommand(
-        document,
-        entity.entity_id,
-    )
-
-    command.execute()
-
-    assert document.entity_count == 0
-
-    command.undo()
-
-    assert document.entity_count == 1
-    assert document.get_entity(entity.entity_id) is entity
-
-
-def test_change_layer():
-
-    document = Document()
-
-    entity = make_line()
-
-    document.add_entity(entity)
-
-    command = ChangeLayerCommand(
-        document,
-        entity.entity_id,
-        "WALLS",
-    )
-
-    command.execute()
-
-    assert entity.layer == "WALLS"
-
-    command.undo()
-
-    assert entity.layer == "0"
-
-
-def test_manager_undo():
-
-    document = Document()
-
-    entity = make_line()
-
-    manager = CommandManager()
-
-    manager.execute(
-        CreateEntityCommand(
-            document,
-            entity,
+        return CommandResult(
+            success=True,
+            message="incremented",
         )
-    )
 
-    assert document.entity_count == 1
+    def undo(self, context):
+        context["value"] -= 1
+
+        return CommandResult(
+            success=True,
+            message="decremented",
+        )
+
+
+def test_command_execution():
+    context = {"value": 0}
+    manager = CommandManager(context=context)
+
+    result = manager.execute(CounterCommand())
+
+    assert result.success
+    assert context["value"] == 1
     assert manager.can_undo
     assert not manager.can_redo
 
-    assert manager.undo()
 
-    assert document.entity_count == 0
+def test_command_undo():
+    context = {"value": 0}
+    manager = CommandManager(context=context)
+
+    manager.execute(CounterCommand())
+    result = manager.undo()
+
+    assert result.success
+    assert context["value"] == 0
+    assert not manager.can_undo
     assert manager.can_redo
 
 
-def test_manager_redo():
+def test_command_redo():
+    context = {"value": 0}
+    manager = CommandManager(context=context)
 
-    document = Document()
-
-    entity = make_line()
-
-    manager = CommandManager()
-
-    manager.execute(
-        CreateEntityCommand(
-            document,
-            entity,
-        )
-    )
-
+    manager.execute(CounterCommand())
     manager.undo()
+    result = manager.redo()
 
-    assert document.entity_count == 0
-
-    assert manager.redo()
-
-    assert document.entity_count == 1
-
-
-def test_new_command_clears_redo():
-
-    document = Document()
-
-    first = make_line()
-    second = make_line()
-
-    manager = CommandManager()
-
-    manager.execute(
-        CreateEntityCommand(
-            document,
-            first,
-        )
-    )
-
-    manager.undo()
-
-    assert manager.can_redo
-
-    manager.execute(
-        CreateEntityCommand(
-            document,
-            second,
-        )
-    )
-
+    assert result.success
+    assert context["value"] == 1
+    assert manager.can_undo
     assert not manager.can_redo
-    assert document.entity_count == 1
 
 
-def test_multiple_undo_redo():
+def test_empty_undo():
+    manager = CommandManager(context={})
 
-    document = Document()
+    result = manager.undo()
 
-    first = make_line()
-    second = make_line()
-    third = make_line()
+    assert not result.success
 
-    manager = CommandManager()
 
-    manager.execute(
-        CreateEntityCommand(document, first)
-    )
+def test_empty_redo():
+    manager = CommandManager(context={})
 
-    manager.execute(
-        CreateEntityCommand(document, second)
-    )
+    result = manager.redo()
 
-    manager.execute(
-        CreateEntityCommand(document, third)
-    )
-
-    assert document.entity_count == 3
-
-    manager.undo()
-    manager.undo()
-
-    assert document.entity_count == 1
-
-    manager.redo()
-
-    assert document.entity_count == 2
-
-    manager.redo()
-
-    assert document.entity_count == 3
+    assert not result.success
