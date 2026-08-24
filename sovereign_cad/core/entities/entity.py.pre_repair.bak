@@ -1,0 +1,181 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass, field
+from math import hypot
+from typing import Optional
+from uuid import UUID, uuid4
+
+from sovereign_cad.core.geometry import Point2, BoundingBox2
+
+
+def new_entity_id() -> UUID:
+    return uuid4()
+
+
+def is_valid_entity_id(value) -> bool:
+    return isinstance(value, UUID)
+
+
+@dataclass(kw_only=True)
+class Entity:
+    entity_id: UUID = field(default_factory=new_entity_id)
+    layer: str = "0"
+    visible: bool = True
+    selected: bool = False
+
+    @property
+    def entity_type(self) -> str:
+        return "ENTITY"
+
+    def select(self) -> None:
+        self.selected = True
+
+    def deselect(self) -> None:
+        self.selected = False
+
+    def set_layer(self, layer: str) -> None:
+        if not isinstance(layer, str) or not layer.strip():
+            raise ValueError("Layer must be a non-empty string.")
+        self.layer = layer
+
+    def bounding_box(self) -> BoundingBox2:
+        raise NotImplementedError
+
+
+@dataclass
+class LineEntity(Entity):
+    start: Point2
+    end: Point2
+
+    @property
+    def entity_type(self) -> str:
+        return "LINE"
+
+    @property
+    def length(self) -> float:
+        return hypot(
+            self.end.x - self.start.x,
+            self.end.y - self.start.y,
+        )
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2(
+            min_x=min(self.start.x, self.end.x),
+            min_y=min(self.start.y, self.end.y),
+            max_x=max(self.start.x, self.end.x),
+            max_y=max(self.start.y, self.end.y),
+        )
+
+    def clone(self) -> LineEntity:
+        return LineEntity(
+            self.start,
+            self.end,
+            entity_id=self.entity_id,
+            layer=self.layer,
+            visible=self.visible,
+            selected=self.selected,
+        )
+
+
+@dataclass
+class CircleEntity(Entity):
+    center: Point2
+    radius: float
+
+    @property
+    def entity_type(self) -> str:
+        return "CIRCLE"
+
+    def __post_init__(self) -> None:
+        if self.radius <= 0:
+            raise ValueError("Circle radius must be greater than zero.")
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2(
+            min_x=self.center.x - self.radius,
+            min_y=self.center.y - self.radius,
+            max_x=self.center.x + self.radius,
+            max_y=self.center.y + self.radius,
+        )
+
+    def clone(self) -> CircleEntity:
+        return CircleEntity(
+            self.center,
+            self.radius,
+            entity_id=self.entity_id,
+            layer=self.layer,
+            visible=self.visible,
+            selected=self.selected,
+        )
+
+
+class EntityRegistry:
+    def __init__(self) -> None:
+        self._entities: dict[UUID, Entity] = {}
+
+    def add(self, entity: Entity) -> UUID:
+        if entity.entity_id in self._entities:
+            raise ValueError(
+                f"Entity {entity.entity_id} already exists."
+            )
+
+        self._entities[entity.entity_id] = entity
+        return entity.entity_id
+
+    def remove(self, entity_id: UUID) -> Entity:
+        if entity_id not in self._entities:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        return self._entities.pop(entity_id)
+
+    def get(self, entity_id: UUID) -> Optional[Entity]:
+        return self._entities.get(entity_id)
+
+    def all(self) -> list[Entity]:
+        return list(self._entities.values())
+
+    def visible(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.visible
+        ]
+
+    def selected(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.selected
+        ]
+
+    def clear_selection(self) -> None:
+        for entity in self._entities.values():
+            entity.selected = False
+
+    def select(self, entity_id: UUID) -> None:
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.select()
+
+    def deselect(self, entity_id: UUID) -> None:
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.deselect()
+
+    def __len__(self) -> int:
+        return len(self._entities)
+
+    def __iter__(self):
+        return iter(self._entities.values())

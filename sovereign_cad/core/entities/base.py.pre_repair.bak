@@ -1,0 +1,41 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
+
+
+@dataclass(kw_only=True)
+class Entity:
+    """
+    Base class for all SovereignCAD entities.
+
+    Common entity properties are keyword-only so geometry constructors
+    can use natural positional arguments.
+    """
+
+    entity_id: UUID = field(default_factory=uuid4)
+    layer: str = "0"
+    visible: bool = True
+    selected: bool = False
+
+    @property
+    def id(self) -> UUID:
+        """Backward-compatible ID alias."""
+        return self.entity_id
+
+    @property
+    def entity_type(self) -> str:
+        """Return the CAD entity type."""
+        return self.__class__.__name__.replace("Entity", "").upper()
+
+    def select(self) -> None:
+        self.selected = True
+
+    def deselect(self) -> None:
+        self.selected = False
+
+    def bounding_box(self):
+        raise NotImplementedError
+
+    def clone(self):
+        raise NotImplementedError
