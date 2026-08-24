@@ -49,12 +49,84 @@ import extra_streamlit_components as stx
 # --- PAGE CONFIGURATION (must be the first Streamlit command) ---
 st.set_page_config(
     page_title="Chrishem Science Hub - Sovereign Enterprise Engine",
-    page_icon="âš¡",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 PBKDF2_ITERATIONS = 260_000
+
+
+def inject_shared_card_styles():
+    """Shared card styling used across billing, student verification, and
+    similar sections of this single-file app - defined once, globally, so
+    it's available regardless of which sidebar section is selected (this
+    app renders one section at a time via a menu, not Streamlit's native
+    multipage routing, so per-function style blocks only apply when that
+    exact function has already run in this rerun)."""
+    st.markdown("""
+    <style>
+    .hero-card {
+        padding: 24px;
+        border-radius: 18px;
+        border: 1px solid rgba(79,184,166,.35);
+        background: linear-gradient(135deg,
+            rgba(79,184,166,.12),
+            rgba(11,14,17,.95));
+        margin-bottom: 20px;
+    }
+    .info-card {
+        padding: 18px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.035);
+        margin-bottom: 12px;
+    }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.9rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+    .status-pill::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+    .status-approved { background: rgba(52,199,135,.15); color: #34C787; }
+    .status-pending { background: rgba(232,163,61,.15); color: #E8A33D; }
+    .status-rejected { background: rgba(229,72,77,.15); color: #E5484D; }
+
+    .payment-hero {
+        padding: 24px;
+        border-radius: 18px;
+        border: 1px solid rgba(79,184,166,.35);
+        background: linear-gradient(135deg,
+            rgba(79,184,166,.12),
+            rgba(11,14,17,.95));
+        margin-bottom: 20px;
+    }
+    .payment-card {
+        padding: 18px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.035);
+        margin-bottom: 12px;
+    }
+    .payment-price {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+inject_shared_card_styles()
 
 
 # ============================================================================
@@ -175,7 +247,7 @@ def render_paywall_cta():
     st.markdown("---")
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.subheader("âš¡ Unlock Sovereign Apex Business Access")
+        st.subheader("⚡ Unlock Sovereign Apex Business Access")
         st.write("Get instant access to Bio-Research Notion Planners, Brain FM Focus Soundscapes, and advanced analytics pipelines.")
     with col2:
         if st.button("💳 Upgrade Subscription Now", type="primary", width='stretch'):
@@ -223,20 +295,20 @@ that session (a real browser security rule, not a limitation of this code).
 
 # Every URL below is verified distinct (deduplicated from the original 25).
 AMBIENT_LIBRARY = {
-    "ðŸ”Š Noise & Deep Focus": {
+    "🔊 Noise & Deep Focus": {
         "Smooth Brown Noise": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
         "Pure White Noise Masker": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
         "Binaural Sub-Bass Resonance": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3",
     },
-    "ðŸŒ§ï¸ Weather Acoustics": {
+    "🌧️ Weather Acoustics": {
         "Gentle Rain & Soft Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
     },
-    "ðŸŒ¿ Nature Ambience": {
+    "🌿 Nature Ambience": {
         "Forest River & Birds": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3",
         "Deep Ocean Waves Crashing": "https://cdn.pixabay.com/download/audio/2022/04/27/audio_651a021132.mp3",
         "Night Jungle & Crickets": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
     },
-    "ðŸŽ§ Tone References": {
+    "🎧 Tone References": {
         "432Hz Deep Focus Pulse": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
         "528Hz Solfeggio Tone": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3",
         "Alpha Waves Reference (10Hz)": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
@@ -266,20 +338,20 @@ def render_generative_synthesizer(height=280):
         .vol-row input { flex:1; }
     </style>
     <div class="synth-card">
-        <h3 style="margin:0 0 5px 0; color:#58a6ff;">ðŸ§  Real-Time Binaural & Frequency Synthesizer</h3>
+        <h3 style="margin:0 0 5px 0; color:#58a6ff;">🧠 Real-Time Binaural & Frequency Synthesizer</h3>
         <p style="margin:0 0 15px 0; font-size:12px; color:#8b949e;">Generated live in your browser — no audio files, nothing to download, no dead links possible.</p>
         <div class="grid">
-            <div class="btn active" id="mode-binaural" onclick="setMode('binaural')">ðŸ§  Beta Binaural (15Hz)</div>
+            <div class="btn active" id="mode-binaural" onclick="setMode('binaural')">🧠 Beta Binaural (15Hz)</div>
             <div class="btn" id="mode-solfeggio" onclick="setMode('solfeggio')">✨ Solfeggio 528Hz</div>
-            <div class="btn" id="mode-pad" onclick="setMode('pad')">ðŸŽ¹ Deep Ambient Pad</div>
-            <div class="btn" id="mode-delta" onclick="setMode('delta')">ðŸŒ™ Delta Sleep (2Hz)</div>
+            <div class="btn" id="mode-pad" onclick="setMode('pad')">🎹 Deep Ambient Pad</div>
+            <div class="btn" id="mode-delta" onclick="setMode('delta')">🌙 Delta Sleep (2Hz)</div>
         </div>
         <div class="vol-row">
-            <span style="font-size:12px;">ðŸ”‰</span>
+            <span style="font-size:12px;">🔉</span>
             <input type="range" id="volSlider" min="0" max="100" value="30" oninput="setVolume(this.value)">
-            <span style="font-size:12px;">ðŸ”Š</span>
+            <span style="font-size:12px;">🔊</span>
         </div>
-        <button id="masterBtn" class="play-btn" onclick="toggleAudio()">â–¶ï¸ Start Synthesizer</button>
+        <button id="masterBtn" class="play-btn" onclick="toggleAudio()">▶️ Start Synthesizer</button>
         <p id="statusMsg" style="font-size:11px; color:#8b949e; margin:8px 0 0 0;"></p>
     </div>
     <script>
@@ -313,13 +385,13 @@ def render_generative_synthesizer(height=280):
             if (!isPlaying) {
                 isPlaying = true;
                 localStorage.setItem('brainsync_playing', 'true');
-                document.getElementById('masterBtn').innerText = 'â¸ï¸ Stop Synthesizer';
+                document.getElementById('masterBtn').innerText = '⏸️ Stop Synthesizer';
                 document.getElementById('masterBtn').classList.add('playing');
                 playSound();
             } else {
                 isPlaying = false;
                 localStorage.setItem('brainsync_playing', 'false');
-                document.getElementById('masterBtn').innerText = 'â–¶ï¸ Start Synthesizer';
+                document.getElementById('masterBtn').innerText = '▶️ Start Synthesizer';
                 document.getElementById('masterBtn').classList.remove('playing');
                 stopSound();
             }
@@ -1032,33 +1104,7 @@ def render_notion_style_billing(user_email, user_name=""):
     # Unified Payment Center.
     # Direct payment is the primary flow.
     # Stripe is only shown when it is actually configured.
-
-    st.markdown("""
-    <style>
-    .payment-hero {
-        padding: 24px;
-        border-radius: 18px;
-        border: 1px solid rgba(79,184,166,.35);
-        background: linear-gradient(135deg,
-            rgba(79,184,166,.12),
-            rgba(11,14,17,.95));
-        margin-bottom: 20px;
-    }
-
-    .payment-card {
-        padding: 18px;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,.12);
-        background: rgba(255,255,255,.035);
-        margin-bottom: 12px;
-    }
-
-    .payment-price {
-        font-size: 2rem;
-        font-weight: 700;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # (card styles are injected once globally via inject_shared_card_styles())
 
     st.markdown("""
     <div class="payment-hero">
@@ -1151,7 +1197,8 @@ def render_notion_style_billing(user_email, user_name=""):
 
         [
             "🏦 Bank Transfer",
-            "📱 Mobile / Direct Payment"
+            "📱 Mobile / Direct Payment",
+            "💰 PayPal"
         ],
 
         horizontal=True
@@ -1209,7 +1256,7 @@ def render_notion_style_billing(user_email, user_name=""):
                 )
 
 
-    else:
+    elif payment_method == "📱 Mobile / Direct Payment":
 
         st.markdown("### 📱 Mobile / Direct Payment")
 
@@ -1231,6 +1278,29 @@ def render_notion_style_billing(user_email, user_name=""):
 
             st.warning(
                 "Mobile payment contact has not been configured."
+            )
+
+    else:
+
+        st.markdown("### 💰 PayPal")
+
+        paypal_email = instructions.get("paypal_email", "")
+        paypal_me_link = instructions.get("paypal_me_link", "")
+
+        if paypal_email:
+            st.text_input(
+                "Send payment to this PayPal email",
+                value=paypal_email,
+                disabled=True,
+                key="payment_paypal_email"
+            )
+
+        if paypal_me_link:
+            st.write(f"Or pay directly via: {paypal_me_link}")
+
+        if not paypal_email and not paypal_me_link:
+            st.warning(
+                "PayPal has not been configured on this deployment yet."
             )
 
 
@@ -1597,7 +1667,7 @@ def _delete_track(track_id: int, owner: str):
 
 
 def render_your_music_tab():
-    st.markdown("#### ðŸŽµ Your Music Library")
+    st.markdown("#### 🎵 Your Music Library")
     st.caption(
         f"Upload your own focus tracks (mp3/wav/ogg/m4a, up to {MAX_TRACK_MB}MB each). "
         "Stored under your account and available on every future visit — not just this session."
@@ -1627,14 +1697,14 @@ def render_your_music_tab():
     for t in tracks:
         c1, c2, c3 = st.columns([3, 5, 1])
         with c1:
-            st.write(f"ðŸŽ§ **{t['name']}**")
-            st.caption(f"{t['size_bytes'] / 1024:.0f} KB Â· added {t['created_at'][:10]}")
+            st.write(f"🎧 **{t['name']}**")
+            st.caption(f"{t['size_bytes'] / 1024:.0f} KB · added {t['created_at'][:10]}")
         with c2:
             data, mime = _get_track_bytes(t["id"])
             if data:
                 st.audio(data, format=mime)
         with c3:
-            if st.button("ðŸ—‘ï¸", key=f"del_track_{t['id']}", help="Remove this track"):
+            if st.button("🗑️", key=f"del_track_{t['id']}", help="Remove this track"):
                 _delete_track(t["id"], owner)
                 st.rerun()
 
@@ -1646,14 +1716,14 @@ def render_brain_fm_studio():
         allow_trial=False,
     )
 
-    st.title("ðŸ§  Brain FM & Neural Focus Soundscapes")
+    st.title("🧠 Brain FM & Neural Focus Soundscapes")
     st.caption(
         "Real generative brainwave entrainment, ambient soundscapes, and your own music — "
         "one focus hub instead of four mislabeled demo tracks."
     )
 
     tab_synth, tab_ambient, tab_yours, tab_info = st.tabs(
-        ["ðŸ§  Neural Synthesizer", "ðŸŒ¿ Ambient Library", "ðŸŽµ Your Music", "â„¹ï¸ How It Works"]
+        ["🧠 Neural Synthesizer", "🌿 Ambient Library", "🎵 Your Music", "ℹ️ How It Works"]
     )
 
     with tab_synth:
@@ -1670,7 +1740,7 @@ def render_brain_fm_studio():
 
     with tab_info:
         st.markdown("""
-**ðŸ§  How Brainwave Entrainment Works**
+**🧠 How Brainwave Entrainment Works**
 
 * **Binaural beats (e.g. 15Hz Beta):** two slightly different tones, one per ear.
   Your brain perceives the *difference* between them as a rhythmic beat, and some
@@ -1723,7 +1793,7 @@ def render_notion_template_vault():
 
     user_email = st.session_state.get("user_identity", {}).get("email", "")
 
-    st.title("ðŸ—„ï¸ Bio-Research Enterprise Planner - Notion Vault")
+    st.title("🗄️ Bio-Research Enterprise Planner - Notion Vault")
     st.info("🔒 **Single-Duplication License:** This template is protected. Duplication link is restricted exclusively to active paid subscribers.")
 
     conn = sqlite3.connect("sovereign_apex_engine.db")
@@ -1745,11 +1815,11 @@ def render_notion_template_vault():
         st.write(f"**Duplications Used:** `{claim_count} / 1`")
 
         if claim_count >= 1:
-            st.warning("âš ï¸ You have already claimed your 1-time Notion duplication access.")
-            if st.button("ðŸ”— Re-open Licensed Duplicate Link"):
-                st.markdown(f"ðŸ‘‰ [Click to open Notion Workspace]({NOTION_TEMPLATE_URL})")
+            st.warning("⚠️ You have already claimed your 1-time Notion duplication access.")
+            if st.button("🔗 Re-open Licensed Duplicate Link"):
+                st.markdown(f"👉 [Click to open Notion Workspace]({NOTION_TEMPLATE_URL})")
         else:
-            if st.button("âš¡ Claim & Duplicate to Notion Space", type="primary"):
+            if st.button("⚡ Claim & Duplicate to Notion Space", type="primary"):
                 now_str = datetime.datetime.now().isoformat()
                 cursor.execute(
                     "INSERT INTO template_claims (email, claimed_at, duplication_count) VALUES (?, ?, 1) "
@@ -1758,7 +1828,7 @@ def render_notion_template_vault():
                 )
                 conn.commit()
                 st.success("✅ Duplication clearance granted!")
-                st.markdown(f"ðŸ‘‰ **[Click here to duplicate into your Notion Workspace]({NOTION_TEMPLATE_URL})**")
+                st.markdown(f"👉 **[Click here to duplicate into your Notion Workspace]({NOTION_TEMPLATE_URL})**")
                 st.rerun()
 
     conn.close()
@@ -1923,7 +1993,7 @@ def nash_equilibria_2x2(payoff_a, payoff_b):
 def carbon_budget(annual_emissions_gt, target_temp=1.5, current_temp=1.2, tcre=0.45):
     """
     Remaining carbon budget using a Transient Climate Response to
-    Emissions (TCRE) approximation: Â°C warming per 1000 GtCO2 emitted.
+    Emissions (TCRE) approximation: °C warming per 1000 GtCO2 emitted.
     Default TCRE=0.45 is within the IPCC AR6 likely range (0.27–0.63).
     Returns (remaining_budget_gt, years_left_at_current_emissions_rate).
     """
@@ -1976,7 +2046,7 @@ def anomaly_detection(df: pd.DataFrame, contamination=0.1):
     """
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     if not SKLEARN_AVAILABLE or df.empty or len(numeric_cols) < 2:
-        return df.assign(Anomaly="N/A (need â‰¥2 numeric columns)", Anomaly_Score=np.nan)
+        return df.assign(Anomaly="N/A (need ≥2 numeric columns)", Anomaly_Score=np.nan)
     X = StandardScaler().fit_transform(df[numeric_cols].fillna(0))
     clf = IsolationForest(contamination=contamination, random_state=42)
     preds = clf.fit_predict(X)
@@ -2022,7 +2092,7 @@ def render_sovereign_analytics():
         st.subheader("SEIR Epidemic Model")
         c1, c2, c3 = st.columns(3)
         N = c1.number_input("Population size", 1000, 500_000_000, 1_000_000, step=1000)
-        R0 = c2.number_input("Râ‚€ (basic reproduction number)", 0.1, 20.0, 2.5, step=0.1)
+        R0 = c2.number_input("R₀ (basic reproduction number)", 0.1, 20.0, 2.5, step=0.1)
         days = c3.number_input("Days to simulate", 10, 730, 180, step=10)
         use_intervention = st.checkbox("Model an intervention (e.g. lockdown)")
         intervention_day, intervention_strength = None, 0.0
@@ -2081,12 +2151,12 @@ def render_sovereign_analytics():
         st.subheader("Carbon Budget Calculator")
         c1, c2, c3 = st.columns(3)
         emissions = c1.number_input("Annual emissions (GtCO2)", 0.1, 100.0, 36.8)
-        target = c2.number_input("Target temperature (Â°C)", 1.0, 3.0, 1.5)
-        current = c3.number_input("Current warming (Â°C)", 0.5, 2.0, 1.2)
+        target = c2.number_input("Target temperature (°C)", 1.0, 3.0, 1.5)
+        current = c3.number_input("Current warming (°C)", 0.5, 2.0, 1.2)
         budget, years = carbon_budget(emissions, target, current)
         st.metric("Remaining carbon budget", f"{budget:,.0f} GtCO2")
-        st.metric("Years left at current emission rate", f"{years:,.1f}" if years != float("inf") else "âˆž")
-        st.caption("Estimate using a TCRE (Transient Climate Response to Emissions) of 0.45Â°C per 1000 GtCO2, within the IPCC AR6 likely range.")
+        st.metric("Years left at current emission rate", f"{years:,.1f}" if years != float("inf") else "∞")
+        st.caption("Estimate using a TCRE (Transient Climate Response to Emissions) of 0.45°C per 1000 GtCO2, within the IPCC AR6 likely range.")
 
     with tabs[5]:
         st.subheader("Clustering & Anomaly Detection on Your Data")
@@ -2234,7 +2304,7 @@ def get_user_timezone() -> str:
 def render_timezone_and_accent_settings():
     """Real, working preference controls — put this in a Settings/Account
     tab. Both values persist in session_state and take effect immediately."""
-    st.markdown("#### ðŸŒ Timezone")
+    st.markdown("#### 🌐 Timezone")
     current_tz = get_user_timezone()
     all_tz = sorted(zoneinfo.available_timezones())
     try:
@@ -2253,7 +2323,7 @@ def render_timezone_and_accent_settings():
     now_local = datetime.datetime.now(zoneinfo.ZoneInfo(chosen_tz))
     st.caption(f"Your local time right now: **{now_local.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}**")
 
-    st.markdown("#### ðŸŽ¨ Accent Color")
+    st.markdown("#### 🎨 Accent Color")
     current_accent = st.session_state.get("user_accent_color", DEFAULT_ACCENT)
     chosen_accent = st.color_picker("Pick an accent color for buttons and highlights", value=current_accent, key="accent_picker_widget")
     if chosen_accent != current_accent:
@@ -2408,24 +2478,48 @@ def set_student_status(email,status,reviewer,notes=""):
 
 def render_student_verification():
     email = current_user_email
-    st.subheader("🎓 Student Discount — 50% Off")
-    st.caption("Submit a Student ID or National ID. Approval is manual.")
+    st.markdown("""
+    <div class="payment-hero">
+        <h2 style="margin:0;">🎓 Student Discount — 50% Off</h2>
+        <p style="margin-top:8px;">
+        Submit a Student ID or National ID. Approval is manual, same as
+        payment verification, so it may take a little time.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
     status = student_verification_status(email)
     if status:
-        if status["status"] == "approved": st.success("Approved — eligible checkout receives 50% off.")
-        elif status["status"] == "pending": st.info("Pending administrator review.")
-        else: st.warning("Previous request was rejected. You may submit again.")
-    with st.form("student_verification_form"):
-        doc_type = st.selectbox("Document type",STUDENT_DOC_TYPES)
-        uploaded = st.file_uploader("Upload ID document",type=["pdf","png","jpg","jpeg"],help="Maximum 8 MB. Upload only what is necessary.")
-        consent = st.checkbox("I consent to review of this document solely for student-discount verification.")
-        send = st.form_submit_button("Submit for Admin Verification",type="primary")
-    if send:
-        if not consent: st.error("Consent is required.")
+        pill_class = {"approved": "status-approved", "pending": "status-pending"}.get(status["status"], "status-rejected")
+        pill_label = {"approved": "Approved", "pending": "Pending Review", "rejected": "Rejected — resubmit below"}.get(status["status"], status["status"].title())
+        st.markdown(
+            f'<div class="payment-card"><span class="status-pill {pill_class}">{pill_label}</span></div>',
+            unsafe_allow_html=True,
+        )
+        if status["status"] == "approved":
+            st.success("Approved — eligible checkout receives 50% off.")
+        elif status["status"] == "pending":
+            st.info("Pending administrator review.")
         else:
-            ok,msg = submit_student_verification(email,st.session_state.get("user_identity",{}).get("name",""),doc_type,uploaded)
+            st.warning("Previous request was rejected. You may submit again below.")
+
+    with st.container():
+        st.markdown('<div class="payment-card">', unsafe_allow_html=True)
+        with st.form("student_verification_form"):
+            doc_type = st.selectbox("Document type", STUDENT_DOC_TYPES)
+            uploaded = st.file_uploader("Upload ID document", type=["pdf", "png", "jpg", "jpeg"], help="Maximum 8 MB. Upload only what is necessary.")
+            consent = st.checkbox("I consent to review of this document solely for student-discount verification.")
+            send = st.form_submit_button("Submit for Admin Verification", type="primary")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    if send:
+        if not consent:
+            st.error("Consent is required.")
+        else:
+            ok, msg = submit_student_verification(email, st.session_state.get("user_identity", {}).get("name", ""), doc_type, uploaded)
             (st.success if ok else st.error)(msg)
-            if ok: st.rerun()
+            if ok:
+                st.rerun()
 
 
 
@@ -2557,6 +2651,12 @@ def get_direct_payment_instructions():
 
         "phone":
             get_payment_config("DIRECT_PAYMENT_PHONE"),
+
+        "paypal_email":
+            get_payment_config("DIRECT_PAYPAL_EMAIL"),
+
+        "paypal_me_link":
+            get_payment_config("DIRECT_PAYPAL_ME_LINK"),
 
         "instructions":
             get_payment_config(
@@ -2876,7 +2976,8 @@ def render_direct_payment_page():
 
         [
             "🏦 Bank Transfer",
-            "📱 Direct / Mobile Payment"
+            "📱 Direct / Mobile Payment",
+            "💰 PayPal"
         ]
     )
 
@@ -2914,7 +3015,7 @@ def render_direct_payment_page():
             f"{instructions['account_type']}"
         )
 
-    else:
+    elif method == "📱 Direct / Mobile Payment":
 
         st.subheader("📱 Direct / Mobile Payment")
 
@@ -2928,6 +3029,23 @@ def render_direct_payment_page():
 
             st.info(
                 "Contact the administrator for mobile payment instructions."
+            )
+
+    else:
+
+        st.subheader("💰 PayPal")
+
+        if instructions["paypal_email"]:
+            st.write("Send payment to this PayPal email:")
+            st.code(instructions["paypal_email"])
+
+        if instructions["paypal_me_link"]:
+            st.write(f"Or pay directly via: {instructions['paypal_me_link']}")
+
+        if not instructions["paypal_email"] and not instructions["paypal_me_link"]:
+            st.info(
+                "PayPal isn't configured on this deployment yet. "
+                "Contact the administrator for PayPal payment instructions."
             )
 
     st.markdown("---")
@@ -3439,7 +3557,7 @@ auth_store = AuthStore()
 OAUTH_PROVIDERS = {
     "google": {
         "label": "Google",
-        "icon": "ðŸ”´",
+        "icon": "🔴",
         "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
         "token_url": "https://oauth2.googleapis.com/token",
         "userinfo_url": "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -3449,7 +3567,7 @@ OAUTH_PROVIDERS = {
     },
     "github": {
         "label": "GitHub",
-        "icon": "âš«",
+        "icon": "⚫",
         "authorize_url": "https://github.com/login/oauth/authorize",
         "token_url": "https://github.com/login/oauth/access_token",
         "userinfo_url": "https://api.github.com/user",
@@ -3622,10 +3740,10 @@ def handle_checkout_return():
         if result:
             st.session_state["_billing_toast"] = f"✅ Upgraded to **{result['plan'].title()}** — welcome aboard."
         else:
-            st.session_state["_billing_toast"] = "âš ï¸ Could not confirm payment yet. Try resyncing billing status."
+            st.session_state["_billing_toast"] = "⚠️ Could not confirm payment yet. Try resyncing billing status."
     elif qp.get("checkout") == "cancelled":
         st.query_params.clear()
-        st.session_state["_billing_toast"] = "â„¹ï¸ Checkout cancelled — no charge was made."
+        st.session_state["_billing_toast"] = "ℹ️ Checkout cancelled — no charge was made."
 
 
 def is_admin():
@@ -3802,13 +3920,13 @@ if not st.session_state.portal_unlocked:
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 
     gateway_avatar_b64 = get_user_avatar_base64("")
-    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">âš¡</div>'
+    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
 
     st.markdown(f"""
     <div class="portal-hero-card">
         <div class="profile-glow-wrap">{avatar_html}</div>
         <div class="portal-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
-        <div class="portal-subtitle">Sovereign Enterprise Engine â€¢ Secure Multi-Platform Gateway</div>
+        <div class="portal-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -3817,19 +3935,19 @@ if not st.session_state.portal_unlocked:
     no_admin_yet = db_conn.execute("SELECT COUNT(*) FROM auth_users WHERE role = 'admin'").fetchone()[0] == 0
     if no_admin_yet:
         st.warning(
-            "âš™ï¸ **First-time setup:** No admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
+            "⚙️ **First-time setup:** No admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
             "`SOVEREIGN_ADMIN_PASSWORD` in environment variables and restart the app."
         )
 
     _, portal_col, _ = st.columns([0.4, 3.2, 0.4])
     with portal_col:
-        tab_signin, tab_signup, tab_downloads = st.tabs(["ðŸ” Secure Sign In", "ðŸ“ Register Account", "ðŸ“± Ecosystem Downloads"])
+        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register Account", "📱 Ecosystem Downloads"])
 
         with tab_signin:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
             render_oauth_buttons()
             si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
-            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢")
+            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="••••••••")
             remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
@@ -3912,16 +4030,16 @@ else:
 
     # Primary Sidebar Navigation
     menu_selection = st.sidebar.radio("Select Workspace", [
-        "âš¡ Apex Dashboard",
+        "⚡ Apex Dashboard",
         "💳 Billing & Subscription",
-        "ðŸ§  Brain FM Focus Studio",
-        "ðŸ—„ï¸ Bio-Research Notion Vault",
-        "ðŸ“Š Sovereign Analytics Engine",
-        "ðŸ“ Query Log",
-        "ðŸ”¬ Bioinformatics Studio",
-        "âš™ï¸ Profile Settings",
+        "🧠 Brain FM Focus Studio",
+        "🗄️ Bio-Research Notion Vault",
+        "📊 Sovereign Analytics Engine",
+        "📝 Query Log",
+        "🔬 Bioinformatics Studio",
+        "⚙️ Profile Settings",
         "🎓 Student Discount Verification",
-        "ðŸ›¡ï¸ Admin Security & User Controls"
+        "🛡️ Admin Security & User Controls"
     ])
 
     toast_msg = st.session_state.pop("_billing_toast", None)
@@ -3929,15 +4047,15 @@ else:
         st.toast(toast_msg) if hasattr(st, "toast") else st.info(toast_msg)
 
     # --- WORKSPACE MODULE ROUTING ---
-    if menu_selection == "ðŸ§  Brain FM Focus Studio":
+    if menu_selection == "🧠 Brain FM Focus Studio":
 # [merged] removed: from modules.brain_fm import render_brain_fm_studio
         render_brain_fm_studio()
 
-    elif menu_selection == "ðŸ—„ï¸ Bio-Research Notion Vault":
+    elif menu_selection == "🗄️ Bio-Research Notion Vault":
 # [merged] removed: from modules.notion_gating import render_notion_template_vault
         render_notion_template_vault()
 
-    elif menu_selection == "ðŸ“Š Sovereign Analytics Engine":
+    elif menu_selection == "📊 Sovereign Analytics Engine":
 # [merged] removed: from modules.sovereign_analytics_engine import render_sovereign_analytics
         render_sovereign_analytics()
 
@@ -3946,8 +4064,8 @@ else:
         user_identity = st.session_state.get("user_identity", {})
         render_notion_style_billing(user_identity.get("email"), user_identity.get("name"))
 
-    elif menu_selection == "âš¡ Apex Dashboard":
-        st.title("âš¡ Chrishem Sovereign Apex Hub")
+    elif menu_selection == "⚡ Apex Dashboard":
+        st.title("⚡ Chrishem Sovereign Apex Hub")
         st.markdown("---")
 
         status = subscription.get_status(current_user_email)
@@ -3962,7 +4080,7 @@ else:
             st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
 
         st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
-        st.markdown("### ðŸŒŸ Welcome to the Core Ecosystem Workspace")
+        st.markdown("### 🌟 Welcome to the Core Ecosystem Workspace")
         st.write("Use the navigation panel on the left to switch between active modules and focus studios.")
 
         c_a, c_b = st.columns(2)
@@ -3974,8 +4092,8 @@ else:
             else:
                 st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
 
-    elif menu_selection == "ðŸ“ Query Log":
-        st.title("ðŸ“ Session Query Log")
+    elif menu_selection == "📝 Query Log":
+        st.title("📝 Session Query Log")
         st.caption("Records your queries for workspace references.")
 
         cursor = db_conn.cursor()
@@ -3990,7 +4108,7 @@ else:
             """, unsafe_allow_html=True)
 
         user_prompt = st.text_area("Log a query or note for later reference:", key="portal_ai_input")
-        if st.button("ðŸ’¾ Save to Log"):
+        if st.button("💾 Save to Log"):
             if user_prompt.strip():
                 note = "Logged for reference."
                 cursor.execute("INSERT INTO live_chat_history (username, timestamp, prompt, response) VALUES (?, ?, ?, ?)",
@@ -3998,8 +4116,8 @@ else:
                 db_conn.commit()
                 st.rerun()
 
-    elif menu_selection == "ðŸ”¬ Bioinformatics Studio":
-        st.title("ðŸ§¬ Genomic Sequence & GC-Content Studio")
+    elif menu_selection == "🔬 Bioinformatics Studio":
+        st.title("🧬 Genomic Sequence & GC-Content Studio")
         seq_input = st.text_area("Paste FASTA Sequence Data", placeholder="ATGCGATCGATCGATCGATCG...")
         if st.button("Run Sequence Metric Analysis"):
             if seq_input.strip():
@@ -4015,8 +4133,8 @@ else:
     elif menu_selection == "🎓 Student Discount Verification":
         render_student_verification()
 
-    elif menu_selection == "âš™ï¸ Profile Settings":
-        st.title("âš™ï¸ Operator Profile & Avatar Customization")
+    elif menu_selection == "⚙️ Profile Settings":
+        st.title("⚙️ Operator Profile & Avatar Customization")
         st.write("Upload a custom picture to personalize your account avatar.")
 
         active_b64 = get_user_avatar_base64(current_user_email)
@@ -4027,7 +4145,7 @@ else:
 
         col_up1, col_up2 = st.columns(2)
         with col_up1:
-            if st.button("ðŸ’¾ Save Custom Avatar", width='stretch'):
+            if st.button("💾 Save Custom Avatar", width='stretch'):
                 if uploaded_avatar is not None:
                     image_bytes = uploaded_avatar.read()
                     cursor = db_conn.cursor()
@@ -4038,18 +4156,18 @@ else:
                 else:
                     st.warning("Please select an image file first.")
         with col_up2:
-            if st.button("ðŸ”„ Revert to Default Picture", width='stretch'):
+            if st.button("🔄 Revert to Default Picture", width='stretch'):
                 cursor = db_conn.cursor()
                 cursor.execute("UPDATE auth_users SET avatar_blob = NULL WHERE email = ?", (current_user_email,))
                 db_conn.commit()
                 st.success("Reverted to default picture successfully!")
                 st.rerun()
 
-    elif menu_selection == "ðŸ›¡ï¸ Admin Security & User Controls":
+    elif menu_selection == "🛡️ Admin Security & User Controls":
         if not is_admin():
-            st.error("ðŸš« Access Denied: This panel requires administrator clearance.")
+            st.error("🚫 Access Denied: This panel requires administrator clearance.")
         else:
-            st.title("ðŸ›¡ï¸ Administrative Control Center")
+            st.title("🛡️ Administrative Control Center")
             cursor = db_conn.cursor()
             cursor.execute("SELECT email, name, role FROM auth_users")
             users = cursor.fetchall()
@@ -4070,7 +4188,7 @@ else:
                     st.write(f"**Applicant:** {row[1]}  \n**Email:** {row[0]}  \n**Document:** {row[2]}")
                     try:
                         decrypted=_student_cipher().decrypt(row[5])
-                        st.download_button("ðŸ” Download document for review",decrypted,file_name=row[3] or "verification-document",mime=row[4] or "application/octet-stream",key="student_doc_download")
+                        st.download_button("🔐 Download document for review",decrypted,file_name=row[3] or "verification-document",mime=row[4] or "application/octet-stream",key="student_doc_download")
                     except Exception as exc: st.error(f"Document decryption failed: {exc}")
                     notes=st.text_area("Admin notes",key="student_review_notes")
                     c1,c2=st.columns(2)
@@ -4080,4 +4198,3 @@ else:
                     with c2:
                         if st.button("❌ Reject",width="stretch"):
                             set_student_status(email,"rejected",current_user_email,notes); st.warning("Rejected."); st.rerun()
-
