@@ -4017,6 +4017,7 @@ else:
         "🧠 Brain FM Focus Studio",
         "🗄️ Bio-Research Notion Vault",
         "📊 Sovereign Analytics Engine",
+        "🏗️ Sovereign CAD",
         "📝 Query Log",
         "🔬 Bioinformatics Studio",
         "⚙️ Profile Settings",
@@ -4074,6 +4075,33 @@ else:
             else:
                 st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
 
+
+    elif menu_selection == "🏗️ Sovereign CAD":
+        st.title("🏗️ Sovereign CAD Workspace")
+        st.caption("Professional CAD design and engineering workspace")
+
+        try:
+            from sovereign_cad.streamlit import render_cad_workspace
+            render_cad_workspace()
+
+        except ModuleNotFoundError as e:
+            st.error("❌ Sovereign CAD module could not be imported.")
+            st.code(str(e))
+
+            st.info("""
+The CAD files may exist in the repository, but Python cannot find
+the required Sovereign CAD Streamlit module.
+
+Expected structure:
+
+sovereign_cad/
+    __init__.py
+    streamlit.py
+""")
+
+        except Exception as e:
+            st.error("❌ Sovereign CAD workspace failed to load.")
+            st.exception(e)
     elif menu_selection == "📝 Query Log":
         st.title("📝 Session Query Log")
         st.caption("Records your queries for workspace references.")
@@ -4181,15 +4209,4 @@ else:
                         if st.button("❌ Reject",width="stretch"):
                             set_student_status(email,"rejected",current_user_email,notes); st.warning("Rejected."); st.rerun()
 
-# ==========================================
-# Sovereign CAD Workspace Integration
-# ==========================================
-if 'menu_selection' in locals() and menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {{e}}")
-else:
-    # Fallback or standard flow check
-    pass
+
