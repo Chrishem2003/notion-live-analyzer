@@ -1,4 +1,4 @@
-﻿from sovereign_cad.core.geometry import Point2
+from sovereign_cad.core.geometry import Point2
 from sovereign_cad.ui.canvas import CanvasState
 
 

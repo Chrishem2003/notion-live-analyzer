@@ -1,4 +1,4 @@
-﻿﻿from .application_service import ApplicationService
+from .application_service import ApplicationService
 
 __all__ = [
     "ApplicationService",

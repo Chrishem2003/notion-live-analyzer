@@ -1,4 +1,4 @@
-﻿﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 from math import atan2, cos, hypot, isclose, sin, sqrt

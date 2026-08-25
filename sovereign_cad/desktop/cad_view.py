@@ -1,4 +1,4 @@
-﻿﻿from math import sqrt
+from math import sqrt
 
 from PySide6.QtCore import Qt, QPointF, Signal
 from PySide6.QtGui import QColor, QPainter, QPen

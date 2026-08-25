@@ -1,4 +1,4 @@
-﻿from .state import CanvasState
+from .state import CanvasState
 
 __all__ = [
     "CanvasState",

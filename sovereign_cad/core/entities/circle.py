@@ -1,4 +1,4 @@
-﻿﻿from .entity import Entity, CircleEntity
+from .entity import Entity, CircleEntity
 
 __all__ = [
     "Entity",

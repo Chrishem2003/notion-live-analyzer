@@ -1,4 +1,4 @@
-﻿﻿from .shell import ApplicationShell
+from .shell import ApplicationShell
 from .context import ApplicationContext
 
 __all__ = [

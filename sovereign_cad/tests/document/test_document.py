@@ -1,4 +1,4 @@
-﻿﻿import pytest
+import pytest
 
 from sovereign_cad.core.document import Document
 from sovereign_cad.core.entities import CircleEntity, LineEntity

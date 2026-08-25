@@ -1,4 +1,4 @@
-﻿from sovereign_cad.persistence import (
+from sovereign_cad.persistence import (
     ProjectFile,
     ProjectSerializer,
 )

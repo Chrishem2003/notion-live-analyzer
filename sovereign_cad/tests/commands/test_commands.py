@@ -1,4 +1,4 @@
-﻿﻿from sovereign_cad.commands import (
+from sovereign_cad.commands import (
     Command,
     CommandManager,
     CommandResult,

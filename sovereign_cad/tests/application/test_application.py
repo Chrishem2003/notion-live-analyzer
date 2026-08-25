@@ -1,4 +1,4 @@
-﻿﻿from sovereign_cad.application import (
+from sovereign_cad.application import (
     ApplicationShell,
     ApplicationContext,
 )

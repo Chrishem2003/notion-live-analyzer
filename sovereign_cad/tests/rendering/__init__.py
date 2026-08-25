@@ -1,1 +1,1 @@
-﻿# SovereignCAD package.
+# SovereignCAD package.

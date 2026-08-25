@@ -1,4 +1,4 @@
-﻿﻿from .base import Command, CommandResult
+from .base import Command, CommandResult
 from .manager import CommandManager
 
 __all__ = [

@@ -1,4 +1,4 @@
-﻿﻿from .command import Command
+from .command import Command
 from .command_manager import CommandManager
 from .create_entity import CreateEntityCommand
 from .delete_entity import DeleteEntityCommand

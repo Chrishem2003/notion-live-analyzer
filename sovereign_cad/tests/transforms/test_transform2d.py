@@ -1,4 +1,4 @@
-﻿﻿from math import pi
+from math import pi
 
 from sovereign_cad.core.geometry import Point2, Vector2
 from sovereign_cad.core.transforms import Transform2D

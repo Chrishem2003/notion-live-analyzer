@@ -1,4 +1,4 @@
-﻿﻿from .viewport import Viewport
+from .viewport import Viewport
 
 __all__ = [
     "Viewport",

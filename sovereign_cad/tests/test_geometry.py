@@ -1,4 +1,4 @@
-﻿﻿from math import pi
+from math import pi
 
 from sovereign_cad.core.geometry import (
     BoundingBox2,
