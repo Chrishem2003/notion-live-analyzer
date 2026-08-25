@@ -1,6 +1,6 @@
 
 ============================================================
-FILE: sovereign_cad\streamlit.py
+FILE: D:\notion-live-analyzer\sovereign_cad\streamlit.py
 ============================================================
 """
 Sovereign CAD Streamlit Integration Layer.
@@ -282,7 +282,3647 @@ def render_cad_workspace():
     _render_stage(selected_stage)
 
 ============================================================
-FILE: sovereign_cad\streamlit\workspace.py
+FILE: D:\notion-live-analyzer\sovereign_cad\__init__.py
+============================================================
+"""SovereignCAD."""
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\application\context.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class ApplicationContext:
+
+    document: Any = None
+    canvas: Any = None
+    viewport: Any = None
+    renderer: Any = None
+    input_system: Any = None
+    command_system: Any = None
+
+    metadata: dict[str, Any] = field(
+        default_factory=dict
+    )
+
+    def set_metadata(
+        self,
+        key: str,
+        value: Any,
+    ) -> None:
+
+        if not key:
+            raise ValueError(
+                "Metadata key must not be empty."
+            )
+
+        self.metadata[key] = value
+
+    def get_metadata(
+        self,
+        key: str,
+        default: Any = None,
+    ) -> Any:
+
+        return self.metadata.get(
+            key,
+            default,
+        )
+
+    def clear_metadata(self) -> None:
+        self.metadata.clear()
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\application\__init__.py
+============================================================
+from .shell import ApplicationShell
+from .context import ApplicationContext
+
+__all__ = [
+    "ApplicationShell",
+    "ApplicationContext",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\application\services\application_service.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class ApplicationService:
+
+    shell: Any = None
+
+    state: dict[str, Any] = field(
+        default_factory=dict
+    )
+
+    def set(
+        self,
+        key: str,
+        value: Any,
+    ) -> None:
+
+        if not key:
+            raise ValueError(
+                "State key must not be empty."
+            )
+
+        self.state[key] = value
+
+    def get(
+        self,
+        key: str,
+        default: Any = None,
+    ) -> Any:
+
+        return self.state.get(
+            key,
+            default,
+        )
+
+    def remove(
+        self,
+        key: str,
+    ) -> Any:
+
+        return self.state.pop(
+            key,
+            None,
+        )
+
+    def clear(self) -> None:
+        self.state.clear()
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\application\services\__init__.py
+============================================================
+from .application_service import ApplicationService
+
+__all__ = [
+    "ApplicationService",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\application\shell\shell.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class ApplicationShell:
+
+    running: bool = False
+    initialized: bool = False
+
+    services: dict[str, Any] = field(
+        default_factory=dict
+    )
+
+    def initialize(self) -> None:
+        self.initialized = True
+
+    def start(self) -> None:
+        if not self.initialized:
+            self.initialize()
+
+        self.running = True
+
+    def stop(self) -> None:
+        self.running = False
+
+    def register_service(
+        self,
+        name: str,
+        service: Any,
+    ) -> None:
+
+        if not name:
+            raise ValueError(
+                "Service name must not be empty."
+            )
+
+        self.services[name] = service
+
+    def get_service(
+        self,
+        name: str,
+    ) -> Any:
+
+        return self.services.get(name)
+
+    def has_service(
+        self,
+        name: str,
+    ) -> bool:
+
+        return name in self.services
+
+    def remove_service(
+        self,
+        name: str,
+    ) -> Any:
+
+        return self.services.pop(
+            name,
+            None,
+        )
+
+    def clear_services(self) -> None:
+        self.services.clear()
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\application\shell\__init__.py
+============================================================
+from .shell import ApplicationShell
+
+__all__ = [
+    "ApplicationShell",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\commands\base.py
+============================================================
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Any
+
+
+@dataclass(frozen=True)
+class CommandResult:
+    success: bool
+    message: str = ""
+    data: Any = None
+
+
+class Command(ABC):
+    """
+    Base class for reversible application commands.
+
+    Commands execute against an application/document context and
+    may provide an undo operation.
+    """
+
+    name: str = "Command"
+
+    @abstractmethod
+    def execute(self, context: Any) -> CommandResult:
+        raise NotImplementedError
+
+    def undo(self, context: Any) -> CommandResult:
+        return CommandResult(
+            success=False,
+            message=f"{self.name} does not support undo.",
+        )
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\commands\manager.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from .base import Command, CommandResult
+
+
+@dataclass
+class CommandManager:
+    """
+    Executes commands and maintains undo/redo history.
+    """
+
+    context: Any = None
+    undo_stack: list[Command] = field(default_factory=list)
+    redo_stack: list[Command] = field(default_factory=list)
+
+    def execute(self, command: Command) -> CommandResult:
+        result = command.execute(self.context)
+
+        if result.success:
+            self.undo_stack.append(command)
+            self.redo_stack.clear()
+
+        return result
+
+    def undo(self) -> CommandResult:
+        if not self.undo_stack:
+            return CommandResult(
+                success=False,
+                message="Nothing to undo.",
+            )
+
+        command = self.undo_stack.pop()
+        result = command.undo(self.context)
+
+        if result.success:
+            self.redo_stack.append(command)
+        else:
+            self.undo_stack.append(command)
+
+        return result
+
+    def redo(self) -> CommandResult:
+        if not self.redo_stack:
+            return CommandResult(
+                success=False,
+                message="Nothing to redo.",
+            )
+
+        command = self.redo_stack.pop()
+        result = command.execute(self.context)
+
+        if result.success:
+            self.undo_stack.append(command)
+        else:
+            self.redo_stack.append(command)
+
+        return result
+
+    def clear(self) -> None:
+        self.undo_stack.clear()
+        self.redo_stack.clear()
+
+    @property
+    def can_undo(self) -> bool:
+        return bool(self.undo_stack)
+
+    @property
+    def can_redo(self) -> bool:
+        return bool(self.redo_stack)
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\commands\__init__.py
+============================================================
+from .base import Command, CommandResult
+from .manager import CommandManager
+
+__all__ = [
+    "Command",
+    "CommandResult",
+    "CommandManager",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\__init__.py
+============================================================
+from .geometry import *
+from .entities import *
+from .transforms import *
+from .spatial import *
+from .selection import *
+from .viewport import *
+from .rendering import *
+
+__all__ = []
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\commands\change_layer.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from sovereign_cad.core.document import Document
+
+from .command import Command
+
+
+class ChangeLayerCommand(Command):
+    """
+    Moves an entity between layers.
+    """
+
+    def __init__(
+        self,
+        document: Document,
+        entity_id: UUID,
+        new_layer: str,
+    ) -> None:
+
+        self.document = document
+        self.entity_id = entity_id
+        self.new_layer = new_layer
+
+        self.old_layer: str | None = None
+        self._executed = False
+
+    @property
+    def name(self) -> str:
+        return "Change Layer"
+
+    def execute(self) -> None:
+
+        if self._executed:
+            return
+
+        entity = self.document.get_entity(
+            self.entity_id
+        )
+
+        if entity is None:
+            raise KeyError(self.entity_id)
+
+        self.old_layer = entity.layer
+
+        if self.new_layer not in self.document.layers:
+            self.document.add_layer(self.new_layer)
+
+        entity.set_layer(self.new_layer)
+
+        self._executed = True
+
+    def undo(self) -> None:
+
+        if not self._executed:
+            return
+
+        entity = self.document.get_entity(
+            self.entity_id
+        )
+
+        if entity is None:
+            raise KeyError(self.entity_id)
+
+        if self.old_layer is None:
+            raise RuntimeError(
+                "Original layer was not recorded."
+            )
+
+        entity.set_layer(self.old_layer)
+
+        self._executed = False
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\commands\command.py
+============================================================
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+
+
+class Command(ABC):
+    """
+    Base class for every document-changing operation.
+
+    A command must be reversible.
+
+    execute()
+        Apply the operation.
+
+    undo()
+        Reverse the operation.
+    """
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def execute(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def undo(self) -> None:
+        raise NotImplementedError
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\commands\command_manager.py
+============================================================
+from __future__ import annotations
+
+from .command import Command
+
+
+class CommandManager:
+    """
+    Manages command execution and history.
+
+    History model:
+
+        execute
+           |
+           v
+        undo stack
+           |
+        undo()
+           |
+           v
+        redo stack
+           |
+        redo()
+    """
+
+    def __init__(self) -> None:
+
+        self._undo_stack: list[Command] = []
+        self._redo_stack: list[Command] = []
+
+    # --------------------------------------------------------
+    # Execute
+    # --------------------------------------------------------
+
+    def execute(self, command: Command) -> None:
+
+        command.execute()
+
+        self._undo_stack.append(command)
+
+        # Any new operation invalidates redo history.
+        self._redo_stack.clear()
+
+    # --------------------------------------------------------
+    # Undo
+    # --------------------------------------------------------
+
+    def undo(self) -> bool:
+
+        if not self._undo_stack:
+            return False
+
+        command = self._undo_stack.pop()
+
+        command.undo()
+
+        self._redo_stack.append(command)
+
+        return True
+
+    # --------------------------------------------------------
+    # Redo
+    # --------------------------------------------------------
+
+    def redo(self) -> bool:
+
+        if not self._redo_stack:
+            return False
+
+        command = self._redo_stack.pop()
+
+        command.execute()
+
+        self._undo_stack.append(command)
+
+        return True
+
+    # --------------------------------------------------------
+    # State
+    # --------------------------------------------------------
+
+    @property
+    def can_undo(self) -> bool:
+        return bool(self._undo_stack)
+
+    @property
+    def can_redo(self) -> bool:
+        return bool(self._redo_stack)
+
+    @property
+    def undo_count(self) -> int:
+        return len(self._undo_stack)
+
+    @property
+    def redo_count(self) -> int:
+        return len(self._redo_stack)
+
+    def clear(self) -> None:
+
+        self._undo_stack.clear()
+        self._redo_stack.clear()
+
+    @property
+    def undo_history(self) -> tuple[Command, ...]:
+        return tuple(self._undo_stack)
+
+    @property
+    def redo_history(self) -> tuple[Command, ...]:
+        return tuple(self._redo_stack)
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\commands\create_entity.py
+============================================================
+from __future__ import annotations
+
+from sovereign_cad.core.document import Document
+from sovereign_cad.core.entities import Entity
+
+from .command import Command
+
+
+class CreateEntityCommand(Command):
+    """
+    Adds an entity to a document.
+
+    Undo removes the entity.
+    Redo adds the same entity again.
+    """
+
+    def __init__(
+        self,
+        document: Document,
+        entity: Entity,
+    ) -> None:
+
+        self.document = document
+        self.entity = entity
+        self._executed = False
+
+    @property
+    def name(self) -> str:
+        return f"Create {self.entity.entity_type}"
+
+    def execute(self) -> None:
+
+        if self._executed:
+            return
+
+        self.document.add_entity(self.entity)
+
+        self._executed = True
+
+    def undo(self) -> None:
+
+        if not self._executed:
+            return
+
+        self.document.remove_entity(
+            self.entity.entity_id
+        )
+
+        self._executed = False
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\commands\delete_entity.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from sovereign_cad.core.document import Document
+from sovereign_cad.core.entities import Entity
+
+from .command import Command
+
+
+class DeleteEntityCommand(Command):
+    """
+    Removes an entity from a document.
+
+    Undo restores the exact same entity.
+    """
+
+    def __init__(
+        self,
+        document: Document,
+        entity_id: UUID,
+    ) -> None:
+
+        self.document = document
+        self.entity_id = entity_id
+        self._entity: Entity | None = None
+        self._executed = False
+
+    @property
+    def name(self) -> str:
+        return "Delete Entity"
+
+    def execute(self) -> None:
+
+        if self._executed:
+            return
+
+        self._entity = self.document.remove_entity(
+            self.entity_id
+        )
+
+        self._executed = True
+
+    def undo(self) -> None:
+
+        if not self._executed:
+            return
+
+        if self._entity is None:
+            raise RuntimeError(
+                "Cannot undo deletion without stored entity."
+            )
+
+        self.document.add_entity(self._entity)
+
+        self._executed = False
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\commands\__init__.py
+============================================================
+from .command import Command
+from .command_manager import CommandManager
+from .create_entity import CreateEntityCommand
+from .delete_entity import DeleteEntityCommand
+from .change_layer import ChangeLayerCommand
+
+__all__ = [
+    "Command",
+    "CommandManager",
+    "CreateEntityCommand",
+    "DeleteEntityCommand",
+    "ChangeLayerCommand",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\document\document.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from sovereign_cad.core.entities import Entity
+from sovereign_cad.core.document.layer import Layer
+
+
+class Document:
+    """
+    CAD document containing entities and layers.
+    """
+
+    def __init__(self) -> None:
+
+        self.entities: dict[UUID, Entity] = {}
+
+        self.layers: dict[str, Layer] = {
+            "0": Layer("0")
+        }
+
+        self.active_layer = "0"
+
+    # --------------------------------------------------------
+    # Layers
+    # --------------------------------------------------------
+
+    def add_layer(self, name: str) -> Layer:
+
+        if not name:
+            raise ValueError("Layer name cannot be empty.")
+
+        if name in self.layers:
+            raise ValueError(f"Layer already exists: {name}")
+
+        layer = Layer(name)
+
+        self.layers[name] = layer
+
+        return layer
+
+    def remove_layer(self, name: str) -> None:
+
+        if name == "0":
+            raise ValueError("Default layer cannot be removed.")
+
+        if name not in self.layers:
+            raise KeyError(name)
+
+        if any(entity.layer == name for entity in self.entities.values()):
+            raise ValueError(
+                f"Cannot remove layer '{name}' because it contains entities."
+            )
+
+        del self.layers[name]
+
+        if self.active_layer == name:
+            self.active_layer = "0"
+
+    def set_active_layer(self, name: str) -> None:
+
+        if name not in self.layers:
+            raise KeyError(name)
+
+        if not self.layers[name].visible:
+            raise ValueError(
+                f"Cannot activate hidden layer: {name}"
+            )
+
+        self.active_layer = name
+
+    # --------------------------------------------------------
+    # Entities
+    # --------------------------------------------------------
+
+    def add_entity(self, entity: Entity) -> UUID:
+
+        if entity.entity_id in self.entities:
+            raise ValueError(
+                f"Entity already exists: {entity.entity_id}"
+            )
+
+        if entity.layer not in self.layers:
+            self.layers[entity.layer] = Layer(entity.layer)
+
+        self.entities[entity.entity_id] = entity
+
+        return entity.entity_id
+
+    def remove_entity(self, entity_id: UUID) -> Entity:
+
+        if entity_id not in self.entities:
+            raise KeyError(entity_id)
+
+        return self.entities.pop(entity_id)
+
+    def get_entity(self, entity_id: UUID) -> Entity | None:
+
+        return self.entities.get(entity_id)
+
+    def clear(self) -> None:
+
+        self.entities.clear()
+
+    # --------------------------------------------------------
+    # Selection
+    # --------------------------------------------------------
+
+    def select_entity(self, entity_id: UUID) -> None:
+
+        entity = self.get_entity(entity_id)
+
+        if entity is None:
+            raise KeyError(entity_id)
+
+        entity.select()
+
+    def deselect_all(self) -> None:
+
+        for entity in self.entities.values():
+            entity.deselect()
+
+    def selected_entities(self) -> list[Entity]:
+
+        return [
+            entity
+            for entity in self.entities.values()
+            if entity.selected
+        ]
+
+    # --------------------------------------------------------
+    # Queries
+    # --------------------------------------------------------
+
+    @property
+    def entity_count(self) -> int:
+        return len(self.entities)
+
+    @property
+    def layer_count(self) -> int:
+        return len(self.layers)
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\document\layer.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass
+class Layer:
+    """
+    CAD drawing layer.
+    """
+
+    name: str
+    visible: bool = True
+    locked: bool = False
+
+    def __post_init__(self) -> None:
+
+        if not self.name:
+            raise ValueError("Layer name cannot be empty.")
+
+    def show(self) -> None:
+        self.visible = True
+
+    def hide(self) -> None:
+        self.visible = False
+
+    def lock(self) -> None:
+        self.locked = True
+
+    def unlock(self) -> None:
+        self.locked = False
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\document\__init__.py
+============================================================
+from .document import Document
+from .layer import Layer
+
+__all__ = [
+    "Document",
+    "Layer",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\entities\base.py
+============================================================
+from .entity import Entity
+
+__all__ = ["Entity"]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\entities\circle.py
+============================================================
+from .entity import Entity, CircleEntity
+
+__all__ = [
+    "Entity",
+    "CircleEntity",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\entities\entity.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
+
+from ..geometry import (
+    BoundingBox2,
+    Circle2,
+    LineSegment2,
+    Point2,
+)
+
+
+@dataclass(kw_only=True)
+class Entity:
+
+    entity_id: UUID = field(default_factory=uuid4)
+
+    layer: str = "0"
+
+    visible: bool = True
+
+    selected: bool = False
+
+    @property
+    def id(self) -> UUID:
+        return self.entity_id
+
+    @property
+    def entity_type(self) -> str:
+        return self.__class__.__name__.replace("Entity", "").upper()
+
+    def select(self) -> None:
+        """Mark this entity as selected."""
+        self.selected = True
+
+    def deselect(self) -> None:
+        """Mark this entity as not selected."""
+        self.selected = False
+
+    def is_selected(self) -> bool:
+        """Return whether this entity is currently selected."""
+        return self.selected
+    def set_layer(self, layer: str) -> None:
+        if not isinstance(layer, str) or not layer.strip():
+            raise ValueError("Layer must be a non-empty string.")
+
+        self.layer = layer.strip()
+
+    def bounding_box(self) -> BoundingBox2:
+        raise NotImplementedError
+
+    def clone(self):
+        raise NotImplementedError
+
+
+@dataclass
+class LineEntity(Entity):
+
+    start: Point2 = field(
+        default_factory=lambda: Point2(0.0, 0.0)
+    )
+
+    end: Point2 = field(
+        default_factory=lambda: Point2(1.0, 0.0)
+    )
+
+    def geometry(self) -> LineSegment2:
+        return LineSegment2(
+            self.start,
+            self.end,
+        )
+
+    @property
+    def length(self) -> float:
+        return self.start.distance_to(self.end)
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2.from_points(
+            [
+                self.start,
+                self.end,
+            ]
+        )
+
+    def clone(self) -> "LineEntity":
+        return LineEntity(
+            self.start,
+            self.end,
+            entity_id=self.entity_id,
+            layer=self.layer,
+            visible=self.visible,
+            selected=self.selected,
+        )
+
+
+@dataclass
+class CircleEntity(Entity):
+
+    center: Point2 = field(
+        default_factory=lambda: Point2(0.0, 0.0)
+    )
+
+    radius: float = 1.0
+
+    def geometry(self) -> Circle2:
+        return Circle2(
+            self.center,
+            self.radius,
+        )
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2(
+            self.center.x - self.radius,
+            self.center.y - self.radius,
+            self.center.x + self.radius,
+            self.center.y + self.radius,
+        )
+
+    def clone(self) -> "CircleEntity":
+        return CircleEntity(
+            self.center,
+            self.radius,
+            entity_id=self.entity_id,
+            layer=self.layer,
+            visible=self.visible,
+            selected=self.selected,
+        )
+
+
+__all__ = [
+    "Entity",
+    "LineEntity",
+    "CircleEntity",
+]
+
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\entities\entity_id.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID, uuid4
+
+
+def create_entity_id() -> UUID:
+    return uuid4()
+
+
+def is_valid_entity_id(value) -> bool:
+    if isinstance(value, UUID):
+        return True
+
+    if not isinstance(value, str):
+        return False
+
+    try:
+        UUID(value)
+        return True
+    except (ValueError, TypeError, AttributeError):
+        return False
+
+
+__all__ = [
+    "create_entity_id",
+    "is_valid_entity_id",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\entities\line.py
+============================================================
+from .entity import Entity, LineEntity
+
+__all__ = [
+    "Entity",
+    "LineEntity",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\entities\registry.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from .entity import Entity
+
+
+class EntityRegistry:
+
+    def __init__(self) -> None:
+        self._entities: dict[UUID, Entity] = {}
+
+    def add(self, entity: Entity) -> UUID:
+
+        if entity.entity_id in self._entities:
+            raise ValueError(
+                f"Entity {entity.entity_id} already exists."
+            )
+
+        self._entities[entity.entity_id] = entity
+
+        return entity.entity_id
+
+    def remove(self, entity_id: UUID) -> Entity:
+
+        if entity_id not in self._entities:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        return self._entities.pop(entity_id)
+
+    def get(self, entity_id: UUID) -> Entity | None:
+        return self._entities.get(entity_id)
+
+    def all(self) -> list[Entity]:
+        return list(self._entities.values())
+
+    def visible(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.visible
+        ]
+
+    def selected(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.selected
+        ]
+
+    def clear_selection(self) -> None:
+        for entity in self._entities.values():
+            entity.deselect()
+
+    def select(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.select()
+
+    def deselect(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.deselect()
+
+    def __len__(self) -> int:
+        return len(self._entities)
+
+    def __iter__(self):
+        return iter(self._entities.values())
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\entities\__init__.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from .entity import (
+    Entity,
+    LineEntity,
+    CircleEntity,
+)
+
+from .entity_id import (
+    create_entity_id,
+    is_valid_entity_id,
+)
+
+
+class EntityRegistry:
+
+    def __init__(self):
+        self._entities: dict[UUID, Entity] = {}
+
+    def add(self, entity: Entity) -> UUID:
+
+        if entity.entity_id in self._entities:
+            raise ValueError(
+                f"Entity {entity.entity_id} already exists."
+            )
+
+        self._entities[entity.entity_id] = entity
+
+        return entity.entity_id
+
+    def remove(self, entity_id: UUID) -> Entity:
+
+        if entity_id not in self._entities:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        return self._entities.pop(entity_id)
+
+    def get(self, entity_id: UUID) -> Entity | None:
+        return self._entities.get(entity_id)
+
+    def all(self) -> list[Entity]:
+        return list(self._entities.values())
+
+    def visible(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.visible
+        ]
+
+    def selected(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.selected
+        ]
+
+    def clear_selection(self) -> None:
+        for entity in self._entities.values():
+            entity.selected = False
+
+    def select(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.selected = True
+
+    def deselect(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.selected = False
+
+    def __len__(self) -> int:
+        return len(self._entities)
+
+    def __iter__(self):
+        return iter(self._entities.values())
+
+
+__all__ = [
+    "Entity",
+    "LineEntity",
+    "CircleEntity",
+    "EntityRegistry",
+    "create_entity_id",
+    "is_valid_entity_id",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\geometry\intersections.py
+============================================================
+from __future__ import annotations
+
+from math import sqrt
+
+from .primitives import (
+    DEFAULT_TOLERANCE,
+    Circle2,
+    LineSegment2,
+    Point2,
+)
+
+
+def line_line_intersection(
+    first: LineSegment2,
+    second: LineSegment2,
+    tolerance: float = DEFAULT_TOLERANCE,
+) -> Point2 | None:
+
+    p = first.start
+    r = first.direction
+
+    q = second.start
+    s = second.direction
+
+    denominator = r.cross(s)
+
+    if abs(denominator) <= tolerance:
+        return None
+
+    q_minus_p = q - p
+
+    t = q_minus_p.cross(s) / denominator
+    u = q_minus_p.cross(r) / denominator
+
+    if (
+        -tolerance <= t <= 1.0 + tolerance
+        and
+        -tolerance <= u <= 1.0 + tolerance
+    ):
+        return first.point_at(t)
+
+    return None
+
+
+def line_circle_intersections(
+    line: LineSegment2,
+    circle: Circle2,
+    tolerance: float = DEFAULT_TOLERANCE,
+) -> list[Point2]:
+
+    direction = line.direction
+    offset = line.start - circle.center
+
+    a = direction.dot(direction)
+
+    if a <= tolerance:
+        return (
+            [line.start]
+            if abs(line.start.distance_to(circle.center) - circle.radius)
+            <= tolerance
+            else []
+        )
+
+    b = 2.0 * offset.dot(direction)
+    c = offset.dot(offset) - circle.radius * circle.radius
+
+    discriminant = b * b - 4.0 * a * c
+
+    if discriminant < -tolerance:
+        return []
+
+    if abs(discriminant) <= tolerance:
+        discriminant = 0.0
+
+    root = sqrt(discriminant)
+
+    t1 = (-b - root) / (2.0 * a)
+    t2 = (-b + root) / (2.0 * a)
+
+    result = []
+
+    for t in (t1, t2):
+
+        if -tolerance <= t <= 1.0 + tolerance:
+
+            point = line.point_at(t)
+
+            if not any(point.almost_equal(existing, tolerance) for existing in result):
+                result.append(point)
+
+    return result
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\geometry\primitives.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+from math import atan2, cos, hypot, isclose, sin, sqrt
+from typing import Iterable
+
+
+DEFAULT_TOLERANCE = 1e-9
+
+
+@dataclass(frozen=True, slots=True)
+class Vector2:
+    x: float
+    y: float
+
+    def __add__(self, other: Vector2) -> Vector2:
+        return Vector2(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other: Vector2) -> Vector2:
+        return Vector2(self.x - other.x, self.y - other.y)
+
+    def __mul__(self, scalar: float) -> Vector2:
+        return Vector2(self.x * scalar, self.y * scalar)
+
+    def __rmul__(self, scalar: float) -> Vector2:
+        return self * scalar
+
+    def __truediv__(self, scalar: float) -> Vector2:
+        if isclose(scalar, 0.0, abs_tol=DEFAULT_TOLERANCE):
+            raise ZeroDivisionError("Cannot divide vector by zero.")
+        return Vector2(self.x / scalar, self.y / scalar)
+
+    def dot(self, other: Vector2) -> float:
+        return self.x * other.x + self.y * other.y
+
+    def cross(self, other: Vector2) -> float:
+        return self.x * other.y - self.y * other.x
+
+    def length_squared(self) -> float:
+        return self.x * self.x + self.y * self.y
+
+    def length(self) -> float:
+        return hypot(self.x, self.y)
+
+    def normalized(self) -> Vector2:
+        length = self.length()
+
+        if length <= DEFAULT_TOLERANCE:
+            raise ValueError("Cannot normalize a zero-length vector.")
+
+        return self / length
+
+    def perpendicular(self) -> Vector2:
+        return Vector2(-self.y, self.x)
+
+    def angle(self) -> float:
+        return atan2(self.y, self.x)
+
+
+@dataclass(frozen=True, slots=True)
+class Point2:
+    x: float
+    y: float
+
+    def __add__(self, vector: Vector2) -> Point2:
+        return Point2(self.x + vector.x, self.y + vector.y)
+
+    def __sub__(self, other):
+        if isinstance(other, Point2):
+            return Vector2(self.x - other.x, self.y - other.y)
+
+        if isinstance(other, Vector2):
+            return Point2(self.x - other.x, self.y - other.y)
+
+        return NotImplemented
+
+    def distance_to(self, other: Point2) -> float:
+        return hypot(self.x - other.x, self.y - other.y)
+
+    def almost_equal(
+        self,
+        other: Point2,
+        tolerance: float = DEFAULT_TOLERANCE,
+    ) -> bool:
+        return (
+            abs(self.x - other.x) <= tolerance
+            and abs(self.y - other.y) <= tolerance
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class LineSegment2:
+    start: Point2
+    end: Point2
+
+    @property
+    def direction(self) -> Vector2:
+        return self.end - self.start
+
+    @property
+    def length(self) -> float:
+        return self.start.distance_to(self.end)
+
+    @property
+    def midpoint(self) -> Point2:
+        return Point2(
+            (self.start.x + self.end.x) / 2.0,
+            (self.start.y + self.end.y) / 2.0,
+        )
+
+    def point_at(self, t: float) -> Point2:
+        direction = self.direction
+
+        return Point2(
+            self.start.x + direction.x * t,
+            self.start.y + direction.y * t,
+        )
+
+    def closest_point(self, point: Point2) -> Point2:
+        direction = self.direction
+        length_squared = direction.length_squared()
+
+        if length_squared <= DEFAULT_TOLERANCE:
+            return self.start
+
+        relative = point - self.start
+
+        t = relative.dot(direction) / length_squared
+
+        t = max(0.0, min(1.0, t))
+
+        return self.point_at(t)
+
+    def distance_to(self, point: Point2) -> float:
+        return self.closest_point(point).distance_to(point)
+
+    def contains_point(
+        self,
+        point: Point2,
+        tolerance: float = DEFAULT_TOLERANCE,
+    ) -> bool:
+        if self.distance_to(point) > tolerance:
+            return False
+
+        direction = self.direction
+
+        if direction.length_squared() <= tolerance:
+            return self.start.almost_equal(point, tolerance)
+
+        relative = point - self.start
+
+        projection = relative.dot(direction)
+
+        return (
+            projection >= -tolerance
+            and projection <= direction.length_squared() + tolerance
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Circle2:
+    center: Point2
+    radius: float
+
+    def __post_init__(self):
+        if self.radius < 0:
+            raise ValueError("Circle radius cannot be negative.")
+
+    def point_at(self, angle: float) -> Point2:
+        return Point2(
+            self.center.x + self.radius * cos(angle),
+            self.center.y + self.radius * sin(angle),
+        )
+
+    def contains_point(
+        self,
+        point: Point2,
+        tolerance: float = DEFAULT_TOLERANCE,
+    ) -> bool:
+        return abs(
+            self.center.distance_to(point) - self.radius
+        ) <= tolerance
+
+
+@dataclass(frozen=True, slots=True)
+class BoundingBox2:
+    min_x: float
+    min_y: float
+    max_x: float
+    max_y: float
+
+    @classmethod
+    def from_points(cls, points: Iterable[Point2]) -> BoundingBox2:
+        points = list(points)
+
+        if not points:
+            raise ValueError("Cannot create bounding box from no points.")
+
+        return cls(
+            min(point.x for point in points),
+            min(point.y for point in points),
+            max(point.x for point in points),
+            max(point.y for point in points),
+        )
+
+    @property
+    def width(self) -> float:
+        return self.max_x - self.min_x
+
+    @property
+    def height(self) -> float:
+        return self.max_y - self.min_y
+
+    def contains(
+        self,
+        point: Point2,
+        tolerance: float = DEFAULT_TOLERANCE,
+    ) -> bool:
+        return (
+            self.min_x - tolerance <= point.x <= self.max_x + tolerance
+            and
+            self.min_y - tolerance <= point.y <= self.max_y + tolerance
+        )
+
+    def intersects(self, other: BoundingBox2) -> bool:
+        return not (
+            self.max_x < other.min_x
+            or self.min_x > other.max_x
+            or self.max_y < other.min_y
+            or self.min_y > other.max_y
+        )
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\geometry\__init__.py
+============================================================
+from .primitives import (
+    DEFAULT_TOLERANCE,
+    BoundingBox2,
+    Circle2,
+    LineSegment2,
+    Point2,
+    Vector2,
+)
+
+from .intersections import (
+    line_circle_intersections,
+    line_line_intersection,
+)
+
+__all__ = [
+    "DEFAULT_TOLERANCE",
+    "BoundingBox2",
+    "Circle2",
+    "LineSegment2",
+    "Point2",
+    "Vector2",
+    "line_circle_intersections",
+    "line_line_intersection",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\rendering\renderer.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from ..entities import CircleEntity, Entity, LineEntity
+from ..viewport import Viewport
+
+
+@dataclass(frozen=True)
+class RenderCommand:
+    """
+    Backend-independent render command.
+    """
+
+    kind: str
+    points: tuple
+    entity_id: object
+    selected: bool = False
+
+
+@dataclass
+class Renderer:
+    """
+    Backend-independent CAD renderer.
+
+    Stage 5 produces render commands instead of depending on
+    a specific GUI framework. A future Qt/OpenGL/Canvas backend
+    can consume these commands.
+    """
+
+    viewport: Viewport
+    commands: list[RenderCommand] = field(
+        default_factory=list
+    )
+
+    def clear(self) -> None:
+        self.commands.clear()
+
+    def render_entity(
+        self,
+        entity: Entity,
+    ) -> RenderCommand | None:
+
+        if not entity.visible:
+            return None
+
+        if isinstance(entity, LineEntity):
+
+            start = self.viewport.world_to_screen(
+                entity.start
+            )
+
+            end = self.viewport.world_to_screen(
+                entity.end
+            )
+
+            command = RenderCommand(
+                kind="LINE",
+                points=(start, end),
+                entity_id=entity.entity_id,
+                selected=entity.selected,
+            )
+
+        elif isinstance(entity, CircleEntity):
+
+            center = self.viewport.world_to_screen(
+                entity.center
+            )
+
+            radius = entity.radius * self.viewport.scale
+
+            command = RenderCommand(
+                kind="CIRCLE",
+                points=(center, radius),
+                entity_id=entity.entity_id,
+                selected=entity.selected,
+            )
+
+        else:
+            return None
+
+        self.commands.append(command)
+
+        return command
+
+    def render(
+        self,
+        entities,
+    ) -> list[RenderCommand]:
+
+        self.clear()
+
+        for entity in entities:
+            self.render_entity(entity)
+
+        return list(self.commands)
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\rendering\__init__.py
+============================================================
+from .renderer import RenderCommand, Renderer
+
+__all__ = [
+    "RenderCommand",
+    "Renderer",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\selection\engine.py
+============================================================
+from __future__ import annotations
+
+from ..entities import EntityRegistry
+from ..geometry import BoundingBox2, Point2
+from ..spatial import SpatialIndex
+
+
+class SelectionEngine:
+
+    def __init__(
+        self,
+        registry: EntityRegistry,
+        spatial_index: SpatialIndex,
+    ):
+
+        self.registry = registry
+        self.spatial_index = spatial_index
+
+    def clear(self) -> None:
+        self.registry.clear_selection()
+
+    def select(self, entity_id) -> None:
+        self.registry.select(entity_id)
+
+    def deselect(self, entity_id) -> None:
+        self.registry.deselect(entity_id)
+
+    def selected(self):
+        return self.registry.selected()
+
+    def pick(self, point: Point2) -> list:
+
+        ids = self.spatial_index.query_point(point)
+
+        entities = []
+
+        for entity_id in ids:
+
+            entity = self.registry.get(entity_id)
+
+            if entity is not None and entity.visible:
+                entities.append(entity)
+
+        return entities
+
+    def window_select(
+        self,
+        box: BoundingBox2,
+        crossing: bool = True,
+    ) -> list:
+
+        if crossing:
+
+            ids = self.spatial_index.query_box(box)
+
+        else:
+
+            ids = []
+
+            for entity in self.registry.visible():
+
+                entity_box = entity.bounding_box()
+
+                if (
+                    entity_box.min_x >= box.min_x
+                    and entity_box.max_x <= box.max_x
+                    and entity_box.min_y >= box.min_y
+                    and entity_box.max_y <= box.max_y
+                ):
+                    ids.append(entity.entity_id)
+
+        return [
+            self.registry.get(entity_id)
+            for entity_id in ids
+            if self.registry.get(entity_id) is not None
+        ]
+
+    def apply_selection(
+        self,
+        entities,
+        additive: bool = False,
+    ) -> None:
+
+        if not additive:
+            self.clear()
+
+        for entity in entities:
+            entity.selected = True
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\selection\__init__.py
+============================================================
+from .engine import SelectionEngine
+
+__all__ = [
+    "SelectionEngine",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\spatial\index.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from ..entities import Entity
+from ..geometry import BoundingBox2, Point2
+
+
+class SpatialIndex:
+
+    def __init__(self) -> None:
+        self._boxes: dict[UUID, BoundingBox2] = {}
+
+    def clear(self) -> None:
+        self._boxes.clear()
+
+    def insert(self, entity: Entity) -> None:
+        self._boxes[entity.entity_id] = entity.bounding_box()
+
+    def remove(self, entity_id: UUID) -> None:
+        self._boxes.pop(entity_id, None)
+
+    def update(self, entity: Entity) -> None:
+        self.insert(entity)
+
+    def rebuild(self, entities) -> None:
+
+        self.clear()
+
+        if hasattr(entities, "all"):
+            entities = entities.all()
+
+        elif hasattr(entities, "values"):
+            entities = entities.values()
+
+        for entity in entities:
+            self.insert(entity)
+
+    def get_box(
+        self,
+        entity_id: UUID,
+    ) -> BoundingBox2 | None:
+
+        return self._boxes.get(entity_id)
+
+    def query_box(
+        self,
+        box: BoundingBox2,
+    ) -> list[UUID]:
+
+        return [
+            entity_id
+            for entity_id, entity_box in self._boxes.items()
+            if entity_box.intersects(box)
+        ]
+
+    def query_point(
+        self,
+        point: Point2,
+    ) -> list[UUID]:
+
+        return [
+            entity_id
+            for entity_id, entity_box in self._boxes.items()
+            if entity_box.contains(point)
+        ]
+
+    def __len__(self) -> int:
+        return len(self._boxes)
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\spatial\__init__.py
+============================================================
+from .index import SpatialIndex
+
+__all__ = [
+    "SpatialIndex",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\transforms\transform2d.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+from math import cos, sin
+
+from ..geometry import Point2, Vector2
+
+
+@dataclass(frozen=True, slots=True)
+class Transform2D:
+    """
+    2D affine transformation.
+
+    x' = a*x + c*y + tx
+    y' = b*x + d*y + ty
+    """
+
+    a: float = 1.0
+    b: float = 0.0
+    c: float = 0.0
+    d: float = 1.0
+    tx: float = 0.0
+    ty: float = 0.0
+
+    @classmethod
+    def identity(cls) -> Transform2D:
+        return cls()
+
+    @classmethod
+    def translation(
+        cls,
+        x: float,
+        y: float,
+    ) -> Transform2D:
+
+        return cls(
+            tx=x,
+            ty=y,
+        )
+
+    @classmethod
+    def rotation(
+        cls,
+        angle: float,
+    ) -> Transform2D:
+
+        c = cos(angle)
+        s = sin(angle)
+
+        return cls(
+            a=c,
+            b=s,
+            c=-s,
+            d=c,
+        )
+
+    @classmethod
+    def scaling(
+        cls,
+        x: float,
+        y: float | None = None,
+    ) -> Transform2D:
+
+        if y is None:
+            y = x
+
+        return cls(
+            a=x,
+            d=y,
+        )
+
+    def apply_point(
+        self,
+        point: Point2,
+    ) -> Point2:
+
+        return Point2(
+            self.a * point.x
+            + self.c * point.y
+            + self.tx,
+
+            self.b * point.x
+            + self.d * point.y
+            + self.ty,
+        )
+
+    def apply_vector(
+        self,
+        vector: Vector2,
+    ) -> Vector2:
+
+        return Vector2(
+            self.a * vector.x
+            + self.c * vector.y,
+
+            self.b * vector.x
+            + self.d * vector.y,
+        )
+
+    def then(
+        self,
+        other: Transform2D,
+    ) -> Transform2D:
+
+        """
+        Apply this transform first,
+        then the other transform.
+        """
+
+        return Transform2D(
+            a=other.a * self.a + other.c * self.b,
+            b=other.b * self.a + other.d * self.b,
+            c=other.a * self.c + other.c * self.d,
+            d=other.b * self.c + other.d * self.d,
+
+            tx=(
+                other.a * self.tx
+                + other.c * self.ty
+                + other.tx
+            ),
+
+            ty=(
+                other.b * self.tx
+                + other.d * self.ty
+                + other.ty
+            ),
+        )
+
+    def __matmul__(
+        self,
+        other: Transform2D,
+    ) -> Transform2D:
+
+        return self.then(other)
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\transforms\__init__.py
+============================================================
+from .transform2d import Transform2D
+
+__all__ = [
+    "Transform2D",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\viewport\viewport.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+from math import isfinite
+
+from ..geometry import Point2, Vector2
+
+
+@dataclass
+class Viewport:
+    """
+    2D CAD viewport.
+
+    world_to_screen:
+        Converts model/world coordinates into screen coordinates.
+
+    screen_to_world:
+        Converts screen coordinates back into model/world coordinates.
+
+    The viewport uses:
+        origin = screen position of world origin
+        scale  = pixels per world unit
+    """
+
+    width: float = 1200.0
+    height: float = 800.0
+
+    origin_x: float = 600.0
+    origin_y: float = 400.0
+
+    scale: float = 1.0
+
+    min_scale: float = 1e-6
+    max_scale: float = 1e9
+
+    def __post_init__(self) -> None:
+        self._validate()
+
+    def _validate(self) -> None:
+
+        values = (
+            self.width,
+            self.height,
+            self.origin_x,
+            self.origin_y,
+            self.scale,
+        )
+
+        if not all(isfinite(value) for value in values):
+            raise ValueError("Viewport values must be finite.")
+
+        if self.width <= 0:
+            raise ValueError("Viewport width must be positive.")
+
+        if self.height <= 0:
+            raise ValueError("Viewport height must be positive.")
+
+        if self.scale <= 0:
+            raise ValueError("Viewport scale must be positive.")
+
+    def resize(
+        self,
+        width: float,
+        height: float,
+    ) -> None:
+
+        if width <= 0 or height <= 0:
+            raise ValueError(
+                "Viewport dimensions must be positive."
+            )
+
+        self.width = float(width)
+        self.height = float(height)
+
+    def set_scale(
+        self,
+        scale: float,
+    ) -> None:
+
+        if scale <= 0:
+            raise ValueError(
+                "Viewport scale must be positive."
+            )
+
+        self.scale = max(
+            self.min_scale,
+            min(self.max_scale, float(scale)),
+        )
+
+    def zoom(
+        self,
+        factor: float,
+        center: Point2 | None = None,
+    ) -> None:
+
+        if factor <= 0:
+            raise ValueError(
+                "Zoom factor must be positive."
+            )
+
+        if center is None:
+            center = Point2(
+                self.width / 2.0,
+                self.height / 2.0,
+            )
+
+        world_before = self.screen_to_world(center)
+
+        self.set_scale(
+            self.scale * factor
+        )
+
+        world_after = self.screen_to_world(center)
+
+        self.origin_x += (
+            (world_after.x - world_before.x)
+            * self.scale
+        )
+
+        self.origin_y += (
+            (world_after.y - world_before.y)
+            * self.scale
+        )
+
+    def pan(
+        self,
+        delta: Vector2,
+    ) -> None:
+
+        self.origin_x += delta.x
+        self.origin_y += delta.y
+
+    def world_to_screen(
+        self,
+        point: Point2,
+    ) -> Point2:
+
+        return Point2(
+            self.origin_x + point.x * self.scale,
+            self.origin_y - point.y * self.scale,
+        )
+
+    def screen_to_world(
+        self,
+        point: Point2,
+    ) -> Point2:
+
+        return Point2(
+            (point.x - self.origin_x) / self.scale,
+            (self.origin_y - point.y) / self.scale,
+        )
+
+    def world_vector_to_screen(
+        self,
+        vector: Vector2,
+    ) -> Vector2:
+
+        return Vector2(
+            vector.x * self.scale,
+            -vector.y * self.scale,
+        )
+
+    def screen_vector_to_world(
+        self,
+        vector: Vector2,
+    ) -> Vector2:
+
+        return Vector2(
+            vector.x / self.scale,
+            -vector.y / self.scale,
+        )
+
+    def center_world(self) -> Point2:
+
+        return self.screen_to_world(
+            Point2(
+                self.width / 2.0,
+                self.height / 2.0,
+            )
+        )
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\core\viewport\__init__.py
+============================================================
+from .viewport import Viewport
+
+__all__ = [
+    "Viewport",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\desktop\application.py
+============================================================
+import sys
+
+from PySide6.QtWidgets import QApplication
+
+from sovereign_cad.desktop.main_window import MainWindow
+
+
+def main():
+
+    app = QApplication(sys.argv)
+
+    app.setApplicationName(
+        "SovereignCAD"
+    )
+
+    window = MainWindow()
+
+    window.show()
+
+    sys.exit(app.exec())
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\desktop\cad_view.py
+============================================================
+from math import sqrt
+
+from PySide6.QtCore import Qt, QPointF, Signal
+from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtWidgets import QWidget
+
+from sovereign_cad.desktop.document import CADObject
+
+
+class CADView(QWidget):
+
+    coordinatesChanged = Signal(float, float)
+
+    def __init__(self, document, parent=None):
+        super().__init__(parent)
+
+        self.document = document
+
+        self.tool = "SELECT"
+
+        self.zoom = 1.0
+        self.pan_x = 0.0
+        self.pan_y = 0.0
+
+        self.start_point = None
+        self.current_point = None
+
+        self.panning = False
+        self.last_mouse = None
+
+        self.setMouseTracking(True)
+        self.setFocusPolicy(Qt.StrongFocus)
+
+    # --------------------------------------------------------
+
+    def world_to_screen(self, x, y):
+        return QPointF(
+            self.width() / 2 + (x + self.pan_x) * self.zoom,
+            self.height() / 2 - (y + self.pan_y) * self.zoom
+        )
+
+    def screen_to_world(self, point):
+        x = (
+            point.x() - self.width() / 2
+        ) / self.zoom - self.pan_x
+
+        y = -(
+            point.y() - self.height() / 2
+        ) / self.zoom - self.pan_y
+
+        return x, y
+
+    # --------------------------------------------------------
+
+    def set_tool(self, tool):
+        self.tool = tool.upper()
+        self.start_point = None
+        self.current_point = None
+
+        if self.tool == "SELECT":
+            self.setCursor(Qt.ArrowCursor)
+        else:
+            self.setCursor(Qt.CrossCursor)
+
+        self.update()
+
+    # --------------------------------------------------------
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+
+        painter.fillRect(
+            self.rect(),
+            QColor(25, 28, 33)
+        )
+
+        painter.setRenderHint(
+            QPainter.Antialiasing
+        )
+
+        self.draw_grid(painter)
+
+        for obj in self.document.objects:
+            self.draw_object(painter, obj)
+
+        self.draw_preview(painter)
+
+    # --------------------------------------------------------
+
+    def draw_grid(self, painter):
+        painter.setPen(
+            QPen(QColor(48, 52, 60), 1)
+        )
+
+        grid = max(20, int(25 * self.zoom))
+
+        for x in range(0, self.width(), grid):
+            painter.drawLine(x, 0, x, self.height())
+
+        for y in range(0, self.height(), grid):
+            painter.drawLine(0, y, self.width(), y)
+
+        origin = self.world_to_screen(0, 0)
+
+        painter.setPen(
+            QPen(QColor(100, 100, 100), 1)
+        )
+
+        painter.drawLine(
+            0,
+            int(origin.y()),
+            self.width(),
+            int(origin.y())
+        )
+
+        painter.drawLine(
+            int(origin.x()),
+            0,
+            int(origin.x()),
+            self.height()
+        )
+
+    # --------------------------------------------------------
+
+    def draw_object(self, painter, obj):
+
+        if obj.selected:
+            color = QColor(0, 200, 255)
+            width = 3
+        else:
+            color = QColor(230, 230, 230)
+            width = 2
+
+        painter.setPen(QPen(color, width))
+
+        if obj.kind == "LINE":
+
+            p1 = self.world_to_screen(
+                obj.data["x1"],
+                obj.data["y1"]
+            )
+
+            p2 = self.world_to_screen(
+                obj.data["x2"],
+                obj.data["y2"]
+            )
+
+            painter.drawLine(p1, p2)
+
+        elif obj.kind == "CIRCLE":
+
+            center = self.world_to_screen(
+                obj.data["x"],
+                obj.data["y"]
+            )
+
+            radius = obj.data["radius"] * self.zoom
+
+            painter.drawEllipse(
+                center,
+                radius,
+                radius
+            )
+
+        elif obj.kind == "RECTANGLE":
+
+            x1 = min(obj.data["x1"], obj.data["x2"])
+            x2 = max(obj.data["x1"], obj.data["x2"])
+
+            y1 = min(obj.data["y1"], obj.data["y2"])
+            y2 = max(obj.data["y1"], obj.data["y2"])
+
+            p1 = self.world_to_screen(x1, y2)
+            p2 = self.world_to_screen(x2, y1)
+
+            painter.drawRect(
+                p1.x(),
+                p1.y(),
+                p2.x() - p1.x(),
+                p2.y() - p1.y()
+            )
+
+    # --------------------------------------------------------
+
+    def draw_preview(self, painter):
+
+        if self.start_point is None:
+            return
+
+        if self.current_point is None:
+            return
+
+        painter.setPen(
+            QPen(
+                QColor(255, 200, 0),
+                1,
+                Qt.DashLine
+            )
+        )
+
+        x1, y1 = self.start_point
+        x2, y2 = self.current_point
+
+        if self.tool == "LINE":
+
+            painter.drawLine(
+                self.world_to_screen(x1, y1),
+                self.world_to_screen(x2, y2)
+            )
+
+        elif self.tool == "CIRCLE":
+
+            radius = sqrt(
+                (x2 - x1) ** 2 +
+                (y2 - y1) ** 2
+            )
+
+            painter.drawEllipse(
+                self.world_to_screen(x1, y1),
+                radius * self.zoom,
+                radius * self.zoom
+            )
+
+        elif self.tool == "RECTANGLE":
+
+            left = min(x1, x2)
+            right = max(x1, x2)
+
+            bottom = min(y1, y2)
+            top = max(y1, y2)
+
+            p1 = self.world_to_screen(left, top)
+            p2 = self.world_to_screen(right, bottom)
+
+            painter.drawRect(
+                p1.x(),
+                p1.y(),
+                p2.x() - p1.x(),
+                p2.y() - p1.y()
+            )
+
+    # --------------------------------------------------------
+
+    def mousePressEvent(self, event):
+
+        if event.button() == Qt.MiddleButton:
+            self.panning = True
+            self.last_mouse = event.position()
+            return
+
+        if event.button() != Qt.LeftButton:
+            return
+
+        x, y = self.screen_to_world(event.position())
+
+        if self.tool == "SELECT":
+
+            obj = self.hit_test(x, y)
+
+            if obj is None:
+                self.document.clear_selection()
+            else:
+                self.document.select(obj.id)
+
+            self.update()
+            return
+
+        if self.start_point is None:
+            self.start_point = (x, y)
+            self.current_point = (x, y)
+            self.update()
+            return
+
+        x1, y1 = self.start_point
+
+        if self.tool == "LINE":
+
+            self.document.add(
+                CADObject(
+                    kind="LINE",
+                    data={
+                        "x1": x1,
+                        "y1": y1,
+                        "x2": x,
+                        "y2": y
+                    }
+                )
+            )
+
+        elif self.tool == "CIRCLE":
+
+            radius = sqrt(
+                (x - x1) ** 2 +
+                (y - y1) ** 2
+            )
+
+            if radius > 0:
+
+                self.document.add(
+                    CADObject(
+                        kind="CIRCLE",
+                        data={
+                            "x": x1,
+                            "y": y1,
+                            "radius": radius
+                        }
+                    )
+                )
+
+        elif self.tool == "RECTANGLE":
+
+            self.document.add(
+                CADObject(
+                    kind="RECTANGLE",
+                    data={
+                        "x1": x1,
+                        "y1": y1,
+                        "x2": x,
+                        "y2": y
+                    }
+                )
+            )
+
+        self.start_point = None
+        self.current_point = None
+
+        self.update()
+
+    # --------------------------------------------------------
+
+    def mouseMoveEvent(self, event):
+
+        x, y = self.screen_to_world(event.position())
+
+        self.coordinatesChanged.emit(x, y)
+
+        if self.panning and self.last_mouse is not None:
+
+            dx = event.position().x() - self.last_mouse.x()
+            dy = event.position().y() - self.last_mouse.y()
+
+            self.pan_x += dx / self.zoom
+            self.pan_y -= dy / self.zoom
+
+            self.last_mouse = event.position()
+
+            self.update()
+
+            return
+
+        if self.start_point is not None:
+
+            self.current_point = (x, y)
+
+            self.update()
+
+    # --------------------------------------------------------
+
+    def mouseReleaseEvent(self, event):
+
+        if event.button() == Qt.MiddleButton:
+            self.panning = False
+            self.last_mouse = None
+
+    # --------------------------------------------------------
+
+    def wheelEvent(self, event):
+
+        if event.angleDelta().y() > 0:
+            self.zoom *= 1.15
+        else:
+            self.zoom /= 1.15
+
+        self.zoom = max(
+            0.05,
+            min(self.zoom, 100.0)
+        )
+
+        self.update()
+
+    # --------------------------------------------------------
+
+    def keyPressEvent(self, event):
+
+        if event.key() == Qt.Key_Escape:
+            self.start_point = None
+            self.current_point = None
+            self.update()
+            return
+
+        if event.key() == Qt.Key_Delete:
+
+            if self.document.delete_selected():
+                self.update()
+
+            return
+
+        if (
+            event.modifiers() & Qt.ControlModifier and
+            event.key() == Qt.Key_Z
+        ):
+
+            if self.document.undo():
+                self.update()
+
+            return
+
+        if (
+            event.modifiers() & Qt.ControlModifier and
+            event.key() == Qt.Key_Y
+        ):
+
+            if self.document.redo():
+                self.update()
+
+            return
+
+        super().keyPressEvent(event)
+
+    # --------------------------------------------------------
+
+    def hit_test(self, x, y):
+
+        threshold = 10 / self.zoom
+
+        for obj in reversed(self.document.objects):
+
+            if obj.kind == "LINE":
+
+                x1 = obj.data["x1"]
+                y1 = obj.data["y1"]
+
+                x2 = obj.data["x2"]
+                y2 = obj.data["y2"]
+
+                dx = x2 - x1
+                dy = y2 - y1
+
+                length_sq = dx * dx + dy * dy
+
+                if length_sq == 0:
+                    continue
+
+                t = (
+                    (x - x1) * dx +
+                    (y - y1) * dy
+                ) / length_sq
+
+                t = max(0, min(1, t))
+
+                px = x1 + t * dx
+                py = y1 + t * dy
+
+                distance = sqrt(
+                    (x - px) ** 2 +
+                    (y - py) ** 2
+                )
+
+                if distance <= threshold:
+                    return obj
+
+            elif obj.kind == "CIRCLE":
+
+                distance = sqrt(
+                    (x - obj.data["x"]) ** 2 +
+                    (y - obj.data["y"]) ** 2
+                )
+
+                if abs(
+                    distance -
+                    obj.data["radius"]
+                ) <= threshold:
+
+                    return obj
+
+            elif obj.kind == "RECTANGLE":
+
+                x1 = min(obj.data["x1"], obj.data["x2"])
+                x2 = max(obj.data["x1"], obj.data["x2"])
+
+                y1 = min(obj.data["y1"], obj.data["y2"])
+                y2 = max(obj.data["y1"], obj.data["y2"])
+
+                if x1 <= x <= x2 and y1 <= y <= y2:
+                    return obj
+
+        return None
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\desktop\document.py
+============================================================
+from dataclasses import dataclass, field
+from uuid import uuid4
+
+
+@dataclass
+class CADObject:
+    kind: str
+    data: dict
+    id: str = field(default_factory=lambda: str(uuid4()))
+    selected: bool = False
+
+
+class CADDocument:
+
+    def __init__(self):
+        self.objects = []
+        self.undo_stack = []
+        self.redo_stack = []
+
+    def snapshot(self):
+        return [
+            CADObject(
+                kind=obj.kind,
+                data=dict(obj.data),
+                id=obj.id,
+                selected=obj.selected
+            )
+            for obj in self.objects
+        ]
+
+    def save_history(self):
+        self.undo_stack.append(self.snapshot())
+
+        if len(self.undo_stack) > 100:
+            self.undo_stack.pop(0)
+
+        self.redo_stack.clear()
+
+    def add(self, obj):
+        self.save_history()
+        self.objects.append(obj)
+
+    def clear_selection(self):
+        for obj in self.objects:
+            obj.selected = False
+
+    def select(self, obj_id):
+        self.clear_selection()
+
+        for obj in self.objects:
+            if obj.id == obj_id:
+                obj.selected = True
+                return obj
+
+        return None
+
+    def delete_selected(self):
+        selected = [obj for obj in self.objects if obj.selected]
+
+        if not selected:
+            return False
+
+        self.save_history()
+
+        self.objects = [
+            obj for obj in self.objects
+            if not obj.selected
+        ]
+
+        return True
+
+    def undo(self):
+        if not self.undo_stack:
+            return False
+
+        self.redo_stack.append(self.snapshot())
+        self.objects = self.undo_stack.pop()
+
+        return True
+
+    def redo(self):
+        if not self.redo_stack:
+            return False
+
+        self.undo_stack.append(self.snapshot())
+        self.objects = self.redo_stack.pop()
+
+        return True
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\desktop\main_window.py
+============================================================
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QPushButton,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
+
+from sovereign_cad.desktop.document import CADDocument
+from sovereign_cad.desktop.cad_view import CADView
+
+
+class MainWindow(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("SovereignCAD")
+
+        self.resize(1400, 900)
+
+        self.document = CADDocument()
+
+        self.view = CADView(self.document)
+
+        self.setCentralWidget(self.view)
+
+        self.create_toolbar()
+        self.create_command_bar()
+
+        self.coordinates = QLabel(
+            "X: 0.00   Y: 0.00"
+        )
+
+        self.statusBar().addPermanentWidget(
+            self.coordinates
+        )
+
+        self.view.coordinatesChanged.connect(
+            self.update_coordinates
+        )
+
+    def create_toolbar(self):
+
+        toolbar = QToolBar("CAD Tools")
+
+        toolbar.setMovable(False)
+
+        self.addToolBar(toolbar)
+
+        tools = [
+            ("Select", "SELECT"),
+            ("Line", "LINE"),
+            ("Circle", "CIRCLE"),
+            ("Rectangle", "RECTANGLE"),
+        ]
+
+        for label, command in tools:
+
+            button = QPushButton(label)
+
+            button.clicked.connect(
+                lambda checked=False, cmd=command:
+                self.activate_tool(cmd)
+            )
+
+            toolbar.addWidget(button)
+
+        toolbar.addSeparator()
+
+        undo_button = QPushButton("Undo")
+
+        undo_button.clicked.connect(
+            self.undo
+        )
+
+        toolbar.addWidget(undo_button)
+
+        redo_button = QPushButton("Redo")
+
+        redo_button.clicked.connect(
+            self.redo
+        )
+
+        toolbar.addWidget(redo_button)
+
+    def create_command_bar(self):
+
+        container = QWidget()
+
+        layout = QVBoxLayout(container)
+
+        self.command_input = QLineEdit()
+
+        self.command_input.setPlaceholderText(
+            "Command: LINE, CIRCLE, RECTANGLE, SELECT, UNDO..."
+        )
+
+        self.command_input.returnPressed.connect(
+            self.execute_command
+        )
+
+        layout.addWidget(
+            self.command_input
+        )
+
+        self.setMenuWidget(container)
+
+    def activate_tool(self, tool):
+
+        self.view.set_tool(tool)
+
+        self.view.setFocus()
+
+    def execute_command(self):
+
+        command = (
+            self.command_input.text()
+            .strip()
+            .upper()
+        )
+
+        self.command_input.clear()
+
+        aliases = {
+            "L": "LINE",
+            "C": "CIRCLE",
+            "REC": "RECTANGLE",
+            "S": "SELECT",
+            "U": "UNDO",
+        }
+
+        command = aliases.get(
+            command,
+            command
+        )
+
+        if command in [
+            "LINE",
+            "CIRCLE",
+            "RECTANGLE",
+            "SELECT"
+        ]:
+
+            self.activate_tool(command)
+            return
+
+        if command == "UNDO":
+            self.undo()
+            return
+
+        if command == "REDO":
+            self.redo()
+            return
+
+        if command == "DELETE":
+
+            if self.document.delete_selected():
+                self.view.update()
+
+    def undo(self):
+
+        if self.document.undo():
+            self.view.update()
+
+    def redo(self):
+
+        if self.document.redo():
+            self.view.update()
+
+    def update_coordinates(self, x, y):
+
+        self.coordinates.setText(
+            f"X: {x:.2f}   Y: {y:.2f}"
+        )
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\desktop\__init__.py
+============================================================
+"""SovereignCAD Desktop."""
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\desktop\__main__.py
+============================================================
+from sovereign_cad.desktop.application import main
+
+if __name__ == "__main__":
+    main()
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\document\session.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from sovereign_cad.commands import CommandManager
+
+
+@dataclass
+class DocumentSession:
+    """
+    Runtime application session connecting the document registry
+    and command system.
+    """
+
+    registry: Any = None
+    command_manager: CommandManager = field(init=False)
+
+    active_tool: str | None = None
+
+    def __post_init__(self) -> None:
+        self.command_manager = CommandManager(
+            context=self
+        )
+
+    def execute(self, command) -> Any:
+        return self.command_manager.execute(command)
+
+    def undo(self) -> Any:
+        return self.command_manager.undo()
+
+    def redo(self) -> Any:
+        return self.command_manager.redo()
+
+    def set_tool(self, tool_name: str | None) -> None:
+        self.active_tool = tool_name
+
+    def clear_tool(self) -> None:
+        self.active_tool = None
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\document\__init__.py
+============================================================
+from .session import DocumentSession
+
+__all__ = [
+    "DocumentSession",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\input\events.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
+
+from sovereign_cad.core.geometry import Point2
+
+
+class InputEventType(str, Enum):
+    MOUSE_DOWN = "mouse_down"
+    MOUSE_UP = "mouse_up"
+    MOUSE_MOVE = "mouse_move"
+    MOUSE_WHEEL = "mouse_wheel"
+    KEY_DOWN = "key_down"
+    KEY_UP = "key_up"
+
+
+@dataclass(frozen=True)
+class InputEvent:
+    event_type: InputEventType
+    data: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class MouseEvent:
+    event_type: InputEventType
+    position: Point2
+    button: str | None = None
+    delta: float = 0.0
+    modifiers: tuple[str, ...] = ()
+
+    def to_input_event(self) -> InputEvent:
+        return InputEvent(
+            event_type=self.event_type,
+            data={
+                "position": self.position,
+                "button": self.button,
+                "delta": self.delta,
+                "modifiers": self.modifiers,
+            },
+        )
+
+
+@dataclass(frozen=True)
+class KeyEvent:
+    event_type: InputEventType
+    key: str
+    modifiers: tuple[str, ...] = ()
+
+    def to_input_event(self) -> InputEvent:
+        return InputEvent(
+            event_type=self.event_type,
+            data={
+                "key": self.key,
+                "modifiers": self.modifiers,
+            },
+        )
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\input\__init__.py
+============================================================
+from .events import (
+    InputEvent,
+    MouseEvent,
+    KeyEvent,
+    InputEventType,
+)
+
+__all__ = [
+    "InputEvent",
+    "MouseEvent",
+    "KeyEvent",
+    "InputEventType",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\persistence\__init__.py
+============================================================
+from .project import (
+    ProjectFile,
+    ProjectSerializer,
+    ProjectPersistence,
+)
+
+__all__ = [
+    "ProjectFile",
+    "ProjectSerializer",
+    "ProjectPersistence",
+]
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\persistence\project\model.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class ProjectFile:
+    version: str = "1.0"
+    name: str = "Untitled SovereignCAD Project"
+    metadata: dict[str, Any] = field(default_factory=dict)
+    document: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "format": "SovereignCAD",
+            "version": self.version,
+            "name": self.name,
+            "metadata": dict(self.metadata),
+            "document": dict(self.document),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ProjectFile":
+        if not isinstance(data, dict):
+            raise TypeError("Project data must be a dictionary.")
+
+        return cls(
+            version=str(data.get("version", "1.0")),
+            name=str(data.get("name", "Untitled SovereignCAD Project")),
+            metadata=dict(data.get("metadata", {})),
+            document=dict(data.get("document", {})),
+        )
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\persistence\project\persistence.py
+============================================================
+from __future__ import annotations
+
+from pathlib import Path
+
+from .model import ProjectFile
+from .serializer import ProjectSerializer
+
+
+class ProjectPersistence:
+
+    extension = ".scad"
+
+    def __init__(self, root: str | Path | None = None):
+        self.root = Path(root) if root is not None else Path.cwd()
+
+    def save(
+        self,
+        project: ProjectFile,
+        path: str | Path,
+    ) -> Path:
+        target = Path(path)
+
+        if not target.is_absolute():
+            target = self.root / target
+
+        if target.suffix.lower() != self.extension:
+            target = target.with_suffix(self.extension)
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+
+        ProjectSerializer.dump_file(
+            project,
+            str(target),
+        )
+
+        return target
+
+    def load(
+        self,
+        path: str | Path,
+    ) -> ProjectFile:
+        target = Path(path)
+
+        if not target.is_absolute():
+            target = self.root / target
+
+        return ProjectSerializer.load_file(str(target))
+
+    def exists(
+        self,
+        path: str | Path,
+    ) -> bool:
+        target = Path(path)
+
+        if not target.is_absolute():
+            target = self.root / target
+
+        return target.exists()
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\persistence\project\serializer.py
+============================================================
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from .model import ProjectFile
+
+
+class ProjectSerializer:
+
+    @staticmethod
+    def dumps(project: ProjectFile, *, indent: int = 2) -> str:
+        if not isinstance(project, ProjectFile):
+            raise TypeError("project must be a ProjectFile.")
+
+        return json.dumps(
+            project.to_dict(),
+            indent=indent,
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+
+    @staticmethod
+    def loads(text: str) -> ProjectFile:
+        if not isinstance(text, str):
+            raise TypeError("Project data must be text.")
+
+        data: Any = json.loads(text)
+
+        if not isinstance(data, dict):
+            raise ValueError("Project JSON root must be an object.")
+
+        if data.get("format") != "SovereignCAD":
+            raise ValueError("Invalid SovereignCAD project format.")
+
+        return ProjectFile.from_dict(data)
+
+    @staticmethod
+    def dump_file(project: ProjectFile, path: str) -> None:
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(ProjectSerializer.dumps(project))
+
+    @staticmethod
+    def load_file(path: str) -> ProjectFile:
+        with open(path, "r", encoding="utf-8") as handle:
+            return ProjectSerializer.loads(handle.read())
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\persistence\project\__init__.py
+============================================================
+from .model import ProjectFile
+from .serializer import ProjectSerializer
+from .persistence import ProjectPersistence
+
+__all__ = [
+    "ProjectFile",
+    "ProjectSerializer",
+    "ProjectPersistence",
+]
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\persistence\serializers\__init__.py
+============================================================
+from sovereign_cad.persistence.serializer import ProjectSerializer
+
+__all__ = [
+    "ProjectSerializer",
+]
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\persistence\storage\__init__.py
+============================================================
+from sovereign_cad.persistence.project import ProjectFile
+
+__all__ = [
+    "ProjectFile",
+]
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\rendering\renderer.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from sovereign_cad.core.geometry import Point2
+from sovereign_cad.core.entities import (
+    CircleEntity,
+    Entity,
+    LineEntity,
+)
+
+from sovereign_cad.ui.viewport import Viewport
+
+
+@dataclass
+class RenderCommand:
+    operation: str
+    data: dict[str, Any] = field(
+        default_factory=dict
+    )
+
+
+class Renderer2D:
+    """
+    Converts SovereignCAD entities into backend-neutral
+    2D rendering commands.
+    """
+
+    def __init__(self, viewport: Viewport):
+        self.viewport = viewport
+
+    def render_entity(self, entity: Entity):
+        if not entity.visible:
+            return None
+
+        if isinstance(entity, LineEntity):
+            start = self.viewport.world_to_screen(
+                entity.start
+            )
+
+            end = self.viewport.world_to_screen(
+                entity.end
+            )
+
+            return RenderCommand(
+                operation="line",
+                data={
+                    "entity_id": entity.entity_id,
+                    "start": start,
+                    "end": end,
+                    "selected": entity.selected,
+                    "layer": entity.layer,
+                },
+            )
+
+        if isinstance(entity, CircleEntity):
+            center = self.viewport.world_to_screen(
+                entity.center
+            )
+
+            radius = (
+                entity.radius
+                * self.viewport.zoom
+            )
+
+            return RenderCommand(
+                operation="circle",
+                data={
+                    "entity_id": entity.entity_id,
+                    "center": center,
+                    "radius": radius,
+                    "selected": entity.selected,
+                    "layer": entity.layer,
+                },
+            )
+
+        return RenderCommand(
+            operation="entity",
+            data={
+                "entity_id": entity.entity_id,
+                "entity_type": entity.entity_type,
+                "selected": entity.selected,
+                "layer": entity.layer,
+            },
+        )
+
+    def render_entities(self, entities):
+        commands = []
+
+        for entity in entities:
+            command = self.render_entity(entity)
+
+            if command is not None:
+                commands.append(command)
+
+        return commands
+
+    def render_registry(self, registry):
+        return self.render_entities(
+            registry.visible()
+        )
+
+    def render_grid(
+        self,
+        spacing: float = 10.0,
+        extent: float = 1000.0,
+    ):
+        if spacing <= 0:
+            raise ValueError(
+                "Grid spacing must be positive."
+            )
+
+        if extent <= 0:
+            raise ValueError(
+                "Grid extent must be positive."
+            )
+
+        commands = []
+
+        value = -extent
+
+        while value <= extent:
+            vertical_start = (
+                self.viewport.world_to_screen(
+                    Point2(value, -extent)
+                )
+            )
+
+            vertical_end = (
+                self.viewport.world_to_screen(
+                    Point2(value, extent)
+                )
+            )
+
+            commands.append(
+                RenderCommand(
+                    operation="grid_line",
+                    data={
+                        "start": vertical_start,
+                        "end": vertical_end,
+                    },
+                )
+            )
+
+            horizontal_start = (
+                self.viewport.world_to_screen(
+                    Point2(-extent, value)
+                )
+            )
+
+            horizontal_end = (
+                self.viewport.world_to_screen(
+                    Point2(extent, value)
+                )
+            )
+
+            commands.append(
+                RenderCommand(
+                    operation="grid_line",
+                    data={
+                        "start": horizontal_start,
+                        "end": horizontal_end,
+                    },
+                )
+            )
+
+            value += spacing
+
+        return commands
+
+
+# Compatibility name used by Stage 5 consumers.
+Renderer = Renderer2D
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\rendering\__init__.py
+============================================================
+from .renderer import Renderer, Renderer2D, RenderCommand
+
+__all__ = [
+    "Renderer",
+    "Renderer2D",
+    "RenderCommand",
+]
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\streamlit\workspace.py
 ============================================================
 from __future__ import annotations
 
@@ -744,1441 +4384,1450 @@ def render_cad_workspace():
             )
 
 ============================================================
-FILE: sovereign_cad\core\document\document.py
+FILE: D:\notion-live-analyzer\sovereign_cad\streamlit\__init__.py
 ============================================================
-from __future__ import annotations
+from .workspace import render_cad_workspace
 
-from uuid import UUID
-
-from sovereign_cad.core.entities import Entity
-from sovereign_cad.core.document.layer import Layer
-
-
-class Document:
-    """
-    CAD document containing entities and layers.
-    """
-
-    def __init__(self) -> None:
-
-        self.entities: dict[UUID, Entity] = {}
-
-        self.layers: dict[str, Layer] = {
-            "0": Layer("0")
-        }
-
-        self.active_layer = "0"
-
-    # --------------------------------------------------------
-    # Layers
-    # --------------------------------------------------------
-
-    def add_layer(self, name: str) -> Layer:
-
-        if not name:
-            raise ValueError("Layer name cannot be empty.")
-
-        if name in self.layers:
-            raise ValueError(f"Layer already exists: {name}")
-
-        layer = Layer(name)
-
-        self.layers[name] = layer
-
-        return layer
-
-    def remove_layer(self, name: str) -> None:
-
-        if name == "0":
-            raise ValueError("Default layer cannot be removed.")
-
-        if name not in self.layers:
-            raise KeyError(name)
-
-        if any(entity.layer == name for entity in self.entities.values()):
-            raise ValueError(
-                f"Cannot remove layer '{name}' because it contains entities."
-            )
-
-        del self.layers[name]
-
-        if self.active_layer == name:
-            self.active_layer = "0"
-
-    def set_active_layer(self, name: str) -> None:
-
-        if name not in self.layers:
-            raise KeyError(name)
-
-        if not self.layers[name].visible:
-            raise ValueError(
-                f"Cannot activate hidden layer: {name}"
-            )
-
-        self.active_layer = name
-
-    # --------------------------------------------------------
-    # Entities
-    # --------------------------------------------------------
-
-    def add_entity(self, entity: Entity) -> UUID:
-
-        if entity.entity_id in self.entities:
-            raise ValueError(
-                f"Entity already exists: {entity.entity_id}"
-            )
-
-        if entity.layer not in self.layers:
-            self.layers[entity.layer] = Layer(entity.layer)
-
-        self.entities[entity.entity_id] = entity
-
-        return entity.entity_id
-
-    def remove_entity(self, entity_id: UUID) -> Entity:
-
-        if entity_id not in self.entities:
-            raise KeyError(entity_id)
-
-        return self.entities.pop(entity_id)
-
-    def get_entity(self, entity_id: UUID) -> Entity | None:
-
-        return self.entities.get(entity_id)
-
-    def clear(self) -> None:
-
-        self.entities.clear()
-
-    # --------------------------------------------------------
-    # Selection
-    # --------------------------------------------------------
-
-    def select_entity(self, entity_id: UUID) -> None:
-
-        entity = self.get_entity(entity_id)
-
-        if entity is None:
-            raise KeyError(entity_id)
-
-        entity.select()
-
-    def deselect_all(self) -> None:
-
-        for entity in self.entities.values():
-            entity.deselect()
-
-    def selected_entities(self) -> list[Entity]:
-
-        return [
-            entity
-            for entity in self.entities.values()
-            if entity.selected
-        ]
-
-    # --------------------------------------------------------
-    # Queries
-    # --------------------------------------------------------
-
-    @property
-    def entity_count(self) -> int:
-        return len(self.entities)
-
-    @property
-    def layer_count(self) -> int:
-        return len(self.layers)
+__all__ = [
+    "render_cad_workspace",
+]
 
 ============================================================
-FILE: sovereign_cad\core\document\layer.py
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\test_geometry.py
 ============================================================
-from __future__ import annotations
+from math import pi
 
-from dataclasses import dataclass
-
-
-@dataclass
-class Layer:
-    """
-    CAD drawing layer.
-    """
-
-    name: str
-    visible: bool = True
-    locked: bool = False
-
-    def __post_init__(self) -> None:
-
-        if not self.name:
-            raise ValueError("Layer name cannot be empty.")
-
-    def show(self) -> None:
-        self.visible = True
-
-    def hide(self) -> None:
-        self.visible = False
-
-    def lock(self) -> None:
-        self.locked = True
-
-    def unlock(self) -> None:
-        self.locked = False
-
-============================================================
-FILE: sovereign_cad\core\entities\registry.py
-============================================================
-from __future__ import annotations
-
-from uuid import UUID
-
-from .entity import Entity
-
-
-class EntityRegistry:
-
-    def __init__(self) -> None:
-        self._entities: dict[UUID, Entity] = {}
-
-    def add(self, entity: Entity) -> UUID:
-
-        if entity.entity_id in self._entities:
-            raise ValueError(
-                f"Entity {entity.entity_id} already exists."
-            )
-
-        self._entities[entity.entity_id] = entity
-
-        return entity.entity_id
-
-    def remove(self, entity_id: UUID) -> Entity:
-
-        if entity_id not in self._entities:
-            raise KeyError(
-                f"Entity {entity_id} does not exist."
-            )
-
-        return self._entities.pop(entity_id)
-
-    def get(self, entity_id: UUID) -> Entity | None:
-        return self._entities.get(entity_id)
-
-    def all(self) -> list[Entity]:
-        return list(self._entities.values())
-
-    def visible(self) -> list[Entity]:
-        return [
-            entity
-            for entity in self._entities.values()
-            if entity.visible
-        ]
-
-    def selected(self) -> list[Entity]:
-        return [
-            entity
-            for entity in self._entities.values()
-            if entity.selected
-        ]
-
-    def clear_selection(self) -> None:
-        for entity in self._entities.values():
-            entity.deselect()
-
-    def select(self, entity_id: UUID) -> None:
-
-        entity = self.get(entity_id)
-
-        if entity is None:
-            raise KeyError(
-                f"Entity {entity_id} does not exist."
-            )
-
-        entity.select()
-
-    def deselect(self, entity_id: UUID) -> None:
-
-        entity = self.get(entity_id)
-
-        if entity is None:
-            raise KeyError(
-                f"Entity {entity_id} does not exist."
-            )
-
-        entity.deselect()
-
-    def __len__(self) -> int:
-        return len(self._entities)
-
-    def __iter__(self):
-        return iter(self._entities.values())
-
-============================================================
-FILE: sovereign_cad\core\entities\entity.py
-============================================================
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-from uuid import UUID, uuid4
-
-from ..geometry import (
+from sovereign_cad.core.geometry import (
     BoundingBox2,
     Circle2,
     LineSegment2,
     Point2,
+    Vector2,
+    line_circle_intersections,
+    line_line_intersection,
 )
 
 
-@dataclass(kw_only=True)
-class Entity:
+def test_vector_length():
+    vector = Vector2(3, 4)
 
-    entity_id: UUID = field(default_factory=uuid4)
-
-    layer: str = "0"
-
-    visible: bool = True
-
-    selected: bool = False
-
-    @property
-    def id(self) -> UUID:
-        return self.entity_id
-
-    @property
-    def entity_type(self) -> str:
-        return self.__class__.__name__.replace("Entity", "").upper()
-
-    def select(self) -> None:
-        """Mark this entity as selected."""
-        self.selected = True
-
-    def deselect(self) -> None:
-        """Mark this entity as not selected."""
-        self.selected = False
-
-    def is_selected(self) -> bool:
-        """Return whether this entity is currently selected."""
-        return self.selected
-    def set_layer(self, layer: str) -> None:
-        if not isinstance(layer, str) or not layer.strip():
-            raise ValueError("Layer must be a non-empty string.")
-
-        self.layer = layer.strip()
-
-    def bounding_box(self) -> BoundingBox2:
-        raise NotImplementedError
-
-    def clone(self):
-        raise NotImplementedError
+    assert vector.length() == 5
 
 
-@dataclass
-class LineEntity(Entity):
+def test_vector_dot_product():
+    first = Vector2(1, 2)
+    second = Vector2(3, 4)
 
-    start: Point2 = field(
-        default_factory=lambda: Point2(0.0, 0.0)
+    assert first.dot(second) == 11
+
+
+def test_point_distance():
+    first = Point2(0, 0)
+    second = Point2(3, 4)
+
+    assert first.distance_to(second) == 5
+
+
+def test_line_length():
+    line = LineSegment2(
+        Point2(0, 0),
+        Point2(3, 4),
     )
 
-    end: Point2 = field(
-        default_factory=lambda: Point2(1.0, 0.0)
+    assert line.length == 5
+
+
+def test_line_midpoint():
+    line = LineSegment2(
+        Point2(0, 0),
+        Point2(10, 10),
     )
 
-    def geometry(self) -> LineSegment2:
-        return LineSegment2(
-            self.start,
-            self.end,
-        )
-
-    @property
-    def length(self) -> float:
-        return self.start.distance_to(self.end)
-
-    def bounding_box(self) -> BoundingBox2:
-        return BoundingBox2.from_points(
-            [
-                self.start,
-                self.end,
-            ]
-        )
-
-    def clone(self) -> "LineEntity":
-        return LineEntity(
-            self.start,
-            self.end,
-            entity_id=self.entity_id,
-            layer=self.layer,
-            visible=self.visible,
-            selected=self.selected,
-        )
-
-
-@dataclass
-class CircleEntity(Entity):
-
-    center: Point2 = field(
-        default_factory=lambda: Point2(0.0, 0.0)
+    assert line.midpoint.almost_equal(
+        Point2(5, 5)
     )
 
-    radius: float = 1.0
-
-    def geometry(self) -> Circle2:
-        return Circle2(
-            self.center,
-            self.radius,
-        )
-
-    def bounding_box(self) -> BoundingBox2:
-        return BoundingBox2(
-            self.center.x - self.radius,
-            self.center.y - self.radius,
-            self.center.x + self.radius,
-            self.center.y + self.radius,
-        )
 
-    def clone(self) -> "CircleEntity":
-        return CircleEntity(
-            self.center,
-            self.radius,
-            entity_id=self.entity_id,
-            layer=self.layer,
-            visible=self.visible,
-            selected=self.selected,
-        )
+def test_closest_point():
+    line = LineSegment2(
+        Point2(0, 0),
+        Point2(10, 0),
+    )
 
+    closest = line.closest_point(
+        Point2(4, 5)
+    )
 
-__all__ = [
-    "Entity",
-    "LineEntity",
-    "CircleEntity",
-]
+    assert closest.almost_equal(
+        Point2(4, 0)
+    )
 
 
-============================================================
-FILE: sovereign_cad\core\entities\line.py
-============================================================
-from .entity import Entity, LineEntity
+def test_circle_point():
+    circle = Circle2(
+        Point2(0, 0),
+        10,
+    )
 
-__all__ = [
-    "Entity",
-    "LineEntity",
-]
+    point = circle.point_at(0)
 
-============================================================
-FILE: sovereign_cad\core\entities\circle.py
-============================================================
-from .entity import Entity, CircleEntity
+    assert point.almost_equal(
+        Point2(10, 0)
+    )
 
-__all__ = [
-    "Entity",
-    "CircleEntity",
-]
 
-============================================================
-FILE: sovereign_cad\core\commands\command_manager.py
-============================================================
-from __future__ import annotations
+def test_line_line_intersection():
+    first = LineSegment2(
+        Point2(0, 0),
+        Point2(10, 10),
+    )
 
-from .command import Command
+    second = LineSegment2(
+        Point2(0, 10),
+        Point2(10, 0),
+    )
 
+    result = line_line_intersection(
+        first,
+        second,
+    )
 
-class CommandManager:
-    """
-    Manages command execution and history.
+    assert result is not None
 
-    History model:
+    assert result.almost_equal(
+        Point2(5, 5)
+    )
 
-        execute
-           |
-           v
-        undo stack
-           |
-        undo()
-           |
-           v
-        redo stack
-           |
-        redo()
-    """
 
-    def __init__(self) -> None:
+def test_line_circle_intersection():
+    line = LineSegment2(
+        Point2(-10, 0),
+        Point2(10, 0),
+    )
 
-        self._undo_stack: list[Command] = []
-        self._redo_stack: list[Command] = []
+    circle = Circle2(
+        Point2(0, 0),
+        5,
+    )
 
-    # --------------------------------------------------------
-    # Execute
-    # --------------------------------------------------------
+    result = line_circle_intersections(
+        line,
+        circle,
+    )
 
-    def execute(self, command: Command) -> None:
+    assert len(result) == 2
 
-        command.execute()
+    assert result[0].almost_equal(
+        Point2(-5, 0)
+    )
 
-        self._undo_stack.append(command)
+    assert result[1].almost_equal(
+        Point2(5, 0)
+    )
 
-        # Any new operation invalidates redo history.
-        self._redo_stack.clear()
 
-    # --------------------------------------------------------
-    # Undo
-    # --------------------------------------------------------
-
-    def undo(self) -> bool:
-
-        if not self._undo_stack:
-            return False
-
-        command = self._undo_stack.pop()
-
-        command.undo()
-
-        self._redo_stack.append(command)
-
-        return True
-
-    # --------------------------------------------------------
-    # Redo
-    # --------------------------------------------------------
-
-    def redo(self) -> bool:
-
-        if not self._redo_stack:
-            return False
-
-        command = self._redo_stack.pop()
-
-        command.execute()
-
-        self._undo_stack.append(command)
-
-        return True
-
-    # --------------------------------------------------------
-    # State
-    # --------------------------------------------------------
-
-    @property
-    def can_undo(self) -> bool:
-        return bool(self._undo_stack)
-
-    @property
-    def can_redo(self) -> bool:
-        return bool(self._redo_stack)
-
-    @property
-    def undo_count(self) -> int:
-        return len(self._undo_stack)
-
-    @property
-    def redo_count(self) -> int:
-        return len(self._redo_stack)
-
-    def clear(self) -> None:
-
-        self._undo_stack.clear()
-        self._redo_stack.clear()
-
-    @property
-    def undo_history(self) -> tuple[Command, ...]:
-        return tuple(self._undo_stack)
-
-    @property
-    def redo_history(self) -> tuple[Command, ...]:
-        return tuple(self._redo_stack)
-
-============================================================
-FILE: sovereign_cad\core\commands\create_entity.py
-============================================================
-from __future__ import annotations
-
-from sovereign_cad.core.document import Document
-from sovereign_cad.core.entities import Entity
-
-from .command import Command
-
-
-class CreateEntityCommand(Command):
-    """
-    Adds an entity to a document.
-
-    Undo removes the entity.
-    Redo adds the same entity again.
-    """
-
-    def __init__(
-        self,
-        document: Document,
-        entity: Entity,
-    ) -> None:
-
-        self.document = document
-        self.entity = entity
-        self._executed = False
-
-    @property
-    def name(self) -> str:
-        return f"Create {self.entity.entity_type}"
-
-    def execute(self) -> None:
-
-        if self._executed:
-            return
-
-        self.document.add_entity(self.entity)
-
-        self._executed = True
-
-    def undo(self) -> None:
-
-        if not self._executed:
-            return
-
-        self.document.remove_entity(
-            self.entity.entity_id
-        )
-
-        self._executed = False
-
-============================================================
-FILE: sovereign_cad\core\commands\delete_entity.py
-============================================================
-from __future__ import annotations
-
-from uuid import UUID
-
-from sovereign_cad.core.document import Document
-from sovereign_cad.core.entities import Entity
-
-from .command import Command
-
-
-class DeleteEntityCommand(Command):
-    """
-    Removes an entity from a document.
-
-    Undo restores the exact same entity.
-    """
-
-    def __init__(
-        self,
-        document: Document,
-        entity_id: UUID,
-    ) -> None:
-
-        self.document = document
-        self.entity_id = entity_id
-        self._entity: Entity | None = None
-        self._executed = False
-
-    @property
-    def name(self) -> str:
-        return "Delete Entity"
-
-    def execute(self) -> None:
-
-        if self._executed:
-            return
-
-        self._entity = self.document.remove_entity(
-            self.entity_id
-        )
-
-        self._executed = True
-
-    def undo(self) -> None:
-
-        if not self._executed:
-            return
-
-        if self._entity is None:
-            raise RuntimeError(
-                "Cannot undo deletion without stored entity."
-            )
-
-        self.document.add_entity(self._entity)
-
-        self._executed = False
-
-============================================================
-FILE: sovereign_cad\core\selection\engine.py
-============================================================
-from __future__ import annotations
-
-from ..entities import EntityRegistry
-from ..geometry import BoundingBox2, Point2
-from ..spatial import SpatialIndex
-
-
-class SelectionEngine:
-
-    def __init__(
-        self,
-        registry: EntityRegistry,
-        spatial_index: SpatialIndex,
-    ):
-
-        self.registry = registry
-        self.spatial_index = spatial_index
-
-    def clear(self) -> None:
-        self.registry.clear_selection()
-
-    def select(self, entity_id) -> None:
-        self.registry.select(entity_id)
-
-    def deselect(self, entity_id) -> None:
-        self.registry.deselect(entity_id)
-
-    def selected(self):
-        return self.registry.selected()
-
-    def pick(self, point: Point2) -> list:
-
-        ids = self.spatial_index.query_point(point)
-
-        entities = []
-
-        for entity_id in ids:
-
-            entity = self.registry.get(entity_id)
-
-            if entity is not None and entity.visible:
-                entities.append(entity)
-
-        return entities
-
-    def window_select(
-        self,
-        box: BoundingBox2,
-        crossing: bool = True,
-    ) -> list:
-
-        if crossing:
-
-            ids = self.spatial_index.query_box(box)
-
-        else:
-
-            ids = []
-
-            for entity in self.registry.visible():
-
-                entity_box = entity.bounding_box()
-
-                if (
-                    entity_box.min_x >= box.min_x
-                    and entity_box.max_x <= box.max_x
-                    and entity_box.min_y >= box.min_y
-                    and entity_box.max_y <= box.max_y
-                ):
-                    ids.append(entity.entity_id)
-
-        return [
-            self.registry.get(entity_id)
-            for entity_id in ids
-            if self.registry.get(entity_id) is not None
+def test_bounding_box():
+    box = BoundingBox2.from_points(
+        [
+            Point2(2, 3),
+            Point2(-1, 8),
+            Point2(4, -2),
         ]
-
-    def apply_selection(
-        self,
-        entities,
-        additive: bool = False,
-    ) -> None:
-
-        if not additive:
-            self.clear()
-
-        for entity in entities:
-            entity.selected = True
-
-============================================================
-FILE: sovereign_cad\core\spatial\index.py
-============================================================
-from __future__ import annotations
-
-from uuid import UUID
-
-from ..entities import Entity
-from ..geometry import BoundingBox2, Point2
-
-
-class SpatialIndex:
-
-    def __init__(self) -> None:
-        self._boxes: dict[UUID, BoundingBox2] = {}
-
-    def clear(self) -> None:
-        self._boxes.clear()
-
-    def insert(self, entity: Entity) -> None:
-        self._boxes[entity.entity_id] = entity.bounding_box()
-
-    def remove(self, entity_id: UUID) -> None:
-        self._boxes.pop(entity_id, None)
-
-    def update(self, entity: Entity) -> None:
-        self.insert(entity)
-
-    def rebuild(self, entities) -> None:
-
-        self.clear()
-
-        if hasattr(entities, "all"):
-            entities = entities.all()
-
-        elif hasattr(entities, "values"):
-            entities = entities.values()
-
-        for entity in entities:
-            self.insert(entity)
-
-    def get_box(
-        self,
-        entity_id: UUID,
-    ) -> BoundingBox2 | None:
-
-        return self._boxes.get(entity_id)
-
-    def query_box(
-        self,
-        box: BoundingBox2,
-    ) -> list[UUID]:
-
-        return [
-            entity_id
-            for entity_id, entity_box in self._boxes.items()
-            if entity_box.intersects(box)
-        ]
-
-    def query_point(
-        self,
-        point: Point2,
-    ) -> list[UUID]:
-
-        return [
-            entity_id
-            for entity_id, entity_box in self._boxes.items()
-            if entity_box.contains(point)
-        ]
-
-    def __len__(self) -> int:
-        return len(self._boxes)
-
-============================================================
-FILE: sovereign_cad\core\viewport\viewport.py
-============================================================
-from __future__ import annotations
-
-from dataclasses import dataclass
-from math import isfinite
-
-from ..geometry import Point2, Vector2
-
-
-@dataclass
-class Viewport:
-    """
-    2D CAD viewport.
-
-    world_to_screen:
-        Converts model/world coordinates into screen coordinates.
-
-    screen_to_world:
-        Converts screen coordinates back into model/world coordinates.
-
-    The viewport uses:
-        origin = screen position of world origin
-        scale  = pixels per world unit
-    """
-
-    width: float = 1200.0
-    height: float = 800.0
-
-    origin_x: float = 600.0
-    origin_y: float = 400.0
-
-    scale: float = 1.0
-
-    min_scale: float = 1e-6
-    max_scale: float = 1e9
-
-    def __post_init__(self) -> None:
-        self._validate()
-
-    def _validate(self) -> None:
-
-        values = (
-            self.width,
-            self.height,
-            self.origin_x,
-            self.origin_y,
-            self.scale,
-        )
-
-        if not all(isfinite(value) for value in values):
-            raise ValueError("Viewport values must be finite.")
-
-        if self.width <= 0:
-            raise ValueError("Viewport width must be positive.")
-
-        if self.height <= 0:
-            raise ValueError("Viewport height must be positive.")
-
-        if self.scale <= 0:
-            raise ValueError("Viewport scale must be positive.")
-
-    def resize(
-        self,
-        width: float,
-        height: float,
-    ) -> None:
-
-        if width <= 0 or height <= 0:
-            raise ValueError(
-                "Viewport dimensions must be positive."
-            )
-
-        self.width = float(width)
-        self.height = float(height)
-
-    def set_scale(
-        self,
-        scale: float,
-    ) -> None:
-
-        if scale <= 0:
-            raise ValueError(
-                "Viewport scale must be positive."
-            )
-
-        self.scale = max(
-            self.min_scale,
-            min(self.max_scale, float(scale)),
-        )
-
-    def zoom(
-        self,
-        factor: float,
-        center: Point2 | None = None,
-    ) -> None:
-
-        if factor <= 0:
-            raise ValueError(
-                "Zoom factor must be positive."
-            )
-
-        if center is None:
-            center = Point2(
-                self.width / 2.0,
-                self.height / 2.0,
-            )
-
-        world_before = self.screen_to_world(center)
-
-        self.set_scale(
-            self.scale * factor
-        )
-
-        world_after = self.screen_to_world(center)
-
-        self.origin_x += (
-            (world_after.x - world_before.x)
-            * self.scale
-        )
-
-        self.origin_y += (
-            (world_after.y - world_before.y)
-            * self.scale
-        )
-
-    def pan(
-        self,
-        delta: Vector2,
-    ) -> None:
-
-        self.origin_x += delta.x
-        self.origin_y += delta.y
-
-    def world_to_screen(
-        self,
-        point: Point2,
-    ) -> Point2:
-
-        return Point2(
-            self.origin_x + point.x * self.scale,
-            self.origin_y - point.y * self.scale,
-        )
-
-    def screen_to_world(
-        self,
-        point: Point2,
-    ) -> Point2:
-
-        return Point2(
-            (point.x - self.origin_x) / self.scale,
-            (self.origin_y - point.y) / self.scale,
-        )
-
-    def world_vector_to_screen(
-        self,
-        vector: Vector2,
-    ) -> Vector2:
-
-        return Vector2(
-            vector.x * self.scale,
-            -vector.y * self.scale,
-        )
-
-    def screen_vector_to_world(
-        self,
-        vector: Vector2,
-    ) -> Vector2:
-
-        return Vector2(
-            vector.x / self.scale,
-            -vector.y / self.scale,
-        )
-
-    def center_world(self) -> Point2:
-
-        return self.screen_to_world(
-            Point2(
-                self.width / 2.0,
-                self.height / 2.0,
-            )
-        )
-
-============================================================
-FILE: sovereign_cad\core\rendering\renderer.py
-============================================================
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-
-from ..entities import CircleEntity, Entity, LineEntity
-from ..viewport import Viewport
-
-
-@dataclass(frozen=True)
-class RenderCommand:
-    """
-    Backend-independent render command.
-    """
-
-    kind: str
-    points: tuple
-    entity_id: object
-    selected: bool = False
-
-
-@dataclass
-class Renderer:
-    """
-    Backend-independent CAD renderer.
-
-    Stage 5 produces render commands instead of depending on
-    a specific GUI framework. A future Qt/OpenGL/Canvas backend
-    can consume these commands.
-    """
-
-    viewport: Viewport
-    commands: list[RenderCommand] = field(
-        default_factory=list
     )
 
-    def clear(self) -> None:
-        self.commands.clear()
+    assert box.min_x == -1
+    assert box.max_x == 4
+    assert box.min_y == -2
+    assert box.max_y == 8
+    assert box.width == 5
+    assert box.height == 10
 
-    def render_entity(
-        self,
-        entity: Entity,
-    ) -> RenderCommand | None:
-
-        if not entity.visible:
-            return None
-
-        if isinstance(entity, LineEntity):
-
-            start = self.viewport.world_to_screen(
-                entity.start
-            )
-
-            end = self.viewport.world_to_screen(
-                entity.end
-            )
-
-            command = RenderCommand(
-                kind="LINE",
-                points=(start, end),
-                entity_id=entity.entity_id,
-                selected=entity.selected,
-            )
-
-        elif isinstance(entity, CircleEntity):
-
-            center = self.viewport.world_to_screen(
-                entity.center
-            )
-
-            radius = entity.radius * self.viewport.scale
-
-            command = RenderCommand(
-                kind="CIRCLE",
-                points=(center, radius),
-                entity_id=entity.entity_id,
-                selected=entity.selected,
-            )
-
-        else:
-            return None
-
-        self.commands.append(command)
-
-        return command
-
-    def render(
-        self,
-        entities,
-    ) -> list[RenderCommand]:
-
-        self.clear()
-
-        for entity in entities:
-            self.render_entity(entity)
-
-        return list(self.commands)
 
 ============================================================
-FILE: sovereign_cad\rendering\renderer.py
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\test_streamlit_integration.py
 ============================================================
-from __future__ import annotations
+def test_streamlit_workspace_import():
 
-from dataclasses import dataclass, field
-from typing import Any
+    from sovereign_cad.streamlit import (
+        render_cad_workspace,
+    )
 
+    assert callable(
+        render_cad_workspace
+    )
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\application\test_application.py
+============================================================
+from sovereign_cad.application import (
+    ApplicationShell,
+    ApplicationContext,
+)
+
+from sovereign_cad.application.services import (
+    ApplicationService,
+)
+
+
+def test_application_shell():
+
+    shell = ApplicationShell()
+
+    assert shell.initialized is False
+    assert shell.running is False
+
+    shell.initialize()
+
+    assert shell.initialized is True
+
+    shell.start()
+
+    assert shell.running is True
+
+    shell.stop()
+
+    assert shell.running is False
+
+
+def test_service_registry():
+
+    shell = ApplicationShell()
+
+    service = ApplicationService(
+        shell=shell
+    )
+
+    shell.register_service(
+        "application",
+        service,
+    )
+
+    assert shell.has_service(
+        "application"
+    )
+
+    assert shell.get_service(
+        "application"
+    ) is service
+
+
+def test_application_service():
+
+    service = ApplicationService()
+
+    service.set(
+        "status",
+        "ready",
+    )
+
+    assert service.get(
+        "status"
+    ) == "ready"
+
+
+def test_application_context():
+
+    context = ApplicationContext()
+
+    context.set_metadata(
+        "stage",
+        7,
+    )
+
+    assert context.get_metadata(
+        "stage"
+    ) == 7
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\application\__init__.py
+============================================================
+# SovereignCAD Stage 7 application tests.
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\canvas\test_canvas_state.py
+============================================================
 from sovereign_cad.core.geometry import Point2
+from sovereign_cad.ui.canvas import CanvasState
+
+
+def close(a, b, eps=1e-9):
+    return abs(a - b) < eps
+
+
+def test_canvas_initializes():
+    canvas = CanvasState()
+
+    assert canvas.viewport is not None
+    assert canvas.is_panning is False
+
+
+def test_cursor_conversion():
+    canvas = CanvasState()
+
+    center = canvas.viewport.screen_center()
+
+    world = canvas.update_cursor(center)
+
+    assert close(world.x, 0.0)
+    assert close(world.y, 0.0)
+
+
+def test_pan_lifecycle():
+    canvas = CanvasState()
+
+    canvas.begin_pan(
+        Point2(100.0, 100.0)
+    )
+
+    assert canvas.is_panning is True
+
+    canvas.update_pan(
+        Point2(120.0, 100.0)
+    )
+
+    canvas.end_pan()
+
+    assert canvas.is_panning is False
+    assert canvas.last_pan_screen is None
+
+
+def test_reset_view():
+    canvas = CanvasState()
+
+    canvas.viewport.set_zoom(4.0)
+
+    canvas.reset_view()
+
+    assert close(
+        canvas.viewport.zoom,
+        1.0
+    )
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\canvas\__init__.py
+============================================================
+# SovereignCAD package.
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\commands\test_commands.py
+============================================================
+from sovereign_cad.commands import (
+    Command,
+    CommandManager,
+    CommandResult,
+)
+
+
+class CounterCommand(Command):
+
+    name = "Counter"
+
+    def execute(self, context):
+        context["value"] += 1
+
+        return CommandResult(
+            success=True,
+            message="incremented",
+        )
+
+    def undo(self, context):
+        context["value"] -= 1
+
+        return CommandResult(
+            success=True,
+            message="decremented",
+        )
+
+
+def test_command_execution():
+    context = {"value": 0}
+    manager = CommandManager(context=context)
+
+    result = manager.execute(CounterCommand())
+
+    assert result.success
+    assert context["value"] == 1
+    assert manager.can_undo
+    assert not manager.can_redo
+
+
+def test_command_undo():
+    context = {"value": 0}
+    manager = CommandManager(context=context)
+
+    manager.execute(CounterCommand())
+    result = manager.undo()
+
+    assert result.success
+    assert context["value"] == 0
+    assert not manager.can_undo
+    assert manager.can_redo
+
+
+def test_command_redo():
+    context = {"value": 0}
+    manager = CommandManager(context=context)
+
+    manager.execute(CounterCommand())
+    manager.undo()
+    result = manager.redo()
+
+    assert result.success
+    assert context["value"] == 1
+    assert manager.can_undo
+    assert not manager.can_redo
+
+
+def test_empty_undo():
+    manager = CommandManager(context={})
+
+    result = manager.undo()
+
+    assert not result.success
+
+
+def test_empty_redo():
+    manager = CommandManager(context={})
+
+    result = manager.redo()
+
+    assert not result.success
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\commands\test_command_integration.py
+============================================================
+from sovereign_cad.core.commands import (
+    ChangeLayerCommand,
+    CommandManager,
+    CreateEntityCommand,
+)
+from sovereign_cad.core.document import Document
+from sovereign_cad.core.entities import LineEntity
+from sovereign_cad.core.geometry import Point2
+
+
+def test_full_command_workflow():
+
+    document = Document()
+    manager = CommandManager()
+
+    line = LineEntity(
+        Point2(0, 0),
+        Point2(100, 0),
+    )
+
+    manager.execute(
+        CreateEntityCommand(
+            document,
+            line,
+        )
+    )
+
+    assert document.entity_count == 1
+
+    manager.execute(
+        ChangeLayerCommand(
+            document,
+            line.entity_id,
+            "WALLS",
+        )
+    )
+
+    assert line.layer == "WALLS"
+
+    manager.undo()
+
+    assert line.layer == "0"
+
+    manager.undo()
+
+    assert document.entity_count == 0
+
+    manager.redo()
+
+    assert document.entity_count == 1
+
+    manager.redo()
+
+    assert line.layer == "WALLS"
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\commands\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\document\test_document.py
+============================================================
+import pytest
+
+from sovereign_cad.core.document import Document
+from sovereign_cad.core.entities import CircleEntity, LineEntity
+from sovereign_cad.core.geometry import Point2
+
+
+def test_document_starts_empty():
+
+    document = Document()
+
+    assert document.entity_count == 0
+    assert document.layer_count == 1
+    assert document.active_layer == "0"
+
+
+def test_add_line():
+
+    document = Document()
+
+    entity = LineEntity(
+        Point2(0, 0),
+        Point2(10, 0),
+    )
+
+    entity_id = document.add_entity(entity)
+
+    assert document.entity_count == 1
+    assert document.get_entity(entity_id) is entity
+
+
+def test_add_circle():
+
+    document = Document()
+
+    entity = CircleEntity(
+        Point2(5, 5),
+        3,
+    )
+
+    document.add_entity(entity)
+
+    assert document.entity_count == 1
+
+
+def test_add_layer():
+
+    document = Document()
+
+    layer = document.add_layer("WALLS")
+
+    assert layer.name == "WALLS"
+    assert "WALLS" in document.layers
+
+
+def test_active_layer():
+
+    document = Document()
+
+    document.add_layer("WALLS")
+    document.set_active_layer("WALLS")
+
+    assert document.active_layer == "WALLS"
+
+
+def test_entity_selection():
+
+    document = Document()
+
+    entity = LineEntity(
+        Point2(0, 0),
+        Point2(10, 0),
+    )
+
+    entity_id = document.add_entity(entity)
+
+    document.select_entity(entity_id)
+
+    selected = document.selected_entities()
+
+    assert len(selected) == 1
+    assert selected[0] is entity
+
+    document.deselect_all()
+
+    assert document.selected_entities() == []
+
+
+def test_remove_entity():
+
+    document = Document()
+
+    entity = LineEntity(
+        Point2(0, 0),
+        Point2(10, 0),
+    )
+
+    entity_id = document.add_entity(entity)
+
+    removed = document.remove_entity(entity_id)
+
+    assert removed is entity
+    assert document.entity_count == 0
+
+
+def test_layer_removal_protection():
+
+    document = Document()
+
+    document.add_layer("WALLS")
+    document.set_active_layer("WALLS")
+
+    entity = LineEntity(
+        Point2(0, 0),
+        Point2(10, 0),
+        layer="WALLS",
+    )
+
+    document.add_entity(entity)
+
+    with pytest.raises(ValueError):
+        document.remove_layer("WALLS")
+
+
+def test_default_layer_cannot_be_removed():
+
+    document = Document()
+
+    with pytest.raises(ValueError):
+        document.remove_layer("0")
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\document\test_session.py
+============================================================
+from sovereign_cad.commands import Command, CommandResult
+from sovereign_cad.document import DocumentSession
+
+
+class SessionCommand(Command):
+
+    name = "SessionCommand"
+
+    def execute(self, context):
+        context.active_tool = "test"
+
+        return CommandResult(success=True)
+
+    def undo(self, context):
+        context.active_tool = None
+
+        return CommandResult(success=True)
+
+
+def test_document_session():
+    session = DocumentSession()
+
+    assert session.command_manager is not None
+    assert session.active_tool is None
+
+
+def test_document_command_execution():
+    session = DocumentSession()
+
+    result = session.execute(SessionCommand())
+
+    assert result.success
+    assert session.active_tool == "test"
+
+
+def test_document_undo():
+    session = DocumentSession()
+
+    session.execute(SessionCommand())
+    result = session.undo()
+
+    assert result.success
+    assert session.active_tool is None
+
+
+def test_document_redo():
+    session = DocumentSession()
+
+    session.execute(SessionCommand())
+    session.undo()
+
+    result = session.redo()
+
+    assert result.success
+    assert session.active_tool == "test"
+
+
+def test_tool_selection():
+    session = DocumentSession()
+
+    session.set_tool("select")
+
+    assert session.active_tool == "select"
+
+    session.clear_tool()
+
+    assert session.active_tool is None
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\document\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\entities\test_entities.py
+============================================================
 from sovereign_cad.core.entities import (
     CircleEntity,
-    Entity,
+    LineEntity,
+    is_valid_entity_id,
+)
+from sovereign_cad.core.geometry import Point2
+
+
+def test_line_entity():
+
+    entity = LineEntity(
+        Point2(0, 0),
+        Point2(10, 0),
+    )
+
+    assert entity.entity_type == "LINE"
+    assert entity.length == 10
+    assert is_valid_entity_id(entity.entity_id)
+
+
+def test_circle_entity():
+
+    entity = CircleEntity(
+        Point2(5, 5),
+        10,
+    )
+
+    assert entity.entity_type == "CIRCLE"
+    assert entity.radius == 10
+    assert is_valid_entity_id(entity.entity_id)
+
+
+def test_entity_selection():
+
+    entity = LineEntity(
+        Point2(0, 0),
+        Point2(1, 1),
+    )
+
+    assert entity.selected is False
+
+    entity.select()
+
+    assert entity.selected is True
+
+    entity.deselect()
+
+    assert entity.selected is False
+
+
+def test_entity_layer():
+
+    entity = LineEntity(
+        Point2(0, 0),
+        Point2(1, 1),
+        layer="WALLS",
+    )
+
+    assert entity.layer == "WALLS"
+
+    entity.set_layer("DIMENSIONS")
+
+    assert entity.layer == "DIMENSIONS"
+
+
+def test_line_bounding_box():
+
+    entity = LineEntity(
+        Point2(-2, -3),
+        Point2(8, 7),
+    )
+
+    box = entity.bounding_box()
+
+    assert box.min_x == -2
+    assert box.max_x == 8
+    assert box.min_y == -3
+    assert box.max_y == 7
+
+
+def test_circle_bounding_box():
+
+    entity = CircleEntity(
+        Point2(10, 20),
+        5,
+    )
+
+    box = entity.bounding_box()
+
+    assert box.min_x == 5
+    assert box.max_x == 15
+    assert box.min_y == 15
+    assert box.max_y == 25
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\entities\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\input\test_events.py
+============================================================
+from sovereign_cad.core.geometry import Point2
+from sovereign_cad.input import (
+    InputEvent,
+    InputEventType,
+    MouseEvent,
+    KeyEvent,
+)
+
+
+def test_input_event():
+    event = InputEvent(
+        InputEventType.MOUSE_MOVE,
+        {"x": 10},
+    )
+
+    assert event.event_type == InputEventType.MOUSE_MOVE
+    assert event.data["x"] == 10
+
+
+def test_mouse_event_conversion():
+    event = MouseEvent(
+        event_type=InputEventType.MOUSE_DOWN,
+        position=Point2(10, 20),
+        button="left",
+    )
+
+    converted = event.to_input_event()
+
+    assert converted.event_type == InputEventType.MOUSE_DOWN
+    assert converted.data["position"] == Point2(10, 20)
+    assert converted.data["button"] == "left"
+
+
+def test_key_event_conversion():
+    event = KeyEvent(
+        event_type=InputEventType.KEY_DOWN,
+        key="A",
+        modifiers=("CTRL",),
+    )
+
+    converted = event.to_input_event()
+
+    assert converted.event_type == InputEventType.KEY_DOWN
+    assert converted.data["key"] == "A"
+    assert converted.data["modifiers"] == ("CTRL",)
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\input\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\persistence\__init__.py
+============================================================
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\persistence\project\test_project.py
+============================================================
+from sovereign_cad.persistence import (
+    ProjectFile,
+    ProjectSerializer,
+    ProjectPersistence,
+)
+
+
+def test_project_defaults():
+    project = ProjectFile()
+
+    assert project.version == "1.0"
+    assert project.name
+    assert isinstance(project.metadata, dict)
+    assert isinstance(project.document, dict)
+
+
+def test_project_round_trip():
+    project = ProjectFile(
+        name="Stage 8 Test",
+        metadata={"author": "SovereignCAD"},
+        document={"entities": []},
+    )
+
+    text = ProjectSerializer.dumps(project)
+
+    restored = ProjectSerializer.loads(text)
+
+    assert restored.name == project.name
+    assert restored.metadata == project.metadata
+    assert restored.document == project.document
+
+
+def test_project_persistence(tmp_path):
+    project = ProjectFile(
+        name="Persistence Test",
+        document={"entities": []},
+    )
+
+    persistence = ProjectPersistence(tmp_path)
+
+    path = persistence.save(project, "test_project")
+
+    assert path.exists()
+    assert path.suffix == ".scad"
+
+    loaded = persistence.load(path)
+
+    assert loaded.name == "Persistence Test"
+    assert loaded.document == {"entities": []}
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\persistence\project\test_serializer.py
+============================================================
+from sovereign_cad.persistence import (
+    ProjectFile,
+    ProjectSerializer,
+)
+
+
+def test_serializer_produces_json():
+    project = ProjectFile(name="Serializer Test")
+
+    text = ProjectSerializer.dumps(project)
+
+    assert '"format": "SovereignCAD"' in text
+    assert '"name": "Serializer Test"' in text
+
+
+def test_invalid_format_rejected():
+    bad = '{"format": "UnknownCAD", "version": "1.0"}'
+
+    try:
+        ProjectSerializer.loads(bad)
+    except ValueError:
+        return
+
+    raise AssertionError("Invalid project format was accepted.")
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\persistence\project\__init__.py
+============================================================
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\rendering\test_renderer.py
+============================================================
+from sovereign_cad.core.geometry import Point2
+from sovereign_cad.ui.viewport import Viewport
+from sovereign_cad.rendering import (
+    Renderer,
+    Renderer2D,
+    RenderCommand,
+)
+
+
+def test_renderer_exports():
+    assert Renderer is Renderer2D
+
+
+def test_renderer_initializes():
+    viewport = Viewport()
+
+    renderer = Renderer2D(viewport)
+
+    assert renderer.viewport is viewport
+
+
+def test_render_command():
+    command = RenderCommand(
+        operation="test"
+    )
+
+    assert command.operation == "test"
+    assert isinstance(command.data, dict)
+
+
+def test_grid_rendering():
+    viewport = Viewport()
+
+    renderer = Renderer2D(viewport)
+
+    commands = renderer.render_grid(
+        spacing=100.0,
+        extent=100.0,
+    )
+
+    assert len(commands) > 0
+
+    for command in commands:
+        assert command.operation == "grid_line"
+
+
+def test_coordinate_conversion_for_renderer():
+    viewport = Viewport(
+        width=1000.0,
+        height=800.0,
+    )
+
+    renderer = Renderer2D(viewport)
+
+    assert renderer.viewport.world_to_screen(
+        Point2(0.0, 0.0)
+    ).x == 500.0
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\rendering\__init__.py
+============================================================
+# SovereignCAD package.
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\selection\test_selection.py
+============================================================
+from sovereign_cad.core.entities import (
+    CircleEntity,
+    EntityRegistry,
     LineEntity,
 )
 
-from sovereign_cad.ui.viewport import Viewport
+from sovereign_cad.core.geometry import (
+    BoundingBox2,
+    Point2,
+)
+
+from sovereign_cad.core.selection import SelectionEngine
+from sovereign_cad.core.spatial import SpatialIndex
 
 
-@dataclass
-class RenderCommand:
-    operation: str
-    data: dict[str, Any] = field(
-        default_factory=dict
+def create_selection_engine():
+
+    registry = EntityRegistry()
+
+    line = LineEntity(
+        start=Point2(0, 0),
+        end=Point2(10, 0),
     )
 
+    circle = CircleEntity(
+        center=Point2(20, 20),
+        radius=5,
+    )
 
-class Renderer2D:
-    """
-    Converts SovereignCAD entities into backend-neutral
-    2D rendering commands.
-    """
+    registry.add(line)
+    registry.add(circle)
 
-    def __init__(self, viewport: Viewport):
-        self.viewport = viewport
+    spatial = SpatialIndex()
 
-    def render_entity(self, entity: Entity):
-        if not entity.visible:
-            return None
+    spatial.rebuild(registry)
 
-        if isinstance(entity, LineEntity):
-            start = self.viewport.world_to_screen(
-                entity.start
-            )
+    selection = SelectionEngine(
+        registry,
+        spatial,
+    )
 
-            end = self.viewport.world_to_screen(
-                entity.end
-            )
-
-            return RenderCommand(
-                operation="line",
-                data={
-                    "entity_id": entity.entity_id,
-                    "start": start,
-                    "end": end,
-                    "selected": entity.selected,
-                    "layer": entity.layer,
-                },
-            )
-
-        if isinstance(entity, CircleEntity):
-            center = self.viewport.world_to_screen(
-                entity.center
-            )
-
-            radius = (
-                entity.radius
-                * self.viewport.zoom
-            )
-
-            return RenderCommand(
-                operation="circle",
-                data={
-                    "entity_id": entity.entity_id,
-                    "center": center,
-                    "radius": radius,
-                    "selected": entity.selected,
-                    "layer": entity.layer,
-                },
-            )
-
-        return RenderCommand(
-            operation="entity",
-            data={
-                "entity_id": entity.entity_id,
-                "entity_type": entity.entity_type,
-                "selected": entity.selected,
-                "layer": entity.layer,
-            },
-        )
-
-    def render_entities(self, entities):
-        commands = []
-
-        for entity in entities:
-            command = self.render_entity(entity)
-
-            if command is not None:
-                commands.append(command)
-
-        return commands
-
-    def render_registry(self, registry):
-        return self.render_entities(
-            registry.visible()
-        )
-
-    def render_grid(
-        self,
-        spacing: float = 10.0,
-        extent: float = 1000.0,
-    ):
-        if spacing <= 0:
-            raise ValueError(
-                "Grid spacing must be positive."
-            )
-
-        if extent <= 0:
-            raise ValueError(
-                "Grid extent must be positive."
-            )
-
-        commands = []
-
-        value = -extent
-
-        while value <= extent:
-            vertical_start = (
-                self.viewport.world_to_screen(
-                    Point2(value, -extent)
-                )
-            )
-
-            vertical_end = (
-                self.viewport.world_to_screen(
-                    Point2(value, extent)
-                )
-            )
-
-            commands.append(
-                RenderCommand(
-                    operation="grid_line",
-                    data={
-                        "start": vertical_start,
-                        "end": vertical_end,
-                    },
-                )
-            )
-
-            horizontal_start = (
-                self.viewport.world_to_screen(
-                    Point2(-extent, value)
-                )
-            )
-
-            horizontal_end = (
-                self.viewport.world_to_screen(
-                    Point2(extent, value)
-                )
-            )
-
-            commands.append(
-                RenderCommand(
-                    operation="grid_line",
-                    data={
-                        "start": horizontal_start,
-                        "end": horizontal_end,
-                    },
-                )
-            )
-
-            value += spacing
-
-        return commands
+    return selection, line, circle
 
 
-# Compatibility name used by Stage 5 consumers.
-Renderer = Renderer2D
+def test_pick():
+
+    selection, line, circle = create_selection_engine()
+
+    result = selection.pick(Point2(5, 0))
+
+    assert line in result
+    assert circle not in result
+
+
+def test_crossing_window():
+
+    selection, line, circle = create_selection_engine()
+
+    box = BoundingBox2(-1, -1, 11, 1)
+
+    result = selection.window_select(
+        box,
+        crossing=True,
+    )
+
+    assert line in result
+    assert circle not in result
+
+
+def test_contained_window():
+
+    selection, line, circle = create_selection_engine()
+
+    box = BoundingBox2(-1, -1, 11, 1)
+
+    result = selection.window_select(
+        box,
+        crossing=False,
+    )
+
+    assert line in result
+    assert circle not in result
+
+
+def test_apply_selection():
+
+    selection, line, circle = create_selection_engine()
+
+    selection.apply_selection([line])
+
+    assert line.selected
+    assert not circle.selected
+
+
+def test_additive_selection():
+
+    selection, line, circle = create_selection_engine()
+
+    selection.apply_selection([line])
+
+    selection.apply_selection(
+        [circle],
+        additive=True,
+    )
+
+    assert line.selected
+    assert circle.selected
+
+
+def test_clear_selection():
+
+    selection, line, circle = create_selection_engine()
+
+    selection.apply_selection([line, circle])
+
+    selection.clear()
+
+    assert not line.selected
+    assert not circle.selected
+
 
 ============================================================
-FILE: sovereign_cad\document\session.py
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\selection\__init__.py
 ============================================================
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-from typing import Any
-
-from sovereign_cad.commands import CommandManager
 
 
-@dataclass
-class DocumentSession:
-    """
-    Runtime application session connecting the document registry
-    and command system.
-    """
-
-    registry: Any = None
-    command_manager: CommandManager = field(init=False)
-
-    active_tool: str | None = None
-
-    def __post_init__(self) -> None:
-        self.command_manager = CommandManager(
-            context=self
-        )
-
-    def execute(self, command) -> Any:
-        return self.command_manager.execute(command)
-
-    def undo(self) -> Any:
-        return self.command_manager.undo()
-
-    def redo(self) -> Any:
-        return self.command_manager.redo()
-
-    def set_tool(self, tool_name: str | None) -> None:
-        self.active_tool = tool_name
-
-    def clear_tool(self) -> None:
-        self.active_tool = None
 
 ============================================================
-FILE: sovereign_cad\persistence\project\persistence.py
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\spatial\test_spatial_index.py
 ============================================================
-from __future__ import annotations
+from sovereign_cad.core.entities import (
+    CircleEntity,
+    EntityRegistry,
+    LineEntity,
+)
 
-from pathlib import Path
+from sovereign_cad.core.geometry import (
+    BoundingBox2,
+    Point2,
+)
 
-from .model import ProjectFile
-from .serializer import ProjectSerializer
-
-
-class ProjectPersistence:
-
-    extension = ".scad"
-
-    def __init__(self, root: str | Path | None = None):
-        self.root = Path(root) if root is not None else Path.cwd()
-
-    def save(
-        self,
-        project: ProjectFile,
-        path: str | Path,
-    ) -> Path:
-        target = Path(path)
-
-        if not target.is_absolute():
-            target = self.root / target
-
-        if target.suffix.lower() != self.extension:
-            target = target.with_suffix(self.extension)
-
-        target.parent.mkdir(parents=True, exist_ok=True)
-
-        ProjectSerializer.dump_file(
-            project,
-            str(target),
-        )
-
-        return target
-
-    def load(
-        self,
-        path: str | Path,
-    ) -> ProjectFile:
-        target = Path(path)
-
-        if not target.is_absolute():
-            target = self.root / target
-
-        return ProjectSerializer.load_file(str(target))
-
-    def exists(
-        self,
-        path: str | Path,
-    ) -> bool:
-        target = Path(path)
-
-        if not target.is_absolute():
-            target = self.root / target
-
-        return target.exists()
-
-============================================================
-FILE: sovereign_cad\persistence\project\serializer.py
-============================================================
-from __future__ import annotations
-
-import json
-from typing import Any
-
-from .model import ProjectFile
+from sovereign_cad.core.spatial import SpatialIndex
 
 
-class ProjectSerializer:
+def create_scene():
 
-    @staticmethod
-    def dumps(project: ProjectFile, *, indent: int = 2) -> str:
-        if not isinstance(project, ProjectFile):
-            raise TypeError("project must be a ProjectFile.")
+    registry = EntityRegistry()
 
-        return json.dumps(
-            project.to_dict(),
-            indent=indent,
-            ensure_ascii=False,
-            sort_keys=True,
-        )
+    line = LineEntity(
+        start=Point2(0, 0),
+        end=Point2(10, 0),
+    )
 
-    @staticmethod
-    def loads(text: str) -> ProjectFile:
-        if not isinstance(text, str):
-            raise TypeError("Project data must be text.")
+    circle = CircleEntity(
+        center=Point2(20, 20),
+        radius=5,
+    )
 
-        data: Any = json.loads(text)
+    registry.add(line)
+    registry.add(circle)
 
-        if not isinstance(data, dict):
-            raise ValueError("Project JSON root must be an object.")
+    return registry, line, circle
 
-        if data.get("format") != "SovereignCAD":
-            raise ValueError("Invalid SovereignCAD project format.")
 
-        return ProjectFile.from_dict(data)
+def test_insert():
 
-    @staticmethod
-    def dump_file(project: ProjectFile, path: str) -> None:
-        with open(path, "w", encoding="utf-8") as handle:
-            handle.write(ProjectSerializer.dumps(project))
+    registry, line, circle = create_scene()
 
-    @staticmethod
-    def load_file(path: str) -> ProjectFile:
-        with open(path, "r", encoding="utf-8") as handle:
-            return ProjectSerializer.loads(handle.read())
+    index = SpatialIndex()
+
+    index.rebuild(registry)
+
+    assert len(index) == 2
+
+
+def test_point_query():
+
+    registry, line, circle = create_scene()
+
+    index = SpatialIndex()
+
+    index.rebuild(registry)
+
+    result = index.query_point(Point2(5, 0))
+
+    assert line.id in result
+    assert circle.id not in result
+
+
+def test_box_query():
+
+    registry, line, circle = create_scene()
+
+    index = SpatialIndex()
+
+    index.rebuild(registry)
+
+    box = BoundingBox2(-1, -1, 11, 1)
+
+    result = index.query_box(box)
+
+    assert line.id in result
+    assert circle.id not in result
+
+
+def test_remove():
+
+    registry, line, circle = create_scene()
+
+    index = SpatialIndex()
+
+    index.rebuild(registry)
+
+    index.remove(line.id)
+
+    assert len(index) == 1
+
 
 ============================================================
-FILE: sovereign_cad\ui\canvas\state.py
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\spatial\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\transforms\test_transform2d.py
+============================================================
+from math import pi
+
+from sovereign_cad.core.geometry import Point2, Vector2
+from sovereign_cad.core.transforms import Transform2D
+
+
+def test_identity():
+
+    transform = Transform2D.identity()
+
+    result = transform.apply_point(Point2(3, 4))
+
+    assert result.almost_equal(Point2(3, 4))
+
+
+def test_translation():
+
+    transform = Transform2D.translation(10, 20)
+
+    result = transform.apply_point(Point2(1, 2))
+
+    assert result.almost_equal(Point2(11, 22))
+
+
+def test_rotation():
+
+    transform = Transform2D.rotation(pi / 2)
+
+    result = transform.apply_point(Point2(1, 0))
+
+    assert result.almost_equal(Point2(0, 1))
+
+
+def test_scaling():
+
+    transform = Transform2D.scaling(2, 3)
+
+    result = transform.apply_point(Point2(4, 5))
+
+    assert result.almost_equal(Point2(8, 15))
+
+
+def test_vector_ignores_translation():
+
+    transform = Transform2D.translation(100, 100)
+
+    result = transform.apply_vector(Vector2(2, 3))
+
+    assert result == Vector2(2, 3)
+
+
+def test_composition():
+
+    scale = Transform2D.scaling(2)
+
+    move = Transform2D.translation(10, 0)
+
+    combined = scale.then(move)
+
+    result = combined.apply_point(Point2(1, 0))
+
+    assert result.almost_equal(Point2(12, 0))
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\transforms\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\viewport\test_viewport.py
+============================================================
+from sovereign_cad.core.geometry import Point2, Vector2
+from sovereign_cad.ui.viewport import Viewport, Viewport2D
+
+
+def close(a, b, eps=1e-9):
+    return abs(a - b) < eps
+
+
+def test_viewport_exports():
+    assert Viewport is Viewport2D
+
+
+def test_default_viewport():
+    viewport = Viewport()
+
+    assert viewport.width == 1200.0
+    assert viewport.height == 800.0
+    assert viewport.zoom == 1.0
+
+
+def test_world_to_screen_origin():
+    viewport = Viewport(
+        width=1000.0,
+        height=800.0,
+    )
+
+    screen = viewport.world_to_screen(
+        Point2(0.0, 0.0)
+    )
+
+    assert close(screen.x, 500.0)
+    assert close(screen.y, 400.0)
+
+
+def test_screen_to_world_origin():
+    viewport = Viewport(
+        width=1000.0,
+        height=800.0,
+    )
+
+    world = viewport.screen_to_world(
+        Point2(500.0, 400.0)
+    )
+
+    assert close(world.x, 0.0)
+    assert close(world.y, 0.0)
+
+
+def test_round_trip():
+    viewport = Viewport()
+
+    original = Point2(
+        125.5,
+        -72.25,
+    )
+
+    screen = viewport.world_to_screen(
+        original
+    )
+
+    result = viewport.screen_to_world(
+        screen
+    )
+
+    assert close(result.x, original.x)
+    assert close(result.y, original.y)
+
+
+def test_zoom():
+    viewport = Viewport()
+
+    viewport.zoom_by(2.0)
+
+    assert viewport.zoom == 2.0
+
+    viewport.zoom_by(0.5)
+
+    assert viewport.zoom == 1.0
+
+
+def test_pan_world():
+    viewport = Viewport()
+
+    viewport.pan_world(
+        Vector2(10.0, 20.0)
+    )
+
+    assert close(viewport.center.x, 10.0)
+    assert close(viewport.center.y, 20.0)
+
+
+def test_reset():
+    viewport = Viewport()
+
+    viewport.pan_world(
+        Vector2(10.0, 20.0)
+    )
+
+    viewport.zoom_by(4.0)
+
+    viewport.reset()
+
+    assert close(viewport.center.x, 0.0)
+    assert close(viewport.center.y, 0.0)
+    assert close(viewport.zoom, 1.0)
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\tests\viewport\__init__.py
+============================================================
+# SovereignCAD package.
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\ui\__init__.py
+============================================================
+from .canvas import CanvasState
+from .viewport import Viewport, Viewport2D
+
+__all__ = [
+    "CanvasState",
+    "Viewport",
+    "Viewport2D",
+]
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\ui\canvas\state.py
 ============================================================
 from __future__ import annotations
 
@@ -2319,3 +5968,557 @@ class CanvasState:
         self.update_cursor(
             self.cursor_screen
         )
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\ui\canvas\__init__.py
+============================================================
+from .state import CanvasState
+
+__all__ = [
+    "CanvasState",
+]
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\ui\viewport\viewport.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from sovereign_cad.core.geometry import Point2, Vector2
+
+
+@dataclass
+class Viewport:
+    """
+    SovereignCAD 2D world/screen viewport.
+
+    World coordinates:
+        X increases to the right.
+        Y increases upward.
+
+    Screen coordinates:
+        X increases to the right.
+        Y increases downward.
+    """
+
+    width: float = 1200.0
+    height: float = 800.0
+
+    center: Point2 = field(
+        default_factory=lambda: Point2(0.0, 0.0)
+    )
+
+    zoom: float = 1.0
+
+    min_zoom: float = 0.0001
+    max_zoom: float = 1000000.0
+
+    def __post_init__(self):
+        if self.width <= 0:
+            raise ValueError("Viewport width must be positive.")
+
+        if self.height <= 0:
+            raise ValueError("Viewport height must be positive.")
+
+        if self.zoom <= 0:
+            raise ValueError("Viewport zoom must be positive.")
+
+        self.zoom = self._clamp_zoom(self.zoom)
+
+    def _clamp_zoom(self, value: float) -> float:
+        return max(
+            self.min_zoom,
+            min(self.max_zoom, value),
+        )
+
+    def world_to_screen(self, point: Point2) -> Point2:
+        return Point2(
+            (point.x - self.center.x)
+            * self.zoom
+            + self.width / 2.0,
+
+            self.height / 2.0
+            - (point.y - self.center.y)
+            * self.zoom,
+        )
+
+    def screen_to_world(self, point: Point2) -> Point2:
+        return Point2(
+            (point.x - self.width / 2.0)
+            / self.zoom
+            + self.center.x,
+
+            (self.height / 2.0 - point.y)
+            / self.zoom
+            + self.center.y,
+        )
+
+    def world_vector_to_screen(self, vector: Vector2) -> Vector2:
+        return Vector2(
+            vector.x * self.zoom,
+            -vector.y * self.zoom,
+        )
+
+    def screen_vector_to_world(self, vector: Vector2) -> Vector2:
+        return Vector2(
+            vector.x / self.zoom,
+            -vector.y / self.zoom,
+        )
+
+    def pan(self, delta_screen: Vector2) -> None:
+        delta_world = self.screen_vector_to_world(delta_screen)
+
+        self.center = Point2(
+            self.center.x - delta_world.x,
+            self.center.y - delta_world.y,
+        )
+
+    def pan_world(self, delta_world: Vector2) -> None:
+        self.center = Point2(
+            self.center.x + delta_world.x,
+            self.center.y + delta_world.y,
+        )
+
+    def zoom_by(self, factor: float) -> None:
+        if factor <= 0:
+            raise ValueError("Zoom factor must be positive.")
+
+        self.zoom = self._clamp_zoom(
+            self.zoom * factor
+        )
+
+    def set_zoom(self, zoom: float) -> None:
+        if zoom <= 0:
+            raise ValueError("Zoom must be positive.")
+
+        self.zoom = self._clamp_zoom(zoom)
+
+    def reset(self) -> None:
+        self.center = Point2(0.0, 0.0)
+        self.zoom = 1.0
+
+    def screen_center(self) -> Point2:
+        return Point2(
+            self.width / 2.0,
+            self.height / 2.0,
+        )
+
+
+# Compatibility name used by earlier Stage 5 code.
+Viewport2D = Viewport
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\ui\viewport\__init__.py
+============================================================
+from .viewport import Viewport, Viewport2D
+
+__all__ = [
+    "Viewport",
+    "Viewport2D",
+]
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\_backup_entity_fix\circle.py
+============================================================
+from .entity import Entity, CircleEntity
+
+__all__ = [
+    "Entity",
+    "CircleEntity",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\_backup_entity_fix\entity.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
+
+from ..geometry import (
+    BoundingBox2,
+    Circle2,
+    LineSegment2,
+    Point2,
+)
+
+
+@dataclass(kw_only=True)
+class Entity:
+    """
+    Base class for all SovereignCAD entities.
+
+    Metadata fields are keyword-only so geometry can safely be
+    supplied positionally:
+
+        LineEntity(Point2(0, 0), Point2(10, 0))
+
+        CircleEntity(Point2(5, 5), 10)
+    """
+
+    entity_id: UUID = field(default_factory=uuid4)
+
+    layer: str = "0"
+
+    visible: bool = True
+
+    selected: bool = False
+
+    @property
+    def id(self) -> UUID:
+        """
+        Backward-compatible alias for entity_id.
+        """
+        return self.entity_id
+
+    @property
+    def entity_type(self) -> str:
+        return self.__class__.__name__.replace("Entity", "").upper()
+
+    def set_layer(self, layer: str) -> None:
+        if not isinstance(layer, str) or not layer.strip():
+            raise ValueError("Layer must be a non-empty string.")
+
+        self.layer = layer.strip()
+
+    def bounding_box(self) -> BoundingBox2:
+        raise NotImplementedError
+
+    def clone(self):
+        raise NotImplementedError
+
+
+@dataclass(kw_only=True)
+class LineEntity(Entity):
+    """
+    2D line entity.
+
+    Positional constructor:
+
+        LineEntity(start, end)
+
+    Optional metadata:
+
+        LineEntity(start, end, layer="WALLS")
+    """
+
+    start: Point2 = field(default_factory=lambda: Point2(0.0, 0.0))
+
+    end: Point2 = field(default_factory=lambda: Point2(1.0, 0.0))
+
+    def geometry(self) -> LineSegment2:
+        return LineSegment2(
+            self.start,
+            self.end,
+        )
+
+    @property
+    def length(self) -> float:
+        return self.start.distance_to(self.end)
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2.from_points(
+            [
+                self.start,
+                self.end,
+            ]
+        )
+
+    def clone(self) -> "LineEntity":
+        return LineEntity(
+            start=self.start,
+            end=self.end,
+            entity_id=self.entity_id,
+            layer=self.layer,
+            visible=self.visible,
+            selected=self.selected,
+        )
+
+
+@dataclass(kw_only=True)
+class CircleEntity(Entity):
+    """
+    2D circle entity.
+
+    Positional constructor:
+
+        CircleEntity(center, radius)
+
+    Optional metadata:
+
+        CircleEntity(center, radius, layer="WALLS")
+    """
+
+    center: Point2 = field(
+        default_factory=lambda: Point2(0.0, 0.0)
+    )
+
+    radius: float = 1.0
+
+    def geometry(self) -> Circle2:
+        return Circle2(
+            self.center,
+            self.radius,
+        )
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2(
+            self.center.x - self.radius,
+            self.center.y - self.radius,
+            self.center.x + self.radius,
+            self.center.y + self.radius,
+        )
+
+    def clone(self) -> "CircleEntity":
+        return CircleEntity(
+            center=self.center,
+            radius=self.radius,
+            entity_id=self.entity_id,
+            layer=self.layer,
+            visible=self.visible,
+            selected=self.selected,
+        )
+
+
+__all__ = [
+    "Entity",
+    "LineEntity",
+    "CircleEntity",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\_backup_entity_fix\entity_id.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID, uuid4
+
+
+def create_entity_id() -> UUID:
+    return uuid4()
+
+
+def is_valid_entity_id(value) -> bool:
+    if isinstance(value, UUID):
+        return True
+
+    if not isinstance(value, str):
+        return False
+
+    try:
+        UUID(value)
+        return True
+    except (ValueError, TypeError, AttributeError):
+        return False
+
+
+__all__ = [
+    "create_entity_id",
+    "is_valid_entity_id",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\_backup_entity_fix\line.py
+============================================================
+from .entity import Entity, LineEntity
+
+__all__ = [
+    "Entity",
+    "LineEntity",
+]
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\_backup_entity_fix\registry.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from .entity import Entity
+
+
+class EntityRegistry:
+
+    def __init__(self) -> None:
+        self._entities: dict[UUID, Entity] = {}
+
+    def add(self, entity: Entity) -> UUID:
+
+        if entity.entity_id in self._entities:
+            raise ValueError(
+                f"Entity {entity.entity_id} already exists."
+            )
+
+        self._entities[entity.entity_id] = entity
+
+        return entity.entity_id
+
+    def remove(self, entity_id: UUID) -> Entity:
+
+        if entity_id not in self._entities:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        return self._entities.pop(entity_id)
+
+    def get(self, entity_id: UUID) -> Entity | None:
+        return self._entities.get(entity_id)
+
+    def all(self) -> list[Entity]:
+        return list(self._entities.values())
+
+    def visible(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.visible
+        ]
+
+    def selected(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.selected
+        ]
+
+    def clear_selection(self) -> None:
+        for entity in self._entities.values():
+            entity.deselect()
+
+    def select(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.select()
+
+    def deselect(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.deselect()
+
+    def __len__(self) -> int:
+        return len(self._entities)
+
+    def __iter__(self):
+        return iter(self._entities.values())
+
+
+============================================================
+FILE: D:\notion-live-analyzer\sovereign_cad\_backup_entity_fix\__init__.py
+============================================================
+from __future__ import annotations
+
+from typing import Iterable
+from uuid import UUID
+
+from .entity import (
+    Entity,
+    LineEntity,
+    CircleEntity,
+)
+from .entity_id import (
+    create_entity_id,
+    is_valid_entity_id,
+)
+
+
+class EntityRegistry:
+
+    def __init__(self):
+        self._entities: dict[UUID, Entity] = {}
+
+    def add(self, entity: Entity) -> UUID:
+        if entity.entity_id in self._entities:
+            raise ValueError(
+                f"Entity {entity.entity_id} already exists."
+            )
+
+        self._entities[entity.entity_id] = entity
+
+        return entity.entity_id
+
+    def remove(self, entity_id: UUID) -> Entity:
+        if entity_id not in self._entities:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        return self._entities.pop(entity_id)
+
+    def get(self, entity_id: UUID) -> Entity | None:
+        return self._entities.get(entity_id)
+
+    def all(self) -> list[Entity]:
+        return list(self._entities.values())
+
+    def visible(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.visible
+        ]
+
+    def selected(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.selected
+        ]
+
+    def clear_selection(self) -> None:
+        for entity in self._entities.values():
+            entity.selected = False
+
+    def select(self, entity_id: UUID) -> None:
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.selected = True
+
+    def deselect(self, entity_id: UUID) -> None:
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.selected = False
+
+    def __len__(self) -> int:
+        return len(self._entities)
+
+    def __iter__(self):
+        return iter(self._entities.values())
+
+
+__all__ = [
+    "Entity",
+    "LineEntity",
+    "CircleEntity",
+    "EntityRegistry",
+    "create_entity_id",
+    "is_valid_entity_id",
+]
+
