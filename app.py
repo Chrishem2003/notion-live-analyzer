@@ -665,7 +665,7 @@ def _normalize_legacy_row(conn, email: str, row: dict) -> dict:
     elif legacy_plan == "expired":
         new_plan, new_status = "free", "expired"
     
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -718,7 +718,7 @@ def get_status(email: str) -> dict:
             effective_plan = TRIAL_GRANTS_PLAN
             days_left = max(0, (trial_ends - now).days)
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -746,7 +746,7 @@ else:
             _log_billing_event(conn, email, "subscription_lapsed")
             effective_plan = "free"
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -819,7 +819,7 @@ def render_upgrade_prompt(email: str, target_plan: str):
                 if url:
                     st.link_button("Continue to secure checkout â†’", url, type="primary")
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -1207,7 +1207,7 @@ def render_notion_style_billing(user_email, user_name=""):
             )
 
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -1315,7 +1315,7 @@ else:
             )
 
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -1329,7 +1329,7 @@ else:
             )
 
     
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -1427,7 +1427,7 @@ else:
                 )
 
             
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -1477,7 +1477,7 @@ else:
                     )
 
                 
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -1548,7 +1548,7 @@ else:
                     )
 
                 
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -1763,7 +1763,7 @@ def render_your_music_tab():
         if size_mb > MAX_TRACK_MB:
             st.error(f"'{uploaded.name}' is {size_mb:.1f}MB â€” over the {MAX_TRACK_MB}MB limit.")
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -1907,7 +1907,7 @@ def render_notion_template_vault():
             if st.button("ðŸ”— Re-open Licensed Duplicate Link"):
                 st.markdown(f"ðŸ‘‰ [Click to open Notion Workspace]({NOTION_TEMPLATE_URL})")
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -2042,7 +2042,7 @@ def needleman_wunsch(seq1: str, seq2: str, match=2, mismatch=-1, gap=-2):
             align2 = "-" + align2
             i -= 1
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -2249,7 +2249,7 @@ def render_sovereign_analytics():
             for (i, j, pa, pb) in eqs:
                 st.success(f"Equilibrium at strategy ({i}, {j}): payoffs ({pa}, {pb})")
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -2283,7 +2283,7 @@ else:
                     st.line_chart(pd.Series(inertias, index=range(1, len(inertias) + 1), name="Inertia"))
                     st.caption(f"Suggested cluster count (elbow method): {suggested_k}")
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -2621,7 +2621,7 @@ def render_student_verification():
         elif status["status"] == "pending":
             st.info("Pending administrator review.")
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -2644,7 +2644,7 @@ else:
         if not consent:
             st.error("Consent is required.")
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -3151,7 +3151,7 @@ def render_direct_payment_page():
         )
 
     
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -3169,7 +3169,7 @@ else:
             )
 
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -3227,7 +3227,7 @@ else:
                 )
 
             
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -3270,7 +3270,7 @@ else:
                     )
 
                 
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -3484,7 +3484,7 @@ def render_admin_payment_queue():
                 st.rerun()
 
             
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -3898,7 +3898,7 @@ def handle_checkout_return():
         if result:
             st.session_state["_billing_toast"] = f"âœ… Upgraded to **{result['plan'].title()}** â€” welcome aboard."
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4124,7 +4124,7 @@ if not st.session_state.portal_unlocked:
                 elif user.get("oauth_only"):
                     st.warning("This account was created via social sign-in. Use social login buttons above.")
                 
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4161,7 +4161,7 @@ else:
                 elif len(su_password) < 6:
                     st.error("Password must be at least 6 characters.")
                 
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4173,7 +4173,7 @@ else:
                     if not result["ok"]:
                         st.error(result["error"])
                     
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4196,7 +4196,7 @@ else:
 
 # --- UNLOCKED WORKSPACE DASHBOARD & ROUTING ---
 
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4288,7 +4288,7 @@ else:
             if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
                 st.success(f"**Trial:** {plan_label} access â€” {status['days_left_in_trial']} day(s) left.")
             
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4334,7 +4334,7 @@ else:
                 c1.metric("Total Base Pairs", f"{length} bp")
                 c2.metric("GC-Content Ratio", f"{gc:.2f}%")
             
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4368,7 +4368,7 @@ else:
                     st.success("Avatar updated successfully!")
                     st.rerun()
                 
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4389,7 +4389,7 @@ else:
         if not is_admin():
             st.error("ðŸš« Access Denied: This panel requires administrator clearance.")
         
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
@@ -4408,7 +4408,7 @@ else:
             rows=db_conn.execute("SELECT id,email,full_name,document_type,document_name,status,submitted_at,reviewed_at,reviewed_by,admin_notes FROM student_verifications ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END,submitted_at DESC").fetchall()
             if not rows: st.info("No student verification requests.")
             
-elif menu_selection == "?? Sovereign CAD":
+elif menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
