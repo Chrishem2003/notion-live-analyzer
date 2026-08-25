@@ -1,1 +1,1 @@
-﻿"""SovereignCAD Desktop."""
+﻿﻿"""SovereignCAD Desktop."""

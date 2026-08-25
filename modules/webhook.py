@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 import requests
 from modules.database import log_backend_event
 

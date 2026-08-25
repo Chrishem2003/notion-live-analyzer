@@ -1,4 +1,4 @@
-"""
+﻿"""
 docs_backend.py — Real collaborative editing, not last-write-wins.
 
 Uses pycrdt (Python bindings for the same Rust `yrs` CRDT engine behind

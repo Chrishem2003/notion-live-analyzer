@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+﻿﻿from __future__ import annotations
 
 from sovereign_cad.core.document import Document
 from sovereign_cad.core.entities import Entity

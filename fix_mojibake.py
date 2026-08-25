@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 CHRISHEM repo mojibake fixer.
 Run from the repo root: python3 fix_mojibake.py

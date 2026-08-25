@@ -1,4 +1,4 @@
-# 🚀 Multi-Problem Solver — Setup & Execution Guide
+﻿# 🚀 Multi-Problem Solver — Setup & Execution Guide
 
 A modular, multi-sector web application bridging **data analytics, literature
 research, bioinformatics/environmental processing, and automated reporting**

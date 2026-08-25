@@ -1,4 +1,4 @@
-"""
+﻿"""
 modules/verification.py
 Student free-tier application: uploads go into a REVIEW QUEUE.
 

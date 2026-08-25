@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Shared UI Components - reusable hero cards, section headers, metric
 cards, and footers. Used across all 15 consolidated hub pages.
 

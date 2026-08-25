@@ -1,4 +1,4 @@
-﻿from .engine import SelectionEngine
+﻿﻿from .engine import SelectionEngine
 
 __all__ = [
     "SelectionEngine",

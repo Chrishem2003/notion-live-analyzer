@@ -1,4 +1,4 @@
-"""
+﻿"""
 Run this ONCE from your project root after the setup script has copied
 modules/auth_store.py into place:
 

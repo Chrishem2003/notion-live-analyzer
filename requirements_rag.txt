@@ -1,4 +1,4 @@
-# Additive — the Graph-RAG layer (Module C).
+﻿# Additive — the Graph-RAG layer (Module C).
 psycopg[binary]==3.2.3   # PostgreSQL + pgvector client
 networkx==3.4.2
 scikit-learn==1.5.2      # only used for the no-API-key embedding fallback

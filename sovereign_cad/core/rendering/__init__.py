@@ -1,4 +1,4 @@
-﻿from .renderer import RenderCommand, Renderer
+﻿﻿from .renderer import RenderCommand, Renderer
 
 __all__ = [
     "RenderCommand",

@@ -1,4 +1,4 @@
-
+﻿
 """
 Global Literature Aggregator & Auto-Drafting Engine
 Zero-loss SQLite persistence, factual paper harvesting from Semantic Scholar,

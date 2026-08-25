@@ -1,4 +1,4 @@
-"""
+﻿"""
 celery_app.py — Async task runner for CHRISHEM Unified Platform.
 
 Why this exists: several hub pages (Literature & Publishing Hub's bulk paper

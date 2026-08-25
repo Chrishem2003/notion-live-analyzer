@@ -1,4 +1,4 @@
-﻿"""
+﻿﻿"""
 tasks.py
 Asynchronous Task Runner & Queue for the Multi-Problem Solver.
 

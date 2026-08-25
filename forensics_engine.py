@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Forensic Intelligence Engine
 =====================================
 Digital Evidence Laboratory for the Sovereign Intelligence Platform.

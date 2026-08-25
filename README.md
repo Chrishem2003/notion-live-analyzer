@@ -1,4 +1,4 @@
-# 📊 Live Notion Data Analyzer & Visualizer
+﻿# 📊 Live Notion Data Analyzer & Visualizer
 
 A real-time Streamlit dashboard that syncs with your Notion database, visualizes metrics, and monitors upload status.
 

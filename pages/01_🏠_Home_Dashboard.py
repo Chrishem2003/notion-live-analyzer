@@ -1,4 +1,4 @@
-"""
+﻿"""
 🏠 Home Dashboard — Sovereign Enterprise Platform Landing Hub (Premium)
 Consolidated unified enterprise workspace featuring interactive session telemetry, real-time SQLite vault
 management, LIVE system health metrics, a cryptographically chained audit ledger, interactive quick-access

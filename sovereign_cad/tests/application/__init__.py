@@ -1,1 +1,1 @@
-﻿# SovereignCAD Stage 7 application tests.
+﻿﻿# SovereignCAD Stage 7 application tests.

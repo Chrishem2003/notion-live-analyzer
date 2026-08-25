@@ -1,4 +1,4 @@
-﻿from .shell import ApplicationShell
+﻿﻿from .shell import ApplicationShell
 
 __all__ = [
     "ApplicationShell",

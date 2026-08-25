@@ -1,5 +1,5 @@
 ﻿"""
-Chrishem Science Hub â€” Sovereign Enterprise Engine (v4, single-file build)
+Chrishem Science Hub — Sovereign Enterprise Engine (v4, single-file build)
 ===========================================================================
 This file is the real app.py plus its full recursive dependency closure
 (database, paywall, audio_engine, subscription, billing_stripe, billing_ui,
@@ -49,7 +49,7 @@ import extra_streamlit_components as stx
 # --- PAGE CONFIGURATION (must be the first Streamlit command) ---
 st.set_page_config(
     page_title="Chrishem Science Hub - Sovereign Enterprise Engine",
-    page_icon="âš¡",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -137,7 +137,7 @@ inject_shared_card_styles()
 # [merged] removed (already imported above): import os
 # [merged] removed (already imported above): import datetime
 
-DB_PATH = "sovereign_apex_engine.db"  # matches app.py and modules/subscription.py â€” was
+DB_PATH = "sovereign_apex_engine.db"  # matches app.py and modules/subscription.py — was
 # previously "chrishem_engine.db", a separate file the rest of the app never read from,
 # so every log_backend_event()/save_user_session() call was silently writing to a
 # SQLite file no admin panel or query ever looked at.
@@ -232,12 +232,12 @@ def enforce_paywall(allowed_plans=("pro", "business", "premium"), feature_name="
 
     # Block trial users if allow_trial is False
     if is_trial and not allow_trial:
-        st.warning(f"ðŸ”’ **Trial Access Restricted:** Trial accounts cannot access {feature_name}. Please upgrade to a paid subscription.")
+        st.warning(f"🔒 **Trial Access Restricted:** Trial accounts cannot access {feature_name}. Please upgrade to a paid subscription.")
         render_paywall_cta()
         st.stop()
 
     if current_plan not in allowed_plans and status.get("status") != "active":
-        st.error(f"ðŸ”’ **Subscription Required:** You need an active paid plan ({', '.join(allowed_plans).upper()}) to access {feature_name}.")
+        st.error(f"🔒 **Subscription Required:** You need an active paid plan ({', '.join(allowed_plans).upper()}) to access {feature_name}.")
         render_paywall_cta()
         st.stop()
 
@@ -247,11 +247,11 @@ def render_paywall_cta():
     st.markdown("---")
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.subheader("âš¡ Unlock Sovereign Apex Business Access")
+        st.subheader("⚡ Unlock Sovereign Apex Business Access")
         st.write("Get instant access to Bio-Research Notion Planners, Brain FM Focus Soundscapes, and advanced analytics pipelines.")
     with col2:
-        if st.button("ðŸ’³ Upgrade Subscription Now", type="primary", width='stretch'):
-            st.session_state["menu_selection"] = "ðŸ’³ Billing & Subscription"
+        if st.button("💳 Upgrade Subscription Now", type="primary", width='stretch'):
+            st.session_state["menu_selection"] = "💳 Billing & Subscription"
             st.rerun()
 
 # ============================================================================
@@ -262,26 +262,26 @@ def render_paywall_cta():
 # BEGIN modules/audio_engine.py
 # ============================================================================
 """
-Brain-Sync Focus Engine â€” real audio, honestly labeled
+Brain-Sync Focus Engine — real audio, honestly labeled
 =========================================================
 Two real sound sources, no fake catalog inflation:
 
 1. Generative Synthesizer (primary): binaural beats, solfeggio tones, and
    delta/pad frequencies generated live in-browser via the Web Audio API.
-   No external files, no dead links possible, no licensing risk â€” this is
+   No external files, no dead links possible, no licensing risk — this is
    the actually-honest version of a "brain wiring" feature.
 
 2. Ambient Library (secondary): 13 genuinely distinct third-party CDN
    samples. The original catalog claimed 25 "different" tracks; 12 of
    those were exact duplicate URLs relabeled as if they were different
-   audio. Deduplicated here â€” every entry below is a distinct file.
+   audio. Deduplicated here — every entry below is a distinct file.
    Labeled honestly as third-party CDN content whose long-term
    availability isn't something this app controls.
 
 Cross-page persistence: Streamlit recreates the embedding iframe on every
 script rerun (including page navigation), so gapless, zero-interruption
 playback across pages isn't achievable without a browser extension or a
-native app â€” that's a real platform constraint, not a bug. What IS
+native app — that's a real platform constraint, not a bug. What IS
 achievable and implemented here: playback position and track choice are
 saved to localStorage and picked back up automatically within ~1 second
 of the new page mounting, so the disruption is a brief resume rather than
@@ -295,20 +295,20 @@ that session (a real browser security rule, not a limitation of this code).
 
 # Every URL below is verified distinct (deduplicated from the original 25).
 AMBIENT_LIBRARY = {
-    "ðŸ”Š Noise & Deep Focus": {
+    "🔊 Noise & Deep Focus": {
         "Smooth Brown Noise": "https://cdn.pixabay.com/download/audio/2022/11/06/audio_82c63863a4.mp3",
         "Pure White Noise Masker": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_2d8329606d.mp3",
         "Binaural Sub-Bass Resonance": "https://cdn.pixabay.com/download/audio/2022/05/17/audio_3d10006399.mp3",
     },
-    "ðŸŒ§ï¸ Weather Acoustics": {
+    "🌧️ Weather Acoustics": {
         "Gentle Rain & Soft Thunder": "https://cdn.pixabay.com/download/audio/2021/08/09/audio_a33118a80d.mp3",
     },
-    "ðŸŒ¿ Nature Ambience": {
+    "🌿 Nature Ambience": {
         "Forest River & Birds": "https://cdn.pixabay.com/download/audio/2022/02/07/audio_110a11352e.mp3",
         "Deep Ocean Waves Crashing": "https://cdn.pixabay.com/download/audio/2022/04/27/audio_651a021132.mp3",
         "Night Jungle & Crickets": "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff09d3.mp3",
     },
-    "ðŸŽ§ Tone References": {
+    "🎧 Tone References": {
         "432Hz Deep Focus Pulse": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
         "528Hz Solfeggio Tone": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939aa30ef.mp3",
         "Alpha Waves Reference (10Hz)": "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73232.mp3",
@@ -320,7 +320,7 @@ AMBIENT_LIBRARY = {
 
 
 def render_generative_synthesizer(height=280):
-    """The real, dependency-free 'brain wiring' engine â€” generates actual
+    """The real, dependency-free 'brain wiring' engine — generates actual
     audio waveforms live via Web Audio oscillators. Nothing here is
     pre-recorded or simulated; the tones are computed in real time by the
     browser's audio engine."""
@@ -338,20 +338,20 @@ def render_generative_synthesizer(height=280):
         .vol-row input { flex:1; }
     </style>
     <div class="synth-card">
-        <h3 style="margin:0 0 5px 0; color:#58a6ff;">ðŸ§  Real-Time Binaural & Frequency Synthesizer</h3>
-        <p style="margin:0 0 15px 0; font-size:12px; color:#8b949e;">Generated live in your browser â€” no audio files, nothing to download, no dead links possible.</p>
+        <h3 style="margin:0 0 5px 0; color:#58a6ff;">🧠 Real-Time Binaural & Frequency Synthesizer</h3>
+        <p style="margin:0 0 15px 0; font-size:12px; color:#8b949e;">Generated live in your browser — no audio files, nothing to download, no dead links possible.</p>
         <div class="grid">
-            <div class="btn active" id="mode-binaural" onclick="setMode('binaural')">ðŸ§  Beta Binaural (15Hz)</div>
-            <div class="btn" id="mode-solfeggio" onclick="setMode('solfeggio')">âœ¨ Solfeggio 528Hz</div>
-            <div class="btn" id="mode-pad" onclick="setMode('pad')">ðŸŽ¹ Deep Ambient Pad</div>
-            <div class="btn" id="mode-delta" onclick="setMode('delta')">ðŸŒ™ Delta Sleep (2Hz)</div>
+            <div class="btn active" id="mode-binaural" onclick="setMode('binaural')">🧠 Beta Binaural (15Hz)</div>
+            <div class="btn" id="mode-solfeggio" onclick="setMode('solfeggio')">✨ Solfeggio 528Hz</div>
+            <div class="btn" id="mode-pad" onclick="setMode('pad')">🎹 Deep Ambient Pad</div>
+            <div class="btn" id="mode-delta" onclick="setMode('delta')">🌙 Delta Sleep (2Hz)</div>
         </div>
         <div class="vol-row">
-            <span style="font-size:12px;">ðŸ”‰</span>
+            <span style="font-size:12px;">🔉</span>
             <input type="range" id="volSlider" min="0" max="100" value="30" oninput="setVolume(this.value)">
-            <span style="font-size:12px;">ðŸ”Š</span>
+            <span style="font-size:12px;">🔊</span>
         </div>
-        <button id="masterBtn" class="play-btn" onclick="toggleAudio()">â–¶ï¸ Start Synthesizer</button>
+        <button id="masterBtn" class="play-btn" onclick="toggleAudio()">▶️ Start Synthesizer</button>
         <p id="statusMsg" style="font-size:11px; color:#8b949e; margin:8px 0 0 0;"></p>
     </div>
     <script>
@@ -379,19 +379,19 @@ def render_generative_synthesizer(height=280):
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume().catch(() => {
-                    document.getElementById('statusMsg').innerText = 'Browser blocked autoplay â€” click Start again.';
+                    document.getElementById('statusMsg').innerText = 'Browser blocked autoplay — click Start again.';
                 });
             }
             if (!isPlaying) {
                 isPlaying = true;
                 localStorage.setItem('brainsync_playing', 'true');
-                document.getElementById('masterBtn').innerText = 'â¸ï¸ Stop Synthesizer';
+                document.getElementById('masterBtn').innerText = '⏸️ Stop Synthesizer';
                 document.getElementById('masterBtn').classList.add('playing');
                 playSound();
             } else {
                 isPlaying = false;
                 localStorage.setItem('brainsync_playing', 'false');
-                document.getElementById('masterBtn').innerText = 'â–¶ï¸ Start Synthesizer';
+                document.getElementById('masterBtn').innerText = '▶️ Start Synthesizer';
                 document.getElementById('masterBtn').classList.remove('playing');
                 stopSound();
             }
@@ -435,7 +435,7 @@ def render_generative_synthesizer(height=280):
             }
         }
 
-        // Resume state on load (best-effort â€” browser autoplay policy still
+        // Resume state on load (best-effort — browser autoplay policy still
         // requires a user gesture before sound can actually start).
         window.addEventListener('load', () => {
             const savedMode = localStorage.getItem('brainsync_mode');
@@ -443,7 +443,7 @@ def render_generative_synthesizer(height=280):
             if (savedMode) { setMode(savedMode); }
             if (savedVol) { document.getElementById('volSlider').value = savedVol * 100; }
             if (localStorage.getItem('brainsync_playing') === 'true') {
-                document.getElementById('statusMsg').innerText = 'Click Start to resume â€” browsers require a click before playing audio.';
+                document.getElementById('statusMsg').innerText = 'Click Start to resume — browsers require a click before playing audio.';
             }
         });
     </script>
@@ -459,7 +459,7 @@ def render_ambient_library_picker():
     url = AMBIENT_LIBRARY[category][track_name]
     st.audio(url)
     st.caption(
-        "Third-party CDN sample (Pixabay) â€” playback is standard `st.audio`, so it will pause on page "
+        "Third-party CDN sample (Pixabay) — playback is standard `st.audio`, so it will pause on page "
         "navigation like any embedded player. Long-term link availability isn't controlled by this app."
     )
 # ============================================================================
@@ -775,7 +775,7 @@ def require_active_subscription(min_plan: str = "free", hub_id: str | None = Non
 
     if have_rank >= need_rank:
         if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
-            st.info(f"Trial active â€” {status['days_left_in_trial']} day(s) left with full {TRIAL_GRANTS_PLAN.title()} access.")
+            st.info(f"Trial active — {status['days_left_in_trial']} day(s) left with full {TRIAL_GRANTS_PLAN.title()} access.")
         return
 
     st.warning(f"This section requires the **{PLAN_CATALOG[required]['label']}** plan. "
@@ -788,21 +788,21 @@ def render_upgrade_prompt(email: str, target_plan: str):
     plan_info = PLAN_CATALOG[target_plan]
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown(f"**{plan_info['label']}** â€” ${plan_info['price_monthly']}/mo")
+        st.markdown(f"**{plan_info['label']}** — ${plan_info['price_monthly']}/mo")
         if billing_stripe.is_configured():
             if st.button(f"Upgrade to {plan_info['label']} (monthly)", key=f"up_{target_plan}_m"):
                 url = billing_stripe.create_checkout_session(email, target_plan, "monthly")
                 if url:
-                    st.link_button("Continue to secure checkout â†’", url, type="primary")
+                    st.link_button("Continue to secure checkout →", url, type="primary")
         else:
             st.caption("Payments aren't configured on this deployment yet (missing STRIPE_SECRET_KEY).")
     with c2:
-        st.markdown(f"**{plan_info['label']}** â€” ${plan_info['price_annual']}/yr")
+        st.markdown(f"**{plan_info['label']}** — ${plan_info['price_annual']}/yr")
         if billing_stripe.is_configured():
             if st.button(f"Upgrade to {plan_info['label']} (annual)", key=f"up_{target_plan}_a"):
                 url = billing_stripe.create_checkout_session(email, target_plan, "annual")
                 if url:
-                    st.link_button("Continue to secure checkout â†’", url, type="primary")
+                    st.link_button("Continue to secure checkout →", url, type="primary")
 
 
 def check_and_consume_quota(email: str, counter_key: str, amount: int = 1, period: str = "day") -> tuple[bool, str]:
@@ -1108,7 +1108,7 @@ def render_notion_style_billing(user_email, user_name=""):
 
     st.markdown("""
     <div class="payment-hero">
-        <h2 style="margin:0;">ðŸ’³ Payment Center</h2>
+        <h2 style="margin:0;">💳 Payment Center</h2>
         <p style="margin-top:8px;">
         Choose your subscription, make your payment, and submit
         the transaction for verification.
@@ -1129,10 +1129,10 @@ def render_notion_style_billing(user_email, user_name=""):
 
         format_func=lambda key:
 
-            "Monthly â€” $24"
+            "Monthly — $24"
             if key == "monthly"
             else
-            "Yearly â€” $240 (save $48 / $20 per month)"
+            "Yearly — $240 (save $48 / $20 per month)"
     )
 
     plan = DIRECT_PAYMENT_PLANS[plan_key]
@@ -1170,14 +1170,14 @@ def render_notion_style_billing(user_email, user_name=""):
         if student_approved:
 
             st.success(
-                "ðŸŽ“ Student discount approved â€” contact the administrator "
+                "🎓 Student discount approved — contact the administrator "
                 "for your discounted payment amount."
             )
 
         else:
 
             st.info(
-                "ðŸŽ“ Students can apply for verification "
+                "🎓 Students can apply for verification "
                 "to receive a 50% discount."
             )
 
@@ -1196,9 +1196,9 @@ def render_notion_style_billing(user_email, user_name=""):
         "Payment method",
 
         [
-            "ðŸ¦ Bank Transfer",
-            "ðŸ“± Mobile / Direct Payment",
-            "ðŸ’° PayPal"
+            "🏦 Bank Transfer",
+            "📱 Mobile / Direct Payment",
+            "💰 PayPal"
         ],
 
         horizontal=True
@@ -1208,9 +1208,9 @@ def render_notion_style_billing(user_email, user_name=""):
     instructions = get_direct_payment_instructions()
 
 
-    if payment_method == "ðŸ¦ Bank Transfer":
+    if payment_method == "🏦 Bank Transfer":
 
-        st.markdown("### ðŸ¦ Bank Transfer")
+        st.markdown("### 🏦 Bank Transfer")
 
         c1, c2 = st.columns(2)
 
@@ -1256,9 +1256,9 @@ def render_notion_style_billing(user_email, user_name=""):
                 )
 
 
-    elif payment_method == "ðŸ“± Mobile / Direct Payment":
+    elif payment_method == "📱 Mobile / Direct Payment":
 
-        st.markdown("### ðŸ“± Mobile / Direct Payment")
+        st.markdown("### 📱 Mobile / Direct Payment")
 
         phone = instructions.get("phone", "")
 
@@ -1282,7 +1282,7 @@ def render_notion_style_billing(user_email, user_name=""):
 
     else:
 
-        st.markdown("### ðŸ’° PayPal")
+        st.markdown("### 💰 PayPal")
 
         paypal_email = instructions.get("paypal_email", "")
         paypal_me_link = instructions.get("paypal_me_link", "")
@@ -1311,7 +1311,7 @@ def render_notion_style_billing(user_email, user_name=""):
     # PAYMENT SUBMISSION
     # --------------------------------------------------------
 
-    st.subheader("ðŸ§¾ Submit Payment for Verification")
+    st.subheader("🧾 Submit Payment for Verification")
 
     st.caption(
         "Your subscription will only activate after the payment "
@@ -1348,7 +1348,7 @@ def render_notion_style_billing(user_email, user_name=""):
 
         submit = st.form_submit_button(
 
-            "ðŸ“¨ Submit Payment for Approval",
+            "📨 Submit Payment for Approval",
 
             type="primary",
 
@@ -1376,7 +1376,7 @@ def render_notion_style_billing(user_email, user_name=""):
 
                     "bank_transfer"
 
-                    if payment_method == "ðŸ¦ Bank Transfer"
+                    if payment_method == "🏦 Bank Transfer"
 
                     else
 
@@ -1432,7 +1432,7 @@ def render_notion_style_billing(user_email, user_name=""):
 
     if stripe_ready:
 
-        with st.expander("ðŸ’³ Pay securely with card"):
+        with st.expander("💳 Pay securely with card"):
 
             st.caption(
                 "Card payments are processed securely by Stripe."
@@ -1520,7 +1520,7 @@ def render_notion_style_billing(user_email, user_name=""):
 
             st.markdown("---")
 
-            st.subheader("ðŸ“‹ Your Payment Requests")
+            st.subheader("📋 Your Payment Requests")
 
             payment_data = []
 
@@ -1577,11 +1577,11 @@ Three real, honestly-labeled sound sources instead of the old version's
 four SoundHelix demo songs mislabeled as "40Hz Beta/Gamma Waves":
 
 1. Live Generative Synthesizer (audio_engine.render_generative_synthesizer)
-   â€” actual binaural beats / solfeggio / delta tones computed in real time
+   — actual binaural beats / solfeggio / delta tones computed in real time
    by the Web Audio API, not pre-recorded files.
-2. Ambient Library (audio_engine.render_ambient_library_picker) â€” 13
+2. Ambient Library (audio_engine.render_ambient_library_picker) — 13
    deduplicated third-party CDN ambience tracks.
-3. Your Music â€” upload your own tracks (mp3/wav/ogg/m4a). Stored
+3. Your Music — upload your own tracks (mp3/wav/ogg/m4a). Stored
    encrypted in the app's database (same Fernet cipher used by Drive),
    scoped to your account, so your library persists across sessions
    instead of disappearing when the page reruns.
@@ -1667,10 +1667,10 @@ def _delete_track(track_id: int, owner: str):
 
 
 def render_your_music_tab():
-    st.markdown("#### ðŸŽµ Your Music Library")
+    st.markdown("#### 🎵 Your Music Library")
     st.caption(
         f"Upload your own focus tracks (mp3/wav/ogg/m4a, up to {MAX_TRACK_MB}MB each). "
-        "Stored under your account and available on every future visit â€” not just this session."
+        "Stored under your account and available on every future visit — not just this session."
     )
 
     owner = _current_owner()
@@ -1681,7 +1681,7 @@ def render_your_music_tab():
         data = uploaded.getvalue()
         size_mb = len(data) / (1024 * 1024)
         if size_mb > MAX_TRACK_MB:
-            st.error(f"'{uploaded.name}' is {size_mb:.1f}MB â€” over the {MAX_TRACK_MB}MB limit.")
+            st.error(f"'{uploaded.name}' is {size_mb:.1f}MB — over the {MAX_TRACK_MB}MB limit.")
         else:
             mime = uploaded.type or "audio/mpeg"
             _save_track(owner, uploaded.name, mime, data)
@@ -1697,14 +1697,14 @@ def render_your_music_tab():
     for t in tracks:
         c1, c2, c3 = st.columns([3, 5, 1])
         with c1:
-            st.write(f"ðŸŽ§ **{t['name']}**")
-            st.caption(f"{t['size_bytes'] / 1024:.0f} KB Â· added {t['created_at'][:10]}")
+            st.write(f"🎧 **{t['name']}**")
+            st.caption(f"{t['size_bytes'] / 1024:.0f} KB · added {t['created_at'][:10]}")
         with c2:
             data, mime = _get_track_bytes(t["id"])
             if data:
                 st.audio(data, format=mime)
         with c3:
-            if st.button("ðŸ—‘ï¸", key=f"del_track_{t['id']}", help="Remove this track"):
+            if st.button("🗑️", key=f"del_track_{t['id']}", help="Remove this track"):
                 _delete_track(t["id"], owner)
                 st.rerun()
 
@@ -1716,19 +1716,19 @@ def render_brain_fm_studio():
         allow_trial=False,
     )
 
-    st.title("ðŸ§  Brain FM & Neural Focus Soundscapes")
+    st.title("🧠 Brain FM & Neural Focus Soundscapes")
     st.caption(
-        "Real generative brainwave entrainment, ambient soundscapes, and your own music â€” "
+        "Real generative brainwave entrainment, ambient soundscapes, and your own music — "
         "one focus hub instead of four mislabeled demo tracks."
     )
 
     tab_synth, tab_ambient, tab_yours, tab_info = st.tabs(
-        ["ðŸ§  Neural Synthesizer", "ðŸŒ¿ Ambient Library", "ðŸŽµ Your Music", "â„¹ï¸ How It Works"]
+        ["🧠 Neural Synthesizer", "🌿 Ambient Library", "🎵 Your Music", "ℹ️ How It Works"]
     )
 
     with tab_synth:
         st.markdown("#### Live Binaural & Frequency Synthesizer")
-        st.caption("Generated in real time by your browser's Web Audio engine â€” nothing pre-recorded, nothing to download.")
+        st.caption("Generated in real time by your browser's Web Audio engine — nothing pre-recorded, nothing to download.")
         render_generative_synthesizer(height=320)
 
     with tab_ambient:
@@ -1740,7 +1740,7 @@ def render_brain_fm_studio():
 
     with tab_info:
         st.markdown("""
-**ðŸ§  How Brainwave Entrainment Works**
+**🧠 How Brainwave Entrainment Works**
 
 * **Binaural beats (e.g. 15Hz Beta):** two slightly different tones, one per ear.
   Your brain perceives the *difference* between them as a rhythmic beat, and some
@@ -1749,12 +1749,12 @@ def render_brain_fm_studio():
 * **Solfeggio tones (e.g. 528Hz):** a single steady tone at a frequency
   associated in some traditions with calm/focus. Effects here are more about
   consistent low-distraction background sound than a proven neurological
-  mechanism â€” still genuinely useful as a focus anchor for many people.
+  mechanism — still genuinely useful as a focus anchor for many people.
 * **Delta (~2Hz) / deep pads:** slow, low-frequency layers commonly used for
   winding down rather than active focus.
 
 Evidence for brainwave entrainment's cognitive effects is mixed in the research
-literature â€” treat this as a focus *aid*, not a guaranteed cognitive intervention.
+literature — treat this as a focus *aid*, not a guaranteed cognitive intervention.
         """)
 
 # ============================================================================
@@ -1793,8 +1793,8 @@ def render_notion_template_vault():
 
     user_email = st.session_state.get("user_identity", {}).get("email", "")
 
-    st.title("ðŸ—„ï¸ Bio-Research Enterprise Planner - Notion Vault")
-    st.info("ðŸ”’ **Single-Duplication License:** This template is protected. Duplication link is restricted exclusively to active paid subscribers.")
+    st.title("🗄️ Bio-Research Enterprise Planner - Notion Vault")
+    st.info("🔒 **Single-Duplication License:** This template is protected. Duplication link is restricted exclusively to active paid subscribers.")
 
     conn = sqlite3.connect("sovereign_apex_engine.db")
     cursor = conn.cursor()
@@ -1815,11 +1815,11 @@ def render_notion_template_vault():
         st.write(f"**Duplications Used:** `{claim_count} / 1`")
 
         if claim_count >= 1:
-            st.warning("âš ï¸ You have already claimed your 1-time Notion duplication access.")
-            if st.button("ðŸ”— Re-open Licensed Duplicate Link"):
-                st.markdown(f"ðŸ‘‰ [Click to open Notion Workspace]({NOTION_TEMPLATE_URL})")
+            st.warning("⚠️ You have already claimed your 1-time Notion duplication access.")
+            if st.button("🔗 Re-open Licensed Duplicate Link"):
+                st.markdown(f"👉 [Click to open Notion Workspace]({NOTION_TEMPLATE_URL})")
         else:
-            if st.button("âš¡ Claim & Duplicate to Notion Space", type="primary"):
+            if st.button("⚡ Claim & Duplicate to Notion Space", type="primary"):
                 now_str = datetime.datetime.now().isoformat()
                 cursor.execute(
                     "INSERT INTO template_claims (email, claimed_at, duplication_count) VALUES (?, ?, 1) "
@@ -1827,8 +1827,8 @@ def render_notion_template_vault():
                     (user_email, now_str)
                 )
                 conn.commit()
-                st.success("âœ… Duplication clearance granted!")
-                st.markdown(f"ðŸ‘‰ **[Click here to duplicate into your Notion Workspace]({NOTION_TEMPLATE_URL})**")
+                st.success("✅ Duplication clearance granted!")
+                st.markdown(f"👉 **[Click here to duplicate into your Notion Workspace]({NOTION_TEMPLATE_URL})**")
                 st.rerun()
 
     conn.close()
@@ -1841,18 +1841,18 @@ def render_notion_template_vault():
 # BEGIN modules/sovereign_analytics_engine.py
 # ============================================================================
 """
-Sovereign Analytics Engine â€” real computational tools only.
+Sovereign Analytics Engine — real computational tools only.
 
 Every function in this module actually computes what its name says. None of
 it generates fake "live" telemetry, fake market data, or fake sentiment
-feeds dressed up as real-time monitoring â€” that pattern (found throughout
+feeds dressed up as real-time monitoring — that pattern (found throughout
 app_v3_sovereign_upscaled.py, ~298 random-call sites feeding functions named
 things like generate_epidemiological_data / generate_financial_telemetry /
 _live_telemetry_feed) has been deliberately excluded from v4.
 
 What IS legitimately stochastic (Monte Carlo simulation, mutation-drift
 modeling) is kept, but labeled honestly as a simulation the user configures
-and runs on demand â€” not as a live feed of real-world events.
+and runs on demand — not as a live feed of real-world events.
 
 Gating: every render_* function calls the existing modules.paywall.enforce_paywall,
 the same mechanism modules/notion_gating.py already uses. No parallel paywall
@@ -1896,7 +1896,7 @@ def seir_model(N=1_000_000, I0=100, R0=2.5, gamma=1 / 14, days=180, intervention
     fraction starting on a given day, modeling a real lockdown/mitigation.
     """
     beta = R0 * gamma
-    sigma = 0.5  # incubation rate (1/2 days) â€” could be exposed as a param later
+    sigma = 0.5  # incubation rate (1/2 days) — could be exposed as a param later
     S, E, I, R = [N - I0], [0.0], [float(I0)], [0.0]
     for day in range(days):
         s, e, i, r = S[-1], E[-1], I[-1], R[-1]
@@ -1993,8 +1993,8 @@ def nash_equilibria_2x2(payoff_a, payoff_b):
 def carbon_budget(annual_emissions_gt, target_temp=1.5, current_temp=1.2, tcre=0.45):
     """
     Remaining carbon budget using a Transient Climate Response to
-    Emissions (TCRE) approximation: Â°C warming per 1000 GtCO2 emitted.
-    Default TCRE=0.45 is within the IPCC AR6 likely range (0.27â€“0.63).
+    Emissions (TCRE) approximation: °C warming per 1000 GtCO2 emitted.
+    Default TCRE=0.45 is within the IPCC AR6 likely range (0.27–0.63).
     Returns (remaining_budget_gt, years_left_at_current_emissions_rate).
     """
     remaining_gt = (target_temp - current_temp) / tcre * 1000
@@ -2020,7 +2020,7 @@ def proof_of_work(data: str, difficulty=4, max_attempts=5_000_000):
 def elbow_method(X: np.ndarray, max_k=10):
     """
     Runs KMeans for k=1..max_k-1 and returns (inertias, suggested_k) where
-    suggested_k is picked by maximum second-derivative drop in inertia â€”
+    suggested_k is picked by maximum second-derivative drop in inertia —
     a real, if simple, elbow heuristic. Requires scikit-learn.
     """
     if not SKLEARN_AVAILABLE or len(X) < 3:
@@ -2046,7 +2046,7 @@ def anomaly_detection(df: pd.DataFrame, contamination=0.1):
     """
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     if not SKLEARN_AVAILABLE or df.empty or len(numeric_cols) < 2:
-        return df.assign(Anomaly="N/A (need â‰¥2 numeric columns)", Anomaly_Score=np.nan)
+        return df.assign(Anomaly="N/A (need ≥2 numeric columns)", Anomaly_Score=np.nan)
     X = StandardScaler().fit_transform(df[numeric_cols].fillna(0))
     clf = IsolationForest(contamination=contamination, random_state=42)
     preds = clf.fit_predict(X)
@@ -2062,7 +2062,7 @@ def monte_carlo_paths(n_runs=1000, baseline=100.0, daily_volatility=0.02, days=3
     Geometric-random-walk Monte Carlo simulation: n_runs independent paths,
     each day's return drawn from Normal(0, daily_volatility). This is a
     genuine stochastic simulation the user runs on demand with parameters
-    they choose â€” not a fake feed of "current market data".
+    they choose — not a fake feed of "current market data".
     """
     rng = np.random.default_rng(seed)
     paths = np.empty((n_runs, days + 1))
@@ -2074,14 +2074,14 @@ def monte_carlo_paths(n_runs=1000, baseline=100.0, daily_volatility=0.02, days=3
 
 
 # =============================================================================
-# STREAMLIT RENDER â€” paywall-gated the same way modules/notion_gating.py is
+# STREAMLIT RENDER — paywall-gated the same way modules/notion_gating.py is
 # =============================================================================
 
 def render_sovereign_analytics():
     enforce_paywall(allowed_plans=("premium", "pro"), feature_name="Sovereign Analytics Engine", allow_trial=True)
 
     st.title("Sovereign Analytics Engine")
-    st.caption("Real computation only â€” every result here is actually calculated from the inputs you give it.")
+    st.caption("Real computation only — every result here is actually calculated from the inputs you give it.")
 
     tabs = st.tabs([
         "Epidemic Model (SEIR)", "Sequence Alignment", "Network Influence (PageRank)",
@@ -2092,7 +2092,7 @@ def render_sovereign_analytics():
         st.subheader("SEIR Epidemic Model")
         c1, c2, c3 = st.columns(3)
         N = c1.number_input("Population size", 1000, 500_000_000, 1_000_000, step=1000)
-        R0 = c2.number_input("Râ‚€ (basic reproduction number)", 0.1, 20.0, 2.5, step=0.1)
+        R0 = c2.number_input("R₀ (basic reproduction number)", 0.1, 20.0, 2.5, step=0.1)
         days = c3.number_input("Days to simulate", 10, 730, 180, step=10)
         use_intervention = st.checkbox("Model an intervention (e.g. lockdown)")
         intervention_day, intervention_strength = None, 0.0
@@ -2116,7 +2116,7 @@ def render_sovereign_analytics():
             st.caption(f"Alignment score: {score}")
 
     with tabs[2]:
-        st.subheader("PageRank â€” Network Influence")
+        st.subheader("PageRank — Network Influence")
         st.caption("One edge per line, as `source,destination`.")
         edge_text = st.text_area("Edges", "A,B\nB,C\nC,A\nA,C\nD,C")
         edges = [tuple(line.split(",")) for line in edge_text.strip().splitlines() if "," in line]
@@ -2125,7 +2125,7 @@ def render_sovereign_analytics():
             st.dataframe(pd.DataFrame(sorted(ranks.items(), key=lambda x: -x[1]), columns=["Node", "PageRank"]))
 
     with tabs[3]:
-        st.subheader("2x2 Game â€” Pure Strategy Nash Equilibria")
+        st.subheader("2x2 Game — Pure Strategy Nash Equilibria")
         st.caption("Payoffs for Player A and Player B, each a 2x2 matrix.")
         col_a, col_b = st.columns(2)
         with col_a:
@@ -2151,12 +2151,12 @@ def render_sovereign_analytics():
         st.subheader("Carbon Budget Calculator")
         c1, c2, c3 = st.columns(3)
         emissions = c1.number_input("Annual emissions (GtCO2)", 0.1, 100.0, 36.8)
-        target = c2.number_input("Target temperature (Â°C)", 1.0, 3.0, 1.5)
-        current = c3.number_input("Current warming (Â°C)", 0.5, 2.0, 1.2)
+        target = c2.number_input("Target temperature (°C)", 1.0, 3.0, 1.5)
+        current = c3.number_input("Current warming (°C)", 0.5, 2.0, 1.2)
         budget, years = carbon_budget(emissions, target, current)
         st.metric("Remaining carbon budget", f"{budget:,.0f} GtCO2")
-        st.metric("Years left at current emission rate", f"{years:,.1f}" if years != float("inf") else "âˆž")
-        st.caption("Estimate using a TCRE (Transient Climate Response to Emissions) of 0.45Â°C per 1000 GtCO2, within the IPCC AR6 likely range.")
+        st.metric("Years left at current emission rate", f"{years:,.1f}" if years != float("inf") else "∞")
+        st.caption("Estimate using a TCRE (Transient Climate Response to Emissions) of 0.45°C per 1000 GtCO2, within the IPCC AR6 likely range.")
 
     with tabs[5]:
         st.subheader("Clustering & Anomaly Detection on Your Data")
@@ -2185,7 +2185,7 @@ def render_sovereign_analytics():
         final_values = paths[:, -1]
         st.caption(
             f"Across {int(n_runs)} simulated paths: median ending value "
-            f"{np.median(final_values):,.2f}, 5thâ€“95th percentile "
+            f"{np.median(final_values):,.2f}, 5th–95th percentile "
             f"[{np.percentile(final_values, 5):,.2f}, {np.percentile(final_values, 95):,.2f}]"
         )
 
@@ -2197,30 +2197,30 @@ def render_sovereign_analytics():
 # BEGIN modules/user_preferences.py
 # ============================================================================
 """
-User Preferences â€” timezone, accent color, and a defensive readability fix
+User Preferences — timezone, accent color, and a defensive readability fix
 =============================================================================
 Three real, working things, not decoration:
 
 1. Timezone: auto-detects the visitor's real browser timezone via a small
-   JS snippet (Intl.DateTimeFormat â€” every modern browser supports this,
+   JS snippet (Intl.DateTimeFormat — every modern browser supports this,
    no extra package needed) and lets them override it manually from the
-   full real IANA timezone list (Python's stdlib zoneinfo â€” not a
+   full real IANA timezone list (Python's stdlib zoneinfo — not a
    hand-picked shortlist). Stored in st.session_state so every page's
    timestamps/greetings can use it.
 
 2. Accent color: a real st.color_picker wired to actual CSS custom
-   properties that buttons/highlights use â€” picking a color changes
+   properties that buttons/highlights use — picking a color changes
    what's on screen, unlike the old dead selectbox that was removed
    earlier in this audit.
 
 3. Text contrast fix: some text areas/inputs were reported as
-   unreadable â€” text color blending into the input background. The
+   unreadable — text color blending into the input background. The
    likely cause is a blanket ".stApp { color: X }" rule in the app's
    base theme CSS cascading into Streamlit's text_area/text_input
    internals, which keep their own default background regardless.
    This injects a targeted, defensive override that forces a correct
    high-contrast pairing specifically for input/textarea elements,
-   regardless of what any other page's CSS does â€” so it fixes the
+   regardless of what any other page's CSS does — so it fixes the
    symptom immediately while the actual theme source (not yet shared)
    can be fixed at the root.
 """
@@ -2263,7 +2263,7 @@ def render_readability_fix():
 def _detect_browser_timezone():
     """Real browser-side detection via Intl.DateTimeFormat. Writes the
     result into a query param and triggers one reload the first time a
-    visitor loads the app in a session â€” after that it's cached in
+    visitor loads the app in a session — after that it's cached in
     session_state and this doesn't run again."""
     components.html(
         """
@@ -2275,7 +2275,7 @@ def _detect_browser_timezone():
                 params.set('detected_tz', tz);
                 window.parent.location.search = params.toString();
             }
-        } catch (e) { /* Intl not supported â€” manual selection still works */ }
+        } catch (e) { /* Intl not supported — manual selection still works */ }
         </script>
         """,
         height=0,
@@ -2283,7 +2283,7 @@ def _detect_browser_timezone():
 
 
 def get_user_timezone() -> str:
-    """Returns the IANA timezone name to use for this session â€” detected,
+    """Returns the IANA timezone name to use for this session — detected,
     manually overridden, or a safe UTC fallback. Never guesses silently:
     if nothing is known yet, it's UTC until detection/selection completes."""
     if "user_timezone" in st.session_state:
@@ -2302,9 +2302,9 @@ def get_user_timezone() -> str:
 
 
 def render_timezone_and_accent_settings():
-    """Real, working preference controls â€” put this in a Settings/Account
+    """Real, working preference controls — put this in a Settings/Account
     tab. Both values persist in session_state and take effect immediately."""
-    st.markdown("#### ðŸŒ Timezone")
+    st.markdown("#### 🌐 Timezone")
     current_tz = get_user_timezone()
     all_tz = sorted(zoneinfo.available_timezones())
     try:
@@ -2313,7 +2313,7 @@ def render_timezone_and_accent_settings():
         default_idx = all_tz.index("UTC")
 
     chosen_tz = st.selectbox(
-        "Your timezone (auto-detected from your browser â€” override if it's wrong)",
+        "Your timezone (auto-detected from your browser — override if it's wrong)",
         all_tz, index=default_idx, key="tz_selector_widget",
     )
     if chosen_tz != st.session_state.get("user_timezone"):
@@ -2323,7 +2323,7 @@ def render_timezone_and_accent_settings():
     now_local = datetime.datetime.now(zoneinfo.ZoneInfo(chosen_tz))
     st.caption(f"Your local time right now: **{now_local.strftime('%A, %Y-%m-%d %H:%M:%S %Z')}**")
 
-    st.markdown("#### ðŸŽ¨ Accent Color")
+    st.markdown("#### 🎨 Accent Color")
     current_accent = st.session_state.get("user_accent_color", DEFAULT_ACCENT)
     chosen_accent = st.color_picker("Pick an accent color for buttons and highlights", value=current_accent, key="accent_picker_widget")
     if chosen_accent != current_accent:
@@ -2335,7 +2335,7 @@ def render_timezone_and_accent_settings():
 
 def render_accent_color_css():
     """Applies the chosen accent color to real UI elements. Call on every
-    page (cheap â€” just a <style> tag) to keep the accent consistent."""
+    page (cheap — just a <style> tag) to keep the accent consistent."""
     accent = st.session_state.get("user_accent_color", DEFAULT_ACCENT)
     st.markdown(
         """
@@ -2480,7 +2480,7 @@ def render_student_verification():
     email = current_user_email
     st.markdown("""
     <div class="payment-hero">
-        <h2 style="margin:0;">ðŸŽ“ Student Discount â€” 50% Off</h2>
+        <h2 style="margin:0;">🎓 Student Discount — 50% Off</h2>
         <p style="margin-top:8px;">
         Submit a Student ID or National ID. Approval is manual, same as
         payment verification, so it may take a little time.
@@ -2491,13 +2491,13 @@ def render_student_verification():
     status = student_verification_status(email)
     if status:
         pill_class = {"approved": "status-approved", "pending": "status-pending"}.get(status["status"], "status-rejected")
-        pill_label = {"approved": "Approved", "pending": "Pending Review", "rejected": "Rejected â€” resubmit below"}.get(status["status"], status["status"].title())
+        pill_label = {"approved": "Approved", "pending": "Pending Review", "rejected": "Rejected — resubmit below"}.get(status["status"], status["status"].title())
         st.markdown(
             f'<div class="payment-card"><span class="status-pill {pill_class}">{pill_label}</span></div>',
             unsafe_allow_html=True,
         )
         if status["status"] == "approved":
-            st.success("Approved â€” eligible checkout receives 50% off.")
+            st.success("Approved — eligible checkout receives 50% off.")
         elif status["status"] == "pending":
             st.info("Pending administrator review.")
         else:
@@ -2540,7 +2540,7 @@ DIRECT_PAYMENT_PLANS = {
         "amount": 240.00,
         "currency": "USD",
         "duration_days": 365,
-        "description": "$240 per year â€” equivalent to $20/month",
+        "description": "$240 per year — equivalent to $20/month",
     },
 }
 
@@ -2944,7 +2944,7 @@ def render_direct_payment_page():
         ""
     )
 
-    st.title("ðŸ’³ Subscribe & Pay")
+    st.title("💳 Subscribe & Pay")
 
     st.info(
         "Choose a subscription, make your payment, "
@@ -2957,7 +2957,7 @@ def render_direct_payment_page():
         ["monthly", "yearly"],
 
         format_func=lambda key:
-            f"{DIRECT_PAYMENT_PLANS[key]['label']} â€” "
+            f"{DIRECT_PAYMENT_PLANS[key]['label']} — "
             f"${DIRECT_PAYMENT_PLANS[key]['amount']:.2f}"
     )
 
@@ -2975,14 +2975,14 @@ def render_direct_payment_page():
         "Payment method",
 
         [
-            "ðŸ¦ Bank Transfer",
-            "ðŸ“± Direct / Mobile Payment"
+            "🏦 Bank Transfer",
+            "📱 Direct / Mobile Payment"
         ]
     )
 
-    if method == "ðŸ¦ Bank Transfer":
+    if method == "🏦 Bank Transfer":
 
-        st.subheader("ðŸ¦ Bank Transfer Instructions")
+        st.subheader("🏦 Bank Transfer Instructions")
 
         if instructions["bank_name"]:
             st.write(
@@ -3016,7 +3016,7 @@ def render_direct_payment_page():
 
     else:
 
-        st.subheader("ðŸ“± Direct / Mobile Payment")
+        st.subheader("📱 Direct / Mobile Payment")
 
         if instructions["phone"]:
 
@@ -3078,7 +3078,7 @@ def render_direct_payment_page():
 
                 method_name = (
                     "bank_transfer"
-                    if method == "ðŸ¦ Bank Transfer"
+                    if method == "🏦 Bank Transfer"
                     else "mobile_direct"
                 )
 
@@ -3130,7 +3130,7 @@ def render_admin_payment_queue():
         return
 
     st.subheader(
-        "ðŸ’° Payment Approval Queue"
+        "💰 Payment Approval Queue"
     )
 
     rows = db_conn.execute(
@@ -3223,7 +3223,7 @@ def render_admin_payment_queue():
         return
 
     choices = {
-        f"#{row[0]} â€” {row[1]} â€” {row[3]} â€” {row[8]}":
+        f"#{row[0]} — {row[1]} — {row[3]} — {row[8]}":
         row
 
         for row in pending
@@ -3292,7 +3292,7 @@ def render_admin_payment_queue():
     with c1:
 
         if st.button(
-            "âœ… Approve Payment",
+            "✅ Approve Payment",
             type="primary",
             width="stretch"
         ):
@@ -3322,7 +3322,7 @@ def render_admin_payment_queue():
     with c2:
 
         if st.button(
-            "âŒ Reject Payment",
+            "❌ Reject Payment",
             width="stretch"
         ):
 
@@ -3539,7 +3539,7 @@ auth_store = AuthStore()
 OAUTH_PROVIDERS = {
     "google": {
         "label": "Google",
-        "icon": "ðŸ”´",
+        "icon": "🔴",
         "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
         "token_url": "https://oauth2.googleapis.com/token",
         "userinfo_url": "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -3549,7 +3549,7 @@ OAUTH_PROVIDERS = {
     },
     "github": {
         "label": "GitHub",
-        "icon": "âš«",
+        "icon": "⚫",
         "authorize_url": "https://github.com/login/oauth/authorize",
         "token_url": "https://github.com/login/oauth/access_token",
         "userinfo_url": "https://api.github.com/user",
@@ -3711,7 +3711,7 @@ def render_oauth_buttons():
     for key, cfg in configured.items():
         url = build_authorize_url(key, cfg)
         st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, width='stretch')
-    st.markdown("<div style='text-align:center; color:#6B7280; font-size:0.8rem; margin: 10px 0;'>â€” or use email & password â€”</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:center; color:#6B7280; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>", unsafe_allow_html=True)
 
 
 def handle_checkout_return():
@@ -3720,12 +3720,12 @@ def handle_checkout_return():
         result = billing_stripe.verify_checkout_session(qp["session_id"])
         st.query_params.clear()
         if result:
-            st.session_state["_billing_toast"] = f"âœ… Upgraded to **{result['plan'].title()}** â€” welcome aboard."
+            st.session_state["_billing_toast"] = f"✅ Upgraded to **{result['plan'].title()}** — welcome aboard."
         else:
-            st.session_state["_billing_toast"] = "âš ï¸ Could not confirm payment yet. Try resyncing billing status."
+            st.session_state["_billing_toast"] = "⚠️ Could not confirm payment yet. Try resyncing billing status."
     elif qp.get("checkout") == "cancelled":
         st.query_params.clear()
-        st.session_state["_billing_toast"] = "â„¹ï¸ Checkout cancelled â€” no charge was made."
+        st.session_state["_billing_toast"] = "ℹ️ Checkout cancelled — no charge was made."
 
 
 def is_admin():
@@ -3752,7 +3752,7 @@ def create_starter_bundle(platform_name):
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         zip_file.writestr(
             "README.md",
-            f"# Chrishem Science Hub â€” Starter Notes ({platform_name})\n\n"
+            f"# Chrishem Science Hub — Starter Notes ({platform_name})\n\n"
             "This is a minimal configuration reference bundle. To run the platform, deploy `streamlit run app.py`.",
         )
         zip_file.writestr("config.toml", "[server]\nheadless = true\nenableCORS = false")
@@ -3902,13 +3902,13 @@ if not st.session_state.portal_unlocked:
     st.markdown("<div style='height: 2vh;'></div>", unsafe_allow_html=True)
 
     gateway_avatar_b64 = get_user_avatar_base64("")
-    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">âš¡</div>'
+    avatar_html = f'<img src="data:image/png;base64,{gateway_avatar_b64}" class="profile-avatar">' if gateway_avatar_b64 else '<div style="font-size: 55px; text-align:center;">⚡</div>'
 
     st.markdown(f"""
     <div class="portal-hero-card">
         <div class="profile-glow-wrap">{avatar_html}</div>
         <div class="portal-title">CHRISHEM SCIENCE HUB & ECOSYSTEM</div>
-        <div class="portal-subtitle">Sovereign Enterprise Engine â€¢ Secure Multi-Platform Gateway</div>
+        <div class="portal-subtitle">Sovereign Enterprise Engine • Secure Multi-Platform Gateway</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -3917,23 +3917,23 @@ if not st.session_state.portal_unlocked:
     no_admin_yet = db_conn.execute("SELECT COUNT(*) FROM auth_users WHERE role = 'admin'").fetchone()[0] == 0
     if no_admin_yet:
         st.warning(
-            "âš™ï¸ **First-time setup:** No admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
+            "⚙️ **First-time setup:** No admin account exists yet. Set `SOVEREIGN_ADMIN_EMAIL` and "
             "`SOVEREIGN_ADMIN_PASSWORD` in environment variables and restart the app."
         )
 
     _, portal_col, _ = st.columns([0.4, 3.2, 0.4])
     with portal_col:
-        tab_signin, tab_signup, tab_downloads = st.tabs(["ðŸ” Secure Sign In", "ðŸ“ Register Account", "ðŸ“± Ecosystem Downloads"])
+        tab_signin, tab_signup, tab_downloads = st.tabs(["🔐 Secure Sign In", "📝 Register Account", "📱 Ecosystem Downloads"])
 
         with tab_signin:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
             render_oauth_buttons()
             si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
-            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢")
+            si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="••••••••")
             remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            if st.button("ðŸš€ Unlock Portal Workspace", width='stretch'):
+            if st.button("🚀 Unlock Portal Workspace", width='stretch'):
                 user = auth_store.verify_login(si_email, si_password)
                 if user is None:
                     st.error("Incorrect email or password.")
@@ -3961,7 +3961,7 @@ if not st.session_state.portal_unlocked:
             su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input", placeholder="Re-enter password")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            if st.button("âœ¨ Create Sovereign Account", width='stretch'):
+            if st.button("✨ Create Sovereign Account", width='stretch'):
                 if not su_email or not su_password:
                     st.error("Email and password are required.")
                 elif su_password != su_password2:
@@ -3977,14 +3977,14 @@ if not st.session_state.portal_unlocked:
 
         with tab_downloads:
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            st.markdown("### ðŸŒ Starter Configuration Bundles")
+            st.markdown("### 🌍 Starter Configuration Bundles")
             d_col1, d_col2 = st.columns(2)
             with d_col1:
-                st.download_button("ðŸ“¥ Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", width='stretch')
-                st.download_button("ðŸ“¥ Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", width='stretch')
+                st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", width='stretch')
+                st.download_button("📥 Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", width='stretch')
             with d_col2:
-                st.download_button("ðŸ“¥ Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", width='stretch')
-                st.download_button("ðŸ“¥ Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", width='stretch')
+                st.download_button("📥 Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", width='stretch')
+                st.download_button("📥 Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", width='stretch')
 
 # --- UNLOCKED WORKSPACE DASHBOARD & ROUTING ---
 else:
@@ -3996,32 +3996,32 @@ else:
         st.sidebar.markdown(f'<div style="text-align:center; margin-bottom:10px;"><img src="data:image/png;base64,{sidebar_avatar_b64}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:2px solid #4FB8A6;"></div>', unsafe_allow_html=True)
 
     st.sidebar.title("CHRISHEM APEX")
-    st.sidebar.success(f"ðŸ” Operator: {identity.get('name')}")
+    st.sidebar.success(f"🔐 Operator: {identity.get('name')}")
     st.sidebar.markdown(f"**Email:** `{current_user_email}`")
-    st.sidebar.markdown(f"**Privilege:** `{'ðŸ‘‘ Admin' if is_admin() else 'Standard User'}`")
+    st.sidebar.markdown(f"**Privilege:** `{'👑 Admin' if is_admin() else 'Standard User'}`")
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
 
-    if st.sidebar.button("ðŸ”’ Lock Portal & Sign Out", width='stretch'):
+    if st.sidebar.button("🔒 Lock Portal & Sign Out", width='stretch'):
         cookie_manager.delete("chrishem_user_email")
         st.session_state.portal_unlocked = False
         st.rerun()
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
-    st.sidebar.markdown("### ðŸ“ Navigation Matrix")
+    st.sidebar.markdown("### 📁 Navigation Matrix")
 
     # Primary Sidebar Navigation
     menu_selection = st.sidebar.radio("Select Workspace", [
-        "âš¡ Apex Dashboard",
-        "ðŸ’³ Billing & Subscription",
-        "ðŸ§  Brain FM Focus Studio",
-        "ðŸ—„ï¸ Bio-Research Notion Vault",
-        "ðŸ“Š Sovereign Analytics Engine",
-        "ðŸ“ Query Log",
-        "ðŸ”¬ Bioinformatics Studio",
-        "âš™ï¸ Profile Settings",
-        "ðŸŽ“ Student Discount Verification",
-        "ðŸ›¡ï¸ Admin Security & User Controls"
+        "⚡ Apex Dashboard",
+        "💳 Billing & Subscription",
+        "🧠 Brain FM Focus Studio",
+        "🗄️ Bio-Research Notion Vault",
+        "📊 Sovereign Analytics Engine",
+        "📝 Query Log",
+        "🔬 Bioinformatics Studio",
+        "⚙️ Profile Settings",
+        "🎓 Student Discount Verification",
+        "🛡️ Admin Security & User Controls"
     ])
 
     toast_msg = st.session_state.pop("_billing_toast", None)
@@ -4029,25 +4029,25 @@ else:
         st.toast(toast_msg) if hasattr(st, "toast") else st.info(toast_msg)
 
     # --- WORKSPACE MODULE ROUTING ---
-    if menu_selection == "ðŸ§  Brain FM Focus Studio":
+    if menu_selection == "🧠 Brain FM Focus Studio":
 # [merged] removed: from modules.brain_fm import render_brain_fm_studio
         render_brain_fm_studio()
 
-    elif menu_selection == "ðŸ—„ï¸ Bio-Research Notion Vault":
+    elif menu_selection == "🗄️ Bio-Research Notion Vault":
 # [merged] removed: from modules.notion_gating import render_notion_template_vault
         render_notion_template_vault()
 
-    elif menu_selection == "ðŸ“Š Sovereign Analytics Engine":
+    elif menu_selection == "📊 Sovereign Analytics Engine":
 # [merged] removed: from modules.sovereign_analytics_engine import render_sovereign_analytics
         render_sovereign_analytics()
 
-    elif menu_selection == "ðŸ’³ Billing & Subscription":
+    elif menu_selection == "💳 Billing & Subscription":
 # [merged] removed: from modules.billing_ui import render_notion_style_billing
         user_identity = st.session_state.get("user_identity", {})
         render_notion_style_billing(user_identity.get("email"), user_identity.get("name"))
 
-    elif menu_selection == "âš¡ Apex Dashboard":
-        st.title("âš¡ Chrishem Sovereign Apex Hub")
+    elif menu_selection == "⚡ Apex Dashboard":
+        st.title("⚡ Chrishem Sovereign Apex Hub")
         st.markdown("---")
 
         status = subscription.get_status(current_user_email)
@@ -4062,7 +4062,7 @@ else:
             st.markdown(f'<div class="workspace-metric"><div class="metric-value">{"Admin" if is_admin() else "Standard"}</div><div class="metric-label">Access Ring</div></div>', unsafe_allow_html=True)
 
         st.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
-        st.markdown("### ðŸŒŸ Welcome to the Core Ecosystem Workspace")
+        st.markdown("### 🌟 Welcome to the Core Ecosystem Workspace")
         st.write("Use the navigation panel on the left to switch between active modules and focus studios.")
 
         c_a, c_b = st.columns(2)
@@ -4070,12 +4070,12 @@ else:
             st.info(f"**Account Role:** {'Administrator' if is_admin() else 'Standard User'}")
         with c_b:
             if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
-                st.success(f"**Trial:** {plan_label} access â€” {status['days_left_in_trial']} day(s) left.")
+                st.success(f"**Trial:** {plan_label} access — {status['days_left_in_trial']} day(s) left.")
             else:
                 st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
 
-    elif menu_selection == "ðŸ“ Query Log":
-        st.title("ðŸ“ Session Query Log")
+    elif menu_selection == "📝 Query Log":
+        st.title("📝 Session Query Log")
         st.caption("Records your queries for workspace references.")
 
         cursor = db_conn.cursor()
@@ -4090,7 +4090,7 @@ else:
             """, unsafe_allow_html=True)
 
         user_prompt = st.text_area("Log a query or note for later reference:", key="portal_ai_input")
-        if st.button("ðŸ’¾ Save to Log"):
+        if st.button("💾 Save to Log"):
             if user_prompt.strip():
                 note = "Logged for reference."
                 cursor.execute("INSERT INTO live_chat_history (username, timestamp, prompt, response) VALUES (?, ?, ?, ?)",
@@ -4098,8 +4098,8 @@ else:
                 db_conn.commit()
                 st.rerun()
 
-    elif menu_selection == "ðŸ”¬ Bioinformatics Studio":
-        st.title("ðŸ§¬ Genomic Sequence & GC-Content Studio")
+    elif menu_selection == "🔬 Bioinformatics Studio":
+        st.title("🧬 Genomic Sequence & GC-Content Studio")
         seq_input = st.text_area("Paste FASTA Sequence Data", placeholder="ATGCGATCGATCGATCGATCG...")
         if st.button("Run Sequence Metric Analysis"):
             if seq_input.strip():
@@ -4112,11 +4112,11 @@ else:
             else:
                 st.warning("Please provide a sequence string.")
 
-    elif menu_selection == "ðŸŽ“ Student Discount Verification":
+    elif menu_selection == "🎓 Student Discount Verification":
         render_student_verification()
 
-    elif menu_selection == "âš™ï¸ Profile Settings":
-        st.title("âš™ï¸ Operator Profile & Avatar Customization")
+    elif menu_selection == "⚙️ Profile Settings":
+        st.title("⚙️ Operator Profile & Avatar Customization")
         st.write("Upload a custom picture to personalize your account avatar.")
 
         active_b64 = get_user_avatar_base64(current_user_email)
@@ -4127,7 +4127,7 @@ else:
 
         col_up1, col_up2 = st.columns(2)
         with col_up1:
-            if st.button("ðŸ’¾ Save Custom Avatar", width='stretch'):
+            if st.button("💾 Save Custom Avatar", width='stretch'):
                 if uploaded_avatar is not None:
                     image_bytes = uploaded_avatar.read()
                     cursor = db_conn.cursor()
@@ -4138,51 +4138,51 @@ else:
                 else:
                     st.warning("Please select an image file first.")
         with col_up2:
-            if st.button("ðŸ”„ Revert to Default Picture", width='stretch'):
+            if st.button("🔄 Revert to Default Picture", width='stretch'):
                 cursor = db_conn.cursor()
                 cursor.execute("UPDATE auth_users SET avatar_blob = NULL WHERE email = ?", (current_user_email,))
                 db_conn.commit()
                 st.success("Reverted to default picture successfully!")
                 st.rerun()
 
-    elif menu_selection == "ðŸ›¡ï¸ Admin Security & User Controls":
+    elif menu_selection == "🛡️ Admin Security & User Controls":
         if not is_admin():
-            st.error("ðŸš« Access Denied: This panel requires administrator clearance.")
+            st.error("🚫 Access Denied: This panel requires administrator clearance.")
         else:
-            st.title("ðŸ›¡ï¸ Administrative Control Center")
+            st.title("🛡️ Administrative Control Center")
             cursor = db_conn.cursor()
             cursor.execute("SELECT email, name, role FROM auth_users")
             users = cursor.fetchall()
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
             st.dataframe(user_df, width='stretch')
             st.markdown("---")
-            st.subheader("ðŸŽ“ Student Verification Queue")
+            st.subheader("🎓 Student Verification Queue")
             rows=db_conn.execute("SELECT id,email,full_name,document_type,document_name,status,submitted_at,reviewed_at,reviewed_by,admin_notes FROM student_verifications ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END,submitted_at DESC").fetchall()
             if not rows: st.info("No student verification requests.")
             else:
                 st.dataframe(pd.DataFrame(rows,columns=["ID","Email","Name","Document","Filename","Status","Submitted","Reviewed","Reviewer","Notes"]),width="stretch",hide_index=True)
                 pending=[r for r in rows if r[5]=="pending"]
                 if pending:
-                    choices={f"{r[1]} â€” {r[3]} â€” {r[6]}":r[1] for r in pending}
+                    choices={f"{r[1]} — {r[3]} — {r[6]}":r[1] for r in pending}
                     label=st.selectbox("Pending request",list(choices),key="student_review")
                     email=choices[label]
                     row=db_conn.execute("SELECT email,full_name,document_type,document_name,document_mime,document_blob,status FROM student_verifications WHERE email=?",(email,)).fetchone()
                     st.write(f"**Applicant:** {row[1]}  \n**Email:** {row[0]}  \n**Document:** {row[2]}")
                     try:
                         decrypted=_student_cipher().decrypt(row[5])
-                        st.download_button("ðŸ” Download document for review",decrypted,file_name=row[3] or "verification-document",mime=row[4] or "application/octet-stream",key="student_doc_download")
+                        st.download_button("🔐 Download document for review",decrypted,file_name=row[3] or "verification-document",mime=row[4] or "application/octet-stream",key="student_doc_download")
                     except Exception as exc: st.error(f"Document decryption failed: {exc}")
                     notes=st.text_area("Admin notes",key="student_review_notes")
                     c1,c2=st.columns(2)
                     with c1:
-                        if st.button("âœ… Approve 50% Discount",type="primary",width="stretch"):
+                        if st.button("✅ Approve 50% Discount",type="primary",width="stretch"):
                             set_student_status(email,"approved",current_user_email,notes); st.success("Approved."); st.rerun()
                     with c2:
-                        if st.button("âŒ Reject",width="stretch"):
+                        if st.button("❌ Reject",width="stretch"):
                             set_student_status(email,"rejected",current_user_email,notes); st.warning("Rejected."); st.rerun()
 
 # ==========================================
-# Sovereign CAD Integration Module
+# Sovereign CAD Workspace Integration
 # ==========================================
 if 'menu_selection' in locals() and menu_selection == "Sovereign CAD":
     try:
@@ -4190,3 +4190,6 @@ if 'menu_selection' in locals() and menu_selection == "Sovereign CAD":
         render_cad_workspace()
     except Exception as e:
         st.error(f"Could not load Sovereign CAD workspace: {{e}}")
+else:
+    # Fallback or standard flow check
+    pass

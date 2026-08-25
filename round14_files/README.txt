@@ -1,4 +1,4 @@
-ROUND 14 - Reference manager solidified + Ask Your Library AI feature
+﻿ROUND 14 - Reference manager solidified + Ask Your Library AI feature
 
 Overwrite existing files:
   modules/reference_manager.py           -> modules/reference_manager.py

@@ -1,4 +1,4 @@
-﻿from sovereign_cad.core.entities import (
+﻿﻿from sovereign_cad.core.entities import (
     CircleEntity,
     EntityRegistry,
     LineEntity,

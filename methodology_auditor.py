@@ -1,4 +1,4 @@
-
+﻿
 """
 Active Bias & Methodological Flaw Detector  AI-driven "Peer Reviewer"
 Critically audits research methodology sections, sample sizes, experimental setups.

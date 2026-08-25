@@ -1,4 +1,4 @@
-"""
+﻿"""
 gis_engine.py
 QGIS-Grade Geospatial / Spatial Analytics Engine.
 

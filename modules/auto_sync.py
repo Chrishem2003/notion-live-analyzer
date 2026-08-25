@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 import subprocess
 
 def auto_commit_and_push(commit_message="auto: routine application sync"):

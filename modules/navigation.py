@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Unified Navigation Engine — role-based hub routing + global command search.
 Defines the 15 consolidated hubs and their tool inventory.
 """

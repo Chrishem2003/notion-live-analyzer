@@ -1,4 +1,4 @@
-"""
+﻿"""
 fastapi_app.py
 FastAPI microservice backend for the Multi-Problem Solver.
 

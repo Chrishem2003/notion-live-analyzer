@@ -1,4 +1,4 @@
-"""
+﻿"""
 INTEGRATION SNIPPET — not a standalone file to run.
 
 Two places to wire the new modules/subscription.py + modules/billing_stripe.py

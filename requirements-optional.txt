@@ -1,4 +1,4 @@
-# ─── Optional Heavy Packages ──────────────────────────────────────────
+﻿# ─── Optional Heavy Packages ──────────────────────────────────────────
 # These packages enable advanced features (AutoML, forecasting, causal analysis,
 # Bayesian modeling, SHAP explanations).
 # Install them if you need those capabilities:

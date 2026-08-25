@@ -1,4 +1,4 @@
-﻿from .primitives import (
+﻿﻿from .primitives import (
     DEFAULT_TOLERANCE,
     BoundingBox2,
     Circle2,

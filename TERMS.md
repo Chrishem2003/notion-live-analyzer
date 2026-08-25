@@ -1,4 +1,4 @@
-﻿# Terms of Use for Notion Live Research Analyzer
+﻿﻿# Terms of Use for Notion Live Research Analyzer
 
 **Last Updated:** July 2026
 

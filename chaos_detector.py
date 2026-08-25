@@ -1,4 +1,4 @@
-"""
+﻿"""
 Real-World Chaos & Nonlinear Dynamics Detector
 ================================================
 A sector-agnostic, data-driven engine for detecting and characterizing

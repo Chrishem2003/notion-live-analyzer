@@ -1,4 +1,4 @@
-"""
+﻿"""
 workspace.py  multi-workspace / agency mode.
 
 Lets one account manage several Notion workspaces (e.g. a consultant's

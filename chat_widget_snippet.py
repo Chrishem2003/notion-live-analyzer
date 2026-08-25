@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration example: drop into 11___Collaboration_Portfolio.py as a new
 "Team Chat" tab. Two pieces:
   1. Streamlit fetches a short-lived chat token server-to-server (the

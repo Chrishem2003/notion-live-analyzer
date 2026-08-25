@@ -1,4 +1,4 @@
-﻿from sovereign_cad.core.commands import (
+﻿﻿from sovereign_cad.core.commands import (
     ChangeLayerCommand,
     CommandManager,
     CreateEntityCommand,

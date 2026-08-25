@@ -1,4 +1,4 @@
-"""
+﻿"""
 Global Real-World Data Connector — World Bank Open Data (api.worldbank.org)
 =============================================================================
 No API key required. Free, public, real data covering ~217 countries and

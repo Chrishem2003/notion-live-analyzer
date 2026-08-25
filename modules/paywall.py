@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 from modules import subscription, billing_stripe
 
 def enforce_paywall(allowed_plans=("pro", "business", "premium"), feature_name="this premium feature", allow_trial=False):

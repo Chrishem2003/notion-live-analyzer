@@ -1,4 +1,4 @@
-﻿from .document import Document
+﻿﻿from .document import Document
 from .layer import Layer
 
 __all__ = [

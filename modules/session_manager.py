@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Unified Session Manager — central data state management.
 Ensures datasets flow seamlessly across all hub pages (Data Studio → Statistics → ML → Visualization → Export).
 """

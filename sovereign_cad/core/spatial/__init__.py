@@ -1,4 +1,4 @@
-﻿from .index import SpatialIndex
+﻿﻿from .index import SpatialIndex
 
 __all__ = [
     "SpatialIndex",

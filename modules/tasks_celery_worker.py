@@ -1,4 +1,4 @@
-"""
+﻿"""
 tasks.py — Long-running jobs that used to block the Streamlit thread.
 
 Each task reports real progress via `self.update_state(meta={...})` at each

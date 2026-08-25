@@ -1,4 +1,4 @@
-
+﻿
 """
 Chart Builder  builds 18 interactive chart types using Plotly.
 Handles all configuration, theming, and rendering.

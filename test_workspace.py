@@ -1,4 +1,4 @@
-"""Unit tests for modules.workspace pure-logic functions."""
+﻿"""Unit tests for modules.workspace pure-logic functions."""
 import pytest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock

@@ -1,4 +1,4 @@
-import sqlite3
+﻿import sqlite3
 import datetime
 import streamlit as st
 from modules.paywall import enforce_paywall

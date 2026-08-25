@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+﻿﻿#!/usr/bin/env python3
 """
 CHRISHEM palette remap - old cyan/near-black colors -> new instrument-console
 palette (amber/graphite/verdigris). Run from the repo root: python3 remap_palette.py

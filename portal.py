@@ -1,4 +1,4 @@
-﻿"""
+﻿﻿"""
 Portal Gateway — Authentication, Subscription, and Workspace Shell (Premium / Security-Hardened)
 
 Changelog vs prior version — this file had the most serious issues found in the entire audit,

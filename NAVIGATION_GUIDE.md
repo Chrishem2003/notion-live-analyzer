@@ -1,4 +1,4 @@
-# 🧭 CHRISHEM Unified Platform — Navigation Guide
+﻿# 🧭 CHRISHEM Unified Platform — Navigation Guide
 
 Welcome! The CHRISHEM Unified Platform has been reorganized from **66 individual pages**
 into **11 consolidated hubs**. Every tool is now reachable through a clean, logical

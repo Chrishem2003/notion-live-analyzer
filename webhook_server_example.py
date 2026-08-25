@@ -1,4 +1,4 @@
-"""
+﻿"""
 webhook_server_example.py
 Streamlit apps only handle browser requests — they can't receive Stripe's
 server-to-server webhook POSTs. This is a tiny separate Flask process that

@@ -1,4 +1,4 @@
-﻿"""
+﻿﻿"""
 CHRISHEM Global Mission Control
 ===============================
 The human-impact command center. Replaces simulated feeds with real live APIs

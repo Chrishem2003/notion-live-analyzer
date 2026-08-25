@@ -1,4 +1,4 @@
-﻿from sovereign_cad.commands import Command, CommandResult
+﻿﻿from sovereign_cad.commands import Command, CommandResult
 from sovereign_cad.document import DocumentSession
 
 

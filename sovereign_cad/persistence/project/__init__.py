@@ -1,4 +1,4 @@
-from .model import ProjectFile
+﻿from .model import ProjectFile
 from .serializer import ProjectSerializer
 from .persistence import ProjectPersistence
 

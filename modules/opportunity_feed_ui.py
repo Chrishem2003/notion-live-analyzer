@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Opportunity Feed UI
 ============================
 Streamlit renderer for the live verified Opportunity Feed (200 curated

@@ -1,4 +1,4 @@
-
+﻿
 """
 Google Sheets Integration + live read/write sync with Google Sheets.
 Requires Google service account or OAuth2 credentials.

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Chrishem Science Hub — Sovereign Enterprise Engine (v4, single-file build)
 ===========================================================================
 This file is the real app.py plus its full recursive dependency closure

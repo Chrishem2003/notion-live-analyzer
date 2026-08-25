@@ -1,4 +1,4 @@
-﻿# Privacy Policy for Notion Live Research Analyzer
+﻿﻿# Privacy Policy for Notion Live Research Analyzer
 
 **Last Updated:** July 2026
 

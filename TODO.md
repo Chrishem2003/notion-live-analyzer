@@ -1,4 +1,4 @@
-# CHRISHEM Sovereign Intelligence & Forensics Command Platform
+﻿# CHRISHEM Sovereign Intelligence & Forensics Command Platform
 ## Feature Restoration Roadmap — Real-Problem Solving (not demo)
 
 ## ✅ DONE

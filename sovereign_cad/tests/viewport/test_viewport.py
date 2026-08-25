@@ -1,4 +1,4 @@
-from sovereign_cad.core.geometry import Point2, Vector2
+﻿from sovereign_cad.core.geometry import Point2, Vector2
 from sovereign_cad.ui.viewport import Viewport, Viewport2D
 
 

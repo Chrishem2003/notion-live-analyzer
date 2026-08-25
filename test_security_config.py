@@ -1,4 +1,4 @@
-"""Unit tests for modules.security_config."""
+﻿"""Unit tests for modules.security_config."""
 import pytest
 
 from modules import security_config

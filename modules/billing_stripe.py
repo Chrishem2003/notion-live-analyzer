@@ -1,4 +1,4 @@
-﻿"""
+﻿﻿"""
 Stripe billing integration.
 
 This is the only honest way to do "real payments": a real processor. All

@@ -1,4 +1,4 @@
-"""
+﻿"""
 CHRISHEM Chaos & Nonlinear Systems Engine
 ==========================================
 Real, from-scratch numerical engines for nonlinear dynamics and forecasting.

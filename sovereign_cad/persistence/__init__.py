@@ -1,4 +1,4 @@
-from .project import (
+﻿from .project import (
     ProjectFile,
     ProjectSerializer,
     ProjectPersistence,

@@ -1,4 +1,4 @@
-
+﻿
 """
 Dynamic Hypothesis & Parameter Simulator
 Converts mathematical formulas and statistical relationships described in papers

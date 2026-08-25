@@ -1,4 +1,4 @@
-
+﻿
 """
 Dashboard Enhancements Module
 Provides smart search filters, metric banners, caching helpers, and export suites.

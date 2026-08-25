@@ -1,4 +1,4 @@
-from .renderer import Renderer, Renderer2D, RenderCommand
+﻿from .renderer import Renderer, Renderer2D, RenderCommand
 
 __all__ = [
     "Renderer",
