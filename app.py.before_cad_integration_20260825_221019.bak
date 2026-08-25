@@ -1,4 +1,4 @@
-"""
+﻿"""
 Chrishem Science Hub — Sovereign Enterprise Engine (v4, single-file build)
 ===========================================================================
 This file is the real app.py plus its full recursive dependency closure
@@ -4241,7 +4241,6 @@ else:
         "🧠 Brain FM Focus Studio",
         "🗄️ Bio-Research Notion Vault",
         "📊 Sovereign Analytics Engine",
-        "🏗️ Sovereign CAD",
         "📝 Query Log",
         "🔬 Bioinformatics Studio",
         "⚙️ Profile Settings",
@@ -4265,19 +4264,6 @@ else:
     elif menu_selection == "📊 Sovereign Analytics Engine":
 # [merged] removed: from modules.sovereign_analytics_engine import render_sovereign_analytics
         render_sovereign_analytics()
-
-    elif menu_selection == "🏗️ Sovereign CAD":
-        try:
-            from sovereign_cad.streamlit import render_cad_workspace
-            render_cad_workspace()
-        except Exception as cad_error:
-            import traceback
-            st.error(
-                f"❌ Sovereign CAD workspace failed to load: "
-                f"{type(cad_error).__name__}: {cad_error}"
-            )
-            with st.expander("Show Sovereign CAD technical traceback"):
-                st.code(traceback.format_exc())
 
     elif menu_selection == "💳 Billing & Subscription":
 # [merged] removed: from modules.billing_ui import render_notion_style_billing
