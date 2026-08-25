@@ -4181,10 +4181,12 @@ else:
                         if st.button("âŒ Reject",width="stretch"):
                             set_student_status(email,"rejected",current_user_email,notes); st.warning("Rejected."); st.rerun()
 
-# --- Sovereign CAD Router Integration ---
+# ==========================================
+# Sovereign CAD Integration Module
+# ==========================================
 if 'menu_selection' in locals() and menu_selection == "Sovereign CAD":
     try:
         from sovereign_cad.streamlit import render_cad_workspace
         render_cad_workspace()
     except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
+        st.error(f"Could not load Sovereign CAD workspace: {{e}}")
