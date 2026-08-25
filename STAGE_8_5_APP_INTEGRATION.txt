@@ -1,0 +1,21 @@
+STAGE 8.5 INTEGRATION
+
+A backup of app.py was created before any changes.
+
+Because app.py uses custom routing and may change over time,
+this build does NOT automatically inject text into arbitrary
+locations in app.py.
+
+Add this menu item to the existing menu_selection list:
+
+    "📐 Sovereign CAD",
+
+Then add this routing branch to the existing route chain:
+
+elif menu_selection == "📐 Sovereign CAD":
+    from sovereign_cad.streamlit import render_cad_workspace
+    render_cad_workspace()
+
+The CAD import is intentionally inside the route so the rest
+of the Streamlit application can continue loading even if
+the CAD subsystem has an initialization problem.
