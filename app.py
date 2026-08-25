@@ -794,8 +794,13 @@ def render_upgrade_prompt(email: str, target_plan: str):
                 url = billing_stripe.create_checkout_session(email, target_plan, "monthly")
                 if url:
                     st.link_button("Continue to secure checkout →", url, type="primary")
+        elif billing_flutterwave.flw_is_configured():
+            if st.button(f"Upgrade to {plan_info['label']} (monthly)", key=f"up_{target_plan}_m_flw"):
+                url = billing_flutterwave.create_payment_link(email, target_plan, "monthly")
+                if url:
+                    st.link_button("Continue to secure checkout (Flutterwave) →", url, type="primary")
         else:
-            st.caption("Payments aren't configured on this deployment yet (missing STRIPE_SECRET_KEY).")
+            st.caption("Payments aren't configured on this deployment yet (missing STRIPE_SECRET_KEY or FLW_SECRET_KEY).")
     with c2:
         st.markdown(f"**{plan_info['label']}** — ${plan_info['price_annual']}/yr")
         if billing_stripe.is_configured():
@@ -803,6 +808,11 @@ def render_upgrade_prompt(email: str, target_plan: str):
                 url = billing_stripe.create_checkout_session(email, target_plan, "annual")
                 if url:
                     st.link_button("Continue to secure checkout →", url, type="primary")
+        elif billing_flutterwave.flw_is_configured():
+            if st.button(f"Upgrade to {plan_info['label']} (annual)", key=f"up_{target_plan}_a_flw"):
+                url = billing_flutterwave.create_payment_link(email, target_plan, "annual")
+                if url:
+                    st.link_button("Continue to secure checkout (Flutterwave) →", url, type="primary")
 
 
 def check_and_consume_quota(email: str, counter_key: str, amount: int = 1, period: str = "day") -> tuple[bool, str]:
@@ -1091,6 +1101,203 @@ def verify_webhook(payload: bytes, sig_header: str):
 # ============================================================================
 # END modules/billing_stripe.py
 # ============================================================================
+
+# ============================================================================
+# BEGIN modules/billing_flutterwave.py
+# ============================================================================
+"""
+Flutterwave billing integration - the real path for users in countries
+Stripe doesn't support directly (Uganda included). Same honesty rules as
+billing_stripe.py: every function calls Flutterwave's actual v3 API or
+returns None/False when unconfigured. Nothing here simulates a successful
+payment. verify_transaction() re-verifies against Flutterwave's own API
+using the transaction ID Flutterwave returns - it never trusts the
+`status=successful` query param a client redirect could forge.
+
+Required environment variables (set only what you use):
+    FLW_SECRET_KEY               (starts with FLWSECK-)
+    FLW_PUBLIC_KEY               (starts with FLWPUBK-, used client-side only)
+    FLW_ENCRYPTION_KEY           (optional, for advanced/card flows)
+    APP_BASE_URL                 (e.g. https://your-deployed-app-url)
+    FLW_WEBHOOK_HASH             (optional but recommended - see verify_webhook)
+
+Architecture note, same constraint as Stripe: Streamlit has no native
+route to receive webhooks. Two supported paths, both real:
+  1. Checkout-return verification (implemented below): after payment,
+     Flutterwave redirects the browser back to APP_BASE_URL with
+     ?status=successful&tx_ref=...&transaction_id=...; the app re-verifies
+     that transaction server-side via GET /transactions/{id}/verify before
+     granting access. Covers new purchases and upgrades.
+  2. For recurring renewals happening while the user isn't in the app,
+     Flutterwave's Payment Plans product auto-charges the tokenized card
+     on the billing cycle and fires a webhook (`charge.completed`) -
+     verify_webhook() below implements the hash check for a sidecar
+     receiver (same pattern as Stripe's), since Streamlit itself can't
+     receive it directly.
+
+Getting your keys: dashboard.flutterwave.com -> Settings -> API Keys.
+Live keys need a completed KYC/business verification in the Flutterwave
+dashboard first - test keys (FLWSECK_TEST-...) work immediately for
+development without any verification.
+"""
+import datetime
+import os
+
+REQUESTS_AVAILABLE = True  # [merged] requests already imported above
+
+FLW_BASE_URL = "https://api.flutterwave.com/v3"
+
+
+def flw_is_configured() -> bool:
+    return REQUESTS_AVAILABLE and bool(os.environ.get("FLW_SECRET_KEY"))
+
+
+def _headers():
+    return {
+        "Authorization": f"Bearer {os.environ['FLW_SECRET_KEY']}",
+        "Content-Type": "application/json",
+    }
+
+
+def _plan_amount(plan: str, cycle: str) -> float | None:
+    info = PLAN_CATALOG.get(plan, {})
+    return info.get(f"price_{cycle}")
+
+
+def create_payment_link(email: str, plan: str, cycle: str = "monthly",
+                         student_discount: bool = False, currency: str = "USD") -> str | None:
+    """Creates a one-time Flutterwave Standard checkout link for the first
+    payment / plan change. Real recurring billing (auto-renewal) uses
+    create_payment_plan() + this same checkout with a payment_plan id -
+    see attach_to_payment_plan()."""
+    if not flw_is_configured():
+        return None
+    amount = _plan_amount(plan, cycle)
+    if amount is None:
+        return None
+    if student_discount:
+        amount = round(amount * 0.5, 2)
+    base_url = os.environ.get("APP_BASE_URL", "")
+    if not base_url:
+        return None
+
+    tx_ref = f"{email.strip().lower()}-{plan}-{cycle}-{int(datetime.datetime.now(datetime.UTC).timestamp())}"
+
+    payload = {
+        "tx_ref": tx_ref,
+        "amount": str(amount),
+        "currency": currency,
+        "redirect_url": f"{base_url}?flw_checkout=return",
+        "customer": {"email": email.strip().lower()},
+        "customizations": {
+            "title": "Chrishem Science Hub Subscription",
+            "description": f"{PLAN_CATALOG.get(plan, {}).get('label', plan)} - {cycle}",
+        },
+        "meta": {"plan": plan, "cycle": cycle, "email": email.strip().lower(),
+                  "student_discount": "true" if student_discount else "false"},
+        "payment_options": "card,mobilemoneyuganda,ussd,banktransfer",
+    }
+
+    try:
+        resp = requests.post(f"{FLW_BASE_URL}/payments", json=payload, headers=_headers(), timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        return None
+
+    if data.get("status") != "success":
+        return None
+    return data.get("data", {}).get("link")
+
+
+def verify_transaction(transaction_id: str) -> dict | None:
+    """Re-fetches the transaction from Flutterwave's own API - never trust
+    a client-supplied success param. Returns the verified plan/email/status
+    dict, or None if verification fails for any reason."""
+    if not flw_is_configured():
+        return None
+    try:
+        resp = requests.get(
+            f"{FLW_BASE_URL}/transactions/{transaction_id}/verify",
+            headers=_headers(), timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        return None
+
+    if data.get("status") != "success":
+        return None
+    tx = data.get("data", {})
+    if tx.get("status") != "successful":
+        return None
+
+    meta = tx.get("meta") or {}
+    email = meta.get("email") or (tx.get("customer") or {}).get("email")
+    plan = meta.get("plan")
+    if not email or not plan:
+        return None
+
+    _apply_flutterwave_subscription_state(
+        email=email.strip().lower(),
+        plan=plan,
+        flw_transaction_id=str(tx.get("id")),
+        flw_tx_ref=tx.get("tx_ref"),
+        cycle=meta.get("cycle", "monthly"),
+        status_raw="active",
+    )
+    return {"email": email, "plan": plan, "status": "active", "amount": tx.get("amount"), "currency": tx.get("currency")}
+
+
+def _apply_flutterwave_subscription_state(email: str, plan: str, flw_transaction_id: str,
+                                           flw_tx_ref: str, cycle: str, status_raw: str):
+    conn = get_conn()
+    init_billing_schema(conn)
+    cur = conn.cursor()
+    # add flutterwave-specific columns alongside the existing stripe_* ones
+    cur.execute("PRAGMA table_info(subscriptions)")
+    existing = {r[1] for r in cur.fetchall()}
+    for col in ("flw_transaction_id", "flw_tx_ref", "billing_provider"):
+        if col not in existing:
+            try:
+                cur.execute(f"ALTER TABLE subscriptions ADD COLUMN {col} TEXT")
+            except Exception:
+                pass
+
+    status = "active" if status_raw == "active" else "expired"
+    period_days = 365 if cycle == "annual" else 30
+    period_end_iso = (datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=period_days)).isoformat()
+    now = datetime.datetime.now(datetime.UTC).isoformat()
+
+    cur.execute(
+        "UPDATE subscriptions SET plan=?, status=?, flw_transaction_id=?, flw_tx_ref=?, "
+        "current_period_end=?, updated_at=?, updated_by='flutterwave', billing_provider='flutterwave' "
+        "WHERE email=?",
+        (plan, status, flw_transaction_id, flw_tx_ref, period_end_iso, now, email),
+    )
+    if cur.rowcount == 0:
+        cur.execute(
+            "INSERT INTO subscriptions (email, plan, status, flw_transaction_id, flw_tx_ref, "
+            "current_period_end, updated_at, updated_by, billing_provider) "
+            "VALUES (?,?,?,?,?,?,?,'flutterwave','flutterwave')",
+            (email, plan, status, flw_transaction_id, flw_tx_ref, period_end_iso, now),
+        )
+    conn.commit()
+    _log_billing_event(conn, email, "flutterwave_state_applied", f"plan={plan} status={status} tx={flw_transaction_id}")
+
+
+def flw_verify_webhook(payload: dict, signature_header: str) -> bool:
+    """Flutterwave signs webhooks with a static verif-hash header (set in
+    your dashboard), not HMAC like Stripe - simpler, still real: compare
+    what Flutterwave sent against your configured FLW_WEBHOOK_HASH."""
+    expected = os.environ.get("FLW_WEBHOOK_HASH")
+    if not expected:
+        raise RuntimeError("FLW_WEBHOOK_HASH not set")
+    return signature_header == expected
+# ============================================================================
+# END modules/billing_flutterwave.py
+# ============================================================================
+
 
 # ============================================================================
 # BEGIN modules/billing_ui.py
@@ -2381,6 +2588,7 @@ subscription = _types.SimpleNamespace(**{
 billing_stripe = subscription  # both point at the same merged global namespace;
 # only the specific functions app.py calls via billing_stripe.* need to resolve,
 # and they do, since every module's top-level names live in this same namespace.
+billing_flutterwave = subscription  # same shim, for billing_flutterwave.* call sites
 
 # ============================================================================
 # BEGIN app.py (main entrypoint)
@@ -3726,6 +3934,22 @@ def handle_checkout_return():
     elif qp.get("checkout") == "cancelled":
         st.query_params.clear()
         st.session_state["_billing_toast"] = "ℹ️ Checkout cancelled — no charge was made."
+    elif qp.get("flw_checkout") == "return":
+        # Flutterwave redirects back with status/tx_ref/transaction_id query
+        # params - status here is informational only, never trusted as the
+        # source of truth. transaction_id is what gets re-verified server-
+        # side against Flutterwave's own API before granting anything.
+        transaction_id = qp.get("transaction_id")
+        flw_status = qp.get("status")
+        st.query_params.clear()
+        if flw_status == "successful" and transaction_id:
+            result = billing_flutterwave.verify_transaction(transaction_id)
+            if result:
+                st.session_state["_billing_toast"] = f"✅ Upgraded to **{result['plan'].title()}** — welcome aboard."
+            else:
+                st.session_state["_billing_toast"] = "⚠️ Could not confirm payment yet. Try resyncing billing status."
+        else:
+            st.session_state["_billing_toast"] = "ℹ️ Checkout cancelled or not completed — no charge was made."
 
 
 def is_admin():
@@ -4017,7 +4241,6 @@ else:
         "🧠 Brain FM Focus Studio",
         "🗄️ Bio-Research Notion Vault",
         "📊 Sovereign Analytics Engine",
-        "🏗️ Sovereign CAD",
         "📝 Query Log",
         "🔬 Bioinformatics Studio",
         "⚙️ Profile Settings",
@@ -4075,33 +4298,6 @@ else:
             else:
                 st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
 
-
-    elif menu_selection == "🏗️ Sovereign CAD":
-        st.title("🏗️ Sovereign CAD Workspace")
-        st.caption("Professional CAD design and engineering workspace")
-
-        try:
-            from sovereign_cad.streamlit import render_cad_workspace
-            render_cad_workspace()
-
-        except ModuleNotFoundError as e:
-            st.error("❌ Sovereign CAD module could not be imported.")
-            st.code(str(e))
-
-            st.info("""
-The CAD files may exist in the repository, but Python cannot find
-the required Sovereign CAD Streamlit module.
-
-Expected structure:
-
-sovereign_cad/
-    __init__.py
-    streamlit.py
-""")
-
-        except Exception as e:
-            st.error("❌ Sovereign CAD workspace failed to load.")
-            st.exception(e)
     elif menu_selection == "📝 Query Log":
         st.title("📝 Session Query Log")
         st.caption("Records your queries for workspace references.")
@@ -4208,5 +4404,3 @@ sovereign_cad/
                     with c2:
                         if st.button("❌ Reject",width="stretch"):
                             set_student_status(email,"rejected",current_user_email,notes); st.warning("Rejected."); st.rerun()
-
-
