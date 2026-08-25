@@ -664,15 +664,7 @@ def _normalize_legacy_row(conn, email: str, row: dict) -> dict:
         new_plan, new_status = "free", "comp"
     elif legacy_plan == "expired":
         new_plan, new_status = "free", "expired"
-    
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+    else:
         new_plan, new_status = "free", "active"
     cur = conn.cursor()
     cur.execute(
@@ -717,15 +709,7 @@ def get_status(email: str) -> dict:
         if now <= trial_ends:
             effective_plan = TRIAL_GRANTS_PLAN
             days_left = max(0, (trial_ends - now).days)
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             cur.execute(
                 "UPDATE subscriptions SET status = 'expired', updated_at = ?, updated_by = 'system' WHERE email = ?",
                 (now.isoformat(), email),
@@ -745,15 +729,7 @@ else:
             conn.commit()
             _log_billing_event(conn, email, "subscription_lapsed")
             effective_plan = "free"
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             effective_plan = data["plan"] if data["plan"] in PLAN_RANK else "free"
 
     data["effective_plan"] = effective_plan
@@ -818,15 +794,7 @@ def render_upgrade_prompt(email: str, target_plan: str):
                 url = billing_stripe.create_checkout_session(email, target_plan, "monthly")
                 if url:
                     st.link_button("Continue to secure checkout â†’", url, type="primary")
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             st.caption("Payments aren't configured on this deployment yet (missing STRIPE_SECRET_KEY).")
     with c2:
         st.markdown(f"**{plan_info['label']}** â€” ${plan_info['price_annual']}/yr")
@@ -1206,15 +1174,7 @@ def render_notion_style_billing(user_email, user_name=""):
                 "for your discounted payment amount."
             )
 
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
 
             st.info(
                 "ðŸŽ“ Students can apply for verification "
@@ -1314,29 +1274,13 @@ else:
                 key="payment_phone"
             )
 
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
 
             st.warning(
                 "Mobile payment contact has not been configured."
             )
 
-    
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+    else:
 
         st.markdown("### ðŸ’° PayPal")
 
@@ -1426,15 +1370,7 @@ else:
                     "Please enter your transaction or payment reference."
                 )
 
-            
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+            else:
 
                 method_name = (
 
@@ -1476,15 +1412,7 @@ else:
                         "Your payment is now pending administrator verification."
                     )
 
-                
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+                else:
 
                     st.error(result)
 
@@ -1547,15 +1475,7 @@ else:
                         width="stretch"
                     )
 
-                
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+                else:
 
                     st.error(
                         "Unable to create the secure checkout session."
@@ -1762,15 +1682,7 @@ def render_your_music_tab():
         size_mb = len(data) / (1024 * 1024)
         if size_mb > MAX_TRACK_MB:
             st.error(f"'{uploaded.name}' is {size_mb:.1f}MB â€” over the {MAX_TRACK_MB}MB limit.")
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             mime = uploaded.type or "audio/mpeg"
             _save_track(owner, uploaded.name, mime, data)
             st.success(f"Saved '{uploaded.name}' to your library.")
@@ -1906,15 +1818,7 @@ def render_notion_template_vault():
             st.warning("âš ï¸ You have already claimed your 1-time Notion duplication access.")
             if st.button("ðŸ”— Re-open Licensed Duplicate Link"):
                 st.markdown(f"ðŸ‘‰ [Click to open Notion Workspace]({NOTION_TEMPLATE_URL})")
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             if st.button("âš¡ Claim & Duplicate to Notion Space", type="primary"):
                 now_str = datetime.datetime.now().isoformat()
                 cursor.execute(
@@ -2041,15 +1945,7 @@ def needleman_wunsch(seq1: str, seq2: str, match=2, mismatch=-1, gap=-2):
             align1 = seq1[i - 1] + align1
             align2 = "-" + align2
             i -= 1
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             align1 = "-" + align1
             align2 = seq2[j - 1] + align2
             j -= 1
@@ -2248,15 +2144,7 @@ def render_sovereign_analytics():
         if eqs:
             for (i, j, pa, pb) in eqs:
                 st.success(f"Equilibrium at strategy ({i}, {j}): payoffs ({pa}, {pb})")
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             st.info("No pure-strategy Nash equilibrium in this game.")
 
     with tabs[4]:
@@ -2282,15 +2170,7 @@ else:
                 if inertias:
                     st.line_chart(pd.Series(inertias, index=range(1, len(inertias) + 1), name="Inertia"))
                     st.caption(f"Suggested cluster count (elbow method): {suggested_k}")
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             st.info("Upload a CSV with at least 2 numeric columns to run real anomaly detection and clustering on it.")
 
     with tabs[6]:
@@ -2620,15 +2500,7 @@ def render_student_verification():
             st.success("Approved â€” eligible checkout receives 50% off.")
         elif status["status"] == "pending":
             st.info("Pending administrator review.")
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             st.warning("Previous request was rejected. You may submit again below.")
 
     with st.container():
@@ -2643,15 +2515,7 @@ else:
     if send:
         if not consent:
             st.error("Consent is required.")
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             ok, msg = submit_student_verification(email, st.session_state.get("user_identity", {}).get("name", ""), doc_type, uploaded)
             (st.success if ok else st.error)(msg)
             if ok:
@@ -3150,15 +3014,7 @@ def render_direct_payment_page():
             f"{instructions['account_type']}"
         )
 
-    
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+    else:
 
         st.subheader("ðŸ“± Direct / Mobile Payment")
 
@@ -3168,15 +3024,7 @@ else:
                 instructions["phone"]
             )
 
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
 
             st.info(
                 "Contact the administrator for mobile payment instructions."
@@ -3226,15 +3074,7 @@ else:
                     "Please confirm your payment before submitting."
                 )
 
-            
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+            else:
 
                 method_name = (
                     "bank_transfer"
@@ -3269,15 +3109,7 @@ else:
                         "Your subscription will activate after an administrator verifies the payment."
                     )
 
-                
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+                else:
 
                     st.error(result)
 
@@ -3483,15 +3315,7 @@ def render_admin_payment_queue():
 
                 st.rerun()
 
-            
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+            else:
 
                 st.error(message)
 
@@ -3897,15 +3721,7 @@ def handle_checkout_return():
         st.query_params.clear()
         if result:
             st.session_state["_billing_toast"] = f"âœ… Upgraded to **{result['plan'].title()}** â€” welcome aboard."
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             st.session_state["_billing_toast"] = "âš ï¸ Could not confirm payment yet. Try resyncing billing status."
     elif qp.get("checkout") == "cancelled":
         st.query_params.clear()
@@ -4123,15 +3939,7 @@ if not st.session_state.portal_unlocked:
                     st.error("Incorrect email or password.")
                 elif user.get("oauth_only"):
                     st.warning("This account was created via social sign-in. Use social login buttons above.")
-                
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+                else:
                     st.session_state.portal_unlocked = True
                     st.session_state.user_identity = {
                         "email": user["email"],
@@ -4160,27 +3968,11 @@ else:
                     st.error("Passwords don't match.")
                 elif len(su_password) < 6:
                     st.error("Password must be at least 6 characters.")
-                
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+                else:
                     result = auth_store.create_user(su_email, su_name or "Analyst", su_password, role="user")
                     if not result["ok"]:
                         st.error(result["error"])
-                    
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+                    else:
                         st.success("Account created successfully! Switch to 'Secure Sign In' above.")
 
         with tab_downloads:
@@ -4195,14 +3987,6 @@ else:
                 st.download_button("ðŸ“¥ Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", width='stretch')
 
 # --- UNLOCKED WORKSPACE DASHBOARD & ROUTING ---
-
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
 else:
     identity = st.session_state.get("user_identity", {})
     current_user_email = identity.get("email", "")
@@ -4287,15 +4071,7 @@ else:
         with c_b:
             if status["status"] == "trialing" and status["days_left_in_trial"] is not None:
                 st.success(f"**Trial:** {plan_label} access â€” {status['days_left_in_trial']} day(s) left.")
-            
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+            else:
                 st.success(f"**Subscription Plan:** `{plan_label}` ({status['status']}) for `{current_user_email}`.")
 
     elif menu_selection == "ðŸ“ Query Log":
@@ -4333,15 +4109,7 @@ else:
                 c1, c2 = st.columns(2)
                 c1.metric("Total Base Pairs", f"{length} bp")
                 c2.metric("GC-Content Ratio", f"{gc:.2f}%")
-            
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+            else:
                 st.warning("Please provide a sequence string.")
 
     elif menu_selection == "ðŸŽ“ Student Discount Verification":
@@ -4367,15 +4135,7 @@ else:
                     db_conn.commit()
                     st.success("Avatar updated successfully!")
                     st.rerun()
-                
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+                else:
                     st.warning("Please select an image file first.")
         with col_up2:
             if st.button("ðŸ”„ Revert to Default Picture", width='stretch'):
@@ -4388,15 +4148,7 @@ else:
     elif menu_selection == "ðŸ›¡ï¸ Admin Security & User Controls":
         if not is_admin():
             st.error("ðŸš« Access Denied: This panel requires administrator clearance.")
-        
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+        else:
             st.title("ðŸ›¡ï¸ Administrative Control Center")
             cursor = db_conn.cursor()
             cursor.execute("SELECT email, name, role FROM auth_users")
@@ -4407,15 +4159,7 @@ else:
             st.subheader("ðŸŽ“ Student Verification Queue")
             rows=db_conn.execute("SELECT id,email,full_name,document_type,document_name,status,submitted_at,reviewed_at,reviewed_by,admin_notes FROM student_verifications ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END,submitted_at DESC").fetchall()
             if not rows: st.info("No student verification requests.")
-            
-elif menu_selection == "Sovereign CAD":
-    try:
-        from sovereign_cad.streamlit import render_cad_workspace
-        render_cad_workspace()
-    except Exception as e:
-        st.error(f"Could not load Sovereign CAD workspace: {e}")
-
-else:
+            else:
                 st.dataframe(pd.DataFrame(rows,columns=["ID","Email","Name","Document","Filename","Status","Submitted","Reviewed","Reviewer","Notes"]),width="stretch",hide_index=True)
                 pending=[r for r in rows if r[5]=="pending"]
                 if pending:
@@ -4436,3 +4180,11 @@ else:
                     with c2:
                         if st.button("âŒ Reject",width="stretch"):
                             set_student_status(email,"rejected",current_user_email,notes); st.warning("Rejected."); st.rerun()
+
+# --- Sovereign CAD Router Integration ---
+if 'menu_selection' in locals() and menu_selection == "Sovereign CAD":
+    try:
+        from sovereign_cad.streamlit import render_cad_workspace
+        render_cad_workspace()
+    except Exception as e:
+        st.error(f"Could not load Sovereign CAD workspace: {e}")
