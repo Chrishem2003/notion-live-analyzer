@@ -1,0 +1,2321 @@
+
+============================================================
+FILE: sovereign_cad\streamlit.py
+============================================================
+"""
+Sovereign CAD Streamlit Integration Layer.
+
+This module is the single entry point used by the main Chrishem
+Science Hub app. It safely discovers and renders Sovereign CAD
+Stages 1 through 8 without crashing the entire application when
+an individual stage is missing or still under development.
+"""
+
+from __future__ import annotations
+
+import importlib
+import inspect
+import pkgutil
+import traceback
+
+import streamlit as st
+
+
+def _candidate_modules(stage_number: int):
+    """
+    Generate likely module names for each CAD stage.
+
+    The discovery system supports multiple naming conventions so the
+    existing Sovereign CAD repository does not need to be rewritten.
+    """
+    n = stage_number
+
+    return [
+        f"sovereign_cad.stage{n}",
+        f"sovereign_cad.stage_{n}",
+        f"sovereign_cad.stages.stage{n}",
+        f"sovereign_cad.stages.stage_{n}",
+        f"sovereign_cad.stages.stage{n}.main",
+        f"sovereign_cad.stages.stage_{n}.main",
+    ]
+
+
+def _candidate_functions(stage_number: int):
+    """
+    Generate likely renderer/entry function names.
+    """
+    n = stage_number
+
+    return [
+        f"render_stage_{n}",
+        f"render_stage{n}",
+        f"stage_{n}",
+        f"stage{n}",
+        f"run_stage_{n}",
+        f"run_stage{n}",
+        "render",
+        "main",
+        "run",
+    ]
+
+
+def _call_safely(func):
+    """
+    Call a stage function safely.
+
+    Streamlit is rerun-based, so stage renderers normally need no
+    arguments. If a function has no required parameters, it is called.
+    Otherwise the user receives a clear integration message instead
+    of the entire app crashing.
+    """
+
+    try:
+        signature = inspect.signature(func)
+
+        required = [
+            p
+            for p in signature.parameters.values()
+            if p.default is inspect.Parameter.empty
+            and p.kind
+            in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            )
+        ]
+
+        if required:
+            st.warning(
+                "This stage was found, but its entry function requires "
+                f"parameters: {', '.join(p.name for p in required)}"
+            )
+
+            st.code(
+                f"{func.__module__}.{func.__name__}"
+            )
+
+            st.info(
+                "The CAD engine is connected, but this stage needs its "
+                "existing application state/dependencies wired into the "
+                "Streamlit bridge."
+            )
+
+            return False
+
+        func()
+        return True
+
+    except Exception as exc:
+
+        st.error(
+            f"Sovereign CAD stage crashed: {type(exc).__name__}: {exc}"
+        )
+
+        with st.expander("Show technical traceback"):
+            st.code(traceback.format_exc())
+
+        return False
+
+
+def _render_stage(stage_number: int):
+    """
+    Locate and render one Sovereign CAD stage.
+    """
+
+    import_errors = []
+
+    for module_name in _candidate_modules(stage_number):
+
+        try:
+            module = importlib.import_module(module_name)
+
+        except ModuleNotFoundError as exc:
+
+            # Ignore only when the candidate module itself does not exist.
+            if exc.name == module_name:
+                continue
+
+            import_errors.append(
+                f"{module_name}\n{traceback.format_exc()}"
+            )
+
+            continue
+
+        except Exception:
+
+            import_errors.append(
+                f"{module_name}\n{traceback.format_exc()}"
+            )
+
+            continue
+
+        for function_name in _candidate_functions(stage_number):
+
+            function = getattr(module, function_name, None)
+
+            if callable(function):
+
+                st.success(
+                    f"Connected: {module_name}.{function_name}()"
+                )
+
+                return _call_safely(function)
+
+        st.warning(
+            f"Stage {stage_number} module was found:\n\n"
+            f"`{module_name}`\n\n"
+            "But no compatible entry function was found."
+        )
+
+        st.caption(
+            "Expected one of: "
+            + ", ".join(
+                _candidate_functions(stage_number)
+            )
+        )
+
+        return False
+
+    st.warning(
+        f"Sovereign CAD Stage {stage_number} has not been located yet."
+    )
+
+    if import_errors:
+
+        with st.expander(
+            f"Show Stage {stage_number} import diagnostics"
+        ):
+
+            for error in import_errors:
+                st.code(error)
+
+    st.info(
+        "The main Sovereign CAD workspace is connected correctly. "
+        "This individual stage still needs its module/function mapping."
+    )
+
+    return False
+
+
+def _show_package_map():
+    """
+    Diagnostic view of all discovered Python modules inside sovereign_cad.
+    """
+
+    try:
+        import sovereign_cad
+
+        modules = sorted(
+            module.name
+            for module in pkgutil.walk_packages(
+                sovereign_cad.__path__,
+                sovereign_cad.__name__ + "."
+            )
+        )
+
+        if modules:
+
+            st.code("\n".join(modules))
+
+        else:
+
+            st.caption(
+                "No submodules were discovered."
+            )
+
+    except Exception:
+
+        st.code(traceback.format_exc())
+
+
+def render_cad_workspace():
+    """
+    Main Sovereign CAD workspace entry point.
+    Called directly from app.py.
+    """
+
+    st.title("🏗️ Sovereign CAD")
+    st.caption(
+        "Integrated engineering and CAD development environment"
+    )
+
+    st.divider()
+
+    stage_names = {
+        "1️⃣ Stage 1": 1,
+        "2️⃣ Stage 2": 2,
+        "3️⃣ Stage 3": 3,
+        "4️⃣ Stage 4": 4,
+        "5️⃣ Stage 5": 5,
+        "6️⃣ Stage 6": 6,
+        "7️⃣ Stage 7": 7,
+        "8️⃣ Stage 8": 8,
+        "🔍 CAD Diagnostics": 0,
+    }
+
+    selected_label = st.radio(
+        "Sovereign CAD Development Stage",
+        list(stage_names.keys()),
+        horizontal=True,
+        key="sovereign_cad_stage_selector",
+    )
+
+    selected_stage = stage_names[selected_label]
+
+    if selected_stage == 0:
+
+        st.subheader("Sovereign CAD Package Diagnostics")
+
+        st.write(
+            "The following modules were discovered inside the "
+            "`sovereign_cad` package:"
+        )
+
+        _show_package_map()
+
+        return
+
+    st.subheader(
+        f"Sovereign CAD — Stage {selected_stage}"
+    )
+
+    _render_stage(selected_stage)
+
+============================================================
+FILE: sovereign_cad\streamlit\workspace.py
+============================================================
+from __future__ import annotations
+
+import traceback
+
+import streamlit as st
+
+
+SESSION_PREFIX = "sovereign_cad_"
+
+
+def _key(name: str) -> str:
+    return f"{SESSION_PREFIX}{name}"
+
+
+def _initialize_cad() -> None:
+    """
+    Initialize the SovereignCAD runtime once per Streamlit session.
+
+    Existing CAD engine files are not modified.
+    """
+
+    if st.session_state.get(_key("initialized")):
+        return
+
+    try:
+        from sovereign_cad.application import (
+            ApplicationShell,
+            ApplicationContext,
+        )
+
+        from sovereign_cad.application.services import (
+            ApplicationService,
+        )
+
+        from sovereign_cad.ui.viewport import (
+            Viewport2D,
+        )
+
+        from sovereign_cad.ui.canvas import (
+            CanvasState,
+        )
+
+        from sovereign_cad.rendering import (
+            Renderer2D,
+        )
+
+        shell = ApplicationShell()
+        shell.initialize()
+        shell.start()
+
+        context = ApplicationContext()
+
+        application_service = ApplicationService(
+            shell=shell
+        )
+
+        viewport = Viewport2D(
+            width=1200.0,
+            height=800.0,
+        )
+
+        canvas = CanvasState(
+            viewport=viewport
+        )
+
+        renderer = Renderer2D(
+            viewport
+        )
+
+        context.viewport = viewport
+        context.canvas = canvas
+        context.renderer = renderer
+
+        shell.register_service(
+            "application",
+            application_service
+        )
+
+        st.session_state[_key("shell")] = shell
+        st.session_state[_key("context")] = context
+        st.session_state[_key("service")] = application_service
+        st.session_state[_key("viewport")] = viewport
+        st.session_state[_key("canvas")] = canvas
+        st.session_state[_key("renderer")] = renderer
+
+        st.session_state[_key("initialized")] = True
+        st.session_state[_key("error")] = None
+
+    except Exception:
+        st.session_state[_key("initialized")] = False
+        st.session_state[_key("error")] = traceback.format_exc()
+
+
+def _get_runtime():
+    return {
+        "shell": st.session_state.get(_key("shell")),
+        "context": st.session_state.get(_key("context")),
+        "service": st.session_state.get(_key("service")),
+        "viewport": st.session_state.get(_key("viewport")),
+        "canvas": st.session_state.get(_key("canvas")),
+        "renderer": st.session_state.get(_key("renderer")),
+    }
+
+
+def _render_header():
+    left, middle, right = st.columns(
+        [2, 6, 2]
+    )
+
+    with left:
+        st.subheader("📐 Sovereign CAD")
+
+    with middle:
+        st.caption(
+            "Stage 8.5 Streamlit Workspace"
+        )
+
+    with right:
+        if st.button(
+            "Reset CAD",
+            key=_key("reset")
+        ):
+            for key in list(st.session_state.keys()):
+                if key.startswith(SESSION_PREFIX):
+                    del st.session_state[key]
+
+            st.rerun()
+
+
+def _render_toolbar(runtime):
+    viewport = runtime["viewport"]
+    canvas = runtime["canvas"]
+
+    st.markdown("### Tools")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        if st.button(
+            "↖ Select",
+            use_container_width=True,
+            key=_key("tool_select")
+        ):
+            st.session_state[_key("active_tool")] = "select"
+
+    with col2:
+        if st.button(
+            "╱ Line",
+            use_container_width=True,
+            key=_key("tool_line")
+        ):
+            st.session_state[_key("active_tool")] = "line"
+
+    with col3:
+        if st.button(
+            "○ Circle",
+            use_container_width=True,
+            key=_key("tool_circle")
+        ):
+            st.session_state[_key("active_tool")] = "circle"
+
+    with col4:
+        if st.button(
+            "▣ Reset View",
+            use_container_width=True,
+            key=_key("reset_view")
+        ):
+            canvas.reset_view()
+
+    zoom1, zoom2, zoom3 = st.columns(3)
+
+    with zoom1:
+        if st.button(
+            "− Zoom Out",
+            use_container_width=True,
+            key=_key("zoom_out")
+        ):
+            canvas.zoom_out()
+
+    with zoom2:
+        if st.button(
+            "+ Zoom In",
+            use_container_width=True,
+            key=_key("zoom_in")
+        ):
+            canvas.zoom_in()
+
+    with zoom3:
+        if st.button(
+            "⌂ Home",
+            use_container_width=True,
+            key=_key("zoom_home")
+        ):
+            canvas.reset_view()
+
+    return viewport
+
+
+def _render_canvas(runtime):
+    viewport = runtime["viewport"]
+
+    st.markdown("### Drawing Workspace")
+
+    active_tool = st.session_state.get(
+        _key("active_tool"),
+        "select"
+    )
+
+    st.info(
+        f"Active tool: {active_tool.upper()}"
+    )
+
+    canvas_height = 520
+
+    st.markdown(
+        f"""
+        <div style="
+            height: {canvas_height}px;
+            width: 100%;
+            border: 2px solid #444;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            background-color: #111;
+            background-image:
+                linear-gradient(#222 1px, transparent 1px),
+                linear-gradient(90deg, #222 1px, transparent 1px);
+            background-size: 20px 20px;
+        ">
+            <div style="
+                position: absolute;
+                top: 10px;
+                left: 12px;
+                color: #ddd;
+                font-family: monospace;
+                font-size: 13px;
+            ">
+                SOVEREIGN CAD CANVAS
+                <br>
+                Center: ({viewport.center.x:.2f}, {viewport.center.y:.2f})
+                <br>
+                Zoom: {viewport.zoom:.4f}
+            </div>
+
+            <div style="
+                position: absolute;
+                left: 50%;
+                top: 0;
+                width: 1px;
+                height: 100%;
+                background: #666;
+            "></div>
+
+            <div style="
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 100%;
+                height: 1px;
+                background: #666;
+            "></div>
+
+            <div style="
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                width: 12px;
+                height: 12px;
+                transform: translate(-50%, -50%);
+                border: 2px solid #00ccff;
+                border-radius: 50%;
+            "></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_properties(runtime):
+    viewport = runtime["viewport"]
+    canvas = runtime["canvas"]
+    shell = runtime["shell"]
+
+    st.markdown("### Properties")
+
+    st.write(
+        "Viewport Center"
+    )
+
+    st.code(
+        f"X: {viewport.center.x:.4f}\n"
+        f"Y: {viewport.center.y:.4f}"
+    )
+
+    st.write(
+        "Zoom"
+    )
+
+    st.code(
+        f"{viewport.zoom:.6f}"
+    )
+
+    st.write(
+        "Cursor World"
+    )
+
+    st.code(
+        f"X: {canvas.cursor_world.x:.4f}\n"
+        f"Y: {canvas.cursor_world.y:.4f}"
+    )
+
+    st.write(
+        "Application"
+    )
+
+    status = "ONLINE"
+
+    if shell is None or not shell.running:
+        status = "OFFLINE"
+
+    st.success(
+        status
+    )
+
+
+def _render_status(runtime):
+    viewport = runtime["viewport"]
+
+    active_tool = st.session_state.get(
+        _key("active_tool"),
+        "select"
+    )
+
+    st.divider()
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.caption(
+            f"Command: {active_tool.upper()}"
+        )
+
+    with col2:
+        st.caption(
+            f"Center: X={viewport.center.x:.2f}, "
+            f"Y={viewport.center.y:.2f}"
+        )
+
+    with col3:
+        st.caption(
+            f"Zoom: {viewport.zoom:.4f}"
+        )
+
+
+def render_cad_workspace():
+    """
+    Main Streamlit entry point for Sovereign CAD.
+
+    This function is intentionally isolated from the
+    main application so CAD failures do not affect
+    unrelated platform sections.
+    """
+
+    try:
+        _initialize_cad()
+
+        error = st.session_state.get(
+            _key("error")
+        )
+
+        if error:
+            st.error(
+                "Sovereign CAD could not be initialized."
+            )
+
+            with st.expander(
+                "Show CAD initialization details"
+            ):
+                st.code(
+                    error
+                )
+
+            return
+
+        runtime = _get_runtime()
+
+        _render_header()
+
+        _render_toolbar(
+            runtime
+        )
+
+        left, center, right = st.columns(
+            [1.5, 6, 1.8]
+        )
+
+        with left:
+            st.markdown(
+                "### CAD System"
+            )
+
+            st.success(
+                "Engine Online"
+            )
+
+            st.caption(
+                "Geometry"
+            )
+
+            st.caption(
+                "Entities"
+            )
+
+            st.caption(
+                "Selection"
+            )
+
+            st.caption(
+                "Document"
+            )
+
+            st.caption(
+                "Commands"
+            )
+
+            st.caption(
+                "Viewport"
+            )
+
+            st.caption(
+                "Renderer"
+            )
+
+        with center:
+            _render_canvas(
+                runtime
+            )
+
+        with right:
+            _render_properties(
+                runtime
+            )
+
+        _render_status(
+            runtime
+        )
+
+    except Exception:
+        st.error(
+            "Unexpected Sovereign CAD workspace error."
+        )
+
+        with st.expander(
+            "Show workspace error"
+        ):
+            st.code(
+                traceback.format_exc()
+            )
+
+============================================================
+FILE: sovereign_cad\core\document\document.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from sovereign_cad.core.entities import Entity
+from sovereign_cad.core.document.layer import Layer
+
+
+class Document:
+    """
+    CAD document containing entities and layers.
+    """
+
+    def __init__(self) -> None:
+
+        self.entities: dict[UUID, Entity] = {}
+
+        self.layers: dict[str, Layer] = {
+            "0": Layer("0")
+        }
+
+        self.active_layer = "0"
+
+    # --------------------------------------------------------
+    # Layers
+    # --------------------------------------------------------
+
+    def add_layer(self, name: str) -> Layer:
+
+        if not name:
+            raise ValueError("Layer name cannot be empty.")
+
+        if name in self.layers:
+            raise ValueError(f"Layer already exists: {name}")
+
+        layer = Layer(name)
+
+        self.layers[name] = layer
+
+        return layer
+
+    def remove_layer(self, name: str) -> None:
+
+        if name == "0":
+            raise ValueError("Default layer cannot be removed.")
+
+        if name not in self.layers:
+            raise KeyError(name)
+
+        if any(entity.layer == name for entity in self.entities.values()):
+            raise ValueError(
+                f"Cannot remove layer '{name}' because it contains entities."
+            )
+
+        del self.layers[name]
+
+        if self.active_layer == name:
+            self.active_layer = "0"
+
+    def set_active_layer(self, name: str) -> None:
+
+        if name not in self.layers:
+            raise KeyError(name)
+
+        if not self.layers[name].visible:
+            raise ValueError(
+                f"Cannot activate hidden layer: {name}"
+            )
+
+        self.active_layer = name
+
+    # --------------------------------------------------------
+    # Entities
+    # --------------------------------------------------------
+
+    def add_entity(self, entity: Entity) -> UUID:
+
+        if entity.entity_id in self.entities:
+            raise ValueError(
+                f"Entity already exists: {entity.entity_id}"
+            )
+
+        if entity.layer not in self.layers:
+            self.layers[entity.layer] = Layer(entity.layer)
+
+        self.entities[entity.entity_id] = entity
+
+        return entity.entity_id
+
+    def remove_entity(self, entity_id: UUID) -> Entity:
+
+        if entity_id not in self.entities:
+            raise KeyError(entity_id)
+
+        return self.entities.pop(entity_id)
+
+    def get_entity(self, entity_id: UUID) -> Entity | None:
+
+        return self.entities.get(entity_id)
+
+    def clear(self) -> None:
+
+        self.entities.clear()
+
+    # --------------------------------------------------------
+    # Selection
+    # --------------------------------------------------------
+
+    def select_entity(self, entity_id: UUID) -> None:
+
+        entity = self.get_entity(entity_id)
+
+        if entity is None:
+            raise KeyError(entity_id)
+
+        entity.select()
+
+    def deselect_all(self) -> None:
+
+        for entity in self.entities.values():
+            entity.deselect()
+
+    def selected_entities(self) -> list[Entity]:
+
+        return [
+            entity
+            for entity in self.entities.values()
+            if entity.selected
+        ]
+
+    # --------------------------------------------------------
+    # Queries
+    # --------------------------------------------------------
+
+    @property
+    def entity_count(self) -> int:
+        return len(self.entities)
+
+    @property
+    def layer_count(self) -> int:
+        return len(self.layers)
+
+============================================================
+FILE: sovereign_cad\core\document\layer.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass
+class Layer:
+    """
+    CAD drawing layer.
+    """
+
+    name: str
+    visible: bool = True
+    locked: bool = False
+
+    def __post_init__(self) -> None:
+
+        if not self.name:
+            raise ValueError("Layer name cannot be empty.")
+
+    def show(self) -> None:
+        self.visible = True
+
+    def hide(self) -> None:
+        self.visible = False
+
+    def lock(self) -> None:
+        self.locked = True
+
+    def unlock(self) -> None:
+        self.locked = False
+
+============================================================
+FILE: sovereign_cad\core\entities\registry.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from .entity import Entity
+
+
+class EntityRegistry:
+
+    def __init__(self) -> None:
+        self._entities: dict[UUID, Entity] = {}
+
+    def add(self, entity: Entity) -> UUID:
+
+        if entity.entity_id in self._entities:
+            raise ValueError(
+                f"Entity {entity.entity_id} already exists."
+            )
+
+        self._entities[entity.entity_id] = entity
+
+        return entity.entity_id
+
+    def remove(self, entity_id: UUID) -> Entity:
+
+        if entity_id not in self._entities:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        return self._entities.pop(entity_id)
+
+    def get(self, entity_id: UUID) -> Entity | None:
+        return self._entities.get(entity_id)
+
+    def all(self) -> list[Entity]:
+        return list(self._entities.values())
+
+    def visible(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.visible
+        ]
+
+    def selected(self) -> list[Entity]:
+        return [
+            entity
+            for entity in self._entities.values()
+            if entity.selected
+        ]
+
+    def clear_selection(self) -> None:
+        for entity in self._entities.values():
+            entity.deselect()
+
+    def select(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.select()
+
+    def deselect(self, entity_id: UUID) -> None:
+
+        entity = self.get(entity_id)
+
+        if entity is None:
+            raise KeyError(
+                f"Entity {entity_id} does not exist."
+            )
+
+        entity.deselect()
+
+    def __len__(self) -> int:
+        return len(self._entities)
+
+    def __iter__(self):
+        return iter(self._entities.values())
+
+============================================================
+FILE: sovereign_cad\core\entities\entity.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
+
+from ..geometry import (
+    BoundingBox2,
+    Circle2,
+    LineSegment2,
+    Point2,
+)
+
+
+@dataclass(kw_only=True)
+class Entity:
+
+    entity_id: UUID = field(default_factory=uuid4)
+
+    layer: str = "0"
+
+    visible: bool = True
+
+    selected: bool = False
+
+    @property
+    def id(self) -> UUID:
+        return self.entity_id
+
+    @property
+    def entity_type(self) -> str:
+        return self.__class__.__name__.replace("Entity", "").upper()
+
+    def select(self) -> None:
+        """Mark this entity as selected."""
+        self.selected = True
+
+    def deselect(self) -> None:
+        """Mark this entity as not selected."""
+        self.selected = False
+
+    def is_selected(self) -> bool:
+        """Return whether this entity is currently selected."""
+        return self.selected
+    def set_layer(self, layer: str) -> None:
+        if not isinstance(layer, str) or not layer.strip():
+            raise ValueError("Layer must be a non-empty string.")
+
+        self.layer = layer.strip()
+
+    def bounding_box(self) -> BoundingBox2:
+        raise NotImplementedError
+
+    def clone(self):
+        raise NotImplementedError
+
+
+@dataclass
+class LineEntity(Entity):
+
+    start: Point2 = field(
+        default_factory=lambda: Point2(0.0, 0.0)
+    )
+
+    end: Point2 = field(
+        default_factory=lambda: Point2(1.0, 0.0)
+    )
+
+    def geometry(self) -> LineSegment2:
+        return LineSegment2(
+            self.start,
+            self.end,
+        )
+
+    @property
+    def length(self) -> float:
+        return self.start.distance_to(self.end)
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2.from_points(
+            [
+                self.start,
+                self.end,
+            ]
+        )
+
+    def clone(self) -> "LineEntity":
+        return LineEntity(
+            self.start,
+            self.end,
+            entity_id=self.entity_id,
+            layer=self.layer,
+            visible=self.visible,
+            selected=self.selected,
+        )
+
+
+@dataclass
+class CircleEntity(Entity):
+
+    center: Point2 = field(
+        default_factory=lambda: Point2(0.0, 0.0)
+    )
+
+    radius: float = 1.0
+
+    def geometry(self) -> Circle2:
+        return Circle2(
+            self.center,
+            self.radius,
+        )
+
+    def bounding_box(self) -> BoundingBox2:
+        return BoundingBox2(
+            self.center.x - self.radius,
+            self.center.y - self.radius,
+            self.center.x + self.radius,
+            self.center.y + self.radius,
+        )
+
+    def clone(self) -> "CircleEntity":
+        return CircleEntity(
+            self.center,
+            self.radius,
+            entity_id=self.entity_id,
+            layer=self.layer,
+            visible=self.visible,
+            selected=self.selected,
+        )
+
+
+__all__ = [
+    "Entity",
+    "LineEntity",
+    "CircleEntity",
+]
+
+
+============================================================
+FILE: sovereign_cad\core\entities\line.py
+============================================================
+from .entity import Entity, LineEntity
+
+__all__ = [
+    "Entity",
+    "LineEntity",
+]
+
+============================================================
+FILE: sovereign_cad\core\entities\circle.py
+============================================================
+from .entity import Entity, CircleEntity
+
+__all__ = [
+    "Entity",
+    "CircleEntity",
+]
+
+============================================================
+FILE: sovereign_cad\core\commands\command_manager.py
+============================================================
+from __future__ import annotations
+
+from .command import Command
+
+
+class CommandManager:
+    """
+    Manages command execution and history.
+
+    History model:
+
+        execute
+           |
+           v
+        undo stack
+           |
+        undo()
+           |
+           v
+        redo stack
+           |
+        redo()
+    """
+
+    def __init__(self) -> None:
+
+        self._undo_stack: list[Command] = []
+        self._redo_stack: list[Command] = []
+
+    # --------------------------------------------------------
+    # Execute
+    # --------------------------------------------------------
+
+    def execute(self, command: Command) -> None:
+
+        command.execute()
+
+        self._undo_stack.append(command)
+
+        # Any new operation invalidates redo history.
+        self._redo_stack.clear()
+
+    # --------------------------------------------------------
+    # Undo
+    # --------------------------------------------------------
+
+    def undo(self) -> bool:
+
+        if not self._undo_stack:
+            return False
+
+        command = self._undo_stack.pop()
+
+        command.undo()
+
+        self._redo_stack.append(command)
+
+        return True
+
+    # --------------------------------------------------------
+    # Redo
+    # --------------------------------------------------------
+
+    def redo(self) -> bool:
+
+        if not self._redo_stack:
+            return False
+
+        command = self._redo_stack.pop()
+
+        command.execute()
+
+        self._undo_stack.append(command)
+
+        return True
+
+    # --------------------------------------------------------
+    # State
+    # --------------------------------------------------------
+
+    @property
+    def can_undo(self) -> bool:
+        return bool(self._undo_stack)
+
+    @property
+    def can_redo(self) -> bool:
+        return bool(self._redo_stack)
+
+    @property
+    def undo_count(self) -> int:
+        return len(self._undo_stack)
+
+    @property
+    def redo_count(self) -> int:
+        return len(self._redo_stack)
+
+    def clear(self) -> None:
+
+        self._undo_stack.clear()
+        self._redo_stack.clear()
+
+    @property
+    def undo_history(self) -> tuple[Command, ...]:
+        return tuple(self._undo_stack)
+
+    @property
+    def redo_history(self) -> tuple[Command, ...]:
+        return tuple(self._redo_stack)
+
+============================================================
+FILE: sovereign_cad\core\commands\create_entity.py
+============================================================
+from __future__ import annotations
+
+from sovereign_cad.core.document import Document
+from sovereign_cad.core.entities import Entity
+
+from .command import Command
+
+
+class CreateEntityCommand(Command):
+    """
+    Adds an entity to a document.
+
+    Undo removes the entity.
+    Redo adds the same entity again.
+    """
+
+    def __init__(
+        self,
+        document: Document,
+        entity: Entity,
+    ) -> None:
+
+        self.document = document
+        self.entity = entity
+        self._executed = False
+
+    @property
+    def name(self) -> str:
+        return f"Create {self.entity.entity_type}"
+
+    def execute(self) -> None:
+
+        if self._executed:
+            return
+
+        self.document.add_entity(self.entity)
+
+        self._executed = True
+
+    def undo(self) -> None:
+
+        if not self._executed:
+            return
+
+        self.document.remove_entity(
+            self.entity.entity_id
+        )
+
+        self._executed = False
+
+============================================================
+FILE: sovereign_cad\core\commands\delete_entity.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from sovereign_cad.core.document import Document
+from sovereign_cad.core.entities import Entity
+
+from .command import Command
+
+
+class DeleteEntityCommand(Command):
+    """
+    Removes an entity from a document.
+
+    Undo restores the exact same entity.
+    """
+
+    def __init__(
+        self,
+        document: Document,
+        entity_id: UUID,
+    ) -> None:
+
+        self.document = document
+        self.entity_id = entity_id
+        self._entity: Entity | None = None
+        self._executed = False
+
+    @property
+    def name(self) -> str:
+        return "Delete Entity"
+
+    def execute(self) -> None:
+
+        if self._executed:
+            return
+
+        self._entity = self.document.remove_entity(
+            self.entity_id
+        )
+
+        self._executed = True
+
+    def undo(self) -> None:
+
+        if not self._executed:
+            return
+
+        if self._entity is None:
+            raise RuntimeError(
+                "Cannot undo deletion without stored entity."
+            )
+
+        self.document.add_entity(self._entity)
+
+        self._executed = False
+
+============================================================
+FILE: sovereign_cad\core\selection\engine.py
+============================================================
+from __future__ import annotations
+
+from ..entities import EntityRegistry
+from ..geometry import BoundingBox2, Point2
+from ..spatial import SpatialIndex
+
+
+class SelectionEngine:
+
+    def __init__(
+        self,
+        registry: EntityRegistry,
+        spatial_index: SpatialIndex,
+    ):
+
+        self.registry = registry
+        self.spatial_index = spatial_index
+
+    def clear(self) -> None:
+        self.registry.clear_selection()
+
+    def select(self, entity_id) -> None:
+        self.registry.select(entity_id)
+
+    def deselect(self, entity_id) -> None:
+        self.registry.deselect(entity_id)
+
+    def selected(self):
+        return self.registry.selected()
+
+    def pick(self, point: Point2) -> list:
+
+        ids = self.spatial_index.query_point(point)
+
+        entities = []
+
+        for entity_id in ids:
+
+            entity = self.registry.get(entity_id)
+
+            if entity is not None and entity.visible:
+                entities.append(entity)
+
+        return entities
+
+    def window_select(
+        self,
+        box: BoundingBox2,
+        crossing: bool = True,
+    ) -> list:
+
+        if crossing:
+
+            ids = self.spatial_index.query_box(box)
+
+        else:
+
+            ids = []
+
+            for entity in self.registry.visible():
+
+                entity_box = entity.bounding_box()
+
+                if (
+                    entity_box.min_x >= box.min_x
+                    and entity_box.max_x <= box.max_x
+                    and entity_box.min_y >= box.min_y
+                    and entity_box.max_y <= box.max_y
+                ):
+                    ids.append(entity.entity_id)
+
+        return [
+            self.registry.get(entity_id)
+            for entity_id in ids
+            if self.registry.get(entity_id) is not None
+        ]
+
+    def apply_selection(
+        self,
+        entities,
+        additive: bool = False,
+    ) -> None:
+
+        if not additive:
+            self.clear()
+
+        for entity in entities:
+            entity.selected = True
+
+============================================================
+FILE: sovereign_cad\core\spatial\index.py
+============================================================
+from __future__ import annotations
+
+from uuid import UUID
+
+from ..entities import Entity
+from ..geometry import BoundingBox2, Point2
+
+
+class SpatialIndex:
+
+    def __init__(self) -> None:
+        self._boxes: dict[UUID, BoundingBox2] = {}
+
+    def clear(self) -> None:
+        self._boxes.clear()
+
+    def insert(self, entity: Entity) -> None:
+        self._boxes[entity.entity_id] = entity.bounding_box()
+
+    def remove(self, entity_id: UUID) -> None:
+        self._boxes.pop(entity_id, None)
+
+    def update(self, entity: Entity) -> None:
+        self.insert(entity)
+
+    def rebuild(self, entities) -> None:
+
+        self.clear()
+
+        if hasattr(entities, "all"):
+            entities = entities.all()
+
+        elif hasattr(entities, "values"):
+            entities = entities.values()
+
+        for entity in entities:
+            self.insert(entity)
+
+    def get_box(
+        self,
+        entity_id: UUID,
+    ) -> BoundingBox2 | None:
+
+        return self._boxes.get(entity_id)
+
+    def query_box(
+        self,
+        box: BoundingBox2,
+    ) -> list[UUID]:
+
+        return [
+            entity_id
+            for entity_id, entity_box in self._boxes.items()
+            if entity_box.intersects(box)
+        ]
+
+    def query_point(
+        self,
+        point: Point2,
+    ) -> list[UUID]:
+
+        return [
+            entity_id
+            for entity_id, entity_box in self._boxes.items()
+            if entity_box.contains(point)
+        ]
+
+    def __len__(self) -> int:
+        return len(self._boxes)
+
+============================================================
+FILE: sovereign_cad\core\viewport\viewport.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+from math import isfinite
+
+from ..geometry import Point2, Vector2
+
+
+@dataclass
+class Viewport:
+    """
+    2D CAD viewport.
+
+    world_to_screen:
+        Converts model/world coordinates into screen coordinates.
+
+    screen_to_world:
+        Converts screen coordinates back into model/world coordinates.
+
+    The viewport uses:
+        origin = screen position of world origin
+        scale  = pixels per world unit
+    """
+
+    width: float = 1200.0
+    height: float = 800.0
+
+    origin_x: float = 600.0
+    origin_y: float = 400.0
+
+    scale: float = 1.0
+
+    min_scale: float = 1e-6
+    max_scale: float = 1e9
+
+    def __post_init__(self) -> None:
+        self._validate()
+
+    def _validate(self) -> None:
+
+        values = (
+            self.width,
+            self.height,
+            self.origin_x,
+            self.origin_y,
+            self.scale,
+        )
+
+        if not all(isfinite(value) for value in values):
+            raise ValueError("Viewport values must be finite.")
+
+        if self.width <= 0:
+            raise ValueError("Viewport width must be positive.")
+
+        if self.height <= 0:
+            raise ValueError("Viewport height must be positive.")
+
+        if self.scale <= 0:
+            raise ValueError("Viewport scale must be positive.")
+
+    def resize(
+        self,
+        width: float,
+        height: float,
+    ) -> None:
+
+        if width <= 0 or height <= 0:
+            raise ValueError(
+                "Viewport dimensions must be positive."
+            )
+
+        self.width = float(width)
+        self.height = float(height)
+
+    def set_scale(
+        self,
+        scale: float,
+    ) -> None:
+
+        if scale <= 0:
+            raise ValueError(
+                "Viewport scale must be positive."
+            )
+
+        self.scale = max(
+            self.min_scale,
+            min(self.max_scale, float(scale)),
+        )
+
+    def zoom(
+        self,
+        factor: float,
+        center: Point2 | None = None,
+    ) -> None:
+
+        if factor <= 0:
+            raise ValueError(
+                "Zoom factor must be positive."
+            )
+
+        if center is None:
+            center = Point2(
+                self.width / 2.0,
+                self.height / 2.0,
+            )
+
+        world_before = self.screen_to_world(center)
+
+        self.set_scale(
+            self.scale * factor
+        )
+
+        world_after = self.screen_to_world(center)
+
+        self.origin_x += (
+            (world_after.x - world_before.x)
+            * self.scale
+        )
+
+        self.origin_y += (
+            (world_after.y - world_before.y)
+            * self.scale
+        )
+
+    def pan(
+        self,
+        delta: Vector2,
+    ) -> None:
+
+        self.origin_x += delta.x
+        self.origin_y += delta.y
+
+    def world_to_screen(
+        self,
+        point: Point2,
+    ) -> Point2:
+
+        return Point2(
+            self.origin_x + point.x * self.scale,
+            self.origin_y - point.y * self.scale,
+        )
+
+    def screen_to_world(
+        self,
+        point: Point2,
+    ) -> Point2:
+
+        return Point2(
+            (point.x - self.origin_x) / self.scale,
+            (self.origin_y - point.y) / self.scale,
+        )
+
+    def world_vector_to_screen(
+        self,
+        vector: Vector2,
+    ) -> Vector2:
+
+        return Vector2(
+            vector.x * self.scale,
+            -vector.y * self.scale,
+        )
+
+    def screen_vector_to_world(
+        self,
+        vector: Vector2,
+    ) -> Vector2:
+
+        return Vector2(
+            vector.x / self.scale,
+            -vector.y / self.scale,
+        )
+
+    def center_world(self) -> Point2:
+
+        return self.screen_to_world(
+            Point2(
+                self.width / 2.0,
+                self.height / 2.0,
+            )
+        )
+
+============================================================
+FILE: sovereign_cad\core\rendering\renderer.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from ..entities import CircleEntity, Entity, LineEntity
+from ..viewport import Viewport
+
+
+@dataclass(frozen=True)
+class RenderCommand:
+    """
+    Backend-independent render command.
+    """
+
+    kind: str
+    points: tuple
+    entity_id: object
+    selected: bool = False
+
+
+@dataclass
+class Renderer:
+    """
+    Backend-independent CAD renderer.
+
+    Stage 5 produces render commands instead of depending on
+    a specific GUI framework. A future Qt/OpenGL/Canvas backend
+    can consume these commands.
+    """
+
+    viewport: Viewport
+    commands: list[RenderCommand] = field(
+        default_factory=list
+    )
+
+    def clear(self) -> None:
+        self.commands.clear()
+
+    def render_entity(
+        self,
+        entity: Entity,
+    ) -> RenderCommand | None:
+
+        if not entity.visible:
+            return None
+
+        if isinstance(entity, LineEntity):
+
+            start = self.viewport.world_to_screen(
+                entity.start
+            )
+
+            end = self.viewport.world_to_screen(
+                entity.end
+            )
+
+            command = RenderCommand(
+                kind="LINE",
+                points=(start, end),
+                entity_id=entity.entity_id,
+                selected=entity.selected,
+            )
+
+        elif isinstance(entity, CircleEntity):
+
+            center = self.viewport.world_to_screen(
+                entity.center
+            )
+
+            radius = entity.radius * self.viewport.scale
+
+            command = RenderCommand(
+                kind="CIRCLE",
+                points=(center, radius),
+                entity_id=entity.entity_id,
+                selected=entity.selected,
+            )
+
+        else:
+            return None
+
+        self.commands.append(command)
+
+        return command
+
+    def render(
+        self,
+        entities,
+    ) -> list[RenderCommand]:
+
+        self.clear()
+
+        for entity in entities:
+            self.render_entity(entity)
+
+        return list(self.commands)
+
+============================================================
+FILE: sovereign_cad\rendering\renderer.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from sovereign_cad.core.geometry import Point2
+from sovereign_cad.core.entities import (
+    CircleEntity,
+    Entity,
+    LineEntity,
+)
+
+from sovereign_cad.ui.viewport import Viewport
+
+
+@dataclass
+class RenderCommand:
+    operation: str
+    data: dict[str, Any] = field(
+        default_factory=dict
+    )
+
+
+class Renderer2D:
+    """
+    Converts SovereignCAD entities into backend-neutral
+    2D rendering commands.
+    """
+
+    def __init__(self, viewport: Viewport):
+        self.viewport = viewport
+
+    def render_entity(self, entity: Entity):
+        if not entity.visible:
+            return None
+
+        if isinstance(entity, LineEntity):
+            start = self.viewport.world_to_screen(
+                entity.start
+            )
+
+            end = self.viewport.world_to_screen(
+                entity.end
+            )
+
+            return RenderCommand(
+                operation="line",
+                data={
+                    "entity_id": entity.entity_id,
+                    "start": start,
+                    "end": end,
+                    "selected": entity.selected,
+                    "layer": entity.layer,
+                },
+            )
+
+        if isinstance(entity, CircleEntity):
+            center = self.viewport.world_to_screen(
+                entity.center
+            )
+
+            radius = (
+                entity.radius
+                * self.viewport.zoom
+            )
+
+            return RenderCommand(
+                operation="circle",
+                data={
+                    "entity_id": entity.entity_id,
+                    "center": center,
+                    "radius": radius,
+                    "selected": entity.selected,
+                    "layer": entity.layer,
+                },
+            )
+
+        return RenderCommand(
+            operation="entity",
+            data={
+                "entity_id": entity.entity_id,
+                "entity_type": entity.entity_type,
+                "selected": entity.selected,
+                "layer": entity.layer,
+            },
+        )
+
+    def render_entities(self, entities):
+        commands = []
+
+        for entity in entities:
+            command = self.render_entity(entity)
+
+            if command is not None:
+                commands.append(command)
+
+        return commands
+
+    def render_registry(self, registry):
+        return self.render_entities(
+            registry.visible()
+        )
+
+    def render_grid(
+        self,
+        spacing: float = 10.0,
+        extent: float = 1000.0,
+    ):
+        if spacing <= 0:
+            raise ValueError(
+                "Grid spacing must be positive."
+            )
+
+        if extent <= 0:
+            raise ValueError(
+                "Grid extent must be positive."
+            )
+
+        commands = []
+
+        value = -extent
+
+        while value <= extent:
+            vertical_start = (
+                self.viewport.world_to_screen(
+                    Point2(value, -extent)
+                )
+            )
+
+            vertical_end = (
+                self.viewport.world_to_screen(
+                    Point2(value, extent)
+                )
+            )
+
+            commands.append(
+                RenderCommand(
+                    operation="grid_line",
+                    data={
+                        "start": vertical_start,
+                        "end": vertical_end,
+                    },
+                )
+            )
+
+            horizontal_start = (
+                self.viewport.world_to_screen(
+                    Point2(-extent, value)
+                )
+            )
+
+            horizontal_end = (
+                self.viewport.world_to_screen(
+                    Point2(extent, value)
+                )
+            )
+
+            commands.append(
+                RenderCommand(
+                    operation="grid_line",
+                    data={
+                        "start": horizontal_start,
+                        "end": horizontal_end,
+                    },
+                )
+            )
+
+            value += spacing
+
+        return commands
+
+
+# Compatibility name used by Stage 5 consumers.
+Renderer = Renderer2D
+
+============================================================
+FILE: sovereign_cad\document\session.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from sovereign_cad.commands import CommandManager
+
+
+@dataclass
+class DocumentSession:
+    """
+    Runtime application session connecting the document registry
+    and command system.
+    """
+
+    registry: Any = None
+    command_manager: CommandManager = field(init=False)
+
+    active_tool: str | None = None
+
+    def __post_init__(self) -> None:
+        self.command_manager = CommandManager(
+            context=self
+        )
+
+    def execute(self, command) -> Any:
+        return self.command_manager.execute(command)
+
+    def undo(self) -> Any:
+        return self.command_manager.undo()
+
+    def redo(self) -> Any:
+        return self.command_manager.redo()
+
+    def set_tool(self, tool_name: str | None) -> None:
+        self.active_tool = tool_name
+
+    def clear_tool(self) -> None:
+        self.active_tool = None
+
+============================================================
+FILE: sovereign_cad\persistence\project\persistence.py
+============================================================
+from __future__ import annotations
+
+from pathlib import Path
+
+from .model import ProjectFile
+from .serializer import ProjectSerializer
+
+
+class ProjectPersistence:
+
+    extension = ".scad"
+
+    def __init__(self, root: str | Path | None = None):
+        self.root = Path(root) if root is not None else Path.cwd()
+
+    def save(
+        self,
+        project: ProjectFile,
+        path: str | Path,
+    ) -> Path:
+        target = Path(path)
+
+        if not target.is_absolute():
+            target = self.root / target
+
+        if target.suffix.lower() != self.extension:
+            target = target.with_suffix(self.extension)
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+
+        ProjectSerializer.dump_file(
+            project,
+            str(target),
+        )
+
+        return target
+
+    def load(
+        self,
+        path: str | Path,
+    ) -> ProjectFile:
+        target = Path(path)
+
+        if not target.is_absolute():
+            target = self.root / target
+
+        return ProjectSerializer.load_file(str(target))
+
+    def exists(
+        self,
+        path: str | Path,
+    ) -> bool:
+        target = Path(path)
+
+        if not target.is_absolute():
+            target = self.root / target
+
+        return target.exists()
+
+============================================================
+FILE: sovereign_cad\persistence\project\serializer.py
+============================================================
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from .model import ProjectFile
+
+
+class ProjectSerializer:
+
+    @staticmethod
+    def dumps(project: ProjectFile, *, indent: int = 2) -> str:
+        if not isinstance(project, ProjectFile):
+            raise TypeError("project must be a ProjectFile.")
+
+        return json.dumps(
+            project.to_dict(),
+            indent=indent,
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+
+    @staticmethod
+    def loads(text: str) -> ProjectFile:
+        if not isinstance(text, str):
+            raise TypeError("Project data must be text.")
+
+        data: Any = json.loads(text)
+
+        if not isinstance(data, dict):
+            raise ValueError("Project JSON root must be an object.")
+
+        if data.get("format") != "SovereignCAD":
+            raise ValueError("Invalid SovereignCAD project format.")
+
+        return ProjectFile.from_dict(data)
+
+    @staticmethod
+    def dump_file(project: ProjectFile, path: str) -> None:
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(ProjectSerializer.dumps(project))
+
+    @staticmethod
+    def load_file(path: str) -> ProjectFile:
+        with open(path, "r", encoding="utf-8") as handle:
+            return ProjectSerializer.loads(handle.read())
+
+============================================================
+FILE: sovereign_cad\ui\canvas\state.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from sovereign_cad.core.geometry import (
+    Point2,
+    Vector2,
+)
+
+from sovereign_cad.core.entities import (
+    EntityRegistry,
+)
+
+from sovereign_cad.ui.viewport import (
+    Viewport,
+)
+
+
+@dataclass
+class CanvasState:
+    """
+    Runtime state for a 2D SovereignCAD canvas.
+    """
+
+    viewport: Viewport = field(
+        default_factory=Viewport
+    )
+
+    registry: EntityRegistry | None = None
+
+    cursor_screen: Point2 = field(
+        default_factory=lambda: Point2(
+            0.0,
+            0.0,
+        )
+    )
+
+    cursor_world: Point2 = field(
+        default_factory=lambda: Point2(
+            0.0,
+            0.0,
+        )
+    )
+
+    is_panning: bool = False
+
+    last_pan_screen: Point2 | None = None
+
+    def update_cursor(
+        self,
+        screen_point: Point2,
+    ) -> Point2:
+
+        self.cursor_screen = screen_point
+
+        self.cursor_world = (
+            self.viewport.screen_to_world(
+                screen_point
+            )
+        )
+
+        return self.cursor_world
+
+    def begin_pan(
+        self,
+        screen_point: Point2,
+    ) -> None:
+
+        self.is_panning = True
+        self.last_pan_screen = screen_point
+
+    def update_pan(
+        self,
+        screen_point: Point2,
+    ) -> None:
+
+        if not self.is_panning:
+            return
+
+        if self.last_pan_screen is None:
+            self.last_pan_screen = screen_point
+            return
+
+        delta = Vector2(
+            screen_point.x
+            - self.last_pan_screen.x,
+
+            screen_point.y
+            - self.last_pan_screen.y,
+        )
+
+        self.viewport.pan(delta)
+
+        self.last_pan_screen = screen_point
+
+        self.update_cursor(
+            screen_point
+        )
+
+    def end_pan(self) -> None:
+        self.is_panning = False
+        self.last_pan_screen = None
+
+    def zoom_in(
+        self,
+        factor: float = 1.2,
+    ) -> None:
+
+        self.viewport.zoom_by(factor)
+
+        self.update_cursor(
+            self.cursor_screen
+        )
+
+    def zoom_out(
+        self,
+        factor: float = 1.2,
+    ) -> None:
+
+        if factor <= 0:
+            raise ValueError(
+                "Zoom factor must be positive."
+            )
+
+        self.viewport.zoom_by(
+            1.0 / factor
+        )
+
+        self.update_cursor(
+            self.cursor_screen
+        )
+
+    def reset_view(self) -> None:
+
+        self.viewport.reset()
+
+        self.update_cursor(
+            self.cursor_screen
+        )
