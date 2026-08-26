@@ -1,8 +1,44 @@
 from __future__ import annotations
 
+import math
 import traceback
 
 import streamlit as st
+
+from sovereign_cad.application import (
+    ApplicationContext,
+    ApplicationShell,
+)
+
+from sovereign_cad.application.services import (
+    ApplicationService,
+)
+
+from sovereign_cad.core.document import (
+    Document,
+)
+
+from sovereign_cad.core.entities import (
+    CircleEntity,
+    EntityRegistry,
+    LineEntity,
+)
+
+from sovereign_cad.core.geometry import (
+    Point2,
+)
+
+from sovereign_cad.ui.canvas import (
+    CanvasState,
+)
+
+from sovereign_cad.ui.viewport import (
+    Viewport2D,
+)
+
+from sovereign_cad.rendering import (
+    Renderer2D,
+)
 
 
 SESSION_PREFIX = "sovereign_cad_"
@@ -12,37 +48,16 @@ def _key(name: str) -> str:
     return f"{SESSION_PREFIX}{name}"
 
 
-def _initialize_cad() -> None:
-    """
-    Initialize the SovereignCAD runtime once per Streamlit session.
+# ============================================================
+# CAD INITIALIZATION
+# ============================================================
 
-    Existing CAD engine files are not modified.
-    """
+def _initialize_cad() -> None:
 
     if st.session_state.get(_key("initialized")):
         return
 
     try:
-        from sovereign_cad.application import (
-            ApplicationShell,
-            ApplicationContext,
-        )
-
-        from sovereign_cad.application.services import (
-            ApplicationService,
-        )
-
-        from sovereign_cad.ui.viewport import (
-            Viewport2D,
-        )
-
-        from sovereign_cad.ui.canvas import (
-            CanvasState,
-        )
-
-        from sovereign_cad.rendering import (
-            Renderer2D,
-        )
 
         shell = ApplicationShell()
         shell.initialize()
@@ -59,21 +74,27 @@ def _initialize_cad() -> None:
             height=800.0,
         )
 
+        registry = EntityRegistry()
+
+        document = Document()
+
         canvas = CanvasState(
-            viewport=viewport
+            viewport=viewport,
+            registry=registry,
         )
 
         renderer = Renderer2D(
             viewport
         )
 
+        context.document = document
         context.viewport = viewport
         context.canvas = canvas
         context.renderer = renderer
 
         shell.register_service(
             "application",
-            application_service
+            application_service,
         )
 
         st.session_state[_key("shell")] = shell
@@ -82,206 +103,578 @@ def _initialize_cad() -> None:
         st.session_state[_key("viewport")] = viewport
         st.session_state[_key("canvas")] = canvas
         st.session_state[_key("renderer")] = renderer
+        st.session_state[_key("document")] = document
+        st.session_state[_key("registry")] = registry
+
+        st.session_state[_key("active_tool")] = "select"
+        st.session_state[_key("pending_point")] = None
+        st.session_state[_key("selected_entity")] = None
 
         st.session_state[_key("initialized")] = True
         st.session_state[_key("error")] = None
 
     except Exception:
-        st.session_state[_key("initialized")] = False
-        st.session_state[_key("error")] = traceback.format_exc()
 
+        st.session_state[_key("initialized")] = False
+
+        st.session_state[_key("error")] = (
+            traceback.format_exc()
+        )
+
+
+# ============================================================
+# RUNTIME ACCESS
+# ============================================================
 
 def _get_runtime():
+
     return {
-        "shell": st.session_state.get(_key("shell")),
-        "context": st.session_state.get(_key("context")),
-        "service": st.session_state.get(_key("service")),
-        "viewport": st.session_state.get(_key("viewport")),
-        "canvas": st.session_state.get(_key("canvas")),
-        "renderer": st.session_state.get(_key("renderer")),
+
+        "shell": st.session_state.get(
+            _key("shell")
+        ),
+
+        "context": st.session_state.get(
+            _key("context")
+        ),
+
+        "service": st.session_state.get(
+            _key("service")
+        ),
+
+        "viewport": st.session_state.get(
+            _key("viewport")
+        ),
+
+        "canvas": st.session_state.get(
+            _key("canvas")
+        ),
+
+        "renderer": st.session_state.get(
+            _key("renderer")
+        ),
+
+        "document": st.session_state.get(
+            _key("document")
+        ),
+
+        "registry": st.session_state.get(
+            _key("registry")
+        ),
+
     }
 
 
-def _render_header():
-    left, middle, right = st.columns(
-        [2, 6, 2]
+# ============================================================
+# TOOL MANAGEMENT
+# ============================================================
+
+def _set_tool(tool_name: str) -> None:
+
+    st.session_state[
+        _key("active_tool")
+    ] = tool_name
+
+    st.session_state[
+        _key("pending_point")
+    ] = None
+
+
+# ============================================================
+# ENTITY CREATION
+# ============================================================
+
+def _create_line(
+    runtime,
+    start: Point2,
+    end: Point2,
+) -> None:
+
+    line = LineEntity(
+        start=start,
+        end=end,
     )
 
-    with left:
-        st.subheader("📐 Sovereign CAD")
+    runtime["registry"].add(
+        line
+    )
 
-    with middle:
-        st.caption(
-            "Stage 8.5 Streamlit Workspace"
-        )
+    runtime["document"].add_entity(
+        line
+    )
 
-    with right:
+
+def _create_circle(
+    runtime,
+    center: Point2,
+    edge: Point2,
+) -> None:
+
+    radius = center.distance_to(
+        edge
+    )
+
+    if radius <= 0:
+        return
+
+    circle = CircleEntity(
+        center=center,
+        radius=radius,
+    )
+
+    runtime["registry"].add(
+        circle
+    )
+
+    runtime["document"].add_entity(
+        circle
+    )
+
+
+# ============================================================
+# STREAMLIT DRAWING CONTROLS
+# ============================================================
+
+def _render_coordinate_input(
+    runtime,
+):
+
+    st.markdown(
+        "### Drawing Input"
+    )
+
+    tool = st.session_state.get(
+        _key("active_tool"),
+        "select",
+    )
+
+    if tool == "line":
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            x1 = st.number_input(
+                "Start X",
+                value=0.0,
+                key=_key("line_x1"),
+            )
+
+            y1 = st.number_input(
+                "Start Y",
+                value=0.0,
+                key=_key("line_y1"),
+            )
+
+        with col2:
+
+            x2 = st.number_input(
+                "End X",
+                value=100.0,
+                key=_key("line_x2"),
+            )
+
+            y2 = st.number_input(
+                "End Y",
+                value=100.0,
+                key=_key("line_y2"),
+            )
+
         if st.button(
-            "Reset CAD",
-            key=_key("reset")
+            "Create Line",
+            use_container_width=True,
+            key=_key("create_line"),
         ):
-            for key in list(st.session_state.keys()):
-                if key.startswith(SESSION_PREFIX):
-                    del st.session_state[key]
+
+            _create_line(
+                runtime,
+                Point2(x1, y1),
+                Point2(x2, y2),
+            )
+
+            st.rerun()
+
+    elif tool == "circle":
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            x = st.number_input(
+                "Center X",
+                value=0.0,
+                key=_key("circle_x"),
+            )
+
+            y = st.number_input(
+                "Center Y",
+                value=0.0,
+                key=_key("circle_y"),
+            )
+
+        with col2:
+
+            radius = st.number_input(
+                "Radius",
+                min_value=0.1,
+                value=100.0,
+                key=_key("circle_radius"),
+            )
+
+        if st.button(
+            "Create Circle",
+            use_container_width=True,
+            key=_key("create_circle"),
+        ):
+
+            center = Point2(
+                x,
+                y,
+            )
+
+            edge = Point2(
+                x + radius,
+                y,
+            )
+
+            _create_circle(
+                runtime,
+                center,
+                edge,
+            )
 
             st.rerun()
 
 
-def _render_toolbar(runtime):
+# ============================================================
+# CANVAS RENDERING
+# ============================================================
+
+def _render_svg(
+    runtime,
+):
+
     viewport = runtime["viewport"]
-    canvas = runtime["canvas"]
+    renderer = runtime["renderer"]
+    registry = runtime["registry"]
 
-    st.markdown("### Tools")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        if st.button(
-            "↖ Select",
-            use_container_width=True,
-            key=_key("tool_select")
-        ):
-            st.session_state[_key("active_tool")] = "select"
-
-    with col2:
-        if st.button(
-            "╱ Line",
-            use_container_width=True,
-            key=_key("tool_line")
-        ):
-            st.session_state[_key("active_tool")] = "line"
-
-    with col3:
-        if st.button(
-            "○ Circle",
-            use_container_width=True,
-            key=_key("tool_circle")
-        ):
-            st.session_state[_key("active_tool")] = "circle"
-
-    with col4:
-        if st.button(
-            "▣ Reset View",
-            use_container_width=True,
-            key=_key("reset_view")
-        ):
-            canvas.reset_view()
-
-    zoom1, zoom2, zoom3 = st.columns(3)
-
-    with zoom1:
-        if st.button(
-            "− Zoom Out",
-            use_container_width=True,
-            key=_key("zoom_out")
-        ):
-            canvas.zoom_out()
-
-    with zoom2:
-        if st.button(
-            "+ Zoom In",
-            use_container_width=True,
-            key=_key("zoom_in")
-        ):
-            canvas.zoom_in()
-
-    with zoom3:
-        if st.button(
-            "⌂ Home",
-            use_container_width=True,
-            key=_key("zoom_home")
-        ):
-            canvas.reset_view()
-
-    return viewport
-
-
-def _render_canvas(runtime):
-    viewport = runtime["viewport"]
-
-    st.markdown("### Drawing Workspace")
-
-    active_tool = st.session_state.get(
-        _key("active_tool"),
-        "select"
+    width = int(
+        viewport.width
     )
 
-    st.info(
-        f"Active tool: {active_tool.upper()}"
+    height = int(
+        viewport.height
     )
 
-    canvas_height = 520
+    commands = renderer.render_registry(
+        registry
+    )
+
+    elements = []
+
+    # Background
+
+    elements.append(
+        f"""
+        <rect
+            x="0"
+            y="0"
+            width="{width}"
+            height="{height}"
+            fill="#111111"
+        />
+        """
+    )
+
+    # Grid
+
+    grid_spacing = 50
+
+    for x in range(
+        0,
+        width + 1,
+        grid_spacing,
+    ):
+
+        elements.append(
+            f"""
+            <line
+                x1="{x}"
+                y1="0"
+                x2="{x}"
+                y2="{height}"
+                stroke="#222222"
+                stroke-width="1"
+            />
+            """
+        )
+
+    for y in range(
+        0,
+        height + 1,
+        grid_spacing,
+    ):
+
+        elements.append(
+            f"""
+            <line
+                x1="0"
+                y1="{y}"
+                x2="{width}"
+                y2="{y}"
+                stroke="#222222"
+                stroke-width="1"
+            />
+            """
+        )
+
+    # World axes
+
+    center_screen = viewport.world_to_screen(
+        Point2(
+            0.0,
+            0.0,
+        )
+    )
+
+    elements.append(
+        f"""
+        <line
+            x1="{center_screen.x}"
+            y1="0"
+            x2="{center_screen.x}"
+            y2="{height}"
+            stroke="#666666"
+            stroke-width="1"
+        />
+        """
+    )
+
+    elements.append(
+        f"""
+        <line
+            x1="0"
+            y1="{center_screen.y}"
+            x2="{width}"
+            y2="{center_screen.y}"
+            stroke="#666666"
+            stroke-width="1"
+        />
+        """
+    )
+
+    # CAD ENTITIES
+
+    for command in commands:
+
+        if command.operation == "line":
+
+            start = command.data["start"]
+            end = command.data["end"]
+
+            selected = command.data.get(
+                "selected",
+                False,
+            )
+
+            color = (
+                "#00ccff"
+                if selected
+                else "#ffffff"
+            )
+
+            elements.append(
+                f"""
+                <line
+                    x1="{start.x}"
+                    y1="{start.y}"
+                    x2="{end.x}"
+                    y2="{end.y}"
+                    stroke="{color}"
+                    stroke-width="3"
+                />
+                """
+            )
+
+        elif command.operation == "circle":
+
+            center = command.data["center"]
+
+            radius = command.data["radius"]
+
+            selected = command.data.get(
+                "selected",
+                False,
+            )
+
+            color = (
+                "#00ccff"
+                if selected
+                else "#ffffff"
+            )
+
+            elements.append(
+                f"""
+                <circle
+                    cx="{center.x}"
+                    cy="{center.y}"
+                    r="{radius}"
+                    fill="none"
+                    stroke="{color}"
+                    stroke-width="3"
+                />
+                """
+            )
+
+    svg = f"""
+    <svg
+        width="100%"
+        viewBox="0 0 {width} {height}"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        {''.join(elements)}
+    </svg>
+    """
 
     st.markdown(
-        f"""
-        <div style="
-            height: {canvas_height}px;
-            width: 100%;
-            border: 2px solid #444;
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-            background-color: #111;
-            background-image:
-                linear-gradient(#222 1px, transparent 1px),
-                linear-gradient(90deg, #222 1px, transparent 1px);
-            background-size: 20px 20px;
-        ">
-            <div style="
-                position: absolute;
-                top: 10px;
-                left: 12px;
-                color: #ddd;
-                font-family: monospace;
-                font-size: 13px;
-            ">
-                SOVEREIGN CAD CANVAS
-                <br>
-                Center: ({viewport.center.x:.2f}, {viewport.center.y:.2f})
-                <br>
-                Zoom: {viewport.zoom:.4f}
-            </div>
-
-            <div style="
-                position: absolute;
-                left: 50%;
-                top: 0;
-                width: 1px;
-                height: 100%;
-                background: #666;
-            "></div>
-
-            <div style="
-                position: absolute;
-                top: 50%;
-                left: 0;
-                width: 100%;
-                height: 1px;
-                background: #666;
-            "></div>
-
-            <div style="
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                width: 12px;
-                height: 12px;
-                transform: translate(-50%, -50%);
-                border: 2px solid #00ccff;
-                border-radius: 50%;
-            "></div>
-        </div>
-        """,
+        svg,
         unsafe_allow_html=True,
     )
 
 
-def _render_properties(runtime):
+# ============================================================
+# TOOLBAR
+# ============================================================
+
+def _render_toolbar(
+    runtime,
+):
+
+    canvas = runtime["canvas"]
+
+    st.markdown(
+        "### Tools"
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+
+        if st.button(
+            "Select",
+            use_container_width=True,
+            key=_key("tool_select"),
+        ):
+
+            _set_tool(
+                "select"
+            )
+
+    with col2:
+
+        if st.button(
+            "Line",
+            use_container_width=True,
+            key=_key("tool_line"),
+        ):
+
+            _set_tool(
+                "line"
+            )
+
+    with col3:
+
+        if st.button(
+            "Circle",
+            use_container_width=True,
+            key=_key("tool_circle"),
+        ):
+
+            _set_tool(
+                "circle"
+            )
+
+    with col4:
+
+        if st.button(
+            "Reset View",
+            use_container_width=True,
+            key=_key("reset_view"),
+        ):
+
+            canvas.reset_view()
+
+            st.rerun()
+
+    zoom1, zoom2, zoom3 = st.columns(3)
+
+    with zoom1:
+
+        if st.button(
+            "Zoom Out",
+            use_container_width=True,
+            key=_key("zoom_out"),
+        ):
+
+            canvas.zoom_out()
+
+            st.rerun()
+
+    with zoom2:
+
+        if st.button(
+            "Zoom In",
+            use_container_width=True,
+            key=_key("zoom_in"),
+        ):
+
+            canvas.zoom_in()
+
+            st.rerun()
+
+    with zoom3:
+
+        if st.button(
+            "Clear Drawing",
+            use_container_width=True,
+            key=_key("clear_drawing"),
+        ):
+
+            runtime["document"].clear()
+
+            runtime["registry"] = EntityRegistry()
+
+            runtime["canvas"].registry = (
+                runtime["registry"]
+            )
+
+            st.session_state[
+                _key("registry")
+            ] = runtime["registry"]
+
+            st.session_state[
+                _key("selected_entity")
+            ] = None
+
+            st.rerun()
+
+
+# ============================================================
+# PROPERTIES
+# ============================================================
+
+def _render_properties(
+    runtime,
+):
+
     viewport = runtime["viewport"]
     canvas = runtime["canvas"]
+    document = runtime["document"]
     shell = runtime["shell"]
 
-    st.markdown("### Properties")
+    st.markdown(
+        "### Properties"
+    )
 
     st.write(
         "Viewport Center"
@@ -301,6 +694,16 @@ def _render_properties(runtime):
     )
 
     st.write(
+        "Entities"
+    )
+
+    st.code(
+        str(
+            document.entity_count
+        )
+    )
+
+    st.write(
         "Cursor World"
     )
 
@@ -313,55 +716,76 @@ def _render_properties(runtime):
         "Application"
     )
 
-    status = "ONLINE"
+    if shell is not None and shell.running:
 
-    if shell is None or not shell.running:
-        status = "OFFLINE"
+        st.success(
+            "ONLINE"
+        )
 
-    st.success(
-        status
-    )
+    else:
+
+        st.error(
+            "OFFLINE"
+        )
 
 
-def _render_status(runtime):
+# ============================================================
+# STATUS BAR
+# ============================================================
+
+def _render_status(
+    runtime,
+):
+
     viewport = runtime["viewport"]
 
     active_tool = st.session_state.get(
         _key("active_tool"),
-        "select"
+        "select",
     )
+
+    document = runtime["document"]
 
     st.divider()
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
+
         st.caption(
-            f"Command: {active_tool.upper()}"
+            f"Tool: {active_tool.upper()}"
         )
 
     with col2:
+
         st.caption(
-            f"Center: X={viewport.center.x:.2f}, "
+            f"Center: "
+            f"X={viewport.center.x:.2f}, "
             f"Y={viewport.center.y:.2f}"
         )
 
     with col3:
+
         st.caption(
             f"Zoom: {viewport.zoom:.4f}"
         )
 
+    with col4:
+
+        st.caption(
+            f"Entities: "
+            f"{document.entity_count}"
+        )
+
+
+# ============================================================
+# MAIN WORKSPACE
+# ============================================================
 
 def render_cad_workspace():
-    """
-    Main Streamlit entry point for Sovereign CAD.
-
-    This function is intentionally isolated from the
-    main application so CAD failures do not affect
-    unrelated platform sections.
-    """
 
     try:
+
         _initialize_cad()
 
         error = st.session_state.get(
@@ -369,6 +793,7 @@ def render_cad_workspace():
         )
 
         if error:
+
             st.error(
                 "Sovereign CAD could not be initialized."
             )
@@ -376,6 +801,7 @@ def render_cad_workspace():
             with st.expander(
                 "Show CAD initialization details"
             ):
+
                 st.code(
                     error
                 )
@@ -384,7 +810,13 @@ def render_cad_workspace():
 
         runtime = _get_runtime()
 
-        _render_header()
+        st.title(
+            "Sovereign CAD"
+        )
+
+        st.caption(
+            "Stage 8.5 Interactive Engineering Workspace"
+        )
 
         _render_toolbar(
             runtime
@@ -395,6 +827,7 @@ def render_cad_workspace():
         )
 
         with left:
+
             st.markdown(
                 "### CAD System"
             )
@@ -409,10 +842,6 @@ def render_cad_workspace():
 
             st.caption(
                 "Entities"
-            )
-
-            st.caption(
-                "Selection"
             )
 
             st.caption(
@@ -432,11 +861,31 @@ def render_cad_workspace():
             )
 
         with center:
-            _render_canvas(
+
+            active_tool = st.session_state.get(
+                _key("active_tool"),
+                "select",
+            )
+
+            st.info(
+                f"Active Tool: "
+                f"{active_tool.upper()}"
+            )
+
+            _render_coordinate_input(
+                runtime
+            )
+
+            st.markdown(
+                "### Drawing Workspace"
+            )
+
+            _render_svg(
                 runtime
             )
 
         with right:
+
             _render_properties(
                 runtime
             )
@@ -446,13 +895,15 @@ def render_cad_workspace():
         )
 
     except Exception:
+
         st.error(
             "Unexpected Sovereign CAD workspace error."
         )
 
         with st.expander(
-            "Show workspace error"
+            "Show technical traceback"
         ):
+
             st.code(
                 traceback.format_exc()
             )
