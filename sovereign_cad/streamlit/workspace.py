@@ -4,6 +4,7 @@ import math
 import traceback
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from sovereign_cad.application import (
     ApplicationContext,
