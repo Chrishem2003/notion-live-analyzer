@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import base64
-
 import math
 import traceback
 
@@ -361,13 +359,8 @@ def _render_svg(
     renderer = runtime["renderer"]
     registry = runtime["registry"]
 
-    width = int(
-        viewport.width
-    )
-
-    height = int(
-        viewport.height
-    )
+    width = int(viewport.width)
+    height = int(viewport.height)
 
     commands = renderer.render_registry(
         registry
@@ -375,9 +368,9 @@ def _render_svg(
 
     elements = []
 
-    # --------------------------------------------------------
+    # ========================================================
     # BACKGROUND
-    # --------------------------------------------------------
+    # ========================================================
 
     elements.append(
         f"""
@@ -391,9 +384,9 @@ def _render_svg(
         """
     )
 
-    # --------------------------------------------------------
+    # ========================================================
     # GRID
-    # --------------------------------------------------------
+    # ========================================================
 
     grid_spacing = 50
 
@@ -435,9 +428,9 @@ def _render_svg(
             """
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # WORLD AXES
-    # --------------------------------------------------------
+    # ========================================================
 
     center_screen = viewport.world_to_screen(
         Point2(
@@ -472,9 +465,9 @@ def _render_svg(
         """
     )
 
-    # --------------------------------------------------------
+    # ========================================================
     # CAD ENTITIES
-    # --------------------------------------------------------
+    # ========================================================
 
     for command in commands:
 
@@ -511,7 +504,6 @@ def _render_svg(
         elif command.operation == "circle":
 
             center = command.data["center"]
-
             radius = command.data["radius"]
 
             selected = command.data.get(
@@ -538,45 +530,60 @@ def _render_svg(
                 """
             )
 
-    # --------------------------------------------------------
-    # BUILD SVG
-    # --------------------------------------------------------
+    # ========================================================
+    # SVG
+    # ========================================================
 
     svg = f"""
     <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="{width}"
+        width="100%"
         height="{height}"
         viewBox="0 0 {width} {height}"
+        xmlns="http://www.w3.org/2000/svg"
+        style="
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #111111;
+            border: 1px solid #444444;
+            border-radius: 8px;
+        "
     >
         {''.join(elements)}
     </svg>
     """
 
-    # --------------------------------------------------------
-    # ENCODE SVG AS IMAGE
-    # --------------------------------------------------------
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                margin: 0;
+                padding: 0;
+                background: transparent;
+                overflow: hidden;
+            }}
 
-    encoded_svg = base64.b64encode(
-        svg.encode(
-            "utf-8"
-        )
-    ).decode(
-        "utf-8"
-    )
+            svg {{
+                display: block;
+                width: 100%;
+            }}
+        </style>
+    </head>
 
-    image_uri = (
-        "data:image/svg+xml;base64,"
-        + encoded_svg
-    )
+    <body>
 
-    # --------------------------------------------------------
-    # DISPLAY CANVAS
-    # --------------------------------------------------------
+        {svg}
 
-    st.image(
-        image_uri,
-        use_container_width=True,
+    </body>
+    </html>
+    """
+
+    components.html(
+        html,
+        height=height + 20,
+        scrolling=False,
     )
 
 # ============================================================
