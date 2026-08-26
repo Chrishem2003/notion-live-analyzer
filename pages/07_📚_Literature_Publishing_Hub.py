@@ -1,4 +1,4 @@
-﻿﻿import os
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -228,7 +228,7 @@ def render_literature_search():
         with col3:
             contact_email = st.text_input("Contact Email (Politeness)", value="researcher@university.edu", key="crossref_email")
 
-        if st.button("🔍 Execute Academic Search", type="primary", key="run_lit_search_prod", use_container_width=True):
+        if st.button("🔍 Execute Academic Search", type="primary", key="run_lit_search_prod", width='stretch'):
             if not query.strip():
                 st.warning("Please enter a valid search query.")
             else:
@@ -244,7 +244,7 @@ def render_literature_search():
                     st.info("No publications found matching this query string.")
                 else:
                     st.success(f"✅ Retrieved {len(results_df)} verified publications.")
-                    st.dataframe(results_df, use_container_width=True, hide_index=True)
+                    st.dataframe(results_df, width='stretch', hide_index=True)
                     render_export_buttons(results_df, base_name="literature_results")
                     st.session_state["lit_search_results"] = results_df
 
@@ -290,7 +290,7 @@ def render_literature_search():
         if refs:
             refs_df = pd.DataFrame(refs)
             st.markdown("#### Stored Reference Library")
-            st.dataframe(refs_df, use_container_width=True, hide_index=True)
+            st.dataframe(refs_df, width='stretch', hide_index=True)
 
             col_exp1, col_exp2, col_exp3 = st.columns(3)
             with col_exp1:
@@ -360,7 +360,7 @@ def render_literature_search():
                 )
             ))
             fig_prisma.update_layout(title_text="PRISMA Systematic Review Flow Structure", template="plotly_dark", height=400)
-            st.plotly_chart(fig_prisma, use_container_width=True)
+            st.plotly_chart(fig_prisma, width='stretch')
 
     with tab_cluster:
         st.markdown("#### Bibliometric Visualizer")
@@ -384,7 +384,7 @@ def render_literature_search():
                     xaxis_title="Publication Year",
                     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=20, b=0)
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
 
 # ==============================================================================
@@ -424,7 +424,7 @@ def render_meta_analysis():
     edited = st.data_editor(
         st.session_state["meta_study_table"],
         num_rows="dynamic",
-        use_container_width=True,
+        width='stretch',
         key="meta_data_editor_prod",
         column_config={
             "Effect_Size": st.column_config.NumberColumn("Effect Size (g / d)", format="%.4f"),
@@ -477,7 +477,7 @@ def render_meta_analysis():
             display_df["CI_Upper"] = (display_df["Effect_Size"] + 1.96 * display_df["Standard_Error"]).round(3)
 
             st.markdown("#### 📋 Weighting & Sensitivity Breakdown")
-            st.dataframe(display_df, use_container_width=True, hide_index=True)
+            st.dataframe(display_df, width='stretch', hide_index=True)
 
             c1, c2, c3, c4 = st.columns(4)
             c1.metric(f"Pooled Effect ({'RE' if 'Random' in model_type else 'FE'})", f"{pooled_effect:.3f}", delta=f"95% CI [{ci_low:.3f}, {ci_high:.3f}]")
@@ -507,7 +507,7 @@ def render_meta_analysis():
                         yaxis=dict(tickmode="array", tickvals=list(range(len(display_df))), ticktext=display_df["Study"].tolist()),
                         template="plotly_dark", height=max(360, 60 * len(display_df))
                     )
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
 
                 with t_funnel:
                     fig_f = go.Figure()
@@ -526,7 +526,7 @@ def render_meta_analysis():
                         xaxis_title="Effect Size", yaxis_title="Standard Error (SE)",
                         yaxis=dict(autorange="reversed"), template="plotly_dark", height=400
                     )
-                    st.plotly_chart(fig_f, use_container_width=True)
+                    st.plotly_chart(fig_f, width='stretch')
 
             render_export_buttons(display_df, base_name="meta_analysis_pooled_results")
 
@@ -593,7 +593,7 @@ def render_apa_outputs():
             "t-statistic / F": ["0.42", "0.38", "14.21", "11.50", "—"],
             "p-value": [".675", ".704", "< .001", "< .001", "—"],
         })
-        edited_table = st.data_editor(default_stub, num_rows="dynamic", use_container_width=True, key="apa_table_editor_prod")
+        edited_table = st.data_editor(default_stub, num_rows="dynamic", width='stretch', key="apa_table_editor_prod")
         render_export_buttons(edited_table, base_name="apa_publication_table")
 
 

@@ -1,4 +1,4 @@
-﻿
+
 import sqlite3
 import json
 import hashlib
@@ -108,7 +108,7 @@ def log_provenance(entity_id: str, action: str, user: str, payload_data: dict) -
     return sha256
 
 def render_schema_engine_tab():
-    st.subheader("🗄️ ResearchOS Unified Database Schema Explorer")
+    st.subheader("ðŸ—„ï¸ ResearchOS Unified Database Schema Explorer")
     st.caption("Live relational database architecture orchestrating research artifacts, projects, and provenance logs.")
 
     init_db()
@@ -119,20 +119,20 @@ def render_schema_engine_tab():
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.markdown("### 📋 Active Research Projects")
+        st.markdown("### ðŸ“‹ Active Research Projects")
         projects_df = pd.read_sql_query("SELECT * FROM projects", conn)
-        st.dataframe(projects_df, use_container_width=True)
+        st.dataframe(projects_df, width='stretch')
 
-        st.markdown("### 📂 Research Artifacts Ingested")
+        st.markdown("### ðŸ“‚ Research Artifacts Ingested")
         artifacts_df = pd.read_sql_query("SELECT * FROM research_artifacts", conn)
-        st.dataframe(artifacts_df, use_container_width=True)
+        st.dataframe(artifacts_df, width='stretch')
 
     with col2:
-        st.markdown("### 🔒 Cryptographic Provenance Ledger")
+        st.markdown("### ðŸ”’ Cryptographic Provenance Ledger")
         provenance_df = pd.read_sql_query("SELECT * FROM provenance_logs ORDER BY timestamp DESC LIMIT 10", conn)
-        st.dataframe(provenance_df, use_container_width=True)
+        st.dataframe(provenance_df, width='stretch')
 
-        st.markdown("### 💡 Register New Project Artifact")
+        st.markdown("### ðŸ’¡ Register New Project Artifact")
         with st.form("artifact_form"):
             art_id = st.text_input("Artifact ID", value="ART-909")
             proj_id = st.text_input("Project ID Target", value="PRJ-2026-001")

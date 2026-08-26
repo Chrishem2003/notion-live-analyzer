@@ -1,4 +1,4 @@
-﻿﻿
+
 """
 Novelty & Unexplored Research Gap Finder
 A cross-synthesis engine that analyzes clusters of papers to identify unaddressed
@@ -430,7 +430,7 @@ def render_research_gap_finder_ui():
                 st.warning(f"Could not load: {e}")
 
         if papers and len(papers) >= 3:
-            if st.button(" Analyze Research Gaps", type="primary", use_container_width=True):
+            if st.button(" Analyze Research Gaps", type="primary", width='stretch'):
                 with st.spinner(f"Analyzing {len(papers)} papers..."):
                     results = gap_finder.analyze_papers(papers)
                 if "error" in results:

@@ -1,4 +1,4 @@
-﻿﻿import os
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -157,7 +157,7 @@ def render_ledger_tab():
     if int(ledger_df["Significant (raw α=.05)"].sum()) > int(ledger_df["Significant (BH-FDR)"].sum()):
         st.warning("⚠️ High False Discovery Rate Notice: Certain significant tests do not maintain significance under multiple-comparison corrections.")
 
-    st.dataframe(ledger_df, use_container_width=True, hide_index=True)
+    st.dataframe(ledger_df, width='stretch', hide_index=True)
     render_export_buttons(ledger_df, base_name="multiple_comparisons_ledger")
 
     if st.button("🗑️ Reset Ledger", key="clear_ledger"):
@@ -200,7 +200,7 @@ def render_param_tests(df: pd.DataFrame):
                         st.write(f"- **Group 2 ({g_keys[1]}) Normality:** {norm_msg2}")
                         st.write(f"- **Variance Homogeneity:** {homog_msg}")
                         fig_box = px.box(sub_df, x=g, y=v, points="all", title=f"Group Comparison: {v} by {g}")
-                        st.plotly_chart(fig_box, use_container_width=True)
+                        st.plotly_chart(fig_box, width='stretch')
 
                     if st.button("▶️ Compute Independent t-Test", type="primary", key="run_ttest"):
                         equal_var = levene_p > 0.05
@@ -239,7 +239,7 @@ def render_param_tests(df: pd.DataFrame):
             _, diff_norm_msg = check_normality_shapiro(diffs)
             with st.expander("🔍 Pre-flight Statistical Assumptions"):
                 st.write(f"- **Differences Distribution Normality:** {diff_norm_msg}")
-                st.plotly_chart(plot_qq(diffs, "Q-Q Plot of Differences"), use_container_width=True)
+                st.plotly_chart(plot_qq(diffs, "Q-Q Plot of Differences"), width='stretch')
 
             if st.button("▶️ Compute Paired t-Test", type="primary", key="run_paired"):
                 stat_val, p_val = stats.ttest_rel(clean_df[before], clean_df[after])
@@ -282,7 +282,7 @@ def render_param_tests(df: pd.DataFrame):
                         st.markdown("#### Tukey HSD Post-Hoc Pairwise Comparisons")
                         tukey = pairwise_tukeyhsd(endog=sub_df[v], groups=sub_df[g], alpha=0.05)
                         tukey_df = pd.DataFrame(data=tukey._results_table.data[1:], columns=tukey._results_table.data[0])
-                        st.dataframe(tukey_df, use_container_width=True, hide_index=True)
+                        st.dataframe(tukey_df, width='stretch', hide_index=True)
         else:
             st.info("Requires continuous dependent variable and categorical factor.")
 
@@ -316,7 +316,7 @@ def render_param_tests(df: pd.DataFrame):
 
                     breakdown_df = pd.DataFrame(breakdown)
                     st.markdown("#### Factor Effect Decomposition Table")
-                    st.dataframe(breakdown_df, use_container_width=True, hide_index=True)
+                    st.dataframe(breakdown_df, width='stretch', hide_index=True)
                 except Exception as e:
                     st.error(f"Computation failure in Two-Way ANOVA: {e}")
         else:
@@ -346,7 +346,7 @@ def render_param_tests(df: pd.DataFrame):
                 c2_m.metric("P-Value", f"{p:.6f}")
 
                 fig_scat = px.scatter(clean, x=v1, y=v2, trendline="ols", title=f"Scatter plot: {v1} vs {v2}")
-                st.plotly_chart(fig_scat, use_container_width=True)
+                st.plotly_chart(fig_scat, width='stretch')
 
                 st.markdown(generate_ai_interpretation("Pearson Correlation", p, effect=r, effect_label="Pearson r"))
                 log_test_result(f"Pearson Correlation ({v1} vs {v2})", p, "r", r)
@@ -477,7 +477,7 @@ def render_nonparam_tests(df: pd.DataFrame):
                 c2_m.metric("P-Value", f"{p:.6f}")
                 c3_m.metric("Cramér's V", f"{cramers_v:.4f}")
 
-                st.dataframe(ct, use_container_width=True)
+                st.dataframe(ct, width='stretch')
                 log_test_result(f"Chi-Square ({v1} vs {v2})", p, "Cramér's V", cramers_v)
         else:
             st.info("Requires at least 2 categorical variables.")
@@ -606,9 +606,9 @@ def render_sensitivity_tab(df: pd.DataFrame):
             title="Specification Curve: Point Estimates across Analytical Choices",
             color_discrete_map={True: "#2ca02c", False: "#d62728"}
         )
-        st.plotly_chart(fig_spec, use_container_width=True)
+        st.plotly_chart(fig_spec, width='stretch')
 
-        st.dataframe(res_df, use_container_width=True, hide_index=True)
+        st.dataframe(res_df, width='stretch', hide_index=True)
         render_export_buttons(res_df, base_name=f"specification_curve_{x_var}_{y_var}")
 
 

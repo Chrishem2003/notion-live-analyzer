@@ -1,1 +1,1 @@
-﻿"""Package marker for modules/. Intentionally minimal."""
+"""Package marker for modules/. Intentionally minimal."""

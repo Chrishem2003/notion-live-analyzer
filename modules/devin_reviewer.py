@@ -1,4 +1,4 @@
-﻿
+
 import os
 import streamlit as st
 import pandas as pd
@@ -53,7 +53,7 @@ def render_devin_review_panel():
 
     df_reviews = run_devin_code_review()
     if not df_reviews.empty:
-        st.dataframe(df_reviews, use_container_width=True)
+        st.dataframe(df_reviews, width='stretch')
     else:
         st.info("No Python modules detected in workspace.")
 

@@ -1,4 +1,4 @@
-﻿﻿
+
 import streamlit as st
 import shutil
 import pandas as pd
@@ -28,7 +28,7 @@ def render_disk_monitor_panel():
     st.caption("Real-time telemetry tracking system storage allocations, partition health, and high-capacity migrations.")
 
     df_disk = get_disk_metrics()
-    st.dataframe(df_disk, use_container_width=True)
+    st.dataframe(df_disk, width='stretch')
 
     if st.button(" Execute Storage Cache Cleanup"):
         log_backend_event("INFO", "User executed storage cache cleanup routine.")

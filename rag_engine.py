@@ -1,4 +1,4 @@
-﻿"""
+"""
 rag_engine.py
 Graph-Enhanced Retrieval-Augmented Generation (RAG) Pipeline.
 

@@ -1,4 +1,4 @@
-﻿"""
+"""
 modules/auth_store.py
 Real authentication: hashed passwords + server-side roles.
 

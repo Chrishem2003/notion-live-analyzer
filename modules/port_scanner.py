@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from modules.database import log_backend_event
@@ -24,7 +24,7 @@ def render_port_scanner_panel():
     st.caption("Inspect local socket listeners, firewall bindings, and secure endpoint exposures.")
 
     df_ports = get_active_ports()
-    st.dataframe(df_ports, use_container_width=True)
+    st.dataframe(df_ports, width='stretch')
 
     if st.button("Run Full Firewall Port Audit"):
         log_backend_event("INFO", "User executed firewall port audit scan.")

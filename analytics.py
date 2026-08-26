@@ -1,4 +1,4 @@
-﻿﻿
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -41,7 +41,7 @@ def render_advanced_analytics():
         hover_data=["Sample_ID"],
         title="Genomic GC Content vs. Sequencing Depth Telemetry"
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Log analytics inspection event
     log_backend_event("INFO", "Rendered advanced bioinformatics telemetry dashboard.")

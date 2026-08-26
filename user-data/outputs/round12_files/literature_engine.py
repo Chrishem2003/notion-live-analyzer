@@ -1,4 +1,4 @@
-﻿
+
 """
 Global Literature Aggregator & Auto-Drafting Engine
 Zero-loss SQLite persistence, factual paper harvesting from Semantic Scholar,
@@ -568,13 +568,13 @@ class PaperHarvester:
 
         except requests.exceptions.Timeout:
             logger.warning("Semantic Scholar search timed out for query %r", query)
-            st.warning("⚠️ Semantic Scholar API timed out. Try a more specific query.")
+            st.warning("âš ï¸ Semantic Scholar API timed out. Try a more specific query.")
         except requests.exceptions.ConnectionError:
             logger.warning("Could not connect to Semantic Scholar for query %r", query)
-            st.warning("⚠️ Could not connect to Semantic Scholar API. Check your internet."),
+            st.warning("âš ï¸ Could not connect to Semantic Scholar API. Check your internet."),
         except Exception as e:
             logger.exception("Semantic Scholar search failed for query %r", query)
-            st.warning(f"⚠️ Semantic Scholar search error: {str(e)[:100]}")
+            st.warning(f"âš ï¸ Semantic Scholar search error: {str(e)[:100]}")
 
         return papers[:limit]
 
@@ -645,7 +645,7 @@ class PaperHarvester:
                     "CrossRef search for %r failed: %s  %s",
                     query, resp.status_code, resp.text[:200],
                 )
-                st.warning(f"⚠️ CrossRef returned HTTP {resp.status_code}  no results from this source.")
+                st.warning(f"âš ï¸ CrossRef returned HTTP {resp.status_code}  no results from this source.")
                 return papers
 
             data = resp.json()
@@ -658,13 +658,13 @@ class PaperHarvester:
 
         except requests.exceptions.Timeout:
             logger.warning("CrossRef search timed out for query %r", query)
-            st.warning("⚠️ CrossRef API timed out.")
+            st.warning("âš ï¸ CrossRef API timed out.")
         except requests.exceptions.ConnectionError:
             logger.warning("Could not connect to CrossRef for query %r", query)
             st.warning("Could not connect to CrossRef API.")
         except Exception as e:
             logger.exception("CrossRef search failed for query %r", query)
-            st.warning(f"⚠️ CrossRef search error: {str(e)[:100]}")
+            st.warning(f"âš ï¸ CrossRef search error: {str(e)[:100]}")
 
         return papers[:limit]
 
@@ -995,7 +995,7 @@ class ExportEngine:
     def get_markdown_download_link(content: str, filename: str, label: str = "Download") -> str:
         """Generate a base64 download link for markdown content."""
         b64 = base64.b64 + encode(content.encode()).decode()
-        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">🔍 {label}</a>'
+        return f'<a href="data:text/markdown;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">ðŸ” {label}</a>'
 
     @staticmethod
     def get_html_download_link(content_md: str, filename: str, label: str = "Download HTML") -> str:
@@ -1017,7 +1017,7 @@ class ExportEngine:
         html_lines.append("</body></html>")
         full_html = "\n".join(html_lines)
         b64 = base64.b64 + encode(full_html.encode()).decode()
-        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">🔍 {label}</a>'
+        return f'<a href="data:text/html;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:white;border-radius:8px;text-decoration:none;font-weight:600;">ðŸ” {label}</a>'
 
     @staticmethod
     def render_sidebar_styles():
@@ -1046,16 +1046,16 @@ class ExportEngine:
     def get_txt_download_link(content: str, filename: str, label: str = "Download TXT") -> str:
         """Generate a base64 download link for plain text."""
         b64 = base64.b64 + encode(content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">🔍 Download .BIB</a>'
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">ðŸ” Download .BIB</a>'
 
     @staticmethod
     def get_bib_download_link(bib_content: str, filename: str) -> str:
         """Generate a download link for .bib file."""
         b64 = base64.b64 + encode(bib_content.encode()).decode()
-        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">🔍 Download .BIB</a>'
+        return f'<a href="data:text/plain;base64,{b64}" download="{filename}" style="display:inline-block;padding:10px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:600;">ðŸ” Download .BIB</a>'
 
     @staticmethod
-    def get_copy_js(text: str, button_label: str = "⚠️ Copy to Clipboard") -> str:
+    def get_copy_js(text: str, button_label: str = "âš ï¸ Copy to Clipboard") -> str:
         """Generate a JavaScript-powered copy button."""
         escaped = html.escape(text.replace("`", "\\`").replace("${", "\\${"))
         return f"""
@@ -1078,10 +1078,10 @@ class ExportEngine:
         escaped = html.escape(report_text[:5000])  # Limit to 5000 chars for performance
         return f"""
         <div style="padding:12px;background:#f0f4ff;border-radius:8px;border:1px solid #dbeafe;">
-    <p style="margin:0 0 8px 0;font-weight:600;">🔍 Push to Notion</p>
+    <p style="margin:0 0 8px 0;font-weight:600;">ðŸ” Push to Notion</p>
             <p style="font-size:0.85rem;color:#475569;">Copy this content and paste it into a new Notion page:</p>
             <pre style="background:white;padding:12px;border-radius:6px;font-size:0.8rem;max-height:200px;overflow:auto;white-space:pre-wrap;">{escaped}</pre>
-            {ExportEngine.get_copy_js(report_text, "⚠️ Copy for Notion")}'
+            {ExportEngine.get_copy_js(report_text, "âš ï¸ Copy for Notion")}'
         </div>
         """
 
@@ -1090,7 +1090,7 @@ class ExportEngine:
         """Generate a styled link to open Google Drive for manual upload."""
         return """
         <a href="https://drive.google.com/drive/u/0/my-drive" target="_blank" 
-           style="display:inline-block;padding:10px 20px;background:#4285F4;color:white;border-radius:8px;text-decoration:none;font-weight:600;"🔍 Open Google Drive
+           style="display:inline-block;padding:10px 20px;background:#4285F4;color:white;border-radius:8px;text-decoration:none;font-weight:600;"ðŸ” Open Google Drive
         </a>
         <p style="font-size:0.8rem;color:#64748b;margin-top:4px;">Download the file above, then upload it to your Drive</p>
         """
@@ -1384,16 +1384,16 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
 
         with col2:
             # Show cited badge if this paper has been used in the report
-            cited_badge = " 🔍 Cited" if paper.get("is_cited") else ""
+            cited_badge = " ðŸ” Cited" if paper.get("is_cited") else ""
             meta_parts = []
             if paper.get("authors"):
-                meta_parts.append(f"🔍 {paper['authors']}")
+                meta_parts.append(f"ðŸ” {paper['authors']}")
             if paper.get("year"):
-                meta_parts.append(f"🔍 {paper['year']}")
+                meta_parts.append(f"ðŸ” {paper['year']}")
             if paper.get("citations"):
-                meta_parts.append(f"🔍 {paper['citations']:,} citations")
+                meta_parts.append(f"ðŸ” {paper['citations']:,} citations")
             if paper.get("journal"):
-                meta_parts.append(f"🔍 {paper['journal']}")
+                meta_parts.append(f"ðŸ” {paper['journal']}")
             if paper.get("doi"):
                 meta_parts.append(f"DOI: {paper['doi']}")
 
@@ -1418,7 +1418,7 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
                     label_visibility="collapsed")
                 if new_notes != current_notes:
                     db.update_paper_notes(paper["id"], new_notes)
-                    st.success("Notes saved!", icon="✅")
+                    st.success("Notes saved!", icon="âœ…")
 
             with tab_c:
                 current_finding = paper.get("user_findings", "") or ""
@@ -1428,7 +1428,7 @@ def render_paper_table_row(paper: Dict, db: LiteratureDatabase, style: str = "ap
                     label_visibility="collapsed")
                 if new_finding != current_finding:
                     db.update_paper_findings(paper["id"], new_finding)
-                    st.success("Finding saved!", icon="✅")
+                    st.success("Finding saved!", icon="âœ…")
 
                 formatter = ReferenceFormatter()
                 citation = formatter.format_citation(paper, style, inline=False)
@@ -1456,7 +1456,7 @@ def render_report_builder(sections, bibliography, db, project_id):
                 label_visibility="collapsed")
             if content != section_contents.get(sid, ""):
                 db.update_report_section(sid, content)
-                st.success(f"{title} saved!", icon="✅")
+                st.success(f"{title} saved!", icon="âœ…")
 
             # Citation insertion helper
             if bibliography and content:
@@ -1488,7 +1488,7 @@ def render_report_builder(sections, bibliography, db, project_id):
     with col1:
         new_section_title = st.text_input("Add a custom section", placeholder="e.g., Data Collection Procedure")
     with col2:
-        if st.button("Add Section", use_container_width=True) and new_section_title.strip():
+        if st.button("Add Section", width='stretch') and new_section_title.strip():
             db.add_report_section(project_id, new_section_title.strip())
             st.rerun()
 
@@ -1505,7 +1505,7 @@ def render_report_builder(sections, bibliography, db, project_id):
     with col3:
         report_title = st.text_input("Report title", value="Research Paper", key="export_title")
 
-    if st.button("Generate Complete Report", type="primary", use_container_width=True):
+    if st.button("Generate Complete Report", type="primary", width='stretch'):
         updated_sections = db.get_report_sections(project_id)
         bibliography = db.get_bibliography(project_id)
         for s in updated_sections:
@@ -1526,7 +1526,7 @@ def render_report_builder(sections, bibliography, db, project_id):
         bib_content = formatter.generate_bibtex(bib_papers)
 
         # Format downloads
-        st.markdown("#### 📥 Download Options")
+        st.markdown("#### ðŸ“¥ Download Options")
         col_a, col_b, col_c, col_d = st.columns(4)
         with col_a:
             st.markdown(exporter.get_markdown_download_link(report_text, f"report_{timestamp}.md", "Download MD"), unsafe_allow_html=True)
@@ -1538,7 +1538,7 @@ def render_report_builder(sections, bibliography, db, project_id):
             st.markdown(exporter.get_bib_download_link(bib_content, f"references_{timestamp}.bib"), unsafe_allow_html=True)
 
         # Copy to clipboard
-        st.markdown("#### 📋 Copy to Clipboard")
+        st.markdown("#### ðŸ“‹ Copy to Clipboard")
         st.markdown(exporter.get_copy_js(report_text, "Copy Report to Clipboard"), unsafe_allow_html=True)
 
         # Notion push

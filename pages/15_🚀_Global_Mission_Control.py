@@ -1,4 +1,4 @@
-﻿﻿import os
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -42,7 +42,7 @@ def render_health_tab():
     with c_action1:
         st.caption("Synchronize data feeds with global health registries.")
     with c_action2:
-        if st.button("📡 Sync Health Feed", key="mc_health_fetch_upg", type="primary", use_container_width=True):
+        if st.button("📡 Sync Health Feed", key="mc_health_fetch_upg", type="primary", width='stretch'):
             with st.spinner("Querying international epidemiological telemetry feeds..."):
                 st.session_state.health_data_cache = fetch_global_health_hotspots()
 
@@ -83,7 +83,7 @@ def render_health_tab():
 
             st.dataframe(
                 filtered_df[["country", "new_cases", "total_cases", "new_deaths", "total_deaths"]],
-                use_container_width=True,
+                width='stretch',
                 hide_index=True,
             )
             render_export_buttons(filtered_df, base_name="global_health_hotspots")
@@ -106,7 +106,7 @@ def render_health_tab():
                     plot_bgcolor="rgba(0,0,0,0)",
                     margin=dict(l=20, r=20, t=40, b=20),
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             elif not filtered_df.empty:
                 st.bar_chart(filtered_df.set_index("country")["new_cases"])
     else:
@@ -182,7 +182,7 @@ def render_weather_tab():
                     "Min Temperature (°C)": forecast.get("temperature_2m_min", []),
                     "Precipitation Sum (mm)": forecast.get("precipitation_sum", []),
                 })
-                st.dataframe(df_fc, use_container_width=True, hide_index=True)
+                st.dataframe(df_fc, width='stretch', hide_index=True)
                 render_export_buttons(df_fc, base_name=f"weather_forecast_{lat}_{lon}")
 
                 if PLOTLY_AVAILABLE:
@@ -201,7 +201,7 @@ def render_weather_tab():
                         yaxis2=dict(title="Precipitation (mm)", overlaying="y", side="right"),
                         legend=dict(orientation="h", y=1.1),
                     )
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
     else:
         st.info("ℹ️ Select coordinates and click **Execute Meteorological Query** to load live climate metrics.")
 
@@ -397,7 +397,7 @@ def render_systemic_risk_tab():
                 title=f"{domain} — Trajectory", height=380, template="plotly_dark",
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
             fig2 = go.Figure()
             for i in range(ensemble.shape[1]):
@@ -411,11 +411,11 @@ def render_systemic_risk_tab():
                 height=340, template="plotly_dark",
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             )
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width='stretch')
         else:
             st.line_chart(result_df.set_index("t"))
 
-        st.dataframe(result_df.tail(10), use_container_width=True, hide_index=True)
+        st.dataframe(result_df.tail(10), width='stretch', hide_index=True)
         render_export_buttons(result_df, base_name=f"systemic_risk_{domain.split()[1].lower()}")
 
         with st.expander("What is the early-warning heuristic?"):

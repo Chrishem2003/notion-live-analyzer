@@ -1,4 +1,4 @@
-﻿
+
 """
 Bayesian Analysis Engine  Bayesian hypothesis testing and parameter estimation.
 Provides Bayesian t-tests, ANOVA, correlation, regression with Bayes factors,
@@ -41,13 +41,13 @@ class BayesianEngine:
         if not HAS_SCIPY:
             raise ImportError("scipy is required. Install: pip install scipy")
 
-    # ─── Bayes Factor from BIC Approximation ───────────────────────
+    # â”€â”€â”€ Bayes Factor from BIC Approximation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     @staticmethod
     def _bic_to_bf(bic_diff: float) -> float:
         """
         Approximate Bayes factor from BIC difference.
-        BF₁₀ ≈ exp(-ΔBIC / 2)
-        Where ΔBIC = BIC(H₀) - BIC(H₁)
+        BFâ‚â‚€ â‰ˆ exp(-Î”BIC / 2)
+        Where Î”BIC = BIC(Hâ‚€) - BIC(Hâ‚)
         """
         return math.exp(-bic_diff / 2)
 
@@ -55,27 +55,27 @@ class BayesianEngine:
     def _interpret_bf(bf: float) -> str:
         """Interpret Bayes factor strength (Jeffreys scale)."""
         if bf >= 100:
-            return "Extreme evidence for H₁"
+            return "Extreme evidence for Hâ‚"
         elif bf >= 30:
-            return "Very strong evidence for H₁"
+            return "Very strong evidence for Hâ‚"
         elif bf >= 10:
-            return "Strong evidence for H₁"
+            return "Strong evidence for Hâ‚"
         elif bf >= 3:
-            return "Moderate evidence for H₁"
+            return "Moderate evidence for Hâ‚"
         elif bf >= 1:
-            return "Anecdotal evidence for H₁"
+            return "Anecdotal evidence for Hâ‚"
         elif bf >= 0.33:
-            return "Anecdotal evidence for H₀"
+            return "Anecdotal evidence for Hâ‚€"
         elif bf >= 0.1:
-            return "Moderate evidence for H₀"
+            return "Moderate evidence for Hâ‚€"
         elif bf >= 0.03:
-            return "Strong evidence for H₀"
+            return "Strong evidence for Hâ‚€"
         elif bf >= 0.01:
-            return "Very strong evidence for H₀"
+            return "Very strong evidence for Hâ‚€"
         else:
-            return "Extreme evidence for H₀"
+            return "Extreme evidence for Hâ‚€"
 
-    # ─── Bayesian T-Test ───────────────────────────────────────────
+    # â”€â”€â”€ Bayesian T-Test â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def bayesian_ttest(
         self,
         x: np.ndarray,
@@ -85,14 +85,14 @@ class BayesianEngine:
     ) -> Dict[str, Any]:
         """
         Bayesian t-test using Pingouin (if available) or BIC approximation.
-        Returns BF₁₀ (evidence for H₁: groups differ).
+        Returns BFâ‚â‚€ (evidence for Hâ‚: groups differ).
 
         Parameters
         ----------
         x : array  First group (or paired differences)
         y : array, optional  Second group (independent test)
         paired : bool  Paired test?
-        prior_scale : float  Cauchy prior scale (default 0.707 = √2/2)
+        prior_scale : float  Cauchy prior scale (default 0.707 = âˆš2/2)
         """
         if HAS_PINGOUIN:
             try:
@@ -135,7 +135,7 @@ class BayesianEngine:
             t_stat, p_val = scipy_stats.ttest_1samp(x, 0)
             n = len(x)
 
-        # BIC approximation: BF₁₀ ≈ exp((t² - log(n)) / 2)
+        # BIC approximation: BFâ‚â‚€ â‰ˆ exp((tÂ² - log(n)) / 2)
         bf = math.exp((t_stat**2 - math.log(n)) / 2) if t_stat**2 > math.log(n) else 1.0 / math.exp((math.log(n) - t_stat**2) / 2)
 
         # Cohen's d approximation
@@ -150,7 +150,7 @@ class BayesianEngine:
             "n_y": len(y) if y is not None else 0,
         }
 
-    # ─── Bayesian Correlation ──────────────────────────────────────
+    # â”€â”€â”€ Bayesian Correlation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def bayesian_correlation(
         self,
         x: np.ndarray,
@@ -159,7 +159,7 @@ class BayesianEngine:
     ) -> Dict[str, Any]:
         """
         Bayesian correlation test (Pearson).
-        Returns BF₁₀ (evidence for non-zero correlation).
+        Returns BFâ‚â‚€ (evidence for non-zero correlation).
         """
         n = len(x)
         r, p_val = scipy_stats.pearsonr(x, y)
@@ -177,7 +177,7 @@ class BayesianEngine:
             "credible_interval": self._approximate_credible_interval(r, n),
         }
 
-    # ─── Bayesian ANOVA ────────────────────────────────────────────
+    # â”€â”€â”€ Bayesian ANOVA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def bayesian_anova(
         self,
         df: pd.DataFrame,
@@ -186,7 +186,7 @@ class BayesianEngine:
     ) -> Dict[str, Any]:
         """
         Bayesian one-way ANOVA.
-        Returns BF₁₀ (evidence for group differences).
+        Returns BFâ‚â‚€ (evidence for group differences).
         """
         if HAS_PINGOUIN:
             try:
@@ -218,7 +218,7 @@ class BayesianEngine:
 
         return {"error": "pingouin required for Bayesian ANOVA"}
 
-    # ─── Bayesian Linear Regression ────────────────────────────────
+    # â”€â”€â”€ Bayesian Linear Regression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def bayesian_regression(
         self,
         df: pd.DataFrame,
@@ -271,7 +271,7 @@ class BayesianEngine:
             "intercept": round(float(full_model.intercept_), 4),
         }
 
-    # ─── Bayesian Contingency Table ────────────────────────────────
+    # â”€â”€â”€ Bayesian Contingency Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def bayesian_contingency(
         self,
         table: pd.DataFrame,
@@ -291,7 +291,7 @@ class BayesianEngine:
         if expected.sum() > 0:
             # Convert expected to same shape
             expected = expected.astype(float)
-            # G² (likelihood ratio statistic)
+            # GÂ² (likelihood ratio statistic)
             with np.errstate(divide='ignore', invalid='ignore'):
                 g2 = 2 * np.sum(observed * np.log(observed / expected, where=observed > 0), where=observed > 0)
             bic_h0 = g2 + dof * math.log(n)
@@ -309,7 +309,7 @@ class BayesianEngine:
             "n": int(n),
         }
 
-    # ─── Helpers ───────────────────────────────────────────────────
+    # â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _approximate_credible_interval(self, r: float, n: int, ci: float = 0.95) -> Tuple[float, float]:
         """Approximate credible interval for Pearson r using Fisher z-transform."""
         if abs(r) >= 1:
@@ -337,14 +337,14 @@ class BayesianEngine:
         }
 
 
-# ─── UI Renderer ─────────────────────────────────────────────────────
+# â”€â”€â”€ UI Renderer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def render_bayesian_analysis_ui():
     """Render the Bayesian Analysis page in Streamlit."""
     import streamlit as st
     import plotly.graph_objects as go
     import plotly.express as px
 
-    st.markdown("## 🧠 Bayesian Analysis Engine")
+    st.markdown("## ðŸ§  Bayesian Analysis Engine")
     st.markdown("*Bayesian hypothesis testing with Bayes factors  t-tests, ANOVA, correlation, regression*")
 
     df = st.session_state.get("active_df")
@@ -357,12 +357,12 @@ def render_bayesian_analysis_ui():
     cat_cols = [c for c in df.columns if df[c].nunique() < 20]
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "🧪 Bayesian T-Test", " Bayesian Correlation",
-        "📐 Bayesian ANOVA", "📈 Bayesian Regression"
+        "ðŸ§ª Bayesian T-Test", " Bayesian Correlation",
+        "ðŸ“ Bayesian ANOVA", "ðŸ“ˆ Bayesian Regression"
     ])
 
     with tab1:
-        st.subheader("🧪 Bayesian T-Test  BF₁₀")
+        st.subheader("ðŸ§ª Bayesian T-Test  BFâ‚â‚€")
         test_type = st.radio("Test type", ["Independent", "Paired", "One Sample"], horizontal=True, key="bf_test_type")
         col1, col2 = st.columns(2)
 
@@ -377,9 +377,9 @@ def render_bayesian_analysis_ui():
                 after_col = st.selectbox("After column", options=[c for c in numeric_cols if c != before_col], key="bf_after")
             else:
                 value_col = st.selectbox("Value column", options=numeric_cols, key="bf_onesample")
-                test_val = st.number_input("Test value (H₀: μ = ?)", value=0.0, key="bf_testval")
+                test_val = st.number_input("Test value (Hâ‚€: Î¼ = ?)", value=0.0, key="bf_testval")
 
-        if st.button("🧪 Compute Bayes Factor", type="primary", use_container_width=True):
+        if st.button("ðŸ§ª Compute Bayes Factor", type="primary", width='stretch'):
             with st.spinner("Computing Bayesian t-test..."):
                 if test_type == "Independent" and group_col and value_col:
                     g1 = df[df[group_col] == groups[0]][value_col].dropna().values
@@ -402,7 +402,7 @@ def render_bayesian_analysis_ui():
                 st.markdown(f"""
                 <div style="text-align:center;padding:1.5rem;border-radius:16px;
                     border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
-                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
+                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BFâ‚â‚€</div>
                     <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
                     <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
                     <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
@@ -412,14 +412,14 @@ def render_bayesian_analysis_ui():
                 """, unsafe_allow_html=True)
 
     with tab2:
-        st.subheader(" Bayesian Correlation  BF₁₀")
+        st.subheader(" Bayesian Correlation  BFâ‚â‚€")
         col1, col2 = st.columns(2)
         with col1:
             corr_x = st.selectbox("Variable X", options=numeric_cols, key="bf_corr_x")
         with col2:
             corr_y = st.selectbox("Variable Y", options=[c for c in numeric_cols if c != corr_x], key="bf_corr_y")
 
-        if st.button(" Compute Bayes Factor", type="primary", use_container_width=True):
+        if st.button(" Compute Bayes Factor", type="primary", width='stretch'):
             data = df[[corr_x, corr_y]].dropna()
             x = data[corr_x].values
             y = data[corr_y].values
@@ -429,7 +429,7 @@ def render_bayesian_analysis_ui():
             st.markdown(f"""
             <div style="text-align:center;padding:1.5rem;border-radius:16px;
                 border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
-                <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
+                <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BFâ‚â‚€</div>
                 <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
                 <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
                 <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
@@ -440,17 +440,17 @@ def render_bayesian_analysis_ui():
 
             # Scatter plot
             fig = px.scatter(data, x=corr_x, y=corr_y, trendline="ols", title=f"Scatter Plot (r = {result.get('pearson_r', 0):.3f})")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
     with tab3:
-        st.subheader("📐 Bayesian ANOVA  BF₁₀")
+        st.subheader("ðŸ“ Bayesian ANOVA  BFâ‚â‚€")
         col1, col2 = st.columns(2)
         with col1:
             anova_dv = st.selectbox("Dependent variable", options=numeric_cols, key="bf_anova_dv")
         with col2:
             anova_between = st.selectbox("Group variable", options=cat_cols, key="bf_anova_between")
 
-        if st.button("📐 Compute Bayes Factor", type="primary", use_container_width=True):
+        if st.button("ðŸ“ Compute Bayes Factor", type="primary", width='stretch'):
             with st.spinner("Computing Bayesian ANOVA..."):
                 result = engine.bayesian_anova(df, anova_dv, anova_between)
             if "error" in result:
@@ -461,24 +461,24 @@ def render_bayesian_analysis_ui():
                 st.markdown(f"""
                 <div style="text-align:center;padding:1.5rem;border-radius:16px;
                     border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
-                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
+                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BFâ‚â‚€</div>
                     <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
                     <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
                     <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
-                        F = {result.get('f_value', 0):.2f} | η² = {result.get('eta_squared', 0):.3f}
+                        F = {result.get('f_value', 0):.2f} | Î·Â² = {result.get('eta_squared', 0):.3f}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
     with tab4:
-        st.subheader("📈 Bayesian Regression  BF₁₀")
+        st.subheader("ðŸ“ˆ Bayesian Regression  BFâ‚â‚€")
         col1, col2 = st.columns(2)
         with col1:
             reg_target = st.selectbox("Target variable", options=numeric_cols, key="bf_reg_target")
         with col2:
             reg_predictors = st.multiselect("Predictors", options=[c for c in numeric_cols if c != reg_target], key="bf_reg_pred")
 
-        if st.button("📈 Compute Bayes Factor", type="primary", use_container_width=True) and reg_predictors:
+        if st.button("ðŸ“ˆ Compute Bayes Factor", type="primary", width='stretch') and reg_predictors:
             with st.spinner("Computing Bayesian regression..."):
                 result = engine.bayesian_regression(df, reg_target, reg_predictors)
             if "error" in result:
@@ -489,17 +489,17 @@ def render_bayesian_analysis_ui():
                 st.markdown(f"""
                 <div style="text-align:center;padding:1.5rem;border-radius:16px;
                     border:2px solid {bf_color};background:{bf_color}10;margin:1rem 0;">
-                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BF₁₀</div>
+                    <div style="font-size:0.8rem;color:#64748b;">Bayes Factor BFâ‚â‚€</div>
                     <div style="font-size:3rem;font-weight:900;color:{bf_color};">{bf:.2f}</div>
                     <div style="font-size:1rem;color:{bf_color};">{result.get('interpretation', '')}</div>
                     <div style="margin-top:0.5rem;font-size:0.85rem;color:#64748b;">
-                        R² = {result.get('r_squared', 0):.3f} | N = {result.get('n_obs', 0)}
+                        RÂ² = {result.get('r_squared', 0):.3f} | N = {result.get('n_obs', 0)}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
                 if result.get("coefficients"):
                     coef_df = pd.DataFrame(list(result["coefficients"].items()), columns=["Predictor", "Coefficient"])
-                    st.dataframe(coef_df, use_container_width=True, hide_index=True)
+                    st.dataframe(coef_df, width='stretch', hide_index=True)
 
 

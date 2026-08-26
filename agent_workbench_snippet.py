@@ -1,4 +1,4 @@
-﻿"""
+"""
 Integration example: Live Agent Workbench — the "visual representation of
 the agent swarm executing sub-tasks in real-time" from the spec.
 

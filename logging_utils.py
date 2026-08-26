@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 """
 Centralised logging setup for the app.
 

@@ -1,4 +1,4 @@
-﻿﻿#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Repair the systemic encoding corruption where the binary ``+`` operator
 was replaced by two (or more) spaces, e.g.::
 

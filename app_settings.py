@@ -1,4 +1,4 @@
-﻿"""
+"""
 App Settings — persistent key-value store (replaces hardcoded file paths)
 =============================================================================
 The old code pointed the creator photo at a hardcoded Windows path

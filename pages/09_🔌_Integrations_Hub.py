@@ -1,4 +1,4 @@
-﻿﻿"""
+"""
 🔗 Integrations & External Connectivity Hub — Enterprise Grade (Premium v3.0 Sovereign Apex)
 Production-grade integration hub featuring OAuth2/Service Account Google Sheets write-backs, 
 Notion page creation & dynamic schema updates, GitHub issue creation & GraphQL telemetry, 
@@ -146,7 +146,7 @@ def render_notion():
                             real_df = pd.DataFrame(rows)
                             set_active_dataframe(real_df, "notion_live_data.csv")
                             st.success(f"✅ Extracted {len(real_df)} real rows in {latency:.0f}ms.")
-                            st.dataframe(real_df, use_container_width=True)
+                            st.dataframe(real_df, width='stretch')
                             render_export_buttons(real_df, base_name="notion_export")
                     except Exception as e:
                         st.error(f"🚫 Notion Exception: {str(e)}")
@@ -226,7 +226,7 @@ def render_sheets():
                             real_df = pd.read_csv(io.StringIO(resp.text))
                             set_active_dataframe(real_df, "google_sheets_data.csv")
                             st.success(f"✅ Imported {real_df.shape[0]:,} rows × {real_df.shape[1]} cols in {latency:.0f}ms.")
-                            st.dataframe(real_df, use_container_width=True)
+                            st.dataframe(real_df, width='stretch')
                             render_export_buttons(real_df, base_name="sheets_export")
                         else:
                             st.error(f"🚫 HTTP {resp.status_code}: Unable to fetch. Verify sharing permissions.")
@@ -305,7 +305,7 @@ def render_github():
                             } for c in c_resp.json()]
                             commits_df = pd.DataFrame(commits)
                             st.markdown("#### Commit Audit Log")
-                            st.dataframe(commits_df, use_container_width=True)
+                            st.dataframe(commits_df, width='stretch')
                     else:
                         st.error(f"🚫 HTTP {resp.status_code}: {resp.text[:200]}")
                 except Exception as e:
@@ -364,7 +364,7 @@ def render_api_gateway():
                 except Exception as e:
                     rows.append({"Service": name, "Status": f"🔴 Failed ({type(e).__name__})", "Latency (ms)": None})
                     log_call(name, 0, f"error: {type(e).__name__}")
-            st.dataframe(pd.DataFrame(rows), use_container_width=True)
+            st.dataframe(pd.DataFrame(rows), width='stretch')
 
     with tab_web:
         webhook_url = st.text_input("Webhook Target URL", placeholder="https://your-server.com/webhook", key="wh_url_v3")
@@ -404,10 +404,10 @@ def render_api_gateway():
             st.info("ℹ️ Telemetry buffer empty. Perform operations across the hub to record API calls.")
         else:
             log_df = pd.DataFrame(log)
-            st.dataframe(log_df, use_container_width=True)
+            st.dataframe(log_df, width='stretch')
             if PLOTLY_AVAILABLE and len(log_df) > 1:
                 fig = px.line(log_df.reset_index(), x="index", y="Latency (ms)", color="Service", markers=True, template="plotly_dark")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             if st.button("🗑️ Clear Telemetry Buffer", key="clear_log_v3"):
                 st.session_state["integration_call_log"] = []
                 st.rerun()
@@ -511,7 +511,7 @@ def render_world_data():
 
                 if not merged_df.empty:
                     st.success(f"✅ Retrieved {len(merged_df):,} records from World Bank API.")
-                    st.dataframe(merged_df, use_container_width=True)
+                    st.dataframe(merged_df, width='stretch')
                     render_export_buttons(merged_df, base_name="worldbank_data")
                     set_active_dataframe(merged_df, "worldbank_active.csv")
                 else:

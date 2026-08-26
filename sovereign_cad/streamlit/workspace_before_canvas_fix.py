@@ -283,7 +283,7 @@ def _render_coordinate_input(
 
         if st.button(
             "Create Line",
-            use_container_width=True,
+            width='stretch',
             key=_key("create_line"),
         ):
 
@@ -324,7 +324,7 @@ def _render_coordinate_input(
 
         if st.button(
             "Create Circle",
-            use_container_width=True,
+            width='stretch',
             key=_key("create_circle"),
         ):
 
@@ -606,7 +606,7 @@ def _render_toolbar(
 
         if st.button(
             "Select",
-            use_container_width=True,
+            width='stretch',
             key=_key("tool_select"),
         ):
 
@@ -618,7 +618,7 @@ def _render_toolbar(
 
         if st.button(
             "Line",
-            use_container_width=True,
+            width='stretch',
             key=_key("tool_line"),
         ):
 
@@ -630,7 +630,7 @@ def _render_toolbar(
 
         if st.button(
             "Circle",
-            use_container_width=True,
+            width='stretch',
             key=_key("tool_circle"),
         ):
 
@@ -642,7 +642,7 @@ def _render_toolbar(
 
         if st.button(
             "Reset View",
-            use_container_width=True,
+            width='stretch',
             key=_key("reset_view"),
         ):
 
@@ -656,7 +656,7 @@ def _render_toolbar(
 
         if st.button(
             "Zoom Out",
-            use_container_width=True,
+            width='stretch',
             key=_key("zoom_out"),
         ):
 
@@ -668,7 +668,7 @@ def _render_toolbar(
 
         if st.button(
             "Zoom In",
-            use_container_width=True,
+            width='stretch',
             key=_key("zoom_in"),
         ):
 
@@ -680,7 +680,7 @@ def _render_toolbar(
 
         if st.button(
             "Clear Drawing",
-            use_container_width=True,
+            width='stretch',
             key=_key("clear_drawing"),
         ):
 

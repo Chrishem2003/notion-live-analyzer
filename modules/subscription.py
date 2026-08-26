@@ -1,4 +1,4 @@
-﻿"""
+"""
 Subscription & tier engine.
 
 This is the single source of truth for "what is this account allowed to

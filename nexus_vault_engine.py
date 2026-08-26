@@ -1,4 +1,4 @@
-﻿"""
+"""
 CHRISHEM Nexus Vault 2.0 — Google Workspace Clone
 ==================================================
 A real, self-contained personal productivity & secure storage suite that

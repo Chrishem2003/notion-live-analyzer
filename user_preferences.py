@@ -1,4 +1,4 @@
-﻿"""
+"""
 User Preferences — timezone, accent color, and a defensive readability fix
 =============================================================================
 Three real, working things, not decoration:

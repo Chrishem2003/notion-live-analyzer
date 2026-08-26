@@ -1,4 +1,4 @@
-﻿﻿import os
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -162,7 +162,7 @@ def render_projects():
     
     st.markdown("#### Active Project Portfolio")
     if not projects_df.empty:
-        st.dataframe(projects_df.drop(columns=["id"]), use_container_width=True, hide_index=True)
+        st.dataframe(projects_df.drop(columns=["id"]), width='stretch', hide_index=True)
         render_export_buttons(projects_df.drop(columns=["id"]), base_name="active_projects_export")
 
         if PLOTLY_AVAILABLE:
@@ -172,7 +172,7 @@ def render_projects():
                 range_y=[0, 100], text="Progress"
             )
             fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
     else:
         st.info("No active projects found.")
 
@@ -206,7 +206,7 @@ def render_pipeline():
         pipeline_df = pd.read_sql_query("SELECT id, title AS 'Application / Proposal Title', target_entity AS 'Target Entity', status AS 'Current Status', deadline AS 'Deadline Date' FROM collab_pipeline ORDER BY id DESC", conn)
 
     st.markdown("#### Submission Lifecycle Tracker")
-    st.dataframe(pipeline_df.drop(columns=["id"]) if not pipeline_df.empty else pipeline_df, use_container_width=True, hide_index=True)
+    st.dataframe(pipeline_df.drop(columns=["id"]) if not pipeline_df.empty else pipeline_df, width='stretch', hide_index=True)
 
     with st.form("new_pipeline_form"):
         col1, col2, col3, col4 = st.columns(4)
@@ -338,7 +338,7 @@ def render_agents():
     with get_db_connection() as conn:
         runs_df = pd.read_sql_query("SELECT timestamp AS Timestamp, task AS Task, priority AS Priority, status AS Status, result_summary AS Summary FROM collab_agent_runs ORDER BY id DESC LIMIT 20", conn)
     if not runs_df.empty:
-        st.dataframe(runs_df, use_container_width=True, hide_index=True)
+        st.dataframe(runs_df, width='stretch', hide_index=True)
 
 
 def render_team_workspace():
@@ -350,7 +350,7 @@ def render_team_workspace():
     
     edited = st.data_editor(
         roster_df.drop(columns=["id"]) if not roster_df.empty else pd.DataFrame({"Member Name": ["CHRISHEM"], "Role": ["System Lead"], "Status": ["Active"], "Current Focus": ["Platform Integration"]}),
-        num_rows="dynamic", use_container_width=True, key="roster_editor",
+        num_rows="dynamic", width='stretch', key="roster_editor",
     )
     if st.button("💾 Save Roster", key="save_roster_btn"):
         with get_db_connection() as conn:
@@ -394,7 +394,7 @@ def render_portfolio():
     c3.metric("Completed Milestones", int((projects_df["stage"] == "Complete").sum()) if not projects_df.empty else 0)
 
     if not projects_df.empty:
-        st.dataframe(projects_df, use_container_width=True, hide_index=True)
+        st.dataframe(projects_df, width='stretch', hide_index=True)
 
 
 def render_venture_portfolio():
@@ -413,7 +413,7 @@ def render_venture_portfolio():
             ])
         biz_df = st.session_state.fallback_ventures
 
-    st.dataframe(biz_df, use_container_width=True, hide_index=True)
+    st.dataframe(biz_df, width='stretch', hide_index=True)
 
     if PLOTLY_AVAILABLE and not biz_df.empty:
         fig = px.bar(
@@ -422,7 +422,7 @@ def render_venture_portfolio():
             title="Venture Capital Allocation vs Projected ROI (%)",
         )
         fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with st.expander("➕ Add or update a venture"):
         with st.form("venture_add_form"):

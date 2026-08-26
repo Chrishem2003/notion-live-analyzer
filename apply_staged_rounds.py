@@ -1,4 +1,4 @@
-﻿﻿#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Applies any round3_files/, round5_files/, round8_files/ staging folders
 sitting in the repo root by copying their contents over the real files at

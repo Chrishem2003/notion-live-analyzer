@@ -1,5 +1,5 @@
-﻿"""
-CHRISHEM Shared UI Components — reusable hero cards, section headers, metric cards, and footers.
+"""
+CHRISHEM Shared UI Components â€” reusable hero cards, section headers, metric cards, and footers.
 Used across all 11 consolidated hub pages.
 """
 
@@ -95,14 +95,14 @@ def render_dataset_context_banner():
     summary = dataset_summary()
     if summary:
         st.info(
-            f"📊 **Active Dataset:** `{summary['source']}` — {summary['rows']:,} rows × {summary['cols']} cols "
+            f"ðŸ“Š **Active Dataset:** `{summary['source']}` â€” {summary['rows']:,} rows Ã— {summary['cols']} cols "
             f"| {summary['numeric']} numeric | {summary['categorical']} categorical | {summary['missing']:,} missing"
         )
     else:
-        st.warning("⚠️ **No active dataset loaded.** Load data in the **Data Studio** hub or generate sample data.")
+        st.warning("âš ï¸ **No active dataset loaded.** Load data in the **Data Studio** hub or generate sample data.")
         col_a, col_b = st.columns([1, 3])
         with col_a:
-            if st.button("🎲 Load Sample Data", type="primary", use_container_width=True):
+            if st.button("ðŸŽ² Load Sample Data", type="primary", width='stretch'):
                 from modules.session_manager import generate_sample_dataset, set_active_dataframe
 
                 set_active_dataframe(generate_sample_dataset(), "sample_research_cohort.csv")
@@ -120,32 +120,32 @@ def render_export_buttons(df, base_name: str = "export"):
     with col1:
         csv_data = df.to_csv(index=False).encode("utf-8")
         st.download_button(
-            "📥 Download CSV",
+            "ðŸ“¥ Download CSV",
             data=csv_data,
             file_name=f"{base_name}.csv",
             mime="text/csv",
-            use_container_width=True,
+            width='stretch',
         )
     with col2:
         try:
             excel_buffer = __import__("io").BytesIO()
             df.to_excel(excel_buffer, index=False)
             st.download_button(
-                "📥 Download Excel",
+                "ðŸ“¥ Download Excel",
                 data=excel_buffer.getvalue(),
                 file_name=f"{base_name}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True,
+                width='stretch',
             )
         except Exception:
             st.info("openpyxl required for Excel export")
     with col3:
         st.download_button(
-            "📥 Download JSON",
+            "ðŸ“¥ Download JSON",
             data=df.to_json(orient="records").encode("utf-8"),
             file_name=f"{base_name}.json",
             mime="application/json",
-            use_container_width=True,
+            width='stretch',
         )
 
 
@@ -165,6 +165,6 @@ def empty_state(icon: str, title: str, message: str, action_label: str = None, a
         unsafe_allow_html=True,
     )
     if action_label:
-        return st.button(action_label, type="primary", use_container_width=True, key=action_key)
+        return st.button(action_label, type="primary", width='stretch', key=action_key)
     return False
 

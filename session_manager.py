@@ -1,6 +1,6 @@
-﻿"""
-CHRISHEM Unified Session Manager — central data state management.
-Ensures datasets flow seamlessly across all hub pages (Data Studio → Statistics → ML → Visualization → Export).
+"""
+CHRISHEM Unified Session Manager â€” central data state management.
+Ensures datasets flow seamlessly across all hub pages (Data Studio â†’ Statistics â†’ ML â†’ Visualization â†’ Export).
 """
 
 import hashlib
@@ -13,9 +13,9 @@ import pandas as pd
 import streamlit as st
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # SESSION STATE KEYS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 DATA_KEYS = ["uploaded_df", "active_df", "working_df", "working_transform_df", "notion_df"]
 
 ALIASES = {
@@ -204,11 +204,11 @@ def render_sidebar_data_hud():
     """
     summary = dataset_summary()
     st.sidebar.markdown('<div class="chris-hr"></div>', unsafe_allow_html=True)
-    st.sidebar.markdown("### 📊 Active Dataset")
+    st.sidebar.markdown("### ðŸ“Š Active Dataset")
 
     if summary is None:
         st.sidebar.warning("No dataset loaded")
-        if st.sidebar.button("🎲 Load Sample Data", use_container_width=True):
+        if st.sidebar.button("ðŸŽ² Load Sample Data", width='stretch'):
             set_active_dataframe(generate_sample_dataset(), "sample_research_cohort.csv")
             st.rerun()
         return
@@ -217,9 +217,9 @@ def render_sidebar_data_hud():
         f"""
         <div style="background:#171B23; border:1px solid #262B33; border-radius:10px; padding:0.8rem;">
             <div style="font-size:0.75rem; color:#6B7280; text-transform:uppercase; font-weight:700;">{summary['source']}</div>
-            <div style="font-size:1.1rem; font-weight:800; color:#e8a33d; margin:0.2rem 0;">{summary['rows']:,} rows × {summary['cols']} cols</div>
+            <div style="font-size:1.1rem; font-weight:800; color:#e8a33d; margin:0.2rem 0;">{summary['rows']:,} rows Ã— {summary['cols']} cols</div>
             <div style="font-size:0.8rem; color:#A8B0BC;">
-                🔢 {summary['numeric']} numeric | 🏷️ {summary['categorical']} categorical | ⚠️ {summary['missing']:,} missing
+                ðŸ”¢ {summary['numeric']} numeric | ðŸ·ï¸ {summary['categorical']} categorical | âš ï¸ {summary['missing']:,} missing
             </div>
             <div style="font-size:0.7rem; color:#64748b; font-family:monospace; margin-top:0.3rem;">SHA: {summary['checksum']}...</div>
         </div>
@@ -227,7 +227,7 @@ def render_sidebar_data_hud():
         unsafe_allow_html=True,
     )
 
-    if st.sidebar.button("🗑️ Clear Dataset", use_container_width=True):
+    if st.sidebar.button("ðŸ—‘ï¸ Clear Dataset", width='stretch'):
         for key in DATA_KEYS:
             if key in st.session_state:
                 del st.session_state[key]

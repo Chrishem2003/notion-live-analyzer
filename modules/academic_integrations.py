@@ -1,4 +1,4 @@
-﻿
+
 """
 Academic Integrations  Zotero, Mendeley, Grant Finder, LaTeX Exporter.
 """

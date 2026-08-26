@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -49,7 +49,7 @@ def render_admin_billing_panel():
     st.markdown("---")
     st.markdown("###  Granular Admin Privilege & Role Control")
     df_admins = get_admin_privileges_matrix()
-    st.dataframe(df_admins, use_container_width=True)
+    st.dataframe(df_admins, width='stretch')
 
     col_a, col_b = st.columns(2)
     with col_a:
@@ -64,7 +64,7 @@ def render_admin_billing_panel():
     st.markdown("---")
     st.markdown("###  Intelligent Enterprise Billing & Automated Ledger")
     df_billing = get_billing_invoices_matrix()
-    st.dataframe(df_billing, use_container_width=True)
+    st.dataframe(df_billing, width='stretch')
 
     col_c, col_d = st.columns(2)
     with col_c:

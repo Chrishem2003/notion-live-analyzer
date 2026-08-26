@@ -1,4 +1,4 @@
-﻿"""
+"""
 self_correct.py — Enterprise addition #1 from the spec: catch Pandas/SQL
 exceptions from agent-generated analysis code, feed the traceback back to
 the LLM, and retry with a corrected version.

@@ -1,4 +1,4 @@
-﻿﻿"""
+﻿"""
 CHRISHEM Universal File & Data Converter Studio
 ================================================
 A comprehensive multi-format conversion engine supporting:

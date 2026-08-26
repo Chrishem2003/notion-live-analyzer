@@ -1,4 +1,4 @@
-﻿﻿
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -94,7 +94,7 @@ def render_access_control_panel():
             {"Identity": "Student Researcher Cohort", "Role": "African Student", "Tier": "Standard (Verified)", "Status": "Active"},
             {"Identity": "Enterprise Partner Client", "Role": "Enterprise", "Tier": "Premium", "Status": "Active"}
         ]
-        st.dataframe(pd.DataFrame(admin_users_data), use_container_width=True)
+        st.dataframe(pd.DataFrame(admin_users_data), width='stretch')
 
         col_a1, col_a2 = st.columns(2)
         with col_a1:

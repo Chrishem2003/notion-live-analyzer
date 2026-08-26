@@ -108,7 +108,7 @@ def _render_header():
     )
 
     with left:
-        st.subheader("📐 Sovereign CAD")
+        st.subheader("ðŸ“ Sovereign CAD")
 
     with middle:
         st.caption(
@@ -137,32 +137,32 @@ def _render_toolbar(runtime):
 
     with col1:
         if st.button(
-            "↖ Select",
-            use_container_width=True,
+            "â†– Select",
+            width='stretch',
             key=_key("tool_select")
         ):
             st.session_state[_key("active_tool")] = "select"
 
     with col2:
         if st.button(
-            "╱ Line",
-            use_container_width=True,
+            "â•± Line",
+            width='stretch',
             key=_key("tool_line")
         ):
             st.session_state[_key("active_tool")] = "line"
 
     with col3:
         if st.button(
-            "○ Circle",
-            use_container_width=True,
+            "â—‹ Circle",
+            width='stretch',
             key=_key("tool_circle")
         ):
             st.session_state[_key("active_tool")] = "circle"
 
     with col4:
         if st.button(
-            "▣ Reset View",
-            use_container_width=True,
+            "â–£ Reset View",
+            width='stretch',
             key=_key("reset_view")
         ):
             canvas.reset_view()
@@ -171,8 +171,8 @@ def _render_toolbar(runtime):
 
     with zoom1:
         if st.button(
-            "− Zoom Out",
-            use_container_width=True,
+            "âˆ’ Zoom Out",
+            width='stretch',
             key=_key("zoom_out")
         ):
             canvas.zoom_out()
@@ -180,15 +180,15 @@ def _render_toolbar(runtime):
     with zoom2:
         if st.button(
             "+ Zoom In",
-            use_container_width=True,
+            width='stretch',
             key=_key("zoom_in")
         ):
             canvas.zoom_in()
 
     with zoom3:
         if st.button(
-            "⌂ Home",
-            use_container_width=True,
+            "âŒ‚ Home",
+            width='stretch',
             key=_key("zoom_home")
         ):
             canvas.reset_view()

@@ -1,4 +1,4 @@
-﻿﻿import os
+﻿import os
 import re
 
 # Specific replacements for common icons

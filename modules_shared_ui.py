@@ -1,4 +1,4 @@
-﻿"""
+"""
 CHRISHEM Shared UI Components - reusable hero cards, section headers, metric
 cards, and footers. Used across all 15 consolidated hub pages.
 
@@ -121,7 +121,7 @@ def render_dataset_context_banner():
         st.warning("\u26A0\uFE0F **No active dataset loaded.** Load data in the **Data Studio** hub or generate sample data.")
         col_a, col_b = st.columns([1, 3])
         with col_a:
-            if st.button("\U0001F3B2 Load Sample Data", type="primary", use_container_width=True):
+            if st.button("\U0001F3B2 Load Sample Data", type="primary", width='stretch'):
                 from modules.session_manager import generate_sample_dataset, set_active_dataframe
 
                 set_active_dataframe(generate_sample_dataset(), "sample_research_cohort.csv")
@@ -141,7 +141,7 @@ def render_export_buttons(df, base_name: str = "export"):
             data=csv_data,
             file_name=f"{base_name}.csv",
             mime="text/csv",
-            use_container_width=True,
+            width='stretch',
         )
     with col2:
         try:
@@ -152,7 +152,7 @@ def render_export_buttons(df, base_name: str = "export"):
                 data=excel_buffer.getvalue(),
                 file_name=f"{base_name}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True,
+                width='stretch',
             )
         except Exception:
             st.info("openpyxl required for Excel export")
@@ -162,7 +162,7 @@ def render_export_buttons(df, base_name: str = "export"):
             data=df.to_json(orient="records").encode("utf-8"),
             file_name=f"{base_name}.json",
             mime="application/json",
-            use_container_width=True,
+            width='stretch',
         )
 
 
@@ -181,5 +181,5 @@ def empty_state(icon: str, title: str, message: str, action_label: str = None, a
         unsafe_allow_html=True,
     )
     if action_label:
-        return st.button(action_label, type="primary", use_container_width=True, key=action_key)
+        return st.button(action_label, type="primary", width='stretch', key=action_key)
     return False

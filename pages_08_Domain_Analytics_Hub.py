@@ -1,4 +1,4 @@
-﻿﻿import os
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -78,7 +78,7 @@ def render_clinical(df):
                 bins=[0, 18.5, 25.0, 30.0, 100.0],
                 labels=["Underweight", "Normal", "Overweight", "Obese"],
             )
-            st.dataframe(audit.head(15), use_container_width=True)
+            st.dataframe(audit.head(15), width='stretch')
 
             c1, c2 = st.columns(2)
             with c1:
@@ -88,7 +88,7 @@ def render_clinical(df):
                 if PLOTLY_AVAILABLE:
                     fig = px.histogram(audit.dropna(subset=["Calculated_BMI"]), x="Calculated_BMI", color="BMI_Status", template="plotly_dark", height=280)
                     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=20, b=0))
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
         else:
             st.info("ℹ️ Active dataset loaded, but standard weight/height columns were not automatically detected. You can still use the individual biometric calculator below.")
 
@@ -205,7 +205,7 @@ def render_network(df):
             c4.metric("Avg Clustering Coeff.", f"{nx.average_clustering(G):.3f}")
 
             st.markdown("#### Topological Node Centrality Metrics")
-            st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+            st.dataframe(metrics_df, width='stretch', hide_index=True)
 
             if PLOTLY_AVAILABLE:
                 if layout_type == "Circular":
@@ -252,10 +252,10 @@ def render_network(df):
                                    paper_bgcolor="rgba(0,0,0,0)",
                                    plot_bgcolor="rgba(0,0,0,0)",
                                ))
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
         st.markdown("#### Significant Correlation Edges")
-        st.dataframe(edges_df, use_container_width=True, hide_index=True)
+        st.dataframe(edges_df, width='stretch', hide_index=True)
         render_export_buttons(edges_df, base_name="correlation_network_edges")
 
 
@@ -403,9 +403,9 @@ def render_global_surveillance():
                 fig = px.line(series_df, x="year", y="value", markers=True, template="plotly_dark", height=350,
                               title=f"{indicator_label} — {country_name}")
                 fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=40, b=0))
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
-            st.dataframe(series_df, use_container_width=True, hide_index=True)
+            st.dataframe(series_df, width='stretch', hide_index=True)
             render_export_buttons(series_df, base_name=f"worldbank_{indicator_code}_{country_iso3}")
 
 
@@ -444,11 +444,11 @@ def render_academic():
         })
 
     st.markdown("#### Publications Library")
-    pubs = st.data_editor(st.session_state["academic_pubs_prod"], num_rows="dynamic", use_container_width=True, key="pubs_editor_prod")
+    pubs = st.data_editor(st.session_state["academic_pubs_prod"], num_rows="dynamic", width='stretch', key="pubs_editor_prod")
     st.session_state["academic_pubs_prod"] = pubs
 
     st.markdown("#### Research Grants")
-    grants = st.data_editor(st.session_state["academic_grants_prod"], num_rows="dynamic", use_container_width=True, key="grants_editor_prod")
+    grants = st.data_editor(st.session_state["academic_grants_prod"], num_rows="dynamic", width='stretch', key="grants_editor_prod")
     st.session_state["academic_grants_prod"] = grants
 
     valid_pubs = pubs.dropna(subset=["Title"]) if not pubs.empty else pd.DataFrame(columns=["Title", "Venue", "Year", "Citations"])
@@ -530,7 +530,7 @@ def render_field_surveillance():
 
     with sub_mcr:
         gis_df = get_mcr_surveillance_df()
-        st.dataframe(gis_df, use_container_width=True, hide_index=True)
+        st.dataframe(gis_df, width='stretch', hide_index=True)
 
         if PLOTLY_AVAILABLE and not gis_df.empty:
             fig = px.scatter_mapbox(
@@ -539,7 +539,7 @@ def render_field_surveillance():
                 zoom=11, height=420, title="mcr Gene Distribution — Arua Region Field Samples",
             )
             fig.update_layout(mapbox_style="carto-darkmatter", paper_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         elif not gis_df.empty:
             st.map(gis_df[["latitude", "longitude"]])
 
@@ -588,14 +588,14 @@ def render_field_surveillance():
                     st.rerun()
 
         with col_p2:
-            st.dataframe(ppwr_df, use_container_width=True, hide_index=True)
+            st.dataframe(ppwr_df, width='stretch', hide_index=True)
             if PLOTLY_AVAILABLE and not ppwr_df.empty:
                 fig = px.scatter(
                     ppwr_df, x="dra_gap_cm", y="ppwr_kg", size="months_postpartum", color="participant_age",
                     title="Diastasis Recti Gap (cm) vs Postpartum Weight Retention (kg)",
                 )
                 fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             render_export_buttons(ppwr_df, base_name="ppwr_cohort")
 
 
@@ -697,7 +697,7 @@ def render_chaos_lab(df):
         if d2:
             st.markdown("**Correlation dimension by embedding dimension:**")
             st.dataframe(pd.DataFrame({"embedding_dim": list(d2.keys()), "D2": list(d2.values())}),
-                         use_container_width=True, hide_index=True)
+                         width='stretch', hide_index=True)
 
         with st.expander("What do these tests mean?"):
             st.markdown("""

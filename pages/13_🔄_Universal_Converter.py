@@ -1,4 +1,4 @@
-﻿﻿import os
+import os
 import sys
 import io
 import json
@@ -104,7 +104,7 @@ def render_format_tab():
         c3.metric("Memory Footprint", f"{df.memory_usage(deep=True).sum() / 1024:.2f} KB")
 
         st.markdown("#### Dataset Preview")
-        st.dataframe(df.head(5), use_container_width=True, hide_index=True)
+        st.dataframe(df.head(5), width='stretch', hide_index=True)
 
         if st.button("🔄 Execute Format Conversion", key="uc_fmt_convert_upg", type="primary"):
             with st.spinner("Converting dataset schema and payload..."):
@@ -150,7 +150,7 @@ def render_format_tab():
                         results.append({"File": uf.name, "Status": f"❌ Error: {e}"})
 
             results_df = pd.DataFrame(results)
-            st.dataframe(results_df, use_container_width=True, hide_index=True)
+            st.dataframe(results_df, width='stretch', hide_index=True)
 
             success_count = sum(1 for r in results if r["Status"].startswith("✅"))
             if success_count:
@@ -220,7 +220,7 @@ def render_reshape_tab():
         if st.button("↔️ Execute Melt Transformation", key="uc_rs_melt_upg", type="primary"):
             try:
                 result = wide_to_long(df, id_vars=id_cols or [], value_vars=val_cols or [])
-                st.dataframe(result.head(20), use_container_width=True, hide_index=True)
+                st.dataframe(result.head(20), width='stretch', hide_index=True)
                 render_export_buttons(result, base_name="melted_long_format")
             except Exception as e:
                 st.error(f"🚨 Melt Error: {e}")
@@ -232,7 +232,7 @@ def render_reshape_tab():
         if st.button("↔️ Execute Pivot Transformation", key="uc_rs_piv_upg", type="primary"):
             try:
                 result = long_to_wide(df, id_col, var_col, val_col)
-                st.dataframe(result.head(20), use_container_width=True, hide_index=True)
+                st.dataframe(result.head(20), width='stretch', hide_index=True)
                 render_export_buttons(result, base_name="pivoted_wide_format")
             except Exception as e:
                 st.error(f"🚨 Pivot Error: {e}")
@@ -241,7 +241,7 @@ def render_reshape_tab():
         if st.button("↕️ Execute Matrix Transposition", key="uc_rs_tp_upg", type="primary"):
             try:
                 result = transpose_df(df)
-                st.dataframe(result.head(20), use_container_width=True, hide_index=True)
+                st.dataframe(result.head(20), width='stretch', hide_index=True)
                 render_export_buttons(result, base_name="transposed_matrix")
             except Exception as e:
                 st.error(f"🚨 Transposition Error: {e}")
@@ -251,7 +251,7 @@ def render_reshape_tab():
         if st.button("📚 Execute Column Stacking", key="uc_rs_stk_upg", type="primary"):
             try:
                 result = stack_columns(df, cols or list(df.columns))
-                st.dataframe(result.head(20), use_container_width=True, hide_index=True)
+                st.dataframe(result.head(20), width='stretch', hide_index=True)
                 render_export_buttons(result, base_name="stacked_columns")
             except Exception as e:
                 st.error(f"🚨 Stacking Error: {e}")
@@ -465,7 +465,7 @@ def render_schema_inspector_tab():
         "Null Ratio (%)": (df.isnull().sum().values / len(df) * 100).round(2),
         "Unique Values": [df[col].nunique() for col in df.columns]
     })
-    st.dataframe(schema_df, use_container_width=True, hide_index=True)
+    st.dataframe(schema_df, width='stretch', hide_index=True)
 
 
 def main():

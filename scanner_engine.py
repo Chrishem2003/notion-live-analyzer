@@ -1,4 +1,4 @@
-﻿"""
+"""
 CHRISHEM Advanced Scanner Suite
 ===============================
 Production-grade scanning engines that power the Threat & Scanner hub.

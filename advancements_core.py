@@ -1,4 +1,4 @@
-﻿
+
 # ============================================================================
 # SOVEREIGN ENGINE: 50 ADVANCEMENTS EXTENSION SUITE
 # ============================================================================
@@ -61,4 +61,4 @@ class SovereignAdvancementsEngine:
                     '[47] Secure Anonymization & Differential Privacy', '[48] REPL Command Line Parsing Hub',
                     '[49] Batch Parallel Sweep Engine', '[50] Enterprise Sovereign Master Control'
                 ]
-                st.dataframe(pd.DataFrame(adv_list, columns=['Registered Advancement Feature']), use_container_width=True)
+                st.dataframe(pd.DataFrame(adv_list, columns=['Registered Advancement Feature']), width='stretch')

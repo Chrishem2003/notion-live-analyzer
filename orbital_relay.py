@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -24,7 +24,7 @@ def render_orbital_relay_panel():
     st.caption("Next-generation satellite constellation tracking, deep-space relay synchronization, and ultra-high-bandwidth atmospheric downlinks.")
 
     df_orbital = get_orbital_telemetry()
-    st.dataframe(df_orbital, use_container_width=True)
+    st.dataframe(df_orbital, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:

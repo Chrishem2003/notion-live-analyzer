@@ -1,4 +1,4 @@
-﻿﻿import io
+import io
 import os
 import sys
 import json
@@ -159,7 +159,7 @@ def render_cve_tab():
         vulnerabilities = result.get("vulnerabilities", [])
         if vulnerabilities:
             df_vuln = pd.DataFrame(vulnerabilities)
-            st.dataframe(df_vuln, use_container_width=True, hide_index=True)
+            st.dataframe(df_vuln, width='stretch', hide_index=True)
             render_export_buttons(df_vuln, base_name="cve_vulnerability_report")
         else:
             st.success("✅ All dependencies are up to date with zero known CVE advisories.")
@@ -216,7 +216,7 @@ def render_integrity_tab():
             else:
                 st.warning(f"⚠️ **{result.get('verdict', 'MODIFICATIONS DETECTED')}**")
                 if changes := result.get("changes", []):
-                    st.dataframe(pd.DataFrame(changes), use_container_width=True, hide_index=True)
+                    st.dataframe(pd.DataFrame(changes), width='stretch', hide_index=True)
 
 
 def render_port_tab():
@@ -243,7 +243,7 @@ def render_port_tab():
 
         if open_ports := result.get("open_ports", []):
             df_ports = pd.DataFrame([r for r in result.get("results", []) if r.get("status") == "OPEN"])
-            st.dataframe(df_ports, use_container_width=True, hide_index=True)
+            st.dataframe(df_ports, width='stretch', hide_index=True)
             render_export_buttons(df_ports, base_name=f"port_scan_{target}")
         else:
             st.success("✅ No open ports discovered.")

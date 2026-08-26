@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import random
@@ -25,7 +25,7 @@ def render_neural_sentinel_panel():
     st.caption("Next-generation AI anomaly detection engine engineered to autonomously secure runtime clusters worldwide.")
 
     df_neural = get_neural_telemetry()
-    st.dataframe(df_neural, use_container_width=True)
+    st.dataframe(df_neural, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:

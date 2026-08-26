@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -24,7 +24,7 @@ def render_biodefense_panel():
     st.caption("Real-time environmental surveillance, waterborne pathogen tracking, and genomic antimicrobial resistance profiling.")
 
     df_bio = get_pathogen_surveillance_data()
-    st.dataframe(df_bio, use_container_width=True)
+    st.dataframe(df_bio, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:

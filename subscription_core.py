@@ -1,4 +1,4 @@
-﻿"""
+"""
 subscription_core.py  pure, dependency-light trial/subscription/access logic.
 
 This module is the SINGLE source of truth for "can this user use paid

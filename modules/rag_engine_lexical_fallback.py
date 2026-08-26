@@ -1,4 +1,4 @@
-﻿"""
+"""
 rag_engine.py — Hybrid vector + graph retrieval, so the agent swarm's
 Research node (agents.py) can search documents you've actually ingested,
 not just CrossRef.

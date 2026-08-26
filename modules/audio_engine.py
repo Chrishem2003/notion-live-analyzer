@@ -1,4 +1,4 @@
-﻿"""
+"""
 Brain-Sync Focus Engine — real audio, honestly labeled
 =========================================================
 Two real sound sources, no fake catalog inflation:

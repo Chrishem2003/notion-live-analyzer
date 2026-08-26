@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -36,7 +36,7 @@ def render_workflow_scheduler_panel():
     st.markdown("---")
     st.markdown("###  Active Workflow Execution Queue")
     df_workflows = get_scheduled_workflows()
-    st.dataframe(df_workflows, use_container_width=True)
+    st.dataframe(df_workflows, width='stretch')
 
     col_a, col_b = st.columns(2)
     with col_a:

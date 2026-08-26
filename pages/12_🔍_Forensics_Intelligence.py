@@ -1,4 +1,4 @@
-﻿﻿import hashlib
+import hashlib
 import io
 import json
 import datetime
@@ -110,7 +110,7 @@ def render_evidence_lab_tab() -> None:
             {"Algorithm": "Payload Size", "Value": f"{hashes.get('size_bytes', len(data)):,} bytes"},
         ]
     )
-    st.dataframe(hash_df, use_container_width=True, hide_index=True)
+    st.dataframe(hash_df, width='stretch', hide_index=True)
 
     st.markdown("#### 🧪 Magic Byte Signature & Extension Anomaly Detection")
     det = report.get("signature_detection", {}) or {}
@@ -169,7 +169,7 @@ def render_evidence_lab_tab() -> None:
             }
         ))
         fig.update_layout(height=220, margin=dict(t=30, b=10, l=20, r=20), paper_bgcolor="rgba(0,0,0,0)", font={'color': "white"})
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     st.markdown("#### 📦 Export Cryptographic Evidence Dossier")
     dossier = json.dumps(report, indent=2, default=str)

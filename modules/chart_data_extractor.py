@@ -1,4 +1,4 @@
-﻿
+
 """
 Visual Chart Data Extractor & CSV Re-Synthesizer
 A vision pipeline that extracts buried quantitative data from static PDF charts,
@@ -25,9 +25,9 @@ import pandas as pd
 from PIL import Image
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # 1. CHART DATA EXTRACTOR ENGINE
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class ChartDataExtractor:
     """
     Extract quantitative data from chart images using pixel analysis.
@@ -234,9 +234,9 @@ class ChartDataExtractor:
         return df.to_json(orient="records", indent=2)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # 2. UI RENDERER
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def render_chart_data_extractor_ui():
     """Render the Chart Data Extractor UI."""
     import streamlit as st
@@ -245,12 +245,12 @@ def render_chart_data_extractor_ui():
     st.markdown("##  Visual Chart Data Extractor & CSV Re-Synthesizer")
     st.markdown("*Extract numerical data from charts and figures + reconstruct raw datasets from static images*")
 
-    tab1, tab2, tab3 = st.tabs(["📤 Extract from Image", "✏️ Manual Description", "📋 Export Data"])
+    tab1, tab2, tab3 = st.tabs(["ðŸ“¤ Extract from Image", "âœï¸ Manual Description", "ðŸ“‹ Export Data"])
 
     extractor = ChartDataExtractor()
 
     with tab1:
-        st.subheader("📤 Upload Chart Image")
+        st.subheader("ðŸ“¤ Upload Chart Image")
         st.info("Upload a chart image (PNG, JPG) to extract the underlying numerical data. For best results, use clear charts with labeled axes.")
 
         uploaded_file = st.file_uploader(
@@ -268,10 +268,10 @@ def render_chart_data_extractor_ui():
 
         if uploaded_file is not None:
             image_bytes = uploaded_file.read()
-            st.image(image_bytes, caption="Uploaded Chart", use_container_width=True)
+            st.image(image_bytes, caption="Uploaded Chart", width='stretch')
 
             # Manual calibration UI
-            st.subheader("📐 Axis Calibration")
+            st.subheader("ðŸ“ Axis Calibration")
             st.markdown("Provide at least 2 calibration points to map pixels to data values.")
 
             with st.form("calibration_form"):
@@ -295,7 +295,7 @@ def render_chart_data_extractor_ui():
                 with c4:
                     yv2 = st.number_input("Point 2 - Y value", value=100.0, key="cal_yv2")
 
-                submitted = st.form_submit_button("🔍 Extract Data", type="primary", use_container_width=True)
+                submitted = st.form_submit_button("ðŸ” Extract Data", type="primary", width='stretch')
 
                 if submitted:
                     calibration = [
@@ -311,32 +311,32 @@ def render_chart_data_extractor_ui():
                         st.error(result["error"])
                     else:
                         st.session_state["_extracted_chart_data"] = result
-                        st.success("✅ Data extracted successfully!")
+                        st.success("âœ… Data extracted successfully!")
 
             # Show current extraction if available
             result = st.session_state.get("_extracted_chart_data")
             if result and result.get("reconstructed_df") is not None:
                 df = result["reconstructed_df"]
                 st.subheader(" Reconstructed Data")
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.dataframe(df, width='stretch', hide_index=True)
 
                 chart_tab1, chart_tab2 = st.columns(2)
                 with chart_tab1:
                     if "Category" in df.columns and "Value" in df.columns:
                         fig = px.bar(df, x="Category", y="Value", error_y="Error" if "Error" in df.columns else None,
                                     title="Reconstructed Chart", color_discrete_sequence=["#1 + d4ed8"])
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width='stretch')
                 with chart_tab2:
                     if "X" in df.columns and "Y" in df.columns:
                         fig = px.scatter(df, x="X", y="Y", trendline="ols",
                                         title="Reconstructed Scatter", color_discrete_sequence=["#1 + d4ed8"])
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width='stretch')
 
         else:
-            st.info("👆 Upload a chart image to begin extraction.")
+            st.info("ðŸ‘† Upload a chart image to begin extraction.")
 
     with tab2:
-        st.subheader("✏️ Enter Chart Description")
+        st.subheader("âœï¸ Enter Chart Description")
         st.markdown("Describe your chart data as structured text (one data point per line):")
 
         description = st.text_area(
@@ -363,31 +363,31 @@ Point 3, 4.0, 6.1""",
             key="desc_chart_type",
         )
 
-        if st.button(" Parse Description", type="primary", use_container_width=True) and description.strip():
+        if st.button(" Parse Description", type="primary", width='stretch') and description.strip():
             with st.spinner("Parsing description..."):
                 df = extractor.extract_from_description(description, desc_chart_type)
 
             if not df.empty:
                 st.session_state["_extracted_chart_data_desc"] = df
-                st.success(f"✅ Parsed {len(df)} data points!")
+                st.success(f"âœ… Parsed {len(df)} data points!")
 
-                st.subheader("📋 Parsed Data")
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.subheader("ðŸ“‹ Parsed Data")
+                st.dataframe(df, width='stretch', hide_index=True)
 
                 import plotly.express as px
                 if "Label" in df.columns and "Value" in df.columns:
                     fig = px.bar(df, x="Label", y="Value", title="Parsed Chart Data",
                                 color_discrete_sequence=["#1 + d4ed8"])
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
                 elif "X" in df.columns and "Y" in df.columns:
                     fig = px.scatter(df, x="X", y="Y", trendline="ols",
                                     title="Parsed Scatter Data", color_discrete_sequence=["#1 + d4ed8"])
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
             else:
                 st.warning("Could not parse data from description. Use format: Label: Value or X, Y per line.")
 
     with tab3:
-        st.subheader("📋 Export Reconstructed Data")
+        st.subheader("ðŸ“‹ Export Reconstructed Data")
 
         # Get data from either source
         result = st.session_state.get("_extracted_chart_data", {})
@@ -401,9 +401,9 @@ Point 3, 4.0, 6.1""",
 
         if df is not None and not df.empty:
             st.subheader(" Current Dataset")
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            st.dataframe(df, width='stretch', hide_index=True)
 
-            st.subheader("📥 Export Options")
+            st.subheader("ðŸ“¥ Export Options")
             col1, col2, col3 = st.columns(3)
 
             with col1:
@@ -412,7 +412,7 @@ Point 3, 4.0, 6.1""",
                 st.markdown(
                     f'<a href="data:text/csv;base64,{b64}" download="extracted_data.csv" '
                     f'style="display:inline-block;padding:10 + px 20 + px;background:#1 + d4ed8;color:white;'
-                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">📥 Download CSV</a>',
+                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download CSV</a>',
                     unsafe_allow_html=True,
                 )
 
@@ -422,15 +422,15 @@ Point 3, 4.0, 6.1""",
                 st.markdown(
                     f'<a href="data:application/json;base64,{b64}" download="extracted_data.json" '
                     f'style="display:inline-block;padding:10 + px 20 + px;background:#059669;color:white;'
-                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">📥 Download JSON</a>',
+                    f'border-radius:8 + px;text-decoration:none;font-weight:600;">ðŸ“¥ Download JSON</a>',
                     unsafe_allow_html=True,
                 )
 
             with col3:
-                if st.button(" Use for Analysis", use_container_width=True):
+                if st.button(" Use for Analysis", width='stretch'):
                     st.session_state["active_df"] = df
                     st.session_state["data_source"] = "chart_extracted"
-                    st.success("✅ Loaded into active dataset! Navigate to other pages to analyze.")
+                    st.success("âœ… Loaded into active dataset! Navigate to other pages to analyze.")
         else:
             st.info("No extracted data available. Extract data from an image or description first.")
 

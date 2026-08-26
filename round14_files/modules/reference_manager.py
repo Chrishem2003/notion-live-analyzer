@@ -1,4 +1,4 @@
-﻿"""
+"""
 Reference Manager — real, persistent citation & literature library.
 
 Scope, stated honestly up front: this is a genuine, working reference

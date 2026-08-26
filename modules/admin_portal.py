@@ -1,4 +1,4 @@
-﻿
+
 """Admin Portal  Developer Management Console."""
 import os
 import hashlib
@@ -12,9 +12,9 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ADMIN CONFIGURATION
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
@@ -35,9 +35,9 @@ def _get_service_headers() -> dict:
         "Content-Type": "application/json",
     }
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ADMIN AUTHENTICATION
-# ═════════════════════════════════════════════════════════=============
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•=============
 
 def is_admin() -> bool:
     """
@@ -45,7 +45,7 @@ def is_admin() -> bool:
 
     Precedence:
       1. Verified authenticated role in session state (set by a real login/
-         auth flow after verifying a hashed password — do not set this from
+         auth flow after verifying a hashed password â€” do not set this from
          client input alone).
       2. Matching ADMIN_KEY supplied as a server-side secret (legacy).
       3. Current user email in the configured ADMIN_EMAILS whitelist
@@ -54,7 +54,7 @@ def is_admin() -> bool:
     The email whitelist is a *server-side* check on the current session's
     email, not a client-only UI toggle.
     """
-    # Check in session state first — this must have been set server-side by
+    # Check in session state first â€” this must have been set server-side by
     # a verified login flow.
     if st.session_state.get("is_admin"):
         return True
@@ -77,15 +77,15 @@ def require_admin(func):
     """Decorator to require admin access."""
     def wrapper(*args, **kwargs):
         if not is_admin():
-            st.error("🔒 This page requires admin access")
+            st.error("ðŸ”’ This page requires admin access")
             st.info("Contact the administrator for access.")
             return None
         return func(*args, **kwargs)
     return wrapper
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # USER MANAGEMENT
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def get_all_users(limit: int = 100) -> List[Dict]:
     """Fetch all users from database."""
@@ -189,9 +189,9 @@ def _get_demo_users() -> List[Dict]:
         },
     ]
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ANALYTICS & TELEMETRY
-# ═════════════════════════════════════════════════════════==============
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•==============
 
 def get_analytics() -> Dict[str, Any]:
     """Get platform analytics."""
@@ -243,14 +243,14 @@ def get_recent_activity(hours: int = 24) -> List[Dict]:
     
     return []
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # STREAMLIT UI
-# ═════════════════════════════════════════════════════════==============
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•==============
 
 @require_admin
 def render_admin_portal():
     """Render the admin dashboard."""
-    st.title("🔧 Admin Portal")
+    st.title("ðŸ”§ Admin Portal")
     st.markdown("---")
     
     # Analytics overview
@@ -273,7 +273,7 @@ def render_admin_portal():
     st.divider()
     
     # User management
-    st.subheader("👥 User Management")
+    st.subheader("ðŸ‘¥ User Management")
     
     users = get_all_users()
     df = pd.DataFrame(users)
@@ -294,11 +294,11 @@ def render_admin_portal():
         # Display user table
         st.dataframe(
             df[["email", "tier", "subscription_status", "created_at", "african_verified", "notion_claimed"]].head(50),
-            use_container_width=True,
+            width='stretch',
         )
         
         # User actions
-        st.subheader("⚡ User Actions")
+        st.subheader("âš¡ User Actions")
         
         col1, col2 = st.columns(2)
         with col1:
@@ -318,7 +318,7 @@ def render_admin_portal():
     st.divider()
     
     # Promo codes
-    st.subheader("🎟️ Promo Codes")
+    st.subheader("ðŸŽŸï¸ Promo Codes")
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -335,7 +335,7 @@ def render_admin_portal():
     st.divider()
     
     # Manual operations
-    st.subheader("🔧 Manual Operations")
+    st.subheader("ðŸ”§ Manual Operations")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -349,13 +349,13 @@ def render_admin_portal():
     
     # Back to main app
     st.divider()
-    if st.button("← Back to Main App"):
+    if st.button("â† Back to Main App"):
         st.session_state["page"] = "main"
         st.rerun()
 
 def render_admin_login():
     """Render admin login screen."""
-    st.title("🔐 Admin Access")
+    st.title("ðŸ” Admin Access")
     
     st.info("Enter admin credentials to access the management console.")
     

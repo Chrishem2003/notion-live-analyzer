@@ -1,4 +1,4 @@
-﻿﻿"""
+﻿"""
 Page Bootstrap Module
 Handles global page configuration, layout, and shared styling across all pages.
 Colors are driven by theme.get_theme() so dark/light mode actually applies

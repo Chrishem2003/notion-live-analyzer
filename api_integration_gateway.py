@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -36,7 +36,7 @@ def render_api_gateway_panel():
     st.markdown("---")
     st.markdown("###  Active Integration Endpoints & Webhooks")
     df_api = get_api_endpoints_matrix()
-    st.dataframe(df_api, use_container_width=True)
+    st.dataframe(df_api, width='stretch')
 
     col_a, col_b = st.columns(2)
     with col_a:

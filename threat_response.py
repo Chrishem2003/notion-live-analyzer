@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -23,7 +23,7 @@ def render_threat_response_panel():
     st.caption("Real-time automated threat neutralization, IP blacklisting, and instant cluster lockdown controls.")
 
     df_incidents = get_recent_incidents()
-    st.dataframe(df_incidents, use_container_width=True)
+    st.dataframe(df_incidents, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:

@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import random
@@ -24,7 +24,7 @@ def render_global_ping_panel():
     st.caption("Real-time distributed network monitoring across international cluster gateways.")
 
     df_nodes = get_global_node_metrics()
-    st.dataframe(df_nodes, use_container_width=True)
+    st.dataframe(df_nodes, width='stretch')
 
     if st.button("Run Global Ping Synchronization"):
         log_backend_event("INFO", "User triggered global edge node latency sweep.")

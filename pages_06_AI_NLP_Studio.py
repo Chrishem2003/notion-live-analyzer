@@ -1,11 +1,11 @@
-﻿import os
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-💬 AI & NLP Studio — Consolidated AI & Text Analytics Hub (Premium)
+ðŸ’¬ AI & NLP Studio â€” Consolidated AI & Text Analytics Hub (Premium)
 Text mining, real sentiment analysis, a genuine natural-language-to-query engine, data-grounded
 research synthesis (TF-IDF + KMeans clustering, not canned text), a dataset-grounded methodology
 checklist, and real browser-based text-to-speech.
@@ -86,9 +86,9 @@ def get_df():
     return df
 
 
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Text mining & real sentiment
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 _POSITIVE_WORDS = set("great excellent outstanding good fast high reliable seamless clear impressive robust "
                        "exceptional optimal love best amazing wonderful helpful efficient smooth intuitive "
                        "responsive stable accurate easy simple flexible powerful strong".split())
@@ -122,18 +122,18 @@ def score_sentiment(text: str):
 
 
 def render_text_analysis(df):
-    section_header("💬 Advanced Text Mining & Sentiment Intelligence", "Extract keyword frequencies, sentiment polarities, and semantic n-gram phrase structures.")
+    section_header("ðŸ’¬ Advanced Text Mining & Sentiment Intelligence", "Extract keyword frequencies, sentiment polarities, and semantic n-gram phrase structures.")
     if not VADER_AVAILABLE:
-        st.caption("ℹ️ Using a built-in word-boundary-safe lexicon for sentiment — the more accurate compound-score engine will activate automatically once available in this deployment.")
+        st.caption("â„¹ï¸ Using a built-in word-boundary-safe lexicon for sentiment â€” the more accurate compound-score engine will activate automatically once available in this deployment.")
 
     text_cols = list(df.select_dtypes(include=["object", "string"]).columns)
     if not text_cols:
-        st.warning("⚠️ No text columns detected in the active dataset.")
+        st.warning("âš ï¸ No text columns detected in the active dataset.")
         return
 
     col = st.selectbox("Select Text Corpus Column", text_cols, key="nlp_text_col_upg")
 
-    tab_freq, tab_sent, tab_ngram = st.tabs(["🔤 Keyword Frequency", "😊 Sentiment Engine", "🔗 N-Gram Phrase Mining"])
+    tab_freq, tab_sent, tab_ngram = st.tabs(["ðŸ”¤ Keyword Frequency", "ðŸ˜Š Sentiment Engine", "ðŸ”— N-Gram Phrase Mining"])
 
     with tab_freq:
         st.markdown("#### High-Frequency Token Analysis")
@@ -144,19 +144,19 @@ def render_text_analysis(df):
 
         col1, col2 = st.columns([1, 1])
         with col1:
-            st.dataframe(freq, use_container_width=True, hide_index=True)
+            st.dataframe(freq, width='stretch', hide_index=True)
         with col2:
             if PLOTLY_AVAILABLE:
                 fig = px.bar(freq.head(10), x="Frequency", y="Keyword", orientation="h", template="plotly_dark", height=380)
                 fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=20, b=0))
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.bar_chart(freq.set_index("Keyword").head(10))
 
     with tab_sent:
         st.markdown("#### Sentiment Polarity Audit" + (" (VADER)" if VADER_AVAILABLE else " (Lexicon Fallback)"))
 
-        if st.button("😊 Run Sentiment Audit", type="primary", key="run_sentiment_upg"):
+        if st.button("ðŸ˜Š Run Sentiment Audit", type="primary", key="run_sentiment_upg"):
             scored = df[col].dropna().astype(str).apply(score_sentiment)
             df.loc[scored.index, "_sentiment_label"] = scored.apply(lambda t: t[0])
             df.loc[scored.index, "_sentiment_score"] = scored.apply(lambda t: t[1])
@@ -170,14 +170,14 @@ def render_text_analysis(df):
             if PLOTLY_AVAILABLE:
                 fig = px.pie(names=counts.index, values=counts.values, hole=0.4, template="plotly_dark", height=300)
                 fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=20, b=0))
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
                 fig2 = px.histogram(df.dropna(subset=["_sentiment_score"]), x="_sentiment_score", nbins=20, template="plotly_dark", height=280, title="Compound Sentiment Score Distribution")
                 fig2.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=0, r=0, t=40, b=0))
-                st.plotly_chart(fig2, use_container_width=True)
+                st.plotly_chart(fig2, width='stretch')
 
             result_view = df[[col, "_sentiment_label", "_sentiment_score"]].dropna(subset=["_sentiment_label"])
-            st.dataframe(result_view, use_container_width=True, hide_index=True)
+            st.dataframe(result_view, width='stretch', hide_index=True)
             render_export_buttons(result_view, base_name="sentiment_scored_records")
 
     with tab_ngram:
@@ -189,17 +189,17 @@ def render_text_analysis(df):
         phrases = [" ".join(words[i:i+n]) for i in range(len(words) - n + 1)]
         freq = pd.Series(phrases).value_counts().head(12).reset_index()
         freq.columns = ["Phrase", "Frequency Count"]
-        st.dataframe(freq, use_container_width=True, hide_index=True)
+        st.dataframe(freq, width='stretch', hide_index=True)
 
 
 def render_ai_insights(df):
-    section_header("🤖 AI Insights & Executive Intelligence Reporting", "Automated exploratory data profiling, collinearity detection, and executive brief compilation.")
+    section_header("ðŸ¤– AI Insights & Executive Intelligence Reporting", "Automated exploratory data profiling, collinearity detection, and executive brief compilation.")
 
     rows, cols = df.shape
     missing = int(df.isnull().sum().sum())
     numeric_df = df.select_dtypes(include=[np.number])
 
-    st.markdown("### 📊 Automated Structural Findings")
+    st.markdown("### ðŸ“Š Automated Structural Findings")
     insights = []
     insights.append(f"**Dataset Architecture:** Dimensions of `{rows:,}` rows by `{cols}` features.")
     if missing > 0:
@@ -223,7 +223,7 @@ def render_ai_insights(df):
     for ins in insights:
         st.markdown(f"""<div style="background:{t['bg_card']}; border-left:4px solid {t['accent']}; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; color:{t['text_primary']};">{ins}</div>""", unsafe_allow_html=True)
 
-    st.markdown("### 📄 Executive Report Generation")
+    st.markdown("### ðŸ“„ Executive Report Generation")
     report = f"""# EXECUTIVE DATA INTELLIGENCE REPORT
 **Generated timestamp:** {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
 **Active Source:** {st.session_state.get('source_name', 'active_dataset.csv')}
@@ -239,12 +239,12 @@ def render_ai_insights(df):
     for i in insights:
         report += f"- {i}\n"
 
-    st.download_button("⬇️ Download Enterprise Markdown Report", data=report, file_name="executive_intelligence_report.md", mime="text/markdown", use_container_width=True)
+    st.download_button("â¬‡ï¸ Download Enterprise Markdown Report", data=report, file_name="executive_intelligence_report.md", mime="text/markdown", width='stretch')
 
 
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Real NL-to-query engine (rule-based, no LLM)
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 _AGG_WORDS = {
     "average": "mean", "avg": "mean", "mean": "mean",
     "sum": "sum", "total": "sum",
@@ -326,9 +326,9 @@ def parse_and_execute_nl_query(query: str, df: pd.DataFrame):
 
 
 def render_nl_query(df):
-    section_header("💬 Natural Language Query Console", "A rule-based NL-to-pandas engine — it recognizes common analytical question patterns and computes the real answer from the active dataset.")
+    section_header("ðŸ’¬ Natural Language Query Console", "A rule-based NL-to-pandas engine â€” it recognizes common analytical question patterns and computes the real answer from the active dataset.")
 
-    with st.expander("ℹ️ Supported question patterns"):
+    with st.expander("â„¹ï¸ Supported question patterns"):
         st.markdown(
             "- `how many rows are there`\n"
             "- `average of <column>` / `sum of <column>` / `max of <column>` / `median of <column>`\n"
@@ -339,27 +339,27 @@ def render_nl_query(df):
 
     query = st.text_area("Enter your analytical question", placeholder="e.g., average Metric_Value by Category", key="nl_query_input_upg")
 
-    if st.button("🔍 Execute Query", type="primary", key="run_nl_query_upg"):
+    if st.button("ðŸ” Execute Query", type="primary", key="run_nl_query_upg"):
         if not query.strip():
-            st.warning("⚠️ Please provide a valid query string.")
+            st.warning("âš ï¸ Please provide a valid query string.")
         else:
             kind, payload, caption = parse_and_execute_nl_query(query, df)
             if kind == "metric":
-                st.success(f"✅ {caption}")
+                st.success(f"âœ… {caption}")
                 st.metric(caption, payload)
             elif kind == "table":
-                st.success(f"✅ {caption}")
-                st.dataframe(payload, use_container_width=True, hide_index=True)
+                st.success(f"âœ… {caption}")
+                st.dataframe(payload, width='stretch', hide_index=True)
                 render_export_buttons(payload, base_name="nl_query_result")
             elif kind == "error":
-                st.error(f"🚫 {payload}")
+                st.error(f"ðŸš« {payload}")
             else:
-                st.warning("⚠️ Couldn't match this question to a supported pattern — see the examples above.")
+                st.warning("âš ï¸ Couldn't match this question to a supported pattern â€” see the examples above.")
 
 
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Real thematic synthesis (TF-IDF + KMeans) & data-grounded checklist
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def _tfidf_kmeans_themes(texts: list, n_clusters: int):
     n_clusters = max(1, min(n_clusters, len(texts)))
     vectorizer = TfidfVectorizer(stop_words="english", max_features=300, min_df=1)
@@ -383,19 +383,19 @@ def _keyword_frequency_themes(texts: list, top_n: int = 4):
 
 
 def render_synth_and_gap(df):
-    section_header("🔬 Research Synthesis & Methodology Checklist", "Data-derived thematic clustering of your text corpus, and a dataset-grounded methodology checklist.")
+    section_header("ðŸ”¬ Research Synthesis & Methodology Checklist", "Data-derived thematic clustering of your text corpus, and a dataset-grounded methodology checklist.")
 
-    tab_synth, tab_gap = st.tabs(["🧩 Research Synthesizer", "💡 Methodology Checklist"])
+    tab_synth, tab_gap = st.tabs(["ðŸ§© Research Synthesizer", "ðŸ’¡ Methodology Checklist"])
 
     with tab_synth:
         st.markdown("#### Data-Derived Thematic Clustering")
         if not SKLEARN_TEXT_AVAILABLE:
-            st.caption("ℹ️ `scikit-learn` not available — using keyword-frequency grouping as a fallback.")
+            st.caption("â„¹ï¸ `scikit-learn` not available â€” using keyword-frequency grouping as a fallback.")
         text_cols = list(df.select_dtypes(include=["object", "string"]).columns)
         if text_cols:
             col = st.selectbox("Select Text Column to Synthesize", text_cols, key="synth_col_upg")
             n_clusters = st.slider("Number of Themes", 2, 8, 4, key="synth_n_clusters")
-            if st.button("🧩 Synthesize Corpus Findings", type="primary", key="run_synth_upg"):
+            if st.button("ðŸ§© Synthesize Corpus Findings", type="primary", key="run_synth_upg"):
                 texts = df[col].dropna().astype(str).tolist()
                 if len(texts) < 2:
                     st.warning("Need at least 2 non-empty text records to cluster.")
@@ -403,24 +403,24 @@ def render_synth_and_gap(df):
                     if SKLEARN_TEXT_AVAILABLE:
                         labels, themes_df = _tfidf_kmeans_themes(texts, n_clusters)
                         st.markdown(f"**Derived {len(themes_df)} theme cluster(s) from {len(texts)} records via TF-IDF + KMeans:**")
-                        st.dataframe(themes_df, use_container_width=True, hide_index=True)
+                        st.dataframe(themes_df, width='stretch', hide_index=True)
                         cluster_choice = st.selectbox("View example records from cluster", themes_df["Cluster"].tolist(), key="synth_cluster_view")
                         examples = [t for t, l in zip(texts, labels) if l == cluster_choice][:5]
                         for ex in examples:
                             st.markdown(f"> {ex}")
                     else:
                         themes_df = _keyword_frequency_themes(texts, n_clusters)
-                        st.dataframe(themes_df, use_container_width=True, hide_index=True)
+                        st.dataframe(themes_df, width='stretch', hide_index=True)
                     render_export_buttons(themes_df, base_name="research_synthesis_themes")
         else:
-            st.info("⚠️ Requires a text column in the dataset.")
+            st.info("âš ï¸ Requires a text column in the dataset.")
 
     with tab_gap:
         st.markdown("#### Dataset-Grounded Methodology Checklist")
         st.caption("This is a heuristic checklist derived from properties of your *actual loaded dataset*.")
         domain = st.selectbox("Research Domain Context (for labeling only)", ["Bioinformatics & Genomics", "Clinical Trials & Health", "Agritech & Food Security", "Artificial Intelligence & ML", "Educational Analytics", "General"], key="gap_domain_upg")
 
-        if st.button("💡 Generate Checklist", type="primary", key="run_gap_upg"):
+        if st.button("ðŸ’¡ Generate Checklist", type="primary", key="run_gap_upg"):
             n = len(df)
             datetime_cols = df.select_dtypes(include=["datetime64[ns]", "datetime64[ns, UTC]"]).columns.tolist()
             cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
@@ -429,12 +429,12 @@ def render_synth_and_gap(df):
 
             findings = []
             if n < 100:
-                findings.append(f"**Sample Size:** n={n} is small — statistical power for detecting moderate effects will be limited.")
+                findings.append(f"**Sample Size:** n={n} is small â€” statistical power for detecting moderate effects will be limited.")
             else:
-                findings.append(f"**Sample Size:** n={n:,} — adequate for standard inferential tests.")
+                findings.append(f"**Sample Size:** n={n:,} â€” adequate for standard inferential tests.")
 
             if not datetime_cols:
-                findings.append("**Temporal Coverage:** No datetime column detected — this dataset appears to be a single time-point snapshot.")
+                findings.append("**Temporal Coverage:** No datetime column detected â€” this dataset appears to be a single time-point snapshot.")
             else:
                 span = (df[datetime_cols[0]].max() - df[datetime_cols[0]].min())
                 findings.append(f"**Temporal Coverage:** Datetime column `{datetime_cols[0]}` detected, spanning {span}.")
@@ -454,15 +454,15 @@ def render_synth_and_gap(df):
 
             for f in findings:
                 st.markdown(f"- {f}")
-            st.success("✅ Checklist generated from the properties of your active dataset.")
-            st.download_button("⬇️ Download Checklist (.md)", data="\n".join(f"- {f}" for f in findings), file_name="methodology_checklist.md", mime="text/markdown", key="dl_checklist")
+            st.success("âœ… Checklist generated from the properties of your active dataset.")
+            st.download_button("â¬‡ï¸ Download Checklist (.md)", data="\n".join(f"- {f}" for f in findings), file_name="methodology_checklist.md", mime="text/markdown", key="dl_checklist")
 
 
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Real browser-based text-to-speech (Web Speech API)
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def render_audio():
-    section_header("🎙️ Text-to-Speech Narration Engine", "Real browser-based speech synthesis via the Web Speech API.")
+    section_header("ðŸŽ™ï¸ Text-to-Speech Narration Engine", "Real browser-based speech synthesis via the Web Speech API.")
 
     st.info("This uses your browser's built-in speech synthesis (Web Speech API). Availability and voice selection depend on your browser.")
 
@@ -481,10 +481,10 @@ def render_audio():
         f"""
         <div style="font-family: Inter, sans-serif; color: {t['text_primary']};">
             <button id="speakBtn" style="background:{t['accent_alt']};color:{t['bg_card']};border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;">
-                🔊 Speak Text
+                ðŸ”Š Speak Text
             </button>
             <button id="stopBtn" style="background:{t['border_accent']};color:{t['text_primary']};border:none;border-radius:8px;padding:0.6rem 1.2rem;font-weight:700;cursor:pointer;margin-left:0.5rem;">
-                ⏹ Stop
+                â¹ Stop
             </button>
             <p id="ttsStatus" style="margin-top:0.6rem;color:{t['text_muted']};font-size:0.85rem;"></p>
         </div>
@@ -522,16 +522,16 @@ def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="nlp")
 
-    setup_page("AI & NLP Studio", "💬", initial_sidebar_state="expanded")
+    setup_page("AI & NLP Studio", "ðŸ’¬", initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "💬 AI & NLP Studio — Consolidated AI & Text Analytics Hub (Premium)",
+        "ðŸ’¬ AI & NLP Studio â€” Consolidated AI & Text Analytics Hub (Premium)",
         "Enterprise-grade natural language processing studio featuring text mining, real sentiment analysis, a genuine natural-language-to-query engine, data-derived research synthesis, a dataset-grounded methodology checklist, and real browser-based speech synthesis.",
-        badge_text="AI & NLP STUDIO • PREMIUM TIER",
+        badge_text="AI & NLP STUDIO â€¢ PREMIUM TIER",
     )
 
     render_dataset_context_banner()
@@ -539,11 +539,11 @@ def main():
     df = get_df()
 
     tabs = st.tabs([
-        "💬 Text Mining & Sentiment",
-        "🤖 AI Insights & Reports",
-        "💬 Natural Language Query",
-        "🔬 Research Synthesis & Checklist",
-        "🎙️ Voice & Audio Engine",
+        "ðŸ’¬ Text Mining & Sentiment",
+        "ðŸ¤– AI Insights & Reports",
+        "ðŸ’¬ Natural Language Query",
+        "ðŸ”¬ Research Synthesis & Checklist",
+        "ðŸŽ™ï¸ Voice & Audio Engine",
     ])
 
     with tabs[0]:

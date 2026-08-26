@@ -1,4 +1,4 @@
-﻿"""
+"""
 CHRISHEM Audit & Compliance Forensic Engine
 ===========================================
 50 real, computationally-honest forensic and compliance scanners for

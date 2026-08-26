@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import random
@@ -39,7 +39,7 @@ def render_ai_intelligence_panel():
     st.markdown("---")
     st.markdown("###  Autonomous Cognitive Matrix & Self-Optimization Telemetry")
     df_cognitive = get_autonomous_cognitive_metrics()
-    st.dataframe(df_cognitive, use_container_width=True)
+    st.dataframe(df_cognitive, width='stretch')
 
     st.markdown("---")
     st.markdown("### ? Cognitive Master Command Center")

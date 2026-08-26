@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 from pathlib import Path
 
@@ -471,7 +471,7 @@ def render_system_diagnostics(conn):
         st.error("?? Warning: Blockchain Audit Chain integrity mismatch detected!")
 
     if logs:
-        st.dataframe(pd.DataFrame(logs, columns=["ID", "Timestamp", "Module", "Severity", "Details", "Crypto Hash", "Previous Hash"]), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(logs, columns=["ID", "Timestamp", "Module", "Severity", "Details", "Crypto Hash", "Previous Hash"]), width='stretch', hide_index=True)
     else:
         st.info("?? No system telemetry entries recorded.")
 
@@ -490,7 +490,7 @@ def render_user_management(conn):
         users = auth_conn.execute("SELECT email, name, role, created_at, last_login FROM auth_users ORDER BY created_at DESC").fetchall()
         auth_conn.close()
         if users:
-            st.dataframe(pd.DataFrame(users, columns=["Email", "Name", "Role", "Created", "Last Login"]), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(users, columns=["Email", "Name", "Role", "Created", "Last Login"]), width='stretch', hide_index=True)
         else:
             st.info("?? No registered accounts detected.")
     except Exception as e:
@@ -512,7 +512,7 @@ def render_billing(conn):
         rows = conn2.execute("SELECT email, plan, status, trial_started, trial_ends, current_period_end, stripe_customer_id FROM subscriptions ORDER BY updated_at DESC").fetchall()
         conn2.close()
         if rows:
-            st.dataframe(pd.DataFrame(rows, columns=["Email", "Plan", "Status", "Trial Started", "Trial Ends", "Period End", "Stripe Customer"]), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows, columns=["Email", "Plan", "Status", "Trial Started", "Trial Ends", "Period End", "Stripe Customer"]), width='stretch', hide_index=True)
         else:
             st.info("?? No subscription records found.")
     except Exception as e:
@@ -580,10 +580,10 @@ def render_audit_forensics():
         if PLOTLY_AVAILABLE and not tracks_df.empty:
             st.markdown("#### ?? Student AI Score Distribution & Trace Charts")
             fig_bar = px.bar(tracks_df, x="student_name", y="ai_score", color="assignment_title", title="Student AI Probability Trace Across Assignments", template="plotly_dark", labels={"ai_score": "AI Probability (%)", "student_name": "Student Name"})
-            st.plotly_chart(fig_bar, use_container_width=True)
+            st.plotly_chart(fig_bar, width='stretch')
 
             fig_box = px.box(tracks_df, x="assignment_title", y="ai_score", title="AI Score Spread by Assignment", template="plotly_dark")
-            st.plotly_chart(fig_box, use_container_width=True)
+            st.plotly_chart(fig_box, width='stretch')
 
         st.markdown("---")
         st.markdown("#### ?? Individual Manuscript & Batch Audit Workbench")
@@ -624,7 +624,7 @@ def render_audit_forensics():
             if PLOTLY_AVAILABLE and analysis["sentence_analyses"]:
                 df_lens = pd.DataFrame({"Sentence Index": range(len(analysis["sentence_analyses"])), "Word Length": [x["word_count"] for x in analysis["sentence_analyses"]]})
                 fig = px.bar(df_lens, x="Sentence Index", y="Word Length", title="Sentence Length Variation (Burstiness Traceback)", template="plotly_dark")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
                 
             report_payload = f"""=== AIDIFY CERTIFIED ACADEMIC INTEGRITY REPORT ===
 Timestamp: {datetime.datetime.now(datetime.UTC).isoformat()}
@@ -695,7 +695,7 @@ def render_nexus_vault():
         files = NexusDrive.list_files(user_email)
         if files:
             df_files = pd.DataFrame(files)
-            st.dataframe(df_files, use_container_width=True, hide_index=True)
+            st.dataframe(df_files, width='stretch', hide_index=True)
             
             del_id = st.number_input("Enter File ID to Delete", min_value=0, step=1, key="del_file_id")
             if st.button("??? Delete Selected File"):
@@ -718,7 +718,7 @@ def render_nexus_vault():
                 st.success("? Event added to Calendar.")
         evs = NexusCalendar.all_events(user_email)
         if evs:
-            st.dataframe(pd.DataFrame(evs), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(evs), width='stretch', hide_index=True)
             
     # 3. Meet, Transcripts & HD Camera
     with n_tabs[2]:
@@ -809,7 +809,7 @@ def render_nexus_vault():
             "B (Cost)": [1500, 240, 120],
             "C (Status)": ["Approved", "Active", "Pending"]
         })
-        edited_df = st.data_editor(sample_df, num_rows="dynamic", use_container_width=True)
+        edited_df = st.data_editor(sample_df, num_rows="dynamic", width='stretch')
         if st.button("Save Sheet State"):
             st.success("? Spreadsheet state successfully updated and saved.")
                 
@@ -838,7 +838,7 @@ def render_nexus_vault():
         search_q = st.text_input("Search Contacts")
         contacts = NexusContacts.list_contacts(user_email, search_q)
         if contacts:
-            st.dataframe(pd.DataFrame(contacts), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(contacts), width='stretch', hide_index=True)
             
     # 8. Google Tasks
     with n_tabs[7]:
@@ -852,7 +852,7 @@ def render_nexus_vault():
                 st.success("? Task added.")
         tasks = NexusTasks.list_tasks(user_email, "OPEN")
         if tasks:
-            st.dataframe(pd.DataFrame(tasks), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(tasks), width='stretch', hide_index=True)
             complete_id = st.number_input("Task ID to complete", min_value=0, step=1, key="task_complete_id")
             if st.button("Mark Task Completed"):
                 NexusTasks.update_status(int(complete_id), "DONE")
@@ -909,7 +909,7 @@ def main():
     render_standard_footer("ADMIN & SECURITY CENTER  SOVEREIGN EDITION V4.3")
 
 def main():
-    setup_page("Admin & Security Center", "🔒", initial_sidebar_state="expanded")
+    setup_page("Admin & Security Center", "ðŸ”’", initial_sidebar_state="expanded")
 
     try:
         from modules.user_preferences import render_readability_fix, render_accent_color_css
@@ -923,14 +923,14 @@ def main():
 
     # Define tabs - Aidify Audit and Nexus Workspace are open to all users
     tabs = st.tabs([
-        "📊 Diagnostics (Admin)", 
-        "👥 Users (Admin)", 
-        "💳 Billing (Admin)", 
-        "🛡️ Verification (Admin)", 
-        "🔑 Vault Settings", 
-        "🤖 Aidify Audit Hub", 
-        "📁 Nexus Workspace", 
-        "⚙️ Settings (Admin)"
+        "ðŸ“Š Diagnostics (Admin)", 
+        "ðŸ‘¥ Users (Admin)", 
+        "ðŸ’³ Billing (Admin)", 
+        "ðŸ›¡ï¸ Verification (Admin)", 
+        "ðŸ”‘ Vault Settings", 
+        "ðŸ¤– Aidify Audit Hub", 
+        "ðŸ“ Nexus Workspace", 
+        "âš™ï¸ Settings (Admin)"
     ])
     
     # Admin-Gated Tabs
@@ -977,7 +977,7 @@ def main():
         else:
             st.error("Access Denied: Administrator clearance required for Platform Settings.")
     
-    render_standard_footer("CHRISHEM SOVEREIGN APEX HUB • ADMIN & SECURITY CENTER")
+    render_standard_footer("CHRISHEM SOVEREIGN APEX HUB â€¢ ADMIN & SECURITY CENTER")
 
 if __name__ == "__main__":
     main()

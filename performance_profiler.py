@@ -1,4 +1,4 @@
-﻿
+
 import time
 import sqlite3
 import streamlit as st
@@ -71,5 +71,5 @@ def render_profiler_panel():
 
     if st.button("Run Benchmark Suite"):
         df_bench = run_latency_benchmark()
-        st.dataframe(df_bench, use_container_width=True)
+        st.dataframe(df_bench, width='stretch')
         st.success("Performance benchmark complete. All nodes operating within high-efficiency thresholds.")

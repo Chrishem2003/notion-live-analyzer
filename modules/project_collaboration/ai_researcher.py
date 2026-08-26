@@ -1,4 +1,4 @@
-﻿
+
 """
 AI Co-Researcher & Automation Layer
 Intelligent research assistant that processes meeting transcripts in real-time,
@@ -31,9 +31,9 @@ from enum import Enum
 from typing import Dict, List, Optional, Any, Tuple, Callable, Set
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ENUMS & CONSTANTS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class TranscriptSource(str, Enum):
     LIVE_SPEECH = "live_speech"              # Real-time microphone input
@@ -81,9 +81,9 @@ NOTE_CONTEXT_WINDOW = 5  # number of transcript segments to include in note cont
 SUMMARIZATION_INTERVAL = 50  # generate summary every N transcript segments
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # DATA MODELS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class TranscriptSegment:
     """
@@ -342,9 +342,9 @@ class ResearchContext:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # TRANSCRIPT PROCESSOR
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class TranscriptProcessor:
     """
@@ -743,26 +743,26 @@ class TranscriptProcessor:
 
         summary = (
             f" **Meeting Summary**\n\n"
-            f"**Overview:** {total_segments} segments · {total_words} words · "
+            f"**Overview:** {total_segments} segments Â· {total_words} words Â· "
             f"{len(active_speakers)} active speakers\n\n"
         )
 
         if top_topics:
             summary = "**Key Topics:**\n"
             for t in top_topics[:5]:
-                summary = f"  • {t['topic']} ({t['frequency']} mentions)\n"
+                summary = f"  â€¢ {t['topic']} ({t['frequency']} mentions)\n"
 
         if active_speakers:
             summary = "\n**Speaker Participation:**\n"
             for s in sorted(active_speakers, key=lambda x: x["segments"], reverse=True)[:5]:
-                summary = f"  • {s['name']}: {s['segments']} segments ({s['participation_pct']}%)\n"
+                summary = f"  â€¢ {s['name']}: {s['segments']} segments ({s['participation_pct']}%)\n"
 
         return summary
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ACTION ITEM DETECTOR
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class ActionItemDetector:
     """
@@ -905,9 +905,9 @@ class ActionItemDetector:
         return 0.0
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # AI RESEARCHER  Main Engine
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class AIResearcher:
     """
@@ -974,7 +974,7 @@ class AIResearcher:
             except Exception:
                 pass
 
-    # ── Meeting Lifecycle ───────────────────────────────────────────
+    # â”€â”€ Meeting Lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def start_meeting(self, title: str = "Research Meeting"):
         """Start a new research meeting session."""
@@ -1031,7 +1031,7 @@ class AIResearcher:
                 "last_seen": time.time(),
             }
 
-    # ── Transcript Processing ───────────────────────────────────────
+    # â”€â”€ Transcript Processing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def ingest_transcript(self, text: str, speaker_id: str, speaker_name: str,
                           source: TranscriptSource = TranscriptSource.LIVE_SPEECH,
@@ -1069,19 +1069,19 @@ class AIResearcher:
 
         return segment
 
-    # ── Note Generation ─────────────────────────────────────────────
+    # â”€â”€ Note Generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def _generate_note_from_action(self, action_item: ActionItem,
                                     segment: TranscriptSegment) -> MeetingNote:
         """Generate a structured meeting note from an action item."""
         priority_icon = {
-            ActionItemPriority.CRITICAL: "🔴",
-            ActionItemPriority.HIGH: "🟠",
-            ActionItemPriority.MEDIUM: "🟡",
-            ActionItemPriority.LOW: "🟢",
-        }.get(action_item.priority, "⚪")
+            ActionItemPriority.CRITICAL: "ðŸ”´",
+            ActionItemPriority.HIGH: "ðŸŸ ",
+            ActionItemPriority.MEDIUM: "ðŸŸ¡",
+            ActionItemPriority.LOW: "ðŸŸ¢",
+        }.get(action_item.priority, "âšª")
 
-        assignee = f" → @{action_item.assignee_name}" if action_item.assignee_name else ""
+        assignee = f" â†’ @{action_item.assignee_name}" if action_item.assignee_name else ""
 
         content = (
             f"**Action Item** {priority_icon}\n\n"
@@ -1125,7 +1125,7 @@ class AIResearcher:
         summary = self.transcript_processor.generate_summary()
 
         note = MeetingNote(
-            title=f"⏱️ Progress Update #{self._summary_count}",
+            title=f"â±ï¸ Progress Update #{self._summary_count}",
             content=summary,
             category=NoteCategory.GENERAL,
             generated_by=self.researcher_id,
@@ -1135,7 +1135,7 @@ class AIResearcher:
 
         self._emit("summary_generated", note.to_dict())
 
-    # ── Query Methods ───────────────────────────────────────────────
+    # â”€â”€ Query Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def get_open_action_items(self) -> List[ActionItem]:
         """Get all open/in-progress action items."""
@@ -1180,9 +1180,9 @@ class AIResearcher:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # STREAMLIT UI RENDERER
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_ai_researcher_panel():
     """
@@ -1282,7 +1282,7 @@ def render_ai_researcher_panel():
 
     researcher: Optional[AIResearcher] = st.session_state.get("ai_researcher")
 
-    st.markdown("### 🤖 AI Co-Researcher")
+    st.markdown("### ðŸ¤– AI Co-Researcher")
 
     if not researcher or not researcher.is_recording:
         with st.form("ai_researcher_start"):
@@ -1300,8 +1300,8 @@ def render_ai_researcher_panel():
                                        key="ai_researcher_id")
             with col4:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.form_submit_button("🎙️ Start Recording", type="primary",
-                                         use_container_width=True):
+                if st.form_submit_button("ðŸŽ™ï¸ Start Recording", type="primary",
+                                         width='stretch'):
                     researcher = AIResearcher(project_id, user_id)
                     researcher.start_meeting(meeting_title)
                     st.session_state["ai_researcher"] = researcher
@@ -1313,11 +1313,11 @@ def render_ai_researcher_panel():
         <div class="ai-researcher-container">
             <div class="ai-header">
                 <div>
-                    <span class="ai-badge ai-badge-recording" style="animation:pulse 2s infinite;">● Recording</span>
+                    <span class="ai-badge ai-badge-recording" style="animation:pulse 2s infinite;">â— Recording</span>
                     <span style="color:#f1f5f9;font-weight:600;margin-left:0.75rem;">{researcher.meeting_title}</span>
                 </div>
                 <div style="color:#64748b;font-size:0.8rem;">
-                    {state['duration_display']} · {state['segments_processed']} segments
+                    {state['duration_display']} Â· {state['segments_processed']} segments
                 </div>
             </div>
         </div>
@@ -1336,7 +1336,7 @@ def render_ai_researcher_panel():
             source = st.selectbox("Source", options=[s.value for s in TranscriptSource],
                                   index=0, key="ai_transcript_source")
 
-        if st.button("📝 Process Transcript", type="primary", use_container_width=True) and text:
+        if st.button("ðŸ“ Process Transcript", type="primary", width='stretch') and text:
             researcher.ingest_transcript(
                 text=text,
                 speaker_id=speaker_name.lower().replace(" ", "_"),
@@ -1346,7 +1346,7 @@ def render_ai_researcher_panel():
             st.rerun()
 
         # Quick action button
-        if st.button("🗣️ Simulate Live Meeting (auto-feed)", use_container_width=True):
+        if st.button("ðŸ—£ï¸ Simulate Live Meeting (auto-feed)", width='stretch'):
             demo_texts = [
                 "I think we should analyze the correlation between age and treatment outcome.",
                 "Let's run a multiple regression model controlling for baseline variables.",
@@ -1372,19 +1372,19 @@ def render_ai_researcher_panel():
         # End meeting
         col1, col2, col3 = st.columns([1, 1, 2])
         with col1:
-            if st.button("⏹️ End Meeting", use_container_width=True):
+            if st.button("â¹ï¸ End Meeting", width='stretch'):
                 result = researcher.end_meeting()
-                st.success(f"✅ Meeting ended  {result['duration_display']}")
+                st.success(f"âœ… Meeting ended  {result['duration_display']}")
                 st.rerun()
         with col2:
-            if st.button("🧹 Clear Notes", use_container_width=True):
+            if st.button("ðŸ§¹ Clear Notes", width='stretch'):
                 researcher.notes.clear()
                 researcher.action_items.clear()
                 st.rerun()
 
         # Tabs for different views
         tab1, tab2, tab3, tab4 = st.tabs([
-            "📋 Action Items", "📝 Meeting Notes", " Analytics", "🔬 Research Context"
+            "ðŸ“‹ Action Items", "ðŸ“ Meeting Notes", " Analytics", "ðŸ”¬ Research Context"
         ])
 
         with tab1:
@@ -1400,8 +1400,8 @@ def render_ai_researcher_panel():
                             <span style="color:#64748b;font-size:0.7rem;">{item.confidence:.0%} confidence</span>
                         </div>
                         <div style="color:#64748b;font-size:0.8rem;margin-top:0.25rem;">
-                            Priority: {item.priority.value.upper()} · Status: {item.status.value}
-                            {' · 👤 ' + item.assignee_name if item.assignee_name else ''}
+                            Priority: {item.priority.value.upper()} Â· Status: {item.status.value}
+                            {' Â· ðŸ‘¤ ' + item.assignee_name if item.assignee_name else ''}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1446,13 +1446,13 @@ def render_ai_researcher_panel():
                      "Participation %": s["participation_pct"]}
                     for s in speaker_stats.values()
                 ])
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.dataframe(df, width='stretch', hide_index=True)
 
             st.markdown("### Top Topics")
             topics = researcher.transcript_processor.get_top_topics(10)
             if topics:
                 df_topics = pd.DataFrame(topics)
-                st.dataframe(df_topics, use_container_width=True, hide_index=True)
+                st.dataframe(df_topics, width='stretch', hide_index=True)
             else:
                 st.info("No topics extracted yet.")
 
@@ -1469,9 +1469,9 @@ def render_ai_researcher_panel():
 
             st.markdown("### Integration Hooks")
             for hook_name, active in ctx["integration_hooks"].items():
-                st.markdown(f"{'✅' if active else '❌'} `{hook_name}`  {'Connected' if active else 'Not connected'}")
+                st.markdown(f"{'âœ…' if active else 'âŒ'} `{hook_name}`  {'Connected' if active else 'Not connected'}")
 
-            st.info("💡 Connect hooks from Literature Engine, Hypothesis Generator, and AI Analyzer for enriched meeting intelligence.")
+            st.info("ðŸ’¡ Connect hooks from Literature Engine, Hypothesis Generator, and AI Analyzer for enriched meeting intelligence.")
 
 
 

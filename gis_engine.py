@@ -1,4 +1,4 @@
-﻿"""
+"""
 gis_engine.py
 QGIS-Grade Geospatial / Spatial Analytics Engine.
 
@@ -233,16 +233,16 @@ class GISEngine:
 def render_gis_ui() -> None:
     import streamlit as st
 
-    st.markdown("## 🗺️ QGIS-Grade Spatial Analytics Engine")
+    st.markdown("## ðŸ—ºï¸ QGIS-Grade Spatial Analytics Engine")
     engine = GISEngine()
 
     if not engine.has_geopandas:
         st.warning(
-            "⚠️ GeoPandas not installed. Spatial operations require it. "
+            "âš ï¸ GeoPandas not installed. Spatial operations require it. "
             "Install with: `pip install geopandas` (basic lat/lon mapping still available)."
         )
 
-    st.markdown("### 📥 Spatial Data Ingestion")
+    st.markdown("### ðŸ“¥ Spatial Data Ingestion")
     upload = st.file_uploader(
         "Upload GeoJSON / Shapefile (.zip) / KML / CSV-with-coordinates",
         type=["geojson", "json", "zip", "kml", "csv"],
@@ -276,10 +276,10 @@ def render_gis_ui() -> None:
         lat_cols = [c for c in df.columns if "lat" in c.lower()]
         lon_cols = [c for c in df.columns if "lon" in c.lower() or "long" in c.lower()]
         if lat_cols and lon_cols:
-            st.markdown("#### 🧭 Build Spatial Layer from Active Dataset")
+            st.markdown("#### ðŸ§­ Build Spatial Layer from Active Dataset")
             lat = st.selectbox("Latitude", lat_cols)
             lon = st.selectbox("Longitude", lon_cols)
-            if st.button("🧭 Create point layer from active dataset"):
+            if st.button("ðŸ§­ Create point layer from active dataset"):
                 gdf = engine.load_coordinates_csv(df, lat, lon)
                 source_label = "active_dataset"
 
@@ -287,14 +287,14 @@ def render_gis_ui() -> None:
         st.info("No spatial layer loaded. Upload a file or build from an active dataset.")
         return
 
-    st.success(f"✅ Spatial layer loaded: **{source_label}** — {gdf.shape[0]:,} features.")
+    st.success(f"âœ… Spatial layer loaded: **{source_label}** â€” {gdf.shape[0]:,} features.")
     st.markdown("---")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "🗺️ Map & Visualize",
-        "⚙️ Vector Operations",
-        "📊 Attribute Analysis",
-        "📥 Export"
+        "ðŸ—ºï¸ Map & Visualize",
+        "âš™ï¸ Vector Operations",
+        "ðŸ“Š Attribute Analysis",
+        "ðŸ“¥ Export"
     ])
 
     with tab1:
@@ -307,7 +307,7 @@ def render_gis_ui() -> None:
                 with st.container():
                     st_folium(m, width="100%", height=500)
             else:
-                st.dataframe(gdf.drop(columns=["geometry"]), use_container_width=True)
+                st.dataframe(gdf.drop(columns=["geometry"]), width='stretch')
         else:
             if engine.has_folium:
                 m = folium.Map(location=[0, 20], zoom_start=3)
@@ -318,7 +318,7 @@ def render_gis_ui() -> None:
                         folium.Marker([c.y, c.x]).add_to(m)
                 st_folium(m, width="100%", height=500)
             else:
-                st.dataframe(gdf.drop(columns=["geometry"]), use_container_width=True)
+                st.dataframe(gdf.drop(columns=["geometry"]), width='stretch')
 
     with tab2:
         st.markdown("#### Vector Spatial Operations")
@@ -331,19 +331,19 @@ def render_gis_ui() -> None:
                     gdf_out = gdf.copy()
                     gdf_out.geometry = res
                     st.success("Buffer applied.")
-                    st.dataframe(gdf_out.drop(columns=["geometry"]).head(20), use_container_width=True)
+                    st.dataframe(gdf_out.drop(columns=["geometry"]).head(20), width='stretch')
         elif op == "Dissolve":
             group_col = st.selectbox("Dissolve by (optional)", ["None"] + value_cols)
             if st.button("Apply Dissolve"):
                 res = engine.dissolve(gdf, None if group_col == "None" else group_col)
                 if res is not None:
                     st.success(f"Dissolved into {len(res)} features.")
-                    st.dataframe(res.drop(columns=["geometry"]), use_container_width=True)
+                    st.dataframe(res.drop(columns=["geometry"]), width='stretch')
         elif op == "Centroids":
             if st.button("Compute Centroids"):
                 res = engine.centroid(gdf)
                 st.success("Centroids computed.")
-                st.dataframe(gdf.assign(centroid_geom=res).drop(columns=["geometry"]).head(20), use_container_width=True)
+                st.dataframe(gdf.assign(centroid_geom=res).drop(columns=["geometry"]).head(20), width='stretch')
         elif op == "Intersection/Overlay":
             st.info("Upload a second GeoJSON to overlay. (Drag into the ingest box, then reload.)")
 
@@ -354,7 +354,7 @@ def render_gis_ui() -> None:
             if numeric_cols:
                 agg = st.selectbox("Aggregate statistics on", numeric_cols)
                 if st.button("Compute Summary"):
-                    st.dataframe(gdf.drop(columns=["geometry"])[agg].describe().to_frame(), use_container_width=True)
+                    st.dataframe(gdf.drop(columns=["geometry"])[agg].describe().to_frame(), width='stretch')
         areas = engine.area_ha(gdf)
         if areas:
             st.metric("Total Area (approx. ha)", f"{sum(areas):,.2f}")
@@ -364,11 +364,11 @@ def render_gis_ui() -> None:
         st.markdown("#### Export Spatial Layer")
         gj = engine.export_geojson(gdf)
         if gj:
-            st.download_button("⬇️ Download GeoJSON", data=gj, file_name="spatial_layer.geojson", mime="application/geo+json", use_container_width=True)
+            st.download_button("â¬‡ï¸ Download GeoJSON", data=gj, file_name="spatial_layer.geojson", mime="application/geo+json", width='stretch')
         shp = engine.export_shapefile_zip(gdf)
         if shp:
-            st.download_button("⬇️ Download Shapefile (.zip)", data=shp, file_name="spatial_layer_shapefile.zip", mime="application/zip", use_container_width=True)
+            st.download_button("â¬‡ï¸ Download Shapefile (.zip)", data=shp, file_name="spatial_layer_shapefile.zip", mime="application/zip", width='stretch')
         csv_bytes = gdf.drop(columns=["geometry"]).to_csv(index=False).encode("utf-8") if HAS_PANDAS else None
         if csv_bytes is not None:
-            st.download_button("⬇️ Download Attributes (CSV)", data=csv_bytes, file_name="spatial_attributes.csv", mime="text/csv", use_container_width=True)
+            st.download_button("â¬‡ï¸ Download Attributes (CSV)", data=csv_bytes, file_name="spatial_attributes.csv", mime="text/csv", width='stretch')
 

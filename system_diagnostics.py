@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import os
@@ -40,7 +40,7 @@ def render_system_diagnostics_panel():
     """
     Renders the System Diagnostics & Health Status panel inside Streamlit.
     """
-    st.subheader("🩺 System Diagnostics & Component Health Monitor")
+    st.subheader("ðŸ©º System Diagnostics & Component Health Monitor")
     st.caption("Live integrity checks, module synchronization reports, and automated environment diagnostics.")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -56,7 +56,7 @@ def render_system_diagnostics_panel():
     st.markdown("---")
     st.markdown("###  Component Integrity Matrix")
     df_status = get_system_modules_status()
-    st.dataframe(df_status, use_container_width=True)
+    st.dataframe(df_status, width='stretch')
 
     col_a, col_b = st.columns(2)
     with col_a:

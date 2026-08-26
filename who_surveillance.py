@@ -1,4 +1,4 @@
-﻿
+
 import sqlite3
 import json
 import pandas as pd
@@ -6,7 +6,7 @@ import streamlit as st
 from modules.schema_engine import DB_FILE, init_db, log_provenance
 
 def render_who_surveillance_tab():
-    st.subheader("🌐 WHO Global Pathogen Genomic Surveillance Mesh")
+    st.subheader("ðŸŒ WHO Global Pathogen Genomic Surveillance Mesh")
     st.caption("Decentralized epidemiological monitoring linking local genomic sequencing directly to international health alert standards.")
 
     init_db()
@@ -28,7 +28,7 @@ def render_who_surveillance_tab():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("### 🧬 Register Local Genomic Outbreak Sample")
+        st.markdown("### ðŸ§¬ Register Local Genomic Outbreak Sample")
         with st.form("who_form"):
             a_id = st.text_input("Alert ID", value="WHO-SURV-2026-001")
             pathogen = st.selectbox("Pathogen Target", ["SARS-CoV-2", "Influenza A (H5N1)", "Ebolavirus", "Drug-Resistant Tuberculosis"])
@@ -51,7 +51,7 @@ def render_who_surveillance_tab():
         st.markdown("###  Active WHO Surveillance Telemetry")
         surv_df = pd.read_sql_query("SELECT * FROM who_surveillance_logs ORDER BY logged_at DESC", conn)
         if not surv_df.empty:
-            st.dataframe(surv_df, use_container_width=True)
+            st.dataframe(surv_df, width='stretch')
         else:
             st.info("No active surveillance alerts logged.")
 

@@ -1,4 +1,4 @@
-﻿﻿"""
+﻿"""
 mendeley_integration.py
 Real Mendeley Reference Manager integration.
 

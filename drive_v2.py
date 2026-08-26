@@ -1,4 +1,4 @@
-﻿"""
+"""
 drive_v2.py — Real cloud storage for Nexus Drive.
 
 No "unlimited storage" claim anywhere in this file, on purpose. Storage is

@@ -1,4 +1,4 @@
-﻿
+
 """
 Text Analyzer  qualitative text analysis with sentiment analysis,
 word clouds, theme extraction, and frequency analysis.
@@ -285,11 +285,11 @@ class TextAnalyzer:
         }
 
 
-# ─── UI ─────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def render_text_analysis_ui(df: pd.DataFrame):
     """Render the text analysis UI."""
-    st.markdown("## 💬 Text & Qualitative Analysis")
+    st.markdown("## ðŸ’¬ Text & Qualitative Analysis")
     st.markdown("*Sentiment analysis, word clouds, frequency analysis, keyword extraction*")
 
     if df is None or df.empty:
@@ -312,8 +312,8 @@ def render_text_analysis_ui(df: pd.DataFrame):
     st.info(f"**Analyzing**: {len(texts)} text entries from '{text_col}'")
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        " Summary", "😊 Sentiment", "📈 Word Frequency",
-        "☁️ Word Cloud", "🔤 N-Grams"
+        " Summary", "ðŸ˜Š Sentiment", "ðŸ“ˆ Word Frequency",
+        "â˜ï¸ Word Cloud", "ðŸ”¤ N-Grams"
     ])
 
     with tab1:
@@ -339,7 +339,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
                 st.error(summary["error"])
 
     with tab2:
-        st.subheader("😊 Sentiment Analysis")
+        st.subheader("ðŸ˜Š Sentiment Analysis")
         st.caption("Analyze the sentiment polarity of text entries")
 
         if st.button("Run Sentiment Analysis", type="primary"):
@@ -375,15 +375,15 @@ def render_text_analysis_ui(df: pd.DataFrame):
                                    color_discrete_map={
                                        'Positive': '#2ecc71', 'Neutral': '#95a5a6', 'Negative': '#e74c3c'
                                    })
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
                 # Show data
-                st.dataframe(sentiment_df.head(50), use_container_width=True, hide_index=True)
+                st.dataframe(sentiment_df.head(50), width='stretch', hide_index=True)
             else:
                 st.warning("No sentiment results. TextBlob may not be installed.")
 
     with tab3:
-        st.subheader("📈 Word Frequency Analysis")
+        st.subheader("ðŸ“ˆ Word Frequency Analysis")
         st.caption("Find the most frequent words in the text corpus")
 
         col1, col2 = st.columns(2)
@@ -396,7 +396,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
             freq_df = TextAnalyzer.get_word_frequencies(texts, top_n=top_n, min_length=min_len)
 
             if not freq_df.empty:
-                st.dataframe(freq_df, use_container_width=True, hide_index=True)
+                st.dataframe(freq_df, width='stretch', hide_index=True)
 
                 # Bar chart
                 import plotly.express as px
@@ -404,17 +404,17 @@ def render_text_analysis_ui(df: pd.DataFrame):
                              title=f'Top {min(20, len(freq_df))} Words by Frequency',
                              color='Frequency', color_continuous_scale='Viridis')
                 fig.update_layout(xaxis_tickangle=-45)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
                 # Export
                 csv = freq_df.to_csv(index=False).encode('utf-8')
                 import base64
                 b64 = base64.b64encode(csv).decode()
-                st.markdown(f'<a href="data:text/csv;base64,{b64}" download="word_frequencies.csv">📥 Download CSV</a>',
+                st.markdown(f'<a href="data:text/csv;base64,{b64}" download="word_frequencies.csv">ðŸ“¥ Download CSV</a>',
                            unsafe_allow_html=True)
 
     with tab4:
-        st.subheader("☁️ Word Cloud")
+        st.subheader("â˜ï¸ Word Cloud")
         st.caption("Visualize word frequency as a word cloud")
 
         if HAS_WORDCLOUD:
@@ -442,7 +442,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
                     buf = io.BytesIO()
                     wc.to_image().save(buf, format='PNG')
                     b64 = base64.b64encode(buf.getvalue()).decode()
-                    st.markdown(f'<a href="data:image/png;base64,{b64}" download="wordcloud.png">📥 Download PNG</a>',
+                    st.markdown(f'<a href="data:image/png;base64,{b64}" download="wordcloud.png">ðŸ“¥ Download PNG</a>',
                                unsafe_allow_html=True)
                 else:
                     st.warning("Could not generate word cloud. Not enough text data.")
@@ -450,7 +450,7 @@ def render_text_analysis_ui(df: pd.DataFrame):
             st.warning("WordCloud library not installed. Install with: pip install wordcloud")
 
     with tab5:
-        st.subheader("🔤 N-Gram Analysis")
+        st.subheader("ðŸ”¤ N-Gram Analysis")
         st.caption("Find common word combinations (bigrams, trigrams, etc.)")
 
         col1, col2 = st.columns(2)
@@ -464,14 +464,14 @@ def render_text_analysis_ui(df: pd.DataFrame):
             ng_df = TextAnalyzer.extract_ngrams(texts, n=n_gram_size, top_n=ng_top)
 
             if not ng_df.empty:
-                st.dataframe(ng_df, use_container_width=True, hide_index=True)
+                st.dataframe(ng_df, width='stretch', hide_index=True)
 
                 import plotly.express as px
                 fig = px.bar(ng_df.head(15), x='N-Gram', y='Frequency',
                              title=f'Top {min(15, len(ng_df))} {n_gram_size}-grams',
                              color='Frequency', color_continuous_scale='Viridis')
                 fig.update_layout(xaxis_tickangle=-45)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Not enough data for n-gram extraction. Try a smaller n-gram size.")
 

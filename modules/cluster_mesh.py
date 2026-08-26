@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from modules.database import log_backend_event
@@ -23,7 +23,7 @@ def render_cluster_mesh_panel():
     st.caption("Oversee multi-region peer node connectivity, consensus synchronization, and global edge routing latencies.")
 
     df_mesh = get_cluster_nodes()
-    st.dataframe(df_mesh, use_container_width=True)
+    st.dataframe(df_mesh, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:

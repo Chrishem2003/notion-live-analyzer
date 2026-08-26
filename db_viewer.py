@@ -1,4 +1,4 @@
-﻿﻿
+
 import sqlite3
 import pandas as pd
 import streamlit as st
@@ -24,13 +24,13 @@ def render_database_audit_logs():
         
         with tab_log:
             if not df_logs.empty:
-                st.dataframe(df_logs, use_container_width=True, hide_index=True)
+                st.dataframe(df_logs, width='stretch', hide_index=True)
             else:
                 st.info("No audit logs recorded yet.")
 
         with tab_sess:
             if not df_sessions.empty:
-                st.dataframe(df_sessions, use_container_width=True, hide_index=True)
+                st.dataframe(df_sessions, width='stretch', hide_index=True)
             else:
                 st.info("No active sessions registered.")
                 

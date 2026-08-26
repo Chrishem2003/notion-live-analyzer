@@ -1,4 +1,4 @@
-﻿
+
 """
 Sensitivity & Robustness Analysis Engine  Influence diagnostics, subgroup analysis,
 specification curve analysis, multiverse analysis, and robustness value analysis.
@@ -312,13 +312,13 @@ class SensitivityEngine:
         }
 
 
-# ─── UI ─────────────────────────────────────────────────────────────
+# â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def render_sensitivity_analysis_ui():
     """Render the Sensitivity Analysis page."""
     import streamlit as st
     import plotly.express as px
 
-    st.markdown("## 🔍 Sensitivity & Robustness Analysis")
+    st.markdown("## ðŸ” Sensitivity & Robustness Analysis")
     st.markdown("*Assess how robust your findings are to alternative specifications*")
 
     df = st.session_state.get("active_df")
@@ -330,8 +330,8 @@ def render_sensitivity_analysis_ui():
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        " Influence Diagnostics", "📐 Spec Curve",
-        "🛡️ Robustness Value", "📂 Subgroup Analysis", "🌌 Multiverse"
+        " Influence Diagnostics", "ðŸ“ Spec Curve",
+        "ðŸ›¡ï¸ Robustness Value", "ðŸ“‚ Subgroup Analysis", "ðŸŒŒ Multiverse"
     ])
 
     with tab1:
@@ -341,7 +341,7 @@ def render_sensitivity_analysis_ui():
             inf_outcome = st.selectbox("Outcome", options=numeric_cols, key="inf_outcome")
             inf_preds = st.multiselect("Predictors", options=[c for c in numeric_cols if c != inf_outcome], key="inf_preds")
 
-        if st.button(" Compute Diagnostics", type="primary", use_container_width=True) and inf_preds:
+        if st.button(" Compute Diagnostics", type="primary", width='stretch') and inf_preds:
             result = engine.influence_diagnostics(df, inf_outcome, inf_preds)
             if "error" in result:
                 st.error(result["error"])
@@ -356,10 +356,10 @@ def render_sensitivity_analysis_ui():
                     fig = px.bar(cooks_df, x="Observation", y="Cook's D", title="Cook's Distance")
                     fig.add_hline(y=inf.get("cooks_threshold", 0), line_dash="dash", line_color="red",
                                   annotation_text=f"Threshold: {inf.get('cooks_threshold', 0):.4f}")
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
 
     with tab2:
-        st.subheader("📐 Specification Curve Analysis")
+        st.subheader("ðŸ“ Specification Curve Analysis")
         col1, col2 = st.columns(2)
         with col1:
             sc_outcome = st.selectbox("Outcome", options=numeric_cols, key="sc_outcome")
@@ -367,7 +367,7 @@ def render_sensitivity_analysis_ui():
         with col2:
             sc_controls = st.multiselect("Control variables", options=[c for c in numeric_cols if c not in (sc_outcome, sc_treatment)], key="sc_controls")
 
-        if st.button("📐 Run Spec Curve", type="primary", use_container_width=True) and sc_controls:
+        if st.button("ðŸ“ Run Spec Curve", type="primary", width='stretch') and sc_controls:
             result = engine.specification_curve(df, sc_outcome, sc_treatment, sc_controls)
             if "error" in result:
                 st.error(result["error"])
@@ -379,10 +379,10 @@ def render_sensitivity_analysis_ui():
                                      error_y="se", color="significant",
                                      title="Specification Curve", hover_data=["controls"])
                     fig.add_hline(y=0, line_dash="dash", line_color="gray")
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
 
     with tab3:
-        st.subheader("🛡️ Robustness Value Analysis")
+        st.subheader("ðŸ›¡ï¸ Robustness Value Analysis")
         col1, col2 = st.columns(2)
         with col1:
             rv_outcome = st.selectbox("Outcome", options=numeric_cols, key="rv_outcome")
@@ -390,7 +390,7 @@ def render_sensitivity_analysis_ui():
         with col2:
             rv_controls = st.multiselect("Controls", options=[c for c in numeric_cols if c not in (rv_outcome, rv_treatment)], key="rv_controls")
 
-        if st.button("🛡️ Compute Robustness", type="primary", use_container_width=True):
+        if st.button("ðŸ›¡ï¸ Compute Robustness", type="primary", width='stretch'):
             result = engine.robustness_value(df, rv_outcome, rv_treatment, rv_controls)
             if "error" in result:
                 st.error(result["error"])
@@ -402,7 +402,7 @@ def render_sensitivity_analysis_ui():
                 st.info(result["interpretation"])
 
     with tab4:
-        st.subheader("📂 Subgroup Analysis")
+        st.subheader("ðŸ“‚ Subgroup Analysis")
         col1, col2 = st.columns(2)
         with col1:
             sg_outcome = st.selectbox("Outcome", options=numeric_cols, key="sg_outcome")
@@ -411,7 +411,7 @@ def render_sensitivity_analysis_ui():
             sg_subgroup = st.selectbox("Subgroup variable", options=[c for c in df.columns if c not in (sg_outcome, sg_treatment) and df[c].nunique() <= 10], key="sg_subgroup")
             sg_controls = st.multiselect("Controls (optional)", options=[c for c in numeric_cols if c not in (sg_outcome, sg_treatment)], key="sg_controls")
 
-        if st.button("📂 Run Subgroup Analysis", type="primary", use_container_width=True):
+        if st.button("ðŸ“‚ Run Subgroup Analysis", type="primary", width='stretch'):
             result = engine.subgroup_analysis(df, sg_outcome, sg_treatment, sg_subgroup, sg_controls)
             if "error" in result:
                 st.error(result["error"])
@@ -423,10 +423,10 @@ def render_sensitivity_analysis_ui():
                                      error_y="se", color="significant",
                                      title="Subgroup Effects", size="n")
                     fig.add_hline(y=0, line_dash="dash", line_color="gray")
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
 
     with tab5:
-        st.subheader("🌌 Multiverse Analysis")
+        st.subheader("ðŸŒŒ Multiverse Analysis")
         col1, col2 = st.columns(2)
         with col1:
             mv_outcome = st.selectbox("Outcome", options=numeric_cols, key="mv_outcome")
@@ -434,7 +434,7 @@ def render_sensitivity_analysis_ui():
         with col2:
             mv_controls = st.multiselect("Control variables", options=[c for c in numeric_cols if c not in (mv_outcome, mv_treatment)], key="mv_controls")
 
-        if st.button("🌌 Run Multiverse", type="primary", use_container_width=True):
+        if st.button("ðŸŒŒ Run Multiverse", type="primary", width='stretch'):
             result = engine.multiverse_analysis(df, mv_outcome, mv_treatment, mv_controls)
             if "error" in result:
                 st.error(result["error"])

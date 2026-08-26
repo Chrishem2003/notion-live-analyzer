@@ -1,4 +1,4 @@
-﻿"""
+"""
 api_server.py — FastAPI backend running alongside Streamlit.
 
 Three real jobs:

@@ -1,4 +1,4 @@
-﻿
+
 """
 WebRTC Provider  Enhanced Audio/Video Engine with Spatial Audio & Denoising
 Production-grade WebRTC session management with:
@@ -26,9 +26,9 @@ from enum import Enum
 from typing import Dict, List, Optional, Any, Tuple, Callable
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ENUMS & CONSTANTS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class TrackType(str, Enum):
     CAMERA = "camera"
@@ -69,9 +69,9 @@ MAX_SPATIAL_DISTANCE = 1200  # pixels  beyond this, audio is fully panned
 SPATIAL_PAN_RANGE = 0.8  # max pan amount (0-1)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # DATA MODELS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class AudioSpatialPosition:
     """
@@ -237,9 +237,9 @@ class SpatialAudioEngine:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # NOISE SUPPRESSION ENGINE
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class NoiseSuppressionEngine:
     """
@@ -358,9 +358,9 @@ class NoiseSuppressionEngine:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # PARTICIPANT MODELS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class ParticipantTrack:
     """A media track published by a participant."""
@@ -510,9 +510,9 @@ class Participant:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # WEBRTC PROVIDER  Main Session Manager
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class WebRTCProvider:
     """
@@ -559,7 +559,7 @@ class WebRTCProvider:
             "presentation_stopped": [],
         }
 
-    # ── Event System ────────────────────────────────────────────────
+    # â”€â”€ Event System â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def on(self, event: str, callback: Callable):
         """Register an event listener."""
@@ -579,7 +579,7 @@ class WebRTCProvider:
             except Exception:
                 pass
 
-    # ── Session Lifecycle ───────────────────────────────────────────
+    # â”€â”€ Session Lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def connect(self, user_id: str, display_name: str, role: str = "viewer") -> bool:
         """
@@ -652,7 +652,7 @@ class WebRTCProvider:
             self.connection_state = ConnectionState.CONNECTED
             self._emit("connection_state_changed", {"state": "connected"})
 
-    # ── Participant Management ──────────────────────────────────────
+    # â”€â”€ Participant Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def add_participant(self, user_id: str, display_name: str,
                         role: str = "viewer", avatar_url: str = "") -> Participant:
@@ -697,7 +697,7 @@ class WebRTCProvider:
             if p.is_speaking and p.audio_level > threshold
         ]
 
-    # ── Track Management ────────────────────────────────────────────
+    # â”€â”€ Track Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def start_presentation(self, user_id: str) -> bool:
         """
@@ -768,7 +768,7 @@ class WebRTCProvider:
 
         return True
 
-    # ── Spatial Audio ───────────────────────────────────────────────
+    # â”€â”€ Spatial Audio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def update_spatial_audio(self) -> Dict[str, Dict[str, float]]:
         """
@@ -797,7 +797,7 @@ class WebRTCProvider:
             participant.update_cursor_position(x, y)
             participant.last_active_at = datetime.now()
 
-    # ── Noise Suppression ───────────────────────────────────────────
+    # â”€â”€ Noise Suppression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def toggle_noise_suppression(self) -> bool:
         """Toggle noise suppression on/off."""
@@ -814,7 +814,7 @@ class WebRTCProvider:
         """Start learning the noise profile for suppression."""
         self.noise_suppression.start_learning_noise_profile()
 
-    # ── Quality Management ──────────────────────────────────────────
+    # â”€â”€ Quality Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def set_quality(self, quality: TrackQuality):
         """Set the video quality preset for all camera tracks."""
@@ -858,7 +858,7 @@ class WebRTCProvider:
             "noise_suppression_active": self.noise_suppression.is_active,
         }
 
-    # ── Reactions & Hand Raise ──────────────────────────────────────
+    # â”€â”€ Reactions & Hand Raise â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def set_reaction(self, user_id: str, reaction: str):
         """Set a professional reaction for a participant."""
@@ -878,7 +878,7 @@ class WebRTCProvider:
         if participant:
             participant.is_hand_raised = raised
 
-    # ── Session State ───────────────────────────────────────────────
+    # â”€â”€ Session State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def get_session_state(self) -> Dict[str, Any]:
         """Get the full session state as a serializable dict."""
@@ -899,9 +899,9 @@ class WebRTCProvider:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # STREAMLIT UI RENDERER
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_webrtc_panel():
     """
@@ -910,7 +910,7 @@ def render_webrtc_panel():
     """
     import streamlit as st
 
-    # ── CSS ─────────────────────────────────────────────────────────
+    # â”€â”€ CSS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown("""
     <style>
     /* --- GLOBAL SIDEBAR DARK THEMING OVERRIDE --- */
@@ -1024,16 +1024,16 @@ def render_webrtc_panel():
     </style>
     """, unsafe_allow_html=True)
 
-    # ── Session Initialization ──────────────────────────────────────
+    # â”€â”€ Session Initialization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if "webrtc_provider" not in st.session_state:
         st.session_state["webrtc_provider"] = None
 
     provider: Optional[WebRTCProvider] = st.session_state.get("webrtc_provider")
 
-    st.markdown("### 🎥 Media & Audio Engine")
+    st.markdown("### ðŸŽ¥ Media & Audio Engine")
 
     if not provider or provider.connection_state == ConnectionState.DISCONNECTED:
-        # ── Connection Form ─────────────────────────────────────────
+        # â”€â”€ Connection Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         with st.form("webrtc_connect_form"):
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -1046,13 +1046,13 @@ def render_webrtc_panel():
             role = st.selectbox("Role", options=["host", "co_host", "researcher", "viewer"],
                                  index=3, key="webrtc_role")
 
-            if st.form_submit_button("🎥 Connect to Session", type="primary", use_container_width=True):
+            if st.form_submit_button("ðŸŽ¥ Connect to Session", type="primary", width='stretch'):
                 provider = WebRTCProvider(session_id)
                 provider.connect(user_id=user_id, display_name=display_name, role=role)
                 st.session_state["webrtc_provider"] = provider
                 st.rerun()
     else:
-        # ── Connected State ─────────────────────────────────────────
+        # â”€â”€ Connected State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         state = provider.connection_state
         badge_class = {
             ConnectionState.CONNECTED: "webrtc-badge-connected",
@@ -1066,18 +1066,18 @@ def render_webrtc_panel():
         <div class="webrtc-container">
             <div class="webrtc-header">
                 <div class="webrtc-header-title">
-                    🎥 Session: {provider.session_id}
-                    <span class="webrtc-badge {badge_class}">● {state.value}</span>
+                    ðŸŽ¥ Session: {provider.session_id}
+                    <span class="webrtc-badge {badge_class}">â— {state.value}</span>
                 </div>
                 <div style="display:flex;gap:0.5rem;align-items:center;">
-                    <span class="webrtc-badge webrtc-badge-connected">👥 {provider.get_participant_count()}</span>
-                    <span class="webrtc-badge webrtc-badge-connected">📡 {provider.quality_preset.value}</span>
+                    <span class="webrtc-badge webrtc-badge-connected">ðŸ‘¥ {provider.get_participant_count()}</span>
+                    <span class="webrtc-badge webrtc-badge-connected">ðŸ“¡ {provider.quality_preset.value}</span>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # ── Media Controls ─────────────────────────────────────────
+        # â”€â”€ Media Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             q = st.selectbox("Quality", options=[q.value for q in TrackQuality],
@@ -1086,7 +1086,7 @@ def render_webrtc_panel():
 
         with col2:
             ns_active = provider.noise_suppression.is_active
-            if st.toggle("🔇 Noise Suppression", value=ns_active, key="webrtc_ns"):
+            if st.toggle("ðŸ”‡ Noise Suppression", value=ns_active, key="webrtc_ns"):
                 if not ns_active:
                     provider.toggle_noise_suppression()
                     provider.learn_noise_profile()
@@ -1100,12 +1100,12 @@ def render_webrtc_panel():
             provider.set_noise_suppression_strength(ns_strength)
 
         with col4:
-            if st.button("❌ Disconnect", use_container_width=True):
+            if st.button("âŒ Disconnect", width='stretch'):
                 provider.disconnect()
                 st.session_state["webrtc_provider"] = None
                 st.rerun()
 
-        # ── Local Participant Info ──────────────────────────────────
+        # â”€â”€ Local Participant Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         local = provider.get_local_participant()
         if local:
             st.markdown(f"""
@@ -1117,18 +1117,18 @@ def render_webrtc_panel():
                     </div>
                     <div style="flex:1;">
                         <div style="color:#f1f5f9;font-weight:600;">{local.name}</div>
-                        <div style="color:#64748b;font-size:0.75rem;">@{local.id[:12]} · {local.role}</div>
+                        <div style="color:#64748b;font-size:0.75rem;">@{local.id[:12]} Â· {local.role}</div>
                     </div>
                     <div style="display:flex;gap:0.5rem;">
-                        <span class="webrtc-badge webrtc-badge-connected">📹 {'On' if local.is_video_on else 'Off'}</span>
-                        <span class="webrtc-badge webrtc-badge-connected">🎤 {'On' if local.is_audio_on else 'Muted'}</span>
+                        <span class="webrtc-badge webrtc-badge-connected">ðŸ“¹ {'On' if local.is_video_on else 'Off'}</span>
+                        <span class="webrtc-badge webrtc-badge-connected">ðŸŽ¤ {'On' if local.is_audio_on else 'Muted'}</span>
                     </div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-        # ── Spatial Audio Visualizer ────────────────────────────────
-        st.markdown("### 🌊 Spatial Audio Map")
+        # â”€â”€ Spatial Audio Visualizer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        st.markdown("### ðŸŒŠ Spatial Audio Map")
         spatial_data = provider.update_spatial_audio()
 
         if spatial_data:
@@ -1159,31 +1159,31 @@ def render_webrtc_panel():
                             </div>
                         </div>
                         <div style="display:flex;justify-content:space-between;font-size:0.7rem;">
-                            <span style="color:#34d399;">🔊 {vol_pct:.0f}%</span>
-                            <span style="color:#94a3b8;">📍 {dist:.0f}px</span>
-                            <span style="color:#64748b;">{az:.0f}°</span>
+                            <span style="color:#34d399;">ðŸ”Š {vol_pct:.0f}%</span>
+                            <span style="color:#94a3b8;">ðŸ“ {dist:.0f}px</span>
+                            <span style="color:#64748b;">{az:.0f}Â°</span>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
 
-        # ── Presentation Controls ───────────────────────────────────
-        st.markdown("### 📺 Dual-Track Publishing")
+        # â”€â”€ Presentation Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        st.markdown("### ðŸ“º Dual-Track Publishing")
         col1, col2 = st.columns(2)
         with col1:
             if not provider._presentation_active:
-                if st.button(" Start Presentation Overlay", use_container_width=True):
+                if st.button(" Start Presentation Overlay", width='stretch'):
                     provider.start_presentation(local.id)
                     st.rerun()
             else:
-                if st.button("🛑 Stop Presentation", use_container_width=True):
+                if st.button("ðŸ›‘ Stop Presentation", width='stretch'):
                     provider.stop_presentation(local.id)
                     st.rerun()
 
         with col2:
-            if st.button("🤚 Raise Hand", use_container_width=True):
+            if st.button("ðŸ¤š Raise Hand", width='stretch'):
                 local.is_hand_raised = not local.is_hand_raised
 
-        # ── Network Stats ───────────────────────────────────────────
+        # â”€â”€ Network Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         with st.expander(" Network Statistics", expanded=False):
             stats = provider.get_network_stats()
             net_cols = st.columns(4)
@@ -1198,8 +1198,8 @@ def render_webrtc_panel():
 
             st.json(stats)
 
-        # ── Remote Participants ─────────────────────────────────────
-        with st.expander(f"👥 Participants ({provider.get_participant_count()})", expanded=True):
+        # â”€â”€ Remote Participants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        with st.expander(f"ðŸ‘¥ Participants ({provider.get_participant_count()})", expanded=True):
             for pid, p in provider.participants.items():
                 if pid == provider.local_participant_id:
                     continue
@@ -1213,10 +1213,10 @@ def render_webrtc_panel():
                         </div>
                         <div style="flex:1;">
                             <div style="color:#f1f5f9;font-weight:600;font-size:0.85rem;">{p.name}</div>
-                            <div style="color:#64748b;font-size:0.7rem;">{p.role} · {'🎤' if p.is_audio_on else '🔇'} {'📹' if p.is_video_on else '📹❌'}</div>
+                            <div style="color:#64748b;font-size:0.7rem;">{p.role} Â· {'ðŸŽ¤' if p.is_audio_on else 'ðŸ”‡'} {'ðŸ“¹' if p.is_video_on else 'ðŸ“¹âŒ'}</div>
                         </div>
                         <div>
-                            {'🤚' if p.is_hand_raised else ''}
+                            {'ðŸ¤š' if p.is_hand_raised else ''}
                             {'' if p.is_presenting else ''}
                         </div>
                     </div>
@@ -1224,9 +1224,9 @@ def render_webrtc_panel():
                 """, unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # HELPER: Create a demo session with sample participants
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def create_demo_session() -> WebRTCProvider:
     """Create a WebRTC session with sample participants for demonstration."""

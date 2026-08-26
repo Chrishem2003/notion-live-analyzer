@@ -1,4 +1,4 @@
-﻿"""
+"""
 modules/task_client.py — Streamlit <-> Celery bridge.
 
 Streamlit re-runs the whole script on every interaction, so "polling" here

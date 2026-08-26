@@ -1,4 +1,4 @@
-﻿
+
 from io import StringIO
 try:
     from Bio import SeqIO

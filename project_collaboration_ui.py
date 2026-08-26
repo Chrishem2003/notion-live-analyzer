@@ -1,4 +1,4 @@
-﻿
+
 """
 Unified Split-Screen Collaboration Shell UI
 Production-grade Tailwind-styled (custom CSS) split-screen collaboration interface featuring:
@@ -55,9 +55,9 @@ from modules.project_collaboration import (
 )
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CSS  Dark Theme Split-Screen Layout
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 COLLAB_CSS = """
 <style>
@@ -104,7 +104,7 @@ COLLAB_CSS = """
         color: #4fb8a6 !important;
         font-weight: 700 !important;
     }
-/* ─── Main Layout ──────────────────────────────────────────────── */
+/* â”€â”€â”€ Main Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-container {
     display: flex;
     flex-direction: column;
@@ -114,7 +114,7 @@ COLLAB_CSS = """
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ─── Top Bar ──────────────────────────────────────────────────── */
+/* â”€â”€â”€ Top Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-topbar {
     display: flex;
     align-items: center;
@@ -148,7 +148,7 @@ COLLAB_CSS = """
 .collab-badge-researcher { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
 .collab-badge-viewer { background: rgba(100,116,139,0.15); color: #6B7280; border: 1px solid rgba(100,116,139,0.3); }
 
-/* ─── Split Layout ─────────────────────────────────────────────── */
+/* â”€â”€â”€ Split Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-split {
     display: flex;
     flex: 1;
@@ -173,7 +173,7 @@ COLLAB_CSS = """
 }
 .collab-sidebar.collapsed { width: 0; border-left: none; overflow: hidden; }
 
-/* ─── Canvas Area ──────────────────────────────────────────────── */
+/* â”€â”€â”€ Canvas Area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-canvas {
     flex: 1;
     background: #0B0E11;
@@ -226,7 +226,7 @@ COLLAB_CSS = """
     border-radius: 4px;
 }
 
-/* ─── Floating Dock ────────────────────────────────────────────── */
+/* â”€â”€â”€ Floating Dock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-dock {
     position: absolute;
     bottom: 1rem;
@@ -287,7 +287,7 @@ COLLAB_CSS = """
     gap: 0.5rem;
 }
 
-/* ─── Interactive Bar ──────────────────────────────────────────── */
+/* â”€â”€â”€ Interactive Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-ibar {
     display: flex;
     align-items: center;
@@ -337,7 +337,7 @@ COLLAB_CSS = """
     color: #f87171;
 }
 
-/* ─── Sidebar Tabs ─────────────────────────────────────────────── */
+/* â”€â”€â”€ Sidebar Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-sb-tabs {
     display: flex;
     border-bottom: 1px solid #262B33;
@@ -366,7 +366,7 @@ COLLAB_CSS = """
     padding: 0.75rem;
 }
 
-/* ─── AI Feed Items ────────────────────────────────────────────── */
+/* â”€â”€â”€ AI Feed Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-ai-item {
     background: #262B33;
     border-left: 3px solid #6366f1;
@@ -386,7 +386,7 @@ COLLAB_CSS = """
     margin-bottom: 0.25rem;
 }
 
-/* ─── Professional Reactions ───────────────────────────────────── */
+/* â”€â”€â”€ Professional Reactions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-reactions {
     display: flex;
     gap: 0.25rem;
@@ -413,7 +413,7 @@ COLLAB_CSS = """
     color: #8b93a8;
 }
 
-/* ─── Ghost Stage Banner ───────────────────────────────────────── */
+/* â”€â”€â”€ Ghost Stage Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .collab-ghost-banner {
     background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(217,119,6,0.05));
     border: 1px solid rgba(245,158,11,0.3);
@@ -427,7 +427,7 @@ COLLAB_CSS = """
 }
 .collab-ghost-banner span { color: #fbbf24; }
 
-/* ─── Responsive ───────────────────────────────────────────────── */
+/* â”€â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 1024px) {
     .collab-sidebar { width: 260px; }
     .collab-dock-video-grid { max-width: 300px; }
@@ -441,25 +441,25 @@ COLLAB_CSS = """
 </style>
 """
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # PROFESSIONAL REACTIONS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 PROFESSIONAL_REACTIONS = [
-    {"emoji": "✅", "label": "Approve", "id": "approve"},
-    {"emoji": "🤔", "label": "Clarify", "id": "clarify"},
+    {"emoji": "âœ…", "label": "Approve", "id": "approve"},
+    {"emoji": "ðŸ¤”", "label": "Clarify", "id": "clarify"},
     {"emoji": "", "label": "Data Verify", "id": "data_verify"},
-    {"emoji": "✋", "label": "Raise Hand", "id": "raise_hand"},
-    {"emoji": "💡", "label": "Suggestion", "id": "suggestion"},
-    {"emoji": "🔬", "label": "Methodology", "id": "methodology"},
-    {"emoji": "⚠️", "label": "Concern", "id": "concern"},
-    {"emoji": "🎯", "label": "Action Item", "id": "action_item"},
+    {"emoji": "âœ‹", "label": "Raise Hand", "id": "raise_hand"},
+    {"emoji": "ðŸ’¡", "label": "Suggestion", "id": "suggestion"},
+    {"emoji": "ðŸ”¬", "label": "Methodology", "id": "methodology"},
+    {"emoji": "âš ï¸", "label": "Concern", "id": "concern"},
+    {"emoji": "ðŸŽ¯", "label": "Action Item", "id": "action_item"},
 ]
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # COLLABORATION SHELL UI
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def render_collaboration_shell():
     """
@@ -468,30 +468,30 @@ def render_collaboration_shell():
     combining all four modules into a cohesive interface.
 
     Layout:
-      ┌─────────────────────────────────────────────┐
-      │  Top Bar (Project info, role, controls)     │
-      ├──────────────────────┬──────────────────────┤
-      │                      │                      │
-      │  Main Canvas         │  Sidebar             │
-      │  (Yjs collaborative  │  (Reactions, AI      │
-      │   workspace with     │   feed, canvas       │
-      │   viewport sync)     │   tools, ghost       │
-      │                      │   stage)             │
-      │                      │                      │
-      ├──────────────────────┴──────────────────────┤
-      │  Floating Dock (Video Grid  Presentation)  │
-      ├─────────────────────────────────────────────┤
-      │  Interactive Bar (Reactions, Controls, AI)  │
-      └─────────────────────────────────────────────┘
+      â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+      â”‚  Top Bar (Project info, role, controls)     â”‚
+      â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+      â”‚                      â”‚                      â”‚
+      â”‚  Main Canvas         â”‚  Sidebar             â”‚
+      â”‚  (Yjs collaborative  â”‚  (Reactions, AI      â”‚
+      â”‚   workspace with     â”‚   feed, canvas       â”‚
+      â”‚   viewport sync)     â”‚   tools, ghost       â”‚
+      â”‚                      â”‚   stage)             â”‚
+      â”‚                      â”‚                      â”‚
+      â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+      â”‚  Floating Dock (Video Grid  Presentation)  â”‚
+      â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+      â”‚  Interactive Bar (Reactions, Controls, AI)  â”‚
+      â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
     """
 
-    # ── Inject CSS ──────────────────────────────────────────────
+    # â”€â”€ Inject CSS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown(COLLAB_CSS, unsafe_allow_html=True)
 
-    # ── Initialize Session State ────────────────────────────────
+    # â”€â”€ Initialize Session State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     _init_collab_state()
 
-    # ── Get State ───────────────────────────────────────────────
+    # â”€â”€ Get State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     webrtc: Optional[WebRTCProvider] = st.session_state.get("collab_webrtc")
     canvas: Optional[CollaborativeCanvas] = st.session_state.get("collab_canvas")
     ai_researcher: Optional[AIResearcher] = st.session_state.get("collab_ai")
@@ -502,16 +502,16 @@ def render_collaboration_shell():
     ghost_active = st.session_state.get("collab_ghost_active", False)
     ghost_stage: Optional[GhostStage] = st.session_state.get("collab_ghost_stage")
 
-    # ─────────────────────────────────────────────────────────────
+    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     # CONNECTION GATE
-    # ─────────────────────────────────────────────────────────────
+    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if not webrtc or webrtc.connection_state == ConnectionState.DISCONNECTED:
         _render_connection_gate(auth, token_payload)
         return
 
-    # ─────────────────────────────────────────────────────────────
+    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     # TOP BAR
-    # ─────────────────────────────────────────────────────────────
+    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     local = webrtc.get_local_participant()
     role_badge_class = {
         "host": "collab-badge-host",
@@ -520,82 +520,82 @@ def render_collaboration_shell():
         "researcher": "collab-badge-researcher",
     }.get(local.role if local else "viewer", "collab-badge-viewer")
 
-    role_icons = {"host": "", "co_host": "🤝", "researcher": "🔬", "viewer": "👁️"}
+    role_icons = {"host": "", "co_host": "ðŸ¤", "researcher": "ðŸ”¬", "viewer": "ðŸ‘ï¸"}
 
     st.markdown(f"""
     <div class="collab-topbar">
         <div class="collab-topbar-left">
-            <span class="collab-topbar-title">🎯 {canvas.project_id if canvas else 'Collaborative Workspace'}</span>
+            <span class="collab-topbar-title">ðŸŽ¯ {canvas.project_id if canvas else 'Collaborative Workspace'}</span>
             <span class="collab-topbar-badge {role_badge_class}">
-                {role_icons.get(local.role if local else 'viewer', '👁️')} {local.role.replace('_', ' ').title() if local else 'Viewer'}
+                {role_icons.get(local.role if local else 'viewer', 'ðŸ‘ï¸')} {local.role.replace('_', ' ').title() if local else 'Viewer'}
             </span>
             <span class="collab-topbar-badge collab-badge-researcher">
-                👥 {webrtc.get_participant_count()}
+                ðŸ‘¥ {webrtc.get_participant_count()}
             </span>
         </div>
         <div class="collab-topbar-center">
             <span style="color:#64748b;font-size:0.75rem;">
-                {webrtc.quality_preset.value.upper()} · {'🔇 NS' if webrtc.noise_suppression.is_active else '🎤 Raw'}
+                {webrtc.quality_preset.value.upper()} Â· {'ðŸ”‡ NS' if webrtc.noise_suppression.is_active else 'ðŸŽ¤ Raw'}
             </span>
         </div>
         <div class="collab-topbar-right">
             <span style="font-size:0.7rem;color:#64748b;">
-                🟢 {canvas.viewport_sync_mode.value.replace('_', ' ').title() if canvas else 'Free'}
+                ðŸŸ¢ {canvas.viewport_sync_mode.value.replace('_', ' ').title() if canvas else 'Free'}
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ─────────────────────────────────────────────────────────────
+    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     # MAIN SPLIT LAYOUT
-    # ─────────────────────────────────────────────────────────────
+    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     split_cols = st.columns([1, 0.3] if show_sidebar else [1, 0.01])
 
     with split_cols[0]:
-        # ── Main Canvas ─────────────────────────────────────────
+        # â”€â”€ Main Canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         _render_canvas_panel(canvas, webrtc, ai_researcher, token_payload, ghost_stage)
 
-        # ── Floating Dock ───────────────────────────────────────
+        # â”€â”€ Floating Dock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         _render_floating_dock(webrtc, token_payload)
 
-        # ── Interactive Bar ─────────────────────────────────────
+        # â”€â”€ Interactive Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         _render_interactive_bar(webrtc, canvas, ai_researcher, token_payload,
                                ghost_active, ghost_stage)
 
     with split_cols[1]:
         if show_sidebar:
-            # ── Sidebar ─────────────────────────────────────────
+            # â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             _render_sidebar(side_tab, webrtc, canvas, ai_researcher, token_payload)
         else:
             st.markdown("")
 
-    # ── Ghost Stage Banner ──────────────────────────────────────
+    # â”€â”€ Ghost Stage Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if ghost_active and ghost_stage:
         state_icon = {
-            GhostStageState.EDITING: "✏️",
-            GhostStageState.PENDING_REVIEW: "🔍",
-            GhostStageState.MERGING: "🔄",
-            GhostStageState.MERGED: "✅",
-        }.get(ghost_stage.state, "📝")
+            GhostStageState.EDITING: "âœï¸",
+            GhostStageState.PENDING_REVIEW: "ðŸ”",
+            GhostStageState.MERGING: "ðŸ”„",
+            GhostStageState.MERGED: "âœ…",
+        }.get(ghost_stage.state, "ðŸ“")
 
         st.markdown(f"""
         <div class="collab-ghost-banner">
             <span>{state_icon} Ghost Stage Active  <strong>{ghost_stage.display_name}</strong></span>
-            <span style="color:#6B7280;">{ghost_stage.state.value.replace('_', ' ').title()} · {len(ghost_stage.elements)} elements staged</span>
+            <span style="color:#6B7280;">{ghost_stage.state.value.replace('_', ' ').title()} Â· {len(ghost_stage.elements)} elements staged</span>
         </div>
         """, unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CONNECTION GATE
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _render_connection_gate(auth: ProjectAuthManager,
                             token_payload: Optional[ProjectTokenPayload]):
     """Render the initial connection/setup screen."""
     st.markdown("""
     <div style="max-width:640px;margin:3rem auto;text-align:center;">
-        <div style="font-size:3rem;margin-bottom:1rem;">🎯</div>
+        <div style="font-size:3rem;margin-bottom:1rem;">ðŸŽ¯</div>
         <h1 style="color:#f1f5f9;font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;">
             Project Collaboration Workspace
         </h1>
@@ -609,7 +609,7 @@ def _render_connection_gate(auth: ProjectAuthManager,
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.markdown("### 🎟️ Generate Token")
+        st.markdown("### ðŸŽŸï¸ Generate Token")
         with st.form("collab_gate_form"):
             user_id = st.text_input("User ID", value=f"user_{uuid.uuid4().hex[:8]}",
                                     key="gate_user_id")
@@ -620,8 +620,8 @@ def _render_connection_gate(auth: ProjectAuthManager,
             role_str = st.selectbox("Role", options=["host", "co_host", "researcher", "viewer"],
                                     index=2, key="gate_role")
 
-            if st.form_submit_button("🎟️ Generate & Connect", type="primary",
-                                     use_container_width=True):
+            if st.form_submit_button("ðŸŽŸï¸ Generate & Connect", type="primary",
+                                     width='stretch'):
                 # Generate token
                 role = ProjectRole.from_string(role_str)
                 token, payload = auth.create_access_token(
@@ -654,14 +654,14 @@ def _render_connection_gate(auth: ProjectAuthManager,
                 st.rerun()
 
     with col2:
-        st.markdown("### 🔗 Quick Join")
+        st.markdown("### ðŸ”— Quick Join")
         st.info("Enter an existing token or session ID to join a running session.")
         with st.form("collab_join_form"):
             token_input = st.text_area("JWT Token or Session ID",
                                        placeholder="eyJhbGciOiJIUzI1NiIs...",
                                        height=100, key="gate_token_input")
 
-            if st.form_submit_button("🔗 Join Session", use_container_width=True):
+            if st.form_submit_button("ðŸ”— Join Session", width='stretch'):
                 token_input = token_input.strip()
                 if token_input.startswith("eyJ"):
                     # Validate as JWT
@@ -689,18 +689,18 @@ def _render_connection_gate(auth: ProjectAuthManager,
                         st.error(msg)
                 else:
                     # Assume session ID
-                    st.info(f"🔍 Looking up session: {token_input[:16]}...")
+                    st.info(f"ðŸ” Looking up session: {token_input[:16]}...")
                     st.warning("Session lookup not implemented in demo mode. Generate a new token to start.")
 
     # Show token if generated
     if st.session_state.get("collab_last_token"):
-        with st.expander("📝 Generated Token", expanded=False):
+        with st.expander("ðŸ“ Generated Token", expanded=False):
             st.code(st.session_state["collab_last_token"], language="text")
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # CANVAS PANEL
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
                          webrtc: Optional[WebRTCProvider],
@@ -720,12 +720,12 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
     <div style="position:relative;flex:1;display:flex;flex-direction:column;height:500px;border:1px solid #262B33;border-radius:12px;overflow:hidden;background:#0B0E11;">
     """, unsafe_allow_html=True)
 
-    # ── Canvas Toolbar ─────────────────────────────────────────
+    # â”€â”€ Canvas Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     tool_cols = st.columns([2, 1, 1, 1, 1, 1])
     with tool_cols[0]:
-        st.caption(f"📍 Canvas · {len(canvas.list_elements())} elements")
+        st.caption(f"ðŸ“ Canvas Â· {len(canvas.list_elements())} elements")
     with tool_cols[1]:
-        if st.button("➕ Add Note", key="canvas_add_note", use_container_width=True,
+        if st.button("âž• Add Note", key="canvas_add_note", width='stretch',
                     disabled=not can_edit):
             elem = canvas.add_element(
                 CanvasElementType.STICKY,
@@ -737,7 +737,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
             )
             st.rerun()
     with tool_cols[2]:
-        if st.button(" Add Chart", key="canvas_add_chart", use_container_width=True,
+        if st.button(" Add Chart", key="canvas_add_chart", width='stretch',
                     disabled=not can_edit):
             canvas.add_element(
                 CanvasElementType.DATA_VIEW,
@@ -748,24 +748,24 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
             st.rerun()
     with tool_cols[3]:
         if canvas.grid_enabled:
-            if st.button("⊞ Grid On", key="canvas_grid", use_container_width=True):
+            if st.button("âŠž Grid On", key="canvas_grid", width='stretch'):
                 canvas.grid_enabled = False
                 st.rerun()
         else:
-            if st.button("⊟ Grid Off", key="canvas_grid", use_container_width=True):
+            if st.button("âŠŸ Grid Off", key="canvas_grid", width='stretch'):
                 canvas.grid_enabled = True
                 st.rerun()
     with tool_cols[4]:
         sync_mode = canvas.viewport_sync_mode
-        mode_label = {"free": "🔄 Free", "follow_host": " Follow", "follow_cohost": "🤝 Follow"}.get(sync_mode.value, "Free")
-        if st.button(mode_label, key="canvas_sync_mode", use_container_width=True):
+        mode_label = {"free": "ðŸ”„ Free", "follow_host": " Follow", "follow_cohost": "ðŸ¤ Follow"}.get(sync_mode.value, "Free")
+        if st.button(mode_label, key="canvas_sync_mode", width='stretch'):
             if sync_mode == ViewportSyncMode.FREE:
                 canvas.set_presenter(local.id if local else "")
             else:
                 canvas.clear_presenter()
             st.rerun()
 
-    # ── Canvas simulation ──────────────────────────────────────
+    # â”€â”€ Canvas simulation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown('<div style="padding:0.75rem;flex:1;overflow-y:auto;min-height:350px;">', unsafe_allow_html=True)
 
     # Show ghost stage elements if active
@@ -780,15 +780,15 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
     if visible_elements:
         for elem in visible_elements[:8]:
             type_icons = {
-                CanvasElementType.STICKY: "📝",
-                CanvasElementType.TEXT_NOTE: "📄",
+                CanvasElementType.STICKY: "ðŸ“",
+                CanvasElementType.TEXT_NOTE: "ðŸ“„",
                 CanvasElementType.DATA_VIEW: "",
-                CanvasElementType.CHART: "📈",
-                CanvasElementType.IMAGE: "🖼️",
-                CanvasElementType.CODE_BLOCK: "💻",
-                CanvasElementType.ARROW: "➡️",
+                CanvasElementType.CHART: "ðŸ“ˆ",
+                CanvasElementType.IMAGE: "ðŸ–¼ï¸",
+                CanvasElementType.CODE_BLOCK: "ðŸ’»",
+                CanvasElementType.ARROW: "âž¡ï¸",
             }
-            icon = type_icons.get(elem.type, "📦")
+            icon = type_icons.get(elem.type, "ðŸ“¦")
             content_text = elem.content.get("text", "") or elem.content.get("title", elem.type.value)
 
             # Check if ghost stage (highlight)
@@ -802,7 +802,7 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
                     <span style="color:#64748b;font-size:0.6rem;margin-left:auto;">v{elem.version}</span>
                 </div>
                 <div style="color:#6B7280;font-size:0.75rem;">{content_text[:80]}</div>
-                {f'<div style="color:#64748b;font-size:0.6rem;margin-top:0.3rem;">✏️ {elem.owner_id[:8]}</div>' if can_edit else ''}
+                {f'<div style="color:#64748b;font-size:0.6rem;margin-top:0.3rem;">âœï¸ {elem.owner_id[:8]}</div>' if can_edit else ''}
             </div>
             """, unsafe_allow_html=True)
     else:
@@ -811,9 +811,9 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── Cursor positions (simulated) ───────────────────────────
+    # â”€â”€ Cursor positions (simulated) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if canvas.cursors:
-        with st.expander("👆 Active Cursors", expanded=False):
+        with st.expander("ðŸ‘† Active Cursors", expanded=False):
             for cid, cursor in canvas.cursors.items():
                 if cid == canvas.local_user_id:
                     continue
@@ -827,9 +827,9 @@ def _render_canvas_panel(canvas: Optional[CollaborativeCanvas],
                 """, unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # FLOATING DOCK
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _render_floating_dock(webrtc: Optional[WebRTCProvider],
                           token_payload: Optional[ProjectTokenPayload]):
@@ -839,7 +839,7 @@ def _render_floating_dock(webrtc: Optional[WebRTCProvider],
 
     st.markdown('<div class="collab-dock">', unsafe_allow_html=True)
 
-    # ── Video Grid ─────────────────────────────────────────────
+    # â”€â”€ Video Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     participants = list(webrtc.participants.values())
     if participants:
         video_html = '<div class="collab-dock-video-grid">'
@@ -847,8 +847,8 @@ def _render_floating_dock(webrtc: Optional[WebRTCProvider],
             speaking_class = " speaking" if p.is_speaking else ""
             active_class = " active" if p.id == webrtc.local_participant_id else ""
             initials = p.name[0].upper() if p.name else "?"
-            mic_icon = "🎤" if p.is_audio_on else "🔇"
-            role_icon = "" if p.role == "host" else "🤝" if p.role == "co_host" else ""
+            mic_icon = "ðŸŽ¤" if p.is_audio_on else "ðŸ”‡"
+            role_icon = "" if p.role == "host" else "ðŸ¤" if p.role == "co_host" else ""
             # Kept on one line: indented lines would be rendered as a markdown code block.
             video_html = (
                 f'<div class="collab-dock-video{speaking_class}{active_class}">'
@@ -859,25 +859,25 @@ def _render_floating_dock(webrtc: Optional[WebRTCProvider],
         video_html = "</div>"
         st.markdown(video_html, unsafe_allow_html=True)
 
-    # ── Presentation Player ────────────────────────────────────
+    # â”€â”€ Presentation Player â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if webrtc._presentation_active:
         st.markdown("""
         <div class="collab-dock-presentation">
-            <span style="font-size:1.2rem;">📺</span>
+            <span style="font-size:1.2rem;">ðŸ“º</span>
             <div style="flex:1;">
                 <div style="color:#f1f5f9;font-size:0.75rem;font-weight:600;">Presentation Active</div>
                 <div style="color:#64748b;font-size:0.65rem;">Dual-track overlay streaming</div>
             </div>
-            <span class="collab-ibar-btn" style="font-size:0.65rem;">🔴 LIVE</span>
+            <span class="collab-ibar-btn" style="font-size:0.65rem;">ðŸ”´ LIVE</span>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # INTERACTIVE BAR
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
                             canvas: Optional[CollaborativeCanvas],
@@ -943,7 +943,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
 
     st.markdown('<div class="collab-ibar">', unsafe_allow_html=True)
 
-    # ── Section: Reactions ─────────────────────────────────────
+    # â”€â”€ Section: Reactions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown('<div class="collab-ibar-section">', unsafe_allow_html=True)
     for r in PROFESSIONAL_REACTIONS[:4]:
         btn_key = f"reaction_{r['id']}"
@@ -965,7 +965,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
 
     st.markdown('<span class="collab-ibar-divider"></span>', unsafe_allow_html=True)
 
-    # ── Section: More Reactions ────────────────────────────────
+    # â”€â”€ Section: More Reactions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown('<div class="collab-ibar-section">', unsafe_allow_html=True)
     for r in PROFESSIONAL_REACTIONS[4:]:
         if st.button(f"{r['emoji']} {r['label']}", key=f"reaction_{r['id']}_2",
@@ -983,17 +983,17 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
 
     st.markdown('<span class="collab-ibar-divider"></span>', unsafe_allow_html=True)
 
-    # ── Section: Media Controls ────────────────────────────────
+    # â”€â”€ Section: Media Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown('<div class="collab-ibar-section">', unsafe_allow_html=True)
     if local:
         # Audio toggle
-        if st.button("🔇 Mute" if local.is_audio_on else "🎤 Unmute",
+        if st.button("ðŸ”‡ Mute" if local.is_audio_on else "ðŸŽ¤ Unmute",
                     key="ibar_mute", help="Toggle microphone"):
             webrtc.toggle_mute(local.id, TrackType.AUDIO)
             st.rerun()
 
         # Video toggle
-        if st.button("📹 Off" if local.is_video_on else "📹 On",
+        if st.button("ðŸ“¹ Off" if local.is_video_on else "ðŸ“¹ On",
                     key="ibar_video", help="Toggle camera"):
             webrtc.toggle_mute(local.id, TrackType.CAMERA)
             st.rerun()
@@ -1001,7 +1001,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
     # Presentation toggle
     if permissions.get("present_screen", False) and local:
         if webrtc._presentation_active:
-            if st.button("🛑 Stop Pres", key="ibar_stop_pres", help="Stop presentation"):
+            if st.button("ðŸ›‘ Stop Pres", key="ibar_stop_pres", help="Stop presentation"):
                 webrtc.stop_presentation(local.id)
                 st.rerun()
         else:
@@ -1012,12 +1012,12 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
 
     st.markdown('<span class="collab-ibar-divider"></span>', unsafe_allow_html=True)
 
-    # ── Section: Ghost Stage ───────────────────────────────────
+    # â”€â”€ Section: Ghost Stage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if permissions.get("use_ghost_stage", False) and canvas:
         st.markdown('<div class="collab-ibar-section">', unsafe_allow_html=True)
 
         if not ghost_active:
-            if st.button("👻 Ghost Stage", key="ibar_ghost_start",
+            if st.button("ðŸ‘» Ghost Stage", key="ibar_ghost_start",
                         help="Open private sandbox for staging changes"):
                 ghost = canvas.start_ghost_stage(
                     local.id if local else "unknown",
@@ -1027,7 +1027,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
                 st.session_state["collab_ghost_active"] = True
                 st.rerun()
         else:
-            if st.button("👻 Merge", key="ibar_ghost_merge", help="Push staged changes live"):
+            if st.button("ðŸ‘» Merge", key="ibar_ghost_merge", help="Push staged changes live"):
                 if ghost_stage:
                     result = ghost_stage.merge_to_main(canvas.elements)
                     st.success(f"Merged: {result['added']} ~{result['updated']} -{result['deleted']}")
@@ -1035,7 +1035,7 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
                     st.session_state["collab_ghost_stage"] = None
                     st.rerun()
 
-            if st.button("🗑️ Discard", key="ibar_ghost_discard", help="Discard staged changes"):
+            if st.button("ðŸ—‘ï¸ Discard", key="ibar_ghost_discard", help="Discard staged changes"):
                 if ghost_stage:
                     ghost_stage.discard()
                     st.session_state["collab_ghost_active"] = False
@@ -1044,13 +1044,13 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
         st.markdown('</div>', unsafe_allow_html=True)
         st.markdown('<span class="collab-ibar-divider"></span>', unsafe_allow_html=True)
 
-    # ── Section: AI Feed Indicator ─────────────────────────────
+    # â”€â”€ Section: AI Feed Indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     st.markdown('<div class="collab-ibar-section">', unsafe_allow_html=True)
     ai_count = len(ai_researcher.get_open_action_items()) if ai_researcher else 0
     note_count = len(ai_researcher.notes) if ai_researcher else 0
     st.markdown(f"""
     <span style="color:#64748b;font-size:0.7rem;">
-        🤖 AI: {ai_count} actions · {note_count} notes
+        ðŸ¤– AI: {ai_count} actions Â· {note_count} notes
     </span>
     """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -1058,9 +1058,9 @@ def _render_interactive_bar(webrtc: Optional[WebRTCProvider],
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # SIDEBAR PANEL
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _render_sidebar(active_tab: str, webrtc: Optional[WebRTCProvider],
                     canvas: Optional[CollaborativeCanvas],
@@ -1068,12 +1068,12 @@ def _render_sidebar(active_tab: str, webrtc: Optional[WebRTCProvider],
                     token_payload: Optional[ProjectTokenPayload]):
     """Render the right sidebar with multiple tabbed panels."""
 
-    # ── Tabs ───────────────────────────────────────────────────
+    # â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     tabs = [
-        {"id": "reactions", "label": "💬", "tooltip": "Reactions & Notes"},
-        {"id": "aifeed", "label": "🤖", "tooltip": "AI Feed"},
-        {"id": "tools", "label": "🔧", "tooltip": "Canvas Tools"},
-        {"id": "participants", "label": "👥", "tooltip": "Participants"},
+        {"id": "reactions", "label": "ðŸ’¬", "tooltip": "Reactions & Notes"},
+        {"id": "aifeed", "label": "ðŸ¤–", "tooltip": "AI Feed"},
+        {"id": "tools", "label": "ðŸ”§", "tooltip": "Canvas Tools"},
+        {"id": "participants", "label": "ðŸ‘¥", "tooltip": "Participants"},
     ]
 
     tab_html = '<div class="collab-sb-tabs">'
@@ -1101,18 +1101,18 @@ def _render_sidebar(active_tab: str, webrtc: Optional[WebRTCProvider],
 
 def _render_reactions_tab(ai_researcher: Optional[AIResearcher]):
     """Render the reactions and notes tab."""
-    st.markdown("### 💬 Meeting Notes")
+    st.markdown("### ðŸ’¬ Meeting Notes")
     if ai_researcher and ai_researcher.notes:
         for note in sorted(ai_researcher.notes.values(),
                           key=lambda x: x.generated_at, reverse=True)[:10]:
             cat_icons = {
-                NoteCategory.ACTION_ITEM: "🎯",
-                NoteCategory.DECISION: "✅",
-                NoteCategory.QUESTION: "❓",
-                NoteCategory.FINDING: "💡",
-                NoteCategory.GENERAL: "📝",
+                NoteCategory.ACTION_ITEM: "ðŸŽ¯",
+                NoteCategory.DECISION: "âœ…",
+                NoteCategory.QUESTION: "â“",
+                NoteCategory.FINDING: "ðŸ’¡",
+                NoteCategory.GENERAL: "ðŸ“",
             }
-            icon = cat_icons.get(note.category, "📝")
+            icon = cat_icons.get(note.category, "ðŸ“")
             ts = datetime.fromtimestamp(note.generated_at).strftime("%H:%M")
             st.markdown(f"""
             <div class="collab-ai-item note">
@@ -1129,7 +1129,7 @@ def _render_reactions_tab(ai_researcher: Optional[AIResearcher]):
 
 def _render_aifeed_tab(ai_researcher: Optional[AIResearcher]):
     """Render the AI action items feed tab."""
-    st.markdown("### 🤖 AI Action Items")
+    st.markdown("### ðŸ¤– AI Action Items")
 
     if ai_researcher:
         open_items = ai_researcher.get_open_action_items()
@@ -1149,19 +1149,19 @@ def _render_aifeed_tab(ai_researcher: Optional[AIResearcher]):
                         <span>{item.confidence:.0%} confidence</span>
                     </div>
                     <div style="color:#e2e8f0;">{item.description[:80]}</div>
-                    {f'<div style="color:#64748b;font-size:0.65rem;margin-top:0.2rem;">👤 {item.assignee_name}</div>' if item.assignee_name else ''}
+                    {f'<div style="color:#64748b;font-size:0.65rem;margin-top:0.2rem;">ðŸ‘¤ {item.assignee_name}</div>' if item.assignee_name else ''}
                 </div>
                 """, unsafe_allow_html=True)
         else:
             st.info("No action items detected. Start a meeting with AI recording.")
 
         # Transcript input mini
-        st.markdown("### 🎤 Quick Transcript")
+        st.markdown("### ðŸŽ¤ Quick Transcript")
         text = st.text_area("", placeholder="Type meeting transcription...",
                            height=60, key="ai_feed_transcript",
                            label_visibility="collapsed")
         speaker = st.text_input("Speaker", value="You", key="ai_feed_speaker")
-        if st.button("📝 Process", use_container_width=True) and text:
+        if st.button("ðŸ“ Process", width='stretch') and text:
             ai_researcher.ingest_transcript(
                 text=text,
                 speaker_id=speaker.lower().replace(" ", "_"),
@@ -1175,7 +1175,7 @@ def _render_aifeed_tab(ai_researcher: Optional[AIResearcher]):
 def _render_tools_tab(canvas: Optional[CollaborativeCanvas],
                       webrtc: Optional[WebRTCProvider]):
     """Render the canvas tools tab."""
-    st.markdown("### 🔧 Canvas Tools")
+    st.markdown("### ðŸ”§ Canvas Tools")
 
     if not canvas:
         st.info("Canvas not available.")
@@ -1191,11 +1191,11 @@ def _render_tools_tab(canvas: Optional[CollaborativeCanvas],
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("📝 Sticky Note", key="tool_sticky", disabled=not can_edit):
+        if st.button("ðŸ“ Sticky Note", key="tool_sticky", disabled=not can_edit):
             canvas.add_element(CanvasElementType.STICKY, "user", 200, 200,
                               content={"text": "New sticky note...", "color": "#262B33"})
             st.rerun()
-        if st.button("📄 Text", key="tool_text", disabled=not can_edit):
+        if st.button("ðŸ“„ Text", key="tool_text", disabled=not can_edit):
             canvas.add_element(CanvasElementType.TEXT_NOTE, "user", 300, 300,
                               content={"text": "Enter text here..."})
             st.rerun()
@@ -1204,7 +1204,7 @@ def _render_tools_tab(canvas: Optional[CollaborativeCanvas],
             canvas.add_element(CanvasElementType.DATA_VIEW, "user", 400, 200,
                               content={"type": "line", "title": "Data View"})
             st.rerun()
-        if st.button("💻 Code", key="tool_code", disabled=not can_edit):
+        if st.button("ðŸ’» Code", key="tool_code", disabled=not can_edit):
             canvas.add_element(CanvasElementType.CODE_BLOCK, "user", 500, 300,
                               content={"language": "python", "code": "# code here"})
             st.rerun()
@@ -1228,7 +1228,7 @@ def _render_tools_tab(canvas: Optional[CollaborativeCanvas],
 def _render_participants_tab(webrtc: Optional[WebRTCProvider],
                               canvas: Optional[CollaborativeCanvas]):
     """Render the participants list tab."""
-    st.markdown("### 👥 Participants")
+    st.markdown("### ðŸ‘¥ Participants")
 
     if not webrtc:
         st.info("No participants.")
@@ -1237,16 +1237,16 @@ def _render_participants_tab(webrtc: Optional[WebRTCProvider],
     for pid, p in webrtc.participants.items():
         is_local = pid == webrtc.local_participant_id
         role_icons = {
-            "host": "", "co_host": "🤝", "researcher": "🔬", "viewer": "👁️",
+            "host": "", "co_host": "ðŸ¤", "researcher": "ðŸ”¬", "viewer": "ðŸ‘ï¸",
         }
-        role_icon = role_icons.get(p.role, "👤")
+        role_icon = role_icons.get(p.role, "ðŸ‘¤")
         local_tag = " (You)" if is_local else ""
 
         # Cursor position info
         cursor_info = ""
         if canvas and pid in canvas.cursors:
             c = canvas.cursors[pid]
-            cursor_info = f"📍 ({c.x:.0f}, {c.y:.0f})"
+            cursor_info = f"ðŸ“ ({c.x:.0f}, {c.y:.0f})"
 
         st.markdown(f"""
         <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;
@@ -1262,19 +1262,19 @@ def _render_participants_tab(webrtc: Optional[WebRTCProvider],
                 </div>
                 <div style="display:flex;gap:0.3rem;align-items:center;font-size:0.65rem;">
                     <span>{role_icon} {p.role.replace('_', ' ').title()}</span>
-                    <span>{'🎤' if p.is_audio_on else '🔇'}</span>
-                    <span>{'📹' if p.is_video_on else '📹❌'}</span>
+                    <span>{'ðŸŽ¤' if p.is_audio_on else 'ðŸ”‡'}</span>
+                    <span>{'ðŸ“¹' if p.is_video_on else 'ðŸ“¹âŒ'}</span>
                     {f'<span style="color:#64748b;">{cursor_info}</span>' if cursor_info else ''}
                 </div>
             </div>
-            {f'<span class="collab-ibar-btn">🤚</span>' if p.is_hand_raised else ''}
+            {f'<span class="collab-ibar-btn">ðŸ¤š</span>' if p.is_hand_raised else ''}
         </div>
         """, unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # HELPERS
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _init_collab_state():
     """Initialize collaboration session state."""
@@ -1296,9 +1296,9 @@ def _init_collab_state():
             st.session_state[key] = val
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # DEMO SETUP
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def setup_demo_session():
     """Set up a full demo collaboration session with sample data."""

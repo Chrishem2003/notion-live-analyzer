@@ -1,4 +1,4 @@
-﻿﻿"""
+﻿"""
 task_status_registry.py
 Persistence layer for asynchronous task state shared across:
   - tasks.py (Celery/ThreadPool workers)

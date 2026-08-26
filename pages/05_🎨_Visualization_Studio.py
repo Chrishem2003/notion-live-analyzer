@@ -1,4 +1,4 @@
-﻿﻿import io
+import io
 import os
 import sys
 
@@ -373,7 +373,7 @@ def render_custom_builder(df: pd.DataFrame):
     )
 
     if fig:
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": True})
+        st.plotly_chart(fig, width='stretch', config={"displayModeBar": True})
 
         if y_col and y_col in numeric_cols:
             st.info(
@@ -489,7 +489,7 @@ def render_auto_studio(df: pd.DataFrame):
             st.caption(rationale)
             fig = build_chart(ctype, df, height=350, **params)
             if fig:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             st.markdown("---")
 
 
@@ -524,7 +524,7 @@ def render_exec_dashboard(df: pd.DataFrame):
     with row1_c1:
         fig1 = build_chart("Histogram", df, x=numeric_cols[0], height=340)
         if fig1:
-            st.plotly_chart(fig1, use_container_width=True)
+            st.plotly_chart(fig1, width='stretch')
 
     with row1_c2:
         if len(numeric_cols) >= 2:
@@ -532,14 +532,14 @@ def render_exec_dashboard(df: pd.DataFrame):
                 "Scatter Plot", df, x=numeric_cols[0], y=numeric_cols[1], height=340
             )
             if fig2:
-                st.plotly_chart(fig2, use_container_width=True)
+                st.plotly_chart(fig2, width='stretch')
 
     if cat_cols and len(numeric_cols) >= 1:
         fig3 = build_chart(
             "Bar Chart", df, x=cat_cols[0], y=numeric_cols[0], height=340
         )
         if fig3:
-            st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3, width='stretch')
 
     st.markdown("---")
     render_export_buttons(df, base_name="executive_dashboard_dataset")
@@ -664,7 +664,7 @@ def render_deck_builder(df: pd.DataFrame):
             with st.expander(f"{spec['title']}", expanded=(i == 0)):
                 st.metric(spec["metric_label"], spec["metric_value"])
                 if spec["fig"]:
-                    st.plotly_chart(spec["fig"], use_container_width=True)
+                    st.plotly_chart(spec["fig"], width='stretch')
 
         if PPTX_AVAILABLE:
             pptx_bytes = _build_pptx(deck_title, slides_spec)
@@ -716,7 +716,7 @@ def render_chart_extractor(df: pd.DataFrame):
             )
 
         st.markdown("#### 📋 Extracted Dataset Preview & Copy Options")
-        st.dataframe(extracted_df, use_container_width=True, hide_index=True)
+        st.dataframe(extracted_df, width='stretch', hide_index=True)
         render_export_buttons(extracted_df, base_name="extracted_chart_dataset")
 
 

@@ -1,4 +1,4 @@
-﻿
+
 import os
 import streamlit as st
 import pandas as pd
@@ -61,7 +61,7 @@ def render_security_audit_panel():
     st.caption("Automated vulnerability checks, asset isolation status, and integrity verification.")
 
     df_audit = run_security_audit()
-    st.dataframe(df_audit, use_container_width=True)
+    st.dataframe(df_audit, width='stretch')
 
     if st.button("Run Full Security Scan"):
         st.success("Security audit completed successfully. All core subsystems verified.")

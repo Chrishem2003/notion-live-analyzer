@@ -1,4 +1,4 @@
-﻿"""
+"""
 Environment & Dependency Manager
 ===================================
 Honest about what's actually possible: Streamlit Cloud (and most managed

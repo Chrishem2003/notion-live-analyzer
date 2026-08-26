@@ -1,4 +1,4 @@
-﻿"""Unit tests for modules.subscription_core pure-logic functions."""
+"""Unit tests for modules.subscription_core pure-logic functions."""
 import pytest
 from datetime import datetime, timedelta, timezone
 

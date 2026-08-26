@@ -1,4 +1,4 @@
-﻿"""
+"""
 meet_backend.py — WebRTC signaling server.
 
 Important scope note, stated once here rather than buried: this is a

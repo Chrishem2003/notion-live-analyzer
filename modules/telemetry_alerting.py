@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -51,7 +51,7 @@ def render_telemetry_alerting_panel():
         {"Alert_Rule": "Cryptographic Lattices Drift", "Severity": "Maximum", "Action_Trigger": "Lockdown Ingress Ports", "Status": "ARMED"},
         {"Alert_Rule": "Pathogen Surveillance Anomaly", "Severity": "High", "Action_Trigger": "Isolate Sample Basin", "Status": "ARMED"}
     ]
-    st.dataframe(pd.DataFrame(alert_rules), use_container_width=True)
+    st.dataframe(pd.DataFrame(alert_rules), width='stretch')
 
     col_1, col_2 = st.columns(2)
     with col_1:

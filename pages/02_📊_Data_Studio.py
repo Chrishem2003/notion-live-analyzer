@@ -1,4 +1,4 @@
-﻿﻿import os
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -350,7 +350,7 @@ def render_ingestion_tab():
                         f"✅ Successfully ingested `{uploaded_file.name}` —"
                         f" {df.shape[0]:,} rows × {df.shape[1]} columns"
                     )
-                    st.dataframe(df.head(10), use_container_width=True)
+                    st.dataframe(df.head(10), width='stretch')
 
     with col_sample:
         st.markdown("#### 🎲 Preset Industry Cohorts")
@@ -361,7 +361,7 @@ def render_ingestion_tab():
             "Genomic Microarray": "genomic",
         }
         for label, kind in sample_kinds.items():
-            if st.button(label, use_container_width=True, key=f"smp_{kind}"):
+            if st.button(label, width='stretch', key=f"smp_{kind}"):
                 sample_df = generate_sample_dataset(kind)
                 set_active_dataframe(sample_df, f"{kind}_sample.csv")
                 push_to_history(sample_df, f"Loaded preset: {label}")
@@ -422,7 +422,7 @@ def render_quality_tab():
                 "Unique Values": df.nunique().values,
             }
         )
-        st.dataframe(schema_df, use_container_width=True, hide_index=True)
+        st.dataframe(schema_df, width='stretch', hide_index=True)
 
     with tab2:
         st.markdown("#### Unsupervised Outlier Isolation (ML Driven)")
@@ -452,7 +452,7 @@ def render_quality_tab():
                     f" ({len(anomalies)/len(sub_df)*100:.2f}% of total)."
                 )
                 st.dataframe(
-                    df.loc[anomalies.index], use_container_width=True
+                    df.loc[anomalies.index], width='stretch'
                 )
 
     with tab3:
@@ -658,7 +658,7 @@ def render_analytics_viz_tab():
             fig = px.box(df, x=x_col, y=y_col, color=color_col)
 
         if "fig" in locals():
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
     with v_tab2:
         if len(num_cols) > 1:
@@ -669,7 +669,7 @@ def render_analytics_viz_tab():
                 aspect="auto",
                 color_continuous_scale="Blues",
             )
-            st.plotly_chart(fig_corr, use_container_width=True)
+            st.plotly_chart(fig_corr, width='stretch')
 
     with v_tab3:
         if len(num_cols) >= 2:
@@ -680,7 +680,7 @@ def render_analytics_viz_tab():
             )
             if len(selected_vars) >= 2:
                 fig_matrix = px.scatter_matrix(df, dimensions=selected_vars)
-                st.plotly_chart(fig_matrix, use_container_width=True)
+                st.plotly_chart(fig_matrix, width='stretch')
 
 
 def render_explorer_sql_tab():
@@ -699,7 +699,7 @@ def render_explorer_sql_tab():
     )
 
     with tab_view:
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
 
     with tab_sql:
         if DUCKDB_AVAILABLE:
@@ -728,7 +728,7 @@ def render_explorer_sql_tab():
                         res = conn.execute(sql_query).df()
                         conn.close()
                         st.success(f"✅ Executed — returned {len(res):,} rows.")
-                        st.dataframe(res, use_container_width=True)
+                        st.dataframe(res, width='stretch')
                         render_export_buttons(res, base_name="query_results")
                     except Exception as e:
                         st.error(f"SQL Execution Error: {e}")

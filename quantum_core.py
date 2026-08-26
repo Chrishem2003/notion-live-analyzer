@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -25,7 +25,7 @@ def render_quantum_core_panel():
     st.caption("Next-generation lattice encryption verification, predictive neural threat shielding, and autonomous self-healing telemetry.")
 
     df_quantum = get_quantum_telemetry_matrix()
-    st.dataframe(df_quantum, use_container_width=True)
+    st.dataframe(df_quantum, width='stretch')
 
     col1, col2, col3 = st.columns(3)
     with col1:

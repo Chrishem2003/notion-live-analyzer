@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import random
@@ -38,7 +38,7 @@ def render_award_command_panel():
     st.markdown("---")
     st.markdown("###  Live Cluster Mesh & Elite Telemetry Matrix")
     df_award = get_award_grade_telemetry()
-    st.dataframe(df_award, use_container_width=True)
+    st.dataframe(df_award, width='stretch')
 
     st.markdown("---")
     st.markdown("### ? Executive Command Controls")

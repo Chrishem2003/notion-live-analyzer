@@ -1,4 +1,4 @@
-﻿﻿
+
 import streamlit as st
 import pandas as pd
 import hashlib
@@ -25,7 +25,7 @@ def render_quantum_vault_panel():
     st.caption("Military-grade key management, hardware-bound cryptographic tokens, and tamper-evident audit trails.")
 
     df_vault = get_vault_enclave_status()
-    st.dataframe(df_vault, use_container_width=True)
+    st.dataframe(df_vault, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:

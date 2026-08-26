@@ -1,20 +1,20 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 
 def get_default_inventory() -> pd.DataFrame:
     """Returns baseline lab inventory dataset."""
     data = [
-        {"ItemID": "RGT-001", "Name": "Taq DNA Polymerase", "Category": "Enzyme", "Quantity": 250, "Unit": "U", "Location": "-20°C Box A1", "MinThreshold": 50},
-        {"ItemID": "RGT-002", "Name": "10x PCR Buffer", "Category": "Buffer", "Quantity": 15, "Unit": "mL", "Location": "-20°C Box A1", "MinThreshold": 5},
-        {"ItemID": "RGT-003", "Name": "dNTP Mix (10mM)", "Category": "Reagent", "Quantity": 2, "Unit": "mL", "Location": "-20°C Box A2", "MinThreshold": 3},
-        {"ItemID": "SMP-101", "Name": "BRCA1 cDNA Isolates", "Category": "Sample", "Quantity": 45, "Unit": "uL", "Location": "-80°C Rack 3-B", "MinThreshold": 10},
-        {"ItemID": "PRM-501", "Name": "Forward Primer 27F", "Category": "Primer", "Quantity": 100, "Unit": "uM", "Location": "-20°C Box P1", "MinThreshold": 20}
+        {"ItemID": "RGT-001", "Name": "Taq DNA Polymerase", "Category": "Enzyme", "Quantity": 250, "Unit": "U", "Location": "-20Â°C Box A1", "MinThreshold": 50},
+        {"ItemID": "RGT-002", "Name": "10x PCR Buffer", "Category": "Buffer", "Quantity": 15, "Unit": "mL", "Location": "-20Â°C Box A1", "MinThreshold": 5},
+        {"ItemID": "RGT-003", "Name": "dNTP Mix (10mM)", "Category": "Reagent", "Quantity": 2, "Unit": "mL", "Location": "-20Â°C Box A2", "MinThreshold": 3},
+        {"ItemID": "SMP-101", "Name": "BRCA1 cDNA Isolates", "Category": "Sample", "Quantity": 45, "Unit": "uL", "Location": "-80Â°C Rack 3-B", "MinThreshold": 10},
+        {"ItemID": "PRM-501", "Name": "Forward Primer 27F", "Category": "Primer", "Quantity": 100, "Unit": "uM", "Location": "-20Â°C Box P1", "MinThreshold": 20}
     ]
     return pd.DataFrame(data)
 
 def render_inventory_tab():
-    st.subheader("🧪 Laboratory Inventory & Sample Provenance Engine")
+    st.subheader("ðŸ§ª Laboratory Inventory & Sample Provenance Engine")
     st.caption("Manage physical freezer locations, sample volumes, and automated reagent reorder thresholds.")
 
     if "inventory_db" not in st.session_state:
@@ -25,20 +25,20 @@ def render_inventory_tab():
     inv_col1, inv_col2 = st.columns([2, 1])
 
     with inv_col1:
-        st.markdown("### 📦 Stock Status & Storage Mapping")
+        st.markdown("### ðŸ“¦ Stock Status & Storage Mapping")
         
         # Highlight low stock
         low_stock = df[df["Quantity"] <= df["MinThreshold"]]
         if not low_stock.empty:
-            st.error(f"⚠️ **Alert:** {len(low_stock)} item(s) below minimum stock threshold!")
-            st.dataframe(low_stock[["Name", "Quantity", "Unit", "Location", "MinThreshold"]], use_container_width=True)
+            st.error(f"âš ï¸ **Alert:** {len(low_stock)} item(s) below minimum stock threshold!")
+            st.dataframe(low_stock[["Name", "Quantity", "Unit", "Location", "MinThreshold"]], width='stretch')
         else:
-            st.success("✅ All reagents and samples are above reorder thresholds.")
+            st.success("âœ… All reagents and samples are above reorder thresholds.")
 
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
 
     with inv_col2:
-        st.markdown("### 🧮 PCR Master Mix Calculator")
+        st.markdown("### ðŸ§® PCR Master Mix Calculator")
         st.caption("Auto-calculate total component volumes with overflow waste margin.")
         
         rxn_count = st.number_input("Number of Reactions", min_value=1, max_value=384, value=10, step=1)

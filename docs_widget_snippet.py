@@ -1,4 +1,4 @@
-﻿"""
+"""
 Integration example: drop into 11___Collaboration_Portfolio.py as a new
 "Live Docs" tab. Uses actual Yjs (via CDN) in the browser — the same CRDT
 wire protocol as pycrdt server-side, proven compatible by design (both

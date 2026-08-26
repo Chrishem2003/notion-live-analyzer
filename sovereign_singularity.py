@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -37,7 +37,7 @@ def render_sovereign_singularity_panel():
     st.markdown("---")
     st.markdown("###  Sovereign Cluster Mesh Matrix")
     df_singularity = get_singularity_metrics()
-    st.dataframe(df_singularity, use_container_width=True)
+    st.dataframe(df_singularity, width='stretch')
 
     st.markdown("---")
     st.markdown("### ? Sovereign Master Execution Controls")

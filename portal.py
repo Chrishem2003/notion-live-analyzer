@@ -1,4 +1,4 @@
-﻿﻿"""
+"""
 Portal Gateway — Authentication, Subscription, and Workspace Shell (Premium / Security-Hardened)
 
 Changelog vs prior version — this file had the most serious issues found in the entire audit,
@@ -472,7 +472,7 @@ def render_oauth_buttons():
 
     for key, cfg in configured.items():
         url = build_authorize_url(key, cfg)
-        st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, use_container_width=True)
+        st.link_button(f"{cfg['icon']} Continue with {cfg['label']}", url, width='stretch')
     st.markdown(
         "<div style='text-align:center; color:#6B7280; font-size:0.8rem; margin: 10px 0;'>— or use email & password —</div>",
         unsafe_allow_html=True,
@@ -739,7 +739,7 @@ if not st.session_state.portal_unlocked:
             remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            if st.button("🚀 Unlock Portal Workspace", use_container_width=True):
+            if st.button("🚀 Unlock Portal Workspace", width='stretch'):
                 user = auth_store.verify_login(si_email, si_password)
                 if user is None:
                     st.error("Incorrect email or password.")
@@ -770,7 +770,7 @@ if not st.session_state.portal_unlocked:
             su_password2 = st.text_input("Confirm Password", type="password", key="su_password2_input", placeholder="Re-enter password")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            if st.button("✨ Create Sovereign Account", use_container_width=True):
+            if st.button("✨ Create Sovereign Account", width='stretch'):
                 if not su_email or not su_password:
                     st.error("Email and password are required.")
                 elif su_password != su_password2:
@@ -795,17 +795,17 @@ if not st.session_state.portal_unlocked:
             d_col1, d_col2 = st.columns(2)
             with d_col1:
                 st.markdown('<div class="download-grid-card"><h4>🪟 Windows</h4><p style="font-size: 0.8rem; color: #6B7280;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download Windows Bundle", data=starter_win, file_name="chrishem_hub_windows_starter.zip", mime="application/zip", width='stretch')
 
                 st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>🐧 Linux</h4><p style="font-size: 0.8rem; color: #6B7280;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download Linux Bundle", data=starter_linux, file_name="chrishem_hub_linux_starter.zip", mime="application/zip", width='stretch')
 
             with d_col2:
                 st.markdown('<div class="download-grid-card"><h4>🍏 macOS</h4><p style="font-size: 0.8rem; color: #6B7280;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download macOS Bundle", data=starter_mac, file_name="chrishem_hub_macos_starter.zip", mime="application/zip", width='stretch')
 
                 st.markdown('<div class="download-grid-card" style="margin-top: 14px;"><h4>📱 Mobile / PWA</h4><p style="font-size: 0.8rem; color: #6B7280;">Starter config bundle (.zip)</p></div>', unsafe_allow_html=True)
-                st.download_button("📥 Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download Mobile Bundle", data=starter_pwa, file_name="chrishem_hub_mobile_starter.zip", mime="application/zip", width='stretch')
 
 # --- UNLOCKED WORKSPACE DASHBOARD ---
 else:
@@ -825,7 +825,7 @@ else:
 
     theme_mode = st.sidebar.selectbox("Interface Spectrum", ["Deep Space Nebula", "Cyber Matrix Dark", "Sovereign Gold"])
 
-    if st.sidebar.button("🔒 Lock Portal & Sign Out", use_container_width=True):
+    if st.sidebar.button("🔒 Lock Portal & Sign Out", width='stretch'):
         cookie_manager.delete("chrishem_user_email")
         st.session_state.portal_unlocked = False
         st.rerun()
@@ -903,16 +903,16 @@ else:
                     st.markdown(f"**{info['label']}** — {info['blurb']}")
                     st.caption(f"${info['price_monthly']}/mo · ${info['price_annual']}/yr")
                     b1, b2 = st.columns(2)
-                    if b1.button(f"Monthly", key=f"pf_{plan_key}_m", use_container_width=True):
+                    if b1.button(f"Monthly", key=f"pf_{plan_key}_m", width='stretch'):
                         url = billing_stripe.create_checkout_session(current_user_email, plan_key, "monthly")
                         if url:
-                            st.link_button("Continue to secure checkout →", url, type="primary", use_container_width=True)
+                            st.link_button("Continue to secure checkout →", url, type="primary", width='stretch')
                         else:
                             st.error("Checkout is not available — that plan's Stripe price ID isn't configured.")
-                    if b2.button(f"Annual", key=f"pf_{plan_key}_a", use_container_width=True):
+                    if b2.button(f"Annual", key=f"pf_{plan_key}_a", width='stretch'):
                         url = billing_stripe.create_checkout_session(current_user_email, plan_key, "annual")
                         if url:
-                            st.link_button("Continue to secure checkout →", url, type="primary", use_container_width=True)
+                            st.link_button("Continue to secure checkout →", url, type="primary", width='stretch')
                         else:
                             st.error("Checkout is not available — that plan's Stripe price ID isn't configured.")
 
@@ -920,14 +920,14 @@ else:
             st.markdown("#### Manage your subscription")
             mc1, mc2 = st.columns(2)
             with mc1:
-                if st.button("Open billing portal", use_container_width=True):
+                if st.button("Open billing portal", width='stretch'):
                     portal_url = billing_stripe.create_billing_portal_session(current_user_email)
                     if portal_url:
-                        st.link_button("Open Stripe billing portal →", portal_url, use_container_width=True)
+                        st.link_button("Open Stripe billing portal →", portal_url, width='stretch')
                     else:
                         st.info("No Stripe customer on file yet — upgrade first to create one.")
             with mc2:
-                if st.button("🔄 Resync billing status from Stripe", use_container_width=True):
+                if st.button("🔄 Resync billing status from Stripe", width='stretch'):
                     result = billing_stripe.reconcile_subscription(current_user_email)
                     if result:
                         st.success(f"Resynced: {result['plan'].title()} ({result['status']}).")
@@ -985,7 +985,7 @@ else:
 
         col_up1, col_up2 = st.columns(2)
         with col_up1:
-            if st.button("💾 Save Custom Avatar", use_container_width=True):
+            if st.button("💾 Save Custom Avatar", width='stretch'):
                 if uploaded_avatar is not None:
                     image_bytes = uploaded_avatar.read()
                     cursor = db_conn.cursor()
@@ -996,7 +996,7 @@ else:
                 else:
                     st.warning("Please select an image file first.")
         with col_up2:
-            if st.button("🔄 Revert to Default Picture", use_container_width=True):
+            if st.button("🔄 Revert to Default Picture", width='stretch'):
                 cursor = db_conn.cursor()
                 cursor.execute("UPDATE auth_users SET avatar_blob = NULL WHERE email = ?", (current_user_email,))
                 db_conn.commit()
@@ -1015,6 +1015,6 @@ else:
             users = cursor.fetchall()
 
             user_df = pd.DataFrame(users, columns=["Email", "Name", "Role"])
-            st.dataframe(user_df, use_container_width=True)
+            st.dataframe(user_df, width='stretch')
 
             st.info(f"Signed in as `{current_user_email}` with role `{identity.get('role')}` — role changes should be made through the Admin & Security Center's RBAC console, which includes last-admin lockout protection and audit logging.")

@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import subprocess
@@ -46,7 +46,7 @@ def render_docker_monitor_panel():
     st.caption("Inspect container health metrics, resource allocation, and storage mount states across your local migration partitions.")
 
     df_containers = get_container_telemetry()
-    st.dataframe(df_containers, use_container_width=True)
+    st.dataframe(df_containers, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:

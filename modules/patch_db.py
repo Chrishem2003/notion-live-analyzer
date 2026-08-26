@@ -1,4 +1,4 @@
-﻿﻿import sqlite3
+﻿import sqlite3
 import glob
 
 db_files = glob.glob('**/*.db', recursive=True)

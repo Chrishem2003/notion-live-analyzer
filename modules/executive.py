@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -39,5 +39,5 @@ def render_executive_summary():
         paper_bgcolor="rgba(0,0,0,0)",
         font_color="#f9fafb"
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     log_backend_event("INFO", "Rendered executive summary analytics dashboard.")

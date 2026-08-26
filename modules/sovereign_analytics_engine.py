@@ -1,4 +1,4 @@
-﻿"""
+"""
 Sovereign Analytics Engine — real computational tools only.
 
 Every function in this module actually computes what its name says. None of

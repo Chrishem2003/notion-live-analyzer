@@ -1,4 +1,4 @@
-﻿
+
 import streamlit as st
 import pandas as pd
 from modules.database import log_backend_event
@@ -24,7 +24,7 @@ def render_cve_auditor_panel():
     st.caption("Continuous security scanning of Python packages against live vulnerability databases.")
 
     df_cve = get_cve_audit_results()
-    st.dataframe(df_cve, use_container_width=True)
+    st.dataframe(df_cve, width='stretch')
 
     if st.button("Run Deep CVE Vulnerability Scan"):
         log_backend_event("INFO", "User executed deep CVE dependency vulnerability scan.")

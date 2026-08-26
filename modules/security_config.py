@@ -1,4 +1,4 @@
-﻿"""
+"""
 security_config.py  centralized secret resolution, admin seeding, and password
 hashing for the Notion Live Analyzer platform.
 

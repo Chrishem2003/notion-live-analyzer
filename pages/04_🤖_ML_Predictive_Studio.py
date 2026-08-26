@@ -1,11 +1,11 @@
-﻿import os
+import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 """
-🤖 ML & Predictive Studio — Consolidated Machine Learning Hub (Premium)
+ðŸ¤– ML & Predictive Studio â€” Consolidated Machine Learning Hub (Premium)
 AutoML with real hyperparameter tuning, cross-validation, model persistence/export, a prediction
 engine that actually uses your trained model (not a throwaway retrain), automated feature
 selection, and non-theatrical autonomous agent missions.
@@ -100,10 +100,10 @@ def _deserialize_pipeline(raw_bytes: bytes) -> dict:
 
 
 def render_automl_tab(df):
-    section_header("🤖 Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate multi-algorithm machine learning models — with real hyperparameter search and a persistable trained pipeline.")
+    section_header("ðŸ¤– Advanced AutoML & Hyperparameter Studio", "Train, tune, cross-validate, and evaluate multi-algorithm machine learning models â€” with real hyperparameter search and a persistable trained pipeline.")
 
     if not SKLEARN_AVAILABLE:
-        st.error("⚠️ `scikit-learn` is required for this module.")
+        st.error("âš ï¸ `scikit-learn` is required for this module.")
         return
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -122,18 +122,18 @@ def render_automl_tab(df):
     with col3:
         cv_folds = st.slider("Cross-Validation Folds", 3, 10, 5, key="ml_cv")
 
-    tune = st.checkbox("🔧 Enable Hyperparameter Tuning (GridSearchCV) — slower, more accurate", value=False, key="ml_tune")
+    tune = st.checkbox("ðŸ”§ Enable Hyperparameter Tuning (GridSearchCV) â€” slower, more accurate", value=False, key="ml_tune")
 
     models = _build_model_registry(task)
     selected_models = st.multiselect("Select Algorithms to Evaluate", list(models.keys()), default=list(models.keys()), key="ml_algos")
 
-    if st.button("🚀 Run AutoML & Cross-Validation Suite", type="primary", key="run_ml"):
+    if st.button("ðŸš€ Run AutoML & Cross-Validation Suite", type="primary", key="run_ml"):
         if not features:
             st.error("Select at least one feature.")
         elif not selected_models:
             st.error("Select at least one algorithm.")
         elif task == "Regression" and not pd.api.types.is_numeric_dtype(pd.to_numeric(df[target], errors="coerce")):
-            st.error(f"🚫 Target `{target}` cannot be interpreted as numeric — choose Classification instead, or pick a numeric target for regression.")
+            st.error(f"ðŸš« Target `{target}` cannot be interpreted as numeric â€” choose Classification instead, or pick a numeric target for regression.")
         else:
             with st.spinner("Preprocessing data and executing cross-validation training..."):
                 try:
@@ -155,7 +155,7 @@ def render_automl_tab(df):
                         y_num = pd.to_numeric(y, errors="coerce")
                         valid = y_num.notnull()
                         if valid.sum() < 10:
-                            st.error("🚫 Fewer than 10 valid numeric target rows after cleaning — cannot train reliably.")
+                            st.error("ðŸš« Fewer than 10 valid numeric target rows after cleaning â€” cannot train reliably.")
                             st.stop()
                         X_imp = X_imp.loc[valid]
                         y_target = y_num.loc[valid].values
@@ -197,7 +197,7 @@ def render_automl_tab(df):
                                 auc = None
                             results.append({
                                 "Algorithm": name,
-                                "CV Accuracy": f"{cv_mean * 100:.2f}%" + (f" (±{cv_std*100:.2f}%)" if not np.isnan(cv_std) else ""),
+                                "CV Accuracy": f"{cv_mean * 100:.2f}%" + (f" (Â±{cv_std*100:.2f}%)" if not np.isnan(cv_std) else ""),
                                 "Test Accuracy": f"{test_metric * 100:.2f}%",
                                 "ROC-AUC": f"{auc:.4f}" if auc is not None else "N/A",
                                 "Params": best_params_note,
@@ -207,8 +207,8 @@ def render_automl_tab(df):
                             test_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
                             results.append({
                                 "Algorithm": name,
-                                "CV R²": f"{cv_mean:.4f}" + (f" (±{cv_std:.4f})" if not np.isnan(cv_std) else ""),
-                                "Test R²": f"{test_metric:.4f}",
+                                "CV RÂ²": f"{cv_mean:.4f}" + (f" (Â±{cv_std:.4f})" if not np.isnan(cv_std) else ""),
+                                "Test RÂ²": f"{test_metric:.4f}",
                                 "Test RMSE": f"{test_rmse:.4f}",
                                 "Params": best_params_note,
                             })
@@ -218,12 +218,12 @@ def render_automl_tab(df):
                             best_score, best_name, best_model = test_metric, name, model
 
                     res_df = pd.DataFrame(results)
-                    st.markdown("#### 📊 Model Performance Leaderboard")
-                    st.dataframe(res_df, use_container_width=True, hide_index=True)
-                    st.success(f"✅ Best performer: **{best_name}** (test score {best_score:.4f}) — this is now the active model for the Prediction Engine tab.")
+                    st.markdown("#### ðŸ“Š Model Performance Leaderboard")
+                    st.dataframe(res_df, width='stretch', hide_index=True)
+                    st.success(f"âœ… Best performer: **{best_name}** (test score {best_score:.4f}) â€” this is now the active model for the Prediction Engine tab.")
 
                     if "Random Forest" in trained_models and hasattr(trained_models["Random Forest"], "feature_importances_"):
-                        st.markdown("#### 🔍 Random Forest Feature Importances")
+                        st.markdown("#### ðŸ” Random Forest Feature Importances")
                         importances = pd.Series(trained_models["Random Forest"].feature_importances_, index=X_imp.columns).sort_values(ascending=False)
                         st.bar_chart(importances)
 
@@ -246,26 +246,26 @@ def render_automl_tab(df):
     pipeline = st.session_state.get("ml_active_pipeline")
     if pipeline:
         st.markdown("---")
-        st.markdown("#### 💾 Model Persistence")
+        st.markdown("#### ðŸ’¾ Model Persistence")
         c1, c2 = st.columns(2)
         with c1:
             st.caption(f"Active model: **{pipeline['algorithm']}** ({pipeline['task']}, target=`{pipeline['target']}`, test score={pipeline['test_score']:.4f})")
             raw = _serialize_pipeline(pipeline)
-            st.download_button("⬇️ Export Trained Pipeline (.pkl)", data=raw, file_name=f"ml_pipeline_{pipeline['algorithm'].lower().replace(' ', '_')}.pkl", mime="application/octet-stream", key="dl_pipeline")
+            st.download_button("â¬‡ï¸ Export Trained Pipeline (.pkl)", data=raw, file_name=f"ml_pipeline_{pipeline['algorithm'].lower().replace(' ', '_')}.pkl", mime="application/octet-stream", key="dl_pipeline")
         with c2:
-            uploaded_pipeline = st.file_uploader("📤 Import a Previously Exported Pipeline", type=["pkl"], key="upload_pipeline")
+            uploaded_pipeline = st.file_uploader("ðŸ“¤ Import a Previously Exported Pipeline", type=["pkl"], key="upload_pipeline")
             if uploaded_pipeline is not None and st.button("Load Imported Pipeline", key="load_pipeline"):
                 try:
                     loaded = _deserialize_pipeline(uploaded_pipeline.getvalue())
                     st.session_state["ml_active_pipeline"] = loaded
-                    st.success(f"✅ Loaded pipeline: {loaded.get('algorithm', 'Unknown')} ({loaded.get('task', 'Unknown')})")
+                    st.success(f"âœ… Loaded pipeline: {loaded.get('algorithm', 'Unknown')} ({loaded.get('task', 'Unknown')})")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Could not load pipeline: {e}")
 
 
 def render_predict_tab(df):
-    section_header("🔮 Interactive Prediction Engine", "Score new records using the model you actually trained in the AutoML tab — not a disconnected throwaway retrain.")
+    section_header("ðŸ”® Interactive Prediction Engine", "Score new records using the model you actually trained in the AutoML tab â€” not a disconnected throwaway retrain.")
 
     if not SKLEARN_AVAILABLE:
         st.error("`scikit-learn` required.")
@@ -273,7 +273,7 @@ def render_predict_tab(df):
 
     pipeline = st.session_state.get("ml_active_pipeline")
     if not pipeline:
-        st.warning("⚠️ No trained model yet. Go to **AutoML & Training**, run the suite, and come back — this tab will automatically use the best model from that run.")
+        st.warning("âš ï¸ No trained model yet. Go to **AutoML & Training**, run the suite, and come back â€” this tab will automatically use the best model from that run.")
         return
 
     model, scaler = pipeline["model"], pipeline["scaler"]
@@ -314,7 +314,7 @@ def render_predict_tab(df):
                 options = df[feat].dropna().unique().tolist()
                 inputs[feat] = col.selectbox(feat, options, key=f"pred_in_{feat}")
 
-        if st.button("🔮 Generate Prediction", type="primary", key="run_predict"):
+        if st.button("ðŸ”® Generate Prediction", type="primary", key="run_predict"):
             try:
                 input_df = pd.DataFrame([inputs])
                 preds, proba, interval = _predict(input_df)
@@ -323,7 +323,7 @@ def render_predict_tab(df):
                     if proba is not None:
                         classes = label_encoder.classes_ if label_encoder is not None else model.classes_
                         proba_df = pd.DataFrame({"Class": classes, "Probability": proba[0]}).sort_values("Probability", ascending=False)
-                        st.dataframe(proba_df, use_container_width=True, hide_index=True)
+                        st.dataframe(proba_df, width='stretch', hide_index=True)
                 else:
                     st.metric(f"Predicted {target}", f"{preds[0]:.4f}")
                     if interval is not None:
@@ -335,31 +335,31 @@ def render_predict_tab(df):
         st.markdown("#### Batch Scoring")
         st.caption(f"Upload a CSV containing at least these columns: {', '.join(raw_features)}")
         batch_file = st.file_uploader("Upload CSV for batch scoring", type=["csv"], key="pred_batch_upload")
-        if batch_file is not None and st.button("🔮 Score Batch", type="primary", key="run_batch_predict"):
+        if batch_file is not None and st.button("ðŸ”® Score Batch", type="primary", key="run_batch_predict"):
             try:
                 batch_df = pd.read_csv(batch_file)
                 missing = [c for c in raw_features if c not in batch_df.columns]
                 if missing:
-                    st.error(f"🚫 Uploaded file is missing required columns: {', '.join(missing)}")
+                    st.error(f"ðŸš« Uploaded file is missing required columns: {', '.join(missing)}")
                 else:
                     preds, proba, interval = _predict(batch_df)
                     out = batch_df.copy()
                     out[f"Predicted_{target}"] = preds
                     if interval is not None:
                         out["Interval_Low_90"], out["Interval_High_90"] = interval[0], interval[1]
-                    st.dataframe(out, use_container_width=True)
+                    st.dataframe(out, width='stretch')
                     render_export_buttons(out, base_name="batch_predictions")
             except Exception as e:
                 st.error(f"Batch scoring error: {e}")
 
 
 def render_feature_engineering_tab(df):
-    section_header("⚡ Advanced Feature Engineering Studio", "Engineer high-value mathematical, polynomial, interaction, and binned features.")
+    section_header("âš¡ Advanced Feature Engineering Studio", "Engineer high-value mathematical, polynomial, interaction, and binned features.")
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     tab_interact, tab_bin, tab_poly, tab_select = st.tabs([
-        "✖️ Interactions", "📦 Binning & Quantiles", "📈 Polynomials", "🎯 Automated Feature Selection"
+        "âœ–ï¸ Interactions", "ðŸ“¦ Binning & Quantiles", "ðŸ“ˆ Polynomials", "ðŸŽ¯ Automated Feature Selection"
     ])
 
     with tab_interact:
@@ -368,7 +368,7 @@ def render_feature_engineering_tab(df):
             f2 = st.selectbox("Feature 2", [c for c in numeric_cols if c != f1], key="fe_f2")
             op = st.selectbox("Operation", ["Multiply (X * Y)", "Divide (X / Y)", "Difference (X - Y)", "Sum (X + Y)"], key="fe_op")
 
-            if st.button("➕ Create Interaction Feature", type="primary", key="run_fe_interact"):
+            if st.button("âž• Create Interaction Feature", type="primary", key="run_fe_interact"):
                 working = df.copy()
                 if "Multiply" in op:
                     new_col, values = f"{f1}_mul_{f2}", working[f1] * working[f2]
@@ -381,7 +381,7 @@ def render_feature_engineering_tab(df):
 
                 working[new_col] = values
                 set_active_dataframe(working, st.session_state.get("source_name", "engineered.csv"))
-                st.success(f"✅ Created engineered feature '{new_col}' and updated active dataset.")
+                st.success(f"âœ… Created engineered feature '{new_col}' and updated active dataset.")
                 st.rerun()
         else:
             st.info("Need at least 2 numeric columns.")
@@ -392,14 +392,14 @@ def render_feature_engineering_tab(df):
             strategy = st.radio("Binning Strategy", ["Equal Width (Uniform)", "Equal Frequency (Quantiles)"], horizontal=True, key="fe_bin_strat")
             n_bins = st.slider("Number of Bins", 2, 10, 4, key="fe_bin_n")
 
-            if st.button("📦 Create Binned Feature", type="primary", key="run_fe_bin"):
+            if st.button("ðŸ“¦ Create Binned Feature", type="primary", key="run_fe_bin"):
                 working = df.copy()
                 if "Uniform" in strategy:
                     working[f"{col}_bin"] = pd.cut(working[col], bins=n_bins, labels=[f"Bin_{i+1}" for i in range(n_bins)])
                 else:
                     working[f"{col}_bin"] = pd.qcut(working[col], q=n_bins, labels=[f"Q_{i+1}" for i in range(n_bins)], duplicates="drop")
                 set_active_dataframe(working, st.session_state.get("source_name", "binned.csv"))
-                st.success(f"✅ Binned '{col}' into {n_bins} categories.")
+                st.success(f"âœ… Binned '{col}' into {n_bins} categories.")
                 st.rerun()
         else:
             st.info("No numeric columns available.")
@@ -410,12 +410,12 @@ def render_feature_engineering_tab(df):
             if mode == "Single Column Powers":
                 col = st.selectbox("Variable for polynomial generation", numeric_cols, key="fe_poly_col")
                 degree = st.slider("Maximum Degree", 2, 4, 2, key="fe_poly_deg")
-                if st.button("📈 Generate Polynomial Features", type="primary", key="run_fe_poly"):
+                if st.button("ðŸ“ˆ Generate Polynomial Features", type="primary", key="run_fe_poly"):
                     working = df.copy()
                     for d in range(2, degree + 1):
                         working[f"{col}_pow{d}"] = working[col] ** d
                     set_active_dataframe(working, st.session_state.get("source_name", "polynomial.csv"))
-                    st.success(f"✅ Created polynomial features up to degree {degree}.")
+                    st.success(f"âœ… Created polynomial features up to degree {degree}.")
                     st.rerun()
             else:
                 if not SKLEARN_AVAILABLE:
@@ -423,7 +423,7 @@ def render_feature_engineering_tab(df):
                 else:
                     cols_sel = st.multiselect("Select columns to expand", numeric_cols, default=numeric_cols[:2], key="fe_poly_cols")
                     degree = st.slider("Degree", 2, 3, 2, key="fe_poly_multi_deg")
-                    if len(cols_sel) >= 2 and st.button("📈 Generate Polynomial + Interaction Set", type="primary", key="run_fe_poly_multi"):
+                    if len(cols_sel) >= 2 and st.button("ðŸ“ˆ Generate Polynomial + Interaction Set", type="primary", key="run_fe_poly_multi"):
                         working = df.copy()
                         clean = working[cols_sel].dropna()
                         poly = PolynomialFeatures(degree=degree, include_bias=False)
@@ -434,7 +434,7 @@ def render_feature_engineering_tab(df):
                         for n in new_names:
                             working.loc[clean.index, n] = expanded_df[n]
                         set_active_dataframe(working, st.session_state.get("source_name", "polynomial_expanded.csv"))
-                        st.success(f"✅ Added {len(new_names)} polynomial/interaction terms: {', '.join(new_names[:8])}{'…' if len(new_names) > 8 else ''}")
+                        st.success(f"âœ… Added {len(new_names)} polynomial/interaction terms: {', '.join(new_names[:8])}{'â€¦' if len(new_names) > 8 else ''}")
                         st.rerun()
         else:
             st.info("No numeric columns available.")
@@ -452,7 +452,7 @@ def render_feature_engineering_tab(df):
             else:
                 k_val = st.slider("Select top K features", 1, min(len(features_pool), 10), min(len(features_pool), 3), key="fs_k")
 
-                if st.button("🎯 Run Feature Selection", type="primary", key="run_fs"):
+                if st.button("ðŸŽ¯ Run Feature Selection", type="primary", key="run_fs"):
                     clean_df = df[features_pool + [target_col]].dropna()
                     X_sel = clean_df[features_pool]
                     y_raw = clean_df[target_col]
@@ -467,10 +467,10 @@ def render_feature_engineering_tab(df):
                     selector.fit(X_sel, y_sel)
                     scores = pd.Series(selector.scores_, index=features_pool).sort_values(ascending=False)
 
-                    st.markdown("#### 📊 Feature F-Scores")
+                    st.markdown("#### ðŸ“Š Feature F-Scores")
                     st.bar_chart(scores)
                     top_feats = scores.head(k_val).index.tolist()
-                    st.success(f"✅ Top {k_val} recommended features: {', '.join(top_feats)}")
+                    st.success(f"âœ… Top {k_val} recommended features: {', '.join(top_feats)}")
         else:
             st.info("Need at least 3 columns for feature selection.")
 
@@ -532,7 +532,7 @@ def _mission_executive_report(df: pd.DataFrame) -> str:
             stacked = upper.stack()
             if not stacked.empty:
                 top_pair = stacked.idxmax()
-                lines.append(f"\n## Strongest Correlation\n`{top_pair[0]}` ↔ `{top_pair[1]}`: r = {stacked.max():.3f}")
+                lines.append(f"\n## Strongest Correlation\n`{top_pair[0]}` â†” `{top_pair[1]}`: r = {stacked.max():.3f}")
     return "\n".join(lines)
 
 
@@ -544,11 +544,11 @@ def _mission_pipeline_sync(df: pd.DataFrame) -> dict:
 
 
 def render_agents_tab():
-    section_header("🦾 Autonomous Agent Console", "Each mission actually inspects the active dataset — no simulated delays, no canned success messages.")
+    section_header("ðŸ¦¾ Autonomous Agent Console", "Each mission actually inspects the active dataset â€” no simulated delays, no canned success messages.")
 
     df = get_active_dataframe()
     if df is None:
-        st.warning("⚠️ No active dataset. Load one in Data Studio first — these missions need real data to inspect.")
+        st.warning("âš ï¸ No active dataset. Load one in Data Studio first â€” these missions need real data to inspect.")
         return
 
     mission = st.selectbox("Select Agent Mission", [
@@ -559,22 +559,22 @@ def render_agents_tab():
         "Cross-Hub Data Pipeline Consistency Check",
     ], key="agent_mission")
 
-    if st.button("🚀 Run Agent Mission", type="primary", key="deploy_agent"):
+    if st.button("ðŸš€ Run Agent Mission", type="primary", key="deploy_agent"):
         with st.spinner(f"Running: {mission}..."):
             if mission == "Anomaly Detection & Outlier Sweep":
                 result = _mission_outlier_sweep(df)
                 if result.empty:
                     st.info("No numeric columns to scan.")
                 else:
-                    st.dataframe(result, use_container_width=True, hide_index=True)
+                    st.dataframe(result, width='stretch', hide_index=True)
                     total = int(result["Outliers Found"].sum())
-                    st.success(f"✅ Mission complete — {total:,} outlier values found across {len(result)} numeric columns.")
+                    st.success(f"âœ… Mission complete â€” {total:,} outlier values found across {len(result)} numeric columns.")
                     render_export_buttons(result, base_name="agent_outlier_sweep")
 
             elif mission == "Data Quality & Missingness Audit":
                 result = _mission_quality_audit(df)
-                st.dataframe(result, use_container_width=True, hide_index=True)
-                st.success("✅ Mission complete.")
+                st.dataframe(result, width='stretch', hide_index=True)
+                st.success("âœ… Mission complete.")
                 render_export_buttons(result, base_name="agent_quality_audit")
 
             elif mission == "Trend Degradation Check":
@@ -582,37 +582,37 @@ def render_agents_tab():
                 if result.empty:
                     st.info("Not enough numeric data (need 5+ non-null points per column) to assess trends.")
                 else:
-                    st.dataframe(result, use_container_width=True, hide_index=True)
+                    st.dataframe(result, width='stretch', hide_index=True)
                     degrading = result[result["Assessment"] == "Degrading"]
                     if len(degrading):
-                        st.warning(f"⚠️ {len(degrading)} column(s) show a statistically significant downward trend over row order: {', '.join(degrading['Column'])}")
+                        st.warning(f"âš ï¸ {len(degrading)} column(s) show a statistically significant downward trend over row order: {', '.join(degrading['Column'])}")
                     else:
-                        st.success("✅ No statistically significant degrading trends detected.")
+                        st.success("âœ… No statistically significant degrading trends detected.")
                     render_export_buttons(result, base_name="agent_trend_check")
 
             elif mission == "Automated Executive Reporting Generator":
                 report = _mission_executive_report(df)
                 st.code(report, language="markdown")
-                st.download_button("⬇️ Download Executive Report (.md)", data=report, file_name="agent_executive_report.md", mime="text/markdown", key="dl_agent_report")
-                st.success("✅ Mission complete.")
+                st.download_button("â¬‡ï¸ Download Executive Report (.md)", data=report, file_name="agent_executive_report.md", mime="text/markdown", key="dl_agent_report")
+                st.success("âœ… Mission complete.")
 
             else:
                 result = _mission_pipeline_sync(df)
                 if result["data_studio_fingerprint"] is None:
-                    st.info("No fingerprint recorded by Data Studio yet this session — nothing to compare against. Current dataset fingerprint: " + result["current_fingerprint"][:24] + "…")
+                    st.info("No fingerprint recorded by Data Studio yet this session â€” nothing to compare against. Current dataset fingerprint: " + result["current_fingerprint"][:24] + "â€¦")
                 elif result["consistent"]:
-                    st.success(f"✅ Consistent — this dataset matches the fingerprint Data Studio last recorded ({result['current_fingerprint'][:24]}…).")
+                    st.success(f"âœ… Consistent â€” this dataset matches the fingerprint Data Studio last recorded ({result['current_fingerprint'][:24]}â€¦).")
                 else:
-                    st.error(f"🚨 Inconsistent — the active dataset has changed since Data Studio last recorded a fingerprint. Current: {result['current_fingerprint'][:16]}… vs. recorded: {result['data_studio_fingerprint'][:16]}…")
+                    st.error(f"ðŸš¨ Inconsistent â€” the active dataset has changed since Data Studio last recorded a fingerprint. Current: {result['current_fingerprint'][:16]}â€¦ vs. recorded: {result['data_studio_fingerprint'][:16]}â€¦")
 
 
 def render_realworld_chaos_tab(df):
     section_header(
-        "🌍 Real-World Chaos & Nonlinear Dynamics Detector",
-        "Data-driven chaos detection on your actual uploaded data — Rosenstein Lyapunov exponent, "
-        "the Gottwald–Melbourne 0-1 Test, Grassberger–Procaccia correlation dimension, sample entropy, "
+        "ðŸŒ Real-World Chaos & Nonlinear Dynamics Detector",
+        "Data-driven chaos detection on your actual uploaded data â€” Rosenstein Lyapunov exponent, "
+        "the Gottwaldâ€“Melbourne 0-1 Test, Grassbergerâ€“Procaccia correlation dimension, sample entropy, "
         "and Huang's Empirical Mode Decomposition / Hilbert Spectral Analysis. Same rigorous math for "
-        "any sector — education, healthcare, security, agriculture, engineering, economics, finance, or "
+        "any sector â€” education, healthcare, security, agriculture, engineering, economics, finance, or "
         "anything else. This tab analyzes what you actually uploaded; it does not simulate a toy model."
     )
 
@@ -640,13 +640,13 @@ def render_realworld_chaos_tab(df):
         st.error("No numeric columns found in the active dataset. This engine needs a numeric time series.")
         return
 
-    with st.expander("⚙️ Analysis Configuration", expanded=True):
+    with st.expander("âš™ï¸ Analysis Configuration", expanded=True):
         c1, c2, c3 = st.columns(3)
         with c1:
             col = st.selectbox("Numeric column to analyze (in row order)", numeric_cols, key="rwc_col")
         with c2:
             sector = st.selectbox(
-                "Sector context (labeling only — the math below is identical regardless of choice)",
+                "Sector context (labeling only â€” the math below is identical regardless of choice)",
                 ["Generic / Unspecified", "Education", "Healthcare", "Security", "Agriculture",
                  "Engineering", "Economics & Finance", "Other"],
                 key="rwc_sector",
@@ -657,7 +657,7 @@ def render_realworld_chaos_tab(df):
                 "Only affects the *scale* of the reported Lyapunov exponent, not the chaos/no-chaos call.",
                 value=1.0, min_value=1e-6, format="%.4f", key="rwc_dt",
             )
-        run = st.button("🔬 Run Full Chaos & Nonlinear Dynamics Analysis", type="primary", key="rwc_run")
+        run = st.button("ðŸ”¬ Run Full Chaos & Nonlinear Dynamics Analysis", type="primary", key="rwc_run")
 
     if not run:
         st.info("Configure the column above and click **Run Full Chaos & Nonlinear Dynamics Analysis**.")
@@ -670,25 +670,25 @@ def render_realworld_chaos_tab(df):
 
     if n < 30:
         st.error(
-            f"Only {n} usable data points after dropping missing values — that is too few for any of "
+            f"Only {n} usable data points after dropping missing values â€” that is too few for any of "
             f"these methods to be meaningful (most need 50-200+ points). Upload a longer series."
         )
         return
 
-    with st.spinner("Running Rosenstein LLE, 0-1 Test, correlation dimension, sample entropy, EMD…"):
+    with st.spinner("Running Rosenstein LLE, 0-1 Test, correlation dimension, sample entropy, EMDâ€¦"):
         report = analyze_time_series(series, dt=dt_real)
 
     # --- Verdict banner --------------------------------------------------
     verdict_lower = report.verdict.lower()
     if "all" in verdict_lower and "chaotic" in verdict_lower:
-        st.error(f"🌀 **{report.verdict}**")
+        st.error(f"ðŸŒ€ **{report.verdict}**")
     elif "all" in verdict_lower and "no evidence" in verdict_lower:
-        st.success(f"✅ **{report.verdict}**")
+        st.success(f"âœ… **{report.verdict}**")
     else:
-        st.warning(f"⚠️ **{report.verdict}**")
+        st.warning(f"âš ï¸ **{report.verdict}**")
 
     if report.warnings:
-        with st.expander(f"⚠️ {len(report.warnings)} data-adequacy warning(s) — read before trusting numbers below"):
+        with st.expander(f"âš ï¸ {len(report.warnings)} data-adequacy warning(s) â€” read before trusting numbers below"):
             for w in report.warnings:
                 st.markdown(f"- {w}")
 
@@ -700,19 +700,19 @@ def render_realworld_chaos_tab(df):
                     "Computed directly from your data, not from a simulated equation.")
     K = report.zero_one.get("K")
     m2.metric("0-1 Test for Chaos (K)", f"{K:.3f}" if np.isfinite(K) else "n/a",
-               help="K≈0: regular (periodic/quasi-periodic). K≈1: irregular (chaotic OR stochastic — "
+               help="Kâ‰ˆ0: regular (periodic/quasi-periodic). Kâ‰ˆ1: irregular (chaotic OR stochastic â€” "
                     "this test alone cannot tell those apart; see correlation dimension for that).")
     se = report.sample_entropy.get("sampen")
     m3.metric("Sample Entropy", f"{se:.4f}" if np.isfinite(se) else "n/a",
                help="Higher = less predictable / more complex. Pure noise scores very high; clean "
                     "periodic signals score near zero; chaos is usually in between.")
-    m4.metric("Embedding used", f"m={report.embedding_dim}, τ={report.tau}",
+    m4.metric("Embedding used", f"m={report.embedding_dim}, Ï„={report.tau}",
                help="Automatically chosen via False Nearest Neighbors and Average Mutual Information "
-                    "— not hand-tuned per dataset.")
+                    "â€” not hand-tuned per dataset.")
 
     # --- Correlation dimension detail ---------------------------------------
     cd = report.correlation_dim
-    with st.expander("📐 Correlation Dimension (Grassberger–Procaccia) — is the attractor low-dimensional?"):
+    with st.expander("ðŸ“ Correlation Dimension (Grassbergerâ€“Procaccia) â€” is the attractor low-dimensional?"):
         st.caption(cd.get("note", ""))
         d2_by_dim = cd.get("d2_by_dim", {})
         if d2_by_dim:
@@ -724,17 +724,17 @@ def render_realworld_chaos_tab(df):
                                xaxis_title="Embedding dimension", yaxis_title="D2",
                                height=320, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                font=dict(color="white"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
             st.caption("A flat curve (D2 stops rising) = consistent with a genuine, low-dimensional "
                        "deterministic attractor. A curve that keeps climbing roughly 1-for-1 with "
                        "embedding dimension = consistent with noise or very high-dimensional dynamics. "
-                       "This method is notoriously data-hungry — treat it as supporting evidence, not "
+                       "This method is notoriously data-hungry â€” treat it as supporting evidence, not "
                        "a standalone verdict, especially with under ~500 points.")
         else:
             st.info("Not enough data to compute a reliable correlation dimension curve here.")
 
     # --- Lyapunov divergence curve -----------------------------------------
-    with st.expander("📈 Lyapunov Divergence Curve (Rosenstein)"):
+    with st.expander("ðŸ“ˆ Lyapunov Divergence Curve (Rosenstein)"):
         k_axis, mean_log_div = report.lyapunov.get("divergence_curve", (None, None))
         if k_axis is not None:
             fig = go.Figure(data=[go.Scatter(x=k_axis, y=mean_log_div, mode="lines",
@@ -744,23 +744,23 @@ def render_realworld_chaos_tab(df):
                 fig.add_vrect(x0=fit_region[0], x1=fit_region[1], fillcolor="#00f2fe", opacity=0.15,
                               line_width=0, annotation_text="fit region")
             fig.update_layout(title="Mean Log Divergence of Nearby Trajectories vs Time Step",
-                               xaxis_title="Time step (× dt)", yaxis_title="⟨ln divergence⟩",
+                               xaxis_title="Time step (Ã— dt)", yaxis_title="âŸ¨ln divergenceâŸ©",
                                height=320, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                font=dict(color="white"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
             st.caption("A sustained upward slope early on, followed by flattening once trajectories "
                        "saturate at the attractor's size, is the real signature the Lyapunov exponent "
                        "is measuring. The shaded region shows where the slope was actually fit.")
 
     # --- EMD / Hilbert spectrum ----------------------------------------------
-    with st.expander("🌊 Empirical Mode Decomposition & Hilbert Spectrum (Huang et al., 1998)"):
+    with st.expander("ðŸŒŠ Empirical Mode Decomposition & Hilbert Spectrum (Huang et al., 1998)"):
         st.caption("Decomposes your series into physically meaningful oscillatory modes without "
-                   "assuming linearity or stationarity — useful for spotting regime shifts and the "
+                   "assuming linearity or stationarity â€” useful for spotting regime shifts and the "
                    "dominant timescales actually present in the data.")
         emd_res = empirical_mode_decomposition(series)
         imfs = emd_res["imfs"]
         if len(imfs) == 0:
-            st.info("No clear intrinsic modes found — the series may already be too smooth or too short.")
+            st.info("No clear intrinsic modes found â€” the series may already be too smooth or too short.")
         else:
             fig = go.Figure()
             for i, imf in enumerate(imfs[:5]):
@@ -770,10 +770,10 @@ def render_realworld_chaos_tab(df):
             fig.update_layout(title=f"{min(5, len(imfs))} of {len(imfs)} Intrinsic Mode Functions + Residual Trend",
                                height=380, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                font=dict(color="white"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
     # --- Recurrence plot -------------------------------------------------
-    with st.expander("🔁 Recurrence Plot (Marwan et al., 2007)"):
+    with st.expander("ðŸ” Recurrence Plot (Marwan et al., 2007)"):
         try:
             rqa = recurrence_analysis(series, report.embedding_dim, report.tau)
             r1, r2, r3 = st.columns(3)
@@ -783,7 +783,7 @@ def render_realworld_chaos_tab(df):
             fig = go.Figure(data=go.Heatmap(z=rqa["RP"], colorscale="Blues", showscale=False))
             fig.update_layout(title="Recurrence Plot", height=420, paper_bgcolor="rgba(0,0,0,0)",
                                plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
             st.caption("High determinism with short, broken diagonal lines is a classic visual "
                        "signature of chaos (as opposed to the long unbroken diagonals of periodic "
                        "motion, or the near-absence of structure in pure noise).")
@@ -792,14 +792,14 @@ def render_realworld_chaos_tab(df):
 
     st.markdown("---")
     st.caption(
-        "**Methods, honestly cited:** Rosenstein et al. (1993) largest Lyapunov exponent from data · "
-        "Gottwald & Melbourne (2004) 0-1 test for chaos, built on the Li–Yorke definition of chaos "
-        "(Li & Yorke, 1975) · Grassberger & Procaccia (1983) correlation dimension · Kennel et al. "
-        "(1992) false nearest neighbors · Fraser & Swinney (1986) mutual information · Huang et al. "
-        "(1998) empirical mode decomposition & Hilbert spectral analysis · Richman & Moorman (2000) "
-        "sample entropy · Marwan et al. (2007) recurrence quantification analysis. **Known honest "
+        "**Methods, honestly cited:** Rosenstein et al. (1993) largest Lyapunov exponent from data Â· "
+        "Gottwald & Melbourne (2004) 0-1 test for chaos, built on the Liâ€“Yorke definition of chaos "
+        "(Li & Yorke, 1975) Â· Grassberger & Procaccia (1983) correlation dimension Â· Kennel et al. "
+        "(1992) false nearest neighbors Â· Fraser & Swinney (1986) mutual information Â· Huang et al. "
+        "(1998) empirical mode decomposition & Hilbert spectral analysis Â· Richman & Moorman (2000) "
+        "sample entropy Â· Marwan et al. (2007) recurrence quantification analysis. **Known honest "
         "limitation:** no method here, alone or combined, can perfectly separate low-dimensional chaos "
-        "from high-dimensional stochastic noise on short real-world data — this is an open problem in "
+        "from high-dimensional stochastic noise on short real-world data â€” this is an open problem in "
         "nonlinear time series analysis, not a gap specific to this tool. Where the tests disagree, "
         "this page says so instead of forcing a confident-sounding answer."
     )
@@ -807,9 +807,9 @@ def render_realworld_chaos_tab(df):
 
 def render_chaos_tab():
     section_header(
-        "⚛️ ODE Simulator (Toy Model — Not Real Data)",
+        "âš›ï¸ ODE Simulator (Toy Model â€” Not Real Data)",
         "A parameter sandbox for exploring generic nonlinear dynamical equations via SciPy's numerical "
-        "ODE solvers. Sector labels here only relabel the same underlying generic 3-variable system — "
+        "ODE solvers. Sector labels here only relabel the same underlying generic 3-variable system â€” "
         "this tab does not analyze your uploaded data. For real, data-driven chaos detection on your "
         "actual dataset, use the 'Real-World Chaos Detector' tab instead.",
     )
@@ -839,7 +839,7 @@ def render_chaos_tab():
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
 
-    with st.expander("⚙️ Dynamical System Configuration", expanded=True):
+    with st.expander("âš™ï¸ Dynamical System Configuration", expanded=True):
         colA, colB = st.columns(2)
         with colA:
             sector_presets = {
@@ -854,7 +854,7 @@ def render_chaos_tab():
         with colB:
             t_max = st.slider("Simulation Horizon (steps)", 50, 400, 200, 10, key="chaos_tmax")
             policy_shock = st.slider("Injected Shock Magnitude (Mid-run)", -3.0, 3.0, 0.0, 0.1, key="chaos_shock")
-            pss_slice_z = st.slider("Poincaré Cut Plane (Z)", -3.0, 3.0, 0.1, 0.05, key="chaos_z_plane")
+            pss_slice_z = st.slider("PoincarÃ© Cut Plane (Z)", -3.0, 3.0, 0.1, 0.05, key="chaos_z_plane")
 
         col1, col2, col3 = st.columns(3)
         a = col1.slider(f"{a_label} ({a_desc})", 0.1, 5.0, 1.5, 0.1, key="chaos_a")
@@ -876,7 +876,7 @@ def render_chaos_tab():
     state_label = classify_state(mlce)
 
     tabs = st.tabs([
-        "Executive View", "3D Phase Space", "Poincaré Section", "Early Warning Signals",
+        "Executive View", "3D Phase Space", "PoincarÃ© Section", "Early Warning Signals",
         "Bifurcation Analysis", "Monte Carlo Ensemble", "Sensitivity Heatmap", "Time-Series Forecasting",
     ])
 
@@ -891,25 +891,25 @@ def render_chaos_tab():
             marker=dict(size=2, color=z_traj, colorscale="Viridis", opacity=0.9)
         )])
         fig.update_layout(title_text="3D Phase Portrait Trajectory", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=480, margin=dict(l=0, r=0, t=50, b=0))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with tabs[1]:
         fig = go.Figure(data=[go.Scatter3d(x=x_traj, y=y_traj, z=z_traj, mode="lines", line=dict(color="#60A5FA", width=4))])
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=550, margin=dict(l=0, r=0, t=30, b=0))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with tabs[2]:
         mask = np.abs(z_traj - pss_slice_z) < 0.05
         fig = go.Figure(data=[go.Scatter(x=x_traj[mask], y=y_traj[mask], mode="markers", marker=dict(size=4, color="#60A5FA"))])
-        fig.update_layout(title_text=f"Poincaré Section Slice (Z={pss_slice_z:.2f})", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(title_text=f"PoincarÃ© Section Slice (Z={pss_slice_z:.2f})", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
+        st.plotly_chart(fig, width='stretch')
 
     with tabs[3]:
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, subplot_titles=("Rolling Variance (Critical Slowing Down)", "Rolling Autocorrelation (Lag-1)"))
         fig.add_trace(go.Scatter(x=t, y=rolling_var, line=dict(color="#F59E0B")), row=1, col=1)
         fig.add_trace(go.Scatter(x=t, y=rolling_ac, line=dict(color="#EC4899")), row=2, col=1)
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=500, margin=dict(l=0, r=0, t=50, b=0))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with tabs[4]:
         st.caption("Recomputes model trajectories across a parameter sweep of friction (b) to identify bifurcations.")
@@ -919,7 +919,7 @@ def render_chaos_tab():
             fig = go.Figure(data=[go.Scatter(x=b_pts, y=peaks, mode="markers", marker=dict(size=1.5, color="#60A5FA", opacity=0.6))])
             fig.update_layout(title_text="Bifurcation Diagram", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
             fig.update_xaxes(title_text=f"{b_label} (b)"); fig.update_yaxes(title_text="Local Extrema")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
     with tabs[5]:
         n_mc = st.slider("Ensemble Run Count", 10, 150, 30, 10, key="chaos_mc_n")
@@ -930,7 +930,7 @@ def render_chaos_tab():
             for i in range(mc_runs.shape[1]):
                 fig.add_trace(go.Scatter(x=t, y=mc_runs[:, i], mode="lines", line=dict(width=0.8, color="rgba(96,165,250,0.25)"), showlegend=False))
             fig.update_layout(title_text=f"Monte Carlo Uncertainty Envelope ({n_mc} runs)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450, margin=dict(l=0, r=0, t=50, b=0))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
     with tabs[6]:
         if st.button("Compute Sensitivity Heatmap (a vs b)", key="chaos_sens"):
@@ -938,7 +938,7 @@ def render_chaos_tab():
                 a_grid, b_grid, Z_m = sensitivity_heatmap(default_ode, initial_state, t, np.linspace(0.5, 3.0, 12), np.linspace(0.2, 2.0, 12), args_base=(a, b, c, 0.0, t_max))
             fig = go.Figure(data=go.Contour(z=Z_m, x=a_grid, y=b_grid, colorscale="Viridis", contours=dict(coloring="heatmap")))
             fig.update_layout(title_text=f"Sensitivity Landscape: {a_label} vs {b_label}", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=500, margin=dict(l=0, r=0, t=50, b=0))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
     with tabs[7]:
         st.markdown("#### Time-Series Forecasting (Holt-Winters + AR Least-Squares)")
@@ -966,7 +966,7 @@ def render_chaos_tab():
             fig.add_trace(go.Scatter(x=x_fore, y=forecast_hw, name="Holt-Winters Forecast", line=dict(color="#38BDF8", width=3)))
             fig.add_trace(go.Scatter(x=x_fore, y=forecast_ar, name=f"AR({lags}) Forecast", line=dict(color="#F472B6", width=3, dash="dash")))
             fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=460, margin=dict(l=0, r=0, t=30, b=0))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
             resid = series[lags:] - fitted_ar
             mae = float(np.mean(np.abs(resid))) if len(resid) else 0.0
             c1, c2 = st.columns(2)
@@ -980,16 +980,16 @@ def main():
     from modules.subscription import require_active_subscription
     require_active_subscription(hub_id="ml")
 
-    setup_page("ML & Predictive Studio", "🤖", initial_sidebar_state="expanded")
+    setup_page("ML & Predictive Studio", "ðŸ¤–", initial_sidebar_state="expanded")
 
     from modules.user_preferences import render_readability_fix, render_accent_color_css
     render_readability_fix()
     render_accent_color_css()
 
     hero_card(
-        "🤖 Enterprise ML & Predictive Studio (Premium)",
+        "ðŸ¤– Enterprise ML & Predictive Studio (Premium)",
         "Consolidated machine learning hub featuring AutoML with real hyperparameter tuning, model persistence and export, a prediction engine connected to your actual trained model, task-aware feature selection, non-theatrical autonomous agents, and real ODE-based chaos dynamics.",
-        badge_text="ML & PREDICTIVE STUDIO • PREMIUM TIER",
+        badge_text="ML & PREDICTIVE STUDIO â€¢ PREMIUM TIER",
     )
 
     render_dataset_context_banner()
@@ -997,12 +997,12 @@ def main():
     df = get_df()
 
     tabs = st.tabs([
-        "🤖 AutoML & Training",
-        "🔮 Prediction Engine",
-        "⚡ Feature Engineering",
-        "🦾 Autonomous Agents",
-        "🌍 Real-World Chaos Detector",
-        "⚛️ ODE Simulator (Toy Model)",
+        "ðŸ¤– AutoML & Training",
+        "ðŸ”® Prediction Engine",
+        "âš¡ Feature Engineering",
+        "ðŸ¦¾ Autonomous Agents",
+        "ðŸŒ Real-World Chaos Detector",
+        "âš›ï¸ ODE Simulator (Toy Model)",
     ])
 
     with tabs[0]:

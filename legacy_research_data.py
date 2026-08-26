@@ -1,4 +1,4 @@
-﻿"""
+"""
 legacy_research_data.py — Real persistent storage for the three datasets that
 Collaboration & Portfolio, Domain Analytics Hub, and Literature & Publishing
 Hub read/write: venture projects, mcr gene surveillance, PPWR/DRA clinical
