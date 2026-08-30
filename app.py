@@ -57,32 +57,200 @@ st.set_page_config(
 PBKDF2_ITERATIONS = 260_000
 
 
+def get_app_theme() -> dict:
+    """Real dark/light palette for this single-file app - a self-contained
+    equivalent of modules/theme.py's get_theme(), since app.py doesn't
+    import that module. Call render_app_theme_toggle() once (in the
+    sidebar) and inject_app_theme_css() once per rerun."""
+    mode = st.session_state.get("app_theme_mode", "dark")
+    if mode == "light":
+        return {
+            "bg_gradient": "radial-gradient(circle at 15% 20%, #eef1f7 0%, #f7f9fc 85%)",
+            "text_primary": "#171B23",
+            "text_secondary": "#43505E",
+            "text_muted": "#6B7280",
+            "card_bg": "rgba(255, 255, 255, 0.85)",
+            "card_border": "rgba(31, 142, 122, 0.35)",
+            "sidebar_bg": "#eef1f7",
+            "sidebar_border": "rgba(0, 0, 0, 0.08)",
+            "accent": "#1F8E7A",
+            "accent_alt": "#B5790E",
+            "accent_pink": "#C24E7A",
+            "glow": "rgba(31, 142, 122, 0.25)",
+        }
+    return {
+        "bg_gradient": "radial-gradient(circle at 15% 20%, #0d1326 0%, #04060a 85%)",
+        "text_primary": "#EDEFF2",
+        "text_secondary": "#A8B0BC",
+        "text_muted": "#6B7280",
+        "card_bg": "rgba(17, 24, 39, 0.82)",
+        "card_border": "rgba(56, 189, 248, 0.35)",
+        "sidebar_bg": "#050810",
+        "sidebar_border": "rgba(255, 255, 255, 0.08)",
+        "accent": "#4FB8A6",
+        "accent_alt": "#8B93A8",
+        "accent_pink": "#F472B6",
+        "glow": "rgba(56, 189, 248, 0.6)",
+    }
+
+
+def render_app_theme_toggle():
+    """Real toggle - flips app_theme_mode and reruns so every themed
+    element (inject_app_theme_css, inject_shared_card_styles) picks up
+    the new palette immediately. Call once, ideally in the sidebar."""
+    current = st.session_state.get("app_theme_mode", "dark")
+    is_light = st.toggle(
+        "☀️ Light mode",
+        value=(current == "light"),
+        key="app_theme_mode_toggle",
+        help="Switch between dark and light interface themes.",
+    )
+    new_mode = "light" if is_light else "dark"
+    if new_mode != current:
+        st.session_state["app_theme_mode"] = new_mode
+        st.rerun()
+
+
+def inject_app_theme_css():
+    t = get_app_theme()
+    st.markdown(f"""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    html, body, [class*="css"] {{
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: {t['text_primary']} !important;
+    }}
+
+    .stApp {{
+        background: {t['bg_gradient']};
+        background-attachment: fixed;
+    }}
+
+    .portal-hero-card {{
+        background: {t['card_bg']};
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid {t['card_border']};
+        border-radius: 28px;
+        padding: 35px 30px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35), 0 0 50px {t['card_border']};
+        max-width: 860px;
+        margin: 0 auto;
+    }}
+
+    .portal-title {{
+        font-size: 2.3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, {t['accent']} 0%, {t['accent_alt']} 50%, {t['accent_pink']} 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+    }}
+
+    .portal-subtitle {{
+        font-size: 0.95rem;
+        color: {t['text_muted']} !important;
+        font-weight: 600;
+        text-align: center;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+    }}
+
+    .profile-glow-wrap {{
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }}
+
+    .profile-avatar {{
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid {t['accent']};
+        box-shadow: 0 0 30px {t['glow']};
+    }}
+
+    .glass-hr {{
+        height: 1px;
+        background: linear-gradient(90deg, transparent, {t['card_border']}, transparent);
+        margin: 1.5rem 0;
+    }}
+
+    .workspace-metric {{
+        background: linear-gradient(145deg, {t['card_bg']}, {t['card_bg']});
+        border: 1px solid {t['card_border']};
+        border-radius: 16px;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }}
+    .workspace-metric .metric-value {{
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, {t['accent']}, {t['accent_alt']}, {t['accent_pink']});
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }}
+    .workspace-metric .metric-label {{
+        font-size: 0.75rem;
+        color: {t['text_muted']} !important;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 0.3rem;
+        font-weight: 700;
+    }}
+
+    [data-testid="stSidebar"] {{
+        background-color: {t['sidebar_bg']} !important;
+        border-right: 1px solid {t['sidebar_border']} !important;
+    }}
+    </style>
+""", unsafe_allow_html=True)
+
+
+with st.sidebar:
+    render_app_theme_toggle()
+
+inject_app_theme_css()
+
+
 def inject_shared_card_styles():
     """Shared card styling used across billing, student verification, and
     similar sections of this single-file app - defined once, globally, so
     it's available regardless of which sidebar section is selected (this
     app renders one section at a time via a menu, not Streamlit's native
     multipage routing, so per-function style blocks only apply when that
-    exact function has already run in this rerun)."""
-    st.markdown("""
+    exact function has already run in this rerun). Theme-aware: pulls
+    live colors from get_app_theme() so dark/light mode actually reaches
+    every card, not just the base page background."""
+    t = get_app_theme()
+    card_bg_solid = t["card_bg"]
+    st.markdown(f"""
     <style>
-    .hero-card {
+    .hero-card {{
         padding: 24px;
         border-radius: 18px;
-        border: 1px solid rgba(79,184,166,.35);
+        border: 1px solid {t['card_border']};
         background: linear-gradient(135deg,
-            rgba(79,184,166,.12),
-            rgba(11,14,17,.95));
+            {t['card_border']},
+            {card_bg_solid});
         margin-bottom: 20px;
-    }
-    .info-card {
+        color: {t['text_primary']};
+    }}
+    .info-card {{
         padding: 18px;
         border-radius: 14px;
-        border: 1px solid rgba(255,255,255,.12);
-        background: rgba(255,255,255,.035);
+        border: 1px solid {t['card_border']}55;
+        background: {card_bg_solid};
         margin-bottom: 12px;
-    }
-    .status-pill {
+        color: {t['text_primary']};
+    }}
+    .status-pill {{
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
@@ -90,38 +258,41 @@ def inject_shared_card_styles():
         border-radius: 999px;
         font-weight: 700;
         font-size: 0.85rem;
-    }
-    .status-pill::before {
+    }}
+    .status-pill::before {{
         content: "";
         width: 7px;
         height: 7px;
         border-radius: 50%;
         background: currentColor;
-    }
-    .status-approved { background: rgba(52,199,135,.15); color: #34C787; }
-    .status-pending { background: rgba(232,163,61,.15); color: #E8A33D; }
-    .status-rejected { background: rgba(229,72,77,.15); color: #E5484D; }
+    }}
+    .status-approved {{ background: rgba(52,199,135,.15); color: #34C787; }}
+    .status-pending {{ background: rgba(232,163,61,.15); color: #E8A33D; }}
+    .status-rejected {{ background: rgba(229,72,77,.15); color: #E5484D; }}
 
-    .payment-hero {
+    .payment-hero {{
         padding: 24px;
         border-radius: 18px;
-        border: 1px solid rgba(79,184,166,.35);
+        border: 1px solid {t['card_border']};
         background: linear-gradient(135deg,
-            rgba(79,184,166,.12),
-            rgba(11,14,17,.95));
+            {t['card_border']},
+            {card_bg_solid});
         margin-bottom: 20px;
-    }
-    .payment-card {
+        color: {t['text_primary']};
+    }}
+    .payment-card {{
         padding: 18px;
         border-radius: 14px;
-        border: 1px solid rgba(255,255,255,.12);
-        background: rgba(255,255,255,.035);
+        border: 1px solid {t['card_border']}55;
+        background: {card_bg_solid};
         margin-bottom: 12px;
-    }
-    .payment-price {
+        color: {t['text_primary']};
+    }}
+    .payment-price {{
         font-size: 2rem;
         font-weight: 700;
-    }
+        color: {t['text_primary']};
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -1308,9 +1479,10 @@ def flw_verify_webhook(payload: dict, signature_header: str) -> bool:
 
 def render_notion_style_billing(user_email, user_name=""):
 
-    # Unified Payment Center.
-    # Direct payment is the primary flow.
-    # Stripe is only shown when it is actually configured.
+    # Unified Payment Center - reorganized into tabs (Plan / Pay / History)
+    # instead of one long continuous scroll. Stripe (when configured) is
+    # now shown as an equal first-class option inside the Pay tab, not
+    # buried in a collapsed expander below the manual-payment flow.
     # (card styles are injected once globally via inject_shared_card_styles())
 
     st.markdown("""
@@ -1323,451 +1495,222 @@ def render_notion_style_billing(user_email, user_name=""):
     </div>
     """, unsafe_allow_html=True)
 
+    tab_plan, tab_pay, tab_history = st.tabs(["1️⃣ Choose Plan", "2️⃣ Pay", "📋 My Payments"])
 
     # --------------------------------------------------------
-    # PLAN SELECTION
+    # TAB 1: PLAN SELECTION
     # --------------------------------------------------------
-
-    plan_key = st.radio(
-
-        "Choose your subscription",
-
-        ["monthly", "yearly"],
-
-        format_func=lambda key:
-
-            "Monthly — $24"
-            if key == "monthly"
-            else
-            "Yearly — $240 (save $48 / $20 per month)"
-    )
-
-    plan = DIRECT_PAYMENT_PLANS[plan_key]
-
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        st.markdown(
-            f"""
-            <div class="payment-card">
-            <div>Selected Plan</div>
-            <div class="payment-price">
-            ${plan['amount']:.2f}
-            </div>
-            <div>{plan['description']}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
+    with tab_plan:
+        plan_key = st.radio(
+            "Choose your subscription",
+            ["monthly", "yearly"],
+            format_func=lambda key:
+                "Monthly — $24"
+                if key == "monthly"
+                else
+                "Yearly — $240 (save $48 / $20 per month)",
+            key="billing_plan_key",
         )
+        plan = DIRECT_PAYMENT_PLANS[plan_key]
 
-
-    with col2:
-
-        student_approved = False
-
-        try:
-            student_approved = student_discount_is_approved(
-                user_email
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(
+                f"""
+                <div class="payment-card">
+                <div>Selected Plan</div>
+                <div class="payment-price">
+                ${plan['amount']:.2f}
+                </div>
+                <div>{plan['description']}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
+        with col2:
+            student_approved = False
+            try:
+                student_approved = student_discount_is_approved(user_email)
+            except Exception:
+                pass
+
+            if student_approved:
+                st.success(
+                    "🎓 Student discount approved — contact the administrator "
+                    "for your discounted payment amount."
+                )
+            else:
+                st.info(
+                    "🎓 Students can apply for verification "
+                    "to receive a 50% discount."
+                )
+
+        st.caption("Continue to the **Pay** tab once you've chosen a plan →")
+
+    # --------------------------------------------------------
+    # TAB 2: PAY (payment method + submission, Stripe shown first)
+    # --------------------------------------------------------
+    with tab_pay:
+        plan_key = st.session_state.get("billing_plan_key", "monthly")
+        plan = DIRECT_PAYMENT_PLANS[plan_key]
+        student_approved = False
+        try:
+            student_approved = student_discount_is_approved(user_email)
         except Exception:
             pass
 
-        if student_approved:
-
-            st.success(
-                "🎓 Student discount approved — contact the administrator "
-                "for your discounted payment amount."
-            )
-
-        else:
-
-            st.info(
-                "🎓 Students can apply for verification "
-                "to receive a 50% discount."
-            )
-
-
-    st.markdown("---")
-
-
-    # --------------------------------------------------------
-    # PAYMENT METHOD
-    # --------------------------------------------------------
-
-    st.subheader("Choose Payment Method")
-
-    payment_method = st.radio(
-
-        "Payment method",
-
-        [
-            "🏦 Bank Transfer",
-            "📱 Mobile / Direct Payment",
-            "💰 PayPal"
-        ],
-
-        horizontal=True
-    )
-
-
-    instructions = get_direct_payment_instructions()
-
-
-    if payment_method == "🏦 Bank Transfer":
-
-        st.markdown("### 🏦 Bank Transfer")
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-
-            st.write(
-                f"**Bank:** {instructions.get('bank_name', '')}"
-            )
-
-            st.write(
-                f"**Account Name:** {instructions.get('account_name', '')}"
-            )
-
-            st.write(
-                f"**Account Type:** {instructions.get('account_type', 'Checking')}"
-            )
-
-
-        with c2:
-
-            if instructions.get("account_number"):
-
-                st.text_input(
-                    "Account Number",
-
-                    value=instructions["account_number"],
-
-                    disabled=True,
-
-                    key="payment_account_number"
-                )
-
-            if instructions.get("routing_number"):
-
-                st.text_input(
-                    "Routing Number",
-
-                    value=instructions["routing_number"],
-
-                    disabled=True,
-
-                    key="payment_routing_number"
-                )
-
-
-    elif payment_method == "📱 Mobile / Direct Payment":
-
-        st.markdown("### 📱 Mobile / Direct Payment")
-
-        phone = instructions.get("phone", "")
-
-        if phone:
-
-            st.text_input(
-                "Payment Contact",
-
-                value=phone,
-
-                disabled=True,
-
-                key="payment_phone"
-            )
-
-        else:
-
-            st.warning(
-                "Mobile payment contact has not been configured."
-            )
-
-    else:
-
-        st.markdown("### 💰 PayPal")
-
-        paypal_email = instructions.get("paypal_email", "")
-        paypal_me_link = instructions.get("paypal_me_link", "")
-
-        if paypal_email:
-            st.text_input(
-                "Send payment to this PayPal email",
-                value=paypal_email,
-                disabled=True,
-                key="payment_paypal_email"
-            )
-
-        if paypal_me_link:
-            st.write(f"Or pay directly via: {paypal_me_link}")
-
-        if not paypal_email and not paypal_me_link:
-            st.warning(
-                "PayPal has not been configured on this deployment yet."
-            )
-
-
-    st.markdown("---")
-
-
-    # --------------------------------------------------------
-    # PAYMENT SUBMISSION
-    # --------------------------------------------------------
-
-    st.subheader("🧾 Submit Payment for Verification")
-
-    st.caption(
-        "Your subscription will only activate after the payment "
-        "has been verified by an administrator."
-    )
-
-
-    with st.form("unified_payment_form"):
-
-        payer_name = st.text_input(
-
-            "Name used for payment",
-
-            value=user_name
-        )
-
-        transaction_reference = st.text_input(
-
-            "Transaction ID / Payment Reference"
-        )
-
-        proof = st.file_uploader(
-
-            "Payment receipt (optional)",
-
-            type=["png", "jpg", "jpeg", "pdf"]
-        )
-
-        confirm = st.checkbox(
-
-            "I confirm that I have made this payment."
-        )
-
-
-        submit = st.form_submit_button(
-
-            "📨 Submit Payment for Approval",
-
-            type="primary",
-
-            width="stretch"
-        )
-
-
-        if submit:
-
-            if not confirm:
-
-                st.error(
-                    "Please confirm that you made the payment."
-                )
-
-            elif not transaction_reference.strip():
-
-                st.error(
-                    "Please enter your transaction or payment reference."
-                )
-
-            else:
-
-                method_name = (
-
-                    "bank_transfer"
-
-                    if payment_method == "🏦 Bank Transfer"
-
-                    else
-
-                    "mobile_direct"
-                )
-
-
-                ok, result = submit_direct_payment_request(
-
-                    user_email,
-
-                    user_name,
-
-                    plan_key,
-
-                    method_name,
-
-                    payer_name,
-
-                    transaction_reference,
-
-                    proof
-                )
-
-
-                if ok:
-
-                    st.success(
-                        f"Payment request #{result} submitted successfully."
+        st.caption(f"Paying for: **{plan['description']}** — ${plan['amount']:.2f}")
+
+        try:
+            stripe_ready = billing_stripe.is_configured()
+        except Exception:
+            stripe_ready = False
+
+        try:
+            flw_ready = billing_flutterwave.flw_is_configured()
+        except Exception:
+            flw_ready = False
+
+        if stripe_ready or flw_ready:
+            st.markdown("#### ⚡ Fastest: Pay by Card")
+            st.caption("Automatic activation and recurring billing — no manual verification wait.")
+            if stripe_ready:
+                if st.button("Continue to Secure Card Checkout (Stripe)", width="stretch", type="primary", key="stripe_checkout_btn"):
+                    checkout_url = billing_stripe.create_checkout_session(
+                        user_email, "premium",
+                        "annual" if plan_key == "yearly" else "monthly",
+                        student_discount=student_approved,
                     )
-
-                    st.info(
-                        "Your payment is now pending administrator verification."
+                    if checkout_url:
+                        st.link_button("Open Secure Checkout →", checkout_url, type="primary", width="stretch")
+                    else:
+                        st.error("Unable to create the secure checkout session.")
+            elif flw_ready:
+                if st.button("Continue to Secure Card/Mobile Checkout (Flutterwave)", width="stretch", type="primary", key="flw_checkout_btn"):
+                    checkout_url = billing_flutterwave.create_payment_link(
+                        user_email, "premium",
+                        "annual" if plan_key == "yearly" else "monthly",
+                        student_discount=student_approved,
                     )
-
-                else:
-
-                    st.error(result)
-
-
-    # --------------------------------------------------------
-    # STRIPE OPTIONAL FALLBACK
-    # --------------------------------------------------------
-
-    try:
-
-        stripe_ready = billing_stripe.is_configured()
-
-    except Exception:
-
-        stripe_ready = False
-
-
-    if stripe_ready:
-
-        with st.expander("💳 Pay securely with card"):
-
-            st.caption(
-                "Card payments are processed securely by Stripe."
-            )
-
-            if st.button(
-
-                "Continue to Secure Card Checkout",
-
-                width="stretch"
-            ):
-
-                checkout_url = billing_stripe.create_checkout_session(
-
-                    user_email,
-
-                    "premium",
-
-                    "annual"
-                    if plan_key == "yearly"
-                    else
-                    "monthly",
-
-                    student_discount=student_discount_is_approved(
-                        user_email
-                    )
-                )
-
-
-                if checkout_url:
-
-                    st.link_button(
-
-                        "Open Secure Checkout",
-
-                        checkout_url,
-
-                        type="primary",
-
-                        width="stretch"
-                    )
-
-                else:
-
-                    st.error(
-                        "Unable to create the secure checkout session."
-                    )
-
-
-    # --------------------------------------------------------
-    # PAYMENT STATUS
-    # --------------------------------------------------------
-
-    try:
-
-        payment_rows = db_conn.execute(
-
-            """
-            SELECT
-                id,
-                plan,
-                amount,
-                currency,
-                payment_method,
-                transaction_reference,
-                status,
-                submitted_at,
-                admin_notes
-
-            FROM payment_requests
-
-            WHERE email = ?
-
-            ORDER BY id DESC
-
-            LIMIT 10
-            """,
-
-            (user_email.strip().lower(),)
-
-        ).fetchall()
-
-
-        if payment_rows:
-
+                    if checkout_url:
+                        st.link_button("Open Secure Checkout →", checkout_url, type="primary", width="stretch")
+                    else:
+                        st.error("Unable to create the secure checkout link.")
             st.markdown("---")
+            st.markdown("#### 🐢 Or: Manual Payment (slower — needs admin verification)")
+        else:
+            st.subheader("Choose Payment Method")
 
-            st.subheader("📋 Your Payment Requests")
-
-            payment_data = []
-
-            for row in payment_rows:
-
-                payment_data.append({
-
-                    "ID": row[0],
-
-                    "Plan": row[1],
-
-                    "Amount":
-                        f"{row[2]} {row[3]}",
-
-                    "Method": row[4],
-
-                    "Reference": row[5],
-
-                    "Status": row[6],
-
-                    "Submitted": row[7],
-
-                    "Admin Notes": row[8] or ""
-                })
-
-
-            st.dataframe(
-
-                pd.DataFrame(payment_data),
-
-                width="stretch",
-
-                hide_index=True
-            )
-
-    except Exception as exc:
-
-        st.warning(
-            f"Unable to load payment history: {exc}"
+        payment_method = st.radio(
+            "Payment method",
+            ["🏦 Bank Transfer", "📱 Mobile / Direct Payment", "💰 PayPal"],
+            horizontal=True,
+            key="billing_payment_method",
         )
+
+        instructions = get_direct_payment_instructions()
+
+        if payment_method == "🏦 Bank Transfer":
+            st.markdown("### 🏦 Bank Transfer")
+            if instructions.get("bank_name"):
+                st.write(f"**Bank:** {instructions['bank_name']}")
+            if instructions.get("account_name"):
+                st.write(f"**Account Name:** {instructions['account_name']}")
+            if instructions.get("account_number"):
+                st.code(instructions["account_number"])
+            if instructions.get("routing_number"):
+                st.write("**Routing Number:**")
+                st.code(instructions["routing_number"])
+            st.write(f"**Account Type:** {instructions.get('account_type', 'Checking')}")
+
+        elif payment_method == "📱 Mobile / Direct Payment":
+            st.markdown("### 📱 Mobile / Direct Payment")
+            phone = instructions.get("phone", "")
+            if phone:
+                st.text_input("Payment Contact", value=phone, disabled=True, key="payment_phone")
+            else:
+                st.warning("Mobile payment contact has not been configured.")
+
+        else:
+            st.markdown("### 💰 PayPal")
+            paypal_email = instructions.get("paypal_email", "")
+            paypal_me_link = instructions.get("paypal_me_link", "")
+            if paypal_email:
+                st.text_input("Send payment to this PayPal email", value=paypal_email, disabled=True, key="payment_paypal_email")
+            if paypal_me_link:
+                st.write(f"Or pay directly via: {paypal_me_link}")
+            if not paypal_email and not paypal_me_link:
+                st.warning("PayPal has not been configured on this deployment yet.")
+
+        st.markdown("---")
+        st.subheader("🧾 Submit Payment for Verification")
+        st.caption(
+            "Your subscription will only activate after the payment "
+            "has been verified by an administrator."
+        )
+
+        with st.form("unified_payment_form"):
+            payer_name = st.text_input("Name used for payment", value=user_name)
+            transaction_reference = st.text_input("Transaction ID / Payment Reference")
+            proof = st.file_uploader("Payment receipt (optional)", type=["png", "jpg", "jpeg", "pdf"])
+            confirm = st.checkbox("I confirm that I have made this payment.")
+            submit = st.form_submit_button("📨 Submit Payment for Approval", type="primary", width="stretch")
+
+            if submit:
+                if not confirm:
+                    st.error("Please confirm that you made the payment.")
+                elif not transaction_reference.strip():
+                    st.error("Please enter your transaction or payment reference.")
+                else:
+                    method_name = {
+                        "🏦 Bank Transfer": "bank_transfer",
+                        "📱 Mobile / Direct Payment": "mobile_direct",
+                        "💰 PayPal": "paypal",
+                    }.get(payment_method, "mobile_direct")
+
+                    ok, result = submit_direct_payment_request(
+                        user_email, user_name, plan_key, method_name,
+                        payer_name, transaction_reference, proof,
+                    )
+                    if ok:
+                        st.success(f"Payment request #{result} submitted successfully.")
+                        st.info("Your payment is now pending administrator verification.")
+                    else:
+                        st.error(result)
+
+    # --------------------------------------------------------
+    # TAB 3: PAYMENT HISTORY
+    # --------------------------------------------------------
+    with tab_history:
+        try:
+            payment_rows = db_conn.execute(
+                """
+                SELECT id, plan, amount, currency, payment_method,
+                       transaction_reference, status, submitted_at, admin_notes
+                FROM payment_requests
+                WHERE email = ?
+                ORDER BY id DESC
+                LIMIT 10
+                """,
+                (user_email.strip().lower(),)
+            ).fetchall()
+
+            if payment_rows:
+                st.subheader("📋 Your Payment Requests")
+                payment_data = []
+                for row in payment_rows:
+                    payment_data.append({
+                        "ID": row[0], "Plan": row[1],
+                        "Amount": f"{row[2]} {row[3]}",
+                        "Method": row[4], "Reference": row[5],
+                        "Status": row[6], "Submitted": row[7],
+                        "Admin Notes": row[8] or "",
+                    })
+                st.dataframe(pd.DataFrame(payment_data), width="stretch", hide_index=True)
+            else:
+                st.info("No payment requests yet — submit one in the **Pay** tab.")
+        except Exception as exc:
+            st.warning(f"Unable to load payment history: {exc}")
 
 
 # ============================================================================
@@ -3988,105 +3931,7 @@ starter_linux = create_starter_bundle("Linux")
 starter_mac = create_starter_bundle("macOS")
 starter_pwa = create_starter_bundle("Mobile / PWA")
 
-# --- CUSTOM CSS & THEME OVERRIDES ---
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #EDEFF2 !important;
-    }
-
-    .stApp {
-        background: radial-gradient(circle at 15% 20%, #0d1326 0%, #04060a 85%);
-        background-attachment: fixed;
-    }
-
-    .portal-hero-card {
-        background: rgba(17, 24, 39, 0.82);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(56, 189, 248, 0.35);
-        border-radius: 28px;
-        padding: 35px 30px;
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(56, 189, 248, 0.15);
-        max-width: 860px;
-        margin: 0 auto;
-    }
-
-    .portal-title {
-        font-size: 2.3rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #4FB8A6 0%, #8B93A8 50%, #F472B6 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        letter-spacing: -0.02em;
-        margin-bottom: 6px;
-    }
-
-    .portal-subtitle {
-        font-size: 0.95rem;
-        color: #6B7280 !important;
-        font-weight: 600;
-        text-align: center;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        margin-bottom: 18px;
-    }
-
-    .profile-glow-wrap {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 15px;
-    }
-
-    .profile-avatar {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #4FB8A6;
-        box-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
-    }
-
-    .glass-hr {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.35), transparent);
-        margin: 1.5rem 0;
-    }
-
-    .workspace-metric {
-        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        border-radius: 16px;
-        padding: 1.25rem;
-        text-align: center;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-    }
-    .workspace-metric .metric-value {
-        font-size: 1.8rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #4FB8A6, #8B93A8, #F472B6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .workspace-metric .metric-label {
-        font-size: 0.75rem;
-        color: #6B7280 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-top: 0.3rem;
-        font-weight: 700;
-    }
-
-    [data-testid="stSidebar"] {
-        background-color: #050810 !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
 try:
 # [merged] removed: from modules.user_preferences import render_readability_fix, render_accent_color_css
