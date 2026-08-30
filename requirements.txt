@@ -1,1 +1,3 @@
 extra-streamlit-components
+
+scipy
