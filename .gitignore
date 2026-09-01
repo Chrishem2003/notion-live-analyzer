@@ -49,3 +49,6 @@ __pycache__/
 .venv/
 venv/
 
+
+# Local repair backups
+backups/
