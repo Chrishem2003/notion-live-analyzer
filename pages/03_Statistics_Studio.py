@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -57,9 +57,16 @@ def generate_ai_interpretation(
     assumption_warning: str = None
 ) -> str:
     sig = p_value < 0.05
+    significance_text = (
+        "**statistically significant** ($p < 0.05$)"
+        if sig
+        else
+        "**not statistically significant** ($p \ge 0.05$)"
+    )
+
     narrative = (
         f"> **Executive Summary:** The **{test_name}** result is "
-        f"{'**statistically significant** ($p < 0.05$)' if sig else '**not statistically significant** ($p \\ge 0.05$)'} "
+        f"{significance_text} "
         f"with $p = **{p_value:.5f}**$."
     )
     narrative += "\n> **Key Takeaway:** " + (
