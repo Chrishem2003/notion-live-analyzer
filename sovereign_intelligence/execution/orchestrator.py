@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from ..models import (
     AIRequest,
@@ -7,6 +7,7 @@ from ..models import (
     Problem,
     Plan,
 )
+
 from ..providers.registry import ProviderRegistry
 from ..agents.registry import AgentRegistry
 
@@ -18,6 +19,7 @@ class ExecutionEngine:
         providers: ProviderRegistry,
         agents: AgentRegistry,
     ):
+
         self.providers = providers
         self.agents = agents
 
@@ -28,9 +30,12 @@ class ExecutionEngine:
         provider_name: str,
         model: str,
         memory_context: str = "",
+        evidence_context: str = "",
     ) -> BrainResult:
 
-        provider = self.providers.get(provider_name)
+        provider = self.providers.get(
+            provider_name
+        )
 
         trace = []
 
@@ -38,20 +43,30 @@ class ExecutionEngine:
 
         for step in plan.steps:
 
-            agent = self.agents.get(step.agent)
+            agent = self.agents.get(
+                step.agent
+            )
 
             instructions.append(
                 f"Step: {step.description}\n"
                 f"Specialist: {agent.name}\n"
-                f"Instructions: {agent.instructions()}"
+                f"Instructions: "
+                f"{agent.instructions()}"
             )
 
-        system = f"""
-You are Sovereign Intelligence, the problem-solving
-engine of a larger software platform.
+        evidence_section = (
+            evidence_context
+            if evidence_context.strip()
+            else "No repository knowledge was retrieved."
+        )
 
-Your job is to solve the user's problem accurately,
-not merely produce plausible text.
+        system = f"""
+You are Sovereign Intelligence, the
+problem-solving engine of a larger
+software platform.
+
+Your job is to solve the user's problem
+accurately, not merely produce plausible text.
 
 Operating rules:
 
@@ -65,6 +80,10 @@ Operating rules:
 8. Prefer actionable solutions.
 9. Preserve existing software functionality.
 10. If information is missing, say what is missing.
+11. Treat retrieved evidence as supporting context,
+    not as unquestionable truth.
+12. Do not invent information that is absent
+    from the evidence.
 
 Execution plan:
 
@@ -73,6 +92,10 @@ Execution plan:
 Relevant memory:
 
 {memory_context[:12000]}
+
+Retrieved evidence:
+
+{evidence_section}
 """
 
         request = AIRequest(
@@ -86,10 +109,15 @@ Relevant memory:
                 "event": "provider_request",
                 "provider": provider_name,
                 "model": model,
+                "evidence_attached": bool(
+                    evidence_context.strip()
+                ),
             }
         )
 
-        response: AIResponse = provider.generate(request)
+        response: AIResponse = (
+            provider.generate(request)
+        )
 
         trace.append(
             {

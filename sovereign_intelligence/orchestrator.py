@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from .config import BrainConfig
 from .models import Problem, BrainResult
@@ -8,6 +8,8 @@ from .memory import MemoryStore, MemoryManager
 from .execution import Planner, ExecutionEngine
 from .verification import Verifier
 from .safety.audit import AuditLogger
+from .knowledge import KnowledgeEngine
+from .integration.brain_learning import BrainLearningAdapter
 
 
 class SovereignBrain:
@@ -23,6 +25,7 @@ class SovereignBrain:
         )
 
         self.providers = ProviderRegistry.default()
+
         self.agents = AgentRegistry()
 
         self.memory_store = MemoryStore(
@@ -44,6 +47,102 @@ class SovereignBrain:
 
         self.audit = AuditLogger(
             self.config.audit_path
+        )
+
+        self.knowledge = KnowledgeEngine()
+
+        # Stage 41: optional strategy-learning subsystem.
+        # The existing brain remains fully functional when learning
+        # is not enabled or becomes unavailable.
+        self.learning: BrainLearningAdapter | None = None
+
+    def enable_learning(
+        self,
+        database_path: str,
+    ) -> BrainLearningAdapter:
+        """Enable the optional Stage 41 strategy-learning subsystem."""
+
+        if not database_path or not database_path.strip():
+            raise ValueError(
+                "database_path cannot be empty."
+            )
+
+        self.learning = BrainLearningAdapter(
+            database_path=database_path,
+        )
+
+        return self.learning
+
+    def choose_learning_strategy(
+        self,
+        problem_type: str = "general",
+        default_strategy: str = "direct",
+    ):
+        """Choose a learned strategy without altering core execution."""
+
+        if self.learning is None:
+            return {
+                "strategy": default_strategy,
+                "problem_type": problem_type,
+                "confidence": 0.0,
+                "reason": "Learning subsystem is not enabled.",
+                "learning_available": False,
+            }
+
+        decision = self.learning.choose_strategy(
+            problem_type=problem_type,
+        )
+
+        return {
+            "strategy": decision.strategy,
+            "problem_type": decision.problem_type,
+            "confidence": decision.confidence,
+            "reason": decision.reason,
+            "learning_available": decision.metadata.get(
+                "learning_available",
+                False,
+            ),
+        }
+
+    def record_learning_result(
+        self,
+        result: BrainResult,
+        problem_type: str = "general",
+        metadata: dict | None = None,
+    ):
+        """Record a completed brain result in the optional learning layer."""
+
+        if self.learning is None:
+            return None
+
+        return self.learning.record_brain_result(
+            result=result,
+            problem_type=problem_type,
+            metadata=metadata,
+        )
+
+    def add_knowledge(
+        self,
+        document_id: str,
+        content: str,
+        metadata: dict | None = None,
+    ):
+
+        self.knowledge.add_document(
+            document_id=document_id,
+            content=content,
+            metadata=metadata,
+        )
+
+    def add_knowledge_file(
+        self,
+        path: str,
+        document_id: str | None = None,
+    ):
+
+        self.knowledge.add_file(
+            path=path,
+            document_id=document_id,
         )
 
     def solve(
@@ -88,13 +187,45 @@ class SovereignBrain:
 
         try:
 
+            evidence_result, evidence_context = (
+                self.knowledge.context(
+                    query=prompt,
+                    top_k=5,
+                    max_characters=12000,
+                )
+            )
+
+            self.audit.record(
+                "knowledge_retrieved",
+                {
+                    "query": prompt,
+                    "count": len(
+                        evidence_result.candidates
+                    ),
+                    "strategy": (
+                        evidence_result.strategy
+                    ),
+                },
+            )
+
             result = self.executor.execute(
                 problem=problem,
                 plan=plan,
                 provider_name=selected_provider,
                 model=selected_model,
                 memory_context=memory_context,
+                evidence_context=evidence_context,
             )
+
+            result.sources = [
+                {
+                    "id": candidate.id,
+                    "score": candidate.fused_score,
+                    "metadata": candidate.metadata,
+                }
+                for candidate
+                in evidence_result.candidates
+            ]
 
             if self.config.enable_verification:
 
@@ -118,6 +249,9 @@ class SovereignBrain:
                         result.verification.passed
                         if result.verification
                         else None
+                    ),
+                    "sources": len(
+                        result.sources
                     ),
                 },
             )

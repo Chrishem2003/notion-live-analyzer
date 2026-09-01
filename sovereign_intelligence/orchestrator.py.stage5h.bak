@@ -1,0 +1,155 @@
+﻿from __future__ import annotations
+
+from .config import BrainConfig
+from .models import Problem, BrainResult
+from .providers.registry import ProviderRegistry
+from .agents.registry import AgentRegistry
+from .memory import MemoryStore, MemoryManager
+from .execution import Planner, ExecutionEngine
+from .verification import Verifier
+from .safety.audit import AuditLogger
+
+from .tools.fabric import ToolFabric
+from .tools.reasoning import ToolReasoner
+
+
+class SovereignBrain:
+
+    def __init__(
+        self,
+        config: BrainConfig | None = None,
+    ):
+
+        self.config = (
+            config
+            or BrainConfig.from_env()
+        )
+
+        self.providers = ProviderRegistry.default()
+
+        self.agents = AgentRegistry()
+
+        self.memory_store = MemoryStore(
+            self.config.memory_path
+        )
+
+        self.memory = MemoryManager(
+            self.memory_store
+        )
+
+        self.planner = Planner()
+
+        self.verifier = Verifier()
+
+        self.audit = AuditLogger(
+            self.config.audit_path
+        )
+
+        self.tools = ToolFabric(
+            repository="."
+        )
+
+        self.tool_reasoner = ToolReasoner(
+            self.tools
+        )
+
+        self.executor = ExecutionEngine(
+            self.providers,
+            self.agents,
+            tool_reasoner=self.tool_reasoner,
+        )
+
+    def solve(
+        self,
+        prompt: str,
+        provider: str | None = None,
+        model: str | None = None,
+    ) -> BrainResult:
+
+        if not prompt.strip():
+            raise ValueError(
+                "Problem prompt cannot be empty."
+            )
+
+        selected_provider = (
+            provider
+            or self.config.default_provider
+        )
+
+        selected_model = (
+            model
+            or self.config.default_model
+        )
+
+        problem = Problem(
+            original=prompt,
+            objective=prompt,
+        )
+
+        memory_context = self.memory.context()
+
+        plan = self.planner.build(
+            problem
+        )
+
+        self.audit.record(
+            "problem_started",
+            {
+                "prompt": prompt,
+                "provider": selected_provider,
+                "model": selected_model,
+            },
+        )
+
+        try:
+
+            result = self.executor.execute(
+                problem=problem,
+                plan=plan,
+                provider_name=selected_provider,
+                model=selected_model,
+                memory_context=memory_context,
+            )
+
+            if self.config.enable_verification:
+
+                verification = (
+                    self.verifier.evaluate(
+                        result.answer
+                    )
+                )
+
+                result.verification = (
+                    verification
+                )
+
+            self.memory.save_interaction(
+                prompt,
+                result.answer,
+            )
+
+            self.audit.record(
+                "problem_completed",
+                {
+                    "provider": result.provider,
+                    "model": result.model,
+                    "verified": (
+                        result.verification.passed
+                        if result.verification
+                        else None
+                    ),
+                },
+            )
+
+            return result
+
+        except Exception as exc:
+
+            self.audit.record(
+                "problem_failed",
+                {
+                    "error": str(exc),
+                },
+            )
+
+            raise

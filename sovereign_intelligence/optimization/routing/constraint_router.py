@@ -1,0 +1,212 @@
+﻿from __future__ import annotations
+
+from .constraints import (
+    ConstraintEvaluation,
+    RoutingConstraints,
+)
+from ..context.models import ProblemContext
+
+
+class ConstraintAwareRouter:
+    """Applies explicit routing constraints to eligible strategies."""
+
+    STRATEGY_CAPABILITIES = {
+        "direct": {
+            "general",
+            "execution",
+        },
+        "deep": {
+            "reasoning",
+            "analysis",
+            "execution",
+        },
+        "debug": {
+            "coding",
+            "debugging",
+            "execution",
+        },
+        "research": {
+            "research",
+            "evidence",
+            "execution",
+        },
+        "analysis": {
+            "analysis",
+            "reasoning",
+            "execution",
+        },
+        "plan": {
+            "planning",
+            "strategy",
+            "execution",
+        },
+        "verify": {
+            "verification",
+            "analysis",
+            "execution",
+        },
+    }
+
+    def evaluate(
+        self,
+        strategy: str,
+        context: ProblemContext,
+        constraints: RoutingConstraints,
+        confidence: float = 1.0,
+    ) -> ConstraintEvaluation:
+
+        strategy = strategy.strip().lower()
+
+        if not strategy:
+            raise ValueError("Strategy cannot be empty.")
+
+        if not 0.0 <= confidence <= 1.0:
+            raise ValueError(
+                "confidence must be between 0 and 1."
+            )
+
+        if strategy in constraints.forbidden_strategies:
+            return ConstraintEvaluation(
+                strategy=strategy,
+                eligible=False,
+                reason=(
+                    f"Strategy '{strategy}' is explicitly forbidden "
+                    "by the routing constraints."
+                ),
+                metadata={
+                    "constraint": "forbidden_strategy",
+                },
+            )
+
+        if (
+            constraints.maximum_complexity is not None
+            and context.complexity > constraints.maximum_complexity
+        ):
+            return ConstraintEvaluation(
+                strategy=strategy,
+                eligible=False,
+                reason=(
+                    "Problem complexity exceeds the maximum complexity "
+                    "allowed by the routing constraints."
+                ),
+                metadata={
+                    "constraint": "maximum_complexity",
+                    "complexity": context.complexity,
+                    "maximum_complexity": (
+                        constraints.maximum_complexity
+                    ),
+                },
+            )
+
+        if (
+            constraints.minimum_confidence is not None
+            and confidence < constraints.minimum_confidence
+        ):
+            return ConstraintEvaluation(
+                strategy=strategy,
+                eligible=False,
+                reason=(
+                    "Strategy confidence is below the minimum confidence "
+                    "required by the routing constraints."
+                ),
+                metadata={
+                    "constraint": "minimum_confidence",
+                    "confidence": confidence,
+                    "minimum_confidence": (
+                        constraints.minimum_confidence
+                    ),
+                },
+            )
+
+        available_capabilities = self.STRATEGY_CAPABILITIES.get(
+            strategy,
+            set(),
+        )
+
+        missing_capabilities = (
+            constraints.required_capabilities
+            - available_capabilities
+        )
+
+        if missing_capabilities:
+            return ConstraintEvaluation(
+                strategy=strategy,
+                eligible=False,
+                reason=(
+                    "Strategy does not provide all required capabilities."
+                ),
+                metadata={
+                    "constraint": "required_capabilities",
+                    "missing_capabilities": sorted(
+                        missing_capabilities
+                    ),
+                    "available_capabilities": sorted(
+                        available_capabilities
+                    ),
+                },
+            )
+
+        preference_score = 1.0
+
+        if strategy in constraints.preferred_strategies:
+            index = constraints.preferred_strategies.index(strategy)
+            preference_score = round(
+                1.0 / (index + 1),
+                4,
+            )
+
+        return ConstraintEvaluation(
+            strategy=strategy,
+            eligible=True,
+            reason="Strategy satisfies all routing constraints.",
+            preference_score=preference_score,
+            metadata={
+                "required_capabilities": sorted(
+                    constraints.required_capabilities
+                ),
+                "preference_score": preference_score,
+            },
+        )
+
+    def filter(
+        self,
+        strategies: list[str],
+        context: ProblemContext,
+        constraints: RoutingConstraints,
+        confidence: float = 1.0,
+    ) -> list[ConstraintEvaluation]:
+
+        results = [
+            self.evaluate(
+                strategy=strategy,
+                context=context,
+                constraints=constraints,
+                confidence=confidence,
+            )
+            for strategy in strategies
+        ]
+
+        return [
+            result
+            for result in results
+            if result.eligible
+        ]
+
+    def evaluate_all(
+        self,
+        strategies: list[str],
+        context: ProblemContext,
+        constraints: RoutingConstraints,
+        confidence: float = 1.0,
+    ) -> list[ConstraintEvaluation]:
+
+        return [
+            self.evaluate(
+                strategy=strategy,
+                context=context,
+                constraints=constraints,
+                confidence=confidence,
+            )
+            for strategy in strategies
+        ]
+
