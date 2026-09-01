@@ -323,4 +323,3 @@ def hub_quick_access_cards():
             st.page_link(hub["page"], label=f"Open {hub['name']}", icon=hub["icon"])
 
 
-
