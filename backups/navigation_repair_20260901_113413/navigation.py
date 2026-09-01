@@ -1,6 +1,6 @@
-﻿"""
-CHRISHEM Unified Navigation Engine - role-based hub routing + global command search.
-Defines the consolidated hubs and their tool inventory.
+"""
+CHRISHEM Unified Navigation Engine — role-based hub routing + global command search.
+Defines the 15 consolidated hubs and their tool inventory.
 """
 
 import streamlit as st
@@ -13,16 +13,16 @@ HUBS = [
         "id": "home",
         "icon": "🏠",
         "name": "Home Dashboard",
-        "page": "pages/01_Home_Dashboard.py",
+        "page": "pages/01_🏠_Home_Dashboard.py",
         "role": "all",
         "description": "System overview, quick access, saved analyses, live telemetry.",
         "tools": ["System Health", "Saved Analyses Vault", "Quick Access", "Live Telemetry"],
     },
     {
         "id": "data",
-        "icon": "🏠",
+        "icon": "📊",
         "name": "Data Studio",
-        "page": "pages/02_Data_Studio.py",
+        "page": "pages/02_📊_Data_Studio.py",
         "role": "all",
         "description": "Ingest, inspect, clean, transform, simulate, and manage datasets.",
         "tools": [
@@ -35,7 +35,7 @@ HUBS = [
         "id": "statistics",
         "icon": "📈",
         "name": "Statistics Studio",
-        "page": "pages/03_Statistics_Studio.py",
+        "page": "pages/03_📈_Statistics_Studio.py",
         "role": "all",
         "description": "Hypothesis testing, ANOVA, regression, power analysis, causal & Bayesian inference.",
         "tools": [
@@ -49,7 +49,7 @@ HUBS = [
         "id": "ml",
         "icon": "🤖",
         "name": "ML & Predictive Studio",
-        "page": "pages/04_ML_Predictive_Studio.py",
+        "page": "pages/04_🤖_ML_Predictive_Studio.py",
         "role": "all",
         "description": "Automated machine learning, feature engineering, AI insights & anomaly detection.",
         "tools": [
@@ -61,7 +61,7 @@ HUBS = [
         "id": "visualization",
         "icon": "🎨",
         "name": "Visualization Studio",
-        "page": "pages/05_Visualization_Studio.py",
+        "page": "pages/05_🎨_Visualization_Studio.py",
         "role": "all",
         "description": "Chart builder, dashboard canvas, presentations, and network graphs.",
         "tools": [
@@ -73,7 +73,7 @@ HUBS = [
         "id": "nlp",
         "icon": "💬",
         "name": "AI & NLP Studio",
-        "page": "pages/06_AI_NLP_Studio.py",
+        "page": "pages/06_💬_AI_NLP_Studio.py",
         "role": "all",
         "description": "Text mining, sentiment analysis, NL queries, research synthesis, audio engine.",
         "tools": [
@@ -86,7 +86,7 @@ HUBS = [
         "id": "literature",
         "icon": "📚",
         "name": "Literature & Publishing Hub",
-        "page": "pages/07_Literature_Publishing_Hub.py",
+        "page": "pages/07_📚_Literature_Publishing_Hub.py",
         "role": "all",
         "description": "Literature search, meta-analysis, APA formatting, citations, grants, references.",
         "tools": [
@@ -97,9 +97,9 @@ HUBS = [
     },
     {
         "id": "domain",
-        "icon": "📚",
+        "icon": "🌐",
         "name": "Domain Analytics Hub",
-        "page": "pages/08_Domain_Analytics_Hub.py",
+        "page": "pages/08_🌐_Domain_Analytics_Hub.py",
         "role": "all",
         "description": "Specialized analytics: clinical, GIS, research quality, localization, protocols.",
         "tools": [
@@ -112,7 +112,7 @@ HUBS = [
         "id": "integrations",
         "icon": "🔌",
         "name": "Integrations Hub",
-        "page": "pages/09_Integrations_Hub.py",
+        "page": "pages/09_🔌_Integrations_Hub.py",
         "role": "all",
         "description": "Connect external systems: Notion, Google Sheets, Git, APIs, databases.",
         "tools": [
@@ -122,9 +122,9 @@ HUBS = [
     },
     {
         "id": "admin",
-        "icon": "🔌",
+        "icon": "🛡️",
         "name": "Admin & Security Center",
-        "page": "pages/10_Admin_Security_Center.py",
+        "page": "pages/10_🛡️_Admin_Security_Center.py",
         "role": "admin",
         "description": "Settings, diagnostics, security vault, audit compliance, licensing, telemetry.",
         "tools": [
@@ -135,9 +135,9 @@ HUBS = [
     },
     {
         "id": "collaboration",
-        "icon": "🛡️",
+        "icon": "🤝",
         "name": "Collaboration & Portfolio",
-        "page": "pages/11_Collaboration_Portfolio.py",
+        "page": "pages/11_🤝_Collaboration_Portfolio.py",
         "role": "all",
         "description": "Project collaboration, application pipeline, agent swarms, academic portfolio.",
         "tools": [
@@ -149,7 +149,7 @@ HUBS = [
         "id": "forensics",
         "icon": "🔍",
         "name": "Forensics Intelligence",
-        "page": "pages/12_Forensics_Intelligence.py",
+        "page": "pages/12_🔍_Forensics_Intelligence.py",
         "role": "all",
         "description": "Digital evidence lab, metadata & EXIF extraction, steganography detection, phishing analysis, chain-of-custody.",
         "tools": [
@@ -162,7 +162,7 @@ HUBS = [
         "id": "converter",
         "icon": "🔄",
         "name": "Universal Converter",
-        "page": "pages/13_Universal_Converter.py",
+        "page": "pages/13_🔄_Universal_Converter.py",
         "role": "all",
         "description": "Convert formats, encodings, reshape data, units, coordinates, and extract PDFs.",
         "tools": [
@@ -172,9 +172,9 @@ HUBS = [
     },
     {
         "id": "threat",
-        "icon": "🔄",
+        "icon": "☣️",
         "name": "Threat & Scanner Suite",
-        "page": "pages/14_Threat_Scanner_Suite.py",
+        "page": "pages/14_☣️_Threat_Scanner_Suite.py",
         "role": "all",
         "description": "PII/secret scanning, live CVE, malware signatures, integrity monitoring, port scanning, threat intelligence, incident playbooks.",
         "tools": [
@@ -187,29 +187,12 @@ HUBS = [
         "id": "mission",
         "icon": "🚀",
         "name": "Global Mission Control",
-        "page": "pages/15_Global_Mission_Control.py",
+        "page": "pages/15_🚀_Global_Mission_Control.py",
         "role": "all",
         "description": "Live global health feed, real-time climate telemetry, impact scorecard, problem-solver registry.",
         "tools": [
             "Live Health Feed", "Climate Telemetry", "Global Impact Scorecard",
             "Problem Solver Registry", "Mission Telemetry",
-        ],
-    },
-    {
-        "id": "career_os",
-        "icon": "💼",
-        "name": "Career OS",
-        "page": "pages/16_Career_OS.py",
-        "role": "all",
-        "description": "Professional career command center for CVs, resumes, applications, opportunities, interviews, compensation and career strategy.",
-        "tools": [
-            "Professional Profile",
-            "CV & Resume Studio",
-            "Career Strategy",
-            "Application Analytics",
-            "Opportunity Intelligence",
-            "Interview Academy",
-            "Salary & Negotiation"
         ],
     },
 ]
@@ -321,5 +304,4 @@ def hub_quick_access_cards():
                 unsafe_allow_html=True,
             )
             st.page_link(hub["page"], label=f"Open {hub['name']}", icon=hub["icon"])
-
 
