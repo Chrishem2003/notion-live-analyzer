@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from .config import BrainConfig
 from .models import Problem, BrainResult
@@ -11,6 +11,7 @@ from .safety.audit import AuditLogger
 from .knowledge import KnowledgeEngine
 from .integration.brain_learning import BrainLearningAdapter
 from .integration.adaptive_brain import AdaptiveBrainExecutionAdapter
+from .integration.research_brain import BrainResearchAdapter
 
 
 class SovereignBrain:
@@ -51,6 +52,10 @@ class SovereignBrain:
         )
 
         self.knowledge = KnowledgeEngine()
+
+        # Stage 46: Evidence & Research Intelligence.
+        # Thin adapter over the existing KnowledgeEngine.
+        self.research = BrainResearchAdapter()
 
         # Stage 41: optional strategy-learning subsystem.
         # The existing brain remains fully functional when learning
@@ -208,6 +213,25 @@ class SovereignBrain:
                 )
             )
 
+            # Stage 46: Evidence & Research Intelligence.
+            # Existing KnowledgeEngine retrieval remains unchanged.
+            research_result = self.research.process(
+                query=prompt,
+                retrieval_result=evidence_result,
+                max_results=5,
+            )
+
+            self.audit.record(
+                "research_evidence_processed",
+                {
+                    "query": prompt,
+                    "count": len(research_result.evidence),
+                    "total_candidates": research_result.total_candidates,
+                    "duplicates_removed": research_result.duplicates_removed,
+                    "sources": research_result.sources,
+                },
+            )
+
             self.audit.record(
                 "knowledge_retrieved",
                 {
@@ -331,15 +355,14 @@ class SovereignBrain:
                     evidence_context=evidence_context,
                 )
 
-            result.sources = [
-                {
-                    "id": candidate.id,
-                    "score": candidate.fused_score,
-                    "metadata": candidate.metadata,
-                }
-                for candidate
-                in evidence_result.candidates
-            ]
+            # Stage 46: expose research-ranked evidence through
+            # the existing BrainResult.sources field.
+            research_sources = self.research.source_records(
+                research_result
+            )
+
+            if research_sources:
+                result.sources = research_sources
 
             if self.config.enable_verification:
 
