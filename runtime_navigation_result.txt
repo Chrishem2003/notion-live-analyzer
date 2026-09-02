@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "D:\notion-live-analyzer\modules\navigation.py", line 6, in <module>
+    import streamlit as st
+ModuleNotFoundError: No module named 'streamlit'
