@@ -1,0 +1,42 @@
+﻿"""Evidence intake adapter contracts."""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+
+from .models import EvidenceRecord, IntakeRequest
+
+
+class EvidenceIntakeAdapter(ABC):
+    """Convert source material into normalized evidence."""
+
+    @abstractmethod
+    def intake(self, request: IntakeRequest) -> EvidenceRecord | None:
+        """Return normalized evidence or None when the source is unusable."""
+        raise NotImplementedError
+
+
+class TextEvidenceAdapter(EvidenceIntakeAdapter):
+    """Native adapter for already-available text evidence."""
+
+    def intake(self, request: IntakeRequest) -> EvidenceRecord | None:
+        content = request.content.strip()
+
+        if not content:
+            return None
+
+        evidence_id = (
+            f"{request.source_id}:"
+            f"{abs(hash((request.title, content))) & 0xFFFFFFFF:x}"
+        )
+
+        return EvidenceRecord.create(
+            evidence_id=evidence_id,
+            source_id=request.source_id,
+            source=request.source,
+            source_type=request.source_type,
+            title=request.title.strip() or request.source_id,
+            content=content,
+            location=request.location,
+            metadata=request.metadata,
+        )
