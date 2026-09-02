@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import os
 from dataclasses import dataclass
@@ -15,6 +15,7 @@ class BrainConfig:
     audit_path: str = "data/sovereign_intelligence/audit.jsonl"
     enable_verification: bool = True
     max_iterations: int = 4
+    enable_adaptive_execution: bool = True
 
     @classmethod
     def from_env(cls) -> "BrainConfig":
@@ -38,4 +39,8 @@ class BrainConfig:
             max_iterations=int(
                 os.getenv("SOVEREIGN_AI_MAX_ITERATIONS", "4")
             ),
+            enable_adaptive_execution=os.getenv(
+                "SOVEREIGN_AI_ADAPTIVE_EXECUTION",
+                "true",
+            ).lower() == "true",
         )

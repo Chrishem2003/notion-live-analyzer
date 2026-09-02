@@ -19,6 +19,14 @@ from .scoring import (
     MultiSignalRouteScorer,
 )
 
+from .decision import (
+    DynamicRouteDecision,
+)
+
+from .decision import (
+    DynamicRouteDecisionEngine,
+)
+
 __all__ = [
     "RoutingPolicy",
     "StrategyEligibility",
@@ -28,4 +36,6 @@ __all__ = [
     "ConstraintAwareRouter",
     "RouteScore",
     "MultiSignalRouteScorer",
+    "DynamicRouteDecision",
+    "DynamicRouteDecisionEngine",
 ]

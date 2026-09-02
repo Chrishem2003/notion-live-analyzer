@@ -6,11 +6,17 @@ from .evaluator import (
     IntermediateResultEvaluator,
 )
 from .monitor import ExecutionProgressMonitor, ProgressAssessment
+from .recovery import (
+    ExecutionRecoveryPolicy,
+    RecoveryAction,
+    RecoveryDecision,
+)
 from .state import ExecutionState, ExecutionStatus
 from .switcher import (
     DynamicStrategySwitcher,
     StrategySwitchDecision,
 )
+from .trace import AdaptiveExecutionTrace
 
 __all__ = [
     "AdaptiveExecutionController",
@@ -19,9 +25,12 @@ __all__ = [
     "IntermediateResultEvaluator",
     "ExecutionProgressMonitor",
     "ProgressAssessment",
+    "ExecutionRecoveryPolicy",
+    "RecoveryAction",
+    "RecoveryDecision",
     "ExecutionState",
     "ExecutionStatus",
     "DynamicStrategySwitcher",
     "StrategySwitchDecision",
+    "AdaptiveExecutionTrace",
 ]
-from .trace import AdaptiveExecutionTrace

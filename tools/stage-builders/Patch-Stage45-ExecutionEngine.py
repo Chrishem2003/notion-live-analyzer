@@ -1,29 +1,20 @@
-﻿from __future__ import annotations
+﻿from pathlib import Path
 
-from ..models import (
-    AIRequest,
-    AIResponse,
-    BrainResult,
-    Problem,
-    Plan,
-)
+path = Path(r".\sovereign_intelligence\execution\orchestrator.py")
+text = path.read_text(encoding="utf-8")
 
-from ..providers.registry import ProviderRegistry
-from ..agents.registry import AgentRegistry
-
-
-class ExecutionEngine:
-
-    def __init__(
+old = '''    def execute(
         self,
-        providers: ProviderRegistry,
-        agents: AgentRegistry,
-    ):
+        problem: Problem,
+        plan: Plan,
+        provider_name: str,
+        model: str,
+        memory_context: str = "",
+        evidence_context: str = "",
+    ) -> BrainResult:
+'''
 
-        self.providers = providers
-        self.agents = agents
-
-    def execute(
+new = '''    def execute(
         self,
         problem: Problem,
         plan: Plan,
@@ -34,35 +25,20 @@ class ExecutionEngine:
         strategy: str = "direct",
         route: str = "standard_execution",
     ) -> BrainResult:
+'''
 
-        provider = self.providers.get(
-            provider_name
-        )
+if old not in text:
+    raise SystemExit("Expected execute signature not found.")
 
-        trace = []
+text = text.replace(old, new, 1)
 
-        instructions = []
+marker = '''        system = f"""
+You are Sovereign Intelligence, the
+problem-solving engine of a larger
+software platform.
+'''
 
-        for step in plan.steps:
-
-            agent = self.agents.get(
-                step.agent
-            )
-
-            instructions.append(
-                f"Step: {step.description}\n"
-                f"Specialist: {agent.name}\n"
-                f"Instructions: "
-                f"{agent.instructions()}"
-            )
-
-        evidence_section = (
-            evidence_context
-            if evidence_context.strip()
-            else "No repository knowledge was retrieved."
-        )
-
-        strategy_modes = {
+replacement = '''        strategy_modes = {
             "direct": (
                 "Use a direct, efficient problem-solving approach. "
                 "Prioritize correctness and actionable output."
@@ -120,47 +96,26 @@ Route: {selected_route}
 
 Strategy-specific operating mode:
 {strategy_instruction}
+'''
 
-Your job is to solve the user's problem
-accurately, not merely produce plausible text.
+if marker not in text:
+    raise SystemExit("Expected system prompt marker not found.")
 
-Operating rules:
+text = text.replace(marker, replacement, 1)
 
-1. Understand the objective.
-2. Respect constraints.
-3. Separate facts from assumptions.
-4. Never fabricate tool execution.
-5. Never claim certainty without evidence.
-6. Use explicit reasoning where useful.
-7. Identify uncertainty.
-8. Prefer actionable solutions.
-9. Preserve existing software functionality.
-10. If information is missing, say what is missing.
-11. Treat retrieved evidence as supporting context,
-    not as unquestionable truth.
-12. Do not invent information that is absent
-    from the evidence.
-
-Execution plan:
-
-{chr(10).join(instructions)}
-
-Relevant memory:
-
-{memory_context[:12000]}
-
-Retrieved evidence:
-
-{evidence_section}
-"""
-
-        request = AIRequest(
-            prompt=problem.original,
-            system=system,
-            model=model,
+old_trace = '''        trace.append(
+            {
+                "event": "provider_request",
+                "provider": provider_name,
+                "model": model,
+                "evidence_attached": bool(
+                    evidence_context.strip()
+                ),
+            }
         )
+'''
 
-        trace.append(
+new_trace = '''        trace.append(
             {
                 "event": "provider_request",
                 "provider": provider_name,
@@ -172,24 +127,13 @@ Retrieved evidence:
                 ),
             }
         )
+'''
 
-        response: AIResponse = (
-            provider.generate(request)
-        )
+if old_trace not in text:
+    raise SystemExit("Expected provider trace block not found.")
 
-        trace.append(
-            {
-                "event": "provider_response",
-                "provider": response.provider,
-                "model": response.model,
-                "usage": response.usage,
-            }
-        )
+text = text.replace(old_trace, new_trace, 1)
 
-        return BrainResult(
-            answer=response.text,
-            plan=plan,
-            provider=response.provider,
-            model=response.model,
-            execution_trace=trace,
-        )
+path.write_text(text, encoding="utf-8")
+
+print("EXECUTION_ENGINE_STAGE45_PATCH_OK")

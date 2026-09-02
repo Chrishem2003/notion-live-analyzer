@@ -10,6 +10,7 @@ from .verification import Verifier
 from .safety.audit import AuditLogger
 from .knowledge import KnowledgeEngine
 from .integration.brain_learning import BrainLearningAdapter
+from .integration.adaptive_brain import AdaptiveBrainExecutionAdapter
 
 
 class SovereignBrain:
@@ -55,6 +56,16 @@ class SovereignBrain:
         # The existing brain remains fully functional when learning
         # is not enabled or becomes unavailable.
         self.learning: BrainLearningAdapter | None = None
+
+        # Stage 45: optional adaptive execution orchestration.
+        # The existing ExecutionEngine remains the underlying executor.
+        self.adaptive_execution: AdaptiveBrainExecutionAdapter | None = None
+
+        if self.config.enable_adaptive_execution:
+            self.adaptive_execution = AdaptiveBrainExecutionAdapter(
+                executor=self.executor,
+                max_recovery_attempts=self.config.max_iterations,
+            )
 
     def enable_learning(
         self,
@@ -109,6 +120,7 @@ class SovereignBrain:
         result: BrainResult,
         problem_type: str = "general",
         metadata: dict | None = None,
+        strategy: str | None = None,
     ):
         """Record a completed brain result in the optional learning layer."""
 
@@ -119,6 +131,7 @@ class SovereignBrain:
             result=result,
             problem_type=problem_type,
             metadata=metadata,
+            strategy=strategy,
         )
 
     def add_knowledge(
@@ -208,14 +221,115 @@ class SovereignBrain:
                 },
             )
 
-            result = self.executor.execute(
-                problem=problem,
-                plan=plan,
-                provider_name=selected_provider,
-                model=selected_model,
-                memory_context=memory_context,
-                evidence_context=evidence_context,
-            )
+            # Stage 45: adaptive execution orchestration.
+            #
+            # The existing ExecutionEngine remains the underlying
+            # executor. Adaptive orchestration adds routing,
+            # evaluation, recovery, and strategy tracing around it.
+            #
+            # If adaptive execution is disabled or unavailable,
+            # the original execution path remains available.
+
+            adaptive_result = None
+            adaptive_strategy = None
+            adaptive_trace = []
+            historical_ranked = None
+
+            if self.learning is not None:
+                try:
+                    historical_ranked = self.learning.ranked_strategies(
+                        problem_type="general",
+                    )
+                except Exception:
+                    historical_ranked = None
+
+            if self.adaptive_execution is not None:
+                try:
+                    adaptive_result = self.adaptive_execution.execute(
+                        problem=problem,
+                        plan=plan,
+                        provider_name=selected_provider,
+                        model=selected_model,
+                        memory_context=memory_context,
+                        evidence_context=evidence_context,
+                        historical_ranked=historical_ranked,
+                    )
+
+                    result = adaptive_result.result
+
+                    adaptive_strategy = getattr(
+                        adaptive_result.state,
+                        "strategy",
+                        None,
+                    )
+
+                    adaptive_trace = list(
+                        getattr(
+                            adaptive_result,
+                            "trace",
+                            [],
+                        )
+                        or []
+                    )
+
+                    if adaptive_trace:
+                        existing_trace = list(
+                            getattr(
+                                result,
+                                "execution_trace",
+                                [],
+                            )
+                            or []
+                        )
+
+                        result.execution_trace = (
+                            existing_trace + adaptive_trace
+                        )
+
+                    self.audit.record(
+                        "adaptive_execution_completed",
+                        {
+                            "strategy": adaptive_strategy,
+                            "route": getattr(
+                                adaptive_result.state,
+                                "route",
+                                None,
+                            ),
+                            "status": getattr(
+                                adaptive_result.state,
+                                "status",
+                                None,
+                            ),
+                            "trace_events": len(adaptive_trace),
+                        },
+                    )
+
+                except Exception as adaptive_exc:
+                    self.audit.record(
+                        "adaptive_execution_fallback",
+                        {
+                            "error": str(adaptive_exc),
+                        },
+                    )
+
+                    result = self.executor.execute(
+                        problem=problem,
+                        plan=plan,
+                        provider_name=selected_provider,
+                        model=selected_model,
+                        memory_context=memory_context,
+                        evidence_context=evidence_context,
+                    )
+
+            else:
+                result = self.executor.execute(
+                    problem=problem,
+                    plan=plan,
+                    provider_name=selected_provider,
+                    model=selected_model,
+                    memory_context=memory_context,
+                    evidence_context=evidence_context,
+                )
 
             result.sources = [
                 {
@@ -240,6 +354,28 @@ class SovereignBrain:
                 result.answer,
             )
 
+            # Stage 41/45: persist the actual strategy when
+            # the optional learning subsystem is enabled.
+            if self.learning is not None:
+                try:
+                    self.record_learning_result(
+                        result=result,
+                        problem_type="general",
+                        metadata={
+                            "adaptive_execution": (
+                                self.adaptive_execution is not None
+                            ),
+                        },
+                        strategy=adaptive_strategy,
+                    )
+                except Exception as learning_exc:
+                    self.audit.record(
+                        "learning_record_failed",
+                        {
+                            "error": str(learning_exc),
+                        },
+                    )
+
             self.audit.record(
                 "problem_completed",
                 {
@@ -250,9 +386,11 @@ class SovereignBrain:
                         if result.verification
                         else None
                     ),
-                    "sources": len(
-                        result.sources
+                    "sources": len(result.sources),
+                    "adaptive_execution": (
+                        self.adaptive_execution is not None
                     ),
+                    "adaptive_strategy": adaptive_strategy,
                 },
             )
 
