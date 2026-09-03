@@ -1,0 +1,69 @@
+# Round 14/17/18 merge — apply instructions
+
+I merged all three staged folders into the real files and verified everything
+functionally (not just compiled) before delivering. Filenames below use `__`
+to show the real path — replace `__` with `/`.
+
+## Files to copy in (overwrite the existing file at that path)
+
+| Delivered file | Real destination |
+|---|---|
+| `requirements.txt` | `requirements.txt` (also adds pypdf + anthropic, needed by the reference manager below) |
+| `modules__reference_manager.py` | `modules/reference_manager.py` (**new file** — didn't exist live before) |
+| `pages__07_Literature_Publishing_Hub.py` | `pages/07_Literature_Publishing_Hub.py` |
+| `pages__01_Home_Dashboard.py` | `pages/01_Home_Dashboard.py` |
+| `pages__04_ML_Predictive_Studio.py` | `pages/04_ML_Predictive_Studio.py` |
+| `pages__06_AI_NLP_Studio.py` | `pages/06_AI_NLP_Studio.py` |
+| `pages__10_Admin_Security_Center.py` | `pages/10_Admin_Security_Center.py` |
+| `portal.py` | `portal.py` |
+| `sovereign_cad__core__entities__entity.py` | `sovereign_cad/core/entities/entity.py` |
+| `sovereign_cad__core__entities____init__.py` | `sovereign_cad/core/entities/__init__.py` |
+| `sovereign_cad__rendering__renderer.py` | `sovereign_cad/rendering/renderer.py` |
+| `sovereign_cad__streamlit__workspace.py` | `sovereign_cad/streamlit/workspace.py` |
+
+## Files to delete (dead, unused, confirmed nothing imports them)
+
+```
+git rm sovereign_cad/core/entities/registry.py
+git rm sovereign_cad/core/entities/registry.py.pre_repair.bak
+git rm sovereign_cad/core/entities/entity.py.pre_repair.bak
+git rm sovereign_cad/core/entities/entity.py.bak
+git rm access_control.py   # dead duplicate, from the earlier fix — delete if you haven't yet
+```
+
+## Also delete the staging folders once the above has landed
+
+They've served their purpose:
+```
+git rm -r round14_files round17_files round18_files
+```
+
+## What each change actually does
+
+- **Reference manager**: SQLite-persisted reference library (was missing
+  entirely from the live app), PDF metadata extraction, fuzzy duplicate
+  detection, TF-IDF semantic search, 6 citation formats (APA7/MLA9/Chicago/
+  IEEE/Harvard/Vancouver), BibTeX/RIS export, collections, and an honest
+  two-tier AI tagging feature (real Claude call if `ANTHROPIC_API_KEY` is
+  set, transparent keyword fallback otherwise). I ran a full functional
+  round-trip against a real SQLite file — add, search, cite, export,
+  collection, delete — all correct.
+- **5 page/portal files**: these fix real mojibake corruption that's back in
+  your current live repo (confirmed — e.g. `pages/01_Home_Dashboard.py`
+  currently has 39 corrupted byte sequences; the version I'm delivering has
+  zero). `portal.py` was already clean, included for completeness.
+- **Sovereign CAD**: restores Rectangle/Arc entity types plus real
+  Select/Delete functionality (registry select/deselect/clear, entity
+  picker, delete-selected). Verified: create → select → deselect → reselect
+  → delete lifecycle, plus the reversed-corner rectangle and angle-wraparound
+  arc edge cases, all render correctly through the actual renderer.
+
+## After applying
+
+```
+git add -A
+git commit -m "merge round 14/17/18: reference manager, mojibake fixes, CAD select/delete"
+git push
+```
+Then check Render's deploy log to confirm the build picks up `pypdf` and
+`anthropic` from the updated requirements.txt.

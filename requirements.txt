@@ -1,3 +1,45 @@
-extra-streamlit-components
+# Web framework
+streamlit>=1.38
+extra-streamlit-components>=0.1.60
 
-scipy
+# Data / numerics
+numpy>=1.26
+pandas>=2.2
+scipy>=1.13
+scikit-learn>=1.5
+statsmodels>=0.14
+polars>=1.6
+pyreadstat>=1.2.7
+duckdb>=1.0
+
+# Visualization
+plotly>=5.22
+kaleido>=0.2.1
+folium>=0.17
+streamlit-folium>=0.22
+networkx>=3.3
+
+# Documents / exports
+python-pptx>=1.0.2
+Pillow>=10.4
+
+# Payments
+stripe>=10.9
+
+# Reference manager (PDF metadata extraction, optional AI tagging)
+pypdf>=4.3
+anthropic>=0.34
+
+# NLP
+vaderSentiment>=3.3.2
+
+# Security
+cryptography>=42.0
+
+# HTTP / system
+requests>=2.32
+psutil>=6.0
+joblib>=1.4
+
+# Real-time video (Collaboration & Portfolio Meet tab)
+streamlit-webrtc>=0.47

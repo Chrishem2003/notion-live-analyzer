@@ -35,7 +35,11 @@ def test_pipeline_converts_discovered_content_to_evidence():
             "source_type": "document",
             "title": "Research Source",
             "location": "documents/research.txt",
-            "content": (
+            "metadata": {
+                "content": (
+                    "This is real source material for the research pipeline."
+                ),
+            },
                 "This is real source material for the research pipeline."
             ),
         }
@@ -86,14 +90,18 @@ def test_pipeline_handles_multiple_sources():
             "source": "local",
             "source_type": "document",
             "title": "First",
-            "content": "First source evidence.",
+            "metadata": {
+                "content": "First source evidence.",
+            },
         },
         {
             "id": "doc-002",
             "source": "local",
             "source_type": "document",
             "title": "Second",
-            "content": "Second source evidence.",
+            "metadata": {
+                "content": "Second source evidence.",
+            },
         },
     ]
 
@@ -104,3 +112,8 @@ def test_pipeline_handles_multiple_sources():
     assert result.candidate_count == 2
     assert result.evidence_count == 2
     assert result.rejected_count == 0
+
+
+
+
+

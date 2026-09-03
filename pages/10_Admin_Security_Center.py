@@ -909,7 +909,7 @@ def main():
     render_standard_footer("ADMIN & SECURITY CENTER  SOVEREIGN EDITION V4.3")
 
 def main():
-    setup_page("Admin & Security Center", "ðŸ”’", initial_sidebar_state="expanded")
+    setup_page("Admin & Security Center", "🔒", initial_sidebar_state="expanded")
 
     try:
         from modules.user_preferences import render_readability_fix, render_accent_color_css
@@ -923,14 +923,14 @@ def main():
 
     # Define tabs - Aidify Audit and Nexus Workspace are open to all users
     tabs = st.tabs([
-        "ðŸ“Š Diagnostics (Admin)", 
-        "ðŸ‘¥ Users (Admin)", 
-        "ðŸ’³ Billing (Admin)", 
-        "ðŸ›¡ï¸ Verification (Admin)", 
-        "ðŸ”‘ Vault Settings", 
-        "ðŸ¤– Aidify Audit Hub", 
-        "ðŸ“ Nexus Workspace", 
-        "âš™ï¸ Settings (Admin)"
+        "📊 Diagnostics (Admin)", 
+        "👥 Users (Admin)", 
+        "💳 Billing (Admin)", 
+        "🛡️ Verification (Admin)", 
+        "🔑 Vault Settings", 
+        "🤖 Aidify Audit Hub", 
+        "📁 Nexus Workspace", 
+        "⚙️ Settings (Admin)"
     ])
     
     # Admin-Gated Tabs
@@ -977,7 +977,7 @@ def main():
         else:
             st.error("Access Denied: Administrator clearance required for Platform Settings.")
     
-    render_standard_footer("CHRISHEM SOVEREIGN APEX HUB â€¢ ADMIN & SECURITY CENTER")
+    render_standard_footer("CHRISHEM SOVEREIGN APEX HUB • ADMIN & SECURITY CENTER")
 
 if __name__ == "__main__":
     main()

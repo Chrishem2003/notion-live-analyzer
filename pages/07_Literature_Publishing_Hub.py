@@ -707,6 +707,243 @@ def render_academic_vault():
         st.info("Academic vault storage module (`modules.legacy_research_data`) is not currently accessible.")
 
 
+def render_reference_manager():
+    """Real, persistent AI-assisted reference manager — the EndNote-style
+    core of this hub. See modules/reference_manager.py for what's real
+    vs. what's an honest, labeled fallback."""
+    from modules.reference_manager import (
+        add_reference, list_references, get_reference_pdf, delete_reference,
+        update_reference, extract_pdf_text, guess_metadata_from_pdf_text,
+        find_duplicates, semantic_search, CITATION_STYLES, suggest_tags,
+        llm_available, validate_citation_key, export_bibtex, export_ris,
+        list_collections, add_to_collection, remove_from_collection,
+        get_reference_collections, list_references_in_collection, ask_library,
+    )
+
+    owner = st.session_state.get("user_identity", {}).get("email", "anonymous")
+
+    st.caption(
+        "A persistent reference library that survives across sessions — PDF metadata "
+        "extraction, duplicate detection, TF-IDF semantic search, multi-style "
+        "citation formatting, groups/collections, and grounded AI Q&A over your own "
+        "library, all genuinely working end to end."
+    )
+    if not llm_available():
+        st.caption("🔌 AI features are running on honest, labeled fallbacks (keyword tags, search-only Q&A) — set `ANTHROPIC_API_KEY` in secrets to enable full LLM-assisted features.")
+
+    tab_add, tab_library, tab_search, tab_ask, tab_cite, tab_export = st.tabs([
+        "➕ Add Reference", "📚 My Library", "🔍 Smart Search", "🤖 Ask Your Library",
+        "📝 Generate Citations", "📤 Export"
+    ])
+
+    with tab_add:
+        st.markdown("#### Add from PDF (auto-extracts metadata)")
+        uploaded_pdf = st.file_uploader("Upload a PDF", type=["pdf"], key="ref_pdf_upload")
+        guessed = {}
+        pdf_text = ""
+        if uploaded_pdf is not None:
+            pdf_bytes = uploaded_pdf.getvalue()
+            pdf_text = extract_pdf_text(pdf_bytes)
+            if pdf_text:
+                guessed = guess_metadata_from_pdf_text(pdf_text)
+                st.success(f"Extracted from PDF — Title: *{guessed.get('title') or '(not found)'}*, Year: {guessed.get('year') or '(not found)'}, DOI: {guessed.get('doi') or '(not found)'}")
+            else:
+                st.warning("Couldn't extract text from this PDF (may be scanned/image-only). You can still fill in the fields manually below.")
+
+        with st.form("ref_add_form"):
+            c1, c2 = st.columns(2)
+            with c1:
+                citation_key = st.text_input("Citation Key", placeholder="smith2024", help="Letters, numbers, hyphens, underscores only — no spaces.")
+                authors = st.text_input("Authors", placeholder="Smith, J., & Doe, A.")
+                title = st.text_input("Title", value=guessed.get("title", ""))
+                entry_type = st.selectbox("Entry Type", ["article", "inproceedings", "book", "phdthesis"])
+            with c2:
+                journal = st.text_input("Journal / Conference")
+                volume = st.text_input("Volume")
+                issue = st.text_input("Issue")
+                pages = st.text_input("Pages", placeholder="112-125")
+                year = st.text_input("Year", value=guessed.get("year", ""))
+                doi = st.text_input("DOI", value=guessed.get("doi", ""))
+            abstract = st.text_area("Abstract (optional, improves search + AI Q&A + tag suggestions)")
+            tags = st.text_input("Tags (comma-separated, optional)")
+            collection = st.text_input("Add to collection/group (optional)", placeholder="e.g. Thesis Chapter 2")
+            submitted = st.form_submit_button("➕ Add to Library", type="primary")
+
+        if submitted:
+            key_ok, key_msg = validate_citation_key(citation_key)
+            if not key_ok:
+                st.error(key_msg)
+            elif not (authors.strip() and title.strip()):
+                st.error("Authors and title are required.")
+            else:
+                dupes = find_duplicates(owner, title, doi)
+                if dupes:
+                    st.warning(f"⚠️ Possible duplicate: '{dupes[0]['title']}' ({dupes[0]['match_reason']}, similarity {dupes[0]['similarity']:.0%}). Submit again to add anyway.")
+                entry = {
+                    "citation_key": citation_key.strip(), "entry_type": entry_type,
+                    "authors": authors.strip(), "title": title.strip(),
+                    "journal": journal.strip(), "volume": volume.strip(), "issue": issue.strip(),
+                    "pages": pages.strip(), "year": year.strip(), "doi": doi.strip(),
+                    "abstract": abstract.strip(), "tags": tags.strip(),
+                }
+                pdf_bytes = uploaded_pdf.getvalue() if uploaded_pdf is not None else None
+                pdf_filename = uploaded_pdf.name if uploaded_pdf is not None else None
+                ok, msg = add_reference(owner, entry, pdf_bytes, pdf_filename, pdf_text)
+                (st.success if ok else st.error)(msg)
+                if ok:
+                    if collection.strip():
+                        new_refs = list_references(owner)
+                        matching = [r for r in new_refs if r["citation_key"] == citation_key.strip()]
+                        if matching:
+                            add_to_collection(owner, matching[0]["id"], collection.strip())
+                    if not tags.strip():
+                        suggested, source = suggest_tags(entry)
+                        if suggested:
+                            st.info(f"💡 Suggested tags ({source}): {', '.join(suggested)}")
+                    st.rerun()
+
+    with tab_library:
+        collections = list_collections(owner)
+        filter_collection = st.selectbox("Filter by collection", ["All References"] + collections, key="lib_filter_collection")
+        refs = list_references_in_collection(owner, filter_collection) if filter_collection != "All References" else list_references(owner)
+
+        if not refs:
+            st.info("Your library is empty — add your first reference in the **Add Reference** tab.")
+        else:
+            st.markdown(f"#### {len(refs)} reference(s)")
+            for ref in refs:
+                with st.expander(f"📄 {ref['citation_key']} — {ref['title'][:80]}"):
+                    edit_mode = st.session_state.get(f"editing_{ref['id']}", False)
+
+                    if edit_mode:
+                        with st.form(f"edit_form_{ref['id']}"):
+                            e_authors = st.text_input("Authors", value=ref["authors"], key=f"e_auth_{ref['id']}")
+                            e_title = st.text_input("Title", value=ref["title"], key=f"e_title_{ref['id']}")
+                            e_journal = st.text_input("Journal", value=ref["journal"] or "", key=f"e_journal_{ref['id']}")
+                            e_year = st.text_input("Year", value=ref["year"] or "", key=f"e_year_{ref['id']}")
+                            e_doi = st.text_input("DOI", value=ref["doi"] or "", key=f"e_doi_{ref['id']}")
+                            e_tags = st.text_input("Tags", value=ref["tags"] or "", key=f"e_tags_{ref['id']}")
+                            save_col, cancel_col = st.columns(2)
+                            with save_col:
+                                save_clicked = st.form_submit_button("💾 Save", type="primary")
+                            with cancel_col:
+                                cancel_clicked = st.form_submit_button("Cancel")
+                        if save_clicked:
+                            ok, msg = update_reference(ref["id"], owner, {
+                                **ref, "authors": e_authors, "title": e_title,
+                                "journal": e_journal, "year": e_year, "doi": e_doi, "tags": e_tags,
+                            })
+                            (st.success if ok else st.error)(msg)
+                            st.session_state[f"editing_{ref['id']}"] = False
+                            st.rerun()
+                        if cancel_clicked:
+                            st.session_state[f"editing_{ref['id']}"] = False
+                            st.rerun()
+                    else:
+                        c1, c2 = st.columns([4, 1])
+                        with c1:
+                            st.write(f"**Authors:** {ref['authors']}")
+                            st.write(f"**Year:** {ref['year'] or '—'} | **Journal:** {ref['journal'] or '—'}")
+                            if ref["doi"]:
+                                st.write(f"**DOI:** {ref['doi']}")
+                            if ref["tags"]:
+                                st.caption(f"Tags: {ref['tags']}")
+                            ref_collections = get_reference_collections(owner, ref["id"])
+                            if ref_collections:
+                                st.caption(f"📁 In: {', '.join(ref_collections)}")
+                            if ref["pdf_filename"]:
+                                pdf_bytes, pdf_name = get_reference_pdf(ref["id"])
+                                if pdf_bytes:
+                                    st.download_button("📥 Download attached PDF", data=pdf_bytes, file_name=pdf_name, key=f"dl_{ref['id']}")
+                        with c2:
+                            if st.button("✏️ Edit", key=f"edit_btn_{ref['id']}"):
+                                st.session_state[f"editing_{ref['id']}"] = True
+                                st.rerun()
+                            if st.button("🗑️ Delete", key=f"del_ref_{ref['id']}"):
+                                delete_reference(ref["id"], owner)
+                                st.rerun()
+
+                        with st.form(f"collection_form_{ref['id']}", clear_on_submit=True):
+                            new_collection = st.text_input("Add to collection", key=f"new_coll_{ref['id']}", placeholder="e.g. Thesis Chapter 2")
+                            if st.form_submit_button("📁 Add"):
+                                if new_collection.strip():
+                                    add_to_collection(owner, ref["id"], new_collection.strip())
+                                    st.rerun()
+
+    with tab_search:
+        st.markdown("#### Semantic Search")
+        st.caption("Ranks by real term relevance (TF-IDF + cosine similarity) across title, abstract, tags, and extracted PDF text — not just keyword matching.")
+        query = st.text_input("Search your library", placeholder="e.g. climate prediction using neural networks")
+        if query:
+            results = semantic_search(owner, query)
+            if not results:
+                st.info("No relevant matches found.")
+            for r in results:
+                st.markdown(f"**{r['citation_key']}** — {r['title']}  \n*Relevance: {r['relevance']:.0%} · {r['authors']} ({r['year'] or 'n.d.'})*")
+                st.markdown("---")
+
+    with tab_ask:
+        st.markdown("#### 🤖 Ask Your Library")
+        st.caption(
+            "Grounded Q&A: retrieves your most relevant references via real semantic search, "
+            "then (if AI is configured) answers strictly from those references, citing them "
+            "by number — it won't make things up beyond what's in your library."
+        )
+        question = st.text_input("Ask a question about your references", placeholder="What methods do my papers use for X?")
+        if question:
+            result = ask_library(owner, question)
+            if result["mode"] == "no_results":
+                st.info("No relevant references found in your library for this question.")
+            elif result["mode"] == "ai_answered":
+                st.markdown(result["answer"])
+                with st.expander("📚 Sources used"):
+                    for i, s in enumerate(result["sources"], 1):
+                        st.write(f"[{i}] {s['citation_key']} — {s['title']} ({s['year'] or 'n.d.'})")
+            elif result["mode"] == "ai_error":
+                st.warning(f"AI call failed ({result.get('error', 'unknown error')}) — showing matched references instead:")
+                for s in result["sources"]:
+                    st.write(f"**{s['citation_key']}** — {s['title']} (relevance {s['relevance']:.0%})")
+            else:  # search_only
+                st.info("AI answering isn't configured (`ANTHROPIC_API_KEY` not set) — showing the most relevant references instead:")
+                for s in result["sources"]:
+                    st.write(f"**{s['citation_key']}** — {s['title']} (relevance {s['relevance']:.0%})")
+
+    with tab_cite:
+        refs = list_references(owner)
+        if not refs:
+            st.info("Add references first to generate citations.")
+        else:
+            style_name = st.selectbox("Citation Style", list(CITATION_STYLES.keys()))
+            selected_keys = st.multiselect("References to cite", [r["citation_key"] for r in refs], default=[r["citation_key"] for r in refs])
+            if selected_keys:
+                fmt_fn = CITATION_STYLES[style_name]
+                selected_refs = [r for r in refs if r["citation_key"] in selected_keys]
+                lines = []
+                for i, ref in enumerate(selected_refs, 1):
+                    line = fmt_fn(ref, i) if style_name in ("IEEE", "Vancouver") else fmt_fn(ref)
+                    lines.append(line)
+                bibliography = "\n\n".join(lines)
+                st.text_area("Generated Bibliography", value=bibliography, height=250)
+                st.download_button("⬇️ Download Bibliography (.txt)", data=bibliography, file_name=f"bibliography_{style_name.split()[0].lower()}.txt")
+
+    with tab_export:
+        refs = list_references(owner)
+        if not refs:
+            st.info("Add references first to export.")
+        else:
+            st.markdown("#### Export Your Library")
+            export_keys = st.multiselect("References to export", [r["citation_key"] for r in refs], default=[r["citation_key"] for r in refs], key="export_select")
+            selected = [r for r in refs if r["citation_key"] in export_keys]
+            if selected:
+                c1, c2 = st.columns(2)
+                with c1:
+                    bibtex_str = export_bibtex(selected)
+                    st.download_button("⬇️ Export BibTeX (.bib)", data=bibtex_str, file_name="library.bib", mime="text/plain")
+                with c2:
+                    ris_str = export_ris(selected)
+                    st.download_button("⬇️ Export RIS (.ris)", data=ris_str, file_name="library.ris", mime="text/plain", help="Compatible with EndNote, Zotero, and Mendeley import.")
+
+
 def main():
     try:
         from modules.subscription import require_active_subscription
@@ -730,6 +967,7 @@ def main():
     )
 
     tabs = st.tabs([
+        "🧠 AI Reference Manager",
         "📚 Literature & References",
         "📊 Meta-Analysis Studio",
         "📏 APA & Citations",
@@ -739,16 +977,18 @@ def main():
     ])
 
     with tabs[0]:
-        render_literature_search()
+        render_reference_manager()
     with tabs[1]:
-        render_meta_analysis()
+        render_literature_search()
     with tabs[2]:
-        render_apa_outputs()
+        render_meta_analysis()
     with tabs[3]:
-        render_grants_and_quality()
+        render_apa_outputs()
     with tabs[4]:
-        render_publication_pipeline()
+        render_grants_and_quality()
     with tabs[5]:
+        render_publication_pipeline()
+    with tabs[6]:
         render_academic_vault()
 
     render_standard_footer("LITERATURE & PUBLISHING HUB")
