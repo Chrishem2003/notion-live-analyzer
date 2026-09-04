@@ -52,7 +52,22 @@ class GoogleProvider(ModelProvider):
         try:
             response = httpx.post(
                 url,
-                json={"contents": contents},
+                json={
+                "contents": contents,
+                **(
+                    {
+                        "systemInstruction": {
+                            "parts": [{"text": request.system}]
+                        }
+                    }
+                    if request.system
+                    else {}
+                ),
+                "generationConfig": {
+                    "temperature": request.temperature,
+                    "maxOutputTokens": request.max_tokens,
+                },
+            },
                 timeout=120,
             )
             response.raise_for_status()

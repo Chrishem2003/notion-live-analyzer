@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from .config import BrainConfig
 from .models import Problem, BrainResult
@@ -240,6 +240,7 @@ class SovereignBrain:
 
             governed_executor = GovernedBrainExecutor(
                 providers=self.providers,
+                config=self.config,
             )
 
             governed_result = governed_executor.execute(

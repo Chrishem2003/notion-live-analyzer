@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+from dataclasses import replace
 from typing import Callable
 
 from .routing_models import (
@@ -103,8 +104,14 @@ class ProviderFailover:
 
             try:
 
+                attempt_request = replace(
+                    request,
+                    provider=candidate.name,
+                    model=candidate.model,
+                )
+
                 response = provider.generate(
-                    request
+                    attempt_request
                 )
 
                 attempts.append(
