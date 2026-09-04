@@ -163,6 +163,156 @@ class SovereignBrain:
             document_id=document_id,
         )
 
+    def solve_governed(
+        self,
+        prompt: str,
+        provider: str | None = None,
+        model: str | None = None,
+        strategy: str = "direct",
+        decision_id: str | None = None,
+    ):
+        """
+        Execute the problem through the Stage 51 governed
+        multi-agent execution path.
+
+        The existing solve() path remains unchanged.
+        """
+
+        if not prompt.strip():
+            raise ValueError(
+                "Problem prompt cannot be empty."
+            )
+
+        selected_provider = (
+            provider
+            or self.config.default_provider
+        )
+
+        selected_model = (
+            model
+            or self.config.default_model
+        )
+
+        problem = Problem(
+            original=prompt,
+            objective=prompt,
+        )
+
+        memory_context = self.memory.context()
+
+        plan = self.planner.build(problem)
+
+        self.audit.record(
+            "governed_problem_started",
+            {
+                "prompt": prompt,
+                "provider": selected_provider,
+                "model": selected_model,
+                "strategy": strategy,
+            },
+        )
+
+        try:
+
+            evidence_result, evidence_context = (
+                self.knowledge.context(
+                    query=prompt,
+                    top_k=5,
+                    max_characters=12000,
+                )
+            )
+
+            research_result = self.research.process(
+                query=prompt,
+                retrieval_result=evidence_result,
+                max_results=5,
+            )
+
+            research_sources = (
+                self.research.source_records(
+                    research_result
+                )
+            )
+
+            from sovereign_intelligence.execution.governance.brain import (
+                GovernedBrainExecutor,
+            )
+
+            governed_executor = GovernedBrainExecutor(
+                providers=self.providers,
+            )
+
+            governed_result = governed_executor.execute(
+                problem=problem,
+                plan=plan,
+                provider_name=selected_provider,
+                model=selected_model,
+                memory_context=memory_context,
+                evidence_context=evidence_context,
+                strategy=strategy,
+                route="governed_multi_agent",
+                decision_id=decision_id,
+            )
+
+            if research_sources:
+                governed_result.brain_result.sources = (
+                    research_sources
+                )
+
+            self.memory.save_interaction(
+                prompt,
+                governed_result.answer,
+            )
+
+            self.audit.record(
+                "governed_problem_completed",
+                {
+                    "provider": governed_result.provider,
+                    "model": governed_result.model,
+                    "decision_id": (
+                        governed_result
+                        .governed_decision
+                        .decision_id
+                    ),
+                    "action": (
+                        governed_result
+                        .control
+                        .action
+                        .value
+                    ),
+                    "governance_accepted": (
+                        governed_result
+                        .assessment
+                        .accepted
+                    ),
+                    "decision_confidence": (
+                        governed_result
+                        .decision
+                        .confidence
+                    ),
+                    "verification_confidence": (
+                        governed_result
+                        .verification
+                        .confidence
+                        if governed_result.verification
+                        else None
+                    ),
+                },
+            )
+
+            return governed_result
+
+        except Exception as exc:
+
+            self.audit.record(
+                "governed_problem_failed",
+                {
+                    "error": str(exc),
+                },
+            )
+
+            raise
+
     def solve(
         self,
         prompt: str,
