@@ -1,8 +1,12 @@
 ﻿from __future__ import annotations
 
 from dataclasses import replace
-from typing import Callable
+from time import perf_counter
 
+from .circuit import (
+    CircuitBreakerConfig,
+    ProviderCircuitBreaker,
+)
 from .routing_models import (
     ProviderAttempt,
     ProviderCandidate,
@@ -17,12 +21,20 @@ class ProviderFailover:
         self,
         providers: dict[str, object],
         candidates: list[ProviderCandidate],
+        circuit_breaker: ProviderCircuitBreaker | None = None,
     ):
 
         self.providers = providers
 
         self.router = ProviderRouter(
             candidates
+        )
+
+        self.circuit_breaker = (
+            circuit_breaker
+            or ProviderCircuitBreaker(
+                config=CircuitBreakerConfig()
+            )
         )
 
     def execute(
@@ -102,6 +114,26 @@ class ProviderFailover:
 
                 continue
 
+            if not self.circuit_breaker.allow_request(
+                candidate.name
+            ):
+
+                attempts.append(
+                    ProviderAttempt(
+                        provider=candidate.name,
+                        model=candidate.model,
+                        success=False,
+                        error=(
+                            "Provider circuit "
+                            "is open."
+                        ),
+                    )
+                )
+
+                continue
+
+            started = perf_counter()
+
             try:
 
                 attempt_request = replace(
@@ -112,6 +144,15 @@ class ProviderFailover:
 
                 response = provider.generate(
                     attempt_request
+                )
+
+                latency_ms = (
+                    perf_counter() - started
+                ) * 1000.0
+
+                self.circuit_breaker.record_success(
+                    candidate.name,
+                    latency_ms=latency_ms,
                 )
 
                 attempts.append(
@@ -129,6 +170,15 @@ class ProviderFailover:
                 )
 
             except Exception as exc:
+
+                latency_ms = (
+                    perf_counter() - started
+                ) * 1000.0
+
+                self.circuit_breaker.record_failure(
+                    candidate.name,
+                    latency_ms=latency_ms,
+                )
 
                 attempts.append(
                     ProviderAttempt(
