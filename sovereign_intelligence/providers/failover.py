@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import replace
 from time import perf_counter, sleep
@@ -34,15 +34,16 @@ class ProviderFailover:
 
         self.providers = providers
 
-        self.router = ProviderRouter(
-            candidates
-        )
-
         self.circuit_breaker = (
             circuit_breaker
             or ProviderCircuitBreaker(
                 config=CircuitBreakerConfig()
             )
+        )
+
+        self.router = ProviderRouter(
+            candidates,
+            circuit_breaker=self.circuit_breaker,
         )
 
         self.retry_policy = (
@@ -72,6 +73,7 @@ class ProviderFailover:
             preferred_model=(
                 preferred_model
             ),
+            exclude_open=False,
         )
 
         ordered = list(
@@ -93,9 +95,22 @@ class ProviderFailover:
             0,
         )
 
-        ordered = ordered[
-            selected_index:
-        ]
+        has_open_candidate_before_selection = (
+            selected_index > 0
+            and any(
+                self.circuit_breaker.state(
+                    candidate.name
+                ).value == "open"
+                for candidate in ordered[:selected_index]
+            )
+        )
+
+        if has_open_candidate_before_selection:
+            ordered = ordered
+        else:
+            ordered = ordered[
+                selected_index:
+            ]
 
         attempts = []
 
