@@ -1,11 +1,16 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import replace
-from time import perf_counter
+from time import perf_counter, sleep
+from typing import Callable
 
 from .circuit import (
     CircuitBreakerConfig,
     ProviderCircuitBreaker,
+)
+from .retry import (
+    ProviderRetryPolicy,
+    RetryPolicyConfig,
 )
 from .routing_models import (
     ProviderAttempt,
@@ -22,6 +27,9 @@ class ProviderFailover:
         providers: dict[str, object],
         candidates: list[ProviderCandidate],
         circuit_breaker: ProviderCircuitBreaker | None = None,
+        retry_policy: ProviderRetryPolicy | None = None,
+        retry_policy_config: RetryPolicyConfig | None = None,
+        sleep_fn: Callable[[float], None] | None = None,
     ):
 
         self.providers = providers
@@ -36,6 +44,15 @@ class ProviderFailover:
                 config=CircuitBreakerConfig()
             )
         )
+
+        self.retry_policy = (
+            retry_policy
+            or ProviderRetryPolicy(
+                config=retry_policy_config
+            )
+        )
+
+        self._sleep = sleep_fn or sleep
 
     def execute(
         self,
@@ -114,80 +131,103 @@ class ProviderFailover:
 
                 continue
 
-            if not self.circuit_breaker.allow_request(
-                candidate.name
-            ):
+            attempt_number = 1
 
-                attempts.append(
-                    ProviderAttempt(
+            while True:
+
+                if not self.circuit_breaker.allow_request(
+                    candidate.name
+                ):
+
+                    attempts.append(
+                        ProviderAttempt(
+                            provider=candidate.name,
+                            model=candidate.model,
+                            success=False,
+                            error=(
+                                "Provider circuit "
+                                "is open."
+                            ),
+                        )
+                    )
+
+                    break
+
+                started = perf_counter()
+
+                try:
+
+                    attempt_request = replace(
+                        request,
                         provider=candidate.name,
                         model=candidate.model,
-                        success=False,
-                        error=(
-                            "Provider circuit "
-                            "is open."
-                        ),
                     )
-                )
 
-                continue
-
-            started = perf_counter()
-
-            try:
-
-                attempt_request = replace(
-                    request,
-                    provider=candidate.name,
-                    model=candidate.model,
-                )
-
-                response = provider.generate(
-                    attempt_request
-                )
-
-                latency_ms = (
-                    perf_counter() - started
-                ) * 1000.0
-
-                self.circuit_breaker.record_success(
-                    candidate.name,
-                    latency_ms=latency_ms,
-                )
-
-                attempts.append(
-                    ProviderAttempt(
-                        provider=candidate.name,
-                        model=candidate.model,
-                        success=True,
-                        response=response,
+                    response = provider.generate(
+                        attempt_request
                     )
-                )
 
-                return RoutingResult(
-                    decision=decision,
-                    attempts=attempts,
-                )
+                    latency_ms = (
+                        perf_counter() - started
+                    ) * 1000.0
 
-            except Exception as exc:
-
-                latency_ms = (
-                    perf_counter() - started
-                ) * 1000.0
-
-                self.circuit_breaker.record_failure(
-                    candidate.name,
-                    latency_ms=latency_ms,
-                )
-
-                attempts.append(
-                    ProviderAttempt(
-                        provider=candidate.name,
-                        model=candidate.model,
-                        success=False,
-                        error=str(exc),
+                    self.circuit_breaker.record_success(
+                        candidate.name,
+                        latency_ms=latency_ms,
                     )
-                )
+
+                    attempts.append(
+                        ProviderAttempt(
+                            provider=candidate.name,
+                            model=candidate.model,
+                            success=True,
+                            response=response,
+                        )
+                    )
+
+                    return RoutingResult(
+                        decision=decision,
+                        attempts=attempts,
+                    )
+
+                except Exception as exc:
+
+                    latency_ms = (
+                        perf_counter() - started
+                    ) * 1000.0
+
+                    self.circuit_breaker.record_failure(
+                        candidate.name,
+                        latency_ms=latency_ms,
+                    )
+
+                    retry_decision = (
+                        self.retry_policy.decide(
+                            exc,
+                            attempt=attempt_number,
+                        )
+                    )
+
+                    attempts.append(
+                        ProviderAttempt(
+                            provider=candidate.name,
+                            model=candidate.model,
+                            success=False,
+                            error=(
+                                f"{retry_decision.category.value}: "
+                                f"{exc}"
+                            ),
+                        )
+                    )
+
+                    if not retry_decision.retry:
+                        break
+
+                    self._sleep(
+                        retry_decision.delay_seconds
+                    )
+
+                    attempt_number += 1
 
         raise RuntimeError(
             "All eligible AI providers failed."
