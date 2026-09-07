@@ -11,6 +11,7 @@ from .health import CircuitState, ProviderHealthRegistry
 class CircuitBreakerConfig:
     failure_threshold: int = 3
     cooldown_seconds: float = 30.0
+    recovery_success_threshold: int = 1
 
 
 class ProviderCircuitBreaker:
@@ -32,8 +33,15 @@ class ProviderCircuitBreaker:
                 "cooldown_seconds must not be negative"
             )
 
+        if self.config.recovery_success_threshold <= 0:
+            raise ValueError(
+                "recovery_success_threshold must be greater "
+                "than zero"
+            )
+
         self._lock = Lock()
         self._half_open_probes: set[str] = set()
+        self._recovery_successes: dict[str, int] = {}
 
     def state(self, provider: str) -> CircuitState:
         with self._lock:
@@ -46,6 +54,7 @@ class ProviderCircuitBreaker:
                     health.circuit_state = (
                         CircuitState.HALF_OPEN
                     )
+                    self._recovery_successes[provider] = 0
 
             return health.circuit_state
 
@@ -60,6 +69,7 @@ class ProviderCircuitBreaker:
                     health.circuit_state = (
                         CircuitState.HALF_OPEN
                     )
+                    self._recovery_successes[provider] = 0
                 else:
                     return False
 
@@ -79,7 +89,44 @@ class ProviderCircuitBreaker:
         latency_ms: float = 0.0,
     ) -> None:
         with self._lock:
+            health = self.health.get(provider)
+
             self._half_open_probes.discard(provider)
+
+            if health.circuit_state == CircuitState.HALF_OPEN:
+                successes = (
+                    self._recovery_successes.get(
+                        provider,
+                        0,
+                    )
+                    + 1
+                )
+
+                self._recovery_successes[provider] = (
+                    successes
+                )
+
+                if (
+                    successes
+                    < self.config.recovery_success_threshold
+                ):
+                    health.total_attempts += 1
+                    health.successes += 1
+                    health.consecutive_failures = 0
+                    health.total_latency_ms += max(
+                        0.0,
+                        float(latency_ms),
+                    )
+                    health.last_latency_ms = max(
+                        0.0,
+                        float(latency_ms),
+                    )
+                    health.last_success_at = (
+                        datetime.now(timezone.utc).isoformat()
+                    )
+                    return
+
+            self._recovery_successes.pop(provider, None)
 
             self.health.record_success(
                 provider,
@@ -93,6 +140,7 @@ class ProviderCircuitBreaker:
     ) -> None:
         with self._lock:
             self._half_open_probes.discard(provider)
+            self._recovery_successes.pop(provider, None)
 
             health = self.health.record_failure(
                 provider,
