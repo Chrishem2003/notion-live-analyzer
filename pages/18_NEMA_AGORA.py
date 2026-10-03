@@ -8,25 +8,12 @@ from __future__ import annotations
 from datetime import date, datetime
 import csv
 import io
-import uuid
-
 import pandas as pd
 import streamlit as st
 
+from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, make_observation, validate_observation
+
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
-
-APP_TITLE = "NEMA-AGORA"
-STATUSES = ["Received", "Under review", "Referred", "Action recorded", "Closed"]
-CATEGORIES = [
-    "Solid waste / illegal dumping",
-    "Water pollution",
-    "Wetland or land disturbance",
-    "Biodiversity / wildlife observation",
-    "Air / noise pollution",
-    "Other environmental observation",
-]
-SEVERITIES = ["Low", "Moderate", "High", "Urgent"]
-
 
 def _init_state() -> None:
     if "nema_agora_reports" not in st.session_state:
@@ -104,29 +91,32 @@ with tab_report:
         )
         submitted = st.form_submit_button("Save pilot record", type="primary", use_container_width=True)
     if submitted:
-        if not site.strip() or not description.strip():
-            st.error("Please provide a site label and observation description.")
-        elif not consent_confirmed:
-            st.error("Confirm permission and data minimisation before saving this pilot record.")
+        errors = validate_observation(
+            site=site, description=description, consent_confirmed=consent_confirmed
+        )
+        if errors:
+            for error in errors:
+                st.error(error)
         else:
             now = datetime.now().astimezone().isoformat(timespec="seconds")
-            has_coordinates = not (latitude == 0.0 and longitude == 0.0)
-            record = {
-                "case_id": f"NA-{uuid.uuid4().hex[:8].upper()}",
-                "created_at": now,
-                "observation_date": observation_date.isoformat(),
-                "category": category,
-                "severity": severity,
-                "district_or_site": site.strip(),
-                "description": description.strip(),
-                "latitude": float(latitude) if has_coordinates else "",
-                "longitude": float(longitude) if has_coordinates else "",
-                "status": "Received",
-                "review_notes": "",
-                "evidence_reference": evidence_reference.strip(),
-            }
-            st.session_state.nema_agora_reports.append(record)
-            st.success(f"Pilot record saved for this session: {record['case_id']}")
+            try:
+                record = make_observation(
+                    observation_date=observation_date,
+                    category=category,
+                    severity=severity,
+                    site=site,
+                    description=description,
+                    latitude=latitude,
+                    longitude=longitude,
+                    consent_confirmed=consent_confirmed,
+                    created_at=now,
+                    evidence_reference=evidence_reference,
+                )
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.session_state.nema_agora_reports.append(record)
+                st.success(f"Pilot record saved for this session: {record['case_id']}")
 
 with tab_review:
     st.subheader("Review queue and case status")
