@@ -72,6 +72,9 @@ class AuditLedger:
         if not isinstance(payload,dict): raise ValueError("payload must be an object.")
         timestamp=occurred_at or datetime.now(timezone.utc).isoformat()
         with self._connect() as db:
+            # Acquire the write lock before reading the head so concurrent writers
+            # cannot both append entries against the same previous hash.
+            db.execute("BEGIN IMMEDIATE")
             row=db.execute("SELECT sequence,entry_hash FROM audit_ledger ORDER BY sequence DESC LIMIT 1").fetchone()
             previous=row["entry_hash"] if row else GENESIS_HASH
             sequence=(row["sequence"]+1) if row else 1
@@ -95,6 +98,14 @@ class AuditLedger:
                  "entry_hash":r["entry_hash"],"policy_version":r["policy_version"]} for r in rows]
 
     def verify(self)->dict[str,Any]:
+        # Never label a partial prefix as a valid complete ledger. The bounded
+        # verifier fails closed until a streaming verifier is implemented.
+        with self._connect() as db:
+            total=int(db.execute("SELECT COUNT(*) FROM audit_ledger").fetchone()[0])
+        if total>5000:
+            return {"valid":False,"entries":total,"verified_entries":0,"head_hash":None,
+                    "errors":["VERIFICATION_LIMIT_EXCEEDED"],"policy_version":POLICY_VERSION,
+                    "notice":"Ledger exceeds the 5,000-entry verification limit; no partial-validity claim is made."}
         entries=self.list_entries(limit=5000); errors=[]; previous=GENESIS_HASH
         for expected_sequence,e in enumerate(entries,1):
             if e["sequence"]!=expected_sequence: errors.append("SEQUENCE_GAP")
@@ -102,7 +113,7 @@ class AuditLedger:
             body={k:e[k] for k in ("sequence","entry_id","actor_id","event_type","occurred_at","payload","previous_hash","policy_version")}
             if _hash(body)!=e["entry_hash"]: errors.append("ENTRY_HASH_MISMATCH:"+str(e["sequence"]))
             previous=e["entry_hash"]
-        return {"valid":not errors,"entries":len(entries),"head_hash":previous,
+        return {"valid":not errors,"entries":total,"verified_entries":len(entries),"head_hash":previous,
                 "errors":errors,"policy_version":POLICY_VERSION,
                 "notice":"Tamper-evident hash chain only; privileged database/file access may rewrite the ledger and checkpoints must be independently protected."}
 
