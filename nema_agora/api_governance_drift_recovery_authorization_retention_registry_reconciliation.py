@@ -18,7 +18,7 @@ def reconcile_retention_registry_reviews(monitor_reports: Sequence[Mapping[str, 
     findings: list[dict[str, Any]] = []
     monitors, valid_reviews = [], []
     for index, item in enumerate(monitor_reports):
-        try: monitors.append(validate_retention_authorization_registry_monitor(item))
+        try: monitors.append(validate_retention_registry_monitor(item))
         except ValueError as exc: findings.append({"code":"INVALID_MONITOR","index":index,"reason":str(exc)})
     for index, item in enumerate(reviews):
         try: valid_reviews.append(validate_retention_registry_review(item))
