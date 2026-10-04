@@ -1242,3 +1242,14 @@ The demonstration uses synthetic data in an isolated temporary database and is n
 Completion gate: focused Phase 110 tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
 
 Next gate: Phase 111 — Recovery Review Reconciliation & Evidence Integrity.
+
+
+## Phase 111 — Recovery Review Reconciliation & Evidence Integrity
+
+Added a read-only reconciliation boundary between Phase 109 integrity-monitor reports and Phase 110 human recovery-review records. The reconciler validates monitor and review evidence, detects unreviewed/orphan/duplicate records, policy and state/recommendation mismatches, invalid no-action outcomes, recovery/conclusion flag violations and ledger count mismatches. Integrity gaps fail closed to CONTROL_REQUIRED; clean scoped evidence returns RECONCILED with a deterministic fingerprint. No source record is repaired or mutated, and no environmental, regulatory, enforcement or emergency conclusion is produced.
+
+The demonstration uses synthetic data in an isolated temporary database and is not an official NEMA integration or authority.
+
+Completion gate: focused Phase 111 tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
+
+Next gate: Phase 112 — Recovery Review Lifecycle & Decision Governance.
