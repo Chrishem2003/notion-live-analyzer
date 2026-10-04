@@ -21,8 +21,10 @@ def test_roles_have_only_known_permissions():
         ("submitter", "observation:read_all", False),
         ("reviewer", "observation:review", True),
         ("reviewer", "case:export", False),
+        ("reviewer", "intelligence:use", True),
         ("coordinator", "case:export", True),
         ("coordinator", "user:manage", False),
+        ("coordinator", "intelligence:use", True),
         ("admin", "user:manage", True),
         ("unknown", "observation:create", False),
         (None, "observation:create", False),
@@ -59,3 +61,11 @@ def test_reviewer_can_read_all_observations():
 
 def test_unknown_role_cannot_read_observations():
     assert not can_read_observation("mystery", "user-1", "user-1")
+
+
+def test_submitter_cannot_use_intelligence():
+    assert not has_permission("submitter", "intelligence:use")
+
+
+def test_admin_can_use_intelligence():
+    assert has_permission("admin", "intelligence:use")
