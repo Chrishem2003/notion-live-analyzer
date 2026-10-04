@@ -95,7 +95,7 @@ def verify_entries_against_checkpoint(
     ordered = sorted((dict(e) for e in entries), key=lambda e: e.get("sequence", -1))
     errors: list[str] = []
     previous = GENESIS_HASH
-    checkpoint_hash_seen = 0 if checkpoint["sequence"] == 0 else None
+    checkpoint_hash_seen = GENESIS_HASH if checkpoint["sequence"] == 0 else None
     verified = 0
 
     for expected, entry in enumerate(ordered, 1):
