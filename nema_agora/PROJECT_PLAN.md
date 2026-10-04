@@ -946,3 +946,12 @@ Implemented a governed provider boundary for authorized Google Earth Engine requ
 Completion gate: GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 70 is declared CI-green.
 
 Next gate: Phase 71 — Live Sentinel-2 Acquisition.
+
+
+## Phase 71 — Live Sentinel-2 Acquisition
+
+Implemented the governed Sentinel-2 acquisition orchestration contract. Acquisition requests bind registered asset identity, AOI geometry, collection, date range and cloud threshold with deterministic fingerprints. The live Earth Engine provider remains disconnected until authorized credentials/project configuration are supplied; no scenes are fabricated. Scene-list validation rejects malformed and duplicate provider identities.
+
+Completion gate: GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 71 is declared CI-green.
+
+Next gate: Phase 72 — Raster Processing Pipeline.
