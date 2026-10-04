@@ -1,17 +1,15 @@
 # NEMA-AGORA Master Autonomous Build Roadmap
 
 ## Current checkpoint
-- Verified through Phase 152.
-- Next: Phase 153.
+- Product track through Phase 169 is implemented on PR #10.
+- Next: Phase 170 final architecture and acceptance checkpoint.
 - PR #10 remains draft and unmerged.
 
-## Near-term batch
-- 153: Continuity Review Lifecycle Decision Authorization Boundary
-- 154: Continuity Review Lifecycle Decision Reconciliation
-- 155: Continuity Review Lifecycle Decision Continuity / Architecture Checkpoint
-
 ## Product capability track
-After Phase 155, evaluate whether further repetitive governance-chain phases add material value. Prefer reusable governance primitives and advancement of evidence/provenance, spatial/environmental intelligence, reviewer workflows, evaluation/reproducibility, observability/quality, security/access governance, reporting/export, deployment readiness, and end-to-end acceptance evaluation.
+- Evidence cases and governed review/export
+- Reproducible evaluation and traceable reporting
+- Operational metrics and acceptance safety gates
+- Final checkpoint: verify architecture, security boundaries, test coverage, deployment prerequisites, and explicit non-goals.
 
 ## Rules
 - Every phase needs implementation, focused tests, and documentation unless it is a pure architecture checkpoint.
