@@ -100,7 +100,7 @@ class ComparisonResult:
 def _ratio(n: float, d: float) -> float: return n / d if d else 0.0
 
 def _category_metrics(rows: list[dict[str, Any]]) -> tuple[float, float, float, float]:
-    usable = [r for r in rows if r["predicted_category"] in SUPPORTED_CATEGORIES]
+    usable = rows
     accuracy = _ratio(sum(r["predicted_category"] == r["expected_category"] for r in usable), len(usable))
     ps, rs, fs = [], [], []
     for category in SUPPORTED_CATEGORIES:
