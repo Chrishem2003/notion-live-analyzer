@@ -1280,3 +1280,12 @@ Added read-only reconciliation between Phase 112 lifecycle evidence and Phase 11
 Completion gate: focused Phase 114 tests, compilation and Streamlit smoke checks must visibly pass before CI-green is claimed.
 
 Next gate: Phase 115 — Governed Authorization History & Decision Continuity.
+
+
+## Phase 115 — Governed Authorization History & Decision Continuity
+
+Added deterministic authorization-history snapshots and read-only continuity reconciliation. The layer validates Phase 113 decisions, detects duplicate identities, sequence gaps, predecessor mismatches, invalid snapshots and execution-gate violations. History remains evidence of governance continuity and never grants execution permission.
+
+Completion gate: focused Phase 115 tests, compilation and smoke checks must visibly pass before CI-green is claimed.
+
+Next gate: Phase 116 — Authorization History Registry & Recovery Evidence Retention.
