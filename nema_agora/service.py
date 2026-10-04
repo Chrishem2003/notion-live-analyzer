@@ -27,8 +27,12 @@ class NemaAgoraService:
 
     def create_observation(self, record: dict[str, Any], principal: Principal) -> dict[str, Any]:
         self._authorised(principal)
+        stored_record = dict(record)
+        # Ownership is derived from the authenticated principal, never from
+        # caller-controlled record data.
+        stored_record["owner_id"] = principal.subject_key
         return self.repository.create_observation(
-            record, actor_id=principal.subject_key, role=principal.role
+            stored_record, actor_id=principal.subject_key, role=principal.role
         )
 
     def list_observations(self, principal: Principal, status: str | None = None) -> list[dict[str, Any]]:
