@@ -1202,3 +1202,12 @@ Added a read-only reconciler spanning Phase 101 drift events, Phase 103 queue it
 Completion gate: GitHub Actions must visibly pass focused tests, compilation and Streamlit smoke checks on the current PR head before this phase is called CI-green.
 
 Next gate: Phase 107 — Governance Drift Review Reconciliation Snapshot & History.
+
+
+## Phase 107 — Governance Drift Reconciliation Snapshot & History
+
+Added deterministic, read-only snapshots of Phase 106 reconciliation evidence with stable identity/fingerprints, source counts, finding summaries, timestamps and predecessor bindings. Added history validation for tampering, duplicate identities/sequences, sequence gaps and broken predecessor links. Empty history is explicit; integrity gaps fail closed to CONTROL_REQUIRED. No automatic repair or environmental/regulatory conclusion is made.
+
+Completion gate: focused tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
+
+Next gate: Phase 108 — Persistent Reconciliation Snapshot History Registry.
