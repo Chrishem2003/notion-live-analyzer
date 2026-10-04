@@ -433,3 +433,8 @@ Implemented a human-reviewed dossier layer with Executive Summary, Technical Con
 ## Phase 32 — Evaluation & Publication Control
 
 Added a fail-closed publication control gate that checks report identity, linked claims, valid provenance graph, source coverage, limitations, sample-size validity and explicit human sign-off/rationale. A pass means documentation is approved by a human reviewer under the stated policy only; it does not publish externally or confer NEMA/regulatory/production authority. Added focused tests, authenticated review page, policy documentation and repaired CI page coverage for Phases 30–32.
+
+
+## Phase 33 — Evidence Integrity & Audit Hardening
+
+Added integrity checks for duplicate provenance IDs and event identities, missing lineage parents, graph node/edge integrity, graph fingerprint and identity verification, report-to-graph binding, duplicate/missing claim IDs, unresolved source references, and publication-decision/report binding. Added tests, an authenticated audit page, documentation, and focused CI coverage. Integrity is artifact consistency—not proof of environmental truth.
