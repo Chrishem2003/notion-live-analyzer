@@ -9,3 +9,9 @@
 ## Next
 - Phase 170: final architecture and acceptance checkpoint.
 - Review security/access boundaries, persistence transitions, UI integration, evaluation integrity, and deployment prerequisites before considering the pilot complete.
+
+
+## Final architecture checkpoint
+- Phase 170: completed final architecture and acceptance checkpoint.
+- Product-track phase proliferation is stopped unless a concrete capability gap appears.
+- Status moved to RELEASE_READINESS; CI and deployment readiness remain explicitly unverified until observed.
