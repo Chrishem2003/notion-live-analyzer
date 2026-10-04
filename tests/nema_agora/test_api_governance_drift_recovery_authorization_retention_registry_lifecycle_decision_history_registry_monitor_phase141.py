@@ -5,6 +5,7 @@ from copy import deepcopy
 
 import pytest
 
+from nema_agora.api_audit_binding import fingerprint
 from nema_agora.api_governance_drift_recovery_authorization_retention_registry_lifecycle_decision_history_phase139 import (
     build_authorization_history_registry_decision_continuity,
 )
@@ -12,29 +13,42 @@ from nema_agora.api_governance_drift_recovery_authorization_retention_registry_l
     build_authorization_history_registry_decision_history_monitor,
     validate_authorization_history_registry_decision_history_monitor,
 )
+from nema_agora.api_governance_drift_recovery_authorization_retention_registry_lifecycle_decision_phase137 import (
+    authorize_authorization_history_registry_decision,
+)
 
 
-def _decision() -> dict:
-    return {
-        "policy_version": "phase137-v1",
-        "lifecycle_fingerprint": "lifecycle-141",
+def _lifecycle() -> dict:
+    payload = {
+        "policy_version": "phase136-v1",
         "monitor_fingerprint": "monitor-141",
         "review_fingerprint": "review-141",
-        "decision": "AUTHORIZE_PRESERVATION",
-        "actor_id": "coordinator-141",
-        "role": "coordinator",
-        "decided_at": "2026-10-04T12:05:00+00:00",
-        "rationale": "Preserve evidence.",
-        "human_authorized": True,
+        "review_outcome": "ACKNOWLEDGED",
+        "lifecycle_state": "ACKNOWLEDGED",
+        "evaluated_at": "2026-10-04T12:00:00+00:00",
+        "human_governed": True,
+        "automatic_repair_performed": False,
+        "decision_executed": False,
+        "execution_gate_closed": True,
         "execution_permitted": False,
         "execution_performed": False,
-        "automatic_repair_performed": False,
-        "execution_gate_closed": True,
         "environmental_conclusion": None,
         "regulatory_conclusion": None,
         "enforcement_action": None,
         "emergency_action": None,
     }
+    return dict(payload, lifecycle_fingerprint=fingerprint(payload))
+
+
+def _decision() -> dict:
+    return authorize_authorization_history_registry_decision(
+        _lifecycle(),
+        actor_id="coordinator-141",
+        role="coordinator",
+        decision="AUTHORIZE_PRESERVATION",
+        decided_at="2026-10-04T12:05:00+00:00",
+        rationale="Preserve evidence.",
+    )
 
 
 def _snapshot(sequence: int = 1, previous: str | None = None) -> dict:
@@ -47,8 +61,7 @@ def _snapshot(sequence: int = 1, previous: str | None = None) -> dict:
 
 
 def _record(sequence: int = 1, previous: str | None = None) -> dict:
-    item = _snapshot(sequence, previous)
-    return dict(item, registry_policy_version="phase140-v1")
+    return dict(_snapshot(sequence, previous), registry_policy_version="phase140-v1")
 
 
 def test_empty_registry_is_reviewable() -> None:
@@ -66,11 +79,12 @@ def test_healthy_registry_is_deterministic() -> None:
     report = build_authorization_history_registry_decision_history_monitor(
         [first, second], expected_count=2, observed_at="2026-10-04T13:00:00+00:00"
     )
+    repeat = build_authorization_history_registry_decision_history_monitor(
+        [first, second], expected_count=2, observed_at="2026-10-04T13:00:00+00:00"
+    )
     assert report["state"] == "RETENTION_REGISTRY_HEALTHY"
     assert report["valid_snapshot_count"] == 2
-    assert report["monitor_fingerprint"] == build_authorization_history_registry_decision_history_monitor(
-        [first, second], expected_count=2, observed_at="2026-10-04T13:00:00+00:00"
-    )["monitor_fingerprint"]
+    assert report["monitor_fingerprint"] == repeat["monitor_fingerprint"]
 
 
 def test_policy_and_count_mismatch_require_control() -> None:
