@@ -402,3 +402,15 @@ Completed after Phase 27 hardening:
 - focused CI path/compilation coverage remains enabled.
 
 Phase 21 results are software-behaviour evidence only and must not be presented as environmental truth, environmental impact, regulatory status, NEMA authorization, production approval, enforcement authority, or emergency-response authority.
+
+
+## Phase 28 — Controlled Outcome Study
+
+Implemented a paired outcome-analysis layer over the Phase 22 impact observations.
+
+- Matches BASELINE and ASSISTED observations by scenario ID only.
+- Excludes unmatched observations instead of fabricating comparisons.
+- Reports assisted-minus-baseline deltas for review time, evidence completeness, duplicate detection, reviewer workload, correction rate, and end-to-end success.
+- Produces a reproducible dataset fingerprint and policy version.
+- Adds a dedicated Outcome Study page and focused CI compilation coverage.
+- Keeps all conclusions bounded to software/workflow behaviour; no environmental impact, regulatory, NEMA, enforcement, emergency-response, or autonomous-decision claims are permitted.
