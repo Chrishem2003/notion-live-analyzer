@@ -38,12 +38,16 @@ FORBIDDEN_KEY_PARTS = (
 def _validate_metadata(value: Any, path: str = "payload") -> Any:
     if isinstance(value, dict):
         clean = {}
+        count_keys = {"accepted", "rejected", "total", "warnings", "errors"}
         for key, item in value.items():
-            if not isinstance(key, str) or key not in ALLOWED_PAYLOAD_KEYS:
+            allowed = key in count_keys if path.endswith(".counts") else key in ALLOWED_PAYLOAD_KEYS
+            if not isinstance(key, str) or not allowed:
                 raise ValueError(f"Unsupported audit metadata key at {path}.")
             lowered = key.lower()
             if any(part in lowered for part in FORBIDDEN_KEY_PARTS):
                 raise ValueError(f"Sensitive metadata key rejected at {path}.{key}.")
+            if path.endswith(".counts") and (not isinstance(item, int) or isinstance(item, bool) or item < 0):
+                raise ValueError(f"Counts must be non-negative integers at {path}.{key}.")
             clean[key] = _validate_metadata(item, f"{path}.{key}")
         return clean
     if isinstance(value, list):
