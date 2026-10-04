@@ -111,7 +111,7 @@ class NemaAgoraService:
     ) -> dict[str, Any]:
         self._authorised(principal)
         require_permission(principal.role, "intelligence:use")
-        analysis = analyze_observation(record, peer_records=peer_records)
+        analysis = self.analyze_observation(record, principal, peer_records=peer_records)
         return build_reviewer_copilot(record, analysis)
 
     def record_intelligence_feedback(
