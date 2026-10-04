@@ -23,3 +23,9 @@
 - Added deterministic evaluation artifact fingerprints for traceability.
 - Added focused tests for accuracy tampering and incomplete evaluation identity.
 - Current-head GitHub Actions status remains unverified because no workflow run was observed for commit 5fd0879fe5c1dcebb76fe5b89a491dfb872254fd.
+
+
+## Checkpoint reconciliation
+- Current branch head recorded as 20f6b092ae941068939bf6c58759a5b531d9b927.
+- The preceding implementation checkpoint 5fd0879fe5c1dcebb76fe5b89a491dfb872254fd remains the latest verified implementation checkpoint; this does not mean CI passed.
+- GitHub Actions for the current head is still unobserved, so validation remains explicitly unverified.
