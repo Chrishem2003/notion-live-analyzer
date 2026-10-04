@@ -131,3 +131,38 @@ def spectral_index_evidence(
     }
     payload["fingerprint"] = fingerprint(payload)
     return payload
+
+
+# Phase 73 extension
+MSAVI2_POLICY_VERSION = "phase73-v1"
+
+def calculate_msavi2(*, red: float, nir: float) -> float:
+    """MSAVI2 = (2*NIR+1-sqrt((2*NIR+1)^2-8*(NIR-RED)))/2."""
+    if not _valid_reflectance(red) or not _valid_reflectance(nir):
+        raise ValueError("MSAVI2 inputs must be finite normalized reflectance values in [0, 1].")
+    red, nir = float(red), float(nir)
+    discriminant = (2 * nir + 1) ** 2 - 8 * (nir - red)
+    if discriminant < 0:
+        raise ValueError("MSAVI2 discriminant cannot be negative.")
+    value = (2 * nir + 1 - math.sqrt(discriminant)) / 2
+    if not math.isfinite(value) or not -1.0 <= value <= 1.0:
+        raise ValueError("MSAVI2 result is outside the expected [-1, 1] range.")
+    return value
+
+
+def expanded_spectral_evidence(*, scene_id: str, band_values: Mapping[str, Any], index_names: tuple[str, ...] = ("NDVI", "NDWI_MCFEETERS", "MSAVI2")) -> dict[str, Any]:
+    base = validate_spectral_inputs(scene_id=scene_id, band_values=band_values, index_names=tuple(x for x in index_names if x != "MSAVI2"))
+    findings = list(base["findings"])
+    if "MSAVI2" in index_names:
+        if "B04" not in band_values: findings.append({"code":"MISSING_B04"})
+        elif not _valid_reflectance(band_values["B04"]): findings.append({"code":"INVALID_B04_REFLECTANCE"})
+        if "B08" not in band_values: findings.append({"code":"MISSING_B08"})
+        elif not _valid_reflectance(band_values["B08"]): findings.append({"code":"INVALID_B08_REFLECTANCE"})
+    if findings:
+        return {"policy_version":MSAVI2_POLICY_VERSION,"state":"CONTROL_REQUIRED","findings":findings}
+    values = {}
+    if "NDVI" in index_names: values["NDVI"] = calculate_ndvi(red=float(band_values["B04"]), nir=float(band_values["B08"]))
+    if "NDWI_MCFEETERS" in index_names: values["NDWI_MCFEETERS"] = calculate_ndwi(green=float(band_values["B03"]), nir=float(band_values["B08"]))
+    if "MSAVI2" in index_names: values["MSAVI2"] = calculate_msavi2(red=float(band_values["B04"]), nir=float(band_values["B08"]))
+    payload={"policy_version":MSAVI2_POLICY_VERSION,"state":"VALID","scene_id":scene_id,"index_values":values,"formulas":{"MSAVI2":"(2*B08 + 1 - sqrt((2*B08 + 1)^2 - 8*(B08 - B04))) / 2"},"fingerprint":fingerprint({"scene_id":scene_id,"index_values":values,"policy_version":MSAVI2_POLICY_VERSION}),"interpretation":"SPECTRAL_INDEX_EVIDENCE","environmental_conclusion":None,"regulatory_conclusion":None,"violation":None,"enforcement_action":None}
+    return payload
