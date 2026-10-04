@@ -38,6 +38,7 @@ _ROLE_PERMISSIONS = {
             "metrics:read",
             "audit:read",
             "intelligence:use",
+            "intelligence:feedback",
             "intelligence:shadow",
         }
     ),
