@@ -781,3 +781,30 @@ GitHub Actions must verify focused tests, compilation and Streamlit startup befo
 ### Next gate
 
 Phase 60 — Spatial/Temporal Evidence Quality: add explicit AOI/grid identity, co-location checks and uncertainty/quality metadata before broader change-detection workflows.
+
+
+## Phase 60 — Spatial/Temporal Evidence Quality
+
+Implemented evidence-quality controls on top of Phase 59 candidate-change evidence.
+
+### Implemented
+- Stable baseline/comparison AOI identity.
+- Stable baseline/comparison grid identity.
+- Explicit spatial-alignment gate; only ALIGNED passes.
+- Spatial-resolution validation.
+- Cloud-cover and valid-pixel quality thresholds.
+- Non-negative finite upstream-provided NDVI/NDWI uncertainty metadata.
+- Deterministic SHA-256 quality evidence fingerprint.
+- Fail-closed quality findings and a read-only Streamlit demonstration.
+
+### Governance boundary
+
+Passing the quality gate only means the evidence met defined engineering checks for human review. It does not establish deforestation, wetland loss, illegality, environmental truth, regulatory status, NEMA authorization, enforcement, emergency response or production approval.
+
+### Completion gate
+
+GitHub Actions must verify Phase 60 focused tests, compilation and Streamlit startup before Phase 60 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 61 — Broader Spatial Change Detection: introduce explicit change-detection policies and candidate generation over quality-approved spatial/temporal evidence while preserving human review and non-regulatory outputs.
