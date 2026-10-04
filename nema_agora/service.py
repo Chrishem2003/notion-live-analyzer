@@ -119,6 +119,17 @@ class NemaAgoraService:
         analysis = self.analyze_observation(record, principal, peer_records=peer_records)
         return build_reviewer_copilot(record, analysis)
 
+    def build_observatory_snapshot(
+        self,
+        principal: Principal,
+        report: Any,
+        feedback_events: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "metrics:read")
+        from nema_agora.observatory import build_observatory_snapshot
+        return build_observatory_snapshot(report, feedback_events).to_dict()
+
     def record_intelligence_feedback(
         self,
         case_id: str,
