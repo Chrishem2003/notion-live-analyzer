@@ -27,7 +27,7 @@ def test_unsafe_review_forces_suspend():
 def test_correction_rate_triggers_review():
     runs = [_run(f"CSR-{i}") for i in range(10)]
     reviews = [{"run_id": f"CSR-{i}", "admission_id": "ADM-1",
-                "decision": "NEEDS_CORRECTION" if i == 0 else "CONFIRMED_USEFUL"} for i in range(10)]
+                "decision": "NEEDS_CORRECTION" if i < 2 else "CONFIRMED_USEFUL"} for i in range(10)]
     result = build_reevaluation(runs, reviews, admission_id="ADM-1")
     assert result["recommendation"] == "REVIEW"
     assert result["correction_rate"] == 0.1
