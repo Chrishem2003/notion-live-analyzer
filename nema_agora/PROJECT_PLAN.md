@@ -980,3 +980,10 @@ Next gate: Phase 74 — Real Spatial Change Maps.
 Added governed grid-level spatial change evidence across NDVI, McFeeters NDWI and MSAVI2, with aligned-grid validation, per-cell deltas, threshold reasons, deterministic map identity and fail-closed controls. Live satellite acquisition remains separated behind the Phase 71 provider boundary.
 
 Next gate: Phase 75 — Spatial Command Center.
+
+
+## Phase 75 — Spatial Command Center
+
+Added a governed, read-only command-center view model binding AOI identity, baseline/comparison scenes, Phase 74 spatial change-map evidence and optional human-review queue context. No autonomous enforcement or regulatory conclusion is produced.
+
+Next gate: Phase 76 — Spatial Evidence Visualization & Map Layers.
