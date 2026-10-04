@@ -111,7 +111,7 @@ def build_provenance_completeness(reconciliation: Mapping[str, Any],
             "reconciliation_fingerprint": bool(fp),
             "human_resolution": bool(r),
             "closure_evidence": bool(e and _SHA256.fullmatch(str(e.get("evidence_hash","")).lower() or "")),
-            "derived_closure": bool(closure_item.get("closure_fingerprint")),
+            "derived_closure": bool(closure.get("closure_fingerprint")) and bool(closure_item),
         }
         missing=[k for k,v in fields.items() if not v]
         items.append({"exception_code":key[0],"decision_kind":key[1],"artifact_id":key[2],
