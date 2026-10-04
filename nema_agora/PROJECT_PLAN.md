@@ -683,3 +683,12 @@ The current implementation is a governance/evidence pilot foundation, not yet th
 ### Next gate
 
 Phase 55 — Platform Capability Registry & Integration Roadmap: establish explicit capability contracts and implementation status for the environmental product tracks, so future builds can be measured against the original platform vision rather than accumulating governance layers alone.
+
+
+## Phase 55 — Platform Capability Registry
+
+Implemented the machine-readable roadmap registry that tracks the original environmental platform capabilities alongside the existing governance/evidence foundation. It covers observation, spatial intelligence, Sentinel-2 remote sensing, NDVI/NDWI, spatial-change evidence, water quality, biodiversity/eDNA, community USSD/SMS, community alerts, the unified environmental analytics dashboard, governance/evidence, and AI evaluation. Capability dependencies and statuses are validated fail-closed.
+
+### Next gate
+
+Phase 56 — Spatial Intelligence Foundation: establish geometry/AOI contracts, spatial observation records, coordinate validation and provider-neutral spatial analysis interfaces.
