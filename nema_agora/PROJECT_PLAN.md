@@ -443,3 +443,8 @@ Added integrity checks for duplicate provenance IDs and event identities, missin
 ## Phase 34 — Tamper-Evident Audit Ledger
 
 Added an append-only SQLite ledger with unique IDs, canonical JSON payloads, sequential entries, SHA-256 hash chaining, update/delete triggers, chain verification, and verified-head checkpoints. Added tamper/trigger/duplicate/checkpoint tests, authenticated ledger page, documentation and focused CI coverage. The threat model explicitly notes that privileged database-file access can rewrite local history; independent checkpoint protection is required for stronger assurance.
+
+
+## Phase 35 — Independent Audit Verification & Recovery
+
+Added read-only verification against a separately preserved checkpoint, portable checkpoint exports, detection of chain tampering and rollback/truncation, and a backup-comparison service API. The Audit Recovery page supports checkpoint export and upload-based verification. Phase 34 now fails closed above its 5,000-entry verification bound and acquires a SQLite immediate write lock before reading the append head to reduce concurrent-chain races. Checkpoint exports are not digitally signed and must be preserved independently; verification is integrity evidence only. No automatic restore, repair, or workflow mutation is performed.
