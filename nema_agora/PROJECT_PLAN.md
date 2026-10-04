@@ -754,3 +754,30 @@ GitHub Actions must verify focused tests, compilation and Streamlit startup befo
 ### Next gate
 
 Phase 59 — Spatial/Temporal Change Evidence: compare validated Sentinel-2 scenes and spectral-index observations across time and space, with explicit baseline and uncertainty handling.
+
+
+## Phase 59 — Spatial/Temporal Change Evidence
+
+Implemented deterministic baseline-versus-comparison change evidence from validated Sentinel-2-derived NDVI and McFeeters NDWI observations.
+
+### Implemented
+- Baseline/comparison scene identity and chronological validation.
+- Optional minimum temporal-gap gate.
+- Transparent per-index delta and absolute-delta calculations.
+- Deterministic SHA-256 evidence fingerprint.
+- Quality metadata and explicit human-review requirement.
+- Fail-closed handling for missing/invalid indices, duplicate scenes and invalid chronology.
+- Read-only Streamlit demonstration with synthetic observations.
+- Focused tests, compilation and Streamlit CI coverage.
+
+### Governance boundary
+
+The engine reports candidate change evidence only. Index differences do not establish deforestation, wetland loss, illegality, regulatory status, enforcement action, emergency response, NEMA authorization or environmental truth.
+
+### Completion gate
+
+GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 59 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 60 — Spatial/Temporal Evidence Quality: add explicit AOI/grid identity, co-location checks and uncertainty/quality metadata before broader change-detection workflows.
