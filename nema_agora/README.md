@@ -148,3 +148,17 @@ backup_retention = 7
 ```
 
 Do not treat a local backup directory as a complete disaster-recovery strategy. A production pilot should additionally use an independently protected backup destination, test restoration periodically, define retention with the supervisor/institution, and monitor backup failures.
+
+
+## Phase 8: Evidence Intelligence
+
+The pilot now includes a deterministic, explainable evidence-intelligence layer
+for authorised reviewer/coordinator/admin roles. It can produce neutral
+extractive summaries, keyword-supported category suggestions, review-priority
+advisories and duplicate candidates.
+
+These outputs are **advisory only**. Every analysis requires human review and
+does not establish environmental truth, illegality, urgency, regulatory
+priority or enforcement action. Model-based AI is intentionally not enabled
+until a labelled evaluation set, data governance and an approved model/data
+handling plan exist.
