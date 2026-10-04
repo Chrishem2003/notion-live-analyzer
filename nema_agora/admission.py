@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 import json
 import uuid
+import re
 from typing import Any
 
 from nema_agora.evaluation import validate_advisory_output
@@ -144,6 +145,8 @@ def evaluate_admission(
 
     dataset_version = str(dataset.get("dataset_version", "")).strip()
     manifest_hash = str(dataset.get("manifest_hash", "")).strip()
+    required_annotation_gates = {"minimum_double_annotated_cases", "two_independent_annotators", "all_annotator_pairs_measured", "minimum_category_kappa", "all_disagreements_adjudicated"}
+    annotation_gate_evidence = {key: ann_gates.get(key) is True for key in required_annotation_gates}
     comparison_dataset = comparison.get("dataset") or {}
     metrics = _comparison_metrics(comparison, candidate)
 
@@ -152,9 +155,9 @@ def evaluate_admission(
     cases = int(dataset.get("cases", 0) or 0)
 
     gates = {
-        "frozen_dataset": bool(dataset_version and manifest_hash and cases > 0),
+        "frozen_dataset": bool(dataset_version and re.fullmatch(r"[0-9a-fA-F]{64}", manifest_hash) and cases > 0),
         "minimum_cases": cases >= policy.minimum_cases,
-        "annotation_ready": annotation_readiness.get("status") == "READY_FOR_REVIEW",
+        "annotation_ready": annotation_readiness.get("status") == "READY_FOR_REVIEW" and all(annotation_gate_evidence.values()),
         "annotation_category_kappa": float(annotation_readiness.get("minimum_category_kappa", 0.0) or 0.0) >= policy.minimum_category_kappa,
         "all_disagreements_adjudicated": not unresolved,
         "comparison_run_match": bool(
@@ -175,7 +178,7 @@ def evaluate_admission(
     case_results = comparison.get("case_results") or []
     candidate_rows = [
         r for r in case_results
-        if isinstance(r, dict) and r.get("adapter") == candidate.adapter_name
+        if isinstance(r, dict) and r.get("adapter") == candidate.adapter_name and r.get("provider") == candidate.provider and r.get("model_version") == candidate.model_version
     ]
     if candidate_rows:
         safety_ok = True
