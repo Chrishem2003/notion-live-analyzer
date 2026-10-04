@@ -11,7 +11,7 @@ import io
 import pandas as pd
 import streamlit as st
 
-from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, make_observation, validate_observation
+from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, csv_safe_value, make_observation, validate_observation
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
 
@@ -30,7 +30,11 @@ def _csv_bytes(records: list[dict]) -> bytes:
     buffer = io.StringIO()
     writer = csv.DictWriter(buffer, fieldnames=fields, extrasaction="ignore")
     writer.writeheader()
-    writer.writerows(records)
+    # CSV may be opened in spreadsheet software; neutralise formula-like user text.
+    writer.writerows([
+        {key: csv_safe_value(value) for key, value in record.items()}
+        for record in records
+    ])
     return buffer.getvalue().encode("utf-8-sig")
 
 
@@ -67,7 +71,7 @@ with tab_report:
         with c1:
             category = st.selectbox("Observation category", CATEGORIES)
             observation_date = st.date_input("Date observed", value=date.today())
-            site = st.text_input("District / site label", placeholder="e.g. Pilot site A")
+            site = st.text_input("District / site label", placeholder="e.g. Pilot site A", max_chars=120)
             severity = st.selectbox("Initial priority (unverified)", SEVERITIES, index=1)
         with c2:
             latitude = st.number_input(
@@ -79,7 +83,7 @@ with tab_report:
                 value=0.0, step=0.0001, format="%.5f"
             )
             evidence_reference = st.text_input(
-                "Evidence reference (optional)", placeholder="Non-sensitive file name or URL"
+                "Evidence reference (optional)", placeholder="Non-sensitive file name or URL", max_chars=300
             )
         description = st.text_area(
             "Observation description",
@@ -140,7 +144,7 @@ with tab_review:
             st.write(f"Evidence reference: {selected['evidence_reference']}")
         with st.form(f"review_{selected_id}"):
             new_status = st.selectbox("Status", STATUSES, index=STATUSES.index(selected["status"]))
-            review_notes = st.text_area("Reviewer notes (avoid personal/sensitive data)", value=selected.get("review_notes", ""))
+            review_notes = st.text_area("Reviewer notes (avoid personal/sensitive data)", value=selected.get("review_notes", ""), max_chars=1000)
             reviewed = st.form_submit_button("Update status", type="primary")
         if reviewed:
             selected["status"] = new_status
