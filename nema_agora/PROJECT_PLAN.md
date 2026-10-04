@@ -76,3 +76,28 @@ Before any real-user pilot, the build should demonstrate:
 6. Backup and restore have been exercised successfully in the target deployment environment.
 7. The role-permission matrix has automated tests and manual verification evidence.
 8. Supervisor/institutional approval and data-handling arrangements are documented before real-user use.
+
+
+## Phase 8 — Evidence Intelligence & Human-in-the-Loop
+
+The intelligence layer is intentionally advisory and explainable. It does not
+make regulatory, enforcement, environmental-truth or emergency decisions.
+
+Implemented foundation:
+
+- Neutral extractive summaries that do not invent facts.
+- Keyword-supported category suggestions with visible matched terms.
+- Review-priority advisories derived only from pilot fields and quality state.
+- Deterministic duplicate candidates linked to existing quality heuristics.
+- Mandatory human-review signal in every analysis result.
+- Principal-bound `intelligence:use` permission for reviewer/coordinator/admin roles.
+- Streamlit evidence-intelligence workspace with rationale and safety notices.
+
+Next intelligence gate:
+
+1. Compare deterministic outputs with a labelled pilot evaluation set.
+2. Measure false positives/false negatives for duplicate and category suggestions.
+3. Add an optional model adapter only after data governance and evaluation are approved.
+4. Keep model outputs separate from stored facts and require human acceptance before
+   any workflow state changes.
+5. Never use the intelligence layer as an autonomous enforcement or regulatory engine.
