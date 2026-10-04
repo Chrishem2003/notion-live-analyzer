@@ -570,3 +570,14 @@ Phase 45 is an accountability and reproducibility control only. It does not auth
 
 ### Next gate
 Phase 46 — Governance Evidence Observatory: consolidate current attestation/lifecycle/provenance states into a read-only operational evidence surface with explicit coverage gaps, stale bindings, conflicts, supersession health and fail-closed status, without inventing or mutating governance decisions.
+
+
+## Phase 46 — Governance Evidence Observatory
+
+Implemented a read-only operational evidence surface over the current integrity, attestation, lifecycle and provenance layers. The observatory reports coverage gaps, stale/control-required lifecycle states, provenance failures and supersession-chain health without creating or mutating governance decisions.
+
+### Governance boundary
+EVIDENCE_COVERAGE_OK is an engineering evidence condition only. It is not NEMA authorization, regulatory status, environmental truth, production approval, enforcement authority, emergency response authorization or autonomous decision authority.
+
+### Next gate
+Phase 47 — Governance Evidence Reconciliation: add deterministic cross-layer consistency checks between attestation, lifecycle and provenance records so conflicting or orphaned accountability records are surfaced before broader pilot demonstration.
