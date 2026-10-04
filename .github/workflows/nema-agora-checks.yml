@@ -1,108 +1,18 @@
-name: NEMA-AGORA Pilot Checks # Phase 38 verification trigger
+name: NEMA-AGORA Pilot Checks
 
 on:
   push:
     branches: [feature/nema-agora-pilot]
     paths:
       - "nema_agora/**"
-      - "pages/18_NEMA_AGORA.py"
-      - "pages/19_NEMA_AGORA_ADMIN.py"
-      - "pages/20_NEMA_AGORA_EVALUATION_LAB.py"
-      - "pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py"
-      - "pages/22_NEMA_AGORA_MODEL_COMPARISON.py"
-      - "pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py"
-      - "pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py"
-      - "pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py"
-      - "pages/26_NEMA_AGORA_HUMAN_REVIEW.py"
-      - "pages/27_NEMA_AGORA_PROVENANCE.py"
-      - "pages/28_NEMA_AGORA_FIELD_EVALUATION.py"
-      - "pages/29_NEMA_AGORA_IMPACT_LAB.py"
-      - "pages/30_NEMA_AGORA_ACCESSIBILITY.py"
-      - "pages/31_NEMA_AGORA_EVIDENCE_OBSERVATORY.py"
-      - "pages/32_NEMA_AGORA_REPRODUCIBILITY.py"
-      - "pages/33_NEMA_AGORA_PILOT_READINESS.py"
-      - "pages/34_NEMA_AGORA_DEPLOYMENT_HEALTH.py"
-      - "pages/35_NEMA_AGORA_DEMO_EVIDENCE.py"
-      - "pages/36_NEMA_AGORA_OUTCOME_STUDY.py"
-      - "pages/37_NEMA_AGORA_EVIDENCE_SYNTHESIS.py"
-      - "pages/38_NEMA_AGORA_EVIDENCE_REPORT.py"
-      - "pages/39_NEMA_AGORA_RESEARCH_DOSSIER.py"
-      - "pages/40_NEMA_AGORA_PUBLICATION_CONTROL.py"
-      - "pages/41_NEMA_AGORA_EVIDENCE_INTEGRITY.py"
-      - "pages/42_NEMA_AGORA_AUDIT_LEDGER.py"
-      - "pages/43_NEMA_AGORA_AUDIT_RECOVERY.py"
-      - "pages/44_NEMA_AGORA_AUDIT_EVENT_CAPTURE.py"
-      - "pages/45_NEMA_AGORA_GOVERNANCE_TRACEABILITY.py"
-      - "pages/46_NEMA_AGORA_GOVERNANCE_DECISION_LEDGER.py"
-      - "pages/47_NEMA_AGORA_GOVERNANCE_RECONCILIATION.py"
-      - "pages/48_NEMA_AGORA_GOVERNANCE_EXCEPTION_RESOLUTION.py"
-      - "pages/49_NEMA_AGORA_GOVERNANCE_EXCEPTION_CLOSURE.py"
-      - "pages/50_NEMA_AGORA_CLOSURE_EVIDENCE_PROVENANCE.py"
-      - "pages/51_NEMA_AGORA_GOVERNANCE_INTEGRITY.py"
-      - "pages/52_NEMA_AGORA_ATTESTATION_LIFECYCLE.py"
-      - "pages/53_NEMA_AGORA_LIFECYCLE_PROVENANCE.py"
-      - "pages/54_NEMA_AGORA_EVIDENCE_OBSERVATORY.py"
-      - "pages/55_NEMA_AGORA_EVIDENCE_RECONCILIATION.py"
-      - "pages/56_NEMA_AGORA_EVIDENCE_CASEBOOK.py"
-      - "pages/57_NEMA_AGORA_GOVERNANCE_REVIEW_QUEUE.py"
-      - "pages/58_NEMA_AGORA_GOVERNANCE_REVIEW_WORKSPACE.py"
-      - "pages/59_NEMA_AGORA_GOVERNANCE_REVIEW_DECISION_PREPARATION.py"
-      - "pages/60_NEMA_AGORA_GOVERNANCE_DECISION_EXECUTION_BOUNDARY.py"
-      - "pages/61_NEMA_AGORA_DECISION_RECEIPT.py"
-      - "pages/62_NEMA_AGORA_DECISION_AUDIT_RECONCILIATION.py"
-      - "pages/63_NEMA_AGORA_PLATFORM_CAPABILITY_REGISTRY.py"
-      - "pages/64_NEMA_AGORA_SPATIAL_INTELLIGENCE.py"
-      - "pages/65_NEMA_AGORA_SENTINEL2.py"
-      - "pages/66_NEMA_AGORA_NDVI_NDWI.py"
-      - "pages/67_NEMA_AGORA_CHANGE_EVIDENCE.py"
-      - "pages/68_NEMA_AGORA_CHANGE_QUALITY.py"
-      - "pages/69_NEMA_AGORA_SPATIAL_CHANGE_DETECTION.py"
-      - "pages/70_NEMA_AGORA_SPATIAL_CHANGE_SCORING.py"
-      - "pages/71_NEMA_AGORA_SPATIAL_CHANGE_REVIEW_QUEUE.py"
-      - "pages/72_NEMA_AGORA_SPATIAL_HUMAN_REVIEW.py"
-      - "pages/73_NEMA_AGORA_SPATIAL_REVIEW_RECONCILIATION.py"
-      - "pages/74_NEMA_AGORA_SPATIAL_REVIEW_CASEBOOK.py"
-      - "pages/75_NEMA_AGORA_SPATIAL_LONGITUDINAL.py
-      - "pages/76_NEMA_AGORA_SPATIAL_EVIDENCE_STORAGE.py
-      - "pages/77_NEMA_AGORA_AOI_REGISTRY.py
-      - "pages/78_NEMA_AGORA_EARTH_ENGINE.py
-      - "pages/79_NEMA_AGORA_SENTINEL2_ACQUISITION.py
-      - "pages/80_NEMA_AGORA_RASTER_PROCESSING.py
-      - "pages/81_NEMA_AGORA_SPECTRAL_INTELLIGENCE.py"""""""
+      - "pages/*NEMA_AGORA*.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
     branches: [main]
     paths:
       - "nema_agora/**"
-      - "pages/18_NEMA_AGORA.py"
-      - "pages/19_NEMA_AGORA_ADMIN.py"
-      - "pages/20_NEMA_AGORA_EVALUATION_LAB.py"
-      - "pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py"
-      - "pages/22_NEMA_AGORA_MODEL_COMPARISON.py"
-      - "pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py"
-      - "pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py"
-      - "pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py"
-      - "pages/26_NEMA_AGORA_HUMAN_REVIEW.py"
-      - "pages/27_NEMA_AGORA_PROVENANCE.py"
-      - "pages/28_NEMA_AGORA_FIELD_EVALUATION.py"
-      - "pages/29_NEMA_AGORA_IMPACT_LAB.py"
-      - "pages/30_NEMA_AGORA_ACCESSIBILITY.py"
-      - "pages/31_NEMA_AGORA_EVIDENCE_OBSERVATORY.py"
-      - "pages/32_NEMA_AGORA_REPRODUCIBILITY.py"
-      - "pages/33_NEMA_AGORA_PILOT_READINESS.py"
-      - "pages/34_NEMA_AGORA_DEPLOYMENT_HEALTH.py"
-      - "pages/35_NEMA_AGORA_DEMO_EVIDENCE.py"
-      - "pages/36_NEMA_AGORA_OUTCOME_STUDY.py"
-      - "pages/37_NEMA_AGORA_EVIDENCE_SYNTHESIS.py"
-      - "pages/38_NEMA_AGORA_EVIDENCE_REPORT.py"
-      - "pages/39_NEMA_AGORA_RESEARCH_DOSSIER.py"
-      - "pages/40_NEMA_AGORA_PUBLICATION_CONTROL.py"
-      - "pages/41_NEMA_AGORA_EVIDENCE_INTEGRITY.py"
-      - "pages/42_NEMA_AGORA_AUDIT_LEDGER.py"
-      - "pages/43_NEMA_AGORA_AUDIT_RECOVERY.py"
-      - "pages/72_NEMA_AGORA_SPATIAL_HUMAN_REVIEW.py"
-      - "pages/73_NEMA_AGORA_SPATIAL_REVIEW_RECONCILIATION.py"
+      - "pages/*NEMA_AGORA*.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   workflow_dispatch:
@@ -120,13 +30,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
+          cache: pip
       - name: Install focused test dependencies
         run: python -m pip install --upgrade pip pytest streamlit pandas
       - name: Run NEMA-AGORA unit tests
         run: python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
-      - name: Compile pilot Python modules
-        run: python -m compileall -q nema_agora pages/18_NEMA_AGORA.py pages/19_NEMA_AGORA_ADMIN.py pages/20_NEMA_AGORA_EVALUATION_LAB.py pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py pages/22_NEMA_AGORA_MODEL_COMPARISON.py pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py pages/26_NEMA_AGORA_HUMAN_REVIEW.py pages/27_NEMA_AGORA_PROVENANCE.py pages/28_NEMA_AGORA_FIELD_EVALUATION.py pages/29_NEMA_AGORA_IMPACT_LAB.py pages/30_NEMA_AGORA_ACCESSIBILITY.py pages/31_NEMA_AGORA_EVIDENCE_OBSERVATORY.py pages/32_NEMA_AGORA_REPRODUCIBILITY.py pages/33_NEMA_AGORA_PILOT_READINESS.py pages/34_NEMA_AGORA_DEPLOYMENT_HEALTH.py pages/35_NEMA_AGORA_DEMO_EVIDENCE.py pages/36_NEMA_AGORA_OUTCOME_STUDY.py pages/37_NEMA_AGORA_EVIDENCE_SYNTHESIS.py pages/38_NEMA_AGORA_EVIDENCE_REPORT.py pages/39_NEMA_AGORA_RESEARCH_DOSSIER.py pages/40_NEMA_AGORA_PUBLICATION_CONTROL.py pages/41_NEMA_AGORA_EVIDENCE_INTEGRITY.py pages/42_NEMA_AGORA_AUDIT_LEDGER.py pages/43_NEMA_AGORA_AUDIT_RECOVERY.py pages/44_NEMA_AGORA_AUDIT_EVENT_CAPTURE.py pages/45_NEMA_AGORA_GOVERNANCE_TRACEABILITY.py pages/46_NEMA_AGORA_GOVERNANCE_DECISION_LEDGER.py pages/47_NEMA_AGORA_GOVERNANCE_RECONCILIATION.py pages/48_NEMA_AGORA_GOVERNANCE_EXCEPTION_RESOLUTION.py pages/49_NEMA_AGORA_GOVERNANCE_EXCEPTION_CLOSURE.py pages/50_NEMA_AGORA_CLOSURE_EVIDENCE_PROVENANCE.py pages/51_NEMA_AGORA_GOVERNANCE_INTEGRITY.py pages/52_NEMA_AGORA_ATTESTATION_LIFECYCLE.py pages/53_NEMA_AGORA_LIFECYCLE_PROVENANCE.py pages/54_NEMA_AGORA_EVIDENCE_OBSERVATORY.py pages/55_NEMA_AGORA_EVIDENCE_RECONCILIATION.py pages/56_NEMA_AGORA_EVIDENCE_CASEBOOK.py pages/57_NEMA_AGORA_GOVERNANCE_REVIEW_QUEUE.py pages/58_NEMA_AGORA_GOVERNANCE_REVIEW_WORKSPACE.py pages/59_NEMA_AGORA_GOVERNANCE_REVIEW_DECISION_PREPARATION.py pages/60_NEMA_AGORA_GOVERNANCE_DECISION_EXECUTION_BOUNDARY.py pages/61_NEMA_AGORA_DECISION_RECEIPT.py pages/62_NEMA_AGORA_DECISION_AUDIT_RECONCILIATION.py pages/63_NEMA_AGORA_PLATFORM_CAPABILITY_REGISTRY.py pages/64_NEMA_AGORA_SPATIAL_INTELLIGENCE.py pages/65_NEMA_AGORA_SENTINEL2.py pages/66_NEMA_AGORA_NDVI_NDWI.py pages/67_NEMA_AGORA_CHANGE_EVIDENCE.py pages/68_NEMA_AGORA_CHANGE_QUALITY.py pages/69_NEMA_AGORA_SPATIAL_CHANGE_DETECTION.py pages/70_NEMA_AGORA_SPATIAL_CHANGE_SCORING.py pages/71_NEMA_AGORA_SPATIAL_CHANGE_REVIEW_QUEUE.py pages/72_NEMA_AGORA_SPATIAL_HUMAN_REVIEW.py pages/73_NEMA_AGORA_SPATIAL_REVIEW_RECONCILIATION.py pages/74_NEMA_AGORA_SPATIAL_REVIEW_CASEBOOK.py pages/75_NEMA_AGORA_SPATIAL_LONGITUDINAL.py tests/nema_agora
+      - name: Compile NEMA-AGORA modules and pages
+        run: python -m compileall -q nema_agora pages
       - name: Smoke-test Streamlit startup
         shell: bash
         run: |
