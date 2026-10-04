@@ -42,6 +42,7 @@ on:
       - "pages/30_NEMA_AGORA_ACCESSIBILITY.py"
       - "pages/31_NEMA_AGORA_EVIDENCE_OBSERVATORY.py"
       - "pages/32_NEMA_AGORA_REPRODUCIBILITY.py"
+      - "pages/33_NEMA_AGORA_PILOT_READINESS.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   workflow_dispatch:
