@@ -12,6 +12,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
 
+from nema_agora.access import can_read_observation, has_permission, require_permission
 from nema_agora.core import STATUSES
 from nema_agora.workflow import apply_status_update
 
@@ -61,6 +62,7 @@ class NemaAgoraRepository:
                 """
                 CREATE TABLE IF NOT EXISTS observations (
                     case_id TEXT PRIMARY KEY,
+                    owner_id TEXT NOT NULL,
                     status TEXT NOT NULL CHECK (status IN (
                         'Received', 'Under review', 'Referred',
                         'Action recorded', 'Closed'
@@ -85,13 +87,16 @@ class NemaAgoraRepository:
 
                 CREATE INDEX IF NOT EXISTS idx_observations_status
                     ON observations(status);
+                CREATE INDEX IF NOT EXISTS idx_observations_owner
+                    ON observations(owner_id);
                 CREATE INDEX IF NOT EXISTS idx_audit_case_time
                     ON audit_events(case_id, occurred_at, event_id);
                 """
             )
 
-    def create_observation(self, record: dict[str, Any], *, actor_id: str) -> dict[str, Any]:
+    def create_observation(self, record: dict[str, Any], *, actor_id: str, role: str) -> dict[str, Any]:
         actor = _actor(actor_id)
+        require_permission(role, "observation:create")
         case_id = str(record.get("case_id", "")).strip()
         status = record.get("status")
         created_at = str(record.get("created_at", "")).strip()
@@ -103,6 +108,10 @@ class NemaAgoraRepository:
             raise ValueError("A creation timestamp is required.")
 
         stored = dict(record)
+        owner = str(stored.get("owner_id") or actor).strip()
+        if not owner or len(owner) > 128:
+            raise ValueError("A valid record owner identifier is required.")
+        stored["owner_id"] = owner
         updated_at = str(stored.get("updated_at") or created_at)
         stored["updated_at"] = updated_at
         payload = json.dumps(stored, ensure_ascii=False, sort_keys=True)
@@ -110,9 +119,9 @@ class NemaAgoraRepository:
         with self._session() as connection:
             connection.execute(
                 """INSERT INTO observations
-                   (case_id, status, created_at, updated_at, record_json)
-                   VALUES (?, ?, ?, ?, ?)""",
-                (case_id, status, created_at, updated_at, payload),
+                   (case_id, status, owner_id, created_at, updated_at, record_json)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (case_id, status, owner, created_at, updated_at, payload),
             )
             connection.execute(
                 """INSERT INTO audit_events
@@ -123,22 +132,33 @@ class NemaAgoraRepository:
             )
         return stored
 
-    def get_observation(self, case_id: str) -> dict[str, Any] | None:
+    def get_observation(self, case_id: str, *, actor_id: str, role: str) -> dict[str, Any] | None:
+        actor = _actor(actor_id)
         with self._session() as connection:
             row = connection.execute(
-                "SELECT record_json FROM observations WHERE case_id = ?",
+                "SELECT record_json, owner_id FROM observations WHERE case_id = ?",
                 (case_id,),
             ).fetchone()
-        return json.loads(row["record_json"]) if row else None
+        if not row:
+            return None
+        if not can_read_observation(role, actor, row["owner_id"]):
+            raise PermissionError("You are not permitted to read this observation.")
+        return json.loads(row["record_json"])
 
-    def list_observations(self, *, status: str | None = None) -> list[dict[str, Any]]:
+    def list_observations(self, *, actor_id: str, role: str, status: str | None = None) -> list[dict[str, Any]]:
+        actor = _actor(actor_id)
         if status is not None and status not in STATUSES:
             raise ValueError("Unknown case status.")
-        query = "SELECT record_json FROM observations"
-        parameters: tuple[str, ...] = ()
+        if has_permission(role, "observation:read_all"):
+            query = "SELECT record_json FROM observations"
+            parameters: tuple[str, ...] = ()
+        else:
+            require_permission(role, "observation:read_own")
+            query = "SELECT record_json FROM observations WHERE owner_id = ?"
+            parameters = (actor,)
         if status is not None:
-            query += " WHERE status = ?"
-            parameters = (status,)
+            query += " AND status = ?" if " WHERE " in query else " WHERE status = ?"
+            parameters += (status,)
         query += " ORDER BY created_at, case_id"
         with self._session() as connection:
             rows = connection.execute(query, parameters).fetchall()
@@ -154,6 +174,7 @@ class NemaAgoraRepository:
         changed_at: str,
     ) -> dict[str, Any]:
         actor = _actor(actor_id)
+        require_permission(role, "observation:review")
         if not changed_at or not changed_at.strip():
             raise ValueError("A change timestamp is required.")
 
