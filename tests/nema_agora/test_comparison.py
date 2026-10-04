@@ -53,3 +53,32 @@ def test_comparison_store_persists_immutable_summary(tmp_path):
     assert rows[0]["dataset_version"] == "ds-v1"
     assert rows[0]["manifest_hash"] == manifest.manifest_hash
     assert rows[0]["actor_id"] == "reviewer-1"
+
+class MissingCategoryAdapter:
+    provider="test"; model_version="missing-category-v1"
+    def analyse(self, record):
+        return {"source_case_id":record["case_id"],"human_review_required":True}
+
+class FixedAdapter:
+    provider="test"; model_version="fixed-v1"
+    def analyse(self, record):
+        return {"source_case_id":record["case_id"],"predicted_category":SUPPORTED_CATEGORIES[0],
+                "duplicate_candidates":[],"human_review_required":True}
+
+def test_missing_predictions_are_counted_as_accuracy_misses():
+    cases=[case(i) for i in range(25)]
+    result=compare_models(cases,{"missing":MissingCategoryAdapter()},dataset=freeze_dataset(cases,"ds-v1"))
+    assert result.adapters[0].category_accuracy == 0.0
+    assert result.adapters[0].category_macro_recall < 1.0
+
+def test_second_adapter_produces_disagreement_and_regression():
+    cases=[case(i) for i in range(25)]
+    result=compare_models(
+        cases,
+        {"baseline":DeterministicShadowAdapter(),"candidate":FixedAdapter()},
+        dataset=freeze_dataset(cases,"ds-v1"),
+        baseline_adapter="baseline",
+    )
+    assert result.regression
+    assert result.model_disagreement
+    assert result.regression[0]["adapter"] == "candidate"
