@@ -12,12 +12,15 @@ import pandas as pd
 import streamlit as st
 
 from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, csv_safe_value, make_observation, validate_observation
+from nema_agora.workflow import apply_status_update
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
 
 def _init_state() -> None:
     if "nema_agora_reports" not in st.session_state:
         st.session_state.nema_agora_reports = []
+    if "nema_agora_audit_events" not in st.session_state:
+        st.session_state.nema_agora_audit_events = []
 
 
 def _csv_bytes(records: list[dict]) -> bytes:
@@ -147,10 +150,37 @@ with tab_review:
             review_notes = st.text_area("Reviewer notes (avoid personal/sensitive data)", value=selected.get("review_notes", ""), max_chars=1000)
             reviewed = st.form_submit_button("Update status", type="primary")
         if reviewed:
-            selected["status"] = new_status
-            selected["review_notes"] = review_notes.strip()
-            selected["updated_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
-            st.success("Status updated in this session.")
+            changed_at = datetime.now().astimezone().isoformat(timespec="seconds")
+            try:
+                updated, event = apply_status_update(
+                    selected,
+                    new_status=new_status,
+                    review_notes=review_notes,
+                    changed_at=changed_at,
+                )
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                record_index = next(
+                    i for i, item in enumerate(records) if item["case_id"] == selected_id
+                )
+                st.session_state.nema_agora_reports[record_index] = updated
+                if event:
+                    st.session_state.nema_agora_audit_events.append(event)
+                st.success("Record updated in this session.")
+        case_events = [
+            event for event in st.session_state.nema_agora_audit_events
+            if event["case_id"] == selected_id
+        ]
+        if case_events:
+            st.markdown("**Status-change history (current session)**")
+            st.dataframe(
+                pd.DataFrame(case_events)[["changed_at", "from_status", "to_status"]],
+                use_container_width=True,
+                hide_index=True,
+            )
+        else:
+            st.caption("No status changes recorded for this case in the current session.")
         st.divider()
         st.markdown("**All current-session records**")
         display_cols = ["case_id", "observation_date", "category", "severity", "district_or_site", "status"]
