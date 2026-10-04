@@ -77,17 +77,17 @@ def test_shadow_captures_latency():
 def test_shadow_service_requires_shadow_permission_and_persists_separately(tmp_path):
     service = NemaAgoraService(NemaAgoraRepository(tmp_path / "pilot.sqlite3"))
     rec = service.create_observation(sample(), principal("submitter-1", "submitter"))
-    reviewer = principal("reviewer-1", "reviewer")
+    submitter = principal("submitter-2", "submitter")
 
     with pytest.raises(PermissionError):
-        service.run_shadow(rec, reviewer)
+        service.run_shadow(rec, submitter)
 
-    admin = principal("admin-1", "admin")
-    result = service.run_shadow(rec, admin)
+    reviewer = principal("reviewer-1", "reviewer")
+    result = service.run_shadow(rec, reviewer)
     assert result["status"] == "SHADOW_OK"
     assert result["source_case_id"] == rec["case_id"]
-    assert service.get_observation(rec["case_id"], admin)["status"] == "Received"
+    assert service.get_observation(rec["case_id"], reviewer)["status"] == "Received"
 
-    events = service.list_shadow_runs(rec["case_id"], admin)
+    events = service.list_shadow_runs(rec["case_id"], reviewer)
     assert len(events) == 1
     assert events[0]["provider"] == "local-deterministic"
