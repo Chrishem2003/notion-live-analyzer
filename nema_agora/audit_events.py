@@ -18,7 +18,7 @@ _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 _ALLOWED_STATUS = frozenset({"COMPLETED", "FAILED", "VALID", "INVALID", "CONTROL_REQUIRED", "APPROVED_FOR_PUBLICATION", "REJECTED", "PENDING_HUMAN_REVIEW"})
 _ALLOWED_DECISIONS = frozenset({"APPROVE", "REJECT", "HUMAN_REVIEW_REQUIRED", "DEFER", "ADMITTED_FOR_CONTROLLED_SHADOW", "CONTROL_REQUIRED"})
 _ALLOWED_ROLES = frozenset({"submitter", "reviewer", "coordinator", "admin"})
-_ALLOWED_MODULES = frozenset({"evaluation", "review", "checkpoint", "publication_control", "model_governance", "audit_recovery", "access_control"})
+_ALLOWED_MODULES = frozenset({"evaluation", "review", "checkpoint", "publication_control", "model_governance", "audit_recovery", "access_control", "governance_reconciliation"})
 ALLOWED_EVENT_TYPES = frozenset({
     "EVALUATION_COMPLETED",
     "REVIEW_DECISION_RECORDED",
