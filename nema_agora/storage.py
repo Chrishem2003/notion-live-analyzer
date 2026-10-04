@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 from nema_agora.core import STATUSES
 from nema_agora.workflow import apply_status_update
@@ -40,8 +41,22 @@ class NemaAgoraRepository:
         connection.execute("PRAGMA foreign_keys = ON")
         return connection
 
+    @contextmanager
+    def _session(self) -> Iterator[sqlite3.Connection]:
+        connection = self._connect()
+        try:
+            yield connection
+            if connection.in_transaction:
+                connection.commit()
+        except Exception:
+            if connection.in_transaction:
+                connection.rollback()
+            raise
+        finally:
+            connection.close()
+
     def _initialise(self) -> None:
-        with self._connect() as connection:
+        with self._session() as connection:
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS observations (
@@ -92,7 +107,7 @@ class NemaAgoraRepository:
         stored["updated_at"] = updated_at
         payload = json.dumps(stored, ensure_ascii=False, sort_keys=True)
 
-        with self._connect() as connection:
+        with self._session() as connection:
             connection.execute(
                 """INSERT INTO observations
                    (case_id, status, created_at, updated_at, record_json)
@@ -109,7 +124,7 @@ class NemaAgoraRepository:
         return stored
 
     def get_observation(self, case_id: str) -> dict[str, Any] | None:
-        with self._connect() as connection:
+        with self._session() as connection:
             row = connection.execute(
                 "SELECT record_json FROM observations WHERE case_id = ?",
                 (case_id,),
@@ -125,7 +140,7 @@ class NemaAgoraRepository:
             query += " WHERE status = ?"
             parameters = (status,)
         query += " ORDER BY created_at, case_id"
-        with self._connect() as connection:
+        with self._session() as connection:
             rows = connection.execute(query, parameters).fetchall()
         return [json.loads(row["record_json"]) for row in rows]
 
@@ -142,7 +157,7 @@ class NemaAgoraRepository:
         if not changed_at or not changed_at.strip():
             raise ValueError("A change timestamp is required.")
 
-        with self._connect() as connection:
+        with self._session() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
                 "SELECT record_json FROM observations WHERE case_id = ?",
@@ -185,7 +200,7 @@ class NemaAgoraRepository:
         return updated
 
     def list_audit_events(self, case_id: str) -> list[dict[str, Any]]:
-        with self._connect() as connection:
+        with self._session() as connection:
             rows = connection.execute(
                 """SELECT event_id, case_id, actor_id, event_type, from_status,
                           to_status, occurred_at, details_json
