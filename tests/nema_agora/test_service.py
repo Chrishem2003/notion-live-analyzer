@@ -56,3 +56,14 @@ def test_coordinator_can_export(tmp_path):
     data = service.export_csv(principal("coord-1", "coordinator"), [record()])
     assert data.startswith(b"\xef\xbb\xbf")
     assert b"case_id" in data
+
+
+def test_admin_operation_audit_is_principal_bound(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "pilot.sqlite3"))
+    admin = principal("admin-1", "admin")
+    service.record_operation(admin, operation="backup_created", occurred_at="2026-10-04T12:00:00+03:00", details={"backup": "x.sqlite3"})
+    events = service.list_operation_events(admin)
+    assert events[0]["operation"] == "backup_created"
+    assert events[0]["actor_id"] == "https://issuer|admin-1"
+    with pytest.raises(PermissionError):
+        service.record_operation(principal("coord-1", "coordinator"), operation="backup_created", occurred_at="now")
