@@ -1043,3 +1043,10 @@ Next gate: Phase 83 — Persistent Evidence Query API Hardening and Contract Cov
 Hardened persistent spatial evidence retrieval with supported AOI/scene/candidate/review-state/temporal filters, deterministic ordering, bounded limits, unsupported-filter rejection, and fail-closed persistent query errors. Added integration-oriented tests and a read-only demonstration.
 
 Next gate: Phase 84 — FastAPI Application Wiring and HTTP Contract Surface.
+
+
+## Phase 84 — FastAPI Application Wiring & HTTP Contract Surface
+
+Wired the persistent spatial evidence query layer into an actual FastAPI application with health and query routes. The query route delegates to Phase 83, preserving bounded filters and fail-closed behavior. FastAPI remains optional for lightweight repository compatibility; no public deployment or regulatory authority is claimed.
+
+Next gate: Phase 85 — API Authentication/Authorization Boundary and Request Identity Controls.
