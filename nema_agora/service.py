@@ -22,7 +22,10 @@ from nema_agora.admission import AdmissionStore, ModelAdmissionPolicy, ModelCand
 from nema_agora.shadow_governance import ControlledShadowStore, execute_controlled_shadow
 from nema_agora.shadow_monitoring import build_shadow_monitoring_snapshot
 from nema_agora.provenance import ProvenanceStore, verify_provenance_chain
-from nema_agora.field_eval import (\n    FieldScenario, FieldEvaluationStore, evaluate_scenario,\n    build_controlled_scenarios, run_field_evaluation,\n)
+from nema_agora.field_eval import (
+    FieldScenario, FieldEvaluationStore, evaluate_scenario,
+    build_controlled_scenarios, run_field_evaluation,
+)
 from nema_agora.accessibility import AccessibilityStore, AccessibilityObservation, make_observation, summarise
 from nema_agora.review_governance import (
     ReviewStore, build_reevaluation, make_shadow_review, make_lifecycle_decision,
