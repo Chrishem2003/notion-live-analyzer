@@ -973,3 +973,10 @@ Extended the Phase 58 spectral analytics with MSAVI2 using B04/B08 normalized re
 Completion gate: GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 73 is declared CI-green.
 
 Next gate: Phase 74 — Real Spatial Change Maps.
+
+
+## Phase 74 — Real Spatial Change Maps
+
+Added governed grid-level spatial change evidence across NDVI, McFeeters NDWI and MSAVI2, with aligned-grid validation, per-cell deltas, threshold reasons, deterministic map identity and fail-closed controls. Live satellite acquisition remains separated behind the Phase 71 provider boundary.
+
+Next gate: Phase 75 — Spatial Command Center.
