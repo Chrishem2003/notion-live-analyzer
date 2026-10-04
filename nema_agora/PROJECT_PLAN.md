@@ -692,3 +692,22 @@ Implemented the machine-readable roadmap registry that tracks the original envir
 ### Next gate
 
 Phase 56 — Spatial Intelligence Foundation: establish geometry/AOI contracts, spatial observation records, coordinate validation and provider-neutral spatial analysis interfaces.
+
+
+## Phase 56 — Spatial Intelligence Foundation
+
+Implemented the provider-neutral spatial foundation required for environmental remote sensing and spatial-change analytics. Spatial observations use WGS84 (EPSG:4326), GeoJSON-compatible point geometry, deterministic fingerprints, source/capture metadata and optional accuracy. AOIs support district, wetland, watershed, protected-area and custom types. Validation is fail-closed for coordinates, CRS, identity, source and capture metadata. A provider-neutral analysis contract accepts evidence while rejecting autonomous regulatory conclusions.
+
+No live Earth Engine or external spatial provider is connected in this phase.
+
+### Governance boundary
+
+Spatial analytics can surface candidate changes and evidence for human review. They do not establish illegality, environmental truth, regulatory status, enforcement action, emergency response or NEMA authorization.
+
+### Completion gate
+
+GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 56 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 57 — Sentinel-2 Remote Sensing Adapter: define imagery metadata, acquisition/cloud-quality contracts and a provider adapter boundary before connecting live imagery.
