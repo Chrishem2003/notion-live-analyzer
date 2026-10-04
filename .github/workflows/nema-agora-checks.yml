@@ -62,7 +62,8 @@ on:
       - "pages/72_NEMA_AGORA_SPATIAL_HUMAN_REVIEW.py"
       - "pages/73_NEMA_AGORA_SPATIAL_REVIEW_RECONCILIATION.py"
       - "pages/74_NEMA_AGORA_SPATIAL_REVIEW_CASEBOOK.py"
-      - "pages/75_NEMA_AGORA_SPATIAL_LONGITUDINAL.py"
+      - "pages/75_NEMA_AGORA_SPATIAL_LONGITUDINAL.py
+      - "pages/76_NEMA_AGORA_SPATIAL_EVIDENCE_STORAGE.py""
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
