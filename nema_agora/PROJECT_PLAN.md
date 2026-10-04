@@ -964,3 +964,12 @@ Implemented governed Sentinel-2 raster input and processing contracts. Validatio
 Completion gate: GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 72 is declared CI-green.
 
 Next gate: Phase 73 — MSAVI2 + Expanded Spectral Intelligence.
+
+
+## Phase 73 — MSAVI2 + Expanded Spectral Intelligence
+
+Extended the Phase 58 spectral analytics with MSAVI2 using B04/B08 normalized reflectance, numerical stability checks and deterministic expanded evidence. NDVI and McFeeters NDWI remain supported. Outputs retain explicit non-regulatory interpretation fields and never fabricate raster pixels.
+
+Completion gate: GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 73 is declared CI-green.
+
+Next gate: Phase 74 — Real Spatial Change Maps.
