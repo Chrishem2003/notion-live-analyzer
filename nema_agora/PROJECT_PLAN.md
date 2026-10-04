@@ -728,3 +728,29 @@ GitHub Actions must verify Phase 57 focused tests, compilation and Streamlit sta
 ### Next gate
 
 Phase 58 — NDVI / NDWI Analytics: derive transparent spectral indices from validated imagery inputs, with explicit quality handling and no automatic regulatory conclusions.
+
+
+## Phase 58 — NDVI / NDWI Analytics
+
+Implemented transparent, deterministic spectral-index calculations on validated Sentinel-2 optical inputs.
+
+### Implemented
+- NDVI using Sentinel-2 B08 NIR and B04 red reflectance.
+- McFeeters NDWI using B03 green and B08 NIR reflectance.
+- Explicit normalized-reflectance contract of [0, 1].
+- Finite-input, required-band, zero-denominator and expected-range quality gates.
+- Deterministic SHA-256 evidence fingerprints with formulas, source bands and quality assumptions.
+- Read-only Streamlit demonstration using synthetic inputs.
+- Focused tests, compilation and Streamlit CI coverage.
+
+### Governance boundary
+
+NDVI and NDWI are analytical measurements only. They do not establish deforestation, wetland loss, illegality, regulatory status, enforcement action, emergency response, NEMA authorization or environmental truth. Spatial/temporal change interpretation remains a human-reviewed evidence task.
+
+### Completion gate
+
+GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 58 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 59 — Spatial/Temporal Change Evidence: compare validated Sentinel-2 scenes and spectral-index observations across time and space, with explicit baseline and uncertainty handling.
