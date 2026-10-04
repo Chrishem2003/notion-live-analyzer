@@ -1189,4 +1189,10 @@ Next gate: Phase 104 — Governance Drift Human Review & Audit Binding.
 
 Added authorized human review for queued governance drift, with deterministic audit identity and exact drift/snapshot bindings. Supported outcomes are ACKNOWLEDGED, INVESTIGATE, NO_DRIFT_CONFIRMED, and ESCALATED. The layer records evidence only and performs no autonomous action.
 
-Next gate: Phase 105 — Persistent Governance Drift Review Audit Registry.
+## Phase 105 — Persistent Governance Drift Review Audit Registry
+
+Added an append-only SQLite registry for Phase 104 governance drift human-review audits. The registry validates the exact Phase 104 audit fingerprint and deterministic audit ID, preserves reviewer identity, outcome and exact baseline/current snapshot bindings, rejects duplicate evidence and blocks UPDATE/DELETE mutation at the database layer. This phase stores evidence only and does not execute governance, environmental, regulatory, enforcement or emergency actions.
+
+Completion gate: GitHub Actions must visibly verify Phase 105 focused tests, compilation and Streamlit startup before Phase 105 is declared CI-green. No green status is inferred from source inspection.
+
+Next gate: Phase 106 — Governance Drift Review Audit Reconciliation & Evidence Integrity.
