@@ -48,6 +48,7 @@ on:
       - "pages/58_NEMA_AGORA_GOVERNANCE_REVIEW_WORKSPACE.py"
       - "pages/59_NEMA_AGORA_GOVERNANCE_REVIEW_DECISION_PREPARATION.py"
       - "pages/60_NEMA_AGORA_GOVERNANCE_DECISION_EXECUTION_BOUNDARY.py"
+      - "pages/61_NEMA_AGORA_DECISION_RECEIPT.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
