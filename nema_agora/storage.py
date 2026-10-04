@@ -85,12 +85,25 @@ class NemaAgoraRepository:
                     details_json TEXT NOT NULL DEFAULT '{}'
                 );
 
+                CREATE TABLE IF NOT EXISTS intelligence_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    case_id TEXT NOT NULL REFERENCES observations(case_id),
+                    actor_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL CHECK (event_type IN (
+                        'analysis_run', 'feedback_recorded'
+                    )),
+                    occurred_at TEXT NOT NULL,
+                    details_json TEXT NOT NULL DEFAULT '{}'
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_observations_status
                     ON observations(status);
                 CREATE INDEX IF NOT EXISTS idx_observations_owner
                     ON observations(owner_id);
                 CREATE INDEX IF NOT EXISTS idx_operation_time\n                    ON operation_events(occurred_at, event_id);\n                CREATE INDEX IF NOT EXISTS idx_audit_case_time
                     ON audit_events(case_id, occurred_at, event_id);
+                CREATE INDEX IF NOT EXISTS idx_intelligence_case_time
+                    ON intelligence_events(case_id, occurred_at, event_id);
                 """
             )
             columns = {row["name"] for row in connection.execute("PRAGMA table_info(observations)")}
@@ -278,3 +291,72 @@ class NemaAgoraRepository:
             }
             for row in rows
         ]
+
+    def record_intelligence_event(
+        self, case_id: str, *, actor_id: str, role: str, event_type: str,
+        occurred_at: str, details: dict[str, Any] | None = None,
+    ) -> None:
+        actor = _actor(actor_id)
+        require_permission(role, "intelligence:use")
+        if not case_id or len(case_id.strip()) > 64:
+            raise ValueError("A valid case identifier is required.")
+        if event_type not in {"analysis_run", "feedback_recorded"}:
+            raise ValueError("Unknown intelligence event type.")
+        if not occurred_at.strip():
+            raise ValueError("An intelligence event timestamp is required.")
+        payload = json.dumps(details or {}, ensure_ascii=False, sort_keys=True)
+        with self._session() as connection:
+            if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
+                raise KeyError(f"Case not found: {case_id}")
+            connection.execute(
+                "INSERT INTO intelligence_events (case_id, actor_id, event_type, occurred_at, details_json) VALUES (?, ?, ?, ?, ?)",
+                (case_id, actor, event_type, occurred_at, payload),
+            )
+
+    def record_intelligence_feedback(
+        self, case_id: str, *, actor_id: str, role: str,
+        feedback: dict[str, Any], occurred_at: str,
+    ) -> None:
+        actor = _actor(actor_id)
+        require_permission(role, "intelligence:feedback")
+        if not case_id or len(case_id.strip()) > 64:
+            raise ValueError("A valid case identifier is required.")
+        if not occurred_at.strip():
+            raise ValueError("A feedback timestamp is required.")
+        feedback_type = str(feedback.get("feedback_type", "")).strip()
+        if feedback_type not in {"accepted", "rejected", "corrected"}:
+            raise ValueError("Feedback must be accepted, rejected, or corrected.")
+        corrected_category = str(feedback.get("corrected_category", "")).strip()
+        if feedback_type == "corrected" and not corrected_category:
+            raise ValueError("Corrected feedback requires a corrected category.")
+        if len(corrected_category) > 120:
+            raise ValueError("Corrected category is too long.")
+        notes = str(feedback.get("notes", "")).strip()
+        if len(notes) > 1000:
+            raise ValueError("Feedback notes must be 1000 characters or fewer.")
+        payload = {
+            "feedback_type": feedback_type,
+            "corrected_category": corrected_category,
+            "notes": notes,
+            "copilot_version": str(feedback.get("copilot_version", "phase10-v1")).strip()[:50],
+        }
+        with self._session() as connection:
+            if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
+                raise KeyError(f"Case not found: {case_id}")
+            connection.execute(
+                "INSERT INTO intelligence_events (case_id, actor_id, event_type, occurred_at, details_json) VALUES (?, ?, 'feedback_recorded', ?, ?)",
+                (case_id, actor, occurred_at, json.dumps(payload, ensure_ascii=False, sort_keys=True)),
+            )
+
+    def list_intelligence_events(
+        self, case_id: str, *, actor_id: str, role: str
+    ) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "audit:read")
+        with self._session() as connection:
+            rows = connection.execute(
+                "SELECT event_id, case_id, actor_id, event_type, occurred_at, details_json FROM intelligence_events WHERE case_id = ? ORDER BY event_id",
+                (case_id,),
+            ).fetchall()
+        return [{**dict(row), "details": json.loads(row["details_json"])} for row in rows]
+
