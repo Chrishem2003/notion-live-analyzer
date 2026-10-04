@@ -6,7 +6,7 @@ comparisons reproducible. Results are software-performance evidence only.
 from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-import hashlib, json
+import hashlib, json, uuid
 from typing import Any
 
 from nema_agora.impact import ImpactObservation
