@@ -1211,3 +1211,12 @@ Added deterministic, read-only snapshots of Phase 106 reconciliation evidence wi
 Completion gate: focused tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
 
 Next gate: Phase 108 — Persistent Reconciliation Snapshot History Registry.
+
+
+## Phase 108 — Persistent Governance Drift Reconciliation Snapshot History
+
+Added an append-only SQLite registry for validated Phase 107 snapshots. The registry enforces sequential appends and exact predecessor links, rejects duplicate identities/fingerprints, blocks UPDATE/DELETE through database triggers, and provides ordered listing and read-only history reconciliation. Empty storage reports NO_HISTORY. SQLite triggers do not replace filesystem access controls, backup controls or independently stored tamper-evident backups.
+
+Completion gate: focused tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
+
+Next gate: Phase 109 — Reconciliation History Integrity Monitoring & Registry Recovery Evidence.
