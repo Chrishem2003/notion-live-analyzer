@@ -241,3 +241,14 @@ The comparison engine reports category accuracy plus macro precision/recall/F1, 
 Comparison runs are persisted separately from live observations with run ID, authenticated actor, dataset version, manifest hash and result JSON. The default enabled adapter remains the local deterministic baseline; no external provider is silently connected.
 
 The Phase 15 readiness state is NOT_READY unless there are at least 25 frozen cases, zero adapter failures, category accuracy >= 80%, and duplicate F1 >= 80% for every compared adapter. READY_FOR_REVIEW is an engineering review threshold only, not production approval, environmental truth, regulatory validation, NEMA endorsement, or permission for autonomous action.
+
+
+## Phase 16 — Model Governance & Admission
+
+Phase 16 adds a formal governance gate between model comparison and controlled shadow eligibility.
+
+The gate binds a candidate to the exact provider, model version, adapter, dataset version, frozen manifest SHA-256 and comparison run. It requires annotation readiness, at least 25 benchmark cases, minimum category Cohen's kappa of 0.80, no unresolved annotation disagreements, zero model execution failures, category accuracy of at least 80%, duplicate F1 of at least 80%, and explicit human-review safety evidence.
+
+Admission is restricted to coordinator/admin roles and is persisted as an immutable decision record with policy version and rationale. The positive outcome is ADMITTED_FOR_CONTROLLED_SHADOW only.
+
+This does not constitute NEMA endorsement, official integration, regulatory approval, environmental truth, enforcement authority, emergency response authority, production approval, or autonomous decision permission. External models remain disabled unless explicitly introduced as candidates and evaluated through the frozen benchmark and admission gate.
