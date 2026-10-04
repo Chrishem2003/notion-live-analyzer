@@ -181,6 +181,66 @@ def evaluate_scenario(
     )
 
 
+def _base_record(case_id: str, *, description: str, consent: bool = True) -> dict[str, Any]:
+    return {
+        "case_id": case_id,
+        "observation_date": "2026-01-01",
+        "category": "Solid waste / illegal dumping",
+        "severity": "Medium",
+        "district_or_site": "Synthetic Site",
+        "description": description,
+        "status": "Reviewed",
+        "consent_confirmed": consent,
+        "latitude": 1.0,
+        "longitude": 32.0,
+    }
+
+
+def build_controlled_scenarios() -> list[tuple[FieldScenario, dict[str, Any], list[dict[str, Any]]]]:
+    """Return deterministic synthetic records that exercise every Phase 21 scenario."""
+    catalog = {scenario.scenario_id: scenario for scenario in scenario_catalog()}
+    duplicate_peer = _base_record(
+        "SCN-PEER-001",
+        description="plastic waste near drainage channel",
+    )
+    return [
+        (
+            catalog["SCN-01"],
+            _base_record("SCN-01-CASE", description="plastic waste near drainage channel"),
+            [],
+        ),
+        (
+            catalog["SCN-02"],
+            _base_record("SCN-02-CASE", description=""),
+            [],
+        ),
+        (
+            catalog["SCN-03"],
+            _base_record("SCN-03-CASE", description="plastic waste near drainage channel"),
+            [duplicate_peer],
+        ),
+        (
+            catalog["SCN-04"],
+            _base_record(
+                "SCN-04-CASE",
+                description="possible change observed near a drainage channel",
+                consent=False,
+            ),
+            [],
+        ),
+        (
+            catalog["SCN-05"],
+            _base_record("SCN-05-CASE", description="plastic waste near drainage channel"),
+            [],
+        ),
+        (
+            catalog["SCN-06"],
+            _base_record("SCN-06-CASE", description="plastic waste near drainage channel"),
+            [],
+        ),
+    ]
+
+
 def run_field_evaluation(
     *,
     scenarios: list[
