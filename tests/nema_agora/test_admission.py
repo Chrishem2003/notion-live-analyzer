@@ -197,7 +197,8 @@ def test_invalid_manifest_hash_blocks_admission():
 
 def test_safety_evidence_must_match_exact_model_identity():
     dataset, ann, cmp = evidence()
-    cmp["case_results"][0]["provider"] = "other-provider"
+    for row in cmp["case_results"]:
+        row["provider"] = "other-provider"
     import nema_agora.admission as admission
     original = admission.validate_advisory_output
     admission.validate_advisory_output = lambda output: []
