@@ -1,6 +1,6 @@
 import pytest
 
-from nema_agora.annotation import AnnotationStore, make_annotation, pairwise_agreement
+from nema_agora.annotation import AnnotationStore, annotation_readiness, make_adjudication, make_annotation, pairwise_agreement
 from nema_agora.core import CATEGORIES
 
 
@@ -48,3 +48,25 @@ def test_annotation_rejects_invalid_category():
             case_id="1", annotator_id="a", dataset_version="v1",
             category="not-real", duplicate=False, summary_faithful=None
         )
+
+
+def test_annotation_readiness_requires_process_gates():
+    a = [ann("1", "a"), ann("2", "a")]
+    result = annotation_readiness(a, [], minimum_cases=2)
+    assert result["status"] == "NOT_READY"
+    assert not result["gates"]["two_independent_annotators"]
+
+
+def test_annotation_readiness_requires_adjudicating_disagreements():
+    first = [ann("1", "a")]
+    second = [ann("1", "b", CATEGORIES[1])]
+    result = annotation_readiness(first + second, [], minimum_cases=1, minimum_category_kappa=-1.0)
+    assert "1" in result["unresolved_disagreements"]
+    assert result["status"] == "NOT_READY"
+    adjudication = make_adjudication(
+        case_id="1", adjudicator_id="admin", dataset_version="dataset-v1",
+        final_category=CATEGORIES[0], final_duplicate=False,
+        final_summary_faithful=True, rationale="Resolved by documented adjudication.",
+    )
+    result2 = annotation_readiness(first + second, [adjudication], minimum_cases=1, minimum_category_kappa=-1.0)
+    assert result2["status"] == "READY_FOR_REVIEW"
