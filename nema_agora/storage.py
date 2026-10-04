@@ -180,6 +180,7 @@ class NemaAgoraRepository:
         case_id: str,
         *,
         actor_id: str,
+        role: str,
         new_status: str,
         review_notes: str,
         changed_at: str,
@@ -231,7 +232,9 @@ class NemaAgoraRepository:
             )
         return updated
 
-    def list_audit_events(self, case_id: str) -> list[dict[str, Any]]:
+    def list_audit_events(self, case_id: str, *, actor_id: str, role: str) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "audit:read")
         with self._session() as connection:
             rows = connection.execute(
                 """SELECT event_id, case_id, actor_id, event_type, from_status,
