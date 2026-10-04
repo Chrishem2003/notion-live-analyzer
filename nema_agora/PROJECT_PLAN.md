@@ -1113,3 +1113,10 @@ Next gate: Phase 93 — API Audit Lifecycle Decision Reconciliation.
 Added reconciliation across API audit events, reconciliation snapshots, lifecycle evaluations, and human lifecycle decisions. Detects orphan references, duplicates, unsupported decisions, snapshot mismatches, readiness failures, and deterministic decision-fingerprint tampering. The result fails closed to CONTROL_REQUIRED on integrity gaps.
 
 Next gate: Phase 94 — API Audit Governance Casebook and Evidence Packaging.
+
+
+## Phase 94 — API Audit Governance Casebook
+
+Added deterministic, reviewable case packaging across API audit events, reconciliation, lifecycle evaluation, human lifecycle decision, and decision reconciliation. Cases require exact cross-snapshot bindings and reconciled evidence; they remain evidence packaging only.
+
+Next gate: Phase 95 — API Governance Review Queue.
