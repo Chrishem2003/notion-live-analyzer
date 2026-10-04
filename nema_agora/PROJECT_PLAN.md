@@ -299,3 +299,29 @@ A comparison is READY_FOR_REVIEW only when the frozen benchmark contains at leas
 
 ### External-model gate
 No external model is enabled by default. Before adding one, document the provider, model version, data handling, retention, cost, geographic processing implications, failure behaviour and approval authority. Run it only against the frozen benchmark and keep its outputs isolated from live workflow. A model must never change case status, enforcement state, official reporting or emergency response.
+
+
+## Phase 16 — Benchmark Governance & Model Admission Gate
+
+Phase 16 establishes the governance boundary between controlled model comparison and controlled shadow eligibility.
+
+### Implemented
+- Versioned ModelAdmissionPolicy with minimum benchmark, category accuracy, duplicate F1 and annotation kappa thresholds.
+- Explicit ModelCandidate metadata covering provider, exact model version, adapter, intended use, data handling, retention, processing location and failure behaviour.
+- Evidence-bound admission decisions tied to the exact dataset version, manifest SHA-256 and comparison run ID.
+- Exact provider/model-version/adapter matching against the selected comparison evidence.
+- Annotation readiness and unresolved-disagreement gates.
+- Zero-failure, category-accuracy and duplicate-F1 gates.
+- Explicit human-review safety contract checking for comparison outputs.
+- Authenticated coordinator/admin-only admission permission.
+- SQLite-backed admission history with policy version and rationale.
+- Dedicated Model Governance page.
+
+### Decision semantics
+The only positive decision is ADMITTED_FOR_CONTROLLED_SHADOW. This means a candidate may participate in isolated advisory shadow evaluation under human review. It does not mean production approval, NEMA endorsement, regulatory authorization, environmental truth, enforcement authorization, emergency response authorization, official reporting permission or autonomous decision authority.
+
+### Evidence binding
+Admission must reject stale or mixed evidence. Dataset version, manifest hash, comparison run ID, provider, model version and adapter name must all match the selected evidence bundle exactly.
+
+### Next gate
+Introduce a real external model only as an explicitly documented candidate, evaluate it against the frozen benchmark, and route its result through the same Phase 16 admission gate before controlled shadow use.
