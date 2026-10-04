@@ -59,3 +59,13 @@ def test_actor_cannot_be_blank(tmp_path):
     capture = AuditEventCapture(AuditLedger(tmp_path / "events.db"))
     with pytest.raises(ValueError, match="Authenticated actor ID"):
         capture.record(event_id="x", event_type="EVALUATION_COMPLETED", actor_id=" ", payload={})
+
+
+def test_free_text_status_and_personal_identifier_are_rejected(tmp_path):
+    capture = AuditEventCapture(AuditLedger(tmp_path / "events.db"))
+    with pytest.raises(ValueError, match="Unsupported status code"):
+        capture.record(event_id="safe-event-1", event_type="EVALUATION_COMPLETED",
+                       actor_id="reviewer", payload={"status": "person reported a problem"})
+    with pytest.raises(ValueError, match="non-identifying event_id"):
+        capture.record(event_id="person@example.com", event_type="EVALUATION_COMPLETED",
+                       actor_id="reviewer", payload={"status": "COMPLETED"})
