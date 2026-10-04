@@ -438,3 +438,8 @@ Added a fail-closed publication control gate that checks report identity, linked
 ## Phase 33 — Evidence Integrity & Audit Hardening
 
 Added integrity checks for duplicate provenance IDs and event identities, missing lineage parents, graph node/edge integrity, graph fingerprint and identity verification, report-to-graph binding, duplicate/missing claim IDs, unresolved source references, and publication-decision/report binding. Added tests, an authenticated audit page, documentation, and focused CI coverage. Integrity is artifact consistency—not proof of environmental truth.
+
+
+## Phase 34 — Tamper-Evident Audit Ledger
+
+Added an append-only SQLite ledger with unique IDs, canonical JSON payloads, sequential entries, SHA-256 hash chaining, update/delete triggers, chain verification, and verified-head checkpoints. Added tamper/trigger/duplicate/checkpoint tests, authenticated ledger page, documentation and focused CI coverage. The threat model explicitly notes that privileged database-file access can rewrite local history; independent checkpoint protection is required for stronger assurance.
