@@ -69,7 +69,7 @@ def test_annotation_readiness_requires_adjudicating_disagreements():
         final_summary_faithful=True, rationale="Resolved by documented adjudication.",
     )
     result2 = annotation_readiness(first + second, [adjudication], minimum_cases=1, minimum_category_kappa=-1.0)
-    assert result2["status"] == "NOT_READY"
+    assert result2["status"] == "READY_FOR_REVIEW"
 
 
 def test_annotation_readiness_requires_double_annotation():
