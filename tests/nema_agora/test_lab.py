@@ -68,3 +68,16 @@ def test_lab_fails_unsafe_adapter_safely():
 def test_lab_requires_real_labels():
     with pytest.raises(ValueError):
         LabCase("x", {"case_id": "y"}, CATEGORIES[0], False)
+
+
+def test_lab_store_persists_immutable_summary(tmp_path):
+    from nema_agora.lab import EvaluationRunStore
+
+    result = run_evaluation([case("1")], {"good": GoodAdapter()}, dataset_version="dataset-v1")
+    store = EvaluationRunStore(str(tmp_path / "eval.sqlite3"))
+    store.save(result, actor_id="reviewer-1")
+    rows = store.list(limit=10)
+    assert rows[0]["run_id"] == result.run_id
+    assert rows[0]["dataset_version"] == "dataset-v1"
+    assert rows[0]["actor_id"] == "reviewer-1"
+    assert rows[0]["result"]["run_id"] == result.run_id
