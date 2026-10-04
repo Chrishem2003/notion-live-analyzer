@@ -858,3 +858,20 @@ GitHub Actions must verify Phase 63 focused tests, compilation and Streamlit sta
 ### Next gate
 
 Phase 64 — Spatial Change Human Review & Audit Binding: connect queued analytical candidates to explicit human review outcomes and append-only audit evidence without granting autonomous regulatory authority.
+
+
+## Phase 65 — Spatial Review Reconciliation & Evidence Integrity
+
+Implemented a read-only reconciliation layer between the Phase 63 immutable spatial-change review queue and Phase 64 human-review audit evidence. It detects missing reviews, orphan reviews, duplicate reviews, queue-fingerprint mismatches, stale queue records and candidate-identity mismatches. Findings and the complete reconciliation result receive deterministic SHA-256 fingerprints; source records are never repaired or mutated.
+
+### Governance boundary
+
+Reconciliation is an evidence-integrity control only. It does not reinterpret human outcomes, establish environmental truth, wetland loss, deforestation, illegality, regulatory status, NEMA authorization, enforcement action, emergency response or production approval.
+
+### Completion gate
+
+GitHub Actions must verify Phase 65 focused tests, compilation and Streamlit startup before Phase 65 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 66 — Spatial Review Evidence Casebook & Provenance: package reconciled review evidence with exact queue and audit artifacts for human investigation and downstream evidence tracking.
