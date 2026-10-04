@@ -19,6 +19,19 @@ The Streamlit page is `pages/18_NEMA_AGORA.py` and provides:
 - CSV export and basic process metrics.
 - Clear warnings about prototype status, privacy and unverified observations.
 
+## Authentication and identity foundation
+
+Streamlit's native OpenID Connect (OIDC) flow is the proposed login layer. The helper in `nema_agora/identity.py` maps the authenticated issuer + subject claims (`iss` + `sub`) to a server-configured role. It deliberately ignores role claims supplied by the identity provider and treats unregistered users as authenticated but unauthorised.
+
+- `nema_agora/access.py` defines the permission policy; `identity.py` resolves a principal. Neither module alone enforces access at every application entry point.
+- The sample configuration is `.streamlit/secrets.toml.example`. Copy and complete it in the host's secret manager; never commit a real `secrets.toml`, client secret, or cookie secret.
+- Configure the OIDC client with the exact deployed app URL and its `/oauth2callback` redirect URI. Test local and hosted configurations separately.
+- Use the stable issuer + subject pair as the account key. Do not grant roles based only on display name or email.
+- Provision roles explicitly with least privilege; a valid login must not automatically grant access.
+- Before enabling persistent data, enforce the resolved principal and permission policy for every create/read/review/export/audit operation and test direct navigation as well as UI controls.
+
+The helper does not itself start the login flow, validate OIDC tokens, manage users, or integrate the public page. Deployment configuration and enforcement remain required.
+
 ## Important limitations
 
 - The public Streamlit page still stores data only in session state; the new SQLite repository module is an isolated foundation and is not connected to the UI.
@@ -44,7 +57,7 @@ The repository already includes Streamlit in its main requirements. If setting u
 1. Review the implemented status transitions and data fields with a supervisor.
 2. Agree pilot scope, site, supervision, consent, retention and data-handling rules.
 3. Review the isolated SQLite repository and data model; do not connect it to the public page yet.
-4. Integrate a trusted identity provider, enforce the role policy at every UI and repository operation, and test ownership checks before using persistent storage in the UI.
+4. Configure and test OIDC login using the secret template, then enforce the resolved principal and role policy at every UI and repository operation before using persistent storage in the UI.
 5. Add deployment-specific database configuration, backup/restore tests, retention rules and operational monitoring.
 6. Test accessibility, low-bandwidth behaviour and CSV export.
 7. Validate budget assumptions and grant eligibility with the official NEMA call.
