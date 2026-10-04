@@ -1,4 +1,5 @@
 name: NEMA-AGORA Pilot Checks
+# Focused validation for the governed NEMA-AGORA pilot branch.
 
 on:
   push:
