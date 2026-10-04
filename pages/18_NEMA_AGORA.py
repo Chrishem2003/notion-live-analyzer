@@ -1,66 +1,117 @@
-"""NEMA-AGORA: student-led environmental reporting pilot.
+"""NEMA-AGORA: authenticated pilot workspace.
 
-This first MVP is intentionally session-based: records are not persisted to a
-database and must not be used for operational enforcement or sensitive reports.
+Demo mode is session-only and safe for synthetic testing. Persistent mode is
+explicitly opt-in and requires Streamlit OIDC plus a server-side role binding.
+This remains an independent student-led prototype, not an official NEMA service.
 """
 from __future__ import annotations
 
 from datetime import date, datetime
-import csv
-import io
 import pandas as pd
 import streamlit as st
 
-from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, csv_safe_value, make_observation, validate_observation
+from nema_agora.access import has_permission
+from nema_agora.auth import principal_from_streamlit_user
+from nema_agora.config import database_path_from_secrets, mode_from_secrets
+from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, make_observation, validate_observation
+from nema_agora.service import NemaAgoraService
+from nema_agora.storage import NemaAgoraRepository
 from nema_agora.workflow import apply_status_update
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
 
-def _init_state() -> None:
-    if "nema_agora_reports" not in st.session_state:
-        st.session_state.nema_agora_reports = []
-    if "nema_agora_audit_events" not in st.session_state:
-        st.session_state.nema_agora_audit_events = []
+
+def _demo_init() -> None:
+    st.session_state.setdefault("nema_agora_reports", [])
+    st.session_state.setdefault("nema_agora_audit_events", [])
 
 
-def _csv_bytes(records: list[dict]) -> bytes:
-    """Return UTF-8 CSV for the currently visible pilot records."""
-    fields = [
-        "case_id", "created_at", "observation_date", "category", "severity",
-        "district_or_site", "description", "latitude", "longitude", "status",
-        "review_notes", "evidence_reference",
-    ]
-    buffer = io.StringIO()
-    writer = csv.DictWriter(buffer, fieldnames=fields, extrasaction="ignore")
-    writer.writeheader()
-    # CSV may be opened in spreadsheet software; neutralise formula-like user text.
-    writer.writerows([
-        {key: csv_safe_value(value) for key, value in record.items()}
-        for record in records
-    ])
-    return buffer.getvalue().encode("utf-8-sig")
+def _persistent_context() -> tuple[NemaAgoraService | None, object | None, str]:
+    mode = mode_from_secrets(st.secrets)
+    if mode != "persistent":
+        return None, None, mode
+
+    principal = principal_from_streamlit_user(st.user, st.secrets)
+    if principal is None:
+        return None, None, mode
+    if not principal.is_authorised:
+        return None, principal, mode
+
+    database_path = database_path_from_secrets(st.secrets)
+    if database_path is None:
+        st.error("Persistent mode is enabled but nema_agora.database_path is not configured.")
+        return None, principal, mode
+    database_path.parent.mkdir(parents=True, exist_ok=True)
+    return NemaAgoraService(NemaAgoraRepository(database_path)), principal, mode
 
 
-_init_state()
+_demo_init()
+service, principal, mode = _persistent_context()
+
 st.title("🌿 NEMA-AGORA")
 st.caption("Environmental Governance, Monitoring & Response — pilot workspace")
 st.info(
     "Independent student-led prototype. This is not an official NEMA service, "
     "does not submit reports to NEMA, and is not connected to ELMIS or SWIMS. "
-    "Records are held in the current Streamlit session only and may disappear "
-    "when the session restarts. Do not enter personal, confidential, or urgent "
-    "incident information."
+    "Do not enter personal, confidential, or urgent incident information."
 )
 
 with st.sidebar:
-    st.header("Pilot scope")
-    st.write("**Current workflow:** report → review → status tracking → map/export.")
-    st.write("**Data mode:** session-only demonstration data.")
-    st.write("**Next milestone:** permissioned user testing and persistent storage "
-             "only after privacy/security design.")
+    st.header("Security & data mode")
+    if mode == "persistent":
+        st.success("Persistent mode")
+        if principal is None:
+            st.warning("Authentication required before persistent data is available.")
+            if hasattr(st, "login"):
+                if st.button("Sign in", type="primary", use_container_width=True):
+                    st.login()
+        elif not principal.is_authorised:
+            st.error("Authenticated, but not provisioned for this pilot.")
+            st.write(f"Account: {principal.display_name or principal.subject}")
+            if hasattr(st, "logout") and st.button("Sign out", use_container_width=True):
+                st.logout()
+        else:
+            st.success(f"Signed in as {principal.display_name or principal.subject}")
+            st.caption(f"Role: {principal.role}")
+            if hasattr(st, "logout") and st.button("Sign out", use_container_width=True):
+                st.logout()
+    else:
+        st.warning("Demo mode — session-only")
+        st.caption("Persistent storage is disabled until explicitly configured.")
     st.divider()
+    st.write("**Workflow:** report → review → status → controlled export.")
+    st.write("**Safety:** synthetic/consented test records only.")
     st.markdown("[Project source on GitHub](https://github.com/Chrishem2003/notion-live-analyzer)")
-    st.markdown("[Applicant LinkedIn](https://www.linkedin.com/in/chris-shem-435166314)")
+
+if mode == "persistent" and (principal is None or not principal.is_authorised):
+    st.stop()
+
+persistent = service is not None and principal is not None and principal.is_authorised
+
+
+def records_for_current_user() -> list[dict]:
+    if persistent:
+        return service.list_observations(principal)
+    return list(st.session_state.nema_agora_reports)
+
+
+def save_record(record: dict) -> None:
+    if persistent:
+        service.create_observation(record, principal)
+    else:
+        st.session_state.nema_agora_reports.append(record)
+
+
+def visible_audit(case_id: str) -> list[dict]:
+    if persistent:
+        return service.list_audit_events(case_id, principal)
+    return [e for e in st.session_state.nema_agora_audit_events if e["case_id"] == case_id]
+
+
+can_review = persistent and has_permission(principal.role, "observation:review")
+can_export = persistent and has_permission(principal.role, "case:export")
+can_metrics = persistent and has_permission(principal.role, "metrics:read")
+can_audit = persistent and has_permission(principal.role, "audit:read")
 
 tab_report, tab_review, tab_map, tab_metrics, tab_about = st.tabs(
     ["📝 Submit observation", "🔎 Review & track", "🗺️ Map", "📊 Pilot metrics", "ℹ️ About"]
@@ -69,6 +120,8 @@ tab_report, tab_review, tab_map, tab_metrics, tab_about = st.tabs(
 with tab_report:
     st.subheader("Record an environmental observation")
     st.caption("Use only synthetic or consented test information during development.")
+    if not persistent and mode == "demo":
+        st.caption("Demo records disappear when the Streamlit session ends.")
     with st.form("nema_agora_report_form", clear_on_submit=True):
         c1, c2 = st.columns(2)
         with c1:
@@ -77,30 +130,14 @@ with tab_report:
             site = st.text_input("District / site label", placeholder="e.g. Pilot site A", max_chars=120)
             severity = st.selectbox("Initial priority (unverified)", SEVERITIES, index=1)
         with c2:
-            latitude = st.number_input(
-                "Latitude (optional; decimal degrees)", min_value=-90.0, max_value=90.0,
-                value=0.0, step=0.0001, format="%.5f"
-            )
-            longitude = st.number_input(
-                "Longitude (optional; decimal degrees)", min_value=-180.0, max_value=180.0,
-                value=0.0, step=0.0001, format="%.5f"
-            )
-            evidence_reference = st.text_input(
-                "Evidence reference (optional)", placeholder="Non-sensitive file name or URL", max_chars=300
-            )
-        description = st.text_area(
-            "Observation description",
-            placeholder="Describe what was observed, when, and from what safe/public vantage point.",
-            max_chars=1500,
-        )
-        consent_confirmed = st.checkbox(
-            "I have permission to submit this test record and have removed unnecessary personal details."
-        )
+            latitude = st.number_input("Latitude (optional)", min_value=-90.0, max_value=90.0, value=0.0, step=0.0001, format="%.5f")
+            longitude = st.number_input("Longitude (optional)", min_value=-180.0, max_value=180.0, value=0.0, step=0.0001, format="%.5f")
+            evidence_reference = st.text_input("Evidence reference (optional)", placeholder="Non-sensitive file name or URL", max_chars=300)
+        description = st.text_area("Observation description", placeholder="Describe what was observed, when, and from what safe/public vantage point.", max_chars=1500)
+        consent_confirmed = st.checkbox("I have permission to submit this test record and have removed unnecessary personal details.")
         submitted = st.form_submit_button("Save pilot record", type="primary", use_container_width=True)
     if submitted:
-        errors = validate_observation(
-            site=site, description=description, consent_confirmed=consent_confirmed
-        )
+        errors = validate_observation(site=site, description=description, consent_confirmed=consent_confirmed)
         if errors:
             for error in errors:
                 st.error(error)
@@ -108,155 +145,111 @@ with tab_report:
             now = datetime.now().astimezone().isoformat(timespec="seconds")
             try:
                 record = make_observation(
-                    observation_date=observation_date,
-                    category=category,
-                    severity=severity,
-                    site=site,
-                    description=description,
-                    latitude=latitude,
-                    longitude=longitude,
-                    consent_confirmed=consent_confirmed,
-                    created_at=now,
+                    observation_date=observation_date, category=category, severity=severity,
+                    site=site, description=description, latitude=latitude, longitude=longitude,
+                    consent_confirmed=consent_confirmed, created_at=now,
                     evidence_reference=evidence_reference,
                 )
-            except ValueError as exc:
+                save_record(record)
+            except (ValueError, PermissionError) as exc:
                 st.error(str(exc))
             else:
-                st.session_state.nema_agora_reports.append(record)
-                st.success(f"Pilot record saved for this session: {record['case_id']}")
+                st.success(f"Pilot record saved: {record['case_id']}")
 
 with tab_review:
     st.subheader("Review queue and case status")
-    records = st.session_state.nema_agora_reports
-    if not records:
-        st.info("No pilot records yet. Add a synthetic or consented test record in the first tab.")
+    if not persistent:
+        st.info("Review controls are disabled in demo mode. Persistent review requires an authenticated reviewer or coordinator.")
+    elif not can_review:
+        st.info("Your account is not assigned review permission.")
     else:
-        selected_id = st.selectbox(
-            "Select record",
-            options=[r["case_id"] for r in reversed(records)],
-            format_func=lambda case_id: next(
-                (f"{r['case_id']} · {r['category']} · {r['status']}" for r in records if r["case_id"] == case_id),
-                case_id,
-            ),
-        )
-        selected = next(r for r in records if r["case_id"] == selected_id)
-        st.markdown(f"**{selected['category']}** · {selected['severity']} priority · {selected['district_or_site']}")
-        st.write(selected["description"])
-        st.caption(f"Observed: {selected['observation_date']} · Created: {selected['created_at']}")
-        if selected.get("evidence_reference"):
-            st.write(f"Evidence reference: {selected['evidence_reference']}")
-        with st.form(f"review_{selected_id}"):
-            new_status = st.selectbox("Status", STATUSES, index=STATUSES.index(selected["status"]))
-            review_notes = st.text_area("Reviewer notes (avoid personal/sensitive data)", value=selected.get("review_notes", ""), max_chars=1000)
-            reviewed = st.form_submit_button("Update status", type="primary")
-        if reviewed:
-            changed_at = datetime.now().astimezone().isoformat(timespec="seconds")
-            try:
-                updated, event = apply_status_update(
-                    selected,
-                    new_status=new_status,
-                    review_notes=review_notes,
-                    changed_at=changed_at,
-                )
-            except ValueError as exc:
-                st.error(str(exc))
-            else:
-                record_index = next(
-                    i for i, item in enumerate(records) if item["case_id"] == selected_id
-                )
-                st.session_state.nema_agora_reports[record_index] = updated
-                if event:
-                    st.session_state.nema_agora_audit_events.append(event)
-                st.success("Record updated in this session.")
-        case_events = [
-            event for event in st.session_state.nema_agora_audit_events
-            if event["case_id"] == selected_id
-        ]
-        if case_events:
-            st.markdown("**Status-change history (current session)**")
-            st.dataframe(
-                pd.DataFrame(case_events)[["changed_at", "from_status", "to_status"]],
-                use_container_width=True,
-                hide_index=True,
-            )
+        records = records_for_current_user()
+        if not records:
+            st.info("No records available.")
         else:
-            st.caption("No status changes recorded for this case in the current session.")
-        st.divider()
-        st.markdown("**All current-session records**")
-        display_cols = ["case_id", "observation_date", "category", "severity", "district_or_site", "status"]
-        st.dataframe(pd.DataFrame(records)[display_cols], use_container_width=True, hide_index=True)
-        st.download_button(
-            "Download current records as CSV",
-            data=_csv_bytes(records),
-            file_name="nema_agora_pilot_records.csv",
-            mime="text/csv",
-            use_container_width=True,
-        )
+            selected_id = st.selectbox("Select record", options=[r["case_id"] for r in reversed(records)])
+            selected = next(r for r in records if r["case_id"] == selected_id)
+            st.markdown(f"**{selected['category']}** · {selected['severity']} · {selected['district_or_site']}")
+            st.write(selected["description"])
+            st.caption(f"Observed: {selected['observation_date']} · Created: {selected['created_at']}")
+            with st.form(f"review_{selected_id}"):
+                new_status = st.selectbox("Status", STATUSES, index=STATUSES.index(selected["status"]))
+                review_notes = st.text_area("Reviewer notes (avoid personal/sensitive data)", value=selected.get("review_notes", ""), max_chars=1000)
+                reviewed = st.form_submit_button("Update status", type="primary")
+            if reviewed:
+                changed_at = datetime.now().astimezone().isoformat(timespec="seconds")
+                try:
+                    if persistent:
+                        service.update_review(selected_id, principal, new_status=new_status, review_notes=review_notes, changed_at=changed_at)
+                    else:
+                        updated, event = apply_status_update(selected, new_status=new_status, review_notes=review_notes, changed_at=changed_at)
+                        idx = next(i for i, item in enumerate(st.session_state.nema_agora_reports) if item["case_id"] == selected_id)
+                        st.session_state.nema_agora_reports[idx] = updated
+                        if event:
+                            st.session_state.nema_agora_audit_events.append(event)
+                except (ValueError, PermissionError, KeyError) as exc:
+                    st.error(str(exc))
+                else:
+                    st.success("Record updated.")
+                    st.rerun()
+
+            if can_audit:
+                events = visible_audit(selected_id)
+                if events:
+                    st.markdown("**Audit history**")
+                    st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
+
+            st.divider()
+            st.dataframe(
+                pd.DataFrame(records)[["case_id", "observation_date", "category", "severity", "district_or_site", "status"]],
+                use_container_width=True, hide_index=True
+            )
+            if can_export:
+                export_records = records_for_current_user()
+                st.download_button(
+                    "Download authorised records as CSV",
+                    data=service.export_csv(principal, export_records),
+                    file_name="nema_agora_records.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
+            elif persistent:
+                st.caption("CSV export is restricted to coordinator/admin roles.")
 
 with tab_map:
     st.subheader("Location view")
-    geocoded = [
-        r for r in st.session_state.nema_agora_reports
-        if isinstance(r.get("latitude"), (int, float))
-        and isinstance(r.get("longitude"), (int, float))
-        and (r.get("latitude") != "" and r.get("longitude") != "")
-    ]
+    records = records_for_current_user()
+    geocoded = [r for r in records if isinstance(r.get("latitude"), (int, float)) and isinstance(r.get("longitude"), (int, float))]
     if not geocoded:
-        st.info("No records with coordinates yet. Add decimal latitude and longitude to a test record.")
+        st.info("No records with coordinates yet.")
     else:
-        map_df = pd.DataFrame([
-            {"lat": r["latitude"], "lon": r["longitude"], "case_id": r["case_id"], "category": r["category"]}
-            for r in geocoded
-        ])
+        map_df = pd.DataFrame([{"lat": r["latitude"], "lon": r["longitude"], "case_id": r["case_id"], "category": r["category"]} for r in geocoded])
         st.map(map_df[["lat", "lon"]], use_container_width=True)
         st.dataframe(map_df, use_container_width=True, hide_index=True)
-        st.caption("Map pins show user-entered test coordinates; they are not independently verified.")
 
 with tab_metrics:
     st.subheader("Pilot monitoring snapshot")
-    records = st.session_state.nema_agora_reports
-    total = len(records)
-    reviewed = sum(1 for r in records if r["status"] != "Received")
-    closed = sum(1 for r in records if r["status"] == "Closed")
-    complete = sum(
-        1 for r in records
-        if r.get("category") and r.get("observation_date") and r.get("description") and r.get("district_or_site")
-    )
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Records in session", total)
-    m2.metric("Reviewed / progressed", reviewed)
-    m3.metric("Closed in session", closed)
-    m4.metric("Required fields complete", f"{(complete / total * 100):.0f}%" if total else "—")
-    if records:
-        status_counts = pd.DataFrame(records)["status"].value_counts().rename_axis("status").reset_index(name="count")
-        st.bar_chart(status_counts.set_index("status"))
+    if persistent and not can_metrics:
+        st.info("Metrics are restricted to reviewer/coordinator/admin roles.")
     else:
-        st.caption("Metrics will populate when test records are created.")
-    st.warning("These are prototype-session metrics only, not verified environmental outcomes or official response statistics.")
+        records = records_for_current_user()
+        total = len(records)
+        reviewed = sum(1 for r in records if r["status"] != "Received")
+        closed = sum(1 for r in records if r["status"] == "Closed")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Visible records", total)
+        m2.metric("Reviewed / progressed", reviewed)
+        m3.metric("Closed", closed)
+        if records:
+            counts = pd.DataFrame(records)["status"].value_counts().rename_axis("status").reset_index(name="count")
+            st.bar_chart(counts.set_index("status"))
+        st.warning("Prototype metrics are not verified environmental outcomes or official response statistics.")
 
 with tab_about:
     st.subheader("Project purpose")
-    st.write(
-        "NEMA-AGORA is a proposed student-led pilot for organising environmental observations, "
-        "review status, location information and evaluation data. It is designed to complement "
-        "existing environmental-management systems, not replace them."
-    )
-    st.markdown("**Current MVP includes**")
-    st.markdown(
-        "- Structured observation form and case identifier\n"
-        "- Reviewer status workflow and notes\n"
-        "- Optional coordinates and basic map view\n"
-        "- CSV export and pilot process metrics\n"
-        "- Clear prototype and data-handling limitations"
-    )
-    st.markdown("**Not implemented in this first MVP**")
-    st.markdown(
-        "- Database persistence or user authentication\n"
-        "- Official NEMA, ELMIS or SWIMS integration\n"
-        "- Automated enforcement or verified incident classification\n"
-        "- SMS/USSD/IVR, satellite analytics, IoT or predictive models"
-    )
-    st.markdown("**Project links**")
-    st.markdown("- [LinkedIn](https://www.linkedin.com/in/chris-shem-435166314)")
-    st.markdown("- [Existing Streamlit demonstration](https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/)")
-    st.markdown("- [Bio-Research Enterprise Research Planner](https://sleet-spectacles-fd3.notion.site/Bio-Research-Enterprise-Research-Planner-35f9142806c6805286a5c6767a7c9cfd?pvs=143)")
+    st.write("NEMA-AGORA is a proposed student-led pilot for organising environmental observations, review status, location information and evaluation data. It is designed to complement existing environmental-management systems, not replace them.")
+    st.markdown("**Security milestone now implemented**")
+    st.markdown("- Streamlit OIDC identity → stable issuer + subject principal\n- Server-side role binding with deny-by-default access\n- Persistent repository operations require the authenticated principal\n- Submitters are isolated to records they own\n- Review, metrics, audit and export are permission-gated\n- Persistent mode is explicit; demo mode remains session-only")
+    st.markdown("**Still not implemented**")
+    st.markdown("- Official NEMA, ELMIS or SWIMS integration\n- Regulatory enforcement or verified incident classification\n- SMS/USSD/IVR, satellite analytics, IoT or predictive models\n- Production backup/restore automation, retention enforcement and operational monitoring")
+    st.warning("Before real-user deployment: configure secrets, test each role, establish backup/restore and retention controls, review data governance, and obtain the required institutional/supervisor approvals.")
