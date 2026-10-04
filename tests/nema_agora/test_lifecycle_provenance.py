@@ -30,3 +30,19 @@ def test_separation_of_duties():
     r=LifecycleProvenanceRegistry(":memory:")
     with pytest.raises(ValueError): r.bind(decision_id="LIFE-1",attestation_id="ATT-1",attester_actor_id="same",reviewer_actor_id="same",
       reconciliation_fingerprint=_f("r"),evidence_registry_fingerprint=_f("e"),provenance_fingerprint=_f("p"),bound_at="t")
+
+
+def test_duplicate_decision_binding_fails_closed(tmp_path):
+    r=LifecycleProvenanceRegistry(tmp_path/"db.sqlite")
+    kwargs=dict(decision_id="LIFE-1",attestation_id="ATT-1",attester_actor_id="a1",reviewer_actor_id="r1",reconciliation_fingerprint=_f("r"),evidence_registry_fingerprint=_f("e"),provenance_fingerprint=_f("p"),bound_at="2026-01-01T00:00:00+00:00")
+    r.bind(**kwargs)
+    r.bind(decision_id="LIFE-2",attestation_id="ATT-2",attester_actor_id="a1",reviewer_actor_id="r1",reconciliation_fingerprint=_f("r"),evidence_registry_fingerprint=_f("e"),provenance_fingerprint=_f("p"),bound_at="2026-01-01T00:00:01+00:00")
+    rows=r.list()
+    rows[1]["decision_id"]=rows[0]["decision_id"]
+    out=evaluate_provenance(rows,[{"decision_id":"LIFE-1","attestation_id":"ATT-1","actor_id":"r1","attester_actor_id":"a1"}],[{"attestation_id":"ATT-1"},{"attestation_id":"ATT-2"}],reconciliation_fingerprint=_f("r"),evidence_registry_fingerprint=_f("e"),provenance_fingerprint=_f("p"))
+    assert any(x["reason"]=="DUPLICATE_DECISION_BINDING" for x in out["failures"])
+
+def test_supersession_cycle_fails_closed():
+    out=validate_supersession_chain([{"binding_id":"b1","attestation_id":"ATT-1","superseding_attestation_id":"ATT-2"},{"binding_id":"b2","attestation_id":"ATT-2","superseding_attestation_id":"ATT-1"}],[{"attestation_id":"ATT-1"},{"attestation_id":"ATT-2"}])
+    assert out["valid"] is False
+    assert any(x["reason"]=="SUPERSESSION_CYCLE" for x in out["failures"])
