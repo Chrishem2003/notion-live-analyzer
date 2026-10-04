@@ -1169,3 +1169,10 @@ Next gate: Phase 101 — API Governance Drift Detection & Review Trigger.
 Added deterministic baseline/current snapshot drift detection. Governance changes create a human review trigger; CONTROL_REQUIRED upstream states are HIGH severity. The trigger is advisory governance evidence only and never authorizes regulatory, enforcement, or emergency action.
 
 Next gate: Phase 102 — Persistent Governance Drift Registry.
+
+
+## Phase 102 — Persistent Governance Drift Registry
+
+Added an append-only SQLite registry for Phase 101 governance drift events. Records bind baseline/current snapshots, preserve review triggers and severity, reject duplicate identifiers/fingerprints, and prevent UPDATE/DELETE mutation.
+
+Next gate: Phase 103 — Governance Drift Review Queue Integration.
