@@ -130,9 +130,9 @@ if can_all:
     st.subheader("Dataset readiness")
     readiness = service.annotation_readiness(principal, dataset_version)
     r1, r2, r3 = st.columns(3)
-    r1.metric("Labelled cases", readiness["labelled_cases"])
-    r2.metric("Annotators", len(readiness["annotators"]))
-    r3.metric("Unresolved disagreements", len(readiness["unresolved_disagreements"]))
+    r1.metric("Distinct cases", readiness["labelled_cases"])
+    r2.metric("Double-annotated cases", readiness["double_annotated_cases"])
+    r3.metric("Minimum category κ", f'{readiness["minimum_category_kappa"]:.3f}')
     st.write("Status:", readiness["status"])
     with st.expander("Readiness gates"):
         for gate, passed in readiness["gates"].items():
