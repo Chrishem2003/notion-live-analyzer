@@ -20,7 +20,7 @@ def evidence():
     c=candidate()
     return (
         {
-            "dataset_version":"dataset-v1","manifest_hash":"hash-123","cases":25,
+            "dataset_version":"dataset-v1","manifest_hash":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef","cases":25,
         },
         {
             "status":"READY_FOR_REVIEW",
@@ -37,7 +37,7 @@ def evidence():
         {
             "run_id":"CMP-123",
             "readiness":"READY_FOR_REVIEW",
-            "dataset":{"dataset_version":"dataset-v1","manifest_hash":"hash-123","cases":25},
+            "dataset":{"dataset_version":"dataset-v1","manifest_hash":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef","cases":25},
             "adapters":[{
                 "adapter":"adapter-a","provider":"provider-a","model_version":"model-1",
                 "failures":0,"category_accuracy":0.88,"duplicate_f1":0.91,
@@ -157,3 +157,57 @@ def test_admission_store_persists(tmp_path):
     assert rows[0]["admission_id"]==decision.admission_id
     assert rows[0]["result"]["decision"]==ADMITTED
     assert rows[0]["result"]["policy_version"]=="phase16-v1"
+
+
+def test_annotation_status_cannot_override_failed_gate():
+    dataset, ann, cmp = evidence()
+    ann["gates"]["two_independent_annotators"] = False
+    import nema_agora.admission as admission
+    original = admission.validate_advisory_output
+    admission.validate_advisory_output = lambda output: []
+    try:
+        decision = evaluate_admission(
+            candidate=candidate(), dataset=dataset, annotation_readiness=ann,
+            comparison=cmp, comparison_run_id="CMP-123",
+            approver_id="coordinator-1", rationale="Review.",
+        )
+    finally:
+        admission.validate_advisory_output = original
+    assert decision.decision == NOT_ADMITTED
+    assert not decision.gates["annotation_ready"]
+
+
+def test_invalid_manifest_hash_blocks_admission():
+    dataset, ann, cmp = evidence()
+    dataset["manifest_hash"] = "not-a-sha256"
+    import nema_agora.admission as admission
+    original = admission.validate_advisory_output
+    admission.validate_advisory_output = lambda output: []
+    try:
+        decision = evaluate_admission(
+            candidate=candidate(), dataset=dataset, annotation_readiness=ann,
+            comparison=cmp, comparison_run_id="CMP-123",
+            approver_id="coordinator-1", rationale="Review.",
+        )
+    finally:
+        admission.validate_advisory_output = original
+    assert decision.decision == NOT_ADMITTED
+    assert not decision.gates["frozen_dataset"]
+
+
+def test_safety_evidence_must_match_exact_model_identity():
+    dataset, ann, cmp = evidence()
+    cmp["case_results"][0]["provider"] = "other-provider"
+    import nema_agora.admission as admission
+    original = admission.validate_advisory_output
+    admission.validate_advisory_output = lambda output: []
+    try:
+        decision = evaluate_admission(
+            candidate=candidate(), dataset=dataset, annotation_readiness=ann,
+            comparison=cmp, comparison_run_id="CMP-123",
+            approver_id="coordinator-1", rationale="Review.",
+        )
+    finally:
+        admission.validate_advisory_output = original
+    assert decision.decision == NOT_ADMITTED
+    assert not decision.gates["human_review_contract"]
