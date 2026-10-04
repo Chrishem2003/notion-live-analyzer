@@ -909,3 +909,20 @@ GitHub Actions must verify Phase 67 focused tests, compilation and Streamlit sta
 ### Next gate
 
 Phase 68 — Spatial Evidence Storage & Query Layer.
+
+
+## Phase 68 — Spatial Evidence Storage & Query Layer
+
+Implemented persistent append-only storage and deterministic chronological retrieval for Phase 67 longitudinal evidence. Stored records preserve exact case/candidate identity, timestamps, sequence, predecessor fingerprint, spatial identity, review outcome, provenance and record fingerprint. Mutation is rejected at the database layer.
+
+### Governance boundary
+
+Storage is evidence infrastructure only and does not create environmental truth, regulatory conclusions, violation findings, enforcement actions or emergency decisions.
+
+### Completion gate
+
+GitHub Actions must verify Phase 68 focused tests, compilation and Streamlit startup before Phase 68 is declared CI-green.
+
+### Next gate
+
+Phase 69 — AOI Registry & Environmental Asset Catalog.
