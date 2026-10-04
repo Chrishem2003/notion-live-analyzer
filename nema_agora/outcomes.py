@@ -74,8 +74,9 @@ def build_outcome_study(observations: list[ImpactObservation]) -> OutcomeStudy:
         "end_to_end_success_delta": rate_delta(lambda o:o.workflow_success),
     }
     payload={"pairs":[p.to_dict() for p in pairs],"observations":[o.to_dict() for o in observations]}
+    study_fingerprint = _fingerprint(payload)
     return OutcomeStudy(
-        study_id=f"OS-{uuid.uuid4().hex[:10].upper()}",
+        study_id="OS-" + study_fingerprint[:16].upper(),
         pairs=pairs, sample_size=len(paired), metrics=metrics,
         dataset_fingerprint=_fingerprint(payload),
         created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
