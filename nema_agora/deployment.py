@@ -16,6 +16,7 @@ REQUIRED_MODULES = (
     "nema_agora.provenance",
     "nema_agora.reproducibility",
     "nema_agora.demo",
+    "nema_agora.recovery",
 )
 
 @dataclass(frozen=True)
@@ -30,19 +31,12 @@ def _module_checks() -> list[HealthCheck]:
         try:
             importlib.import_module(name)
         except Exception as exc:
-            checks.append(
-                HealthCheck(
-                    f"import:{name}",
-                    False,
-                    f"{type(exc).__name__}: {exc}",
-                )
-            )
+            checks.append(HealthCheck(f"import:{name}", False, f"{type(exc).__name__}: {exc}"))
         else:
             checks.append(HealthCheck(f"import:{name}", True, "imported"))
     return checks
 
 def _path_check() -> HealthCheck:
-    """Verify the application package is importable from the active runtime."""
     try:
         package = importlib.import_module("nema_agora")
         package_path = Path(package.__file__ or "")
@@ -55,23 +49,14 @@ def _path_check() -> HealthCheck:
 def run_health_checks() -> tuple[HealthCheck, ...]:
     checks = _module_checks()
     checks.append(_path_check())
-    checks.append(
-        HealthCheck(
-            "policy-version",
-            bool(POLICY_VERSION.strip()),
-            POLICY_VERSION,
-        )
-    )
+    checks.append(HealthCheck("policy-version", bool(POLICY_VERSION.strip()), POLICY_VERSION))
     return tuple(checks)
 
 def health_summary(checks: Iterable[HealthCheck] | None = None) -> dict:
     resolved = tuple(checks) if checks is not None else run_health_checks()
     return {
         "healthy": all(check.ok for check in resolved),
-        "checks": [
-            {"name": check.name, "ok": check.ok, "detail": check.detail}
-            for check in resolved
-        ],
+        "checks": [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in resolved],
         "policy_version": POLICY_VERSION,
         "decision_notice": (
             "Deployment health only; does not establish environmental truth, "
