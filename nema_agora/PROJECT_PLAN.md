@@ -612,5 +612,18 @@ Implemented a deterministic, read-only prioritization layer over Phase 48 govern
 ### Completion gate
 GitHub Actions must verify focused tests, compilation and Streamlit smoke before Phase 49 is declared green.
 
+### Phase 50 — Governance Review Workspace
+
+Implemented an authenticated, read-only case investigation workspace over the Phase 49 review queue and Phase 48 casebook. The workspace exposes queue context, finding severity/age/dependency, accountable artifacts, lifecycle evidence, provenance validation state, exact current snapshot fingerprints and an explicit human-review requirement. Governance mutations remain outside this evidence surface.
+
+### Governance boundary
+
+The workspace is an investigation aid only. It does not change governance state, establish environmental truth, authorize NEMA integration, regulatory action, enforcement, emergency response, production approval or autonomous decisions.
+
+### Completion gate
+
+GitHub Actions must verify focused tests, compilation and Streamlit smoke before Phase 50 is declared green.
+
 ### Next gate
-Phase 50 — Governance Review Workspace: provide an authenticated, read-only reviewer workspace that exposes case evidence, queue context and exact provenance while keeping every governance mutation outside the read-only evidence surface.
+
+Phase 51 — Governance Review Decision Preparation: create a separate, human-governed preparation layer that assembles the evidence needed for an authorized reviewer to make an existing governance decision, without executing that decision automatically.
