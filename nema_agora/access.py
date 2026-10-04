@@ -25,6 +25,8 @@ PERMISSIONS: Final = frozenset(
         "intelligence:admit_model",
         "intelligence:controlled_shadow",
         "intelligence:monitor",
+        "intelligence:review_shadow",
+        "intelligence:govern_shadow",
         "annotation:create",
         "annotation:read_own",
         "annotation:read_all",
@@ -37,7 +39,7 @@ PERMISSIONS: Final = frozenset(
 _ROLE_PERMISSIONS = {
     "submitter": frozenset({"observation:create", "observation:read_own"}),
     "reviewer": frozenset(
-        {"observation:read_all", "observation:review", "metrics:read", "intelligence:use", "intelligence:feedback", "intelligence:shadow", "intelligence:lab", "intelligence:comparison", "intelligence:controlled_shadow", "intelligence:monitor", "annotation:create", "annotation:read_own"}
+        {"observation:read_all", "observation:review", "metrics:read", "intelligence:use", "intelligence:feedback", "intelligence:shadow", "intelligence:lab", "intelligence:comparison", "intelligence:controlled_shadow", "intelligence:monitor", "annotation:create", "annotation:read_own", "intelligence:review_shadow"}
     ),
     "coordinator": frozenset(
         {
@@ -58,6 +60,8 @@ _ROLE_PERMISSIONS = {
             "annotation:read_own",
             "annotation:read_all",
             "annotation:adjudicate",
+            "intelligence:review_shadow",
+            "intelligence:govern_shadow",
         }
     ),
     "admin": PERMISSIONS,
