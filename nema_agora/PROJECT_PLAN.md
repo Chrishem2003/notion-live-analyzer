@@ -875,3 +875,20 @@ GitHub Actions must verify Phase 65 focused tests, compilation and Streamlit sta
 ### Next gate
 
 Phase 66 — Spatial Review Evidence Casebook & Provenance: package reconciled review evidence with exact queue and audit artifacts for human investigation and downstream evidence tracking.
+
+
+## Phase 66 — Spatial Review Evidence Casebook & Provenance
+
+Implemented deterministic evidence casebooks that package exact Phase 63 queue artifacts and Phase 64 human-review audit events, bound to the exact Phase 65 reconciliation fingerprint. The casebook recomputes audit-event fingerprints and fails closed on tampering, identity mismatch, queue-binding mismatch or non-unique review evidence.
+
+### Governance boundary
+
+The casebook is evidence packaging only. Human review outcomes remain human evidence and are not converted into environmental truth, regulatory findings, NEMA authorization, official reporting, enforcement, emergency response or production approval.
+
+### Completion gate
+
+GitHub Actions must verify Phase 66 focused tests, compilation and Streamlit startup before Phase 66 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 67 — Spatial Evidence Longitudinal Tracking: preserve case history across repeated observations and reviews without mutating historical evidence.
