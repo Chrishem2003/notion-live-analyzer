@@ -1231,3 +1231,14 @@ The demonstration uses synthetic data in an isolated temporary database. It is n
 Completion gate: focused Phase 109 tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
 
 Next gate: Phase 110 — Human-Acknowledged Recovery Review Ledger.
+
+
+## Phase 110 — Human-Acknowledged Recovery Review Ledger
+
+Added an append-only SQLite ledger for authorized human review of Phase 109 integrity-monitor reports. Review records bind the exact monitor fingerprint, monitor state, recommendation, reviewer identity/role, outcome and timestamp; deterministic audit IDs and fingerprints are validated before persistence. Only coordinator/admin roles are accepted, and NO_ACTION_APPROVED is blocked when the monitor state is CONTROL_REQUIRED or NO_HISTORY. Database UPDATE/DELETE triggers protect stored review records. The ledger records human acknowledgement only and does not perform recovery.
+
+The demonstration uses synthetic data in an isolated temporary database and is not an official NEMA integration or a source of environmental/regulatory conclusions.
+
+Completion gate: focused Phase 110 tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
+
+Next gate: Phase 111 — Recovery Review Reconciliation & Evidence Integrity.
