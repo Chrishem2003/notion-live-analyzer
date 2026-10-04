@@ -19,6 +19,7 @@ from nema_agora.shadow import DeterministicShadowAdapter, run_shadow
 from nema_agora.lab import EvaluationRunStore, LabResult
 from nema_agora.comparison import ComparisonRunStore, ComparisonResult
 from nema_agora.admission import AdmissionStore, ModelAdmissionPolicy, ModelCandidate, evaluate_admission
+from nema_agora.shadow_governance import ControlledShadowStore, execute_controlled_shadow
 from nema_agora.annotation import AnnotationStore, annotation_readiness, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
 
 
@@ -282,6 +283,35 @@ class NemaAgoraService:
         )
         AdmissionStore(self.repository.database_path).save(decision, actor_id=principal.subject_key)
         return decision.to_dict()
+
+    def execute_controlled_shadow(
+        self,
+        *,
+        record: dict[str, Any],
+        admission_id: str,
+        principal: Principal,
+        adapter: Any,
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:controlled_shadow")
+        result = execute_controlled_shadow(
+            database_path=self.repository.database_path,
+            record=record,
+            admission_id=admission_id,
+            actor_id=principal.subject_key,
+            adapter=adapter,
+        )
+        ControlledShadowStore(self.repository.database_path).save(result)
+        return result.to_dict()
+
+    def list_controlled_shadow_runs(
+        self, principal: Principal, *, admission_id: str | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:controlled_shadow")
+        return ControlledShadowStore(self.repository.database_path).list(
+            admission_id=admission_id, limit=limit
+        )
 
     def list_model_admissions(self, principal: Principal, *, limit: int = 25) -> list[dict[str, Any]]:
         self._authorised(principal)
