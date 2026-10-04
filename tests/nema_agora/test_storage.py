@@ -23,18 +23,18 @@ def sample_record():
 def test_create_and_read_observation_persists_between_repository_instances(tmp_path):
     path = tmp_path / "pilot.sqlite3"
     first = NemaAgoraRepository(path)
-    created = first.create_observation(sample_record(), actor_id="reviewer-1", role="reviewer")
+    created = first.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
 
     second = NemaAgoraRepository(path)
-    assert second.get_observation(created["case_id"], actor_id="reviewer-1", role="reviewer") == created
-    assert second.list_observations(actor_id="reviewer-1", role="reviewer", status="Received") == [created]
+    assert second.get_observation(created["case_id"], actor_id="submitter-1", role="submitter") == created
+    assert second.list_observations(actor_id="submitter-1", role="submitter", status="Received") == [created]
 
 
 def test_creation_writes_audit_event_with_actor(tmp_path):
     repository = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
-    record = repository.create_observation(sample_record(), actor_id="reviewer-1", role="reviewer")
+    record = repository.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
 
-    events = repository.list_audit_events(record["case_id"], actor_id="reviewer-1", role="reviewer")
+    events = repository.list_audit_events(record["case_id"], actor_id="admin-1", role="admin")
     assert len(events) == 1
     assert events[0]["event_type"] == "record_created"
     assert events[0]["actor_id"] == "reviewer-1"
@@ -53,7 +53,7 @@ def test_status_update_and_audit_event_are_saved(tmp_path):
         review_notes="Initial triage",
         changed_at="2026-10-04T12:10:00+03:00",
     )
-    events = repository.list_audit_events(record["case_id"], actor_id="reviewer-2", role="reviewer")
+    events = repository.list_audit_events(record["case_id"], actor_id="admin-1", role="admin")
 
     assert updated["status"] == "Under review"
     assert updated["review_notes"] == "Initial triage"
@@ -83,7 +83,7 @@ def test_invalid_transition_does_not_change_record_or_add_event(tmp_path):
 def test_unknown_case_and_missing_actor_are_rejected(tmp_path):
     repository = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
     with pytest.raises(ValueError, match="authenticated actor"):
-        repository.create_observation(sample_record(), actor_id=" ")
+        repository.create_observation(sample_record(), actor_id=" ", role="submitter")
     with pytest.raises(KeyError, match="Case not found"):
         repository.update_review(
             "NA-NOTFOUND",
@@ -134,7 +134,7 @@ def test_intelligence_feedback_is_audited_and_bounded(tmp_path):
                   "notes": "Synthetic evaluation note", "copilot_version": "phase10-v1"},
         occurred_at="2026-10-04T12:02:00+03:00",
     )
-    events = repo.list_intelligence_events(record["case_id"], actor_id="reviewer-1", role="reviewer")
+    events = repo.list_intelligence_events(record["case_id"], actor_id="admin-1", role="admin")
     assert [e["event_type"] for e in events] == ["analysis_run", "feedback_recorded"]
     assert events[-1]["details"]["feedback_type"] == "corrected"
 
