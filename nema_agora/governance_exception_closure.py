@@ -72,6 +72,8 @@ def evaluate_closure(
         payload = resolution.get("payload") if isinstance(resolution, Mapping) else None
         if isinstance(payload, Mapping):
             payload = payload.get("metadata", payload)
+            if isinstance(payload, Mapping) and "metadata" in payload and isinstance(payload.get("metadata"), Mapping):
+                payload = payload["metadata"]
         if not isinstance(payload, Mapping):
             continue
         if payload.get("resolution_status") != "RESOLVED":
