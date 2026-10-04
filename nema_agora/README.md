@@ -188,3 +188,12 @@ fields and must preserve the source case ID with `human_review_required=true`.
 No LLM provider, API credential or external data transfer is enabled by this
 phase. A provider-neutral adapter contract is present so future models can be
 evaluated without coupling the core workflow to a specific vendor.
+
+
+## Phase 11: Pilot Intelligence Observatory
+
+Phase 11 adds a measurement layer for the AI-assisted pilot. The observatory tracks reviewer feedback volume, correction rate, evaluation sample size, category accuracy, duplicate F1 and summary faithfulness, then applies conservative readiness gates.
+
+A passing state is `READY_FOR_REVIEW` only. It does not mean production-ready, officially validated, endorsed by NEMA, or safe for autonomous action. The observatory defaults to `NOT_READY` when evidence is insufficient.
+
+No live AI provider is connected by this phase. The next step is controlled shadow-mode evaluation with explicit governance and human approval.
