@@ -1141,3 +1141,10 @@ Next gate: Phase 97 — API Human Review Reconciliation & Evidence Integrity.
 Added reconciliation across API governance queue items, casebook records, and immutable human-review audits. Detects orphan reviews/cases, duplicate audits, queue/case fingerprint mismatches, request identity mismatches, invalid outcomes, and review-audit fingerprint tampering. Integrity gaps fail closed to CONTROL_REQUIRED.
 
 Next gate: Phase 98 — API Governance Evidence Observatory.
+
+
+## Phase 98 — API Governance Evidence Observatory
+
+Added a read-only aggregate across API audit events, reconciliations, lifecycle records, lifecycle decisions, casebooks, review queues, human reviews, and review reconciliation. Any CONTROL_REQUIRED source keeps the observatory in CONTROL_REQUIRED. No environmental truth, regulatory authority, enforcement, or emergency response is inferred.
+
+Next gate: Phase 99 — API Governance Evidence Coverage & Health.
