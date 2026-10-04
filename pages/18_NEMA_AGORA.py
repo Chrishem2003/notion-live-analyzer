@@ -224,7 +224,7 @@ with tab_review:
 
 with tab_intelligence:
     st.subheader("🧠 Evidence intelligence — human-in-the-loop")
-    st.caption("Phase 8 foundation: deterministic, explainable and advisory. No autonomous regulatory or enforcement decisions are made.")
+    st.caption("Phase 8–10 foundation: deterministic, explainable, evaluated and advisory. No autonomous regulatory or enforcement decisions are made.")
     if not persistent:
         st.info("Intelligence controls are available after authenticated persistent deployment. Demo mode remains session-only.")
     elif not can_intelligence:
