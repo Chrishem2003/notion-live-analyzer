@@ -21,6 +21,7 @@ from nema_agora.comparison import ComparisonRunStore, ComparisonResult
 from nema_agora.admission import AdmissionStore, ModelAdmissionPolicy, ModelCandidate, evaluate_admission
 from nema_agora.shadow_governance import ControlledShadowStore, execute_controlled_shadow
 from nema_agora.shadow_monitoring import build_shadow_monitoring_snapshot
+from nema_agora.provenance import ProvenanceStore, verify_provenance_chain
 from nema_agora.review_governance import (
     ReviewStore, build_reevaluation, make_shadow_review, make_lifecycle_decision,
 )
@@ -343,6 +344,34 @@ class NemaAgoraService:
         return build_shadow_monitoring_snapshot(
             runs, admission_id=admission_id
         ).to_dict()
+
+    def list_provenance(
+        self,
+        principal: Principal,
+        *,
+        event_type: str | None = None,
+        event_id: str | None = None,
+        limit: int = 500,
+    ) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:provenance")
+        return ProvenanceStore(self.repository.database_path).list(
+            event_type=event_type, event_id=event_id, limit=limit
+        )
+
+    def verify_provenance(
+        self,
+        principal: Principal,
+        *,
+        event_type: str | None = None,
+        limit: int = 1000,
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:provenance")
+        records = ProvenanceStore(self.repository.database_path).list(
+            event_type=event_type, limit=limit
+        )
+        return verify_provenance_chain(records)
 
     def record_shadow_review(
         self, principal: Principal, *, run: dict[str, Any], decision: str,
