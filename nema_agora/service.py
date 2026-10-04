@@ -15,6 +15,7 @@ from nema_agora.intelligence import analyze_observation
 from nema_agora.copilot import build_reviewer_copilot
 from nema_agora.storage import NemaAgoraRepository
 from nema_agora.shadow import DeterministicShadowAdapter, run_shadow
+from nema_agora.lab import EvaluationRunStore, LabResult
 
 
 class NemaAgoraService:
@@ -161,6 +162,19 @@ class NemaAgoraService:
         require_permission(principal.role, "metrics:read")
         from nema_agora.observatory import build_observatory_snapshot
         return build_observatory_snapshot(report, feedback_events).to_dict()
+
+    def record_evaluation_run(self, result: LabResult, principal: Principal) -> None:
+        """Persist an immutable Phase 13 evaluation result under the authenticated actor."""
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:lab")
+        EvaluationRunStore(self.repository.database_path).save(
+            result, actor_id=principal.subject_key
+        )
+
+    def list_evaluation_runs(self, principal: Principal, *, limit: int = 25) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:lab")
+        return EvaluationRunStore(self.repository.database_path).list(limit=limit)
 
     def record_intelligence_feedback(
         self,
