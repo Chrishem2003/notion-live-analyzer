@@ -51,12 +51,19 @@ class GovernanceExceptionResolver:
         recorded = self.capture.record(event_id=event_id,event_type=RESOLUTION_EVENT,actor_id=actor_id,payload=payload)
         entry = recorded.get("entry")
         if isinstance(entry, Mapping):
-            return {**recorded, **entry}
+            return {**recorded, **entry, "event_type": RESOLUTION_EVENT}
         return recorded
 
     def list_resolutions(self, limit: int = 500) -> list[dict[str,Any]]:
         rows=[]
         for entry in self.ledger.list_entries(limit=min(max(int(limit),1),5000)):
-            if entry.get("event_type")==RESOLUTION_EVENT:
-                rows.append(entry)
+            if entry.get("event_type") != "GOVERNED_AUDIT_EVENT":
+                continue
+            body = entry.get("payload")
+            if not isinstance(body, Mapping) or body.get("event_type") != RESOLUTION_EVENT:
+                continue
+            metadata = body.get("metadata")
+            if isinstance(metadata, Mapping):
+                rows.append({**entry, "event_type": RESOLUTION_EVENT,
+                             "payload": {**body, "metadata": dict(metadata)}})
         return rows
