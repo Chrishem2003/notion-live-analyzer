@@ -316,3 +316,43 @@ def _list_adjudications(self: AnnotationStore, dataset_version: str) -> list[Adj
 
 AnnotationStore.save_adjudication = _save_adjudication
 AnnotationStore.list_adjudications = _list_adjudications
+
+
+def annotation_readiness(
+    annotations: list[Annotation],
+    adjudications: list[Adjudication],
+    *,
+    minimum_cases: int = 25,
+    minimum_category_kappa: float = 0.80,
+) -> dict[str, Any]:
+    """Evaluate dataset annotation readiness without claiming label validity."""
+    annotators = sorted({a.annotator_id for a in annotations})
+    case_ids = {a.case_id for a in annotations}
+    disagreements = disagreement_cases(annotations)
+    pair = None
+    if len(annotators) >= 2:
+        pair = pairwise_agreement(
+            [a for a in annotations if a.annotator_id == annotators[0]],
+            [a for a in annotations if a.annotator_id == annotators[1]],
+        )
+    adjudicated = {a.case_id for a in adjudications}
+    unresolved = sorted(set(disagreements) - adjudicated)
+    gates = {
+        "minimum_labelled_cases": len(case_ids) >= minimum_cases,
+        "two_independent_annotators": len(annotators) >= 2,
+        "category_agreement": bool(pair and pair["category_cohen_kappa"] >= minimum_category_kappa),
+        "all_disagreements_adjudicated": not unresolved,
+    }
+    return {
+        "status": "READY_FOR_REVIEW" if all(gates.values()) else "NOT_READY",
+        "labelled_cases": len(case_ids),
+        "annotators": annotators,
+        "disagreements": disagreements,
+        "unresolved_disagreements": unresolved,
+        "agreement": pair,
+        "gates": gates,
+        "safety_notice": (
+            "Annotation readiness measures consistency and process completeness. "
+            "It does not establish environmental truth or certify the dataset for production use."
+        ),
+    }
