@@ -25,6 +25,7 @@ def test_roles_have_only_known_permissions():
         ("coordinator", "case:export", True),
         ("coordinator", "user:manage", False),
         ("coordinator", "intelligence:use", True),
+        ("coordinator", "intelligence:feedback", True),
         ("admin", "user:manage", True),
         ("unknown", "observation:create", False),
         (None, "observation:create", False),
@@ -69,3 +70,4 @@ def test_submitter_cannot_use_intelligence():
 
 def test_admin_can_use_intelligence():
     assert has_permission("admin", "intelligence:use")
+    assert has_permission("admin", "intelligence:feedback")
