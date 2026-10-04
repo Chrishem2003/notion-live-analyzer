@@ -162,3 +162,16 @@ does not establish environmental truth, illegality, urgency, regulatory
 priority or enforcement action. Model-based AI is intentionally not enabled
 until a labelled evaluation set, data governance and an approved model/data
 handling plan exist.
+
+
+## Phase 9: AI evaluation and decision-support gate
+
+Phase 9 establishes the measurement and safety layer before any live model
+provider is connected. Synthetic/human-labelled evaluation fixtures support
+category accuracy, duplicate precision/recall/F1 and human-labelled summary
+faithfulness. Advisory outputs are checked for prohibited autonomous decision
+fields and must preserve the source case ID with `human_review_required=true`.
+
+No LLM provider, API credential or external data transfer is enabled by this
+phase. A provider-neutral adapter contract is present so future models can be
+evaluated without coupling the core workflow to a specific vendor.
