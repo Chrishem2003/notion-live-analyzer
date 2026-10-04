@@ -6,8 +6,6 @@ not connect an external model and does not change live case workflow.
 from __future__ import annotations
 
 import json
-from pathlib import Path
-
 import pandas as pd
 import streamlit as st
 
@@ -78,8 +76,7 @@ with st.expander("Evaluation contract", expanded=True):
         language="json",
     )
 
-default_path = Path(__file__).resolve().parents[1] / "nema_agora" / "evaluation_fixture.json"
-default_text = default_path.read_text(encoding="utf-8") if default_path.exists() else "[]"
+default_text = "[]"
 dataset_text = st.text_area(
     "Human-labelled evaluation dataset (JSON)",
     value=st.session_state.get("nema_agora_lab_dataset", default_text),
