@@ -88,3 +88,10 @@ def test_annotation_permissions_are_separated():
     assert has_permission("coordinator", "annotation:read_all")
     assert has_permission("coordinator", "annotation:adjudicate")
     assert not has_permission("submitter", "annotation:create")
+
+
+def test_reproducibility_permission_is_not_available_to_submitters():
+    assert not has_permission("submitter", "intelligence:reproducibility")
+    assert has_permission("reviewer", "intelligence:reproducibility")
+    assert has_permission("coordinator", "intelligence:reproducibility")
+    assert has_permission("admin", "intelligence:reproducibility")
