@@ -24,3 +24,25 @@ def test_outcome_study_ignores_unmatched_conditions():
     study=build_outcome_study(observations)
     assert study.sample_size==0
     assert validate_outcome_study(study,observations)["valid"] is True
+
+
+def test_outcome_study_fingerprint_is_stable_for_same_observations():
+    observations=[
+        _obs("S1","BASELINE",100,True,False,4,False,True),
+        _obs("S1","ASSISTED",80,True,True,3,False,True),
+    ]
+    first=build_outcome_study(observations)
+    second=build_outcome_study(observations)
+    assert first.dataset_fingerprint==second.dataset_fingerprint
+    assert first.pairs[0].pair_id==second.pairs[0].pair_id
+
+def test_outcome_validation_detects_missing_paired_observation():
+    observations=[
+        _obs("S1","BASELINE",100,True,True,4,False,True),
+        _obs("S1","ASSISTED",80,True,True,3,False,True),
+    ]
+    study=build_outcome_study(observations)
+    reduced=[observations[0]]
+    result=validate_outcome_study(study,reduced)
+    assert result["valid"] is False
+    assert any(error.startswith("MISSING_OBSERVATION") for error in result["errors"])
