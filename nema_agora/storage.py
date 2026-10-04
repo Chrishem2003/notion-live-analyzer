@@ -93,6 +93,17 @@ class NemaAgoraRepository:
                     ON audit_events(case_id, occurred_at, event_id);
                 """
             )
+            columns = {row["name"] for row in connection.execute("PRAGMA table_info(observations)")}
+            if "owner_id" not in columns:
+                # Legacy records have no trustworthy owner. Keep them inaccessible
+                # to submitters; privileged reviewer/coordinator roles can review
+                # and reassign them through an approved migration workflow.
+                connection.execute(
+                    "ALTER TABLE observations ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'legacy-unowned'"
+                )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_observations_owner ON observations(owner_id)"
+            )
 
     def create_observation(self, record: dict[str, Any], *, actor_id: str, role: str) -> dict[str, Any]:
         actor = _actor(actor_id)
