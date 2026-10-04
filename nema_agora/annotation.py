@@ -318,6 +318,25 @@ AnnotationStore.save_adjudication = _save_adjudication
 AnnotationStore.list_adjudications = _list_adjudications
 
 
+def all_pairwise_agreement(annotations: list[Annotation]) -> list[dict[str, Any]]:
+    """Return agreement for every annotator pair, never exposing labels."""
+    annotators = sorted({a.annotator_id for a in annotations})
+    by_annotator = {
+        who: [a for a in annotations if a.annotator_id == who]
+        for who in annotators
+    }
+    results = []
+    for index, first in enumerate(annotators):
+        for second in annotators[index + 1:]:
+            result = pairwise_agreement(by_annotator[first], by_annotator[second])
+            results.append({
+                "annotator_a": first,
+                "annotator_b": second,
+                **result,
+            })
+    return results
+
+
 def annotation_readiness(
     annotations: list[Annotation],
     adjudications: list[Adjudication],
@@ -327,29 +346,31 @@ def annotation_readiness(
 ) -> dict[str, Any]:
     """Evaluate dataset annotation readiness without claiming label validity."""
     annotators = sorted({a.annotator_id for a in annotations})
-    case_ids = {a.case_id for a in annotations}
+    case_counts: dict[str, int] = {}
+    for item in annotations:
+        case_counts[item.case_id] = case_counts.get(item.case_id, 0) + 1
+    doubly_annotated_cases = {case_id for case_id, count in case_counts.items() if count >= 2}
     disagreements = disagreement_cases(annotations)
-    pair = None
-    if len(annotators) >= 2:
-        pair = pairwise_agreement(
-            [a for a in annotations if a.annotator_id == annotators[0]],
-            [a for a in annotations if a.annotator_id == annotators[1]],
-        )
+    pairs = all_pairwise_agreement(annotations)
+    minimum_kappa = min((p["category_cohen_kappa"] for p in pairs), default=0.0)
     adjudicated = {a.case_id for a in adjudications}
     unresolved = sorted(set(disagreements) - adjudicated)
     gates = {
-        "minimum_labelled_cases": len(case_ids) >= minimum_cases,
+        "minimum_double_annotated_cases": len(doubly_annotated_cases) >= minimum_cases,
         "two_independent_annotators": len(annotators) >= 2,
-        "category_agreement": bool(pair and pair["category_cohen_kappa"] >= minimum_category_kappa),
+        "all_annotator_pairs_measured": bool(pairs),
+        "minimum_category_kappa": bool(pairs) and minimum_kappa >= minimum_category_kappa,
         "all_disagreements_adjudicated": not unresolved,
     }
     return {
         "status": "READY_FOR_REVIEW" if all(gates.values()) else "NOT_READY",
-        "labelled_cases": len(case_ids),
+        "labelled_cases": len(case_counts),
+        "double_annotated_cases": len(doubly_annotated_cases),
         "annotators": annotators,
         "disagreements": disagreements,
         "unresolved_disagreements": unresolved,
-        "agreement": pair,
+        "pairwise_agreement": pairs,
+        "minimum_category_kappa": minimum_kappa,
         "gates": gates,
         "safety_notice": (
             "Annotation readiness measures consistency and process completeness. "
