@@ -808,3 +808,20 @@ GitHub Actions must verify Phase 60 focused tests, compilation and Streamlit sta
 ### Next gate
 
 Phase 61 — Broader Spatial Change Detection: introduce explicit change-detection policies and candidate generation over quality-approved spatial/temporal evidence while preserving human review and non-regulatory outputs.
+
+
+## Phase 61 — Broader Spatial Change Detection
+
+Implemented deterministic candidate generation over Phase 60 quality-approved spatial/temporal evidence. The phase adds explicit NDVI and McFeeters NDWI absolute-change thresholds, ANY/ALL/WEIGHTED rule modes, transparent reason codes, deterministic candidate IDs, and quality/uncertainty carry-forward. Detected candidates remain human-review evidence only.
+
+### Governance boundary
+
+Threshold detection does not establish deforestation, wetland loss, illegality, environmental truth, regulatory status, enforcement action, emergency response, NEMA authorization or production approval.
+
+### Completion gate
+
+GitHub Actions must verify Phase 61 focused tests, compilation and Streamlit startup before Phase 61 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 62 — Spatial Change Evidence Scoring & Review Queue Integration: strengthen candidate prioritisation with transparent evidence scoring and deterministic review-queue records.
