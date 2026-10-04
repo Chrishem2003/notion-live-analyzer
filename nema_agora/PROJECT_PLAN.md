@@ -189,3 +189,43 @@ The default adapter is deliberately deterministic and local. It is a test harnes
 3. Measure agreement, false positives/negatives, corrections, latency and failure rates by model version.
 4. Add calibration and slice-level analysis before considering any model for limited pilot use.
 5. Keep human approval mandatory for every workflow-affecting decision.
+
+
+## Phase 13 — AI Evaluation Laboratory
+
+Phase 13 turns the shadow pipeline into a reproducible evaluation laboratory. The laboratory is deliberately separated from live case workflow and does not claim that an AI model is safe, accurate or approved merely because a run completed.
+
+### Implemented
+
+- nema_agora/lab.py provides versioned labelled cases and provider-neutral adapter execution.
+- Every adapter output is checked against the Phase 9 safety contract before metrics are calculated.
+- Source-case binding prevents an adapter from returning results for another case.
+- Category accuracy is measured only on cases with a valid category prediction.
+- Duplicate precision, recall and F1 are measured from explicit human labels.
+- Error rate and mean latency are recorded for every adapter.
+- Optional confidence values are evaluated with Brier score when the adapter supplies a bounded 0–1 confidence.
+- Dataset slices are evaluated separately so aggregate scores do not hide weak subgroups.
+- Unsafe adapter outputs fail safely and remain isolated from observations.
+- Evaluation runs are persisted separately with run ID, actor, dataset version, timestamp and immutable result JSON.
+- A dedicated Streamlit Evaluation Laboratory is available to reviewer/coordinator/admin roles.
+- The only enabled adapter is the local deterministic baseline. No external model/API is silently connected.
+- The laboratory requires human-labelled cases; it does not manufacture ground truth.
+
+### Readiness rule
+
+The baseline laboratory status is NOT_READY unless there are at least 25 labelled cases, zero adapter execution errors, category accuracy of at least 80%, and duplicate F1 of at least 80% for every evaluated adapter.
+
+READY_FOR_REVIEW means the evidence meets these engineering thresholds. It is not production approval, environmental validation, regulatory authority, NEMA endorsement, or permission for autonomous decisions.
+
+### Evaluation discipline
+
+Summary-faithfulness labels are retained as human-label metadata and reported as label coverage; the laboratory does not treat a model's own self-reported faithfulness as ground truth. Human review must supply the actual summary-quality judgement.
+
+### Next gate
+
+1. Build a diverse, permissioned labelled dataset with documented annotation rules.
+2. Add inter-reviewer agreement and adjudication for disputed labels.
+3. Add an explicitly approved second adapter and run identical cases side-by-side.
+4. Add regression thresholds to CI for fixed benchmark fixtures.
+5. Review error slices, confidence calibration, latency and failure modes before any limited pilot model is considered.
+6. Keep workflow-changing decisions behind explicit human approval.
