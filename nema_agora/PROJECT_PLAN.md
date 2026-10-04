@@ -1022,3 +1022,10 @@ Next gate: Phase 80 — Spatial Evidence API Integration & Persistent Store Adap
 Connected the Phase 79 service boundary to a repository abstraction. The prototype supports a read-only in-memory repository for deterministic tests and defines the same adapter contract for the existing SQLite evidence store and future PostgreSQL/PostGIS persistence. No live database migration or provider connection is claimed.
 
 Next gate: Phase 81 — SQLite Spatial Evidence Repository Adapter.
+
+
+## Phase 81 — SQLite Spatial Evidence Repository Adapter
+
+Added the concrete SQLite repository behind the Phase 80 repository contract. Persistence delegates to the Phase 68 append-only SpatialEvidenceStore, preserving immutable evidence history while exposing deterministic service-layer filters. This remains prototype persistence; PostgreSQL/PostGIS is the future production adapter.
+
+Next gate: Phase 82 — API-to-Repository Integration Tests and Evidence Retrieval Hardening.
