@@ -419,3 +419,12 @@ Implemented a paired outcome-analysis layer over the Phase 22 impact observation
 ## Phase 29 — Evidence Synthesis
 
 Implemented an auditable evidence narrative layer with six bounded evidence domains and a claim → evidence → limitation matrix. Claims retain source identifiers, sample sizes, support status and limitations; synthesis identities are deterministic from canonical evidence inputs. Added authenticated Streamlit evidence synthesis page and focused CI coverage. This layer is research/engineering evidence only and cannot establish environmental truth, environmental impact, NEMA authorization, regulatory status, production approval, enforcement or autonomous decision authority.
+
+
+## Phase 30 — Evidence Provenance Graph & Research Report
+
+Implemented deterministic provenance lineage with parent and claim-support edges, explicit missing-parent/orphan-claim detection, and a machine-readable research report. Added authenticated evidence-report page, tests and focused CI coverage.
+
+## Phase 31 — Research & Award Dossier
+
+Implemented a human-reviewed dossier layer with Executive Summary, Technical Contribution, Evidence & Results, Governance & Safety, and Limitations & Next Steps sections. The dossier preserves claim/evidence references, limitations, review status and deterministic identity, and blocks publication readiness when claims are unlinked or lineage is broken. Added authenticated dossier page, tests, documentation and CI coverage.
