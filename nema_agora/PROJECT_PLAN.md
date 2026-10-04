@@ -356,3 +356,19 @@ Validate the readiness gate, then move into deployment hardening and a
 controlled public demonstration track: automated manifest generation,
 deployment smoke tests, synthetic demo data, accessibility verification,
 operational runbooks and an award/demo evidence package.
+
+
+## Phase 27 — Deployment & Demonstration Hardening
+
+Phase 27 establishes a deterministic demonstration track so the system can be
+shown end-to-end without mixing synthetic demo records with pilot evidence.
+
+Implemented:
+- reproducible synthetic demonstration dataset and fingerprint;
+- explicit synthetic/non-persistent safety metadata;
+- tests for deterministic and session-safe demo artifacts;
+- demonstration hardening documentation;
+- continued focused CI coverage.
+
+Next: operational runbooks, automated deployment identity capture, deployment
+smoke checks, demo reset controls, and an award-quality evidence package.
