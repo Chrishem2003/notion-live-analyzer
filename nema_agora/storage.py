@@ -104,6 +104,23 @@ class NemaAgoraRepository:
                     ON audit_events(case_id, occurred_at, event_id);
                 CREATE INDEX IF NOT EXISTS idx_intelligence_case_time
                     ON intelligence_events(case_id, occurred_at, event_id);
+
+
+                CREATE TABLE IF NOT EXISTS shadow_runs (
+                    run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    case_id TEXT NOT NULL REFERENCES observations(case_id),
+                    actor_id TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    model_version TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK (status IN ('SHADOW_OK', 'SHADOW_ERROR')),
+                    latency_ms REAL NOT NULL,
+                    result_json TEXT,
+                    error_text TEXT,
+                    occurred_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_shadow_case_time
+                    ON shadow_runs(case_id, occurred_at, run_id);
                 """
             )
             columns = {row["name"] for row in connection.execute("PRAGMA table_info(observations)")}
@@ -360,3 +377,54 @@ class NemaAgoraRepository:
             ).fetchall()
         return [{**dict(row), "details": json.loads(row["details_json"])} for row in rows]
 
+
+    def record_shadow_run(
+        self, case_id: str, *, actor_id: str, role: str,
+        result: dict[str, Any], occurred_at: str,
+    ) -> None:
+        actor = _actor(actor_id)
+        require_permission(role, "intelligence:shadow")
+        if not case_id or len(case_id.strip()) > 64:
+            raise ValueError("A valid case identifier is required.")
+        if not occurred_at.strip():
+            raise ValueError("A shadow-run timestamp is required.")
+        if result.get("source_case_id") != case_id:
+            raise ValueError("Shadow result source_case_id must match case_id.")
+        status = str(result.get("status", ""))
+        if status not in {"SHADOW_OK", "SHADOW_ERROR"}:
+            raise ValueError("Unknown shadow-run status.")
+        provider = str(result.get("provider", "")).strip()[:80]
+        model_version = str(result.get("model_version", "")).strip()[:120]
+        if not provider or not model_version:
+            raise ValueError("Shadow provider and model version are required.")
+        latency_ms = float(result.get("latency_ms", 0.0))
+        if latency_ms < 0:
+            raise ValueError("Shadow latency cannot be negative.")
+        with self._session() as connection:
+            if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
+                raise KeyError(f"Case not found: {case_id}")
+            connection.execute(
+                """INSERT INTO shadow_runs
+                   (case_id, actor_id, provider, model_version, status, latency_ms,
+                    result_json, error_text, occurred_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (case_id, actor, provider, model_version, status, latency_ms,
+                 json.dumps(result.get("output"), ensure_ascii=False, sort_keys=True)
+                 if result.get("output") is not None else None,
+                 str(result.get("error") or "")[:500] or None, occurred_at),
+            )
+
+    def list_shadow_runs(self, case_id: str, *, actor_id: str, role: str) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "intelligence:shadow")
+        with self._session() as connection:
+            rows = connection.execute(
+                """SELECT run_id, case_id, actor_id, provider, model_version, status,
+                          latency_ms, result_json, error_text, occurred_at
+                   FROM shadow_runs WHERE case_id = ? ORDER BY run_id""",
+                (case_id,),
+            ).fetchall()
+        return [
+            {**dict(row), "result": json.loads(row["result_json"]) if row["result_json"] else None}
+            for row in rows
+        ]
