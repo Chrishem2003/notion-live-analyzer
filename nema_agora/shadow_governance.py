@@ -140,7 +140,7 @@ def execute_controlled_shadow(
         raise ValueError("Adapter identity does not match the admitted candidate.")
 
     result = run_shadow(record, adapter)
-    return ControlledShadowRun(
+    governed_run = ControlledShadowRun(
         run_id=f"CSR-{uuid.uuid4().hex[:10].upper()}",
         admission_id=admission_id,
         case_id=result.source_case_id,
@@ -154,3 +154,5 @@ def execute_controlled_shadow(
         error=result.error,
         occurred_at=datetime.now().astimezone().isoformat(timespec="seconds"),
     )
+    ControlledShadowStore(database_path).save(governed_run)
+    return governed_run
