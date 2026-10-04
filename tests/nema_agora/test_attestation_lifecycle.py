@@ -26,13 +26,13 @@ def test_approve_requires_second_person_and_becomes_active(tmp_path):
     att = _att(actor="attester")
     try:
         reg.decide(attestation_id="ATT-1", decision=APPROVE, actor_id="attester",
-                   role="coordinator", rationale="Approve exact reviewed snapshot.")
+                   role="coordinator", attester_actor_id="attester", rationale="Approve exact reviewed snapshot.")
     except ValueError:
         pass
     else:
         assert False, "same actor must not perform second-person approval"
     row = reg.decide(attestation_id="ATT-1", decision=APPROVE, actor_id="reviewer-2",
-                     role="coordinator", rationale="Second-person review completed.",
+                     role="coordinator", attester_actor_id="attester", rationale="Second-person review completed.",
                      expires_at="2026-01-02T00:00:00+00:00")
     assert row["decision"] == APPROVE
     result = evaluate_lifecycle([att], reg.list(), **_base(), now="2026-01-01T12:00:00+00:00")
@@ -48,7 +48,7 @@ def test_lifecycle_rejects_same_actor_and_invalid_roles(tmp_path):
     else:
         assert False
     try:
-        reg.decide(attestation_id="ATT-1", decision=APPROVE, actor_id="x", role="coordinator",
+        reg.decide(attestation_id="ATT-1", decision=APPROVE, actor_id="x", role="coordinator", attester_actor_id="attester",
                    rationale="No.")
     except ValueError:
         pass
