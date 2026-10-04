@@ -1262,3 +1262,12 @@ Added deterministic lifecycle evaluation for reconciled Phase 110 recovery revie
 Completion gate: focused Phase 112 tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
 
 Next gate: Phase 113 — Recovery Decision Ledger & Immutable Authorization Boundary.
+
+
+## Phase 113 — Recovery Decision Ledger & Immutable Authorization Boundary
+
+Added a human authorization ledger after recovery-review lifecycle evaluation. Authorization records are deterministically fingerprinted, bound to lifecycle/review/monitor evidence, and persisted append-only with UPDATE/DELETE database triggers. Supported decisions are deliberately non-executing: AUTHORIZE_NO_ACTION, AUTHORIZE_REVIEW_ONLY and AUTHORIZE_ESCALATION. Every record explicitly keeps execution_permitted=false and execution_performed=false. No environmental, regulatory, enforcement or emergency conclusion is produced.
+
+Completion gate: focused Phase 113 tests, compilation and Streamlit smoke checks must visibly pass before CI-green is claimed.
+
+Next gate: Phase 114 — Authorization Reconciliation & Execution-Gate Integrity.
