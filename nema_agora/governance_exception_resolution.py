@@ -48,7 +48,11 @@ class GovernanceExceptionResolver:
                  "outcome":outcome,"reason_code":reason_code,"reconciliation_fingerprint":reconciliation_fingerprint,
                  "resolution_status":RESOLVED,"source_module":"governance_reconciliation","recorded_by_role":role,
                  "policy_version":POLICY_VERSION}
-        return self.capture.record(event_id=event_id,event_type=RESOLUTION_EVENT,actor_id=actor_id,payload=payload)
+        recorded = self.capture.record(event_id=event_id,event_type=RESOLUTION_EVENT,actor_id=actor_id,payload=payload)
+        entry = recorded.get("entry")
+        if isinstance(entry, Mapping):
+            return {**recorded, **entry}
+        return recorded
 
     def list_resolutions(self, limit: int = 500) -> list[dict[str,Any]]:
         rows=[]
