@@ -70,3 +70,49 @@ def test_invalid_record_is_not_created():
             consent_confirmed=False,
             created_at="now",
         )
+
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ("=HYPERLINK(\"https://example.invalid\")", "'=HYPERLINK(\"https://example.invalid\")"),
+        ("  +SUM(A1:A2)", "'  +SUM(A1:A2)"),
+        ("@SUM(A1:A2)", "'@SUM(A1:A2)"),
+        ("ordinary text", "ordinary text"),
+        ("", ""),
+    ],
+)
+def test_csv_safe_value_neutralises_formula_like_text(value, expected):
+    from nema_agora.core import csv_safe_value
+
+    assert csv_safe_value(value) == expected
+
+
+def test_csv_safe_value_preserves_numeric_negative_coordinates():
+    from nema_agora.core import csv_safe_value
+
+    assert csv_safe_value(-1.25) == -1.25
+
+
+def test_site_label_length_is_limited():
+    errors = validate_observation(
+        site="S" * 121, description="An observation", consent_confirmed=True
+    )
+    assert any("120 characters" in error for error in errors)
+
+
+def test_evidence_reference_length_is_limited():
+    with pytest.raises(ValueError, match="300 characters"):
+        make_observation(
+            observation_date=date(2026, 10, 3),
+            category=CATEGORIES[0],
+            severity="Low",
+            site="Pilot A",
+            description="Test observation",
+            latitude=0,
+            longitude=0,
+            consent_confirmed=True,
+            created_at="2026-10-03T12:00:00+03:00",
+            evidence_reference="e" * 301,
+        )
