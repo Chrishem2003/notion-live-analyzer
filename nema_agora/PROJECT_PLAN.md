@@ -101,3 +101,24 @@ Next intelligence gate:
 4. Keep model outputs separate from stored facts and require human acceptance before
    any workflow state changes.
 5. Never use the intelligence layer as an autonomous enforcement or regulatory engine.
+
+
+## Phase 10 — Reviewer Copilot & Human Evaluation
+
+Implemented reviewer-support layer:
+
+1. Structured copilot briefs are derived from the existing deterministic analysis.
+2. Evidence facts are explicitly labelled by source field; the copilot does not invent evidence.
+3. Uncertainty questions and a bounded reviewer checklist keep human judgement central.
+4. Every brief carries a source case ID and a versioned copilot contract.
+5. Reviewer feedback supports accepted/rejected/corrected evaluation labels without changing workflow state.
+6. Persisted analysis and feedback events are stored separately from case facts for audit/evaluation.
+7. Reviewer/coordinator/admin permissions are required for copilot use and feedback; submitters remain denied.
+
+### Phase 10 safety gate
+
+- AI/copilot output is advisory only.
+- No autonomous status transitions, enforcement, regulatory decisions or emergency dispatch.
+- No external model provider or data transfer is enabled.
+- Feedback notes must avoid personal/confidential information.
+- Before a live model adapter: approve data governance, establish a labelled evaluation set, measure performance, and review model/provider handling.
