@@ -627,3 +627,20 @@ GitHub Actions must verify focused tests, compilation and Streamlit smoke before
 ### Next gate
 
 Phase 51 — Governance Review Decision Preparation: create a separate, human-governed preparation layer that assembles the evidence needed for an authorized reviewer to make an existing governance decision, without executing that decision automatically.
+
+
+## Phase 51 — Governance Review Decision Preparation
+
+Implemented a deterministic evidence-preparation layer over the Phase 50 read-only review workspace. It assembles the selected case, queue context, accountable artifacts, lifecycle evidence, provenance bindings and exact current snapshot for an authorized human reviewer.
+
+### Governance boundary
+
+Every package is explicitly marked NOT_DECIDED. This layer does not execute or record APPROVE, REJECT, REVOKE or SUPERSEDE decisions, mutate observations, change workflow state, establish environmental truth, authorize NEMA integration, enforcement, emergency response, production approval or autonomous decisions.
+
+### Completion gate
+
+GitHub Actions must verify focused tests, compilation and Streamlit smoke before Phase 51 is declared green.
+
+### Next gate
+
+Phase 52 — Governance Decision Execution Boundary: preserve the separation between evidence preparation and the existing human-governed lifecycle decision ledger, with explicit actor/role checks and fail-closed snapshot binding.
