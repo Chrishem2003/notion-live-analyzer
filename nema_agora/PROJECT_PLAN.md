@@ -485,3 +485,19 @@ Added a read-only reconciliation engine comparing authoritative evaluation, huma
 
 Phase 40 — Controlled Governance Exception Resolution: introduce an explicit human-governed workflow for investigating and resolving reconciliation exceptions without rewriting historical evidence.
 \n\n## Phase 40 — Controlled Governance Exception Resolution\n\nImplemented an explicit human-governed resolution workflow for Phase 39 reconciliation exceptions. Resolutions are append-only GOVERNANCE_EXCEPTION_RESOLVED events with controlled exception identity, reconciliation fingerprint, outcome, reason code, authenticated actor role and policy version. Historical source decisions and prior audit events are never rewritten. Allowed outcomes are ACKNOWLEDGED, CORRECTED_AT_SOURCE, DUPLICATE_CONFIRMED, FALSE_POSITIVE and ESCALATED.\n\n## Phase 41 — Governance Exception Closure\n\nImplemented the closure layer that reconciles Phase 40 resolution events back to the current Phase 39 exception set. An exception is CLOSED only when the resolution matches the current reconciliation fingerprint and exact exception identity, uses a closeable outcome (CORRECTED_AT_SOURCE, DUPLICATE_CONFIRMED or FALSE_POSITIVE), and has independently preserved closure evidence identified by a stable evidence_id and valid SHA-256 evidence_hash. ACKNOWLEDGED remains REVIEW_REQUIRED and ESCALATED remains CONTROL_REQUIRED. Stale resolutions never close a newer reconciliation.\n\nAdded nema_agora/governance_exception_closure.py, pages/49_NEMA_AGORA_GOVERNANCE_EXCEPTION_CLOSURE.py, focused tests and Phase 41 documentation. The closure surface is read-only and never repairs, edits or deletes historical evidence.\n\n### Next gate\n\nPhase 42 should strengthen closure evidence provenance and operational reconciliation reporting while preserving append-only history, explicit human authority, privacy controls and fail-closed semantics.\n
+## Phase 42 — Closure Evidence Provenance & Operational Reconciliation
+
+Phase 42 strengthens the Phase 41 closure gate with an append-only evidence registry, exact provenance binding and an operational reconciliation report.
+
+### Implemented
+- Append-only closure_evidence registry with stable evidence IDs and SHA-256 hashes.
+- Explicit evidence types and verification states.
+- Binding to the current reconciliation fingerprint, exact exception identity and resolution event.
+- Provenance reference retained alongside the evidence record.
+- Fail-closed evaluation: unverified, stale, wrong, rejected or mismatched evidence cannot close an exception.
+- Operational report for open, review-required, control-required and closed states, stale resolutions, missing evidence and unresolved critical exceptions.
+- Authenticated read-only Phase 42 dashboard.
+- Focused tests and CI compilation/smoke coverage.
+
+### Governance boundary
+Evidence supports closure evaluation; it never silently creates a closure decision. Historical observations, source decisions and audit events remain immutable. Phase 42 outputs are engineering/research governance evidence only and are not NEMA authorization, regulatory status, environmental truth, enforcement authority, emergency response authority or production approval.
