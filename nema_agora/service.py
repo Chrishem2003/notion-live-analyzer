@@ -272,6 +272,8 @@ class NemaAgoraService:
     ) -> dict[str, Any]:
         self._authorised(principal)
         require_permission(principal.role, "intelligence:admit_model")
+        if approver_id.strip() != principal.subject_key:
+            raise PermissionError("Approver identity must match the authenticated principal.")
         decision = evaluate_admission(
             candidate=candidate, dataset=dataset,
             annotation_readiness=annotation_readiness, comparison=comparison,
