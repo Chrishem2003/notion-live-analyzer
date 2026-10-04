@@ -31,6 +31,7 @@ from nema_agora.review_governance import (
     ReviewStore, build_reevaluation, make_shadow_review, make_lifecycle_decision,
 )
 from nema_agora.annotation import AnnotationStore, annotation_readiness, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
+from nema_agora.governance_decision_ledger import GovernanceDecisionLedger
 
 
 class NemaAgoraService:
@@ -428,6 +429,17 @@ class NemaAgoraService:
             corrected_category=corrected_category, notes=notes,
         )
         ReviewStore(self.repository.database_path).save_review(review)
+        review_decision = {
+            "CONFIRMED_USEFUL": "APPROVE",
+            "UNSAFE": "REJECT",
+            "NEEDS_CORRECTION": "HUMAN_REVIEW_REQUIRED",
+            "NOT_APPLICABLE": "DEFER",
+        }[review.decision]
+        self._record_governance_event(
+            decision_kind="review_decision", principal=principal,
+            artifact_id=review.review_id, status="COMPLETED",
+            decision=review_decision, reason_code="HUMAN_REVIEW",
+        )
         return review.to_dict()
 
     def list_shadow_reviews(
@@ -463,6 +475,17 @@ class NemaAgoraService:
             rationale=rationale, evidence_snapshot=evidence_snapshot,
         )
         ReviewStore(self.repository.database_path).save_lifecycle_decision(decision)
+        lifecycle_decision = {
+            "RETAIN": "APPROVE",
+            "SUSPEND": "REJECT",
+            "REVIEW": "DEFER",
+            "RE_ADMIT_REQUIRED": "DEFER",
+        }[decision.action]
+        self._record_governance_event(
+            decision_kind="lifecycle_decision", principal=principal,
+            artifact_id=decision.decision_id, status="COMPLETED",
+            decision=lifecycle_decision, reason_code="HUMAN_LIFECYCLE_DECISION",
+        )
         return decision.to_dict()
 
     def list_lifecycle_decisions(
@@ -491,6 +514,11 @@ class NemaAgoraService:
         require_permission(principal.role, "intelligence:lab")
         EvaluationRunStore(self.repository.database_path).save(
             result, actor_id=principal.subject_key
+        )
+        self._record_governance_event(
+            decision_kind="evaluation_completed", principal=principal,
+            artifact_id=str(result.run_id), status="COMPLETED",
+            decision="HUMAN_REVIEW_REQUIRED", reason_code="EVALUATION_COMPLETE",
         )
 
     def list_evaluation_runs(self, principal: Principal, *, limit: int = 25) -> list[dict[str, Any]]:
