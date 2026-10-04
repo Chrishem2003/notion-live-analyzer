@@ -197,3 +197,14 @@ Phase 11 adds a measurement layer for the AI-assisted pilot. The observatory tra
 A passing state is `READY_FOR_REVIEW` only. It does not mean production-ready, officially validated, endorsed by NEMA, or safe for autonomous action. The observatory defaults to `NOT_READY` when evidence is insufficient.
 
 No live AI provider is connected by this phase. The next step is controlled shadow-mode evaluation with explicit governance and human approval.
+
+
+## Phase 12: Controlled AI Shadow Mode
+
+The pilot now has an isolated shadow-mode evaluation path. An advisory model may analyse a pilot case beside the existing human workflow, with source-case binding, safety validation, model/provider version capture, latency measurement and separate `shadow_runs` persistence.
+
+The default `local-deterministic` adapter is only a safe infrastructure harness; no external AI provider or API credential is enabled. Unsafe or malformed advisory output is captured as a shadow error and does not affect the observation.
+
+Shadow mode requires the `intelligence:shadow` permission and is limited to reviewer/coordinator/admin roles. Shadow results never change workflow state, verify allegations, declare environmental truth or illegality, trigger enforcement/emergency response, or submit anything to NEMA/ELMIS/SWIMS.
+
+The next evaluation gate is a controlled comparison of human judgement, deterministic baseline and an approved model adapter on a diverse labelled dataset, with false-positive/negative, correction, agreement, latency and failure analysis.
