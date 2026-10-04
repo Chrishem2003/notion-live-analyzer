@@ -522,3 +522,40 @@ Implemented a fail-closed integrity and human-attestation layer over Phase 42 cl
 ### Governance boundary
 
 Attestation is explicit governance evidence only. It does not authorize production, NEMA integration, regulatory action, enforcement, emergency response, environmental conclusions or autonomous decisions. Historical observations, source decisions, reconciliation records, closure evidence and audit events remain immutable.
+
+
+## Phase 44 — Attestation Lifecycle Governance
+
+Implemented a human-governed lifecycle over Phase 43 attestations using a
+separate append-only lifecycle decision ledger.
+
+### Implemented
+- Explicit lifecycle states: PENDING_REVIEW, ACTIVE, REJECTED, REVOKED,
+  EXPIRED, SUPERSEDED, STALE and CONTROL_REQUIRED.
+- Human lifecycle decisions: APPROVE, REJECT, REVOKE and SUPERSEDE.
+- Second-person separation of duties for approval/rejection: the lifecycle
+  reviewer must differ from the original attester.
+- Deterministic expiration evaluated against an explicit evaluation timestamp.
+- Immutable lifecycle decision records with rationale, actor, role, policy and
+  exact attestation identity.
+- Conflict detection for multiple active attestations bound to the same exact
+  integrity snapshot.
+- Fail-closed lifecycle evaluation when current integrity/provenance evidence
+  is invalid or the attestation is stale.
+- Authenticated lifecycle dashboard with explicit human decision controls and
+  read-only historical ledger visibility.
+- Focused unit tests, compilation and Streamlit CI coverage.
+
+### Governance boundary
+
+Lifecycle state is governance evidence only. It never authorizes NEMA
+integration, regulatory action, enforcement, emergency response, official
+reporting, production deployment, environmental truth or autonomous decisions.
+Phase 43 attestations remain immutable; lifecycle history is append-only.
+
+### Next gate
+
+Phase 45 should strengthen lifecycle provenance and decision accountability,
+including exact decision-to-snapshot binding, supersession-chain validation,
+reviewer/attester identity evidence, and an operational lifecycle evidence
+report before any broader demonstration or pilot workflow expansion.
