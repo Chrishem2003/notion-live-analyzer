@@ -7,12 +7,18 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
 from typing import Any, Mapping
 
 from nema_agora.audit_ledger import AuditLedger, _canonical
 
 POLICY_VERSION = "phase36-v1"
+_SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
+_ALLOWED_STATUS = frozenset({"COMPLETED", "FAILED", "VALID", "INVALID", "CONTROL_REQUIRED", "APPROVED_FOR_PUBLICATION", "REJECTED", "PENDING_HUMAN_REVIEW"})
+_ALLOWED_DECISIONS = frozenset({"APPROVE", "REJECT", "HUMAN_REVIEW_REQUIRED", "DEFER", "ADMITTED_FOR_CONTROLLED_SHADOW", "CONTROL_REQUIRED"})
+_ALLOWED_ROLES = frozenset({"submitter", "reviewer", "coordinator", "admin"})
+_ALLOWED_MODULES = frozenset({"evaluation", "review", "checkpoint", "publication_control", "model_governance", "audit_recovery", "access_control"})
 ALLOWED_EVENT_TYPES = frozenset({
     "EVALUATION_COMPLETED",
     "REVIEW_DECISION_RECORDED",
@@ -73,8 +79,8 @@ class AuditEventCapture:
 
     def record(self, *, event_id: str, event_type: str, actor_id: str,
                payload: Mapping[str, Any]) -> dict[str, Any]:
-        if not isinstance(event_id, str) or not event_id.strip() or len(event_id) > 128:
-            raise ValueError("A stable event_id is required.")
+        if not isinstance(event_id, str) or not _SAFE_ID.fullmatch(event_id.strip()):
+            raise ValueError("A stable, non-identifying event_id is required.")
         if event_type not in ALLOWED_EVENT_TYPES:
             raise ValueError("Audit event type is not allowlisted.")
         if not isinstance(actor_id, str) or not actor_id.strip() or len(actor_id) > 128:
