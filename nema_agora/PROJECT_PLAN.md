@@ -1064,3 +1064,10 @@ Next gate: Phase 86 — Authenticated FastAPI Query Integration and Request Cont
 Connected Phase 85 authorization directly to persistent spatial evidence retrieval. Unauthorized requests terminate before repository access; authorized requests carry deterministic actor/request authorization context into the governed response. Read-only and fail-closed storage behavior remain intact.
 
 Next gate: Phase 87 — FastAPI Route Authentication Wiring and End-to-End HTTP Authorization Tests.
+
+
+## Phase 87 — FastAPI Route Authentication Wiring & End-to-End HTTP Authorization Tests
+
+Connected authorization and authenticated query execution directly to FastAPI routes. Missing Authorization headers return 401; authenticated but unauthorized roles return 403; authorized requests reach the governed persistent query path. The prototype treats the bearer value as presence-only and does not claim real credential verification.
+
+Next gate: Phase 88 — API Audit Event Binding and Request Traceability.
