@@ -65,11 +65,25 @@ def _validate_metadata(value: Any, path: str = "payload") -> Any:
     if isinstance(value, str):
         if len(value) > 256:
             raise ValueError(f"Audit metadata value too long at {path}.")
-        if any(ord(ch) < 32 and ch not in "\t\n\r" for ch in value):
+        if any(ord(ch) < 32 and ch not in "\\t\\n\\r" for ch in value):
             raise ValueError(f"Control characters rejected at {path}.")
+        key = path.rsplit(".", 1)[-1]
+        if key in {"artifact_id", "checkpoint_id"} and not _SAFE_ID.fullmatch(value):
+            raise ValueError(f"Non-identifying stable ID required at {path}.")
+        if key == "artifact_hash" and not re.fullmatch(r"[0-9a-f]{64}", value):
+            raise ValueError(f"SHA-256 artifact hash required at {path}.")
+        if key == "status" and value not in _ALLOWED_STATUS:
+            raise ValueError(f"Unsupported status code at {path}.")
+        if key == "decision" and value not in _ALLOWED_DECISIONS:
+            raise ValueError(f"Unsupported decision code at {path}.")
+        if key == "recorded_by_role" and value not in _ALLOWED_ROLES:
+            raise ValueError(f"Unsupported role code at {path}.")
+        if key == "source_module" and value not in _ALLOWED_MODULES:
+            raise ValueError(f"Unsupported source module at {path}.")
+        if key == "reason_code" and not _SAFE_ID.fullmatch(value):
+            raise ValueError(f"Reason code must be a non-identifying code at {path}.")
         return value
     raise ValueError(f"Unsupported audit metadata type at {path}.")
-
 
 class AuditEventCapture:
     """Record approved, metadata-only events in the hash-chained ledger."""
