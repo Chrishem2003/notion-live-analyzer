@@ -2,8 +2,7 @@ name: NEMA-AGORA Pilot Checks
 
 on:
   push:
-    branches:
-      - feature/nema-agora-pilot
+    branches: [feature/nema-agora-pilot]
     paths:
       - "nema_agora/**"
       - "pages/18_NEMA_AGORA.py"
@@ -20,25 +19,28 @@ on:
       - "pages/29_NEMA_AGORA_IMPACT_LAB.py"
       - "pages/30_NEMA_AGORA_ACCESSIBILITY.py"
       - "pages/31_NEMA_AGORA_EVIDENCE_OBSERVATORY.py"
-      - "pages/26_NEMA_AGORA_HUMAN_REVIEW.py"
-      - "pages/27_NEMA_AGORA_PROVENANCE.py"
-      - "pages/28_NEMA_AGORA_FIELD_EVALUATION.py"
-      - "pages/29_NEMA_AGORA_IMPACT_LAB.py"
-      - "pages/30_NEMA_AGORA_ACCESSIBILITY.py"
+      - "pages/32_NEMA_AGORA_REPRODUCIBILITY.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "nema_agora/**"
       - "pages/18_NEMA_AGORA.py"
+      - "pages/19_NEMA_AGORA_ADMIN.py"
       - "pages/20_NEMA_AGORA_EVALUATION_LAB.py"
       - "pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py"
       - "pages/22_NEMA_AGORA_MODEL_COMPARISON.py"
       - "pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py"
       - "pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py"
       - "pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py"
+      - "pages/26_NEMA_AGORA_HUMAN_REVIEW.py"
+      - "pages/27_NEMA_AGORA_PROVENANCE.py"
+      - "pages/28_NEMA_AGORA_FIELD_EVALUATION.py"
+      - "pages/29_NEMA_AGORA_IMPACT_LAB.py"
+      - "pages/30_NEMA_AGORA_ACCESSIBILITY.py"
+      - "pages/31_NEMA_AGORA_EVIDENCE_OBSERVATORY.py"
+      - "pages/32_NEMA_AGORA_REPRODUCIBILITY.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   workflow_dispatch:
@@ -52,22 +54,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
-
       - name: Install focused test dependencies
         run: python -m pip install --upgrade pip pytest streamlit pandas
-
       - name: Run NEMA-AGORA unit tests
         run: python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
-
       - name: Compile pilot Python modules
-        run: python -m compileall -q nema_agora pages/18_NEMA_AGORA.py pages/20_NEMA_AGORA_EVALUATION_LAB.py pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py pages/22_NEMA_AGORA_MODEL_COMPARISON.py pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py pages/26_NEMA_AGORA_HUMAN_REVIEW.py pages/27_NEMA_AGORA_PROVENANCE.py pages/28_NEMA_AGORA_FIELD_EVALUATION.py pages/29_NEMA_AGORA_IMPACT_LAB.py pages/30_NEMA_AGORA_ACCESSIBILITY.py pages/31_NEMA_AGORA_EVIDENCE_OBSERVATORY.py tests/nema_agora
-
+        run: python -m compileall -q nema_agora pages/18_NEMA_AGORA.py pages/19_NEMA_AGORA_ADMIN.py pages/20_NEMA_AGORA_EVALUATION_LAB.py pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py pages/22_NEMA_AGORA_MODEL_COMPARISON.py pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py pages/26_NEMA_AGORA_HUMAN_REVIEW.py pages/27_NEMA_AGORA_PROVENANCE.py pages/28_NEMA_AGORA_FIELD_EVALUATION.py pages/29_NEMA_AGORA_IMPACT_LAB.py pages/30_NEMA_AGORA_ACCESSIBILITY.py pages/31_NEMA_AGORA_EVIDENCE_OBSERVATORY.py pages/32_NEMA_AGORA_REPRODUCIBILITY.py tests/nema_agora
       - name: Smoke-test Streamlit startup
         shell: bash
         run: |
