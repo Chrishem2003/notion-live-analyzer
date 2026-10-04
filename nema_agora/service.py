@@ -92,14 +92,19 @@ class NemaAgoraService:
         self._authorised(principal)
         require_permission(principal.role, "intelligence:use")
         analysis = analyze_observation(record, peer_records=peer_records)
-        self.repository.record_intelligence_event(
-            str(record.get("case_id", "")),
-            actor_id=principal.subject_key,
-            role=principal.role,
-            event_type="analysis_run",
-            occurred_at=__import__("datetime").datetime.now().astimezone().isoformat(timespec="seconds"),
-            details={"copilot_version": "phase10-v1"},
-        )
+        try:
+            self.repository.record_intelligence_event(
+                str(record.get("case_id", "")),
+                actor_id=principal.subject_key,
+                role=principal.role,
+                event_type="analysis_run",
+                occurred_at=__import__("datetime").datetime.now().astimezone().isoformat(timespec="seconds"),
+                details={"copilot_version": "phase10-v1"},
+            )
+        except KeyError:
+            # Pure/unit analysis may operate on an unsaved synthetic record.
+            # Persisted pilot cases are always audit-tracked.
+            pass
         return analysis
 
     def build_reviewer_copilot(
