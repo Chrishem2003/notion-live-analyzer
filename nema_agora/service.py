@@ -301,7 +301,6 @@ class NemaAgoraService:
             actor_id=principal.subject_key,
             adapter=adapter,
         )
-        ControlledShadowStore(self.repository.database_path).save(result)
         return result.to_dict()
 
     def list_controlled_shadow_runs(
