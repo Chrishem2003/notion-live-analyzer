@@ -23,18 +23,18 @@ def sample_record():
 def test_create_and_read_observation_persists_between_repository_instances(tmp_path):
     path = tmp_path / "pilot.sqlite3"
     first = NemaAgoraRepository(path)
-    created = first.create_observation(sample_record(), actor_id="reviewer-1")
+    created = first.create_observation(sample_record(), actor_id="reviewer-1", role="reviewer")
 
     second = NemaAgoraRepository(path)
-    assert second.get_observation(created["case_id"]) == created
-    assert second.list_observations(status="Received") == [created]
+    assert second.get_observation(created["case_id"], actor_id="reviewer-1", role="reviewer") == created
+    assert second.list_observations(actor_id="reviewer-1", role="reviewer", status="Received") == [created]
 
 
 def test_creation_writes_audit_event_with_actor(tmp_path):
     repository = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
-    record = repository.create_observation(sample_record(), actor_id="reviewer-1")
+    record = repository.create_observation(sample_record(), actor_id="reviewer-1", role="reviewer")
 
-    events = repository.list_audit_events(record["case_id"])
+    events = repository.list_audit_events(record["case_id"], actor_id="reviewer-1", role="reviewer")
     assert len(events) == 1
     assert events[0]["event_type"] == "record_created"
     assert events[0]["actor_id"] == "reviewer-1"
@@ -76,8 +76,8 @@ def test_invalid_transition_does_not_change_record_or_add_event(tmp_path):
             changed_at="now",
         )
 
-    assert repository.get_observation(record["case_id"])["status"] == "Received"
-    assert len(repository.list_audit_events(record["case_id"])) == 1
+    assert repository.get_observation(record["case_id"], actor_id="submitter-1", role="submitter")["status"] == "Received"
+    assert len(repository.list_audit_events(record["case_id"], actor_id="reviewer-2", role="reviewer")) == 1
 
 
 def test_unknown_case_and_missing_actor_are_rejected(tmp_path):
@@ -100,7 +100,7 @@ def test_duplicate_case_id_is_not_silently_overwritten(tmp_path):
     repository.create_observation(record, actor_id="submitter-1", role="submitter")
     with pytest.raises(Exception):
         repository.create_observation(record, actor_id="submitter-1", role="submitter")
-    assert len(repository.list_observations()) == 1
+    assert len(repository.list_observations(actor_id="submitter-1", role="submitter")) == 1
 
 
 def test_submitter_cannot_read_other_users_record(tmp_path):
