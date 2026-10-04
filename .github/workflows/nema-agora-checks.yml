@@ -39,7 +39,7 @@ jobs:
         run: python -m pip install --upgrade pip pytest streamlit pandas
 
       - name: Run NEMA-AGORA unit tests
-        run: python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora/test_core.py
+        run: python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
 
       - name: Compile pilot Python modules
         run: python -m compileall -q nema_agora pages/18_NEMA_AGORA.py tests/nema_agora
