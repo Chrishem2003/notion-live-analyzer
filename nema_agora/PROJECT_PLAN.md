@@ -1134,3 +1134,10 @@ Next gate: Phase 96 — API Governance Human Review & Audit Binding.
 Added an authorized coordinator/admin human-review boundary for API governance queue items. Supported review outcomes are CONFIRMED_TRACE, NOT_CONFIRMED, INSUFFICIENT_EVIDENCE, and ESCALATED. Each review binds queue/case identity, reviewer identity, outcome, and time into an immutable append-only audit registry.
 
 Next gate: Phase 97 — API Human Review Reconciliation & Evidence Integrity.
+
+
+## Phase 97 — API Human Review Reconciliation & Evidence Integrity
+
+Added reconciliation across API governance queue items, casebook records, and immutable human-review audits. Detects orphan reviews/cases, duplicate audits, queue/case fingerprint mismatches, request identity mismatches, invalid outcomes, and review-audit fingerprint tampering. Integrity gaps fail closed to CONTROL_REQUIRED.
+
+Next gate: Phase 98 — API Governance Evidence Observatory.
