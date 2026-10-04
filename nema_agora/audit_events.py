@@ -27,6 +27,7 @@ ALLOWED_EVENT_TYPES = frozenset({
     "MODEL_LIFECYCLE_DECIDED",
     "BACKUP_VERIFICATION_COMPLETED",
     "ACCESS_POLICY_DENIED",
+    "GOVERNANCE_EXCEPTION_RESOLVED",
 })
 ALLOWED_PAYLOAD_KEYS = frozenset({
     "artifact_id", "artifact_hash", "decision", "status", "reason_code",
