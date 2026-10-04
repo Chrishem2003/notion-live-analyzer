@@ -189,3 +189,130 @@ class AnnotationStore:
             [a.to_dict() for a in self.list_all(dataset_version)],
             ensure_ascii=False, sort_keys=True, separators=(",", ":"),
         )
+
+
+@dataclass(frozen=True)
+class Adjudication:
+    adjudication_id: str
+    case_id: str
+    adjudicator_id: str
+    dataset_version: str
+    final_category: str
+    final_duplicate: bool
+    final_summary_faithful: bool | None
+    rationale: str
+    created_at: str
+
+    def __post_init__(self) -> None:
+        if self.final_category not in CATEGORIES:
+            raise ValueError("Unsupported adjudicated category")
+        if not self.adjudicator_id.strip() or not self.case_id.strip():
+            raise ValueError("case_id and adjudicator_id are required")
+        if not self.rationale.strip() or len(self.rationale) > 1500:
+            raise ValueError("Adjudication rationale is required and must be <=1,500 characters")
+
+
+def make_adjudication(
+    *,
+    case_id: str,
+    adjudicator_id: str,
+    dataset_version: str,
+    final_category: str,
+    final_duplicate: bool,
+    final_summary_faithful: bool | None,
+    rationale: str,
+    created_at: str | None = None,
+) -> Adjudication:
+    return Adjudication(
+        adjudication_id=f"ADJ-{uuid.uuid4().hex[:10].upper()}",
+        case_id=case_id.strip(),
+        adjudicator_id=adjudicator_id.strip(),
+        dataset_version=dataset_version.strip()[:80],
+        final_category=final_category,
+        final_duplicate=final_duplicate,
+        final_summary_faithful=final_summary_faithful,
+        rationale=rationale.strip(),
+        created_at=created_at or datetime.now().astimezone().isoformat(timespec="seconds"),
+    )
+
+
+def disagreement_cases(annotations: list[Annotation]) -> list[str]:
+    grouped: dict[str, list[Annotation]] = {}
+    for item in annotations:
+        grouped.setdefault(item.case_id, []).append(item)
+    return sorted(
+        case_id for case_id, rows in grouped.items()
+        if len(rows) >= 2 and (
+            len({r.category for r in rows}) > 1
+            or len({r.duplicate for r in rows}) > 1
+            or len({r.summary_faithful for r in rows if r.summary_faithful is not None}) > 1
+        )
+    )
+
+
+# Extend the store with explicit adjudication records. Adjudication never
+# overwrites the underlying independent annotations.
+def _save_adjudication(self: AnnotationStore, item: Adjudication) -> None:
+    import sqlite3
+    with sqlite3.connect(self.database_path) as db:
+        db.execute(
+            """CREATE TABLE IF NOT EXISTS annotation_adjudications (
+                adjudication_id TEXT PRIMARY KEY,
+                case_id TEXT NOT NULL,
+                adjudicator_id TEXT NOT NULL,
+                dataset_version TEXT NOT NULL,
+                final_category TEXT NOT NULL,
+                final_duplicate INTEGER NOT NULL CHECK (final_duplicate IN (0,1)),
+                final_summary_faithful INTEGER,
+                rationale TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )"""
+        )
+        db.execute(
+            """INSERT INTO annotation_adjudications
+            (adjudication_id, case_id, adjudicator_id, dataset_version,
+             final_category, final_duplicate, final_summary_faithful, rationale, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                item.adjudication_id, item.case_id, item.adjudicator_id,
+                item.dataset_version, item.final_category, int(item.final_duplicate),
+                None if item.final_summary_faithful is None else int(item.final_summary_faithful),
+                item.rationale, item.created_at,
+            ),
+        )
+
+
+def _list_adjudications(self: AnnotationStore, dataset_version: str) -> list[Adjudication]:
+    import sqlite3
+    with sqlite3.connect(self.database_path) as db:
+        db.row_factory = sqlite3.Row
+        db.execute(
+            """CREATE TABLE IF NOT EXISTS annotation_adjudications (
+                adjudication_id TEXT PRIMARY KEY,
+                case_id TEXT NOT NULL,
+                adjudicator_id TEXT NOT NULL,
+                dataset_version TEXT NOT NULL,
+                final_category TEXT NOT NULL,
+                final_duplicate INTEGER NOT NULL,
+                final_summary_faithful INTEGER,
+                rationale TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )"""
+        )
+        rows = db.execute(
+            "SELECT * FROM annotation_adjudications WHERE dataset_version = ? ORDER BY created_at, adjudication_id",
+            (dataset_version,),
+        ).fetchall()
+    return [
+        Adjudication(
+            adjudication_id=r["adjudication_id"], case_id=r["case_id"],
+            adjudicator_id=r["adjudicator_id"], dataset_version=r["dataset_version"],
+            final_category=r["final_category"], final_duplicate=bool(r["final_duplicate"]),
+            final_summary_faithful=None if r["final_summary_faithful"] is None else bool(r["final_summary_faithful"]),
+            rationale=r["rationale"], created_at=r["created_at"],
+        ) for r in rows
+    ]
+
+
+AnnotationStore.save_adjudication = _save_adjudication
+AnnotationStore.list_adjudications = _list_adjudications
