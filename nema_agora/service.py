@@ -22,7 +22,7 @@ from nema_agora.admission import AdmissionStore, ModelAdmissionPolicy, ModelCand
 from nema_agora.shadow_governance import ControlledShadowStore, execute_controlled_shadow
 from nema_agora.shadow_monitoring import build_shadow_monitoring_snapshot
 from nema_agora.provenance import ProvenanceStore, verify_provenance_chain
-from nema_agora.field_eval import FieldScenario, FieldEvaluationStore, evaluate_scenario
+from nema_agora.field_eval import (\n    FieldScenario, FieldEvaluationStore, evaluate_scenario,\n    build_controlled_scenarios, run_field_evaluation,\n)
 from nema_agora.accessibility import AccessibilityStore, AccessibilityObservation, make_observation, summarise
 from nema_agora.review_governance import (
     ReviewStore, build_reevaluation, make_shadow_review, make_lifecycle_decision,
@@ -346,6 +346,17 @@ class NemaAgoraService:
         return build_shadow_monitoring_snapshot(
             runs, admission_id=admission_id
         ).to_dict()
+
+    def run_controlled_field_evaluation(self, principal: Principal) -> dict[str, Any]:
+        """Execute the deterministic synthetic Phase 21 scenario suite end-to-end."""
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:field_eval")
+        results = run_field_evaluation(scenarios=build_controlled_scenarios())
+        store = FieldEvaluationStore(self.repository.database_path)
+        for result in results:
+            store.save(result)
+        from nema_agora.field_eval import summarise_results
+        return summarise_results(results)
 
     def record_field_evaluation(self, principal: Principal, *, scenario: FieldScenario, observed: dict[str, Any], notes: str = "") -> dict[str, Any]:
         self._authorised(principal)
