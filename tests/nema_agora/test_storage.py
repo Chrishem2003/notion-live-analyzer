@@ -118,3 +118,33 @@ def test_submitter_cannot_review_or_read_audit(tmp_path):
                            new_status="Under review", review_notes="", changed_at="now")
     with pytest.raises(PermissionError):
         repo.list_audit_events(record["case_id"], actor_id="submitter-1", role="submitter")
+
+
+def test_intelligence_feedback_is_audited_and_bounded(tmp_path):
+    repo = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
+    record = repo.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
+    repo.record_intelligence_event(
+        record["case_id"], actor_id="reviewer-1", role="reviewer",
+        event_type="analysis_run", occurred_at="2026-10-04T12:01:00+03:00",
+        details={"copilot_version": "phase10-v1"},
+    )
+    repo.record_intelligence_feedback(
+        record["case_id"], actor_id="reviewer-1", role="reviewer",
+        feedback={"feedback_type": "corrected", "corrected_category": CATEGORIES[1],
+                  "notes": "Synthetic evaluation note", "copilot_version": "phase10-v1"},
+        occurred_at="2026-10-04T12:02:00+03:00",
+    )
+    events = repo.list_intelligence_events(record["case_id"], actor_id="reviewer-1", role="reviewer")
+    assert [e["event_type"] for e in events] == ["analysis_run", "feedback_recorded"]
+    assert events[-1]["details"]["feedback_type"] == "corrected"
+
+
+def test_submitter_cannot_write_intelligence_feedback(tmp_path):
+    repo = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
+    record = repo.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
+    with pytest.raises(PermissionError):
+        repo.record_intelligence_feedback(
+            record["case_id"], actor_id="submitter-1", role="submitter",
+            feedback={"feedback_type": "accepted"},
+            occurred_at="2026-10-04T12:02:00+03:00",
+        )
