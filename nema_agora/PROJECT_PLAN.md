@@ -825,3 +825,20 @@ GitHub Actions must verify Phase 61 focused tests, compilation and Streamlit sta
 ### Next gate
 
 Phase 62 — Spatial Change Evidence Scoring & Review Queue Integration: strengthen candidate prioritisation with transparent evidence scoring and deterministic review-queue records.
+
+
+## Phase 62 — Spatial Change Evidence Scoring & Review Priority
+
+Implemented transparent engineering prioritisation for Phase 61 detected candidates. Scores combine configurable NDVI/NDWI magnitude with optional quality and uncertainty components, producing deterministic fingerprints and HIGH/MEDIUM/LOW priority tiers.
+
+### Governance boundary
+
+The score is not a calibrated probability, environmental-risk score, compliance score or regulatory finding. It cannot establish environmental truth, illegality, enforcement status, emergency conditions, NEMA authorization or production approval.
+
+### Completion gate
+
+GitHub Actions must verify Phase 62 tests, compilation and Streamlit startup before Phase 62 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 63 — Persistent Spatial Change Review Queue: create append-only candidate review records and connect analytical priority to the existing human-governed review workflow without autonomous decisions.
