@@ -53,7 +53,7 @@ def test_status_update_and_audit_event_are_saved(tmp_path):
         review_notes="Initial triage",
         changed_at="2026-10-04T12:10:00+03:00",
     )
-    events = repository.list_audit_events(record["case_id"])
+    events = repository.list_audit_events(record["case_id"], actor_id="reviewer-2", role="reviewer")
 
     assert updated["status"] == "Under review"
     assert updated["review_notes"] == "Initial triage"
@@ -87,7 +87,7 @@ def test_unknown_case_and_missing_actor_are_rejected(tmp_path):
     with pytest.raises(KeyError, match="Case not found"):
         repository.update_review(
             "NA-NOTFOUND",
-            actor_id="reviewer-1",
+            actor_id="reviewer-1", role="reviewer",
             new_status="Under review",
             review_notes="",
             changed_at="now",
