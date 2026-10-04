@@ -29,8 +29,10 @@ Pilot and evaluate a structured digital workflow for recording, reviewing, spati
 | 2 | Implement and test observation form, record identifier and status workflow. | Working MVP and test log. |
 | 3 | Add map, CSV export, process metrics and documentation; review risks. | Demonstration build, user guide, test report. |
 | 4 | Run a small, permissioned user test with synthetic or consented records. | Feedback log and pilot dataset. |
+| 5 | Operational resilience: authenticated persistence, backup/restore, retention and admin audit. | Security review, recovery test and operations log. |
+| 6 | Quality/governance gate: deterministic validation, duplicate suspicion, role matrix and data-handling controls. | Quality report, governance checklist and role-by-role test evidence. |
 | 5 | Fix priority issues, repeat testing and provide user orientation. | Updated build and validation summary. |
-| 6 | Evaluate indicators, document costs/limitations and prepare final report. | Technical report, financial report and next-phase plan. |
+| 7 | Evaluate indicators, document costs/limitations and prepare final report. | Technical report, financial report and next-phase plan. |
 
 ## Suggested pilot indicators
 
@@ -60,3 +62,17 @@ Do not describe any organisation as a confirmed partner without its consent and 
 - Minimise personal data and protect sensitive locations.
 - Do not connect to official systems without written permission.
 - Document receipts, test results, issues and budget use.
+
+
+## Current engineering gates
+
+Before any real-user pilot, the build should demonstrate:
+
+1. Every authenticated user resolves to a server-side role or is denied.
+2. Ownership is derived from the trusted principal, not submitted form data.
+3. Every accepted observation receives deterministic quality flags.
+4. Duplicate suspicion is a review signal, never an automatic deletion or environmental finding.
+5. Personal-data intake, urgent-incident handling and official integrations remain disabled by governance policy.
+6. Backup and restore have been exercised successfully in the target deployment environment.
+7. The role-permission matrix has automated tests and manual verification evidence.
+8. Supervisor/institutional approval and data-handling arrangements are documented before real-user use.
