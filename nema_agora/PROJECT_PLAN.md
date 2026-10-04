@@ -428,3 +428,8 @@ Implemented deterministic provenance lineage with parent and claim-support edges
 ## Phase 31 — Research & Award Dossier
 
 Implemented a human-reviewed dossier layer with Executive Summary, Technical Contribution, Evidence & Results, Governance & Safety, and Limitations & Next Steps sections. The dossier preserves claim/evidence references, limitations, review status and deterministic identity, and blocks publication readiness when claims are unlinked or lineage is broken. Added authenticated dossier page, tests, documentation and CI coverage.
+
+
+## Phase 32 — Evaluation & Publication Control
+
+Added a fail-closed publication control gate that checks report identity, linked claims, valid provenance graph, source coverage, limitations, sample-size validity and explicit human sign-off/rationale. A pass means documentation is approved by a human reviewer under the stated policy only; it does not publish externally or confer NEMA/regulatory/production authority. Added focused tests, authenticated review page, policy documentation and repaired CI page coverage for Phases 30–32.
