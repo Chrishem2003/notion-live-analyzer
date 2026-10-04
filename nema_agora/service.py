@@ -8,6 +8,7 @@ from __future__ import annotations
 import csv
 import io
 from typing import Any
+from dataclasses import asdict
 
 from nema_agora.access import require_permission
 from nema_agora.identity import Principal
@@ -16,6 +17,7 @@ from nema_agora.copilot import build_reviewer_copilot
 from nema_agora.storage import NemaAgoraRepository
 from nema_agora.shadow import DeterministicShadowAdapter, run_shadow
 from nema_agora.lab import EvaluationRunStore, LabResult
+from nema_agora.annotation import AnnotationStore, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
 
 
 class NemaAgoraService:
@@ -162,6 +164,87 @@ class NemaAgoraService:
         require_permission(principal.role, "metrics:read")
         from nema_agora.observatory import build_observatory_snapshot
         return build_observatory_snapshot(report, feedback_events).to_dict()
+
+    def create_annotation(
+        self,
+        *,
+        case_id: str,
+        principal: Principal,
+        dataset_version: str,
+        category: str,
+        duplicate: bool,
+        summary_faithful: bool | None,
+        notes: str = "",
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "annotation:create")
+        annotation = make_annotation(
+            case_id=case_id,
+            annotator_id=principal.subject_key,
+            dataset_version=dataset_version,
+            category=category,
+            duplicate=duplicate,
+            summary_faithful=summary_faithful,
+            notes=notes,
+        )
+        AnnotationStore(self.repository.database_path).save(annotation)
+        return annotation.to_dict()
+
+    def list_own_annotations(self, principal: Principal, dataset_version: str) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "annotation:read_own")
+        return [a.to_dict() for a in AnnotationStore(self.repository.database_path).list_for_annotator(principal.subject_key, dataset_version)]
+
+    def annotation_agreement(self, principal: Principal, dataset_version: str) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "annotation:read_all")
+        store = AnnotationStore(self.repository.database_path)
+        rows = store.list_all(dataset_version)
+        annotators = sorted({a.annotator_id for a in rows})
+        if len(annotators) < 2:
+            return {"annotators": annotators, "agreement": None, "disagreements": disagreement_cases(rows)}
+        first = [a for a in rows if a.annotator_id == annotators[0]]
+        second = [a for a in rows if a.annotator_id == annotators[1]]
+        return {
+            "annotators": annotators,
+            "agreement": pairwise_agreement(first, second),
+            "disagreements": disagreement_cases(rows),
+        }
+
+    def list_case_annotations(self, case_id: str, principal: Principal, dataset_version: str) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "annotation:read_all")
+        return [a.to_dict() for a in AnnotationStore(self.repository.database_path).list_for_case(case_id, dataset_version)]
+
+    def adjudicate_annotation(
+        self,
+        *,
+        case_id: str,
+        principal: Principal,
+        dataset_version: str,
+        final_category: str,
+        final_duplicate: bool,
+        final_summary_faithful: bool | None,
+        rationale: str,
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "annotation:adjudicate")
+        item = make_adjudication(
+            case_id=case_id,
+            adjudicator_id=principal.subject_key,
+            dataset_version=dataset_version,
+            final_category=final_category,
+            final_duplicate=final_duplicate,
+            final_summary_faithful=final_summary_faithful,
+            rationale=rationale,
+        )
+        AnnotationStore(self.repository.database_path).save_adjudication(item)
+        return asdict(item)
+
+    def list_adjudications(self, principal: Principal, dataset_version: str) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "annotation:read_all")
+        return [a.__dict__ for a in AnnotationStore(self.repository.database_path).list_adjudications(dataset_version)]
 
     def record_evaluation_run(self, result: LabResult, principal: Principal) -> None:
         """Persist an immutable Phase 13 evaluation result under the authenticated actor."""
