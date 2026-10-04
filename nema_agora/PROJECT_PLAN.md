@@ -501,3 +501,24 @@ Phase 42 strengthens the Phase 41 closure gate with an append-only evidence regi
 
 ### Governance boundary
 Evidence supports closure evaluation; it never silently creates a closure decision. Historical observations, source decisions and audit events remain immutable. Phase 42 outputs are engineering/research governance evidence only and are not NEMA authorization, regulatory status, environmental truth, enforcement authority, emergency response authority or production approval.
+
+
+## Phase 43 — Governance Evidence Integrity & Attestation
+
+Implemented a fail-closed integrity and human-attestation layer over Phase 42 closure evidence.
+
+### Implemented
+- Evidence-registry integrity verification with duplicate, malformed, missing-field, policy-version and hash checks.
+- Deterministic evidence-registry fingerprint so any changed current evidence snapshot invalidates prior attestations.
+- Provenance completeness gate binding observation/reference identity, review decision, audit event, current reconciliation fingerprint, human resolution, closure evidence and derived closure identity.
+- Append-only governance attestation registry with immutable attestation records.
+- Explicit human attestation restricted to authenticated coordinator/admin principals through the `intelligence:attest` permission.
+- Attestation states PENDING, ATTESTED, REJECTED, STALE and CONTROL_REQUIRED as derived governance states.
+- Exact binding of attestation to reconciliation, evidence-registry and provenance fingerprints.
+- Fail-closed stale-attestation behaviour when evidence, reconciliation or provenance changes.
+- Authenticated Governance Integrity dashboard with human attestation control and read-only review for other authorized roles.
+- Focused unit tests, compilation and Streamlit CI coverage.
+
+### Governance boundary
+
+Attestation is explicit governance evidence only. It does not authorize production, NEMA integration, regulatory action, enforcement, emergency response, environmental conclusions or autonomous decisions. Historical observations, source decisions, reconciliation records, closure evidence and audit events remain immutable.
