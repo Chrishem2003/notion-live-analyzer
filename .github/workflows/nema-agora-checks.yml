@@ -7,6 +7,10 @@ on:
     paths:
       - "nema_agora/**"
       - "pages/18_NEMA_AGORA.py"
+      - "pages/20_NEMA_AGORA_EVALUATION_LAB.py"
+      - "pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py"
+      - "pages/22_NEMA_AGORA_MODEL_COMPARISON.py"
+      - "pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
