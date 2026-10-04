@@ -1099,3 +1099,10 @@ Next gate: Phase 91 — API Audit Lifecycle and Retention Governance.
 Added deterministic lifecycle evaluation for reconciled API audit evidence. Recorded events require successful reconciliation before retention evaluation; explicit evaluation time determines RETAINED versus EXPIRED. Expiration is a state, never deletion, preserving the append-only historical registry.
 
 Next gate: Phase 92 — API Audit Lifecycle Decision Ledger.
+
+
+## Phase 92 — API Audit Lifecycle Decision Ledger
+
+Added a separate human-governed append-only lifecycle decision ledger. Coordinator/admin decisions bind exactly to reconciled API audit and lifecycle snapshots, preserving separation between automated evaluation and human lifecycle authority.
+
+Next gate: Phase 93 — API Audit Lifecycle Decision Reconciliation.
