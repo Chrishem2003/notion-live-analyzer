@@ -37,7 +37,7 @@ def test_creation_writes_audit_event_with_actor(tmp_path):
     events = repository.list_audit_events(record["case_id"], actor_id="admin-1", role="admin")
     assert len(events) == 1
     assert events[0]["event_type"] == "record_created"
-    assert events[0]["actor_id"] == "reviewer-1"
+    assert events[0]["actor_id"] == "submitter-1"
     assert events[0]["from_status"] is None
     assert events[0]["to_status"] == "Received"
 
@@ -77,7 +77,7 @@ def test_invalid_transition_does_not_change_record_or_add_event(tmp_path):
         )
 
     assert repository.get_observation(record["case_id"], actor_id="submitter-1", role="submitter")["status"] == "Received"
-    assert len(repository.list_audit_events(record["case_id"], actor_id="reviewer-2", role="reviewer")) == 1
+    assert len(repository.list_audit_events(record["case_id"], actor_id="admin-1", role="admin")) == 1
 
 
 def test_unknown_case_and_missing_actor_are_rejected(tmp_path):
