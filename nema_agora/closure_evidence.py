@@ -127,5 +127,6 @@ def reconcile_with_evidence(database_path:str,*,limit:int=500)->dict[str,Any]:
     from nema_agora.governance_exception_resolution import GovernanceExceptionResolver
     resolutions=GovernanceExceptionResolver(database_path).list_resolutions(limit=500)
     evidence=ClosureEvidenceRegistry(database_path).list(limit=5000)
-    closure=evaluate_with_registry(base,resolutions,evidence)
+    reconciliation={"reconciliation_fingerprint":base.get("reconciliation_fingerprint"),"exceptions":[{"code":x.get("exception_code"),"severity":x.get("severity"),"decision_kind":x.get("decision_kind"),"artifact_id":x.get("artifact_id"),"detail":x.get("detail")} for x in base.get("results",[])]}
+    closure=evaluate_with_registry(reconciliation,resolutions,evidence)
     return {"closure":closure,"report":build_operational_report(closure,evidence_rows=evidence,resolutions=resolutions),"evidence":evidence}
