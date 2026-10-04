@@ -1071,3 +1071,10 @@ Next gate: Phase 87 — FastAPI Route Authentication Wiring and End-to-End HTTP 
 Connected authorization and authenticated query execution directly to FastAPI routes. Missing Authorization headers return 401; authenticated but unauthorized roles return 403; authorized requests reach the governed persistent query path. The prototype treats the bearer value as presence-only and does not claim real credential verification.
 
 Next gate: Phase 88 — API Audit Event Binding and Request Traceability.
+
+
+## Phase 88 — API Audit Event Binding & Request Traceability
+
+Added deterministic API audit evidence binding request identity, actor, role, permission, authorization fingerprint, query fingerprint, result fingerprint, HTTP status, timestamp, and policy version. This layer is traceability evidence only; persistence into an append-only audit registry remains a subsequent integration boundary.
+
+Next gate: Phase 89 — Persistent API Audit Registry and Immutable Request Trace.
