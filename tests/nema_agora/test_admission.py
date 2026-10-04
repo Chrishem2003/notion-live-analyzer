@@ -43,7 +43,7 @@ def evidence():
                 "failures":0,"category_accuracy":0.88,"duplicate_f1":0.91,
             }],
             "case_results":[
-                {"adapter":"adapter-a","status":"OK","output":{
+                {"adapter":"adapter-a","provider":"provider-a","model_version":"model-1","status":"OK","output":{
                     "source_case_id":f"CASE-{i}","human_review_required":True,
                 }} for i in range(25)
             ],
