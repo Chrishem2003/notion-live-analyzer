@@ -14,6 +14,8 @@ from nema_agora.access import has_permission
 from nema_agora.auth import principal_from_streamlit_user
 from nema_agora.config import database_path_from_secrets, mode_from_secrets
 from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, make_observation, validate_observation
+from nema_agora.governance import policy_from_secrets, validate_governance
+from nema_agora.quality import assess_observation
 from nema_agora.service import NemaAgoraService
 from nema_agora.storage import NemaAgoraRepository
 from nema_agora.workflow import apply_status_update
@@ -47,6 +49,13 @@ def _persistent_context() -> tuple[NemaAgoraService | None, object | None, str]:
 
 _demo_init()
 service, principal, mode = _persistent_context()
+governance_policy = policy_from_secrets(st.secrets)
+governance_errors = validate_governance(governance_policy)
+if governance_errors:
+    st.error("NEMA-AGORA governance configuration is invalid; data intake is disabled.")
+    for error in governance_errors:
+        st.error(error)
+    st.stop()
 
 st.title("🌿 NEMA-AGORA")
 st.caption("Environmental Governance, Monitoring & Response — pilot workspace")
@@ -96,6 +105,9 @@ def records_for_current_user() -> list[dict]:
 
 
 def save_record(record: dict) -> None:
+    quality = assess_observation(record, peer_records=records_for_current_user())
+    record["quality_status"] = quality["quality_status"]
+    record["quality_flags"] = quality["flags"]
     if persistent:
         service.create_observation(record, principal)
     else:
@@ -154,7 +166,11 @@ with tab_report:
             except (ValueError, PermissionError) as exc:
                 st.error(str(exc))
             else:
-                st.success(f"Pilot record saved: {record['case_id']}")
+                quality = assess_observation(record, peer_records=records_for_current_user())
+                if quality["quality_status"] == "PASS":
+                    st.success(f"Pilot record saved: {record['case_id']} — quality check passed")
+                else:
+                    st.warning(f"Pilot record saved: {record['case_id']} — review required: {', '.join(quality['flags'])}")
 
 with tab_review:
     st.subheader("Review queue and case status")
@@ -172,6 +188,8 @@ with tab_review:
             st.markdown(f"**{selected['category']}** · {selected['severity']} · {selected['district_or_site']}")
             st.write(selected["description"])
             st.caption(f"Observed: {selected['observation_date']} · Created: {selected['created_at']}")
+            quality = assess_observation(selected, peer_records=records)
+            st.markdown(f"**Data quality:** {quality['quality_status']} · {', '.join(quality['flags'])}")
             with st.form(f"review_{selected_id}"):
                 new_status = st.selectbox("Status", STATUSES, index=STATUSES.index(selected["status"]))
                 review_notes = st.text_area("Reviewer notes (avoid personal/sensitive data)", value=selected.get("review_notes", ""), max_chars=1000)
@@ -248,6 +266,8 @@ with tab_metrics:
 with tab_about:
     st.subheader("Project purpose")
     st.write("NEMA-AGORA is a proposed student-led pilot for organising environmental observations, review status, location information and evaluation data. It is designed to complement existing environmental-management systems, not replace them.")
+    st.markdown("**Quality and governance milestone now implemented**
+    st.markdown("- Deterministic data-quality flags for completeness, consent, coordinates, duplicate suspicion and review state\n- Governance policy gate blocks personal-data intake, urgent incident scope and unofficial integrations\n- Authenticated ownership is enforced at the service boundary")
     st.markdown("**Security milestone now implemented**")
     st.markdown("- Streamlit OIDC identity → stable issuer + subject principal\n- Server-side role binding with deny-by-default access\n- Persistent repository operations require the authenticated principal\n- Submitters are isolated to records they own\n- Review, metrics, audit and export are permission-gated\n- Persistent mode is explicit; demo mode remains session-only")
     st.markdown("**Still not implemented**")
