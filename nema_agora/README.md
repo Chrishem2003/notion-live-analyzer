@@ -230,3 +230,14 @@ The Studio supports blind independent annotation, category and duplicate labels,
 Reviewer accounts can create and inspect only their own annotations. Coordinator/admin roles can inspect agreement and perform adjudication. Annotation data cannot trigger workflow changes, enforcement, emergency response, or official reporting.
 
 A dataset is not considered reliable merely because agreement is high; annotation guidance, representative coverage, disagreement review and provenance remain required before model evaluation.
+
+
+## Phase 15 — Controlled Model Comparison
+
+Phase 15 adds a frozen-benchmark comparison laboratory. A dataset manifest records the dataset version, case IDs and SHA-256 fingerprint before model comparison. Every adapter receives the same case record and every output passes the existing advisory safety contract.
+
+The comparison engine reports category accuracy plus macro precision/recall/F1, duplicate precision/recall/F1, duplicate false positives/negatives, human summary-faithfulness label coverage, confidence Brier score when supplied, latency, failures, slice performance, model-to-model disagreement and regression deltas against a named baseline. Missing category predictions are treated as evaluation misses rather than silently excluded from accuracy.
+
+Comparison runs are persisted separately from live observations with run ID, authenticated actor, dataset version, manifest hash and result JSON. The default enabled adapter remains the local deterministic baseline; no external provider is silently connected.
+
+The Phase 15 readiness state is NOT_READY unless there are at least 25 frozen cases, zero adapter failures, category accuracy >= 80%, and duplicate F1 >= 80% for every compared adapter. READY_FOR_REVIEW is an engineering review threshold only, not production approval, environmental truth, regulatory validation, NEMA endorsement, or permission for autonomous action.
