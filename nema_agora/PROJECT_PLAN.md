@@ -592,3 +592,14 @@ Phase 47 is complete only after GitHub Actions verifies focused tests, compilati
 
 ### Next gate
 Phase 48 — Governance Evidence Casebook: produce a read-only, deterministic case-level view that groups every finding with its exact accountable artifacts, identities, fingerprints and human-review requirement without changing governance state.
+
+
+## Phase 48 — Governance Evidence Casebook
+
+Implemented a deterministic, read-only casebook that packages Phase 47 findings with related attestation, lifecycle decision, provenance binding, exact current snapshot and an explicit human-review requirement. Each case and the complete casebook receive deterministic SHA-256 fingerprints. The casebook never mutates governance state or implies NEMA authorization.
+
+### Completion gate
+GitHub Actions must verify focused tests, compilation and Streamlit smoke for Phase 48 before this phase is declared green.
+
+### Next gate
+Phase 49 — Governance Review Queue: derive a deterministic, read-only prioritization queue from casebook findings for authorized human reviewers, with explicit severity, aging, dependency and review-state signals.
