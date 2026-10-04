@@ -123,3 +123,30 @@ def test_submitter_cannot_record_copilot_feedback(tmp_path):
             feedback={"feedback_type": "accepted"},
             occurred_at="2026-10-04T12:05:00+03:00",
         )
+
+
+def test_model_admission_binds_approver_to_authenticated_principal(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "pilot.sqlite3"))
+    coordinator = principal("coord-1", "coordinator")
+    from nema_agora.admission import ModelCandidate
+    candidate = ModelCandidate(
+        provider="provider-a",
+        model_version="model-1",
+        adapter_name="adapter-a",
+        intended_use="advisory classification",
+        data_handling="synthetic only",
+        retention_policy="controlled",
+        processing_location="local",
+        failure_behaviour="fail closed",
+    )
+    with pytest.raises(PermissionError):
+        service.evaluate_model_admission(
+            candidate=candidate,
+            dataset={"dataset_version":"v1","manifest_hash":"0"*64,"cases":25},
+            annotation_readiness={},
+            comparison={},
+            comparison_run_id="CMP-1",
+            principal=coordinator,
+            approver_id="different-person",
+            rationale="Review.",
+        )
