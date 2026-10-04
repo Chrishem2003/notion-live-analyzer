@@ -27,6 +27,7 @@ PERMISSIONS: Final = frozenset(
         "intelligence:monitor",
         "intelligence:provenance",
         "intelligence:field_eval",
+        "intelligence:impact",
         "intelligence:review_shadow",
         "intelligence:govern_shadow",
         "annotation:create",
