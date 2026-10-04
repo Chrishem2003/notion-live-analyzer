@@ -56,7 +56,7 @@ class AdapterMetrics:
     duplicate_precision: float
     duplicate_recall: float
     duplicate_f1: float
-    summary_faithfulness_rate: float | None
+    summary_label_coverage: float
     mean_latency_ms: float
     confidence_brier: float | None
     confidence_cases: int
@@ -148,7 +148,7 @@ def _adapter_metrics(provider: str, model_version: str, rows: list[dict[str, Any
         duplicate_precision=precision,
         duplicate_recall=recall,
         duplicate_f1=f1,
-        summary_faithfulness_rate=_ratio(sum(faithful), len(faithful)) if faithful else None,
+        summary_label_coverage=_ratio(len(faithful), len(successful)),
         mean_latency_ms=_ratio(sum(r["latency_ms"] for r in rows), len(rows)),
         confidence_brier=brier,
         confidence_cases=len(confidence_rows),
