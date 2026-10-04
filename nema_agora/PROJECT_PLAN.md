@@ -270,3 +270,6 @@ The Annotation Studio now exposes a dataset-process gate. It requires:
 - all detected disagreements explicitly adjudicated.
 
 A READY_FOR_REVIEW result means the annotation process has met these engineering thresholds. It does not certify that labels are correct, representative, unbiased, legally sufficient, or suitable for regulatory decisions.
+
+
+Phase 14 was tightened after review: the readiness gate now requires at least 25 distinct cases to have two independent annotations, measures every available annotator pair, and uses the minimum pairwise category Cohen's kappa rather than silently selecting only one pair. This prevents a strong pair from masking a weak annotator pair.
