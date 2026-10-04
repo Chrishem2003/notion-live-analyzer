@@ -372,3 +372,16 @@ Implemented:
 
 Next: operational runbooks, automated deployment identity capture, deployment
 smoke checks, demo reset controls, and an award-quality evidence package.
+
+
+## Phase 27.5 — Award & Demonstration Evidence Package
+
+Implemented:
+- end-to-end synthetic observation → quality → intelligence → reviewer-support chain;
+- deterministic dataset and evidence fingerprints;
+- reproducibility manifest bound to an explicit Git revision;
+- separation of demonstration evidence from persistent pilot evidence;
+- safety assertions for the session-only demonstration path;
+- dedicated demonstration evidence presentation/download surface.
+
+This package demonstrates software behaviour on synthetic records only. It does not establish environmental impact, environmental truth, NEMA authorization, regulatory status, production approval, enforcement authority, or emergency-response authority.
