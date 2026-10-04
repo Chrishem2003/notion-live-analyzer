@@ -711,3 +711,20 @@ GitHub Actions must verify focused tests, compilation and Streamlit startup befo
 ### Next gate
 
 Phase 57 — Sentinel-2 Remote Sensing Adapter: define imagery metadata, acquisition/cloud-quality contracts and a provider adapter boundary before connecting live imagery.
+
+
+## Phase 57 — Sentinel-2 Remote Sensing Adapter
+
+Implemented a provider-neutral Sentinel-2 imagery contract on top of Phase 56 spatial intelligence. The module validates scene/product identity, L1C/L2A collection, acquisition timestamps, WGS84 bounding boxes, cloud-cover quality and the initial B02/B03/B04/B08 optical band set. Valid scenes receive deterministic fingerprints and can be represented as remote-sensing evidence. A provider adapter boundary is present, but no live credentials or external network access is required.
+
+### Governance boundary
+
+Imagery and cloud-quality metadata are evidence inputs only. Sentinel-2 outputs do not establish environmental truth, illegality, regulatory status, enforcement action, emergency response or NEMA authorization.
+
+### Completion gate
+
+GitHub Actions must verify Phase 57 focused tests, compilation and Streamlit startup before this phase is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 58 — NDVI / NDWI Analytics: derive transparent spectral indices from validated imagery inputs, with explicit quality handling and no automatic regulatory conclusions.
