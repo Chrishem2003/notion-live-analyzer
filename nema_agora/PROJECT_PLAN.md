@@ -325,3 +325,34 @@ Admission must reject stale or mixed evidence. Dataset version, manifest hash, c
 
 ### Next gate
 Introduce a real external model only as an explicitly documented candidate, evaluate it against the frozen benchmark, and route its result through the same Phase 16 admission gate before controlled shadow use.
+
+
+## Phase 26 — Controlled Pilot Readiness Gate
+
+Phase 26 consolidates the evidence produced by the evaluation, governance,
+shadow, provenance, field, impact, accessibility and reproducibility layers
+into one conservative readiness review.
+
+### Implemented
+- Versioned fail-closed PilotReadinessPolicy.
+- Minimum evidence coverage across the five Evidence Observatory domains.
+- Minimum controlled-shadow run volume and Phase 18 healthy status.
+- Shadow error-rate ceiling of 5%.
+- Reproducibility-manifest presence and verified Git revision requirement.
+- Explicit human-review and lifecycle-control checks.
+- Dedicated controlled pilot readiness Streamlit page.
+- Focused unit tests and CI compilation coverage.
+
+### Decision semantics
+The positive result is READY_FOR_CONTROLLED_PILOT_REVIEW. It only indicates
+that the engineering/research evidence is sufficient to enter a
+human-supervised controlled pilot review process. It is not NEMA endorsement,
+regulatory authorization, environmental truth, environmental impact,
+production approval, official reporting permission, enforcement authority or
+emergency-response authorization.
+
+### Next gate
+Validate the readiness gate, then move into deployment hardening and a
+controlled public demonstration track: automated manifest generation,
+deployment smoke tests, synthetic demo data, accessibility verification,
+operational runbooks and an award/demo evidence package.
