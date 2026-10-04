@@ -1220,3 +1220,14 @@ Added an append-only SQLite registry for validated Phase 107 snapshots. The regi
 Completion gate: focused tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
 
 Next gate: Phase 109 — Reconciliation History Integrity Monitoring & Registry Recovery Evidence.
+
+
+## Phase 109 — Reconciliation History Integrity Monitoring & Registry Recovery Evidence
+
+Added a read-only integrity monitor over the Phase 108 append-only snapshot registry. The report validates registry policy tags, Phase 107 snapshot fingerprints and identity, sequence/predecessor continuity, duplicate fingerprints and expected-versus-observed row counts. It produces deterministic recovery-review evidence with explicit recommendations: NO_RECOVERY_ACTION for a clean history, REVIEW_BACKUP for empty history, or PRESERVE_AND_ESCALATE when integrity controls are required. No automatic repair, restore, rewrite or deletion occurs.
+
+The demonstration uses synthetic data in an isolated temporary database. It is not an official NEMA integration and makes no environmental, regulatory, violation, enforcement or emergency-response conclusion.
+
+Completion gate: focused Phase 109 tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
+
+Next gate: Phase 110 — Human-Acknowledged Recovery Review Ledger.
