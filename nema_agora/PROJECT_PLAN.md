@@ -1015,3 +1015,10 @@ Next gate: Phase 79 — FastAPI Spatial Evidence Endpoint / Contract Tests.
 Added a lightweight FastAPI-compatible HTTP boundary over the governed spatial evidence service. The prototype exposes health/query routing with explicit request/result status handling, remains dependency-tolerant, read-only, authorization-aware, and disconnected from live environmental providers.
 
 Next gate: Phase 80 — Spatial Evidence API Integration & Persistent Store Adapter.
+
+
+## Phase 80 — Spatial Evidence API Integration & Persistent Store Adapter
+
+Connected the Phase 79 service boundary to a repository abstraction. The prototype supports a read-only in-memory repository for deterministic tests and defines the same adapter contract for the existing SQLite evidence store and future PostgreSQL/PostGIS persistence. No live database migration or provider connection is claimed.
+
+Next gate: Phase 81 — SQLite Spatial Evidence Repository Adapter.
