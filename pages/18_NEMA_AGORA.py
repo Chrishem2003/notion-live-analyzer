@@ -32,13 +32,9 @@ def _persistent_context() -> tuple[NemaAgoraService | None, object | None, str]:
     mode = mode_from_secrets(st.secrets)
     if mode != "persistent":
         return None, None, mode
-
     principal = principal_from_streamlit_user(st.user, st.secrets)
-    if principal is None:
-        return None, None, mode
-    if not principal.is_authorised:
+    if principal is None or not principal.is_authorised:
         return None, principal, mode
-
     database_path = database_path_from_secrets(st.secrets)
     if database_path is None:
         st.error("Persistent mode is enabled but nema_agora.database_path is not configured.")
@@ -71,9 +67,8 @@ with st.sidebar:
         st.success("Persistent mode")
         if principal is None:
             st.warning("Authentication required before persistent data is available.")
-            if hasattr(st, "login"):
-                if st.button("Sign in", type="primary", use_container_width=True):
-                    st.login()
+            if hasattr(st, "login") and st.button("Sign in", type="primary", use_container_width=True):
+                st.login()
         elif not principal.is_authorised:
             st.error("Authenticated, but not provisioned for this pilot.")
             st.write(f"Account: {principal.display_name or principal.subject}")
@@ -88,7 +83,8 @@ with st.sidebar:
         st.warning("Demo mode — session-only")
         st.caption("Persistent storage is disabled until explicitly configured.")
     st.divider()
-    st.write("**Workflow:** report → review → status → controlled export.")
+    st.write("**Workflow:** report → validate → quality → review → controlled export.")
+    st.write("**Intelligence:** advisory analysis → human verification → decision.")
     st.write("**Safety:** synthetic/consented test records only.")
     st.markdown("[Project source on GitHub](https://github.com/Chrishem2003/notion-live-analyzer)")
 
@@ -124,10 +120,13 @@ can_review = persistent and has_permission(principal.role, "observation:review")
 can_export = persistent and has_permission(principal.role, "case:export")
 can_metrics = persistent and has_permission(principal.role, "metrics:read")
 can_audit = persistent and has_permission(principal.role, "audit:read")
+can_intelligence = persistent and has_permission(principal.role, "intelligence:use")
 
-tab_report, tab_review, tab_map, tab_metrics, tab_about = st.tabs(
-    ["📝 Submit observation", "🔎 Review & track", "🗺️ Map", "📊 Pilot metrics", "ℹ️ About"]
-)
+tabs = st.tabs([
+    "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence",
+    "🗺️ Map", "📊 Pilot metrics", "ℹ️ About"
+])
+tab_report, tab_review, tab_intelligence, tab_map, tab_metrics, tab_about = tabs
 
 with tab_report:
     st.subheader("Record an environmental observation")
@@ -197,51 +196,84 @@ with tab_review:
             if reviewed:
                 changed_at = datetime.now().astimezone().isoformat(timespec="seconds")
                 try:
-                    if persistent:
-                        service.update_review(selected_id, principal, new_status=new_status, review_notes=review_notes, changed_at=changed_at)
-                    else:
-                        updated, event = apply_status_update(selected, new_status=new_status, review_notes=review_notes, changed_at=changed_at)
-                        idx = next(i for i, item in enumerate(st.session_state.nema_agora_reports) if item["case_id"] == selected_id)
-                        st.session_state.nema_agora_reports[idx] = updated
-                        if event:
-                            st.session_state.nema_agora_audit_events.append(event)
+                    service.update_review(selected_id, principal, new_status=new_status, review_notes=review_notes, changed_at=changed_at)
                 except (ValueError, PermissionError, KeyError) as exc:
                     st.error(str(exc))
                 else:
                     st.success("Record updated.")
                     st.rerun()
-
             if can_audit:
                 events = visible_audit(selected_id)
                 if events:
                     st.markdown("**Audit history**")
                     st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
-
             st.divider()
             st.dataframe(
                 pd.DataFrame(records)[["case_id", "observation_date", "category", "severity", "district_or_site", "status"]],
                 use_container_width=True, hide_index=True
             )
             if can_export:
-                export_records = records_for_current_user()
                 st.download_button(
                     "Download authorised records as CSV",
-                    data=service.export_csv(principal, export_records),
-                    file_name="nema_agora_records.csv",
-                    mime="text/csv",
-                    use_container_width=True,
+                    data=service.export_csv(principal, records_for_current_user()),
+                    file_name="nema_agora_records.csv", mime="text/csv", use_container_width=True,
                 )
             elif persistent:
                 st.caption("CSV export is restricted to coordinator/admin roles.")
 
+with tab_intelligence:
+    st.subheader("🧠 Evidence intelligence — human-in-the-loop")
+    st.caption("Phase 8 foundation: deterministic, explainable and advisory. No autonomous regulatory or enforcement decisions are made.")
+    if not persistent:
+        st.info("Intelligence controls are available after authenticated persistent deployment. Demo mode remains session-only.")
+    elif not can_intelligence:
+        st.info("Your account is not assigned evidence-intelligence permission.")
+    else:
+        records = records_for_current_user()
+        if not records:
+            st.info("No records available for analysis.")
+        else:
+            selected_ai_id = st.selectbox("Observation to analyse", options=[r["case_id"] for r in reversed(records)], key="intelligence_case")
+            selected_ai = next(r for r in records if r["case_id"] == selected_ai_id)
+            if st.button("Run advisory analysis", type="primary", use_container_width=True):
+                analysis = service.analyze_observation(selected_ai, principal, peer_records=records)
+                st.markdown("### Neutral summary")
+                st.write(analysis["summary"])
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Quality", analysis["quality_status"])
+                c2.metric("Review", "Required" if analysis["human_review_required"] else "Not required")
+                c3.metric("Advisory", analysis["priority_advisory"]["level"])
+                st.markdown("### Quality signals")
+                st.write(", ".join(analysis["quality_flags"]))
+                st.markdown("### Category suggestions")
+                if analysis["category_suggestions"]:
+                    st.dataframe(pd.DataFrame(analysis["category_suggestions"]), use_container_width=True, hide_index=True)
+                else:
+                    st.info("No keyword-supported alternative category was generated.")
+                st.markdown("### Duplicate candidates")
+                if analysis["duplicate_candidates"]:
+                    st.write(", ".join(analysis["duplicate_candidates"]))
+                    st.warning("Possible duplicates must be reviewed by a person; no record is deleted or automatically merged.")
+                else:
+                    st.info("No deterministic duplicate candidate found.")
+                st.markdown("### Review-priority rationale")
+                st.write(analysis["priority_advisory"]["reason"])
+                st.warning(analysis["decision_notice"])
+
 with tab_map:
     st.subheader("Location view")
     records = records_for_current_user()
-    geocoded = [r for r in records if isinstance(r.get("latitude"), (int, float)) and isinstance(r.get("longitude"), (int, float))]
+    geocoded = [
+        r for r in records
+        if isinstance(r.get("latitude"), (int, float)) and isinstance(r.get("longitude"), (int, float))
+    ]
     if not geocoded:
         st.info("No records with coordinates yet.")
     else:
-        map_df = pd.DataFrame([{"lat": r["latitude"], "lon": r["longitude"], "case_id": r["case_id"], "category": r["category"]} for r in geocoded])
+        map_df = pd.DataFrame([
+            {"lat": r["latitude"], "lon": r["longitude"], "case_id": r["case_id"], "category": r["category"]}
+            for r in geocoded
+        ])
         st.map(map_df[["lat", "lon"]], use_container_width=True)
         st.dataframe(map_df, use_container_width=True, hide_index=True)
 
@@ -265,13 +297,37 @@ with tab_metrics:
 
 with tab_about:
     st.subheader("Project purpose")
-    st.write("NEMA-AGORA is a proposed student-led pilot for organising environmental observations, review status, location information and evaluation data. It is designed to complement existing environmental-management systems, not replace them.")
-    st.markdown("**Quality and governance milestone now implemented**
-    st.markdown("- Deterministic data-quality flags for completeness, consent, coordinates, duplicate suspicion and review state\n- Governance policy gate blocks personal-data intake, urgent incident scope and unofficial integrations\n- Authenticated ownership is enforced at the service boundary")
-    st.markdown("**Quality and governance milestone now implemented**")
-    st.markdown("- Deterministic data-quality flags for completeness, consent, coordinates, duplicate suspicion and review state\n- Governance policy gate blocks personal-data intake, urgent incident scope and unofficial integrations\n- Authenticated ownership is enforced at the service boundary")
-    st.markdown("**Security milestone now implemented**")
-    st.markdown("- Streamlit OIDC identity → stable issuer + subject principal\n- Server-side role binding with deny-by-default access\n- Persistent repository operations require the authenticated principal\n- Submitters are isolated to records they own\n- Review, metrics, audit and export are permission-gated\n- Persistent mode is explicit; demo mode remains session-only")
+    st.write(
+        "NEMA-AGORA is a proposed student-led pilot for organising environmental observations, "
+        "review status, location information and evaluation data. It is designed to complement "
+        "existing environmental-management systems, not replace them."
+    )
+    st.markdown("**Phase 8 — Evidence Intelligence & Human-in-the-Loop**")
+    st.markdown(
+        "- Neutral extractive summaries without invented facts\n"
+        "- Explainable keyword-supported category suggestions\n"
+        "- Review-priority advisories tied to existing pilot fields\n"
+        "- Duplicate candidates as review signals only\n"
+        "- Human verification remains mandatory\n"
+        "- No autonomous regulatory, enforcement or environmental-truth decisions"
+    )
+    st.markdown("**Security and governance controls**")
+    st.markdown(
+        "- Streamlit OIDC identity → stable issuer + subject principal\n"
+        "- Server-side role binding with deny-by-default access\n"
+        "- Persistent repository operations require the authenticated principal\n"
+        "- Submitters are isolated to records they own\n"
+        "- Review, metrics, audit, export and intelligence are permission-gated\n"
+        "- Personal-data intake, urgent incidents and unofficial integrations remain disabled"
+    )
     st.markdown("**Still not implemented**")
-    st.markdown("- Official NEMA, ELMIS or SWIMS integration\n- Regulatory enforcement or verified incident classification\n- SMS/USSD/IVR, satellite analytics, IoT or predictive models\n- Production backup/restore automation, retention enforcement and operational monitoring")
-    st.warning("Before real-user deployment: configure secrets, test each role, establish backup/restore and retention controls, review data governance, and obtain the required institutional/supervisor approvals.")
+    st.markdown(
+        "- Official NEMA, ELMIS or SWIMS integration\n"
+        "- Regulatory enforcement or verified incident classification\n"
+        "- SMS/USSD/IVR, satellite analytics, IoT or predictive models\n"
+        "- Production monitoring and independent backup/audit infrastructure"
+    )
+    st.warning(
+        "Before real-user deployment: configure secrets, test each role, establish backup/restore "
+        "and retention controls, review data governance, and obtain the required institutional/supervisor approvals."
+    )
