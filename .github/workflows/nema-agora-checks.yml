@@ -59,6 +59,7 @@ on:
       - "pages/69_NEMA_AGORA_SPATIAL_CHANGE_DETECTION.py"
       - "pages/70_NEMA_AGORA_SPATIAL_CHANGE_SCORING.py"
       - "pages/71_NEMA_AGORA_SPATIAL_CHANGE_REVIEW_QUEUE.py"
+      - "pages/71_NEMA_AGORA_SPATIAL_CHANGE_REVIEW_QUEUE.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
