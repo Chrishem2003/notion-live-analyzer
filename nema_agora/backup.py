@@ -24,12 +24,15 @@ def integrity_check(database_path: str | Path) -> bool:
     path = _path(database_path)
     if not path.is_file():
         return False
-    connection = sqlite3.connect(path)
     try:
-        result = connection.execute("PRAGMA integrity_check").fetchone()
-        return bool(result and result[0] == "ok")
-    finally:
-        connection.close()
+        connection = sqlite3.connect(path)
+        try:
+            result = connection.execute("PRAGMA integrity_check").fetchone()
+            return bool(result and result[0] == "ok")
+        finally:
+            connection.close()
+    except sqlite3.DatabaseError:
+        return False
 
 def backup_database(database_path: str | Path, backup_dir: str | Path, *, now: datetime | None = None) -> Path:
     source = _path(database_path)
