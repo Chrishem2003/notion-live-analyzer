@@ -13,6 +13,7 @@ on:
       - "pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py"
       - "pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py"
       - "pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py"
+      - "pages/26_NEMA_AGORA_HUMAN_REVIEW.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
@@ -54,7 +55,7 @@ jobs:
         run: python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
 
       - name: Compile pilot Python modules
-        run: python -m compileall -q nema_agora pages/18_NEMA_AGORA.py pages/20_NEMA_AGORA_EVALUATION_LAB.py pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py pages/22_NEMA_AGORA_MODEL_COMPARISON.py pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py tests/nema_agora
+        run: python -m compileall -q nema_agora pages/18_NEMA_AGORA.py pages/20_NEMA_AGORA_EVALUATION_LAB.py pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py pages/22_NEMA_AGORA_MODEL_COMPARISON.py pages/23_NEMA_AGORA_MODEL_GOVERNANCE.py pages/24_NEMA_AGORA_CONTROLLED_SHADOW.py pages/25_NEMA_AGORA_SHADOW_OBSERVATORY.py pages/26_NEMA_AGORA_HUMAN_REVIEW.py tests/nema_agora
 
       - name: Smoke-test Streamlit startup
         shell: bash
