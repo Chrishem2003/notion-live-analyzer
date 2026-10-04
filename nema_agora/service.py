@@ -12,6 +12,7 @@ from typing import Any
 from nema_agora.access import require_permission
 from nema_agora.identity import Principal
 from nema_agora.intelligence import analyze_observation
+from nema_agora.copilot import build_reviewer_copilot
 from nema_agora.storage import NemaAgoraRepository
 
 
@@ -90,7 +91,55 @@ class NemaAgoraService:
         """Run advisory evidence intelligence under the authenticated principal."""
         self._authorised(principal)
         require_permission(principal.role, "intelligence:use")
-        return analyze_observation(record, peer_records=peer_records)
+        analysis = analyze_observation(record, peer_records=peer_records)
+        self.repository.record_intelligence_event(
+            str(record.get("case_id", "")),
+            actor_id=principal.subject_key,
+            role=principal.role,
+            event_type="analysis_run",
+            occurred_at=__import__("datetime").datetime.now().astimezone().isoformat(timespec="seconds"),
+            details={"copilot_version": "phase10-v1"},
+        )
+        return analysis
+
+    def build_reviewer_copilot(
+        self,
+        record: dict[str, Any],
+        principal: Principal,
+        *,
+        peer_records: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:use")
+        analysis = analyze_observation(record, peer_records=peer_records)
+        return build_reviewer_copilot(record, analysis)
+
+    def record_intelligence_feedback(
+        self,
+        case_id: str,
+        principal: Principal,
+        *,
+        feedback: dict[str, Any],
+        occurred_at: str,
+    ) -> None:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:feedback")
+        self.repository.record_intelligence_feedback(
+            case_id,
+            actor_id=principal.subject_key,
+            role=principal.role,
+            feedback=feedback,
+            occurred_at=occurred_at,
+        )
+
+    def list_intelligence_events(
+        self, case_id: str, principal: Principal
+    ) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "audit:read")
+        return self.repository.list_intelligence_events(
+            case_id, actor_id=principal.subject_key, role=principal.role
+        )
 
     def export_csv(self, principal: Principal, records: list[dict[str, Any]]) -> bytes:
         self._authorised(principal)
