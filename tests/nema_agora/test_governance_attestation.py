@@ -19,7 +19,7 @@ def _evidence(path, fp="fp-1"):
     reg.register(evidence_id="E1",evidence_hash="a"*64,evidence_type="SOURCE_CORRECTION",
         reconciliation_fingerprint=fp,exception_code="MISSING_AUDIT_EVENT",
         decision_kind="review_decision",artifact_id="REV-1",resolution_event_id=eid,
-        provenance_ref="OBS-1|REVIEW-1|AUDIT-1",registered_by="u1",verification_state="VERIFIED")
+        provenance_ref="OBS-1:REVIEW-1:AUDIT-1",registered_by="u1",verification_state="VERIFIED")
     return reg.list(),resolver.list_resolutions()
 
 def test_integrity_rejects_malformed_or_tampered_shape():
@@ -70,7 +70,7 @@ def test_integrity_snapshot_fails_closed_without_verified_evidence(tmp_path):
     reg.register(evidence_id="E2",evidence_hash="b"*64,evidence_type="SOURCE_CORRECTION",
         reconciliation_fingerprint="fp-1",exception_code="MISSING_AUDIT_EVENT",decision_kind="review_decision",
         artifact_id="REV-1",resolution_event_id=resolutions[0].get("entry_id") or resolutions[0].get("event_id"),
-        provenance_ref="OBS-1|REVIEW-1|AUDIT-1",registered_by="u1",verification_state="REGISTERED")
+        provenance_ref="OBS-1:REVIEW-1:AUDIT-1",registered_by="u1",verification_state="REGISTERED")
     assert build_integrity_snapshot(reconciliation=rec,closure=closure,resolutions=resolutions,
         evidence_rows=reg.list(),attestations=[])["overall_state"]=="PENDING"
 
