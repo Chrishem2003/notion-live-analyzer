@@ -18,6 +18,7 @@ from nema_agora.storage import NemaAgoraRepository
 from nema_agora.shadow import DeterministicShadowAdapter, run_shadow
 from nema_agora.lab import EvaluationRunStore, LabResult
 from nema_agora.comparison import ComparisonRunStore, ComparisonResult
+from nema_agora.admission import AdmissionStore, ModelAdmissionPolicy, ModelCandidate, evaluate_admission
 from nema_agora.annotation import AnnotationStore, annotation_readiness, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
 
 
@@ -255,6 +256,35 @@ class NemaAgoraService:
         self._authorised(principal)
         require_permission(principal.role, "annotation:read_all")
         return [a.__dict__ for a in AnnotationStore(self.repository.database_path).list_adjudications(dataset_version)]
+
+    def evaluate_model_admission(
+        self,
+        *,
+        candidate: ModelCandidate,
+        dataset: dict[str, Any],
+        annotation_readiness: dict[str, Any],
+        comparison: dict[str, Any],
+        comparison_run_id: str,
+        principal: Principal,
+        approver_id: str,
+        rationale: str,
+        policy: ModelAdmissionPolicy | None = None,
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:admit_model")
+        decision = evaluate_admission(
+            candidate=candidate, dataset=dataset,
+            annotation_readiness=annotation_readiness, comparison=comparison,
+            comparison_run_id=comparison_run_id, approver_id=approver_id,
+            rationale=rationale, policy=policy,
+        )
+        AdmissionStore(self.repository.database_path).save(decision, actor_id=principal.subject_key)
+        return decision.to_dict()
+
+    def list_model_admissions(self, principal: Principal, *, limit: int = 25) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:admit_model")
+        return AdmissionStore(self.repository.database_path).list(limit=limit)
 
     def record_comparison_run(self, result: ComparisonResult, principal: Principal) -> None:
         """Persist a Phase 15 comparison result under the authenticated actor."""
