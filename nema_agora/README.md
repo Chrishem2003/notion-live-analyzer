@@ -21,8 +21,9 @@ The Streamlit page is `pages/18_NEMA_AGORA.py` and provides:
 
 ## Important limitations
 
-- Data is stored only in Streamlit session state; it is not durable storage.
-- No authentication or role-based authorisation is implemented yet; the session history is not a tamper-resistant audit log.
+- The public Streamlit page still stores data only in session state; the new SQLite repository module is an isolated foundation and is not connected to the UI.
+- Authentication and role-based authorisation are not implemented yet. SQLite audit events record actor identifiers supplied by the caller, so this module must not be exposed until those identifiers come from verified authentication.
+- A database audit table is not automatically tamper-proof; production use needs access controls, backups, retention rules, monitoring and an appropriate audit-protection design.
 - No reports are sent to NEMA or any other authority.
 - No ELMIS/SWIMS integration or official dataset access is implemented.
 - The system does not verify allegations or make regulatory decisions.
@@ -42,10 +43,11 @@ The repository already includes Streamlit in its main requirements. If setting u
 
 1. Review the implemented status transitions and data fields with a supervisor.
 2. Agree pilot scope, site, supervision, consent, retention and data-handling rules.
-3. Design a persistence layer only after access controls and backup requirements are reviewed.
-4. Add authentication, role-based permissions and durable audit logging before multi-user testing.
-5. Test accessibility, low-bandwidth behaviour, backups and CSV export.
-6. Validate budget assumptions and grant eligibility with the official NEMA call.
+3. Review the isolated SQLite repository and data model; do not connect it to the public page yet.
+4. Implement and test verified authentication plus role-based permissions before using persistent storage in the UI.
+5. Add deployment-specific database configuration, backup/restore tests, retention rules and operational monitoring.
+6. Test accessibility, low-bandwidth behaviour and CSV export.
+7. Validate budget assumptions and grant eligibility with the official NEMA call.
 
 ## Project links
 
