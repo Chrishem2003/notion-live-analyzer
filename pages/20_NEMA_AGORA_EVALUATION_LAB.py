@@ -144,7 +144,12 @@ if cases and st.button("Run Phase 13 evaluation", type="primary", use_container_
             dataset_version=dataset_version,
         )
     st.session_state["nema_agora_lab_result"] = result
-    st.success(f"Evaluation completed: {result.run_id}")
+    try:
+        service.record_evaluation_run(result, principal)
+    except (ValueError, PermissionError, KeyError) as exc:
+        st.error(f"Evaluation completed but persistence failed: {exc}")
+    else:
+        st.success(f"Evaluation completed and persisted: {result.run_id}")
 
 result = st.session_state.get("nema_agora_lab_result")
 if result:
@@ -185,3 +190,30 @@ if result:
         mime="application/json",
         use_container_width=True,
     )
+
+st.divider()
+st.subheader("Persisted evaluation history")
+st.caption("Only evaluation summaries are stored here; live observation facts and workflow status are never modified by the laboratory.")
+try:
+    history = service.list_evaluation_runs(principal, limit=25)
+except (ValueError, PermissionError, KeyError) as exc:
+    st.error(str(exc))
+else:
+    if history:
+        st.dataframe(
+            pd.DataFrame([
+                {
+                    "run_id": item["run_id"],
+                    "dataset_version": item["dataset_version"],
+                    "created_at": item["created_at"],
+                    "actor_id": item["actor_id"],
+                    "readiness": item["result"].get("readiness"),
+                    "cases": item["result"].get("cases"),
+                }
+                for item in history
+            ]),
+            use_container_width=True,
+            hide_index=True,
+        )
+    else:
+        st.info("No persisted evaluation runs yet.")
