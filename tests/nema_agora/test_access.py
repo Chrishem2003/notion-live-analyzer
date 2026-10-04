@@ -71,3 +71,10 @@ def test_submitter_cannot_use_intelligence():
 def test_admin_can_use_intelligence():
     assert has_permission("admin", "intelligence:use")
     assert has_permission("admin", "intelligence:feedback")
+
+
+def test_shadow_permission_is_reviewer_coordinator_admin_only():
+    assert not has_permission("submitter", "intelligence:shadow")
+    assert has_permission("reviewer", "intelligence:shadow")
+    assert has_permission("coordinator", "intelligence:shadow")
+    assert has_permission("admin", "intelligence:shadow")
