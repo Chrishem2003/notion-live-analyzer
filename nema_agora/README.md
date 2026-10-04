@@ -13,6 +13,7 @@ The Streamlit page is `pages/18_NEMA_AGORA.py` and provides:
 - Structured environmental observation entry.
 - Session-only case identifiers and status tracking.
 - Reviewer notes and update timestamps.
+- Guarded case-status transitions with a current-session status-change history.
 - Length limits on user-entered fields and spreadsheet-formula neutralisation on CSV export.
 - Optional latitude/longitude and a simple map.
 - CSV export and basic process metrics.
@@ -21,7 +22,7 @@ The Streamlit page is `pages/18_NEMA_AGORA.py` and provides:
 ## Important limitations
 
 - Data is stored only in Streamlit session state; it is not durable storage.
-- No authentication or role-based authorisation is implemented yet.
+- No authentication or role-based authorisation is implemented yet; the session history is not a tamper-resistant audit log.
 - No reports are sent to NEMA or any other authority.
 - No ELMIS/SWIMS integration or official dataset access is implemented.
 - The system does not verify allegations or make regulatory decisions.
@@ -39,13 +40,12 @@ The repository already includes Streamlit in its main requirements. If setting u
 
 ## Recommended next steps
 
-1. Define and test record-state transitions and an audit-event model.
-2. Review data fields, consent, retention, and access controls with a supervisor before persistent storage.
-3. Agree pilot scope, site, supervision, consent and data-handling rules.
-4. Design a persistence layer only after the data model and access controls are reviewed.
-5. Add authentication and audit logging before multi-user testing.
-6. Test accessibility, low-bandwidth behaviour, backups and CSV export.
-7. Validate budget assumptions and grant eligibility with the official NEMA call.
+1. Review the implemented status transitions and data fields with a supervisor.
+2. Agree pilot scope, site, supervision, consent, retention and data-handling rules.
+3. Design a persistence layer only after access controls and backup requirements are reviewed.
+4. Add authentication, role-based permissions and durable audit logging before multi-user testing.
+5. Test accessibility, low-bandwidth behaviour, backups and CSV export.
+6. Validate budget assumptions and grant eligibility with the official NEMA call.
 
 ## Project links
 
