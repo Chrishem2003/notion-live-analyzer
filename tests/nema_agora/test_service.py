@@ -81,3 +81,14 @@ def test_service_cannot_accept_caller_supplied_owner_id(tmp_path):
     record["owner_id"] = "attacker-2"
     service.create_observation(record, owner)
     assert repo.get_observation(record["case_id"], actor_id=owner.subject_key, role="submitter")["owner_id"] == owner.subject_key
+
+
+def test_intelligence_requires_reviewer_permission(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "pilot.sqlite3"))
+    owner = principal("submitter-1", "submitter")
+    reviewer = principal("reviewer-1", "reviewer")
+    rec = record()
+    with pytest.raises(PermissionError):
+        service.analyze_observation(rec, owner)
+    result = service.analyze_observation(rec, reviewer, peer_records=[])
+    assert result["human_review_required"] is True
