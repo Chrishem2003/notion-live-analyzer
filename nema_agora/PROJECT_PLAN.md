@@ -1036,3 +1036,10 @@ Next gate: Phase 82 — API-to-Repository Integration Tests and Evidence Retriev
 Proved the governed retrieval path across service validation, repository querying, and response adaptation. Repository failures fail closed as CONTROL_REQUIRED rather than becoming fabricated empty evidence; valid empty queries remain successful. Added deterministic integration tests and a read-only Streamlit demonstration.
 
 Next gate: Phase 83 — Persistent Evidence Query API Hardening and Contract Coverage.
+
+
+## Phase 83 — Persistent Evidence Query API Hardening
+
+Hardened persistent spatial evidence retrieval with supported AOI/scene/candidate/review-state/temporal filters, deterministic ordering, bounded limits, unsupported-filter rejection, and fail-closed persistent query errors. Added integration-oriented tests and a read-only demonstration.
+
+Next gate: Phase 84 — FastAPI Application Wiring and HTTP Contract Surface.
