@@ -448,3 +448,8 @@ Added an append-only SQLite ledger with unique IDs, canonical JSON payloads, seq
 ## Phase 35 — Independent Audit Verification & Recovery
 
 Added read-only verification against a separately preserved checkpoint, portable checkpoint exports, detection of chain tampering and rollback/truncation, and a backup-comparison service API. The Audit Recovery page supports checkpoint export and upload-based verification. Phase 34 now fails closed above its 5,000-entry verification bound and acquires a SQLite immediate write lock before reading the append head to reduce concurrent-chain races. Checkpoint exports are not digitally signed and must be preserved independently; verification is integrity evidence only. No automatic restore, repair, or workflow mutation is performed.
+
+
+## Phase 36 — Governed Audit Event Capture
+
+Added a reusable capture service for allowlisted event types, deterministic idempotency keys, duplicate suppression/conflict detection, and metadata-only payload validation. Added an authenticated human-triggered capture page, focused tests, CI compile coverage, and operational documentation. This establishes the event-capture contract; existing workflows are not claimed as automatically instrumented until they call the service at their actual decision boundaries.
