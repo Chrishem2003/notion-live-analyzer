@@ -113,11 +113,11 @@ def test_build_bundle_from_reconciled_reviews():
 
 def test_non_reconciled_blocked():
     review = _review()
-    bad = dict(_reconciliation(review))
-    bad["state"] = "CONTROL_REQUIRED"
-    # Reconciliation validator sees the tamper before lifecycle evaluation.
-    bad["reconciliation_fingerprint"] = fingerprint({**bad, "reconciliation_fingerprint": None})
-    with pytest.raises(ValueError):
+    bad = reconcile_retention_registry_reviews(
+        [_monitor()], [], expected_review_count=0
+    )
+    assert bad["state"] == "CONTROL_REQUIRED"
+    with pytest.raises(ValueError, match="RECONCILIATION_MUST_BE_RECONCILED"):
         build_retention_registry_review_lifecycle(
             bad, [review], evaluated_at="2026-10-04T12:02:00+00:00"
         )
