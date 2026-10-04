@@ -186,8 +186,8 @@ def compare_models(cases: list[FrozenCase], adapters: dict[str, ComparisonAdapte
             rows = {n: next(r for r in by_adapter[n] if r["case_id"] == case.case_id) for n in names}
             cats = {n:r["predicted_category"] for n,r in rows.items()}
             dups = {n:r["predicted_duplicate"] for n,r in rows.items()}
-            if len(set(v for v in cats.values() if v is not None)) > 1: disagreements.append({"case_id":case.case_id,"type":"category","predictions":cats})
-            if len(set(v for v in dups.values() if v is not None)) > 1: disagreements.append({"case_id":case.case_id,"type":"duplicate","predictions":dups})
+            if len(set(cats.values())) > 1: disagreements.append({"case_id":case.case_id,"type":"category","predictions":cats})
+            if len(set(dups.values())) > 1: disagreements.append({"case_id":case.case_id,"type":"duplicate","predictions":dups})
     regression = []
     if baseline_adapter in by_adapter:
         base = next(m for m in metrics if m.adapter == baseline_adapter)
