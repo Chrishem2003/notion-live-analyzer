@@ -39,3 +39,17 @@ def test_manifest_mismatch_rejected():
     cases=[case(i) for i in range(2)]; manifest=freeze_dataset(cases,"ds-v1")
     with pytest.raises(ValueError):
         compare_models(cases[:1],{"baseline":DeterministicShadowAdapter()},dataset=manifest)
+
+
+def test_comparison_store_persists_immutable_summary(tmp_path):
+    from nema_agora.comparison import ComparisonRunStore
+    cases=[case(i) for i in range(25)]
+    manifest=freeze_dataset(cases,"ds-v1",frozen_at="2026-01-01T00:00:00+00:00")
+    result=compare_models(cases,{"baseline":DeterministicShadowAdapter()},dataset=manifest)
+    store=ComparisonRunStore(str(tmp_path/"nema.db"))
+    store.save(result,actor_id="reviewer-1")
+    rows=store.list(limit=10)
+    assert rows[0]["run_id"] == result.run_id
+    assert rows[0]["dataset_version"] == "ds-v1"
+    assert rows[0]["manifest_hash"] == manifest.manifest_hash
+    assert rows[0]["actor_id"] == "reviewer-1"
