@@ -994,3 +994,10 @@ Next gate: Phase 76 — Spatial Evidence Visualization & Map Layers.
 Added a governed visualization-layer contract for AOI boundaries, baseline and comparison index surfaces, grid-level change evidence, and review-priority context. Layers preserve source identity and remain read-only; no environmental truth, violation, or enforcement conclusion is generated.
 
 Next gate: Phase 77 — Spatial Evidence API & Query Surface.
+
+
+## Phase 77 — Spatial Evidence API & Query Surface
+
+Added a provider-neutral, read-only spatial evidence query contract supporting AOI, scene, candidate, review-status, temporal filtering, deterministic ordering, and fingerprints. The surface exposes validated evidence without bypassing governance or making environmental/regulatory conclusions.
+
+Next gate: Phase 78 — Spatial Evidence Service Boundary / API Adapter.
