@@ -414,3 +414,8 @@ Implemented a paired outcome-analysis layer over the Phase 22 impact observation
 - Produces a reproducible dataset fingerprint and policy version.
 - Adds a dedicated Outcome Study page and focused CI compilation coverage.
 - Keeps all conclusions bounded to software/workflow behaviour; no environmental impact, regulatory, NEMA, enforcement, emergency-response, or autonomous-decision claims are permitted.
+
+
+## Phase 29 — Evidence Synthesis
+
+Implemented an auditable evidence narrative layer with six bounded evidence domains and a claim → evidence → limitation matrix. Claims retain source identifiers, sample sizes, support status and limitations; synthesis identities are deterministic from canonical evidence inputs. Added authenticated Streamlit evidence synthesis page and focused CI coverage. This layer is research/engineering evidence only and cannot establish environmental truth, environmental impact, NEMA authorization, regulatory status, production approval, enforcement or autonomous decision authority.
