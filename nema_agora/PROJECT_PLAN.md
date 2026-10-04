@@ -581,3 +581,14 @@ EVIDENCE_COVERAGE_OK is an engineering evidence condition only. It is not NEMA a
 
 ### Next gate
 Phase 47 — Governance Evidence Reconciliation: add deterministic cross-layer consistency checks between attestation, lifecycle and provenance records so conflicting or orphaned accountability records are surfaced before broader pilot demonstration.
+
+
+## Phase 47 — Governance Evidence Reconciliation
+
+Implemented deterministic cross-layer reconciliation across Phase 43 attestations, Phase 44 lifecycle evidence, Phase 45 provenance bindings and the live governance snapshot. Findings include orphan records, duplicate bindings, lifecycle identity mismatches, provenance snapshot mismatches, validation failures and active lifecycle records without provenance bindings. The reconciler is read-only and fail-closed.
+
+### Completion gate
+Phase 47 is complete only after GitHub Actions verifies focused tests, compilation and Streamlit smoke for the new module and page. No green status is inferred from source inspection.
+
+### Next gate
+Phase 48 — Governance Evidence Casebook: produce a read-only, deterministic case-level view that groups every finding with its exact accountable artifacts, identities, fingerprints and human-review requirement without changing governance state.
