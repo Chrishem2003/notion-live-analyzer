@@ -1,15 +1,11 @@
 # NEMA-AGORA Autonomous Build Changelog
 
-## 2026-10-04
-- Initialized autonomous build control state.
-- Established persistent roadmap, protocol, and durable continuation state.
-- Built Phase 153 lifecycle decision authorization boundary.
-- Built Phase 154 lifecycle decision reconciliation.
-- Built Phase 155 lifecycle decision continuity and architecture checkpoint.
-- Built Phase 156 append-only continuity registry.
-- Validation remains explicitly unclaimed because GitHub workflow runs have not been observed for this latest head.
+## 2026-10-05
+- Reconciled the durable build state with the product track.
+- Phase 168: added governed operational case metrics.
+- Phase 169: added deterministic pilot acceptance and safety-boundary gates.
+- Validation remains explicitly unclaimed because no GitHub Actions run has been observed for the current head.
 
 ## Next
-- Phase 157 registry health monitoring.
-- Then human review/reconciliation only where materially useful.
-- Continue toward product-facing evidence, spatial intelligence, evaluation, observability, security, reporting and deployment capabilities after governance architecture review.
+- Phase 170: final architecture and acceptance checkpoint.
+- Review security/access boundaries, persistence transitions, UI integration, evaluation integrity, and deployment prerequisites before considering the pilot complete.
