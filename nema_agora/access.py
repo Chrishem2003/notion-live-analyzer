@@ -21,6 +21,10 @@ PERMISSIONS: Final = frozenset(
         "intelligence:feedback",
         "intelligence:shadow",
         "intelligence:lab",
+        "annotation:create",
+        "annotation:read_own",
+        "annotation:read_all",
+        "annotation:adjudicate",
         "audit:read",
         "user:manage",
     }
@@ -42,6 +46,10 @@ _ROLE_PERMISSIONS = {
             "intelligence:feedback",
             "intelligence:shadow",
             "intelligence:lab",
+            "annotation:create",
+            "annotation:read_own",
+            "annotation:read_all",
+            "annotation:adjudicate",
         }
     ),
     "admin": PERMISSIONS,
