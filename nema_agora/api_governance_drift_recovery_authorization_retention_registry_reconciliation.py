@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any, Mapping, Sequence
 from .api_audit_binding import fingerprint
-from .api_governance_drift_recovery_authorization_retention_registry_monitor import validate_retention_authorization_registry_monitor
+from .api_governance_drift_recovery_authorization_retention_registry_monitor import validate_retention_registry_monitor
 from .api_governance_drift_recovery_authorization_retention_registry_review import validate_retention_registry_review
 
 POLICY_VERSION = "phase127-v1"
