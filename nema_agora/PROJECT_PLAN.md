@@ -452,4 +452,4 @@ Added read-only verification against a separately preserved checkpoint, portable
 
 ## Phase 36 — Governed Audit Event Capture
 
-Added a reusable capture service for allowlisted event types, deterministic idempotency keys, duplicate suppression/conflict detection, and metadata-only payload validation. Added an authenticated human-triggered capture page, focused tests, CI compile coverage, and operational documentation. This establishes the event-capture contract; existing workflows are not claimed as automatically instrumented until they call the service at their actual decision boundaries.
+Added a reusable capture service for allowlisted event types, deterministic idempotency keys, duplicate suppression/conflict detection, and metadata-only payload validation. Added an authenticated human-triggered capture page, focused tests, CI compile coverage, and operational documentation. The checkpoint-creation page and publication-gate decision page call the capture service at their actual decision boundaries. Other workflows are not claimed as automatically instrumented until connected explicitly.
