@@ -1029,3 +1029,10 @@ Next gate: Phase 81 — SQLite Spatial Evidence Repository Adapter.
 Added the concrete SQLite repository behind the Phase 80 repository contract. Persistence delegates to the Phase 68 append-only SpatialEvidenceStore, preserving immutable evidence history while exposing deterministic service-layer filters. This remains prototype persistence; PostgreSQL/PostGIS is the future production adapter.
 
 Next gate: Phase 82 — API-to-Repository Integration Tests and Evidence Retrieval Hardening.
+
+
+## Phase 82 — API-to-Repository Integration & Evidence Retrieval Hardening
+
+Proved the governed retrieval path across service validation, repository querying, and response adaptation. Repository failures fail closed as CONTROL_REQUIRED rather than becoming fabricated empty evidence; valid empty queries remain successful. Added deterministic integration tests and a read-only Streamlit demonstration.
+
+Next gate: Phase 83 — Persistent Evidence Query API Hardening and Contract Coverage.
