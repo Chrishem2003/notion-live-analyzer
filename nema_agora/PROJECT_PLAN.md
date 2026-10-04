@@ -1155,3 +1155,10 @@ Next gate: Phase 99 — API Governance Evidence Coverage & Health.
 Added deterministic coverage and health evaluation across the Phase 88–98 API governance chain. Coverage gaps and upstream CONTROL_REQUIRED states fail closed. Metrics are engineering/evidence-health measures only and do not establish environmental truth or regulatory authority.
 
 Next gate: Phase 100 — API Governance Evidence Snapshot & Baseline.
+
+
+## Phase 100 — API Governance Evidence Snapshot & Baseline
+
+Added deterministic point-in-time governance snapshots and baseline-to-current diffing across the observatory and health layers. Snapshot drift is evidence for human interpretation only and creates no environmental or regulatory conclusion.
+
+Next gate: Phase 101 — API Governance Drift Detection & Review Trigger.
