@@ -385,3 +385,20 @@ Implemented:
 - dedicated demonstration evidence presentation/download surface.
 
 This package demonstrates software behaviour on synthetic records only. It does not establish environmental impact, environmental truth, NEMA authorization, regulatory status, production approval, enforcement authority, or emergency-response authority.
+
+
+## Phase 21 — Real Pipeline Strengthening (v2)
+
+Completed after Phase 27 hardening:
+
+- restored persistent FieldEvaluationStore compatibility;
+- controlled six-scenario fixtures now execute the actual observation → quality → intelligence → reviewer-support chain;
+- duplicate evaluation uses a real synthetic peer record and the existing duplicate heuristic;
+- scenario assertions validate actual quality flags rather than manually injected outputs;
+- human-review and non-autonomous safety contracts are explicitly checked;
+- service-layer execution is principal-bound and persists the resulting evaluation evidence;
+- Field Evaluation page now runs the full six-scenario suite and reports stored evidence;
+- Phase 21 documentation records the v2 methodology and governance boundary;
+- focused CI path/compilation coverage remains enabled.
+
+Phase 21 results are software-behaviour evidence only and must not be presented as environmental truth, environmental impact, regulatory status, NEMA authorization, production approval, enforcement authority, or emergency-response authority.
