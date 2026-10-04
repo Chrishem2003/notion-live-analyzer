@@ -54,7 +54,7 @@ def test_annotation_readiness_requires_process_gates():
     a = [ann("1", "a"), ann("2", "a")]
     result = annotation_readiness(a, [], minimum_cases=2)
     assert result["status"] == "NOT_READY"
-    assert not result["gates"]["two_independent_annotators"]
+    assert not result["gates"]["minimum_double_annotated_cases"]
 
 
 def test_annotation_readiness_requires_adjudicating_disagreements():
@@ -69,4 +69,12 @@ def test_annotation_readiness_requires_adjudicating_disagreements():
         final_summary_faithful=True, rationale="Resolved by documented adjudication.",
     )
     result2 = annotation_readiness(first + second, [adjudication], minimum_cases=1, minimum_category_kappa=-1.0)
-    assert result2["status"] == "READY_FOR_REVIEW"
+    assert result2["status"] == "NOT_READY"
+
+
+def test_annotation_readiness_requires_double_annotation():
+    first = [ann(str(i), "a") for i in range(25)]
+    second = [ann(str(i), "b") for i in range(24)]
+    result = annotation_readiness(first + second, [], minimum_cases=25, minimum_category_kappa=-1.0)
+    assert result["double_annotated_cases"] == 24
+    assert not result["gates"]["minimum_double_annotated_cases"]
