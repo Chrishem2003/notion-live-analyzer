@@ -78,3 +78,13 @@ def test_shadow_permission_is_reviewer_coordinator_admin_only():
     assert has_permission("reviewer", "intelligence:shadow")
     assert has_permission("coordinator", "intelligence:shadow")
     assert has_permission("admin", "intelligence:shadow")
+
+
+def test_annotation_permissions_are_separated():
+    assert has_permission("reviewer", "annotation:create")
+    assert has_permission("reviewer", "annotation:read_own")
+    assert not has_permission("reviewer", "annotation:read_all")
+    assert not has_permission("reviewer", "annotation:adjudicate")
+    assert has_permission("coordinator", "annotation:read_all")
+    assert has_permission("coordinator", "annotation:adjudicate")
+    assert not has_permission("submitter", "annotation:create")
