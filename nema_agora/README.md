@@ -219,3 +219,14 @@ It measures category accuracy, duplicate precision/recall/F1, execution failures
 The current build enables only the local deterministic baseline. It does not silently call an external AI provider or send pilot records outside the configured application.
 
 A laboratory result is evaluation evidence only. It does not establish environmental truth, official incident status, regulatory priority, enforcement action, NEMA endorsement, or production readiness. Human review remains mandatory.
+
+
+## Phase 14 — Human Annotation & Dataset Governance
+
+Phase 14 adds a controlled Annotation Studio for creating independent human labels before model comparison. Labels are versioned by dataset, bound to authenticated annotators, and stored separately from observation workflow state.
+
+The Studio supports blind independent annotation, category and duplicate labels, optional human summary-faithfulness judgement, disagreement detection, pairwise observed agreement, Cohen's kappa for category labels, and explicit adjudication. Adjudication creates a final research label without overwriting the independent labels.
+
+Reviewer accounts can create and inspect only their own annotations. Coordinator/admin roles can inspect agreement and perform adjudication. Annotation data cannot trigger workflow changes, enforcement, emergency response, or official reporting.
+
+A dataset is not considered reliable merely because agreement is high; annotation guidance, representative coverage, disagreement review and provenance remain required before model evaluation.
