@@ -98,6 +98,13 @@ def spectral_index_evidence(
             "findings": validation["findings"],
         }
 
+    if ("NDVI" in index_names and float(band_values["B04"]) + float(band_values["B08"]) == 0) or ("NDWI_MCFEETERS" in index_names and float(band_values["B03"]) + float(band_values["B08"]) == 0):
+        return {
+            "policy_version": POLICY_VERSION,
+            "state": "CONTROL_REQUIRED",
+            "findings": [{"code": "INDEX_DENOMINATOR_ZERO"}],
+        }
+
     values: dict[str, float] = {}
     formulas: dict[str, str] = {}
     for name in index_names:
