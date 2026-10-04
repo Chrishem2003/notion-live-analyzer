@@ -1162,3 +1162,10 @@ Next gate: Phase 100 — API Governance Evidence Snapshot & Baseline.
 Added deterministic point-in-time governance snapshots and baseline-to-current diffing across the observatory and health layers. Snapshot drift is evidence for human interpretation only and creates no environmental or regulatory conclusion.
 
 Next gate: Phase 101 — API Governance Drift Detection & Review Trigger.
+
+
+## Phase 101 — API Governance Drift Detection & Review Trigger
+
+Added deterministic baseline/current snapshot drift detection. Governance changes create a human review trigger; CONTROL_REQUIRED upstream states are HIGH severity. The trigger is advisory governance evidence only and never authorizes regulatory, enforcement, or emergency action.
+
+Next gate: Phase 102 — Persistent Governance Drift Registry.
