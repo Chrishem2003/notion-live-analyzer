@@ -123,10 +123,10 @@ can_audit = persistent and has_permission(principal.role, "audit:read")
 can_intelligence = persistent and has_permission(principal.role, "intelligence:use")
 
 tabs = st.tabs([
-    "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence", "🤝 Reviewer copilot",
+    "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence", "🤝 Reviewer copilot", "📊 Intelligence observatory",
     "🗺️ Map", "📊 Pilot metrics", "ℹ️ About"
 ])
-tab_report, tab_review, tab_intelligence, tab_copilot, tab_map, tab_metrics, tab_about = tabs
+tab_report, tab_review, tab_intelligence, tab_copilot, tab_observatory, tab_map, tab_metrics, tab_about = tabs
 
 with tab_report:
     st.subheader("Record an environmental observation")
@@ -369,6 +369,18 @@ with tab_copilot:
                         st.markdown("### Intelligence audit trail")
                         st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
 
+with tab_observatory:
+    st.subheader("📊 Intelligence observatory")
+    st.caption("Phase 11: measure reviewer feedback and evaluation readiness before considering any live model.")
+    if not persistent or not can_metrics:
+        st.info("The intelligence observatory is available to authenticated reviewer/coordinator/admin roles.")
+    else:
+        st.markdown("### Readiness gates")
+        st.write("A passing snapshot means the evaluation evidence meets the pilot thresholds. It is **not** approval for production or official deployment.")
+        st.info("Use the Phase 9 labelled evaluation report with the reviewer feedback trail to assess readiness.")
+        st.markdown("**Current pilot gate policy**")
+        st.write("- ≥25 labelled evaluation cases\n- ≥20 reviewer feedback records\n- ≥80% category accuracy\n- ≥80% duplicate F1\n- ≥90% summary faithfulness")
+        st.warning("No readiness result is displayed until a versioned evaluation report is supplied. Thresholds are governance gates, not guarantees of model safety.")
 with tab_map:
     st.subheader("Location view")
     records = records_for_current_user()
