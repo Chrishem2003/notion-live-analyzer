@@ -92,3 +92,34 @@ def test_intelligence_requires_reviewer_permission(tmp_path):
         service.analyze_observation(rec, owner)
     result = service.analyze_observation(rec, reviewer, peer_records=[])
     assert result["human_review_required"] is True
+
+
+def test_reviewer_copilot_and_feedback_are_principal_bound(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "pilot.sqlite3"))
+    reviewer = principal("reviewer-1", "reviewer")
+    rec = service.create_observation(record(), principal("submitter-1", "submitter"))
+    copilot = service.build_reviewer_copilot(rec, reviewer, peer_records=[rec])
+    assert copilot["source_case_id"] == rec["case_id"]
+    service.record_intelligence_feedback(
+        rec["case_id"],
+        reviewer,
+        feedback={
+            "feedback_type": "accepted",
+            "copilot_version": copilot["copilot_version"],
+            "notes": "Synthetic reviewer feedback",
+        },
+        occurred_at="2026-10-04T12:05:00+03:00",
+    )
+    events = service.list_intelligence_events(rec["case_id"], principal("admin-1", "admin"))
+    assert [e["event_type"] for e in events] == ["analysis_run", "feedback_recorded"]
+
+
+def test_submitter_cannot_record_copilot_feedback(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "pilot.sqlite3"))
+    rec = service.create_observation(record(), principal("submitter-1", "submitter"))
+    with pytest.raises(PermissionError):
+        service.record_intelligence_feedback(
+            rec["case_id"], principal("submitter-1", "submitter"),
+            feedback={"feedback_type": "accepted"},
+            occurred_at="2026-10-04T12:05:00+03:00",
+        )
