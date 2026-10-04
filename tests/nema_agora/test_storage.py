@@ -44,11 +44,11 @@ def test_creation_writes_audit_event_with_actor(tmp_path):
 
 def test_status_update_and_audit_event_are_saved(tmp_path):
     repository = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
-    record = repository.create_observation(sample_record(), actor_id="submitter-1")
+    record = repository.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
 
     updated = repository.update_review(
         record["case_id"],
-        actor_id="reviewer-2",
+        actor_id="reviewer-2", role="reviewer",
         new_status="Under review",
         review_notes="Initial triage",
         changed_at="2026-10-04T12:10:00+03:00",
@@ -65,12 +65,12 @@ def test_status_update_and_audit_event_are_saved(tmp_path):
 
 def test_invalid_transition_does_not_change_record_or_add_event(tmp_path):
     repository = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
-    record = repository.create_observation(sample_record(), actor_id="submitter-1")
+    record = repository.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
 
     with pytest.raises(ValueError, match="cannot move directly"):
         repository.update_review(
             record["case_id"],
-            actor_id="reviewer-2",
+            actor_id="reviewer-2", role="reviewer",
             new_status="Closed",
             review_notes="",
             changed_at="now",
@@ -97,7 +97,24 @@ def test_unknown_case_and_missing_actor_are_rejected(tmp_path):
 def test_duplicate_case_id_is_not_silently_overwritten(tmp_path):
     repository = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
     record = sample_record()
-    repository.create_observation(record, actor_id="submitter-1")
+    repository.create_observation(record, actor_id="submitter-1", role="submitter")
     with pytest.raises(Exception):
-        repository.create_observation(record, actor_id="submitter-1")
+        repository.create_observation(record, actor_id="submitter-1", role="submitter")
     assert len(repository.list_observations()) == 1
+
+
+def test_submitter_cannot_read_other_users_record(tmp_path):
+    repo = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
+    record = repo.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
+    with pytest.raises(PermissionError):
+        repo.get_observation(record["case_id"], actor_id="submitter-2", role="submitter")
+
+
+def test_submitter_cannot_review_or_read_audit(tmp_path):
+    repo = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
+    record = repo.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
+    with pytest.raises(PermissionError):
+        repo.update_review(record["case_id"], actor_id="submitter-1", role="submitter",
+                           new_status="Under review", review_notes="", changed_at="now")
+    with pytest.raises(PermissionError):
+        repo.list_audit_events(record["case_id"], actor_id="submitter-1", role="submitter")
