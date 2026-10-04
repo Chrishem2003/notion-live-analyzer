@@ -29,7 +29,7 @@ _ROLE_PERMISSIONS = {
         "intelligence:use", "intelligence:feedback", "intelligence:shadow",
         "intelligence:lab", "intelligence:comparison", "intelligence:controlled_shadow",
         "intelligence:monitor", "intelligence:provenance", "intelligence:field_eval",
-        "intelligence:impact", "intelligence:evidence", "intelligence:reproducibility",
+        "intelligence:impact", "intelligence:evidence", "intelligence:reproducibility", "intelligence:pilot_readiness",
         "annotation:create", "annotation:read_own", "intelligence:review_shadow",
     }),
     "coordinator": frozenset({
@@ -38,7 +38,7 @@ _ROLE_PERMISSIONS = {
         "intelligence:lab", "intelligence:comparison", "intelligence:admit_model",
         "intelligence:controlled_shadow", "intelligence:monitor", "intelligence:provenance",
         "intelligence:field_eval", "intelligence:impact", "intelligence:evidence",
-        "intelligence:reproducibility", "annotation:create", "annotation:read_own",
+        "intelligence:reproducibility", "intelligence:pilot_readiness", "annotation:create", "annotation:read_own",
         "annotation:read_all", "annotation:adjudicate", "intelligence:review_shadow",
         "intelligence:govern_shadow", "intelligence:pilot_readiness",
     }),
