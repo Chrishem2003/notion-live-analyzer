@@ -1085,3 +1085,10 @@ Next gate: Phase 89 — Persistent API Audit Registry and Immutable Request Trac
 Added an append-only SQLite API audit registry with deterministic fingerprints, unique event/fingerprint constraints, request-scoped retrieval, validation, and immutable UPDATE/DELETE triggers. This persists Phase 88 request traceability as evidence without creating environmental or regulatory authority.
 
 Next gate: Phase 90 — End-to-End API Audit Integration and Reconciliation.
+
+
+## Phase 90 — End-to-End API Audit Integration & Reconciliation
+
+Added reconciliation for API audit evidence, including event validation, duplicate detection, missing expected requests, deterministic fingerprint recomputation, and fail-closed CONTROL_REQUIRED handling. This closes the governance verification boundary around API request traceability.
+
+Next gate: Phase 91 — API Audit Lifecycle and Retention Governance.
