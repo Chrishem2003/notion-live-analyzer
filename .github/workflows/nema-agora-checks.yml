@@ -1,4 +1,4 @@
-name: NEMA-AGORA Pilot Checks
+name: NEMA-AGORA Pilot Checks # Phase 38 verification trigger
 
 on:
   push:
