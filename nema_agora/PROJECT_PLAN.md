@@ -1195,4 +1195,10 @@ Added an append-only SQLite registry for Phase 104 governance drift human-review
 
 Completion gate: GitHub Actions must visibly verify Phase 105 focused tests, compilation and Streamlit startup before Phase 105 is declared CI-green. No green status is inferred from source inspection.
 
-Next gate: Phase 106 — Governance Drift Review Audit Reconciliation & Evidence Integrity.
+## Phase 106 — Governance Drift Review Audit Reconciliation & Evidence Integrity
+
+Added a read-only reconciler spanning Phase 101 drift events, Phase 103 queue items, Phase 104 human-review audits and Phase 105 persistent registry rows. It detects missing/orphan records, duplicates, drift/snapshot identity mismatches, audit fingerprint tampering and persisted-row divergence. Findings fail closed to CONTROL_REQUIRED; clean evidence returns RECONCILED. No source records are automatically repaired or mutated.
+
+Completion gate: GitHub Actions must visibly pass focused tests, compilation and Streamlit smoke checks on the current PR head before this phase is called CI-green.
+
+Next gate: Phase 107 — Governance Drift Review Reconciliation Snapshot & History.
