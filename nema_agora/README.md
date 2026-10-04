@@ -67,3 +67,27 @@ The repository already includes Streamlit in its main requirements. If setting u
 - Applicant LinkedIn: https://www.linkedin.com/in/chris-shem-435166314
 - Existing demo: https://notion-live-analyzer-w6ckned7rqd4gb8oppjjke.streamlit.app/
 - Research planner: https://sleet-spectacles-fd3.notion.site/Bio-Research-Enterprise-Research-Planner-35f9142806c6805286a5c6767a7c9cfd?pvs=143
+
+
+## Security milestone: authorization boundary
+
+The persistent layer now has an explicit authorization boundary:
+
+- Streamlit OIDC identity is converted into a stable issuer + subject principal.
+- Roles are assigned only from server-side nema_agora.role_bindings.
+- Unknown or unbound users fail closed.
+- SQLite create/read/review/audit operations enforce the role policy at the repository boundary.
+- Submitters can read only records they own; reviewers/coordinators can read according to their permissions.
+- Audit events record the actor identifier supplied by the authenticated application boundary.
+- The SQLite layer is still not connected to the public page until deployment-specific authentication, database path, backup/restore, retention and operational controls are configured.
+
+Streamlit provides native OIDC through st.login(), st.user, and st.logout(). Keep secrets outside Git and configure the deployed callback URL in the host secret manager.
+
+## Next build gate
+
+1. Configure OIDC in the host secret manager and create explicit role bindings.
+2. Run focused CI and manual authentication tests with at least one account per role.
+3. Add deployment-specific SQLite path, backup/restore, retention and monitoring configuration.
+4. Connect the page to the repository only when an authenticated principal is present.
+5. Add an operational admin/audit view and controlled export.
+6. Validate low-bandwidth accessibility and pilot data-handling rules.
