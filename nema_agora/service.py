@@ -23,6 +23,7 @@ from nema_agora.shadow_governance import ControlledShadowStore, execute_controll
 from nema_agora.shadow_monitoring import build_shadow_monitoring_snapshot
 from nema_agora.provenance import ProvenanceStore, verify_provenance_chain
 from nema_agora.field_eval import FieldScenario, FieldEvaluationStore, evaluate_scenario
+from nema_agora.accessibility import AccessibilityStore, AccessibilityObservation, make_observation, summarise
 from nema_agora.review_governance import (
     ReviewStore, build_reevaluation, make_shadow_review, make_lifecycle_decision,
 )
@@ -352,6 +353,20 @@ class NemaAgoraService:
         result = evaluate_scenario(scenario=scenario, observed=observed, notes=notes)
         FieldEvaluationStore(self.repository.database_path).save(result)
         return result.to_dict()
+
+    def record_accessibility_observation(self, principal: Principal, *, scenario_id: str, channel: str, outcome: str, steps_completed: int, steps_expected: int, accessibility_barrier: bool, review_required: bool, notes: str = "") -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:impact")
+        row = make_observation(scenario_id=scenario_id, channel=channel, outcome=outcome,
+            steps_completed=steps_completed, steps_expected=steps_expected,
+            accessibility_barrier=accessibility_barrier, review_required=review_required, notes=notes)
+        AccessibilityStore(self.repository.database_path).save(row)
+        return row.to_dict()
+
+    def list_accessibility_observations(self, principal: Principal, *, limit: int = 1000) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:impact")
+        return AccessibilityStore(self.repository.database_path).list(limit)
 
     def list_field_evaluations(self, principal: Principal, *, limit: int = 500) -> list[dict[str, Any]]:
         self._authorised(principal)
