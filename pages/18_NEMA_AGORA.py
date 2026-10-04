@@ -139,7 +139,8 @@ with tab_report:
             category = st.selectbox("Observation category", CATEGORIES)
             observation_date = st.date_input("Date observed", value=date.today())
             site = st.text_input("District / site label", placeholder="e.g. Pilot site A", max_chars=120)
-            severity = st.selectbox("Initial priority (unverified)", SEVERITIES, index=1)
+            allowed_severities = tuple(s for s in SEVERITIES if governance_policy["allow_urgent_incidents"] or s != "Urgent")
+            severity = st.selectbox("Initial priority (unverified)", allowed_severities, index=min(1, len(allowed_severities) - 1))
         with c2:
             latitude = st.number_input("Latitude (optional)", min_value=-90.0, max_value=90.0, value=0.0, step=0.0001, format="%.5f")
             longitude = st.number_input("Longitude (optional)", min_value=-180.0, max_value=180.0, value=0.0, step=0.0001, format="%.5f")
