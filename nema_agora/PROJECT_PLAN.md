@@ -842,3 +842,19 @@ GitHub Actions must verify Phase 62 tests, compilation and Streamlit startup bef
 ### Next gate
 
 Phase 63 — Persistent Spatial Change Review Queue: create append-only candidate review records and connect analytical priority to the existing human-governed review workflow without autonomous decisions.
+
+## Phase 63 — Persistent Spatial Change Review Queue
+
+Implemented a persistent, append-only SQLite review queue for Phase 62 spatial-change priority outputs. The queue validates scored candidates, persists deterministic review-item IDs and fingerprints, prevents duplicate candidate records, carries AOI/grid identity, score components and reason codes, and blocks UPDATE/DELETE operations with database triggers. Queue records remain QUEUED and require a separate human-governed review workflow for any review outcome.
+
+### Governance boundary
+
+The queue is an analytical persistence layer only. It does not establish deforestation, wetland loss, illegality, environmental truth, regulatory status, enforcement action, emergency response, NEMA authorization or production approval. No autonomous review or regulatory decision is performed.
+
+### Completion gate
+
+GitHub Actions must verify Phase 63 focused tests, compilation and Streamlit startup before Phase 63 is declared CI-green. No green status is inferred from source inspection.
+
+### Next gate
+
+Phase 64 — Spatial Change Human Review & Audit Binding: connect queued analytical candidates to explicit human review outcomes and append-only audit evidence without granting autonomous regulatory authority.
