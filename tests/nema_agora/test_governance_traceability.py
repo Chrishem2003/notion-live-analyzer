@@ -23,7 +23,14 @@ def _bundle(tmp_path):
         "parent_ids": [],
     }]
     synthesis = build_evidence_synthesis(
-        evidence_domains={"ENGINEERING": {"count": 1, "source_ids": ["PROV-1"], "limitations": ["bounded"]}},
+        evidence_domains={
+            "ENGINEERING": {"count": 1, "source_ids": ["PROV-1"], "limitations": ["bounded"]},
+            "WORKFLOW_OUTCOMES": {"count": 1, "source_ids": ["PROV-1"], "limitations": ["bounded"]},
+            "HUMAN_GOVERNANCE": {"count": 1, "source_ids": ["PROV-1"], "limitations": ["bounded"]},
+            "REPRODUCIBILITY": {"count": 1, "source_ids": ["PROV-1"], "limitations": ["bounded"]},
+            "ACCESSIBILITY": {"count": 1, "source_ids": ["PROV-1"], "limitations": ["bounded"]},
+            "FIELD_EVALUATION": {"count": 1, "source_ids": ["PROV-1"], "limitations": ["bounded"]},
+        },
         global_limitations=["bounded"],
     )
     graph = build_evidence_graph(provenance_records=records, synthesis=synthesis.to_dict())
