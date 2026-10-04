@@ -164,6 +164,19 @@ until a labelled evaluation set, data governance and an approved model/data
 handling plan exist.
 
 
+## Phase 10: Reviewer Copilot & Human Evaluation
+
+Phase 10 adds a structured reviewer workspace on top of the evaluated deterministic intelligence foundation. The copilot:
+
+- surfaces only evidence fields actually supplied in the observation;
+- presents quality signals, category guidance and duplicate candidates;
+- asks uncertainty questions and provides a reviewer checklist;
+- binds every brief to the source case ID and a versioned copilot contract;
+- captures accepted, rejected or corrected reviewer feedback for future evaluation;
+- records persisted analysis and feedback events in an auditable intelligence trail.
+
+Reviewer feedback is evaluation data, not a workflow command. It never changes case status, merges records, verifies an allegation, declares illegality, dispatches an emergency response or triggers enforcement. No external LLM/API provider is enabled by this phase.
+
 ## Phase 9: AI evaluation and decision-support gate
 
 Phase 9 establishes the measurement and safety layer before any live model
