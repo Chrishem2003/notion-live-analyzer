@@ -50,9 +50,11 @@ class GovernanceDecisionLedger:
         }
         if counts is not None:
             payload["counts"] = dict(counts)
+        # One artifact represents one governed decision boundary. Reusing
+        # the same identity with changed outcome metadata must fail rather than
+        # create a second history for the same boundary.
         event_id = _id("GOV", {
             "decision_kind": decision_kind, "artifact_id": artifact_id.strip(),
-            "status": status, "decision": decision, "reason_code": reason_code,
         })
         return self.capture.record(
             event_id=event_id, event_type=event_type, actor_id=actor_id, payload=payload
