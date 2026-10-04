@@ -1289,3 +1289,21 @@ Added deterministic authorization-history snapshots and read-only continuity rec
 Completion gate: focused Phase 115 tests, compilation and smoke checks must visibly pass before CI-green is claimed.
 
 Next gate: Phase 116 — Authorization History Registry & Recovery Evidence Retention.
+
+## Phase 116 — Authorization History Registry & Recovery Evidence Retention
+
+Added an append-only SQLite registry for Phase 115 authorization-history snapshots. The registry enforces sequential append order and exact predecessor binding, rejects duplicate snapshot identities, blocks UPDATE/DELETE through database triggers, and exposes ordered listing plus read-only reconciliation. Retained authorization history is evidence of governance continuity only; it never grants execution permission.
+
+Completion gate: focused Phase 116 tests, compilation and smoke checks must visibly pass on the current PR head before CI-green is claimed.
+
+Next gate: Phase 117 — Authorization Retention Integrity Monitoring & Recovery Evidence Health.
+
+## Phase 117 — Authorization Retention Integrity Monitoring & Recovery Evidence Health
+
+Added a read-only health monitor over the Phase 116 authorization-history registry. The monitor validates retained snapshots through the Phase 115 reconciliation contract, checks registry policy and expected counts, detects invalid/duplicate/gapped/predecessor-broken history and execution-gate violations, and emits deterministic retention-health evidence.
+
+States are RETENTION_HEALTHY, NO_HISTORY and CONTROL_REQUIRED. Recommendations are limited to NO_RETENTION_ACTION, REVIEW_RETENTION and PRESERVE_AND_ESCALATE. No repair, restore, deletion, environmental conclusion, regulatory conclusion, enforcement action or emergency response is performed.
+
+Completion gate: focused Phase 117 tests, compilation and smoke checks must visibly pass on the current PR head before CI-green is claimed.
+
+Next gate: Phase 118 — Human-Acknowledged Authorization Retention Review Ledger.
