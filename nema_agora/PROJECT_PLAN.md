@@ -892,3 +892,20 @@ GitHub Actions must verify Phase 66 focused tests, compilation and Streamlit sta
 ### Next gate
 
 Phase 67 — Spatial Evidence Longitudinal Tracking: preserve case history across repeated observations and reviews without mutating historical evidence.
+
+
+## Phase 67 — Spatial Evidence Longitudinal Tracking
+
+Implemented immutable longitudinal evidence records for repeated spatial observations and reviews. Each history record binds the Phase 66 case fingerprint, candidate identity, AOI/grid identity, observation time, sequence and provenance, with an explicit predecessor fingerprint. Timeline construction detects duplicate records and broken chains without mutating historical evidence.
+
+### Governance boundary
+
+Longitudinal tracking preserves evidence history only. It does not infer environmental truth, legality, regulatory status, NEMA authorization, enforcement or emergency action.
+
+### Completion gate
+
+GitHub Actions must verify Phase 67 focused tests, compilation and Streamlit startup before Phase 67 is declared CI-green.
+
+### Next gate
+
+Phase 68 — Spatial Evidence Storage & Query Layer.
