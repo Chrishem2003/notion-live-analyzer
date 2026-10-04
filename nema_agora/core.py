@@ -24,6 +24,8 @@ def validate_observation(*, site: str, description: str, consent_confirmed: bool
     errors: list[str] = []
     if not site or not site.strip():
         errors.append("A district or site label is required.")
+    elif len(site.strip()) > 120:
+        errors.append("The district or site label must be 120 characters or fewer.")
     if not description or not description.strip():
         errors.append("An observation description is required.")
     if len(description or "") > 1500:
@@ -72,6 +74,8 @@ def make_observation(
         raise ValueError("Unknown observation category.")
     if severity not in SEVERITIES:
         raise ValueError("Unknown severity.")
+    if len(evidence_reference or "") > 300:
+        raise ValueError("The evidence reference must be 300 characters or fewer.")
     coordinates = normalise_coordinates(latitude, longitude)
     return {
         "case_id": new_case_id(),
@@ -87,3 +91,18 @@ def make_observation(
         "review_notes": "",
         "evidence_reference": (evidence_reference or "").strip(),
     }
+
+
+
+def csv_safe_value(value):
+    """Neutralise common spreadsheet formula prefixes in user-controlled text.
+
+    Numeric values are kept numeric (notably negative latitude/longitude values).
+    This is a defence-in-depth export safeguard, not a substitute for access control.
+    """
+    if not isinstance(value, str):
+        return value
+    candidate = value.lstrip()
+    if value.startswith(("\t", "\r")) or (candidate and candidate[0] in ("=", "+", "-", "@")):
+        return "'" + value
+    return value
