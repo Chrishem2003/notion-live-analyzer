@@ -121,12 +121,13 @@ can_export = persistent and has_permission(principal.role, "case:export")
 can_metrics = persistent and has_permission(principal.role, "metrics:read")
 can_audit = persistent and has_permission(principal.role, "audit:read")
 can_intelligence = persistent and has_permission(principal.role, "intelligence:use")
+can_shadow = persistent and has_permission(principal.role, "intelligence:shadow")
 
 tabs = st.tabs([
-    "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence", "🤝 Reviewer copilot", "📊 Intelligence observatory",
+    "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence", "🤝 Reviewer copilot", "🧪 AI shadow mode", "📊 Intelligence observatory",
     "🗺️ Map", "📊 Pilot metrics", "ℹ️ About"
 ])
-tab_report, tab_review, tab_intelligence, tab_copilot, tab_observatory, tab_map, tab_metrics, tab_about = tabs
+tab_report, tab_review, tab_intelligence, tab_copilot, tab_shadow, tab_observatory, tab_map, tab_metrics, tab_about = tabs
 
 with tab_report:
     st.subheader("Record an environmental observation")
@@ -369,6 +370,79 @@ with tab_copilot:
                         st.markdown("### Intelligence audit trail")
                         st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
 
+with tab_shadow:
+    st.subheader("🧪 Controlled AI shadow mode")
+    st.caption("Phase 12: an advisory model may observe a pilot case, but its output is isolated from the live workflow.")
+    st.info(
+        "Shadow mode compares model recommendations with the existing human workflow without changing case status, "
+        "merging/deleting records, declaring environmental truth, triggering enforcement, or contacting an authority."
+    )
+    if not persistent or not can_shadow:
+        st.info("Shadow mode is restricted to authenticated reviewer/coordinator/admin roles.")
+    else:
+        records = records_for_current_user()
+        if not records:
+            st.info("No records available for shadow evaluation.")
+        else:
+            selected_shadow_id = st.selectbox(
+                "Observation for shadow evaluation",
+                options=[r["case_id"] for r in reversed(records)],
+                key="shadow_case",
+            )
+            selected_shadow = next(r for r in records if r["case_id"] == selected_shadow_id)
+            st.caption(
+                "The default adapter is local deterministic infrastructure for testing the shadow pipeline. "
+                "It is not an external AI model and does not imply model performance."
+            )
+            if st.button("Run isolated shadow analysis", type="primary", use_container_width=True):
+                try:
+                    result = service.run_shadow(selected_shadow, principal)
+                    st.session_state["nema_agora_shadow_result"] = result
+                    st.session_state["nema_agora_shadow_case"] = selected_shadow_id
+                except (ValueError, PermissionError, KeyError) as exc:
+                    st.error(str(exc))
+
+            result = st.session_state.get("nema_agora_shadow_result")
+            if result and st.session_state.get("nema_agora_shadow_case") == selected_shadow_id:
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Shadow status", result["status"])
+                c2.metric("Latency", f'{result["latency_ms"]:.1f} ms')
+                c3.metric("Human review", "Required")
+                st.write(f"**Provider:** {result['provider']}")
+                st.write(f"**Model version:** {result['model_version']}")
+                if result["status"] == "SHADOW_OK" and result["output"]:
+                    output = result["output"]
+                    st.markdown("### Advisory output")
+                    st.write(output.get("summary", "No summary supplied."))
+                    st.markdown("**Category suggestions**")
+                    suggestions = output.get("category_suggestions") or []
+                    if suggestions:
+                        st.dataframe(pd.DataFrame(suggestions), use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No category suggestions.")
+                    st.warning(output.get("decision_notice", "Human review remains mandatory."))
+                else:
+                    st.error(f"Shadow model failed safely: {result.get('error') or 'unknown error'}")
+                st.success("Case workflow remains unchanged. This result is evaluation evidence only.")
+
+                runs = service.list_shadow_runs(selected_shadow_id, principal)
+                if runs:
+                    st.markdown("### Shadow run history")
+                    st.dataframe(
+                        pd.DataFrame([
+                            {
+                                "run_id": r["run_id"],
+                                "provider": r["provider"],
+                                "model_version": r["model_version"],
+                                "status": r["status"],
+                                "latency_ms": r["latency_ms"],
+                                "occurred_at": r["occurred_at"],
+                            }
+                            for r in runs
+                        ]),
+                        use_container_width=True, hide_index=True,
+                    )
+
 with tab_observatory:
     st.subheader("📊 Intelligence observatory")
     st.caption("Phase 11: measure reviewer feedback and evaluation readiness before considering any live model.")
@@ -423,6 +497,13 @@ with tab_about:
         "review status, location information and evaluation data. It is designed to complement "
         "existing environmental-management systems, not replace them."
     )
+    st.markdown("**Phase 12 — Controlled AI Shadow Mode**")
+    st.markdown("- Advisory model runs beside the human workflow
+- Source case binding and safety validation
+- Isolated shadow-run persistence with provider/model version and latency
+- Safe error capture for invalid or unsafe model output
+- No workflow mutation, enforcement, regulatory decision or official integration
+
     st.markdown("**Phase 10 — Reviewer Copilot & Human Evaluation**")
     st.markdown(
         "- Neutral extractive summaries without invented facts\n"
