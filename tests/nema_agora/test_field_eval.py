@@ -20,3 +20,19 @@ def test_summary_is_fail_closed():
     result=evaluate_scenario(scenario=scenario,observed={"quality_status":"VALID","human_review_required":True})
     summary=summarise_results([result])
     assert summary["status"]=="PASS"
+
+
+from nema_agora.field_eval import execute_pipeline
+
+
+def test_phase21_real_pipeline_execution_has_human_review_contract():
+    record = {
+        "case_id": "FIELD-PIPE-001", "observation_date": "2026-01-01",
+        "category": "Solid waste / illegal dumping", "severity": "Medium",
+        "district_or_site": "Synthetic Site",
+        "description": "plastic waste near drainage channel", "status": "Received",
+        "consent_confirmed": True, "latitude": 1.0, "longitude": 32.0,
+    }
+    result = execute_pipeline(record=record)
+    assert result["analysis"]["human_review_required"] is True
+    assert result["reviewer_copilot"]["source_case_id"] == "FIELD-PIPE-001"
