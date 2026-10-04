@@ -273,3 +273,29 @@ A READY_FOR_REVIEW result means the annotation process has met these engineering
 
 
 Phase 14 was tightened after review: the readiness gate now requires at least 25 distinct cases to have two independent annotations, measures every available annotator pair, and uses the minimum pairwise category Cohen's kappa rather than silently selecting only one pair. This prevents a strong pair from masking a weak annotator pair.
+
+
+## Phase 15 — Controlled Model Comparison
+
+Phase 15 establishes the model-to-model evidence gate before any AI provider is allowed near pilot workflow.
+
+### Implemented
+- Frozen dataset manifest with version, ordered case IDs and SHA-256 fingerprint.
+- Provider-neutral side-by-side adapter execution on identical cases.
+- Existing safety contract enforced for every model output.
+- Fail-closed handling for unsafe, malformed and cross-case outputs.
+- Category accuracy and macro precision/recall/F1.
+- Duplicate precision/recall/F1 and explicit false-positive/false-negative counts.
+- Human summary-faithfulness label coverage/rate.
+- Optional confidence Brier score and confidence coverage.
+- Latency and failure measurement.
+- Slice-level metrics, model disagreement and baseline regression deltas.
+- Separate immutable comparison-run persistence and authenticated service access.
+- Dedicated Streamlit comparison laboratory.
+- Role permission intelligence:comparison for reviewer/coordinator/admin; submitters denied.
+
+### Readiness gate
+A comparison is READY_FOR_REVIEW only when the frozen benchmark contains at least 25 cases, every compared adapter has zero execution failures, category accuracy is at least 80%, and duplicate F1 is at least 80%. These thresholds are engineering evidence gates only. They do not establish environmental truth, model fairness, regulatory compliance, NEMA endorsement, production safety or autonomous-decision permission.
+
+### External-model gate
+No external model is enabled by default. Before adding one, document the provider, model version, data handling, retention, cost, geographic processing implications, failure behaviour and approval authority. Run it only against the frozen benchmark and keep its outputs isolated from live workflow. A model must never change case status, enforcement state, official reporting or emergency response.
