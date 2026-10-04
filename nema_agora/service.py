@@ -21,6 +21,9 @@ from nema_agora.comparison import ComparisonRunStore, ComparisonResult
 from nema_agora.admission import AdmissionStore, ModelAdmissionPolicy, ModelCandidate, evaluate_admission
 from nema_agora.shadow_governance import ControlledShadowStore, execute_controlled_shadow
 from nema_agora.shadow_monitoring import build_shadow_monitoring_snapshot
+from nema_agora.review_governance import (
+    ReviewStore, build_reevaluation, make_shadow_review, make_lifecycle_decision,
+)
 from nema_agora.annotation import AnnotationStore, annotation_readiness, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
 
 
@@ -340,6 +343,65 @@ class NemaAgoraService:
         return build_shadow_monitoring_snapshot(
             runs, admission_id=admission_id
         ).to_dict()
+
+    def record_shadow_review(
+        self, principal: Principal, *, run: dict[str, Any], decision: str,
+        corrected_category: str | None = None, notes: str = "",
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:review_shadow")
+        if not str(run.get("run_id", "")).strip() or not str(run.get("admission_id", "")).strip():
+            raise ValueError("Shadow run must contain run_id and admission_id.")
+        review = make_shadow_review(
+            run=run, reviewer_id=principal.subject_key, decision=decision,
+            corrected_category=corrected_category, notes=notes,
+        )
+        ReviewStore(self.repository.database_path).save_review(review)
+        return review.to_dict()
+
+    def list_shadow_reviews(
+        self, principal: Principal, *, admission_id: str | None = None, limit: int = 200
+    ) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:review_shadow")
+        return ReviewStore(self.repository.database_path).list_reviews(
+            admission_id=admission_id, limit=limit
+        )
+
+    def build_reevaluation(
+        self, principal: Principal, *, admission_id: str | None = None, limit: int = 500
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:review_shadow")
+        runs = ControlledShadowStore(self.repository.database_path).list(
+            admission_id=admission_id, limit=limit
+        )
+        reviews = ReviewStore(self.repository.database_path).list_reviews(
+            admission_id=admission_id, limit=limit
+        )
+        return build_reevaluation(runs, reviews, admission_id=admission_id)
+
+    def record_lifecycle_decision(
+        self, principal: Principal, *, admission: dict[str, Any], action: str,
+        rationale: str, evidence_snapshot: dict[str, Any]
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:govern_shadow")
+        decision = make_lifecycle_decision(
+            admission=admission, action=action, decided_by=principal.subject_key,
+            rationale=rationale, evidence_snapshot=evidence_snapshot,
+        )
+        ReviewStore(self.repository.database_path).save_lifecycle_decision(decision)
+        return decision.to_dict()
+
+    def list_lifecycle_decisions(
+        self, principal: Principal, *, admission_id: str | None = None, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:review_shadow")
+        return ReviewStore(self.repository.database_path).list_lifecycle_decisions(
+            admission_id=admission_id, limit=limit
+        )
 
     def record_comparison_run(self, result: ComparisonResult, principal: Principal) -> None:
         """Persist a Phase 15 comparison result under the authenticated actor."""
