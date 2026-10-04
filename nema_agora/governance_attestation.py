@@ -82,6 +82,15 @@ def verify_evidence_integrity(rows: Iterable[Mapping[str, Any]]) -> dict[str, An
     return {"policy_version":POLICY_VERSION,"valid":not errors,"row_count":len(rows),
             "error_count":len(errors),"errors":errors,"registry_fingerprint":fp}
 
+def _provenance_components(value: Any) -> dict[str, str] | None:
+    parts = str(value or "").strip().split(":")
+    if len(parts) != 3:
+        return None
+    labels = ("OBS-", "REVIEW-", "AUDIT-")
+    if any(not parts[i].startswith(labels[i]) or not _SAFE_ID.fullmatch(parts[i]) for i in range(3)):
+        return None
+    return {"observation_reference": parts[0], "review_decision": parts[1], "audit_event": parts[2]}
+
 def build_provenance_completeness(reconciliation: Mapping[str, Any],
                                   closure: Mapping[str, Any],
                                   resolutions: Iterable[Mapping[str, Any]],
@@ -104,10 +113,11 @@ def build_provenance_completeness(reconciliation: Mapping[str, Any],
         r=resolution_map.get(key); e=evidence_map.get(key)
         closure_item=next((x for x in closure.get("results",[]) if
             (x.get("exception_code"),x.get("decision_kind"),x.get("artifact_id"))==key),{})
+        components = _provenance_components(e.get("provenance_ref") if e else None)
         fields={
-            "observation_reference": bool(exc.get("artifact_id")),
-            "review_decision": bool(exc.get("decision_kind")),
-            "audit_event": bool(_event_id(r)) if r else False,
+            "observation_reference": bool(components and components["observation_reference"]),
+            "review_decision": bool(components and components["review_decision"]),
+            "audit_event": bool(components and components["audit_event"] and r and _event_id(r)),
             "reconciliation_fingerprint": bool(fp),
             "human_resolution": bool(r),
             "closure_evidence": bool(e and _SHA256.fullmatch(str(e.get("evidence_hash","")).lower() or "")),
