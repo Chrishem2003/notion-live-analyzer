@@ -23,7 +23,7 @@ def test_freeze_hash_is_order_independent():
 def test_comparison_is_bound_and_non_mutating():
     cases=[case(i) for i in range(25)]; before=copy.deepcopy(cases)
     manifest=freeze_dataset(cases,"ds-v1",frozen_at="2026-01-01T00:00:00+00:00")
-    result=compare_models(cases,{"deterministic":DeterministicShadowAdapter()},dataset=manifest)
+    result=compare_models(cases,{"deterministic":BenchmarkAdapter()},dataset=manifest)
     assert result.dataset.manifest_hash == manifest.manifest_hash
     assert result.readiness == "READY_FOR_REVIEW"
     assert cases == before
@@ -54,6 +54,12 @@ def test_comparison_store_persists_immutable_summary(tmp_path):
     assert rows[0]["manifest_hash"] == manifest.manifest_hash
     assert rows[0]["actor_id"] == "reviewer-1"
 
+class BenchmarkAdapter:
+    provider="test"; model_version="benchmark-v1"
+    def analyse(self, record):
+        i=int(record["case_id"].split("-")[1])
+        return {"source_case_id":record["case_id"],"predicted_category":SUPPORTED_CATEGORIES[i % len(SUPPORTED_CATEGORIES)],"duplicate_candidates":[{"case_id":"DUP"}] if i % 3 == 0 else [],"human_review_required":True}
+
 class MissingCategoryAdapter:
     provider="test"; model_version="missing-category-v1"
     def analyse(self, record):
@@ -75,7 +81,7 @@ def test_second_adapter_produces_disagreement_and_regression():
     cases=[case(i) for i in range(25)]
     result=compare_models(
         cases,
-        {"baseline":DeterministicShadowAdapter(),"candidate":FixedAdapter()},
+        {"baseline":BenchmarkAdapter(),"candidate":FixedAdapter()},
         dataset=freeze_dataset(cases,"ds-v1"),
         baseline_adapter="baseline",
     )
