@@ -72,7 +72,15 @@ class NemaAgoraRepository:
                     record_json TEXT NOT NULL
                 );
 
-                CREATE TABLE IF NOT EXISTS operation_events (\n                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,\n                    actor_id TEXT NOT NULL,\n                    operation TEXT NOT NULL,\n                    occurred_at TEXT NOT NULL,\n                    details_json TEXT NOT NULL DEFAULT '{}'\n                );\n\n                CREATE TABLE IF NOT EXISTS audit_events (
+                CREATE TABLE IF NOT EXISTS operation_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    actor_id TEXT NOT NULL,
+                    operation TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    details_json TEXT NOT NULL DEFAULT '{}'
+                );
+
+                CREATE TABLE IF NOT EXISTS audit_events (
                     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     case_id TEXT NOT NULL REFERENCES observations(case_id),
                     actor_id TEXT NOT NULL,
@@ -100,7 +108,9 @@ class NemaAgoraRepository:
                     ON observations(status);
                 CREATE INDEX IF NOT EXISTS idx_observations_owner
                     ON observations(owner_id);
-                CREATE INDEX IF NOT EXISTS idx_operation_time\n                    ON operation_events(occurred_at, event_id);\n                CREATE INDEX IF NOT EXISTS idx_audit_case_time
+                CREATE INDEX IF NOT EXISTS idx_operation_time
+                    ON operation_events(occurred_at, event_id);
+                CREATE INDEX IF NOT EXISTS idx_audit_case_time
                     ON audit_events(case_id, occurred_at, event_id);
                 CREATE INDEX IF NOT EXISTS idx_intelligence_case_time
                     ON intelligence_events(case_id, occurred_at, event_id);
