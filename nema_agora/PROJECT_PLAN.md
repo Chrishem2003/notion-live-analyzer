@@ -1057,3 +1057,10 @@ Next gate: Phase 85 — API Authentication/Authorization Boundary and Request Id
 Added deterministic fail-closed authorization for the spatial evidence API with reviewer/coordinator/admin roles, explicit permissions, request identity validation, 401/403 behavior, and authorization fingerprints. This is a prototype policy boundary; it is not a production identity provider or NEMA credential system.
 
 Next gate: Phase 86 — Authenticated FastAPI Query Integration and Request Context Binding.
+
+
+## Phase 86 — Authenticated FastAPI Query Integration & Request Context Binding
+
+Connected Phase 85 authorization directly to persistent spatial evidence retrieval. Unauthorized requests terminate before repository access; authorized requests carry deterministic actor/request authorization context into the governed response. Read-only and fail-closed storage behavior remain intact.
+
+Next gate: Phase 87 — FastAPI Route Authentication Wiring and End-to-End HTTP Authorization Tests.
