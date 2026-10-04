@@ -603,3 +603,14 @@ GitHub Actions must verify focused tests, compilation and Streamlit smoke for Ph
 
 ### Next gate
 Phase 49 — Governance Review Queue: derive a deterministic, read-only prioritization queue from casebook findings for authorized human reviewers, with explicit severity, aging, dependency and review-state signals.
+
+
+## Phase 49 — Governance Review Queue
+
+Implemented a deterministic, read-only prioritization layer over Phase 48 governance cases. The queue exposes severity, review requirement, aging and dependency signals, assigns stable positions, and fingerprints the complete queue against the current governance snapshot. It is strictly a human-review aid and cannot mutate governance state.
+
+### Completion gate
+GitHub Actions must verify focused tests, compilation and Streamlit smoke before Phase 49 is declared green.
+
+### Next gate
+Phase 50 — Governance Review Workspace: provide an authenticated, read-only reviewer workspace that exposes case evidence, queue context and exact provenance while keeping every governance mutation outside the read-only evidence surface.
