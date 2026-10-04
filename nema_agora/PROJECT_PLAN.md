@@ -1092,3 +1092,10 @@ Next gate: Phase 90 — End-to-End API Audit Integration and Reconciliation.
 Added reconciliation for API audit evidence, including event validation, duplicate detection, missing expected requests, deterministic fingerprint recomputation, and fail-closed CONTROL_REQUIRED handling. This closes the governance verification boundary around API request traceability.
 
 Next gate: Phase 91 — API Audit Lifecycle and Retention Governance.
+
+
+## Phase 91 — API Audit Lifecycle & Retention Governance
+
+Added deterministic lifecycle evaluation for reconciled API audit evidence. Recorded events require successful reconciliation before retention evaluation; explicit evaluation time determines RETAINED versus EXPIRED. Expiration is a state, never deletion, preserving the append-only historical registry.
+
+Next gate: Phase 92 — API Audit Lifecycle Decision Ledger.
