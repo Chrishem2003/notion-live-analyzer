@@ -498,12 +498,13 @@ with tab_about:
         "existing environmental-management systems, not replace them."
     )
     st.markdown("**Phase 12 — Controlled AI Shadow Mode**")
-    st.markdown("- Advisory model runs beside the human workflow
-- Source case binding and safety validation
-- Isolated shadow-run persistence with provider/model version and latency
-- Safe error capture for invalid or unsafe model output
-- No workflow mutation, enforcement, regulatory decision or official integration
-
+    st.markdown(
+        "- Advisory model runs beside the human workflow\n"
+        "- Source case binding and safety validation\n"
+        "- Isolated shadow-run persistence with provider/model version and latency\n"
+        "- Safe error capture for invalid or unsafe model output\n"
+        "- No workflow mutation, enforcement, regulatory decision or official integration"
+    )
     st.markdown("**Phase 10 — Reviewer Copilot & Human Evaluation**")
     st.markdown(
         "- Neutral extractive summaries without invented facts\n"
