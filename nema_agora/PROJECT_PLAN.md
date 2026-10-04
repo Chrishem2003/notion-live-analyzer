@@ -259,3 +259,14 @@ Phase 14 establishes the human-labelled evidence layer required for credible AI 
 
 ### Next evaluation gate
 Build a sufficiently diverse labelled benchmark, document annotation guidelines, run independent double annotation, adjudicate disagreements, then freeze a dataset version before comparing a real AI adapter against the deterministic baseline.
+
+
+### Phase 14 readiness gates
+
+The Annotation Studio now exposes a dataset-process gate. It requires:
+- at least 25 labelled cases;
+- at least two independent annotators;
+- category Cohen's kappa of at least 0.80;
+- all detected disagreements explicitly adjudicated.
+
+A READY_FOR_REVIEW result means the annotation process has met these engineering thresholds. It does not certify that labels are correct, representative, unbiased, legally sufficient, or suitable for regulatory decisions.
