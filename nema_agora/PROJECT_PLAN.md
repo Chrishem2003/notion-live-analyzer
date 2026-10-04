@@ -926,3 +926,14 @@ GitHub Actions must verify Phase 68 focused tests, compilation and Streamlit sta
 ### Next gate
 
 Phase 69 — AOI Registry & Environmental Asset Catalog.
+
+
+## Phase 69 — AOI Registry & Environmental Asset Catalog
+
+Implemented a governed spatial asset registry contract for districts, wetlands, watersheds, protected areas, forest reserves, lakes, rivers, river buffers, lakeshore zones and custom areas. Assets carry stable identity, WGS84 geometry, source provenance, effective range, version, status, metadata and deterministic fingerprints. Validation is fail-closed and queries require a valid registry.
+
+No official boundaries are invented or asserted. The demonstration uses synthetic data only.
+
+Completion gate: GitHub Actions must verify Phase 69 focused tests, compilation and Streamlit startup before Phase 69 is declared CI-green.
+
+Next gate: Phase 70 — Google Earth Engine Integration Boundary.
