@@ -29,7 +29,7 @@ def validate_lifecycle(lifecycle: Mapping[str,Any]) -> dict[str,Any]:
     return dict(lifecycle)
 def build_recovery_review_lifecycle(reconciliation: Mapping[str,Any], reviews: list[Mapping[str,Any]], *, evaluated_at: str) -> dict[str,Any]:
     if not isinstance(reconciliation,Mapping) or reconciliation.get("state")!="RECONCILED": raise ValueError("RECONCILIATION_REQUIRED")
-    actual=reconcile_recovery_reviews([],reviews,expected_ledger_count=len(reviews))
+    monitors = [{"monitor_fingerprint": x["monitor_fingerprint"], "state": x["monitor_state"], "recovery_recommendation": x["recovery_recommendation"], "policy_version": "phase109-v1", "observed_at": x["reviewed_at"], "automatic_repair_performed": False, "read_only": True, "environmental_conclusion": None, "regulatory_conclusion": None, "enforcement_action": None} for x in reviews]\n    actual=reconcile_recovery_reviews(monitors,reviews,expected_ledger_count=len(reviews))
     if actual["state"]!="RECONCILED": raise ValueError("RECONCILIATION_BINDING_MISMATCH")
     lifecycle=[evaluate_recovery_review(x,evaluated_at=evaluated_at) for x in reviews]
     payload={"policy_version":POLICY_VERSION,"reconciliation_fingerprint":reconciliation.get("reconciliation_fingerprint"),"lifecycle_count":len(lifecycle),"lifecycles":lifecycle,"human_governed":True,"automatic_recovery_performed":False,"decision_executed":False,"interpretation":"RECOVERY_REVIEW_LIFECYCLE","environmental_conclusion":None,"regulatory_conclusion":None,"enforcement_action":None}
