@@ -13,6 +13,7 @@ The Streamlit page is `pages/18_NEMA_AGORA.py` and provides:
 - Structured environmental observation entry.
 - Session-only case identifiers and status tracking.
 - Reviewer notes and update timestamps.
+- Length limits on user-entered fields and spreadsheet-formula neutralisation on CSV export.
 - Optional latitude/longitude and a simple map.
 - CSV export and basic process metrics.
 - Clear warnings about prototype status, privacy and unverified observations.
@@ -38,12 +39,13 @@ The repository already includes Streamlit in its main requirements. If setting u
 
 ## Recommended next steps
 
-1. Add isolated unit tests for data validation and record-state transitions.
-2. Agree pilot scope, site, supervision, consent and data-handling rules.
-3. Design a persistence layer only after the data model and access controls are reviewed.
-4. Add authentication and audit logging before multi-user testing.
-5. Test accessibility, low-bandwidth behaviour, backups and CSV export.
-6. Validate budget assumptions and grant eligibility with the official NEMA call.
+1. Define and test record-state transitions and an audit-event model.
+2. Review data fields, consent, retention, and access controls with a supervisor before persistent storage.
+3. Agree pilot scope, site, supervision, consent and data-handling rules.
+4. Design a persistence layer only after the data model and access controls are reviewed.
+5. Add authentication and audit logging before multi-user testing.
+6. Test accessibility, low-bandwidth behaviour, backups and CSV export.
+7. Validate budget assumptions and grant eligibility with the official NEMA call.
 
 ## Project links
 
