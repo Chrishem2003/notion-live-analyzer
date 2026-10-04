@@ -987,3 +987,10 @@ Next gate: Phase 75 — Spatial Command Center.
 Added a governed, read-only command-center view model binding AOI identity, baseline/comparison scenes, Phase 74 spatial change-map evidence and optional human-review queue context. No autonomous enforcement or regulatory conclusion is produced.
 
 Next gate: Phase 76 — Spatial Evidence Visualization & Map Layers.
+
+
+## Phase 76 — Spatial Evidence Visualization & Map Layers
+
+Added a governed visualization-layer contract for AOI boundaries, baseline and comparison index surfaces, grid-level change evidence, and review-priority context. Layers preserve source identity and remain read-only; no environmental truth, violation, or enforcement conclusion is generated.
+
+Next gate: Phase 77 — Spatial Evidence API & Query Surface.
