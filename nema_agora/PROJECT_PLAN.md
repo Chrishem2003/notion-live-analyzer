@@ -453,3 +453,14 @@ Added read-only verification against a separately preserved checkpoint, portable
 ## Phase 36 — Governed Audit Event Capture
 
 Added a reusable capture service for allowlisted event types, deterministic idempotency keys, duplicate suppression/conflict detection, and metadata-only payload validation. Added an authenticated human-triggered capture page, focused tests, CI compile coverage, and operational documentation. The checkpoint-creation page and publication-gate decision page call the capture service at their actual decision boundaries. Other workflows are not claimed as automatically instrumented until connected explicitly.
+
+
+## Phase 37 — End-to-End Governance Traceability
+
+Implemented an explicit traceability validator from an originating event through provenance records, evidence graph, research report, human publication decision and governed audit event. The validator fails closed on broken or ambiguous identifiers, lineage failures, report/graph binding mismatches, unresolved claim sources, invalid publication decisions, failed ledger verification, and missing publication-gate audit coverage. Added deterministic trace fingerprints, structured error codes, tests, a read-only authenticated trace-bundle page, documentation and CI coverage.
+
+The Phase 36 instrumentation boundary remains explicit: missing origin-event audit coverage is reported as a warning until that workflow is actually instrumented. Traceability is an engineering/research integrity control only; it does not establish environmental truth, NEMA authorization, regulatory status, production approval, enforcement authority, emergency response authority or autonomous decision authority.
+
+### Next gate
+
+Move from artifact-level traceability toward **Phase 38 — Governance Decision Ledger Integration**, connecting additional real workflow decision boundaries to the governed audit-event layer while preserving idempotency, privacy, human authority and fail-closed semantics.
