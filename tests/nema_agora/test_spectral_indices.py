@@ -17,12 +17,9 @@ def test_mcfeeters_ndwi_formula():
 def test_zero_denominator_fails_closed():
     result = validate_spectral_inputs(scene_id="S2-1", band_values={"B03": 0, "B04": 0, "B08": 0})
     assert result["state"] == "VALID"
-    try:
-        spectral_index_evidence(scene_id="S2-1", band_values={"B03": 0, "B04": 0, "B08": 0})
-    except ValueError:
-        assert True
-    else:
-        raise AssertionError("Zero denominator must fail closed.")
+    evidence = spectral_index_evidence(scene_id="S2-1", band_values={"B03": 0, "B04": 0, "B08": 0})
+    assert evidence["state"] == "CONTROL_REQUIRED"
+    assert {"INDEX_DENOMINATOR_ZERO"} <= {item["code"] for item in evidence["findings"]}
 
 
 def test_invalid_reflectance_fails_closed():
