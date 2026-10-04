@@ -127,6 +127,18 @@ if can_all:
         else:
             st.success("No disagreements detected among currently stored independent labels.")
 
+    st.subheader("Dataset readiness")
+    readiness = service.annotation_readiness(principal, dataset_version)
+    r1, r2, r3 = st.columns(3)
+    r1.metric("Labelled cases", readiness["labelled_cases"])
+    r2.metric("Annotators", len(readiness["annotators"]))
+    r3.metric("Unresolved disagreements", len(readiness["unresolved_disagreements"]))
+    st.write("Status:", readiness["status"])
+    with st.expander("Readiness gates"):
+        for gate, passed in readiness["gates"].items():
+            st.write(("PASS" if passed else "BLOCKED") + " — " + gate)
+    st.caption(readiness["safety_notice"])
+
     if can_adjudicate:
         st.divider()
         st.subheader("Adjudication")
