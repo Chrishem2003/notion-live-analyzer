@@ -123,10 +123,10 @@ can_audit = persistent and has_permission(principal.role, "audit:read")
 can_intelligence = persistent and has_permission(principal.role, "intelligence:use")
 
 tabs = st.tabs([
-    "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence",
+    "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence", "🤝 Reviewer copilot",
     "🗺️ Map", "📊 Pilot metrics", "ℹ️ About"
 ])
-tab_report, tab_review, tab_intelligence, tab_map, tab_metrics, tab_about = tabs
+tab_report, tab_review, tab_intelligence, tab_copilot, tab_map, tab_metrics, tab_about = tabs
 
 with tab_report:
     st.subheader("Record an environmental observation")
@@ -261,6 +261,114 @@ with tab_intelligence:
                 st.write(analysis["priority_advisory"]["reason"])
                 st.warning(analysis["decision_notice"])
 
+with tab_copilot:
+    st.subheader("🤝 Reviewer copilot")
+    st.caption("Phase 10: structured reviewer assistance built from supplied evidence. Recommendations never change case status.")
+    if not persistent:
+        st.info("Reviewer copilot is available only in authenticated persistent mode.")
+    elif not can_intelligence:
+        st.info("Your account is not assigned evidence-intelligence permission.")
+    else:
+        records = records_for_current_user()
+        if not records:
+            st.info("No records available for copilot review.")
+        else:
+            selected_copilot_id = st.selectbox(
+                "Observation for reviewer assistance",
+                options=[r["case_id"] for r in reversed(records)],
+                key="copilot_case",
+            )
+            selected_copilot = next(r for r in records if r["case_id"] == selected_copilot_id)
+            if st.button("Prepare reviewer brief", type="primary", use_container_width=True):
+                try:
+                    brief = service.build_reviewer_copilot(
+                        selected_copilot, principal, peer_records=records
+                    )
+                    st.session_state["nema_agora_copilot_brief"] = brief
+                    st.session_state["nema_agora_copilot_case"] = selected_copilot_id
+                except (ValueError, PermissionError, KeyError) as exc:
+                    st.error(str(exc))
+
+            brief = st.session_state.get("nema_agora_copilot_brief")
+            if brief and st.session_state.get("nema_agora_copilot_case") == selected_copilot_id:
+                st.success("Reviewer brief prepared. Human judgement remains authoritative.")
+                st.markdown("### Evidence actually supplied")
+                facts = brief["evidence_facts"]
+                if facts:
+                    st.dataframe(pd.DataFrame(facts), use_container_width=True, hide_index=True)
+                else:
+                    st.info("No evidence fields were available.")
+                st.markdown("### Quality gate")
+                st.write(f"**{brief['quality']['status']}**")
+                if brief["quality"]["flags"]:
+                    st.warning(", ".join(brief["quality"]["flags"]))
+                st.markdown("### Category review")
+                st.write(f"Supplied category: **{brief['category_review']['supplied_category']}**")
+                if brief["category_review"]["suggestions"]:
+                    st.dataframe(pd.DataFrame(brief["category_review"]["suggestions"]), use_container_width=True, hide_index=True)
+                else:
+                    st.info("No alternative category suggestion was generated.")
+                st.markdown("### Duplicate review")
+                candidates = brief["duplicate_review"]["candidate_case_ids"]
+                st.write(", ".join(candidates) if candidates else "No candidate found.")
+                if candidates:
+                    st.warning("Candidate matches require human comparison; no automatic merge or deletion occurs.")
+                st.markdown("### Questions for the reviewer")
+                for question in brief["uncertainty_questions"]:
+                    st.write(f"• {question}")
+                st.markdown("### Reviewer checklist")
+                for item in brief["review_checklist"]:
+                    st.checkbox(item, key=f"copilot_check_{selected_copilot_id}_{item[:20]}")
+                st.warning(brief["decision_notice"])
+
+                st.markdown("### Capture reviewer feedback")
+                st.caption("Feedback improves evaluation evidence; it does not alter the observation or its workflow state.")
+                with st.form(f"copilot_feedback_{selected_copilot_id}"):
+                    feedback_type = st.radio(
+                        "How was the copilot category guidance?",
+                        ["accepted", "rejected", "corrected"],
+                        horizontal=True,
+                    )
+                    corrected_category = ""
+                    if feedback_type == "corrected":
+                        corrected_category = st.selectbox(
+                            "Correct category",
+                            CATEGORIES,
+                            key=f"corrected_category_{selected_copilot_id}",
+                        )
+                    feedback_notes = st.text_area(
+                        "Reviewer note (no personal/confidential information)",
+                        max_chars=1000,
+                        key=f"feedback_notes_{selected_copilot_id}",
+                    )
+                    feedback_saved = st.form_submit_button("Save evaluation feedback", type="primary")
+                if feedback_saved:
+                    try:
+                        service.record_intelligence_feedback(
+                            selected_copilot_id,
+                            principal,
+                            feedback={
+                                "feedback_type": feedback_type,
+                                "corrected_category": corrected_category,
+                                "notes": feedback_notes,
+                                "copilot_version": brief["copilot_version"],
+                            },
+                            occurred_at=datetime.now().astimezone().isoformat(timespec="seconds"),
+                        )
+                    except (ValueError, PermissionError, KeyError) as exc:
+                        st.error(str(exc))
+                    else:
+                        st.success("Feedback recorded in the pilot evaluation trail.")
+
+                if can_audit:
+                    try:
+                        events = service.list_intelligence_events(selected_copilot_id, principal)
+                    except (PermissionError, KeyError):
+                        events = []
+                    if events:
+                        st.markdown("### Intelligence audit trail")
+                        st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
+
 with tab_map:
     st.subheader("Location view")
     records = records_for_current_user()
@@ -303,7 +411,7 @@ with tab_about:
         "review status, location information and evaluation data. It is designed to complement "
         "existing environmental-management systems, not replace them."
     )
-    st.markdown("**Phase 8 — Evidence Intelligence & Human-in-the-Loop**")
+    st.markdown("**Phase 10 — Reviewer Copilot & Human Evaluation**")
     st.markdown(
         "- Neutral extractive summaries without invented facts\n"
         "- Explainable keyword-supported category suggestions\n"
@@ -318,7 +426,7 @@ with tab_about:
         "- Server-side role binding with deny-by-default access\n"
         "- Persistent repository operations require the authenticated principal\n"
         "- Submitters are isolated to records they own\n"
-        "- Review, metrics, audit, export and intelligence are permission-gated\n"
+        "- Review, metrics, audit, export, intelligence and copilot feedback are permission-gated\n"
         "- Personal-data intake, urgent incidents and unofficial integrations remain disabled"
     )
     st.markdown("**Still not implemented**")
