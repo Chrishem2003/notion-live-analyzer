@@ -87,16 +87,16 @@ class AttestationLifecycleRegistry:
     ) -> dict[str, Any]:
         attestation_id = _safe(attestation_id, "attestation_id")
         actor_id = _safe(actor_id, "actor_id")
+        if role not in _ROLES:
+            raise PermissionError("Only coordinator or admin may change attestation lifecycle.")
+        if decision not in _DECISIONS:
+            raise ValueError("Unsupported lifecycle decision.")
         if attester_actor_id is not None:
             attester_actor_id = _safe(attester_actor_id, "attester_actor_id")
             if decision in {APPROVE, REJECT} and actor_id == attester_actor_id:
                 raise ValueError("SEPARATION_OF_DUTIES_REQUIRED: lifecycle reviewer must differ from attester.")
         elif decision in {APPROVE, REJECT}:
             raise ValueError("attester_actor_id is required for approval or rejection.")
-        if role not in _ROLES:
-            raise PermissionError("Only coordinator or admin may change attestation lifecycle.")
-        if decision not in _DECISIONS:
-            raise ValueError("Unsupported lifecycle decision.")
         rationale = str(rationale).strip()
         if len(rationale) < 3 or len(rationale) > 2000:
             raise ValueError("Lifecycle rationale must contain 3-2000 characters.")
