@@ -34,7 +34,7 @@ The helper does not itself start the login flow, validate OIDC tokens, manage us
 
 ## Important limitations
 
-- The public Streamlit page still stores data only in session state; the new SQLite repository module is an isolated foundation and is not connected to the UI.
+- The Streamlit page now has two explicit modes: demo (session-only) and persistent. Persistent mode is available only after OIDC authentication resolves to a server-configured role and an explicit database path is configured.
 - A standalone, deny-by-default role-permission policy now exists in `nema_agora/access.py`; it is policy logic only, not authentication or enforcement at the UI/database boundary. SQLite audit events record actor identifiers supplied by the caller, so the policy and repository must not be exposed until actor identifiers come from verified authentication and every sensitive operation enforces permissions.
 - A database audit table is not automatically tamper-proof; production use needs access controls, backups, retention rules, monitoring and an appropriate audit-protection design.
 - No reports are sent to NEMA or any other authority.
@@ -57,7 +57,7 @@ The repository already includes Streamlit in its main requirements. If setting u
 1. Review the implemented status transitions and data fields with a supervisor.
 2. Agree pilot scope, site, supervision, consent, retention and data-handling rules.
 3. Review the isolated SQLite repository and data model; do not connect it to the public page yet.
-4. Configure and test OIDC login using the secret template, then enforce the resolved principal and role policy at every UI and repository operation before using persistent storage in the UI.
+4. Configure and test OIDC login using the secret template, set nema_agora.mode = "persistent" and an approved nema_agora.database_path, then test each role before real-user use.
 5. Add deployment-specific database configuration, backup/restore tests, retention rules and operational monitoring.
 6. Test accessibility, low-bandwidth behaviour and CSV export.
 7. Validate budget assumptions and grant eligibility with the official NEMA call.
@@ -87,7 +87,38 @@ Streamlit provides native OIDC through st.login(), st.user, and st.logout(). Kee
 
 1. Configure OIDC in the host secret manager and create explicit role bindings.
 2. Run focused CI and manual authentication tests with at least one account per role.
-3. Add deployment-specific SQLite path, backup/restore, retention and monitoring configuration.
+3. Add deployment-specific SQLite path plus backup/restore, retention and monitoring configuration.
 4. Connect the page to the repository only when an authenticated principal is present.
 5. Add an operational admin/audit view and controlled export.
 6. Validate low-bandwidth accessibility and pilot data-handling rules.
+
+## Phase 4 implementation: authenticated persistence gate
+
+The next build phase is now wired end-to-end at the application boundary:
+
+- `nema_agora/auth.py` converts Streamlit OIDC state into a trusted `Principal`.
+- `nema_agora/service.py` prevents UI code from supplying arbitrary actor IDs or roles.
+- `nema_agora/config.py` makes persistence an explicit deployment choice (`demo` or `persistent`).
+- `pages/18_NEMA_AGORA.py` requires authentication and a provisioned role before persistent data is exposed.
+- Repository reads, reviews, audit access and exports are permission-gated.
+- Submitter ownership isolation is preserved.
+- A legacy SQLite schema without `owner_id` is migrated to an inaccessible `legacy-unowned` owner rather than guessing ownership.
+
+### Deployment configuration
+
+The secret template contains the OIDC client settings and server-side role bindings. Add the following non-secret application settings to the same `nema_agora` section in the host secret manager:
+
+```toml
+[nema_agora]
+mode = "persistent"
+database_path = "/approved/persistent/location/nema_agora.sqlite3"
+
+[nema_agora.role_bindings]
+# "<issuer>|<stable sub>" = "submitter" | "reviewer" | "coordinator" | "admin"
+```
+
+Do not enable persistent mode until the database location, backup/restore, retention, access controls and pilot governance have been reviewed. The application deliberately fails closed for authenticated users who have no configured role.
+
+### Verification state
+
+GitHub Actions has started the focused NEMA-AGORA checks for the latest implementation commit. Final acceptance still requires the workflow to complete successfully and manual OIDC testing with one account per role.
