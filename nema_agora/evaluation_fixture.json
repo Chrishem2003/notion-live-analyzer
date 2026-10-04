@@ -1,0 +1,20 @@
+[
+  {
+    "case_id": "EVAL-001",
+    "expected_category": "Solid waste / illegal dumping",
+    "expected_duplicate": false,
+    "summary_faithful": true
+  },
+  {
+    "case_id": "EVAL-002",
+    "expected_category": "Water pollution",
+    "expected_duplicate": true,
+    "summary_faithful": true
+  },
+  {
+    "case_id": "EVAL-003",
+    "expected_category": "Wetland or land disturbance",
+    "expected_duplicate": false,
+    "summary_faithful": false
+  }
+]
