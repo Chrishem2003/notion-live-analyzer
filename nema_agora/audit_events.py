@@ -33,6 +33,7 @@ ALLOWED_PAYLOAD_KEYS = frozenset({
     "artifact_id", "artifact_hash", "decision", "status", "reason_code",
     "policy_version", "counts", "checkpoint_id", "checkpoint_sequence",
     "verification_status", "source_module", "recorded_by_role",
+    "exception_code", "decision_kind", "outcome", "reconciliation_fingerprint", "resolution_status",
 })
 FORBIDDEN_KEY_PARTS = (
     "password", "secret", "token", "credential", "email", "phone",
