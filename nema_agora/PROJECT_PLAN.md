@@ -229,3 +229,33 @@ Summary-faithfulness labels are retained as human-label metadata and reported as
 4. Add regression thresholds to CI for fixed benchmark fixtures.
 5. Review error slices, confidence calibration, latency and failure modes before any limited pilot model is considered.
 6. Keep workflow-changing decisions behind explicit human approval.
+
+
+## Phase 14 — Human Annotation & Dataset Governance
+
+Phase 14 establishes the human-labelled evidence layer required for credible AI evaluation.
+
+### Implemented
+- Annotation domain model with strict dataset-version and case binding.
+- One independent annotation per annotator, case and dataset version.
+- Reviewer-facing Annotation Studio with blind peer-label isolation.
+- Optional human summary-faithfulness judgement; no model self-report is treated as ground truth.
+- Pairwise category observed agreement and Cohen's kappa.
+- Duplicate-label agreement.
+- Explicit disagreement detection.
+- Coordinator/admin adjudication with required rationale.
+- Independent annotations are immutable records; adjudication never overwrites them.
+- Authenticated principal binding and deny-by-default annotation permissions.
+- Annotation data is isolated from observation workflow transitions.
+- Dedicated Streamlit page pages/21_NEMA_AGORA_ANNOTATION_STUDIO.py.
+
+### Governance rules
+- Use only synthetic, permissioned or otherwise approved records.
+- Do not include personal/confidential data in annotation notes.
+- Annotators must label independently before seeing peer labels.
+- Disagreements are reviewed rather than silently averaged away.
+- Adjudication must record who adjudicated, what final label was selected and why.
+- Agreement is evidence about annotation consistency, not proof of environmental truth.
+
+### Next evaluation gate
+Build a sufficiently diverse labelled benchmark, document annotation guidelines, run independent double annotation, adjudicate disagreements, then freeze a dataset version before comparing a real AI adapter against the deterministic baseline.
