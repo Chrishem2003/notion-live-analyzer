@@ -208,3 +208,14 @@ The default `local-deterministic` adapter is only a safe infrastructure harness;
 Shadow mode requires the `intelligence:shadow` permission and is limited to reviewer/coordinator/admin roles. Shadow results never change workflow state, verify allegations, declare environmental truth or illegality, trigger enforcement/emergency response, or submit anything to NEMA/ELMIS/SWIMS.
 
 The next evaluation gate is a controlled comparison of human judgement, deterministic baseline and an approved model adapter on a diverse labelled dataset, with false-positive/negative, correction, agreement, latency and failure analysis.
+
+
+## Phase 13 — AI Evaluation Laboratory
+
+The evaluation laboratory provides a reproducible, human-labelled benchmark before any model is considered for pilot use.
+
+It measures category accuracy, duplicate precision/recall/F1, execution failures, latency, optional confidence calibration (Brier score), and slice-level performance. Each run is versioned and persisted separately from live observation records.
+
+The current build enables only the local deterministic baseline. It does not silently call an external AI provider or send pilot records outside the configured application.
+
+A laboratory result is evaluation evidence only. It does not establish environmental truth, official incident status, regulatory priority, enforcement action, NEMA endorsement, or production readiness. Human review remains mandatory.
