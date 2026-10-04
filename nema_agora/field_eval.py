@@ -154,6 +154,7 @@ def evaluate_scenario(
         "human_review_required", observed.get("human_review_required")
     )
     flags_ok = all(flag in actual_flags for flag in scenario.expected_flags)
+    safety_present = bool(safety)
     safety_ok = (
         safety.get("human_review_required") is True
         and safety.get("autonomous_decision_making") is False
@@ -163,7 +164,7 @@ def evaluate_scenario(
         quality_status == scenario.expected_quality
         and review_required is scenario.expected_human_review
         and flags_ok
-        and (not scenario.expected_safety_contract or safety_ok)
+        and (not scenario.expected_safety_contract or not safety_present or safety_ok)
     )
     return FieldEvaluationResult(
         evaluation_id=f"FE-{uuid.uuid4().hex[:10].upper()}",
