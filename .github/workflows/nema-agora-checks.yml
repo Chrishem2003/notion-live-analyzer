@@ -25,7 +25,7 @@ on:
       - "pages/35_NEMA_AGORA_DEMO_EVIDENCE.py"
       - "pages/36_NEMA_AGORA_OUTCOME_STUDY.py"
       - "pages/37_NEMA_AGORA_EVIDENCE_SYNTHESIS.py"
-      - "pages/38_NEMA_AGORA_EVIDENCE_REPORT.py"
+      - "pages/38_NEMA_AGORA_EVIDENCE_REPORT.py pages/39_NEMA_AGORA_RESEARCH_DOSSIER.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
