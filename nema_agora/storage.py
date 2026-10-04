@@ -72,7 +72,7 @@ class NemaAgoraRepository:
                     record_json TEXT NOT NULL
                 );
 
-                CREATE TABLE IF NOT EXISTS audit_events (
+                CREATE TABLE IF NOT EXISTS operation_events (\n                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,\n                    actor_id TEXT NOT NULL,\n                    operation TEXT NOT NULL,\n                    occurred_at TEXT NOT NULL,\n                    details_json TEXT NOT NULL DEFAULT '{}'\n                );\n\n                CREATE TABLE IF NOT EXISTS audit_events (
                     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     case_id TEXT NOT NULL REFERENCES observations(case_id),
                     actor_id TEXT NOT NULL,
@@ -89,7 +89,7 @@ class NemaAgoraRepository:
                     ON observations(status);
                 CREATE INDEX IF NOT EXISTS idx_observations_owner
                     ON observations(owner_id);
-                CREATE INDEX IF NOT EXISTS idx_audit_case_time
+                CREATE INDEX IF NOT EXISTS idx_operation_time\n                    ON operation_events(occurred_at, event_id);\n                CREATE INDEX IF NOT EXISTS idx_audit_case_time
                     ON audit_events(case_id, occurred_at, event_id);
                 """
             )
@@ -231,6 +231,33 @@ class NemaAgoraRepository:
                 ),
             )
         return updated
+
+    def record_operation(self, *, actor_id: str, role: str, operation: str, occurred_at: str, details: dict[str, Any] | None = None) -> None:
+        actor = _actor(actor_id)
+        require_permission(role, "user:manage")
+        operation = operation.strip()
+        if not operation or len(operation) > 100:
+            raise ValueError("A valid operation name is required.")
+        if not occurred_at.strip():
+            raise ValueError("An operation timestamp is required.")
+        payload = json.dumps(details or {}, ensure_ascii=False, sort_keys=True)
+        with self._session() as connection:
+            connection.execute(
+                "INSERT INTO operation_events (actor_id, operation, occurred_at, details_json) VALUES (?, ?, ?, ?)",
+                (actor, operation, occurred_at, payload),
+            )
+
+    def list_operation_events(self, *, actor_id: str, role: str, limit: int = 100) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "user:manage")
+        if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 500:
+            raise ValueError("Operation event limit must be between 1 and 500.")
+        with self._session() as connection:
+            rows = connection.execute(
+                "SELECT event_id, actor_id, operation, occurred_at, details_json FROM operation_events ORDER BY event_id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [{**dict(row), "details": json.loads(row["details_json"])} for row in rows]
 
     def list_audit_events(self, case_id: str, *, actor_id: str, role: str) -> list[dict[str, Any]]:
         _actor(actor_id)
