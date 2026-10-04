@@ -268,6 +268,8 @@ with tab_about:
     st.write("NEMA-AGORA is a proposed student-led pilot for organising environmental observations, review status, location information and evaluation data. It is designed to complement existing environmental-management systems, not replace them.")
     st.markdown("**Quality and governance milestone now implemented**
     st.markdown("- Deterministic data-quality flags for completeness, consent, coordinates, duplicate suspicion and review state\n- Governance policy gate blocks personal-data intake, urgent incident scope and unofficial integrations\n- Authenticated ownership is enforced at the service boundary")
+    st.markdown("**Quality and governance milestone now implemented**")
+    st.markdown("- Deterministic data-quality flags for completeness, consent, coordinates, duplicate suspicion and review state\n- Governance policy gate blocks personal-data intake, urgent incident scope and unofficial integrations\n- Authenticated ownership is enforced at the service boundary")
     st.markdown("**Security milestone now implemented**")
     st.markdown("- Streamlit OIDC identity → stable issuer + subject principal\n- Server-side role binding with deny-by-default access\n- Persistent repository operations require the authenticated principal\n- Submitters are isolated to records they own\n- Review, metrics, audit and export are permission-gated\n- Persistent mode is explicit; demo mode remains session-only")
     st.markdown("**Still not implemented**")
