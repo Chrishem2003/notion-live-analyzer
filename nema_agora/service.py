@@ -17,6 +17,7 @@ from nema_agora.copilot import build_reviewer_copilot
 from nema_agora.storage import NemaAgoraRepository
 from nema_agora.shadow import DeterministicShadowAdapter, run_shadow
 from nema_agora.lab import EvaluationRunStore, LabResult
+from nema_agora.comparison import ComparisonRunStore, ComparisonResult
 from nema_agora.annotation import AnnotationStore, annotation_readiness, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
 
 
@@ -254,6 +255,17 @@ class NemaAgoraService:
         self._authorised(principal)
         require_permission(principal.role, "annotation:read_all")
         return [a.__dict__ for a in AnnotationStore(self.repository.database_path).list_adjudications(dataset_version)]
+
+    def record_comparison_run(self, result: ComparisonResult, principal: Principal) -> None:
+        """Persist a Phase 15 comparison result under the authenticated actor."""
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:comparison")
+        ComparisonRunStore(self.repository.database_path).save(result, actor_id=principal.subject_key)
+
+    def list_comparison_runs(self, principal: Principal, *, limit: int = 25) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:comparison")
+        return ComparisonRunStore(self.repository.database_path).list(limit=limit)
 
     def record_evaluation_run(self, result: LabResult, principal: Principal) -> None:
         """Persist an immutable Phase 13 evaluation result under the authenticated actor."""
