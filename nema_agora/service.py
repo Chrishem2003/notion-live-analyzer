@@ -22,7 +22,7 @@ from nema_agora.admission import AdmissionStore, ModelAdmissionPolicy, ModelCand
 from nema_agora.shadow_governance import ControlledShadowStore, execute_controlled_shadow
 from nema_agora.shadow_monitoring import build_shadow_monitoring_snapshot
 from nema_agora.provenance import ProvenanceStore, verify_provenance_chain
-from nema_agora.field_eval import FieldScenario, evaluate_scenario
+from nema_agora.field_eval import FieldScenario, FieldEvaluationStore, evaluate_scenario
 from nema_agora.review_governance import (
     ReviewStore, build_reevaluation, make_shadow_review, make_lifecycle_decision,
 )
@@ -350,14 +350,13 @@ class NemaAgoraService:
         self._authorised(principal)
         require_permission(principal.role, "intelligence:field_eval")
         result = evaluate_scenario(scenario=scenario, observed=observed, notes=notes)
+        FieldEvaluationStore(self.repository.database_path).save(result)
         return result.to_dict()
 
     def list_field_evaluations(self, principal: Principal, *, limit: int = 500) -> list[dict[str, Any]]:
         self._authorised(principal)
         require_permission(principal.role, "intelligence:field_eval")
-        # Phase 21 starts as a controlled laboratory; persistence is added only
-        # when the evidence schema is bound to the governed repository.
-        return []
+        return FieldEvaluationStore(self.repository.database_path).list(limit=limit)
 
     def list_provenance(
         self,
