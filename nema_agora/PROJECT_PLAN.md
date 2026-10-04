@@ -475,3 +475,12 @@ The integration preserves human authority and fail-closed semantics: the audit l
 ### Next gate
 
 **Phase 39 — Governance Reconciliation & Exception Handling**: detect authoritative decision records that lack corresponding governed audit events and surface reconciliation exceptions for human review without silently repairing history.
+
+
+## Phase 39 — Governance Reconciliation & Exception Handling
+
+Added a read-only reconciliation engine comparing authoritative evaluation, human-review, and lifecycle decision stores with governed audit events. It detects missing and orphaned audit coverage, duplicate source decisions, ambiguous coverage, actor mismatches, decision/status mismatches, source-module mismatches, invalid source records, and invalid ledger verification. Results have deterministic reconciliation IDs/fingerprints and fail closed to CONTROL_REQUIRED on discrepancies. Added authenticated reconciliation page, focused tests, documentation, and CI coverage. No automatic repair, deletion, or rewriting of historical audit events is performed.
+
+### Next gate
+
+Phase 40 — Controlled Governance Exception Resolution: introduce an explicit human-governed workflow for investigating and resolving reconciliation exceptions without rewriting historical evidence.
