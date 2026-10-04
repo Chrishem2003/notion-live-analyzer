@@ -22,6 +22,7 @@ on:
       - "pages/32_NEMA_AGORA_REPRODUCIBILITY.py"
       - "pages/33_NEMA_AGORA_PILOT_READINESS.py"
       - "pages/34_NEMA_AGORA_DEPLOYMENT_HEALTH.py"
+      - "pages/35_NEMA_AGORA_DEMO_EVIDENCE.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
