@@ -78,3 +78,32 @@ def test_checkpoint_hash_mismatch_detected():
     result = verify_entries_against_checkpoint(entries, checkpoint)
     assert result["valid"] is False
     assert "CHECKPOINT_HASH_MISMATCH" in result["errors"]
+
+
+def test_empty_ledger_checkpoint_verifies(tmp_path):
+    ledger = AuditLedger(tmp_path / "empty.db")
+    checkpoint = export_checkpoint(ledger.create_checkpoint(checkpoint_id="EMPTY", actor_id="admin"))
+    result = verify_entries_against_checkpoint([], checkpoint)
+    assert result["valid"] is True
+    assert result["checkpoint_hash_matches"] is True
+
+
+def test_ledger_fails_closed_above_verification_limit(tmp_path):
+    path = tmp_path / "large.db"
+    ledger = AuditLedger(path)
+    with sqlite3.connect(path) as db:
+        db.executemany(
+            """INSERT INTO audit_ledger
+            (sequence, entry_id, actor_id, event_type, occurred_at, payload_json,
+             previous_hash, entry_hash, policy_version)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            [
+                (i, f"E{i}", "reviewer", "REVIEW", "2026-01-01T00:00:00Z",
+                 "{}", GENESIS_HASH, f"{i:064x}", "phase34-v1")
+                for i in range(1, 5002)
+            ],
+        )
+    result = ledger.verify()
+    assert result["valid"] is False
+    assert result["entries"] == 5001
+    assert "VERIFICATION_LIMIT_EXCEEDED" in result["errors"]
