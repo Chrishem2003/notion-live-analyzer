@@ -644,3 +644,20 @@ GitHub Actions must verify focused tests, compilation and Streamlit smoke before
 ### Next gate
 
 Phase 52 — Governance Decision Execution Boundary: preserve the separation between evidence preparation and the existing human-governed lifecycle decision ledger, with explicit actor/role checks and fail-closed snapshot binding.
+
+
+## Phase 52 — Governance Decision Execution Boundary
+
+Implemented a fail-closed prerequisite validator between Phase 51 evidence preparation and the existing human-governed lifecycle decision ledger. It requires an explicit supported decision, actor identity, coordinator/admin role, an undecided preparation package and exact current snapshot equality. Successful validation is READY_FOR_HUMAN_EXECUTION only; execution_authorized remains false and no lifecycle decision is written.
+
+### Governance boundary
+
+The boundary does not approve/reject/revoke/supersede records, change observations or workflow state, establish environmental truth, authorize NEMA integration, enforcement, emergency response, production approval or autonomous decisions.
+
+### Completion gate
+
+GitHub Actions must verify focused tests, compilation and Streamlit smoke before Phase 52 is declared green.
+
+### Next gate
+
+Phase 53 — Decision Receipt & Audit Binding: produce an append-only, human-confirmed receipt around an already-executed lifecycle decision without making the receipt itself authoritative.
