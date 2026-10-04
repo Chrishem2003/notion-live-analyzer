@@ -20,6 +20,7 @@ PERMISSIONS: Final = frozenset(
         "intelligence:use",
         "intelligence:feedback",
         "intelligence:shadow",
+        "intelligence:lab",
         "audit:read",
         "user:manage",
     }
@@ -28,7 +29,7 @@ PERMISSIONS: Final = frozenset(
 _ROLE_PERMISSIONS = {
     "submitter": frozenset({"observation:create", "observation:read_own"}),
     "reviewer": frozenset(
-        {"observation:read_all", "observation:review", "metrics:read", "intelligence:use", "intelligence:feedback", "intelligence:shadow"}
+        {"observation:read_all", "observation:review", "metrics:read", "intelligence:use", "intelligence:feedback", "intelligence:shadow", "intelligence:lab"}
     ),
     "coordinator": frozenset(
         {
@@ -40,6 +41,7 @@ _ROLE_PERMISSIONS = {
             "intelligence:use",
             "intelligence:feedback",
             "intelligence:shadow",
+            "intelligence:lab",
         }
     ),
     "admin": PERMISSIONS,
