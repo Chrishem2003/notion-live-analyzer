@@ -86,7 +86,7 @@ Streamlit provides native OIDC through st.login(), st.user, and st.logout(). Kee
 ## Next build gate
 
 1. Configure OIDC in the host secret manager and create explicit role bindings.
-2. Run focused CI and manual authentication tests with at least one account per role.
+2. Run focused tests and manual authentication tests with at least one account per role.
 3. Add deployment-specific SQLite path plus backup/restore, retention and monitoring configuration.
 4. Connect the page to the repository only when an authenticated principal is present.
 5. Add an operational admin/audit view and controlled export.
@@ -98,7 +98,9 @@ The next build phase is now wired end-to-end at the application boundary:
 
 - `nema_agora/auth.py` converts Streamlit OIDC state into a trusted `Principal`.
 - `nema_agora/service.py` prevents UI code from supplying arbitrary actor IDs or roles.
-- `nema_agora/config.py` makes persistence an explicit deployment choice (`demo` or `persistent`).
+- `nema_agora/config.py` makes persistence an explicit deployment choice (`demo` or `persistent`) and requires explicit backup configuration for operations.
+- `nema_agora/backup.py` provides verified SQLite backup, integrity checking, bounded file retention and explicitly confirmed restore.
+- `pages/19_NEMA_AGORA_ADMIN.py` provides an admin-only operations console with health, backup inventory, restore safeguards and administrative audit events.
 - `pages/18_NEMA_AGORA.py` requires authentication and a provisioned role before persistent data is exposed.
 - Repository reads, reviews, audit access and exports are permission-gated.
 - Submitter ownership isolation is preserved.
@@ -122,3 +124,27 @@ Do not enable persistent mode until the database location, backup/restore, reten
 ### Verification state
 
 GitHub Actions has started the focused NEMA-AGORA checks for the latest implementation commit. Final acceptance still requires the workflow to complete successfully and manual OIDC testing with one account per role.
+
+## Phase 5 implementation: operational resilience
+
+The next operational layer is now implemented in the pilot branch:
+
+- SQLite backups use the SQLite online backup API rather than copying a live database file byte-for-byte.
+- Source and resulting backup files are checked with SQLite `integrity_check`.
+- Backups use a predictable UTC filename and a bounded retention count (1–3650 files).
+- Restore is denied unless the caller explicitly confirms the destructive action.
+- The admin console creates a fresh safety backup before a confirmed restore.
+- Administrative backup/restore actions are recorded separately from case audit events.
+- The admin console is unavailable to demo-mode or non-admin users.
+
+Deployment settings are explicit:
+
+```toml
+[nema_agora]
+mode = "persistent"
+database_path = "/approved/persistent/location/nema_agora.sqlite3"
+backup_dir = "/approved/backup/location"
+backup_retention = 7
+```
+
+Do not treat a local backup directory as a complete disaster-recovery strategy. A production pilot should additionally use an independently protected backup destination, test restoration periodically, define retention with the supervisor/institution, and monitor backup failures.
