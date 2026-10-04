@@ -207,3 +207,35 @@ def compare_models(cases: list[FrozenCase], adapters: dict[str, ComparisonAdapte
 
 def serialise_comparison(result: ComparisonResult) -> str:
     return json.dumps(result.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+class ComparisonRunStore:
+    """Persist immutable Phase 15 comparison evidence separately from cases."""
+    def __init__(self, database_path: str):
+        import sqlite3
+        self.database_path = str(database_path)
+        with sqlite3.connect(self.database_path) as db:
+            db.execute("""CREATE TABLE IF NOT EXISTS comparison_runs (
+                run_id TEXT PRIMARY KEY,
+                actor_id TEXT NOT NULL,
+                dataset_version TEXT NOT NULL,
+                manifest_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                result_json TEXT NOT NULL
+            )""")
+            db.execute("CREATE INDEX IF NOT EXISTS idx_comparison_runs_time ON comparison_runs(created_at, run_id)")
+    def save(self, result: ComparisonResult, *, actor_id: str) -> None:
+        import sqlite3
+        if not actor_id.strip(): raise ValueError("Authenticated actor is required.")
+        with sqlite3.connect(self.database_path) as db:
+            db.execute(
+                "INSERT INTO comparison_runs (run_id, actor_id, dataset_version, manifest_hash, created_at, result_json) VALUES (?, ?, ?, ?, ?, ?)",
+                (result.run_id, actor_id, result.dataset.dataset_version, result.dataset.manifest_hash,
+                 result.created_at, serialise_comparison(result)))
+    def list(self, *, limit: int = 25) -> list[dict[str, Any]]:
+        import sqlite3
+        safe_limit=max(1,min(int(limit),100))
+        with sqlite3.connect(self.database_path) as db:
+            db.row_factory=sqlite3.Row
+            rows=db.execute("SELECT run_id, actor_id, dataset_version, manifest_hash, created_at, result_json FROM comparison_runs ORDER BY created_at DESC, run_id DESC LIMIT ?",(safe_limit,)).fetchall()
+        return [{**dict(r), "result": json.loads(r["result_json"])} for r in rows]
