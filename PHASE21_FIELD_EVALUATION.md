@@ -13,3 +13,8 @@ dispatch, or production approval.
 
 Future extensions should bind scenarios to the actual observation → quality →
 intelligence → review pipeline rather than bypassing those components.
+
+
+## Phase 22 — Impact Measurement
+
+The impact laboratory compares BASELINE and ASSISTED conditions using controlled observations. Metrics include review time, evidence completeness, duplicate handling, reviewer actions, correction rate, and end-to-end workflow success. Results are system-performance evidence only and must not be presented as environmental impact or regulatory evidence.
