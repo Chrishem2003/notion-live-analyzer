@@ -35,6 +35,7 @@ def test_outcome_study_fingerprint_is_stable_for_same_observations():
     second=build_outcome_study(observations)
     assert first.dataset_fingerprint==second.dataset_fingerprint
     assert first.pairs[0].pair_id==second.pairs[0].pair_id
+    assert first.study_id==second.study_id
 
 def test_outcome_validation_detects_missing_paired_observation():
     observations=[
