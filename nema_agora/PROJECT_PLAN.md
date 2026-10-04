@@ -1148,3 +1148,10 @@ Next gate: Phase 98 — API Governance Evidence Observatory.
 Added a read-only aggregate across API audit events, reconciliations, lifecycle records, lifecycle decisions, casebooks, review queues, human reviews, and review reconciliation. Any CONTROL_REQUIRED source keeps the observatory in CONTROL_REQUIRED. No environmental truth, regulatory authority, enforcement, or emergency response is inferred.
 
 Next gate: Phase 99 — API Governance Evidence Coverage & Health.
+
+
+## Phase 99 — API Governance Evidence Coverage & Health
+
+Added deterministic coverage and health evaluation across the Phase 88–98 API governance chain. Coverage gaps and upstream CONTROL_REQUIRED states fail closed. Metrics are engineering/evidence-health measures only and do not establish environmental truth or regulatory authority.
+
+Next gate: Phase 100 — API Governance Evidence Snapshot & Baseline.
