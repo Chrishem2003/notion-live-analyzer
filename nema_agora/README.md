@@ -22,7 +22,7 @@ The Streamlit page is `pages/18_NEMA_AGORA.py` and provides:
 ## Important limitations
 
 - The public Streamlit page still stores data only in session state; the new SQLite repository module is an isolated foundation and is not connected to the UI.
-- Authentication and role-based authorisation are not implemented yet. SQLite audit events record actor identifiers supplied by the caller, so this module must not be exposed until those identifiers come from verified authentication.
+- A standalone, deny-by-default role-permission policy now exists in `nema_agora/access.py`; it is policy logic only, not authentication or enforcement at the UI/database boundary. SQLite audit events record actor identifiers supplied by the caller, so the policy and repository must not be exposed until actor identifiers come from verified authentication and every sensitive operation enforces permissions.
 - A database audit table is not automatically tamper-proof; production use needs access controls, backups, retention rules, monitoring and an appropriate audit-protection design.
 - No reports are sent to NEMA or any other authority.
 - No ELMIS/SWIMS integration or official dataset access is implemented.
@@ -44,7 +44,7 @@ The repository already includes Streamlit in its main requirements. If setting u
 1. Review the implemented status transitions and data fields with a supervisor.
 2. Agree pilot scope, site, supervision, consent, retention and data-handling rules.
 3. Review the isolated SQLite repository and data model; do not connect it to the public page yet.
-4. Implement and test verified authentication plus role-based permissions before using persistent storage in the UI.
+4. Integrate a trusted identity provider, enforce the role policy at every UI and repository operation, and test ownership checks before using persistent storage in the UI.
 5. Add deployment-specific database configuration, backup/restore tests, retention rules and operational monitoring.
 6. Test accessibility, low-bandwidth behaviour and CSV export.
 7. Validate budget assumptions and grant eligibility with the official NEMA call.
