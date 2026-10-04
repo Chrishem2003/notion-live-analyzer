@@ -12,3 +12,10 @@ def test_controlled_shadow_permission_matrix():
     assert has_permission("reviewer", "intelligence:controlled_shadow")
     assert has_permission("coordinator", "intelligence:controlled_shadow")
     assert has_permission("admin", "intelligence:controlled_shadow")
+
+
+def test_shadow_monitoring_permission_matrix():
+    assert not has_permission("submitter", "intelligence:monitor")
+    assert has_permission("reviewer", "intelligence:monitor")
+    assert has_permission("coordinator", "intelligence:monitor")
+    assert has_permission("admin", "intelligence:monitor")
