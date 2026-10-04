@@ -16,7 +16,7 @@ PERMISSIONS: Final = frozenset({
     "intelligence:lab", "intelligence:comparison", "intelligence:admit_model",
     "intelligence:controlled_shadow", "intelligence:monitor",
     "intelligence:provenance", "intelligence:field_eval", "intelligence:impact",
-    "intelligence:evidence", "intelligence:reproducibility",
+    "intelligence:evidence", "intelligence:reproducibility", "intelligence:pilot_readiness",
     "intelligence:review_shadow", "intelligence:govern_shadow",
     "annotation:create", "annotation:read_own", "annotation:read_all",
     "annotation:adjudicate", "audit:read", "user:manage",
@@ -40,7 +40,7 @@ _ROLE_PERMISSIONS = {
         "intelligence:field_eval", "intelligence:impact", "intelligence:evidence",
         "intelligence:reproducibility", "annotation:create", "annotation:read_own",
         "annotation:read_all", "annotation:adjudicate", "intelligence:review_shadow",
-        "intelligence:govern_shadow",
+        "intelligence:govern_shadow", "intelligence:pilot_readiness",
     }),
     "admin": PERMISSIONS,
 }
