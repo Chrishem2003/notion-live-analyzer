@@ -146,11 +146,10 @@ def evaluate_admission(
     dataset_version = str(dataset.get("dataset_version", "")).strip()
     manifest_hash = str(dataset.get("manifest_hash", "")).strip()
     required_annotation_gates = {"minimum_double_annotated_cases", "two_independent_annotators", "all_annotator_pairs_measured", "minimum_category_kappa", "all_disagreements_adjudicated"}
+    ann_gates = annotation_readiness.get("gates") or {}
     annotation_gate_evidence = {key: ann_gates.get(key) is True for key in required_annotation_gates}
     comparison_dataset = comparison.get("dataset") or {}
     metrics = _comparison_metrics(comparison, candidate)
-
-    ann_gates = annotation_readiness.get("gates") or {}
     unresolved = annotation_readiness.get("unresolved_disagreements") or []
     cases = int(dataset.get("cases", 0) or 0)
 
