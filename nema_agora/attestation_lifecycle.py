@@ -65,6 +65,7 @@ class AttestationLifecycleRegistry:
                 decision TEXT NOT NULL,
                 actor_id TEXT NOT NULL,
                 role TEXT NOT NULL,
+                attester_actor_id TEXT,
                 rationale TEXT NOT NULL,
                 decided_at TEXT NOT NULL,
                 expires_at TEXT,
@@ -80,11 +81,18 @@ class AttestationLifecycleRegistry:
 
     def decide(
         self, *, attestation_id: str, decision: str, actor_id: str, role: str,
-        rationale: str, decided_at: str | None = None, expires_at: str | None = None,
+        rationale: str, attester_actor_id: str | None = None,
+        decided_at: str | None = None, expires_at: str | None = None,
         superseding_attestation_id: str | None = None,
     ) -> dict[str, Any]:
         attestation_id = _safe(attestation_id, "attestation_id")
         actor_id = _safe(actor_id, "actor_id")
+        if attester_actor_id is not None:
+            attester_actor_id = _safe(attester_actor_id, "attester_actor_id")
+            if decision in {APPROVE, REJECT} and actor_id == attester_actor_id:
+                raise ValueError("SEPARATION_OF_DUTIES_REQUIRED: lifecycle reviewer must differ from attester.")
+        elif decision in {APPROVE, REJECT}:
+            raise ValueError("attester_actor_id is required for approval or rejection.")
         if role not in _ROLES:
             raise PermissionError("Only coordinator or admin may change attestation lifecycle.")
         if decision not in _DECISIONS:
@@ -106,19 +114,20 @@ class AttestationLifecycleRegistry:
         _parse_time(decided_at)
         decision_id = "LIFE-" + _fp({
             "attestation_id": attestation_id, "decision": decision, "actor_id": actor_id,
-            "role": role, "rationale": rationale, "decided_at": decided_at,
+            "role": role, "attester_actor_id": attester_actor_id, "rationale": rationale, "decided_at": decided_at,
             "expires_at": expires_at, "superseding_attestation_id": superseding_attestation_id,
         })[:24].upper()
         row = {
             "decision_id": decision_id, "attestation_id": attestation_id, "decision": decision,
-            "actor_id": actor_id, "role": role, "rationale": rationale, "decided_at": decided_at,
+            "actor_id": actor_id, "role": role, "attester_actor_id": attester_actor_id,
+            "rationale": rationale, "decided_at": decided_at,
             "expires_at": expires_at, "superseding_attestation_id": superseding_attestation_id,
             "policy_version": POLICY_VERSION,
         }
         with sqlite3.connect(self.database_path) as db:
             try:
                 db.execute("""INSERT INTO governance_attestation_lifecycle
-                    VALUES (?,?,?,?,?,?,?,?,?,?)""", tuple(row.values()))
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?)""", tuple(row.values()))
             except sqlite3.IntegrityError as exc:
                 raise ValueError("LIFECYCLE_DECISION_CONFLICT: identical decision already exists.") from exc
         return row
