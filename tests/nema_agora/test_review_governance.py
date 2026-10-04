@@ -30,7 +30,7 @@ def test_correction_rate_triggers_review():
                 "decision": "NEEDS_CORRECTION" if i < 2 else "CONFIRMED_USEFUL"} for i in range(10)]
     result = build_reevaluation(runs, reviews, admission_id="ADM-1")
     assert result["recommendation"] == "REVIEW"
-    assert result["correction_rate"] == 0.1
+    assert result["correction_rate"] == 0.2
 
 def test_lifecycle_decision_binds_candidate():
     admission = {"admission_id": "ADM-1", "result": {
