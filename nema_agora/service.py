@@ -68,6 +68,19 @@ class NemaAgoraService:
             case_id, actor_id=principal.subject_key, role=principal.role
         )
 
+    def record_operation(self, principal: Principal, *, operation: str, occurred_at: str, details: dict[str, Any] | None = None) -> None:
+        self._authorised(principal)
+        self.repository.record_operation(
+            actor_id=principal.subject_key, role=principal.role,
+            operation=operation, occurred_at=occurred_at, details=details,
+        )
+
+    def list_operation_events(self, principal: Principal, *, limit: int = 100) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        return self.repository.list_operation_events(
+            actor_id=principal.subject_key, role=principal.role, limit=limit
+        )
+
     def export_csv(self, principal: Principal, records: list[dict[str, Any]]) -> bytes:
         self._authorised(principal)
         require_permission(principal.role, "case:export")
