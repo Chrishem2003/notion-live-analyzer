@@ -43,14 +43,18 @@ labels=[f'{x["run_id"]} • {x["dataset_version"]} • {x["created_at"]}' for x 
 idx=st.selectbox("Comparison run",range(len(history)),format_func=lambda i: labels[i])
 selected=history[idx]["result"]
 dataset=selected.get("dataset",{})
+adapters=selected.get("adapters") or []
+if not adapters:
+    st.error("The selected comparison run has no model adapter evidence. Admission is unavailable until Phase 15 comparison evidence includes an adapter.")
+    st.stop()
 
 st.write(f"**Dataset:** {dataset.get('dataset_version','')}  •  **Manifest SHA-256:** {dataset.get('manifest_hash','')}  •  **Cases:** {dataset.get('cases',0)}")
 st.caption("The admission gate binds the selected comparison run to its exact dataset version, manifest hash, provider, model version and adapter.")
 
 st.subheader("2. Candidate metadata")
-candidate_provider=st.text_input("Provider",value=(selected.get("adapters") or [{}])[0].get("provider",""))
-candidate_version=st.text_input("Model version",value=(selected.get("adapters") or [{}])[0].get("model_version",""))
-candidate_adapter=st.text_input("Adapter name",value=(selected.get("adapters") or [{}])[0].get("adapter",""))
+candidate_provider=st.text_input("Provider",value=adapters[0].get("provider",""))
+candidate_version=st.text_input("Model version",value=adapters[0].get("model_version",""))
+candidate_adapter=st.text_input("Adapter name",value=adapters[0].get("adapter",""))
 intended_use=st.text_input("Intended use",value="Advisory evidence classification and reviewer decision support")
 data_handling=st.text_input("Data handling",value="Synthetic or explicitly permissioned pilot records only")
 retention=st.text_input("Retention policy",value="Controlled project retention under approved governance")
