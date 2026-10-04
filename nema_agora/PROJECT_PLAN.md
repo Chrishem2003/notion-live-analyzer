@@ -1078,3 +1078,10 @@ Next gate: Phase 88 — API Audit Event Binding and Request Traceability.
 Added deterministic API audit evidence binding request identity, actor, role, permission, authorization fingerprint, query fingerprint, result fingerprint, HTTP status, timestamp, and policy version. This layer is traceability evidence only; persistence into an append-only audit registry remains a subsequent integration boundary.
 
 Next gate: Phase 89 — Persistent API Audit Registry and Immutable Request Trace.
+
+
+## Phase 89 — Persistent API Audit Registry
+
+Added an append-only SQLite API audit registry with deterministic fingerprints, unique event/fingerprint constraints, request-scoped retrieval, validation, and immutable UPDATE/DELETE triggers. This persists Phase 88 request traceability as evidence without creating environmental or regulatory authority.
+
+Next gate: Phase 90 — End-to-End API Audit Integration and Reconciliation.
