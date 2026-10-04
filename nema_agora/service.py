@@ -11,6 +11,7 @@ from typing import Any
 
 from nema_agora.access import require_permission
 from nema_agora.identity import Principal
+from nema_agora.intelligence import analyze_observation
 from nema_agora.storage import NemaAgoraRepository
 
 
@@ -84,6 +85,12 @@ class NemaAgoraService:
         return self.repository.list_operation_events(
             actor_id=principal.subject_key, role=principal.role, limit=limit
         )
+
+    def analyze_observation(self, record: dict[str, Any], principal: Principal, *, peer_records: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+        """Run advisory evidence intelligence under the authenticated principal."""
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:use")
+        return analyze_observation(record, peer_records=peer_records)
 
     def export_csv(self, principal: Principal, records: list[dict[str, Any]]) -> bytes:
         self._authorised(principal)
