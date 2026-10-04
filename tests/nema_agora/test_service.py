@@ -67,3 +67,17 @@ def test_admin_operation_audit_is_principal_bound(tmp_path):
     assert events[0]["actor_id"] == "https://issuer|admin-1"
     with pytest.raises(PermissionError):
         service.record_operation(principal("coord-1", "coordinator"), operation="backup_created", occurred_at="now")
+
+
+def test_service_cannot_accept_caller_supplied_owner_id(tmp_path):
+    repo = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
+    service = NemaAgoraService(repo)
+    owner = principal("owner-1", "submitter")
+    record = make_observation(
+        observation_date=date(2026, 10, 4), category=CATEGORIES[0], severity="Low",
+        site="Pilot A", description="Synthetic", latitude=2.5, longitude=32.1,
+        consent_confirmed=True, created_at="2026-10-04T12:00:00+03:00",
+    )
+    record["owner_id"] = "attacker-2"
+    service.create_observation(record, owner)
+    assert repo.get_observation(record["case_id"], actor_id=owner.subject_key, role="submitter")["owner_id"] == owner.subject_key
