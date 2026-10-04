@@ -6,7 +6,7 @@ comparisons reproducible. Results are software-performance evidence only.
 from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-import hashlib, json, uuid
+import hashlib, json
 from typing import Any
 
 from nema_agora.impact import ImpactObservation
@@ -47,7 +47,7 @@ def pair_observations(observations: list[ImpactObservation]) -> tuple[OutcomePai
     pairs=[]
     for scenario_id in sorted(set(baseline) & set(assisted)):
         pairs.append(OutcomePair(
-            pair_id=f"OP-{uuid.uuid4().hex[:10].upper()}",
+            pair_id="OP-" + _fingerprint({"scenario_id": scenario_id, "baseline_id": baseline[scenario_id].observation_id, "assisted_id": assisted[scenario_id].observation_id})[:16].upper(),
             scenario_id=scenario_id,
             baseline_id=baseline[scenario_id].observation_id,
             assisted_id=assisted[scenario_id].observation_id,
