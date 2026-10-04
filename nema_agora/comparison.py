@@ -170,7 +170,8 @@ def compare_models(cases: list[FrozenCase], adapters: dict[str, ComparisonAdapte
                    "slice":case.slice_name,"status":status,"error":error,"latency_ms":latency,
                    "expected_category":case.expected_category,"predicted_category":predicted_category,
                    "expected_duplicate":case.expected_duplicate,"predicted_duplicate":predicted_duplicate,
-                   "expected_summary_faithful":case.expected_summary_faithful,"confidence":_confidence(output or {})}
+                   "expected_summary_faithful":case.expected_summary_faithful,"confidence":_confidence(output or {}),
+                   "output": output if isinstance(output, dict) else None}
             rows.append(row); by_slice.setdefault((name, case.slice_name), []).append(row)
         by_adapter[name] = rows
     metrics = tuple(_metrics(n, str(getattr(adapters[n],"provider",n))[:80],
