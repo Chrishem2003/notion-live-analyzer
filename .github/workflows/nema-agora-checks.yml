@@ -65,7 +65,8 @@ on:
       - "pages/75_NEMA_AGORA_SPATIAL_LONGITUDINAL.py
       - "pages/76_NEMA_AGORA_SPATIAL_EVIDENCE_STORAGE.py
       - "pages/77_NEMA_AGORA_AOI_REGISTRY.py
-      - "pages/78_NEMA_AGORA_EARTH_ENGINE.py""""
+      - "pages/78_NEMA_AGORA_EARTH_ENGINE.py
+      - "pages/79_NEMA_AGORA_SENTINEL2_ACQUISITION.py"""""
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
