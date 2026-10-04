@@ -464,3 +464,14 @@ The Phase 36 instrumentation boundary remains explicit: missing origin-event aud
 ### Next gate
 
 Move from artifact-level traceability toward **Phase 38 — Governance Decision Ledger Integration**, connecting additional real workflow decision boundaries to the governed audit-event layer while preserving idempotency, privacy, human authority and fail-closed semantics.
+
+
+## Phase 38 — Governance Decision Ledger Integration
+
+Connected actual application decision boundaries to the governed audit-event layer. Evaluation completion, human shadow review, and human lifecycle decisions now emit metadata-only, deterministic, idempotent governed audit events through a reusable adapter. Added a read-only Governance Decision Ledger page, focused tests, CI coverage, and documentation. Checkpoint creation and publication-gate capture remain connected from Phase 36. Backup verification and access-denial event types are supported by the adapter but are not claimed as automatically instrumented until concrete workflow boundaries are wired.
+
+The integration preserves human authority and fail-closed semantics: the audit layer records decisions already made; it never makes, changes, or infers governance decisions. Source decision stores and the audit ledger currently use separate SQLite writes, so reconciliation is required if the second write fails.
+
+### Next gate
+
+**Phase 39 — Governance Reconciliation & Exception Handling**: detect authoritative decision records that lack corresponding governed audit events and surface reconciliation exceptions for human review without silently repairing history.
