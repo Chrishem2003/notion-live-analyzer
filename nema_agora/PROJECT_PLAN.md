@@ -1120,3 +1120,10 @@ Next gate: Phase 94 — API Audit Governance Casebook and Evidence Packaging.
 Added deterministic, reviewable case packaging across API audit events, reconciliation, lifecycle evaluation, human lifecycle decision, and decision reconciliation. Cases require exact cross-snapshot bindings and reconciled evidence; they remain evidence packaging only.
 
 Next gate: Phase 95 — API Governance Review Queue.
+
+
+## Phase 95 — API Governance Review Queue
+
+Added persistent append-only queue admission for ready API governance casebooks. Queue items have deterministic IDs, bounded priority, duplicate protection, deterministic ordering, and explicit human-review boundaries. Queue admission does not execute governance decisions.
+
+Next gate: Phase 96 — API Governance Human Review & Audit Binding.
