@@ -122,3 +122,33 @@ Implemented reviewer-support layer:
 - No external model provider or data transfer is enabled.
 - Feedback notes must avoid personal/confidential information.
 - Before a live model adapter: approve data governance, establish a labelled evaluation set, measure performance, and review model/provider handling.
+
+
+## Phase 11 — Pilot Intelligence Observatory
+
+Phase 11 converts the Phase 9 evaluation foundation and Phase 10 reviewer feedback trail into measurable readiness evidence.
+
+### Implemented
+- Transparent observatory snapshot with labelled readiness gates.
+- Feedback volume and correction-rate measurement.
+- Category accuracy, duplicate F1 and summary-faithfulness gates.
+- Principal-bound service access and a dedicated Streamlit observatory surface.
+- Conservative `NOT_READY` default when evidence is insufficient.
+
+### Readiness policy
+The baseline pilot gate requires:
+- at least 25 labelled evaluation cases;
+- at least 20 reviewer feedback records;
+- category accuracy ≥ 80%;
+- duplicate F1 ≥ 80%;
+- summary faithfulness ≥ 90%.
+
+A passing snapshot means **READY_FOR_REVIEW**, not production approval, regulatory validation, NEMA endorsement, or permission to automate decisions.
+
+### Next gate
+Before connecting a live external or local model:
+1. collect a larger, diverse, human-labelled evaluation set;
+2. inspect false positives, false negatives and correction patterns;
+3. establish data-retention and model-provider governance;
+4. run a controlled shadow-mode comparison;
+5. require explicit human approval before any model output can influence workflow.
