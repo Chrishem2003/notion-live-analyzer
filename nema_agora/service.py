@@ -17,7 +17,7 @@ from nema_agora.copilot import build_reviewer_copilot
 from nema_agora.storage import NemaAgoraRepository
 from nema_agora.shadow import DeterministicShadowAdapter, run_shadow
 from nema_agora.lab import EvaluationRunStore, LabResult
-from nema_agora.annotation import AnnotationStore, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
+from nema_agora.annotation import AnnotationStore, annotation_readiness, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
 
 
 class NemaAgoraService:
@@ -210,6 +210,15 @@ class NemaAgoraService:
             "agreement": pairwise_agreement(first, second),
             "disagreements": disagreement_cases(rows),
         }
+
+    def annotation_readiness(self, principal: Principal, dataset_version: str) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "annotation:read_all")
+        store = AnnotationStore(self.repository.database_path)
+        return annotation_readiness(
+            store.list_all(dataset_version),
+            store.list_adjudications(dataset_version),
+        )
 
     def list_case_annotations(self, case_id: str, principal: Principal, dataset_version: str) -> list[dict[str, Any]]:
         self._authorised(principal)
