@@ -937,3 +937,12 @@ No official boundaries are invented or asserted. The demonstration uses syntheti
 Completion gate: GitHub Actions must verify Phase 69 focused tests, compilation and Streamlit startup before Phase 69 is declared CI-green.
 
 Next gate: Phase 70 — Google Earth Engine Integration Boundary.
+
+
+## Phase 70 — Google Earth Engine Integration Boundary
+
+Implemented a governed provider boundary for authorized Google Earth Engine requests. Requests bind registered asset identity, AOI geometry, WGS84 CRS, collection, date window and cloud constraint, with deterministic fingerprints. The concrete provider remains disconnected until authorized credentials/project configuration exist; no scenes or environmental conclusions are fabricated.
+
+Completion gate: GitHub Actions must verify focused tests, compilation and Streamlit startup before Phase 70 is declared CI-green.
+
+Next gate: Phase 71 — Live Sentinel-2 Acquisition.
