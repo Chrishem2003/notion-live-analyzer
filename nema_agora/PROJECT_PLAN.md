@@ -1253,3 +1253,12 @@ The demonstration uses synthetic data in an isolated temporary database and is n
 Completion gate: focused Phase 111 tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
 
 Next gate: Phase 112 — Recovery Review Lifecycle & Decision Governance.
+
+
+## Phase 112 — Recovery Review Lifecycle & Decision Governance
+
+Added deterministic lifecycle evaluation for reconciled Phase 110 recovery reviews. Human outcomes map to explicit lifecycle states while preserving a hard boundary between evidence and execution: recovery is never automatically performed, and decision execution remains false. Lifecycle snapshots require a reconciled review scope and carry deterministic fingerprints. No environmental, regulatory, enforcement or emergency conclusion is produced.
+
+Completion gate: focused Phase 112 tests, compilation and Streamlit smoke checks must visibly pass on the current PR head before this phase is declared CI-green.
+
+Next gate: Phase 113 — Recovery Decision Ledger & Immutable Authorization Boundary.
