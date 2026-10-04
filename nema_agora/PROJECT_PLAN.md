@@ -152,3 +152,40 @@ Before connecting a live external or local model:
 3. establish data-retention and model-provider governance;
 4. run a controlled shadow-mode comparison;
 5. require explicit human approval before any model output can influence workflow.
+
+
+## Phase 12 — Controlled AI Shadow Mode
+
+Phase 12 introduces a strict shadow boundary for model evaluation. A model can analyse a pilot case beside the existing human workflow, but its output is isolated from the case record and workflow engine.
+
+### Implemented
+
+- Provider-neutral shadow execution contract in `nema_agora/shadow.py`.
+- Deterministic local adapter for exercising the pipeline without external model/API data transfer.
+- Safety validation through the Phase 9 advisory-output contract.
+- Source-case binding, mandatory human review and bounded error capture.
+- Provider/model-version and latency capture for reproducibility.
+- Separate SQLite `shadow_runs` storage and audit trail.
+- Principal-bound `intelligence:shadow` permission for reviewer/coordinator/admin roles.
+- Streamlit shadow workspace with run history and explicit workflow-isolation messaging.
+- Tests for safe output, unsafe-output rejection, latency capture, authorization and persistence.
+
+### Shadow-mode rule
+
+The shadow result is **evaluation evidence only**. It cannot:
+
+- change observation status or review notes;
+- create, merge, delete or overwrite observations;
+- declare environmental truth, illegality or an official incident status;
+- trigger enforcement, emergency dispatch or external reporting;
+- connect to NEMA, ELMIS, SWIMS or another official system.
+
+The default adapter is deliberately deterministic and local. It is a test harness, not evidence that an external AI model has passed evaluation.
+
+### Next gate
+
+1. Collect a diverse labelled pilot set and reviewer feedback.
+2. Run the same cases through human judgement, deterministic baseline and an approved model adapter.
+3. Measure agreement, false positives/negatives, corrections, latency and failure rates by model version.
+4. Add calibration and slice-level analysis before considering any model for limited pilot use.
+5. Keep human approval mandatory for every workflow-affecting decision.
