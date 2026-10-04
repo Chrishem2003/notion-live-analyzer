@@ -14,6 +14,7 @@ from nema_agora.identity import Principal
 from nema_agora.intelligence import analyze_observation
 from nema_agora.copilot import build_reviewer_copilot
 from nema_agora.storage import NemaAgoraRepository
+from nema_agora.shadow import DeterministicShadowAdapter, run_shadow
 
 
 class NemaAgoraService:
@@ -118,6 +119,37 @@ class NemaAgoraService:
         require_permission(principal.role, "intelligence:use")
         analysis = self.analyze_observation(record, principal, peer_records=peer_records)
         return build_reviewer_copilot(record, analysis)
+
+    def run_shadow(
+        self,
+        record: dict[str, Any],
+        principal: Principal,
+        *,
+        adapter: Any | None = None,
+    ) -> dict[str, Any]:
+        """Run an isolated advisory model beside the existing workflow."""
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:shadow")
+        shadow_result = run_shadow(
+            record,
+            adapter if adapter is not None else DeterministicShadowAdapter(),
+        )
+        payload = shadow_result.to_dict()
+        self.repository.record_shadow_run(
+            str(record.get("case_id", "")),
+            actor_id=principal.subject_key,
+            role=principal.role,
+            result=payload,
+            occurred_at=__import__("datetime").datetime.now().astimezone().isoformat(timespec="seconds"),
+        )
+        return payload
+
+    def list_shadow_runs(self, case_id: str, principal: Principal) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:shadow")
+        return self.repository.list_shadow_runs(
+            case_id, actor_id=principal.subject_key, role=principal.role
+        )
 
     def build_observatory_snapshot(
         self,
