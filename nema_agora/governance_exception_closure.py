@@ -45,7 +45,7 @@ def _evidence_ok(evidence: Mapping[str, Any] | None) -> bool:
 
 def _key(item: Mapping[str, Any]) -> tuple[str | None, str | None, str | None]:
     return (
-        item.get("exception_code"),
+        item.get("exception_code", item.get("code")),
         item.get("decision_kind"),
         item.get("artifact_id"),
     )
