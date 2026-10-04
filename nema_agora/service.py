@@ -10,7 +10,7 @@ import io
 from typing import Any
 from dataclasses import asdict
 
-from nema_agora.access import require_permission
+from nema_agora.access import has_permission, require_permission
 from nema_agora.identity import Principal
 from nema_agora.intelligence import analyze_observation
 from nema_agora.copilot import build_reviewer_copilot
@@ -20,6 +20,7 @@ from nema_agora.lab import EvaluationRunStore, LabResult
 from nema_agora.comparison import ComparisonRunStore, ComparisonResult
 from nema_agora.admission import AdmissionStore, ModelAdmissionPolicy, ModelCandidate, evaluate_admission
 from nema_agora.shadow_governance import ControlledShadowStore, execute_controlled_shadow
+from nema_agora.shadow_monitoring import build_shadow_monitoring_snapshot
 from nema_agora.annotation import AnnotationStore, annotation_readiness, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
 
 
@@ -314,8 +315,31 @@ class NemaAgoraService:
 
     def list_model_admissions(self, principal: Principal, *, limit: int = 25) -> list[dict[str, Any]]:
         self._authorised(principal)
-        require_permission(principal.role, "intelligence:admit_model")
+        if not (
+            principal.role
+            and (
+                has_permission(principal.role, "intelligence:admit_model")
+                or has_permission(principal.role, "intelligence:monitor")
+            )
+        ):
+            raise PermissionError("Role is not permitted to inspect model admissions.")
         return AdmissionStore(self.repository.database_path).list(limit=limit)
+
+    def build_shadow_monitoring_snapshot(
+        self,
+        principal: Principal,
+        *,
+        admission_id: str | None = None,
+        limit: int = 500,
+    ) -> dict[str, Any]:
+        self._authorised(principal)
+        require_permission(principal.role, "intelligence:monitor")
+        runs = ControlledShadowStore(self.repository.database_path).list(
+            admission_id=admission_id, limit=limit
+        )
+        return build_shadow_monitoring_snapshot(
+            runs, admission_id=admission_id
+        ).to_dict()
 
     def record_comparison_run(self, result: ComparisonResult, principal: Principal) -> None:
         """Persist a Phase 15 comparison result under the authenticated actor."""
