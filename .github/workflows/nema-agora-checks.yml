@@ -35,6 +35,7 @@ on:
       - "pages/45_NEMA_AGORA_GOVERNANCE_TRACEABILITY.py"
       - "pages/46_NEMA_AGORA_GOVERNANCE_DECISION_LEDGER.py"
       - "pages/47_NEMA_AGORA_GOVERNANCE_RECONCILIATION.py"
+      - "pages/47_NEMA_AGORA_GOVERNANCE_RECONCILIATION.py"
       - "tests/nema_agora/**"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
