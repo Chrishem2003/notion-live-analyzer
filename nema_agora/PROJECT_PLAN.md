@@ -1001,3 +1001,10 @@ Next gate: Phase 77 — Spatial Evidence API & Query Surface.
 Added a provider-neutral, read-only spatial evidence query contract supporting AOI, scene, candidate, review-status, temporal filtering, deterministic ordering, and fingerprints. The surface exposes validated evidence without bypassing governance or making environmental/regulatory conclusions.
 
 Next gate: Phase 78 — Spatial Evidence Service Boundary / API Adapter.
+
+
+## Phase 78 — Spatial Evidence Service Boundary / API Adapter
+
+Added a dependency-light service-facing request/response contract over the Phase 77 query surface. Supported operations cover querying evidence, retrieving records by ID, listing AOIs/scenes/changes, deterministic request/response fingerprints, authorization awareness, and read-only fail-closed behavior. No live provider or production API connection is claimed.
+
+Next gate: Phase 79 — FastAPI Spatial Evidence Endpoint / Contract Tests.
