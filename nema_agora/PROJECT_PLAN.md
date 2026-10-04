@@ -559,3 +559,14 @@ Phase 45 should strengthen lifecycle provenance and decision accountability,
 including exact decision-to-snapshot binding, supersession-chain validation,
 reviewer/attester identity evidence, and an operational lifecycle evidence
 report before any broader demonstration or pilot workflow expansion.
+
+
+## Phase 45 — Lifecycle Provenance & Decision Accountability
+
+Implemented an append-only provenance binding ledger connecting lifecycle decisions to the exact attestation, reviewer/attester identities, current reconciliation fingerprint, evidence-registry fingerprint, provenance fingerprint and supersession target. Historical bindings become stale when the current governance snapshot changes; identity and duplicate-binding mismatches fail closed. Supersession validation rejects missing targets, self-reference and cycles. The authenticated dashboard now derives the current snapshot from the live Phase 42/43 governance evidence chain rather than treating a historical binding as authoritative.
+
+### Governance boundary
+Phase 45 is an accountability and reproducibility control only. It does not authorize production, NEMA integration, regulatory action, enforcement, emergency response, official reporting or environmental truth. Historical decisions and evidence remain append-only.
+
+### Next gate
+Phase 46 — Governance Evidence Observatory: consolidate current attestation/lifecycle/provenance states into a read-only operational evidence surface with explicit coverage gaps, stale bindings, conflicts, supersession health and fail-closed status, without inventing or mutating governance decisions.
