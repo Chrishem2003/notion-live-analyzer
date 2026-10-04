@@ -1271,3 +1271,12 @@ Added a human authorization ledger after recovery-review lifecycle evaluation. A
 Completion gate: focused Phase 113 tests, compilation and Streamlit smoke checks must visibly pass before CI-green is claimed.
 
 Next gate: Phase 114 — Authorization Reconciliation & Execution-Gate Integrity.
+
+
+## Phase 114 — Authorization Reconciliation & Execution-Gate Integrity
+
+Added read-only reconciliation between Phase 112 lifecycle evidence and Phase 113 authorization decisions. The control detects orphan/duplicate decisions, lifecycle/review/monitor binding mismatches, policy inconsistencies, ledger count mismatches, tampering and execution-gate violations. The reconciliation explicitly reports execution_gate_closed=true and never executes recovery or produces environmental, regulatory, enforcement or emergency conclusions.
+
+Completion gate: focused Phase 114 tests, compilation and Streamlit smoke checks must visibly pass before CI-green is claimed.
+
+Next gate: Phase 115 — Governed Authorization History & Decision Continuity.
