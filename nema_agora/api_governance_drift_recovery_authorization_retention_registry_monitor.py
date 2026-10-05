@@ -130,6 +130,10 @@ def validate_retention_registry_monitor(report: Mapping[str, Any]) -> dict[str, 
     for key in required:
         if key not in report:
             raise ValueError("MONITOR_FIELDS_REQUIRED")
+    payload = dict(report)
+    supplied = payload.pop("monitor_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("MONITOR_FINGERPRINT_MISMATCH")
     if report["policy_version"] != POLICY_VERSION:
         raise ValueError("MONITOR_POLICY_VIOLATION")
     if report["registry_policy_version"] != REGISTRY_POLICY_VERSION:
