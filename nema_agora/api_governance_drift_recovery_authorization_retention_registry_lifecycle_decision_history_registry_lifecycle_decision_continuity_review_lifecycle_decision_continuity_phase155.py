@@ -7,10 +7,7 @@ from .api_governance_drift_recovery_authorization_retention_registry_lifecycle_d
 POLICY_VERSION = "phase155-v1"
 STATES = ("NO_HISTORY", "HISTORY_READY", "CONTROL_REQUIRED")
 
-def build_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_continuity(
-    decisions: Sequence[Mapping[str, Any]], *, captured_at: str, sequence: int,
-    previous_snapshot_fingerprint: str | None = None
-) -> dict[str, Any]:
+def build_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_continuity(decisions: Sequence[Mapping[str, Any]], *, captured_at: str, sequence: int, previous_snapshot_fingerprint: str | None = None) -> dict[str, Any]:
     from datetime import datetime
     try: datetime.fromisoformat(str(captured_at).replace("Z", "+00:00"))
     except ValueError as exc: raise ValueError("INVALID_CAPTURED_AT") from exc
@@ -20,16 +17,7 @@ def build_authorization_history_registry_decision_history_lifecycle_decision_con
     valid = [validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision(d) for d in decisions]
     ids = [d["decision_fingerprint"] for d in valid]
     if len(ids) != len(set(ids)): raise ValueError("DUPLICATE_DECISION_FINGERPRINT")
-    payload = {
-        "policy_version": POLICY_VERSION, "captured_at": captured_at, "sequence": sequence,
-        "previous_snapshot_fingerprint": previous_snapshot_fingerprint,
-        "decision_count": len(valid), "decisions": valid,
-        "human_governed": True, "automatic_repair_performed": False,
-        "execution_gate_closed": True, "execution_permitted": False, "execution_performed": False,
-        "environmental_conclusion": None, "regulatory_conclusion": None,
-        "enforcement_action": None, "emergency_action": None,
-        "interpretation": "LIFECYCLE_DECISION_CONTINUITY_EVIDENCE_ONLY",
-    }
+    payload = {"policy_version": POLICY_VERSION, "captured_at": captured_at, "sequence": sequence, "previous_snapshot_fingerprint": previous_snapshot_fingerprint, "decision_count": len(valid), "decisions": valid, "human_governed": True, "automatic_repair_performed": False, "execution_gate_closed": True, "execution_permitted": False, "execution_performed": False, "environmental_conclusion": None, "regulatory_conclusion": None, "enforcement_action": None, "emergency_action": None, "interpretation": "LIFECYCLE_DECISION_CONTINUITY_EVIDENCE_ONLY"}
     return dict(payload, snapshot_fingerprint=fingerprint(payload))
 
 def validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_snapshot(snapshot: Mapping[str, Any]) -> dict[str, Any]:
@@ -44,11 +32,14 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
     if fingerprint(payload) != supplied: raise ValueError("SNAPSHOT_FINGERPRINT_MISMATCH")
     return dict(snapshot)
 
+# Compatibility alias for Phase 156 and downstream consumers. One implementation remains authoritative.
+validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_continuity_snapshot = validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_snapshot
+
 def reconcile_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_continuity(snapshots: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     findings: list[str] = []
     valid = []
     for s in snapshots:
-        try: valid.append(validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_snapshot(s))
+        try: valid.append(validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_continuity_snapshot(s))
         except (ValueError, KeyError): findings.append("INVALID_SNAPSHOT")
     sequences = [s["sequence"] for s in valid]
     fps = [s["snapshot_fingerprint"] for s in valid]
@@ -61,15 +52,7 @@ def reconcile_authorization_history_registry_decision_history_lifecycle_decision
         if cur["previous_snapshot_fingerprint"] != prev["snapshot_fingerprint"]: findings.append("PREDECESSOR_MISMATCH")
     if ordered and ordered[0]["previous_snapshot_fingerprint"] is not None: findings.append("UNEXPECTED_FIRST_PREDECESSOR")
     state = "NO_HISTORY" if not snapshots else ("HISTORY_READY" if not findings else "CONTROL_REQUIRED")
-    payload = {
-        "policy_version": POLICY_VERSION, "state": state, "snapshot_count": len(snapshots),
-        "valid_snapshot_count": len(valid), "findings": sorted(set(findings)),
-        "read_only": True, "human_governed": True, "automatic_repair_performed": False,
-        "execution_gate_closed": True, "execution_permitted": False, "execution_performed": False,
-        "environmental_conclusion": None, "regulatory_conclusion": None,
-        "enforcement_action": None, "emergency_action": None,
-        "interpretation": "LIFECYCLE_DECISION_CONTINUITY_EVIDENCE_ONLY",
-    }
+    payload = {"policy_version": POLICY_VERSION, "state": state, "snapshot_count": len(snapshots), "valid_snapshot_count": len(valid), "findings": sorted(set(findings)), "read_only": True, "human_governed": True, "automatic_repair_performed": False, "execution_gate_closed": True, "execution_permitted": False, "execution_performed": False, "environmental_conclusion": None, "regulatory_conclusion": None, "enforcement_action": None, "emergency_action": None, "interpretation": "LIFECYCLE_DECISION_CONTINUITY_EVIDENCE_ONLY"}
     return dict(payload, reconciliation_fingerprint=fingerprint(payload))
 
 def validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_continuity(result: Mapping[str, Any]) -> dict[str, Any]:
