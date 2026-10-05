@@ -60,18 +60,17 @@ def validate_retention_lifecycle(lifecycle: Mapping[str, Any]) -> dict[str, Any]
     for key in required:
         if key not in lifecycle:
             raise ValueError(f"MISSING_{key.upper()}")
+    payload = dict(lifecycle)
+    supplied = payload.pop("lifecycle_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("RETENTION_LIFECYCLE_FINGERPRINT_MISMATCH")
     if lifecycle["policy_version"] != POLICY_VERSION:
-        raise ValueError("INVALID_LIFECYCLE_POLICY")
     if lifecycle["review_outcome"] not in OUTCOMES or lifecycle["lifecycle_state"] not in STATES:
         raise ValueError("INVALID_LIFECYCLE_VALUE")
     if lifecycle["human_governed"] is not True or lifecycle["automatic_repair_performed"] is not False:
         raise ValueError("INVALID_LIFECYCLE_CONTROLS")
     if lifecycle["decision_executed"] is not False or lifecycle["execution_gate_closed"] is not True:
         raise ValueError("INVALID_EXECUTION_CONTROLS")
-    payload = dict(lifecycle)
-    supplied = payload.pop("lifecycle_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("RETENTION_LIFECYCLE_FINGERPRINT_MISMATCH")
     return dict(lifecycle)
 
 
