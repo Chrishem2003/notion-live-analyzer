@@ -71,7 +71,8 @@ def validate_lifecycle(lifecycle: Mapping[str, Any]) -> dict[str, Any]:
     ):
         raise ValueError("LIFECYCLE_CONTROL_VIOLATION")
 
-    payload = {key: lifecycle[key] for key in required if key != "lifecycle_fingerprint"}
+    payload = dict(lifecycle)
+    payload.pop("lifecycle_fingerprint", None)
     if fingerprint(payload) != lifecycle["lifecycle_fingerprint"]:
         raise ValueError("LIFECYCLE_FINGERPRINT_MISMATCH")
     return dict(lifecycle)
