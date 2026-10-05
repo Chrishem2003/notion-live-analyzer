@@ -7,7 +7,9 @@ from nema_agora.api_governance_drift_recovery_review_reconciliation import recon
 def monitor(): return build_history_integrity_monitor([], expected_count=0, observed_at='2026-10-04T12:00:00+00:00')
 def reviewed(report=None, outcome='BACKUP_REVIEWED'):
     report=report or monitor()
-    return review_recovery_recommendation(report, actor_id='reviewer-01', role='coordinator', outcome=outcome, reviewed_at='2026-10-04T12:10:00+00:00', notes='reviewed')
+    review = review_recovery_recommendation(report, actor_id='reviewer-01', role='coordinator', outcome=outcome, reviewed_at='2026-10-04T12:10:00+00:00', notes='reviewed')
+    review["ledger_policy_version"] = "phase110-v1"
+    return review
 
 def test_valid_reconciliation():
     report=monitor(); result=reconcile_recovery_reviews([report],[reviewed(report)],expected_ledger_count=1)
