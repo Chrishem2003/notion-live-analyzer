@@ -23,13 +23,13 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
     required=("policy_version","review_fingerprint","monitor_fingerprint","monitor_state","monitor_recommendation","outcome","state","evaluated_at","human_governed","automatic_repair_performed","execution_gate_closed","execution_permitted","execution_performed","lifecycle_fingerprint")
     for k in required:
         if k not in lifecycle: raise ValueError("LIFECYCLE_FIELDS_REQUIRED")
-    payload=dict(lifecycle); supplied=payload.pop("lifecycle_fingerprint")
-    if fingerprint(payload)!=supplied: raise ValueError("LIFECYCLE_FINGERPRINT_MISMATCH")
     if lifecycle["policy_version"]!=POLICY_VERSION or lifecycle["state"] not in STATES or lifecycle["outcome"] not in OUTCOMES or MAPPING[lifecycle["outcome"]]!=lifecycle["state"]: raise ValueError("INVALID_LIFECYCLE_POLICY_STATE")
     try: datetime.fromisoformat(str(lifecycle["evaluated_at"]).replace("Z","+00:00"))
     except ValueError as exc: raise ValueError("INVALID_EVALUATION_TIME") from exc
     if lifecycle["human_governed"] is not True or lifecycle["automatic_repair_performed"] is not False: raise ValueError("INVALID_LIFECYCLE_CONTROLS")
     if lifecycle["execution_gate_closed"] is not True or lifecycle["execution_permitted"] is not False or lifecycle["execution_performed"] is not False: raise ValueError("EXECUTION_GATE_VIOLATION")
+    payload=dict(lifecycle); supplied=payload.pop("lifecycle_fingerprint")
+    if fingerprint(payload)!=supplied: raise ValueError("LIFECYCLE_FINGERPRINT_MISMATCH")
     return dict(lifecycle)
 
 def build_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle(reconciliation: Mapping[str,Any], reviews: Sequence[Mapping[str,Any]], *, evaluated_at: str)->list[dict[str,Any]]:
