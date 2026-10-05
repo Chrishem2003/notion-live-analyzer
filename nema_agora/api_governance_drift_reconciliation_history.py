@@ -17,7 +17,7 @@ def _sha256(value: Any) -> bool:
 
 
 def _reconciliation_is_valid(value: Mapping[str, Any]) -> bool:
-    if value.get("policy_version") != "phase106-v1" or value.get("state") not in _STATES:
+    if value.get("policy_version") != "phase106-v1" or value.get("state") != "RECONCILED":
         return False
     claimed = value.get("reconciliation_fingerprint")
     payload = dict(value)
