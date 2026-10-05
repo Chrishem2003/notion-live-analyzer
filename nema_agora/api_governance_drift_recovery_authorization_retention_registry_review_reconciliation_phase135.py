@@ -149,7 +149,7 @@ def validate_authorization_history_registry_review_reconciliation(
     for key in required:
         if key not in result:
             raise ValueError("RECONCILIATION_FIELDS_REQUIRED")
-    payload = dict(result)
+    return dict(result)    payload = dict(result)
     supplied = payload.pop("reconciliation_fingerprint")
     if fingerprint(payload) != supplied:
         raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
@@ -167,4 +167,4 @@ def validate_authorization_history_registry_review_reconciliation(
         raise ValueError("EXECUTION_GATE_VIOLATION")
     if result["automatic_repair_performed"] is not False:
         raise ValueError("AUTOMATIC_REPAIR_FORBIDDEN")
-    return dict(result)
+
