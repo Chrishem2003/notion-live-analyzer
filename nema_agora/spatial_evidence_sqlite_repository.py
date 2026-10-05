@@ -9,9 +9,15 @@ class SQLiteSpatialEvidenceRepository:
         validate_record(record)
         SpatialEvidenceStore(self.database_path).append(record)
     def list(self,**filters:Any)->list[dict[str,Any]]:
-        allowed={"case_id","candidate_id","observed_at","sequence"}
+        allowed={"case_id","candidate_id","observed_at","sequence","aoi_id","scene_id","review_status"}
         if set(filters)-allowed: raise ValueError("UNSUPPORTED_FILTER")
         rows=SpatialEvidenceStore(self.database_path).list(case_id=filters.get("case_id"))
         for key in ("candidate_id","observed_at","sequence"):
             if filters.get(key) is not None: rows=[r for r in rows if r.get(key)==filters[key]]
+        if filters.get("aoi_id") is not None:
+            rows=[r for r in rows if r.get("spatial_identity",{}).get("aoi_id")==filters["aoi_id"]]
+        if filters.get("scene_id") is not None:
+            rows=[r for r in rows if r.get("spatial_identity",{}).get("scene_id")==filters["scene_id"]]
+        if filters.get("review_status") is not None:
+            rows=[r for r in rows if r.get("review_outcome")==filters["review_status"]]
         return rows
