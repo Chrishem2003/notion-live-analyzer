@@ -11,9 +11,10 @@ def _att(aid="ATT-1", actor="u1", state="ATTESTED"):
             "provenance_fingerprint": "p"}
 
 def _base(**kw):
-    return dict(reconciliation_fingerprint="r", evidence_registry_fingerprint="e",
-                provenance_fingerprint="p", integrity_valid=True, provenance_complete=True,
-                **kw)
+    base = dict(reconciliation_fingerprint="r", evidence_registry_fingerprint="e",
+                 provenance_fingerprint="p", integrity_valid=True, provenance_complete=True)
+    base.update(kw)
+    return base
 
 def test_pending_until_human_lifecycle_decision():
     result = evaluate_lifecycle([_att()], [], **_base(), now="2026-01-01T00:00:00+00:00")
