@@ -68,25 +68,26 @@ class LifecycleProvenanceRegistry:
 
 def evaluate_provenance(bindings:Iterable[Mapping[str,Any]],decisions:Iterable[Mapping[str,Any]],attestations:Iterable[Mapping[str,Any]],*,
                         reconciliation_fingerprint:str,evidence_registry_fingerprint:str,provenance_fingerprint:str)->dict[str,Any]:
-    decisions=list(decisions); atts={str(x.get("attestation_id")):x for x in attestations if x.get("attestation_id")}
+    decisions=list(decisions)
+    atts={str(x.get("attestation_id")):x for x in attestations if x.get("attestation_id")}
     by_decision={str(x.get("decision_id")):x for x in decisions if x.get("decision_id")}
-    results=[]; failures=[]
-    seen_decisions=set()
-    for b in bindings:
-        d=by_decision.get(str(b.get("decision_id"))); a=atts.get(str(b.get("attestation_id")))
-        if b.get("decision_id") in seen_decisions:
-            failures.append({"binding_id":b.get("binding_id"),"reason":"DUPLICATE_DECISION_BINDING"})
-        seen_decisions.add(b.get("decision_id"))
-        exact=(b.get("reconciliation_fingerprint")==reconciliation_fingerprint and
-               b.get("evidence_registry_fingerprint")==evidence_registry_fingerprint and
-               b.get("provenance_fingerprint")==provenance_fingerprint)
-        identities=bool(d and a and d.get("attestation_id")==b.get("attestation_id") and
-                        d.get("actor_id")==b.get("reviewer_actor_id") and
-                        d.get("attester_actor_id")==b.get("attester_actor_id") and
-                        d.get("actor_id")!=d.get("attester_actor_id"))
+    results=[]; failures=[]; seen_decisions=set()
+    for binding in bindings:
+        decision=by_decision.get(str(binding.get("decision_id")))
+        attestation=atts.get(str(binding.get("attestation_id")))
+        if binding.get("decision_id") in seen_decisions:
+            failures.append({"binding_id":binding.get("binding_id"),"reason":"DUPLICATE_DECISION_BINDING"})
+        seen_decisions.add(binding.get("decision_id"))
+        exact=(binding.get("reconciliation_fingerprint")==reconciliation_fingerprint and
+               binding.get("evidence_registry_fingerprint")==evidence_registry_fingerprint and
+               binding.get("provenance_fingerprint")==provenance_fingerprint)
+        identities=bool(decision and attestation and decision.get("attestation_id")==binding.get("attestation_id") and
+                        decision.get("actor_id")==binding.get("reviewer_actor_id") and
+                        decision.get("attester_actor_id")==binding.get("attester_actor_id") and
+                        decision.get("actor_id")!=decision.get("attester_actor_id"))
         state="VALID" if exact and identities else "STALE"
-        if state!="VALID": failures.append({"binding_id":b.get("binding_id"),"reason":"SNAPSHOT_OR_IDENTITY_MISMATCH"})
-        results.append({**dict(b),"state":state})
+        if state!="VALID": failures.append({"binding_id":binding.get("binding_id"),"reason":"SNAPSHOT_OR_IDENTITY_MISMATCH"})
+        results.append({**dict(binding),"state":state})
     return {"policy_version":POLICY_VERSION,"valid_count":sum(x["state"]=="VALID" for x in results),
             "stale_count":sum(x["state"]=="STALE" for x in results),"failure_count":len(failures),
             "failures":failures,"bindings":results,
@@ -96,14 +97,18 @@ def evaluate_provenance(bindings:Iterable[Mapping[str,Any]],decisions:Iterable[M
 def validate_supersession_chain(bindings:Iterable[Mapping[str,Any]],attestations:Iterable[Mapping[str,Any]])->dict[str,Any]:
     ids={str(x.get("attestation_id")) for x in attestations if x.get("attestation_id")}
     failures=[]
-    graph={str(b.get("attestation_id")): b.get("superseding_attestation_id") for b in bindings if b.get("attestation_id")}
-    for start in graph:
+    binding_rows=[dict(row) for row in bindings]
+    graph={str(row.get("attestation_id")): row.get("superseding_attestation_id") for row in binding_rows if row.get("attestation_id")}
+    by_attestation={str(row.get("attestation_id")): row for row in binding_rows if row.get("attestation_id")}
+    for start,next_id in graph.items():
         seen=set(); cur=start
         while cur in graph and graph[cur]:
             if cur in seen:
-                failures.append({"binding_id":start,"reason":"SUPERSESSION_CYCLE"}); break
+                failures.append({"binding_id":by_attestation[start].get("binding_id"),"reason":"SUPERSESSION_CYCLE"}); break
             seen.add(cur); cur=str(graph[cur])
-        target=graph.get(start)
-        if target and target not in ids: failures.append({"binding_id":b.get("binding_id"),"reason":"MISSING_SUPERSEDING_ATTESTATION","target":target})
-        if target==b.get("attestation_id"): failures.append({"binding_id":b.get("binding_id"),"reason":"SELF_SUPERSESSION"})
+        target=next_id
+        if target and str(target) not in ids:
+            failures.append({"binding_id":by_attestation[start].get("binding_id"),"reason":"MISSING_SUPERSEDING_ATTESTATION","target":target})
+        if target==start:
+            failures.append({"binding_id":by_attestation[start].get("binding_id"),"reason":"SELF_SUPERSESSION"})
     return {"valid":not failures,"failures":failures}
