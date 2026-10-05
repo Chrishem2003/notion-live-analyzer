@@ -20,6 +20,12 @@ class RecoveryAuthorizationHistoryRegistry:
         x=validate_authorization_snapshot(snapshot)
         encoded=json.dumps(dict(x),sort_keys=True,separators=(",",":"),ensure_ascii=False)
         with self._connect() as db:
+            existing=db.execute(
+                "SELECT 1 FROM recovery_authorization_history WHERE snapshot_fingerprint=? LIMIT 1",
+                (x["snapshot_fingerprint"],),
+            ).fetchone()
+            if existing is not None:
+                raise ValueError("SNAPSHOT_HISTORY_CONFLICT")
             prior=db.execute("SELECT sequence,snapshot_fingerprint FROM recovery_authorization_history ORDER BY sequence DESC LIMIT 1").fetchone()
             if prior is None:
                 if x["sequence"]!=1 or x["previous_snapshot_fingerprint"] is not None: raise ValueError("FIRST_SNAPSHOT_SEQUENCE_REQUIRED")
