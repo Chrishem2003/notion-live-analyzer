@@ -88,6 +88,7 @@ def build_review_record(scored: Mapping[str, Any], *, created_at: str | None = N
         "components": dict(scored["components"]), "weights": dict(scored["weights"]),
         "review_threshold": float(scored.get("review_threshold", 0.5)), "queue_state": QUEUE_STATE,
         "created_at": created_at or datetime.now(timezone.utc).isoformat(), "human_review_required": True,
+        "state": "VALID",
         "interpretation": {"status": "HUMAN_REVIEW_REQUIRED", "environmental_conclusion": None,
                            "regulatory_conclusion": None, "violation": None, "enforcement_action": None},
     }
