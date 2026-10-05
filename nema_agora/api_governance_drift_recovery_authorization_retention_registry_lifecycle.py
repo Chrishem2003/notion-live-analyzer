@@ -86,6 +86,34 @@ def validate_retention_registry_lifecycle(
     for key in required:
         if key not in lifecycle:
             raise ValueError(f"MISSING_{key.upper()}")
+    if lifecycle["policy_version"] != POLICY_VERSION:
+        raise ValueError("INVALID_LIFECYCLE_POLICY")
+    if lifecycle["review_outcome"] not in OUTCOMES:
+        raise ValueError("INVALID_LIFECYCLE_OUTCOME")
+    expected_state = {
+        "ACKNOWLEDGED": "ACKNOWLEDGED",
+        "REVIEW_RETENTION_REGISTRY": "DEFERRED",
+        "PRESERVE_AND_ESCALATE": "ESCALATED",
+        "ESCALATED": "ESCALATED",
+    }[lifecycle["review_outcome"]]
+    if lifecycle["lifecycle_state"] != expected_state:
+        raise ValueError("LIFECYCLE_STATE_OUTCOME_MISMATCH")
+    if lifecycle["human_governed"] is not True:
+        raise ValueError("INVALID_LIFECYCLE_GOVERNANCE")
+    if lifecycle["automatic_repair_performed"] is not False:
+        raise ValueError("INVALID_LIFECYCLE_REPAIR_CONTROL")
+    if lifecycle["decision_executed"] is not False:
+        raise ValueError("INVALID_DECISION_EXECUTION_CONTROL")
+    if lifecycle["execution_gate_closed"] is not True:
+        raise ValueError("EXECUTION_GATE_MUST_BE_CLOSED")
+    if lifecycle["execution_permitted"] is not False or lifecycle["execution_performed"] is not False:
+        raise ValueError("INVALID_EXECUTION_CONTROLS")
+    _validate_time(lifecycle["evaluated_at"], "EVALUATION_TIME")
+
+    payload = dict(lifecycle)
+    supplied = payload.pop("lifecycle_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("RETENTION_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH")
     return dict(lifecycle)
 
 
@@ -169,31 +197,4 @@ def validate_retention_registry_lifecycle_bundle(
     supplied = payload.pop("lifecycle_fingerprint")
     if fingerprint(payload) != supplied:
         raise ValueError("RETENTION_REGISTRY_LIFECYCLE_BUNDLE_FINGERPRINT_MISMATCH")
-    return dict(bundle)    payload = dict(lifecycle)
-    supplied = payload.pop("lifecycle_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("RETENTION_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH")
-    if lifecycle["policy_version"] != POLICY_VERSION:
-        raise ValueError("INVALID_LIFECYCLE_POLICY")
-    if lifecycle["review_outcome"] not in OUTCOMES:
-        raise ValueError("INVALID_LIFECYCLE_OUTCOME")
-    expected_state = {
-        "ACKNOWLEDGED": "ACKNOWLEDGED",
-        "REVIEW_RETENTION_REGISTRY": "DEFERRED",
-        "PRESERVE_AND_ESCALATE": "ESCALATED",
-        "ESCALATED": "ESCALATED",
-    }[lifecycle["review_outcome"]]
-    if lifecycle["lifecycle_state"] != expected_state:
-        raise ValueError("LIFECYCLE_STATE_OUTCOME_MISMATCH")
-    if lifecycle["human_governed"] is not True:
-        raise ValueError("INVALID_LIFECYCLE_GOVERNANCE")
-    if lifecycle["automatic_repair_performed"] is not False:
-        raise ValueError("INVALID_LIFECYCLE_REPAIR_CONTROL")
-    if lifecycle["decision_executed"] is not False:
-        raise ValueError("INVALID_DECISION_EXECUTION_CONTROL")
-    if lifecycle["execution_gate_closed"] is not True:
-        raise ValueError("EXECUTION_GATE_MUST_BE_CLOSED")
-    if lifecycle["execution_permitted"] is not False or lifecycle["execution_performed"] is not False:
-        raise ValueError("INVALID_EXECUTION_CONTROLS")
-    _validate_time(lifecycle["evaluated_at"], "EVALUATION_TIME")
-
+    return dict(bundle)
