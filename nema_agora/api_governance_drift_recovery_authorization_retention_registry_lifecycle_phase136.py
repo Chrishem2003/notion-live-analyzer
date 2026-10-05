@@ -26,7 +26,9 @@ def validate_authorization_history_registry_lifecycle(lifecycle:Mapping[str,Any]
     required=("policy_version","monitor_fingerprint","review_fingerprint","review_outcome","lifecycle_state","evaluated_at","human_governed","automatic_repair_performed","decision_executed","execution_gate_closed","execution_permitted","execution_performed","lifecycle_fingerprint")
     for key in required:
         if key not in lifecycle: raise ValueError(f"MISSING_{key.upper()}")
-    if lifecycle["policy_version"]!=POLICY_VERSION: raise ValueError("INVALID_LIFECYCLE_POLICY")
+    payload=dict(lifecycle); supplied=payload.pop("lifecycle_fingerprint")
+    if fingerprint(payload)!=supplied: raise ValueError("AUTHORIZATION_HISTORY_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH")
+    if lifecycle["policy_version"]!=POLICY_VERSION:
     if lifecycle["review_outcome"] not in OUTCOMES: raise ValueError("INVALID_LIFECYCLE_OUTCOME")
     expected={"ACKNOWLEDGED":"ACKNOWLEDGED","REVIEW_AUTHORIZATION_HISTORY_REGISTRY":"DEFERRED","PRESERVE_AND_ESCALATE":"ESCALATED","ESCALATED":"ESCALATED"}[lifecycle["review_outcome"]]
     if lifecycle["lifecycle_state"]!=expected: raise ValueError("LIFECYCLE_STATE_OUTCOME_MISMATCH")
@@ -35,8 +37,6 @@ def validate_authorization_history_registry_lifecycle(lifecycle:Mapping[str,Any]
     if lifecycle["decision_executed"] is not False: raise ValueError("INVALID_DECISION_EXECUTION_CONTROL")
     if lifecycle["execution_gate_closed"] is not True or lifecycle["execution_permitted"] is not False or lifecycle["execution_performed"] is not False: raise ValueError("INVALID_EXECUTION_CONTROLS")
     _validate_time(lifecycle["evaluated_at"],"EVALUATION_TIME")
-    payload=dict(lifecycle); supplied=payload.pop("lifecycle_fingerprint")
-    if fingerprint(payload)!=supplied: raise ValueError("AUTHORIZATION_HISTORY_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH")
     return dict(lifecycle)
 
 def build_authorization_history_registry_review_lifecycle(reconciliation:Mapping[str,Any],reviews:Sequence[Mapping[str,Any]],*,evaluated_at:str)->dict[str,Any]:
