@@ -22,7 +22,8 @@ def validate_authorization_snapshot(snapshot:Mapping[str,Any])->dict[str,Any]:
     if snapshot["policy_version"]!=POLICY_VERSION or snapshot["human_governed"] is not True or snapshot["execution_gate_closed"] is not True: raise ValueError("SNAPSHOT_CONTROL_VIOLATION")
     if snapshot["decision_count"]!=len(snapshot["decisions"]): raise ValueError("SNAPSHOT_COUNT_MISMATCH")
     for x in snapshot["decisions"]: validate_decision(x)
-    payload={k:snapshot[k] for k in required if k!="snapshot_fingerprint"}
+    payload=dict(snapshot)
+    payload.pop("snapshot_fingerprint")
     if fingerprint(payload)!=snapshot["snapshot_fingerprint"]: raise ValueError("SNAPSHOT_FINGERPRINT_MISMATCH")
     return dict(snapshot)
 def reconcile_authorization_history(snapshots:Sequence[Mapping[str,Any]])->dict[str,Any]:
