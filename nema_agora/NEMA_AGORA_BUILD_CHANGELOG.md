@@ -18,6 +18,7 @@
 - This hardening does not submit externally, enforce regulations, dispatch emergencies, or claim environmental truth.
 
 ## Current verification boundary
-- Current branch head will be recorded only after the hardening commit is created.
+- Release-hardening implementation commit: 99b02be493a13d6751f472984623b1275ed7a67f.
+- Durable build-state checkpoint commit: bdb57cc18c645dd55eda152143c3835e734e699b.
 - GitHub Actions must be observed for that exact head before any green/validated claim.
 - PR #10 remains draft and unmerged.
