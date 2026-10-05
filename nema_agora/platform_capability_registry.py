@@ -15,7 +15,7 @@ DEFAULT_CAPABILITIES=(
  {"capability_id":"water_quality","name":"Water Quality Intelligence","status":"PLANNED","priority":"FLAGSHIP","dependencies":["observation"]},
  {"capability_id":"biodiversity_edna","name":"Biodiversity & eDNA Intelligence","status":"PLANNED","priority":"FLAGSHIP","dependencies":["observation"]},
  {"capability_id":"community_gateway","name":"Community USSD / SMS Gateway","status":"PLANNED","priority":"FIELD","dependencies":["observation"]},
- {"capability_id":"community_alerts","name":"Community Alert Engine","status":"PLANNED","priority":"FIELD","dependencies":["community_gateway","human_review"]},
+ {"capability_id":"community_alerts","name":"Community Alert Engine","status":"PLANNED","priority":"FIELD","dependencies":["community_gateway","governance_evidence"]},
  {"capability_id":"compliance_dashboard","name":"Unified Environmental Analytics Dashboard","status":"PARTIAL","priority":"CORE","dependencies":["observation","spatial_change_evidence","water_quality","biodiversity_edna","community_gateway"]},
  {"capability_id":"governance_evidence","name":"Governance, Evidence & Human Review","status":"IMPLEMENTED","priority":"CORE","dependencies":["observation"]},
  {"capability_id":"ai_evaluation","name":"AI Evaluation & Controlled Shadow","status":"IMPLEMENTED","priority":"ADVANCED","dependencies":["governance_evidence"]},
