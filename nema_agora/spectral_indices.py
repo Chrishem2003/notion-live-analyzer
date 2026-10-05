@@ -45,14 +45,14 @@ def calculate_ndvi(*, red: float, nir: float) -> float:
     """NDVI = (NIR - RED) / (NIR + RED), using normalized reflectance [0, 1]."""
     if not _valid_reflectance(red) or not _valid_reflectance(nir):
         raise ValueError("NDVI inputs must be finite normalized reflectance values in [0, 1].")
-    return _index(float(nir) - float(red), float(nir) + float(red))
+    return round(_index(float(nir) - float(red), float(nir) + float(red)), 12)
 
 
 def calculate_ndwi(*, green: float, nir: float) -> float:
     """McFeeters NDWI = (GREEN - NIR) / (GREEN + NIR), using normalized reflectance [0, 1]."""
     if not _valid_reflectance(green) or not _valid_reflectance(nir):
         raise ValueError("NDWI inputs must be finite normalized reflectance values in [0, 1].")
-    return _index(float(green) - float(nir), float(green) + float(nir))
+    return round(_index(float(green) - float(nir), float(green) + float(nir)), 12)
 
 
 def validate_spectral_inputs(
