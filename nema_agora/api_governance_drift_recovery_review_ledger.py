@@ -67,8 +67,10 @@ def review_recovery_recommendation(
         raise ValueError("REVIEW_TIME_REQUIRED")
     if not isinstance(notes, str) or len(notes) > 2000:
         raise ValueError("INVALID_REVIEW_NOTES")
-    if report["state"] in ("CONTROL_REQUIRED", "NO_HISTORY") and outcome == "NO_ACTION_APPROVED":
-        raise ValueError("NO_ACTION_NOT_ALLOWED_WITHOUT_CLEAR_HISTORY")
+    if report["state"] == "CONTROL_REQUIRED" and outcome == "NO_ACTION_APPROVED":
+        raise ValueError("NO_ACTION_NOT_ALLOWED_WHILE_CONTROL_REQUIRED")
+    if report["state"] == "NO_HISTORY" and outcome == "NO_ACTION_APPROVED":
+        raise ValueError("NO_ACTION_NOT_ALLOWED_WITHOUT_HISTORY")
 
     payload = {
         "monitor_fingerprint": report["monitor_fingerprint"],
