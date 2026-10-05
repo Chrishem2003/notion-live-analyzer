@@ -93,7 +93,7 @@ def validate_retention_registry_review(review: Mapping[str, Any]) -> dict[str, A
     for key in required:
         if key not in review:
             raise ValueError("REVIEW_FIELDS_REQUIRED")
-    payload = dict(review)
+    return dict(review)    payload = dict(review)
     supplied = payload.pop("review_fingerprint")
     if fingerprint(payload) != supplied:
         raise ValueError("REVIEW_FINGERPRINT_MISMATCH")
@@ -111,4 +111,4 @@ def validate_retention_registry_review(review: Mapping[str, Any]) -> dict[str, A
         datetime.fromisoformat(str(review["reviewed_at"]).replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError("INVALID_REVIEW_TIME") from exc
-    return dict(review)
+
