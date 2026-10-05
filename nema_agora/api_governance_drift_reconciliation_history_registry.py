@@ -73,6 +73,12 @@ class GovernanceDriftReconciliationHistoryRegistry:
         encoded = json.dumps(dict(record), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         try:
             with self._connect() as conn:
+                existing = conn.execute(
+                    "SELECT 1 FROM governance_drift_reconciliation_snapshots WHERE snapshot_id=? OR snapshot_fingerprint=? LIMIT 1",
+                    (record["snapshot_id"], record["snapshot_fingerprint"]),
+                ).fetchone()
+                if existing is not None:
+                    raise ValueError("SNAPSHOT_HISTORY_CONFLICT")
                 prior = conn.execute(
                     "SELECT sequence, snapshot_fingerprint FROM governance_drift_reconciliation_snapshots ORDER BY sequence DESC LIMIT 1"
                 ).fetchone()
