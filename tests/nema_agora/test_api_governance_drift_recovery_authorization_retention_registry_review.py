@@ -12,9 +12,32 @@ from nema_agora.api_governance_drift_recovery_authorization_retention_registry_r
 )
 
 def _healthy():
-    return build_retention_authorization_registry_monitor(
-        [], expected_count=0, observed_at="2026-10-04T12:00:00+00:00"
-    )
+    from nema_agora.api_audit_binding import fingerprint
+    payload = {
+        "policy_version": "phase125-v1",
+        "observed_at": "2026-10-04T12:00:00+00:00",
+        "registry_policy_version": "phase124-v1",
+        "state": "RETENTION_REGISTRY_HEALTHY",
+        "snapshot_count": 1,
+        "valid_snapshot_count": 1,
+        "expected_count": 1,
+        "history_state": "HISTORY_READY",
+        "history_reconciliation_fingerprint": "synthetic-history",
+        "findings": [],
+        "retention_registry_recommendation": "NO_RETENTION_REGISTRY_ACTION",
+        "read_only": True,
+        "human_governed": True,
+        "automatic_repair_performed": False,
+        "execution_gate_closed": True,
+        "execution_permitted": False,
+        "execution_performed": False,
+        "interpretation": "RETENTION_AUTHORIZATION_REGISTRY_INTEGRITY_MONITORING",
+        "environmental_conclusion": None,
+        "regulatory_conclusion": None,
+        "enforcement_action": None,
+        "emergency_action": None,
+    }
+    return dict(payload, monitor_fingerprint=fingerprint(payload))
 
 def _control():
     return build_retention_authorization_registry_monitor(
