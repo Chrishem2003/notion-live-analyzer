@@ -69,8 +69,6 @@ def review_recovery_recommendation(
         raise ValueError("INVALID_REVIEW_NOTES")
     if report["state"] == "CONTROL_REQUIRED" and outcome == "NO_ACTION_APPROVED":
         raise ValueError("NO_ACTION_NOT_ALLOWED_WHILE_CONTROL_REQUIRED")
-    if report["state"] == "NO_HISTORY" and outcome == "NO_ACTION_APPROVED":
-        raise ValueError("NO_ACTION_NOT_ALLOWED_WITHOUT_HISTORY")
 
     payload = {
         "monitor_fingerprint": report["monitor_fingerprint"],
