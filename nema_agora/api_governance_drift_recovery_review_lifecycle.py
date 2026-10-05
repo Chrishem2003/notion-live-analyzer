@@ -115,3 +115,7 @@ def build_recovery_review_lifecycle(
         "enforcement_action": None,
     }
     return dict(payload, lifecycle_snapshot_fingerprint=fingerprint(payload))
+
+
+# Backward-compatible Phase 114/decision-reconciliation import name.
+evaluate_recovery_review = evaluate_recovery_review_lifecycle
