@@ -36,7 +36,7 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
     required = ("policy_version", "monitor_fingerprint", "monitor_state", "monitor_recommendation", "actor_id", "role", "outcome", "reviewed_at", "notes", "human_governed", "automatic_repair_performed", "execution_gate_closed", "execution_permitted", "execution_performed", "review_fingerprint")
     for key in required:
         if key not in review: raise ValueError("REVIEW_FIELDS_REQUIRED")
-    payload = dict(review); supplied = payload.pop("review_fingerprint")
+    return dict(review)    payload = dict(review); supplied = payload.pop("review_fingerprint")
     if fingerprint(payload) != supplied: raise ValueError("REVIEW_FINGERPRINT_MISMATCH")
     if review["policy_version"] != POLICY_VERSION or review["role"] not in ROLES: raise ValueError("INVALID_REVIEW_POLICY_OR_ROLE")
     if review["outcome"] not in OUTCOMES: raise ValueError("INVALID_REVIEW_OUTCOME")
@@ -46,4 +46,4 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
     if not isinstance(review["notes"], str): raise ValueError("INVALID_REVIEW_NOTES")
     try: datetime.fromisoformat(str(review["reviewed_at"]).replace("Z", "+00:00"))
     except ValueError as exc: raise ValueError("INVALID_REVIEW_TIME") from exc
-    return dict(review)
+
