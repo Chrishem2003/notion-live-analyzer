@@ -51,6 +51,12 @@ class RetentionRegistryAuthorizationHistoryRegistry:
         item = validate_retention_registry_authorization_snapshot(snapshot)
         encoded = json.dumps(dict(item), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         with self._connect() as db:
+            existing = db.execute(
+                "SELECT 1 FROM retention_registry_authorization_history WHERE snapshot_fingerprint=? LIMIT 1",
+                (item["snapshot_fingerprint"],),
+            ).fetchone()
+            if existing is not None:
+                raise ValueError("SNAPSHOT_HISTORY_CONFLICT")
             previous = db.execute(
                 "SELECT sequence,snapshot_fingerprint FROM retention_registry_authorization_history "
                 "ORDER BY sequence DESC LIMIT 1"
