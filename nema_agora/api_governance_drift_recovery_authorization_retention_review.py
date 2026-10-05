@@ -26,6 +26,10 @@ def validate_retention_monitor(report: Mapping[str, Any]) -> dict[str, Any]:
     for key in required:
         if key not in report:
             raise ValueError(f"MISSING_{key.upper()}")
+    payload = dict(report)
+    supplied = payload.pop("monitor_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("RETENTION_MONITOR_FINGERPRINT_MISMATCH")
     if report["policy_version"] != "phase117-v1":
         raise ValueError("INVALID_MONITOR_POLICY")
     if report["state"] not in ("RETENTION_HEALTHY", "NO_HISTORY", "CONTROL_REQUIRED"):
@@ -44,10 +48,6 @@ def validate_retention_monitor(report: Mapping[str, Any]) -> dict[str, Any]:
         datetime.fromisoformat(str(report["observed_at"]).replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError("INVALID_OBSERVATION_TIME") from exc
-    payload = dict(report)
-    supplied = payload.pop("monitor_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("RETENTION_MONITOR_FINGERPRINT_MISMATCH")
     return dict(report)
 
 
