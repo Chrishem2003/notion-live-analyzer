@@ -49,7 +49,7 @@ def test_lifecycle_rejects_same_actor_and_invalid_roles(tmp_path):
     else:
         assert False
     try:
-        reg.decide(attestation_id="ATT-1", decision=APPROVE, actor_id="x", role="coordinator", attester_actor_id="attester",
+        reg.decide(attestation_id="ATT-1", decision=APPROVE, actor_id="attester", role="coordinator", attester_actor_id="attester",
                    rationale="No.")
     except ValueError:
         pass
