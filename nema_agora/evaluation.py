@@ -29,6 +29,29 @@ class EvaluationCase:
 
 
 @dataclass(frozen=True)
+
+
+@dataclass(frozen=True)
+class EvaluationReport:
+    """Backward-compatible aggregate used by the original observatory layer."""
+    category_accuracy: float
+    duplicate_precision: float
+    duplicate_recall: float
+    duplicate_f1: float
+    summary_faithfulness_rate: float | None
+    cases_evaluated: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "category_accuracy": self.category_accuracy,
+            "duplicate_precision": self.duplicate_precision,
+            "duplicate_recall": self.duplicate_recall,
+            "duplicate_f1": self.duplicate_f1,
+            "summary_faithfulness_rate": self.summary_faithfulness_rate,
+            "cases_evaluated": self.cases_evaluated,
+        }
+
+
 class EvaluationRun:
     run_id: str
     dataset_fingerprint: str
