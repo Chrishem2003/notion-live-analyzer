@@ -1,6 +1,7 @@
 name: NEMA-AGORA Pilot Checks
 # Focused validation for the governed NEMA-AGORA pilot branch.
 # CI gate: source-contract fixes must pass before roadmap advancement.
+# Stabilization pass 2: immutable history, review fixtures, and execution boundaries.
 
 on:
   push:
