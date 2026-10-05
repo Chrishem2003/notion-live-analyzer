@@ -130,7 +130,7 @@ def validate_retention_registry_monitor(report: Mapping[str, Any]) -> dict[str, 
     for key in required:
         if key not in report:
             raise ValueError("MONITOR_FIELDS_REQUIRED")
-    payload = dict(report)
+    return dict(report)    payload = dict(report)
     supplied = payload.pop("monitor_fingerprint")
     if fingerprint(payload) != supplied:
         raise ValueError("MONITOR_FINGERPRINT_MISMATCH")
@@ -157,4 +157,4 @@ def validate_retention_registry_monitor(report: Mapping[str, Any]) -> dict[str, 
         or report["execution_performed"] is not False
     ):
         raise ValueError("EXECUTION_GATE_VIOLATION")
-    return dict(report)
+
