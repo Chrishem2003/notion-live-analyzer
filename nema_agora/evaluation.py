@@ -29,9 +29,6 @@ class EvaluationCase:
 
 
 @dataclass(frozen=True)
-
-
-@dataclass(frozen=True)
 class EvaluationReport:
     """Backward-compatible aggregate used by the original observatory layer."""
     category_accuracy: float
