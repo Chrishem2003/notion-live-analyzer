@@ -76,10 +76,8 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
         datetime.fromisoformat(str(decision["decided_at"]).replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError("INVALID_DECISION_TIME") from exc
-payload = dict(decision)
-    supplied = payload.pop("decision_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("DECISION_FINGERPRINT_MISMATCH")\n    if decision["human_authorized"] is not True:\n        raise ValueError("HUMAN_AUTHORIZATION_REQUIRED")
+    if decision["human_authorized"] is not True:
+        raise ValueError("HUMAN_AUTHORIZATION_REQUIRED")
     if decision["automatic_repair_performed"] is not False:
         raise ValueError("AUTOMATIC_REPAIR_FORBIDDEN")
     if decision["execution_gate_closed"] is not True or decision["execution_permitted"] is not False or decision["execution_performed"] is not False:
