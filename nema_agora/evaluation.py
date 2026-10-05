@@ -134,3 +134,34 @@ def validate_evaluation_run(run: EvaluationRun) -> dict[str, Any]:
         "automatic_model_admission": False,
         "regulatory_conclusion": False,
     }
+
+
+# Compatibility contract retained for the Phase 9/15 advisory pipeline.
+SUPPORTED_CATEGORIES = (
+    "Solid waste / illegal dumping",
+    "Water pollution",
+    "Wetland or land disturbance",
+    "Biodiversity / wildlife observation",
+    "Air / noise pollution",
+    "Other environmental observation",
+)
+
+
+def validate_advisory_output(output: dict[str, Any]) -> list[str]:
+    """Reject output fields that would cross the advisory-only safety boundary."""
+    errors: list[str] = []
+    forbidden = {
+        "enforcement_action",
+        "regulatory_decision",
+        "official_incident_status",
+        "automatic_workflow_transition",
+        "emergency_dispatch",
+    }
+    for key in forbidden:
+        if key in output:
+            errors.append(f"Forbidden autonomous field: {key}")
+    if output.get("human_review_required") is not True:
+        errors.append("human_review_required must be True")
+    if not isinstance(output.get("source_case_id"), str) or not output["source_case_id"].strip():
+        errors.append("source_case_id is required")
+    return errors
