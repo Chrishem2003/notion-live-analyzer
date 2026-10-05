@@ -147,7 +147,7 @@ class EvidenceCaseStore:
         try:
             case = self._case_from_dict(json.loads(row["case_json"]))
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-            raise ValueError("stored evidence case is malformed") from exc
+            raise ValueError("stored evidence case failed integrity validation") from exc
         if (
             case.case_id != row["case_id"]
             or case.provenance_fingerprint != row["provenance_fingerprint"]
