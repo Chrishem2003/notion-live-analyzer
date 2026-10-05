@@ -51,6 +51,13 @@ class AuthorizationHistoryRegistryDecisionHistoryRegistry:
         item = validate_authorization_history_registry_decision_snapshot(snapshot)
         encoded = json.dumps(dict(item), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         with self._connect() as db:
+            duplicate = db.execute(
+                "SELECT 1 FROM authorization_history_registry_decision_history "
+                "WHERE snapshot_fingerprint=? LIMIT 1",
+                (item["snapshot_fingerprint"],),
+            ).fetchone()
+            if duplicate is not None:
+                raise ValueError("SNAPSHOT_HISTORY_CONFLICT")
             previous = db.execute(
                 "SELECT sequence,snapshot_fingerprint "
                 "FROM authorization_history_registry_decision_history "
