@@ -46,10 +46,10 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
     required=("policy_version","state","monitor_count","valid_monitor_count","review_count","valid_review_count","expected_review_count","findings","read_only","human_governed","execution_gate_closed","execution_permitted","execution_performed","automatic_repair_performed","reconciliation_fingerprint")
     for k in required:
         if k not in result: raise ValueError("RECONCILIATION_FIELDS_REQUIRED")
-    payload=dict(result); supplied=payload.pop("reconciliation_fingerprint")
-    if fingerprint(payload)!=supplied: raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
     if result["policy_version"]!=POLICY_VERSION or result["state"] not in ("NO_HISTORY","RECONCILED","CONTROL_REQUIRED"): raise ValueError("INVALID_RECONCILIATION_POLICY_OR_STATE")
     if result["read_only"] is not True or result["human_governed"] is not True: raise ValueError("INVALID_GOVERNANCE_CONTROLS")
     if result["execution_gate_closed"] is not True or result["execution_permitted"] is not False or result["execution_performed"] is not False: raise ValueError("EXECUTION_GATE_VIOLATION")
     if result["automatic_repair_performed"] is not False: raise ValueError("AUTOMATIC_REPAIR_FORBIDDEN")
+    payload=dict(result); supplied=payload.pop("reconciliation_fingerprint")
+    if fingerprint(payload)!=supplied: raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
     return dict(result)
