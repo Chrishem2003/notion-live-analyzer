@@ -31,7 +31,7 @@ class ApiAuditRegistry:
   row["audit_fingerprint"]=event_fingerprint(row)
   try:
    with sqlite3.connect(self.database_path) as c:
-    c.execute("""INSERT INTO api_audit_events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+    c.execute("""INSERT INTO api_audit_events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
       tuple(row[k] for k in ("event_id","request_id","actor_id","role","permission","authorization_fingerprint","query_fingerprint","result_fingerprint","http_status","outcome","occurred_at","policy_version","audit_fingerprint")))
   except sqlite3.IntegrityError as exc: raise ValueError("API_AUDIT_EVENT_CONFLICT") from exc
   return row
