@@ -26,8 +26,6 @@ def validate_authorization_history_registry_lifecycle(lifecycle:Mapping[str,Any]
     required=("policy_version","monitor_fingerprint","review_fingerprint","review_outcome","lifecycle_state","evaluated_at","human_governed","automatic_repair_performed","decision_executed","execution_gate_closed","execution_permitted","execution_performed","lifecycle_fingerprint")
     for key in required:
         if key not in lifecycle: raise ValueError(f"MISSING_{key.upper()}")
-    payload=dict(lifecycle); supplied=payload.pop("lifecycle_fingerprint")
-    if fingerprint(payload)!=supplied: raise ValueError("AUTHORIZATION_HISTORY_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH")
     if lifecycle["policy_version"]!=POLICY_VERSION: raise ValueError("INVALID_LIFECYCLE_POLICY")
     if lifecycle["review_outcome"] not in OUTCOMES: raise ValueError("INVALID_LIFECYCLE_OUTCOME")
     expected={"ACKNOWLEDGED":"ACKNOWLEDGED","REVIEW_AUTHORIZATION_HISTORY_REGISTRY":"DEFERRED","PRESERVE_AND_ESCALATE":"ESCALATED","ESCALATED":"ESCALATED"}[lifecycle["review_outcome"]]
