@@ -22,3 +22,8 @@
 - Durable build-state checkpoint commit: bdb57cc18c645dd55eda152143c3835e734e699b.
 - GitHub Actions must be observed for that exact head before any green/validated claim.
 - PR #10 remains draft and unmerged.
+## Release-readiness verification — 2026-10-05
+- Release candidate is the exact branch head recorded by the durable checkpoint.
+- Verification must execute against that exact head; no CI status is inferred from source inspection.
+- Focused NEMA-AGORA tests, full NEMA-AGORA compilation, and Streamlit smoke startup remain the release gates.
+- Any failure will be fixed on the branch before a release-ready claim is made.
