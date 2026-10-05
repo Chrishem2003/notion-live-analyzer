@@ -37,11 +37,11 @@ def validate_retention_decision(decision: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(decision, Mapping): raise ValueError("INVALID_RETENTION_DECISION")
     for key in required:
         if key not in decision: raise ValueError(f"MISSING_{key.upper()}")
+    payload = dict(decision); supplied = payload.pop("decision_fingerprint")
+    if fingerprint(payload) != supplied: raise ValueError("RETENTION_DECISION_FINGERPRINT_MISMATCH")
     if decision["policy_version"] != POLICY_VERSION: raise ValueError("INVALID_DECISION_POLICY")
     if decision["role"] not in ROLES or decision["decision"] not in DECISIONS: raise ValueError("INVALID_DECISION_ROLE_OR_VALUE")
     if decision["human_authorized"] is not True: raise ValueError("HUMAN_AUTHORIZATION_REQUIRED")
     if decision["execution_permitted"] is not False or decision["execution_performed"] is not False: raise ValueError("EXECUTION_MUST_REMAIN_CLOSED")
     if decision["automatic_repair_performed"] is not False or decision["execution_gate_closed"] is not True: raise ValueError("INVALID_DECISION_CONTROLS")
-    payload = dict(decision); supplied = payload.pop("decision_fingerprint")
-    if fingerprint(payload) != supplied: raise ValueError("RETENTION_DECISION_FINGERPRINT_MISMATCH")
     return dict(decision)
