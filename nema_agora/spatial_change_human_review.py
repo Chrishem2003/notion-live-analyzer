@@ -22,7 +22,7 @@ def validate_review(item:Mapping[str,Any],reviewer_id:str,role:str,outcome:str)-
 def create_review_event(*,item:Mapping[str,Any],reviewer_id:str,role:str,outcome:str,notes:str="",reviewed_at:str|None=None)->dict[str,Any]:
  check=validate_review(item,reviewer_id,role,outcome)
  if check["state"]!="VALID":return check
- event={"policy_version":POLICY_VERSION,"review_event_id":"","review_item_id":item["review_item_id"],"candidate_id":item["candidate_id"],"source_queue_fingerprint":item["record_fingerprint"],"reviewer_id":reviewer_id.strip(),"reviewer_role":role,"outcome":outcome,"notes":notes,"reviewed_at":reviewed_at or datetime.now(timezone.utc).isoformat(),"audit_event_type":"SPATIAL_CHANGE_HUMAN_REVIEW","human_decision":True}
- event["review_event_id"]="SPATIAL-REVIEW-"+fingerprint({k:v for k,v in event.items() if k!="review_event_id"})[:24]
+ event={"policy_version":POLICY_VERSION,"state":"VALID","review_event_id":"","review_item_id":item["review_item_id"],"candidate_id":item["candidate_id"],"source_queue_fingerprint":item["record_fingerprint"],"reviewer_id":reviewer_id.strip(),"reviewer_role":role,"outcome":outcome,"notes":notes,"reviewed_at":reviewed_at or datetime.now(timezone.utc).isoformat(),"audit_event_type":"SPATIAL_CHANGE_HUMAN_REVIEW","human_decision":True}
+ event["review_event_id"]="SPATIAL-REVIEW-"+fingerprint({k:v for k,v in event.items() if k not in {"review_event_id","state"}})[:24]
  event["event_fingerprint"]=fingerprint(event)
  return event
