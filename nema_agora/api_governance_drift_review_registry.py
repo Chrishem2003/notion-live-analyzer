@@ -170,4 +170,16 @@ class GovernanceDriftReviewAuditRegistry:
             "reviewer_actor_id", "reviewer_role", "outcome", "reviewed_at",
             "audit_fingerprint", "policy_version",
         )
-        return [dict(zip(keys, row)) for row in rows]
+        result = []
+        for row in rows:
+            item = dict(zip(keys, row))
+            item.update({
+                "state": "REVIEW_RECORDED",
+                "interpretation": "API_GOVERNANCE_DRIFT_HUMAN_REVIEW",
+                "environmental_conclusion": None,
+                "regulatory_conclusion": None,
+                "violation": None,
+                "enforcement_action": None,
+            })
+            result.append(item)
+        return result
