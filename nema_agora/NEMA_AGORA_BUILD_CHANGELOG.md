@@ -4,28 +4,20 @@
 - Reconciled the durable build state with the product track.
 - Phase 168: added governed operational case metrics.
 - Phase 169: added deterministic pilot acceptance and safety-boundary gates.
-- Validation remains explicitly unclaimed because no GitHub Actions run has been observed for the current head.
-
-## Next
-- Phase 170: final architecture and acceptance checkpoint.
-- Review security/access boundaries, persistence transitions, UI integration, evaluation integrity, and deployment prerequisites before considering the pilot complete.
-
-
-## Final architecture checkpoint
 - Phase 170: completed final architecture and acceptance checkpoint.
-- Product-track phase proliferation is stopped unless a concrete capability gap appears.
-- Status moved to RELEASE_READINESS; CI and deployment readiness remain explicitly unverified until observed.
+- Evaluation integrity was hardened: accuracy is recomputed from cases, incomplete model identity is rejected, and evaluation artifacts receive deterministic fingerprints.
+- GitHub Actions for the then-current heads were not observed, so CI was never inferred as green.
 
+## Release hardening: append-only transition reconstruction
+- The immutable evidence-case base row remains unchanged after creation.
+- Human-review and export transitions are persisted as append-only events and are now replayed deterministically into the effective case state.
+- Event records require an existing case, matching provenance fingerprint, supported transition type, safe export boundary, and valid state transition.
+- Stored case JSON is parsed and revalidated before use; malformed/tampered persistence is rejected.
+- Reviewer inspection now reads effective state from the transition history rather than stale base-row state.
+- Export events use a distinct export timestamp and retain the human actor/role.
+- This hardening does not submit externally, enforce regulations, dispatch emergencies, or claim environmental truth.
 
-## Release-readiness verification
-- Hardened evaluation integrity: accuracy is recomputed from cases and tampering is rejected.
-- Evaluation cases now require non-empty input fingerprints, expected/observed labels, model ID and model version.
-- Added deterministic evaluation artifact fingerprints for traceability.
-- Added focused tests for accuracy tampering and incomplete evaluation identity.
-- Current-head GitHub Actions status remains unverified because no workflow run was observed for commit 5fd0879fe5c1dcebb76fe5b89a491dfb872254fd.
-
-
-## Checkpoint reconciliation
-- Current branch head recorded as 20f6b092ae941068939bf6c58759a5b531d9b927.
-- The preceding implementation checkpoint 5fd0879fe5c1dcebb76fe5b89a491dfb872254fd remains the latest verified implementation checkpoint; this does not mean CI passed.
-- GitHub Actions for the current head is still unobserved, so validation remains explicitly unverified.
+## Current verification boundary
+- Current branch head will be recorded only after the hardening commit is created.
+- GitHub Actions must be observed for that exact head before any green/validated claim.
+- PR #10 remains draft and unmerged.
