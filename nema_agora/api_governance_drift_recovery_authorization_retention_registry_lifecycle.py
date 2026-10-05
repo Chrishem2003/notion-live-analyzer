@@ -86,6 +86,10 @@ def validate_retention_registry_lifecycle(
     for key in required:
         if key not in lifecycle:
             raise ValueError(f"MISSING_{key.upper()}")
+    payload = dict(lifecycle)
+    supplied = payload.pop("lifecycle_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("RETENTION_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH")
     if lifecycle["policy_version"] != POLICY_VERSION:
         raise ValueError("INVALID_LIFECYCLE_POLICY")
     if lifecycle["review_outcome"] not in OUTCOMES:
@@ -110,10 +114,6 @@ def validate_retention_registry_lifecycle(
         raise ValueError("INVALID_EXECUTION_CONTROLS")
     _validate_time(lifecycle["evaluated_at"], "EVALUATION_TIME")
 
-    payload = dict(lifecycle)
-    supplied = payload.pop("lifecycle_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("RETENTION_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH")
     return dict(lifecycle)
 
 
