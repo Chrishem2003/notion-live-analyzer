@@ -31,7 +31,28 @@ from nema_agora.api_governance_drift_recovery_authorization_retention_monitor im
 )
 
 def _decision():
-    monitor = build_authorization_retention_monitor([], expected_count=0, observed_at="2026-10-04T10:00:00+00:00")
+    from nema_agora.api_audit_binding import fingerprint
+    payload = {
+        "policy_version": "phase117-v1",
+        "observed_at": "2026-10-04T10:00:00+00:00",
+        "registry_policy_version": "phase116-v1",
+        "state": "RETENTION_HEALTHY",
+        "snapshot_count": 1,
+        "valid_snapshot_count": 1,
+        "expected_count": 1,
+        "history_state": "HISTORY_READY",
+        "history_reconciliation_fingerprint": "synthetic-history",
+        "findings": [],
+        "retention_recommendation": "NO_RETENTION_ACTION",
+        "read_only": True,
+        "automatic_repair_performed": False,
+        "execution_gate_closed": True,
+        "interpretation": "AUTHORIZATION_RETENTION_INTEGRITY_MONITORING",
+        "environmental_conclusion": None,
+        "regulatory_conclusion": None,
+        "enforcement_action": None,
+    }
+    monitor = dict(payload, monitor_fingerprint=fingerprint(payload))
     review = review_retention_health(
         monitor, actor_id="reviewer-1", role="coordinator", outcome="ACKNOWLEDGED",
         reviewed_at="2026-10-04T10:01:00+00:00", notes="healthy retention evidence"
