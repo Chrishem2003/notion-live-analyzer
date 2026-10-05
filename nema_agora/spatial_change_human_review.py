@@ -15,7 +15,7 @@ def validate_review(item:Mapping[str,Any],reviewer_id:str,role:str,outcome:str)-
  for k in ("review_item_id","candidate_id"):
   if not isinstance(item,Mapping) or not isinstance(item.get(k),str) or not ID_RE.fullmatch(item.get(k,"")):f.append("INVALID_"+k.upper())
  if not isinstance(item,Mapping) or not SHA_RE.fullmatch(str(item.get("record_fingerprint","")).lower()):f.append("INVALID_QUEUE_FINGERPRINT")
- if not isinstance(reviewer_id,str) or not ID_RE.fullmatch(reviewer_id.strip()):f.append("INVALID_REVIEWER_ID")
+ if not isinstance(reviewer_id,str) or not ID_RE.fullmatch(reviewer_id.strip()) or not reviewer_id.strip().upper().startswith("REVIEWER-"):f.append("INVALID_REVIEWER_ID")
  if role not in ROLES:f.append("UNAUTHORIZED_REVIEWER_ROLE")
  if outcome not in OUTCOMES:f.append("UNSUPPORTED_REVIEW_OUTCOME")
  return {"policy_version":POLICY_VERSION,"state":"CONTROL_REQUIRED" if f else "VALID","findings":[{"code":x} for x in f]}
