@@ -10,7 +10,7 @@
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "PENDING",
+  "current_head": "99b02be493a13d6751f472984623b1275ed7a67f",
   "last_verified_head": "5fd0879fe5c1dcebb76fe5b89a491dfb872254fd",
   "last_verified_phase": 170,
   "architecture_checkpoint_after": 170,
