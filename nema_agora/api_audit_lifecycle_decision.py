@@ -28,7 +28,7 @@ class LifecycleDecisionRegistry:
  def append(self,decision:Mapping[str,Any])->dict[str,Any]:
   if decision.get("state")!="DECISION_RECORDED":raise ValueError("INVALID_DECISION")
   try:
-   with sqlite3.connect(self.database_path) as c:c.execute("INSERT INTO api_audit_lifecycle_decisions VALUES (?,?,?,?,?,?,?,?,?,?,?)",tuple(decision[k] for k in ("decision_id","event_id","request_id","reconciliation_fingerprint","lifecycle_fingerprint","decision","actor_id","role","decision_fingerprint","policy_version")))
+   with sqlite3.connect(self.database_path) as c:c.execute("INSERT INTO api_audit_lifecycle_decisions VALUES (?,?,?,?,?,?,?,?,?,?)",tuple(decision[k] for k in ("decision_id","event_id","request_id","reconciliation_fingerprint","lifecycle_fingerprint","decision","actor_id","role","decision_fingerprint","policy_version")))
   except sqlite3.IntegrityError as exc:raise ValueError("LIFECYCLE_DECISION_CONFLICT") from exc
   return dict(decision)
  def list(self,event_id:str|None=None)->list[dict[str,Any]]:
