@@ -66,11 +66,8 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
     )
     if any(k not in decision for k in required):
         raise ValueError("DECISION_FIELDS_REQUIRED")
-    payload = dict(decision)
-    supplied = payload.pop("decision_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("DECISION_FINGERPRINT_MISMATCH")
     if decision["policy_version"] != POLICY_VERSION or decision["decision"] not in DECISIONS or decision["role"] not in ROLES:
+        raise ValueError("INVALID_DECISION_POLICY")
     if decision["lifecycle_state"] not in ALLOWED_STATES[decision["decision"]]:
         raise ValueError("DECISION_STATE_MISMATCH")
     if not str(decision["actor_id"]).strip() or not str(decision["rationale"]).strip():
@@ -88,4 +85,8 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
     for key in ("environmental_conclusion", "regulatory_conclusion", "enforcement_action", "emergency_action"):
         if decision.get(key) is not None:
             raise ValueError("PROHIBITED_CONCLUSION_OR_ACTION")
+    payload = dict(decision)
+    supplied = payload.pop("decision_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("DECISION_FINGERPRINT_MISMATCH")
     return dict(decision)
