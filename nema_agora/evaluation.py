@@ -49,6 +49,7 @@ class EvaluationReport:
         }
 
 
+@dataclass(frozen=True)
 class EvaluationRun:
     run_id: str
     dataset_fingerprint: str
