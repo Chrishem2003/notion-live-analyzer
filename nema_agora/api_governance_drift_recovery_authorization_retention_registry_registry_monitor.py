@@ -102,6 +102,13 @@ def build_retention_registry_authorization_registry_monitor(
     return dict(payload, monitor_fingerprint=fingerprint(payload))
 
 
+def validate_retention_registry_authorization_history_registry_monitor(
+    report: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Backward-compatible validator name used by the Phase 135+ chain."""
+    return validate_retention_registry_authorization_registry_monitor(report)
+
+
 def monitor_registry(registry: Any, *, observed_at: str | None = None) -> dict[str, Any]:
     if not hasattr(registry, "list") or not hasattr(registry, "count"):
         raise ValueError("INVALID_RETENTION_REGISTRY_AUTHORIZATION_REGISTRY")
