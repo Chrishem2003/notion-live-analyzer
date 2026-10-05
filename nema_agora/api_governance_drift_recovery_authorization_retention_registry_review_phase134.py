@@ -91,10 +91,6 @@ def validate_authorization_history_registry_review(review: Mapping[str, Any]) ->
     for key in required:
         if key not in review:
             raise ValueError("REVIEW_FIELDS_REQUIRED")
-    return dict(review)    payload = dict(review)
-    supplied = payload.pop("review_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("REVIEW_FINGERPRINT_MISMATCH")
     if review["policy_version"] != POLICY_VERSION or review["role"] not in ROLES:
         raise ValueError("INVALID_REVIEW_POLICY_OR_ROLE")
     if review["outcome"] not in OUTCOMES:
@@ -109,4 +105,8 @@ def validate_authorization_history_registry_review(review: Mapping[str, Any]) ->
         datetime.fromisoformat(str(review["reviewed_at"]).replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError("INVALID_REVIEW_TIME") from exc
-
+    payload = dict(review)
+    supplied = payload.pop("review_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("REVIEW_FINGERPRINT_MISMATCH")
+    return dict(review)
