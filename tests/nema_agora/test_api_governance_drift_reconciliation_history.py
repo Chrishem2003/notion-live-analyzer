@@ -16,9 +16,9 @@ def reconciliation():
     return reconcile_drift_reviews([], [], [], [])
 
 
-def snapshot(sequence=1, previous=None, captured_at="2026-10-04T12:00:00Z"):
+def snapshot(sequence=1, previous=None, captured_at="2026-10-04T12:00:00Z", source=None):
     return build_reconciliation_snapshot(
-        reconciliation(),
+        source if source is not None else reconciliation(),
         captured_at=captured_at,
         sequence=sequence,
         previous_snapshot_fingerprint=previous,
@@ -28,7 +28,7 @@ def snapshot(sequence=1, previous=None, captured_at="2026-10-04T12:00:00Z"):
 def test_phase107_builds_valid_read_only_snapshot():
     source = reconciliation()
     before = dict(source)
-    result = snapshot()
+    result = snapshot(source=source)
     assert result["state"] == "RECONCILED"
     assert result["finding_count"] == 0
     assert result["read_only"] is True
@@ -41,8 +41,8 @@ def test_phase107_builds_valid_read_only_snapshot():
 def test_phase107_rejects_tampered_reconciliation():
     source = reconciliation()
     source["state"] = "CONTROL_REQUIRED"
-    with pytest.raises(ValueError):
-        snapshot()
+    with pytest.raises(ValueError, match="INVALID_PHASE106_RECONCILIATION"):
+        snapshot(source=source)
 
 
 @pytest.mark.parametrize("kwargs", [
