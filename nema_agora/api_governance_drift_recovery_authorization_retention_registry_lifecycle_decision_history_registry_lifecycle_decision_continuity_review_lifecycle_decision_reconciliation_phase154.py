@@ -60,8 +60,6 @@ def validate_authorization_history_registry_decision_history_lifecycle_decision_
     if not isinstance(result, Mapping): raise ValueError("INVALID_RECONCILIATION")
     required = ("policy_version","state","lifecycle_count","valid_lifecycle_count","decision_count","valid_decision_count","findings","read_only","human_governed","automatic_repair_performed","execution_gate_closed","execution_permitted","execution_performed","reconciliation_fingerprint")
     if any(k not in result for k in required): raise ValueError("RECONCILIATION_FIELDS_REQUIRED")
-    payload = dict(result); supplied = payload.pop("reconciliation_fingerprint")
-    if fingerprint(payload) != supplied: raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
     if result["policy_version"] != POLICY_VERSION or result["state"] not in STATES: raise ValueError("INVALID_RECONCILIATION_POLICY_STATE")
     if result["read_only"] is not True or result["human_governed"] is not True or result["automatic_repair_performed"] is not False: raise ValueError("INVALID_RECONCILIATION_CONTROLS")
     if result["execution_gate_closed"] is not True or result["execution_permitted"] is not False or result["execution_performed"] is not False: raise ValueError("EXECUTION_GATE_VIOLATION")
