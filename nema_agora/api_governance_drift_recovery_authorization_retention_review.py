@@ -75,8 +75,6 @@ def review_retention_health(
         raise ValueError("INVALID_REVIEW_TIME") from exc
     if outcome == "ACKNOWLEDGED" and monitor["state"] != "RETENTION_HEALTHY":
         raise ValueError("ACKNOWLEDGED_REQUIRES_HEALTHY_RETENTION")
-    if outcome == "REVIEW_RETENTION" and monitor["state"] not in ("NO_HISTORY", "CONTROL_REQUIRED"):
-        raise ValueError("REVIEW_RETENTION_REQUIRES_REVIEW_STATE")
     if outcome == "PRESERVE_AND_ESCALATE" and monitor["state"] != "CONTROL_REQUIRED":
         raise ValueError("PRESERVE_AND_ESCALATE_REQUIRES_CONTROL")
     if not isinstance(notes, str):
