@@ -12,7 +12,7 @@ def retrieve_spatial_evidence(*,repository:EvidenceRepository,request_id:str,que
         records=list(repository.list(
             aoi_id=q.get("aoi_id"),scene_id=q.get("scene_id"),
             candidate_id=q.get("candidate_id"),review_status=q.get("review_status")))
-    except (KeyError,TypeError,ValueError) as exc:
+    except Exception as exc:
         return {"http_status":409,"body":{"state":"CONTROL_REQUIRED","reason_code":"REPOSITORY_QUERY_FAILED","error_type":type(exc).__name__,"policy_version":POLICY_VERSION}}
     result={"state":"QUERY_READY","count":len(records),"records":records}
     response=adapt_query_result(req,result)
