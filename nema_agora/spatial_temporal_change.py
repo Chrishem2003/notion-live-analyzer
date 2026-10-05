@@ -63,7 +63,7 @@ def validate_change_inputs(*, baseline_scene_id: Any, comparison_scene_id: Any,
 def calculate_change(baseline_value: float, comparison_value: float) -> dict[str, float]:
     if not _valid_value(baseline_value) or not _valid_value(comparison_value):
         raise ValueError("Index values must be finite values in [-1, 1].")
-    delta = float(comparison_value) - float(baseline_value)
+    delta = round(float(comparison_value) - float(baseline_value), 12)
     return {"baseline": float(baseline_value), "comparison": float(comparison_value), "delta": delta, "absolute_delta": abs(delta)}
 
 
