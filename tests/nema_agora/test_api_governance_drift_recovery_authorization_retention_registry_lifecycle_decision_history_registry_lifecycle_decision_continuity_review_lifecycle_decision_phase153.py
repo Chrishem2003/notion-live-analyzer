@@ -11,8 +11,11 @@ from nema_agora.api_governance_drift_recovery_authorization_retention_registry_l
 )
 
 def lifecycle(outcome="ACKNOWLEDGED"):
-    snapshot = build_authorization_history_registry_decision_history_lifecycle_decision_continuity([], captured_at="2026-10-04T09:00:00+00:00", sequence=1)
-    monitor = build_authorization_history_registry_decision_history_lifecycle_decision_continuity_monitor([snapshot], expected_count=1, observed_at="2026-10-04T10:00:00+00:00")
+    if outcome == "REVIEW_CONTINUITY":
+        monitor = build_authorization_history_registry_decision_history_lifecycle_decision_continuity_monitor([], observed_at="2026-10-04T10:00:00+00:00")
+    else:
+        snapshot = build_authorization_history_registry_decision_history_lifecycle_decision_continuity([], captured_at="2026-10-04T09:00:00+00:00", sequence=1)
+        monitor = build_authorization_history_registry_decision_history_lifecycle_decision_continuity_monitor([snapshot], expected_count=1, observed_at="2026-10-04T10:00:00+00:00")
     review = review_authorization_history_registry_decision_history_lifecycle_decision_continuity(monitor, actor_id="reviewer-1", role="coordinator", outcome=outcome, reviewed_at="2026-10-04T11:00:00+00:00")
     return evaluate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle(review, evaluated_at="2026-10-04T12:00:00+00:00")
 
