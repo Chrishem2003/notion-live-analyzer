@@ -34,5 +34,8 @@ class LifecycleDecisionRegistry:
  def list(self,event_id:str|None=None)->list[dict[str,Any]]:
   with sqlite3.connect(self.database_path) as c:
    c.row_factory=sqlite3.Row
-   rows=c.execute("SELECT * FROM api_audit_lifecycle_decisions"+(" WHERE event_id=?","" )[0]+(" ORDER BY decision_id", (event_id,) if event_id else ()) if False else ("SELECT * FROM api_audit_lifecycle_decisions WHERE event_id=? ORDER BY decision_id", (event_id,)) if event_id else ("SELECT * FROM api_audit_lifecycle_decisions ORDER BY decision_id",())).fetchall()
+   if event_id:
+    rows=c.execute("SELECT * FROM api_audit_lifecycle_decisions WHERE event_id=? ORDER BY decision_id",(event_id,)).fetchall()
+   else:
+    rows=c.execute("SELECT * FROM api_audit_lifecycle_decisions ORDER BY decision_id").fetchall()
   return [dict(r) for r in rows]
