@@ -15,6 +15,7 @@ POLICY_VERSION = "phase171-v1"
 READY_FOR_HUMAN_RELEASE_REVIEW = "READY_FOR_HUMAN_RELEASE_REVIEW"
 NOT_READY = "NOT_READY"
 _SHA_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+_EVIDENCE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _REQUIRED_GATES = (
     "focused_ci",
     "clean_environment_end_to_end",
@@ -89,6 +90,7 @@ def evaluate_release_readiness(
         reference = item.get("evidence_ref")
         verified_at = item.get("verified_at")
         bound_sha = item.get("candidate_sha")
+        evidence_sha256 = item.get("evidence_sha256")
         issues: list[str] = []
         if status != "PASS":
             issues.append("GATE_NOT_PASSED")
@@ -103,6 +105,8 @@ def evaluate_release_readiness(
             issues.append("INVALID_EVIDENCE_CANDIDATE_SHA")
         elif bound_sha.lower() != candidate_sha:
             issues.append("CANDIDATE_SHA_MISMATCH")
+        if not isinstance(evidence_sha256, str) or not _EVIDENCE_SHA256_RE.fullmatch(evidence_sha256.lower()):
+            issues.append("INVALID_EVIDENCE_SHA256")
 
         gates[gate] = not issues
         if issues:
@@ -113,6 +117,7 @@ def evaluate_release_readiness(
                 "evidence_ref": reference.strip(),
                 "verified_at": verified_at.strip(),
                 "candidate_sha": bound_sha.lower(),
+                "evidence_sha256": evidence_sha256.lower(),
             }
 
     # Unexpected keys are reported so misspelled or obsolete gate names are visible.
@@ -224,6 +229,9 @@ def validate_release_readiness_report(report: Mapping[str, Any]) -> dict[str, An
             raise ValueError("NORMALIZED_EVIDENCE_AFTER_ASSESSMENT")
         if item.get("candidate_sha") != candidate_sha.lower():
             raise ValueError("NORMALIZED_EVIDENCE_CANDIDATE_MISMATCH")
+        evidence_sha256 = item.get("evidence_sha256")
+        if not isinstance(evidence_sha256, str) or not _EVIDENCE_SHA256_RE.fullmatch(evidence_sha256):
+            raise ValueError("INVALID_NORMALIZED_EVIDENCE_SHA256")
 
     expected_decision = (
         READY_FOR_HUMAN_RELEASE_REVIEW
