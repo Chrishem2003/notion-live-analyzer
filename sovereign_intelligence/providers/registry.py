@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 
 from .base import ModelProvider
 from .openai import OpenAIProvider
@@ -38,3 +39,28 @@ class ProviderRegistry:
         registry.register(GoogleProvider())
 
         return registry
+
+    def configured_names(self) -> list[str]:
+        """
+        Return providers that currently have credentials configured.
+
+        This never returns or logs credential values.
+        """
+        names = []
+
+        environment_keys = {
+            "openai": "OPENAI_API_KEY",
+            "anthropic": "ANTHROPIC_API_KEY",
+            "google": "GOOGLE_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY",
+        }
+
+        for name in self._providers:
+            key = environment_keys.get(name)
+            if key and os.getenv(key):
+                names.append(name)
+
+        return sorted(names)
+
+    def as_dict(self) -> dict[str, ModelProvider]:
+        return dict(self._providers)

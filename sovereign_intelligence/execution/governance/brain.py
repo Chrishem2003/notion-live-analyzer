@@ -4,6 +4,10 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import uuid4
 
+from sovereign_intelligence.config import BrainConfig
+from sovereign_intelligence.providers.failover import ProviderFailover
+from sovereign_intelligence.providers.routing_models import ProviderCandidate
+
 from sovereign_intelligence.models import (
     AIRequest,
     AIResponse,
@@ -97,12 +101,14 @@ class GovernedBrainExecutor:
         self,
         *,
         providers,
+        config: BrainConfig | None = None,
         verifier: Verifier | None = None,
         team: MultiAgentTeam | None = None,
         decision_engine: DecisionEngine | None = None,
         governance_pipeline: GovernedDecisionPipeline | None = None,
     ) -> None:
         self.providers = providers
+        self.config = config or BrainConfig.from_env()
         self.verifier = verifier or Verifier()
         self.team = team or MultiAgentTeam()
         self.decision_engine = decision_engine or DecisionEngine()
@@ -132,6 +138,37 @@ class GovernedBrainExecutor:
             raise TypeError("plan must be a Plan")
 
         provider = self.providers.get(provider_name)
+
+        # Stage 52.1: real primary -> fallback provider routing.
+        candidates = [
+            ProviderCandidate(
+                name=provider_name,
+                model=model or "",
+                priority=10,
+            )
+        ]
+
+        fallback_provider = self.config.fallback_provider
+        fallback_model = self.config.fallback_model or ""
+
+        if (
+            fallback_provider
+            and fallback_provider != provider_name
+        ):
+            candidates.append(
+                ProviderCandidate(
+                    name=fallback_provider,
+                    model=fallback_model,
+                    priority=20,
+                )
+            )
+
+        failover = ProviderFailover(
+            providers=self.providers,
+            candidates=candidates,
+        )
+
+        failover_events: list[dict[str, Any]] = []
 
         selected_strategy = (
             str(strategy or "direct").strip().lower()
@@ -187,7 +224,53 @@ class GovernedBrainExecutor:
                 provider=provider_name,
             )
 
-            response = provider.generate(request)
+            routing_result = failover.execute(
+                request,
+                preferred_provider=provider_name,
+                preferred_model=model or None,
+            )
+
+            successful_attempt = next(
+                (
+                    attempt
+                    for attempt in routing_result.attempts
+                    if (
+                        attempt.success
+                        and attempt.response is not None
+                    )
+                ),
+                None,
+            )
+
+            if successful_attempt is None:
+                raise RuntimeError(
+                    "Provider failover returned no successful response."
+                )
+
+            failover_events.append(
+                {
+                    "event": "provider_failover",
+                    "requested_provider": provider_name,
+                    "requested_model": model,
+                    "selected_provider": (
+                        successful_attempt.provider
+                    ),
+                    "selected_model": (
+                        successful_attempt.model
+                    ),
+                    "attempts": [
+                        {
+                            "provider": attempt.provider,
+                            "model": attempt.model,
+                            "success": attempt.success,
+                            "error": attempt.error,
+                        }
+                        for attempt in routing_result.attempts
+                    ],
+                }
+            )
+
+            response = successful_attempt.response
 
             if not isinstance(response, AIResponse):
                 raise TypeError(
@@ -224,6 +307,7 @@ class GovernedBrainExecutor:
             provider=provider_name,
             model=model,
             execution_trace=[
+                *failover_events,
                 {
                     "event": "governed_multi_agent_started",
                     "provider": provider_name,

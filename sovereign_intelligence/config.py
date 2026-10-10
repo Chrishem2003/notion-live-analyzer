@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import os
 from dataclasses import dataclass
@@ -38,6 +38,7 @@ class BrainConfig:
     # actually configured. Set SOVEREIGN_AI_MODEL to override explicitly.
     default_model: str = ""
     fallback_provider: str | None = None
+    fallback_model: str | None = None
     temperature: float = 0.2
     max_tokens: int = 4096
     memory_path: str = "data/sovereign_intelligence/memory.db"
@@ -54,6 +55,7 @@ class BrainConfig:
             ),
             default_model=os.getenv("SOVEREIGN_AI_MODEL", ""),
             fallback_provider=os.getenv("SOVEREIGN_AI_FALLBACK_PROVIDER"),
+            fallback_model=os.getenv("SOVEREIGN_AI_FALLBACK_MODEL"),
             temperature=float(os.getenv("SOVEREIGN_AI_TEMPERATURE", "0.2")),
             max_tokens=int(os.getenv("SOVEREIGN_AI_MAX_TOKENS", "4096")),
             memory_path=os.getenv(
