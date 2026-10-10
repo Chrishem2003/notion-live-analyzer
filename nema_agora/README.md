@@ -259,3 +259,15 @@ This does not constitute NEMA endorsement, official integration, regulatory appr
 Phase 112 snapshots Phase 111 reconciliation results into a deterministic, append-only history. Each snapshot binds the exact reconciliation fingerprint, findings, counts, capture time, sequence and predecessor fingerprint. The registry enforces sequential append and blocks ordinary UPDATE/DELETE operations. History checks detect tampering, duplicate identities, sequence gaps and broken predecessor links. Empty history is reported as NO_HISTORY; integrity findings require human attention.
 
 The demonstration uses synthetic records only. Snapshot integrity is not proof of environmental truth, regulatory status, NEMA endorsement, enforcement authority, emergency response authority or production approval. Do not call this phase CI-green until the focused GitHub Actions run passes on the current PR head.
+
+## Phase 171 — Release-Candidate Readiness Evidence Gate
+
+The latest product checkpoint is Phase 170: the architecture is coherent as an independent pilot prototype, but it is not production-ready or officially deployable. Phase 171 implements a fail-closed readiness evaluator and authenticated Streamlit workspace, bound to the exact candidate Git SHA.
+
+Eight evidence domains are required: focused CI, clean-environment end-to-end tests, role/security checks, backup/restore, retention, evaluation-artifact verification, accessibility/data-governance review, and institutional approval. Missing, invalid, mismatched, failed, or unrecognized evidence prevents a positive result. The strongest possible evaluator result is `READY_FOR_HUMAN_RELEASE_REVIEW`; it does not approve release or production.
+
+Focused tests: `python -m pytest -q tests/nema_agora/test_release_readiness.py`
+Compilation: `python -m compileall -q nema_agora pages`
+UI: `pages/171_NEMA_AGORA_RELEASE_READINESS.py`
+
+Do not mark CI evidence as passed until the GitHub Actions workflow visibly passes on the exact candidate SHA. No deployment, official submission, autonomous enforcement, emergency dispatch, or regulatory conclusion is performed.
