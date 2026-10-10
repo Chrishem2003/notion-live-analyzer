@@ -128,7 +128,7 @@ def test_tampered_lifecycle_rejected():
         _review(), evaluated_at="2026-10-04T12:02:00+00:00"
     )
     lifecycle["lifecycle_state"] = "ESCALATED"
-    with pytest.raises(ValueError, match="RETENTION_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH"):
+    with pytest.raises(ValueError, match="LIFECYCLE_STATE_OUTCOME_MISMATCH"):
         validate_retention_registry_lifecycle(lifecycle)
 
 
