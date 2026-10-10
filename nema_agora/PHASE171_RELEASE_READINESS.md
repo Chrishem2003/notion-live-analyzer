@@ -38,3 +38,9 @@ NEMA-AGORA remains an independent pilot prototype. This phase does not imply NEM
 
 ## Evidence verification limitation
 The evaluator validates the supplied evidence metadata and commit binding; it does not fetch or independently authenticate arbitrary evidence references. A reviewer must open each reference, verify its provenance and result, and confirm that the CI result actually belongs to the exact candidate SHA before accepting a gate. A typed PASS entry alone is not proof that a check occurred.
+
+
+## Additional temporal-integrity hardening
+- ISO 8601 timestamps are parsed as offset-aware values; naive timestamps are rejected.
+- Evidence verified after the assessment timestamp is rejected during evaluation and during report revalidation, including re-fingerprinted reports.
+- The deterministic fingerprint is an integrity check, not a digital signature and not proof that a referenced artifact exists. A human reviewer must open and authenticate every evidence reference before accepting a gate.
