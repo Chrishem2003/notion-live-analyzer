@@ -29,3 +29,10 @@ No official NEMA/ELMIS/SWIMS integration, official submission, autonomous enforc
 
 ## Outcome
 The product track should now move to **release-readiness verification**, not mechanical phase proliferation. Any future change must solve a concrete product, security, evidence, evaluation, or deployment gap.
+
+
+## Release-blocking findings from the Phase 171 inspection (2026-10-10)
+- The NEMA-AGORA pull request currently exposes 106 NEMA-named Streamlit pages. The list includes several technical API/repository/lifecycle components as pages, so navigation consolidation and page-vs-module classification must be reviewed before pilot acceptance. Do not delete or relocate pages until imports, links, data contracts, and intended user journeys have been mapped.
+- The focused CI workflow was present on the feature branch but absent from `main`. PR #11 proposes adding the workflow to the base branch so pull-request checks can be observed. No green status may be claimed until an actual passing run is visible for the exact candidate SHA.
+- PR #10 remains draft and unmerged; GitHub reports it as not mergeable and the branch is behind `main`. Reconcile divergence and review the 611-file change set before release.
+- Phase 171 validation now rejects future-dated evidence both during evaluation and report revalidation. Evidence references are still metadata until a human opens and verifies the underlying artifacts.
