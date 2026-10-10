@@ -186,7 +186,8 @@ def validate_release_readiness_report(report: Mapping[str, Any]) -> dict[str, An
     candidate_sha = payload.get("candidate_sha")
     if not isinstance(candidate_sha, str) or not _SHA_RE.fullmatch(candidate_sha):
         raise ValueError("INVALID_REPORT_CANDIDATE_SHA")
-    if not _valid_timestamp(payload.get("observed_at")):
+    observed_time = _parse_timestamp(payload.get("observed_at"))
+    if observed_time is None:
         raise ValueError("INVALID_REPORT_OBSERVED_AT")
 
     gates = payload.get("gates")
@@ -216,8 +217,11 @@ def validate_release_readiness_report(report: Mapping[str, Any]) -> dict[str, An
             raise ValueError("INVALID_NORMALIZED_EVIDENCE_STATUS")
         if not isinstance(item.get("evidence_ref"), str) or not item["evidence_ref"].strip():
             raise ValueError("INVALID_NORMALIZED_EVIDENCE_REFERENCE")
-        if not _valid_timestamp(item.get("verified_at")):
+        verified_time = _parse_timestamp(item.get("verified_at"))
+        if verified_time is None:
             raise ValueError("INVALID_NORMALIZED_EVIDENCE_TIMESTAMP")
+        if verified_time > observed_time:
+            raise ValueError("NORMALIZED_EVIDENCE_AFTER_ASSESSMENT")
         if item.get("candidate_sha") != candidate_sha.lower():
             raise ValueError("NORMALIZED_EVIDENCE_CANDIDATE_MISMATCH")
 
