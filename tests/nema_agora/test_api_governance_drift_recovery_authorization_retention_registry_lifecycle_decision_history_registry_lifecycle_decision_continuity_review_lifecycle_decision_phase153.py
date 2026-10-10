@@ -47,7 +47,7 @@ def test_tampered_decision_is_rejected():
         decided_at="2026-10-04T13:00:00+00:00", rationale="Preserve evidence."
     )
     tampered = dict(decision, lifecycle_fingerprint="wrong")
-    with pytest.raises(ValueError, match="EXECUTION_GATE_VIOLATION"):
+    with pytest.raises(ValueError, match="DECISION_FINGERPRINT_MISMATCH"):
         validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision(tampered)
 
 def test_execution_tamper_is_rejected():
@@ -56,5 +56,5 @@ def test_execution_tamper_is_rejected():
         decided_at="2026-10-04T13:00:00+00:00", rationale="Preserve evidence."
     )
     tampered = dict(decision, execution_performed=True)
-    with pytest.raises(ValueError, match="DECISION_FINGERPRINT_MISMATCH"):
+    with pytest.raises(ValueError, match="EXECUTION_GATE_VIOLATION"):
         validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision(tampered)
