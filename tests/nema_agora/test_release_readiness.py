@@ -1,5 +1,7 @@
 """Phase 171 — release-readiness evidence contract tests."""
 import copy
+import hashlib
+import json
 import pytest
 
 from nema_agora.release_readiness import (
@@ -115,12 +117,26 @@ def test_fingerprint_detects_report_tampering():
         validate_release_readiness_report(changed)
 
 
+def _resign(report_value):
+    payload = dict(report_value)
+    payload.pop("readiness_fingerprint", None)
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    payload["readiness_fingerprint"] = hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+    return payload
+
+
 def test_report_validator_rejects_execution_gate_open_even_with_recomputed_fingerprint():
-    # A forged unsafe report cannot pass validation merely by changing its digest.
     result = report()
     result["execution_gate"] = "OPEN"
-    with pytest.raises(ValueError, match="READINESS_FINGERPRINT_MISMATCH"):
-        validate_release_readiness_report(result)
+    with pytest.raises(ValueError, match="EXECUTION_GATE_MUST_REMAIN_CLOSED"):
+        validate_release_readiness_report(_resign(result))
+
+
+def test_report_validator_rejects_forged_production_approval_even_with_valid_fingerprint():
+    result = report()
+    result["production_ready"] = True
+    with pytest.raises(ValueError, match="UNSUPPORTED_RELEASE_CLAIM"):
+        validate_release_readiness_report(_resign(result))
 
 
 def test_invalid_observation_time_and_non_mapping_evidence_rejected():
