@@ -9,6 +9,7 @@ quick-launch templates, and theme-aware sizing.
 import json
 import time
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import requests
 import streamlit as st
@@ -36,11 +37,29 @@ def save_notes(notes: list[dict]) -> None:
     NOTES_FILE.write_text(json.dumps(notes, indent=2), encoding="utf-8")
 
 
-@st.cache_data(ttl=60, show_spinner=False)
-def check_health(url: str) -> tuple[bool, float]:
+def with_params(url: str, extra: dict) -> str:
+    """Return url with extra query params merged in (keeps existing ones)."""
+    parts = urlparse(url)
+    query = dict(parse_qsl(parts.query))
+    query.update({k: str(v) for k, v in extra.items()})
+    return urlunparse(parts._replace(query=urlencode(query)))
+
+
+# A fresh nonce on every reload forces the browser to treat the iframe URL as
+# new, so it re-fetches the studio instead of showing a cached copy.
+if "embed_nonce" not in st.session_state:
+    st.session_state.embed_nonce = int(time.time())
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def check_health(url: str, nonce: int) -> tuple[bool, float]:
     start = time.time()
     try:
-        resp = requests.get(url, timeout=6)
+        resp = requests.get(
+            with_params(url, {"_v": nonce}),
+            timeout=6,
+            headers={"Cache-Control": "no-cache", "Pragma": "no-cache"},
+        )
         elapsed = round((time.time() - start) * 1000)
         return resp.status_code < 400, elapsed
     except Exception:
@@ -53,8 +72,8 @@ def check_health(url: str) -> tuple[bool, float]:
 st.title("⚙️ Automation Studio")
 st.caption("Build, test, and launch automations without leaving the hub.")
 
-online, latency_ms = check_health(EMBED_URL)
-status_col, link_col, height_col = st.columns([1, 1, 2])
+online, latency_ms = check_health(EMBED_URL, st.session_state.embed_nonce)
+status_col, reload_col, link_col, height_col = st.columns([1.2, 1, 1, 2])
 
 with status_col:
     if online:
@@ -62,11 +81,40 @@ with status_col:
     else:
         st.error("Unreachable — open in a new tab to check directly")
 
+with reload_col:
+    if st.button("↻ Reload studio", use_container_width=True):
+        st.session_state.embed_nonce = int(time.time())
+        check_health.clear()
+        st.rerun()
+
 with link_col:
-    st.link_button("Open in new tab ↗", EMBED_URL, use_container_width=True)
+    st.link_button(
+        "Open in new tab ↗",
+        with_params(EMBED_URL, {"_v": st.session_state.embed_nonce}),
+        use_container_width=True,
+    )
 
 with height_col:
     embed_height = st.slider("Embed height (px)", 500, 1400, 850, step=50)
+
+auto_refresh = st.toggle(
+    "Auto-reload every 5 minutes",
+    value=False,
+    help="Re-fetches the studio on a timer so a newly published version shows up without a manual reload.",
+)
+if auto_refresh:
+    # Fragments need streamlit>=1.37. The first run only "primes" the timer so
+    # we don't trigger an immediate rerun loop; later ticks reload the embed.
+    @st.fragment(run_every=300)
+    def _tick():
+        if st.session_state.get("tick_primed"):
+            st.session_state.embed_nonce = int(time.time())
+            check_health.clear()
+            st.rerun()
+        st.session_state.tick_primed = True
+    _tick()
+else:
+    st.session_state.tick_primed = False
 
 st.divider()
 
@@ -76,7 +124,15 @@ st.divider()
 main_col, side_col = st.columns([3, 1])
 
 with main_col:
-    components.iframe(EMBED_URL, height=embed_height, scrolling=True)
+    components.iframe(
+        with_params(EMBED_URL, {"_v": st.session_state.embed_nonce}),
+        height=embed_height,
+        scrolling=True,
+    )
+    st.caption(
+        "Not seeing your latest changes? This embed shows the **published** version of the studio. "
+        "In Lovable, click **Publish → Update** after editing, then press **↻ Reload studio** here."
+    )
 
 with side_col:
     st.subheader("📌 Quick templates")
@@ -87,7 +143,12 @@ with side_col:
         "Deploy watchdog": "template=deploy-watch",
     }
     for label, query in templates.items():
-        st.link_button(label, f"{EMBED_URL}?{query}", use_container_width=True)
+        key, value = query.split("=", 1)
+        st.link_button(
+            label,
+            with_params(EMBED_URL, {key: value, "_v": st.session_state.embed_nonce}),
+            use_container_width=True,
+        )
 
     st.divider()
     st.subheader("📝 Notes & bookmarks")
