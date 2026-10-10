@@ -89,5 +89,5 @@ def test_execution_tamper_is_rejected():
         outcome="ACKNOWLEDGED", reviewed_at="2026-10-04T11:00:00+00:00"
     )
     tampered = dict(review, execution_performed=True)
-    with pytest.raises(ValueError, match="REVIEW_FINGERPRINT_MISMATCH"):
+    with pytest.raises(ValueError, match="EXECUTION_GATE_VIOLATION"):
         validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review(tampered)
