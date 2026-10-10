@@ -45,4 +45,4 @@ psutil>=6.0
 joblib>=1.4
 
 # Real-time video (Collaboration & Portfolio Meet tab)
-streamlit-webrtc>=0.47requests
+streamlit-webrtc>=0.47
