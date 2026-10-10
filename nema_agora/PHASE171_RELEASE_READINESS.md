@@ -35,3 +35,6 @@ CI must be observed passing on that exact commit before the readiness evidence c
 
 ## Safety boundary
 NEMA-AGORA remains an independent pilot prototype. This phase does not imply NEMA endorsement, official NEMA/ELMIS/SWIMS integration, environmental truth, regulatory status, enforcement authority, emergency-response authority, or production approval.
+
+## Evidence verification limitation
+The evaluator validates the supplied evidence metadata and commit binding; it does not fetch or independently authenticate arbitrary evidence references. A reviewer must open each reference, verify its provenance and result, and confirm that the CI result actually belongs to the exact candidate SHA before accepting a gate. A typed PASS entry alone is not proof that a check occurred.
