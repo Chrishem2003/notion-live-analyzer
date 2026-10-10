@@ -32,14 +32,24 @@ def _digest(value: Any) -> str:
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def _valid_timestamp(value: Any) -> bool:
+def _parse_timestamp(value: Any) -> datetime | None:
+    """Parse an offset-aware ISO-8601 timestamp without accepting naive time."""
     if not isinstance(value, str) or not value.strip():
-        return False
+        return None
+    raw = value.strip()
+    if raw.endswith(("Z", "z")):
+        raw = raw[:-1] + "+00:00"
     try:
-        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(raw)
     except ValueError:
-        return False
-    return parsed.tzinfo is not None and parsed.utcoffset() is not None
+        return None
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        return None
+    return parsed
+
+
+def _valid_timestamp(value: Any) -> bool:
+    return _parse_timestamp(value) is not None
 
 
 def evaluate_release_readiness(
@@ -61,6 +71,8 @@ def evaluate_release_readiness(
         raise ValueError("INVALID_OBSERVED_AT")
     if not isinstance(evidence, Mapping):
         raise ValueError("EVIDENCE_MAPPING_REQUIRED")
+    observed_time = _parse_timestamp(observed_at)
+    assert observed_time is not None  # validated immediately above
 
     gates: dict[str, bool] = {}
     findings: list[dict[str, str]] = []
@@ -82,8 +94,11 @@ def evaluate_release_readiness(
             issues.append("GATE_NOT_PASSED")
         if not isinstance(reference, str) or not reference.strip() or len(reference) > 2048:
             issues.append("INVALID_EVIDENCE_REFERENCE")
-        if not _valid_timestamp(verified_at):
+        verified_time = _parse_timestamp(verified_at)
+        if verified_time is None:
             issues.append("INVALID_VERIFIED_AT")
+        elif verified_time > observed_time:
+            issues.append("EVIDENCE_VERIFIED_AFTER_ASSESSMENT")
         if not isinstance(bound_sha, str) or not _SHA_RE.fullmatch(bound_sha):
             issues.append("INVALID_EVIDENCE_CANDIDATE_SHA")
         elif bound_sha.lower() != candidate_sha:
