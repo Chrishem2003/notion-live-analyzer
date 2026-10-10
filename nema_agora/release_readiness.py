@@ -152,4 +152,52 @@ def validate_release_readiness_report(report: Mapping[str, Any]) -> dict[str, An
         raise ValueError("EXECUTION_GATE_MUST_REMAIN_CLOSED")
     if payload.get("human_release_review_required") is not True:
         raise ValueError("HUMAN_RELEASE_REVIEW_REQUIRED")
+
+    # The fingerprint detects accidental or unsophisticated edits; it is not a
+    # signature. Revalidate report semantics even when a caller recomputes it.
+    candidate_sha = payload.get("candidate_sha")
+    if not isinstance(candidate_sha, str) or not _SHA_RE.fullmatch(candidate_sha):
+        raise ValueError("INVALID_REPORT_CANDIDATE_SHA")
+    if not _valid_timestamp(payload.get("observed_at")):
+        raise ValueError("INVALID_REPORT_OBSERVED_AT")
+
+    gates = payload.get("gates")
+    if not isinstance(gates, Mapping) or set(gates) != set(_REQUIRED_GATES):
+        raise ValueError("INVALID_GATE_SET")
+    if any(not isinstance(gates[gate], bool) for gate in _REQUIRED_GATES):
+        raise ValueError("INVALID_GATE_STATE")
+    if payload.get("gate_count") != len(_REQUIRED_GATES):
+        raise ValueError("INVALID_GATE_COUNT")
+    passed = sum(gates.values())
+    if payload.get("passed_gate_count") != passed:
+        raise ValueError("PASSED_GATE_COUNT_MISMATCH")
+
+    findings = payload.get("findings")
+    if not isinstance(findings, list) or any(not isinstance(item, Mapping) for item in findings):
+        raise ValueError("INVALID_FINDINGS")
+    normalized = payload.get("normalized_evidence")
+    if not isinstance(normalized, Mapping):
+        raise ValueError("INVALID_NORMALIZED_EVIDENCE")
+    expected_normalized = {gate for gate, state in gates.items() if state}
+    if set(normalized) != expected_normalized:
+        raise ValueError("NORMALIZED_EVIDENCE_GATE_MISMATCH")
+    for gate, item in normalized.items():
+        if not isinstance(item, Mapping):
+            raise ValueError("INVALID_NORMALIZED_EVIDENCE")
+        if item.get("status") != "PASS":
+            raise ValueError("INVALID_NORMALIZED_EVIDENCE_STATUS")
+        if not isinstance(item.get("evidence_ref"), str) or not item["evidence_ref"].strip():
+            raise ValueError("INVALID_NORMALIZED_EVIDENCE_REFERENCE")
+        if not _valid_timestamp(item.get("verified_at")):
+            raise ValueError("INVALID_NORMALIZED_EVIDENCE_TIMESTAMP")
+        if item.get("candidate_sha") != candidate_sha.lower():
+            raise ValueError("NORMALIZED_EVIDENCE_CANDIDATE_MISMATCH")
+
+    expected_decision = (
+        READY_FOR_HUMAN_RELEASE_REVIEW
+        if passed == len(_REQUIRED_GATES) and not findings
+        else NOT_READY
+    )
+    if payload.get("decision") != expected_decision:
+        raise ValueError("READINESS_DECISION_INCONSISTENT")
     return dict(report)
