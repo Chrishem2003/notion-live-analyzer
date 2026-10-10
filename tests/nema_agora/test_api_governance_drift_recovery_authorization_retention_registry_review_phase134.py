@@ -54,7 +54,7 @@ def test_execution_boundary_tamper():
         reviewed_at="2026-10-04T12:02:00+00:00",
     )
     r["execution_performed"] = True
-    with pytest.raises(ValueError, match="REVIEW_FINGERPRINT_MISMATCH"):
+    with pytest.raises(ValueError, match="EXECUTION_GATE_VIOLATION"):
         validate_authorization_history_registry_review(r)
 
 
