@@ -51,7 +51,7 @@ def test_execution_gate_tamper():
     l=_lifecycle(); d=_decision(l); d["execution_performed"]=True
     d["decision_fingerprint"]=fingerprint({k:v for k,v in d.items() if k!="decision_fingerprint"})
     r=reconcile_retention_authorizations([l],[d])
-    assert any(x["code"]=="EXECUTION_GATE_VIOLATION" for x in r["findings"])
+    assert any(x["code"]=="INVALID_DECISION" and "EXECUTION_GATE_VIOLATION" in x.get("error", "") for x in r["findings"])
 
 def test_count_mismatch():
     l=_lifecycle(); d=_decision(l)
