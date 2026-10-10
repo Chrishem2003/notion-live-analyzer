@@ -12,6 +12,7 @@ on:
       - "tests/nema_agora/**"
       - "requirements.txt"
       - "requirements-dev.txt"
+      - ".streamlit/config.toml"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
     branches: [main]
