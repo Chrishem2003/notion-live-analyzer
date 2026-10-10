@@ -139,6 +139,24 @@ def test_report_validator_rejects_forged_production_approval_even_with_valid_fin
         validate_release_readiness_report(_resign(result))
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "error"),
+    [
+        ("official_nema_integration", True, "OFFICIAL_INTEGRATION_CLAIM_FORBIDDEN"),
+        ("official_submission_performed", True, "OFFICIAL_SUBMISSION_CLAIM_FORBIDDEN"),
+        ("automatic_deployment_performed", True, "AUTOMATIC_DEPLOYMENT_CLAIM_FORBIDDEN"),
+        ("environmental_conclusion", "COMPLIANT", "ENVIRONMENTAL_CONCLUSION_FORBIDDEN"),
+        ("regulatory_conclusion", "APPROVED", "REGULATORY_CONCLUSION_FORBIDDEN"),
+        ("enforcement_action", "ISSUED", "ENFORCEMENT_ACTION_FORBIDDEN"),
+    ],
+)
+def test_report_validator_rejects_forged_safety_claims_even_with_valid_fingerprint(field, value, error):
+    result = report()
+    result[field] = value
+    with pytest.raises(ValueError, match=error):
+        validate_release_readiness_report(_resign(result))
+
+
 def test_invalid_observation_time_and_non_mapping_evidence_rejected():
     with pytest.raises(ValueError, match="INVALID_OBSERVED_AT"):
         evaluate_release_readiness(candidate_sha=SHA, evidence=evidence(), observed_at="not-time")
