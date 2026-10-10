@@ -53,3 +53,20 @@ def principal_from_streamlit_user(user: Any, secrets: Mapping[str, object]) -> P
         claims=user_claims(user),
         role_bindings=role_bindings_from_secrets(secrets),
     )
+
+
+
+def resolve_principal(streamlit_module: Any) -> Principal | None:
+    """Resolve the current Streamlit session without trusting client role claims.
+
+    Missing user/secrets objects, malformed configuration, and unexpected adapter
+    errors fail closed to no principal so protected pages can stop safely.
+    """
+    try:
+        user = getattr(streamlit_module, "user", None)
+        secrets = getattr(streamlit_module, "secrets", {})
+        if not isinstance(secrets, Mapping):
+            return None
+        return principal_from_streamlit_user(user, secrets)
+    except (AttributeError, TypeError, ValueError, KeyError):
+        return None
