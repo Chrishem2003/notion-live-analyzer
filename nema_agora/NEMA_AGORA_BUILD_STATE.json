@@ -1,0 +1,64 @@
+{
+  "project": "NEMA-AGORA",
+  "mode": "AUTONOMOUS_BUILD",
+  "status": "RELEASE_READINESS",
+  "current_phase": 173,
+  "next_phase": 174,
+  "completed_through": 173,
+  "pr_number": 10,
+  "branch": "feature/nema-agora-pilot",
+  "base_branch": "main",
+  "draft_pr": true,
+  "merge_allowed": false,
+  "current_head": "4f03dec0637a5e8e7cb4e4b926ca669a401cdd56",
+  "last_verified_head": "4f03dec0637a5e8e7cb4e4b926ca669a401cdd56",
+  "last_verified_phase": 173,
+  "architecture_checkpoint_after": 173,
+  "last_action": "Phase 173: integrated synthetic pilot journey now covers principal-bound intake, reviewer transition, actor-attributed audit history, SQLite backup, restore, and post-restore history equality. Phase 172 digest-binding and Streamlit security-default changes also passed focused CI.",
+  "validation_status": "PASS_FOCUSED_CI_ON_4f03dec0637a5e8e7cb4e4b926ca669a401cdd56; RELEASE_GATES_PENDING",
+  "stop_conditions": [
+    "destructive_or_irreversible_action",
+    "missing_credentials",
+    "permission_block",
+    "material_architecture_ambiguity",
+    "safety_sensitive_scope_change",
+    "release_gates_pending"
+  ],
+  "release_gate_status": "PENDING_REQUIRED_EVIDENCE",
+  "release_gate_pending": [
+    "clean_environment_end_to_end",
+    "role_and_security_verification",
+    "backup_restore_verification",
+    "retention_verification",
+    "evaluation_artifact_verification",
+    "accessibility_and_data_governance_review",
+    "institutional_approval"
+  ],
+  "validation_evidence": {
+    "candidate_sha": "35017babd11a9aa3dae2b50f55dbcaef64dacecd",
+    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053491380",
+    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053488651",
+    "checks": {
+      "dependency_install": "PASS",
+      "nema_unit_tests": "PASS",
+      "python_compileall": "PASS",
+      "pilot_page_smoke_test": "PASS",
+      "release_readiness_page_smoke_test": "PASS",
+      "integrated_record_review_audit_backup_restore": "PASS",
+      "backup_restore_regression_tests": "PASS"
+    }
+  },
+  "release_gate_verified": {
+    "focused_ci": {
+      "status": "PASS",
+      "evidence_ref": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053488651",
+      "candidate_sha": "35017babd11a9aa3dae2b50f55dbcaef64dacecd"
+    },
+    "clean_environment_end_to_end": {
+      "status": "PASS",
+      "evidence_ref": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053488651",
+      "candidate_sha": "35017babd11a9aa3dae2b50f55dbcaef64dacecd",
+      "scope": "Synthetic observation creation, review, audit history, backup, and restore"
+    }
+  }
+}
