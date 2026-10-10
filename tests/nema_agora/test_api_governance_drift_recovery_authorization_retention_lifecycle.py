@@ -72,6 +72,7 @@ def test_non_reconciled_blocked():
     review = _review()
     bad = _reconciliation(review)
     bad["state"] = "CONTROL_REQUIRED"
+    bad["reconciliation_fingerprint"] = fingerprint({k: v for k, v in bad.items() if k != "reconciliation_fingerprint"})
     with pytest.raises(ValueError, match="RECONCILIATION_MUST_BE_RECONCILED"):
         build_retention_review_lifecycle(bad, [review], evaluated_at="2026-10-04T12:02:00+00:00")
 
