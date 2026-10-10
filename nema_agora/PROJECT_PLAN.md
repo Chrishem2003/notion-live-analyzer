@@ -1308,10 +1308,31 @@ Completion gate: focused Phase 117 tests, compilation and smoke checks must visi
 
 Next gate: Phase 118 — Human-Acknowledged Authorization Retention Review Ledger.
 
-## Phase 112 — Recovery Review Reconciliation Snapshot & History
 
-Phase 112 preserves point-in-time snapshots of Phase 111 reconciliation results. Snapshot IDs and SHA-256 fingerprints are deterministic and bind the exact reconciliation fingerprint, findings, counts, capture time, sequence and predecessor fingerprint. An append-only SQLite registry enforces the next sequence and predecessor link, while read-only integrity checks detect tampering, gaps, duplicate identities and broken history links. Empty history is explicitly NO_HISTORY; integrity findings produce CONTROL_REQUIRED. No automatic repair or recovery occurs.
+## Roadmap Reconciliation — 2026-10-10
 
-The Streamlit demonstration uses synthetic data only. This phase does not imply NEMA endorsement, official integration, environmental truth, regulatory status, enforcement authority, emergency-response authority or production approval. GitHub Actions must pass focused tests, compilation and the Streamlit smoke check on the current head before this phase is called CI-green.
+The older roadmap tail contained a duplicate Phase 112 entry and stopped before later implementation work. This reconciliation preserves the historical phase record while pointing to the newer phase artifacts as the current source of truth.
 
-Next gate: Phase 113 — Persistent Recovery Review Snapshot Registry Hardening & Recovery Evidence.
+- **Phases 118–159:** continued the authorization-retention and governance-continuity chain through human review, reconciliation, lifecycle decisions, append-only registries, integrity monitoring and continuity controls. Phase-specific contracts and tests are kept in the corresponding `PHASE*.md`, `nema_agora/` and `tests/nema_agora/` artifacts.
+- **Phase 160:** product architecture checkpoint; transition away from mechanical registry proliferation toward reusable product capabilities.
+- **Phase 161:** governed evidence case pipeline.
+- **Phases 164–165:** reviewer workspace and evidence export.
+- **Phases 166–167:** reproducible evaluation and traceable reporting.
+- **Phase 169:** pilot acceptance and safety gates.
+- **Phase 170:** final architecture and acceptance checkpoint. The product is an independent pilot prototype, not production-ready or officially deployable. The next track is release-readiness verification.
+
+## Phase 171 — Release-Candidate Readiness Evidence Gate
+
+Added a fail-closed release-readiness evaluator bound to an exact candidate Git SHA. It requires eight evidence domains: focused CI, clean-environment end-to-end verification, role/security verification, backup/restore verification, retention verification, evaluation-artifact verification, accessibility/data-governance review, and institutional approval. Every gate requires PASS, a traceable evidence reference, an offset-aware timestamp, and a matching candidate SHA. Missing, invalid, mismatched, failed, or unrecognized evidence keeps the candidate NOT_READY.
+
+A complete result is only READY_FOR_HUMAN_RELEASE_REVIEW; it is not release approval or production readiness. The execution gate remains CLOSED, and the evaluator never deploys or submits anything. The authenticated Streamlit workspace is `pages/171_NEMA_AGORA_RELEASE_READINESS.py`.
+
+### Phase 171 verification gate
+
+Run `python -m pytest -q tests/nema_agora/test_release_readiness.py`, compile `nema_agora` and `pages`, and observe the complete NEMA-AGORA GitHub Actions workflow passing on the exact candidate SHA. Do not mark the focused-CI gate PASS based on source inspection alone.
+
+### Safety boundary
+
+NEMA-AGORA remains an independent pilot prototype. This phase does not imply NEMA endorsement, official NEMA/ELMIS/SWIMS integration, environmental truth, regulatory status, enforcement authority, emergency-response authority, or production approval.
+
+Next: verify the release gate against the real CI and deployment evidence, fix any blockers, and consolidate the product workflow before considering further feature work.
