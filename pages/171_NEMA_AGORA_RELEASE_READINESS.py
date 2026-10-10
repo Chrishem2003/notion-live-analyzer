@@ -15,7 +15,7 @@ st.title("NEMA-AGORA — Release Readiness")
 st.caption("Phase 171 • exact-commit evidence • fail-closed release review")
 
 principal = resolve_principal(st)
-if not principal.is_authorised:
+if principal is None or not principal.is_authorised:
     st.error("Authenticated, server-provisioned access is required.")
     st.stop()
 try:
