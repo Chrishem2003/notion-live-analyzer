@@ -10,6 +10,8 @@ on:
       - "nema_agora/**"
       - "pages/*NEMA_AGORA*.py"
       - "tests/nema_agora/**"
+      - "requirements.txt"
+      - "requirements-dev.txt"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
     branches: [main]
@@ -17,6 +19,8 @@ on:
       - "nema_agora/**"
       - "pages/*NEMA_AGORA*.py"
       - "tests/nema_agora/**"
+      - "requirements.txt"
+      - "requirements-dev.txt"
       - ".github/workflows/nema-agora-checks.yml"
   workflow_dispatch:
 
@@ -38,17 +42,36 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt -r requirements-dev.txt
-      - name: Run NEMA-AGORA unit tests
-        run: python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
+      - name: Run NEMA-AGORA unit tests when pilot sources are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -d nema_agora && -d tests/nema_agora ]]; then
+            python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
+          else
+            echo "NEMA-AGORA source/tests are not present on this branch; full pilot validation runs on the implementation branch."
+          fi
       - name: Compile NEMA-AGORA modules and pages
-        run: python -m compileall -q nema_agora pages
-      - name: Smoke-test pilot and release-readiness pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -d nema_agora ]]; then
+            python -m compileall -q nema_agora
+          else
+            echo "NEMA-AGORA package not present on this branch; package compilation deferred."
+          fi
+          python -m compileall -q pages
+      - name: Smoke-test pilot and release-readiness pages when present
         shell: bash
         run: |
           set -euo pipefail
           smoke_test() {
             local page="$1"
             local port="$2"
+            if [[ ! -f "$page" ]]; then
+              echo "Skipping absent page on this branch: $page"
+              return 0
+            fi
             local log_file="/tmp/$(basename "$page" .py)-streamlit.log"
             set +e
             timeout 30s python -m streamlit run "$page" --server.headless true --server.port "$port" > "$log_file" 2>&1
