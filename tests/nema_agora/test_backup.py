@@ -53,3 +53,49 @@ def test_corrupt_backup_is_rejected(tmp_path):
     bad.write_text("not sqlite")
     with pytest.raises(ValueError, match="integrity_check"):
         restore_database(bad, tmp_path / "target.sqlite3", confirm_destructive=True)
+
+def test_backup_collision_does_not_overwrite_existing_backup(tmp_path):
+    db = tmp_path / "nema.sqlite3"
+    NemaAgoraRepository(db).create_observation(record(), actor_id="submitter-1", role="submitter")
+    backup_dir = tmp_path / "backups"
+    stamp = datetime(2026, 10, 4, 9, tzinfo=timezone.utc)
+    first = backup_database(db, backup_dir, now=stamp)
+
+    with pytest.raises(FileExistsError):
+        backup_database(db, backup_dir, now=stamp)
+
+    assert integrity_check(first)
+    assert list_backups(backup_dir) == [first]
+
+
+def test_restore_replaces_existing_database_after_validation(tmp_path):
+    source_db = tmp_path / "source.sqlite3"
+    target_db = tmp_path / "target.sqlite3"
+    NemaAgoraRepository(source_db).create_observation(record(), actor_id="submitter-1", role="submitter")
+    NemaAgoraRepository(target_db).create_observation(record(), actor_id="submitter-2", role="submitter")
+    backup = backup_database(
+        source_db,
+        tmp_path / "backups",
+        now=datetime(2026, 10, 4, 9, tzinfo=timezone.utc),
+    )
+
+    restore_database(backup, target_db, confirm_destructive=True)
+
+    assert integrity_check(target_db)
+    restored = NemaAgoraRepository(target_db)
+    assert len(restored.list_observations(actor_id="submitter-1", role="submitter")) == 1
+    assert restored.list_observations(actor_id="submitter-2", role="submitter") == []
+
+
+def test_invalid_backup_does_not_modify_existing_target(tmp_path):
+    target_db = tmp_path / "target.sqlite3"
+    NemaAgoraRepository(target_db).create_observation(record(), actor_id="submitter-2", role="submitter")
+    bad_backup = tmp_path / "bad.sqlite3"
+    bad_backup.write_text("not sqlite")
+
+    with pytest.raises(ValueError, match="integrity_check"):
+        restore_database(bad_backup, target_db, confirm_destructive=True)
+
+    assert integrity_check(target_db)
+    assert len(NemaAgoraRepository(target_db).list_observations(actor_id="submitter-2", role="submitter")) == 1
+
