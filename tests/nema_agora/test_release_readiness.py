@@ -32,6 +32,7 @@ def evidence():
             "evidence_ref": f"artifact://release-check/{gate}",
             "verified_at": WHEN,
             "candidate_sha": SHA,
+            "evidence_sha256": hashlib.sha256(f"synthetic-artifact:{gate}".encode("utf-8")).hexdigest(),
         }
         for gate in GATES
     }
@@ -88,10 +89,19 @@ def test_bad_timestamp_reference_and_sha_fail_closed():
     items["backup_restore_verification"]["verified_at"] = "yesterday"
     items["role_and_security_verification"]["evidence_ref"] = " "
     items["retention_verification"]["candidate_sha"] = "not-a-sha"
+    items["evaluation_artifact_verification"]["evidence_sha256"] = "not-a-sha256"
     result = report(items)
     codes = {x["code"] for x in result["findings"]}
-    assert {"INVALID_VERIFIED_AT", "INVALID_EVIDENCE_REFERENCE", "INVALID_EVIDENCE_CANDIDATE_SHA"} <= codes
+    assert {"INVALID_VERIFIED_AT", "INVALID_EVIDENCE_REFERENCE", "INVALID_EVIDENCE_CANDIDATE_SHA", "INVALID_EVIDENCE_SHA256"} <= codes
     assert result["decision"] == NOT_READY
+
+
+def test_valid_evidence_digest_is_preserved_in_normalized_report():
+    result = report()
+    for gate in GATES:
+        expected = hashlib.sha256(f"synthetic-artifact:{gate}".encode("utf-8")).hexdigest()
+        assert result["normalized_evidence"][gate]["evidence_sha256"] == expected
+    assert validate_release_readiness_report(result) == result
 
 
 def test_unknown_gate_is_visible_and_blocks_readiness():
