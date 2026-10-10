@@ -223,3 +223,10 @@ def test_lowercase_z_timestamp_is_supported_without_global_replacement():
         observed_at="2026-10-10T08:00:00Z",
     )
     assert result["gates"]["focused_ci"] is True
+
+
+def test_resigned_report_cannot_smuggle_future_dated_evidence():
+    result = report()
+    result["normalized_evidence"]["focused_ci"]["verified_at"] = "2026-10-10T11:00:01+03:00"
+    with pytest.raises(ValueError, match="NORMALIZED_EVIDENCE_AFTER_ASSESSMENT"):
+        validate_release_readiness_report(_resign(result))
