@@ -10,12 +10,12 @@
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "c8dd9148f6e91fe80b7142640b707d2f5c5fca29",
-  "last_verified_head": "c8dd9148f6e91fe80b7142640b707d2f5c5fca29",
+  "current_head": "35017babd11a9aa3dae2b50f55dbcaef64dacecd",
+  "last_verified_head": "35017babd11a9aa3dae2b50f55dbcaef64dacecd",
   "last_verified_phase": 171,
   "architecture_checkpoint_after": 171,
-  "last_action": "Phase 171 candidate c8dd9148 passed repository CI and focused NEMA tests, compilation, and both Streamlit page smoke tests. Atomic backup publication and rollback-safe restore have regression coverage; operational release evidence remains pending.",
-  "validation_status": "PASS_REPOSITORY_AND_FOCUSED_CI_ON_c8dd9148f6e91fe80b7142640b707d2f5c5fca29; RELEASE_GATES_PENDING",
+  "last_action": "Phase 171 candidate 35017bab passed repository CI and focused NEMA tests, compilation, pilot/release page smoke tests, and the integrated record-review-audit-backup-restore journey. Required human and institutional release evidence remains open.",
+  "validation_status": "PASS_REPOSITORY_AND_FOCUSED_CI_ON_35017babd11a9aa3dae2b50f55dbcaef64dacecd; RELEASE_GATES_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -26,7 +26,6 @@
   ],
   "release_gate_status": "PENDING_REQUIRED_EVIDENCE",
   "release_gate_pending": [
-    "clean_environment_end_to_end",
     "role_and_security_verification",
     "backup_restore_verification",
     "retention_verification",
@@ -35,16 +34,30 @@
     "institutional_approval"
   ],
   "validation_evidence": {
-    "candidate_sha": "c8dd9148f6e91fe80b7142640b707d2f5c5fca29",
-    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053281675",
-    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053281687",
+    "candidate_sha": "35017babd11a9aa3dae2b50f55dbcaef64dacecd",
+    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053491380",
+    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053488651",
     "checks": {
       "dependency_install": "PASS",
       "nema_unit_tests": "PASS",
       "python_compileall": "PASS",
       "pilot_page_smoke_test": "PASS",
       "release_readiness_page_smoke_test": "PASS",
+      "integrated_record_review_audit_backup_restore": "PASS",
       "backup_restore_regression_tests": "PASS"
+    }
+  },
+  "release_gate_verified": {
+    "focused_ci": {
+      "status": "PASS",
+      "evidence_ref": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053488651",
+      "candidate_sha": "35017babd11a9aa3dae2b50f55dbcaef64dacecd"
+    },
+    "clean_environment_end_to_end": {
+      "status": "PASS",
+      "evidence_ref": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053488651",
+      "candidate_sha": "35017babd11a9aa3dae2b50f55dbcaef64dacecd",
+      "scope": "Synthetic observation creation, review, audit history, backup, and restore"
     }
   }
 }
