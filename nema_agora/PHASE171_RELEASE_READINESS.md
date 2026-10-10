@@ -13,7 +13,7 @@ Phase 170 says the product should move to release-readiness verification, not an
 7. Accessibility and data-governance review.
 8. Institutional/supervisor approval.
 
-Every gate requires a PASS status, a traceable evidence reference, an offset-aware ISO 8601 verification timestamp, and the exact candidate SHA. Missing, malformed, stale-to-another-commit, failed or unrecognized gate evidence prevents a positive result.
+Every gate requires a PASS status, a traceable evidence reference, a 64-character SHA-256 digest of the referenced artifact, an offset-aware ISO 8601 verification timestamp, and the exact candidate SHA. Missing, malformed, stale-to-another-commit, failed or unrecognized gate evidence prevents a positive result.
 
 ## Output contract
 - `NOT_READY` if any gate is missing or invalid.
@@ -44,3 +44,7 @@ The evaluator validates the supplied evidence metadata and commit binding; it do
 - ISO 8601 timestamps are parsed as offset-aware values; naive timestamps are rejected.
 - Evidence verified after the assessment timestamp is rejected during evaluation and during report revalidation, including re-fingerprinted reports.
 - The deterministic fingerprint is an integrity check, not a digital signature and not proof that a referenced artifact exists. A human reviewer must open and authenticate every evidence reference before accepting a gate.
+
+
+## Evidence content-digest binding (Phase 172 hardening)
+Each gate's `evidence_sha256` is normalized into the report and covered by the report fingerprint. Missing or malformed content digests fail closed. This binds the submitted metadata to an expected artifact digest but does not fetch the artifact, prove its provenance, or authenticate who created it. Reviewers must retrieve the referenced artifact, recompute SHA-256 over its exact bytes, compare the digest, and independently verify source and authority.
