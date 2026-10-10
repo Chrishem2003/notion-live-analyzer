@@ -118,5 +118,5 @@ def test_monitor_registry_reads_phase124_registry():
 def test_governance_controls_cannot_be_tampered():
     report = build_retention_authorization_registry_monitor([], expected_count=0, observed_at="2026-10-04T11:00:00+00:00")
     tampered = dict(report, execution_permitted=True)
-    with pytest.raises(ValueError, match="MONITOR_FINGERPRINT_MISMATCH"):
+    with pytest.raises(ValueError, match="EXECUTION_GATE_VIOLATION"):
         validate_retention_registry_monitor(tampered)
