@@ -44,6 +44,7 @@ template = {
     gate: {
         "status": "PENDING",
         "evidence_ref": "",
+        "evidence_sha256": "",
         "verified_at": "",
         "candidate_sha": "",
     }
@@ -64,7 +65,7 @@ evidence_json = st.text_area(
     "Release evidence JSON",
     value=json.dumps(template, indent=2),
     height=360,
-    help="Each required gate needs PASS, evidence_ref, verified_at, and the exact candidate_sha.",
+    help="Each required gate needs PASS, evidence_ref, a 64-character evidence_sha256, verified_at, and the exact candidate_sha.",
 )
 
 if st.button("Evaluate release readiness", type="primary"):
