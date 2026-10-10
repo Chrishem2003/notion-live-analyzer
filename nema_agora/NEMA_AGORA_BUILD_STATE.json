@@ -10,12 +10,12 @@
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "be34badf560d3f3d4a1dc5f0edb8c1d0ee4c8f18",
-  "last_verified_head": "be34badf560d3f3d4a1dc5f0edb8c1d0ee4c8f18",
-  "last_verified_phase": 172,
-  "architecture_checkpoint_after": 172,
-  "last_action": "Phase 172 hardening: release-gate evidence now requires SHA-256 content digests bound into the readiness report; Streamlit cross-origin defaults restored and guarded by regression tests; persistence-layer deployment documentation corrected.",
-  "validation_status": "PASS_FOCUSED_CI_ON_be34badf560d3f3d4a1dc5f0edb8c1d0ee4c8f18; RELEASE_GATES_PENDING",
+  "current_head": "c8dd9148f6e91fe80b7142640b707d2f5c5fca29",
+  "last_verified_head": "c8dd9148f6e91fe80b7142640b707d2f5c5fca29",
+  "last_verified_phase": 171,
+  "architecture_checkpoint_after": 171,
+  "last_action": "Phase 171 candidate c8dd9148 passed repository CI and focused NEMA tests, compilation, and both Streamlit page smoke tests. Atomic backup publication and rollback-safe restore have regression coverage; operational release evidence remains pending.",
+  "validation_status": "PASS_REPOSITORY_AND_FOCUSED_CI_ON_c8dd9148f6e91fe80b7142640b707d2f5c5fca29; RELEASE_GATES_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -33,5 +33,18 @@
     "evaluation_artifact_verification",
     "accessibility_and_data_governance_review",
     "institutional_approval"
-  ]
+  ],
+  "validation_evidence": {
+    "candidate_sha": "c8dd9148f6e91fe80b7142640b707d2f5c5fca29",
+    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053281675",
+    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/38053281687",
+    "checks": {
+      "dependency_install": "PASS",
+      "nema_unit_tests": "PASS",
+      "python_compileall": "PASS",
+      "pilot_page_smoke_test": "PASS",
+      "release_readiness_page_smoke_test": "PASS",
+      "backup_restore_regression_tests": "PASS"
+    }
+  }
 }
