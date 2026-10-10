@@ -148,6 +148,19 @@ def validate_release_readiness_report(report: Mapping[str, Any]) -> dict[str, An
         raise ValueError("INVALID_READINESS_DECISION")
     if payload.get("release_approved") is not False or payload.get("production_ready") is not False:
         raise ValueError("UNSUPPORTED_RELEASE_CLAIM")
+    # These safety boundaries are invariants, not caller-editable report fields.
+    if payload.get("official_nema_integration") is not False:
+        raise ValueError("OFFICIAL_INTEGRATION_CLAIM_FORBIDDEN")
+    if payload.get("official_submission_performed") is not False:
+        raise ValueError("OFFICIAL_SUBMISSION_CLAIM_FORBIDDEN")
+    if payload.get("automatic_deployment_performed") is not False:
+        raise ValueError("AUTOMATIC_DEPLOYMENT_CLAIM_FORBIDDEN")
+    if payload.get("environmental_conclusion") is not None:
+        raise ValueError("ENVIRONMENTAL_CONCLUSION_FORBIDDEN")
+    if payload.get("regulatory_conclusion") is not None:
+        raise ValueError("REGULATORY_CONCLUSION_FORBIDDEN")
+    if payload.get("enforcement_action") is not None:
+        raise ValueError("ENFORCEMENT_ACTION_FORBIDDEN")
     if payload.get("execution_gate") != "CLOSED":
         raise ValueError("EXECUTION_GATE_MUST_REMAIN_CLOSED")
     if payload.get("human_release_review_required") is not True:
