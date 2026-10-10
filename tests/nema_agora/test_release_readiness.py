@@ -144,3 +144,41 @@ def test_invalid_observation_time_and_non_mapping_evidence_rejected():
         evaluate_release_readiness(candidate_sha=SHA, evidence=evidence(), observed_at="not-time")
     with pytest.raises(ValueError, match="EVIDENCE_MAPPING_REQUIRED"):
         evaluate_release_readiness(candidate_sha=SHA, evidence=[], observed_at=WHEN)
+
+def test_report_validator_rejects_inconsistent_gate_count_even_with_valid_fingerprint():
+    result = report()
+    result["passed_gate_count"] = 0
+    with pytest.raises(ValueError, match="PASSED_GATE_COUNT_MISMATCH"):
+        validate_release_readiness_report(_resign(result))
+
+
+def test_report_validator_rejects_re_signed_inconsistent_decision():
+    result = report()
+    result["decision"] = NOT_READY
+    with pytest.raises(ValueError, match="READINESS_DECISION_INCONSISTENT"):
+        validate_release_readiness_report(_resign(result))
+
+
+def test_report_validator_rejects_missing_normalized_gate_evidence():
+    result = report()
+    result["normalized_evidence"].pop("focused_ci")
+    with pytest.raises(ValueError, match="NORMALIZED_EVIDENCE_GATE_MISMATCH"):
+        validate_release_readiness_report(_resign(result))
+
+
+def test_report_validator_rejects_wrong_candidate_in_normalized_evidence():
+    result = report()
+    result["normalized_evidence"]["focused_ci"]["candidate_sha"] = "b" * 40
+    with pytest.raises(ValueError, match="NORMALIZED_EVIDENCE_CANDIDATE_MISMATCH"):
+        validate_release_readiness_report(_resign(result))
+
+
+def test_report_validator_rejects_invalid_candidate_and_observation_time_when_resigned():
+    result = report()
+    result["candidate_sha"] = "not-a-sha"
+    with pytest.raises(ValueError, match="INVALID_REPORT_CANDIDATE_SHA"):
+        validate_release_readiness_report(_resign(result))
+    result = report()
+    result["observed_at"] = "yesterday"
+    with pytest.raises(ValueError, match="INVALID_REPORT_OBSERVED_AT"):
+        validate_release_readiness_report(_resign(result))
