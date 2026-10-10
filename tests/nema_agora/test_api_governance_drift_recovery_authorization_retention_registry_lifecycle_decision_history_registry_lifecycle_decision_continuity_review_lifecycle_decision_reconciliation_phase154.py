@@ -19,7 +19,7 @@ def pair(outcome="ACKNOWLEDGED"):
 def test_reconciled_pair():
     l, d = pair()
     result = reconcile_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decisions([l], [d], expected_decision_count=1)
-    assert result["state"] == "RECONCILED"
+    assert result["state"] == "RECONCILED", result["findings"]
     assert validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_reconciliation(result) == result
 
 def test_unreviewed_lifecycle_requires_control():
