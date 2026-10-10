@@ -12,6 +12,7 @@ on:
       - "tests/nema_agora/**"
       - "requirements.txt"
       - "requirements-dev.txt"
+      - ".streamlit/config.toml"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
     branches: [main]
@@ -21,6 +22,7 @@ on:
       - "tests/nema_agora/**"
       - "requirements.txt"
       - "requirements-dev.txt"
+      - ".streamlit/config.toml"
       - ".github/workflows/nema-agora-checks.yml"
   workflow_dispatch:
 
@@ -46,7 +48,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -d nema_agora && -d tests/nema_agora ]]; then
+          if [[ -d tests/nema_agora ]]; then
             python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
           else
             echo "NEMA-AGORA source/tests are not present on this branch; full pilot validation runs on the implementation branch."
