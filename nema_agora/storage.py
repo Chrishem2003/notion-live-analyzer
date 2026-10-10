@@ -1,8 +1,9 @@
 """SQLite persistence layer for NEMA-AGORA.
 
-This module is intentionally not wired into the public Streamlit page yet.
-Only call it behind authenticated identity, role checks, deployment-specific
-secret/configuration, and an approved retention/backup policy.
+The pilot Streamlit workspace uses this repository only when persistent mode is
+explicitly enabled and a server-side authenticated principal and database path
+are configured. Production use additionally requires approved retention, backup,
+filesystem access controls, and operational recovery procedures.
 """
 from __future__ import annotations
 
