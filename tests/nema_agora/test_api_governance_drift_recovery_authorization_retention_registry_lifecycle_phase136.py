@@ -30,5 +30,5 @@ def test_bundle_builds():
 def test_tamper_rejected():
     lifecycle=evaluate_authorization_history_registry_review_lifecycle(_review(),evaluated_at="2026-10-04T12:02:00+00:00")
     lifecycle["execution_performed"]=True
-    with pytest.raises(ValueError,match="AUTHORIZATION_HISTORY_REGISTRY_LIFECYCLE_FINGERPRINT_MISMATCH"):
+    with pytest.raises(ValueError,match="INVALID_EXECUTION_CONTROLS"):
         validate_authorization_history_registry_lifecycle(lifecycle)
