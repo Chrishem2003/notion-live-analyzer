@@ -1307,3 +1307,11 @@ States are RETENTION_HEALTHY, NO_HISTORY and CONTROL_REQUIRED. Recommendations a
 Completion gate: focused Phase 117 tests, compilation and smoke checks must visibly pass on the current PR head before CI-green is claimed.
 
 Next gate: Phase 118 — Human-Acknowledged Authorization Retention Review Ledger.
+
+## Phase 112 — Recovery Review Reconciliation Snapshot & History
+
+Phase 112 preserves point-in-time snapshots of Phase 111 reconciliation results. Snapshot IDs and SHA-256 fingerprints are deterministic and bind the exact reconciliation fingerprint, findings, counts, capture time, sequence and predecessor fingerprint. An append-only SQLite registry enforces the next sequence and predecessor link, while read-only integrity checks detect tampering, gaps, duplicate identities and broken history links. Empty history is explicitly NO_HISTORY; integrity findings produce CONTROL_REQUIRED. No automatic repair or recovery occurs.
+
+The Streamlit demonstration uses synthetic data only. This phase does not imply NEMA endorsement, official integration, environmental truth, regulatory status, enforcement authority, emergency-response authority or production approval. GitHub Actions must pass focused tests, compilation and the Streamlit smoke check on the current head before this phase is called CI-green.
+
+Next gate: Phase 113 — Persistent Recovery Review Snapshot Registry Hardening & Recovery Evidence.
