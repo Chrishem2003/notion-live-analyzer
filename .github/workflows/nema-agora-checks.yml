@@ -22,6 +22,7 @@ on:
       - "tests/nema_agora/**"
       - "requirements.txt"
       - "requirements-dev.txt"
+      - ".streamlit/config.toml"
       - ".github/workflows/nema-agora-checks.yml"
   workflow_dispatch:
 
