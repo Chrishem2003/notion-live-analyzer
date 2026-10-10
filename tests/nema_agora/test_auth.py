@@ -32,3 +32,32 @@ def test_unconfigured_user_is_not_logged_in():
     class LocalUser: pass
     assert not is_logged_in(LocalUser())
     assert principal_from_streamlit_user(LocalUser(), {}) is None
+
+
+
+def test_resolve_principal_uses_server_side_role_bindings():
+    from nema_agora.auth import resolve_principal
+
+    class FakeStreamlit:
+        user = FakeUser()
+        secrets = {"nema_agora": {"role_bindings": {KEY: "reviewer"}}}
+
+    principal = resolve_principal(FakeStreamlit())
+    assert principal is not None
+    assert principal.is_authorised
+    assert principal.role == "reviewer"
+
+
+def test_resolve_principal_fails_closed_without_user_or_secrets():
+    from nema_agora.auth import resolve_principal
+
+    class UnconfiguredStreamlit:
+        pass
+
+    assert resolve_principal(UnconfiguredStreamlit()) is None
+
+    class InvalidSecretsStreamlit:
+        user = FakeUser()
+        secrets = None
+
+    assert resolve_principal(InvalidSecretsStreamlit()) is None
