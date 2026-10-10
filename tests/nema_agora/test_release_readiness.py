@@ -200,3 +200,26 @@ def test_report_validator_rejects_invalid_candidate_and_observation_time_when_re
     result["observed_at"] = "yesterday"
     with pytest.raises(ValueError, match="INVALID_REPORT_OBSERVED_AT"):
         validate_release_readiness_report(_resign(result))
+
+
+def test_future_dated_evidence_fails_closed():
+    items = evidence()
+    items["focused_ci"]["verified_at"] = "2026-10-10T11:00:01+03:00"
+    result = evaluate_release_readiness(
+        candidate_sha=SHA,
+        evidence=items,
+        observed_at=WHEN,
+    )
+    assert result["decision"] == NOT_READY
+    assert {"code": "EVIDENCE_VERIFIED_AFTER_ASSESSMENT", "gate": "focused_ci"} in result["findings"]
+
+
+def test_lowercase_z_timestamp_is_supported_without_global_replacement():
+    items = evidence()
+    items["focused_ci"]["verified_at"] = "2026-10-10T08:00:00z"
+    result = evaluate_release_readiness(
+        candidate_sha=SHA,
+        evidence=items,
+        observed_at="2026-10-10T08:00:00Z",
+    )
+    assert result["gates"]["focused_ci"] is True
