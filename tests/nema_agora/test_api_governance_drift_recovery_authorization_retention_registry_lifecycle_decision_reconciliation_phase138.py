@@ -73,6 +73,7 @@ def test_orphan_decision_requires_control() -> None:
     decision = _decision(lifecycle)
     orphan = deepcopy(decision)
     orphan["lifecycle_fingerprint"] = "missing-lifecycle"
+    orphan["decision_fingerprint"] = fingerprint({k: v for k, v in orphan.items() if k != "decision_fingerprint"})
     result = reconcile_authorization_history_registry_decisions([], [orphan])
     assert result["state"] == "CONTROL_REQUIRED"
     assert any(x["code"] == "ORPHAN_DECISION" for x in result["findings"])
