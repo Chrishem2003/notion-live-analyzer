@@ -10,6 +10,8 @@ on:
       - "nema_agora/**"
       - "pages/*NEMA_AGORA*.py"
       - "tests/nema_agora/**"
+      - "requirements.txt"
+      - "requirements-dev.txt"
       - ".github/workflows/nema-agora-checks.yml"
   pull_request:
     branches: [main]
