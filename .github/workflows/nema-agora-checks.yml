@@ -42,15 +42,24 @@ jobs:
         run: python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
       - name: Compile NEMA-AGORA modules and pages
         run: python -m compileall -q nema_agora pages
-      - name: Smoke-test Streamlit startup
+      - name: Smoke-test pilot and release-readiness pages
         shell: bash
         run: |
-          set +e
-          timeout 30s python -m streamlit run pages/18_NEMA_AGORA.py --server.headless true --server.port 8501 > /tmp/nema-agora-streamlit.log 2>&1
-          exit_code=$?
-          cat /tmp/nema-agora-streamlit.log
-          if [ "$exit_code" -ne 124 ]; then
-            echo "Streamlit exited before the smoke-test timeout (exit $exit_code)."
-            exit 1
-          fi
-          grep -q "You can now view your Streamlit app" /tmp/nema-agora-streamlit.log
+          set -euo pipefail
+          smoke_test() {
+            local page="$1"
+            local port="$2"
+            local log_file="/tmp/$(basename "$page" .py)-streamlit.log"
+            set +e
+            timeout 30s python -m streamlit run "$page" --server.headless true --server.port "$port" > "$log_file" 2>&1
+            local exit_code=$?
+            set -e
+            cat "$log_file"
+            if [ "$exit_code" -ne 124 ]; then
+              echo "Streamlit exited before the smoke-test timeout for $page (exit $exit_code)."
+              return 1
+            fi
+            grep -q "You can now view your Streamlit app" "$log_file"
+          }
+          smoke_test pages/18_NEMA_AGORA.py 8501
+          smoke_test pages/171_NEMA_AGORA_RELEASE_READINESS.py 8502
