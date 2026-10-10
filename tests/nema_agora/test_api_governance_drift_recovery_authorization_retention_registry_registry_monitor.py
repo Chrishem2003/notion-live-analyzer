@@ -68,5 +68,5 @@ def test_sequence_gap():
 def test_execution_boundary_tamper():
     r=build_retention_registry_authorization_registry_monitor([],expected_count=0,observed_at="2026-10-04T12:05:00+00:00")
     r["execution_performed"]=True
-    with pytest.raises(ValueError,match="MONITOR_FINGERPRINT_MISMATCH"):
+    with pytest.raises(ValueError,match="EXECUTION_GATE_VIOLATION"):
         validate_retention_registry_authorization_registry_monitor(r)
