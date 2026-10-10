@@ -27,7 +27,7 @@ def reconcile_authorization_history_registry_decision_history_lifecycle_decision
     by_lifecycle: dict[str, list[dict[str, Any]]] = {}
     for d in valid_decisions: by_lifecycle.setdefault(d["lifecycle_fingerprint"], []).append(d)
     lifecycle_ids = set(lf)
-    decision_ids = set(df)
+    decision_lifecycle_ids = {x["lifecycle_fingerprint"] for x in valid_decisions}
     for l in valid_lifecycles:
         matches = by_lifecycle.get(l["lifecycle_fingerprint"], [])
         if not matches: findings.append("LIFECYCLE_WITHOUT_DECISION")
@@ -39,7 +39,7 @@ def reconcile_authorization_history_registry_decision_history_lifecycle_decision
             allowed = {"AUTHORIZE_REVIEW": ("DEFERRED",), "AUTHORIZE_PRESERVATION": ("ACKNOWLEDGED", "DEFERRED"), "AUTHORIZE_ESCALATION": ("ESCALATED",)}
             if d["lifecycle_state"] not in allowed[d["decision"]]: findings.append("DECISION_STATE_MISMATCH")
             if d["execution_gate_closed"] is not True or d["execution_permitted"] is not False or d["execution_performed"] is not False: findings.append("EXECUTION_GATE_VIOLATION")
-    if decision_ids - lifecycle_ids: findings.append("ORPHAN_DECISION")
+    if decision_lifecycle_ids - lifecycle_ids: findings.append("ORPHAN_DECISION")
     if expected_decision_count is not None and len(valid_decisions) != expected_decision_count: findings.append("DECISION_COUNT_MISMATCH")
     state = "NO_HISTORY" if not lifecycles and not decisions else ("RECONCILED" if not findings else "CONTROL_REQUIRED")
     unique_findings = sorted(set(findings))
