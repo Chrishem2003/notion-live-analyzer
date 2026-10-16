@@ -8,11 +8,14 @@ Configure both in Streamlit secrets or environment variables before using this p
 """
 from __future__ import annotations
 
+import time
+
 import streamlit as st
 
 from modules.audit_portal import CHRISHEMSubmissionSystem
 from modules.audit_portal_service import (
     PortalConfigurationError,
+    is_professor_session_valid,
     load_portal_credentials,
     verify_professor_password,
 )
@@ -108,15 +111,28 @@ with review_tab:
         unlock_clicked = st.form_submit_button("Unlock review queue")
 
     if unlock_clicked:
-        st.session_state["audit_portal_professor_authenticated"] = verify_professor_password(
-            candidate_password, professor_password
-        )
-        if not st.session_state["audit_portal_professor_authenticated"]:
+        authenticated = verify_professor_password(candidate_password, professor_password)
+        st.session_state["audit_portal_professor_authenticated"] = authenticated
+        if authenticated:
+            st.session_state["audit_portal_professor_authenticated_at"] = time.time()
+        else:
+            st.session_state.pop("audit_portal_professor_authenticated_at", None)
             st.error("Access denied. The password was not accepted.")
 
-    if st.session_state.get("audit_portal_professor_authenticated", False):
+    authenticated = is_professor_session_valid(
+        st.session_state.get("audit_portal_professor_authenticated", False),
+        st.session_state.get("audit_portal_professor_authenticated_at"),
+        now=time.time(),
+    )
+    if st.session_state.get("audit_portal_professor_authenticated", False) and not authenticated:
+        st.session_state["audit_portal_professor_authenticated"] = False
+        st.session_state.pop("audit_portal_professor_authenticated_at", None)
+        st.info("The professor session expired after 15 minutes. Unlock the review queue again.")
+
+    if authenticated:
         if st.button("Lock review queue", key="audit_portal_lock_review"):
             st.session_state["audit_portal_professor_authenticated"] = False
+            st.session_state.pop("audit_portal_professor_authenticated_at", None)
             st.rerun()
 
         try:
