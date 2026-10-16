@@ -59,7 +59,7 @@ def test_tampered_token_is_rejected():
     )
     parts = token.split(".")
     assert len(parts) == 3
-    parts[1] = parts[1][:-1] + ("A" if parts[1][-1] != "A" else "B")
+    parts[2] = ("A" if parts[2][0] != "A" else "B") + parts[2][1:]
 
     valid, decoded, _ = manager.validate_token(".".join(parts))
 
