@@ -243,5 +243,43 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(len(create_calls), 1)
 
 
+    def test_malformed_query_results_fail_closed_before_create(self):
+        class MalformedQuerySession(FakeSession):
+            def post(self, url, **kwargs):
+                self.calls.append(("POST", url, kwargs))
+                self.posts.append((url, kwargs))
+                if url.endswith("/query"):
+                    return FakeResponse({"results": {"unexpected": "shape"}})
+                return FakeResponse(self.create_payload)
+
+        session = MalformedQuerySession()
+        with self.assertRaisesRegex(NotionHandoffError, "invalid results structure"):
+            sync_run_to_notion(
+                sample_run(), token="secret",
+                database_id="12345678-1234-5678-1234-567812345678",
+                session=session,
+            )
+        self.assertFalse(any(url.endswith("/pages") for url, _ in session.posts))
+
+    def test_create_response_without_page_id_is_not_reported_as_delivered(self):
+        class IncompleteCreateSession(FakeSession):
+            def post(self, url, **kwargs):
+                self.calls.append(("POST", url, kwargs))
+                self.posts.append((url, kwargs))
+                if url.endswith("/query"):
+                    return FakeResponse({"results": []})
+                return FakeResponse({"url": "https://notion.example/missing-id"})
+
+        session = IncompleteCreateSession()
+        with self.assertRaisesRegex(NotionHandoffError, "did not confirm a page ID"):
+            sync_run_to_notion(
+                sample_run(), token="secret",
+                database_id="12345678-1234-5678-1234-567812345678",
+                session=session,
+            )
+        self.assertEqual(
+            sum(1 for url, _ in session.posts if url.endswith("/pages")), 1
+        )
+
 if __name__ == "__main__":
     unittest.main()
