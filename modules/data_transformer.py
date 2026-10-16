@@ -2,6 +2,7 @@
 Data Transformation Engine — SPSS-like Compute, Recode, Rank, Count, Shift, and Binning.
 Provides a UI for transforming variables with full SPSS compatibility.
 """
+import ast
 from typing import Dict, List, Any, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
@@ -11,27 +12,49 @@ from datetime import datetime, timedelta
 
 # ─── Expression Safety ───────────────────────────────────────────────
 
-_FORBIDDEN_EXPR_PATTERNS = ("__", "import", "lambda", "@")
+_ALLOWED_EXPR_FUNCTIONS = {
+    "abs", "round", "int", "float", "str", "len", "pow", "max", "min",
+    "sum", "mean", "sqrt", "log", "log10", "exp", "sin", "cos", "tan",
+    "floor", "ceil", "ifelse", "recode",
+}
+
+_ALLOWED_EXPR_NODES = (
+    ast.Expression, ast.BinOp, ast.UnaryOp, ast.BoolOp, ast.Compare,
+    ast.Name, ast.Load, ast.Constant, ast.Call, ast.Add, ast.Sub, ast.Mult,
+    ast.Div, ast.FloorDiv, ast.Mod, ast.Pow, ast.UAdd, ast.USub, ast.Not,
+    ast.Invert, ast.And, ast.Or, ast.BitAnd, ast.BitOr, ast.BitXor,
+    ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn,
+    ast.Is, ast.IsNot, ast.Tuple, ast.List,
+)
 
 
 def validate_expression(expression: str) -> None:
     """
-    Reject expressions that could escape pandas' evaluation sandbox.
-
-    `DataFrame.eval` falls back to the Python engine, where dunder attribute
-    access or `@` local-variable injection can reach arbitrary objects.
+    Allow only arithmetic, boolean/comparison expressions, literals, column
+    names, and an explicit list of supported functions. Attribute access,
+    subscripting, lambdas, imports, comprehensions, and arbitrary calls are
+    rejected before the expression reaches pandas.eval.
     """
-    lowered = expression.lower()
-    for token in _FORBIDDEN_EXPR_PATTERNS:
-        if token in ("__", "@"):
-            matched = token in lowered
-        else:
-            # Match language keywords as complete tokens. A legitimate column
-            # called "important_variable" must not be rejected for containing
-            # the substring "import".
-            matched = re.search(r"\b" + re.escape(token) + r"\b", lowered) is not None
-        if matched:
-            raise ValueError(f"Expression contains a disallowed token: '{token}'")
+    if not expression or not expression.strip():
+        raise ValueError("Expression must not be empty.")
+
+    try:
+        tree = ast.parse(expression.strip(), mode="eval")
+    except SyntaxError as exc:
+        raise ValueError("Expression is not valid expression syntax.") from exc
+
+    for node in ast.walk(tree):
+        if not isinstance(node, _ALLOWED_EXPR_NODES):
+            raise ValueError(f"Expression construct is not allowed: {type(node).__name__}")
+
+        if isinstance(node, ast.Name) and node.id.startswith("__"):
+            raise ValueError("Dunder names are not allowed in expressions.")
+
+        if isinstance(node, ast.Call):
+            if not isinstance(node.func, ast.Name):
+                raise ValueError("Only direct calls to approved functions are allowed.")
+            if node.func.id not in _ALLOWED_EXPR_FUNCTIONS:
+                raise ValueError(f"Function is not approved: '{node.func.id}'")
 
 
 # ─── Compute Variable ────────────────────────────────────────────────
