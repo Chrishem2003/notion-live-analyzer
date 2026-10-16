@@ -37,8 +37,13 @@ def rotate_workflow_encryption_key(
         raise WorkflowKeyRotationError("workflow database does not exist")
     if backup.exists():
         raise WorkflowKeyRotationError("backup path already exists; refusing to overwrite a backup")
-    old = validate_storage_key(old_key)
-    new = validate_storage_key(new_key)
+    try:
+        old = validate_storage_key(old_key)
+        new = validate_storage_key(new_key)
+    except WorkflowStorageConfigurationError as exc:
+        raise WorkflowKeyRotationError(
+            "old/new workflow encryption key is invalid; no rotation was attempted"
+        ) from exc
     if old == new:
         raise WorkflowKeyRotationError("old and new workflow encryption keys must be different")
 
