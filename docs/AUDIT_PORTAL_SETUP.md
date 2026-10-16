@@ -4,7 +4,7 @@ The Streamlit page is `pages/18_Research_Submission_Portal.py`. It stores submis
 
 ## Required secrets
 
-Configure **both** values before starting the app. Use long, randomly generated, different values.
+Configure **both** values before starting the app. Use long, randomly generated, different values; the application rejects identical values.
 
 ### Streamlit secrets
 
