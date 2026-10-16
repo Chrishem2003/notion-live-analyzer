@@ -5,6 +5,7 @@ on:
     paths:
       - "modules/audit_portal.py"
       - "tests/test_audit_portal.py"
+      - ".streamlit/config.toml"
       - ".github/workflows/audit-portal-tests.yml"
   push:
     branches:
@@ -13,6 +14,7 @@ on:
     paths:
       - "modules/audit_portal.py"
       - "tests/test_audit_portal.py"
+      - ".streamlit/config.toml"
       - ".github/workflows/audit-portal-tests.yml"
 
 permissions:
@@ -38,5 +40,13 @@ jobs:
         run: python -m pip install --upgrade pip pytest cryptography
       - name: Compile the audit portal
         run: python -m py_compile modules/audit_portal.py
+      - name: Verify Streamlit security configuration
+        shell: bash
+        run: |
+          grep -Eq '^enableXsrfProtection = true$' .streamlit/config.toml
+          if grep -Eq '^enableCORS = false$' .streamlit/config.toml; then
+            echo "Unsafe explicit CORS disable conflicts with the XSRF-protected deployment policy." >&2
+            exit 1
+          fi
       - name: Run audit portal regression tests
         run: python -m pytest -q tests/test_audit_portal.py
