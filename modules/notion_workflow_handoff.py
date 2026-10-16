@@ -11,6 +11,7 @@ import json
 import os
 import re
 import time
+from datetime import datetime
 from typing import Any, Mapping
 
 import requests
@@ -45,7 +46,25 @@ def manifest_digest(run: Mapping[str, Any]) -> str:
 
 
 def _rich_text(value: str) -> dict[str, Any]:
-    return {"rich_text": [{"type": "text", "text": {"content": value[:1900]}}]}
+    """Build one Notion text fragment without silently hiding truncation."""
+    limit = 1900
+    if len(value) > limit:
+        marker = "… [truncated; see manifest hash and local run store]"
+        value = value[:limit - len(marker)] + marker
+    return {"rich_text": [{"type": "text", "text": {"content": value}}]}
+
+
+def _validated_timestamp(value: Any, field: str) -> str:
+    """Require an ISO-8601 timestamp with timezone before sending a Notion date."""
+    if not isinstance(value, str) or not value.strip():
+        raise NotionHandoffError(f"successful run is missing {field}")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise NotionHandoffError(f"{field} must be an ISO-8601 timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise NotionHandoffError(f"{field} must include a timezone")
+    return parsed.isoformat()
 
 
 def _response_json(response: Any) -> dict[str, Any]:
@@ -75,6 +94,8 @@ def _validate_database_schema(payload: Mapping[str, Any]) -> None:
         "Reproducibility Check": ("select", "Not Checked"),
         "Record Classification": ("select", "Synthetic/Test"),
         "Analysis Method": ("rich_text", None),
+        "Code Revision": ("rich_text", None),
+        "Input Dataset Version": ("rich_text", None),
         "Run Manifest Hash": ("rich_text", None),
         "Execution Evidence / Handoff": ("rich_text", None),
         "Environment": ("rich_text", None),
@@ -181,6 +202,8 @@ def sync_run_to_notion(
     task_type = run.get("task_type")
     if not all(isinstance(v, str) and v.strip() for v in (run_id, workflow_id, task_type)):
         raise NotionHandoffError("run identity is incomplete")
+    started_at = _validated_timestamp(run.get("created_at"), "created_at")
+    completed_at = _validated_timestamp(run.get("updated_at"), "updated_at")
     digest = manifest_digest(run)
     headers = {
         "Authorization": f"Bearer {api_token}",
@@ -222,6 +245,13 @@ def sync_run_to_notion(
         "Reproducibility Check": {"select": {"name": "Not Checked"}},
         "Record Classification": {"select": {"name": "Synthetic/Test"}},
         "Analysis Method": _rich_text(task_type),
+        "Code Revision": _rich_text(
+            str(run.get("code_revision") or os.environ.get("GIT_COMMIT_SHA") or "Not supplied by runtime")
+        ),
+        "Input Dataset Version": _rich_text(
+            str((run.get("input") or {}).get("dataset_version") or "Not supplied by runtime")
+            if isinstance(run.get("input"), Mapping) else "Not supplied by runtime"
+        ),
         "Run Manifest Hash": _rich_text(digest),
         "Execution Evidence / Handoff": _rich_text(
             f"Local run ID: {run_id}; workflow: {workflow_id}; task: {task_type}; "
@@ -231,10 +261,8 @@ def sync_run_to_notion(
         "Environment": _rich_text("Local SQLite workflow runtime; explicit user-triggered Notion handoff"),
         "Parameters": _rich_text(json.dumps(run.get("input"), sort_keys=True, ensure_ascii=False, allow_nan=False)),
     }
-    if run.get("created_at"):
-        properties["Started At"] = {"date": {"start": run["created_at"]}}
-    if now:
-        properties["Completed At"] = {"date": {"start": now}}
+    properties["Started At"] = {"date": {"start": started_at}}
+    properties["Completed At"] = {"date": {"start": completed_at}}
     if run.get("error_message"):
         properties["Blocker / Recovery Action"] = _rich_text(str(run["error_message"]))
     try:
