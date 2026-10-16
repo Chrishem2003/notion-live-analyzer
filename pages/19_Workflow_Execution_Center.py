@@ -3,10 +3,17 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 
 import streamlit as st
 
+from modules.workflow_access import (
+    WorkflowAccessConfigurationError,
+    is_workflow_session_valid,
+    load_workflow_password,
+    verify_workflow_password,
+)
 from modules.workflow_handlers import default_handlers
 from modules.workflow_runtime import WorkflowRuntime
 from modules.notion_workflow_handoff import NotionHandoffError, sync_run_to_notion
@@ -18,6 +25,52 @@ st.caption(
     "Execute allow-listed research and data tasks with persistent run records. "
     "This page does not claim to call external AI, literature, or Notion services."
 )
+
+# Fail closed: this page can write to local storage and may hold a Notion API token.
+# Do not rely on the repository's legacy placeholder authentication gateway.
+try:
+    try:
+        configured_secrets = st.secrets
+    except Exception:
+        configured_secrets = {}
+    operator_password = load_workflow_password(configured_secrets, os.environ)
+except WorkflowAccessConfigurationError:
+    st.error("Workflow Execution Center is locked because operator access is not configured.")
+    st.info(
+        "Set a unique WORKFLOW_EXECUTION_PASSWORD with at least 24 characters in "
+        "Streamlit secrets or the deployment environment. No default password is provided."
+    )
+    st.stop()
+
+if st.session_state.get("workflow_execution_authenticated", False):
+    if not is_workflow_session_valid(
+        True,
+        st.session_state.get("workflow_execution_authenticated_at"),
+        now=time.time(),
+    ):
+        st.session_state["workflow_execution_authenticated"] = False
+        st.session_state.pop("workflow_execution_authenticated_at", None)
+        st.warning("The operator session expired after 15 minutes. Unlock the console again.")
+
+if not st.session_state.get("workflow_execution_authenticated", False):
+    with st.form("workflow_execution_unlock_form"):
+        candidate_password = st.text_input(
+            "Workflow operator password", type="password", autocomplete="current-password"
+        )
+        unlock_clicked = st.form_submit_button("Unlock execution center", type="primary")
+    if unlock_clicked:
+        if verify_workflow_password(candidate_password, operator_password):
+            st.session_state["workflow_execution_authenticated"] = True
+            st.session_state["workflow_execution_authenticated_at"] = time.time()
+            st.rerun()
+        else:
+            st.error("Access denied. The operator password was not accepted.")
+    st.stop()
+
+if st.button("Lock execution center"):
+    st.session_state["workflow_execution_authenticated"] = False
+    st.session_state.pop("workflow_execution_authenticated_at", None)
+    st.rerun()
 
 configured_path = os.environ.get("WORKFLOW_RUNTIME_DB", ".streamlit/workflow_runtime.sqlite3")
 db_path = Path(configured_path).expanduser()
