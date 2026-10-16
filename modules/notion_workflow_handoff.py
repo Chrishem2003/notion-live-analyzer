@@ -9,6 +9,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
+import time
 from typing import Any, Mapping
 
 import requests
@@ -101,6 +103,55 @@ def _validate_database_schema(payload: Mapping[str, Any]) -> None:
     if blocker is not None and (not isinstance(blocker, dict) or blocker.get("type") != "rich_text"):
         raise NotionHandoffError("target property 'Blocker / Recovery Action' must be rich_text")
 
+def _safe_notion_request(
+    session: Any,
+    method: str,
+    url: str,
+    *,
+    headers: Mapping[str, str],
+    json_body: Mapping[str, Any] | None = None,
+    retries: int = 3,
+) -> dict[str, Any]:
+    """Retry only reads/idempotent lookups on transient transport/API failures."""
+    if method not in {"GET", "POST"}:
+        raise NotionHandoffError("unsupported Notion request method")
+    for attempt in range(retries):
+        try:
+            if method == "GET":
+                response = session.get(url, headers=headers, timeout=20)
+            else:
+                response = session.post(url, headers=headers, json=json_body, timeout=20)
+        except requests.RequestException as exc:
+            if attempt + 1 >= retries:
+                raise NotionHandoffError(
+                    f"Notion {method} request failed after {retries} attempts "
+                    f"({type(exc).__name__})"
+                ) from exc
+            time.sleep(min(0.25 * (2 ** attempt), 2.0))
+            continue
+
+        status = getattr(response, "status_code", 500)
+        if status == 429 or status >= 500:
+            if attempt + 1 < retries:
+                retry_after = getattr(response, "headers", {}).get("Retry-After", "")
+                try:
+                    delay = float(retry_after)
+                except (TypeError, ValueError):
+                    delay = 0.25 * (2 ** attempt)
+                time.sleep(max(0.0, min(delay, 2.0)))
+                continue
+        return _response_json(response)
+    raise NotionHandoffError("Notion request exhausted its retry budget")
+
+
+def _validate_database_id(value: str) -> str:
+    """Accept only a Notion UUID so configuration cannot alter the API path."""
+    candidate = value.strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{32}|[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", candidate):
+        raise NotionHandoffError("Notion database ID must be a 32-character UUID, with optional hyphens")
+    return candidate
+
+
 def sync_run_to_notion(
     run: Mapping[str, Any],
     *,
@@ -121,6 +172,8 @@ def sync_run_to_notion(
         raise NotionHandoffError("NOTION_API_KEY is not configured")
     if not isinstance(target_database, str) or not target_database.strip():
         raise NotionHandoffError("NOTION_ANALYSIS_RUNS_DATABASE_ID is not configured")
+    api_token = api_token.strip()
+    target_database = _validate_database_id(target_database)
     if run.get("status") != "succeeded":
         raise NotionHandoffError("only successful workflow runs can be handed off")
     run_id = run.get("run_id")
@@ -134,26 +187,22 @@ def sync_run_to_notion(
         "Notion-Version": NOTION_API_VERSION,
         "Content-Type": "application/json",
     }
-    schema_response = session.get(
-        f"{NOTION_API_BASE}/databases/{target_database}",
+    schema_payload = _safe_notion_request(
+        session, "GET", f"{NOTION_API_BASE}/databases/{target_database}",
         headers=headers,
-        timeout=20,
     )
-    _validate_database_schema(_response_json(schema_response))
+    _validate_database_schema(schema_payload)
     base = f"{NOTION_API_BASE}/databases/{target_database}/query"
-    query_response = session.post(
-        base,
-        headers=headers,
-        json={
-            "filter": {
-                "property": "Run Manifest Hash",
-                "rich_text": {"equals": digest},
-            },
-            "page_size": 1,
+    query_body = {
+        "filter": {
+            "property": "Run Manifest Hash",
+            "rich_text": {"equals": digest},
         },
-        timeout=20,
+        "page_size": 1,
+    }
+    queried = _safe_notion_request(
+        session, "POST", base, headers=headers, json_body=query_body,
     )
-    queried = _response_json(query_response)
     existing = queried.get("results", [])
     if existing:
         first = existing[0]
@@ -188,12 +237,21 @@ def sync_run_to_notion(
         properties["Completed At"] = {"date": {"start": now}}
     if run.get("error_message"):
         properties["Blocker / Recovery Action"] = _rich_text(str(run["error_message"]))
-    created_response = session.post(
-        f"{NOTION_API_BASE}/pages",
-        headers=headers,
-        json={"parent": {"database_id": target_database}, "properties": properties},
-        timeout=20,
-    )
+    try:
+        created_response = session.post(
+            f"{NOTION_API_BASE}/pages",
+            headers=headers,
+            json={"parent": {"database_id": target_database}, "properties": properties},
+            timeout=20,
+        )
+    except requests.RequestException as exc:
+        # The server may have committed the page before the connection failed.
+        # Never blindly replay this non-idempotent create request. A fresh call
+        # will query by manifest hash before deciding whether creation is needed.
+        raise NotionHandoffError(
+            "Notion page creation outcome is unknown after a transport failure; "
+            "retry the handoff action to reconcile by manifest hash before creating again"
+        ) from exc
     created = _response_json(created_response)
     return {
         "created": True,
