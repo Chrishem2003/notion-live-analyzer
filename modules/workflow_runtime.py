@@ -21,7 +21,7 @@ from modules.workflow_contract import (
     idempotency_key,
     validate_status_transition,
 )
-from modules.workflow_store import append_event, initialize_store
+from modules.workflow_store import append_event_in_transaction, initialize_store
 
 TaskHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 _RUN_SCHEMA = """
@@ -68,13 +68,13 @@ def _initialize(database: str | Path) -> None:
         connection.executescript(_RUN_SCHEMA)
 
 
-def _record_event(database: str | Path, *, workflow_id: str, run_id: str,
-                  task_type: str, stage: str, status: str,
-                  payload: Mapping[str, Any], evidence_refs: tuple[str, ...] = ()) -> None:
+def _event_payload(*, workflow_id: str, run_id: str, task_type: str, stage: str,
+                   status: str, payload: Mapping[str, Any],
+                   evidence_refs: tuple[str, ...] = ()) -> dict[str, Any]:
     digest = canonical_payload_digest(payload)
     event_type = f"{task_type}.{status}"
     key = idempotency_key(workflow_id, run_id, event_type, digest)
-    append_event(database, {
+    return {
         "schema_version": SCHEMA_VERSION,
         "event_id": str(uuid.uuid4()),
         "idempotency_key": key,
@@ -86,8 +86,7 @@ def _record_event(database: str | Path, *, workflow_id: str, run_id: str,
         "occurred_at": _utc_now(),
         "payload_digest": digest,
         "evidence_refs": list(evidence_refs),
-    })
-
+    }
 
 class WorkflowRuntime:
     """Durable local task queue with an explicit allow-list of callable handlers."""
@@ -129,14 +128,19 @@ class WorkflowRuntime:
                     VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?)""",
                     (run_id, workflow_id.strip(), task_type, encoded, max_attempts, now, now),
                 )
+                append_event_in_transaction(
+                    connection,
+                    _event_payload(
+                        workflow_id=workflow_id.strip(), run_id=run_id,
+                        task_type=task_type, stage="problem_solving", status="queued",
+                        payload={"input": json.loads(encoded), "attempt": 0},
+                    ),
+                )
                 connection.execute("COMMIT")
             except Exception:
                 if connection.in_transaction:
                     connection.execute("ROLLBACK")
                 raise
-        _record_event(self.database, workflow_id=workflow_id.strip(), run_id=run_id,
-                      task_type=task_type, stage="problem_solving", status="queued",
-                      payload={"input": json.loads(encoded), "attempt": 0})
         return run_id
 
     def get_run(self, run_id: str) -> dict[str, Any] | None:
@@ -160,68 +164,14 @@ class WorkflowRuntime:
         return [self.get_run(row["run_id"]) for row in rows if row is not None]
 
     def execute_next(self) -> dict[str, Any] | None:
-        """Claim one queued run, execute its trusted handler, persist outcome and event."""
+        """Execute the oldest queued run, without duplicating execution logic."""
         with closing(_connect(self.database)) as connection:
-            connection.execute("BEGIN IMMEDIATE")
-            try:
-                row = connection.execute(
-                    "SELECT * FROM workflow_runs WHERE status = 'queued' ORDER BY created_at, rowid LIMIT 1"
-                ).fetchone()
-                if row is None:
-                    connection.execute("COMMIT")
-                    return None
-                now = _utc_now()
-                attempt = int(row["attempt"]) + 1
-                validate_status_transition("queued", "running")
-                connection.execute(
-                    "UPDATE workflow_runs SET status='running', attempt=?, claimed_at=?, updated_at=? WHERE run_id=?",
-                    (attempt, now, now, row["run_id"]),
-                )
-                connection.execute("COMMIT")
-            except Exception:
-                if connection.in_transaction:
-                    connection.execute("ROLLBACK")
-                raise
-
-        run_id, workflow_id, task_type = row["run_id"], row["workflow_id"], row["task_type"]
-        payload = json.loads(row["input_json"])
-        _record_event(self.database, workflow_id=workflow_id, run_id=run_id,
-                      task_type=task_type, stage="problem_solving", status="running",
-                      payload={"attempt": attempt, "input_digest": canonical_payload_digest(payload)})
-        handler = self.handlers.get(task_type)
-        try:
-            if handler is None:
-                raise HandlerNotRegistered(f"handler {task_type!r} is not registered in this worker")
-            result = handler(payload)
-            if not isinstance(result, Mapping):
-                raise TypeError("workflow handler must return a mapping")
-            encoded_result = json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
-            outcome = "succeeded"
-            error_message = None
-        except Exception as exc:
-            encoded_result = None
-            error_message = f"{type(exc).__name__}: {str(exc)[:500]}"
-            outcome = "queued" if attempt < int(row["max_attempts"]) else "failed"
-
-        now = _utc_now()
-        with closing(_connect(self.database)) as connection:
-            connection.execute("BEGIN IMMEDIATE")
-            try:
-                connection.execute(
-                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=? WHERE run_id=? AND status='running'",
-                    (outcome, encoded_result, error_message, now, run_id),
-                )
-                connection.execute("COMMIT")
-            except Exception:
-                if connection.in_transaction:
-                    connection.execute("ROLLBACK")
-                raise
-        _record_event(self.database, workflow_id=workflow_id, run_id=run_id,
-                      task_type=task_type, stage="problem_solving", status=outcome,
-                      payload=({"result": json.loads(encoded_result)} if encoded_result else
-                               {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}))
-        return self.get_run(run_id)
-
+            row = connection.execute(
+                "SELECT run_id FROM workflow_runs WHERE status = 'queued' ORDER BY created_at, rowid LIMIT 1"
+            ).fetchone()
+        if row is None:
+            return None
+        return self.execute_run(row["run_id"])
 
     def execute_run(self, run_id: str) -> dict[str, Any] | None:
         """Execute one specific queued run; leave unrelated queue items untouched."""
@@ -242,6 +192,14 @@ class WorkflowRuntime:
                     "UPDATE workflow_runs SET status='running', attempt=?, claimed_at=?, updated_at=? WHERE run_id=? AND status='queued'",
                     (attempt, now, now, run_id),
                 )
+                append_event_in_transaction(
+                    connection,
+                    _event_payload(
+                        workflow_id=row["workflow_id"], run_id=run_id,
+                        task_type=row["task_type"], stage="problem_solving", status="running",
+                        payload={"attempt": attempt, "input_digest": canonical_payload_digest(json.loads(row["input_json"]))},
+                    ),
+                )
                 connection.execute("COMMIT")
             except Exception:
                 if connection.in_transaction:
@@ -250,9 +208,6 @@ class WorkflowRuntime:
 
         workflow_id, task_type = row["workflow_id"], row["task_type"]
         payload = json.loads(row["input_json"])
-        _record_event(self.database, workflow_id=workflow_id, run_id=run_id,
-                      task_type=task_type, stage="problem_solving", status="running",
-                      payload={"attempt": attempt, "input_digest": canonical_payload_digest(payload)})
         handler = self.handlers.get(task_type)
         try:
             if handler is None:
@@ -276,13 +231,20 @@ class WorkflowRuntime:
                     "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=? WHERE run_id=? AND status='running'",
                     (outcome, encoded_result, error_message, now, run_id),
                 )
+                outcome_payload = (
+                    {"result": json.loads(encoded_result)} if encoded_result else
+                    {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}
+                )
+                append_event_in_transaction(
+                    connection,
+                    _event_payload(
+                        workflow_id=workflow_id, run_id=run_id, task_type=task_type,
+                        stage="problem_solving", status=outcome, payload=outcome_payload,
+                    ),
+                )
                 connection.execute("COMMIT")
             except Exception:
                 if connection.in_transaction:
                     connection.execute("ROLLBACK")
                 raise
-        _record_event(self.database, workflow_id=workflow_id, run_id=run_id,
-                      task_type=task_type, stage="problem_solving", status=outcome,
-                      payload=({"result": json.loads(encoded_result)} if encoded_result else
-                               {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}))
         return self.get_run(run_id)
