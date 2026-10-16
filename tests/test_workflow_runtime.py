@@ -17,6 +17,12 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         self.database = Path(self.tempdir.name) / "runtime.sqlite3"
 
+    def make_runtime(self, *args, **kwargs):
+        """Explicit test-only opt-in for legacy plaintext runtime fixtures."""
+        if kwargs.get("encryption_key") is None:
+            kwargs["allow_plaintext_for_tests"] = True
+        return WorkflowRuntime(*args, **kwargs)
+
     def tearDown(self):
         self.tempdir.cleanup()
 
