@@ -330,5 +330,33 @@ class WorkflowRuntimeTests(unittest.TestCase):
             )
 
 
+    def test_key_rotation_backup_has_restricted_posix_permissions(self):
+        import os
+        import stat
+        if os.name != "posix":
+            self.skipTest("POSIX permission bits are not portable to Windows")
+        old_key = Fernet.generate_key()
+        new_key = Fernet.generate_key()
+        backup = Path(self.tempdir.name) / "runtime-private-backup.sqlite3"
+        rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
+        self.assertEqual(stat.S_IMODE(backup.stat().st_mode), 0o600)
+
+    def test_key_rotation_refuses_dangling_symlink_backup_path(self):
+        import os
+        if not hasattr(os, "symlink"):
+            self.skipTest("Symlinks are not supported")
+        backup = Path(self.tempdir.name) / "dangling-backup-link.sqlite3"
+        target = Path(self.tempdir.name) / "must-not-be-created.sqlite3"
+        try:
+            backup.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("Unable to create symlink in this environment")
+        key = Fernet.generate_key()
+        with self.assertRaisesRegex(WorkflowKeyRotationError, "refusing to overwrite"):
+            rotate_workflow_encryption_key(self.database, backup, key, Fernet.generate_key())
+        self.assertTrue(backup.is_symlink())
+        self.assertFalse(target.exists())
+
+
 if __name__ == "__main__":
     unittest.main()
