@@ -281,5 +281,63 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
             sum(1 for url, _ in session.posts if url.endswith("/pages")), 1
         )
 
+
+    def test_ambiguous_create_is_reconciled_on_retry_with_shared_ledger(self):
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+
+        class CommitThenDisconnectSession(FakeSession):
+            def __init__(self):
+                super().__init__()
+                self.remote_page = None
+                self.create_attempts = 0
+
+            def post(self, url, **kwargs):
+                self.calls.append(("POST", url, kwargs))
+                self.posts.append((url, kwargs))
+                if url.endswith("/query"):
+                    return FakeResponse(
+                        {"results": [self.remote_page] if self.remote_page else []}
+                    )
+                self.create_attempts += 1
+                self.remote_page = dict(self.create_payload)
+                if self.create_attempts == 1:
+                    raise requests.ConnectionError("simulated response lost after remote commit")
+                return FakeResponse(self.create_payload)
+
+        session = CommitThenDisconnectSession()
+        with TemporaryDirectory() as directory:
+            ledger = str(Path(directory) / "handoff-recovery.sqlite3")
+            with self.assertRaisesRegex(NotionHandoffError, "outcome is unknown"):
+                sync_run_to_notion(
+                    sample_run(), token="secret",
+                    database_id="12345678-1234-5678-1234-567812345678",
+                    session=session, ledger_database=ledger,
+                )
+            recovered = sync_run_to_notion(
+                sample_run(), token="secret",
+                database_id="12345678-1234-5678-1234-567812345678",
+                session=session, ledger_database=ledger,
+            )
+
+        self.assertFalse(recovered["created"])
+        self.assertEqual(recovered["page_id"], "page-1")
+        self.assertEqual(session.create_attempts, 1)
+        self.assertEqual(
+            sum(1 for url, _ in session.posts if url.endswith("/pages")), 1
+        )
+
+    def test_existing_match_with_non_https_url_fails_closed(self):
+        session = FakeSession(
+            query_payload={"results": [{"id": "existing", "url": "http://notion.example/page"}]}
+        )
+        with self.assertRaisesRegex(NotionHandoffError, "valid HTTPS page URL"):
+            sync_run_to_notion(
+                sample_run(), token="secret",
+                database_id="12345678-1234-5678-1234-567812345678",
+                session=session,
+            )
+        self.assertFalse(any(url.endswith("/pages") for url, _ in session.posts))
+
 if __name__ == "__main__":
     unittest.main()
