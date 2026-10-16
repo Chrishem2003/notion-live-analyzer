@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hmac
 import os
+import time
 from collections.abc import Mapping
 from typing import Any
 
@@ -57,3 +58,30 @@ def verify_professor_password(candidate: str, expected: str) -> bool:
     if not isinstance(expected, str) or not expected:
         return False
     return hmac.compare_digest(candidate.encode("utf-8"), expected.encode("utf-8"))
+
+
+PROFESSOR_SESSION_TTL_SECONDS = 15 * 60
+
+
+def is_professor_session_valid(
+    authenticated: bool,
+    authenticated_at: float | int | None,
+    *,
+    now: float | int | None = None,
+    ttl_seconds: int = PROFESSOR_SESSION_TTL_SECONDS,
+) -> bool:
+    """Validate a professor session with a bounded lifetime.
+
+    Missing, malformed, future-dated, and expired timestamps fail closed.
+    The caller should clear its session state when this returns False.
+    """
+    if not authenticated or isinstance(authenticated_at, bool):
+        return False
+    if not isinstance(authenticated_at, (int, float)) or ttl_seconds <= 0:
+        return False
+    current_time = time.time() if now is None else now
+    if isinstance(current_time, bool) or not isinstance(current_time, (int, float)):
+        return False
+    if current_time < authenticated_at:
+        return False
+    return current_time - authenticated_at < ttl_seconds
