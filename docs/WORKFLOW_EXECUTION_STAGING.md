@@ -211,3 +211,15 @@ The runtime uses a SQLite write transaction to claim a queued run before invokin
 - [ ] Keep multi-process/multi-host deployments blocked until the worker topology, lease strategy, durable storage, and cross-host coordination are validated.
 
 This test establishes local single-run claim behavior under the tested race; it is not a distributed lock or a guarantee of exactly-once side effects.
+
+
+## 15. Notion API response validation (added 2026-10-16)
+
+The handoff adapter now rejects malformed query result structures, matching records without a non-empty page ID or HTTPS URL, and create responses that do not confirm both a page ID and HTTPS URL. This prevents the UI from claiming a successful handoff from an incomplete response.
+
+- [ ] Verify malformed query responses fail before a page-create request.
+- [ ] Verify incomplete create responses are surfaced as an unconfirmed outcome and are reconciled by querying the manifest hash before any retry.
+- [ ] Verify database IDs are UUID-shaped before any network request; use a disposable staging database and least-privileged token for live acceptance.
+- [ ] Confirm that an uncertain create outcome is never blindly replayed. Notion query-before-create plus a local SQLite lock is not a cross-host atomic uniqueness guarantee.
+
+The new tests use mocked HTTP only. They do not establish live Notion permissions, target schema correctness, or successful staging delivery.
