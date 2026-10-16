@@ -133,3 +133,22 @@ The Workflow Execution Center now requires WORKFLOW_RUNTIME_ENCRYPTION_KEY befor
 - [ ] Document and test key rotation, protected backups, restore, retention, and deletion before using real research data.
 
 The UI still requires synthetic/demo-only confirmation. This is an interim data-classification guardrail; it cannot detect dishonest or accidental misclassification. Real research, identifiable, confidential, or regulated content remains prohibited until the complete data-protection controls are accepted.
+
+
+## 10. Controlled key rotation
+
+A rotation helper is now available at tools/rotate_workflow_encryption_key.py. It refuses to overwrite an existing backup, creates a SQLite-aware backup first, then rotates the workflow_runs input/result/error fields in one transaction. If any ciphertext cannot be decrypted with the old key, the transaction rolls back and the backup is retained.
+
+1. Stop workflow submissions and ensure no worker is executing.
+2. In the trusted environment, set WORKFLOW_RUNTIME_ENCRYPTION_KEY_OLD and WORKFLOW_RUNTIME_ENCRYPTION_KEY_NEW. Do not pass keys as command-line arguments or paste them into Notion/chat.
+3. Choose a new, non-existing backup destination with restricted permissions.
+4. Run:
+
+       python tools/rotate_workflow_encryption_key.py --database .streamlit/workflow_runtime.sqlite3 --backup /secure/backups/workflow-before-rotation.sqlite3
+
+5. Confirm the command reports success and the backup path. The command never prints key values.
+6. Set WORKFLOW_RUNTIME_ENCRYPTION_KEY to the new key in the approved secret store, remove old-key variables according to the recovery policy, then restart the app.
+7. Verify readback with the new key and verify the protected backup can still be opened with the old key in isolated recovery staging.
+8. Retain or delete the backup only under the approved retention policy; do not leave unprotected copies in the repository or app filesystem.
+
+Do not rotate keys against production data until the backup, rollback, key custody, and recovery tests have been approved. Key rotation does not encrypt metadata/event digests and is not a substitute for filesystem or whole-database controls.
