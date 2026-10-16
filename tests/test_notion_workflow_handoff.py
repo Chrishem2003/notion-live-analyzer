@@ -68,6 +68,9 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(properties["Reproducibility Check"]["select"]["name"], "Not Checked")
         self.assertEqual(properties["Record Classification"]["select"]["name"], "Synthetic/Test")
         self.assertEqual(properties["Run Manifest Hash"]["rich_text"][0]["text"]["content"], result["manifest_hash"])
+        evidence = properties["Execution Evidence / Handoff"]["rich_text"][0]["text"]["content"]
+        self.assertIn('"mean": 2.0', evidence)
+        self.assertIn("QC and reproducibility are still pending", evidence)
 
     def test_existing_matching_record_is_returned_without_duplicate_create(self):
         session = FakeSession(query_payload={"results": [{"id": "existing", "url": "https://notion.example/existing"}]})
