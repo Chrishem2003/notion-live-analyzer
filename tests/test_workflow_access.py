@@ -1,5 +1,6 @@
 """Security tests for the workflow execution operator gate."""
 import unittest
+from unittest.mock import patch
 
 from modules.workflow_access import (
     WorkflowAccessConfigurationError,
@@ -20,7 +21,7 @@ class WorkflowAccessTests(unittest.TestCase):
 
     def test_empty_explicit_environment_does_not_fall_back_to_process_environment(self):
         # Configuration passed by the caller must be deterministic and isolated.
-        with unittest.mock.patch.dict(
+        with patch.dict(
             "os.environ", {"WORKFLOW_EXECUTION_PASSWORD": "ambient-secret-that-is-long-enough"}
         ):
             with self.assertRaises(WorkflowAccessConfigurationError):
