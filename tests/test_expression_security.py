@@ -26,9 +26,12 @@ transformer = importlib.import_module("modules.data_transformer")
         "income * 1.1",
         "important_variable + 1",
         "IMPORTANCE_SCORE / 2",
+        "sqrt(measurement)",
+        "round(result, 2)",
+        "ifelse(age >= 18, adult, minor)",
     ],
 )
-def test_validator_allows_normal_expressions_and_identifiers(expression):
+def test_validator_allows_normal_expressions_and_approved_functions(expression):
     transformer.validate_expression(expression)
 
 
@@ -38,9 +41,18 @@ def test_validator_allows_normal_expressions_and_identifiers(expression):
         "value.__class__",
         "__import__('os')",
         "lambda x: x",
+        "(lambda x: x)(value)",
         "value @ local_object",
+        "open('secret.txt')",
+        "value[0]",
+        "[x for x in values]",
     ],
 )
-def test_validator_rejects_forbidden_expression_constructs(expression):
+def test_validator_rejects_unsafe_expression_constructs(expression):
     with pytest.raises(ValueError):
         transformer.validate_expression(expression)
+
+
+def test_validator_rejects_empty_expression():
+    with pytest.raises(ValueError):
+        transformer.validate_expression("   ")
