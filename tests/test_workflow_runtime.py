@@ -8,6 +8,7 @@ from pathlib import Path
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
 from modules.workflow_store import list_run_events
 from modules.workflow_storage import WorkflowStorageError
+from modules.workflow_key_rotation import WorkflowKeyRotationError, rotate_workflow_encryption_key
 from cryptography.fernet import Fernet
 
 
@@ -214,6 +215,74 @@ class WorkflowRuntimeTests(unittest.TestCase):
                 handlers={"echo": lambda data: dict(data)},
                 encryption_key=Fernet.generate_key(),
             ).get_run(run_id)
+
+
+    def test_key_rotation_creates_backup_and_preserves_readback(self):
+        old_key = Fernet.generate_key()
+        new_key = Fernet.generate_key()
+        runtime = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=old_key,
+        )
+        run_id = runtime.submit(
+            workflow_id="demo-project",
+            task_type="echo",
+            payload={"value": "rotation-fixture"},
+        )
+        runtime.execute_run(run_id)
+        backup = Path(self.tempdir.name) / "runtime-before-rotation.sqlite3"
+
+        outcome = rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
+        self.assertTrue(backup.is_file())
+        self.assertEqual(outcome["rows_updated"], 1)
+        self.assertGreaterEqual(outcome["fields_updated"], 2)
+
+        rotated = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=new_key,
+        )
+        self.assertEqual(rotated.get_run(run_id)["input"], {"value": "rotation-fixture"})
+        self.assertEqual(rotated.get_run(run_id)["result"], {"echo": "rotation-fixture"})
+
+        backed_up = WorkflowRuntime(
+            backup,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=old_key,
+        )
+        self.assertEqual(backed_up.get_run(run_id)["input"], {"value": "rotation-fixture"})
+
+    def test_failed_key_rotation_rolls_back_and_retains_backup(self):
+        old_key = Fernet.generate_key()
+        runtime = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "preserve-me"})
+        before = sqlite3.connect(self.database).execute(
+            "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+        ).fetchone()[0]
+        backup = Path(self.tempdir.name) / "runtime-safe-backup.sqlite3"
+
+        with self.assertRaises(WorkflowKeyRotationError):
+            rotate_workflow_encryption_key(
+                self.database, backup, Fernet.generate_key(), Fernet.generate_key()
+            )
+        self.assertTrue(backup.is_file())
+        after = sqlite3.connect(self.database).execute(
+            "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+        ).fetchone()[0]
+        self.assertEqual(after, before)
+        self.assertEqual(
+            WorkflowRuntime(
+                self.database,
+                handlers={"echo": lambda data: dict(data)},
+                encryption_key=old_key,
+            ).get_run(run_id)["input"],
+            {"value": "preserve-me"},
+        )
 
 
 if __name__ == "__main__":
