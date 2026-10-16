@@ -208,15 +208,15 @@ class CHRISHEMSubmissionSystem:
         query = "SELECT * FROM portal_submissions WHERE 1=1"
         params = []
         if project_id:
-            query = " AND project_id = ?"
+            query += " AND project_id = ?"
             params.append(project_id)
         if student_name:
-            query = " AND student_name = ?"
+            query += " AND student_name = ?"
             params.append(student_name)
         if status:
-            query = " AND status = ?"
+            query += " AND status = ?"
             params.append(status)
-        query = " ORDER BY submitted_at DESC"
+        query += " ORDER BY submitted_at DESC"
 
         with self._get_conn() as conn:
             rows = conn.execute(query, params).fetchall()
