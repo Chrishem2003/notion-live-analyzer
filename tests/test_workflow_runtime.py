@@ -1,4 +1,5 @@
 """Tests for the persistent local workflow runtime."""
+import sqlite3
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -89,6 +90,31 @@ class WorkflowRuntimeTests(unittest.TestCase):
             [event["status"] for event in list_run_events(self.database, "p1", run_id)],
             ["queued"],
         )
+
+    def test_recover_stale_running_attempt_requeues_when_attempts_remain(self):
+        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=3)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET status='running', attempt=1, claimed_at=? WHERE run_id=?",
+                ("2000-01-01T00:00:00+00:00", run_id),
+            )
+        recovered = runtime.recover_stale_runs(older_than_seconds=60)
+        self.assertEqual(recovered, [{"run_id": run_id, "status": "queued", "attempt": 1}])
+        self.assertEqual(runtime.get_run(run_id)["status"], "queued")
+        self.assertEqual(list_run_events(self.database, "p1", run_id)[-1]["status"], "queued")
+
+    def test_recover_stale_run_fails_when_attempt_budget_is_exhausted(self):
+        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=1)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET status='running', attempt=1, claimed_at=? WHERE run_id=?",
+                ("2000-01-01T00:00:00+00:00", run_id),
+            )
+        recovered = runtime.recover_stale_runs(older_than_seconds=60)
+        self.assertEqual(recovered[0]["status"], "failed")
+        self.assertEqual(runtime.get_run(run_id)["status"], "failed")
 
 
 if __name__ == "__main__":
