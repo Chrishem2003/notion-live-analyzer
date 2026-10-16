@@ -95,5 +95,20 @@ class WorkflowEffectJournalTests(unittest.TestCase):
         self.assertEqual(next_attempt.state, "pending")
 
 
+    def test_confirmed_result_cannot_be_overwritten_by_reconciliation(self):
+        self.journal.prepare(
+            effect_key="effect-6", workflow_id="p1", run_id="r6",
+            effect_name="publish", request={"sample": "synthetic"},
+        )
+        self.journal.confirm("effect-6", {"remote_id": "verified-original"})
+        with self.assertRaises(EffectIdentityConflict):
+            self.journal.reconcile(
+                "effect-6", confirmed=True, result={"remote_id": "different-result"}
+            )
+        self.assertEqual(
+            self.journal.get("effect-6")["result"], {"remote_id": "verified-original"}
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
