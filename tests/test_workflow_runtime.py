@@ -27,21 +27,21 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.tempdir.cleanup()
 
     def test_submit_persists_queued_run_and_input(self):
-        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: {"echo": data["value"]}})
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: {"echo": data["value"]}})
         run_id = runtime.submit(workflow_id="project-1", task_type="echo", payload={"value": 7})
-        loaded = WorkflowRuntime(self.database, handlers={"echo": lambda data: {"echo": data["value"]}}).get_run(run_id)
+        loaded = self.make_runtime(self.database, handlers={"echo": lambda data: {"echo": data["value"]}}).get_run(run_id)
         self.assertEqual(loaded["status"], "queued")
         self.assertEqual(loaded["input"], {"value": 7})
         self.assertEqual(loaded["attempt"], 0)
 
     def test_unregistered_task_type_is_rejected_before_enqueue(self):
-        runtime = WorkflowRuntime(self.database)
+        runtime = self.make_runtime(self.database)
         with self.assertRaises(HandlerNotRegistered):
             runtime.submit(workflow_id="p1", task_type="arbitrary_import", payload={})
         self.assertEqual(runtime.list_runs(), [])
 
     def test_registered_handler_executes_and_persists_result(self):
-        runtime = WorkflowRuntime(self.database, handlers={"sum": lambda data: {"total": sum(data["values"])}})
+        runtime = self.make_runtime(self.database, handlers={"sum": lambda data: {"total": sum(data["values"])}})
         run_id = runtime.submit(workflow_id="p1", task_type="sum", payload={"values": [2, 3, 5]})
         completed = runtime.execute_next()
         self.assertEqual(completed["run_id"], run_id)
@@ -56,7 +56,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
             calls["count"] += 1
             raise RuntimeError("deliberate test failure")
 
-        runtime = WorkflowRuntime(self.database, handlers={"unstable": always_fails})
+        runtime = self.make_runtime(self.database, handlers={"unstable": always_fails})
         run_id = runtime.submit(workflow_id="p1", task_type="unstable", payload={}, max_attempts=2)
         first = runtime.execute_next()
         self.assertEqual(first["status"], "queued")
@@ -70,22 +70,22 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual([item["status"] for item in history], ["queued", "running", "queued", "running", "failed"])
 
     def test_no_queued_work_returns_none(self):
-        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         self.assertIsNone(runtime.execute_next())
 
     def test_attempt_limit_is_bounded(self):
-        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         with self.assertRaises(ValueError):
             runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=99)
 
     def test_oversized_input_is_rejected_before_persistence(self):
-        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         with self.assertRaisesRegex(ValueError, "payload exceeds"):
             runtime.submit(workflow_id="p1", task_type="echo", payload={"text": "x" * 1_000_001})
         self.assertEqual(runtime.list_runs(), [])
 
     def test_oversized_handler_result_fails_with_bounded_error(self):
-        runtime = WorkflowRuntime(
+        runtime = self.make_runtime(
             self.database,
             handlers={"large_result": lambda data: {"text": "x" * 1_000_001}},
         )
@@ -96,14 +96,14 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertIsNone(result["result"])
 
     def test_submit_rolls_back_run_if_event_append_fails(self):
-        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         with patch("modules.workflow_runtime._event_payload", return_value={"invalid": "event"}):
             with self.assertRaises(Exception):
                 runtime.submit(workflow_id="p1", task_type="echo", payload={"x": 1})
         self.assertEqual(runtime.list_runs(), [])
 
     def test_execution_event_and_state_are_committed_together(self):
-        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: {"ok": True}})
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: {"ok": True}})
         run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={})
         with patch("modules.workflow_runtime._event_payload", return_value={"invalid": "event"}):
             with self.assertRaises(Exception):
@@ -117,7 +117,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         )
 
     def test_recover_stale_running_attempt_requeues_when_attempts_remain(self):
-        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=3)
         with sqlite3.connect(self.database) as connection:
             connection.execute(
@@ -130,7 +130,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(list_run_events(self.database, "p1", run_id)[-1]["status"], "queued")
 
     def test_recover_stale_run_fails_when_attempt_budget_is_exhausted(self):
-        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=1)
         with sqlite3.connect(self.database) as connection:
             connection.execute(
@@ -145,7 +145,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
     def test_encrypted_payloads_round_trip_and_are_not_plaintext_in_sqlite(self):
         key = Fernet.generate_key()
         secret_value = "synthetic-secret-fixture-not-for-production"
-        runtime = WorkflowRuntime(
+        runtime = self.make_runtime(
             self.database,
             handlers={"echo": lambda data: {"echo": data["value"]}},
             encryption_key=key,
@@ -167,7 +167,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertNotIn(secret_value, input_value)
         self.assertNotIn(secret_value, result_value)
 
-        reopened = WorkflowRuntime(
+        reopened = self.make_runtime(
             self.database,
             handlers={"echo": lambda data: {"echo": data["value"]}},
             encryption_key=key,
@@ -177,7 +177,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(saved["result"], {"echo": secret_value})
 
     def test_configured_key_migrates_legacy_plaintext_rows(self):
-        legacy = WorkflowRuntime(
+        legacy = self.make_runtime(
             self.database,
             handlers={"echo": lambda data: {"echo": data["value"]}},
         )
@@ -194,7 +194,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertNotIn("enc:v1:", raw_input)
 
         key = Fernet.generate_key()
-        migrated = WorkflowRuntime(
+        migrated = self.make_runtime(
             self.database,
             handlers={"echo": lambda data: {"echo": data["value"]}},
             encryption_key=key,
@@ -209,14 +209,14 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
     def test_wrong_key_fails_closed_when_reading_encrypted_payload(self):
         key = Fernet.generate_key()
-        runtime = WorkflowRuntime(
+        runtime = self.make_runtime(
             self.database,
             handlers={"echo": lambda data: dict(data)},
             encryption_key=key,
         )
         run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "demo"})
         with self.assertRaises(WorkflowStorageError):
-            WorkflowRuntime(
+            self.make_runtime(
                 self.database,
                 handlers={"echo": lambda data: dict(data)},
                 encryption_key=Fernet.generate_key(),
@@ -226,7 +226,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
     def test_key_rotation_creates_backup_and_preserves_readback(self):
         old_key = Fernet.generate_key()
         new_key = Fernet.generate_key()
-        runtime = WorkflowRuntime(
+        runtime = self.make_runtime(
             self.database,
             handlers={"echo": lambda data: {"echo": data["value"]}},
             encryption_key=old_key,
@@ -244,7 +244,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(outcome["rows_updated"], 1)
         self.assertGreaterEqual(outcome["fields_updated"], 2)
 
-        rotated = WorkflowRuntime(
+        rotated = self.make_runtime(
             self.database,
             handlers={"echo": lambda data: {"echo": data["value"]}},
             encryption_key=new_key,
@@ -252,7 +252,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(rotated.get_run(run_id)["input"], {"value": "rotation-fixture"})
         self.assertEqual(rotated.get_run(run_id)["result"], {"echo": "rotation-fixture"})
 
-        backed_up = WorkflowRuntime(
+        backed_up = self.make_runtime(
             backup,
             handlers={"echo": lambda data: {"echo": data["value"]}},
             encryption_key=old_key,
@@ -261,7 +261,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
     def test_failed_key_rotation_rolls_back_and_retains_backup(self):
         old_key = Fernet.generate_key()
-        runtime = WorkflowRuntime(
+        runtime = self.make_runtime(
             self.database,
             handlers={"echo": lambda data: dict(data)},
             encryption_key=old_key,
@@ -282,7 +282,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         ).fetchone()[0]
         self.assertEqual(after, before)
         self.assertEqual(
-            WorkflowRuntime(
+            self.make_runtime(
                 self.database,
                 handlers={"echo": lambda data: dict(data)},
                 encryption_key=old_key,
