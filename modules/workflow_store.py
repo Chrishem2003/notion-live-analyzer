@@ -126,3 +126,40 @@ def list_run_events(database: str | Path, workflow_id: str, run_id: str) -> list
         item["event"] = json.loads(item.pop("event_json"))
         result.append(item)
     return result
+
+
+def append_event_in_transaction(connection: sqlite3.Connection, raw_event: WorkflowEvent | Mapping[str, Any]) -> bool:
+    """Append using a caller-owned transaction so state and event commit together."""
+    event = raw_event if isinstance(raw_event, WorkflowEvent) else WorkflowEvent.from_mapping(raw_event)
+    payload = event.to_dict()
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    existing = connection.execute(
+        "SELECT payload_digest, event_type, workflow_id, run_id "
+        "FROM workflow_events WHERE idempotency_key = ?",
+        (event.idempotency_key,),
+    ).fetchone()
+    if existing is not None:
+        if (
+            existing["payload_digest"] == event.payload_digest
+            and existing["event_type"] == event.event_type
+            and existing["workflow_id"] == event.workflow_id
+            and existing["run_id"] == event.run_id
+        ):
+            return False
+        raise IdempotencyConflict(
+            "idempotency key already exists with different event identity or payload"
+        )
+    connection.execute(
+        """
+        INSERT INTO workflow_events (
+            event_id, idempotency_key, workflow_id, run_id, event_type,
+            stage, status, occurred_at, payload_digest, event_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            event.event_id, event.idempotency_key, event.workflow_id,
+            event.run_id, event.event_type, event.stage, event.status,
+            event.occurred_at, event.payload_digest, encoded,
+        ),
+    )
+    return True
