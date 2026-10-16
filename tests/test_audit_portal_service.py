@@ -312,3 +312,53 @@ def test_encryption_and_professor_access_secrets_must_be_distinct():
             },
             {},
         )
+
+
+@pytest.mark.skipif(not audit_portal.HAS_CRYPTOGRAPHY, reason="cryptography package unavailable")
+@pytest.mark.parametrize("decision", ["review", "return"])
+def test_review_decision_and_event_are_atomic_when_event_insert_fails(tmp_path, decision):
+    database_path = tmp_path / f"decision-atomicity-{decision}.sqlite3"
+    encryption_password = "atomicity-encryption-test-key"
+    system = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    result = system.submit(
+        5,
+        "Atomic Decision Researcher",
+        "Atomic decision test",
+        "Synthetic research content",
+        password=encryption_password,
+    )
+    submission_id = result["id"]
+    rejected_event = "review_saved" if decision == "review" else "returned_for_revision"
+
+    with sqlite3.connect(database_path) as conn:
+        conn.execute(
+            f"""CREATE TRIGGER reject_decision_event
+                BEFORE INSERT ON portal_audit_events
+                WHEN NEW.event_type = '{rejected_event}'
+                BEGIN SELECT RAISE(ABORT, 'simulated decision event failure'); END"""
+        )
+        conn.commit()
+
+    with pytest.raises(sqlite3.IntegrityError, match="simulated decision event failure"):
+        if decision == "review":
+            system.review(
+                submission_id,
+                "A",
+                95.0,
+                "Synthetic feedback that must not be partially saved.",
+                professor_password=encryption_password,
+            )
+        else:
+            system.return_for_revision(
+                submission_id,
+                "Synthetic revision feedback that must not be partially saved.",
+                professor_password=encryption_password,
+            )
+
+    persisted = system.get_submission(submission_id)
+    assert persisted["status"] == "submitted"
+    assert persisted["professor_grade"] is None
+    assert persisted["professor_score"] is None
+    assert persisted["professor_feedback"] is None
+    events = system.get_submission_events(submission_id)
+    assert [event["event_type"] for event in events] == ["submission_created"]
