@@ -183,3 +183,51 @@ def test_return_for_revision_rejects_blank_feedback(tmp_path, feedback):
     system = audit_portal.CHRISHEMSubmissionSystem(tmp_path / "portal.sqlite3")
     with pytest.raises(ValueError, match="Non-empty revision feedback"):
         system.return_for_revision(1, feedback, professor_password="test-password")
+
+
+@pytest.mark.skipif(not audit_portal.HAS_CRYPTOGRAPHY, reason="cryptography package unavailable")
+def test_submission_event_history_is_persistent_and_excludes_feedback_text(tmp_path):
+    database_path = tmp_path / "portal-events.sqlite3"
+    system = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    result = system.submit(
+        4,
+        "Researcher Event Test",
+        "Synthetic submission",
+        "Synthetic research content",
+        password="event-test-encryption-key",
+    )
+    submission_id = result["id"]
+
+    events = system.get_submission_events(submission_id)
+    assert len(events) == 1
+    assert events[0]["event_type"] == "submission_created"
+    assert events[0]["previous_status"] is None
+    assert events[0]["new_status"] == "submitted"
+
+    private_feedback = "CONFIDENTIAL-FEEDBACK-MUST-NOT-ENTER-EVENTS"
+    assert system.review(
+        submission_id,
+        "A",
+        91.0,
+        private_feedback,
+        professor_password="event-test-encryption-key",
+    )
+    assert system.return_for_revision(
+        submission_id,
+        "Second synthetic revision note",
+        professor_password="event-test-encryption-key",
+    )
+
+    reopened = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    events = reopened.get_submission_events(submission_id)
+    assert [event["event_type"] for event in events] == [
+        "submission_created",
+        "review_saved",
+        "returned_for_revision",
+    ]
+    assert [(event["previous_status"], event["new_status"]) for event in events] == [
+        (None, "submitted"),
+        ("submitted", "reviewed"),
+        ("reviewed", "returned"),
+    ]
+    assert all(private_feedback not in event["details_json"] for event in events)
