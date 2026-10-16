@@ -83,9 +83,11 @@ class WorkflowAccessTests(unittest.TestCase):
         source = page_path.read_text(encoding="utf-8")
         ast.parse(source, filename=str(page_path))
         self.assertIn("SYNTHETIC / TEST DATA ONLY", source)
-        self.assertIn("without database-level encryption", source)
+        self.assertIn("SQLite itself is not database-encrypted", source)
         self.assertIn("if not synthetic_only_confirmed", source)
         self.assertIn("Confirm synthetic/demo-only input before submitting a workflow.", source)
+        self.assertIn("load_workflow_storage_key", source)
+        self.assertIn("encryption_key=runtime_encryption_key", source)
 
 
 if __name__ == "__main__":
