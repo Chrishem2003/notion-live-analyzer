@@ -27,6 +27,7 @@ Streamlit secrets take precedence over environment variables. Missing or blank v
 ## Security and operational notes
 
 - The encryption password is used to encrypt submission content and review feedback. The professor password is a separate gate for the review page.
+- Research content and review feedback are encrypted; researcher name, email, title, project ID, status, timestamps, and other record metadata remain plaintext in SQLite. Restrict database files, backups, and server access accordingly.
 - Keep the encryption password in a secret manager, restrict access, and maintain a tested backup/recovery procedure. Losing or changing the encryption password without a migration will make existing records unreadable.
 - The default database path is `research_workspace.db` at the repository root. Back it up using a SQLite-aware procedure and test restores in staging.
 - The integrity hash is an application-generated reference, not a public blockchain transaction and not proof of authorship.
