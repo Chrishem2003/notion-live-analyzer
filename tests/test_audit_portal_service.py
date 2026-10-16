@@ -9,6 +9,7 @@ import pytest
 from modules import audit_portal
 from modules.audit_portal_service import (
     PortalConfigurationError,
+    is_professor_session_valid,
     load_portal_credentials,
     verify_professor_password,
 )
@@ -107,3 +108,23 @@ def test_configured_key_supports_persistent_submit_decrypt_and_review(tmp_path):
 def test_streamlit_page_is_valid_python():
     page = Path("pages/18_Research_Submission_Portal.py")
     ast.parse(page.read_text(encoding="utf-8"), filename=str(page))
+
+
+@pytest.mark.parametrize(
+    ("authenticated", "authenticated_at", "now", "expected"),
+    [
+        (True, 100.0, 100.0, True),
+        (True, 100.0, 999.0, True),
+        (True, 100.0, 1000.0, False),
+        (True, None, 100.0, False),
+        (False, 100.0, 100.0, False),
+        (True, 101.0, 100.0, False),
+        (True, True, 100.0, False),
+    ],
+)
+def test_professor_session_has_a_bounded_lifetime(
+    authenticated, authenticated_at, now, expected
+):
+    assert is_professor_session_valid(
+        authenticated, authenticated_at, now=now
+    ) is expected
