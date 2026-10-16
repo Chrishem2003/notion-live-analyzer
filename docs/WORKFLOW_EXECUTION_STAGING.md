@@ -197,3 +197,17 @@ The verifier opens the existing file in SQLite read-only mode. It checks SQLite 
 - [ ] Follow with a restore to an isolated location, initialize the runtime using the approved key, and verify representative input/result/error readback and event ordering.
 
 This is a structural pre-check, not proof of recoverability. The verifier cannot decrypt fields, prove key custody, compare against a moving source database, establish backup freshness, or prove the hosting platform's durability. Record exact commit, backup identifier, result, and restore evidence in the Verification & Validation Evidence database.
+
+
+## 14. Concurrent worker claim and handler side effects (added 2026-10-16)
+
+The runtime uses a SQLite write transaction to claim a queued run before invoking its registered handler. A regression test now races two callers against the same run and asserts the handler is invoked once and the durable event sequence remains queued → running → succeeded.
+
+- [ ] Confirm the concurrent claim regression test passes on the exact candidate head.
+- [ ] Treat a handler's external side effects separately from SQLite state. If a process dies after an external API call but before the terminal result commits, stale-run recovery may retry the handler and repeat that side effect.
+- [ ] Therefore, every handler that calls an external system must use an external idempotency key, durable outbox, or reconciliation strategy appropriate to that system. Do not promise exactly-once external execution based only on the SQLite claim.
+- [ ] Test process interruption after a simulated external side effect but before outcome persistence; verify reconciliation prevents duplicate external effects.
+- [ ] Do not run stale-run recovery concurrently with long-lived handlers without leases/heartbeats and an agreed timeout. A slow legitimate handler can otherwise be mistaken for a dead worker.
+- [ ] Keep multi-process/multi-host deployments blocked until the worker topology, lease strategy, durable storage, and cross-host coordination are validated.
+
+This test establishes local single-run claim behavior under the tested race; it is not a distributed lock or a guarantee of exactly-once side effects.
