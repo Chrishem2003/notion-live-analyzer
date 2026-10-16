@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -52,7 +53,7 @@ def _connect(database: str | Path) -> sqlite3.Connection:
 
 def initialize_store(database: str | Path) -> None:
     """Create the event table/indexes idempotently without deleting existing records."""
-    with _connect(database) as connection:
+    with closing(_connect(database)) as connection:
         connection.executescript(_SCHEMA)
 
 
@@ -65,7 +66,7 @@ def append_event(database: str | Path, raw_event: WorkflowEvent | Mapping[str, A
     event = raw_event if isinstance(raw_event, WorkflowEvent) else WorkflowEvent.from_mapping(raw_event)
     payload = event.to_dict()
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-    with _connect(database) as connection:
+    with closing(_connect(database)) as connection:
         connection.execute("BEGIN IMMEDIATE")
         try:
             existing = connection.execute(
@@ -108,7 +109,7 @@ def append_event(database: str | Path, raw_event: WorkflowEvent | Mapping[str, A
 
 def list_run_events(database: str | Path, workflow_id: str, run_id: str) -> list[dict[str, Any]]:
     """Return an ordered snapshot for a run; no update/delete interface is exposed."""
-    with _connect(database) as connection:
+    with closing(_connect(database)) as connection:
         rows = connection.execute(
             """
             SELECT sequence, event_id, idempotency_key, event_type, stage, status,
