@@ -265,7 +265,7 @@ class CHRISHEMSubmissionSystem:
         self,
         submission_id: int,
         feedback: str,
-        professor_password: str = "CHRISHEM",
+        professor_password: str,
     ) -> bool:
         """Return submission with feedback for revision."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
