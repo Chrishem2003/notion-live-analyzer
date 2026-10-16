@@ -2,7 +2,7 @@
 import unittest
 
 from modules.workflow_contract import WorkflowContractError
-from modules.workflow_handlers import data_quality_profile, numeric_summary, research_problem_triage
+from modules.workflow_handlers import data_quality_profile, default_handlers, numeric_summary, research_problem_triage
 
 
 class WorkflowHandlerTests(unittest.TestCase):
@@ -35,6 +35,13 @@ class WorkflowHandlerTests(unittest.TestCase):
     def test_data_quality_profile_handles_nested_unhashable_values(self):
         result = data_quality_profile({"rows": [{"x": [1, 2]}, {"x": [1, 2]}]})
         self.assertEqual(result["duplicate_row_count"], 1)
+
+    def test_fasta_validator_is_in_the_explicit_handler_allow_list(self):
+        handlers = default_handlers()
+        self.assertIn("fasta_validate", handlers)
+        result = handlers["fasta_validate"]({"fasta_text": ">demo\nACGT\n"})
+        self.assertTrue(result["valid"])
+        self.assertTrue(result["human_review_required"])
 
     def test_problem_triage_adds_domain_evidence_and_human_review(self):
         result = research_problem_triage({
