@@ -18,6 +18,10 @@ from modules.workflow_handlers import default_handlers
 from modules.workflow_runtime import WorkflowRuntime
 from modules.notion_workflow_handoff import NotionHandoffError, sync_run_to_notion
 from modules.workflow_store import list_run_events
+from modules.workflow_storage import (
+    WorkflowStorageConfigurationError,
+    load_workflow_storage_key,
+)
 
 st.set_page_config(page_title="Workflow Execution Center", page_icon="⚙️", layout="wide")
 st.title("⚙️ Workflow Execution Center")
@@ -72,6 +76,18 @@ if st.button("Lock execution center"):
     st.session_state.pop("workflow_execution_authenticated_at", None)
     st.rerun()
 
+try:
+    runtime_encryption_key = load_workflow_storage_key(configured_secrets, os.environ)
+except WorkflowStorageConfigurationError:
+    st.error("Workflow Execution Center is locked because payload encryption is not configured.")
+    st.info(
+        "Set WORKFLOW_RUNTIME_ENCRYPTION_KEY in Streamlit secrets or the deployment environment. "
+        "Generate a Fernet key in a trusted environment with: "
+        "python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\". "
+        "Store it only in the approved secret store and keep a protected recovery copy."
+    )
+    st.stop()
+
 configured_path = os.environ.get("WORKFLOW_RUNTIME_DB", ".streamlit/workflow_runtime.sqlite3")
 db_path = Path(configured_path).expanduser()
 if not db_path.is_absolute():
@@ -83,12 +99,12 @@ st.info(
     "and use a coordinated worker/queue service before relying on production execution."
 )
 st.warning(
-    "SYNTHETIC / TEST DATA ONLY. Workflow inputs, results, and event metadata are stored in local SQLite without database-level encryption. "
-    "Do not enter personal, identifiable, confidential, regulated, or real research data until encryption-at-rest, access controls, backup, and retention have been reviewed."
+    "SYNTHETIC / TEST DATA ONLY. Input, result, and error payload fields are application-encrypted with the required Fernet key, but SQLite itself is not database-encrypted and workflow metadata/event digests remain plaintext. "
+    "Do not enter personal, identifiable, confidential, regulated, or real research data until key recovery/rotation, filesystem access, backup, retention, and authorization have been reviewed."
 )
 
 try:
-    runtime = WorkflowRuntime(db_path, handlers=default_handlers())
+    runtime = WorkflowRuntime(db_path, handlers=default_handlers(), encryption_key=runtime_encryption_key)
 except Exception:
     st.error("The workflow runtime could not initialize its database. No task has been submitted.")
     st.stop()
