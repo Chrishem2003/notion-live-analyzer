@@ -44,5 +44,29 @@ class WorkflowConfigurationPreflightTests(unittest.TestCase):
         self.assertIn("does not test staging delivery", rendered)
 
 
+    def test_invalid_values_fail_and_preflight_does_not_create_database(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            database = Path(tempdir) / "must-not-be-created.sqlite3"
+            output = io.StringIO()
+            with patch.dict(
+                os.environ,
+                {
+                    "WORKFLOW_EXECUTION_PASSWORD": "short",
+                    "WORKFLOW_RUNTIME_ENCRYPTION_KEY": "not-a-fernet-key",
+                    "WORKFLOW_RUNTIME_DB": str(database),
+                },
+                clear=True,
+            ), contextlib.redirect_stdout(output):
+                result = main()
+            self.assertEqual(result, 1)
+            self.assertFalse(database.exists())
+            self.assertIn("[FAIL] Operator password", output.getvalue())
+            self.assertIn("[FAIL] Payload encryption key", output.getvalue())
+            self.assertNotIn("not-a-fernet-key", output.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
