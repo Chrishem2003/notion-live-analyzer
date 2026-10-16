@@ -309,10 +309,15 @@ class WorkflowRuntime:
         with closing(_connect(self.database)) as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
-                connection.execute(
-                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=? WHERE run_id=? AND status='running'",
+                finalized = connection.execute(
+                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
                     (outcome, encoded_result, stored_error_message, now, run_id),
                 )
+                if finalized.rowcount != 1:
+                    raise WorkflowContractError(
+                        "workflow run lost its running claim before finalization; "
+                        "outcome was not appended to the event ledger"
+                    )
                 outcome_payload = (
                     {"result": json.loads(encoded_result_plain)} if encoded_result_plain else
                     {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}
