@@ -9,6 +9,7 @@ import streamlit as st
 
 from modules.workflow_handlers import default_handlers
 from modules.workflow_runtime import WorkflowRuntime
+from modules.notion_workflow_handoff import NotionHandoffError, sync_run_to_notion
 from modules.workflow_store import list_run_events
 
 st.set_page_config(page_title="Workflow Execution Center", page_icon="⚙️", layout="wide")
@@ -155,6 +156,26 @@ try:
                 "result": selected_run["result"],
                 "error_message": selected_run["error_message"],
             })
+            if selected_run["status"] == "succeeded":
+                st.markdown("#### Notion handoff")
+                st.caption(
+                    "Sending this execution record does not approve its science: QC remains Pending, "
+                    "reproducibility remains Not Checked, and the record is classified Synthetic/Test."
+                )
+                if st.button("Send execution record to Notion", key="handoff_selected_run"):
+                    try:
+                        delivery = sync_run_to_notion(selected_run)
+                        if delivery.get("created"):
+                            st.success("Execution record created in Notion.")
+                        else:
+                            st.info("A matching execution record already exists in Notion; no duplicate was created.")
+                        if delivery.get("url"):
+                            st.markdown(f"[Open Notion execution record]({delivery['url']})")
+                        st.code(delivery["manifest_hash"], language="text")
+                    except NotionHandoffError as exc:
+                        st.error(f"Notion handoff not completed: {exc}")
+                    except Exception:
+                        st.error("Notion handoff failed unexpectedly; no delivery success is claimed.")
             if selected_run["status"] == "queued" and st.button("Execute this queued run", key="execute_selected_run"):
                 executed = runtime.execute_run(selected_run_id)
                 st.session_state["workflow_runtime_last_run_id"] = selected_run_id
