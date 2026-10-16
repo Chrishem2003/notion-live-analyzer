@@ -292,6 +292,17 @@ class CHRISHEMSubmissionSystem:
                 "SELECT COUNT(*) as c FROM portal_submissions WHERE project_id=? AND student_name=? AND status='submitted'",
                 (project_id, student_name),
             ).fetchone()["c"]
-avg_score = conn.execute(
+            avg_score = conn.execute(
                 "SELECT AVG(professor_score) as avg FROM portal_submissions WHERE project_id=? AND student_name=? AND professor_score IS NOT NULL",
-                (project_id, student_name
+                (project_id, student_name),
+            ).fetchone()["avg"]
+
+        return {
+            "student_name": student_name,
+            "project_id": project_id,
+            "total_submissions": total,
+            "reviewed": reviewed,
+            "pending": pending,
+            "returned": total - reviewed - pending,
+            "average_score": round(float(avg_score), 2) if avg_score is not None else None,
+        }
