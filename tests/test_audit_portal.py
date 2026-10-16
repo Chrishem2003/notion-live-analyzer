@@ -10,9 +10,9 @@ import types
 
 import pytest
 
-# The module's submission engine does not need Streamlit's UI or plotting stack.
-# Stub those optional UI imports so these tests stay focused and lightweight.
-for _name in ("numpy", "pandas", "plotly", "plotly.express", "plotly.graph_objects", "plotly.subplots", "streamlit"):
+# The submission engine does not need Streamlit's UI or plotting stack.
+# Stub those optional UI imports so tests stay focused and lightweight.
+for _name in ("plotly", "plotly.express", "plotly.graph_objects", "plotly.subplots", "streamlit"):
     if _name not in sys.modules:
         _module = types.ModuleType(_name)
         if _name == "plotly":
@@ -39,6 +39,13 @@ def test_encryption_round_trip_and_random_salt():
     assert first != second
     assert audit_portal.decrypt_text(first, "correct horse") == "sensitive research submission"
     assert audit_portal.decrypt_text(second, "correct horse") == "sensitive research submission"
+
+
+def test_legacy_encrypted_records_remain_readable():
+    legacy_key = audit_portal.derive_fernet_key("legacy-password", audit_portal.LEGACY_SALT)
+    legacy_token = audit_portal.Fernet(legacy_key).encrypt(b"legacy submission")
+
+    assert audit_portal.decrypt_text(legacy_token.decode(), "legacy-password") == "legacy submission"
 
 
 def test_wrong_password_does_not_return_plaintext():
@@ -100,10 +107,17 @@ def test_status_filter_and_combined_filters(portal):
     assert [row["id"] for row in graded] == [reviewed["id"]]
 
 
-def test_student_stats_handles_empty_scores_and_calculates_average(portal):
+def test_review_feedback_is_encrypted_and_statistics_handle_empty_scores(portal):
     portal.submit(4, "Dana", "first", "one", "pw")
     second = portal.submit(4, "Dana", "second", "two", "pw")
-    portal.review(second["id"], "B", 84, "Good fixture", "professor-password")
+    portal.review(second["id"], "B", 84, "Private feedback fixture", "professor-password")
+
+    reviewed_row = portal.get_submission(second["id"])
+    assert reviewed_row["professor_feedback"] != "Private feedback fixture"
+    assert "Private feedback fixture" not in reviewed_row["professor_feedback"]
+    assert audit_portal.decrypt_text(
+        reviewed_row["professor_feedback"], "professor-password"
+    ) == "Private feedback fixture"
 
     stats = portal.get_student_stats(4, "Dana")
     assert stats == {
