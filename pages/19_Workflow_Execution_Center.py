@@ -111,6 +111,9 @@ examples = {
             {"sample_id": "S-04", "ph": None, "site": "A"},
         ]
     },
+    "fasta_validate": {
+        "fasta_text": ">DEMO-SEQ-001 synthetic training sequence\nACGTACGTNN\n>DEMO-PROTEIN-001 synthetic training sequence\nMKWVTFISLL\n"
+    },
 }
 payload_text = st.text_area(
     "Input payload (JSON)",
