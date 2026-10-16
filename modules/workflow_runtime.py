@@ -24,6 +24,8 @@ from modules.workflow_contract import (
 from modules.workflow_store import append_event_in_transaction, initialize_store
 
 TaskHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
+MAX_INPUT_BYTES = 1_000_000
+MAX_RESULT_BYTES = 1_000_000
 _RUN_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workflow_runs (
     run_id TEXT PRIMARY KEY,
@@ -115,7 +117,12 @@ class WorkflowRuntime:
             raise ValueError("payload must be a mapping")
         if isinstance(max_attempts, bool) or not isinstance(max_attempts, int) or max_attempts < 1 or max_attempts > 10:
             raise ValueError("max_attempts must be an integer between 1 and 10")
-        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+        try:
+            encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("payload must contain finite JSON-compatible values") from exc
+        if len(encoded.encode("utf-8")) > MAX_INPUT_BYTES:
+            raise ValueError(f"payload exceeds the {MAX_INPUT_BYTES}-byte runtime limit")
         run_id = str(uuid.uuid4())
         now = _utc_now()
         with closing(_connect(self.database)) as connection:
@@ -216,6 +223,8 @@ class WorkflowRuntime:
             if not isinstance(result, Mapping):
                 raise TypeError("workflow handler must return a mapping")
             encoded_result = json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+            if len(encoded_result.encode("utf-8")) > MAX_RESULT_BYTES:
+                raise ValueError(f"handler result exceeds the {MAX_RESULT_BYTES}-byte runtime limit")
             outcome = "succeeded"
             error_message = None
         except Exception as exc:
