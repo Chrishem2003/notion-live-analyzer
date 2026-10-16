@@ -1,6 +1,7 @@
 """Transactional rotation of the workflow payload encryption key."""
 from __future__ import annotations
 
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -35,7 +36,9 @@ def rotate_workflow_encryption_key(
         raise WorkflowKeyRotationError("backup path must be different from the source database")
     if not database.is_file():
         raise WorkflowKeyRotationError("workflow database does not exist")
-    if backup.exists():
+    # lexists also catches dangling symlinks. Never follow or overwrite a caller-provided
+    # destination, and reserve a new backup atomically with restrictive permissions.
+    if os.path.lexists(backup):
         raise WorkflowKeyRotationError("backup path already exists; refusing to overwrite a backup")
     try:
         old = validate_storage_key(old_key)
@@ -48,6 +51,18 @@ def rotate_workflow_encryption_key(
         raise WorkflowKeyRotationError("old and new workflow encryption keys must be different")
 
     backup.parent.mkdir(parents=True, exist_ok=True)
+    # O_EXCL prevents a time-of-check/time-of-use race from overwriting a file or
+    # following a symlink created after the initial check. Mode 0600 restricts the
+    # backup to the current user on POSIX systems; Windows ACLs still need review.
+    try:
+        fd = os.open(str(backup), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    except FileExistsError as exc:
+        raise WorkflowKeyRotationError(
+            "backup path already exists; refusing to overwrite a backup"
+        ) from exc
+    else:
+        os.close(fd)
+    reserved_stat = backup.stat()
     source = sqlite3.connect(str(database), timeout=30)
     try:
         destination = sqlite3.connect(str(backup), timeout=30)
@@ -55,9 +70,19 @@ def rotate_workflow_encryption_key(
             source.backup(destination)
         finally:
             destination.close()
+        # Re-assert restrictive mode after SQLite writes; do not change the source DB.
+        if os.name == "posix":
+            os.chmod(backup, 0o600)
     except Exception as exc:
-        if backup.exists():
-            backup.unlink()
+        # Remove only the reservation created by this call; never unlink a replacement.
+        try:
+            current_stat = backup.stat()
+            if (current_stat.st_dev, current_stat.st_ino) == (
+                reserved_stat.st_dev, reserved_stat.st_ino
+            ):
+                backup.unlink()
+        except OSError:
+            pass
         raise WorkflowKeyRotationError("SQLite-aware backup failed; no key rotation was attempted") from exc
     finally:
         source.close()
