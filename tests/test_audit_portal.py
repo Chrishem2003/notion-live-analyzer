@@ -10,9 +10,9 @@ import types
 
 import pytest
 
-# The submission engine does not need Streamlit's UI or plotting stack.
-# Stub those optional UI imports so tests stay focused and lightweight.
-for _name in ("plotly", "plotly.express", "plotly.graph_objects", "plotly.subplots", "streamlit"):
+# These tests target the SQLite/cryptography service layer, not the UI or analytics
+# libraries. Lightweight stubs keep the CI job limited to pytest + cryptography.
+for _name in ("numpy", "pandas", "plotly", "plotly.express", "plotly.graph_objects", "plotly.subplots", "streamlit"):
     if _name not in sys.modules:
         _module = types.ModuleType(_name)
         if _name == "plotly":
