@@ -57,3 +57,18 @@ def test_submission_and_review_methods_have_no_default_passwords():
     assert inspect.signature(portal.CHRISHEMSubmissionSystem.submit).parameters["password"].default is inspect.Parameter.empty
     assert inspect.signature(portal.CHRISHEMSubmissionSystem.review).parameters["professor_password"].default is inspect.Parameter.empty
     assert inspect.signature(portal.CHRISHEMSubmissionSystem.return_for_revision).parameters["professor_password"].default is inspect.Parameter.empty
+
+@pytest.mark.skipif(not portal.HAS_CRYPTOGRAPHY, reason="cryptography package unavailable")
+@pytest.mark.parametrize("ciphertext", ["", "not-a-token", "v2:bad:not-a-token", "v2:YWJj:broken"])
+def test_malformed_ciphertext_fails_with_generic_error(ciphertext):
+    with pytest.raises(ValueError, match="Ciphertext must be a non-empty string|incorrect password or invalid ciphertext"):
+        portal.decrypt_text(ciphertext, "password")
+
+
+def test_root_compatibility_module_uses_canonical_hardened_implementation():
+    import audit_portal as legacy
+
+    assert legacy.CHRISHEMSubmissionSystem is portal.CHRISHEMSubmissionSystem
+    encrypted = legacy.encrypt_text("compatibility", "test password")
+    assert encrypted.startswith("v2:")
+    assert legacy.decrypt_text(encrypted, "test password") == "compatibility"
