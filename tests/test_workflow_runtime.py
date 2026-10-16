@@ -6,6 +6,7 @@ from unittest.mock import patch
 from pathlib import Path
 
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
+from modules.workflow_contract import WorkflowContractError
 from modules.workflow_store import list_run_events
 from modules.workflow_storage import WorkflowStorageError
 from modules.workflow_key_rotation import WorkflowKeyRotationError, rotate_workflow_encryption_key
@@ -195,6 +196,37 @@ class WorkflowRuntimeTests(unittest.TestCase):
         recovered = runtime.recover_stale_runs(older_than_seconds=60)
         self.assertEqual(recovered[0]["status"], "failed")
         self.assertEqual(runtime.get_run(run_id)["status"], "failed")
+
+    def test_lost_running_claim_does_not_append_orphan_success_event(self):
+        runtime = None
+
+        def handler(_payload):
+            # Simulate a maintenance/recovery process racing with a long-running
+            # handler. Production must use real leases/heartbeats to prevent this.
+            with sqlite3.connect(self.database) as connection:
+                connection.execute(
+                    "UPDATE workflow_runs SET claimed_at=? WHERE run_id=?",
+                    ("2000-01-01T00:00:00+00:00", active_run_id[0]),
+                )
+            recovered = runtime.recover_stale_runs(older_than_seconds=60)
+            self.assertEqual(recovered[0]["status"], "queued")
+            return {"ok": True}
+
+        active_run_id = [None]
+        runtime = self.make_runtime(self.database, handlers={"race": handler})
+        active_run_id[0] = runtime.submit(
+            workflow_id="stale-claim-race", task_type="race", payload={}, max_attempts=3
+        )
+        with self.assertRaisesRegex(WorkflowContractError, "lost its running claim"):
+            runtime.execute_run(active_run_id[0])
+
+        self.assertEqual(runtime.get_run(active_run_id[0])["status"], "queued")
+        self.assertEqual(
+            [event["status"] for event in list_run_events(
+                self.database, "stale-claim-race", active_run_id[0]
+            )],
+            ["queued", "running", "queued"],
+        )
 
 
     def test_encrypted_payloads_round_trip_and_are_not_plaintext_in_sqlite(self):
