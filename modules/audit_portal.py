@@ -142,8 +142,61 @@ class CHRISHEMSubmissionSystem:
                     ON portal_submissions(student_name);
                 CREATE INDEX IF NOT EXISTS idx_portal_sub_status
                     ON portal_submissions(status);
+                CREATE TABLE IF NOT EXISTS portal_audit_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    submission_id INTEGER NOT NULL,
+                    event_type TEXT NOT NULL,
+                    previous_status TEXT,
+                    new_status TEXT NOT NULL,
+                    occurred_at REAL NOT NULL,
+                    details_json TEXT NOT NULL DEFAULT '{}'
+                );
+                CREATE INDEX IF NOT EXISTS idx_portal_events_submission
+                    ON portal_audit_events(submission_id, event_id);
             """)
             conn.commit()
+
+    @staticmethod
+    def _record_portal_event(
+        conn: sqlite3.Connection,
+        submission_id: int,
+        event_type: str,
+        previous_status: Optional[str],
+        new_status: str,
+        occurred_at: float,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Append a non-content event in the same transaction as its state change.
+
+        This improves traceability but is not a tamper-proof ledger and does not
+        identify an individual user when the shared professor gate is used.
+        """
+        conn.execute(
+            """INSERT INTO portal_audit_events
+               (submission_id, event_type, previous_status, new_status, occurred_at, details_json)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                submission_id,
+                event_type,
+                previous_status,
+                new_status,
+                occurred_at,
+                json.dumps(details or {}, sort_keys=True),
+            ),
+        )
+
+    def get_submission_events(self, submission_id: int) -> List[Dict[str, Any]]:
+        """Return the chronological event history for one submission."""
+        with self._get_conn() as conn:
+            rows = conn.execute(
+                """SELECT event_id, submission_id, event_type, previous_status,
+                          new_status, occurred_at, details_json
+                   FROM portal_audit_events
+                   WHERE submission_id = ?
+                   ORDER BY event_id ASC""",
+                (submission_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def submit(
         self,
@@ -175,8 +228,17 @@ class CHRISHEMSubmissionSystem:
                 (project_id, student_name, student_email, title, file_name, file_type,
                  file_size, encrypted, content_hash, ts, block_hash),
             )
-            conn.commit()
             sub_id = cursor.lastrowid
+            self._record_portal_event(
+                conn,
+                int(sub_id),
+                "submission_created",
+                None,
+                "submitted",
+                ts,
+                {"integrity_hash": block_hash},
+            )
+            conn.commit()
 
         # Record in audit ledger
         try:
@@ -263,6 +325,12 @@ class CHRISHEMSubmissionSystem:
             return False
         encrypted_feedback = encrypt_text(feedback.strip(), professor_password)
         with self._get_conn() as conn:
+            existing = conn.execute(
+                "SELECT status FROM portal_submissions WHERE id = ?", (submission_id,)
+            ).fetchone()
+            if existing is None:
+                return False
+            reviewed_at = time.time()
             cursor = conn.execute(
                 """UPDATE portal_submissions SET
                    status = 'reviewed',
@@ -271,8 +339,18 @@ class CHRISHEMSubmissionSystem:
                    professor_feedback = ?,
                    reviewed_at = ?
                    WHERE id = ?""",
-                (grade.strip(), numeric_score, encrypted_feedback, time.time(), submission_id),
+                (grade.strip(), numeric_score, encrypted_feedback, reviewed_at, submission_id),
             )
+            if cursor.rowcount == 1:
+                self._record_portal_event(
+                    conn,
+                    submission_id,
+                    "review_saved",
+                    str(existing["status"]),
+                    "reviewed",
+                    reviewed_at,
+                    {"grade_recorded": True, "score_recorded": True},
+                )
             conn.commit()
         return cursor.rowcount == 1
 
@@ -289,14 +367,30 @@ class CHRISHEMSubmissionSystem:
             return False
         encrypted_feedback = encrypt_text(feedback.strip(), professor_password)
         with self._get_conn() as conn:
+            existing = conn.execute(
+                "SELECT status FROM portal_submissions WHERE id = ?", (submission_id,)
+            ).fetchone()
+            if existing is None:
+                return False
+            reviewed_at = time.time()
             cursor = conn.execute(
                 """UPDATE portal_submissions SET
                    status = 'returned',
                    professor_feedback = ?,
                    reviewed_at = ?
                    WHERE id = ?""",
-                (encrypted_feedback, time.time(), submission_id),
+                (encrypted_feedback, reviewed_at, submission_id),
             )
+            if cursor.rowcount == 1:
+                self._record_portal_event(
+                    conn,
+                    submission_id,
+                    "returned_for_revision",
+                    str(existing["status"]),
+                    "returned",
+                    reviewed_at,
+                    {"feedback_recorded": True},
+                )
             conn.commit()
         return cursor.rowcount == 1
 
