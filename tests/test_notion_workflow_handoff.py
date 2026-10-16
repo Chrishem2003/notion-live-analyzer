@@ -1,5 +1,6 @@
 """Unit tests for explicit Notion workflow handoff with mocked HTTP."""
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
@@ -201,6 +202,45 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(NotionHandoffError, "missing required option"):
             sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
         self.assertEqual(session.posts, [])
+
+
+    def test_shared_sqlite_ledger_serializes_concurrent_same_manifest_handoffs(self):
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+
+        class StatefulSession(FakeSession):
+            def post(self, url, **kwargs):
+                if url.endswith("/query") and any(
+                    call[0] == "POST" and call[1].endswith("/pages") for call in self.posts
+                ):
+                    self.calls.append(("POST", url, kwargs))
+                    return FakeResponse({"results": [self.create_payload]})
+                return super().post(url, **kwargs)
+
+        session = StatefulSession()
+        with TemporaryDirectory() as temporary_directory:
+            ledger = str(Path(temporary_directory) / "handoff-lock.sqlite3")
+            def deliver():
+                return sync_run_to_notion(
+                    sample_run(),
+                    token="secret",
+                    database_id="12345678123456781234567812345678",
+                    session=session,
+                    ledger_database=ledger,
+                )
+
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                first = executor.submit(deliver)
+                second = executor.submit(deliver)
+                results = [first.result(timeout=10), second.result(timeout=10)]
+
+        self.assertEqual(sum(1 for result in results if result["created"]), 1)
+        self.assertEqual(sum(1 for result in results if not result["created"]), 1)
+        create_calls = [
+            call for call in session.posts
+            if call[0] == "POST" and call[1].endswith("/pages")
+        ]
+        self.assertEqual(len(create_calls), 1)
 
 
 if __name__ == "__main__":
