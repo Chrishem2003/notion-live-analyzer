@@ -77,29 +77,38 @@ def test_configured_key_supports_persistent_submit_decrypt_and_review(tmp_path):
         },
         {},
     )
-    system = audit_portal.CHRISHEMSubmissionSystem(tmp_path / "portal.sqlite3")
+    database_path = tmp_path / "portal.sqlite3"
+    system = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    research_content = "Dissolved oxygen measurements and interpretation."
     result = system.submit(
         7,
         "Researcher One",
         "Water quality analysis",
-        "Dissolved oxygen measurements and interpretation.",
+        research_content,
         password=encryption,
         student_email="researcher@example.test",
     )
-    assert system.decrypt_submission(result["id"], encryption) == (
-        "Dissolved oxygen measurements and interpretation."
-    )
 
-    assert system.review(
+    # Re-open through a fresh instance to exercise persistence across app-object restart.
+    reopened = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    stored_before_review = reopened.get_submission(result["id"])
+    assert stored_before_review["encrypted_content"] != research_content
+    assert research_content not in stored_before_review["encrypted_content"]
+    assert reopened.decrypt_submission(result["id"], encryption) == research_content
+
+    assert reopened.review(
         result["id"],
         "A",
         92.0,
         "Clear methods and sound interpretation.",
         professor_password=encryption,
     )
-    saved = system.get_submission(result["id"])
+    reopened_again = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    saved = reopened_again.get_submission(result["id"])
     assert saved["status"] == "reviewed"
     assert saved["professor_score"] == 92.0
+    assert saved["professor_feedback"] != "Clear methods and sound interpretation."
+    assert "Clear methods and sound interpretation." not in saved["professor_feedback"]
     assert audit_portal.decrypt_text(saved["professor_feedback"], encryption) == (
         "Clear methods and sound interpretation."
     )
@@ -128,3 +137,21 @@ def test_professor_session_has_a_bounded_lifetime(
     assert is_professor_session_valid(
         authenticated, authenticated_at, now=now
     ) is expected
+
+
+@pytest.mark.skipif(not audit_portal.HAS_CRYPTOGRAPHY, reason="cryptography package unavailable")
+def test_review_methods_report_missing_submission_ids(tmp_path):
+    system = audit_portal.CHRISHEMSubmissionSystem(tmp_path / "portal.sqlite3")
+
+    assert system.review(
+        999999,
+        "A",
+        90.0,
+        "This review must not be recorded.",
+        professor_password="a-strong-test-password",
+    ) is False
+    assert system.return_for_revision(
+        999999,
+        "This revision request must not be recorded.",
+        professor_password="a-strong-test-password",
+    ) is False
