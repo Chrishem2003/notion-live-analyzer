@@ -1,0 +1,42 @@
+name: Audit Portal Regression Tests
+
+on:
+  pull_request:
+    paths:
+      - "modules/audit_portal.py"
+      - "tests/test_audit_portal.py"
+      - ".github/workflows/audit-portal-tests.yml"
+  push:
+    branches:
+      - main
+      - "devin/1785103320-security-hardening"
+    paths:
+      - "modules/audit_portal.py"
+      - "tests/test_audit_portal.py"
+      - ".github/workflows/audit-portal-tests.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-portal-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit-portal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest cryptography
+      - name: Compile the audit portal
+        run: python -m py_compile modules/audit_portal.py
+      - name: Run audit portal regression tests
+        run: python -m pytest -q tests/test_audit_portal.py
