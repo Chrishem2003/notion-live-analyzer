@@ -48,6 +48,10 @@ def load_portal_credentials(
         raise PortalConfigurationError(
             f"Required audit-portal secret(s) are not configured: {names}."
         )
+    if hmac.compare_digest(encryption_password.encode("utf-8"), professor_password.encode("utf-8")):
+        raise PortalConfigurationError(
+            "AUDIT_PORTAL_ENCRYPTION_PASSWORD and AUDIT_PORTAL_PROFESSOR_PASSWORD must be different."
+        )
     return encryption_password, professor_password
 
 
