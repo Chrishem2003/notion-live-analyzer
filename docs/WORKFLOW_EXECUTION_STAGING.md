@@ -180,3 +180,20 @@ The rotation helper now atomically reserves a new backup path using exclusive fi
 - [ ] Verify backup retention, secure deletion, off-host backup policy, and recovery-key custody with the platform owner.
 
 The additional regression tests live in `tests/test_workflow_runtime.py`. Exact-head CI must pass before this control is accepted.
+
+
+## 13. Read-only backup verification (added 2026-10-16)
+
+After creating a SQLite-aware backup, run the structural verifier against that backup file:
+
+    python tools/verify_workflow_backup.py /secure/backups/workflow-before-rotation.sqlite3
+
+The verifier opens the existing file in SQLite read-only mode. It checks SQLite integrity, required workflow tables/columns, record counts, and counts of fields using the versioned `enc:v1:` encryption prefix. It does not create a missing file or change the backup.
+
+- [ ] Confirm the verifier returns exit code 0 and `"verified": true`.
+- [ ] Confirm reported run/event counts are plausible for the isolated backup snapshot.
+- [ ] Confirm encryption-prefix counts are consistent with the expected encrypted dataset; legacy plaintext fields may exist only where explicitly accepted during migration.
+- [ ] Test missing, non-SQLite, incomplete-schema, and corrupt backups; failures must be non-zero and must not modify the candidate file.
+- [ ] Follow with a restore to an isolated location, initialize the runtime using the approved key, and verify representative input/result/error readback and event ordering.
+
+This is a structural pre-check, not proof of recoverability. The verifier cannot decrypt fields, prove key custody, compare against a moving source database, establish backup freshness, or prove the hosting platform's durability. Record exact commit, backup identifier, result, and restore evidence in the Verification & Validation Evidence database.
