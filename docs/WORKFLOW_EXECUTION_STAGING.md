@@ -223,3 +223,13 @@ The handoff adapter now rejects malformed query result structures, matching reco
 - [ ] Confirm that an uncertain create outcome is never blindly replayed. Notion query-before-create plus a local SQLite lock is not a cross-host atomic uniqueness guarantee.
 
 The new tests use mocked HTTP only. They do not establish live Notion permissions, target schema correctness, or successful staging delivery.
+
+
+## 16. Ambiguous-create reconciliation regression (added 2026-10-16)
+
+A new mocked-HTTP regression models the remote Notion page being committed while the client loses the create response. The next handoff attempt must query by the deterministic manifest hash, return the existing page, and avoid a second create request. A separate test rejects an existing-match URL that is not HTTPS.
+
+- [ ] Confirm both tests pass on the exact candidate commit.
+- [ ] In isolated staging, use a disposable run and verify the same recovery path against the real Notion API.
+- [ ] Record the fetched page ID and manifest hash as evidence; do not record integration tokens.
+- [ ] Remember that this reconciliation depends on the manifest hash being queryable and the target page being visible to the integration. It is recovery logic, not an atomic remote uniqueness constraint.
