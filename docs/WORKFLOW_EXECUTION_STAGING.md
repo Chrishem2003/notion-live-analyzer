@@ -152,3 +152,19 @@ A rotation helper is now available at tools/rotate_workflow_encryption_key.py. I
 8. Retain or delete the backup only under the approved retention policy; do not leave unprotected copies in the repository or app filesystem.
 
 Do not rotate keys against production data until the backup, rollback, key custody, and recovery tests have been approved. Key rotation does not encrypt metadata/event digests and is not a substitute for filesystem or whole-database controls.
+
+
+## 11. Configuration preflight (added 2026-10-16)
+
+Before the manual staging run, execute:
+
+    python tools/check_workflow_configuration.py
+
+The command checks that the operator password meets the configured policy and the workflow payload encryption key is a valid Fernet key. It prints only pass/fail diagnostics and never prints secret values. It also reports the configured runtime database path, but does not create the database or prove that the hosting filesystem is durable.
+
+- [ ] Run with both required secrets absent; expected non-zero exit and safe failure messages.
+- [ ] Run with valid staging-only secrets; expected zero exit and no secret values in output.
+- [ ] Confirm the script's result is recorded against the exact candidate commit.
+- [ ] Do not treat this preflight as a substitute for the manual acceptance sections above.
+
+The associated regression tests are in tests/test_workflow_configuration_preflight.py. Automated tests must pass on the exact candidate head before the preflight is relied upon.
