@@ -63,18 +63,24 @@ def rotate_workflow_encryption_key(
     else:
         os.close(fd)
     reserved_stat = backup.stat()
-    source = sqlite3.connect(str(database), timeout=30)
+    source = None
+    destination = None
     try:
+        source = sqlite3.connect(str(database), timeout=30)
         destination = sqlite3.connect(str(backup), timeout=30)
-        try:
-            source.backup(destination)
-        finally:
-            destination.close()
+        source.backup(destination)
+        destination.close()
+        destination = None
         # Re-assert restrictive mode after SQLite writes; do not change the source DB.
         if os.name == "posix":
             os.chmod(backup, 0o600)
     except Exception as exc:
-        # Remove only the reservation created by this call; never unlink a replacement.
+        # Close handles before cleanup (required on Windows), then remove only the
+        # reservation created by this call; never unlink a replacement.
+        if destination is not None:
+            destination.close()
+        if source is not None:
+            source.close()
         try:
             current_stat = backup.stat()
             if (current_stat.st_dev, current_stat.st_ino) == (
@@ -85,7 +91,10 @@ def rotate_workflow_encryption_key(
             pass
         raise WorkflowKeyRotationError("SQLite-aware backup failed; no key rotation was attempted") from exc
     finally:
-        source.close()
+        if destination is not None:
+            destination.close()
+        if source is not None:
+            source.close()
 
     fields_updated = 0
     rows_updated = 0
