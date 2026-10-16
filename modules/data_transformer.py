@@ -29,7 +29,7 @@ def validate_expression(expression: str) -> None:
             # Match language keywords as complete tokens. A legitimate column
             # called "important_variable" must not be rejected for containing
             # the substring "import".
-            matched = re.search(r"\\b" + re.escape(token) + r"\\b", lowered) is not None
+            matched = re.search(r"\b" + re.escape(token) + r"\b", lowered) is not None
         if matched:
             raise ValueError(f"Expression contains a disallowed token: '{token}'")
 
