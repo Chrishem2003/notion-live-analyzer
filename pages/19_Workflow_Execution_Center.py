@@ -93,6 +93,24 @@ if st.button("Validate, submit and execute", type="primary"):
         st.error("The workflow could not complete. Inspect the run record and server logs; do not assume success.")
 
 st.markdown("---")
+st.subheader("Recovery controls")
+st.caption(
+    "Manual recovery only: use when a previous local process stopped while a run was marked running. "
+    "Do not use this with concurrent or long-running workers unless real leases/heartbeats are configured."
+)
+if st.button("Recover interrupted runs older than 10 minutes"):
+    try:
+        recovered = runtime.recover_stale_runs(older_than_seconds=600)
+        if recovered:
+            st.success(f"Recovered {len(recovered)} interrupted run(s).")
+            st.dataframe(recovered, use_container_width=True, hide_index=True)
+            st.rerun()
+        else:
+            st.info("No stale running jobs met the recovery threshold.")
+    except Exception:
+        st.error("Recovery did not complete; inspect server logs before retrying.")
+
+st.markdown("---")
 st.subheader("Recent persisted runs")
 try:
     runs = runtime.list_runs(limit=100)
