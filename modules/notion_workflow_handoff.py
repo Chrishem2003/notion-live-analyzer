@@ -59,6 +59,48 @@ def _response_json(response: Any) -> dict[str, Any]:
     return payload
 
 
+
+def _validate_database_schema(payload: Mapping[str, Any]) -> None:
+    """Fail before writing if the target database cannot represent a safe handoff."""
+    props = payload.get("properties")
+    if not isinstance(props, dict):
+        raise NotionHandoffError("target Notion database returned no property schema")
+    required = {
+        "Run Name": ("title", None),
+        "Run Status": ("select", "Complete"),
+        "Workflow Gate": ("select", "Execution Recorded"),
+        "QC Outcome": ("select", "Pending"),
+        "Reproducibility Check": ("select", "Not Checked"),
+        "Record Classification": ("select", "Synthetic/Test"),
+        "Analysis Method": ("rich_text", None),
+        "Run Manifest Hash": ("rich_text", None),
+        "Execution Evidence / Handoff": ("rich_text", None),
+        "Environment": ("rich_text", None),
+        "Parameters": ("rich_text", None),
+        "Started At": ("date", None),
+        "Completed At": ("date", None),
+    }
+    missing = sorted(set(required) - set(props))
+    if missing:
+        raise NotionHandoffError("target database is missing required properties: " + ", ".join(missing))
+    for name, (expected_type, required_option) in required.items():
+        spec = props.get(name)
+        if not isinstance(spec, dict) or spec.get("type") != expected_type:
+            actual = spec.get("type", "unknown") if isinstance(spec, dict) else "missing"
+            raise NotionHandoffError(
+                f"target property {name!r} has type {actual!r}; expected {expected_type!r}"
+            )
+        if required_option:
+            options = spec.get("select", {}).get("options", [])
+            names = {option.get("name") for option in options if isinstance(option, dict)}
+            if required_option not in names:
+                raise NotionHandoffError(
+                    f"target property {name!r} is missing required option {required_option!r}"
+                )
+    blocker = props.get("Blocker / Recovery Action")
+    if blocker is not None and (not isinstance(blocker, dict) or blocker.get("type") != "rich_text"):
+        raise NotionHandoffError("target property 'Blocker / Recovery Action' must be rich_text")
+
 def sync_run_to_notion(
     run: Mapping[str, Any],
     *,
@@ -68,10 +110,10 @@ def sync_run_to_notion(
 ) -> dict[str, Any]:
     """Create or return an existing matching Analysis Runs record.
 
-    Only successful runs are eligible. Repeat calls query by manifest hash before
-    creating a page; Notion does not provide an atomic unique constraint for this
-    property, so concurrent simultaneous calls can still race. The database must
-    expose the property names/types documented in this repo.
+    Only successful runs are eligible. The adapter verifies the live database
+    property types and required select options before any write. Repeat calls query
+    by manifest hash before creating a page; Notion does not provide an atomic unique
+    constraint for this property, so concurrent simultaneous calls can still race.
     """
     api_token = token or os.environ.get("NOTION_API_KEY")
     target_database = database_id or os.environ.get("NOTION_ANALYSIS_RUNS_DATABASE_ID") or DEFAULT_ANALYSIS_RUNS_DATABASE_ID
@@ -92,6 +134,12 @@ def sync_run_to_notion(
         "Notion-Version": NOTION_API_VERSION,
         "Content-Type": "application/json",
     }
+    schema_response = session.get(
+        f"{NOTION_API_BASE}/databases/{target_database}",
+        headers=headers,
+        timeout=20,
+    )
+    _validate_database_schema(_response_json(schema_response))
     base = f"{NOTION_API_BASE}/databases/{target_database}/query"
     query_response = session.post(
         base,
@@ -118,7 +166,7 @@ def sync_run_to_notion(
 
     now = run.get("updated_at") or run.get("created_at")
     properties: dict[str, Any] = {
-        "Run Name": {"title": [{"type": "text", "text": {"content": f"{task_type}: {workflow_id}"[:1800]}}]},
+        "Run Name": {"title": [{"type": "text", "text": {"content": f"{task_type}: {workflow_id} · {run_id}"[:1800]}}]},
         "Run Status": {"select": {"name": "Complete"}},
         "Workflow Gate": {"select": {"name": "Execution Recorded"}},
         "QC Outcome": {"select": {"name": "Pending"}},
