@@ -299,5 +299,31 @@ class WorkflowRuntimeTests(unittest.TestCase):
             )
 
 
+    def test_key_rotation_refuses_existing_backup_without_overwriting(self):
+        key = Fernet.generate_key()
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=key,
+        )
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "keep"})
+        backup = Path(self.tempdir.name) / "already-existing-backup.sqlite3"
+        backup.write_text("preserve-existing-backup", encoding="utf-8")
+
+        with self.assertRaisesRegex(WorkflowKeyRotationError, "refusing to overwrite"):
+            rotate_workflow_encryption_key(
+                self.database, backup, key, Fernet.generate_key()
+            )
+        self.assertEqual(backup.read_text(encoding="utf-8"), "preserve-existing-backup")
+        self.assertEqual(runtime.get_run(run_id)["input"], {"value": "keep"})
+
+    def test_key_rotation_invalid_key_fails_with_actionable_error(self):
+        with self.assertRaisesRegex(WorkflowKeyRotationError, "key is invalid"):
+            rotate_workflow_encryption_key(
+                self.database, Path(self.tempdir.name) / "unused-backup.sqlite3",
+                "invalid-old-key", Fernet.generate_key(),
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
