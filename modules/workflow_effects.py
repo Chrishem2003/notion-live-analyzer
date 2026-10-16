@@ -201,8 +201,16 @@ class EffectJournal:
                 ).fetchone()
                 if row is None:
                     raise EffectJournalError("cannot reconcile an effect that was not prepared")
-                if row["state"] == "confirmed" and target != "confirmed":
-                    raise EffectJournalError("confirmed effects cannot be reverted to pending")
+                if row["state"] == "confirmed":
+                    if target != "confirmed":
+                        raise EffectJournalError("confirmed effects cannot be reverted to pending")
+                    existing = connection.execute(
+                        "SELECT result_json FROM workflow_effects WHERE effect_key = ?", (effect_key,)
+                    ).fetchone()
+                    if existing["result_json"] != encoded:
+                        raise EffectIdentityConflict("confirmed effect reconciliation cannot overwrite its recorded result")
+                    connection.execute("COMMIT")
+                    return
                 connection.execute(
                     "UPDATE workflow_effects SET state=?, result_json=?, updated_at=? WHERE effect_key=?",
                     (target, encoded, _now(), effect_key),
