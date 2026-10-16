@@ -1,4 +1,5 @@
 """Tests for the durable workflow event store."""
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -54,7 +55,7 @@ class WorkflowStoreTests(unittest.TestCase):
 
     def test_event_id_cannot_be_reused_for_another_key(self):
         self.assertTrue(append_event(self.database, event()))
-        with self.assertRaises(Exception):
+        with self.assertRaises(sqlite3.IntegrityError):
             append_event(self.database, event(idempotency_key="key-2", event_type="analysis.finished"))
 
     def test_events_are_returned_in_append_order_and_scoped_to_run(self):
