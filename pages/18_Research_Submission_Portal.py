@@ -168,6 +168,34 @@ with review_tab:
             )
             selected = portal.get_submission(int(submission_id))
             if selected:
+                st.markdown("#### Submission event history")
+                try:
+                    events = portal.get_submission_events(int(submission_id))
+                    if events:
+                        st.dataframe(
+                            [
+                                {
+                                    "Event": event["event_type"],
+                                    "From": event["previous_status"] or "—",
+                                    "To": event["new_status"],
+                                    "Recorded at": time.strftime(
+                                        "%Y-%m-%d %H:%M:%S",
+                                        time.localtime(event["occurred_at"]),
+                                    ),
+                                }
+                                for event in events
+                            ],
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                    else:
+                        st.info("No event history is recorded for this submission yet.")
+                    st.caption(
+                        "This is an application event history, not a tamper-proof ledger; "
+                        "individual actor attribution requires per-user authentication."
+                    )
+                except Exception:
+                    st.warning("Submission event history could not be loaded.")
                 try:
                     decrypted_content = portal.decrypt_submission(
                         int(submission_id), encryption_password
