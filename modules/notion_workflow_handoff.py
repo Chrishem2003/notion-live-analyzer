@@ -236,7 +236,6 @@ def sync_run_to_notion(
             "manifest_hash": digest,
         }
 
-    now = run.get("updated_at") or run.get("created_at")
     properties: dict[str, Any] = {
         "Run Name": {"title": [{"type": "text", "text": {"content": f"{task_type}: {workflow_id} · {run_id}"[:1800]}}]},
         "Run Status": {"select": {"name": "Complete"}},
