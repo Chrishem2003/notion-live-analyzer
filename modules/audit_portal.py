@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import math
 import os
 import sqlite3
 import time
@@ -246,7 +247,21 @@ class CHRISHEMSubmissionSystem:
         professor_password: str,
     ) -> bool:
         """Professor reviews and grades a submission."""
-        encrypted_feedback = encrypt_text(feedback, professor_password)
+        if not isinstance(grade, str) or not grade.strip():
+            raise ValueError("A non-empty grade is required.")
+        if isinstance(score, bool) or not isinstance(score, (int, float)):
+            raise ValueError("Score must be a finite number between 0 and 100.")
+        try:
+            numeric_score = float(score)
+        except (OverflowError, TypeError, ValueError):
+            raise ValueError("Score must be a finite number between 0 and 100.") from None
+        if not math.isfinite(numeric_score) or not 0 <= numeric_score <= 100:
+            raise ValueError("Score must be a finite number between 0 and 100.")
+        if not isinstance(feedback, str) or not feedback.strip():
+            raise ValueError("Non-empty review feedback is required.")
+        if isinstance(submission_id, bool) or not isinstance(submission_id, int) or submission_id < 1:
+            return False
+        encrypted_feedback = encrypt_text(feedback.strip(), professor_password)
         with self._get_conn() as conn:
             cursor = conn.execute(
                 """UPDATE portal_submissions SET
@@ -256,7 +271,7 @@ class CHRISHEMSubmissionSystem:
                    professor_feedback = ?,
                    reviewed_at = ?
                    WHERE id = ?""",
-                (grade, score, encrypted_feedback, time.time(), submission_id),
+                (grade.strip(), numeric_score, encrypted_feedback, time.time(), submission_id),
             )
             conn.commit()
         return cursor.rowcount == 1
@@ -268,7 +283,11 @@ class CHRISHEMSubmissionSystem:
         professor_password: str,
     ) -> bool:
         """Return submission with feedback for revision."""
-        encrypted_feedback = encrypt_text(feedback, professor_password)
+        if not isinstance(feedback, str) or not feedback.strip():
+            raise ValueError("Non-empty revision feedback is required.")
+        if isinstance(submission_id, bool) or not isinstance(submission_id, int) or submission_id < 1:
+            return False
+        encrypted_feedback = encrypt_text(feedback.strip(), professor_password)
         with self._get_conn() as conn:
             cursor = conn.execute(
                 """UPDATE portal_submissions SET
