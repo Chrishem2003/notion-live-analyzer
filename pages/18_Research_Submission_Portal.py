@@ -207,7 +207,7 @@ with review_tab:
                         else:
                             try:
                                 if action == "Approve and grade":
-                                    portal.review(
+                                    saved = portal.review(
                                         int(submission_id),
                                         grade,
                                         float(score),
@@ -215,7 +215,7 @@ with review_tab:
                                         professor_password=encryption_password,
                                     )
                                 else:
-                                    portal.return_for_revision(
+                                    saved = portal.return_for_revision(
                                         int(submission_id),
                                         feedback.strip(),
                                         professor_password=encryption_password,
@@ -223,8 +223,14 @@ with review_tab:
                             except Exception:
                                 st.error("The review decision could not be saved.")
                             else:
-                                st.success("Review decision saved.")
-                                st.rerun()
+                                if not saved:
+                                    st.error(
+                                        "No submission was updated. Refresh the queue and "
+                                        "select an existing submission before trying again."
+                                    )
+                                else:
+                                    st.success("Review decision saved.")
+                                    st.rerun()
 
 st.divider()
 st.caption(
