@@ -75,5 +75,18 @@ class WorkflowAccessTests(unittest.TestCase):
                 self.assertFalse(is_workflow_session_valid(True, 1000.0, now=1001.0, ttl_seconds=ttl))
 
 
+    def test_workflow_console_warns_and_gates_synthetic_only_data(self):
+        from pathlib import Path
+        import ast
+
+        page_path = Path("pages/19_Workflow_Execution_Center.py")
+        source = page_path.read_text(encoding="utf-8")
+        ast.parse(source, filename=str(page_path))
+        self.assertIn("SYNTHETIC / TEST DATA ONLY", source)
+        self.assertIn("without database-level encryption", source)
+        self.assertIn("if not synthetic_only_confirmed", source)
+        self.assertIn("Confirm synthetic/demo-only input before submitting a workflow.", source)
+
+
 if __name__ == "__main__":
     unittest.main()
