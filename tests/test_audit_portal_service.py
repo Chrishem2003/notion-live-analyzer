@@ -300,3 +300,15 @@ def test_submission_and_event_are_atomic_when_event_insert_fails(tmp_path):
         ).fetchone()[0]
     assert submission_count == 0
     assert event_count == 0
+
+
+def test_encryption_and_professor_access_secrets_must_be_distinct():
+    shared = "same-test-secret"
+    with pytest.raises(PortalConfigurationError, match="must be different"):
+        load_portal_credentials(
+            {
+                "AUDIT_PORTAL_ENCRYPTION_PASSWORD": shared,
+                "AUDIT_PORTAL_PROFESSOR_PASSWORD": shared,
+            },
+            {},
+        )
