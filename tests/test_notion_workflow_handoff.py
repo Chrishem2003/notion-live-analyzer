@@ -13,14 +13,41 @@ class FakeResponse:
         return self._payload
 
 
+def schema_payload():
+    properties = {
+        "Run Name": {"type": "title"},
+        "Run Status": {"type": "select", "select": {"options": [{"name": "Complete"}]}},
+        "Workflow Gate": {"type": "select", "select": {"options": [{"name": "Execution Recorded"}]}},
+        "QC Outcome": {"type": "select", "select": {"options": [{"name": "Pending"}]}},
+        "Reproducibility Check": {"type": "select", "select": {"options": [{"name": "Not Checked"}]}},
+        "Record Classification": {"type": "select", "select": {"options": [{"name": "Synthetic/Test"}]}},
+        "Analysis Method": {"type": "rich_text"},
+        "Run Manifest Hash": {"type": "rich_text"},
+        "Execution Evidence / Handoff": {"type": "rich_text"},
+        "Environment": {"type": "rich_text"},
+        "Parameters": {"type": "rich_text"},
+        "Started At": {"type": "date"},
+        "Completed At": {"type": "date"},
+        "Blocker / Recovery Action": {"type": "rich_text"},
+    }
+    return {"properties": properties}
+
+
 class FakeSession:
-    def __init__(self, query_payload=None, create_payload=None):
-        self.query_payload = query_payload or {"results": []}
+    def __init__(self, query_payload=None, create_payload=None, database_schema=None):
+        self.query_payload = query_payload if query_payload is not None else {"results": []}
         self.create_payload = create_payload or {"id": "page-1", "url": "https://notion.example/page-1"}
+        self.database_schema = database_schema or schema_payload()
         self.calls = []
+        self.posts = []
+
+    def get(self, url, **kwargs):
+        self.calls.append(("GET", url, kwargs))
+        return FakeResponse(self.database_schema)
 
     def post(self, url, **kwargs):
-        self.calls.append((url, kwargs))
+        self.calls.append(("POST", url, kwargs))
+        self.posts.append((url, kwargs))
         if url.endswith("/query"):
             return FakeResponse(self.query_payload)
         return FakeResponse(self.create_payload)
@@ -58,8 +85,8 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         result = sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
         self.assertTrue(result["created"])
         self.assertEqual(result["url"], "https://notion.example/page-1")
-        self.assertEqual(len(session.calls), 2)
-        query_call, create_call = session.calls
+        self.assertEqual(len(session.posts), 2)
+        query_call, create_call = session.posts
         self.assertTrue(query_call[0].endswith("/databases/db-1/query"))
         query_filter = query_call[1]["json"]["filter"]
         self.assertEqual(query_filter["property"], "Run Manifest Hash")
@@ -77,7 +104,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         result = sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
         self.assertFalse(result["created"])
         self.assertEqual(result["page_id"], "existing")
-        self.assertEqual(len(session.calls), 1)
+        self.assertEqual(len(session.posts), 1)
 
     def test_http_error_is_reported_without_claiming_delivery(self):
         class FailedSession(FakeSession):
@@ -86,6 +113,22 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
                 return FakeResponse({"message": "unauthorized"}, status_code=401)
         with self.assertRaisesRegex(NotionHandoffError, "401"):
             sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=FailedSession())
+
+    def test_incompatible_database_schema_fails_before_any_write(self):
+        schema = schema_payload()
+        del schema["properties"]["Run Manifest Hash"]
+        session = FakeSession(database_schema=schema)
+        with self.assertRaisesRegex(NotionHandoffError, "missing required properties"):
+            sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
+        self.assertEqual(session.posts, [])
+
+    def test_missing_required_select_option_fails_closed(self):
+        schema = schema_payload()
+        schema["properties"]["QC Outcome"]["select"]["options"] = [{"name": "Pass"}]
+        session = FakeSession(database_schema=schema)
+        with self.assertRaisesRegex(NotionHandoffError, "missing required option"):
+            sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
+        self.assertEqual(session.posts, [])
 
 
 if __name__ == "__main__":
