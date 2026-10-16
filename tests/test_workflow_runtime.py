@@ -318,6 +318,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(runtime.get_run(run_id)["input"], {"value": "keep"})
 
     def test_key_rotation_invalid_key_fails_with_actionable_error(self):
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=Fernet.generate_key(),
+        )
         with self.assertRaisesRegex(WorkflowKeyRotationError, "key is invalid"):
             rotate_workflow_encryption_key(
                 self.database, Path(self.tempdir.name) / "unused-backup.sqlite3",
