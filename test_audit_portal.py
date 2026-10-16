@@ -29,7 +29,7 @@ class TestSubmissions:
         assert len(result["blockchain_hash"]) == 64
 
     def test_decrypt_submission(self, system):
-        result = system.submit(1, "ada", "Thesis", "body text")
+        result = system.submit(1, "ada", "Thesis", "body text", password="CHRISHEM")
         assert system.decrypt_submission(result["id"], "CHRISHEM") == "body text"
 
     def test_decrypt_unknown_submission_is_none(self, system):
@@ -51,7 +51,7 @@ class TestStudentStats:
         assert stats["average_score"] is None
 
     def test_stats_count_each_status(self, system):
-        reviewed = system.submit(1, "ada", "A", "x")["id"]
+        reviewed = system.submit(1, "ada", "A", "x", password="CHRISHEM")["id"]
         returned = system.submit(1, "ada", "B", "y", password="CHRISHEM")["id"]
         system.submit(1, "ada", "C", "z", password="CHRISHEM")  # stays 'submitted'
         system.review(reviewed, "A", 90.0, "great", professor_password="professor-test-password")
@@ -65,9 +65,9 @@ class TestStudentStats:
         assert stats["average_score"] == 90.0
 
     def test_average_score_ignores_ungraded(self, system):
-        first = system.submit(1, "ada", "A", "x")["id"]
-        second = system.submit(1, "ada", "B", "y")["id"]
-        system.submit(1, "ada", "C", "z")
+        first = system.submit(1, "ada", "A", "x", password="CHRISHEM")["id"]
+        second = system.submit(1, "ada", "B", "y", password="CHRISHEM")["id"]
+        system.submit(1, "ada", "C", "z", password="CHRISHEM")
         system.review(first, "A", 80.0, "ok", professor_password="professor-test-password")
         system.review(second, "B", 90.0, "ok", professor_password="professor-test-password")
         assert system.get_student_stats(1, "ada")["average_score"] == 85.0
