@@ -1,4 +1,4 @@
-"""Explicit, idempotent handoff of successful local workflow runs to Notion.
+"""Explicit, duplicate-aware handoff of successful local workflow runs to Notion.
 
 This adapter requires a user-configured Notion integration token and a database ID.
 It does not mark scientific QC or reproducibility as passed; the created record stays
@@ -68,8 +68,10 @@ def sync_run_to_notion(
 ) -> dict[str, Any]:
     """Create or return an existing matching Analysis Runs record.
 
-    Only successful runs are eligible. Idempotency uses the manifest hash property.
-    The Notion database must expose the property names/types documented in this repo.
+    Only successful runs are eligible. Repeat calls query by manifest hash before
+    creating a page; Notion does not provide an atomic unique constraint for this
+    property, so concurrent simultaneous calls can still race. The database must
+    expose the property names/types documented in this repo.
     """
     api_token = token or os.environ.get("NOTION_API_KEY")
     target_database = database_id or os.environ.get("NOTION_ANALYSIS_RUNS_DATABASE_ID") or DEFAULT_ANALYSIS_RUNS_DATABASE_ID
@@ -126,6 +128,7 @@ def sync_run_to_notion(
         "Run Manifest Hash": _rich_text(digest),
         "Execution Evidence / Handoff": _rich_text(
             f"Local run ID: {run_id}; workflow: {workflow_id}; task: {task_type}; "
+            f"result: {json.dumps(run.get('result'), sort_keys=True, ensure_ascii=False, allow_nan=False)}; "
             "handoff status: delivered; QC and reproducibility are still pending."
         ),
         "Environment": _rich_text("Local SQLite workflow runtime; explicit user-triggered Notion handoff"),
