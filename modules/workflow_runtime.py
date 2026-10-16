@@ -22,6 +22,15 @@ from modules.workflow_contract import (
     validate_status_transition,
 )
 from modules.workflow_store import append_event_in_transaction, initialize_store
+from modules.workflow_storage import (
+    ENCRYPTED_PREFIX,
+    WorkflowStorageError,
+    decode_storage_json,
+    decrypt_storage_text,
+    encode_storage_json,
+    encrypt_storage_text,
+    validate_storage_key,
+)
 
 TaskHandler = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 MAX_INPUT_BYTES = 1_000_000
@@ -93,12 +102,50 @@ def _event_payload(*, workflow_id: str, run_id: str, task_type: str, stage: str,
 class WorkflowRuntime:
     """Durable local task queue with an explicit allow-list of callable handlers."""
 
-    def __init__(self, database: str | Path, *, handlers: Mapping[str, TaskHandler] | None = None):
+    def __init__(
+        self,
+        database: str | Path,
+        *,
+        handlers: Mapping[str, TaskHandler] | None = None,
+        encryption_key: str | bytes | None = None,
+    ):
         self.database = str(database)
         self.handlers: dict[str, TaskHandler] = {}
+        self.encryption_key = validate_storage_key(encryption_key) if encryption_key is not None else None
         _initialize(self.database)
+        if self.encryption_key is not None:
+            self._migrate_legacy_storage()
         for task_type, handler in (handlers or {}).items():
             self.register_handler(task_type, handler)
+
+    def _migrate_legacy_storage(self) -> None:
+        """Encrypt existing plaintext input/result/error fields in one additive transaction."""
+        key = self.encryption_key
+        if key is None:
+            return
+        with closing(_connect(self.database)) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                rows = connection.execute(
+                    "SELECT run_id, input_json, result_json, error_message FROM workflow_runs"
+                ).fetchall()
+                for row in rows:
+                    updates: dict[str, str] = {}
+                    for column in ("input_json", "result_json", "error_message"):
+                        value = row[column]
+                        if value is not None and not value.startswith(ENCRYPTED_PREFIX):
+                            updates[column] = encrypt_storage_text(value, key)
+                    if updates:
+                        assignments = ", ".join(f"{column} = ?" for column in updates)
+                        connection.execute(
+                            f"UPDATE workflow_runs SET {assignments} WHERE run_id = ?",
+                            (*updates.values(), row["run_id"]),
+                        )
+                connection.execute("COMMIT")
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute("ROLLBACK")
+                raise
 
     def register_handler(self, task_type: str, handler: TaskHandler) -> None:
         if not isinstance(task_type, str) or not task_type.strip():
@@ -118,11 +165,14 @@ class WorkflowRuntime:
         if isinstance(max_attempts, bool) or not isinstance(max_attempts, int) or max_attempts < 1 or max_attempts > 10:
             raise ValueError("max_attempts must be an integer between 1 and 10")
         try:
-            encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+            encoded_plain = json.dumps(
+                payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+            )
         except (TypeError, ValueError) as exc:
             raise ValueError("payload must contain finite JSON-compatible values") from exc
-        if len(encoded.encode("utf-8")) > MAX_INPUT_BYTES:
+        if len(encoded_plain.encode("utf-8")) > MAX_INPUT_BYTES:
             raise ValueError(f"payload exceeds the {MAX_INPUT_BYTES}-byte runtime limit")
+        encoded = encrypt_storage_text(encoded_plain, self.encryption_key)
         run_id = str(uuid.uuid4())
         now = _utc_now()
         with closing(_connect(self.database)) as connection:
@@ -156,9 +206,12 @@ class WorkflowRuntime:
         if row is None:
             return None
         result = dict(row)
-        result["input"] = json.loads(result.pop("input_json"))
+        result["input"] = decode_storage_json(result.pop("input_json"), self.encryption_key)
         raw_result = result.pop("result_json")
-        result["result"] = json.loads(raw_result) if raw_result else None
+        result["result"] = decode_storage_json(raw_result, self.encryption_key) if raw_result else None
+        raw_error = result.get("error_message")
+        if raw_error is not None:
+            result["error_message"] = decrypt_storage_text(raw_error, self.encryption_key)
         return result
 
     def list_runs(self, *, limit: int = 100) -> list[dict[str, Any]]:
@@ -204,7 +257,9 @@ class WorkflowRuntime:
                     _event_payload(
                         workflow_id=row["workflow_id"], run_id=run_id,
                         task_type=row["task_type"], stage="problem_solving", status="running",
-                        payload={"attempt": attempt, "input_digest": canonical_payload_digest(json.loads(row["input_json"]))},
+                        payload={"attempt": attempt, "input_digest": canonical_payload_digest(
+                            decode_storage_json(row["input_json"], self.encryption_key)
+                        )},
                     ),
                 )
                 connection.execute("COMMIT")
@@ -214,7 +269,7 @@ class WorkflowRuntime:
                 raise
 
         workflow_id, task_type = row["workflow_id"], row["task_type"]
-        payload = json.loads(row["input_json"])
+        payload = decode_storage_json(row["input_json"], self.encryption_key)
         handler = self.handlers.get(task_type)
         try:
             if handler is None:
@@ -222,15 +277,22 @@ class WorkflowRuntime:
             result = handler(payload)
             if not isinstance(result, Mapping):
                 raise TypeError("workflow handler must return a mapping")
-            encoded_result = json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
-            if len(encoded_result.encode("utf-8")) > MAX_RESULT_BYTES:
+            encoded_result_plain = json.dumps(
+                result, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+            )
+            if len(encoded_result_plain.encode("utf-8")) > MAX_RESULT_BYTES:
                 raise ValueError(f"handler result exceeds the {MAX_RESULT_BYTES}-byte runtime limit")
+            encoded_result = encrypt_storage_text(encoded_result_plain, self.encryption_key)
             outcome = "succeeded"
             error_message = None
         except Exception as exc:
+            encoded_result_plain = None
             encoded_result = None
             error_message = f"{type(exc).__name__}: {str(exc)[:500]}"
             outcome = "queued" if attempt < int(row["max_attempts"]) else "failed"
+        stored_error_message = (
+            encrypt_storage_text(error_message, self.encryption_key) if error_message is not None else None
+        )
 
         now = _utc_now()
         with closing(_connect(self.database)) as connection:
@@ -238,10 +300,10 @@ class WorkflowRuntime:
             try:
                 connection.execute(
                     "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=? WHERE run_id=? AND status='running'",
-                    (outcome, encoded_result, error_message, now, run_id),
+                    (outcome, encoded_result, stored_error_message, now, run_id),
                 )
                 outcome_payload = (
-                    {"result": json.loads(encoded_result)} if encoded_result else
+                    {"result": json.loads(encoded_result_plain)} if encoded_result_plain else
                     {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}
                 )
                 append_event_in_transaction(
@@ -288,9 +350,10 @@ class WorkflowRuntime:
                     validate_status_transition("running", outcome)
                     error = "Recovered stale running state after worker interruption."
                     updated = now_dt.isoformat(timespec="seconds")
+                    stored_error = encrypt_storage_text(error, self.encryption_key)
                     connection.execute(
                         "UPDATE workflow_runs SET status=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
-                        (outcome, error, updated, row["run_id"]),
+                        (outcome, stored_error, updated, row["run_id"]),
                     )
                     append_event_in_transaction(
                         connection,
