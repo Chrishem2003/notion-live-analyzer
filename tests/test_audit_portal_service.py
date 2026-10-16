@@ -155,3 +155,31 @@ def test_review_methods_report_missing_submission_ids(tmp_path):
         "This revision request must not be recorded.",
         professor_password="a-strong-test-password",
     ) is False
+
+
+@pytest.mark.parametrize("grade", ["", "   ", None])
+def test_review_rejects_blank_grade_before_database_update(tmp_path, grade):
+    system = audit_portal.CHRISHEMSubmissionSystem(tmp_path / "portal.sqlite3")
+    with pytest.raises(ValueError, match="non-empty grade"):
+        system.review(1, grade, 90.0, "Useful feedback", professor_password="test-password")
+
+
+@pytest.mark.parametrize("score", [-1, 101, float("nan"), float("inf"), True, "90"])
+def test_review_rejects_invalid_score_before_database_update(tmp_path, score):
+    system = audit_portal.CHRISHEMSubmissionSystem(tmp_path / "portal.sqlite3")
+    with pytest.raises(ValueError, match="finite number between 0 and 100"):
+        system.review(1, "A", score, "Useful feedback", professor_password="test-password")
+
+
+@pytest.mark.parametrize("feedback", ["", "   ", None])
+def test_review_rejects_blank_feedback_before_database_update(tmp_path, feedback):
+    system = audit_portal.CHRISHEMSubmissionSystem(tmp_path / "portal.sqlite3")
+    with pytest.raises(ValueError, match="Non-empty review feedback"):
+        system.review(1, "A", 90.0, feedback, professor_password="test-password")
+
+
+@pytest.mark.parametrize("feedback", ["", "   ", None])
+def test_return_for_revision_rejects_blank_feedback(tmp_path, feedback):
+    system = audit_portal.CHRISHEMSubmissionSystem(tmp_path / "portal.sqlite3")
+    with pytest.raises(ValueError, match="Non-empty revision feedback"):
+        system.return_for_revision(1, feedback, professor_password="test-password")
