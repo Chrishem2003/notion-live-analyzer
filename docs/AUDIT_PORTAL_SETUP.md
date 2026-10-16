@@ -77,3 +77,8 @@ WORKFLOW_EXECUTION_PASSWORD = "replace-with-a-unique-random-secret-of-24-plus-ch
 ```
 
 This is a single shared-secret gate, not individual identity, MFA, or role-based access control. Do not expose the page to sensitive production workloads until deployment authentication and authorization, durable storage, and staging tests are accepted. Runtime input and output JSON are capped at 1,000,000 UTF-8 bytes per run. Oversized input is rejected before persistence; oversized handler results fail visibly instead of being stored unboundedly.
+
+
+## Workflow staging runbook
+
+Follow [WORKFLOW_EXECUTION_STAGING.md](WORKFLOW_EXECUTION_STAGING.md) for the operator access gate, synthetic FASTA and numeric smoke tests, Notion handoff/readback, duplicate delivery, persistence, and backup/restore acceptance checks. All tests must run in isolated staging with synthetic data; a green CI run alone does not approve deployment.
