@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -231,3 +232,71 @@ def test_submission_event_history_is_persistent_and_excludes_feedback_text(tmp_p
         ("reviewed", "returned"),
     ]
     assert all(private_feedback not in event["details_json"] for event in events)
+
+
+@pytest.mark.skipif(not audit_portal.HAS_CRYPTOGRAPHY, reason="cryptography package unavailable")
+def test_event_table_migration_preserves_existing_submission_rows(tmp_path):
+    database_path = tmp_path / "legacy-portal.sqlite3"
+    encryption_password = "migration-test-encryption-key"
+    initial = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    submitted = initial.submit(
+        12,
+        "Legacy Researcher",
+        "Existing record before event migration",
+        "Keep this original synthetic research record.",
+        password=encryption_password,
+    )
+    with sqlite3.connect(database_path) as conn:
+        conn.execute("DROP TABLE portal_audit_events")
+        conn.commit()
+
+    # Initialization should add the event table without rebuilding or dropping
+    # the existing submission table and its encrypted record.
+    migrated = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    existing = migrated.get_submission(submitted["id"])
+    assert existing["title"] == "Existing record before event migration"
+    assert migrated.decrypt_submission(submitted["id"], encryption_password) == (
+        "Keep this original synthetic research record."
+    )
+    assert migrated.get_submission_events(submitted["id"]) == []
+    with sqlite3.connect(database_path) as conn:
+        table_names = {
+            row[0]
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            ).fetchall()
+        }
+    assert "portal_submissions" in table_names
+    assert "portal_audit_events" in table_names
+
+
+@pytest.mark.skipif(not audit_portal.HAS_CRYPTOGRAPHY, reason="cryptography package unavailable")
+def test_submission_and_event_are_atomic_when_event_insert_fails(tmp_path):
+    database_path = tmp_path / "portal-atomicity.sqlite3"
+    system = audit_portal.CHRISHEMSubmissionSystem(database_path)
+    with sqlite3.connect(database_path) as conn:
+        conn.execute(
+            """CREATE TRIGGER reject_portal_event
+               BEFORE INSERT ON portal_audit_events
+               BEGIN SELECT RAISE(ABORT, 'simulated event-store failure'); END"""
+        )
+        conn.commit()
+
+    with pytest.raises(sqlite3.IntegrityError, match="simulated event-store failure"):
+        system.submit(
+            3,
+            "Atomicity Researcher",
+            "Must not be partially saved",
+            "Synthetic test content",
+            password="atomicity-test-encryption-key",
+        )
+
+    with sqlite3.connect(database_path) as conn:
+        submission_count = conn.execute(
+            "SELECT COUNT(*) FROM portal_submissions"
+        ).fetchone()[0]
+        event_count = conn.execute(
+            "SELECT COUNT(*) FROM portal_audit_events"
+        ).fetchone()[0]
+    assert submission_count == 0
+    assert event_count == 0
