@@ -2,7 +2,7 @@
 # General server settings
 maxUploadSize = 50
 enableXsrfProtection = true
-enableCORS = false
+# Leave enableCORS at Streamlit's secure default; do not override it to false.
 enableWebsocketCompression = true
 maxMessageSize = 200
 
