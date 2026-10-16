@@ -88,5 +88,41 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             verify_workflow_backup(self.backup)
 
 
+    def test_real_runtime_backup_passes_verifier_after_sqlite_backup(self):
+        from cryptography.fernet import Fernet
+        from modules.workflow_runtime import WorkflowRuntime
+
+        source = Path(self.tempdir.name) / "runtime-source.sqlite3"
+        key = Fernet.generate_key()
+        runtime = WorkflowRuntime(
+            source,
+            handlers={"echo": lambda payload: {"echo": payload["value"]}},
+            encryption_key=key,
+        )
+        run_id = runtime.submit(
+            workflow_id="synthetic-verification",
+            task_type="echo",
+            payload={"value": "synthetic-backup-fixture"},
+        )
+        runtime.execute_run(run_id)
+
+        with sqlite3.connect(source) as source_connection:
+            with sqlite3.connect(self.backup) as backup_connection:
+                source_connection.backup(backup_connection)
+
+        result = verify_workflow_backup(self.backup)
+        self.assertTrue(result["verified"])
+        self.assertGreaterEqual(result["workflow_runs"], 1)
+        self.assertGreaterEqual(result["workflow_events"], 3)
+        self.assertEqual(
+            result["encrypted_payload_field_counts"]["input_json"],
+            result["workflow_runs"],
+        )
+        self.assertEqual(
+            result["encrypted_payload_field_counts"]["result_json"],
+            result["workflow_runs"],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
