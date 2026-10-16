@@ -1,6 +1,7 @@
 """Tests for the persistent local workflow runtime."""
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
@@ -66,6 +67,27 @@ class WorkflowRuntimeTests(unittest.TestCase):
         runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
         with self.assertRaises(ValueError):
             runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=99)
+
+    def test_submit_rolls_back_run_if_event_append_fails(self):
+        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        with patch("modules.workflow_runtime._event_payload", return_value={"invalid": "event"}):
+            with self.assertRaises(Exception):
+                runtime.submit(workflow_id="p1", task_type="echo", payload={"x": 1})
+        self.assertEqual(runtime.list_runs(), [])
+
+    def test_execution_event_and_state_are_committed_together(self):
+        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: {"ok": True}})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={})
+        with patch("modules.workflow_runtime._event_payload", return_value={"invalid": "event"}):
+            with self.assertRaises(Exception):
+                runtime.execute_run(run_id)
+        # The claim and its running event are one transaction: a rejected event
+        # must not leave the run falsely marked as running.
+        self.assertEqual(runtime.get_run(run_id)["status"], "queued")
+        self.assertEqual(
+            [event["status"] for event in list_run_events(self.database, "p1", run_id)],
+            ["queued"],
+        )
 
 
 if __name__ == "__main__":
