@@ -7,7 +7,6 @@ from pathlib import Path
 
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
 from modules.workflow_store import list_run_events
-from modules.workflow_store import list_run_events
 
 
 class WorkflowRuntimeTests(unittest.TestCase):
@@ -69,6 +68,23 @@ class WorkflowRuntimeTests(unittest.TestCase):
         runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
         with self.assertRaises(ValueError):
             runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=99)
+
+    def test_oversized_input_is_rejected_before_persistence(self):
+        runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
+        with self.assertRaisesRegex(ValueError, "payload exceeds"):
+            runtime.submit(workflow_id="p1", task_type="echo", payload={"text": "x" * 1_000_001})
+        self.assertEqual(runtime.list_runs(), [])
+
+    def test_oversized_handler_result_fails_with_bounded_error(self):
+        runtime = WorkflowRuntime(
+            self.database,
+            handlers={"large_result": lambda data: {"text": "x" * 1_000_001}},
+        )
+        run_id = runtime.submit(workflow_id="p1", task_type="large_result", payload={}, max_attempts=1)
+        result = runtime.execute_run(run_id)
+        self.assertEqual(result["status"], "failed")
+        self.assertIn("result exceeds", result["error_message"])
+        self.assertIsNone(result["result"])
 
     def test_submit_rolls_back_run_if_event_append_fails(self):
         runtime = WorkflowRuntime(self.database, handlers={"echo": lambda data: dict(data)})
