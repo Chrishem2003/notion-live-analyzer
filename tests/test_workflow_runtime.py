@@ -6,6 +6,7 @@ from pathlib import Path
 
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
 from modules.workflow_store import list_run_events
+from modules.workflow_store import list_run_events
 
 
 class WorkflowRuntimeTests(unittest.TestCase):
