@@ -1,6 +1,8 @@
 """Unit tests for explicit Notion workflow handoff with mocked HTTP."""
 import unittest
 
+import requests
+
 from modules.notion_workflow_handoff import NotionHandoffError, sync_run_to_notion
 
 
@@ -113,6 +115,44 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
                 return FakeResponse({"message": "unauthorized"}, status_code=401)
         with self.assertRaisesRegex(NotionHandoffError, "401"):
             sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=FailedSession())
+
+    def test_invalid_database_id_is_rejected_before_network_calls(self):
+        session = FakeSession()
+        with self.assertRaisesRegex(NotionHandoffError, "database ID must be"):
+            sync_run_to_notion(sample_run(), token="secret", database_id="db-1/../../pages", session=session)
+        self.assertEqual(session.calls, [])
+
+    def test_transient_schema_failure_is_retried(self):
+        class FlakySchemaSession(FakeSession):
+            def __init__(self):
+                super().__init__()
+                self.get_count = 0
+
+            def get(self, url, **kwargs):
+                self.get_count += 1
+                self.calls.append(("GET", url, kwargs))
+                if self.get_count == 1:
+                    return FakeResponse({"message": "temporarily unavailable"}, status_code=503)
+                return FakeResponse(self.database_schema)
+
+        session = FlakySchemaSession()
+        result = sync_run_to_notion(sample_run(), token="secret", database_id="12345678123456781234567812345678", session=session)
+        self.assertTrue(result["created"])
+        self.assertEqual(session.get_count, 2)
+
+    def test_ambiguous_create_transport_failure_is_not_blindly_replayed(self):
+        class AmbiguousCreateSession(FakeSession):
+            def post(self, url, **kwargs):
+                self.calls.append(("POST", url, kwargs))
+                if url.endswith("/query"):
+                    return FakeResponse({"results": []})
+                raise requests.ConnectionError("connection dropped after request")
+
+        session = AmbiguousCreateSession()
+        with self.assertRaisesRegex(NotionHandoffError, "outcome is unknown"):
+            sync_run_to_notion(sample_run(), token="secret", database_id="12345678123456781234567812345678", session=session)
+        create_calls = [call for call in session.calls if call[0] == "POST" and call[1].endswith("/pages")]
+        self.assertEqual(len(create_calls), 1)
 
     def test_incompatible_database_schema_fails_before_any_write(self):
         schema = schema_payload()
