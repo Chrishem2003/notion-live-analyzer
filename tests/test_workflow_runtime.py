@@ -7,6 +7,8 @@ from pathlib import Path
 
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
 from modules.workflow_store import list_run_events
+from modules.workflow_storage import WorkflowStorageError
+from cryptography.fernet import Fernet
 
 
 class WorkflowRuntimeTests(unittest.TestCase):
@@ -131,6 +133,87 @@ class WorkflowRuntimeTests(unittest.TestCase):
         recovered = runtime.recover_stale_runs(older_than_seconds=60)
         self.assertEqual(recovered[0]["status"], "failed")
         self.assertEqual(runtime.get_run(run_id)["status"], "failed")
+
+
+    def test_encrypted_payloads_round_trip_and_are_not_plaintext_in_sqlite(self):
+        key = Fernet.generate_key()
+        secret_value = "synthetic-secret-fixture-not-for-production"
+        runtime = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=key,
+        )
+        run_id = runtime.submit(
+            workflow_id="demo-project",
+            task_type="echo",
+            payload={"value": secret_value},
+        )
+        runtime.execute_run(run_id)
+
+        with sqlite3.connect(self.database) as connection:
+            input_value, result_value = connection.execute(
+                "SELECT input_json, result_json FROM workflow_runs WHERE run_id = ?",
+                (run_id,),
+            ).fetchone()
+        self.assertTrue(input_value.startswith("enc:v1:"))
+        self.assertTrue(result_value.startswith("enc:v1:"))
+        self.assertNotIn(secret_value, input_value)
+        self.assertNotIn(secret_value, result_value)
+
+        reopened = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=key,
+        )
+        saved = reopened.get_run(run_id)
+        self.assertEqual(saved["input"], {"value": secret_value})
+        self.assertEqual(saved["result"], {"echo": secret_value})
+
+    def test_configured_key_migrates_legacy_plaintext_rows(self):
+        legacy = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+        )
+        run_id = legacy.submit(
+            workflow_id="demo-project",
+            task_type="echo",
+            payload={"value": "legacy-synthetic-value"},
+        )
+        legacy.execute_run(run_id)
+        with sqlite3.connect(self.database) as connection:
+            raw_input = connection.execute(
+                "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()[0]
+        self.assertNotIn("enc:v1:", raw_input)
+
+        key = Fernet.generate_key()
+        migrated = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=key,
+        )
+        with sqlite3.connect(self.database) as connection:
+            migrated_input, migrated_result = connection.execute(
+                "SELECT input_json, result_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()
+        self.assertTrue(migrated_input.startswith("enc:v1:"))
+        self.assertTrue(migrated_result.startswith("enc:v1:"))
+        self.assertEqual(migrated.get_run(run_id)["input"], {"value": "legacy-synthetic-value"})
+
+    def test_wrong_key_fails_closed_when_reading_encrypted_payload(self):
+        key = Fernet.generate_key()
+        runtime = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=key,
+        )
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "demo"})
+        with self.assertRaises(WorkflowStorageError):
+            WorkflowRuntime(
+                self.database,
+                handlers={"echo": lambda data: dict(data)},
+                encryption_key=Fernet.generate_key(),
+            ).get_run(run_id)
 
 
 if __name__ == "__main__":
