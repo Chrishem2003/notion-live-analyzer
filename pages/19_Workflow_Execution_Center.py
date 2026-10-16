@@ -82,6 +82,10 @@ st.info(
     "For hosted or multi-worker deployment, configure WORKFLOW_RUNTIME_DB on durable shared storage "
     "and use a coordinated worker/queue service before relying on production execution."
 )
+st.warning(
+    "SYNTHETIC / TEST DATA ONLY. Workflow inputs, results, and event metadata are stored in local SQLite without database-level encryption. "
+    "Do not enter personal, identifiable, confidential, regulated, or real research data until encryption-at-rest, access controls, backup, and retention have been reviewed."
+)
 
 try:
     runtime = WorkflowRuntime(db_path, handlers=default_handlers())
@@ -121,10 +125,15 @@ payload_text = st.text_area(
     height=220,
     help="Only JSON data is accepted. The selected trusted handler determines how the payload is interpreted.",
 )
+synthetic_only_confirmed = st.checkbox(
+    "I confirm this payload contains only synthetic/demo test data and no real or confidential research content."
+)
 max_attempts = st.number_input("Maximum attempts", min_value=1, max_value=5, value=2, step=1)
 
 if st.button("Validate, submit and execute", type="primary"):
     try:
+        if not synthetic_only_confirmed:
+            raise ValueError("Confirm synthetic/demo-only input before submitting a workflow.")
         if len(payload_text.encode("utf-8")) > 1_000_000:
             raise ValueError("Input JSON exceeds the 1,000,000-byte interface limit.")
         payload = json.loads(payload_text)
@@ -221,7 +230,9 @@ try:
                     "Sending this execution record does not approve its science: QC remains Pending, "
                     "reproducibility remains Not Checked, and the record is classified Synthetic/Test."
                 )
-                if st.button("Send execution record to Notion", key="handoff_selected_run"):
+                if not synthetic_only_confirmed:
+                    st.info("Confirm synthetic/demo-only data above to enable Notion handoff.")
+                elif st.button("Send execution record to Notion", key="handoff_selected_run"):
                     try:
                         delivery = sync_run_to_notion(selected_run, ledger_database=str(db_path))
                         if delivery.get("created"):
