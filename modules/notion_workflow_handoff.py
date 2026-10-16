@@ -15,6 +15,7 @@ import requests
 
 NOTION_API_BASE = "https://api.notion.com/v1"
 NOTION_API_VERSION = "2022-06-28"
+DEFAULT_ANALYSIS_RUNS_DATABASE_ID = "c2edb48da81649aa90a8b9db6e15bf11"
 
 
 class NotionHandoffError(RuntimeError):
@@ -71,7 +72,7 @@ def sync_run_to_notion(
     The Notion database must expose the property names/types documented in this repo.
     """
     api_token = token or os.environ.get("NOTION_API_KEY")
-    target_database = database_id or os.environ.get("NOTION_ANALYSIS_RUNS_DATABASE_ID")
+    target_database = database_id or os.environ.get("NOTION_ANALYSIS_RUNS_DATABASE_ID") or DEFAULT_ANALYSIS_RUNS_DATABASE_ID
     if not isinstance(api_token, str) or not api_token.strip():
         raise NotionHandoffError("NOTION_API_KEY is not configured")
     if not isinstance(target_database, str) or not target_database.strip():
