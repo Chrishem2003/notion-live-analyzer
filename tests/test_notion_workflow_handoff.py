@@ -87,12 +87,12 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
 
     def test_creates_review_pending_record_and_uses_idempotency_hash(self):
         session = FakeSession()
-        result = sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
+        result = sync_run_to_notion(sample_run(), token="secret", database_id="12345678-1234-5678-1234-567812345678", session=session)
         self.assertTrue(result["created"])
         self.assertEqual(result["url"], "https://notion.example/page-1")
         self.assertEqual(len(session.posts), 2)
         query_call, create_call = session.posts
-        self.assertTrue(query_call[0].endswith("/databases/db-1/query"))
+        self.assertTrue(query_call[0].endswith("/databases/12345678-1234-5678-1234-567812345678/query"))
         query_filter = query_call[1]["json"]["filter"]
         self.assertEqual(query_filter["property"], "Run Manifest Hash")
         properties = create_call[1]["json"]["properties"]
@@ -108,7 +108,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
 
     def test_existing_matching_record_is_returned_without_duplicate_create(self):
         session = FakeSession(query_payload={"results": [{"id": "existing", "url": "https://notion.example/existing"}]})
-        result = sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
+        result = sync_run_to_notion(sample_run(), token="secret", database_id="12345678-1234-5678-1234-567812345678", session=session)
         self.assertFalse(result["created"])
         self.assertEqual(result["page_id"], "existing")
         self.assertEqual(len(session.posts), 1)
@@ -119,7 +119,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
                 self.calls.append((url, kwargs))
                 return FakeResponse({"message": "unauthorized"}, status_code=401)
         with self.assertRaisesRegex(NotionHandoffError, "401"):
-            sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=FailedSession())
+            sync_run_to_notion(sample_run(), token="secret", database_id="12345678-1234-5678-1234-567812345678", session=FailedSession())
 
     def test_timezone_naive_timestamp_is_rejected_before_network_calls(self):
         session = FakeSession()
@@ -192,7 +192,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         del schema["properties"]["Run Manifest Hash"]
         session = FakeSession(database_schema=schema)
         with self.assertRaisesRegex(NotionHandoffError, "missing required properties"):
-            sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
+            sync_run_to_notion(sample_run(), token="secret", database_id="12345678-1234-5678-1234-567812345678", session=session)
         self.assertEqual(session.posts, [])
 
     def test_missing_required_select_option_fails_closed(self):
@@ -200,7 +200,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         schema["properties"]["QC Outcome"]["select"]["options"] = [{"name": "Pass"}]
         session = FakeSession(database_schema=schema)
         with self.assertRaisesRegex(NotionHandoffError, "missing required option"):
-            sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=session)
+            sync_run_to_notion(sample_run(), token="secret", database_id="12345678-1234-5678-1234-567812345678", session=session)
         self.assertEqual(session.posts, [])
 
 
