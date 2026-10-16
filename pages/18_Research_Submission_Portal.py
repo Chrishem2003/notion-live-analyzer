@@ -56,7 +56,7 @@ submit_tab, review_tab = st.tabs(["Submit research", "Professor review"])
 with submit_tab:
     st.subheader("Submit research securely")
     st.write(
-        "Your submission is encrypted before it is stored. Keep your original copy. "
+        "Your research content and review feedback are encrypted before storage. Names, email, title, project ID, status, and timestamps remain plaintext in SQLite, so database/file access must be restricted. Keep your original copy. "
         "Only submit material you are authorized to share with this research workspace."
     )
     with st.form("live_research_submission_form", clear_on_submit=False):
@@ -212,7 +212,8 @@ with review_tab:
 
 st.divider()
 st.caption(
-    "Operational note: protect and back up the configured encryption secret. Existing records "
-    "cannot be decrypted if the secret used to encrypt them is lost. Use a unique, strong secret "
-    "and keep the professor access password different from it."
+    "Operational note: protect and back up the configured encryption secret. Existing content "
+    "cannot be decrypted if the secret used to encrypt it is lost. Submission metadata is not "
+    "encrypted by this page; restrict database and backup access. Use a unique, strong encryption "
+    "secret and keep the professor access password different from it."
 )
