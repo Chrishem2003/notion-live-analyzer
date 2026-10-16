@@ -139,7 +139,12 @@ class WorkflowRuntime:
                     updates: dict[str, str] = {}
                     for column in ("input_json", "result_json", "error_message"):
                         value = row[column]
-                        if value is not None and not value.startswith(ENCRYPTED_PREFIX):
+                        if value is None:
+                            continue
+                        if value.startswith(ENCRYPTED_PREFIX):
+                            # Validate existing ciphertext before the app serves run history.
+                            decrypt_storage_text(value, key)
+                        else:
                             updates[column] = encrypt_storage_text(value, key)
                     if updates:
                         assignments = ", ".join(f"{column} = ?" for column in updates)
