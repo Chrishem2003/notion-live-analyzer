@@ -102,3 +102,16 @@ A CI pass is code-level evidence. It does not replace authenticated staging, dur
 - [ ] Test invalid TTL values (boolean, non-integer, zero, negative). Expected: invalid session configuration fails closed.
 
 The shared-secret gate remains a transitional operator barrier. These checks do not provide individual identity, MFA, durable global rate limiting, or role-based authorization. Keep production deployment blocked until the hosting identity boundary and authorization model are verified.
+
+
+## 8. Local concurrent handoff serialization
+
+The Workflow Execution Center now passes its configured runtime SQLite path to the Notion handoff adapter. The adapter takes a SQLite BEGIN IMMEDIATE write lock before querying the target database and holds it until the handoff finishes. Processes that share the same database file are therefore serialized; the second same-manifest request re-queries Notion after the first request completes.
+
+- [ ] Confirm all local workers use the same durable SQLite file before relying on this coordination.
+- [ ] Run the automated concurrent same-manifest test using a shared ledger path.
+- [ ] In staging, submit the same successful run concurrently and verify only one Notion page is created.
+- [ ] Test an ambiguous create response (request reaches Notion but the client loses the response); retry and verify the adapter reconciles by manifest hash.
+- [ ] Test SQLite lock timeout and busy behavior; ensure the UI reports a safe failure rather than claiming delivery.
+- [ ] Do not assume this is a distributed lock: separate hosts or separate local filesystems can still race. Multi-host production needs a centralized outbox/dispatcher with durable leases and reconciliation.
+- [ ] Do not claim atomicity between SQLite and Notion; the remote API and local ledger cannot share one transaction.
