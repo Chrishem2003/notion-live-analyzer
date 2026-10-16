@@ -223,7 +223,7 @@ try:
                 )
                 if st.button("Send execution record to Notion", key="handoff_selected_run"):
                     try:
-                        delivery = sync_run_to_notion(selected_run)
+                        delivery = sync_run_to_notion(selected_run, ledger_database=str(db_path))
                         if delivery.get("created"):
                             st.success("Execution record created in Notion.")
                         else:
