@@ -39,3 +39,8 @@ Streamlit secrets take precedence over environment variables. Missing or blank v
 ## Submission event history
 
 The portal now records submission creation, review, and return-for-revision status transitions in a SQLite event table in the same database transaction as the corresponding write. Event rows intentionally avoid storing research content or feedback text. The history improves operational traceability, but it is **not tamper-proof** and does not identify an individual professor while the shared-password gate remains in use. Restrict database access and add per-user identity/authorization before relying on it for formal accountability.
+
+
+## Current combined review candidate
+
+The current combined candidate is [PR #19](https://github.com/Chrishem2003/notion-live-analyzer/pull/19), which includes the persistent portal and its transactional submission-status event history. PR #18 is superseded for release purposes; do not merge both separately. Check the latest exact-head CI result and complete the documented staging and authorization gates before production use.
