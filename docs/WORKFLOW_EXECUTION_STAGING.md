@@ -115,3 +115,21 @@ The Workflow Execution Center now passes its configured runtime SQLite path to t
 - [ ] Test SQLite lock timeout and busy behavior; ensure the UI reports a safe failure rather than claiming delivery.
 - [ ] Do not assume this is a distributed lock: separate hosts or separate local filesystems can still race. Multi-host production needs a centralized outbox/dispatcher with durable leases and reconciliation.
 - [ ] Do not claim atomicity between SQLite and Notion; the remote API and local ledger cannot share one transaction.
+
+
+## 9. Required payload encryption and key recovery
+
+The Workflow Execution Center now requires WORKFLOW_RUNTIME_ENCRYPTION_KEY before it initializes the runtime. Generate a Fernet key in a trusted environment (never in a public issue or chat):
+
+    python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+- [ ] Store the key only in the approved secret manager / Streamlit secrets; never commit it or write it into Notion.
+- [ ] Keep an access-controlled recovery copy under the organization's key-recovery policy. A lost key makes encrypted payloads unreadable.
+- [ ] Verify that new input_json, result_json, and error_message fields start with the versioned enc:v1: prefix and do not contain the synthetic fixture in plaintext.
+- [ ] Reopen the same database with the same key and verify input/result/error readback.
+- [ ] Verify that opening encrypted data without a key or with a wrong key fails closed.
+- [ ] Verify that an existing synthetic-only plaintext database is migrated transactionally when opened with the configured key; confirm the original records and event ordering remain intact.
+- [ ] Confirm SQLite metadata, run IDs, task types, statuses, timestamps, digests, and event records remain visible in plaintext. This is application-level field encryption, not whole-database encryption.
+- [ ] Document and test key rotation, protected backups, restore, retention, and deletion before using real research data.
+
+The UI still requires synthetic/demo-only confirmation. This is an interim data-classification guardrail; it cannot detect dishonest or accidental misclassification. Real research, identifiable, confidential, or regulated content remains prohibited until the complete data-protection controls are accepted.
