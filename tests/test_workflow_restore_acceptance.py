@@ -11,9 +11,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from cryptography.fernet import Fernet, InvalidToken
+from cryptography.fernet import Fernet
 
 from modules.workflow_runtime import WorkflowRuntime
+from modules.workflow_storage import WorkflowStorageError
 from modules.workflow_store import list_run_events
 
 
@@ -90,7 +91,7 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
                 source_connection.backup(restored_connection)
 
         before = hashlib.sha256(self.restored.read_bytes()).hexdigest()
-        with self.assertRaises((InvalidToken, ValueError)):
+        with self.assertRaises(WorkflowStorageError):
             WorkflowRuntime(
                 self.restored,
                 handlers={"echo": lambda payload: {"echo": payload["value"]}},
