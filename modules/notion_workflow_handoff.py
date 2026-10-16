@@ -229,13 +229,21 @@ def _sync_run_to_notion_unlocked(
     queried = _safe_notion_request(
         session, "POST", base, headers=headers, json_body=query_body,
     )
-    existing = queried.get("results", [])
+    existing = queried.get("results")
+    if not isinstance(existing, list) or any(not isinstance(item, Mapping) for item in existing):
+        raise NotionHandoffError("Notion query returned an invalid results structure")
     if existing:
         first = existing[0]
+        page_id = first.get("id")
+        page_url = first.get("url")
+        if not isinstance(page_id, str) or not page_id.strip():
+            raise NotionHandoffError("matching Notion record has no valid page ID")
+        if not isinstance(page_url, str) or not page_url.startswith("https://"):
+            raise NotionHandoffError("matching Notion record has no valid HTTPS page URL")
         return {
             "created": False,
-            "page_id": first.get("id"),
-            "url": first.get("url"),
+            "page_id": page_id,
+            "url": page_url,
             "manifest_hash": digest,
         }
 
@@ -283,10 +291,20 @@ def _sync_run_to_notion_unlocked(
             "retry the handoff action to reconcile by manifest hash before creating again"
         ) from exc
     created = _response_json(created_response)
+    page_id = created.get("id")
+    page_url = created.get("url")
+    if not isinstance(page_id, str) or not page_id.strip():
+        raise NotionHandoffError(
+            "Notion create response did not confirm a page ID; reconcile by manifest hash before retrying"
+        )
+    if not isinstance(page_url, str) or not page_url.startswith("https://"):
+        raise NotionHandoffError(
+            "Notion create response did not include a valid HTTPS page URL; reconcile by manifest hash"
+        )
     return {
         "created": True,
-        "page_id": created.get("id"),
-        "url": created.get("url"),
+        "page_id": page_id,
+        "url": page_url,
         "manifest_hash": digest,
     }
 
