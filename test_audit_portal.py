@@ -43,6 +43,15 @@ class TestSubmissions:
         assert len(system.get_submissions(student_name="bob")) == 1
         assert len(system.get_submissions(status="reviewed")) == 0
 
+    def test_filters_compose_and_values_are_parameterized(self, system):
+        first = system.submit(1, "ada", "A", "x", password="CHRISHEM")["id"]
+        system.submit(1, "bob", "B", "y", password="CHRISHEM")
+        system.review(first, "A", 90.0, "ok", professor_password="professor-test-password")
+
+        rows = system.get_submissions(project_id=1, student_name="ada", status="reviewed")
+        assert [row["title"] for row in rows] == ["A"]
+        assert system.get_submissions(student_name="ada' OR 1=1 --") == []
+
 
 class TestStudentStats:
     def test_stats_for_unknown_student(self, system):
