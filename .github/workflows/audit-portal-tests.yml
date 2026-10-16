@@ -5,8 +5,10 @@ on:
     paths:
       - "modules/audit_portal.py"
       - "modules/data_transformer.py"
+      - "modules/file_uploader.py"
       - "tests/test_audit_portal.py"
       - "tests/test_expression_security.py"
+      - "tests/test_file_upload_security.py"
       - ".streamlit/config.toml"
       - ".github/workflows/audit-portal-tests.yml"
   push:
@@ -43,7 +45,7 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install --upgrade pip pytest cryptography
       - name: Compile security-sensitive modules
-        run: python -m py_compile modules/audit_portal.py modules/data_transformer.py
+        run: python -m py_compile modules/audit_portal.py modules/data_transformer.py modules/file_uploader.py
       - name: Verify Streamlit security configuration
         shell: bash
         run: |
@@ -53,4 +55,4 @@ jobs:
             exit 1
           fi
       - name: Run focused security regression tests
-        run: python -m pytest -q tests/test_audit_portal.py tests/test_expression_security.py
+        run: python -m pytest -q tests/test_audit_portal.py tests/test_expression_security.py tests/test_file_upload_security.py
