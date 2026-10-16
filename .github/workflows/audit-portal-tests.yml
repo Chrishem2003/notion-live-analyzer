@@ -1,10 +1,12 @@
-name: Audit Portal Regression Tests
+name: Research Security Regression Tests
 
 on:
   pull_request:
     paths:
       - "modules/audit_portal.py"
+      - "modules/data_transformer.py"
       - "tests/test_audit_portal.py"
+      - "tests/test_expression_security.py"
       - ".streamlit/config.toml"
       - ".github/workflows/audit-portal-tests.yml"
   push:
@@ -13,7 +15,9 @@ on:
       - "devin/1785103320-security-hardening"
     paths:
       - "modules/audit_portal.py"
+      - "modules/data_transformer.py"
       - "tests/test_audit_portal.py"
+      - "tests/test_expression_security.py"
       - ".streamlit/config.toml"
       - ".github/workflows/audit-portal-tests.yml"
 
@@ -21,11 +25,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: audit-portal-tests-${{ github.ref }}
+  group: research-security-tests-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  audit-portal:
+  security-regressions:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -38,8 +42,8 @@ jobs:
           cache: pip
       - name: Install test dependencies
         run: python -m pip install --upgrade pip pytest cryptography
-      - name: Compile the audit portal
-        run: python -m py_compile modules/audit_portal.py
+      - name: Compile security-sensitive modules
+        run: python -m py_compile modules/audit_portal.py modules/data_transformer.py
       - name: Verify Streamlit security configuration
         shell: bash
         run: |
@@ -48,5 +52,5 @@ jobs:
             echo "Unsafe explicit CORS disable conflicts with the XSRF-protected deployment policy." >&2
             exit 1
           fi
-      - name: Run audit portal regression tests
-        run: python -m pytest -q tests/test_audit_portal.py
+      - name: Run focused security regression tests
+        run: python -m pytest -q tests/test_audit_portal.py tests/test_expression_security.py
