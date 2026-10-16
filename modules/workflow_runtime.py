@@ -221,3 +221,68 @@ class WorkflowRuntime:
                       payload=({"result": json.loads(encoded_result)} if encoded_result else
                                {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}))
         return self.get_run(run_id)
+
+
+    def execute_run(self, run_id: str) -> dict[str, Any] | None:
+        """Execute one specific queued run; leave unrelated queue items untouched."""
+        with closing(_connect(self.database)) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = connection.execute(
+                    "SELECT * FROM workflow_runs WHERE run_id = ? AND status = 'queued'",
+                    (run_id,),
+                ).fetchone()
+                if row is None:
+                    connection.execute("COMMIT")
+                    return self.get_run(run_id)
+                now = _utc_now()
+                attempt = int(row["attempt"]) + 1
+                validate_status_transition("queued", "running")
+                connection.execute(
+                    "UPDATE workflow_runs SET status='running', attempt=?, claimed_at=?, updated_at=? WHERE run_id=? AND status='queued'",
+                    (attempt, now, now, run_id),
+                )
+                connection.execute("COMMIT")
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute("ROLLBACK")
+                raise
+
+        workflow_id, task_type = row["workflow_id"], row["task_type"]
+        payload = json.loads(row["input_json"])
+        _record_event(self.database, workflow_id=workflow_id, run_id=run_id,
+                      task_type=task_type, stage="problem_solving", status="running",
+                      payload={"attempt": attempt, "input_digest": canonical_payload_digest(payload)})
+        handler = self.handlers.get(task_type)
+        try:
+            if handler is None:
+                raise HandlerNotRegistered(f"handler {task_type!r} is not registered in this worker")
+            result = handler(payload)
+            if not isinstance(result, Mapping):
+                raise TypeError("workflow handler must return a mapping")
+            encoded_result = json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+            outcome = "succeeded"
+            error_message = None
+        except Exception as exc:
+            encoded_result = None
+            error_message = f"{type(exc).__name__}: {str(exc)[:500]}"
+            outcome = "queued" if attempt < int(row["max_attempts"]) else "failed"
+
+        now = _utc_now()
+        with closing(_connect(self.database)) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=? WHERE run_id=? AND status='running'",
+                    (outcome, encoded_result, error_message, now, run_id),
+                )
+                connection.execute("COMMIT")
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute("ROLLBACK")
+                raise
+        _record_event(self.database, workflow_id=workflow_id, run_id=run_id,
+                      task_type=task_type, stage="problem_solving", status=outcome,
+                      payload=({"result": json.loads(encoded_result)} if encoded_result else
+                               {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}))
+        return self.get_run(run_id)
