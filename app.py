@@ -45,6 +45,7 @@ import requests
 import streamlit as st
 import streamlit.components.v1 as components
 import extra_streamlit_components as stx
+from modules.bootstrap_admin import ensure_bootstrap_admin_record
 
 # --- PAGE CONFIGURATION (must be the first Streamlit command) ---
 st.set_page_config(
@@ -3559,26 +3560,13 @@ def _verify_password(password: str, stored_hash_hex: str, salt_hex: str) -> bool
 
 # --- BOOTSTRAP & DESIGNATED ADMIN SYNC ---
 def ensure_bootstrap_admin():
-    cursor = db_conn.cursor()
-    bootstrap_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
-    
-    if cursor.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] > 0:
-        if bootstrap_email:
-            email_norm = bootstrap_email.lower().strip()
-            cursor.execute("UPDATE auth_users SET name = 'CHRISHEM' WHERE email = ? AND role = 'admin'", (email_norm,))
-            db_conn.commit()
-        return
-
-    bootstrap_password = os.environ.get("SOVEREIGN_ADMIN_PASSWORD")
-    if bootstrap_email and bootstrap_password:
-        pwd_hash, salt = _hash_password(bootstrap_password)
-        email_norm = bootstrap_email.lower().strip()
-        cursor.execute(
-            "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?,?,?,?,?)",
-            (email_norm, "CHRISHEM", pwd_hash, salt, "admin"),
-        )
-        db_conn.commit()
-        subscription.admin_override_plan("system:bootstrap", email_norm, "pro", "comp")
+    ensure_bootstrap_admin_record(
+        db_conn,
+        os.environ.get("SOVEREIGN_ADMIN_EMAIL"),
+        os.environ.get("SOVEREIGN_ADMIN_PASSWORD"),
+        _hash_password,
+        subscription.admin_override_plan,
+    )
 
 
 ensure_bootstrap_admin()
