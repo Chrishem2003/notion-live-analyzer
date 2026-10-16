@@ -69,6 +69,61 @@ class WorkflowRuntimeTests(unittest.TestCase):
         history = list_run_events(self.database, "p1", run_id)
         self.assertEqual([item["status"] for item in history], ["queued", "running", "queued", "running", "failed"])
 
+    def test_concurrent_execute_run_claims_one_run_only_once(self):
+        import threading
+        import time
+
+        calls = {"count": 0}
+        calls_lock = threading.Lock()
+        handler_started = threading.Event()
+        release_handler = threading.Event()
+        barrier = threading.Barrier(3)
+
+        def controlled_handler(payload):
+            with calls_lock:
+                calls["count"] += 1
+            handler_started.set()
+            if not release_handler.wait(timeout=5):
+                raise RuntimeError("test handler release timed out")
+            return {"value": payload["value"]}
+
+        runtime = self.make_runtime(self.database, handlers={"controlled": controlled_handler})
+        run_id = runtime.submit(
+            workflow_id="concurrency-test", task_type="controlled",
+            payload={"value": "synthetic"}, max_attempts=1,
+        )
+        results = []
+        errors = []
+
+        def execute():
+            try:
+                barrier.wait(timeout=5)
+                results.append(runtime.execute_run(run_id))
+            except Exception as exc:
+                errors.append(exc)
+
+        first = threading.Thread(target=execute)
+        second = threading.Thread(target=execute)
+        first.start()
+        second.start()
+        barrier.wait(timeout=5)
+        self.assertTrue(handler_started.wait(timeout=5))
+        # Give the second caller an opportunity to observe the claimed state.
+        time.sleep(0.05)
+        release_handler.set()
+        first.join(timeout=5)
+        second.join(timeout=5)
+
+        self.assertFalse(first.is_alive())
+        self.assertFalse(second.is_alive())
+        self.assertEqual(errors, [])
+        self.assertEqual(calls["count"], 1, "only the successful database claimant may call the handler")
+        self.assertEqual(runtime.get_run(run_id)["status"], "succeeded")
+        self.assertEqual(
+            [event["status"] for event in list_run_events(self.database, "concurrency-test", run_id)],
+            ["queued", "running", "succeeded"],
+        )
+
     def test_no_queued_work_returns_none(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         self.assertIsNone(runtime.execute_next())
