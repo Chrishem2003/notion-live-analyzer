@@ -168,3 +168,15 @@ The command checks that the operator password meets the configured policy and th
 - [ ] Do not treat this preflight as a substitute for the manual acceptance sections above.
 
 The associated regression tests are in tests/test_workflow_configuration_preflight.py. Automated tests must pass on the exact candidate head before the preflight is relied upon.
+
+
+## 12. Protected key-rotation backup files (added 2026-10-16)
+
+The rotation helper now atomically reserves a new backup path using exclusive file creation, refuses pre-existing files and dangling symlinks, and applies POSIX mode `0600` to the backup. If backup creation fails, cleanup targets only the file reservation created by that invocation. This reduces local overwrite and accidental disclosure risk but does not replace host-level access control.
+
+- [ ] On POSIX staging, verify the generated backup mode is `0600`.
+- [ ] Verify an existing destination and dangling symlink destination are rejected without modifying the destination or creating the symlink target.
+- [ ] On Windows or managed hosting, separately verify effective filesystem ACLs; POSIX mode bits are not a portable ACL guarantee.
+- [ ] Verify backup retention, secure deletion, off-host backup policy, and recovery-key custody with the platform owner.
+
+The additional regression tests live in `tests/test_workflow_runtime.py`. Exact-head CI must pass before this control is accepted.
