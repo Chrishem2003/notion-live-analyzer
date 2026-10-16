@@ -6,9 +6,11 @@ on:
       - "modules/audit_portal.py"
       - "modules/data_transformer.py"
       - "modules/file_uploader.py"
+      - "modules/project_collaboration/project_auth.py"
       - "tests/test_audit_portal.py"
       - "tests/test_expression_security.py"
-      - "tests/test_file_upload_security.py"
+      - "tests/test_file_upload_security.py tests/test_project_auth_security.py"
+      - "tests/test_project_auth_security.py"
       - ".streamlit/config.toml"
       - ".github/workflows/audit-portal-tests.yml"
   push:
@@ -45,7 +47,7 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install --upgrade pip pytest cryptography
       - name: Compile security-sensitive modules
-        run: python -m py_compile modules/audit_portal.py modules/data_transformer.py modules/file_uploader.py
+        run: python -m py_compile modules/audit_portal.py modules/data_transformer.py modules/file_uploader.py modules/project_collaboration/project_auth.py
       - name: Verify Streamlit security configuration
         shell: bash
         run: |
