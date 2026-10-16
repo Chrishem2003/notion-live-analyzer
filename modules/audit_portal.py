@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 import sqlite3
 import time
 from pathlib import Path
@@ -20,50 +21,78 @@ DB_PATH = APP_DIR / "research_workspace.db"
 
 # ─── Cryptography for Fernet ─────────────────────────────────────────
 try:
-    from cryptography.fernet import Fernet
+    from cryptography.fernet import Fernet, InvalidToken
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
     HAS_CRYPTOGRAPHY = True
 except ImportError:
     HAS_CRYPTOGRAPHY = False
     Fernet = None
+    InvalidToken = Exception
 
-CHRISHEM_SALT = b"CHRISHEM_AUDIT_PORTAL_SALT_2024"
+# Legacy static salt is retained only for decrypting existing records.
+LEGACY_SALT = b"CHRISHEM_AUDIT_PORTAL_SALT_2024"
+KDF_ITERATIONS = 600000
+SALT_BYTES = 16
 
 
-def derive_fernet_key(password: str) -> bytes:
-    """Derive a 32-byte Fernet key from a password."""
+class CryptographyUnavailable(RuntimeError):
+    """Raised when secure submission encryption is unavailable."""
+
+
+def derive_fernet_key(password: str, salt: bytes = LEGACY_SALT) -> bytes:
+    """Derive a Fernet key; never fall back to an insecure encoding."""
     if not HAS_CRYPTOGRAPHY:
-        return hashlib.sha256(password.encode() + CHRISHEM_SALT).digest()
+        raise CryptographyUnavailable(
+            "The 'cryptography' package is required for submission encryption."
+        )
+    if not isinstance(password, str) or not password.strip():
+        raise ValueError("A non-empty password is required.")
+    if not isinstance(salt, bytes) or len(salt) < 16:
+        raise ValueError("A cryptographically secure salt of at least 16 bytes is required.")
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
-        salt=CHRISHEM_SALT,
-        iterations=600000,
+        salt=salt,
+        iterations=KDF_ITERATIONS,
     )
     return base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
 
 def encrypt_text(plaintext: str, password: str) -> str:
-    """Encrypt text using Fernet. Falls back to base64 if cryptography missing."""
-    if not HAS_CRYPTOGRAPHY:
-        return base64.b64encode(plaintext.encode()).decode()
-    f = Fernet(derive_fernet_key(password))
-    return f.encrypt(plaintext.encode()).decode()
+    """Encrypt with Fernet and a fresh random salt for every new record."""
+    if not isinstance(plaintext, str):
+        raise TypeError("Plaintext must be a string.")
+    salt = os.urandom(SALT_BYTES)
+    token = Fernet(derive_fernet_key(password, salt)).encrypt(plaintext.encode())
+    return f"v2:{base64.urlsafe_b64encode(salt).decode()}:{token.decode()}"
 
 
 def decrypt_text(ciphertext: str, password: str) -> str:
-    """Decrypt Fernet-encrypted text."""
+    """Decrypt v2 salted records and legacy Fernet records without exposing internals."""
+    if not isinstance(ciphertext, str) or not ciphertext:
+        raise ValueError("Ciphertext must be a non-empty string.")
     if not HAS_CRYPTOGRAPHY:
-        try:
-            return base64.b64decode(ciphertext.encode()).decode()
-        except Exception:
-            return "[Decryption failed: cryptography package required]"
+        raise CryptographyUnavailable(
+            "The 'cryptography' package is required to decrypt submissions."
+        )
+    if not isinstance(password, str) or not password.strip():
+        raise ValueError("A non-empty password is required.")
     try:
-        f = Fernet(derive_fernet_key(password))
-        return f.decrypt(ciphertext.encode()).decode()
-    except Exception as e:
-        return f"[🔒 Decryption failed: {str(e)}]"
+        if ciphertext.startswith("v2:"):
+            _, salt_b64, token = ciphertext.split(":", 2)
+            salt = base64.urlsafe_b64decode(salt_b64.encode("ascii"))
+            if len(salt) != SALT_BYTES:
+                raise ValueError("Invalid encrypted-record salt.")
+        else:
+            # Backward compatibility for records encrypted with the historic fixed salt.
+            salt, token = LEGACY_SALT, ciphertext
+        return Fernet(derive_fernet_key(password, salt)).decrypt(token.encode()).decode()
+    except CryptographyUnavailable:
+        raise
+    except Exception:
+        # Avoid leaking cryptographic implementation details to UI/log output.
+        raise ValueError("Decryption failed: incorrect password or invalid ciphertext.") from None
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -121,7 +150,7 @@ class CHRISHEMSubmissionSystem:
         student_name: str,
         title: str,
         content: str,
-        password: str = "CHRISHEM",
+        password: str,
         file_name: str = "",
         file_type: str = "",
         file_size: int = 0,
@@ -179,15 +208,15 @@ class CHRISHEMSubmissionSystem:
         query = "SELECT * FROM portal_submissions WHERE 1=1"
         params = []
         if project_id:
-            query = " AND project_id = ?"
+            query += " AND project_id = ?"
             params.append(project_id)
         if student_name:
-            query = " AND student_name = ?"
+            query += " AND student_name = ?"
             params.append(student_name)
         if status:
-            query = " AND status = ?"
+            query += " AND status = ?"
             params.append(status)
-        query = " ORDER BY submitted_at DESC"
+        query += " ORDER BY submitted_at DESC"
 
         with self._get_conn() as conn:
             rows = conn.execute(query, params).fetchall()
@@ -214,7 +243,7 @@ class CHRISHEMSubmissionSystem:
         grade: str,
         score: float,
         feedback: str,
-        professor_password: str = "CHRISHEM",
+        professor_password: str,
     ) -> bool:
         """Professor reviews and grades a submission."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
@@ -236,7 +265,7 @@ class CHRISHEMSubmissionSystem:
         self,
         submission_id: int,
         feedback: str,
-        professor_password: str = "CHRISHEM",
+        professor_password: str,
     ) -> bool:
         """Return submission with feedback for revision."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
