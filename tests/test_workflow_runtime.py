@@ -291,5 +291,13 @@ class WorkflowRuntimeTests(unittest.TestCase):
         )
 
 
+    def test_runtime_refuses_plaintext_persistence_without_explicit_test_opt_in(self):
+        with self.assertRaises(WorkflowStorageError):
+            WorkflowRuntime(
+                self.database,
+                handlers={"echo": lambda data: dict(data)},
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
