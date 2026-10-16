@@ -12,6 +12,7 @@ from collections import Counter
 from typing import Any, Mapping
 
 from modules.workflow_contract import WorkflowContractError
+from modules.fasta_validation import validate_fasta
 
 
 def _text(value: Any, field: str) -> str:
@@ -140,4 +141,5 @@ def default_handlers() -> dict[str, Any]:
         "research_problem_triage": research_problem_triage,
         "numeric_summary": numeric_summary,
         "data_quality_profile": data_quality_profile,
+        "fasta_validate": validate_fasta,
     }
