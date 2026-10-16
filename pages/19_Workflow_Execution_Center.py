@@ -93,6 +93,7 @@ task_descriptions = {
     "research_problem_triage": "Research problem triage — create an evidence-led work brief",
     "numeric_summary": "Numeric summary — compute descriptive statistics",
     "data_quality_profile": "Data quality profile — inspect rows for missingness and duplicates",
+    "fasta_validate": "FASTA validation — syntax, alphabet, length, and basic GC screening",
 }
 task_type = st.selectbox("Task type", list(task_descriptions), format_func=lambda key: task_descriptions[key])
 workflow_id = st.text_input("Workflow / project identifier", value="interactive-research")
@@ -121,6 +122,8 @@ max_attempts = st.number_input("Maximum attempts", min_value=1, max_value=5, val
 
 if st.button("Validate, submit and execute", type="primary"):
     try:
+        if len(payload_text.encode("utf-8")) > 1_000_000:
+            raise ValueError("Input JSON exceeds the 1,000,000-byte interface limit.")
         payload = json.loads(payload_text)
         if not isinstance(payload, dict):
             raise ValueError("Payload must be a JSON object.")
