@@ -248,7 +248,7 @@ class CHRISHEMSubmissionSystem:
         """Professor reviews and grades a submission."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
         with self._get_conn() as conn:
-            conn.execute(
+            cursor = conn.execute(
                 """UPDATE portal_submissions SET
                    status = 'reviewed',
                    professor_grade = ?,
@@ -259,7 +259,7 @@ class CHRISHEMSubmissionSystem:
                 (grade, score, encrypted_feedback, time.time(), submission_id),
             )
             conn.commit()
-        return True
+        return cursor.rowcount == 1
 
     def return_for_revision(
         self,
@@ -270,7 +270,7 @@ class CHRISHEMSubmissionSystem:
         """Return submission with feedback for revision."""
         encrypted_feedback = encrypt_text(feedback, professor_password)
         with self._get_conn() as conn:
-            conn.execute(
+            cursor = conn.execute(
                 """UPDATE portal_submissions SET
                    status = 'returned',
                    professor_feedback = ?,
@@ -279,7 +279,7 @@ class CHRISHEMSubmissionSystem:
                 (encrypted_feedback, time.time(), submission_id),
             )
             conn.commit()
-        return True
+        return cursor.rowcount == 1
 
     def get_student_stats(self, project_id: int, student_name: str) -> Dict[str, Any]:
         """Get submission statistics for a student."""
