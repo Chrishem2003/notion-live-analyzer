@@ -44,3 +44,21 @@ The portal now records submission creation, review, and return-for-revision stat
 ## Current combined review candidate
 
 The current combined candidate is [PR #19](https://github.com/Chrishem2003/notion-live-analyzer/pull/19), which includes the persistent portal and its transactional submission-status event history. PR #18 is superseded for release purposes; do not merge both separately. Check the latest exact-head CI result and complete the documented staging and authorization gates before production use.
+
+
+## Staging release checklist (required before production)
+
+Complete this checklist in a non-production environment using synthetic data. Record the tester, date, application commit, and evidence for each item in the release record; do not mark a gate complete based on CI alone.
+
+- [ ] Confirm both required secrets are configured, non-empty, distinct, and supplied through the approved secret store; verify no secret values appear in logs or screenshots.
+- [ ] Start the app with a fresh temporary database. Confirm the portal refuses submission when either secret is missing or both secrets are identical.
+- [ ] Submit synthetic content and confirm it persists after restarting the app; inspect the SQLite row to verify the research content is ciphertext rather than plaintext.
+- [ ] Confirm the configured encryption secret decrypts the record and a wrong secret fails without exposing cryptographic details.
+- [ ] Unlock the review queue with the professor password; confirm incorrect credentials fail and the session expires after 15 minutes.
+- [ ] Save a review and a return-for-revision decision. Verify statuses, grades/scores where applicable, and event ordering after restarting the app. Confirm event details do not contain research text or feedback text.
+- [ ] Simulate an event-table write failure for submission, review, and return actions. Confirm the related state change rolls back and no partial decision is persisted.
+- [ ] Restore a database backup into an isolated staging instance and verify records can be decrypted using the approved encryption secret.
+- [ ] Verify filesystem permissions, database and WAL/SHM file access, backup access, TLS, deployment secrets, and access to application logs against the deployment threat model.
+- [ ] Confirm per-user professor identity, role-based authorization, and the institution's data-retention/privacy requirements before using the portal for sensitive or official assessments.
+
+**Release gate:** keep production deployment blocked until the staging checks are evidenced, deployment-specific authentication/authorization is in place, and an authorized reviewer accepts the remaining plaintext metadata and key-recovery risks. A green CI run is necessary but not sufficient.
