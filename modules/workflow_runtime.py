@@ -108,9 +108,15 @@ class WorkflowRuntime:
         *,
         handlers: Mapping[str, TaskHandler] | None = None,
         encryption_key: str | bytes | None = None,
+        allow_plaintext_for_tests: bool = False,
     ):
         self.database = str(database)
         self.handlers: dict[str, TaskHandler] = {}
+        if encryption_key is None and allow_plaintext_for_tests is not True:
+            raise WorkflowStorageError(
+                "WORKFLOW_RUNTIME_ENCRYPTION_KEY is required for workflow persistence. "
+                "Plaintext storage is available only through an explicit test-only opt-in."
+            )
         self.encryption_key = validate_storage_key(encryption_key) if encryption_key is not None else None
         _initialize(self.database)
         if self.encryption_key is not None:
