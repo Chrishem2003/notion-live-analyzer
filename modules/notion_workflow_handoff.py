@@ -10,7 +10,10 @@ import hashlib
 import json
 import os
 import re
+import sqlite3
 import time
+from contextlib import contextmanager
+from pathlib import Path
 from datetime import datetime
 from typing import Any, Mapping
 
@@ -173,7 +176,7 @@ def _validate_database_id(value: str) -> str:
     return candidate
 
 
-def sync_run_to_notion(
+def _sync_run_to_notion_unlocked(
     run: Mapping[str, Any],
     *,
     token: str | None = None,
@@ -286,3 +289,62 @@ def sync_run_to_notion(
         "url": created.get("url"),
         "manifest_hash": digest,
     }
+
+
+
+@contextmanager
+def _handoff_ledger_lock(database_path: str | Path):
+    """Serialize handoffs that share a durable SQLite database path.
+
+    BEGIN IMMEDIATE reserves the SQLite write lock before checking Notion and holds
+    it through the create/reconciliation request. This closes the local concurrent
+    query-before-create race for processes sharing the same database file. It does
+    not create a distributed lock across hosts with separate filesystems, and it
+    cannot make Notion's API transactionally atomic with SQLite.
+    """
+    path = str(database_path)
+    if path != ":memory:":
+        Path(path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(path, timeout=30, isolation_level=None)
+    try:
+        connection.execute("PRAGMA busy_timeout = 30000")
+        connection.execute("BEGIN IMMEDIATE")
+        yield
+        connection.execute("COMMIT")
+    except Exception:
+        if connection.in_transaction:
+            connection.execute("ROLLBACK")
+        raise
+    finally:
+        connection.close()
+
+
+def sync_run_to_notion(
+    run: Mapping[str, Any],
+    *,
+    token: str | None = None,
+    database_id: str | None = None,
+    session: Any = requests,
+    ledger_database: str | Path | None = None,
+) -> dict[str, Any]:
+    """Safely hand off a successful run, optionally serializing through SQLite.
+
+    The Streamlit execution center passes the durable runtime database as the
+    ledger_database argument. Concurrent handoffs sharing that file are serialized
+    so the second caller re-queries Notion after the first caller has finished.
+    Callers that omit the ledger path retain compatibility behavior, including the
+    documented query-before-create race. Separate hosts/filesystems still require a
+    centralized outbox/worker to guarantee cross-host serialization.
+    """
+    if ledger_database is None:
+        configured_path = os.environ.get("WORKFLOW_RUNTIME_DB")
+        if configured_path:
+            ledger_database = configured_path
+    if ledger_database is None:
+        return _sync_run_to_notion_unlocked(
+            run, token=token, database_id=database_id, session=session
+        )
+    with _handoff_ledger_lock(ledger_database):
+        return _sync_run_to_notion_unlocked(
+            run, token=token, database_id=database_id, session=session
+        )
