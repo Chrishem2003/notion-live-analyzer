@@ -91,3 +91,14 @@ A CI pass is code-level evidence. It does not replace authenticated staging, dur
 ## Release decision
 
 **HOLD** until P0/P1 release blockers are resolved, required staging checks are evidenced, authorization is accepted by the security owner, and scientific QC/reproducibility decisions receive documented human review.
+
+
+## 7. Additional operator-gate regression checks (added 2026-10-16)
+
+- [ ] Pass an explicit empty environment mapping to the credential loader while a process-level password is present. Expected: fail closed; no ambient environment fallback.
+- [ ] Configure a whitespace-only password longer than 24 characters. Expected: fail closed.
+- [ ] Confirm the secret store takes precedence over the environment and the configured value is compared exactly; do not trim or normalize a password after loading.
+- [ ] Test session timestamps containing booleans, NaN, positive infinity, malformed strings, and future timestamps. Expected: invalid sessions fail closed.
+- [ ] Test invalid TTL values (boolean, non-integer, zero, negative). Expected: invalid session configuration fails closed.
+
+The shared-secret gate remains a transitional operator barrier. These checks do not provide individual identity, MFA, durable global rate limiting, or role-based authorization. Keep production deployment blocked until the hosting identity boundary and authorization model are verified.
