@@ -62,3 +62,18 @@ Complete this checklist in a non-production environment using synthetic data. Re
 - [ ] Confirm per-user professor identity, role-based authorization, and the institution's data-retention/privacy requirements before using the portal for sensitive or official assessments.
 
 **Release gate:** keep production deployment blocked until the staging checks are evidenced, deployment-specific authentication/authorization is in place, and an authorized reviewer accepts the remaining plaintext metadata and key-recovery risks. A green CI run is necessary but not sufficient.
+
+
+## Workflow Execution Center operator gate
+
+The Workflow Execution Center is a write-capable surface: it persists workflow inputs/results locally and can create Analysis Runs pages if a Notion token is configured. It therefore fails closed unless an operator password is configured.
+
+Set a unique, high-entropy `WORKFLOW_EXECUTION_PASSWORD` with at least 24 characters in Streamlit secrets or the deployment environment. Never commit the value. The operator session expires after 15 minutes and can be locked manually. If the secret is missing or too short, the execution page stops before opening the runtime database or showing run history.
+
+Example `.streamlit/secrets.toml` entry (replace with a randomly generated secret and keep the file out of version control):
+
+```toml
+WORKFLOW_EXECUTION_PASSWORD = "replace-with-a-unique-random-secret-of-24-plus-characters"
+```
+
+This is a single shared-secret gate, not individual identity, MFA, or role-based access control. Do not expose the page to sensitive production workloads until deployment authentication and authorization, durable storage, and staging tests are accepted. Runtime input and output JSON are capped at 1,000,000 UTF-8 bytes per run. Oversized input is rejected before persistence; oversized handler results fail visibly instead of being stored unboundedly.
