@@ -3,7 +3,7 @@ import unittest
 
 import requests
 
-from modules.notion_workflow_handoff import NotionHandoffError, sync_run_to_notion
+from modules.notion_workflow_handoff import NotionHandoffError, _rich_text, sync_run_to_notion
 
 
 class FakeResponse:
@@ -24,6 +24,8 @@ def schema_payload():
         "Reproducibility Check": {"type": "select", "select": {"options": [{"name": "Not Checked"}]}},
         "Record Classification": {"type": "select", "select": {"options": [{"name": "Synthetic/Test"}]}},
         "Analysis Method": {"type": "rich_text"},
+        "Code Revision": {"type": "rich_text"},
+        "Input Dataset Version": {"type": "rich_text"},
         "Run Manifest Hash": {"type": "rich_text"},
         "Execution Evidence / Handoff": {"type": "rich_text"},
         "Environment": {"type": "rich_text"},
@@ -97,6 +99,8 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(properties["Reproducibility Check"]["select"]["name"], "Not Checked")
         self.assertEqual(properties["Record Classification"]["select"]["name"], "Synthetic/Test")
         self.assertEqual(properties["Run Manifest Hash"]["rich_text"][0]["text"]["content"], result["manifest_hash"])
+        self.assertEqual(properties["Code Revision"]["rich_text"][0]["text"]["content"], "Not supplied by runtime")
+        self.assertEqual(properties["Input Dataset Version"]["rich_text"][0]["text"]["content"], "Not supplied by runtime")
         evidence = properties["Execution Evidence / Handoff"]["rich_text"][0]["text"]["content"]
         self.assertIn('"mean": 2.0', evidence)
         self.assertIn("QC and reproducibility are still pending", evidence)
@@ -115,6 +119,34 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
                 return FakeResponse({"message": "unauthorized"}, status_code=401)
         with self.assertRaisesRegex(NotionHandoffError, "401"):
             sync_run_to_notion(sample_run(), token="secret", database_id="db-1", session=FailedSession())
+
+    def test_timezone_naive_timestamp_is_rejected_before_network_calls(self):
+        session = FakeSession()
+        with self.assertRaisesRegex(NotionHandoffError, "must include a timezone"):
+            sync_run_to_notion(
+                sample_run(created_at="2026-10-16T10:00:00"),
+                token="secret",
+                database_id="12345678123456781234567812345678",
+                session=session,
+            )
+        self.assertEqual(session.calls, [])
+
+    def test_long_rich_text_is_explicitly_marked_as_truncated(self):
+        value = "x" * 2500
+        content_value = _rich_text(value)["rich_text"][0]["text"]["content"]
+        self.assertLessEqual(len(content_value), 1900)
+        self.assertIn("[truncated; see manifest hash and local run store]", content_value)
+
+    def test_input_dataset_version_is_preserved_when_provided(self):
+        session = FakeSession()
+        run = sample_run(input={"values": [1, 2, 3], "dataset_version": "dataset-v7"})
+        sync_run_to_notion(run, token="secret", database_id="12345678123456781234567812345678", session=session)
+        create_call = [call for call in session.posts if call[0].endswith("/pages")][0]
+        properties = create_call[1]["json"]["properties"]
+        self.assertEqual(
+            properties["Input Dataset Version"]["rich_text"][0]["text"]["content"],
+            "dataset-v7",
+        )
 
     def test_invalid_database_id_is_rejected_before_network_calls(self):
         session = FakeSession()
