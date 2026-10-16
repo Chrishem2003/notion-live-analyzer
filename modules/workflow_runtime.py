@@ -190,7 +190,7 @@ class WorkflowRuntime:
                     _event_payload(
                         workflow_id=workflow_id.strip(), run_id=run_id,
                         task_type=task_type, stage="problem_solving", status="queued",
-                        payload={"input": json.loads(encoded), "attempt": 0},
+                        payload={"input": json.loads(encoded_plain), "attempt": 0},
                     ),
                 )
                 connection.execute("COMMIT")
