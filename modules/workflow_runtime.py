@@ -248,3 +248,59 @@ class WorkflowRuntime:
                     connection.execute("ROLLBACK")
                 raise
         return self.get_run(run_id)
+
+    def recover_stale_runs(self, *, older_than_seconds: int = 600) -> list[dict[str, Any]]:
+        """Recover runs left in 'running' after a process interruption.
+
+        This is an explicit maintenance operation for a single-process/local runtime.
+        Do not run it concurrently with long-lived workers unless the deployment has
+        real worker leases and heartbeat updates.
+        """
+        if isinstance(older_than_seconds, bool) or not isinstance(older_than_seconds, int) or older_than_seconds < 1:
+            raise ValueError("older_than_seconds must be a positive integer")
+        now_dt = datetime.now(timezone.utc)
+        cutoff = now_dt.timestamp() - older_than_seconds
+        recovered: list[dict[str, Any]] = []
+        with closing(_connect(self.database)) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                rows = connection.execute(
+                    "SELECT * FROM workflow_runs WHERE status='running' AND claimed_at IS NOT NULL"
+                ).fetchall()
+                for row in rows:
+                    try:
+                        claimed = datetime.fromisoformat(row["claimed_at"].replace("Z", "+00:00"))
+                    except (TypeError, ValueError):
+                        continue
+                    if claimed.tzinfo is None or claimed.timestamp() > cutoff:
+                        continue
+                    attempt = int(row["attempt"])
+                    outcome = "queued" if attempt < int(row["max_attempts"]) else "failed"
+                    validate_status_transition("running", outcome)
+                    error = "Recovered stale running state after worker interruption."
+                    updated = now_dt.isoformat(timespec="seconds")
+                    connection.execute(
+                        "UPDATE workflow_runs SET status=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
+                        (outcome, error, updated, row["run_id"]),
+                    )
+                    append_event_in_transaction(
+                        connection,
+                        _event_payload(
+                            workflow_id=row["workflow_id"], run_id=row["run_id"],
+                            task_type=row["task_type"], stage="problem_solving",
+                            status=outcome,
+                            payload={
+                                "recovered": True,
+                                "previous_attempt": attempt,
+                                "error": error,
+                                "retry_scheduled": outcome == "queued",
+                            },
+                        ),
+                    )
+                    recovered.append({"run_id": row["run_id"], "status": outcome, "attempt": attempt})
+                connection.execute("COMMIT")
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute("ROLLBACK")
+                raise
+        return recovered
