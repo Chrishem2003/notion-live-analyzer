@@ -165,7 +165,10 @@ if st.button("Validate, submit and execute", type="primary"):
         st.session_state["workflow_runtime_last_run_id"] = run_id
         if result:
             run_status = result.get("status", "unknown")
-            if run_status == "succeeded":
+            run_result = result.get("result") or {}
+            if run_status == "succeeded" and run_result.get("decision") == "READY_FOR_HUMAN_REVIEW":
+                st.info(f"Validation completed; human QC review is still required: {run_id}")
+            elif run_status == "succeeded":
                 st.success(f"Run completed: {run_id}")
             elif run_status == "blocked":
                 st.warning("Run blocked by a research QC/provenance gate. No scientific approval or downstream release is implied.")
@@ -259,7 +262,11 @@ try:
             elif selected_run["status"] == "failed":
                 st.error("Technical execution failed. Inspect the recorded error and event history before retrying.")
             elif selected_run["status"] == "succeeded":
-                st.success("Execution completed. This status alone does not certify scientific validity or QC approval.")
+                selected_result = selected_run.get("result") or {}
+                if selected_result.get("decision") == "READY_FOR_HUMAN_REVIEW":
+                    st.info("Validation passed, but QC approval has NOT been granted. A qualified human reviewer must inspect the evidence and record the decision.")
+                else:
+                    st.success("Execution completed. This status alone does not certify scientific validity or QC approval.")
             st.json({
                 "run_id": selected_run["run_id"],
                 "workflow_id": selected_run["workflow_id"],
