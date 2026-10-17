@@ -294,7 +294,10 @@ class WorkflowRuntime:
             if len(encoded_result_plain.encode("utf-8")) > MAX_RESULT_BYTES:
                 raise ValueError(f"handler result exceeds the {MAX_RESULT_BYTES}-byte runtime limit")
             encoded_result = encrypt_storage_text(encoded_result_plain, self.encryption_key)
-            outcome = "succeeded"
+            # A domain gate may complete successfully while rejecting the requested
+            # action. Preserve its structured decision, but do not label a rejected
+            # research hand-off as a succeeded workflow run.
+            outcome = "blocked" if result.get("decision") == "BLOCK" else "succeeded"
             error_message = None
         except Exception as exc:
             encoded_result_plain = None
