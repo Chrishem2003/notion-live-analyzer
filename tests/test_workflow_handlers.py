@@ -52,6 +52,28 @@ class WorkflowHandlerTests(unittest.TestCase):
         self.assertTrue(any("Qualified human review" in item for item in result["evidence_needed"]))
         self.assertGreaterEqual(len(result["acceptance_checks"]), 3)
 
+
+    def test_research_qc_gate_is_runtime_compatible_and_allow_listed(self):
+        handlers = default_handlers()
+        self.assertIn("research_qc_gate", handlers)
+        result = handlers["research_qc_gate"]({
+            "action": "report",
+            "record": {
+                "Record Classification": "Synthetic/Test",
+                "Measurement Unit": "mg/L",
+                "Protocol": ["protocol-demo"],
+                "Protocol ID/Version": "demo-v1",
+                "Raw Source Reference": "synthetic://raw-1",
+                "Source Dataset Version": "demo-v1",
+                "Analysis Status.": "🔴 Anomalous",
+                "QC Reviewer": "reviewer-demo",
+                "QC Review Date": "2026-10-17",
+                "QC Evidence": ["synthetic://qc-evidence-1"],
+            },
+        })
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("Anomalous QC" in item for item in result["blockers"]))
+
     def test_problem_triage_rejects_vague_input(self):
         with self.assertRaises(WorkflowContractError):
             research_problem_triage({"problem": "help me"})
