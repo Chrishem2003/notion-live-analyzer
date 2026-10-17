@@ -225,6 +225,8 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
                 self.get_count = 0
 
             def get(self, url, **kwargs):
+                if "/pages/" in url:
+                    return super().get(url, **kwargs)
                 self.get_count += 1
                 self.calls.append(("GET", url, kwargs))
                 if self.get_count == 1:
