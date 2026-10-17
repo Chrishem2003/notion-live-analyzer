@@ -333,11 +333,23 @@ def _sync_run_to_notion_unlocked(
         raise NotionHandoffError(
             "Notion page read-back returned an invalid manifest hash property"
         )
-    read_back_digest = "".join(
-        fragment.get("plain_text", fragment.get("text", {}).get("content", ""))
-        for fragment in manifest_fragments
-        if isinstance(fragment, Mapping)
-    )
+    manifest_parts: list[str] = []
+    for fragment in manifest_fragments:
+        if not isinstance(fragment, Mapping):
+            raise NotionHandoffError(
+                "Notion page read-back contains a malformed manifest hash fragment"
+            )
+        plain_text = fragment.get("plain_text")
+        if isinstance(plain_text, str):
+            manifest_parts.append(plain_text)
+            continue
+        text_payload = fragment.get("text")
+        if not isinstance(text_payload, Mapping) or not isinstance(text_payload.get("content"), str):
+            raise NotionHandoffError(
+                "Notion page read-back contains a malformed manifest hash fragment"
+            )
+        manifest_parts.append(text_payload["content"])
+    read_back_digest = "".join(manifest_parts)
     if read_back_digest != digest:
         raise NotionHandoffError(
             "Notion page read-back manifest hash did not match; delivery is unverified, reconcile before retrying"
