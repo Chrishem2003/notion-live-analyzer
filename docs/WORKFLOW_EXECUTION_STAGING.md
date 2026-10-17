@@ -202,7 +202,7 @@ The associated regression tests are in tests/test_workflow_configuration_preflig
 
 ## 12. Protected key-rotation backup files (added 2026-10-16)
 
-The rotation helper now atomically reserves a new backup path using exclusive file creation, refuses pre-existing files and dangling symlinks, and applies POSIX mode `0600` to the backup. If backup creation fails, cleanup targets only the file reservation created by that invocation. This reduces local overwrite and accidental disclosure risk but does not replace host-level access control.
+The rotation helper now atomically reserves a new backup path using exclusive file creation, refuses pre-existing files and dangling symlinks, and applies POSIX mode `0600` to the backup. If backup creation fails, cleanup targets only the file reservation created by that invocation. Before touching the source database, the helper opens the completed backup read-only, runs SQLite `PRAGMA quick_check`, and verifies the required workflow table/columns. During rotation, each newly encrypted payload is decrypted with the new key and compared to its original plaintext before the transaction can commit. A failed backup verification or payload round-trip aborts rotation; retain the backup for investigation and do not switch the configured key. This reduces local overwrite and accidental disclosure risk but does not replace host-level access control.
 
 - [ ] On POSIX staging, verify the generated backup mode is `0600`.
 - [ ] Verify an existing destination and dangling symlink destination are rejected without modifying the destination or creating the symlink target.
