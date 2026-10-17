@@ -45,15 +45,12 @@ class FakeSession:
         self.database_schema = database_schema or schema_payload()
         self.calls = []
         self.posts = []
+        self.created_properties = None
 
     def get(self, url, **kwargs):
         self.calls.append(("GET", url, kwargs))
         if "/pages/" in url:
-            create_call = next(
-                (call for call in reversed(self.posts) if call[0].endswith("/pages")),
-                None,
-            )
-            properties = create_call[1]["json"]["properties"] if create_call else {}
+            properties = self.created_properties or {}
             return FakeResponse({
                 "id": self.create_payload.get("id"),
                 "url": self.create_payload.get("url"),
@@ -66,6 +63,8 @@ class FakeSession:
         self.posts.append((url, kwargs))
         if url.endswith("/query"):
             return FakeResponse(self.query_payload)
+        if url.endswith("/pages"):
+            self.created_properties = kwargs.get("json", {}).get("properties", {})
         return FakeResponse(self.create_payload)
 
 
