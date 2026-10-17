@@ -71,9 +71,13 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertNotEqual(first, idempotency_key("w1", "r2", "analysis.completed", "a" * 64))
 
     def test_terminal_status_cannot_be_rewritten(self):
-        with self.assertRaisesRegex(WorkflowContractError, "terminal status"):
-            validate_status_transition("succeeded", "failed")
-        validate_status_transition("succeeded", "succeeded")
+        for terminal in ("succeeded", "blocked", "cancelled"):
+            with self.subTest(terminal=terminal):
+                with self.assertRaisesRegex(WorkflowContractError, "terminal status"):
+                    validate_status_transition(terminal, "failed")
+                with self.assertRaisesRegex(WorkflowContractError, "terminal status"):
+                    validate_status_transition(terminal, "running")
+                validate_status_transition(terminal, terminal)
 
     def test_failed_attempt_retry_requires_new_run(self):
         with self.assertRaisesRegex(WorkflowContractError, "new run_id"):
