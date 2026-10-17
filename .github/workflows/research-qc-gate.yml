@@ -11,11 +11,15 @@ on:
       - "modules/workflow_runtime.py"
       - "modules/workflow_key_rotation.py"
       - "modules/workflow_contract.py"
+      - "modules/workflow_store.py"
+      - "modules/workflow_storage.py"
       - "modules/fasta_validation.py"
       - "tests/test_research_qc_gate.py"
       - "tests/test_workflow_contract.py"
       - "tests/test_workflow_handlers.py"
       - "tests/test_workflow_runtime.py"
+      - "tests/test_workflow_store.py"
+      - "tests/test_workflow_storage.py"
       - "tests/test_notion_workflow_handoff.py"
       - "pages/19_Workflow_Execution_Center.py"
       - ".github/workflows/research-qc-gate.yml"
@@ -60,6 +64,14 @@ jobs:
         env:
           PYTHONPATH: .
         run: python -m unittest discover -s tests -p "test_workflow_runtime.py" -v
+      - name: Run SQLite event-store regression tests
+        env:
+          PYTHONPATH: .
+        run: python -m unittest discover -s tests -p "test_workflow_store.py" -v
+      - name: Run workflow storage encryption regression tests
+        env:
+          PYTHONPATH: .
+        run: python -m unittest discover -s tests -p "test_workflow_storage.py" -v
       - name: Run Notion handoff reconciliation tests
         env:
           PYTHONPATH: .
