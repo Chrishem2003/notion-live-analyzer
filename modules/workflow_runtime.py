@@ -360,9 +360,26 @@ class WorkflowRuntime:
                 for row in rows:
                     try:
                         claimed = datetime.fromisoformat(row["claimed_at"].replace("Z", "+00:00"))
-                    except (TypeError, ValueError):
+                    except (AttributeError, TypeError, ValueError):
+                        # Do not silently leave a malformed claim looking like a healthy run.
+                        # Its age cannot be established safely, so surface it for operator review
+                        # without automatically replaying a possibly side-effecting handler.
+                        recovered.append({
+                            "run_id": row["run_id"],
+                            "status": "manual_review_required",
+                            "attempt": int(row["attempt"]),
+                            "reason": "Invalid claimed_at timestamp; age cannot be established safely.",
+                        })
                         continue
-                    if claimed.tzinfo is None or claimed.timestamp() > cutoff:
+                    if claimed.tzinfo is None:
+                        recovered.append({
+                            "run_id": row["run_id"],
+                            "status": "manual_review_required",
+                            "attempt": int(row["attempt"]),
+                            "reason": "claimed_at timestamp has no timezone; age cannot be established safely.",
+                        })
+                        continue
+                    if claimed.timestamp() > cutoff:
                         continue
                     attempt = int(row["attempt"])
                     outcome = "queued" if attempt < int(row["max_attempts"]) else "failed"
