@@ -243,6 +243,37 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(runtime.get_run(run_id)["status"], "queued")
         self.assertEqual(list_run_events(self.database, "p1", run_id)[-1]["status"], "queued")
 
+    def test_recovery_surfaces_malformed_claim_timestamp_for_manual_review(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=3)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET status='running', attempt=1, claimed_at=? WHERE run_id=?",
+                ("not-a-timestamp", run_id),
+            )
+        recovered = runtime.recover_stale_runs(older_than_seconds=60)
+        self.assertEqual(recovered, [{
+            "run_id": run_id,
+            "status": "manual_review_required",
+            "attempt": 1,
+            "reason": "Invalid claimed_at timestamp; age cannot be established safely.",
+        }])
+        self.assertEqual(runtime.get_run(run_id)["status"], "running")
+        self.assertEqual(list_run_events(self.database, "p1", run_id)[-1]["status"], "queued")
+
+    def test_recovery_surfaces_timezone_naive_claim_for_manual_review(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=3)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET status='running', attempt=1, claimed_at=? WHERE run_id=?",
+                ("2000-01-01T00:00:00", run_id),
+            )
+        recovered = runtime.recover_stale_runs(older_than_seconds=60)
+        self.assertEqual(recovered[0]["status"], "manual_review_required")
+        self.assertIn("no timezone", recovered[0]["reason"])
+        self.assertEqual(runtime.get_run(run_id)["status"], "running")
+
     def test_recover_stale_run_fails_when_attempt_budget_is_exhausted(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=1)
