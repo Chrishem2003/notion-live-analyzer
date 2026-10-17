@@ -374,9 +374,15 @@ def _handoff_ledger_lock(database_path: str | Path):
     not create a distributed lock across hosts with separate filesystems, and it
     cannot make Notion's API transactionally atomic with SQLite.
     """
-    path = str(database_path)
-    if path != ":memory:":
-        Path(path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
+    raw_path = str(database_path).strip()
+    if not raw_path or raw_path == ":memory:":
+        raise NotionHandoffError(
+            "handoff ledger requires a filesystem-backed SQLite database path"
+        )
+    # Normalize once so parent creation and SQLite open the same location.
+    # Otherwise ~/ paths can create one directory but connect to a literal ~ path.
+    path = str(Path(raw_path).expanduser())
+    Path(path).resolve().parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(path, timeout=30, isolation_level=None)
     try:
         connection.execute("PRAGMA busy_timeout = 30000")
