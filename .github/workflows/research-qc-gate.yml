@@ -1,0 +1,43 @@
+name: Research QC Gate Tests
+
+on:
+  push:
+    branches:
+      - bio-research/qc-provenance-gates
+    paths:
+      - "modules/research_qc_gate.py"
+      - "modules/workflow_handlers.py"
+      - "modules/workflow_contract.py"
+      - "modules/fasta_validation.py"
+      - "tests/test_research_qc_gate.py"
+      - "tests/test_workflow_handlers.py"
+      - ".github/workflows/research-qc-gate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: research-qc-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  research-qc-gate:
+    name: Focused QC/provenance regression suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run QC gate unit tests
+        env:
+          PYTHONPATH: .
+        run: python -m unittest discover -s tests -p "test_research_qc_gate.py" -v
+      - name: Run workflow-handler regression tests
+        env:
+          PYTHONPATH: .
+        run: python -m unittest discover -s tests -p "test_workflow_handlers.py" -v
