@@ -30,7 +30,7 @@ class ResearchQCGateTests(unittest.TestCase):
     def test_complete_pending_record_can_be_presented_for_human_qc_review(self):
         result = evaluate_research_gate(complete_record(), "approve_qc")
         self.assertTrue(result["allowed"])
-        self.assertEqual(result["decision"], "ALLOW")
+        self.assertEqual(result["decision"], "READY_FOR_HUMAN_REVIEW")
         self.assertTrue(result["requires_human_review"])
 
     def test_missing_units_protocol_and_source_block_qc_approval(self):
