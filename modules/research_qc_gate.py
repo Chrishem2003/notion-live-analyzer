@@ -107,7 +107,7 @@ def evaluate_research_gate(record: Mapping[str, Any], action: str) -> dict[str, 
         "qc_status": qc_status if _present(qc_status) else QC_PENDING,
         "blockers": blockers,
         "requires_human_review": action in {"approve_qc", "report", "close"},
-        "decision": "ALLOW" if not blockers else "BLOCK",
+        "decision": ("READY_FOR_HUMAN_REVIEW" if action == "approve_qc" else "ALLOW") if not blockers else "BLOCK",
         "limitations": [
             "Validation only; no record was changed and no external service was called.",
             "The caller must persist this decision with actor, timestamp, record identity, and evidence.",
