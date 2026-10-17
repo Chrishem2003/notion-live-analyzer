@@ -130,7 +130,7 @@ def validate_status_transition(previous: str | None, new: str) -> None:
         raise WorkflowContractError(f"unsupported status: {new}")
     if previous is not None and previous not in ALLOWED_STATUSES:
         raise WorkflowContractError(f"unsupported previous status: {previous}")
-    if previous in {"succeeded", "cancelled"} and new != previous:
+    if previous in {"succeeded", "blocked", "cancelled"} and new != previous:
         raise WorkflowContractError(
             f"terminal status {previous!r} cannot transition to {new!r}; create a new run"
         )
