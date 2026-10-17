@@ -88,11 +88,22 @@ except WorkflowStorageConfigurationError:
     )
     st.stop()
 
-configured_path = os.environ.get("WORKFLOW_RUNTIME_DB", ".streamlit/workflow_runtime.sqlite3")
+runtime_db_override = os.environ.get("WORKFLOW_RUNTIME_DB", "").strip()
+configured_path = runtime_db_override or ".streamlit/workflow_runtime.sqlite3"
 db_path = Path(configured_path).expanduser()
 if not db_path.is_absolute():
     db_path = Path.cwd() / db_path
 
+st.caption(
+    f"Runtime database path: `{db_path}` · "
+    + ("explicitly configured with WORKFLOW_RUNTIME_DB" if runtime_db_override else "using the local default path")
+)
+if not runtime_db_override:
+    st.warning(
+        "WORKFLOW_RUNTIME_DB is not explicitly configured. The console is using a local path that may be "
+        "ephemeral on hosted deployments. Do not assume run history survives restarts or redeployments; "
+        "configure and verify durable storage before relying on persistent execution."
+    )
 st.info(
     "Storage boundary: SQLite persists across app reruns on this filesystem. "
     "For hosted or multi-worker deployment, configure WORKFLOW_RUNTIME_DB on durable shared storage "
@@ -204,7 +215,8 @@ st.markdown("---")
 st.subheader("Recovery controls")
 st.caption(
     "Manual recovery only: use when a previous local process stopped while a run was marked running. "
-    "Do not use this with concurrent or long-running workers unless real leases/heartbeats are configured."
+    "Recovery can re-queue work, so first inspect whether the interrupted handler may already have produced "
+    "side effects. Do not use this with concurrent or long-running workers unless real leases/heartbeats are configured."
 )
 if st.button("Recover interrupted runs older than 10 minutes"):
     try:
