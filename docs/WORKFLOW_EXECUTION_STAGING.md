@@ -233,3 +233,15 @@ A new mocked-HTTP regression models the remote Notion page being committed while
 - [ ] In isolated staging, use a disposable run and verify the same recovery path against the real Notion API.
 - [ ] Record the fetched page ID and manifest hash as evidence; do not record integration tokens.
 - [ ] Remember that this reconciliation depends on the manifest hash being queryable and the target page being visible to the integration. It is recovery logic, not an atomic remote uniqueness constraint.
+
+
+## 8. Research QC/provenance gate tests (synthetic fixtures)
+
+The pure gate evaluator is available as the allow-listed `research_qc_gate` handler. It does not modify Notion records and its output is not a human scientific approval.
+
+- [ ] Confirm missing classification, units, protocol relation/version, raw-source reference, or source dataset version blocks QC approval.
+- [ ] Confirm missing reviewer, review date, or QC evidence blocks approval and downstream report/close.
+- [ ] Confirm `🔴 Anomalous` and `🟡 Pending` block report and close even when workflow Status says Verified or the sample stage says Archived/Reported.
+- [ ] Confirm `🟢 Verified` with missing review evidence remains blocked.
+- [ ] Confirm a fully populated synthetic fixture passes the report gate, and inspect the returned blockers/decision before wiring any mutation.
+- [ ] Treat the evaluator as validation only: a future application integration must record the actor, timestamp, record identity, evidence, and gate decision atomically with any status transition. Do not automatically update historical records based on this check.
