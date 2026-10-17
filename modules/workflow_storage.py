@@ -26,7 +26,15 @@ class WorkflowStorageError(RuntimeError):
 
 def validate_storage_key(value: str | bytes) -> bytes:
     """Validate a Fernet key and return its byte representation."""
-    key = value.encode("ascii") if isinstance(value, str) else value
+    if isinstance(value, str):
+        try:
+            key = value.encode("ascii")
+        except UnicodeEncodeError as exc:
+            raise WorkflowStorageConfigurationError(
+                "WORKFLOW_RUNTIME_ENCRYPTION_KEY must be a valid ASCII Fernet key."
+            ) from exc
+    else:
+        key = value
     if not isinstance(key, bytes):
         raise WorkflowStorageConfigurationError("Workflow encryption key must be a Fernet key string.")
     try:
