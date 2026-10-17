@@ -63,17 +63,47 @@ Only perform this section with a least-privileged integration and a staging Anal
 - [ ] Repeat the same handoff sequentially. Expected: existing manifest match is returned without creating a second page.
 - [ ] Simulate a transient 503 on the schema read. Expected: bounded retry.
 - [ ] Simulate a transport failure after create dispatch. Expected: no blind automatic replay; repeat the handoff action to reconcile by manifest hash.
-- [ ] Test concurrent same-manifest handoffs. The current query-before-create pattern is not atomic; if duplicate pages are possible, record the defect and keep release blocked.
+- [ ] Test concurrent same-manifest handoffs in authorized staging. A shared SQLite ledger serializes callers using the same file, but this does not protect separate hosts/filesystems; keep release blocked until the deployed topology is verified.
+- [ ] If more than one Notion page matches the manifest hash, expect the adapter to stop and require manual duplicate reconciliation rather than choosing an arbitrary page.
 
 Never change QC to Pass or reproducibility to Passed merely because the runtime completed successfully.
 
 ## 5. Persistence, backup, and recovery
 
 - [ ] Confirm the configured runtime database path is writable and persists across app restarts.
+- [ ] Confirm `WORKFLOW_RUNTIME_DB` points to a filesystem-backed SQLite file; the runtime rejects blank paths and `:memory:` because each operation opens a separate connection.
+- [ ] Do not treat a temporary directory or an explicitly set path as proof of durability; verify the hosting platform's mount/volume semantics and test restart/redeploy.
 - [ ] Create a SQLite-aware backup while accounting for WAL state; restore into an isolated staging location.
 - [ ] Verify run records and event history after restore.
 - [ ] Verify any required encryption/decryption or secret-recovery procedure separately.
 - [ ] Confirm the actual hosting platform provides durable storage; local filesystem persistence alone is not sufficient evidence for ephemeral or multi-replica deployments.
+
+## 5.1 Deployment configuration review (Batch 82)
+
+Repository configuration review on 2026-10-17 found:
+
+- `render.yaml` declares the web service on Render's `free` plan and does not declare a persistent disk or mount path.
+- The web service configuration does not declare `WORKFLOW_RUNTIME_DB` or `WORKFLOW_RUNTIME_ENCRYPTION_KEY`; these must be configured in the approved platform secret/environment settings before the workflow execution page can safely initialize.
+- The repository also defines a keepalive cron job. A keepalive request is not a durable-storage mechanism and must not be treated as proof that local SQLite data survives restart, redeploy, host replacement, or scale-out.
+- The Dockerfile copies application files into the image but does not provision a durable database volume.
+
+**Release blocker:** Do not use this Render configuration for real research data or claim durable workflow history until the deployment owner selects and configures a supported persistent storage design. For a single-instance pilot, verify that the chosen plan supports a persistent disk, mount it at an explicit path, configure `WORKFLOW_RUNTIME_DB` to a database file on that mount, and test restart/redeploy plus backup/restore. For multiple instances or workers on separate hosts, use a shared transactional database/outbox and coordination mechanism rather than relying on a local SQLite file. Do not change the service plan or incur hosting costs without an explicit owner decision.
+
+- [ ] Record the approved hosting plan and storage architecture.
+- [ ] Verify the runtime DB path resolves to the intended durable mount at runtime.
+- [ ] Test persistence after restart and redeploy, not only a Streamlit rerun.
+- [ ] Verify backup/restore and encryption-key recovery using synthetic data.
+- [ ] If durable storage is unavailable, keep workflow execution disabled for persistent operations and clearly label the deployment as non-durable.
+
+## 5.2 Interrupted-run recovery safeguards (Batch 83)
+
+- Recovery now reports a running row with a malformed or timezone-naive `claimed_at` as `manual_review_required`; it does not guess the timestamp, change the run, or automatically retry it.
+- The execution UI separates successfully recovered stale runs from records requiring manual review.
+- Recovery remains a manual single-process maintenance operation. It is not a worker lease, heartbeat, distributed lock, or proof that a process is dead.
+- **Side-effect warning:** if a handler calls an external API and the process stops before the terminal SQLite commit, requeueing can repeat that external side effect. External handlers must use provider idempotency keys or a durable outbox/reconciliation strategy before automatic retries are enabled.
+- [ ] Test malformed and timezone-naive claim timestamps; verify they are surfaced without mutating the run.
+- [ ] In authorized staging, simulate a process interruption before and after an external side effect and verify the handler's idempotency/reconciliation behavior.
+- [ ] Do not enable automatic startup recovery until worker leases/heartbeats and the deployed topology are designed and tested.
 
 ## 6. Evidence record requirements
 
@@ -172,7 +202,7 @@ The associated regression tests are in tests/test_workflow_configuration_preflig
 
 ## 12. Protected key-rotation backup files (added 2026-10-16)
 
-The rotation helper now atomically reserves a new backup path using exclusive file creation, refuses pre-existing files and dangling symlinks, and applies POSIX mode `0600` to the backup. If backup creation fails, cleanup targets only the file reservation created by that invocation. This reduces local overwrite and accidental disclosure risk but does not replace host-level access control.
+The rotation helper now atomically reserves a new backup path using exclusive file creation, refuses pre-existing files and dangling symlinks, and applies POSIX mode `0600` to the backup. If backup creation fails, cleanup targets only the file reservation created by that invocation. Before touching the source database, the helper opens the completed backup read-only, runs SQLite `PRAGMA quick_check`, and verifies the required workflow table/columns. During rotation, each newly encrypted payload is decrypted with the new key and compared to its original plaintext before the transaction can commit. A failed backup verification or payload round-trip aborts rotation; retain the backup for investigation and do not switch the configured key. This reduces local overwrite and accidental disclosure risk but does not replace host-level access control.
 
 - [ ] On POSIX staging, verify the generated backup mode is `0600`.
 - [ ] Verify an existing destination and dangling symlink destination are rejected without modifying the destination or creating the symlink target.
@@ -181,6 +211,15 @@ The rotation helper now atomically reserves a new backup path using exclusive fi
 
 The additional regression tests live in `tests/test_workflow_runtime.py`. Exact-head CI must pass before this control is accepted.
 
+
+## 17. Key-rotation backup-verification failure path (added 2026-10-17)
+
+A regression test now simulates failure to open the newly created backup in read-only verification mode. Expected behavior: rotation aborts before the source database transaction starts, the source ciphertext remains unchanged and readable with the old key, and the reserved backup is retained for investigation.
+
+- [ ] Confirm this regression passes on the exact candidate head.
+- [ ] In isolated staging, verify a failed backup check never triggers a key switch or source mutation.
+- [ ] Treat a retained failed backup as sensitive data; restrict access and follow the approved investigation/retention procedure.
+- [ ] Re-run the successful rotation and old-backup restore/readback test after any changes to backup creation or verification.
 
 ## 13. Read-only backup verification (added 2026-10-16)
 
@@ -233,3 +272,15 @@ A new mocked-HTTP regression models the remote Notion page being committed while
 - [ ] In isolated staging, use a disposable run and verify the same recovery path against the real Notion API.
 - [ ] Record the fetched page ID and manifest hash as evidence; do not record integration tokens.
 - [ ] Remember that this reconciliation depends on the manifest hash being queryable and the target page being visible to the integration. It is recovery logic, not an atomic remote uniqueness constraint.
+
+
+## 8. Research QC/provenance gate tests (synthetic fixtures)
+
+The pure gate evaluator is available as the allow-listed `research_qc_gate` handler. It does not modify Notion records and its output is not a human scientific approval.
+
+- [ ] Confirm missing classification, units, protocol relation/version, raw-source reference, or source dataset version blocks QC approval.
+- [ ] Confirm missing reviewer, review date, or QC evidence blocks approval and downstream report/close.
+- [ ] Confirm `🔴 Anomalous` and `🟡 Pending` block report and close even when workflow Status says Verified or the sample stage says Archived/Reported.
+- [ ] Confirm `🟢 Verified` with missing review evidence remains blocked.
+- [ ] Confirm a fully populated synthetic fixture passes the report gate, and inspect the returned blockers/decision before wiring any mutation.
+- [ ] Treat the evaluator as validation only: a future application integration must record the actor, timestamp, record identity, evidence, and gate decision atomically with any status transition. Do not automatically update historical records based on this check.

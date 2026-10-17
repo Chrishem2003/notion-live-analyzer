@@ -31,7 +31,9 @@ def rotate_workflow_encryption_key(
     the database transaction rolls back and the backup is retained for investigation.
     """
     database = Path(database_path).expanduser().resolve()
-    backup = Path(backup_path).expanduser().resolve()
+    # Normalize the path without following the final symlink: resolve() would turn a dangling
+    # backup symlink into its missing target and bypass the lexists overwrite guard below.
+    backup = Path(os.path.abspath(os.fspath(Path(backup_path).expanduser())))
     if database == backup:
         raise WorkflowKeyRotationError("backup path must be different from the source database")
     if not database.is_file():
@@ -96,6 +98,35 @@ def rotate_workflow_encryption_key(
         if source is not None:
             source.close()
 
+    # Do not mutate the source until the completed backup passes a read-only
+    # integrity/schema check. Keep a failed backup for diagnosis; the source is
+    # still untouched at this point.
+    verification = None
+    try:
+        verification = sqlite3.connect(f"{backup.as_uri()}?mode=ro", uri=True, timeout=10)
+        integrity = verification.execute("PRAGMA quick_check").fetchone()
+        if not integrity or integrity[0] != "ok":
+            raise WorkflowKeyRotationError(
+                "backup integrity check failed; source database was not rotated"
+            )
+        backup_columns = {
+            row[1] for row in verification.execute("PRAGMA table_info(workflow_runs)").fetchall()
+        }
+        required_backup_columns = {"run_id", "input_json", "result_json", "error_message"}
+        if not required_backup_columns.issubset(backup_columns):
+            raise WorkflowKeyRotationError(
+                "backup schema verification failed; source database was not rotated"
+            )
+    except WorkflowKeyRotationError:
+        raise
+    except Exception as exc:
+        raise WorkflowKeyRotationError(
+            "backup could not be independently verified; source database was not rotated"
+        ) from exc
+    finally:
+        if verification is not None:
+            verification.close()
+
     fields_updated = 0
     rows_updated = 0
     connection = sqlite3.connect(str(database), timeout=30, isolation_level=None)
@@ -121,7 +152,14 @@ def rotate_workflow_encryption_key(
                 if value is None:
                     continue
                 plaintext = decrypt_storage_text(value, old)
-                updates[column] = encrypt_storage_text(plaintext, new)
+                rotated_value = encrypt_storage_text(plaintext, new)
+                # Verify every replacement before it can be committed. This
+                # catches encryption/configuration faults while rollback is safe.
+                if decrypt_storage_text(rotated_value, new) != plaintext:
+                    raise WorkflowKeyRotationError(
+                        "rotated payload verification failed; transaction was rolled back"
+                    )
+                updates[column] = rotated_value
             if updates:
                 assignments = ", ".join(f"{column} = ?" for column in updates)
                 connection.execute(

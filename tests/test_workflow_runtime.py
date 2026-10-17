@@ -27,6 +27,26 @@ class WorkflowRuntimeTests(unittest.TestCase):
     def tearDown(self):
         self.tempdir.cleanup()
 
+    def test_runtime_rejects_in_memory_database_path(self):
+        # The runtime opens independent SQLite connections for initialization and each operation.
+        # A plain :memory: database is private to one connection and cannot satisfy this contract.
+        with self.assertRaisesRegex(ValueError, "filesystem-backed SQLite database path"):
+            WorkflowRuntime(":memory:", allow_plaintext_for_tests=True)
+
+    def test_runtime_rejects_blank_database_path(self):
+        with self.assertRaisesRegex(ValueError, "filesystem-backed SQLite database path"):
+            WorkflowRuntime("   ", allow_plaintext_for_tests=True)
+
+    def test_runtime_expands_home_relative_database_path(self):
+        import os
+        from unittest.mock import patch
+        home = Path(self.tempdir.name) / "fake-home"
+        home.mkdir()
+        with patch.dict(os.environ, {"HOME": str(home)}):
+            runtime = WorkflowRuntime("~/workflow.sqlite3", allow_plaintext_for_tests=True)
+        self.assertEqual(runtime.database, str(home / "workflow.sqlite3"))
+        self.assertTrue((home / "workflow.sqlite3").exists())
+
     def test_submit_persists_queued_run_and_input(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: {"echo": data["value"]}})
         run_id = runtime.submit(workflow_id="project-1", task_type="echo", payload={"value": 7})
@@ -125,6 +145,43 @@ class WorkflowRuntimeTests(unittest.TestCase):
             ["queued", "running", "succeeded"],
         )
 
+    def test_research_qc_gate_block_is_persisted_as_blocked_without_retry(self):
+        from modules.workflow_handlers import default_handlers
+
+        runtime = self.make_runtime(self.database, handlers=default_handlers())
+        payload = {
+            "action": "report",
+            "record": {
+                "Record Classification": "Synthetic/Test",
+                "Measurement Unit": "mg/L",
+                "Protocol": ["protocol-demo"],
+                "Protocol ID/Version": "demo-v1",
+                "Raw Source Reference": "synthetic://raw-1",
+                "Source Dataset Version": "demo-v1",
+                "Analysis Status.": "🔴 Anomalous",
+                "QC Reviewer": "reviewer-demo",
+                "QC Review Date": "2026-10-17",
+                "QC Evidence": ["synthetic://qc-evidence-1"],
+            },
+        }
+        run_id = runtime.submit(
+            workflow_id="qc-gate-test", task_type="research_qc_gate",
+            payload=payload, max_attempts=3,
+        )
+        result = runtime.execute_run(run_id)
+
+        self.assertEqual(result["status"], "blocked")
+        self.assertEqual(result["attempt"], 1)
+        self.assertEqual(result["result"]["decision"], "BLOCK")
+        self.assertFalse(result["result"]["allowed"])
+        self.assertEqual(
+            [event["status"] for event in list_run_events(self.database, "qc-gate-test", run_id)],
+            ["queued", "running", "blocked"],
+        )
+        # A blocked domain decision is terminal and must never enter stale-run recovery.
+        self.assertEqual(runtime.recover_stale_runs(older_than_seconds=1), [])
+        self.assertEqual(runtime.get_run(run_id)["status"], "blocked")
+
     def test_no_queued_work_returns_none(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         self.assertIsNone(runtime.execute_next())
@@ -172,6 +229,30 @@ class WorkflowRuntimeTests(unittest.TestCase):
             ["queued"],
         )
 
+    def test_recovery_skips_future_claim_and_surfaces_invalid_timestamps(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        cases = {
+            "future": "2999-01-01T00:00:00+00:00",
+            "naive": "2000-01-01T00:00:00",
+            "malformed": "not-a-timestamp",
+        }
+        run_ids = {}
+        for label, claimed_at in cases.items():
+            run_id = runtime.submit(workflow_id="recovery-timestamp-guards", task_type="echo", payload={"case": label})
+            run_ids[label] = run_id
+            with sqlite3.connect(self.database) as connection:
+                connection.execute(
+                    "UPDATE workflow_runs SET status='running', attempt=1, claimed_at=? WHERE run_id=?",
+                    (claimed_at, run_id),
+                )
+
+        reviewed = runtime.recover_stale_runs(older_than_seconds=60)
+        self.assertEqual({row["run_id"] for row in reviewed}, {run_ids["naive"], run_ids["malformed"]})
+        self.assertTrue(all(row["status"] == "manual_review_required" for row in reviewed))
+        self.assertEqual(runtime.get_run(run_ids["future"])["status"], "running")
+        self.assertEqual(runtime.get_run(run_ids["naive"])["status"], "running")
+        self.assertEqual(runtime.get_run(run_ids["malformed"])["status"], "running")
+
     def test_recover_stale_running_attempt_requeues_when_attempts_remain(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=3)
@@ -184,6 +265,37 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(recovered, [{"run_id": run_id, "status": "queued", "attempt": 1}])
         self.assertEqual(runtime.get_run(run_id)["status"], "queued")
         self.assertEqual(list_run_events(self.database, "p1", run_id)[-1]["status"], "queued")
+
+    def test_recovery_surfaces_malformed_claim_timestamp_for_manual_review(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=3)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET status='running', attempt=1, claimed_at=? WHERE run_id=?",
+                ("not-a-timestamp", run_id),
+            )
+        recovered = runtime.recover_stale_runs(older_than_seconds=60)
+        self.assertEqual(recovered, [{
+            "run_id": run_id,
+            "status": "manual_review_required",
+            "attempt": 1,
+            "reason": "Invalid claimed_at timestamp; age cannot be established safely.",
+        }])
+        self.assertEqual(runtime.get_run(run_id)["status"], "running")
+        self.assertEqual(list_run_events(self.database, "p1", run_id)[-1]["status"], "queued")
+
+    def test_recovery_surfaces_timezone_naive_claim_for_manual_review(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=3)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET status='running', attempt=1, claimed_at=? WHERE run_id=?",
+                ("2000-01-01T00:00:00", run_id),
+            )
+        recovered = runtime.recover_stale_runs(older_than_seconds=60)
+        self.assertEqual(recovered[0]["status"], "manual_review_required")
+        self.assertIn("no timezone", recovered[0]["reason"])
+        self.assertEqual(runtime.get_run(run_id)["status"], "running")
 
     def test_recover_stale_run_fails_when_attempt_budget_is_exhausted(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
@@ -328,6 +440,12 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
         outcome = rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
         self.assertTrue(backup.is_file())
+        with sqlite3.connect(f"{backup.as_uri()}?mode=ro", uri=True) as backup_connection:
+            self.assertEqual(backup_connection.execute("PRAGMA quick_check").fetchone()[0], "ok")
+            backup_input = backup_connection.execute(
+                "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()[0]
+        self.assertTrue(backup_input.startswith("enc:v1:"))
         self.assertEqual(outcome["rows_updated"], 1)
         self.assertGreaterEqual(outcome["fields_updated"], 2)
 
@@ -424,6 +542,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
             self.skipTest("POSIX permission bits are not portable to Windows")
         old_key = Fernet.generate_key()
         new_key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
         backup = Path(self.tempdir.name) / "runtime-private-backup.sqlite3"
         rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
         self.assertEqual(stat.S_IMODE(backup.stat().st_mode), 0o600)
@@ -439,6 +562,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
         except (OSError, NotImplementedError):
             self.skipTest("Unable to create symlink in this environment")
         key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=key,
+        )
         with self.assertRaisesRegex(WorkflowKeyRotationError, "refusing to overwrite"):
             rotate_workflow_encryption_key(self.database, backup, key, Fernet.generate_key())
         self.assertTrue(backup.is_symlink())
@@ -447,3 +575,48 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def test_key_rotation_aborts_before_source_mutation_when_backup_verification_fails(self):
+        from unittest.mock import patch
+        import sqlite3 as sqlite_module
+
+        old_key = Fernet.generate_key()
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        run_id = runtime.submit(
+            workflow_id="backup-verification-test",
+            task_type="echo",
+            payload={"value": "must-remain-readable"},
+        )
+        before = sqlite_module.connect(self.database).execute(
+            "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+        ).fetchone()[0]
+        backup = Path(self.tempdir.name) / "unverified-backup.sqlite3"
+        real_connect = sqlite_module.connect
+
+        def connect_with_broken_read_only_backup_check(database, *args, **kwargs):
+            if isinstance(database, str) and "?mode=ro" in database:
+                raise sqlite_module.DatabaseError("simulated read-only verification failure")
+            return real_connect(database, *args, **kwargs)
+
+        with patch("modules.workflow_key_rotation.sqlite3.connect", side_effect=connect_with_broken_read_only_backup_check):
+            with self.assertRaisesRegex(
+                WorkflowKeyRotationError, "backup could not be independently verified"
+            ):
+                rotate_workflow_encryption_key(self.database, backup, old_key, Fernet.generate_key())
+
+        self.assertTrue(backup.is_file(), "retain the backup for investigation")
+        after = real_connect(self.database).execute(
+            "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+        ).fetchone()[0]
+        self.assertEqual(after, before, "source ciphertext must remain unchanged before verified backup")
+        reopened = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        self.assertEqual(reopened.get_run(run_id)["input"], {"value": "must-remain-readable"})

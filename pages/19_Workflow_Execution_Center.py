@@ -88,11 +88,22 @@ except WorkflowStorageConfigurationError:
     )
     st.stop()
 
-configured_path = os.environ.get("WORKFLOW_RUNTIME_DB", ".streamlit/workflow_runtime.sqlite3")
+runtime_db_override = os.environ.get("WORKFLOW_RUNTIME_DB", "").strip()
+configured_path = runtime_db_override or ".streamlit/workflow_runtime.sqlite3"
 db_path = Path(configured_path).expanduser()
 if not db_path.is_absolute():
     db_path = Path.cwd() / db_path
 
+st.caption(
+    f"Runtime database path: `{db_path}` · "
+    + ("explicitly configured with WORKFLOW_RUNTIME_DB" if runtime_db_override else "using the local default path")
+)
+if not runtime_db_override:
+    st.warning(
+        "WORKFLOW_RUNTIME_DB is not explicitly configured. The console is using a local path that may be "
+        "ephemeral on hosted deployments. Do not assume run history survives restarts or redeployments; "
+        "configure and verify durable storage before relying on persistent execution."
+    )
 st.info(
     "Storage boundary: SQLite persists across app reruns on this filesystem. "
     "For hosted or multi-worker deployment, configure WORKFLOW_RUNTIME_DB on durable shared storage "
@@ -163,15 +174,38 @@ if st.button("Validate, submit and execute", type="primary"):
         )
         result = runtime.execute_run(run_id)
         st.session_state["workflow_runtime_last_run_id"] = run_id
-        st.success(f"Run recorded: {run_id}")
         if result:
-            st.write(f"**Status:** {result['status']} · **Attempt:** {result['attempt']}")
+            run_status = result.get("status", "unknown")
+            run_result = result.get("result") or {}
+            if run_status == "succeeded" and run_result.get("decision") == "READY_FOR_HUMAN_REVIEW":
+                st.info(f"Validation completed; human QC review is still required: {run_id}")
+            elif run_status == "succeeded":
+                st.success(f"Run completed: {run_id}")
+            elif run_status == "blocked":
+                st.warning("Run blocked by a research QC/provenance gate. No scientific approval or downstream release is implied.")
+            elif run_status == "failed":
+                st.error(f"Run failed: {run_id}")
+            elif run_status == "queued":
+                st.info(f"Run queued for an explicit retry: {run_id}")
+            elif run_status == "running":
+                st.info(f"Run is still running: {run_id}")
+            else:
+                st.info(f"Run recorded with status {run_status}: {run_id}")
+            st.write(f"**Status:** {run_status} · **Attempt:** {result['attempt']}")
             if result.get("result") is not None:
                 st.markdown("#### Result")
                 st.json(result["result"])
+                if run_status == "blocked":
+                    blockers = result["result"].get("blockers", [])
+                    if blockers:
+                        st.markdown("#### Why this run was blocked")
+                        for blocker in blockers:
+                            st.write(f"- {blocker}")
             elif result.get("error_message"):
                 st.warning(result["error_message"])
                 st.caption("A failed attempt may be queued for another explicit execution.")
+        else:
+            st.info(f"Run {run_id} was submitted, but no final result was returned.")
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         st.error(f"Input was rejected: {exc}")
     except Exception:
@@ -181,15 +215,22 @@ st.markdown("---")
 st.subheader("Recovery controls")
 st.caption(
     "Manual recovery only: use when a previous local process stopped while a run was marked running. "
-    "Do not use this with concurrent or long-running workers unless real leases/heartbeats are configured."
+    "Recovery can re-queue work, so first inspect whether the interrupted handler may already have produced "
+    "side effects. Do not use this with concurrent or long-running workers unless real leases/heartbeats are configured."
 )
-if st.button("Recover interrupted runs older than 10 minutes"):
+if st.button("Inspect and recover interrupted runs older than 10 minutes"):
     try:
         recovered = runtime.recover_stale_runs(older_than_seconds=600)
+        unresolved = [item for item in recovered if item.get("status") == "manual_review_required"]
+        recovered_count = len(recovered) - len(unresolved)
+        if recovered_count:
+            st.success(f"Recovered {recovered_count} stale run(s).")
+        if unresolved:
+            st.warning(f"{len(unresolved)} run(s) require manual review; they were not changed or retried.")
         if recovered:
-            st.success(f"Recovered {len(recovered)} interrupted run(s).")
             st.dataframe(recovered, use_container_width=True, hide_index=True)
-            st.rerun()
+            if recovered_count:
+                st.rerun()
         else:
             st.info("No stale running jobs met the recovery threshold.")
     except Exception:
@@ -231,6 +272,19 @@ try:
         selected_run = runtime.get_run(selected_run_id)
         if selected_run:
             st.markdown("#### Selected run details")
+            if selected_run["status"] == "blocked":
+                st.warning("Blocked means the requested research action failed its domain gate; it is not a technical execution failure and cannot be treated as QC approval.")
+                stored_result = selected_run.get("result") or {}
+                for blocker in stored_result.get("blockers", []):
+                    st.write(f"- {blocker}")
+            elif selected_run["status"] == "failed":
+                st.error("Technical execution failed. Inspect the recorded error and event history before retrying.")
+            elif selected_run["status"] == "succeeded":
+                selected_result = selected_run.get("result") or {}
+                if selected_result.get("decision") == "READY_FOR_HUMAN_REVIEW":
+                    st.info("Validation passed, but QC approval has NOT been granted. A qualified human reviewer must inspect the evidence and record the decision.")
+                else:
+                    st.success("Execution completed. This status alone does not certify scientific validity or QC approval.")
             st.json({
                 "run_id": selected_run["run_id"],
                 "workflow_id": selected_run["workflow_id"],

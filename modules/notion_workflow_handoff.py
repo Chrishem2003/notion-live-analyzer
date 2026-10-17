@@ -224,7 +224,7 @@ def _sync_run_to_notion_unlocked(
             "property": "Run Manifest Hash",
             "rich_text": {"equals": digest},
         },
-        "page_size": 1,
+        "page_size": 100,
     }
     queried = _safe_notion_request(
         session, "POST", base, headers=headers, json_body=query_body,
@@ -232,6 +232,10 @@ def _sync_run_to_notion_unlocked(
     existing = queried.get("results")
     if not isinstance(existing, list) or any(not isinstance(item, Mapping) for item in existing):
         raise NotionHandoffError("Notion query returned an invalid results structure")
+    if queried.get("has_more") is True or len(existing) > 1:
+        raise NotionHandoffError(
+            "multiple Notion records match this manifest hash; automatic handoff is paused for manual duplicate reconciliation"
+        )
     if existing:
         first = existing[0]
         page_id = first.get("id")
@@ -301,11 +305,61 @@ def _sync_run_to_notion_unlocked(
         raise NotionHandoffError(
             "Notion create response did not include a valid HTTPS page URL; reconcile by manifest hash"
         )
+
+    # A successful POST response alone is not independent delivery evidence.
+    # Read the page back and verify the manifest that makes later retries safe.
+    read_back = _safe_notion_request(
+        session, "GET", f"{NOTION_API_BASE}/pages/{page_id}", headers=headers,
+    )
+    if read_back.get("id") != page_id:
+        raise NotionHandoffError(
+            "Notion page read-back did not confirm the created page ID; reconcile by manifest hash"
+        )
+    read_back_url = read_back.get("url")
+    if isinstance(read_back_url, str) and read_back_url.startswith("https://"):
+        page_url = read_back_url
+    read_back_properties = read_back.get("properties")
+    if not isinstance(read_back_properties, Mapping):
+        raise NotionHandoffError(
+            "Notion page read-back returned no properties; delivery is unverified, reconcile by manifest hash"
+        )
+    manifest_property = read_back_properties.get("Run Manifest Hash")
+    if not isinstance(manifest_property, Mapping) or manifest_property.get("type") != "rich_text":
+        raise NotionHandoffError(
+            "Notion page read-back omitted the manifest hash property; delivery is unverified"
+        )
+    manifest_fragments = manifest_property.get("rich_text")
+    if not isinstance(manifest_fragments, list):
+        raise NotionHandoffError(
+            "Notion page read-back returned an invalid manifest hash property"
+        )
+    manifest_parts: list[str] = []
+    for fragment in manifest_fragments:
+        if not isinstance(fragment, Mapping):
+            raise NotionHandoffError(
+                "Notion page read-back contains a malformed manifest hash fragment"
+            )
+        plain_text = fragment.get("plain_text")
+        if isinstance(plain_text, str):
+            manifest_parts.append(plain_text)
+            continue
+        text_payload = fragment.get("text")
+        if not isinstance(text_payload, Mapping) or not isinstance(text_payload.get("content"), str):
+            raise NotionHandoffError(
+                "Notion page read-back contains a malformed manifest hash fragment"
+            )
+        manifest_parts.append(text_payload["content"])
+    read_back_digest = "".join(manifest_parts)
+    if read_back_digest != digest:
+        raise NotionHandoffError(
+            "Notion page read-back manifest hash did not match; delivery is unverified, reconcile before retrying"
+        )
     return {
         "created": True,
         "page_id": page_id,
         "url": page_url,
         "manifest_hash": digest,
+        "read_back_verified": True,
     }
 
 
@@ -320,9 +374,15 @@ def _handoff_ledger_lock(database_path: str | Path):
     not create a distributed lock across hosts with separate filesystems, and it
     cannot make Notion's API transactionally atomic with SQLite.
     """
-    path = str(database_path)
-    if path != ":memory:":
-        Path(path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
+    raw_path = str(database_path).strip()
+    if not raw_path or raw_path == ":memory:":
+        raise NotionHandoffError(
+            "handoff ledger requires a filesystem-backed SQLite database path"
+        )
+    # Normalize once so parent creation and SQLite open the same location.
+    # Otherwise ~/ paths can create one directory but connect to a literal ~ path.
+    path = str(Path(raw_path).expanduser())
+    Path(path).resolve().parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(path, timeout=30, isolation_level=None)
     try:
         connection.execute("PRAGMA busy_timeout = 30000")

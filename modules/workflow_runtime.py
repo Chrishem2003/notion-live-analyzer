@@ -110,7 +110,16 @@ class WorkflowRuntime:
         encryption_key: str | bytes | None = None,
         allow_plaintext_for_tests: bool = False,
     ):
-        self.database = str(database)
+        raw_database = str(database).strip()
+        if not raw_database or raw_database == ":memory:":
+            raise ValueError(
+                "WorkflowRuntime requires a filesystem-backed SQLite database path; "
+                "in-memory databases are incompatible with its separate-connection design."
+            )
+        # Expand ~ once and retain the same path for sqlite3.connect and directory setup.
+        # _connect() creating an expanded parent while SQLite opens the unexpanded path
+        # would otherwise make a valid home-relative configuration fail unexpectedly.
+        self.database = str(Path(raw_database).expanduser())
         self.handlers: dict[str, TaskHandler] = {}
         if encryption_key is None and allow_plaintext_for_tests is not True:
             raise WorkflowStorageError(
@@ -294,7 +303,10 @@ class WorkflowRuntime:
             if len(encoded_result_plain.encode("utf-8")) > MAX_RESULT_BYTES:
                 raise ValueError(f"handler result exceeds the {MAX_RESULT_BYTES}-byte runtime limit")
             encoded_result = encrypt_storage_text(encoded_result_plain, self.encryption_key)
-            outcome = "succeeded"
+            # A domain gate may complete successfully while rejecting the requested
+            # action. Preserve its structured decision, but do not label a rejected
+            # research hand-off as a succeeded workflow run.
+            outcome = "blocked" if result.get("decision") == "BLOCK" else "succeeded"
             error_message = None
         except Exception as exc:
             encoded_result_plain = None
@@ -357,9 +369,26 @@ class WorkflowRuntime:
                 for row in rows:
                     try:
                         claimed = datetime.fromisoformat(row["claimed_at"].replace("Z", "+00:00"))
-                    except (TypeError, ValueError):
+                    except (AttributeError, TypeError, ValueError):
+                        # Do not silently leave a malformed claim looking like a healthy run.
+                        # Its age cannot be established safely, so surface it for operator review
+                        # without automatically replaying a possibly side-effecting handler.
+                        recovered.append({
+                            "run_id": row["run_id"],
+                            "status": "manual_review_required",
+                            "attempt": int(row["attempt"]),
+                            "reason": "Invalid claimed_at timestamp; age cannot be established safely.",
+                        })
                         continue
-                    if claimed.tzinfo is None or claimed.timestamp() > cutoff:
+                    if claimed.tzinfo is None:
+                        recovered.append({
+                            "run_id": row["run_id"],
+                            "status": "manual_review_required",
+                            "attempt": int(row["attempt"]),
+                            "reason": "claimed_at timestamp has no timezone; age cannot be established safely.",
+                        })
+                        continue
+                    if claimed.timestamp() > cutoff:
                         continue
                     attempt = int(row["attempt"])
                     outcome = "queued" if attempt < int(row["max_attempts"]) else "failed"

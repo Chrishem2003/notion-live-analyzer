@@ -45,9 +45,22 @@ class FakeSession:
         self.database_schema = database_schema or schema_payload()
         self.calls = []
         self.posts = []
+        self.created_properties = None
 
     def get(self, url, **kwargs):
         self.calls.append(("GET", url, kwargs))
+        if "/pages/" in url:
+            properties = dict(self.created_properties or {})
+            if isinstance(properties.get("Run Manifest Hash"), dict):
+                properties["Run Manifest Hash"] = {
+                    "type": "rich_text",
+                    **properties["Run Manifest Hash"],
+                }
+            return FakeResponse({
+                "id": self.create_payload.get("id"),
+                "url": self.create_payload.get("url"),
+                "properties": properties,
+            })
         return FakeResponse(self.database_schema)
 
     def post(self, url, **kwargs):
@@ -55,6 +68,8 @@ class FakeSession:
         self.posts.append((url, kwargs))
         if url.endswith("/query"):
             return FakeResponse(self.query_payload)
+        if url.endswith("/pages"):
+            self.created_properties = kwargs.get("json", {}).get("properties", {})
         return FakeResponse(self.create_payload)
 
 
@@ -78,7 +93,12 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
     def test_only_successful_runs_can_be_handed_off(self):
         session = FakeSession()
         with self.assertRaisesRegex(NotionHandoffError, "only successful"):
-            sync_run_to_notion(sample_run(status="failed"), token="secret", database_id="db", session=session)
+            sync_run_to_notion(
+                sample_run(status="failed"),
+                token="secret",
+                database_id="12345678123456781234567812345678",
+                session=session,
+            )
         self.assertEqual(session.calls, [])
 
     def test_missing_configuration_fails_closed(self):
@@ -89,6 +109,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         session = FakeSession()
         result = sync_run_to_notion(sample_run(), token="secret", database_id="12345678-1234-5678-1234-567812345678", session=session)
         self.assertTrue(result["created"])
+        self.assertTrue(result["read_back_verified"])
         self.assertEqual(result["url"], "https://notion.example/page-1")
         self.assertEqual(len(session.posts), 2)
         query_call, create_call = session.posts
@@ -106,12 +127,54 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertIn('"mean": 2.0', evidence)
         self.assertIn("QC and reproducibility are still pending", evidence)
 
+    def test_manifest_mismatch_on_independent_readback_is_not_claimed_as_delivery(self):
+        class MismatchedReadBackSession(FakeSession):
+            def get(self, url, **kwargs):
+                self.calls.append(("GET", url, kwargs))
+                if "/pages/" in url:
+                    return FakeResponse({
+                        "id": "page-1",
+                        "url": "https://notion.example/page-1",
+                        "properties": {
+                            "Run Manifest Hash": {
+                                "type": "rich_text",
+                                "rich_text": [{"plain_text": "wrong-manifest"}],
+                            }
+                        },
+                    })
+                return FakeResponse(self.database_schema)
+
+        with self.assertRaisesRegex(NotionHandoffError, "manifest hash did not match"):
+            sync_run_to_notion(
+                sample_run(),
+                token="secret",
+                database_id="12345678123456781234567812345678",
+                session=MismatchedReadBackSession(),
+            )
+
     def test_existing_matching_record_is_returned_without_duplicate_create(self):
         session = FakeSession(query_payload={"results": [{"id": "existing", "url": "https://notion.example/existing"}]})
         result = sync_run_to_notion(sample_run(), token="secret", database_id="12345678-1234-5678-1234-567812345678", session=session)
         self.assertFalse(result["created"])
         self.assertEqual(result["page_id"], "existing")
         self.assertEqual(len(session.posts), 1)
+
+    def test_multiple_matching_manifest_records_pause_handoff_for_reconciliation(self):
+        session = FakeSession(query_payload={
+            "results": [
+                {"id": "existing-1", "url": "https://notion.example/existing-1"},
+                {"id": "existing-2", "url": "https://notion.example/existing-2"},
+            ]
+        })
+        with self.assertRaisesRegex(NotionHandoffError, "multiple Notion records match"):
+            sync_run_to_notion(
+                sample_run(), token="secret",
+                database_id="12345678-1234-5678-1234-567812345678",
+                session=session,
+            )
+        self.assertFalse(any(url.endswith("/pages") for url, _ in session.posts))
+        query = next(kwargs for url, kwargs in session.posts if url.endswith("/query"))
+        self.assertEqual(query["json"]["page_size"], 100)
 
     def test_http_error_is_reported_without_claiming_delivery(self):
         class FailedSession(FakeSession):
@@ -162,6 +225,8 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
                 self.get_count = 0
 
             def get(self, url, **kwargs):
+                if "/pages/" in url:
+                    return super().get(url, **kwargs)
                 self.get_count += 1
                 self.calls.append(("GET", url, kwargs))
                 if self.get_count == 1:
@@ -204,6 +269,36 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(session.posts, [])
 
 
+    def test_ledger_rejects_blank_and_in_memory_paths(self):
+        for ledger in ("", "   ", ":memory:"):
+            with self.subTest(ledger=ledger):
+                with self.assertRaisesRegex(NotionHandoffError, "filesystem-backed SQLite"):
+                    sync_run_to_notion(
+                        sample_run(), token="secret",
+                        database_id="12345678-1234-5678-1234-567812345678",
+                        session=FakeSession(), ledger_database=ledger,
+                    )
+
+    def test_ledger_expands_home_relative_path_consistently(self):
+        import os
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from unittest.mock import patch
+
+        session = FakeSession()
+        with TemporaryDirectory() as directory:
+            home = Path(directory) / "fake-home"
+            home.mkdir()
+            with patch.dict(os.environ, {"HOME": str(home)}):
+                result = sync_run_to_notion(
+                    sample_run(), token="secret",
+                    database_id="12345678-1234-5678-1234-567812345678",
+                    session=session, ledger_database="~/handoff-ledger.sqlite3",
+                )
+            self.assertTrue(result["created"])
+            self.assertTrue((home / "handoff-ledger.sqlite3").exists())
+            self.assertFalse((Path.cwd() / "~" / "handoff-ledger.sqlite3").exists())
+
     def test_shared_sqlite_ledger_serializes_concurrent_same_manifest_handoffs(self):
         from tempfile import TemporaryDirectory
         from pathlib import Path
@@ -211,7 +306,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         class StatefulSession(FakeSession):
             def post(self, url, **kwargs):
                 if url.endswith("/query") and any(
-                    call[0] == "POST" and call[1].endswith("/pages") for call in self.posts
+                    posted_url.endswith("/pages") for posted_url, _ in self.posts
                 ):
                     self.calls.append(("POST", url, kwargs))
                     return FakeResponse({"results": [self.create_payload]})
@@ -237,8 +332,8 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(sum(1 for result in results if result["created"]), 1)
         self.assertEqual(sum(1 for result in results if not result["created"]), 1)
         create_calls = [
-            call for call in session.posts
-            if call[0] == "POST" and call[1].endswith("/pages")
+            posted for posted in session.posts
+            if posted[0].endswith("/pages")
         ]
         self.assertEqual(len(create_calls), 1)
 
@@ -338,6 +433,32 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
                 session=session,
             )
         self.assertFalse(any(url.endswith("/pages") for url, _ in session.posts))
+
+    def test_readback_with_invalid_manifest_fragment_is_rejected(self):
+        class InvalidFragmentSession(FakeSession):
+            def get(self, url, **kwargs):
+                self.calls.append(("GET", url, kwargs))
+                if "/pages/" in url:
+                    return FakeResponse({
+                        "id": "page-1",
+                        "url": "https://notion.example/page-1",
+                        "properties": {
+                            "Run Manifest Hash": {
+                                "type": "rich_text",
+                                "rich_text": [{"text": None}],
+                            }
+                        },
+                    })
+                return FakeResponse(self.database_schema)
+
+        with self.assertRaisesRegex(NotionHandoffError, "malformed manifest hash fragment"):
+            sync_run_to_notion(
+                sample_run(),
+                token="secret",
+                database_id="12345678123456781234567812345678",
+                session=InvalidFragmentSession(),
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
