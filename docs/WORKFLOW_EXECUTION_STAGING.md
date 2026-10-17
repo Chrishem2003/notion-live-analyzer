@@ -76,6 +76,23 @@ Never change QC to Pass or reproducibility to Passed merely because the runtime 
 - [ ] Verify any required encryption/decryption or secret-recovery procedure separately.
 - [ ] Confirm the actual hosting platform provides durable storage; local filesystem persistence alone is not sufficient evidence for ephemeral or multi-replica deployments.
 
+## 5.1 Deployment configuration review (Batch 82)
+
+Repository configuration review on 2026-10-17 found:
+
+- `render.yaml` declares the web service on Render's `free` plan and does not declare a persistent disk or mount path.
+- The web service configuration does not declare `WORKFLOW_RUNTIME_DB` or `WORKFLOW_RUNTIME_ENCRYPTION_KEY`; these must be configured in the approved platform secret/environment settings before the workflow execution page can safely initialize.
+- The repository also defines a keepalive cron job. A keepalive request is not a durable-storage mechanism and must not be treated as proof that local SQLite data survives restart, redeploy, host replacement, or scale-out.
+- The Dockerfile copies application files into the image but does not provision a durable database volume.
+
+**Release blocker:** Do not use this Render configuration for real research data or claim durable workflow history until the deployment owner selects and configures a supported persistent storage design. For a single-instance pilot, verify that the chosen plan supports a persistent disk, mount it at an explicit path, configure `WORKFLOW_RUNTIME_DB` to a database file on that mount, and test restart/redeploy plus backup/restore. For multiple instances or workers on separate hosts, use a shared transactional database/outbox and coordination mechanism rather than relying on a local SQLite file. Do not change the service plan or incur hosting costs without an explicit owner decision.
+
+- [ ] Record the approved hosting plan and storage architecture.
+- [ ] Verify the runtime DB path resolves to the intended durable mount at runtime.
+- [ ] Test persistence after restart and redeploy, not only a Streamlit rerun.
+- [ ] Verify backup/restore and encryption-key recovery using synthetic data.
+- [ ] If durable storage is unavailable, keep workflow execution disabled for persistent operations and clearly label the deployment as non-durable.
+
 ## 6. Evidence record requirements
 
 For every test, record in the Verification & Validation Evidence database:
