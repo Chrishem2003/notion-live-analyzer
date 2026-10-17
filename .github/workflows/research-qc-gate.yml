@@ -8,6 +8,7 @@ on:
       - "modules/research_qc_gate.py"
       - "modules/workflow_handlers.py"
       - "modules/workflow_runtime.py"
+      - "modules/workflow_key_rotation.py"
       - "modules/workflow_contract.py"
       - "modules/fasta_validation.py"
       - "tests/test_research_qc_gate.py"
