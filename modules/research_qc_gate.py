@@ -6,6 +6,7 @@ human review occurred. Callers must persist the returned decision and evidence.
 from __future__ import annotations
 
 from datetime import date
+import re
 from typing import Any, Mapping
 
 
@@ -38,8 +39,11 @@ def _present(value: Any) -> bool:
 def _valid_review_date(value: Any) -> bool:
     if not isinstance(value, str) or not value.strip():
         return False
+    normalized = value.strip()
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", normalized):
+        return False
     try:
-        date.fromisoformat(value.strip())
+        date.fromisoformat(normalized)
     except ValueError:
         return False
     return True
