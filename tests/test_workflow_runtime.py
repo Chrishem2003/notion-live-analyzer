@@ -440,6 +440,12 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
         outcome = rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
         self.assertTrue(backup.is_file())
+        with sqlite3.connect(f"{backup.as_uri()}?mode=ro", uri=True) as backup_connection:
+            self.assertEqual(backup_connection.execute("PRAGMA quick_check").fetchone()[0], "ok")
+            backup_input = backup_connection.execute(
+                "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()[0]
+        self.assertTrue(backup_input.startswith("enc:v1:"))
         self.assertEqual(outcome["rows_updated"], 1)
         self.assertGreaterEqual(outcome["fields_updated"], 2)
 
