@@ -50,7 +50,12 @@ class FakeSession:
     def get(self, url, **kwargs):
         self.calls.append(("GET", url, kwargs))
         if "/pages/" in url:
-            properties = self.created_properties or {}
+            properties = dict(self.created_properties or {})
+            if isinstance(properties.get("Run Manifest Hash"), dict):
+                properties["Run Manifest Hash"] = {
+                    "type": "rich_text",
+                    **properties["Run Manifest Hash"],
+                }
             return FakeResponse({
                 "id": self.create_payload.get("id"),
                 "url": self.create_payload.get("url"),
