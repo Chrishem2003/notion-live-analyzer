@@ -136,6 +136,17 @@ def data_quality_profile(payload: Mapping[str, Any]) -> Mapping[str, Any]:
     }
 
 
+def research_qc_gate_handler(payload: Mapping[str, Any]) -> Mapping[str, Any]:
+    """Runtime-compatible wrapper around the pure QC gate evaluator."""
+    record = payload.get("record")
+    action = payload.get("action")
+    if not isinstance(record, Mapping):
+        raise WorkflowContractError("record must be an object")
+    if not isinstance(action, str) or not action.strip():
+        raise WorkflowContractError("action must be non-empty text")
+    return evaluate_research_gate(record, action.strip())
+
+
 def default_handlers() -> dict[str, Any]:
     """Return the built-in trusted handler allow-list."""
     return {
@@ -143,5 +154,5 @@ def default_handlers() -> dict[str, Any]:
         "numeric_summary": numeric_summary,
         "data_quality_profile": data_quality_profile,
         "fasta_validate": validate_fasta,
-        "research_qc_gate": evaluate_research_gate,
+        "research_qc_gate": research_qc_gate_handler,
     }
