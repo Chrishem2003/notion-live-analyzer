@@ -212,6 +212,15 @@ The rotation helper now atomically reserves a new backup path using exclusive fi
 The additional regression tests live in `tests/test_workflow_runtime.py`. Exact-head CI must pass before this control is accepted.
 
 
+## 17. Key-rotation backup-verification failure path (added 2026-10-17)
+
+A regression test now simulates failure to open the newly created backup in read-only verification mode. Expected behavior: rotation aborts before the source database transaction starts, the source ciphertext remains unchanged and readable with the old key, and the reserved backup is retained for investigation.
+
+- [ ] Confirm this regression passes on the exact candidate head.
+- [ ] In isolated staging, verify a failed backup check never triggers a key switch or source mutation.
+- [ ] Treat a retained failed backup as sensitive data; restrict access and follow the approved investigation/retention procedure.
+- [ ] Re-run the successful rotation and old-backup restore/readback test after any changes to backup creation or verification.
+
 ## 13. Read-only backup verification (added 2026-10-16)
 
 After creating a SQLite-aware backup, run the structural verifier against that backup file:
