@@ -50,6 +50,26 @@ class ResearchQCGateTests(unittest.TestCase):
                       "Raw Source Reference", "Source Dataset Version"):
             self.assertIn(field, joined)
 
+    def test_empty_notion_relation_wrapper_does_not_satisfy_protocol(self):
+        result = evaluate_research_gate(
+            complete_record(**{
+                "Protocol": {"type": "relation", "relation": []},
+            }),
+            "approve_qc",
+        )
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("Protocol" in item for item in result["blockers"]))
+
+    def test_empty_notion_rich_text_wrapper_does_not_satisfy_qc_evidence(self):
+        result = evaluate_research_gate(
+            complete_record(**{
+                "QC Evidence": {"type": "rich_text", "rich_text": []},
+            }),
+            "approve_qc",
+        )
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("QC Evidence" in item for item in result["blockers"]))
+
     def test_missing_human_review_evidence_blocks_qc_approval(self):
         result = evaluate_research_gate(
             complete_record(**{"QC Reviewer": "", "QC Review Date": None, "QC Evidence": []}),
