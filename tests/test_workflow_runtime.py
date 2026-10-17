@@ -575,3 +575,48 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def test_key_rotation_aborts_before_source_mutation_when_backup_verification_fails(self):
+        from unittest.mock import patch
+        import sqlite3 as sqlite_module
+
+        old_key = Fernet.generate_key()
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        run_id = runtime.submit(
+            workflow_id="backup-verification-test",
+            task_type="echo",
+            payload={"value": "must-remain-readable"},
+        )
+        before = sqlite_module.connect(self.database).execute(
+            "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+        ).fetchone()[0]
+        backup = Path(self.tempdir.name) / "unverified-backup.sqlite3"
+        real_connect = sqlite_module.connect
+
+        def connect_with_broken_read_only_backup_check(database, *args, **kwargs):
+            if isinstance(database, str) and "?mode=ro" in database:
+                raise sqlite_module.DatabaseError("simulated read-only verification failure")
+            return real_connect(database, *args, **kwargs)
+
+        with patch("modules.workflow_key_rotation.sqlite3.connect", side_effect=connect_with_broken_read_only_backup_check):
+            with self.assertRaisesRegex(
+                WorkflowKeyRotationError, "backup could not be independently verified"
+            ):
+                rotate_workflow_encryption_key(self.database, backup, old_key, Fernet.generate_key())
+
+        self.assertTrue(backup.is_file(), "retain the backup for investigation")
+        after = real_connect(self.database).execute(
+            "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+        ).fetchone()[0]
+        self.assertEqual(after, before, "source ciphertext must remain unchanged before verified backup")
+        reopened = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        self.assertEqual(reopened.get_run(run_id)["input"], {"value": "must-remain-readable"})
