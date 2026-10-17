@@ -224,7 +224,7 @@ def _sync_run_to_notion_unlocked(
             "property": "Run Manifest Hash",
             "rich_text": {"equals": digest},
         },
-        "page_size": 1,
+        "page_size": 100,
     }
     queried = _safe_notion_request(
         session, "POST", base, headers=headers, json_body=query_body,
@@ -232,6 +232,10 @@ def _sync_run_to_notion_unlocked(
     existing = queried.get("results")
     if not isinstance(existing, list) or any(not isinstance(item, Mapping) for item in existing):
         raise NotionHandoffError("Notion query returned an invalid results structure")
+    if queried.get("has_more") is True or len(existing) > 1:
+        raise NotionHandoffError(
+            "multiple Notion records match this manifest hash; automatic handoff is paused for manual duplicate reconciliation"
+        )
     if existing:
         first = existing[0]
         page_id = first.get("id")
