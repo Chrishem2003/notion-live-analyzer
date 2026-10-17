@@ -110,12 +110,16 @@ class WorkflowRuntime:
         encryption_key: str | bytes | None = None,
         allow_plaintext_for_tests: bool = False,
     ):
-        self.database = str(database).strip()
-        if not self.database or self.database == ":memory:":
+        raw_database = str(database).strip()
+        if not raw_database or raw_database == ":memory:":
             raise ValueError(
                 "WorkflowRuntime requires a filesystem-backed SQLite database path; "
                 "in-memory databases are incompatible with its separate-connection design."
             )
+        # Expand ~ once and retain the same path for sqlite3.connect and directory setup.
+        # _connect() creating an expanded parent while SQLite opens the unexpanded path
+        # would otherwise make a valid home-relative configuration fail unexpectedly.
+        self.database = str(Path(raw_database).expanduser())
         self.handlers: dict[str, TaskHandler] = {}
         if encryption_key is None and allow_plaintext_for_tests is not True:
             raise WorkflowStorageError(
