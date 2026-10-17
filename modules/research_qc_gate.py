@@ -5,6 +5,7 @@ human review occurred. Callers must persist the returned decision and evidence.
 """
 from __future__ import annotations
 
+from datetime import date
 from typing import Any, Mapping
 
 
@@ -25,12 +26,22 @@ _REQUIRED_PROVENANCE = (
 
 
 def _present(value: Any) -> bool:
-    if value is None:
+    if value is None or isinstance(value, bool):
         return False
     if isinstance(value, str):
         return bool(value.strip())
     if isinstance(value, (list, tuple, dict, set)):
         return bool(value)
+    return True
+
+
+def _valid_review_date(value: Any) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+    try:
+        date.fromisoformat(value.strip())
+    except ValueError:
+        return False
     return True
 
 
@@ -67,19 +78,24 @@ def evaluate_research_gate(record: Mapping[str, Any], action: str) -> dict[str, 
     if action == "approve_qc":
         if not _present(record.get("QC Reviewer")):
             blockers.append("Missing QC Reviewer")
-        if not _present(record.get("QC Review Date")):
-            blockers.append("Missing QC Review Date")
+        if not _valid_review_date(record.get("QC Review Date")):
+            blockers.append("QC Review Date must be a valid ISO date (YYYY-MM-DD)")
         if not _present(record.get("QC Evidence")):
             blockers.append("Missing QC Evidence")
         if qc_status == QC_ANOMALOUS:
             blockers.append("Anomalous QC cannot be approved without a documented correction and new review")
         elif qc_status == QC_VERIFIED:
             blockers.append("Record is already marked Verified; do not silently overwrite the prior decision")
+        elif qc_status not in (None, "", QC_PENDING):
+            blockers.append("Unknown QC status cannot be approved; normalize it through a documented review")
 
     if action in {"report", "close"}:
-        for field in ("QC Reviewer", "QC Review Date", "QC Evidence"):
-            if not _present(record.get(field)):
-                blockers.append(f"Missing required review evidence: {field}")
+        if not _present(record.get("QC Reviewer")):
+            blockers.append("Missing required review evidence: QC Reviewer")
+        if not _valid_review_date(record.get("QC Review Date")):
+            blockers.append("QC Review Date must be a valid ISO date (YYYY-MM-DD)")
+        if not _present(record.get("QC Evidence")):
+            blockers.append("Missing required review evidence: QC Evidence")
 
     return {
         "allowed": not blockers,
