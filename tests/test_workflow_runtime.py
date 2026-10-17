@@ -209,6 +209,27 @@ class WorkflowRuntimeTests(unittest.TestCase):
             ["queued"],
         )
 
+    def test_recovery_skips_future_naive_and_malformed_claim_timestamps(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        cases = {
+            "future": "2999-01-01T00:00:00+00:00",
+            "naive": "2000-01-01T00:00:00",
+            "malformed": "not-a-timestamp",
+        }
+        run_ids = {}
+        for label, claimed_at in cases.items():
+            run_id = runtime.submit(workflow_id="recovery-timestamp-guards", task_type="echo", payload={"case": label})
+            run_ids[label] = run_id
+            with sqlite3.connect(self.database) as connection:
+                connection.execute(
+                    "UPDATE workflow_runs SET status='running', attempt=1, claimed_at=? WHERE run_id=?",
+                    (claimed_at, run_id),
+                )
+
+        self.assertEqual(runtime.recover_stale_runs(older_than_seconds=60), [])
+        for run_id in run_ids.values():
+            self.assertEqual(runtime.get_run(run_id)["status"], "running")
+
     def test_recover_stale_running_attempt_requeues_when_attempts_remain(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=3)
