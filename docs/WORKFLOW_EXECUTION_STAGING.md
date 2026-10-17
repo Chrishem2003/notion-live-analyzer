@@ -63,7 +63,8 @@ Only perform this section with a least-privileged integration and a staging Anal
 - [ ] Repeat the same handoff sequentially. Expected: existing manifest match is returned without creating a second page.
 - [ ] Simulate a transient 503 on the schema read. Expected: bounded retry.
 - [ ] Simulate a transport failure after create dispatch. Expected: no blind automatic replay; repeat the handoff action to reconcile by manifest hash.
-- [ ] Test concurrent same-manifest handoffs. The current query-before-create pattern is not atomic; if duplicate pages are possible, record the defect and keep release blocked.
+- [ ] Test concurrent same-manifest handoffs in authorized staging. A shared SQLite ledger serializes callers using the same file, but this does not protect separate hosts/filesystems; keep release blocked until the deployed topology is verified.
+- [ ] If more than one Notion page matches the manifest hash, expect the adapter to stop and require manual duplicate reconciliation rather than choosing an arbitrary page.
 
 Never change QC to Pass or reproducibility to Passed merely because the runtime completed successfully.
 
