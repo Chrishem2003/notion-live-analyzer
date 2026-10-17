@@ -11,8 +11,10 @@ on:
       - "modules/workflow_contract.py"
       - "modules/fasta_validation.py"
       - "tests/test_research_qc_gate.py"
+      - "tests/test_workflow_contract.py"
       - "tests/test_workflow_handlers.py"
       - "tests/test_workflow_runtime.py"
+      - "pages/19_Workflow_Execution_Center.py"
       - ".github/workflows/research-qc-gate.yml"
   workflow_dispatch:
 
