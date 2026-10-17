@@ -93,6 +93,16 @@ Repository configuration review on 2026-10-17 found:
 - [ ] Verify backup/restore and encryption-key recovery using synthetic data.
 - [ ] If durable storage is unavailable, keep workflow execution disabled for persistent operations and clearly label the deployment as non-durable.
 
+## 5.2 Interrupted-run recovery safeguards (Batch 83)
+
+- Recovery now reports a running row with a malformed or timezone-naive `claimed_at` as `manual_review_required`; it does not guess the timestamp, change the run, or automatically retry it.
+- The execution UI separates successfully recovered stale runs from records requiring manual review.
+- Recovery remains a manual single-process maintenance operation. It is not a worker lease, heartbeat, distributed lock, or proof that a process is dead.
+- **Side-effect warning:** if a handler calls an external API and the process stops before the terminal SQLite commit, requeueing can repeat that external side effect. External handlers must use provider idempotency keys or a durable outbox/reconciliation strategy before automatic retries are enabled.
+- [ ] Test malformed and timezone-naive claim timestamps; verify they are surfaced without mutating the run.
+- [ ] In authorized staging, simulate a process interruption before and after an external side effect and verify the handler's idempotency/reconciliation behavior.
+- [ ] Do not enable automatic startup recovery until worker leases/heartbeats and the deployed topology are designed and tested.
+
 ## 6. Evidence record requirements
 
 For every test, record in the Verification & Validation Evidence database:
