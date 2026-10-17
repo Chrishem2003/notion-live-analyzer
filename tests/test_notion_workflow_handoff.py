@@ -78,7 +78,12 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
     def test_only_successful_runs_can_be_handed_off(self):
         session = FakeSession()
         with self.assertRaisesRegex(NotionHandoffError, "only successful"):
-            sync_run_to_notion(sample_run(status="failed"), token="secret", database_id="db", session=session)
+            sync_run_to_notion(
+                sample_run(status="failed"),
+                token="secret",
+                database_id="12345678123456781234567812345678",
+                session=session,
+            )
         self.assertEqual(session.calls, [])
 
     def test_missing_configuration_fails_closed(self):
@@ -228,7 +233,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         class StatefulSession(FakeSession):
             def post(self, url, **kwargs):
                 if url.endswith("/query") and any(
-                    call[0] == "POST" and call[1].endswith("/pages") for call in self.posts
+                    posted_url.endswith("/pages") for posted_url, _ in self.posts
                 ):
                     self.calls.append(("POST", url, kwargs))
                     return FakeResponse({"results": [self.create_payload]})
