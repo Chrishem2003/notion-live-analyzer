@@ -125,6 +125,40 @@ class WorkflowRuntimeTests(unittest.TestCase):
             ["queued", "running", "succeeded"],
         )
 
+    def test_research_qc_gate_block_is_persisted_as_blocked_without_retry(self):
+        from modules.workflow_handlers import default_handlers
+
+        runtime = self.make_runtime(self.database, handlers=default_handlers())
+        payload = {
+            "action": "report",
+            "record": {
+                "Record Classification": "Synthetic/Test",
+                "Measurement Unit": "mg/L",
+                "Protocol": ["protocol-demo"],
+                "Protocol ID/Version": "demo-v1",
+                "Raw Source Reference": "synthetic://raw-1",
+                "Source Dataset Version": "demo-v1",
+                "Analysis Status.": "🔴 Anomalous",
+                "QC Reviewer": "reviewer-demo",
+                "QC Review Date": "2026-10-17",
+                "QC Evidence": ["synthetic://qc-evidence-1"],
+            },
+        }
+        run_id = runtime.submit(
+            workflow_id="qc-gate-test", task_type="research_qc_gate",
+            payload=payload, max_attempts=3,
+        )
+        result = runtime.execute_run(run_id)
+
+        self.assertEqual(result["status"], "blocked")
+        self.assertEqual(result["attempt"], 1)
+        self.assertEqual(result["result"]["decision"], "BLOCK")
+        self.assertFalse(result["result"]["allowed"])
+        self.assertEqual(
+            [event["status"] for event in list_run_events(self.database, "qc-gate-test", run_id)],
+            ["queued", "running", "blocked"],
+        )
+
     def test_no_queued_work_returns_none(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         self.assertIsNone(runtime.execute_next())
