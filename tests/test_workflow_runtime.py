@@ -158,6 +158,9 @@ class WorkflowRuntimeTests(unittest.TestCase):
             [event["status"] for event in list_run_events(self.database, "qc-gate-test", run_id)],
             ["queued", "running", "blocked"],
         )
+        # A blocked domain decision is terminal and must never enter stale-run recovery.
+        self.assertEqual(runtime.recover_stale_runs(older_than_seconds=1), [])
+        self.assertEqual(runtime.get_run(run_id)["status"], "blocked")
 
     def test_no_queued_work_returns_none(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
