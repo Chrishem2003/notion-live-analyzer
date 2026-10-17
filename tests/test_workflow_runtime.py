@@ -461,6 +461,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
             self.skipTest("POSIX permission bits are not portable to Windows")
         old_key = Fernet.generate_key()
         new_key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
         backup = Path(self.tempdir.name) / "runtime-private-backup.sqlite3"
         rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
         self.assertEqual(stat.S_IMODE(backup.stat().st_mode), 0o600)
@@ -476,6 +481,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
         except (OSError, NotImplementedError):
             self.skipTest("Unable to create symlink in this environment")
         key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=key,
+        )
         with self.assertRaisesRegex(WorkflowKeyRotationError, "refusing to overwrite"):
             rotate_workflow_encryption_key(self.database, backup, key, Fernet.generate_key())
         self.assertTrue(backup.is_symlink())
