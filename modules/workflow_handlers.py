@@ -13,6 +13,7 @@ from typing import Any, Mapping
 
 from modules.workflow_contract import WorkflowContractError
 from modules.fasta_validation import validate_fasta
+from modules.research_qc_gate import evaluate_research_gate
 
 
 def _text(value: Any, field: str) -> str:
@@ -142,4 +143,5 @@ def default_handlers() -> dict[str, Any]:
         "numeric_summary": numeric_summary,
         "data_quality_profile": data_quality_profile,
         "fasta_validate": validate_fasta,
+        "research_qc_gate": evaluate_research_gate,
     }
