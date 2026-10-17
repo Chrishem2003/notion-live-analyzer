@@ -209,7 +209,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
             ["queued"],
         )
 
-    def test_recovery_skips_future_naive_and_malformed_claim_timestamps(self):
+    def test_recovery_skips_future_claim_and_surfaces_invalid_timestamps(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         cases = {
             "future": "2999-01-01T00:00:00+00:00",
@@ -226,9 +226,12 @@ class WorkflowRuntimeTests(unittest.TestCase):
                     (claimed_at, run_id),
                 )
 
-        self.assertEqual(runtime.recover_stale_runs(older_than_seconds=60), [])
-        for run_id in run_ids.values():
-            self.assertEqual(runtime.get_run(run_id)["status"], "running")
+        reviewed = runtime.recover_stale_runs(older_than_seconds=60)
+        self.assertEqual({row["run_id"] for row in reviewed}, {run_ids["naive"], run_ids["malformed"]})
+        self.assertTrue(all(row["status"] == "manual_review_required" for row in reviewed))
+        self.assertEqual(runtime.get_run(run_ids["future"])["status"], "running")
+        self.assertEqual(runtime.get_run(run_ids["naive"])["status"], "running")
+        self.assertEqual(runtime.get_run(run_ids["malformed"])["status"], "running")
 
     def test_recover_stale_running_attempt_requeues_when_attempts_remain(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
