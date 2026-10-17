@@ -113,6 +113,23 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(result["page_id"], "existing")
         self.assertEqual(len(session.posts), 1)
 
+    def test_multiple_matching_manifest_records_pause_handoff_for_reconciliation(self):
+        session = FakeSession(query_payload={
+            "results": [
+                {"id": "existing-1", "url": "https://notion.example/existing-1"},
+                {"id": "existing-2", "url": "https://notion.example/existing-2"},
+            ]
+        })
+        with self.assertRaisesRegex(NotionHandoffError, "multiple Notion records match"):
+            sync_run_to_notion(
+                sample_run(), token="secret",
+                database_id="12345678-1234-5678-1234-567812345678",
+                session=session,
+            )
+        self.assertFalse(any(url.endswith("/pages") for url, _ in session.posts))
+        query = next(kwargs for url, kwargs in session.posts if url.endswith("/query"))
+        self.assertEqual(query["json"]["page_size"], 100)
+
     def test_http_error_is_reported_without_claiming_delivery(self):
         class FailedSession(FakeSession):
             def post(self, url, **kwargs):
