@@ -269,6 +269,36 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(session.posts, [])
 
 
+    def test_ledger_rejects_blank_and_in_memory_paths(self):
+        for ledger in ("", "   ", ":memory:"):
+            with self.subTest(ledger=ledger):
+                with self.assertRaisesRegex(NotionHandoffError, "filesystem-backed SQLite"):
+                    sync_run_to_notion(
+                        sample_run(), token="secret",
+                        database_id="12345678-1234-5678-1234-567812345678",
+                        session=FakeSession(), ledger_database=ledger,
+                    )
+
+    def test_ledger_expands_home_relative_path_consistently(self):
+        import os
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from unittest.mock import patch
+
+        session = FakeSession()
+        with TemporaryDirectory() as directory:
+            home = Path(directory) / "fake-home"
+            home.mkdir()
+            with patch.dict(os.environ, {"HOME": str(home)}):
+                result = sync_run_to_notion(
+                    sample_run(), token="secret",
+                    database_id="12345678-1234-5678-1234-567812345678",
+                    session=session, ledger_database="~/handoff-ledger.sqlite3",
+                )
+            self.assertTrue(result["created"])
+            self.assertTrue((home / "handoff-ledger.sqlite3").exists())
+            self.assertFalse((Path.cwd() / "~" / "handoff-ledger.sqlite3").exists())
+
     def test_shared_sqlite_ledger_serializes_concurrent_same_manifest_handoffs(self):
         from tempfile import TemporaryDirectory
         from pathlib import Path
