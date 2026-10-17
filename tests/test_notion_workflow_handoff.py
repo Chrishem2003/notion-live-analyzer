@@ -404,5 +404,31 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
             )
         self.assertFalse(any(url.endswith("/pages") for url, _ in session.posts))
 
+    def test_readback_with_invalid_manifest_fragment_is_rejected(self):
+        class InvalidFragmentSession(FakeSession):
+            def get(self, url, **kwargs):
+                self.calls.append(("GET", url, kwargs))
+                if "/pages/" in url:
+                    return FakeResponse({
+                        "id": "page-1",
+                        "url": "https://notion.example/page-1",
+                        "properties": {
+                            "Run Manifest Hash": {
+                                "type": "rich_text",
+                                "rich_text": [{"text": None}],
+                            }
+                        },
+                    })
+                return FakeResponse(self.database_schema)
+
+        with self.assertRaisesRegex(NotionHandoffError, "malformed manifest hash fragment"):
+            sync_run_to_notion(
+                sample_run(),
+                token="secret",
+                database_id="12345678123456781234567812345678",
+                session=InvalidFragmentSession(),
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
