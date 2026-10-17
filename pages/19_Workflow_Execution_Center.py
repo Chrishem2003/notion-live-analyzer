@@ -218,13 +218,19 @@ st.caption(
     "Recovery can re-queue work, so first inspect whether the interrupted handler may already have produced "
     "side effects. Do not use this with concurrent or long-running workers unless real leases/heartbeats are configured."
 )
-if st.button("Recover interrupted runs older than 10 minutes"):
+if st.button("Inspect and recover interrupted runs older than 10 minutes"):
     try:
         recovered = runtime.recover_stale_runs(older_than_seconds=600)
+        unresolved = [item for item in recovered if item.get("status") == "manual_review_required"]
+        recovered_count = len(recovered) - len(unresolved)
+        if recovered_count:
+            st.success(f"Recovered {recovered_count} stale run(s).")
+        if unresolved:
+            st.warning(f"{len(unresolved)} run(s) require manual review; they were not changed or retried.")
         if recovered:
-            st.success(f"Recovered {len(recovered)} interrupted run(s).")
             st.dataframe(recovered, use_container_width=True, hide_index=True)
-            st.rerun()
+            if recovered_count:
+                st.rerun()
         else:
             st.info("No stale running jobs met the recovery threshold.")
     except Exception:
