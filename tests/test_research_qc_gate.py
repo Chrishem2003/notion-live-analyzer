@@ -89,6 +89,24 @@ class ResearchQCGateTests(unittest.TestCase):
         self.assertFalse(result["allowed"])
         self.assertTrue(any("Record Classification" in item for item in result["blockers"]))
 
+
+    def test_invalid_review_date_blocks_qc_approval_and_reporting(self):
+        for action, status in (("approve_qc", QC_PENDING), ("report", QC_VERIFIED)):
+            result = evaluate_research_gate(
+                complete_record(**{"QC Review Date": "not-a-date", "Analysis Status.": status}),
+                action,
+            )
+            self.assertFalse(result["allowed"])
+            self.assertTrue(any("ISO date" in item for item in result["blockers"]))
+
+    def test_unknown_qc_status_blocks_approval(self):
+        result = evaluate_research_gate(
+            complete_record(**{"Analysis Status.": "green maybe"}),
+            "approve_qc",
+        )
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("Unknown QC status" in item for item in result["blockers"]))
+
     def test_unknown_action_is_rejected(self):
         with self.assertRaises(ValueError):
             evaluate_research_gate(complete_record(), "publish_everything")
