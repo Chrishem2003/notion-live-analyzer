@@ -26,6 +26,14 @@ class WorkflowStorageTests(unittest.TestCase):
         with self.assertRaises(WorkflowStorageConfigurationError):
             load_workflow_storage_key({}, {"WORKFLOW_RUNTIME_ENCRYPTION_KEY": "not-a-fernet-key"})
 
+    def test_non_ascii_fernet_key_fails_with_safe_configuration_error(self):
+        with self.assertRaisesRegex(
+            WorkflowStorageConfigurationError, "valid ASCII Fernet key"
+        ):
+            load_workflow_storage_key(
+                {}, {"WORKFLOW_RUNTIME_ENCRYPTION_KEY": "é" * 44}
+            )
+
     def test_secret_store_precedes_environment(self):
         secret_key = Fernet.generate_key()
         environment_key = Fernet.generate_key()
