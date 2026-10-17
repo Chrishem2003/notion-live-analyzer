@@ -37,6 +37,16 @@ class WorkflowRuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "filesystem-backed SQLite database path"):
             WorkflowRuntime("   ", allow_plaintext_for_tests=True)
 
+    def test_runtime_expands_home_relative_database_path(self):
+        from unittest.mock import patch
+        home = Path(self.tempdir.name) / "fake-home"
+        home.mkdir()
+        with patch("modules.workflow_runtime.Path.expanduser", autospec=True) as expanduser:
+            expanduser.side_effect = lambda path: Path(str(path).replace("~", str(home), 1))
+            runtime = WorkflowRuntime("~/workflow.sqlite3", allow_plaintext_for_tests=True)
+        self.assertEqual(runtime.database, str(home / "workflow.sqlite3"))
+        self.assertTrue((home / "workflow.sqlite3").exists())
+
     def test_submit_persists_queued_run_and_input(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: {"echo": data["value"]}})
         run_id = runtime.submit(workflow_id="project-1", task_type="echo", payload={"value": 7})
