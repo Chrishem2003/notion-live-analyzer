@@ -163,15 +163,38 @@ if st.button("Validate, submit and execute", type="primary"):
         )
         result = runtime.execute_run(run_id)
         st.session_state["workflow_runtime_last_run_id"] = run_id
-        st.success(f"Run recorded: {run_id}")
         if result:
-            st.write(f"**Status:** {result['status']} · **Attempt:** {result['attempt']}")
+            run_status = result.get("status", "unknown")
+            run_result = result.get("result") or {}
+            if run_status == "succeeded" and run_result.get("decision") == "READY_FOR_HUMAN_REVIEW":
+                st.info(f"Validation completed; human QC review is still required: {run_id}")
+            elif run_status == "succeeded":
+                st.success(f"Run completed: {run_id}")
+            elif run_status == "blocked":
+                st.warning("Run blocked by a research QC/provenance gate. No scientific approval or downstream release is implied.")
+            elif run_status == "failed":
+                st.error(f"Run failed: {run_id}")
+            elif run_status == "queued":
+                st.info(f"Run queued for an explicit retry: {run_id}")
+            elif run_status == "running":
+                st.info(f"Run is still running: {run_id}")
+            else:
+                st.info(f"Run recorded with status {run_status}: {run_id}")
+            st.write(f"**Status:** {run_status} · **Attempt:** {result['attempt']}")
             if result.get("result") is not None:
                 st.markdown("#### Result")
                 st.json(result["result"])
+                if run_status == "blocked":
+                    blockers = result["result"].get("blockers", [])
+                    if blockers:
+                        st.markdown("#### Why this run was blocked")
+                        for blocker in blockers:
+                            st.write(f"- {blocker}")
             elif result.get("error_message"):
                 st.warning(result["error_message"])
                 st.caption("A failed attempt may be queued for another explicit execution.")
+        else:
+            st.info(f"Run {run_id} was submitted, but no final result was returned.")
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         st.error(f"Input was rejected: {exc}")
     except Exception:
@@ -231,6 +254,19 @@ try:
         selected_run = runtime.get_run(selected_run_id)
         if selected_run:
             st.markdown("#### Selected run details")
+            if selected_run["status"] == "blocked":
+                st.warning("Blocked means the requested research action failed its domain gate; it is not a technical execution failure and cannot be treated as QC approval.")
+                stored_result = selected_run.get("result") or {}
+                for blocker in stored_result.get("blockers", []):
+                    st.write(f"- {blocker}")
+            elif selected_run["status"] == "failed":
+                st.error("Technical execution failed. Inspect the recorded error and event history before retrying.")
+            elif selected_run["status"] == "succeeded":
+                selected_result = selected_run.get("result") or {}
+                if selected_result.get("decision") == "READY_FOR_HUMAN_REVIEW":
+                    st.info("Validation passed, but QC approval has NOT been granted. A qualified human reviewer must inspect the evidence and record the decision.")
+                else:
+                    st.success("Execution completed. This status alone does not certify scientific validity or QC approval.")
             st.json({
                 "run_id": selected_run["run_id"],
                 "workflow_id": selected_run["workflow_id"],

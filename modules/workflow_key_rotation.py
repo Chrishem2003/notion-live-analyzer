@@ -31,7 +31,9 @@ def rotate_workflow_encryption_key(
     the database transaction rolls back and the backup is retained for investigation.
     """
     database = Path(database_path).expanduser().resolve()
-    backup = Path(backup_path).expanduser().resolve()
+    # Normalize the path without following the final symlink: resolve() would turn a dangling
+    # backup symlink into its missing target and bypass the lexists overwrite guard below.
+    backup = Path(os.path.abspath(os.fspath(Path(backup_path).expanduser())))
     if database == backup:
         raise WorkflowKeyRotationError("backup path must be different from the source database")
     if not database.is_file():

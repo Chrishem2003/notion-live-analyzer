@@ -125,6 +125,43 @@ class WorkflowRuntimeTests(unittest.TestCase):
             ["queued", "running", "succeeded"],
         )
 
+    def test_research_qc_gate_block_is_persisted_as_blocked_without_retry(self):
+        from modules.workflow_handlers import default_handlers
+
+        runtime = self.make_runtime(self.database, handlers=default_handlers())
+        payload = {
+            "action": "report",
+            "record": {
+                "Record Classification": "Synthetic/Test",
+                "Measurement Unit": "mg/L",
+                "Protocol": ["protocol-demo"],
+                "Protocol ID/Version": "demo-v1",
+                "Raw Source Reference": "synthetic://raw-1",
+                "Source Dataset Version": "demo-v1",
+                "Analysis Status.": "🔴 Anomalous",
+                "QC Reviewer": "reviewer-demo",
+                "QC Review Date": "2026-10-17",
+                "QC Evidence": ["synthetic://qc-evidence-1"],
+            },
+        }
+        run_id = runtime.submit(
+            workflow_id="qc-gate-test", task_type="research_qc_gate",
+            payload=payload, max_attempts=3,
+        )
+        result = runtime.execute_run(run_id)
+
+        self.assertEqual(result["status"], "blocked")
+        self.assertEqual(result["attempt"], 1)
+        self.assertEqual(result["result"]["decision"], "BLOCK")
+        self.assertFalse(result["result"]["allowed"])
+        self.assertEqual(
+            [event["status"] for event in list_run_events(self.database, "qc-gate-test", run_id)],
+            ["queued", "running", "blocked"],
+        )
+        # A blocked domain decision is terminal and must never enter stale-run recovery.
+        self.assertEqual(runtime.recover_stale_runs(older_than_seconds=1), [])
+        self.assertEqual(runtime.get_run(run_id)["status"], "blocked")
+
     def test_no_queued_work_returns_none(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         self.assertIsNone(runtime.execute_next())
@@ -424,6 +461,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
             self.skipTest("POSIX permission bits are not portable to Windows")
         old_key = Fernet.generate_key()
         new_key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
         backup = Path(self.tempdir.name) / "runtime-private-backup.sqlite3"
         rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
         self.assertEqual(stat.S_IMODE(backup.stat().st_mode), 0o600)
@@ -439,6 +481,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
         except (OSError, NotImplementedError):
             self.skipTest("Unable to create symlink in this environment")
         key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=key,
+        )
         with self.assertRaisesRegex(WorkflowKeyRotationError, "refusing to overwrite"):
             rotate_workflow_encryption_key(self.database, backup, key, Fernet.generate_key())
         self.assertTrue(backup.is_symlink())
