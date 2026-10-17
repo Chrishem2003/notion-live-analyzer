@@ -27,12 +27,27 @@ _REQUIRED_PROVENANCE = (
 
 
 def _present(value: Any) -> bool:
+    """Recognize meaningful values, including Notion-shaped property payloads.
+
+    A non-empty wrapper object is not itself evidence: for example,
+    {"type": "relation", "relation": []} must not satisfy Protocol.
+    """
     if value is None or isinstance(value, bool):
         return False
     if isinstance(value, str):
         return bool(value.strip())
-    if isinstance(value, (list, tuple, dict, set)):
-        return bool(value)
+    if isinstance(value, Mapping):
+        property_keys = (
+            "relation", "rich_text", "title", "files", "people", "multi_select",
+            "select", "date", "url", "number", "email", "phone_number",
+            "checkbox", "formula", "rollup", "status",
+        )
+        present_property_keys = [key for key in property_keys if key in value]
+        if present_property_keys:
+            return any(_present(value[key]) for key in present_property_keys)
+        return any(_present(item) for item in value.values())
+    if isinstance(value, (list, tuple, set)):
+        return any(_present(item) for item in value)
     return True
 
 
