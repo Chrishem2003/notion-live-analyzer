@@ -48,6 +48,17 @@ class FakeSession:
 
     def get(self, url, **kwargs):
         self.calls.append(("GET", url, kwargs))
+        if "/pages/" in url:
+            create_call = next(
+                (call for call in reversed(self.posts) if call[0].endswith("/pages")),
+                None,
+            )
+            properties = create_call[1]["json"]["properties"] if create_call else {}
+            return FakeResponse({
+                "id": self.create_payload.get("id"),
+                "url": self.create_payload.get("url"),
+                "properties": properties,
+            })
         return FakeResponse(self.database_schema)
 
     def post(self, url, **kwargs):
@@ -94,6 +105,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         session = FakeSession()
         result = sync_run_to_notion(sample_run(), token="secret", database_id="12345678-1234-5678-1234-567812345678", session=session)
         self.assertTrue(result["created"])
+        self.assertTrue(result["read_back_verified"])
         self.assertEqual(result["url"], "https://notion.example/page-1")
         self.assertEqual(len(session.posts), 2)
         query_call, create_call = session.posts
@@ -110,6 +122,31 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         evidence = properties["Execution Evidence / Handoff"]["rich_text"][0]["text"]["content"]
         self.assertIn('"mean": 2.0', evidence)
         self.assertIn("QC and reproducibility are still pending", evidence)
+
+    def test_manifest_mismatch_on_independent_readback_is_not_claimed_as_delivery(self):
+        class MismatchedReadBackSession(FakeSession):
+            def get(self, url, **kwargs):
+                self.calls.append(("GET", url, kwargs))
+                if "/pages/" in url:
+                    return FakeResponse({
+                        "id": "page-1",
+                        "url": "https://notion.example/page-1",
+                        "properties": {
+                            "Run Manifest Hash": {
+                                "type": "rich_text",
+                                "rich_text": [{"plain_text": "wrong-manifest"}],
+                            }
+                        },
+                    })
+                return FakeResponse(self.database_schema)
+
+        with self.assertRaisesRegex(NotionHandoffError, "manifest hash did not match"):
+            sync_run_to_notion(
+                sample_run(),
+                token="secret",
+                database_id="12345678123456781234567812345678",
+                session=MismatchedReadBackSession(),
+            )
 
     def test_existing_matching_record_is_returned_without_duplicate_create(self):
         session = FakeSession(query_payload={"results": [{"id": "existing", "url": "https://notion.example/existing"}]})
