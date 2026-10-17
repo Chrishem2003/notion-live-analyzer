@@ -71,6 +71,8 @@ Never change QC to Pass or reproducibility to Passed merely because the runtime 
 ## 5. Persistence, backup, and recovery
 
 - [ ] Confirm the configured runtime database path is writable and persists across app restarts.
+- [ ] Confirm `WORKFLOW_RUNTIME_DB` points to a filesystem-backed SQLite file; the runtime rejects blank paths and `:memory:` because each operation opens a separate connection.
+- [ ] Do not treat a temporary directory or an explicitly set path as proof of durability; verify the hosting platform's mount/volume semantics and test restart/redeploy.
 - [ ] Create a SQLite-aware backup while accounting for WAL state; restore into an isolated staging location.
 - [ ] Verify run records and event history after restore.
 - [ ] Verify any required encryption/decryption or secret-recovery procedure separately.
