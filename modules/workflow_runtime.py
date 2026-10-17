@@ -110,7 +110,12 @@ class WorkflowRuntime:
         encryption_key: str | bytes | None = None,
         allow_plaintext_for_tests: bool = False,
     ):
-        self.database = str(database)
+        self.database = str(database).strip()
+        if not self.database or self.database == ":memory:":
+            raise ValueError(
+                "WorkflowRuntime requires a filesystem-backed SQLite database path; "
+                "in-memory databases are incompatible with its separate-connection design."
+            )
         self.handlers: dict[str, TaskHandler] = {}
         if encryption_key is None and allow_plaintext_for_tests is not True:
             raise WorkflowStorageError(
