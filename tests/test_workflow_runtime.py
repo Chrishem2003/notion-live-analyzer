@@ -27,6 +27,16 @@ class WorkflowRuntimeTests(unittest.TestCase):
     def tearDown(self):
         self.tempdir.cleanup()
 
+    def test_runtime_rejects_in_memory_database_path(self):
+        # The runtime opens independent SQLite connections for initialization and each operation.
+        # A plain :memory: database is private to one connection and cannot satisfy this contract.
+        with self.assertRaisesRegex(ValueError, "filesystem-backed SQLite database path"):
+            WorkflowRuntime(":memory:", allow_plaintext_for_tests=True)
+
+    def test_runtime_rejects_blank_database_path(self):
+        with self.assertRaisesRegex(ValueError, "filesystem-backed SQLite database path"):
+            WorkflowRuntime("   ", allow_plaintext_for_tests=True)
+
     def test_submit_persists_queued_run_and_input(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: {"echo": data["value"]}})
         run_id = runtime.submit(workflow_id="project-1", task_type="echo", payload={"value": 7})
