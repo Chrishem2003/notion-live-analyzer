@@ -99,6 +99,15 @@ class ResearchQCGateTests(unittest.TestCase):
             self.assertFalse(result["allowed"])
             self.assertTrue(any("ISO date" in item for item in result["blockers"]))
 
+
+    def test_compact_date_is_rejected_even_if_python_can_parse_it(self):
+        result = evaluate_research_gate(
+            complete_record(**{"QC Review Date": "20261017"}),
+            "approve_qc",
+        )
+        self.assertFalse(result["allowed"])
+        self.assertTrue(any("ISO date" in item for item in result["blockers"]))
+
     def test_unknown_qc_status_blocks_approval(self):
         result = evaluate_research_gate(
             complete_record(**{"Analysis Status.": "green maybe"}),
