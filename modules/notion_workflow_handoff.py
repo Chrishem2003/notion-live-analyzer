@@ -305,11 +305,49 @@ def _sync_run_to_notion_unlocked(
         raise NotionHandoffError(
             "Notion create response did not include a valid HTTPS page URL; reconcile by manifest hash"
         )
+
+    # A successful POST response alone is not independent delivery evidence.
+    # Read the page back and verify the manifest that makes later retries safe.
+    read_back = _safe_notion_request(
+        session, "GET", f"{NOTION_API_BASE}/pages/{page_id}", headers=headers,
+    )
+    if read_back.get("id") != page_id:
+        raise NotionHandoffError(
+            "Notion page read-back did not confirm the created page ID; reconcile by manifest hash"
+        )
+    read_back_url = read_back.get("url")
+    if isinstance(read_back_url, str) and read_back_url.startswith("https://"):
+        page_url = read_back_url
+    read_back_properties = read_back.get("properties")
+    if not isinstance(read_back_properties, Mapping):
+        raise NotionHandoffError(
+            "Notion page read-back returned no properties; delivery is unverified, reconcile by manifest hash"
+        )
+    manifest_property = read_back_properties.get("Run Manifest Hash")
+    if not isinstance(manifest_property, Mapping) or manifest_property.get("type") != "rich_text":
+        raise NotionHandoffError(
+            "Notion page read-back omitted the manifest hash property; delivery is unverified"
+        )
+    manifest_fragments = manifest_property.get("rich_text")
+    if not isinstance(manifest_fragments, list):
+        raise NotionHandoffError(
+            "Notion page read-back returned an invalid manifest hash property"
+        )
+    read_back_digest = "".join(
+        fragment.get("plain_text", fragment.get("text", {}).get("content", ""))
+        for fragment in manifest_fragments
+        if isinstance(fragment, Mapping)
+    )
+    if read_back_digest != digest:
+        raise NotionHandoffError(
+            "Notion page read-back manifest hash did not match; delivery is unverified, reconcile before retrying"
+        )
     return {
         "created": True,
         "page_id": page_id,
         "url": page_url,
         "manifest_hash": digest,
+        "read_back_verified": True,
     }
 
 
