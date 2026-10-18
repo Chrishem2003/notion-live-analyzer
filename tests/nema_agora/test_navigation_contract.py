@@ -78,3 +78,31 @@ def test_copilot_and_shadow_retries_clear_stale_results_before_execution():
     shadow_run = page.index("service.run_shadow(selected_shadow, principal)", shadow_clear)
     assert copilot < copilot_clear < copilot_run
     assert shadow < shadow_clear < shadow_run
+
+
+def test_governed_evidence_storage_failures_are_user_safe_and_clear_stale_artifacts():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    reload = page.index('"Prepare / reload evidence case"')
+    load_handler = page.index("except Exception as exc:", reload)
+    clear_bundle = page.index('st.session_state.pop(f"evidence_bundle_{selected_id}", None)', load_handler)
+    clear_export = page.index('st.session_state.pop(f"evidence_export_{selected_id}", None)', clear_bundle)
+    safe_message = page.index(
+        "The evidence case could not be loaded. Check access and storage health, then retry.",
+        load_handler,
+    )
+    assert reload < load_handler < clear_bundle < clear_export < safe_message
+
+
+def test_review_export_and_intelligence_failures_have_safe_messages():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    for message in (
+        "The review could not be confirmed as saved. Reload the case before retrying.",
+        "The export could not be confirmed. Reload the case before attempting another export.",
+        "The reviewer brief could not be prepared. Check access and service health, then retry.",
+        "Shadow analysis could not be completed. Check access and service health, then retry.",
+    ):
+        assert message in page
