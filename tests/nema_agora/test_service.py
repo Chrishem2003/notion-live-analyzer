@@ -193,7 +193,7 @@ def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_pa
     assert payload["nema_authorization"] is False
 
     tampered = replace(reviewed, observation_fingerprint="tampered")
-    with pytest.raises(ValueError, match="integrity validation|stale|differs"):
+    with pytest.raises(ValueError, match="Source observation changed|integrity validation|stale|differs"):
         service.export_governed_evidence_case(tampered, coordinator)
 
 
@@ -291,7 +291,7 @@ def test_persisted_evidence_bundle_tampering_is_detected_after_reopen(tmp_path):
 
     with sqlite3.connect(path) as connection:
         connection.execute(
-            "UPDATE evidence_cases SET bundle_json = replace(bundle_json, 'Synthetic', 'Altered') WHERE case_id = ?",
+            "UPDATE evidence_cases SET bundle_json = replace(bundle_json, 'READY_FOR_REVIEW', 'REVIEWED') WHERE case_id = ?",
             (created["case_id"],),
         )
 
