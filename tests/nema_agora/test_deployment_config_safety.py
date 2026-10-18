@@ -56,7 +56,7 @@ def test_persistent_runtime_initializes_database_under_explicit_path(tmp_path):
     service = initialize_persistent_service(database_path)
 
     assert database_path.is_file()
-    assert service.repository.path == database_path
+    assert Path(service.repository.database_path) == database_path
 
 
 def test_persistent_runtime_surfaces_unavailable_storage_instead_of_falling_back(tmp_path):
