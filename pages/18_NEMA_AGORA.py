@@ -58,6 +58,19 @@ if governance_errors:
 
 st.title("🌿 NEMA-AGORA")
 st.caption("Environmental Governance, Monitoring & Response — pilot workspace")
+st.markdown(
+    "Use the left navigation to move through the pilot. Start with an observation, "
+    "track it through human review, and use intelligence tools only as advisory support."
+)
+quick = st.columns(4)
+quick[0].markdown("**1 · Capture**")
+quick[0].caption("Submit a structured observation.")
+quick[1].markdown("**2 · Review**")
+quick[1].caption("Check quality and record human decisions.")
+quick[2].markdown("**3 · Understand**")
+quick[2].caption("Inspect evidence and advisory analysis.")
+quick[3].markdown("**4 · Report**")
+quick[3].caption("Review metrics and controlled exports.")
 st.info(
     "Independent student-led prototype. This is not an official NEMA service, "
     "does not submit reports to NEMA, and is not connected to ELMIS or SWIMS. "
@@ -90,6 +103,22 @@ with st.sidebar:
     st.write("**Intelligence:** advisory analysis → human verification → decision.")
     st.write("**Safety:** synthetic/consented test records only.")
     st.markdown("[Project source on GitHub](https://github.com/Chrishem2003/notion-live-analyzer)")
+    st.divider()
+    st.subheader("Navigate workspace")
+    active_section = st.radio(
+        "Choose a work area",
+        [
+            "Submit observation",
+            "Case management",
+            "Intelligence workspace",
+            "Maps & metrics",
+            "Governance & help",
+        ],
+        index=0,
+        key="nema_agora_navigation",
+        label_visibility="collapsed",
+        help="Choose one work area. Related tools are grouped together to keep navigation short.",
+    )
 
 if mode == "persistent" and (principal is None or not principal.is_authorised):
     st.stop()
@@ -126,13 +155,9 @@ can_audit = persistent and has_permission(principal.role, "audit:read")
 can_intelligence = persistent and has_permission(principal.role, "intelligence:use")
 can_shadow = persistent and has_permission(principal.role, "intelligence:shadow")
 
-tabs = st.tabs([
-    "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence", "🤝 Reviewer copilot", "🧪 AI shadow mode", "📊 Intelligence observatory",
-    "🗺️ Map", "📊 Pilot metrics", "🛡️ Release readiness", "ℹ️ About"
-])
-tab_report, tab_review, tab_intelligence, tab_copilot, tab_shadow, tab_observatory, tab_map, tab_metrics, tab_readiness, tab_about = tabs
+# One Streamlit page with short, task-oriented navigation.
 
-with tab_report:
+if active_section == "Submit observation":
     st.subheader("Record an environmental observation")
     st.caption("Use only synthetic or consented test information during development.")
     if not persistent and mode == "demo":
@@ -176,7 +201,7 @@ with tab_report:
                 else:
                     st.warning(f"Pilot record saved: {record['case_id']} — review required: {', '.join(quality['flags'])}")
 
-with tab_review:
+if active_section == "Case management":
     st.subheader("Review queue and case status")
     if not persistent:
         st.info("Review controls are disabled in demo mode. Persistent review requires an authenticated reviewer or coordinator.")
@@ -325,7 +350,7 @@ with tab_review:
                     else:
                         st.info("No governed evidence transitions recorded yet.")
 
-with tab_intelligence:
+if active_section == "Intelligence workspace":
     st.subheader("🧠 Evidence intelligence — human-in-the-loop")
     st.caption("Phase 8–10 foundation: deterministic, explainable, evaluated and advisory. No autonomous regulatory or enforcement decisions are made.")
     if not persistent:
@@ -364,7 +389,7 @@ with tab_intelligence:
                 st.write(analysis["priority_advisory"]["reason"])
                 st.warning(analysis["decision_notice"])
 
-with tab_copilot:
+if active_section == "Intelligence workspace":
     st.subheader("🤝 Reviewer copilot")
     st.caption("Phase 10: structured reviewer assistance built from supplied evidence. Recommendations never change case status.")
     if not persistent:
@@ -472,7 +497,7 @@ with tab_copilot:
                         st.markdown("### Intelligence audit trail")
                         st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
 
-with tab_shadow:
+if active_section == "Intelligence workspace":
     st.subheader("🧪 Controlled AI shadow mode")
     st.caption("Phase 12: an advisory model may observe a pilot case, but its output is isolated from the live workflow.")
     st.info(
@@ -545,7 +570,7 @@ with tab_shadow:
                         use_container_width=True, hide_index=True,
                     )
 
-with tab_observatory:
+if active_section == "Intelligence workspace":
     st.subheader("📊 Intelligence observatory")
     st.caption("Phase 11: measure reviewer feedback and evaluation readiness before considering any live model.")
     if not persistent or not can_metrics:
@@ -557,7 +582,7 @@ with tab_observatory:
         st.markdown("**Current pilot gate policy**")
         st.write("- ≥25 labelled evaluation cases\n- ≥20 reviewer feedback records\n- ≥80% category accuracy\n- ≥80% duplicate F1\n- ≥90% summary faithfulness")
         st.warning("No readiness result is displayed until a versioned evaluation report is supplied. Thresholds are governance gates, not guarantees of model safety.")
-with tab_map:
+if active_section == "Maps & metrics":
     st.subheader("Location view")
     records = records_for_current_user()
     geocoded = [
@@ -574,7 +599,7 @@ with tab_map:
         st.map(map_df[["lat", "lon"]], use_container_width=True)
         st.dataframe(map_df, use_container_width=True, hide_index=True)
 
-with tab_metrics:
+if active_section == "Maps & metrics":
     st.subheader("Pilot monitoring snapshot")
     if persistent and not can_metrics:
         st.info("Metrics are restricted to reviewer/coordinator/admin roles.")
@@ -593,7 +618,7 @@ with tab_metrics:
         st.warning("Prototype metrics are not verified environmental outcomes or official response statistics.")
 
 
-with tab_readiness:
+if active_section == "Governance & help":
     st.subheader("Release readiness — evidence completeness")
     st.caption("One-page workspace • Phase 171 • exact-commit evidence • fail-closed review")
     if not persistent or principal is None or not principal.is_authorised:
@@ -693,7 +718,7 @@ with tab_readiness:
             "independent human review and institutional approval remain required."
         )
 
-with tab_about:
+if active_section == "Governance & help":
     st.subheader("Project purpose")
     st.write(
         "NEMA-AGORA is a proposed student-led pilot for organising environmental observations, "
