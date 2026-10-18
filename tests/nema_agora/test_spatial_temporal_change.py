@@ -71,4 +71,9 @@ def test_mixed_naive_and_aware_timestamps_fail_closed_without_type_error():
     result = validate_change_inputs(**data)
     assert result["state"] == "CONTROL_REQUIRED"
     assert {"INVALID_BASELINE_TIMESTAMP"} <= {x["code"] for x in result["findings"]}
-
+def test_huge_numeric_inputs_are_rejected_without_overflow():
+    data = pair()
+    data["baseline_indices"]["NDVI"] = 10 ** 10000
+    result = validate_change_inputs(**data)
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert {"INVALID_BASELINE_NDVI"} <= {x["code"] for x in result["findings"]}
