@@ -144,3 +144,29 @@ def test_malformed_reviewer_identity_fails_closed_without_crashing():
     ))
     assert result["valid"] is False
     assert "invalid_reviewer_identity" in result["issues"]
+
+def test_validator_fails_closed_for_non_case_input():
+    result = validate_evidence_case({"case_id": "not-a-dataclass"})
+    assert result["valid"] is False
+    assert "invalid_case_type" in result["issues"]
+    assert result["execution_gate"] == "CLOSED"
+
+
+def test_validator_reports_malformed_evidence_collection_without_crashing():
+    result = validate_evidence_case(replace(make_case(), evidence=None))
+    assert result["valid"] is False
+    assert "invalid_evidence_collection" in result["issues"]
+
+
+def test_validator_reports_malformed_evidence_member_without_crashing():
+    result = validate_evidence_case(replace(make_case(), evidence=(object(),)))
+    assert result["valid"] is False
+    assert "invalid_evidence_reference" in result["issues"]
+
+
+def test_review_builder_rejects_unhashable_decision_without_crashing():
+    with pytest.raises(ValueError, match="invalid human review decision"):
+        attach_human_review(
+            make_case(), reviewer_id="reviewer-1", role="coordinator",
+            decision=["ACKNOWLEDGED"]
+        )
