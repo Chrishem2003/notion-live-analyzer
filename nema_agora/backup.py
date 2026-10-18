@@ -133,6 +133,7 @@ def restore_database(
     temporary = target.with_name(f".{target.name}.{token}.restore-tmp")
     rollback = target.with_name(f".{target.name}.{token}.rollback")
     had_target = target.exists()
+    preserve_rollback = False
 
     try:
         _copy_database(source, temporary)
@@ -150,10 +151,21 @@ def restore_database(
         os.replace(temporary, target)
         if not integrity_check(target):
             if rollback.exists():
-                os.replace(rollback, target)
+                try:
+                    os.replace(rollback, target)
+                except OSError as exc:
+                    # Never delete the only recovery copy if rollback itself
+                    # fails. Leave the snapshot beside the target for operator
+                    # recovery and raise an actionable, non-silent failure.
+                    preserve_rollback = True
+                    raise RuntimeError(
+                        "Restore validation failed and automatic rollback failed; "
+                        f"recovery snapshot preserved at {rollback}"
+                    ) from exc
             else:
                 target.unlink(missing_ok=True)
             raise ValueError("Restored database failed post-restore integrity_check.")
     finally:
         temporary.unlink(missing_ok=True)
-        rollback.unlink(missing_ok=True)
+        if not preserve_rollback:
+            rollback.unlink(missing_ok=True)
