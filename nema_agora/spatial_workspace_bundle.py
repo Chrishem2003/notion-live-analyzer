@@ -145,6 +145,17 @@ def validate_spatial_evidence_bundle(bundle: Any) -> dict[str, Any]:
     for name, layer in layers.items():
         if not isinstance(layer, Mapping):
             findings.append({"code": f"INVALID_{name.upper()}"})
+    change_layer = layers.get("change_evidence")
+    quality_layer = layers.get("quality_evidence")
+    candidate_layer = layers.get("candidate")
+    if isinstance(change_layer, Mapping) and change_layer.get("state") != "CANDIDATE_CHANGE_EVIDENCE":
+        findings.append({"code": "CHANGE_EVIDENCE_STATE_NOT_ELIGIBLE"})
+    if isinstance(quality_layer, Mapping) and quality_layer.get("state") != "CANDIDATE_CHANGE_EVIDENCE":
+        findings.append({"code": "QUALITY_EVIDENCE_STATE_NOT_ELIGIBLE"})
+    if isinstance(candidate_layer, Mapping) and candidate_layer.get("state") not in {
+        "CANDIDATE_CHANGE_DETECTED", "NO_CHANGE_DETECTED"
+    }:
+        findings.append({"code": "CANDIDATE_STATE_NOT_ELIGIBLE"})
     findings.extend(_lineage_findings(layers))
     try:
         payload = dict(bundle)
