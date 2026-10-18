@@ -67,6 +67,9 @@ def _persistent_context() -> tuple[NemaAgoraService | None, object | None, str]:
 
 _demo_init()
 service, principal, mode = _persistent_context()
+if mode == "invalid":
+    st.error("NEMA-AGORA mode configuration is invalid. Set nema_agora.mode explicitly to \"demo\" or \"persistent\"; no workspace mode was started.")
+    st.stop()
 if mode == "persistent" and principal is not None and principal.is_authorised and service is None:
     st.stop()
 governance_policy = policy_from_secrets(st.secrets)
