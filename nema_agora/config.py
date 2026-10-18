@@ -31,7 +31,7 @@ def backup_dir_from_secrets(secrets: Mapping[str, object]) -> Path | None:
 
 def backup_retention_from_secrets(secrets: Mapping[str, object]) -> int | None:
     value = _section(secrets).get("backup_retention", 7)
-    if isinstance(value, bool):
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
         return None
     try:
         value = int(value)
