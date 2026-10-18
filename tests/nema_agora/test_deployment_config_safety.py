@@ -46,3 +46,27 @@ def test_missing_or_malformed_backup_directory_is_not_guessed():
     assert backup_dir_from_secrets({}) is None
     assert backup_dir_from_secrets({"nema_agora": {"backup_dir": []}}) is None
     assert backup_dir_from_secrets({"nema_agora": {"backup_dir": "  "}}) is None
+
+
+
+def test_persistent_runtime_initializes_database_under_explicit_path(tmp_path):
+    from nema_agora.runtime import initialize_persistent_service
+
+    database_path = tmp_path / "nested" / "pilot.sqlite3"
+    service = initialize_persistent_service(database_path)
+
+    assert database_path.is_file()
+    assert service.repository.path == database_path
+
+
+def test_persistent_runtime_surfaces_unavailable_storage_instead_of_falling_back(tmp_path):
+    from nema_agora.runtime import initialize_persistent_service
+
+    blocked_parent = tmp_path / "not-a-directory"
+    blocked_parent.write_text("block directory creation", encoding="utf-8")
+    database_path = blocked_parent / "pilot.sqlite3"
+
+    with pytest.raises(OSError):
+        initialize_persistent_service(database_path)
+
+    assert not database_path.exists()
