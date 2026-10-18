@@ -682,6 +682,7 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
         submitted = st.form_submit_button("Evaluate change evidence", type="primary", use_container_width=True)
 
     if submitted:
+        st.session_state.pop("nema_agora_spatial_evidence_bundle", None)
         baseline_timestamp = f"{baseline_date.isoformat()}T10:00:00+00:00"
         comparison_timestamp = f"{comparison_date.isoformat()}T10:00:00+00:00"
         change_evidence = spatial_temporal_change_evidence(
@@ -726,22 +727,7 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
                     st.error("Candidate scoring was blocked by validation.")
                     st.json(candidate.get("findings", []))
                 else:
-                    delta_ndvi = change_evidence["change"]["NDVI"]["delta"]
-                    delta_ndwi = change_evidence["change"]["NDWI_MCFEETERS"]["delta"]
-                    m1, m2, m3 = st.columns(3)
-                    m1.metric("NDVI delta", f"{delta_ndvi:+.3f}")
-                    m2.metric("NDWI delta", f"{delta_ndwi:+.3f}")
-                    m3.metric("Candidate status", candidate["state"].replace("_", " ").title())
-                    if candidate["state"] == "CANDIDATE_CHANGE_DETECTED":
-                        st.warning(
-                            "A change signal crossed the selected thresholds. This is a review candidate, "
-                            "not a verified environmental change, legal finding, or enforcement instruction."
-                        )
-                    else:
-                        st.info(
-                            "No threshold was crossed under this policy. That does not prove that no environmental change occurred."
-                        )
-                    evidence_bundle = {
+                    st.session_state["nema_agora_spatial_evidence_bundle"] = {
                         "policy_version": "nema-agora-spatial-workspace-v1",
                         "source_mode": "user_supplied_index_values",
                         "live_provider_connected": False,
@@ -756,15 +742,41 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
                             "official_submission": False,
                         },
                     }
-                    with st.expander("Inspect evidence, quality gates and fingerprints"):
-                        st.json(evidence_bundle)
-                    st.download_button(
-                        "Export spatial evidence JSON",
-                        data=json.dumps(evidence_bundle, ensure_ascii=False, sort_keys=True, indent=2),
-                        file_name="nema-agora-spatial-evidence.json",
-                        mime="application/json",
-                        use_container_width=True,
-                    )
+
+    evidence_bundle = st.session_state.get("nema_agora_spatial_evidence_bundle")
+    if isinstance(evidence_bundle, dict):
+        change_evidence = evidence_bundle["change_evidence"]
+        candidate = evidence_bundle["candidate"]
+        delta_ndvi = change_evidence["change"]["NDVI"]["delta"]
+        delta_ndwi = change_evidence["change"]["NDWI_MCFEETERS"]["delta"]
+        m1, m2, m3 = st.columns(3)
+        m1.metric("NDVI delta", f"{delta_ndvi:+.3f}")
+        m2.metric("NDWI delta", f"{delta_ndwi:+.3f}")
+        m3.metric("Candidate status", candidate["state"].replace("_", " ").title())
+        if candidate["state"] == "CANDIDATE_CHANGE_DETECTED":
+            st.warning(
+                "A change signal crossed the selected thresholds. This is a review candidate, "
+                "not a verified environmental change, legal finding, or enforcement instruction."
+            )
+        else:
+            st.info(
+                "No threshold was crossed under this policy. That does not prove that no environmental change occurred."
+            )
+        with st.expander("Inspect evidence, quality gates and fingerprints"):
+            st.json(evidence_bundle)
+        download_col, clear_col = st.columns([3, 1])
+        with download_col:
+            st.download_button(
+                "Export spatial evidence JSON",
+                data=json.dumps(evidence_bundle, ensure_ascii=False, sort_keys=True, indent=2),
+                file_name="nema-agora-spatial-evidence.json",
+                mime="application/json",
+                use_container_width=True,
+            )
+        with clear_col:
+            if st.button("Clear result", key="nema_agora_clear_spatial_result", use_container_width=True):
+                st.session_state.pop("nema_agora_spatial_evidence_bundle", None)
+                st.rerun()
 
 if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
     st.subheader("Pilot monitoring snapshot")
