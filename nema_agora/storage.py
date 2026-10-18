@@ -340,6 +340,19 @@ class NemaAgoraRepository:
             connection.execute("BEGIN IMMEDIATE")
             if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
                 raise KeyError(f"Case not found: {case_id}")
+            current = connection.execute(
+                "SELECT state, bundle_fingerprint FROM evidence_cases WHERE case_id = ?",
+                (case_id,),
+            ).fetchone()
+            if current is not None:
+                if current["state"] == state and current["bundle_fingerprint"] == bundle_fingerprint:
+                    return {
+                        "case_id": case_id,
+                        "state": current["state"],
+                        "bundle_fingerprint": current["bundle_fingerprint"],
+                        "already_exists": True,
+                    }
+                raise ValueError("An evidence case already exists in a different state or version.")
             connection.execute(
                 """INSERT INTO evidence_cases
                    (case_id, state, bundle_json, bundle_fingerprint, created_at, updated_at)
@@ -353,7 +366,7 @@ class NemaAgoraRepository:
                    VALUES (?, ?, ?, 'evidence_case_prepared', NULL, ?, ?, ?, '{}')""",
                 (case_id, actor, role, state, occurred_at, bundle_fingerprint),
             )
-        return {"case_id": case_id, "state": state, "bundle_fingerprint": bundle_fingerprint}
+        return {"case_id": case_id, "state": state, "bundle_fingerprint": bundle_fingerprint, "already_exists": False}
 
     def get_evidence_case(
         self, case_id: str, *, actor_id: str, role: str
