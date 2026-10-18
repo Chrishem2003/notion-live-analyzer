@@ -115,6 +115,30 @@ class NemaAgoraRepository:
                     details_json TEXT NOT NULL DEFAULT '{}'
                 );
 
+                CREATE TRIGGER IF NOT EXISTS audit_events_no_update
+                BEFORE UPDATE ON audit_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'audit events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS audit_events_no_delete
+                BEFORE DELETE ON audit_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'audit events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS operation_events_no_update
+                BEFORE UPDATE ON operation_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'operation events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS operation_events_no_delete
+                BEFORE DELETE ON operation_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'operation events are immutable');
+                END;
+
                 CREATE TABLE IF NOT EXISTS evidence_cases (
                     case_id TEXT PRIMARY KEY REFERENCES observations(case_id),
                     state TEXT NOT NULL CHECK (state IN ('READY_FOR_REVIEW', 'REVIEWED', 'EXPORTED')),
@@ -164,6 +188,18 @@ class NemaAgoraRepository:
                     occurred_at TEXT NOT NULL,
                     details_json TEXT NOT NULL DEFAULT '{}'
                 );
+
+                CREATE TRIGGER IF NOT EXISTS intelligence_events_no_update
+                BEFORE UPDATE ON intelligence_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'intelligence events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS intelligence_events_no_delete
+                BEFORE DELETE ON intelligence_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'intelligence events are immutable');
+                END;
 
                 CREATE INDEX IF NOT EXISTS idx_observations_status
                     ON observations(status);
