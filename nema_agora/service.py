@@ -568,6 +568,29 @@ class NemaAgoraService:
             case_id, actor_id=principal.subject_key, role=principal.role
         )
 
+    def _assert_evidence_observation_current(
+        self, evidence_case: EvidenceCase, principal: Principal
+    ) -> None:
+        """Fail closed if the source observation changed after bundle preparation."""
+        record = self.repository.get_observation(
+            evidence_case.case_id, actor_id=principal.subject_key, role=principal.role
+        )
+        if record is None:
+            raise KeyError(f"Case not found: {evidence_case.case_id}")
+        snapshot = dict(record)
+        snapshot["quality_assessment"] = assess_observation(record)
+        current = build_evidence_case(
+            case_id=evidence_case.case_id,
+            observation=snapshot,
+            evidence=evidence_case.evidence,
+            findings=evidence_case.findings,
+            created_at=evidence_case.created_at,
+        )
+        if current.observation_fingerprint != evidence_case.observation_fingerprint:
+            raise ValueError(
+                "Source observation changed after evidence preparation; prepare a governed amendment before review or export."
+            )
+
     def build_governed_evidence_case(
         self, case_id: str, principal: Principal
     ) -> dict[str, Any]:
@@ -655,6 +678,7 @@ class NemaAgoraService:
         )
         if existing is None:
             raise KeyError(f"Evidence case not found: {evidence_case.case_id}")
+        self._assert_evidence_observation_current(evidence_case, principal)
         stored = evidence_case_from_dict(existing["bundle"])
         if stored.to_dict() != evidence_case.to_dict():
             raise ValueError("Evidence case is stale or differs from the persisted bundle.")
@@ -686,6 +710,7 @@ class NemaAgoraService:
         )
         if existing is None:
             raise KeyError(f"Evidence case not found: {evidence_case.case_id}")
+        self._assert_evidence_observation_current(evidence_case, principal)
         stored = evidence_case_from_dict(existing["bundle"])
         if stored.to_dict() != evidence_case.to_dict():
             raise ValueError("Evidence case is stale or differs from the persisted bundle.")
