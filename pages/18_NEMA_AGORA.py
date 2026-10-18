@@ -6,7 +6,8 @@ This remains an independent student-led prototype, not an official NEMA service.
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
+import json
 import pandas as pd
 import streamlit as st
 
@@ -20,6 +21,7 @@ from nema_agora.evidence_case import validate_evidence_case
 from nema_agora.service import NemaAgoraService
 from nema_agora.storage import NemaAgoraRepository
 from nema_agora.workflow import apply_status_update
+from nema_agora.release_readiness import evaluate_release_readiness, validate_release_readiness_report
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
 
@@ -126,9 +128,9 @@ can_shadow = persistent and has_permission(principal.role, "intelligence:shadow"
 
 tabs = st.tabs([
     "📝 Submit observation", "🔎 Review & track", "🧠 Evidence intelligence", "🤝 Reviewer copilot", "🧪 AI shadow mode", "📊 Intelligence observatory",
-    "🗺️ Map", "📊 Pilot metrics", "ℹ️ About"
+    "🗺️ Map", "📊 Pilot metrics", "🛡️ Release readiness", "ℹ️ About"
 ])
-tab_report, tab_review, tab_intelligence, tab_copilot, tab_shadow, tab_observatory, tab_map, tab_metrics, tab_about = tabs
+tab_report, tab_review, tab_intelligence, tab_copilot, tab_shadow, tab_observatory, tab_map, tab_metrics, tab_readiness, tab_about = tabs
 
 with tab_report:
     st.subheader("Record an environmental observation")
@@ -589,6 +591,107 @@ with tab_metrics:
             counts = pd.DataFrame(records)["status"].value_counts().rename_axis("status").reset_index(name="count")
             st.bar_chart(counts.set_index("status"))
         st.warning("Prototype metrics are not verified environmental outcomes or official response statistics.")
+
+
+with tab_readiness:
+    st.subheader("Release readiness — evidence completeness")
+    st.caption("One-page workspace • Phase 171 • exact-commit evidence • fail-closed review")
+    if not persistent or principal is None or not principal.is_authorised:
+        st.info("Release-readiness review requires an authenticated, server-provisioned account.")
+    elif not has_permission(principal.role, "intelligence:pilot_readiness"):
+        st.info("Your role is not permitted to inspect release-readiness evidence.")
+    else:
+        st.warning(
+            "This checks evidence completeness for human release review only. It does not deploy the app, "
+            "approve production, submit reports to NEMA, or authorize environmental, regulatory, enforcement, "
+            "or emergency action."
+        )
+        gate_names = [
+            "focused_ci",
+            "clean_environment_end_to_end",
+            "role_and_security_verification",
+            "backup_restore_verification",
+            "retention_verification",
+            "evaluation_artifact_verification",
+            "accessibility_and_data_governance_review",
+            "institutional_approval",
+        ]
+        evidence_template = {
+            gate: {
+                "status": "PENDING",
+                "evidence_ref": "",
+                "evidence_sha256": "",
+                "verified_at": "",
+                "candidate_sha": "",
+            }
+            for gate in gate_names
+        }
+        with st.expander("Evidence JSON template", expanded=False):
+            st.code(json.dumps(evidence_template, indent=2), language="json")
+            st.download_button(
+                "Download evidence template",
+                data=json.dumps(evidence_template, indent=2),
+                file_name="nema_agora_release_evidence_template.json",
+                mime="application/json",
+                key="nema_agora_release_template_download",
+            )
+        candidate_sha = st.text_input(
+            "Release candidate Git SHA (40 or 64 hexadecimal characters)",
+            key="nema_agora_candidate_sha",
+        )
+        observed_at = st.text_input(
+            "Assessment time (ISO 8601 with timezone)",
+            value=datetime.now(timezone.utc).isoformat(),
+            key="nema_agora_readiness_observed_at",
+        )
+        evidence_json = st.text_area(
+            "Release evidence JSON",
+            value=json.dumps(evidence_template, indent=2),
+            height=300,
+            help="Every gate needs PASS, an evidence reference, a SHA-256 digest, a timezone-aware verification time, and the exact candidate SHA.",
+            key="nema_agora_readiness_evidence_json",
+        )
+        if st.button("Evaluate release readiness", type="primary", key="nema_agora_evaluate_readiness"):
+            try:
+                evidence = json.loads(evidence_json)
+                report = evaluate_release_readiness(
+                    candidate_sha=candidate_sha.strip(),
+                    evidence=evidence,
+                    observed_at=observed_at.strip(),
+                )
+                validate_release_readiness_report(report)
+                if report["decision"] == "READY_FOR_HUMAN_RELEASE_REVIEW":
+                    st.success(report["decision"])
+                else:
+                    st.error(report["decision"])
+                left, middle, right = st.columns(3)
+                left.metric("Passed gates", f"{report['passed_gate_count']}/{report['gate_count']}")
+                middle.metric("Findings", len(report["findings"]))
+                right.metric("Execution gate", report["execution_gate"])
+                st.subheader("Gate results")
+                st.dataframe(
+                    [{"gate": gate, "passed": passed} for gate, passed in report["gates"].items()],
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                if report["findings"]:
+                    st.subheader("Findings requiring attention")
+                    st.dataframe(report["findings"], use_container_width=True, hide_index=True)
+                st.subheader("Fingerprint-bound report")
+                st.json(report)
+                st.download_button(
+                    "Download readiness report",
+                    data=json.dumps(report, sort_keys=True, indent=2),
+                    file_name="nema_agora_release_readiness.json",
+                    mime="application/json",
+                    key="nema_agora_readiness_report_download",
+                )
+            except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                st.error(f"Readiness could not be evaluated: {exc}")
+        st.caption(
+            "A positive result means READY_FOR_HUMAN_RELEASE_REVIEW only. It is not production approval; "
+            "independent human review and institutional approval remain required."
+        )
 
 with tab_about:
     st.subheader("Project purpose")
