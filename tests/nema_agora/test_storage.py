@@ -239,3 +239,43 @@ def test_repository_ignores_caller_supplied_owner_and_validates_creation_timesta
         actor_id="submitter-1", role="submitter"
     ) == [created]
 
+
+
+def test_audit_and_operation_logs_are_append_only(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "append-only.sqlite3"
+    repo = NemaAgoraRepository(path)
+    record = repo.create_observation(
+        sample_record(), actor_id="submitter-1", role="submitter"
+    )
+    repo.record_intelligence_event(
+        record["case_id"],
+        actor_id="reviewer-1",
+        role="reviewer",
+        event_type="analysis_run",
+        occurred_at="2026-10-04T12:01:00+03:00",
+        details={"synthetic": True},
+    )
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "INSERT INTO operation_events(actor_id, operation, occurred_at, details_json) "
+            "VALUES (?, ?, ?, ?)",
+            ("admin-1", "health_check", "2026-10-04T12:02:00+03:00", "{}"),
+        )
+
+    statements = [
+        ("UPDATE audit_events SET actor_id = 'tampered' WHERE case_id = ?", record["case_id"]),
+        ("DELETE FROM audit_events WHERE case_id = ?", record["case_id"]),
+        ("UPDATE operation_events SET operation = 'tampered'"),
+        ("DELETE FROM operation_events"),
+        ("UPDATE intelligence_events SET actor_id = 'tampered' WHERE case_id = ?", record["case_id"]),
+        ("DELETE FROM intelligence_events WHERE case_id = ?", record["case_id"]),
+    ]
+    for statement, parameter in statements:
+        with pytest.raises(sqlite3.IntegrityError, match="immutable"):
+            with sqlite3.connect(path) as connection:
+                if "?" in statement:
+                    connection.execute(statement, (parameter,))
+                else:
+                    connection.execute(statement)
