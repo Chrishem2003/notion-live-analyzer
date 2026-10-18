@@ -150,3 +150,53 @@ def test_model_admission_binds_approver_to_authenticated_principal(tmp_path):
             approver_id="different-person",
             rationale="Review.",
         )
+
+
+
+def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_path):
+    from dataclasses import replace
+
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "pilot.sqlite3"))
+    submitter = principal("submitter-flow", "submitter")
+    reviewer = principal("reviewer-flow", "reviewer")
+    coordinator = principal("coordinator-flow", "coordinator")
+    created = service.create_observation(record(), submitter)
+
+    with pytest.raises(PermissionError):
+        service.build_governed_evidence_case(created["case_id"], submitter)
+
+    prepared = service.build_governed_evidence_case(created["case_id"], reviewer)
+    evidence_case = prepared["evidence_case"]
+    assert prepared["integrity"]["valid"] is True
+    assert prepared["durable"] is False
+    assert prepared["quality_assessment"]["human_review_required"] is True
+    assert prepared["environmental_truth_claim"] is False
+
+    with pytest.raises(ValueError, match="human-reviewed"):
+        service.export_governed_evidence_case(evidence_case, coordinator)
+
+    reviewed = service.review_governed_evidence_case(
+        evidence_case, reviewer, decision="ACKNOWLEDGED",
+        notes="Reviewed synthetic pilot evidence",
+        reviewed_at="2026-10-04T12:10:00+03:00",
+    )
+    with pytest.raises(PermissionError):
+        service.export_governed_evidence_case(reviewed, reviewer)
+
+    export_bytes = service.export_governed_evidence_case(reviewed, coordinator)
+    import json
+    payload = json.loads(export_bytes)
+    assert payload["case"]["state"] == "EXPORTED"
+    assert payload["integrity"]["valid"] is True
+    assert payload["human_governed"] is True
+    assert payload["durable"] is False
+    assert payload["nema_authorization"] is False
+
+    tampered = replace(reviewed, observation_fingerprint="tampered")
+    with pytest.raises(ValueError, match="integrity validation"):
+        service.export_governed_evidence_case(tampered, coordinator)
+
+
+def test_observation_quality_workflow_preserves_explicit_consent_flag():
+    rec = record()
+    assert rec["consent_confirmed"] is True
