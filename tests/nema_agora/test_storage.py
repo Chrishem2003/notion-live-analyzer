@@ -90,7 +90,7 @@ def test_unknown_case_and_missing_actor_are_rejected(tmp_path):
             actor_id="reviewer-1", role="reviewer",
             new_status="Under review",
             review_notes="",
-            changed_at="now",
+            changed_at="2026-10-04T12:10:00+03:00",
         )
 
 
