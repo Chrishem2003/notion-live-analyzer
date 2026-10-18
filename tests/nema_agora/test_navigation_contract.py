@@ -38,3 +38,5 @@ def test_single_page_case_management_exposes_explicit_workflow_run_action():
     assert 'st.form_submit_button("Run workflow transition"' in page
     assert "Workflow run: choose the next case status" in page
     assert "Only authorised reviewers can run this step" in page
+    assert "from nema_agora.workflow import ALLOWED_TRANSITIONS, apply_status_update" in page
+    assert "status in ALLOWED_TRANSITIONS[selected[\"status\"]]" in page
