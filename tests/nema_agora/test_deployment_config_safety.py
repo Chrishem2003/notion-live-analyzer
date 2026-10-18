@@ -23,7 +23,7 @@ def test_missing_mode_defaults_to_safe_demo_but_valid_modes_are_explicit():
     assert mode_from_secrets({"nema_agora": {"mode": "demo"}}) == "demo"
 
 
-def test_missing_or_malformed_database_path_is_not_inferred(secrets=None):
+def test_missing_or_malformed_database_path_is_not_inferred():
     for value in (
         {},
         {"nema_agora": {}},
