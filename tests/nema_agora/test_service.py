@@ -339,3 +339,23 @@ def test_export_transition_cannot_be_replayed(tmp_path):
     service.export_governed_evidence_case(reviewed, coordinator)
     with pytest.raises(ValueError, match="stale|differs|human-reviewed"):
         service.export_governed_evidence_case(reviewed, coordinator)
+
+
+
+def test_source_observation_change_blocks_evidence_review(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "source-drift.sqlite3"))
+    reviewer = principal("drift-review", "reviewer")
+    created = service.create_observation(record(), principal("drift-submit", "submitter"))
+    bundle = service.build_governed_evidence_case(created["case_id"], reviewer)["evidence_case"]
+
+    service.update_review(
+        created["case_id"], reviewer, new_status="Under review",
+        review_notes="Workflow status changed after evidence snapshot",
+        changed_at="2026-10-04T12:50:00+03:00",
+    )
+
+    with pytest.raises(ValueError, match="Source observation changed"):
+        service.review_governed_evidence_case(
+            bundle, reviewer, decision="ACKNOWLEDGED", notes="stale source",
+            reviewed_at="2026-10-04T12:51:00+03:00",
+        )
