@@ -574,21 +574,12 @@ def test_evidence_history_verifier_detects_non_monotonic_event_timestamps(tmp_pa
     created = service.create_observation(record(), submitter)
     case_id = created["case_id"]
     prepared = service.build_governed_evidence_case(case_id, reviewer)["evidence_case"]
-    service.review_governed_evidence_case(
+    reviewed = service.review_governed_evidence_case(
         prepared, reviewer, decision="ACKNOWLEDGED",
         notes="Timestamp ordering test",
         reviewed_at="2026-10-04T13:10:00+03:00",
     )
-    service.export_governed_evidence_case(
-        service.repository.get_evidence_case(
-            case_id, actor_id=coordinator.subject_key, role=coordinator.role
-        ) and __import__("nema_agora.evidence", fromlist=["evidence_case_from_dict"]).evidence_case_from_dict(
-            service.repository.get_evidence_case(
-                case_id, actor_id=coordinator.subject_key, role=coordinator.role
-            )["bundle"]
-        ),
-        coordinator,
-    )
+    service.export_governed_evidence_case(reviewed, coordinator)
 
     with sqlite3.connect(path) as connection:
         connection.execute("DROP TRIGGER evidence_case_events_no_update")
