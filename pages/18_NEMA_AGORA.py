@@ -13,7 +13,13 @@ import streamlit as st
 
 from nema_agora.access import has_permission
 from nema_agora.auth import principal_from_streamlit_user
-from nema_agora.config import database_path_from_secrets, mode_from_secrets
+from nema_agora.config import (
+    backup_dir_from_secrets,
+    backup_retention_from_secrets,
+    database_path_from_secrets,
+    mode_from_secrets,
+)
+from nema_agora.backup import backup_database, integrity_check, list_backups, prune_backups
 from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, make_observation, validate_observation
 from nema_agora.governance import policy_from_secrets, validate_governance
 from nema_agora.quality import assess_observation
@@ -181,7 +187,7 @@ elif active_section == "Maps & metrics":
 elif active_section == "Governance & help":
     governance_tool = st.radio(
         "Governance tools",
-        ["Release readiness", "About the pilot"],
+        ["Release readiness", "Operations & backups", "About the pilot"],
         horizontal=True,
         key="nema_agora_governance_tool",
     )
@@ -945,6 +951,74 @@ if active_section == "Governance & help" and governance_tool == "Release readine
             "A positive result means READY_FOR_HUMAN_RELEASE_REVIEW only. It is not production approval; "
             "independent human review and institutional approval remain required."
         )
+
+
+if active_section == "Governance & help" and governance_tool == "Operations & backups":
+    st.subheader("Operations & backups")
+    st.caption("Operational controls for the configured SQLite pilot database.")
+    if mode != "persistent" or not persistent or principal is None or principal.role != "admin":
+        st.info("Backup operations require persistent mode and an authenticated, server-provisioned admin role.")
+    else:
+        database_path = database_path_from_secrets(st.secrets)
+        backup_dir = backup_dir_from_secrets(st.secrets)
+        retention = backup_retention_from_secrets(st.secrets)
+        if database_path is None:
+            st.error("Configure nema_agora.database_path before using operational controls.")
+        elif backup_dir is None:
+            st.error("Configure nema_agora.backup_dir to a durable, server-managed directory before creating backups.")
+        elif retention is None:
+            st.error("nema_agora.backup_retention must be an integer from 1 to 3650.")
+        else:
+            st.warning(
+                "Backups may contain environmental case records. Store them on a restricted, durable server volume; "
+                "do not use a temporary filesystem as the only recovery copy."
+            )
+            db_exists = database_path.is_file()
+            db_healthy = integrity_check(database_path) if db_exists else False
+            left, middle, right = st.columns(3)
+            left.metric("Database file", "Present" if db_exists else "Missing")
+            middle.metric("SQLite integrity", "OK" if db_healthy else "NOT VERIFIED")
+            right.metric("Retention target", f"{retention} backups")
+            if not db_exists:
+                st.error("The configured database file does not exist. No backup was attempted.")
+            elif not db_healthy:
+                st.error("Database integrity check failed. Creating a backup is blocked.")
+            elif st.button("Create verified backup", type="primary", key="nema_agora_create_backup"):
+                try:
+                    created_backup = backup_database(database_path, backup_dir)
+                except Exception as exc:
+                    st.error("Backup creation failed. Check server filesystem permissions and database health.")
+                    st.caption(f"Failure type: {type(exc).__name__}")
+                else:
+                    st.success(f"Backup created and integrity-checked: {created_backup.name}")
+                    st.rerun()
+            backups = list_backups(backup_dir)
+            st.markdown("**Available backups**")
+            if backups:
+                st.dataframe(
+                    [{"filename": p.name, "size_bytes": p.stat().st_size,
+                      "integrity": "OK" if integrity_check(p) else "FAILED"}
+                     for p in backups],
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            else:
+                st.info("No recognised backups found in the configured backup directory.")
+            if len(backups) > retention:
+                st.warning(f"{len(backups) - retention} backup(s) exceed the configured retention target.")
+                if st.button("Apply backup retention", key="nema_agora_apply_retention"):
+                    try:
+                        removed = prune_backups(backup_dir, keep=retention)
+                    except Exception as exc:
+                        st.error("Retention cleanup failed. No successful cleanup is claimed.")
+                        st.caption(f"Failure type: {type(exc).__name__}")
+                    else:
+                        st.success(f"Retention cleanup removed {len(removed)} older backup(s).")
+                        st.rerun()
+            st.caption(
+                "This panel creates and checks backups on the configured server filesystem. "
+                "It does not prove off-site recovery, restore readiness, encryption, or disaster-recovery compliance."
+            )
 
 if active_section == "Governance & help" and governance_tool == "About the pilot":
     st.subheader("Project purpose")
