@@ -44,21 +44,35 @@ def _lineage_findings(layers: Mapping[str, Any]) -> list[dict[str, str]]:
         findings.append({"code": "QUALITY_CHANGE_LINEAGE_MISMATCH"})
     if candidate.get("source_change_fingerprint") != quality.get("change_fingerprint"):
         findings.append({"code": "CANDIDATE_CHANGE_LINEAGE_MISMATCH"})
-    quality_changes = quality.get("change")
-    candidate_changes = candidate.get("change")
-    if not isinstance(quality_changes, Mapping) or not isinstance(candidate_changes, Mapping):
-        findings.append({"code": "CHANGE_VALUES_MISSING_FOR_LINEAGE_CHECK"})
-    else:
+    indexed_layers = {
+        "change_evidence": change,
+        "quality_evidence": quality,
+        "candidate": candidate,
+    }
+    deltas_by_layer: dict[str, dict[str, Any]] = {}
+    for layer_name, layer in indexed_layers.items():
+        change_values = layer.get("change")
+        if not isinstance(change_values, Mapping):
+            findings.append({"code": "CHANGE_VALUES_MISSING_FOR_LINEAGE_CHECK"})
+            continue
+        deltas_by_layer[layer_name] = {}
         for index_name in ("NDVI", "NDWI_MCFEETERS"):
-            q_value = quality_changes.get(index_name)
-            c_value = candidate_changes.get(index_name)
-            q_delta = q_value.get("delta") if isinstance(q_value, Mapping) else None
-            c_delta = c_value.get("delta") if isinstance(c_value, Mapping) else None
-            if (isinstance(q_delta, bool) or isinstance(c_delta, bool)
-                    or not isinstance(q_delta, (int, float))
-                    or not isinstance(c_delta, (int, float))
-                    or q_delta != c_delta):
+            index_values = change_values.get(index_name)
+            delta = index_values.get("delta") if isinstance(index_values, Mapping) else None
+            if isinstance(delta, bool) or not isinstance(delta, (int, float)):
                 findings.append({"code": f"{index_name}_DELTA_LINEAGE_MISMATCH"})
+            else:
+                deltas_by_layer[layer_name][index_name] = delta
+    # A matching fingerprint reference alone is insufficient: every layer must
+    # carry the same numeric deltas as the original change-evidence layer.
+    for index_name in ("NDVI", "NDWI_MCFEETERS"):
+        available = [
+            deltas_by_layer[name][index_name]
+            for name in ("change_evidence", "quality_evidence", "candidate")
+            if name in deltas_by_layer and index_name in deltas_by_layer[name]
+        ]
+        if len(available) == 3 and any(value != available[0] for value in available[1:]):
+            findings.append({"code": f"{index_name}_DELTA_LINEAGE_MISMATCH"})
     return findings
 
 
