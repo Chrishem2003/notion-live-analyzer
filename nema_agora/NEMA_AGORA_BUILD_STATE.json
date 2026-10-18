@@ -10,12 +10,12 @@
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "19b439279b6c62332fc7b07ebaa32f25d4af876d",
-  "last_verified_head": "19b439279b6c62332fc7b07ebaa32f25d4af876d",
+  "current_head": "5487f004734400cecf61fc5c9a31efe9441e6197",
+  "last_verified_head": "5487f004734400cecf61fc5c9a31efe9441e6197",
   "last_verified_phase": 177,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 177: Streamlit identity resolution now fails closed for unexpected adapter exceptions; added regression tests for failing user claim accessors and attempts to elevate privilege through untrusted role/groups/is_admin claims. Focused NEMA-AGORA and repository CI passed.",
-  "validation_status": "PHASE_177_CI_PASSED_ON_19b439279b6c62332fc7b07ebaa32f25d4af876d; RELEASE_GATES_PENDING",
+  "last_action": "Phase 177: hardened Streamlit identity resolution to fail closed on unexpected adapter exceptions and wired the persistent NEMA-AGORA page through that resolver. Added regression coverage for untrusted privilege claims and strict integer-only backup retention configuration.",
+  "validation_status": "PHASE_177_CI_PASSED_ON_5487f004734400cecf61fc5c9a31efe9441e6197; RELEASE_GATES_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -35,12 +35,14 @@
     "institutional_approval"
   ],
   "validation_evidence": {
-    "candidate_sha": "19b439279b6c62332fc7b07ebaa32f25d4af876d",
-    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39121794403",
-    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39121794437",
+    "candidate_sha": "5487f004734400cecf61fc5c9a31efe9441e6197",
+    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39122117903",
+    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39122117681",
     "checks": {
       "identity_adapter_fail_closed_tests": "PASSED",
+      "persistent_page_uses_fail_closed_resolver": "PASSED",
       "untrusted_privilege_claim_regression_tests": "PASSED",
+      "backup_retention_strict_integer_validation": "PASSED",
       "nema_unit_tests": "PASSED",
       "python_compileall": "PASSED",
       "consolidated_app_startup_smoke_test": "PASSED"
