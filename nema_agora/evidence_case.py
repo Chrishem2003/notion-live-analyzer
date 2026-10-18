@@ -41,6 +41,8 @@ def _provenance_payload(
 
 
 def _has_timezone(value: str) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
         return parsed.tzinfo is not None and parsed.utcoffset() is not None
@@ -111,10 +113,13 @@ def build_evidence_case(
     for finding in findings_tuple:
         if not finding.advisory_only:
             raise ValueError("findings must remain advisory_only")
-        if finding.confidence is not None and (
-            not math.isfinite(finding.confidence) or not 0 <= finding.confidence <= 1
-        ):
-            raise ValueError("confidence must be between 0 and 1")
+        if finding.confidence is not None:
+            try:
+                confidence_valid = math.isfinite(finding.confidence) and 0 <= finding.confidence <= 1
+            except (TypeError, ValueError):
+                confidence_valid = False
+            if not confidence_valid:
+                raise ValueError("confidence must be between 0 and 1")
     created = _utc(created_at)
     if not _has_timezone(created):
         raise ValueError("created_at must be an ISO 8601 timestamp with timezone")
@@ -185,17 +190,23 @@ def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
     for finding in case.findings:
         if not finding.advisory_only:
             issues.append("non_advisory_finding")
-        if finding.confidence is not None and (
-            not math.isfinite(finding.confidence) or not 0 <= finding.confidence <= 1
-        ):
-            issues.append("invalid_confidence")
+        if finding.confidence is not None:
+            try:
+                confidence_valid = math.isfinite(finding.confidence) and 0 <= finding.confidence <= 1
+            except (TypeError, ValueError):
+                confidence_valid = False
+            if not confidence_valid:
+                issues.append("invalid_confidence")
         if not _has_timezone(finding.generated_at):
             issues.append("invalid_finding_timestamp")
-    expected_provenance = _fingerprint(
-        _provenance_payload(case.case_id, case.observation_fingerprint, case.evidence, case.findings)
-    )
-    if not case.provenance_fingerprint or case.provenance_fingerprint != expected_provenance:
-        issues.append("provenance_fingerprint_mismatch")
+    try:
+        expected_provenance = _fingerprint(
+            _provenance_payload(case.case_id, case.observation_fingerprint, case.evidence, case.findings)
+        )
+        if not case.provenance_fingerprint or case.provenance_fingerprint != expected_provenance:
+            issues.append("provenance_fingerprint_mismatch")
+    except (TypeError, ValueError):
+        issues.append("provenance_payload_invalid")
     if case.state in {"REVIEWED", "EXPORTED"} and case.review is None:
         issues.append("review_missing")
     if case.review is not None:
