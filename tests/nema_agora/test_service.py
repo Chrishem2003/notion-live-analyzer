@@ -585,8 +585,8 @@ def test_evidence_history_verifier_detects_non_monotonic_event_timestamps(tmp_pa
         connection.execute("DROP TRIGGER evidence_case_events_no_update")
         connection.execute(
             """UPDATE evidence_case_events SET occurred_at = ?
-               WHERE case_id = ? AND event_type = 'evidence_case_reviewed'""",
-            ("2026-10-04T12:00:00+03:00", case_id),
+               WHERE case_id = ? AND event_type = 'evidence_case_prepared'""",
+            ("2099-01-01T00:00:00+00:00", case_id),
         )
 
     result = service.verify_evidence_case_history(case_id, coordinator)
