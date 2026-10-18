@@ -300,3 +300,42 @@ def test_persisted_evidence_bundle_tampering_is_detected_after_reopen(tmp_path):
         reopened.get_evidence_case(
             created["case_id"], actor_id=reviewer.subject_key, role=reviewer.role
         )
+
+
+
+def test_repeated_evidence_preparation_does_not_duplicate_audit_event(tmp_path):
+    import hashlib
+    import json
+
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "idempotent-pilot.sqlite3"))
+    reviewer = principal("idempotent-review", "reviewer")
+    admin = principal("idempotent-admin", "admin")
+    created = service.create_observation(record(), principal("idempotent-submit", "submitter"))
+    prepared = service.build_governed_evidence_case(created["case_id"], reviewer)
+    bundle_dict = prepared["evidence_case"].to_dict()
+    fingerprint = hashlib.sha256(
+        json.dumps(bundle_dict, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    ).hexdigest()
+
+    result = service.repository.create_evidence_case(
+        bundle_dict, actor_id=reviewer.subject_key, role=reviewer.role,
+        occurred_at="2026-10-04T12:30:00+03:00", bundle_fingerprint=fingerprint,
+    )
+    assert result["already_exists"] is True
+    events = service.list_evidence_case_events(created["case_id"], admin)
+    assert [event["event_type"] for event in events] == ["evidence_case_prepared"]
+
+
+def test_export_transition_cannot_be_replayed(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "replay-pilot.sqlite3"))
+    reviewer = principal("replay-review", "reviewer")
+    coordinator = principal("replay-coord", "coordinator")
+    created = service.create_observation(record(), principal("replay-submit", "submitter"))
+    bundle = service.build_governed_evidence_case(created["case_id"], reviewer)["evidence_case"]
+    reviewed = service.review_governed_evidence_case(
+        bundle, reviewer, decision="ACKNOWLEDGED", notes="replay test",
+        reviewed_at="2026-10-04T12:40:00+03:00",
+    )
+    service.export_governed_evidence_case(reviewed, coordinator)
+    with pytest.raises(ValueError, match="stale|differs|human-reviewed"):
+        service.export_governed_evidence_case(reviewed, coordinator)
