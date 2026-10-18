@@ -28,3 +28,13 @@ def test_nema_specialist_pages_are_not_exposed_as_separate_sidebar_entries(tmp_p
 
 def test_missing_pages_directory_is_safe(tmp_path):
     assert discover_other_pages(tmp_path, tmp_path / "missing") == []
+
+
+def test_single_page_case_management_exposes_explicit_workflow_run_action():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+
+    assert 'st.form_submit_button("Run workflow transition"' in page
+    assert "Workflow run: choose the next case status" in page
+    assert "Only authorised reviewers can run this step" in page
