@@ -40,6 +40,10 @@ def _provenance_payload(
     }
 
 
+def _review_fingerprint(review: "HumanReview") -> str:
+    return _fingerprint({"policy_version": POLICY_VERSION, "human_review": asdict(review)})
+
+
 def _has_timezone(value: str) -> bool:
     if not isinstance(value, str) or not value.strip():
         return False
@@ -91,6 +95,7 @@ class EvidenceCase:
     findings: tuple[AdvisoryFinding, ...] = ()
     review: HumanReview | None = None
     provenance_fingerprint: str = ""
+    review_fingerprint: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -154,7 +159,8 @@ def attach_human_review(
     review = HumanReview(reviewer_id, role, decision, timestamp, notes)
     return EvidenceCase(
         case.case_id, case.created_at, "REVIEWED", case.observation_fingerprint,
-        case.evidence, case.findings, review, case.provenance_fingerprint
+        case.evidence, case.findings, review, case.provenance_fingerprint,
+        _review_fingerprint(review)
     )
 
 
@@ -166,7 +172,8 @@ def mark_exported(case: EvidenceCase) -> EvidenceCase:
         raise ValueError("only human-reviewed cases can be exported")
     return EvidenceCase(
         case.case_id, case.created_at, "EXPORTED", case.observation_fingerprint,
-        case.evidence, case.findings, case.review, case.provenance_fingerprint
+        case.evidence, case.findings, case.review, case.provenance_fingerprint,
+        case.review_fingerprint
     )
 
 
@@ -216,6 +223,14 @@ def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
             issues.append("invalid_review_decision")
         if not _has_timezone(case.review.reviewed_at):
             issues.append("invalid_review_timestamp")
+        try:
+            expected_review_fingerprint = _review_fingerprint(case.review)
+            if not case.review_fingerprint or case.review_fingerprint != expected_review_fingerprint:
+                issues.append("review_fingerprint_mismatch")
+        except (TypeError, ValueError):
+            issues.append("review_payload_invalid")
+    elif case.review_fingerprint:
+        issues.append("orphan_review_fingerprint")
     return {
         "policy_version": POLICY_VERSION,
         "case_id": case.case_id,
