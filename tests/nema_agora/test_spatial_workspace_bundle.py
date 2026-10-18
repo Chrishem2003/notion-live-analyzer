@@ -168,3 +168,32 @@ def test_validator_handles_non_mapping_bundle_and_malformed_layers():
     assert result["valid"] is False
     assert {"code": "INVALID_CANDIDATE"} in result["findings"]
 
+def test_validator_detects_divergent_source_deltas_after_all_fingerprints_are_recomputed():
+    bundle = _build()
+
+    change = dict(bundle["change_evidence"])
+    change.pop("fingerprint")
+    change["change"]["NDVI"]["delta"] = -0.45
+    bundle["change_evidence"] = _seal(change)
+
+    quality = dict(bundle["quality_evidence"])
+    quality.pop("fingerprint")
+    quality["change_fingerprint"] = bundle["change_evidence"]["fingerprint"]
+    bundle["quality_evidence"] = _seal(quality)
+
+    candidate = dict(bundle["candidate"])
+    candidate.pop("fingerprint")
+    candidate["source_change_fingerprint"] = bundle["quality_evidence"]["change_fingerprint"]
+    bundle["candidate"] = _seal(candidate)
+
+    outer = dict(bundle)
+    outer.pop("fingerprint")
+    bundle["fingerprint"] = hashlib.sha256(
+        json.dumps(outer, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    ).hexdigest()
+
+    result = validate_spatial_evidence_bundle(bundle)
+    assert result["valid"] is False
+    assert {"code": "NDVI_DELTA_LINEAGE_MISMATCH"} in result["findings"]
+    assert not any(code.endswith("FINGERPRINT_MISMATCH") for code in {item["code"] for item in result["findings"]})
+
