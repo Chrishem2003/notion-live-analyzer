@@ -133,3 +133,38 @@ def test_validator_rejects_ineligible_states_even_if_all_fingerprints_are_recomp
     result = validate_spatial_evidence_bundle(bundle)
     assert result["valid"] is False
     assert {"code": "CANDIDATE_STATE_NOT_ELIGIBLE"} in result["findings"]
+
+
+def test_bundle_rejects_change_layer_delta_diverging_from_quality_and_candidate():
+    change, quality, candidate = _layers()
+    change_payload = dict(change)
+    change_payload.pop("fingerprint")
+    change_payload["change"]["NDVI"]["delta"] = -0.45
+    change = _seal(change_payload)
+    quality_payload = dict(quality)
+    quality_payload.pop("fingerprint")
+    quality_payload["change_fingerprint"] = change["fingerprint"]
+    quality = _seal(quality_payload)
+    candidate_payload = dict(candidate)
+    candidate_payload.pop("fingerprint")
+    candidate_payload["source_change_fingerprint"] = quality["change_fingerprint"]
+    candidate = _seal(candidate_payload)
+
+    try:
+        build_spatial_evidence_bundle(
+            change_evidence=change, quality_evidence=quality, candidate=candidate
+        )
+    except ValueError as exc:
+        assert "NDVI_DELTA_LINEAGE_MISMATCH" in str(exc)
+    else:
+        raise AssertionError("Divergent source deltas must be rejected.")
+
+
+def test_validator_handles_non_mapping_bundle_and_malformed_layers():
+    assert validate_spatial_evidence_bundle([])["valid"] is False
+    bundle = _build()
+    bundle["candidate"] = ["not", "a", "mapping"]
+    result = validate_spatial_evidence_bundle(bundle)
+    assert result["valid"] is False
+    assert {"code": "INVALID_CANDIDATE"} in result["findings"]
+
