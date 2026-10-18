@@ -10,7 +10,11 @@ def base(**overrides):
     x.update(overrides); return x
 
 def test_valid_record_passes():
-    assert assess_observation(base()) == {\n        "quality_status": "PASS", "flags": ["VALID"],\n        "human_review_required": True, "environmental_truth_claim": False,\n        "regulatory_conclusion": False, "automatic_enforcement": False,\n    }
+    assert assess_observation(base()) == {
+        "quality_status": "PASS", "flags": ["VALID"],
+        "human_review_required": True, "environmental_truth_claim": False,
+        "regulatory_conclusion": False, "automatic_enforcement": False,
+    }
 
 def test_missing_consent_and_description_require_review():
     result=assess_observation(base(description="",consent_confirmed=False))
