@@ -493,3 +493,46 @@ def test_evidence_transition_rechecks_source_observation_under_write_lock(tmp_pa
     events = service.list_evidence_case_events(case_id, coordinator)
     assert [event["event_type"] for event in events] == ["evidence_case_prepared"]
 
+def test_evidence_history_verifier_detects_extra_lifecycle_event(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "evidence-history.sqlite3"
+    repository = NemaAgoraRepository(path)
+    service = NemaAgoraService(repository)
+    submitter = principal("history-submit", "submitter")
+    reviewer = principal("history-review", "reviewer")
+    coordinator = principal("history-coord", "coordinator")
+    created = service.create_observation(record(), submitter)
+    case_id = created["case_id"]
+    prepared = service.build_governed_evidence_case(case_id, reviewer)["evidence_case"]
+    reviewed = service.review_governed_evidence_case(
+        prepared, reviewer, decision="ACKNOWLEDGED",
+        notes="History verification test",
+        reviewed_at="2026-10-04T12:50:00+03:00",
+    )
+    service.export_governed_evidence_case(reviewed, coordinator)
+
+    valid = service.verify_evidence_case_history(case_id, coordinator)
+    assert valid["valid"] is True
+    assert valid["state"] == "EXPORTED"
+    assert valid["event_count"] == 3
+    assert valid["issues"] == []
+
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            """INSERT INTO evidence_case_events
+               (case_id, actor_id, actor_role, event_type, from_state, to_state,
+                occurred_at, bundle_fingerprint, details_json)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, '{}')""",
+            (
+                case_id, coordinator.subject_key, coordinator.role,
+                "evidence_case_reviewed", "EXPORTED", "EXPORTED",
+                "2026-10-04T12:51:00+03:00", "synthetic-invalid-fingerprint",
+            ),
+        )
+
+    invalid = service.verify_evidence_case_history(case_id, coordinator)
+    assert invalid["valid"] is False
+    assert "unexpected_extra_lifecycle_event" in invalid["issues"]
+    assert "final_event_fingerprint_mismatch" in invalid["issues"]
+
