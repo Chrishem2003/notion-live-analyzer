@@ -232,7 +232,7 @@ class NemaAgoraRepository:
                 """INSERT INTO observations
                    (case_id, status, owner_id, created_at, updated_at, record_json)
                    VALUES (?, ?, ?, ?, ?, ?)""",
-                (case_id, status, owner, created_at, updated_at, payload),
+                (case_id, status, actor, created_at, updated_at, payload),
             )
             connection.execute(
                 """INSERT INTO audit_events
