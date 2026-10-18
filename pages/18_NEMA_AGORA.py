@@ -250,10 +250,14 @@ if active_section == "Case management":
             st.caption(f"Observed: {selected['observation_date']} · Created: {selected['created_at']}")
             quality = assess_observation(selected, peer_records=records)
             st.markdown(f"**Data quality:** {quality['quality_status']} · {', '.join(quality['flags'])}")
+            st.caption(
+                "Workflow run: choose the next case status, add a concise review note, then submit the transition. "
+                "Only authorised reviewers can run this step; the transition is validated and audit-recorded by the service."
+            )
             with st.form(f"review_{selected_id}"):
-                new_status = st.selectbox("Status", STATUSES, index=STATUSES.index(selected["status"]))
+                new_status = st.selectbox("Next workflow status", STATUSES, index=STATUSES.index(selected["status"]))
                 review_notes = st.text_area("Reviewer notes (avoid personal/sensitive data)", value=selected.get("review_notes", ""), max_chars=1000)
-                reviewed = st.form_submit_button("Update status", type="primary")
+                reviewed = st.form_submit_button("Run workflow transition", type="primary")
             if reviewed:
                 changed_at = datetime.now().astimezone().isoformat(timespec="seconds")
                 try:
