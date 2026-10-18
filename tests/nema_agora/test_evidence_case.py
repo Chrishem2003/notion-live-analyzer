@@ -85,3 +85,16 @@ def test_invalid_review_decision_fails_closed():
     ))
     assert result["valid"] is False
     assert "invalid_review_decision" in result["issues"]
+
+def test_tampered_human_review_invalidates_review_fingerprint():
+    case = attach_human_review(
+        make_case(), reviewer_id="reviewer-1", role="coordinator",
+        decision="ACKNOWLEDGED", reviewed_at="2026-10-04T12:03:00+00:00"
+    )
+    tampered_review = replace(case.review, decision="ESCALATED")
+    tampered = replace(case, review=tampered_review)
+    result = validate_evidence_case(tampered)
+    assert result["valid"] is False
+    assert "review_fingerprint_mismatch" in result["issues"]
+    with pytest.raises(ValueError, match="integrity validation"):
+        mark_exported(tampered)
