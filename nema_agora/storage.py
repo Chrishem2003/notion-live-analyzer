@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from datetime import datetime
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
@@ -24,6 +25,18 @@ def _payload_fingerprint(payload: dict[str, Any]) -> str:
         payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
     )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _timestamp(value: str, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with timezone.")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with timezone.") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with timezone.")
+    return value
 
 
 def _actor(value: str) -> str:
@@ -331,8 +344,10 @@ class NemaAgoraRepository:
         created_at = str(bundle.get("created_at", "")).strip()
         if not case_id or state != "READY_FOR_REVIEW" or not created_at:
             raise ValueError("A valid ready-for-review evidence bundle is required.")
-        if not occurred_at.strip() or not bundle_fingerprint.strip():
-            raise ValueError("An event timestamp and bundle fingerprint are required.")
+        _timestamp(occurred_at, "occurred_at")
+        _timestamp(created_at, "created_at")
+        if not bundle_fingerprint.strip():
+            raise ValueError("A bundle fingerprint is required.")
         if _payload_fingerprint(bundle) != bundle_fingerprint:
             raise ValueError("Evidence bundle fingerprint does not match its content.")
         payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
@@ -410,8 +425,9 @@ class NemaAgoraRepository:
         new_state = bundle.get("state")
         if (expected_state, new_state, event_type) not in transitions:
             raise ValueError("Invalid evidence-case state transition.")
-        if not occurred_at.strip() or not bundle_fingerprint.strip() or not expected_fingerprint.strip():
-            raise ValueError("Transition timestamp and fingerprints are required.")
+        _timestamp(occurred_at, "occurred_at")
+        if not bundle_fingerprint.strip() or not expected_fingerprint.strip():
+            raise ValueError("Transition fingerprints are required.")
         if _payload_fingerprint(bundle) != bundle_fingerprint:
             raise ValueError("Evidence bundle fingerprint does not match its content.")
         payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
