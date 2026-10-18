@@ -166,3 +166,52 @@ def test_backup_rejects_corrupt_source(tmp_path):
     with pytest.raises(ValueError, match="Source database failed"):
         backup_database(corrupt, tmp_path / "backups")
     assert not (tmp_path / "backups").exists()
+
+
+def test_restore_preserves_rollback_snapshot_when_automatic_rollback_fails(tmp_path, monkeypatch):
+    import shutil
+    import nema_agora.backup as backup_module
+
+    source_db = tmp_path / "source.sqlite3"
+    target_db = tmp_path / "target.sqlite3"
+    NemaAgoraRepository(source_db).create_observation(
+        record(), actor_id="source-user", role="submitter"
+    )
+    NemaAgoraRepository(target_db).create_observation(
+        record(), actor_id="target-user", role="submitter"
+    )
+    backup = backup_database(
+        source_db,
+        tmp_path / "backups",
+        now=datetime(2026, 10, 4, 9, tzinfo=timezone.utc),
+    )
+
+    original_integrity_check = backup_module.integrity_check
+    original_replace = backup_module.os.replace
+    calls = {"integrity": 0}
+
+    def fail_post_restore_check(path):
+        calls["integrity"] += 1
+        if calls["integrity"] == 4:
+            return False
+        return original_integrity_check(path)
+
+    def fail_only_rollback_replace(src, dst):
+        if str(src).endswith(".rollback") and str(dst) == str(target_db):
+            raise OSError("simulated rollback filesystem failure")
+        return original_replace(src, dst)
+
+    monkeypatch.setattr(backup_module, "integrity_check", fail_post_restore_check)
+    monkeypatch.setattr(backup_module.os, "replace", fail_only_rollback_replace)
+    with pytest.raises(RuntimeError, match="recovery snapshot preserved"):
+        restore_database(backup, target_db, confirm_destructive=True)
+
+    snapshots = list(tmp_path.glob(".target.sqlite3.*.rollback"))
+    assert len(snapshots) == 1
+    # The retained snapshot is recoverable even though automatic replacement failed.
+    shutil.copy2(snapshots[0], target_db)
+    monkeypatch.setattr(backup_module, "integrity_check", original_integrity_check)
+    assert integrity_check(target_db)
+    restored = NemaAgoraRepository(target_db)
+    assert len(restored.list_observations(actor_id="target-user", role="submitter")) == 1
+    assert restored.list_observations(actor_id="source-user", role="submitter") == []
