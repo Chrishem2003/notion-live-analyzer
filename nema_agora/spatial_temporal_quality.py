@@ -67,6 +67,16 @@ def spatial_temporal_quality_evidence(*, change_evidence: Mapping[str, Any],
     findings = []
     if change_evidence.get("state") != "CANDIDATE_CHANGE_EVIDENCE":
         findings.append({"code": "INVALID_CHANGE_EVIDENCE_STATE"})
+    change_values = change_evidence.get("change")
+    if not isinstance(change_values, Mapping):
+        findings.append({"code": "MISSING_CHANGE_VALUES"})
+        change_values = {}
+    else:
+        for index_name in ("NDVI", "NDWI_MCFEETERS"):
+            index_change = change_values.get(index_name)
+            delta = index_change.get("delta") if isinstance(index_change, Mapping) else None
+            if not _finite(delta) or not -2.0 <= float(delta) <= 2.0:
+                findings.append({"code": f"INVALID_{index_name}_DELTA"})
     validation = validate_change_quality(
         baseline_aoi_id=baseline_aoi_id, comparison_aoi_id=comparison_aoi_id,
         baseline_grid_id=baseline_grid_id, comparison_grid_id=comparison_grid_id,
@@ -81,6 +91,7 @@ def spatial_temporal_quality_evidence(*, change_evidence: Mapping[str, Any],
     payload = {
         "policy_version": POLICY_VERSION, "state": "CANDIDATE_CHANGE_EVIDENCE",
         "change_fingerprint": change_evidence.get("fingerprint"),
+        "change": {name: dict(value) for name, value in change_values.items() if isinstance(value, Mapping)},
         "spatial": {"baseline_aoi_id": baseline_aoi_id, "comparison_aoi_id": comparison_aoi_id,
                     "baseline_grid_id": baseline_grid_id, "comparison_grid_id": comparison_grid_id,
                     "spatial_alignment": spatial_alignment, "spatial_resolution_m": float(spatial_resolution_m)},
