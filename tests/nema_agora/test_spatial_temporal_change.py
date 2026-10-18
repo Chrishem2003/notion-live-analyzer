@@ -45,3 +45,30 @@ def test_evidence_is_deterministic_and_non_regulatory():
     assert first["fingerprint"]==second["fingerprint"]
     assert "violation" not in first
     assert first["interpretation"]["regulatory_conclusion"] is None
+
+def test_naive_timestamps_are_rejected_without_crashing():
+    data = pair()
+    data["baseline_acquired_at"] = "2026-09-01T10:00:00"
+    result = validate_change_inputs(**data)
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert {"INVALID_BASELINE_TIMESTAMP"} <= {x["code"] for x in result["findings"]}
+
+
+def test_timestamp_offsets_are_compared_as_absolute_instants():
+    data = pair()
+    data["baseline_acquired_at"] = "2026-09-01T10:00:00+03:00"
+    # Same instant as baseline, despite a different textual offset.
+    data["comparison_acquired_at"] = "2026-09-01T07:00:00Z"
+    result = validate_change_inputs(**data)
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert {"COMPARISON_NOT_AFTER_BASELINE"} <= {x["code"] for x in result["findings"]}
+
+
+def test_mixed_naive_and_aware_timestamps_fail_closed_without_type_error():
+    data = pair()
+    data["baseline_acquired_at"] = "2026-09-01T10:00:00"
+    data["comparison_acquired_at"] = "2026-10-01T10:00:00Z"
+    result = validate_change_inputs(**data)
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert {"INVALID_BASELINE_TIMESTAMP"} <= {x["code"] for x in result["findings"]}
+
