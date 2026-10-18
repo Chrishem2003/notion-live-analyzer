@@ -69,3 +69,9 @@ def test_quality_payload_preserves_change_deltas_for_candidate_detection():
     assert result["state"] == "CANDIDATE_CHANGE_DETECTED"
     assert result["interpretation"]["environmental_conclusion"] is None
     assert result["interpretation"]["regulatory_conclusion"] is None
+def test_huge_numeric_quality_values_fail_closed():
+    data = quality()
+    data["spatial_resolution_m"] = 10 ** 10000
+    result = spatial_temporal_quality_evidence(**data)
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "INVALID_SPATIAL_RESOLUTION" in {x["code"] for x in result["findings"]}
