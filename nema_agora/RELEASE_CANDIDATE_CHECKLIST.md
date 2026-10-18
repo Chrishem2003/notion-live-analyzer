@@ -4,19 +4,28 @@
 
 - Pull request: [#23 — clean main-based integration](https://github.com/Chrishem2003/notion-live-analyzer/pull/23)
 - Branch: `feature/nema-agora-clean-integration`
-- Candidate commit verified before this checklist update: `2aa350dddb7d08b5f74dd131f646a30bc667cb74`
-- CI evidence: [focused NEMA-AGORA checks](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39117864979) · [repository CI](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39117864940)
+- Current Phase 175 commit: `68fa6759baa97ad4ee317ca5edaf5a4e104afa5f`
+- Phase 175 CI: [focused NEMA-AGORA checks](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39119277886) · [repository CI](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39119277876)
 
-## Verified on the candidate commit
+## Verified before Phase 175
 
-- [x] Focused NEMA-AGORA test suite passed.
-- [x] Python compilation passed for the NEMA package and curated app entrypoints.
-- [x] Streamlit startup smoke test passed for `app.py`.
+- [x] Focused NEMA-AGORA test suite passed on prior candidate commit.
+- [x] Python compilation passed for the NEMA package and curated app entrypoints on prior candidate commit.
+- [x] Streamlit startup smoke test passed for `app.py` on prior candidate commit.
 - [x] Navigation contract tests cover hiding specialist NEMA pages from sidebar discovery.
 - [x] One visible NEMA-AGORA workspace is registered by the curated app entrypoint.
-- [x] Historical divergent PR #10 is marked superseded; PR #23 is the intended integration candidate.
+- [x] Repository-wide CI passed for the prior candidate.
 
-The build-state metadata update itself must receive a fresh CI run before its commit is treated as verified.
+## Phase 175 — configuration hardening
+
+- [x] Added regression tests for invalid or malformed deployment mode values defaulting to demo.
+- [x] Added tests requiring an explicit database path rather than guessing a location.
+- [x] Added tests for backup-retention bounds and malformed values.
+- [x] Added tests for absent or malformed backup directory configuration.
+- [ ] Focused CI for Phase 175 commit completed successfully.
+- [ ] Repository CI for Phase 175 commit completed successfully.
+
+Do not mark Phase 175 complete until the two CI runs above finish successfully.
 
 ## Required before production or real-user data
 
@@ -27,7 +36,7 @@ The build-state metadata update itself must receive a fresh CI run before its co
 - [ ] Exercise backup, restore, integrity checks, and retention against the deployed storage configuration.
 - [ ] Confirm persistent storage survives restarts and has documented access controls and recovery ownership.
 - [ ] Review accessibility, low-bandwidth use, consent, data minimization, retention, and institutional governance.
-- [ ] Validate any environmental data sources and obtain required institutional approvals.
+- [ ] Validate environmental data sources and obtain required institutional approvals.
 
 ## Safety and scope boundary
 
