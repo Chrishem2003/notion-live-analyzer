@@ -95,3 +95,38 @@ def test_reproducibility_permission_is_not_available_to_submitters():
     assert has_permission("reviewer", "intelligence:reproducibility")
     assert has_permission("coordinator", "intelligence:reproducibility")
     assert has_permission("admin", "intelligence:reproducibility")
+
+
+@pytest.mark.parametrize(
+    ("role", "permission", "expected"),
+    [
+        ("submitter", "observation:create", True),
+        ("submitter", "observation:review", False),
+        ("submitter", "case:export", False),
+        ("submitter", "audit:read", False),
+        ("submitter", "user:manage", False),
+        ("reviewer", "observation:create", False),
+        ("reviewer", "observation:review", True),
+        ("reviewer", "case:export", False),
+        ("reviewer", "audit:read", False),
+        ("reviewer", "intelligence:admit_model", False),
+        ("reviewer", "annotation:adjudicate", False),
+        ("coordinator", "observation:create", False),
+        ("coordinator", "observation:review", True),
+        ("coordinator", "case:export", True),
+        ("coordinator", "audit:read", True),
+        ("coordinator", "user:manage", False),
+        ("coordinator", "intelligence:admit_model", True),
+        ("coordinator", "intelligence:attest", False),
+        ("admin", "observation:create", True),
+        ("admin", "observation:review", True),
+        ("admin", "case:export", True),
+        ("admin", "audit:read", True),
+        ("admin", "user:manage", True),
+        ("admin", "intelligence:admit_model", True),
+        ("admin", "intelligence:attest", True),
+    ],
+)
+def test_privileged_action_matrix_is_explicit(role, permission, expected):
+    """Guard high-impact permissions against accidental role expansion."""
+    assert has_permission(role, permission) is expected
