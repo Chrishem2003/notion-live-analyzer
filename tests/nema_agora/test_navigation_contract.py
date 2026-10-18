@@ -139,3 +139,18 @@ def test_operational_backup_controls_are_admin_gated_and_fail_closed():
     assert "Backups may contain environmental case records" in page[section:]
     assert "does not prove off-site recovery" in page[section:]
 
+def test_restore_is_admin_gated_and_requires_two_explicit_confirmations():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    section = page.index('governance_tool == "Operations & backups"')
+    admin_gate = page.index('principal.role != "admin"', section)
+    restore_section = page.index('st.markdown("**Restore from a verified backup**")', admin_gate)
+    checkbox = page.index("I understand this replaces current database contents.", restore_section)
+    typed_phrase = page.index("Type RESTORE DATABASE to enable restore", checkbox)
+    disabled_guard = page.index("disabled=not (confirm_restore and typed_confirmation == \"RESTORE DATABASE\")", typed_phrase)
+    pre_backup = page.index("pre_restore_backup = backup_database(database_path, backup_dir)", disabled_guard)
+    destructive_restore = page.index("confirm_destructive=True", pre_backup)
+    assert section < admin_gate < restore_section < checkbox < typed_phrase < disabled_guard < pre_backup < destructive_restore
+    assert "Coordinate a maintenance window" in page[restore_section:]
+
