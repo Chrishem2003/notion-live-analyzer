@@ -129,6 +129,18 @@ class NemaAgoraRepository:
                 CREATE INDEX IF NOT EXISTS idx_evidence_case_events_case_time
                     ON evidence_case_events(case_id, occurred_at, event_id);
 
+                CREATE TRIGGER IF NOT EXISTS evidence_case_events_no_update
+                BEFORE UPDATE ON evidence_case_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'evidence case events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS evidence_case_events_no_delete
+                BEFORE DELETE ON evidence_case_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'evidence case events are immutable');
+                END;
+
                 CREATE TABLE IF NOT EXISTS intelligence_events (
                     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     case_id TEXT NOT NULL REFERENCES observations(case_id),
