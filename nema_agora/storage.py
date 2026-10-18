@@ -7,6 +7,7 @@ filesystem access controls, and operational recovery procedures.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 from contextlib import contextmanager
@@ -16,6 +17,13 @@ from typing import Any, Iterator
 from nema_agora.access import can_read_observation, has_permission, require_permission
 from nema_agora.core import STATUSES
 from nema_agora.workflow import apply_status_update
+
+
+def _payload_fingerprint(payload: dict[str, Any]) -> str:
+    canonical = json.dumps(
+        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _actor(value: str) -> str:
@@ -313,6 +321,8 @@ class NemaAgoraRepository:
             raise ValueError("A valid ready-for-review evidence bundle is required.")
         if not occurred_at.strip() or not bundle_fingerprint.strip():
             raise ValueError("An event timestamp and bundle fingerprint are required.")
+        if _payload_fingerprint(bundle) != bundle_fingerprint:
+            raise ValueError("Evidence bundle fingerprint does not match its content.")
         payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
         with self._session() as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -349,8 +359,13 @@ class NemaAgoraRepository:
             return None
         if not can_read_observation(role, actor, row["owner_id"]):
             raise PermissionError("You are not permitted to read this evidence case.")
+        bundle = json.loads(row["bundle_json"])
+        if _payload_fingerprint(bundle) != row["bundle_fingerprint"]:
+            raise ValueError("Persisted evidence bundle fingerprint mismatch.")
+        if bundle.get("state") != row["state"]:
+            raise ValueError("Persisted evidence state does not match its stored index.")
         return {
-            "bundle": json.loads(row["bundle_json"]),
+            "bundle": bundle,
             "state": row["state"],
             "bundle_fingerprint": row["bundle_fingerprint"],
         }
@@ -372,6 +387,8 @@ class NemaAgoraRepository:
             raise ValueError("Invalid evidence-case state transition.")
         if not occurred_at.strip() or not bundle_fingerprint.strip() or not expected_fingerprint.strip():
             raise ValueError("Transition timestamp and fingerprints are required.")
+        if _payload_fingerprint(bundle) != bundle_fingerprint:
+            raise ValueError("Evidence bundle fingerprint does not match its content.")
         payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
         with self._session() as connection:
             connection.execute("BEGIN IMMEDIATE")
