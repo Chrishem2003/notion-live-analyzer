@@ -747,6 +747,15 @@ class NemaAgoraService:
             case_id, actor_id=principal.subject_key, role=principal.role
         )
 
+    def verify_evidence_case_history(
+        self, case_id: str, principal: Principal
+    ) -> dict[str, Any]:
+        """Return an audit-permission-gated lifecycle consistency report."""
+        self._authorised(principal)
+        return self.repository.verify_evidence_case_history(
+            case_id, actor_id=principal.subject_key, role=principal.role
+        )
+
     def export_csv(self, principal: Principal, records: list[dict[str, Any]]) -> bytes:
         self._authorised(principal)
         require_permission(principal.role, "case:export")
