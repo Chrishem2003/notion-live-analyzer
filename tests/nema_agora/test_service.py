@@ -168,7 +168,7 @@ def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_pa
     prepared = service.build_governed_evidence_case(created["case_id"], reviewer)
     evidence_case = prepared["evidence_case"]
     assert prepared["integrity"]["valid"] is True
-    assert prepared["durable"] is False
+    assert prepared["durable"] is True
     assert prepared["quality_assessment"]["human_review_required"] is True
     assert prepared["environmental_truth_claim"] is False
 
@@ -189,7 +189,7 @@ def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_pa
     assert payload["case"]["state"] == "EXPORTED"
     assert payload["integrity"]["valid"] is True
     assert payload["human_governed"] is True
-    assert payload["durable"] is False
+    assert payload["durable"] is True
     assert payload["nema_authorization"] is False
 
     tampered = replace(reviewed, observation_fingerprint="tampered")
@@ -200,3 +200,67 @@ def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_pa
 def test_observation_quality_workflow_preserves_explicit_consent_flag():
     rec = record()
     assert rec["consent_confirmed"] is True
+
+
+
+def test_evidence_case_survives_repository_reopen_and_records_transitions(tmp_path):
+    import json
+    from nema_agora.evidence_case import evidence_case_from_dict
+
+    path = tmp_path / "durable-pilot.sqlite3"
+    service = NemaAgoraService(NemaAgoraRepository(path))
+    submitter = principal("durable-submit", "submitter")
+    reviewer = principal("durable-review", "reviewer")
+    coordinator = principal("durable-coord", "coordinator")
+    admin = principal("durable-admin", "admin")
+    created = service.create_observation(record(), submitter)
+
+    prepared = service.build_governed_evidence_case(created["case_id"], reviewer)
+    case = prepared["evidence_case"]
+    reviewed = service.review_governed_evidence_case(
+        case, reviewer, decision="ACKNOWLEDGED",
+        notes="Durable synthetic test", reviewed_at="2026-10-04T12:15:00+03:00",
+    )
+
+    reopened = NemaAgoraService(NemaAgoraRepository(path))
+    stored = reopened.repository.get_evidence_case(
+        created["case_id"], actor_id=coordinator.subject_key, role=coordinator.role
+    )
+    assert stored is not None
+    restored = evidence_case_from_dict(stored["bundle"])
+    assert restored.to_dict() == reviewed.to_dict()
+    assert stored["state"] == "REVIEWED"
+
+    export_payload = json.loads(reopened.export_governed_evidence_case(restored, coordinator))
+    assert export_payload["case"]["state"] == "EXPORTED"
+    assert export_payload["durable"] is True
+
+    events = reopened.list_evidence_case_events(created["case_id"], admin)
+    assert [event["event_type"] for event in events] == [
+        "evidence_case_prepared", "evidence_case_reviewed", "evidence_case_exported"
+    ]
+    assert [event["to_state"] for event in events] == [
+        "READY_FOR_REVIEW", "REVIEWED", "EXPORTED"
+    ]
+    assert events[1]["actor_id"] == reviewer.subject_key
+    assert events[2]["actor_id"] == coordinator.subject_key
+
+
+def test_repeated_or_stale_evidence_review_is_rejected(tmp_path):
+    from dataclasses import replace
+
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "stale-pilot.sqlite3"))
+    reviewer = principal("stale-review", "reviewer")
+    created = service.create_observation(record(), principal("stale-submit", "submitter"))
+    first = service.build_governed_evidence_case(created["case_id"], reviewer)["evidence_case"]
+    second = service.build_governed_evidence_case(created["case_id"], reviewer)["evidence_case"]
+    reviewed = service.review_governed_evidence_case(
+        first, reviewer, decision="ACKNOWLEDGED", notes="first review",
+        reviewed_at="2026-10-04T12:20:00+03:00",
+    )
+    assert reviewed.state == "REVIEWED"
+    with pytest.raises(ValueError, match="stale|not awaiting"):
+        service.review_governed_evidence_case(
+            second, reviewer, decision="ESCALATED", notes="duplicate attempt",
+            reviewed_at="2026-10-04T12:21:00+03:00",
+        )
