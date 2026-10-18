@@ -19,9 +19,11 @@ _BACKUP_NAME = re.compile(r"^nema_agora_(\d{8}T\d{6}Z)\.sqlite3$")
 
 
 def _path(value: str | Path) -> Path:
-    path = Path(value).expanduser()
-    if not str(path).strip():
+    # Path("") normalizes to ".", so validate empty string input before
+    # constructing a Path or an accidental working-directory target is used.
+    if isinstance(value, str) and not value.strip():
         raise ValueError("A filesystem path is required.")
+    path = Path(value).expanduser()
     return path
 
 
