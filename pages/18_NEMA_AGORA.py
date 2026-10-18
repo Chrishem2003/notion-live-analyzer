@@ -20,7 +20,7 @@ from nema_agora.quality import assess_observation
 from nema_agora.evidence_case import validate_evidence_case
 from nema_agora.service import NemaAgoraService
 from nema_agora.storage import NemaAgoraRepository
-from nema_agora.workflow import apply_status_update
+from nema_agora.workflow import ALLOWED_TRANSITIONS, apply_status_update
 from nema_agora.release_readiness import evaluate_release_readiness, validate_release_readiness_report
 from nema_agora.spatial_temporal_change import spatial_temporal_change_evidence
 from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidence
@@ -255,7 +255,16 @@ if active_section == "Case management":
                 "Only authorised reviewers can run this step; the transition is validated and audit-recorded by the service."
             )
             with st.form(f"review_{selected_id}"):
-                new_status = st.selectbox("Next workflow status", STATUSES, index=STATUSES.index(selected["status"]))
+                permitted_statuses = [
+                    status for status in STATUSES
+                    if status == selected["status"] or status in ALLOWED_TRANSITIONS[selected["status"]]
+                ]
+                new_status = st.selectbox(
+                    "Next workflow status",
+                    permitted_statuses,
+                    index=permitted_statuses.index(selected["status"]),
+                    help="Only valid next steps for the current status are shown.",
+                )
                 review_notes = st.text_area("Reviewer notes (avoid personal/sensitive data)", value=selected.get("review_notes", ""), max_chars=1000)
                 reviewed = st.form_submit_button("Run workflow transition", type="primary")
             if reviewed:
