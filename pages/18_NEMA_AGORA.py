@@ -22,6 +22,9 @@ from nema_agora.service import NemaAgoraService
 from nema_agora.storage import NemaAgoraRepository
 from nema_agora.workflow import apply_status_update
 from nema_agora.release_readiness import evaluate_release_readiness, validate_release_readiness_report
+from nema_agora.spatial_temporal_change import spatial_temporal_change_evidence
+from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidence
+from nema_agora.spatial_change_detection import detect_candidate
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
 
@@ -170,7 +173,7 @@ if active_section == "Intelligence workspace":
 elif active_section == "Maps & metrics":
     map_tool = st.radio(
         "View",
-        ["Map", "Pilot metrics"],
+        ["Map", "Pilot metrics", "Spatial evidence"],
         horizontal=True,
         key="nema_agora_map_tool",
     )
@@ -625,6 +628,143 @@ if active_section == "Maps & metrics" and map_tool == "Map":
         ])
         st.map(map_df[["lat", "lon"]], use_container_width=True)
         st.dataframe(map_df, use_container_width=True, hide_index=True)
+
+if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
+    st.subheader("Satellite-index change evidence")
+    st.caption("A guided, human-reviewed NDVI/NDWI comparison with explicit quality gates.")
+    st.info(
+        "Live Google Earth Engine / Sentinel-2 acquisition is **not connected** in this build. "
+        "No satellite imagery is fetched here. The form evaluates values you provide; the defaults are synthetic demonstration values."
+    )
+    with st.form("nema_agora_spatial_evidence_form"):
+        st.markdown("**Scene identity and time window**")
+        scene_a, scene_b = st.columns(2)
+        with scene_a:
+            baseline_scene = st.text_input("Baseline scene ID", value="S2-BASE-DEMO")
+            baseline_date = st.date_input("Baseline acquisition date", value=date(2026, 9, 1))
+        with scene_b:
+            comparison_scene = st.text_input("Comparison scene ID", value="S2-COMP-DEMO")
+            comparison_date = st.date_input("Comparison acquisition date", value=date(2026, 10, 1))
+
+        st.markdown("**Index values supplied for comparison**")
+        idx_a, idx_b = st.columns(2)
+        with idx_a:
+            baseline_ndvi = st.number_input("Baseline NDVI", min_value=-1.0, max_value=1.0, value=0.70, step=0.01, format="%.2f")
+            baseline_ndwi = st.number_input("Baseline NDWI (McFeeters)", min_value=-1.0, max_value=1.0, value=0.30, step=0.01, format="%.2f")
+        with idx_b:
+            comparison_ndvi = st.number_input("Comparison NDVI", min_value=-1.0, max_value=1.0, value=0.50, step=0.01, format="%.2f")
+            comparison_ndwi = st.number_input("Comparison NDWI (McFeeters)", min_value=-1.0, max_value=1.0, value=0.45, step=0.01, format="%.2f")
+
+        st.markdown("**Evidence quality gates**")
+        qa, qb, qc = st.columns(3)
+        with qa:
+            aoi_id = st.text_input("Area of interest ID", value="AOI-DEMO-UG")
+            grid_id = st.text_input("Aligned grid ID", value="GRID-DEMO-10M")
+            resolution_m = st.number_input("Spatial resolution (m)", min_value=0.1, max_value=10000.0, value=10.0, step=1.0)
+        with qb:
+            baseline_cloud = st.number_input("Baseline cloud cover (%)", min_value=0.0, max_value=100.0, value=8.0, step=1.0)
+            comparison_cloud = st.number_input("Comparison cloud cover (%)", min_value=0.0, max_value=100.0, value=12.0, step=1.0)
+            baseline_valid = st.number_input("Baseline valid-pixel fraction", min_value=0.0, max_value=1.0, value=0.95, step=0.01, format="%.2f")
+            comparison_valid = st.number_input("Comparison valid-pixel fraction", min_value=0.0, max_value=1.0, value=0.93, step=0.01, format="%.2f")
+        with qc:
+            ndvi_uncertainty = st.number_input("NDVI uncertainty (index units)", min_value=0.0, max_value=1.0, value=0.03, step=0.01, format="%.2f")
+            ndwi_uncertainty = st.number_input("NDWI uncertainty (index units)", min_value=0.0, max_value=1.0, value=0.04, step=0.01, format="%.2f")
+            minimum_gap = st.number_input("Minimum time gap (days)", min_value=0.0, max_value=3650.0, value=7.0, step=1.0)
+
+        st.markdown("**Candidate-review thresholds**")
+        threshold_a, threshold_b, threshold_c = st.columns(3)
+        with threshold_a:
+            ndvi_threshold = st.number_input("Minimum absolute NDVI delta", min_value=0.0, max_value=2.0, value=0.15, step=0.01, format="%.2f")
+        with threshold_b:
+            ndwi_threshold = st.number_input("Minimum absolute NDWI delta", min_value=0.0, max_value=2.0, value=0.15, step=0.01, format="%.2f")
+        with threshold_c:
+            rule_mode = st.selectbox("Detection rule", ["ANY", "ALL", "WEIGHTED"], index=0)
+        submitted = st.form_submit_button("Evaluate change evidence", type="primary", use_container_width=True)
+
+    if submitted:
+        baseline_timestamp = f"{baseline_date.isoformat()}T10:00:00+00:00"
+        comparison_timestamp = f"{comparison_date.isoformat()}T10:00:00+00:00"
+        change_evidence = spatial_temporal_change_evidence(
+            baseline_scene_id=baseline_scene.strip(),
+            comparison_scene_id=comparison_scene.strip(),
+            baseline_acquired_at=baseline_timestamp,
+            comparison_acquired_at=comparison_timestamp,
+            baseline_indices={"NDVI": baseline_ndvi, "NDWI_MCFEETERS": baseline_ndwi},
+            comparison_indices={"NDVI": comparison_ndvi, "NDWI_MCFEETERS": comparison_ndwi},
+            min_temporal_gap_days=minimum_gap,
+        )
+        if change_evidence.get("state") != "CANDIDATE_CHANGE_EVIDENCE":
+            st.error("Change calculation was blocked by input validation.")
+            st.json(change_evidence.get("findings", []))
+        else:
+            quality_evidence = spatial_temporal_quality_evidence(
+                change_evidence=change_evidence,
+                baseline_aoi_id=aoi_id.strip(),
+                comparison_aoi_id=aoi_id.strip(),
+                baseline_grid_id=grid_id.strip(),
+                comparison_grid_id=grid_id.strip(),
+                spatial_alignment="ALIGNED",
+                spatial_resolution_m=resolution_m,
+                baseline_cloud_cover_pct=baseline_cloud,
+                comparison_cloud_cover_pct=comparison_cloud,
+                baseline_valid_fraction=baseline_valid,
+                comparison_valid_fraction=comparison_valid,
+                ndvi_uncertainty=ndvi_uncertainty,
+                ndwi_uncertainty=ndwi_uncertainty,
+            )
+            if quality_evidence.get("state") != "CANDIDATE_CHANGE_EVIDENCE":
+                st.error("Quality gates blocked candidate scoring. Review the findings before continuing.")
+                st.json(quality_evidence.get("findings", []))
+            else:
+                candidate = detect_candidate(
+                    quality_evidence=quality_evidence,
+                    min_abs_ndvi_delta=ndvi_threshold,
+                    min_abs_ndwi_delta=ndwi_threshold,
+                    rule_mode=rule_mode,
+                )
+                if candidate.get("state") == "CONTROL_REQUIRED":
+                    st.error("Candidate scoring was blocked by validation.")
+                    st.json(candidate.get("findings", []))
+                else:
+                    delta_ndvi = change_evidence["change"]["NDVI"]["delta"]
+                    delta_ndwi = change_evidence["change"]["NDWI_MCFEETERS"]["delta"]
+                    m1, m2, m3 = st.columns(3)
+                    m1.metric("NDVI delta", f"{delta_ndvi:+.3f}")
+                    m2.metric("NDWI delta", f"{delta_ndwi:+.3f}")
+                    m3.metric("Candidate status", candidate["state"].replace("_", " ").title())
+                    if candidate["state"] == "CANDIDATE_CHANGE_DETECTED":
+                        st.warning(
+                            "A change signal crossed the selected thresholds. This is a review candidate, "
+                            "not a verified environmental change, legal finding, or enforcement instruction."
+                        )
+                    else:
+                        st.info(
+                            "No threshold was crossed under this policy. That does not prove that no environmental change occurred."
+                        )
+                    evidence_bundle = {
+                        "policy_version": "nema-agora-spatial-workspace-v1",
+                        "source_mode": "user_supplied_index_values",
+                        "live_provider_connected": False,
+                        "change_evidence": change_evidence,
+                        "quality_evidence": quality_evidence,
+                        "candidate": candidate,
+                        "governance": {
+                            "human_review_required": True,
+                            "environmental_conclusion": None,
+                            "regulatory_conclusion": None,
+                            "automatic_enforcement": False,
+                            "official_submission": False,
+                        },
+                    }
+                    with st.expander("Inspect evidence, quality gates and fingerprints"):
+                        st.json(evidence_bundle)
+                    st.download_button(
+                        "Export spatial evidence JSON",
+                        data=json.dumps(evidence_bundle, ensure_ascii=False, sort_keys=True, indent=2),
+                        file_name="nema-agora-spatial-evidence.json",
+                        mime="application/json",
+                        use_container_width=True,
+                    )
 
 if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
     st.subheader("Pilot monitoring snapshot")
