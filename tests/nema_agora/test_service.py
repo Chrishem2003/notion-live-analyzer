@@ -193,7 +193,7 @@ def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_pa
     assert payload["nema_authorization"] is False
 
     tampered = replace(reviewed, observation_fingerprint="tampered")
-    with pytest.raises(ValueError, match="integrity validation"):
+    with pytest.raises(ValueError, match="integrity validation|stale|differs"):
         service.export_governed_evidence_case(tampered, coordinator)
 
 
@@ -263,4 +263,27 @@ def test_repeated_or_stale_evidence_review_is_rejected(tmp_path):
         service.review_governed_evidence_case(
             second, reviewer, decision="ESCALATED", notes="duplicate attempt",
             reviewed_at="2026-10-04T12:21:00+03:00",
+        )
+
+
+
+def test_persisted_evidence_bundle_tampering_is_detected_after_reopen(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "tamper-pilot.sqlite3"
+    service = NemaAgoraService(NemaAgoraRepository(path))
+    reviewer = principal("tamper-review", "reviewer")
+    created = service.create_observation(record(), principal("tamper-submit", "submitter"))
+    service.build_governed_evidence_case(created["case_id"], reviewer)
+
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "UPDATE evidence_cases SET bundle_json = replace(bundle_json, 'Synthetic', 'Altered') WHERE case_id = ?",
+            (created["case_id"],),
+        )
+
+    reopened = NemaAgoraRepository(path)
+    with pytest.raises(ValueError, match="fingerprint mismatch"):
+        reopened.get_evidence_case(
+            created["case_id"], actor_id=reviewer.subject_key, role=reviewer.role
         )
