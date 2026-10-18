@@ -44,25 +44,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt -r requirements-dev.txt
-      - name: Run NEMA-AGORA unit tests when pilot sources are present
+      - name: Require focused NEMA-AGORA test suite
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -d nema_agora && -d tests/nema_agora ]]; then
-            python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
-          else
-            echo "NEMA-AGORA source/tests are not present on this branch; full pilot validation runs on the implementation branch."
-          fi
+          test -d nema_agora
+          test -d tests/nema_agora
+          test -n "$(find tests/nema_agora -maxdepth 1 -type f -name 'test_*.py' -print -quit)"
+          python -m pytest --confcutdir=tests/nema_agora -q tests/nema_agora
       - name: Compile NEMA-AGORA modules and pages
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -d nema_agora ]]; then
-            python -m compileall -q nema_agora
-          else
-            echo "NEMA-AGORA package not present on this branch; package compilation deferred."
-          fi
-          python -m compileall -q pages
+          test -d nema_agora
+          test -f pages/18_NEMA_AGORA.py
+          python -m compileall -q nema_agora
+          python -m py_compile pages/18_NEMA_AGORA.py
       - name: Smoke-test the single NEMA-AGORA workspace page
         shell: bash
         run: |
