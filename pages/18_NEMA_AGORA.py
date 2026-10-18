@@ -728,11 +728,18 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
                     st.error("Candidate scoring was blocked by validation.")
                     st.json(candidate.get("findings", []))
                 else:
-                    st.session_state["nema_agora_spatial_evidence_bundle"] = build_spatial_evidence_bundle(
-                        change_evidence=change_evidence,
-                        quality_evidence=quality_evidence,
-                        candidate=candidate,
-                    )
+                    try:
+                        bundle = build_spatial_evidence_bundle(
+                            change_evidence=change_evidence,
+                            quality_evidence=quality_evidence,
+                            candidate=candidate,
+                        )
+                    except (ValueError, TypeError) as exc:
+                        st.session_state.pop("nema_agora_spatial_evidence_bundle", None)
+                        st.error("Spatial evidence could not be bundled safely. Review the validation findings and correct the inputs.")
+                        st.caption(str(exc))
+                    else:
+                        st.session_state["nema_agora_spatial_evidence_bundle"] = bundle
 
     evidence_bundle = st.session_state.get("nema_agora_spatial_evidence_bundle")
     bundle_validation = validate_spatial_evidence_bundle(evidence_bundle) if isinstance(evidence_bundle, dict) else None
