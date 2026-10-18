@@ -40,7 +40,7 @@ def build_spatial_evidence_bundle(
         raise ValueError("Change evidence is not eligible for bundling.")
     if quality_evidence.get("state") != "CANDIDATE_CHANGE_EVIDENCE":
         raise ValueError("Quality evidence is not eligible for bundling.")
-    if candidate.get("state") not in {"CANDIDATE_CHANGE_DETECTED", "NO_THRESHOLD_CROSSED"}:
+    if candidate.get("state") not in {"CANDIDATE_CHANGE_DETECTED", "NO_CHANGE_DETECTED"}:
         raise ValueError("Candidate state is not eligible for bundling.")
 
     bundle: dict[str, Any] = {
