@@ -4,8 +4,8 @@
 
 - Pull request: [#23 — clean main-based integration](https://github.com/Chrishem2003/notion-live-analyzer/pull/23)
 - Branch: `feature/nema-agora-clean-integration`
-- Current Phase 175 commit: `68fa6759baa97ad4ee317ca5edaf5a4e104afa5f`
-- Phase 175 CI: [focused NEMA-AGORA checks](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39119277886) · [repository CI](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39119277876)
+- Latest verified implementation commit (Phase 176): `77e3c8ba2266fc7fcefe81d05480797a506e173d`
+- Phase 175 CI: [focused NEMA-AGORA checks](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39120517179) · [repository CI](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39120517124)
 
 ## Verified before Phase 175
 
@@ -22,8 +22,8 @@
 - [x] Added tests requiring an explicit database path rather than guessing a location.
 - [x] Added tests for backup-retention bounds and malformed values.
 - [x] Added tests for absent or malformed backup directory configuration.
-- [ ] Focused CI for Phase 175 commit completed successfully.
-- [ ] Repository CI for Phase 175 commit completed successfully.
+- [x] Focused CI passed after Phase 175 and Phase 176 implementation (run 39120517179).
+- [x] Repository CI passed after Phase 175 and Phase 176 implementation (run 39120517124).
 
 Do not mark Phase 175 complete until the two CI runs above finish successfully.
 
@@ -41,3 +41,15 @@ Do not mark Phase 175 complete until the two CI runs above finish successfully.
 ## Safety and scope boundary
 
 NEMA-AGORA remains an independent student-led prototype. It is not an official NEMA service and does not claim NEMA endorsement, ELMIS/SWIMS integration, official report submission, autonomous enforcement, or production approval. Use synthetic or appropriately consented test records until governance and deployment gates are complete.
+
+
+## Phase 176 — persistence and audit reliability
+
+- [x] Reject empty string paths before `Path` normalization can turn them into the current directory.
+- [x] Test backup helper behavior for invalid retention bounds, missing source databases, and corrupt source files.
+- [x] Make audit, operational, and intelligence event records append-only at the SQLite trigger layer.
+- [x] Regression tests confirm update/delete attempts are rejected for those event logs.
+- [x] Focused NEMA-AGORA CI passed: [run 39120517179](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39120517179).
+- [x] Repository-wide CI passed: [run 39120517124](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39120517124).
+
+These controls are defense in depth only. They do not protect against an operator who can replace the database file or alter its schema, so deployed access controls and independent backups remain mandatory.
