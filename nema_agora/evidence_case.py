@@ -123,8 +123,6 @@ def build_evidence_case(
         raise ValueError("evidence entries must be EvidenceReference values")
     if any(not isinstance(finding, AdvisoryFinding) for finding in findings_tuple):
         raise ValueError("findings entries must be AdvisoryFinding values")
-    if len({r.evidence_id for r in refs}) != len(refs):
-        raise ValueError("evidence_id values must be unique")
     for reference in refs:
         if not all(isinstance(value, str) and value.strip() for value in (
             reference.evidence_id, reference.kind, reference.source, reference.content_fingerprint
@@ -136,6 +134,9 @@ def build_evidence_case(
             _canonical(dict(reference.metadata))
         except (TypeError, ValueError):
             raise ValueError("evidence metadata must be JSON serializable") from None
+    evidence_ids = [reference.evidence_id for reference in refs]
+    if len(set(evidence_ids)) != len(evidence_ids):
+        raise ValueError("evidence_id values must be unique")
     for finding in findings_tuple:
         if not all(isinstance(value, str) and value.strip() for value in (
             finding.finding_id, finding.model_id, finding.model_version, finding.summary
@@ -276,7 +277,7 @@ def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
             issues.append("provenance_fingerprint_mismatch")
     except (TypeError, ValueError):
         issues.append("provenance_payload_invalid")
-    if case.state in {"REVIEWED", "EXPORTED"} and case.review is None:
+    if isinstance(case.state, str) and case.state in {"REVIEWED", "EXPORTED"} and case.review is None:
         issues.append("review_missing")
     if case.review is not None and not isinstance(case.review, HumanReview):
         issues.append("invalid_review_type")
