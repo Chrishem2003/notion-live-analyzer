@@ -76,3 +76,15 @@ This validates application-level fail-closed behavior and tests; it does not est
 - [x] Repository-wide CI passed: [run 39122117681](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39122117681).
 
 These are code-level and CI validations. They do not prove that an external OIDC provider or production deployment is configured correctly.
+
+
+
+## Phase 178 — persistent startup resilience
+
+- [x] Extracted explicit persistent-service initialization into `nema_agora/runtime.py`.
+- [x] Persistent startup failures display a safe, non-path-revealing message and stop the run for a provisioned user; no silent demo fallback occurs.
+- [x] Added regression tests for explicit nested database initialization and unavailable storage paths.
+- [x] Focused NEMA-AGORA checks passed: [run 39122825957](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39122825957).
+- [x] Repository CI passed: [run 39122826042](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39122826042).
+
+The tests verify application/runtime behavior in CI. They do not replace a live deployment test of the actual host filesystem, OIDC, persistent volume, or database recovery.
