@@ -133,3 +133,14 @@ def test_builder_rejects_non_finite_json_numbers():
             case_id="case-nan", observation={"measurement": float("nan")},
             evidence=[]
         )
+
+def test_malformed_reviewer_identity_fails_closed_without_crashing():
+    case = make_case()
+    malformed_review = HumanReview(
+        None, None, "ACKNOWLEDGED", "2026-10-04T12:03:00+00:00"
+    )
+    result = validate_evidence_case(replace(
+        case, state="REVIEWED", review=malformed_review
+    ))
+    assert result["valid"] is False
+    assert "invalid_reviewer_identity" in result["issues"]
