@@ -20,14 +20,21 @@ def _valid_value(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(float(value)) and -1.0 <= float(value) <= 1.0
 
 
-def _valid_timestamp(value: Any) -> bool:
+def _parse_timestamp(value: Any) -> datetime | None:
+    """Parse an ISO 8601 timestamp only when it has an explicit UTC offset."""
     if not isinstance(value, str) or not value.strip():
-        return False
+        return None
     try:
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
-        return True
+        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
     except ValueError:
-        return False
+        return None
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        return None
+    return parsed
+
+
+def _valid_timestamp(value: Any) -> bool:
+    return _parse_timestamp(value) is not None
 
 
 def validate_change_inputs(*, baseline_scene_id: Any, comparison_scene_id: Any,
@@ -41,12 +48,21 @@ def validate_change_inputs(*, baseline_scene_id: Any, comparison_scene_id: Any,
         findings.append({"code": "BASELINE_AND_COMPARISON_SCENE_IDENTICAL"})
     if not _valid_timestamp(baseline_acquired_at): findings.append({"code": "INVALID_BASELINE_TIMESTAMP"})
     if not _valid_timestamp(comparison_acquired_at): findings.append({"code": "INVALID_COMPARISON_TIMESTAMP"})
-    if _valid_timestamp(baseline_acquired_at) and _valid_timestamp(comparison_acquired_at):
-        b = datetime.fromisoformat(str(baseline_acquired_at).replace("Z", "+00:00"))
-        c = datetime.fromisoformat(str(comparison_acquired_at).replace("Z", "+00:00"))
-        gap_days = (c - b).total_seconds() / 86400
-        if gap_days <= 0: findings.append({"code": "COMPARISON_NOT_AFTER_BASELINE"})
-        if not isinstance(min_temporal_gap_days, (int, float)) or isinstance(min_temporal_gap_days, bool) or not math.isfinite(float(min_temporal_gap_days)) or float(min_temporal_gap_days) < 0:
+    baseline_parsed = _parse_timestamp(baseline_acquired_at)
+    comparison_parsed = _parse_timestamp(comparison_acquired_at)
+    if baseline_parsed is not None and comparison_parsed is not None:
+        # Convert both instants to UTC before subtraction so differing offsets
+        # cannot change the elapsed-time result or trigger naive/aware errors.
+        gap_days = (
+            comparison_parsed.astimezone().timestamp()
+            - baseline_parsed.astimezone().timestamp()
+        ) / 86400
+        if gap_days <= 0:
+            findings.append({"code": "COMPARISON_NOT_AFTER_BASELINE"})
+        if (not isinstance(min_temporal_gap_days, (int, float))
+                or isinstance(min_temporal_gap_days, bool)
+                or not math.isfinite(float(min_temporal_gap_days))
+                or float(min_temporal_gap_days) < 0):
             findings.append({"code": "INVALID_MIN_TEMPORAL_GAP"})
         elif gap_days < float(min_temporal_gap_days):
             findings.append({"code": "TEMPORAL_GAP_BELOW_MINIMUM"})
