@@ -2,20 +2,20 @@
   "project": "NEMA-AGORA",
   "mode": "AUTONOMOUS_BUILD",
   "status": "RELEASE_READINESS",
-  "current_phase": 174,
-  "next_phase": 175,
+  "current_phase": 175,
+  "next_phase": 176,
   "completed_through": 174,
   "pr_number": 23,
   "branch": "feature/nema-agora-clean-integration",
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": null,
-  "last_verified_head": "2aa350dddb7d08b5f74dd131f646a30bc667cb74",
+  "current_head": "68fa6759baa97ad4ee317ca5edaf5a4e104afa5f",
+  "last_verified_head": "afa446996aa3648385066456defc4ccea7148e9a",
   "last_verified_phase": 174,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 174: consolidated the candidate around one user-facing NEMA-AGORA workspace on a clean main-based branch; specialist NEMA pages are hidden from sidebar discovery while implementation and focused tests are retained. Focused NEMA-AGORA CI and repository CI passed on candidate commit 2aa350dddb7d08b5f74dd131f646a30bc667cb74.",
-  "validation_status": "PASS_ON_CANDIDATE_2aa350dddb7d08b5f74dd131f646a30bc667cb74; STATE_SYNC_COMMIT_REQUIRES_FRESH_CI; RELEASE_GATES_PENDING",
+  "last_action": "Phase 175 implementation: added regression tests for deployment configuration fail-closed behavior, including invalid mode values, missing/ambiguous database paths, bounded backup retention, and absent backup directory. CI was triggered for this commit and is pending.",
+  "validation_status": "PHASE_175_CI_PENDING_ON_68fa6759baa97ad4ee317ca5edaf5a4e104afa5f; RELEASE_GATES_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -35,15 +35,14 @@
     "institutional_approval"
   ],
   "validation_evidence": {
-    "candidate_sha": "2aa350dddb7d08b5f74dd131f646a30bc667cb74",
-    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39117864940",
-    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39117864979",
+    "candidate_sha": "68fa6759baa97ad4ee317ca5edaf5a4e104afa5f",
+    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39119277886",
+    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39119277876",
     "checks": {
-      "dependency_install": "PASS",
-      "nema_unit_tests": "PASS",
-      "python_compileall": "PASS",
-      "consolidated_app_startup_smoke_test": "PASS",
-      "navigation_contract_tests": "PASS"
+      "deployment_config_regression_tests": "PENDING",
+      "nema_unit_tests": "PENDING",
+      "python_compileall": "PENDING",
+      "consolidated_app_startup_smoke_test": "PENDING"
     }
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
