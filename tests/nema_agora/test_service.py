@@ -551,10 +551,11 @@ def test_evidence_history_verifier_accepts_valid_in_progress_prefixes(tmp_path):
     assert ready["state"] == "READY_FOR_REVIEW"
     assert ready["event_count"] == 1
 
+    prepared_events = service.list_evidence_case_events(case_id, coordinator)
     service.review_governed_evidence_case(
         prepared, reviewer, decision="ACKNOWLEDGED",
         notes="Intermediate lifecycle prefix remains valid",
-        reviewed_at="2026-10-04T13:00:00+03:00",
+        reviewed_at=prepared_events[0]["occurred_at"],
     )
     in_review = service.verify_evidence_case_history(case_id, coordinator)
     assert in_review["valid"] is True
