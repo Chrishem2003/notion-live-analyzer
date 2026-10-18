@@ -249,9 +249,12 @@ def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
     if case.state in {"REVIEWED", "EXPORTED"} and case.review is None:
         issues.append("review_missing")
     if case.review is not None:
-        if not case.review.reviewer_id.strip() or not case.review.role.strip():
+        if (
+            not isinstance(case.review.reviewer_id, str) or not case.review.reviewer_id.strip()
+            or not isinstance(case.review.role, str) or not case.review.role.strip()
+        ):
             issues.append("invalid_reviewer_identity")
-        if case.review.decision not in ALLOWED_DECISIONS - {"PENDING"}:
+        if not isinstance(case.review.decision, str) or case.review.decision not in ALLOWED_DECISIONS - {"PENDING"}:
             issues.append("invalid_review_decision")
         if not _has_timezone(case.review.reviewed_at):
             issues.append("invalid_review_timestamp")
