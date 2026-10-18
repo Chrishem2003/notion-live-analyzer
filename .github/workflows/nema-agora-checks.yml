@@ -69,7 +69,7 @@ jobs:
           test -f pages/18_NEMA_AGORA.py
           python -m compileall -q nema_agora
           python -m py_compile app.py app_navigation.py main_app.py pages/18_NEMA_AGORA.py
-      - name: Smoke-test the single NEMA-AGORA workspace page
+      - name: Smoke-test curated app entrypoint and workspace routing
         shell: bash
         run: |
           set -euo pipefail
