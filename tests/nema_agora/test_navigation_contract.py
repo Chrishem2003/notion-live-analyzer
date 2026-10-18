@@ -124,3 +124,18 @@ def test_release_readiness_failures_do_not_leak_exception_details_or_claim_appro
     )
     assert action < handler < safe_message_start < safe_message_end
     assert "st.caption(f\"Failure type: {type(exc).__name__}\")" in page[safe_message_end:]
+
+def test_operational_backup_controls_are_admin_gated_and_fail_closed():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    section = page.index('governance_tool == "Operations & backups"')
+    gate = page.index('principal.role != "admin"', section)
+    backup_config = page.index("backup_dir_from_secrets(st.secrets)", gate)
+    integrity_gate = page.index("elif not db_healthy:", backup_config)
+    backup_action = page.index('st.button("Create verified backup"', integrity_gate)
+    retention_action = page.index('st.button("Apply backup retention"', backup_action)
+    assert section < gate < backup_config < integrity_gate < backup_action < retention_action
+    assert "Backups may contain environmental case records" in page[section:]
+    assert "does not prove off-site recovery" in page[section:]
+
