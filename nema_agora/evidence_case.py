@@ -117,6 +117,10 @@ def build_evidence_case(
         _canonical(observation)
     except (TypeError, ValueError):
         raise ValueError("observation must be JSON serializable") from None
+    if not isinstance(evidence, (tuple, list)):
+        raise ValueError("evidence must be a list or tuple")
+    if not isinstance(findings, (tuple, list)):
+        raise ValueError("findings must be a list or tuple")
     refs = tuple(evidence)
     findings_tuple = tuple(findings)
     if any(not isinstance(reference, EvidenceReference) for reference in refs):
@@ -130,8 +134,10 @@ def build_evidence_case(
             raise ValueError("evidence references require id, kind, source, and content fingerprint")
         if not _has_timezone(reference.captured_at):
             raise ValueError("evidence captured_at must be an ISO 8601 timestamp with timezone")
+        if not isinstance(reference.metadata, Mapping):
+            raise ValueError("evidence metadata must be a mapping")
         try:
-            _canonical(dict(reference.metadata))
+            _canonical(reference.metadata)
         except (TypeError, ValueError):
             raise ValueError("evidence metadata must be JSON serializable") from None
     evidence_ids = [reference.evidence_id for reference in refs]
@@ -149,11 +155,16 @@ def build_evidence_case(
         ):
             raise ValueError("finding input fingerprints must be non-empty strings")
     for finding in findings_tuple:
-        if not finding.advisory_only:
+        if finding.advisory_only is not True:
             raise ValueError("findings must remain advisory_only")
         if finding.confidence is not None:
             try:
-                confidence_valid = math.isfinite(finding.confidence) and 0 <= finding.confidence <= 1
+                confidence_valid = (
+                    not isinstance(finding.confidence, bool)
+                    and isinstance(finding.confidence, (int, float))
+                    and math.isfinite(finding.confidence)
+                    and 0 <= finding.confidence <= 1
+                )
             except (TypeError, ValueError):
                 confidence_valid = False
             if not confidence_valid:
@@ -258,17 +269,26 @@ def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
     if any(not isinstance(finding, AdvisoryFinding) for finding in finding_items):
         issues.append("invalid_advisory_finding")
     for finding in (item for item in finding_items if isinstance(item, AdvisoryFinding)):
-        if not finding.advisory_only:
+        if finding.advisory_only is not True:
             issues.append("non_advisory_finding")
         if finding.confidence is not None:
             try:
-                confidence_valid = math.isfinite(finding.confidence) and 0 <= finding.confidence <= 1
+                confidence_valid = (
+                    not isinstance(finding.confidence, bool)
+                    and isinstance(finding.confidence, (int, float))
+                    and math.isfinite(finding.confidence)
+                    and 0 <= finding.confidence <= 1
+                )
             except (TypeError, ValueError):
                 confidence_valid = False
             if not confidence_valid:
                 issues.append("invalid_confidence")
         if not _has_timezone(finding.generated_at):
             issues.append("invalid_finding_timestamp")
+        if not isinstance(finding.input_fingerprints, (tuple, list)) or any(
+            not isinstance(item, str) or not item.strip() for item in finding.input_fingerprints
+        ):
+            issues.append("invalid_input_fingerprints")
     try:
         expected_provenance = _fingerprint(
             _provenance_payload(case.case_id, case.observation_fingerprint, case.evidence, case.findings)
@@ -291,6 +311,8 @@ def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
             issues.append("invalid_review_decision")
         if not _has_timezone(case.review.reviewed_at):
             issues.append("invalid_review_timestamp")
+        if not isinstance(case.review.notes, str):
+            issues.append("invalid_review_notes")
         try:
             expected_review_fingerprint = _review_fingerprint(case.review)
             if not case.review_fingerprint or case.review_fingerprint != expected_review_fingerprint:
