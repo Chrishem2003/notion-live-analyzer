@@ -10,6 +10,7 @@ on:
       - "nema_agora/**"
       - "app.py"
       - "main_app.py"
+      - "app_navigation.py"
       - "pages/*NEMA_AGORA*.py"
       - "tests/nema_agora/**"
       - "requirements.txt"
@@ -22,6 +23,7 @@ on:
       - "nema_agora/**"
       - "app.py"
       - "main_app.py"
+      - "app_navigation.py"
       - "pages/*NEMA_AGORA*.py"
       - "tests/nema_agora/**"
       - "requirements.txt"
@@ -62,10 +64,11 @@ jobs:
           set -euo pipefail
           test -d nema_agora
           test -f app.py
+          test -f app_navigation.py
           test -f main_app.py
           test -f pages/18_NEMA_AGORA.py
           python -m compileall -q nema_agora
-          python -m py_compile app.py main_app.py pages/18_NEMA_AGORA.py
+          python -m py_compile app.py app_navigation.py main_app.py pages/18_NEMA_AGORA.py
       - name: Smoke-test the single NEMA-AGORA workspace page
         shell: bash
         run: |
