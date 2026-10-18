@@ -536,3 +536,69 @@ def test_evidence_history_verifier_detects_extra_lifecycle_event(tmp_path):
     assert "unexpected_extra_lifecycle_event" in invalid["issues"]
     assert "final_event_fingerprint_mismatch" in invalid["issues"]
 
+def test_evidence_history_verifier_accepts_valid_in_progress_prefixes(tmp_path):
+    repository = NemaAgoraRepository(tmp_path / "evidence-history-prefix.sqlite3")
+    service = NemaAgoraService(repository)
+    submitter = principal("history-prefix-submit", "submitter")
+    reviewer = principal("history-prefix-review", "reviewer")
+    coordinator = principal("history-prefix-coord", "coordinator")
+    created = service.create_observation(record(), submitter)
+    case_id = created["case_id"]
+    prepared = service.build_governed_evidence_case(case_id, reviewer)["evidence_case"]
+
+    ready = service.verify_evidence_case_history(case_id, coordinator)
+    assert ready["valid"] is True
+    assert ready["state"] == "READY_FOR_REVIEW"
+    assert ready["event_count"] == 1
+
+    service.review_governed_evidence_case(
+        prepared, reviewer, decision="ACKNOWLEDGED",
+        notes="Intermediate lifecycle prefix remains valid",
+        reviewed_at="2026-10-04T13:00:00+03:00",
+    )
+    in_review = service.verify_evidence_case_history(case_id, coordinator)
+    assert in_review["valid"] is True
+    assert in_review["state"] == "REVIEWED"
+    assert in_review["event_count"] == 2
+
+
+def test_evidence_history_verifier_detects_non_monotonic_event_timestamps(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "evidence-history-time.sqlite3"
+    repository = NemaAgoraRepository(path)
+    service = NemaAgoraService(repository)
+    submitter = principal("history-time-submit", "submitter")
+    reviewer = principal("history-time-review", "reviewer")
+    coordinator = principal("history-time-coord", "coordinator")
+    created = service.create_observation(record(), submitter)
+    case_id = created["case_id"]
+    prepared = service.build_governed_evidence_case(case_id, reviewer)["evidence_case"]
+    service.review_governed_evidence_case(
+        prepared, reviewer, decision="ACKNOWLEDGED",
+        notes="Timestamp ordering test",
+        reviewed_at="2026-10-04T13:10:00+03:00",
+    )
+    service.export_governed_evidence_case(
+        service.repository.get_evidence_case(
+            case_id, actor_id=coordinator.subject_key, role=coordinator.role
+        ) and __import__("nema_agora.evidence", fromlist=["evidence_case_from_dict"]).evidence_case_from_dict(
+            service.repository.get_evidence_case(
+                case_id, actor_id=coordinator.subject_key, role=coordinator.role
+            )["bundle"]
+        ),
+        coordinator,
+    )
+
+    with sqlite3.connect(path) as connection:
+        connection.execute("DROP TRIGGER evidence_case_events_no_update")
+        connection.execute(
+            """UPDATE evidence_case_events SET occurred_at = ?
+               WHERE case_id = ? AND event_type = 'evidence_case_reviewed'""",
+            ("2026-10-04T12:00:00+03:00", case_id),
+        )
+
+    result = service.verify_evidence_case_history(case_id, coordinator)
+    assert result["valid"] is False
+    assert "non_monotonic_timestamp_at_event_2" in result["issues"]
+
