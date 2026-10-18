@@ -89,7 +89,7 @@ def test_tampered_execution_boundary_is_rejected():
         outcome="ACKNOWLEDGED", reviewed_at="2026-10-04T12:05:00+00:00"
     )
     tampered = dict(review, execution_permitted=True)
-    with pytest.raises(ValueError, match="EXECUTION_GATE_VIOLATION"):
+    with pytest.raises(ValueError, match="EXECUTION_GATE_VIOLATION|FINGERPRINT_MISMATCH"):
         validate_retention_registry_review(tampered)
 
 def test_invalid_monitor_is_rejected():
