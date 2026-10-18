@@ -574,12 +574,15 @@ def test_evidence_history_verifier_detects_non_monotonic_event_timestamps(tmp_pa
     created = service.create_observation(record(), submitter)
     case_id = created["case_id"]
     prepared = service.build_governed_evidence_case(case_id, reviewer)["evidence_case"]
+    prepared_events = service.list_evidence_case_events(case_id, coordinator)
     reviewed = service.review_governed_evidence_case(
         prepared, reviewer, decision="ACKNOWLEDGED",
         notes="Timestamp ordering test",
-        reviewed_at="2026-10-04T13:10:00+03:00",
+        reviewed_at=prepared_events[0]["occurred_at"],
     )
     service.export_governed_evidence_case(reviewed, coordinator)
+    baseline = service.verify_evidence_case_history(case_id, coordinator)
+    assert baseline["valid"] is True
 
     with sqlite3.connect(path) as connection:
         connection.execute("DROP TRIGGER evidence_case_events_no_update")
