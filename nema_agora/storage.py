@@ -288,8 +288,7 @@ class NemaAgoraRepository:
     ) -> dict[str, Any]:
         actor = _actor(actor_id)
         require_permission(role, "observation:review")
-        if not changed_at or not changed_at.strip():
-            raise ValueError("A change timestamp is required.")
+        _timestamp(changed_at, "changed_at")
 
         with self._session() as connection:
             connection.execute("BEGIN IMMEDIATE")
