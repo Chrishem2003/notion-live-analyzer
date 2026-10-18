@@ -17,7 +17,10 @@ def mode_from_secrets(secrets: Mapping[str, object]) -> str:
     malformed or unknown mode returns "invalid" so the UI can stop visibly
     rather than silently pretending an operator's configuration was accepted.
     """
-    section = _section(secrets)
+    raw_section = secrets.get("nema_agora", {})
+    if not isinstance(raw_section, Mapping):
+        return "invalid"
+    section = raw_section
     if "mode" not in section:
         return "demo"
     mode = section.get("mode")
