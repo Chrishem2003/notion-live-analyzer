@@ -551,6 +551,7 @@ class NemaAgoraRepository:
         if not rows:
             issues.append("missing_lifecycle_events")
         prior_state = None
+        prior_timestamp: datetime | None = None
         for index, row in enumerate(rows):
             if index >= len(expected):
                 issues.append("unexpected_extra_lifecycle_event")
@@ -566,7 +567,11 @@ class NemaAgoraRepository:
                 issues.append(f"missing_actor_role_at_event_{index + 1}")
             try:
                 _timestamp(row["occurred_at"], "occurred_at")
-            except ValueError:
+                event_timestamp = datetime.fromisoformat(row["occurred_at"].replace("Z", "+00:00"))
+                if prior_timestamp is not None and event_timestamp < prior_timestamp:
+                    issues.append(f"non_monotonic_timestamp_at_event_{index + 1}")
+                prior_timestamp = event_timestamp
+            except (ValueError, TypeError, AttributeError):
                 issues.append(f"invalid_timestamp_at_event_{index + 1}")
             if not isinstance(row["bundle_fingerprint"], str) or not row["bundle_fingerprint"].strip():
                 issues.append(f"missing_fingerprint_at_event_{index + 1}")
