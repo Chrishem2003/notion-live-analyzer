@@ -131,3 +131,11 @@ The test exercises service/repository policy under CI. Deployed identity-provide
 - [x] Added a regression test that injects a source-record update between service precheck and transition; the review must fail and no review lifecycle event may be appended.
 - [ ] Focused and repository CI must pass on this implementation before Phase 183 is verified.
 - [ ] Deployed identity, persistent write/read, backup-restore, governance, and institutional release gates remain outstanding.
+
+## Phase 184 — lifecycle history consistency verifier
+
+- [x] Added an audit-permission-gated verifier that checks evidence lifecycle event ordering, allowed transitions, actor attribution, timestamps, and agreement with the persisted final state/fingerprint.
+- [x] Added tests for a valid prepare → review → export chain and for detection of an injected extra lifecycle event.
+- [ ] Focused NEMA-AGORA and repository CI must pass on the latest candidate before Phase 184 is verified.
+- [ ] This is an application-level consistency check, not cryptographic tamper proofing; protect the database file and backups separately.
+
