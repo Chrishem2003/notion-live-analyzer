@@ -90,6 +90,7 @@ def make_observation(
         "status": "Received",
         "review_notes": "",
         "evidence_reference": (evidence_reference or "").strip(),
+        "consent_confirmed": True,
     }
 
 
