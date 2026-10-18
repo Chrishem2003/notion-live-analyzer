@@ -119,6 +119,15 @@ The test exercises service/repository policy under CI. Deployed identity-provide
 
 - [x] Added regression coverage proving invalid human-review decisions leave the persisted evidence state and lifecycle event log unchanged.
 - [x] Added replay checks proving duplicate review/export attempts cannot append duplicate lifecycle events.
-- [ ] Focused and repository CI must pass on the updated candidate before this phase is considered verified.
+- [x] Focused NEMA-AGORA CI passed: [run 39124448742](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124448742).
+- [x] Repository CI passed: [run 39124448726](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124448726).
 - [ ] Deployed write/read, identity, backup-restore, and institutional release gates remain outstanding.
 
+
+
+## Phase 183 — atomic source-provenance revalidation
+
+- [x] Evidence transitions now re-read the source observation inside the SQLite write transaction and verify the evidence bundle's observation fingerprint before changing lifecycle state.
+- [x] Added a regression test that injects a source-record update between service precheck and transition; the review must fail and no review lifecycle event may be appended.
+- [ ] Focused and repository CI must pass on this implementation before Phase 183 is verified.
+- [ ] Deployed identity, persistent write/read, backup-restore, governance, and institutional release gates remain outstanding.
