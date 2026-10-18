@@ -137,3 +137,11 @@ def test_restore_post_replace_integrity_failure_rolls_back_existing_target(tmp_p
     assert len(reopened.list_observations(actor_id="target-user", role="submitter")) == 1
     assert reopened.list_observations(actor_id="source-user", role="submitter") == []
 
+
+
+@pytest.mark.parametrize("empty_path", ["", "   "])
+def test_backup_helpers_reject_empty_path_instead_of_using_current_directory(tmp_path, empty_path):
+    from nema_agora.backup import _path
+
+    with pytest.raises(ValueError, match="filesystem path is required"):
+        _path(empty_path)
