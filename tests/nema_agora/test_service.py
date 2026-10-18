@@ -402,3 +402,51 @@ def test_evidence_lifecycle_events_require_audit_read_permission(tmp_path):
     events = service.list_evidence_case_events(created["case_id"], coordinator)
     assert len(events) == 1
     assert events[0]["event_type"] == "evidence_case_prepared"
+
+def test_failed_evidence_lifecycle_actions_leave_state_and_audit_unchanged(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "evidence-atomicity.sqlite3"))
+    submitter = principal("atomic-submit", "submitter")
+    reviewer = principal("atomic-review", "reviewer")
+    coordinator = principal("atomic-coord", "coordinator")
+    created = service.create_observation(record(), submitter)
+    case_id = created["case_id"]
+    prepared = service.build_governed_evidence_case(case_id, reviewer)["evidence_case"]
+
+    with pytest.raises(ValueError, match="invalid human review decision"):
+        service.review_governed_evidence_case(
+            prepared, reviewer, decision="AUTO_APPROVE",
+            notes="Invalid synthetic test decision",
+            reviewed_at="2026-10-04T12:30:00+03:00",
+        )
+
+    unchanged = service.repository.get_evidence_case(
+        case_id, actor_id=reviewer.subject_key, role=reviewer.role
+    )
+    assert unchanged["state"] == "READY_FOR_REVIEW"
+    events = service.list_evidence_case_events(case_id, coordinator)
+    assert [event["event_type"] for event in events] == ["evidence_case_prepared"]
+
+    reviewed = service.review_governed_evidence_case(
+        prepared, reviewer, decision="ACKNOWLEDGED",
+        notes="Valid human review", reviewed_at="2026-10-04T12:31:00+03:00",
+    )
+    with pytest.raises(ValueError, match="not awaiting human review|stale|differs"):
+        service.review_governed_evidence_case(
+            prepared, reviewer, decision="ESCALATED",
+            notes="Replay must not create another event",
+            reviewed_at="2026-10-04T12:32:00+03:00",
+        )
+    events = service.list_evidence_case_events(case_id, coordinator)
+    assert [event["event_type"] for event in events] == [
+        "evidence_case_prepared", "evidence_case_reviewed"
+    ]
+    assert events[-1]["actor_id"] == reviewer.subject_key
+
+    service.export_governed_evidence_case(reviewed, coordinator)
+    with pytest.raises(ValueError, match="stale|differs|human-reviewed"):
+        service.export_governed_evidence_case(reviewed, coordinator)
+    events = service.list_evidence_case_events(case_id, coordinator)
+    assert [event["event_type"] for event in events] == [
+        "evidence_case_prepared", "evidence_case_reviewed", "evidence_case_exported"
+    ]
+
