@@ -12,7 +12,7 @@ import pandas as pd
 import streamlit as st
 
 from nema_agora.access import has_permission
-from nema_agora.auth import principal_from_streamlit_user
+from nema_agora.auth import resolve_principal
 from nema_agora.config import (
     backup_dir_from_secrets,
     backup_retention_from_secrets,
@@ -45,7 +45,7 @@ def _persistent_context() -> tuple[NemaAgoraService | None, object | None, str]:
     mode = mode_from_secrets(st.secrets)
     if mode != "persistent":
         return None, None, mode
-    principal = principal_from_streamlit_user(st.user, st.secrets)
+    principal = resolve_principal(st)
     if principal is None or not principal.is_authorised:
         return None, principal, mode
     database_path = database_path_from_secrets(st.secrets)
