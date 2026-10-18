@@ -14,7 +14,7 @@ ALLOWED_DECISIONS = {"PENDING", "ACKNOWLEDGED", "REQUIRES_FOLLOW_UP", "ESCALATED
 
 
 def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
 
 
 def _fingerprint(value: Any) -> str:
