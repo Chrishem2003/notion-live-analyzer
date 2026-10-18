@@ -155,6 +155,33 @@ can_audit = persistent and has_permission(principal.role, "audit:read")
 can_intelligence = persistent and has_permission(principal.role, "intelligence:use")
 can_shadow = persistent and has_permission(principal.role, "intelligence:shadow")
 
+# Keep secondary navigation local to the chosen work area so users see only
+# one task surface at a time instead of a long, vertically stacked dashboard.
+intelligence_tool = None
+map_tool = None
+governance_tool = None
+if active_section == "Intelligence workspace" and intelligence_tool == "Evidence intelligence":
+    intelligence_tool = st.radio(
+        "Intelligence tools",
+        ["Evidence intelligence", "Reviewer copilot", "AI shadow mode", "Evaluation observatory"],
+        horizontal=True,
+        key="nema_agora_intelligence_tool",
+    )
+elif active_section == "Maps & metrics" and map_tool == "Map":
+    map_tool = st.radio(
+        "View",
+        ["Map", "Pilot metrics"],
+        horizontal=True,
+        key="nema_agora_map_tool",
+    )
+elif active_section == "Governance & help" and governance_tool == "Release readiness":
+    governance_tool = st.radio(
+        "Governance tools",
+        ["Release readiness", "About the pilot"],
+        horizontal=True,
+        key="nema_agora_governance_tool",
+    )
+
 # One Streamlit page with short, task-oriented navigation.
 
 if active_section == "Submit observation":
@@ -350,7 +377,7 @@ if active_section == "Case management":
                     else:
                         st.info("No governed evidence transitions recorded yet.")
 
-if active_section == "Intelligence workspace":
+if active_section == "Intelligence workspace" and intelligence_tool == "Reviewer copilot":
     st.subheader("🧠 Evidence intelligence — human-in-the-loop")
     st.caption("Phase 8–10 foundation: deterministic, explainable, evaluated and advisory. No autonomous regulatory or enforcement decisions are made.")
     if not persistent:
@@ -389,7 +416,7 @@ if active_section == "Intelligence workspace":
                 st.write(analysis["priority_advisory"]["reason"])
                 st.warning(analysis["decision_notice"])
 
-if active_section == "Intelligence workspace":
+if active_section == "Intelligence workspace" and intelligence_tool == "AI shadow mode":
     st.subheader("🤝 Reviewer copilot")
     st.caption("Phase 10: structured reviewer assistance built from supplied evidence. Recommendations never change case status.")
     if not persistent:
@@ -497,7 +524,7 @@ if active_section == "Intelligence workspace":
                         st.markdown("### Intelligence audit trail")
                         st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
 
-if active_section == "Intelligence workspace":
+if active_section == "Intelligence workspace" and intelligence_tool == "Evaluation observatory":
     st.subheader("🧪 Controlled AI shadow mode")
     st.caption("Phase 12: an advisory model may observe a pilot case, but its output is isolated from the live workflow.")
     st.info(
@@ -582,7 +609,7 @@ if active_section == "Intelligence workspace":
         st.markdown("**Current pilot gate policy**")
         st.write("- ≥25 labelled evaluation cases\n- ≥20 reviewer feedback records\n- ≥80% category accuracy\n- ≥80% duplicate F1\n- ≥90% summary faithfulness")
         st.warning("No readiness result is displayed until a versioned evaluation report is supplied. Thresholds are governance gates, not guarantees of model safety.")
-if active_section == "Maps & metrics":
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
     st.subheader("Location view")
     records = records_for_current_user()
     geocoded = [
@@ -618,7 +645,7 @@ if active_section == "Maps & metrics":
         st.warning("Prototype metrics are not verified environmental outcomes or official response statistics.")
 
 
-if active_section == "Governance & help":
+if active_section == "Governance & help" and governance_tool == "About the pilot":
     st.subheader("Release readiness — evidence completeness")
     st.caption("One-page workspace • Phase 171 • exact-commit evidence • fail-closed review")
     if not persistent or principal is None or not principal.is_authorised:
