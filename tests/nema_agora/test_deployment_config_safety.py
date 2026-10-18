@@ -31,7 +31,7 @@ def test_database_path_is_explicit_and_expands_home_marker():
     assert path == Path("~/nema/pilot.sqlite3").expanduser()
 
 
-@pytest.mark.parametrize("value", [0, -1, 3651, "not-a-number", True, None])
+@pytest.mark.parametrize("value", [0, -1, 3651, "not-a-number", True, None, 1.5, 1.0, [], {}])
 def test_invalid_backup_retention_fails_closed(value):
     assert backup_retention_from_secrets({"nema_agora": {"backup_retention": value}}) is None
 
