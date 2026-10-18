@@ -935,8 +935,12 @@ if active_section == "Governance & help" and governance_tool == "Release readine
                     mime="application/json",
                     key="nema_agora_readiness_report_download",
                 )
-            except (ValueError, TypeError, json.JSONDecodeError) as exc:
-                st.error(f"Readiness could not be evaluated: {exc}")
+            except Exception as exc:
+                st.error(
+                    "Readiness could not be evaluated. Check the candidate SHA and evidence JSON, "
+                    "then retry. No release approval was granted."
+                )
+                st.caption(f"Failure type: {type(exc).__name__}")
         st.caption(
             "A positive result means READY_FOR_HUMAN_RELEASE_REVIEW only. It is not production approval; "
             "independent human review and institutional approval remain required."
