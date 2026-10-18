@@ -235,6 +235,19 @@ def test_evidence_case_survives_repository_reopen_and_records_transitions(tmp_pa
     assert export_payload["case"]["state"] == "EXPORTED"
     assert export_payload["durable"] is True
 
+    import sqlite3
+    with sqlite3.connect(path) as connection:
+        with pytest.raises(sqlite3.IntegrityError, match="immutable"):
+            connection.execute(
+                "UPDATE evidence_case_events SET actor_id = 'forged' WHERE case_id = ?",
+                (created["case_id"],),
+            )
+        with pytest.raises(sqlite3.IntegrityError, match="immutable"):
+            connection.execute(
+                "DELETE FROM evidence_case_events WHERE case_id = ?",
+                (created["case_id"],),
+            )
+
     events = reopened.list_evidence_case_events(created["case_id"], admin)
     assert [event["event_type"] for event in events] == [
         "evidence_case_prepared", "evidence_case_reviewed", "evidence_case_exported"
