@@ -20,6 +20,8 @@ on:
     branches: [main]
     paths:
       - "nema_agora/**"
+      - "app.py"
+      - "main_app.py"
       - "pages/*NEMA_AGORA*.py"
       - "tests/nema_agora/**"
       - "requirements.txt"
