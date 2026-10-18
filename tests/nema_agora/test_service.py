@@ -384,3 +384,21 @@ def test_source_observation_change_blocks_export_after_review(tmp_path):
     )
     with pytest.raises(ValueError, match="Source observation changed"):
         service.export_governed_evidence_case(reviewed, coordinator)
+
+
+def test_evidence_lifecycle_events_require_audit_read_permission(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "evidence-event-access.sqlite3"))
+    submitter = principal("event-access-submit", "submitter")
+    reviewer = principal("event-access-review", "reviewer")
+    coordinator = principal("event-access-coord", "coordinator")
+    created = service.create_observation(record(), submitter)
+    service.build_governed_evidence_case(created["case_id"], reviewer)
+
+    with pytest.raises(PermissionError):
+        service.list_evidence_case_events(created["case_id"], submitter)
+    with pytest.raises(PermissionError):
+        service.list_evidence_case_events(created["case_id"], reviewer)
+
+    events = service.list_evidence_case_events(created["case_id"], coordinator)
+    assert len(events) == 1
+    assert events[0]["event_type"] == "evidence_case_prepared"
