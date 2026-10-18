@@ -160,21 +160,21 @@ can_shadow = persistent and has_permission(principal.role, "intelligence:shadow"
 intelligence_tool = None
 map_tool = None
 governance_tool = None
-if active_section == "Intelligence workspace" and intelligence_tool == "Evidence intelligence":
+if active_section == "Intelligence workspace":
     intelligence_tool = st.radio(
         "Intelligence tools",
         ["Evidence intelligence", "Reviewer copilot", "AI shadow mode", "Evaluation observatory"],
         horizontal=True,
         key="nema_agora_intelligence_tool",
     )
-elif active_section == "Maps & metrics" and map_tool == "Map":
+elif active_section == "Maps & metrics":
     map_tool = st.radio(
         "View",
         ["Map", "Pilot metrics"],
         horizontal=True,
         key="nema_agora_map_tool",
     )
-elif active_section == "Governance & help" and governance_tool == "Release readiness":
+elif active_section == "Governance & help":
     governance_tool = st.radio(
         "Governance tools",
         ["Release readiness", "About the pilot"],
@@ -377,7 +377,7 @@ if active_section == "Case management":
                     else:
                         st.info("No governed evidence transitions recorded yet.")
 
-if active_section == "Intelligence workspace" and intelligence_tool == "Reviewer copilot":
+if active_section == "Intelligence workspace" and intelligence_tool == "Evidence intelligence":
     st.subheader("🧠 Evidence intelligence — human-in-the-loop")
     st.caption("Phase 8–10 foundation: deterministic, explainable, evaluated and advisory. No autonomous regulatory or enforcement decisions are made.")
     if not persistent:
@@ -416,7 +416,7 @@ if active_section == "Intelligence workspace" and intelligence_tool == "Reviewer
                 st.write(analysis["priority_advisory"]["reason"])
                 st.warning(analysis["decision_notice"])
 
-if active_section == "Intelligence workspace" and intelligence_tool == "AI shadow mode":
+if active_section == "Intelligence workspace" and intelligence_tool == "Reviewer copilot":
     st.subheader("🤝 Reviewer copilot")
     st.caption("Phase 10: structured reviewer assistance built from supplied evidence. Recommendations never change case status.")
     if not persistent:
@@ -524,7 +524,7 @@ if active_section == "Intelligence workspace" and intelligence_tool == "AI shado
                         st.markdown("### Intelligence audit trail")
                         st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
 
-if active_section == "Intelligence workspace" and intelligence_tool == "Evaluation observatory":
+if active_section == "Intelligence workspace" and intelligence_tool == "AI shadow mode":
     st.subheader("🧪 Controlled AI shadow mode")
     st.caption("Phase 12: an advisory model may observe a pilot case, but its output is isolated from the live workflow.")
     st.info(
@@ -597,7 +597,7 @@ if active_section == "Intelligence workspace" and intelligence_tool == "Evaluati
                         use_container_width=True, hide_index=True,
                     )
 
-if active_section == "Intelligence workspace":
+if active_section == "Intelligence workspace" and intelligence_tool == "Evaluation observatory":
     st.subheader("📊 Intelligence observatory")
     st.caption("Phase 11: measure reviewer feedback and evaluation readiness before considering any live model.")
     if not persistent or not can_metrics:
@@ -609,7 +609,7 @@ if active_section == "Intelligence workspace":
         st.markdown("**Current pilot gate policy**")
         st.write("- ≥25 labelled evaluation cases\n- ≥20 reviewer feedback records\n- ≥80% category accuracy\n- ≥80% duplicate F1\n- ≥90% summary faithfulness")
         st.warning("No readiness result is displayed until a versioned evaluation report is supplied. Thresholds are governance gates, not guarantees of model safety.")
-if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+if active_section == "Maps & metrics" and map_tool == "Map":
     st.subheader("Location view")
     records = records_for_current_user()
     geocoded = [
@@ -626,7 +626,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         st.map(map_df[["lat", "lon"]], use_container_width=True)
         st.dataframe(map_df, use_container_width=True, hide_index=True)
 
-if active_section == "Maps & metrics":
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
     st.subheader("Pilot monitoring snapshot")
     if persistent and not can_metrics:
         st.info("Metrics are restricted to reviewer/coordinator/admin roles.")
@@ -645,7 +645,7 @@ if active_section == "Maps & metrics":
         st.warning("Prototype metrics are not verified environmental outcomes or official response statistics.")
 
 
-if active_section == "Governance & help" and governance_tool == "About the pilot":
+if active_section == "Governance & help" and governance_tool == "Release readiness":
     st.subheader("Release readiness — evidence completeness")
     st.caption("One-page workspace • Phase 171 • exact-commit evidence • fail-closed review")
     if not persistent or principal is None or not principal.is_authorised:
@@ -745,7 +745,7 @@ if active_section == "Governance & help" and governance_tool == "About the pilot
             "independent human review and institutional approval remain required."
         )
 
-if active_section == "Governance & help":
+if active_section == "Governance & help" and governance_tool == "About the pilot":
     st.subheader("Project purpose")
     st.write(
         "NEMA-AGORA is a proposed student-led pilot for organising environmental observations, "
