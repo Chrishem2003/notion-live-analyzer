@@ -517,6 +517,72 @@ class NemaAgoraRepository:
             ).fetchall()
         return [{**dict(row), "details": json.loads(row["details_json"])} for row in rows]
 
+    def verify_evidence_case_history(
+        self, case_id: str, *, actor_id: str, role: str
+    ) -> dict[str, Any]:
+        """Check that immutable lifecycle events form a valid chain to stored state."""
+        actor = _actor(actor_id)
+        require_permission(role, "audit:read")
+        with self._session() as connection:
+            current = connection.execute(
+                """SELECT ec.state, ec.bundle_fingerprint, o.owner_id
+                   FROM evidence_cases ec
+                   JOIN observations o ON o.case_id = ec.case_id
+                   WHERE ec.case_id = ?""",
+                (case_id,),
+            ).fetchone()
+            if current is None:
+                raise KeyError(f"Evidence case not found: {case_id}")
+            if not can_read_observation(role, actor, current["owner_id"]):
+                raise PermissionError("You are not permitted to verify this evidence history.")
+            rows = connection.execute(
+                """SELECT actor_id, actor_role, event_type, from_state, to_state,
+                          occurred_at, bundle_fingerprint
+                   FROM evidence_case_events WHERE case_id = ? ORDER BY event_id""",
+                (case_id,),
+            ).fetchall()
+
+        issues: list[str] = []
+        expected = [
+            (None, "READY_FOR_REVIEW", "evidence_case_prepared"),
+            ("READY_FOR_REVIEW", "REVIEWED", "evidence_case_reviewed"),
+            ("REVIEWED", "EXPORTED", "evidence_case_exported"),
+        ]
+        if not rows:
+            issues.append("missing_lifecycle_events")
+        prior_state = None
+        for index, row in enumerate(rows):
+            if index >= len(expected):
+                issues.append("unexpected_extra_lifecycle_event")
+                break
+            from_state, to_state, event_type = expected[index]
+            if (row["from_state"], row["to_state"], row["event_type"]) != (
+                from_state, to_state, event_type
+            ):
+                issues.append(f"invalid_transition_at_event_{index + 1}")
+            if not isinstance(row["actor_id"], str) or not row["actor_id"].strip():
+                issues.append(f"missing_actor_at_event_{index + 1}")
+            if not isinstance(row["actor_role"], str) or not row["actor_role"].strip():
+                issues.append(f"missing_actor_role_at_event_{index + 1}")
+            try:
+                _timestamp(row["occurred_at"], "occurred_at")
+            except ValueError:
+                issues.append(f"invalid_timestamp_at_event_{index + 1}")
+            if not isinstance(row["bundle_fingerprint"], str) or not row["bundle_fingerprint"].strip():
+                issues.append(f"missing_fingerprint_at_event_{index + 1}")
+            prior_state = row["to_state"]
+        if prior_state != current["state"]:
+            issues.append("final_event_state_mismatch")
+        if rows and rows[-1]["bundle_fingerprint"] != current["bundle_fingerprint"]:
+            issues.append("final_event_fingerprint_mismatch")
+        return {
+            "valid": not issues,
+            "case_id": case_id,
+            "state": current["state"],
+            "event_count": len(rows),
+            "issues": issues,
+        }
+
     def record_operation(self, *, actor_id: str, role: str, operation: str, occurred_at: str, details: dict[str, Any] | None = None) -> None:
         actor = _actor(actor_id)
         require_permission(role, "user:manage")
