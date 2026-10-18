@@ -114,3 +114,11 @@ These checks validate the tested code paths in CI. Deployment-specific volume pe
 - [x] Repository CI passed: [run 39123897216](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123897216).
 
 The test exercises service/repository policy under CI. Deployed identity-provider and account-by-account role checks remain required.
+
+## Phase 182 — evidence lifecycle failure atomicity
+
+- [x] Added regression coverage proving invalid human-review decisions leave the persisted evidence state and lifecycle event log unchanged.
+- [x] Added replay checks proving duplicate review/export attempts cannot append duplicate lifecycle events.
+- [ ] Focused and repository CI must pass on the updated candidate before this phase is considered verified.
+- [ ] Deployed write/read, identity, backup-restore, and institutional release gates remain outstanding.
+
