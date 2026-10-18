@@ -25,7 +25,7 @@ from nema_agora.governance import policy_from_secrets, validate_governance
 from nema_agora.quality import assess_observation
 from nema_agora.evidence_case import validate_evidence_case
 from nema_agora.service import NemaAgoraService
-from nema_agora.storage import NemaAgoraRepository
+from nema_agora.runtime import initialize_persistent_service
 from nema_agora.workflow import ALLOWED_TRANSITIONS, apply_status_update
 from nema_agora.release_readiness import evaluate_release_readiness, validate_release_readiness_report
 from nema_agora.spatial_temporal_change import spatial_temporal_change_evidence
@@ -52,12 +52,23 @@ def _persistent_context() -> tuple[NemaAgoraService | None, object | None, str]:
     if database_path is None:
         st.error("Persistent mode is enabled but nema_agora.database_path is not configured.")
         return None, principal, mode
-    database_path.parent.mkdir(parents=True, exist_ok=True)
-    return NemaAgoraService(NemaAgoraRepository(database_path)), principal, mode
+    try:
+        service = initialize_persistent_service(database_path)
+    except Exception as exc:
+        # Avoid leaking filesystem paths, SQL details, or secrets in the UI.
+        st.error(
+            "Persistent storage is temporarily unavailable. No demo fallback was started. "
+            "Check the deployment storage configuration and application logs, then retry."
+        )
+        st.caption(f"Failure type: {type(exc).__name__}")
+        return None, principal, mode
+    return service, principal, mode
 
 
 _demo_init()
 service, principal, mode = _persistent_context()
+if mode == "persistent" and principal is not None and principal.is_authorised and service is None:
+    st.stop()
 governance_policy = policy_from_secrets(st.secrets)
 governance_errors = validate_governance(governance_policy)
 if governance_errors:
