@@ -80,6 +80,12 @@ def backup_database(
         _copy_database(source, temporary)
         if not integrity_check(temporary):
             raise ValueError("Created temporary backup failed SQLite integrity_check.")
+        # Environmental evidence may contain sensitive site details. Restrict
+        # local backup permissions before publishing the completed file.
+        try:
+            os.chmod(temporary, 0o600)
+        except OSError:
+            pass
         try:
             os.link(temporary, destination)
         except FileExistsError as exc:
@@ -139,6 +145,10 @@ def restore_database(
         _copy_database(source, temporary)
         if not integrity_check(temporary):
             raise ValueError("Restored temporary database failed integrity_check.")
+        try:
+            os.chmod(temporary, 0o600)
+        except OSError:
+            pass
 
         # Keep a rollback snapshot of an existing target until the replacement
         # passes its own integrity check. Preserve corrupt target bytes too.
