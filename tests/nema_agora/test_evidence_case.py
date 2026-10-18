@@ -170,3 +170,30 @@ def test_review_builder_rejects_unhashable_decision_without_crashing():
             make_case(), reviewer_id="reviewer-1", role="coordinator",
             decision=["ACKNOWLEDGED"]
         )
+
+def test_builder_rejects_non_collection_inputs():
+    with pytest.raises(ValueError, match="evidence must be a list or tuple"):
+        build_evidence_case(
+            case_id="case-no-evidence-list", observation={}, evidence=None
+        )
+
+
+def test_builder_rejects_boolean_confidence_and_non_boolean_advisory_flag():
+    boolean_confidence = AdvisoryFinding(
+        "f-bool", "model", "1", "Advisory", True, (), 
+        "2026-10-04T12:00:00+00:00"
+    )
+    with pytest.raises(ValueError, match="confidence"):
+        build_evidence_case(
+            case_id="case-bool-confidence", observation={}, evidence=[],
+            findings=[boolean_confidence]
+        )
+    non_boolean_advisory = AdvisoryFinding(
+        "f-flag", "model", "1", "Advisory", 0.5, (),
+        "2026-10-04T12:00:00+00:00", "yes"
+    )
+    with pytest.raises(ValueError, match="advisory_only"):
+        build_evidence_case(
+            case_id="case-bad-advisory-flag", observation={}, evidence=[],
+            findings=[non_boolean_advisory]
+        )
