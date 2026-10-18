@@ -63,7 +63,7 @@ jobs:
             echo "NEMA-AGORA package not present on this branch; package compilation deferred."
           fi
           python -m compileall -q pages
-      - name: Smoke-test pilot and release-readiness pages when present
+      - name: Smoke-test the single NEMA-AGORA workspace page
         shell: bash
         run: |
           set -euo pipefail
