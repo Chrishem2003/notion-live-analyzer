@@ -116,3 +116,20 @@ def test_bundle_rejects_changed_delta_between_quality_and_candidate():
         assert "NDVI_DELTA_LINEAGE_MISMATCH" in str(exc)
     else:
         raise AssertionError("Divergent index deltas should be rejected.")
+
+
+def test_validator_rejects_ineligible_states_even_if_all_fingerprints_are_recomputed():
+    bundle = _build()
+    candidate_payload = dict(bundle["candidate"])
+    candidate_payload.pop("fingerprint")
+    candidate_payload["state"] = "CONTROL_REQUIRED"
+    bundle["candidate"] = _seal(candidate_payload)
+    outer_payload = dict(bundle)
+    outer_payload.pop("fingerprint")
+    bundle["fingerprint"] = hashlib.sha256(
+        json.dumps(outer_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    ).hexdigest()
+
+    result = validate_spatial_evidence_bundle(bundle)
+    assert result["valid"] is False
+    assert {"code": "CANDIDATE_STATE_NOT_ELIGIBLE"} in result["findings"]
