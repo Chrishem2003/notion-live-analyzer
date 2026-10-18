@@ -104,3 +104,13 @@ The tests verify application/runtime behavior in CI. They do not replace a live 
 - [x] Repository CI passed: [run 39123574232](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123574232).
 
 These checks validate the tested code paths in CI. Deployment-specific volume permissions, live identity-provider behavior, and an operational restore drill still require verification in the actual hosting environment.
+
+
+## Phase 181 — evidence audit access boundary
+
+- [x] Added a service-level regression test confirming submitters and reviewers cannot list evidence lifecycle events without `audit:read`.
+- [x] Confirmed a coordinator with the required permission can retrieve the evidence lifecycle event after preparation.
+- [x] Focused NEMA-AGORA checks passed: [run 39123897265](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123897265).
+- [x] Repository CI passed: [run 39123897216](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123897216).
+
+The test exercises service/repository policy under CI. Deployed identity-provider and account-by-account role checks remain required.
