@@ -299,16 +299,16 @@ with tab_review:
                     st.info("Human review is recorded. JSON export is restricted to coordinator/admin roles.")
                 elif governed_bundle.state == "EXPORTED":
                     st.success("This evidence case is already marked exported; it cannot be exported again through this transition.")
-                export_bytes = st.session_state.get(f"evidence_export_{selected_id}")
-                if export_bytes:
-                    st.download_button(
-                        "Download governed evidence JSON",
-                        data=export_bytes,
-                        file_name=f"{selected_id}_evidence.json",
-                        mime="application/json",
-                        key=f"download_evidence_{selected_id}",
-                        use_container_width=True,
-                    )
+            export_bytes = st.session_state.get(f"evidence_export_{selected_id}")
+            if export_bytes:
+                st.download_button(
+                    "Download governed evidence JSON",
+                    data=export_bytes,
+                    file_name=f"{selected_id}_evidence.json",
+                    mime="application/json",
+                    key=f"download_evidence_{selected_id}",
+                    use_container_width=True,
+                )
             if can_audit and st.checkbox(
                 "Show evidence-case transition audit",
                 key=f"show_evidence_audit_{selected_id}",
