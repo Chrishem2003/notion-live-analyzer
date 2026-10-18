@@ -52,7 +52,7 @@ def test_transition_events_reconstruct_effective_case_and_are_append_only(tmp_pa
 
     second = store.append_event(
         case_id=case.case_id, event_type="EXPORT_AUTHORISED",
-        state="EXPORTED", actor_id="reviewer-1", role="reviewer",
+        state="EXPORTED", actor_id="coordinator-1", role="coordinator",
         event={
             "official_submission": False,
             "execution_gate": "CLOSED",
@@ -101,3 +101,41 @@ def test_invalid_stored_case_is_rejected(tmp_path):
         )
     with pytest.raises(ValueError, match="integrity"):
         store.load_case("case-1")
+
+def test_case_events_enforce_role_permissions_at_storage_boundary(tmp_path):
+    store = EvidenceCaseStore(tmp_path / "cases.db")
+    case = _case()
+    store.append(case)
+    review_event = {
+        "decision": "ACKNOWLEDGED",
+        "notes": "human review",
+        "case_provenance_fingerprint": case.provenance_fingerprint,
+    }
+
+    with pytest.raises(PermissionError, match="observation:review"):
+        store.append_event(
+            case_id=case.case_id, event_type="HUMAN_REVIEW",
+            state="REVIEWED", actor_id="submitter-1", role="submitter",
+            event=review_event, created_at="2026-01-01T01:00:00Z",
+        )
+
+    store.append_event(
+        case_id=case.case_id, event_type="HUMAN_REVIEW",
+        state="REVIEWED", actor_id="reviewer-1", role="reviewer",
+        event=review_event, created_at="2026-01-01T01:00:00Z",
+    )
+    with pytest.raises(PermissionError, match="case:export"):
+        store.append_event(
+            case_id=case.case_id, event_type="EXPORT_AUTHORISED",
+            state="EXPORTED", actor_id="reviewer-1", role="reviewer",
+            event={
+                "official_submission": False,
+                "execution_gate": "CLOSED",
+                "case_provenance_fingerprint": case.provenance_fingerprint,
+            },
+            created_at="2026-01-01T02:00:00Z",
+        )
+
+    assert store.load_case(case.case_id).state == "REVIEWED"
+    assert [e["event_type"] for e in store.list_events(case.case_id)] == ["HUMAN_REVIEW"]
+
