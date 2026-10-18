@@ -17,6 +17,7 @@ from .evidence_case import (
     validate_evidence_case,
     attach_human_review,
 )
+from .access import require_permission
 
 
 class EvidenceCaseStore:
@@ -212,12 +213,19 @@ class EvidenceCaseStore:
         event: dict[str, Any],
         created_at: str,
     ) -> int:
-        if not all(value.strip() for value in (case_id, event_type, state, actor_id, role, created_at)):
+        identity_fields = (case_id, event_type, state, actor_id, role, created_at)
+        if any(not isinstance(value, str) or not value.strip() for value in identity_fields):
             raise ValueError("event identity fields are required")
         if state not in ALLOWED_STATES:
             raise ValueError("invalid event state")
         if not isinstance(event, dict):
             raise ValueError("event must be a mapping")
+        # Enforce authorization at the persistence boundary as well as in the UI.
+        # The caller must still supply an identity authenticated by a trusted provider.
+        if event_type == "HUMAN_REVIEW":
+            require_permission(role, "observation:review")
+        elif event_type == "EXPORT_AUTHORISED":
+            require_permission(role, "case:export")
         with self._connect() as conn:
             exists = conn.execute(
                 "SELECT provenance_fingerprint FROM evidence_cases WHERE case_id = ?",
