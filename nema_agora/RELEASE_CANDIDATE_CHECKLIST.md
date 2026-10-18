@@ -64,3 +64,15 @@ These controls are defense in depth only. They do not protect against an operato
 - [x] Repository-wide CI passed: [run 39121794437](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39121794437).
 
 This validates application-level fail-closed behavior and tests; it does not establish that an external OIDC provider is deployed or configured correctly.
+
+
+## Phase 177 — identity and configuration hardening
+
+- [x] Unexpected identity adapter exceptions fail closed to no principal.
+- [x] Persistent NEMA-AGORA page routes through the fail-closed identity resolver.
+- [x] Role, groups, and is_admin claims cannot override server-side role bindings.
+- [x] Backup retention configuration rejects floats and non-scalar values instead of truncating them.
+- [x] Focused NEMA-AGORA checks passed: [run 39122117903](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39122117903).
+- [x] Repository-wide CI passed: [run 39122117681](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39122117681).
+
+These are code-level and CI validations. They do not prove that an external OIDC provider or production deployment is configured correctly.
