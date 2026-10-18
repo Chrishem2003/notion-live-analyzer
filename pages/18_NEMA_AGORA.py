@@ -314,8 +314,11 @@ if active_section == "Case management":
                     prepared_bundle = service.build_governed_evidence_case(selected_id, principal)
                     st.session_state[f"evidence_bundle_{selected_id}"] = prepared_bundle["evidence_case"]
                     st.success("Evidence bundle loaded from the governed workflow store.")
-                except (ValueError, PermissionError, KeyError) as exc:
-                    st.error(str(exc))
+                except Exception as exc:
+                    st.session_state.pop(f"evidence_bundle_{selected_id}", None)
+                    st.session_state.pop(f"evidence_export_{selected_id}", None)
+                    st.error("The evidence case could not be loaded. Check access and storage health, then retry.")
+                    st.caption(f"Failure type: {type(exc).__name__}")
 
             governed_bundle = st.session_state.get(f"evidence_bundle_{selected_id}")
             if governed_bundle is not None:
@@ -349,8 +352,11 @@ if active_section == "Case management":
                             )
                             st.session_state[f"evidence_bundle_{selected_id}"] = reviewed_bundle
                             st.session_state.pop(f"evidence_export_{selected_id}", None)
-                        except (ValueError, PermissionError, KeyError) as exc:
-                            st.error(str(exc))
+                        except Exception as exc:
+                            st.session_state.pop(f"evidence_bundle_{selected_id}", None)
+                            st.session_state.pop(f"evidence_export_{selected_id}", None)
+                            st.error("The review could not be confirmed as saved. Reload the case before retrying.")
+                            st.caption(f"Failure type: {type(exc).__name__}")
                         else:
                             st.success("Human review persisted with actor-bound audit history.")
                             st.rerun()
@@ -364,8 +370,11 @@ if active_section == "Case management":
                             export_bytes = service.export_governed_evidence_case(governed_bundle, principal)
                             st.session_state[f"evidence_export_{selected_id}"] = export_bytes
                             st.session_state.pop(f"evidence_bundle_{selected_id}", None)
-                        except (ValueError, PermissionError, KeyError) as exc:
-                            st.error(str(exc))
+                        except Exception as exc:
+                            st.session_state.pop(f"evidence_bundle_{selected_id}", None)
+                            st.session_state.pop(f"evidence_export_{selected_id}", None)
+                            st.error("The export could not be confirmed. Reload the case before attempting another export.")
+                            st.caption(f"Failure type: {type(exc).__name__}")
                         else:
                             st.success("Integrity-checked export recorded. Refresh the evidence case to inspect its final state.")
                             st.rerun()
@@ -389,8 +398,9 @@ if active_section == "Case management":
             ):
                 try:
                     evidence_events = service.list_evidence_case_events(selected_id, principal)
-                except (ValueError, PermissionError, KeyError) as exc:
-                    st.error(str(exc))
+                except Exception as exc:
+                    st.error("The evidence audit trail could not be loaded. Check access and storage health.")
+                    st.caption(f"Failure type: {type(exc).__name__}")
                 else:
                     if evidence_events:
                         st.dataframe(pd.DataFrame(evidence_events), use_container_width=True, hide_index=True)
@@ -469,8 +479,11 @@ if active_section == "Intelligence workspace" and intelligence_tool == "Reviewer
                     )
                     st.session_state["nema_agora_copilot_brief"] = brief
                     st.session_state["nema_agora_copilot_case"] = selected_copilot_id
-                except (ValueError, PermissionError, KeyError) as exc:
-                    st.error(str(exc))
+                except Exception as exc:
+                    st.session_state.pop("nema_agora_copilot_brief", None)
+                    st.session_state.pop("nema_agora_copilot_case", None)
+                    st.error("The reviewer brief could not be prepared. Check access and service health, then retry.")
+                    st.caption(f"Failure type: {type(exc).__name__}")
 
             brief = st.session_state.get("nema_agora_copilot_brief")
             if brief and st.session_state.get("nema_agora_copilot_case") == selected_copilot_id:
@@ -584,8 +597,11 @@ if active_section == "Intelligence workspace" and intelligence_tool == "AI shado
                     result = service.run_shadow(selected_shadow, principal)
                     st.session_state["nema_agora_shadow_result"] = result
                     st.session_state["nema_agora_shadow_case"] = selected_shadow_id
-                except (ValueError, PermissionError, KeyError) as exc:
-                    st.error(str(exc))
+                except Exception as exc:
+                    st.session_state.pop("nema_agora_shadow_result", None)
+                    st.session_state.pop("nema_agora_shadow_case", None)
+                    st.error("Shadow analysis could not be completed. Check access and service health, then retry.")
+                    st.caption(f"Failure type: {type(exc).__name__}")
 
             result = st.session_state.get("nema_agora_shadow_result")
             if result and st.session_state.get("nema_agora_shadow_case") == selected_shadow_id:
