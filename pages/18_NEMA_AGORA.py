@@ -412,29 +412,34 @@ if active_section == "Intelligence workspace" and intelligence_tool == "Evidence
             selected_ai_id = st.selectbox("Observation to analyse", options=[r["case_id"] for r in reversed(records)], key="intelligence_case")
             selected_ai = next(r for r in records if r["case_id"] == selected_ai_id)
             if st.button("Run advisory analysis", type="primary", use_container_width=True):
-                analysis = service.analyze_observation(selected_ai, principal, peer_records=records)
-                st.markdown("### Neutral summary")
-                st.write(analysis["summary"])
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Quality", analysis["quality_status"])
-                c2.metric("Review", "Required" if analysis["human_review_required"] else "Not required")
-                c3.metric("Advisory", analysis["priority_advisory"]["level"])
-                st.markdown("### Quality signals")
-                st.write(", ".join(analysis["quality_flags"]))
-                st.markdown("### Category suggestions")
-                if analysis["category_suggestions"]:
-                    st.dataframe(pd.DataFrame(analysis["category_suggestions"]), use_container_width=True, hide_index=True)
+                try:
+                    analysis = service.analyze_observation(selected_ai, principal, peer_records=records)
+                except Exception as exc:
+                    st.error("Advisory analysis could not be completed. No case status or observation data was changed.")
+                    st.caption(f"Failure type: {type(exc).__name__}")
                 else:
-                    st.info("No keyword-supported alternative category was generated.")
-                st.markdown("### Duplicate candidates")
-                if analysis["duplicate_candidates"]:
-                    st.write(", ".join(analysis["duplicate_candidates"]))
-                    st.warning("Possible duplicates must be reviewed by a person; no record is deleted or automatically merged.")
-                else:
-                    st.info("No deterministic duplicate candidate found.")
-                st.markdown("### Review-priority rationale")
-                st.write(analysis["priority_advisory"]["reason"])
-                st.warning(analysis["decision_notice"])
+                    st.markdown("### Neutral summary")
+                    st.write(analysis["summary"])
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Quality", analysis["quality_status"])
+                    c2.metric("Review", "Required" if analysis["human_review_required"] else "Not required")
+                    c3.metric("Advisory", analysis["priority_advisory"]["level"])
+                    st.markdown("### Quality signals")
+                    st.write(", ".join(analysis["quality_flags"]))
+                    st.markdown("### Category suggestions")
+                    if analysis["category_suggestions"]:
+                        st.dataframe(pd.DataFrame(analysis["category_suggestions"]), use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No keyword-supported alternative category was generated.")
+                    st.markdown("### Duplicate candidates")
+                    if analysis["duplicate_candidates"]:
+                        st.write(", ".join(analysis["duplicate_candidates"]))
+                        st.warning("Possible duplicates must be reviewed by a person; no record is deleted or automatically merged.")
+                    else:
+                        st.info("No deterministic duplicate candidate found.")
+                    st.markdown("### Review-priority rationale")
+                    st.write(analysis["priority_advisory"]["reason"])
+                    st.warning(analysis["decision_notice"])
 
 if active_section == "Intelligence workspace" and intelligence_tool == "Reviewer copilot":
     st.subheader("🤝 Reviewer copilot")
