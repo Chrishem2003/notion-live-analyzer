@@ -183,8 +183,10 @@ def attach_human_review(
         raise ValueError("case is not reviewable in its current state")
     if not isinstance(reviewer_id, str) or not reviewer_id.strip() or not isinstance(role, str) or not role.strip():
         raise ValueError("reviewer_id and role are required")
-    if decision not in ALLOWED_DECISIONS - {"PENDING"}:
+    if not isinstance(decision, str) or decision not in ALLOWED_DECISIONS - {"PENDING"}:
         raise ValueError("invalid human review decision")
+    if not isinstance(notes, str):
+        raise ValueError("review notes must be text")
     timestamp = _utc(reviewed_at)
     if not _has_timezone(timestamp):
         raise ValueError("reviewed_at must be an ISO 8601 timestamp with timezone")
@@ -211,22 +213,50 @@ def mark_exported(case: EvidenceCase) -> EvidenceCase:
 
 def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
     issues: list[str] = []
-    if case.state not in ALLOWED_STATES:
+    if not isinstance(case, EvidenceCase):
+        return {
+            "policy_version": POLICY_VERSION, "case_id": None, "state": None,
+            "valid": False, "issues": ["invalid_case_type"],
+            "human_governed": True, "automatic_repair": False,
+            "execution_gate": "CLOSED", "environmental_truth_claim": False,
+            "regulatory_conclusion": False, "nema_authorization": False,
+            "emergency_dispatch": False,
+        }
+    if not isinstance(case.state, str) or case.state not in ALLOWED_STATES:
         issues.append("invalid_state")
-    if not isinstance(case.case_id, str) or not case.case_id.strip() or not case.observation_fingerprint:
+    if (
+        not isinstance(case.case_id, str) or not case.case_id.strip()
+        or not isinstance(case.observation_fingerprint, str)
+        or not case.observation_fingerprint.strip()
+    ):
         issues.append("missing_identity")
     if not _has_timezone(case.created_at):
         issues.append("invalid_created_at")
-    if len({r.evidence_id for r in case.evidence}) != len(case.evidence):
+    evidence_items = case.evidence if isinstance(case.evidence, (tuple, list)) else ()
+    if not isinstance(case.evidence, (tuple, list)):
+        issues.append("invalid_evidence_collection")
+    if any(not isinstance(reference, EvidenceReference) for reference in evidence_items):
+        issues.append("invalid_evidence_reference")
+    valid_references = [reference for reference in evidence_items if isinstance(reference, EvidenceReference)]
+    evidence_ids = [
+        reference.evidence_id for reference in valid_references
+        if isinstance(reference.evidence_id, str) and reference.evidence_id.strip()
+    ]
+    if len(set(evidence_ids)) != len(evidence_ids):
         issues.append("duplicate_evidence_id")
-    for reference in case.evidence:
+    for reference in valid_references:
         if not all(isinstance(value, str) and value.strip() for value in (
             reference.evidence_id, reference.kind, reference.source, reference.content_fingerprint
         )):
             issues.append("invalid_evidence_reference")
         if not _has_timezone(reference.captured_at):
             issues.append("invalid_evidence_timestamp")
-    for finding in case.findings:
+    finding_items = case.findings if isinstance(case.findings, (tuple, list)) else ()
+    if not isinstance(case.findings, (tuple, list)):
+        issues.append("invalid_findings_collection")
+    if any(not isinstance(finding, AdvisoryFinding) for finding in finding_items):
+        issues.append("invalid_advisory_finding")
+    for finding in (item for item in finding_items if isinstance(item, AdvisoryFinding)):
         if not finding.advisory_only:
             issues.append("non_advisory_finding")
         if finding.confidence is not None:
@@ -248,7 +278,9 @@ def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
         issues.append("provenance_payload_invalid")
     if case.state in {"REVIEWED", "EXPORTED"} and case.review is None:
         issues.append("review_missing")
-    if case.review is not None:
+    if case.review is not None and not isinstance(case.review, HumanReview):
+        issues.append("invalid_review_type")
+    if isinstance(case.review, HumanReview):
         if (
             not isinstance(case.review.reviewer_id, str) or not case.review.reviewer_id.strip()
             or not isinstance(case.review.role, str) or not case.review.role.strip()
