@@ -2,8 +2,8 @@
   "project": "NEMA-AGORA",
   "mode": "AUTONOMOUS_BUILD",
   "status": "RELEASE_READINESS",
-  "current_phase": 181,
-  "next_phase": 182,
+  "current_phase": 182,
+  "next_phase": 183,
   "completed_through": 181,
   "pr_number": 23,
   "branch": "feature/nema-agora-clean-integration",
@@ -14,8 +14,8 @@
   "last_verified_head": "c755c4cefd9c8ea00ed0b46b211a19a12d7c514c",
   "last_verified_phase": 181,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 181: added service-level evidence audit access regression coverage; Phase 180 hardened rollback snapshot preservation and Phase 179 expanded the role/action matrix.",
-  "validation_status": "PHASE_181_CI_PASSED_ON_c755c4cefd9c8ea00ed0b46b211a19a12d7c514c; LIVE_DEPLOYMENT_RELEASE_GATES_PENDING",
+  "last_action": "Phase 182: added failure-atomicity coverage for invalid evidence review decisions and replayed review/export actions; CI verification pending.",
+  "validation_status": "PHASE_182_IMPLEMENTATION_COMMITTED; CI_VERIFICATION_PENDING; LIVE_DEPLOYMENT_RELEASE_GATES_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -35,7 +35,7 @@
     "institutional_approval"
   ],
   "validation_evidence": {
-    "candidate_sha": "c755c4cefd9c8ea00ed0b46b211a19a12d7c514c",
+    "candidate_sha": "5d7908e08b000b19da3ed499963892ee644b9027",
     "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123897265",
     "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123897216",
     "checks": {
@@ -48,7 +48,9 @@
       "backup_retention_strict_integer_validation": "PASSED",
       "nema_unit_tests": "PASSED",
       "python_compileall": "PASSED",
-      "consolidated_app_startup_smoke_test": "PASSED"
+      "consolidated_app_startup_smoke_test": "PASSED",
+      "evidence_invalid_decision_preserves_state_and_event_log": "PENDING_CI",
+      "duplicate_review_and_export_do_not_duplicate_lifecycle_events": "PENDING_CI"
     }
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
