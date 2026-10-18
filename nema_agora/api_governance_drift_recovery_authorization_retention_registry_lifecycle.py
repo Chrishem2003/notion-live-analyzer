@@ -175,6 +175,10 @@ def validate_retention_registry_lifecycle_bundle(
     for key in required:
         if key not in bundle:
             raise ValueError(f"MISSING_{key.upper()}")
+    payload = dict(bundle)
+    supplied = payload.pop("lifecycle_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("RETENTION_REGISTRY_LIFECYCLE_BUNDLE_FINGERPRINT_MISMATCH")
     if bundle["policy_version"] != POLICY_VERSION:
         raise ValueError("INVALID_BUNDLE_POLICY")
     if bundle["human_governed"] is not True:
@@ -193,8 +197,4 @@ def validate_retention_registry_lifecycle_bundle(
     for lifecycle in bundle["lifecycles"]:
         validate_retention_registry_lifecycle(lifecycle)
 
-    payload = dict(bundle)
-    supplied = payload.pop("lifecycle_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("RETENTION_REGISTRY_LIFECYCLE_BUNDLE_FINGERPRINT_MISMATCH")
     return dict(bundle)
