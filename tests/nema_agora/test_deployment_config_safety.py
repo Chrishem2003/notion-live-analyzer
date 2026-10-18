@@ -77,3 +77,13 @@ def test_persistent_runtime_surfaces_unavailable_storage_instead_of_falling_back
         initialize_persistent_service(database_path)
 
     assert not database_path.exists()
+
+
+def test_streamlit_workspace_stops_on_invalid_mode_before_showing_demo_mode():
+    page = Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    source = page.read_text(encoding="utf-8")
+    invalid_guard = source.index('if mode == "invalid":')
+    stop = source.index("st.stop()", invalid_guard)
+    demo_notice = source.index('st.warning("Demo mode — session-only")')
+    assert invalid_guard < stop < demo_notice
+    assert "no workspace mode was started" in source[invalid_guard:stop]
