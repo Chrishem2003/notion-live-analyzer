@@ -1,7 +1,7 @@
 """Phase 59 — NEMA-AGORA spatial/temporal change evidence."""
 from __future__ import annotations
 import hashlib, json, math, re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Mapping
 
 POLICY_VERSION = "phase59-v1"
@@ -60,9 +60,9 @@ def validate_change_inputs(*, baseline_scene_id: Any, comparison_scene_id: Any,
         # Convert both instants to UTC before subtraction so differing offsets
         # cannot change the elapsed-time result or trigger naive/aware errors.
         gap_days = (
-            comparison_parsed.astimezone().timestamp()
-            - baseline_parsed.astimezone().timestamp()
-        ) / 86400
+            comparison_parsed.astimezone(timezone.utc)
+            - baseline_parsed.astimezone(timezone.utc)
+        ).total_seconds() / 86400
         if gap_days <= 0:
             findings.append({"code": "COMPARISON_NOT_AFTER_BASELINE"})
         if (not isinstance(min_temporal_gap_days, (int, float))
