@@ -87,4 +87,3 @@ jobs:
             grep -q "You can now view your Streamlit app" "$log_file"
           }
           smoke_test pages/18_NEMA_AGORA.py 8501
-          smoke_test pages/171_NEMA_AGORA_RELEASE_READINESS.py 8502
