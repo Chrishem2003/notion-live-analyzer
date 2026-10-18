@@ -98,3 +98,31 @@ def test_tampered_human_review_invalidates_review_fingerprint():
     assert "review_fingerprint_mismatch" in result["issues"]
     with pytest.raises(ValueError, match="integrity validation"):
         mark_exported(tampered)
+
+def test_builder_rejects_evidence_without_timezone():
+    bad_reference = EvidenceReference(
+        "img-bad", "image", "pilot-upload",
+        "2026-10-04T12:00:00", "abc123"
+    )
+    with pytest.raises(ValueError, match="captured_at"):
+        build_evidence_case(
+            case_id="case-bad-evidence", observation={"site_ref": "pilot-site"},
+            evidence=[bad_reference]
+        )
+
+
+def test_builder_rejects_non_json_observation_and_metadata():
+    with pytest.raises(ValueError, match="JSON serializable"):
+        build_evidence_case(
+            case_id="case-bad-observation", observation={"not_json": object()},
+            evidence=[]
+        )
+    bad_reference = EvidenceReference(
+        "img-bad-meta", "image", "pilot-upload",
+        "2026-10-04T12:00:00+00:00", "abc123", {"bad": object()}
+    )
+    with pytest.raises(ValueError, match="metadata"):
+        build_evidence_case(
+            case_id="case-bad-metadata", observation={"site_ref": "pilot-site"},
+            evidence=[bad_reference]
+        )
