@@ -10,12 +10,12 @@
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "8555fe02209fd54926b72ac0ede700e761b00b33",
+  "current_head": "707c94c1dff787279257845c4e57df18b64ebf1f",
   "last_verified_head": "d235e4264118c0ee5186b29f06cb6fff1692f44f",
   "last_verified_phase": 185,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 185 lifecycle-history chronology and valid intermediate-prefix checks passed focused NEMA-AGORA CI and repository-wide CI on candidate d235e4264118c0ee5186b29f06cb6fff1692f44f. Phase 186 should focus on release-candidate evidence reconciliation and closing deployment-backed gates rather than adding mechanical phase families.",
-  "validation_status": "PHASE_185_VERIFIED_ON_CANDIDATE_D235E42; LIVE_DEPLOYMENT_RELEASE_GATES_PENDING",
+  "last_action": "Phase 186 release-candidate reconciliation: replaced the accumulated checklist with a concise candidate-specific record of current CI evidence, implemented controls, remaining deployment/governance gates, and release boundaries. CI for checklist commit is running; do not mark Phase 186 complete until it passes.",
+  "validation_status": "PHASE_185_VERIFIED; PHASE_186_CHECKLIST_CI_PENDING; LIVE_DEPLOYMENT_RELEASE_GATES_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -35,9 +35,9 @@
     "institutional_approval"
   ],
   "validation_evidence": {
-    "candidate_sha": "d235e4264118c0ee5186b29f06cb6fff1692f44f",
-    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39125258952",
-    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39125258931",
+    "candidate_sha": "707c94c1dff787279257845c4e57df18b64ebf1f",
+    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39133464527",
+    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39133464528",
     "checks": {
       "identity_adapter_fail_closed_tests": "PASSED",
       "privileged_role_action_matrix": "PASSED",
@@ -56,7 +56,8 @@
       "evidence_lifecycle_history_verifier_valid_chain": "PASSED",
       "evidence_lifecycle_history_verifier_detects_extra_event": "PASSED",
       "evidence_lifecycle_history_verifier_accepts_valid_intermediate_prefixes": "PASSED",
-      "evidence_lifecycle_history_verifier_detects_non_monotonic_timestamps": "PASSED"
+      "evidence_lifecycle_history_verifier_detects_non_monotonic_timestamps": "PASSED",
+      "phase_186_release_checklist_reconciled": "PENDING_CI"
     },
     "phase_183_verified_sha": "a9187e8fa2d796c17c7edfe94c94cc196188af3c",
     "phase_183_focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124710423",
