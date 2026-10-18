@@ -73,7 +73,7 @@ def test_invalid_transition_does_not_change_record_or_add_event(tmp_path):
             actor_id="reviewer-2", role="reviewer",
             new_status="Closed",
             review_notes="",
-            changed_at="now",
+            changed_at="2026-10-04T12:10:00+03:00",
         )
 
     assert repository.get_observation(record["case_id"], actor_id="submitter-1", role="submitter")["status"] == "Received"
@@ -148,3 +148,28 @@ def test_submitter_cannot_write_intelligence_feedback(tmp_path):
             feedback={"feedback_type": "accepted"},
             occurred_at="2026-10-04T12:02:00+03:00",
         )
+
+def test_review_rejects_timezone_naive_or_malformed_audit_timestamp(tmp_path):
+    repo = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
+    record = repo.create_observation(sample_record(), actor_id="submitter-1", role="submitter")
+
+    for invalid_timestamp in ("now", "2026-10-04T12:10:00", ""):
+        with pytest.raises(ValueError, match="ISO 8601 timestamp with timezone"):
+            repo.update_review(
+                record["case_id"],
+                actor_id="reviewer-1",
+                role="reviewer",
+                new_status="Under review",
+                review_notes="Valid test note",
+                changed_at=invalid_timestamp,
+            )
+
+    current = repo.get_observation(
+        record["case_id"], actor_id="submitter-1", role="submitter"
+    )
+    events = repo.list_audit_events(
+        record["case_id"], actor_id="admin-1", role="admin"
+    )
+    assert current["status"] == "Received"
+    assert len(events) == 1
+
