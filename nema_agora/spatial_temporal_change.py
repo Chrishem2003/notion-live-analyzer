@@ -17,7 +17,13 @@ def _valid_id(value: Any) -> bool:
 
 
 def _valid_value(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(float(value)) and -1.0 <= float(value) <= 1.0
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        number = float(value)
+    except (OverflowError, TypeError, ValueError):
+        return False
+    return math.isfinite(number) and -1.0 <= number <= 1.0
 
 
 def _parse_timestamp(value: Any) -> datetime | None:
