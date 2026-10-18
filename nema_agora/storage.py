@@ -94,6 +94,33 @@ class NemaAgoraRepository:
                     details_json TEXT NOT NULL DEFAULT '{}'
                 );
 
+                CREATE TABLE IF NOT EXISTS evidence_cases (
+                    case_id TEXT PRIMARY KEY REFERENCES observations(case_id),
+                    state TEXT NOT NULL CHECK (state IN ('READY_FOR_REVIEW', 'REVIEWED', 'EXPORTED')),
+                    bundle_json TEXT NOT NULL,
+                    bundle_fingerprint TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS evidence_case_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    case_id TEXT NOT NULL REFERENCES observations(case_id),
+                    actor_id TEXT NOT NULL,
+                    actor_role TEXT NOT NULL,
+                    event_type TEXT NOT NULL CHECK (event_type IN (
+                        'evidence_case_prepared', 'evidence_case_reviewed', 'evidence_case_exported'
+                    )),
+                    from_state TEXT,
+                    to_state TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    bundle_fingerprint TEXT NOT NULL,
+                    details_json TEXT NOT NULL DEFAULT '{}'
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_evidence_case_events_case_time
+                    ON evidence_case_events(case_id, occurred_at, event_id);
+
                 CREATE TABLE IF NOT EXISTS intelligence_events (
                     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     case_id TEXT NOT NULL REFERENCES observations(case_id),
@@ -272,6 +299,119 @@ class NemaAgoraRepository:
                 ),
             )
         return updated
+
+    def create_evidence_case(
+        self, bundle: dict[str, Any], *, actor_id: str, role: str,
+        occurred_at: str, bundle_fingerprint: str,
+    ) -> dict[str, Any]:
+        actor = _actor(actor_id)
+        require_permission(role, "observation:review")
+        case_id = str(bundle.get("case_id", "")).strip()
+        state = bundle.get("state")
+        created_at = str(bundle.get("created_at", "")).strip()
+        if not case_id or state != "READY_FOR_REVIEW" or not created_at:
+            raise ValueError("A valid ready-for-review evidence bundle is required.")
+        if not occurred_at.strip() or not bundle_fingerprint.strip():
+            raise ValueError("An event timestamp and bundle fingerprint are required.")
+        payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        with self._session() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
+                raise KeyError(f"Case not found: {case_id}")
+            connection.execute(
+                """INSERT INTO evidence_cases
+                   (case_id, state, bundle_json, bundle_fingerprint, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (case_id, state, payload, bundle_fingerprint, created_at, occurred_at),
+            )
+            connection.execute(
+                """INSERT INTO evidence_case_events
+                   (case_id, actor_id, actor_role, event_type, from_state, to_state,
+                    occurred_at, bundle_fingerprint, details_json)
+                   VALUES (?, ?, ?, 'evidence_case_prepared', NULL, ?, ?, ?, '{}')""",
+                (case_id, actor, role, state, occurred_at, bundle_fingerprint),
+            )
+        return {"case_id": case_id, "state": state, "bundle_fingerprint": bundle_fingerprint}
+
+    def get_evidence_case(
+        self, case_id: str, *, actor_id: str, role: str
+    ) -> dict[str, Any] | None:
+        actor = _actor(actor_id)
+        require_permission(role, "observation:review")
+        with self._session() as connection:
+            row = connection.execute(
+                """SELECT ec.bundle_json, ec.state, ec.bundle_fingerprint, o.owner_id
+                   FROM evidence_cases ec JOIN observations o ON o.case_id = ec.case_id
+                   WHERE ec.case_id = ?""",
+                (case_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        if not can_read_observation(role, actor, row["owner_id"]):
+            raise PermissionError("You are not permitted to read this evidence case.")
+        return {
+            "bundle": json.loads(row["bundle_json"]),
+            "state": row["state"],
+            "bundle_fingerprint": row["bundle_fingerprint"],
+        }
+
+    def transition_evidence_case(
+        self, case_id: str, bundle: dict[str, Any], *, actor_id: str, role: str,
+        expected_state: str, event_type: str, occurred_at: str,
+        bundle_fingerprint: str, expected_fingerprint: str,
+    ) -> dict[str, Any]:
+        actor = _actor(actor_id)
+        required_permission = "case:export" if event_type == "evidence_case_exported" else "observation:review"
+        require_permission(role, required_permission)
+        transitions = {
+            ("READY_FOR_REVIEW", "REVIEWED", "evidence_case_reviewed"),
+            ("REVIEWED", "EXPORTED", "evidence_case_exported"),
+        }
+        new_state = bundle.get("state")
+        if (expected_state, new_state, event_type) not in transitions:
+            raise ValueError("Invalid evidence-case state transition.")
+        if not occurred_at.strip() or not bundle_fingerprint.strip() or not expected_fingerprint.strip():
+            raise ValueError("Transition timestamp and fingerprints are required.")
+        payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        with self._session() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT state, bundle_fingerprint FROM evidence_cases WHERE case_id = ?",
+                (case_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(f"Evidence case not found: {case_id}")
+            if row["state"] != expected_state or row["bundle_fingerprint"] != expected_fingerprint:
+                raise ValueError("Evidence case changed or was already transitioned; reload before retrying.")
+            connection.execute(
+                """UPDATE evidence_cases
+                   SET state = ?, bundle_json = ?, bundle_fingerprint = ?, updated_at = ?
+                   WHERE case_id = ?""",
+                (new_state, payload, bundle_fingerprint, occurred_at, case_id),
+            )
+            connection.execute(
+                """INSERT INTO evidence_case_events
+                   (case_id, actor_id, actor_role, event_type, from_state, to_state,
+                    occurred_at, bundle_fingerprint, details_json)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, '{}')""",
+                (case_id, actor, role, event_type, expected_state, new_state,
+                 occurred_at, bundle_fingerprint),
+            )
+        return {"case_id": case_id, "state": new_state, "bundle_fingerprint": bundle_fingerprint}
+
+    def list_evidence_case_events(
+        self, case_id: str, *, actor_id: str, role: str
+    ) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "audit:read")
+        with self._session() as connection:
+            rows = connection.execute(
+                """SELECT event_id, case_id, actor_id, actor_role, event_type,
+                          from_state, to_state, occurred_at, bundle_fingerprint, details_json
+                   FROM evidence_case_events WHERE case_id = ? ORDER BY event_id""",
+                (case_id,),
+            ).fetchall()
+        return [{**dict(row), "details": json.loads(row["details_json"])} for row in rows]
 
     def record_operation(self, *, actor_id: str, role: str, operation: str, occurred_at: str, details: dict[str, Any] | None = None) -> None:
         actor = _actor(actor_id)
