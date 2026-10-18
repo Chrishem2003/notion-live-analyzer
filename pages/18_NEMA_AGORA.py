@@ -63,8 +63,8 @@ if governance_errors:
 st.title("🌿 NEMA-AGORA")
 st.caption("Environmental Governance, Monitoring & Response — pilot workspace")
 st.markdown(
-    "Use the left navigation to move through the pilot. Start with an observation, "
-    "track it through human review, and use intelligence tools only as advisory support."
+    "Use the workspace menu in the sidebar to move between tasks. Capture an observation, "
+    "track human review, inspect advisory evidence, and review controlled reports."
 )
 quick = st.columns(4)
 quick[0].markdown("**1 · Capture**")
@@ -801,7 +801,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
 
 if active_section == "Governance & help" and governance_tool == "Release readiness":
     st.subheader("Release readiness — evidence completeness")
-    st.caption("One-page workspace • Phase 171 • exact-commit evidence • fail-closed review")
+    st.caption("One-page workspace • exact-commit evidence • fail-closed review")
     if not persistent or principal is None or not principal.is_authorised:
         st.info("Release-readiness review requires an authenticated, server-provisioned account.")
     elif not has_permission(principal.role, "intelligence:pilot_readiness"):
@@ -906,38 +906,26 @@ if active_section == "Governance & help" and governance_tool == "About the pilot
         "review status, location information and evaluation data. It is designed to complement "
         "existing environmental-management systems, not replace them."
     )
-    st.markdown("**Phase 12 — Controlled AI Shadow Mode**")
+    st.markdown("**What this pilot supports**")
     st.markdown(
-        "- Advisory model runs beside the human workflow\n"
-        "- Source case binding and safety validation\n"
-        "- Isolated shadow-run persistence with provider/model version and latency\n"
-        "- Safe error capture for invalid or unsafe model output\n"
-        "- No workflow mutation, enforcement, regulatory decision or official integration"
+        "- Capture structured environmental observations and track review status\n"
+        "- Run advisory evidence and quality checks on supplied values\n"
+        "- Keep a traceable record of reviewer decisions and authorised exports\n"
+        "- View pilot activity and candidate spatial-change signals"
     )
-    st.markdown("**Phase 10 — Reviewer Copilot & Human Evaluation**")
+    st.markdown("**Security and human oversight**")
     st.markdown(
-        "- Neutral extractive summaries without invented facts\n"
-        "- Explainable keyword-supported category suggestions\n"
-        "- Review-priority advisories tied to existing pilot fields\n"
-        "- Duplicate candidates as review signals only\n"
-        "- Human verification remains mandatory\n"
-        "- No autonomous regulatory, enforcement or environmental-truth decisions"
+        "- Persistent records require authenticated, server-provisioned roles\n"
+        "- Submitters are restricted to their own records; review, audit and export are permission-gated\n"
+        "- AI and spatial outputs are advisory candidates, not verified facts or regulatory decisions\n"
+        "- Human review is required; automatic enforcement and official submissions are disabled"
     )
-    st.markdown("**Security and governance controls**")
+    st.markdown("**Not connected or production-ready**")
     st.markdown(
-        "- Streamlit OIDC identity → stable issuer + subject principal\n"
-        "- Server-side role binding with deny-by-default access\n"
-        "- Persistent repository operations require the authenticated principal\n"
-        "- Submitters are isolated to records they own\n"
-        "- Review, metrics, audit, export, intelligence and copilot feedback are permission-gated\n"
-        "- Personal-data intake, urgent incidents and unofficial integrations remain disabled"
-    )
-    st.markdown("**Still not implemented**")
-    st.markdown(
-        "- Official NEMA, ELMIS or SWIMS integration\n"
-        "- Regulatory enforcement or verified incident classification\n"
-        "- SMS/USSD/IVR, satellite analytics, IoT or predictive models\n"
-        "- Production monitoring and independent backup/audit infrastructure"
+        "- No official NEMA, ELMIS or SWIMS integration\n"
+        "- No live Google Earth Engine / Sentinel-2 acquisition in this workspace\n"
+        "- No SMS/USSD/IVR, IoT sensor ingestion, or autonomous response\n"
+        "- Production monitoring, independent backup/restore, and formal retention controls still require verification"
     )
     st.warning(
         "Before real-user deployment: configure secrets, test each role, establish backup/restore "
