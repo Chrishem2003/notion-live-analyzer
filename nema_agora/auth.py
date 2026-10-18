@@ -68,5 +68,7 @@ def resolve_principal(streamlit_module: Any) -> Principal | None:
         if not isinstance(secrets, Mapping):
             return None
         return principal_from_streamlit_user(user, secrets)
-    except (AttributeError, TypeError, ValueError, KeyError):
+    except Exception:
+        # Authentication adapters must fail closed even when an SDK/user
+        # object raises an unexpected exception while exposing claims.
         return None
