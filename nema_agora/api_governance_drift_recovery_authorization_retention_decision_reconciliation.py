@@ -115,11 +115,11 @@ def validate_retention_authorization_reconciliation(result: Mapping[str, Any]) -
     required=("policy_version","state","lifecycle_count","decision_count","findings","read_only","human_governed","execution_gate_closed","execution_permitted","execution_performed","automatic_repair_performed","reconciliation_fingerprint")
     for key in required:
         if key not in result: raise ValueError(f"MISSING_{key.upper()}")
+    payload=dict(result); supplied=payload.pop("reconciliation_fingerprint")
+    if fingerprint(payload) != supplied: raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
     if result["policy_version"] != POLICY_VERSION: raise ValueError("INVALID_RECONCILIATION_POLICY")
     if result["state"] not in ("NO_HISTORY","RECONCILED","CONTROL_REQUIRED"): raise ValueError("INVALID_RECONCILIATION_STATE")
     if result["read_only"] is not True or result["human_governed"] is not True: raise ValueError("INVALID_GOVERNANCE_CONTROLS")
     if result["execution_gate_closed"] is not True or result["execution_permitted"] is not False or result["execution_performed"] is not False: raise ValueError("EXECUTION_MUST_REMAIN_CLOSED")
     if result["automatic_repair_performed"] is not False: raise ValueError("AUTOMATIC_REPAIR_FORBIDDEN")
-    payload=dict(result); supplied=payload.pop("reconciliation_fingerprint")
-    if fingerprint(payload) != supplied: raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
     return dict(result)
