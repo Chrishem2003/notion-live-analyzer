@@ -111,8 +111,18 @@ def build_evidence_case(
 ) -> EvidenceCase:
     if not isinstance(case_id, str) or not case_id.strip():
         raise ValueError("case_id is required")
+    if not isinstance(observation, Mapping):
+        raise ValueError("observation must be a mapping")
+    try:
+        _canonical(observation)
+    except (TypeError, ValueError):
+        raise ValueError("observation must be JSON serializable") from None
     refs = tuple(evidence)
     findings_tuple = tuple(findings)
+    if any(not isinstance(reference, EvidenceReference) for reference in refs):
+        raise ValueError("evidence entries must be EvidenceReference values")
+    if any(not isinstance(finding, AdvisoryFinding) for finding in findings_tuple):
+        raise ValueError("findings entries must be AdvisoryFinding values")
     if len({r.evidence_id for r in refs}) != len(refs):
         raise ValueError("evidence_id values must be unique")
     for reference in refs:
@@ -137,12 +147,6 @@ def build_evidence_case(
             not isinstance(item, str) or not item.strip() for item in finding.input_fingerprints
         ):
             raise ValueError("finding input fingerprints must be non-empty strings")
-        try:
-            _canonical(observation)
-        except (TypeError, ValueError):
-            raise ValueError("observation must be JSON serializable") from None
-        if not isinstance(observation, Mapping):
-            raise ValueError("observation must be a mapping")
     for finding in findings_tuple:
         if not finding.advisory_only:
             raise ValueError("findings must remain advisory_only")
