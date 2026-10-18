@@ -38,3 +38,11 @@ def test_deterministic_candidate_id_and_non_regulatory():
     assert a["interpretation"]["regulatory_conclusion"] is None
     assert a["interpretation"]["violation"] is None
     assert a["interpretation"]["enforcement_action"] is None
+def test_huge_numeric_detection_threshold_fails_closed():
+    result = detect_candidate(
+        quality_evidence=_quality(),
+        min_abs_ndvi_delta=10 ** 10000,
+        min_abs_ndwi_delta=0.1,
+    )
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "INVALID_MIN_ABS_NDVI_DELTA" in {x["code"] for x in result["findings"]}
