@@ -9,13 +9,14 @@ import csv
 import io
 import hashlib
 import json
+from datetime import datetime, timezone
 from typing import Any
 from dataclasses import asdict
 
 from nema_agora.access import has_permission, require_permission
 from nema_agora.evidence_case import (
     EvidenceReference, EvidenceCase, build_evidence_case, attach_human_review,
-    mark_exported, validate_evidence_case,
+    mark_exported, validate_evidence_case, evidence_case_from_dict,
 )
 from nema_agora.quality import assess_observation
 from nema_agora.identity import Principal
@@ -39,6 +40,13 @@ from nema_agora.review_governance import (
 )
 from nema_agora.annotation import AnnotationStore, annotation_readiness, make_annotation, make_adjudication, pairwise_agreement, disagreement_cases
 from nema_agora.governance_decision_ledger import GovernanceDecisionLedger
+
+
+def _bundle_fingerprint(bundle: dict[str, Any]) -> str:
+    canonical = json.dumps(
+        bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 class NemaAgoraService:
@@ -563,12 +571,7 @@ class NemaAgoraService:
     def build_governed_evidence_case(
         self, case_id: str, principal: Principal
     ) -> dict[str, Any]:
-        """Build a provenance-bound, in-memory evidence bundle for an authorised reviewer.
-
-        This operation does not persist a separate evidence-case record. The source
-        observation and its audit trail remain in the repository; deployments must
-        persist reviewed bundle artifacts before treating them as durable records.
-        """
+        """Build or retrieve a durable provenance-bound evidence bundle."""
         self._authorised(principal)
         require_permission(principal.role, "observation:review")
         record = self.repository.get_observation(
@@ -597,17 +600,36 @@ class NemaAgoraService:
         if not isinstance(created_at, str) or not created_at.strip():
             raise ValueError("Observation must have a timestamp before an evidence case can be built.")
         bundle = build_evidence_case(
-            case_id=case_id,
-            observation=snapshot,
-            evidence=references,
-            created_at=created_at,
+            case_id=case_id, observation=snapshot, evidence=references, created_at=created_at,
         )
         validation = validate_evidence_case(bundle)
+        if not validation["valid"]:
+            raise ValueError("Evidence case failed integrity validation: " + ", ".join(validation["issues"]))
+        existing = self.repository.get_evidence_case(
+            case_id, actor_id=principal.subject_key, role=principal.role
+        )
+        if existing is None:
+            bundle_dict = bundle.to_dict()
+            fingerprint = _bundle_fingerprint(bundle_dict)
+            self.repository.create_evidence_case(
+                bundle_dict, actor_id=principal.subject_key, role=principal.role,
+                occurred_at=datetime.now(timezone.utc).isoformat(),
+                bundle_fingerprint=fingerprint,
+            )
+        else:
+            stored_bundle = evidence_case_from_dict(existing["bundle"])
+            stored_validation = validate_evidence_case(stored_bundle)
+            if not stored_validation["valid"]:
+                raise ValueError("Persisted evidence case failed integrity validation.")
+            if stored_bundle.observation_fingerprint != bundle.observation_fingerprint:
+                raise ValueError("Observation changed since evidence case preparation; a governed amendment is required.")
+            bundle = stored_bundle
+            validation = stored_validation
         return {
             "evidence_case": bundle,
             "quality_assessment": quality,
             "integrity": validation,
-            "durable": False,
+            "durable": True,
             "execution_gate": validation["execution_gate"],
             "environmental_truth_claim": False,
             "regulatory_conclusion": False,
@@ -622,40 +644,83 @@ class NemaAgoraService:
         notes: str = "",
         reviewed_at: str | None = None,
     ) -> EvidenceCase:
-        """Attach an authenticated human review to a validated evidence bundle."""
+        """Persist a review only if the submitted bundle matches the current stored version."""
         self._authorised(principal)
         require_permission(principal.role, "observation:review")
         validation = validate_evidence_case(evidence_case)
         if not validation["valid"]:
             raise ValueError("Evidence case failed integrity validation: " + ", ".join(validation["issues"]))
-        return attach_human_review(
-            evidence_case,
-            reviewer_id=principal.subject_key,
-            role=principal.role,
-            decision=decision,
-            notes=notes,
-            reviewed_at=reviewed_at,
+        existing = self.repository.get_evidence_case(
+            evidence_case.case_id, actor_id=principal.subject_key, role=principal.role
         )
+        if existing is None:
+            raise KeyError(f"Evidence case not found: {evidence_case.case_id}")
+        stored = evidence_case_from_dict(existing["bundle"])
+        if stored.to_dict() != evidence_case.to_dict():
+            raise ValueError("Evidence case is stale or differs from the persisted bundle.")
+        if existing["state"] != "READY_FOR_REVIEW":
+            raise ValueError("Evidence case is not awaiting human review.")
+        reviewed_at = reviewed_at or datetime.now(timezone.utc).isoformat()
+        reviewed = attach_human_review(
+            stored, reviewer_id=principal.subject_key, role=principal.role,
+            decision=decision, notes=notes, reviewed_at=reviewed_at,
+        )
+        reviewed_dict = reviewed.to_dict()
+        self.repository.transition_evidence_case(
+            evidence_case.case_id, reviewed_dict, actor_id=principal.subject_key,
+            role=principal.role, expected_state="READY_FOR_REVIEW",
+            event_type="evidence_case_reviewed", occurred_at=reviewed_at,
+            bundle_fingerprint=_bundle_fingerprint(reviewed_dict),
+            expected_fingerprint=existing["bundle_fingerprint"],
+        )
+        return reviewed
 
     def export_governed_evidence_case(
         self, evidence_case: EvidenceCase, principal: Principal
     ) -> bytes:
-        """Export only an integrity-valid, human-reviewed evidence bundle."""
+        """Export only the current persisted, integrity-valid human-reviewed bundle."""
         self._authorised(principal)
         require_permission(principal.role, "case:export")
-        exported = mark_exported(evidence_case)
+        existing = self.repository.get_evidence_case(
+            evidence_case.case_id, actor_id=principal.subject_key, role=principal.role
+        )
+        if existing is None:
+            raise KeyError(f"Evidence case not found: {evidence_case.case_id}")
+        stored = evidence_case_from_dict(existing["bundle"])
+        if stored.to_dict() != evidence_case.to_dict():
+            raise ValueError("Evidence case is stale or differs from the persisted bundle.")
+        if existing["state"] != "REVIEWED" or stored.state != "REVIEWED":
+            raise ValueError("only human-reviewed cases can be exported")
+        exported = mark_exported(stored)
+        exported_dict = exported.to_dict()
+        occurred_at = datetime.now(timezone.utc).isoformat()
+        self.repository.transition_evidence_case(
+            evidence_case.case_id, exported_dict, actor_id=principal.subject_key,
+            role=principal.role, expected_state="REVIEWED",
+            event_type="evidence_case_exported", occurred_at=occurred_at,
+            bundle_fingerprint=_bundle_fingerprint(exported_dict),
+            expected_fingerprint=existing["bundle_fingerprint"],
+        )
         payload = {
             "schema_version": "nema-agora-evidence-export-v1",
             "policy_version": "evidence-case-v1",
-            "case": exported.to_dict(),
+            "case": exported_dict,
             "integrity": validate_evidence_case(exported),
             "human_governed": True,
-            "durable": False,
+            "durable": True,
             "environmental_truth_claim": False,
             "regulatory_conclusion": False,
             "nema_authorization": False,
         }
         return (json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\\n").encode("utf-8")
+
+    def list_evidence_case_events(
+        self, case_id: str, principal: Principal
+    ) -> list[dict[str, Any]]:
+        self._authorised(principal)
+        return self.repository.list_evidence_case_events(
+            case_id, actor_id=principal.subject_key, role=principal.role
+        )
 
     def export_csv(self, principal: Principal, records: list[dict[str, Any]]) -> bytes:
         self._authorised(principal)
