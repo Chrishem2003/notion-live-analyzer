@@ -161,6 +161,10 @@ def validate_authorization_history_registry_decision_reconciliation(
     for key in required:
         if key not in result:
             raise ValueError(f"MISSING_{key.upper()}")
+    payload = dict(result)
+    supplied = payload.pop("reconciliation_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
     if result["policy_version"] != POLICY_VERSION:
         raise ValueError("INVALID_RECONCILIATION_POLICY")
     if result["state"] not in ("NO_HISTORY", "RECONCILED", "CONTROL_REQUIRED"):
@@ -177,8 +181,4 @@ def validate_authorization_history_registry_decision_reconciliation(
         raise ValueError("AUTOMATIC_REPAIR_FORBIDDEN")
     if not isinstance(result["findings"], list):
         raise ValueError("INVALID_FINDINGS")
-    payload = dict(result)
-    supplied = payload.pop("reconciliation_fingerprint")
-    if fingerprint(payload) != supplied:
-        raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
     return dict(result)
