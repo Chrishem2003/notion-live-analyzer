@@ -215,3 +215,27 @@ def test_status_update_rolls_back_when_audit_insert_fails(tmp_path):
     assert len(events) == 1
     assert events[0]["event_type"] == "record_created"
 
+def test_repository_ignores_caller_supplied_owner_and_validates_creation_timestamps(tmp_path):
+    repo = NemaAgoraRepository(tmp_path / "pilot.sqlite3")
+    record = sample_record()
+    record["owner_id"] = "victim-2"
+    created = repo.create_observation(
+        record, actor_id="submitter-1", role="submitter"
+    )
+    assert created["owner_id"] == "submitter-1"
+    with pytest.raises(PermissionError):
+        repo.get_observation(
+            created["case_id"], actor_id="victim-2", role="submitter"
+        )
+
+    invalid = sample_record()
+    invalid["case_id"] = "NA-INVALID-TIME"
+    invalid["created_at"] = "2026-10-04T12:00:00"
+    with pytest.raises(ValueError, match="ISO 8601 timestamp with timezone"):
+        repo.create_observation(
+            invalid, actor_id="submitter-1", role="submitter"
+        )
+    assert repo.list_observations(
+        actor_id="submitter-1", role="submitter"
+    ) == [created]
+
