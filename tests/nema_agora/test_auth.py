@@ -107,4 +107,5 @@ def test_claimed_privilege_fields_never_override_server_role_binding():
     )
     assert principal is not None
     assert principal.role == "submitter"
-    assert not principal.is_authorised is False
+    assert principal.is_authorised
+    assert principal.role != "admin"
