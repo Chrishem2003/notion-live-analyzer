@@ -306,10 +306,13 @@ if active_section == "Case management":
                 key=f"prepare_evidence_{selected_id}",
                 use_container_width=True,
             ):
+                # Invalidate prior derived UI state before attempting a fresh load.
+                # If the store call fails, old bundle/export data must not look current.
+                st.session_state.pop(f"evidence_bundle_{selected_id}", None)
+                st.session_state.pop(f"evidence_export_{selected_id}", None)
                 try:
                     prepared_bundle = service.build_governed_evidence_case(selected_id, principal)
                     st.session_state[f"evidence_bundle_{selected_id}"] = prepared_bundle["evidence_case"]
-                    st.session_state.pop(f"evidence_export_{selected_id}", None)
                     st.success("Evidence bundle loaded from the governed workflow store.")
                 except (ValueError, PermissionError, KeyError) as exc:
                     st.error(str(exc))
