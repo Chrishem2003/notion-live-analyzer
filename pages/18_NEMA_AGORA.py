@@ -16,6 +16,7 @@ from nema_agora.config import database_path_from_secrets, mode_from_secrets
 from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, make_observation, validate_observation
 from nema_agora.governance import policy_from_secrets, validate_governance
 from nema_agora.quality import assess_observation
+from nema_agora.evidence_case import validate_evidence_case
 from nema_agora.service import NemaAgoraService
 from nema_agora.storage import NemaAgoraRepository
 from nema_agora.workflow import apply_status_update
@@ -222,6 +223,105 @@ with tab_review:
                 )
             elif persistent:
                 st.caption("CSV export is restricted to coordinator/admin roles.")
+
+            st.divider()
+            st.subheader("Evidence provenance & governed export")
+            st.caption(
+                "Persists a provenance-bound evidence bundle and records each human review/export transition. "
+                "External references are pointers only; they are not proof that file contents were verified."
+            )
+            if st.button(
+                "Prepare / reload evidence case",
+                key=f"prepare_evidence_{selected_id}",
+                use_container_width=True,
+            ):
+                try:
+                    prepared_bundle = service.build_governed_evidence_case(selected_id, principal)
+                    st.session_state[f"evidence_bundle_{selected_id}"] = prepared_bundle["evidence_case"]
+                    st.session_state.pop(f"evidence_export_{selected_id}", None)
+                    st.success("Evidence bundle loaded from the governed workflow store.")
+                except (ValueError, PermissionError, KeyError) as exc:
+                    st.error(str(exc))
+
+            governed_bundle = st.session_state.get(f"evidence_bundle_{selected_id}")
+            if governed_bundle is not None:
+                integrity = validate_evidence_case(governed_bundle)
+                st.write(f"**Evidence-case state:** {governed_bundle.state}")
+                st.write(f"**Integrity:** {'VALID' if integrity['valid'] else 'INVALID'}")
+                if not integrity["valid"]:
+                    st.error(", ".join(integrity["issues"]))
+                st.caption(f"Provenance fingerprint: {governed_bundle.provenance_fingerprint}")
+                if governed_bundle.state == "READY_FOR_REVIEW" and integrity["valid"]:
+                    with st.form(f"governed_review_{selected_id}"):
+                        governed_decision = st.selectbox(
+                            "Human evidence decision",
+                            ["ACKNOWLEDGED", "REQUIRES_FOLLOW_UP", "ESCALATED"],
+                            key=f"governed_decision_{selected_id}",
+                        )
+                        governed_notes = st.text_area(
+                            "Evidence review notes (no personal or confidential details)",
+                            max_chars=1000,
+                            key=f"governed_notes_{selected_id}",
+                        )
+                        save_governed_review = st.form_submit_button(
+                            "Save signed-in reviewer decision", type="primary"
+                        )
+                    if save_governed_review:
+                        try:
+                            reviewed_bundle = service.review_governed_evidence_case(
+                                governed_bundle, principal,
+                                decision=governed_decision, notes=governed_notes,
+                                reviewed_at=datetime.now().astimezone().isoformat(timespec="seconds"),
+                            )
+                            st.session_state[f"evidence_bundle_{selected_id}"] = reviewed_bundle
+                            st.session_state.pop(f"evidence_export_{selected_id}", None)
+                        except (ValueError, PermissionError, KeyError) as exc:
+                            st.error(str(exc))
+                        else:
+                            st.success("Human review persisted with actor-bound audit history.")
+                            st.rerun()
+                elif governed_bundle.state == "REVIEWED" and can_export and integrity["valid"]:
+                    if st.button(
+                        "Generate governed JSON export",
+                        key=f"governed_export_{selected_id}",
+                        type="primary",
+                    ):
+                        try:
+                            export_bytes = service.export_governed_evidence_case(governed_bundle, principal)
+                            st.session_state[f"evidence_export_{selected_id}"] = export_bytes
+                            st.session_state.pop(f"evidence_bundle_{selected_id}", None)
+                        except (ValueError, PermissionError, KeyError) as exc:
+                            st.error(str(exc))
+                        else:
+                            st.success("Integrity-checked export recorded. Refresh the evidence case to inspect its final state.")
+                            st.rerun()
+                elif governed_bundle.state == "REVIEWED" and not can_export:
+                    st.info("Human review is recorded. JSON export is restricted to coordinator/admin roles.")
+                elif governed_bundle.state == "EXPORTED":
+                    st.success("This evidence case is already marked exported; it cannot be exported again through this transition.")
+                export_bytes = st.session_state.get(f"evidence_export_{selected_id}")
+                if export_bytes:
+                    st.download_button(
+                        "Download governed evidence JSON",
+                        data=export_bytes,
+                        file_name=f"{selected_id}_evidence.json",
+                        mime="application/json",
+                        key=f"download_evidence_{selected_id}",
+                        use_container_width=True,
+                    )
+            if can_audit and st.checkbox(
+                "Show evidence-case transition audit",
+                key=f"show_evidence_audit_{selected_id}",
+            ):
+                try:
+                    evidence_events = service.list_evidence_case_events(selected_id, principal)
+                except (ValueError, PermissionError, KeyError) as exc:
+                    st.error(str(exc))
+                else:
+                    if evidence_events:
+                        st.dataframe(pd.DataFrame(evidence_events), use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No governed evidence transitions recorded yet.")
 
 with tab_intelligence:
     st.subheader("🧠 Evidence intelligence — human-in-the-loop")
