@@ -19,6 +19,7 @@ def test_unknown_or_malformed_explicit_mode_is_invalid_not_demo(value):
 def test_missing_mode_defaults_to_safe_demo_but_valid_modes_are_explicit():
     assert mode_from_secrets({}) == "demo"
     assert mode_from_secrets({"nema_agora": {}}) == "demo"
+    assert mode_from_secrets({"nema_agora": "not-a-section"}) == "invalid"
     assert mode_from_secrets({"nema_agora": {"mode": " PERSISTENT "}}) == "persistent"
     assert mode_from_secrets({"nema_agora": {"mode": "demo"}}) == "demo"
 
