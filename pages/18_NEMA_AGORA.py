@@ -460,6 +460,9 @@ if active_section == "Intelligence workspace" and intelligence_tool == "Reviewer
             )
             selected_copilot = next(r for r in records if r["case_id"] == selected_copilot_id)
             if st.button("Prepare reviewer brief", type="primary", use_container_width=True):
+                # A failed rerun must not leave a prior brief looking freshly prepared.
+                st.session_state.pop("nema_agora_copilot_brief", None)
+                st.session_state.pop("nema_agora_copilot_case", None)
                 try:
                     brief = service.build_reviewer_copilot(
                         selected_copilot, principal, peer_records=records
@@ -574,6 +577,9 @@ if active_section == "Intelligence workspace" and intelligence_tool == "AI shado
                 "It is not an external AI model and does not imply model performance."
             )
             if st.button("Run isolated shadow analysis", type="primary", use_container_width=True):
+                # Remove prior output before retrying so failed runs fail visibly closed.
+                st.session_state.pop("nema_agora_shadow_result", None)
+                st.session_state.pop("nema_agora_shadow_case", None)
                 try:
                     result = service.run_shadow(selected_shadow, principal)
                     st.session_state["nema_agora_shadow_result"] = result
