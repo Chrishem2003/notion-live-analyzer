@@ -223,6 +223,35 @@ def mark_exported(case: EvidenceCase) -> EvidenceCase:
     )
 
 
+def evidence_case_from_dict(payload: Mapping[str, Any]) -> EvidenceCase:
+    """Rehydrate a persisted JSON bundle into validated immutable domain objects."""
+    if not isinstance(payload, Mapping):
+        raise ValueError("persisted evidence case must be a mapping")
+    try:
+        evidence = tuple(EvidenceReference(**item) for item in payload["evidence"])
+        findings = tuple(
+            AdvisoryFinding(
+                **{**item, "input_fingerprints": tuple(item["input_fingerprints"])}
+            )
+            for item in payload.get("findings", [])
+        )
+        review_payload = payload.get("review")
+        review = HumanReview(**review_payload) if isinstance(review_payload, Mapping) else None
+        return EvidenceCase(
+            case_id=payload["case_id"],
+            created_at=payload["created_at"],
+            state=payload["state"],
+            observation_fingerprint=payload["observation_fingerprint"],
+            evidence=evidence,
+            findings=findings,
+            review=review,
+            provenance_fingerprint=payload["provenance_fingerprint"],
+            review_fingerprint=payload.get("review_fingerprint", ""),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("persisted evidence case has an invalid schema") from exc
+
+
 def validate_evidence_case(case: EvidenceCase) -> dict[str, Any]:
     issues: list[str] = []
     if not isinstance(case, EvidenceCase):
