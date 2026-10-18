@@ -12,18 +12,26 @@ from nema_agora.config import (
 
 
 @pytest.mark.parametrize("value", ["", "production", "persistent-ish", None, 7, True])
-def test_unknown_or_malformed_mode_defaults_to_demo(value):
-    assert mode_from_secrets({"nema_agora": {"mode": value}}) == "demo"
+def test_unknown_or_malformed_explicit_mode_is_invalid_not_demo(value):
+    assert mode_from_secrets({"nema_agora": {"mode": value}}) == "invalid"
 
 
-def test_only_explicit_persistent_mode_enables_persistent_configuration():
+def test_missing_mode_defaults_to_safe_demo_but_valid_modes_are_explicit():
+    assert mode_from_secrets({}) == "demo"
+    assert mode_from_secrets({"nema_agora": {}}) == "demo"
     assert mode_from_secrets({"nema_agora": {"mode": " PERSISTENT "}}) == "persistent"
     assert mode_from_secrets({"nema_agora": {"mode": "demo"}}) == "demo"
 
 
-@pytest.mark.parametrize("secrets", [{}, {"nema_agora": {}}, {"nema_agora": {"database_path": ""}}, {"nema_agora": {"database_path": None}}, {"nema_agora": "not-a-section"}])
-def test_missing_or_malformed_database_path_is_not_inferred(secrets):
-    assert database_path_from_secrets(secrets) is None
+def test_missing_or_malformed_database_path_is_not_inferred(secrets=None):
+    for value in (
+        {},
+        {"nema_agora": {}},
+        {"nema_agora": {"database_path": ""}},
+        {"nema_agora": {"database_path": None}},
+        {"nema_agora": "not-a-section"},
+    ):
+        assert database_path_from_secrets(value) is None
 
 
 def test_database_path_is_explicit_and_expands_home_marker():
@@ -46,7 +54,6 @@ def test_missing_or_malformed_backup_directory_is_not_guessed():
     assert backup_dir_from_secrets({}) is None
     assert backup_dir_from_secrets({"nema_agora": {"backup_dir": []}}) is None
     assert backup_dir_from_secrets({"nema_agora": {"backup_dir": "  "}}) is None
-
 
 
 def test_persistent_runtime_initializes_database_under_explicit_path(tmp_path):
