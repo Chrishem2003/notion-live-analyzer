@@ -51,3 +51,16 @@ def test_evidence_reload_invalidates_old_bundle_and_export_before_store_call():
     clear_export = page.index('st.session_state.pop(f"evidence_export_{selected_id}", None)', clear_bundle)
     store_call = page.index("service.build_governed_evidence_case(selected_id, principal)", clear_export)
     assert button < clear_bundle < clear_export < store_call
+
+
+def test_advisory_analysis_has_user_safe_failure_handling():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    action = page.index('st.button("Run advisory analysis"')
+    handler = page.index("except Exception as exc:", action)
+    safe_message = page.index(
+        "Advisory analysis could not be completed. No case status or observation data was changed.",
+        handler,
+    )
+    assert action < handler < safe_message
