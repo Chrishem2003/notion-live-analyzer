@@ -317,6 +317,11 @@ def test_repeated_evidence_preparation_does_not_duplicate_audit_event(tmp_path):
         json.dumps(bundle_dict, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
     ).hexdigest()
 
+    with pytest.raises(ValueError, match="ISO 8601 timestamp with timezone"):
+        service.repository.create_evidence_case(
+            bundle_dict, actor_id=reviewer.subject_key, role=reviewer.role,
+            occurred_at="not-a-time", bundle_fingerprint=fingerprint,
+        )
     result = service.repository.create_evidence_case(
         bundle_dict, actor_id=reviewer.subject_key, role=reviewer.role,
         occurred_at="2026-10-04T12:30:00+03:00", bundle_fingerprint=fingerprint,
