@@ -64,3 +64,17 @@ def test_advisory_analysis_has_user_safe_failure_handling():
         handler,
     )
     assert action < handler < safe_message
+
+
+def test_copilot_and_shadow_retries_clear_stale_results_before_execution():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    copilot = page.index('st.button("Prepare reviewer brief"')
+    copilot_clear = page.index('st.session_state.pop("nema_agora_copilot_brief", None)', copilot)
+    copilot_run = page.index("service.build_reviewer_copilot(", copilot_clear)
+    shadow = page.index('st.button("Run isolated shadow analysis"')
+    shadow_clear = page.index('st.session_state.pop("nema_agora_shadow_result", None)', shadow)
+    shadow_run = page.index("service.run_shadow(selected_shadow, principal)", shadow_clear)
+    assert copilot < copilot_clear < copilot_run
+    assert shadow < shadow_clear < shadow_run
