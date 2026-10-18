@@ -145,3 +145,24 @@ def test_backup_helpers_reject_empty_path_instead_of_using_current_directory(tmp
 
     with pytest.raises(ValueError, match="filesystem path is required"):
         _path(empty_path)
+
+
+@pytest.mark.parametrize("keep", [0, -1, 3651, True, False, 1.5, "2", None])
+def test_prune_rejects_invalid_retention_values(tmp_path, keep):
+    with pytest.raises(ValueError, match="retention must be between 1 and 3650"):
+        prune_backups(tmp_path / "backups", keep=keep)
+
+
+def test_backup_rejects_missing_source_without_creating_backup_directory(tmp_path):
+    backup_dir = tmp_path / "backups"
+    with pytest.raises(FileNotFoundError, match="Database not found"):
+        backup_database(tmp_path / "missing.sqlite3", backup_dir)
+    assert not backup_dir.exists()
+
+
+def test_backup_rejects_corrupt_source(tmp_path):
+    corrupt = tmp_path / "corrupt.sqlite3"
+    corrupt.write_text("not a SQLite database", encoding="utf-8")
+    with pytest.raises(ValueError, match="Source database failed"):
+        backup_database(corrupt, tmp_path / "backups")
+    assert not (tmp_path / "backups").exists()
