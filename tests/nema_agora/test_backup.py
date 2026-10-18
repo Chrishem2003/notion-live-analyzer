@@ -215,3 +215,26 @@ def test_restore_preserves_rollback_snapshot_when_automatic_rollback_fails(tmp_p
     restored = NemaAgoraRepository(target_db)
     assert len(restored.list_observations(actor_id="target-user", role="submitter")) == 1
     assert restored.list_observations(actor_id="source-user", role="submitter") == []
+
+
+def test_backup_and_restored_database_permissions_are_restricted_on_posix(tmp_path):
+    import os
+    import stat
+
+    if os.name == "nt":
+        pytest.skip("POSIX file permission bits are not portable to Windows")
+
+    source_db = tmp_path / "source.sqlite3"
+    target_db = tmp_path / "restored.sqlite3"
+    NemaAgoraRepository(source_db).create_observation(
+        record(), actor_id="submitter-1", role="submitter"
+    )
+    backup = backup_database(
+        source_db,
+        tmp_path / "backups",
+        now=datetime(2026, 10, 4, 9, tzinfo=timezone.utc),
+    )
+    assert stat.S_IMODE(backup.stat().st_mode) == 0o600
+
+    restore_database(backup, target_db, confirm_destructive=True)
+    assert stat.S_IMODE(target_db.stat().st_mode) == 0o600
