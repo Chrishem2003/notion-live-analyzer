@@ -267,15 +267,15 @@ def test_audit_and_operation_logs_are_append_only(tmp_path):
     statements = [
         ("UPDATE audit_events SET actor_id = 'tampered' WHERE case_id = ?", record["case_id"]),
         ("DELETE FROM audit_events WHERE case_id = ?", record["case_id"]),
-        ("UPDATE operation_events SET operation = 'tampered'"),
-        ("DELETE FROM operation_events"),
+        ("UPDATE operation_events SET operation = 'tampered'", None),
+        ("DELETE FROM operation_events", None),
         ("UPDATE intelligence_events SET actor_id = 'tampered' WHERE case_id = ?", record["case_id"]),
         ("DELETE FROM intelligence_events WHERE case_id = ?", record["case_id"]),
     ]
     for statement, parameter in statements:
         with pytest.raises(sqlite3.IntegrityError, match="immutable"):
             with sqlite3.connect(path) as connection:
-                if "?" in statement:
+                if parameter is not None:
                     connection.execute(statement, (parameter,))
                 else:
                     connection.execute(statement)
