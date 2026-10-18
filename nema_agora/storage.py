@@ -216,15 +216,14 @@ class NemaAgoraRepository:
             raise ValueError("A valid case identifier is required.")
         if status not in STATUSES:
             raise ValueError("A valid initial status is required.")
-        if not created_at:
-            raise ValueError("A creation timestamp is required.")
+        _timestamp(created_at, "created_at")
 
         stored = dict(record)
-        owner = str(stored.get("owner_id") or actor).strip()
-        if not owner or len(owner) > 128:
-            raise ValueError("A valid record owner identifier is required.")
-        stored["owner_id"] = owner
+        # Ownership is always derived from the authenticated actor at the
+        # repository boundary; never trust a caller-supplied owner_id.
+        stored["owner_id"] = actor
         updated_at = str(stored.get("updated_at") or created_at)
+        _timestamp(updated_at, "updated_at")
         stored["updated_at"] = updated_at
         payload = json.dumps(stored, ensure_ascii=False, sort_keys=True)
 
