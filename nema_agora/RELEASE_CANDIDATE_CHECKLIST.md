@@ -88,3 +88,19 @@ These are code-level and CI validations. They do not prove that an external OIDC
 - [x] Repository CI passed: [run 39122826042](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39122826042).
 
 The tests verify application/runtime behavior in CI. They do not replace a live deployment test of the actual host filesystem, OIDC, persistent volume, or database recovery.
+
+
+## Phase 179 — privileged role/action regression matrix
+
+- [x] Added parameterized assertions for submitter, reviewer, coordinator, and administrator permissions across observation creation/review, case export, audit read, user management, model admission, attestation, and annotation adjudication.
+- [x] Focused NEMA-AGORA checks passed on the tested candidate: [run 39123574247](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123574247).
+- [x] Repository CI passed: [run 39123574232](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123574232).
+
+## Phase 180 — recovery snapshot preservation
+
+- [x] Hardened restore rollback handling: if post-restore integrity validation fails and automatic rollback replacement also fails, the only rollback snapshot is preserved instead of deleted during cleanup.
+- [x] Added a failure-injection regression test that verifies the retained snapshot can restore the original target database.
+- [x] Focused NEMA-AGORA checks passed: [run 39123574247](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123574247).
+- [x] Repository CI passed: [run 39123574232](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39123574232).
+
+These checks validate the tested code paths in CI. Deployment-specific volume permissions, live identity-provider behavior, and an operational restore drill still require verification in the actual hosting environment.
