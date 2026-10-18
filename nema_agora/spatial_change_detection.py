@@ -14,7 +14,12 @@ def _valid_id(v: Any) -> bool:
     return isinstance(v, str) and bool(_ID_RE.fullmatch(v))
 
 def _finite(v: Any) -> bool:
-    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(float(v))
+    if not isinstance(v, (int, float)) or isinstance(v, bool):
+        return False
+    try:
+        return math.isfinite(float(v))
+    except (OverflowError, TypeError, ValueError):
+        return False
 
 def _threshold(v: Any) -> bool:
     return _finite(v) and 0.0 <= float(v) <= 2.0
