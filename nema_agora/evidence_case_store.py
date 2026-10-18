@@ -15,6 +15,7 @@ from .evidence_case import (
     EvidenceReference,
     HumanReview,
     validate_evidence_case,
+    attach_human_review,
 )
 
 
@@ -171,21 +172,13 @@ class EvidenceCaseStore:
                 decision = payload.get("decision")
                 if decision not in ALLOWED_DECISIONS - {"PENDING"}:
                     raise ValueError("invalid human-review decision in event history")
-                effective_case = EvidenceCase(
-                    effective_case.case_id,
-                    effective_case.created_at,
-                    "REVIEWED",
-                    effective_case.observation_fingerprint,
-                    effective_case.evidence,
-                    effective_case.findings,
-                    HumanReview(
-                        reviewer_id=event["actor_id"],
-                        role=event["role"],
-                        decision=decision,
-                        reviewed_at=event["created_at"],
-                        notes=payload.get("notes", ""),
-                    ),
-                    effective_case.provenance_fingerprint,
+                effective_case = attach_human_review(
+                    effective_case,
+                    reviewer_id=event["actor_id"],
+                    role=event["role"],
+                    decision=decision,
+                    reviewed_at=event["created_at"],
+                    notes=payload.get("notes", ""),
                 )
             elif event["event_type"] == "EXPORT_AUTHORISED":
                 if effective_case.state != "REVIEWED" or effective_case.review is None:
