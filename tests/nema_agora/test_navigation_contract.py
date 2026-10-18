@@ -40,3 +40,14 @@ def test_single_page_case_management_exposes_explicit_workflow_run_action():
     assert "Only authorised reviewers can run this step" in page
     assert "from nema_agora.workflow import ALLOWED_TRANSITIONS, apply_status_update" in page
     assert "status in ALLOWED_TRANSITIONS[selected[\"status\"]]" in page
+
+
+def test_evidence_reload_invalidates_old_bundle_and_export_before_store_call():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    button = page.index('"Prepare / reload evidence case"')
+    clear_bundle = page.index('st.session_state.pop(f"evidence_bundle_{selected_id}", None)', button)
+    clear_export = page.index('st.session_state.pop(f"evidence_export_{selected_id}", None)', clear_bundle)
+    store_call = page.index("service.build_governed_evidence_case(selected_id, principal)", clear_export)
+    assert button < clear_bundle < clear_export < store_call
