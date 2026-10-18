@@ -114,9 +114,13 @@ def test_release_readiness_failures_do_not_leak_exception_details_or_claim_appro
     ).read_text(encoding="utf-8")
     action = page.index('st.button("Evaluate release readiness"')
     handler = page.index("except Exception as exc:", action)
-    safe_message = page.index(
-        "Readiness could not be evaluated. Check the candidate SHA and evidence JSON, "
-        "then retry. No release approval was granted.",
+    safe_message_start = page.index(
+        "Readiness could not be evaluated. Check the candidate SHA and evidence JSON,",
         handler,
     )
-    assert action < handler < safe_message
+    safe_message_end = page.index(
+        "then retry. No release approval was granted.",
+        safe_message_start,
+    )
+    assert action < handler < safe_message_start < safe_message_end
+    assert "st.caption(f\"Failure type: {type(exc).__name__}\")" in page[safe_message_end:]
