@@ -137,6 +137,16 @@ The test exercises service/repository policy under CI. Deployed identity-provide
 
 - [x] Added an audit-permission-gated verifier that checks evidence lifecycle event ordering, allowed transitions, actor attribution, timestamps, and agreement with the persisted final state/fingerprint.
 - [x] Added tests for a valid prepare → review → export chain and for detection of an injected extra lifecycle event.
-- [ ] Focused NEMA-AGORA and repository CI must pass on the latest candidate before Phase 184 is verified.
+- [x] Focused NEMA-AGORA CI passed: [run 39124850359](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124850359).
+- [x] Repository CI passed: [run 39124850303](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124850303).
 - [ ] This is an application-level consistency check, not cryptographic tamper proofing; protect the database file and backups separately.
 
+
+
+## Phase 185 — lifecycle timestamp integrity
+
+- [x] History verification now checks that event timestamps are timezone-aware ISO 8601 values and do not move backwards in event order.
+- [x] Added regression coverage for valid READY_FOR_REVIEW and REVIEWED history prefixes.
+- [x] Added a failure-injection test for an out-of-order lifecycle timestamp.
+- [ ] Focused NEMA-AGORA and repository CI must pass on the Phase 185 candidate before this phase is verified.
+- [ ] This check detects inconsistent chronology; it does not establish a trusted clock source or cryptographic tamper-proof audit storage.
