@@ -52,3 +52,20 @@ def test_quality_evidence_is_deterministic_and_non_regulatory():
     assert first["fingerprint"] == second["fingerprint"]
     assert "violation" not in first
     assert first["interpretation"]["regulatory_conclusion"] is None
+
+
+def test_quality_payload_preserves_change_deltas_for_candidate_detection():
+    from nema_agora.spatial_change_detection import detect_candidate
+
+    evidence = spatial_temporal_quality_evidence(**quality())
+    assert evidence["change"]["NDVI"]["delta"] == -0.2
+    assert evidence["change"]["NDWI_MCFEETERS"]["delta"] == 0.15
+    result = detect_candidate(
+        quality_evidence=evidence,
+        min_abs_ndvi_delta=0.15,
+        min_abs_ndwi_delta=0.10,
+        rule_mode="ANY",
+    )
+    assert result["state"] == "CANDIDATE_CHANGE_DETECTED"
+    assert result["interpretation"]["environmental_conclusion"] is None
+    assert result["interpretation"]["regulatory_conclusion"] is None
