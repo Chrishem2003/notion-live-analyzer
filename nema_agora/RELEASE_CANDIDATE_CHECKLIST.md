@@ -129,7 +129,8 @@ The test exercises service/repository policy under CI. Deployed identity-provide
 
 - [x] Evidence transitions now re-read the source observation inside the SQLite write transaction and verify the evidence bundle's observation fingerprint before changing lifecycle state.
 - [x] Added a regression test that injects a source-record update between service precheck and transition; the review must fail and no review lifecycle event may be appended.
-- [ ] Focused and repository CI must pass on this implementation before Phase 183 is verified.
+- [x] Focused NEMA-AGORA CI passed on the Phase 183 implementation: [run 39124710423](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124710423).
+- [x] Repository CI passed on the Phase 183 implementation: [run 39124710554](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124710554).
 - [ ] Deployed identity, persistent write/read, backup-restore, governance, and institutional release gates remain outstanding.
 
 ## Phase 184 — lifecycle history consistency verifier
