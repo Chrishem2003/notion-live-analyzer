@@ -25,6 +25,7 @@ from nema_agora.release_readiness import evaluate_release_readiness, validate_re
 from nema_agora.spatial_temporal_change import spatial_temporal_change_evidence
 from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidence
 from nema_agora.spatial_change_detection import detect_candidate
+from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
 
@@ -727,24 +728,18 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
                     st.error("Candidate scoring was blocked by validation.")
                     st.json(candidate.get("findings", []))
                 else:
-                    st.session_state["nema_agora_spatial_evidence_bundle"] = {
-                        "policy_version": "nema-agora-spatial-workspace-v1",
-                        "source_mode": "user_supplied_index_values",
-                        "live_provider_connected": False,
-                        "change_evidence": change_evidence,
-                        "quality_evidence": quality_evidence,
-                        "candidate": candidate,
-                        "governance": {
-                            "human_review_required": True,
-                            "environmental_conclusion": None,
-                            "regulatory_conclusion": None,
-                            "automatic_enforcement": False,
-                            "official_submission": False,
-                        },
-                    }
+                    st.session_state["nema_agora_spatial_evidence_bundle"] = build_spatial_evidence_bundle(
+                        change_evidence=change_evidence,
+                        quality_evidence=quality_evidence,
+                        candidate=candidate,
+                    )
 
     evidence_bundle = st.session_state.get("nema_agora_spatial_evidence_bundle")
-    if isinstance(evidence_bundle, dict):
+    bundle_validation = validate_spatial_evidence_bundle(evidence_bundle) if isinstance(evidence_bundle, dict) else None
+    if isinstance(evidence_bundle, dict) and bundle_validation and not bundle_validation["valid"]:
+        st.error("Spatial evidence bundle integrity check failed; export is disabled.")
+        st.json(bundle_validation["findings"])
+    if isinstance(evidence_bundle, dict) and bundle_validation and bundle_validation["valid"]:
         change_evidence = evidence_bundle["change_evidence"]
         candidate = evidence_bundle["candidate"]
         delta_ndvi = change_evidence["change"]["NDVI"]["delta"]
