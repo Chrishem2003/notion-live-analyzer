@@ -364,3 +364,23 @@ def test_source_observation_change_blocks_evidence_review(tmp_path):
             bundle, reviewer, decision="ACKNOWLEDGED", notes="stale source",
             reviewed_at="2026-10-04T12:51:00+03:00",
         )
+
+
+
+def test_source_observation_change_blocks_export_after_review(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "source-drift-export.sqlite3"))
+    reviewer = principal("drift-export-review", "reviewer")
+    coordinator = principal("drift-export-coord", "coordinator")
+    created = service.create_observation(record(), principal("drift-export-submit", "submitter"))
+    bundle = service.build_governed_evidence_case(created["case_id"], reviewer)["evidence_case"]
+    reviewed = service.review_governed_evidence_case(
+        bundle, reviewer, decision="ACKNOWLEDGED", notes="review before source change",
+        reviewed_at="2026-10-04T12:55:00+03:00",
+    )
+    service.update_review(
+        created["case_id"], reviewer, new_status="Under review",
+        review_notes="Source changed after evidence review",
+        changed_at="2026-10-04T12:56:00+03:00",
+    )
+    with pytest.raises(ValueError, match="Source observation changed"):
+        service.export_governed_evidence_case(reviewed, coordinator)
