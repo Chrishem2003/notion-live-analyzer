@@ -605,7 +605,7 @@ class NemaAgoraService:
         )
         validation = validate_evidence_case(bundle)
         return {
-            "evidence_case": bundle.to_dict(),
+            "evidence_case": bundle,
             "quality_assessment": quality,
             "integrity": validation,
             "durable": False,
