@@ -18,6 +18,7 @@ from typing import Any, Iterator
 from nema_agora.access import can_read_observation, has_permission, require_permission
 from nema_agora.core import STATUSES
 from nema_agora.workflow import apply_status_update
+from nema_agora.quality import assess_observation
 
 
 def _payload_fingerprint(payload: dict[str, Any]) -> str:
@@ -468,13 +469,24 @@ class NemaAgoraRepository:
         with self._session() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
-                "SELECT state, bundle_fingerprint FROM evidence_cases WHERE case_id = ?",
+                """SELECT ec.state, ec.bundle_fingerprint, o.record_json
+                   FROM evidence_cases ec
+                   JOIN observations o ON o.case_id = ec.case_id
+                   WHERE ec.case_id = ?""",
                 (case_id,),
             ).fetchone()
             if row is None:
                 raise KeyError(f"Evidence case not found: {case_id}")
             if row["state"] != expected_state or row["bundle_fingerprint"] != expected_fingerprint:
                 raise ValueError("Evidence case changed or was already transitioned; reload before retrying.")
+            # Recheck source provenance under the same write lock as the state
+            # transition. A service-level precheck alone leaves a race where an
+            # observation can change between validation and export/review.
+            source_record = json.loads(row["record_json"])
+            source_snapshot = dict(source_record)
+            source_snapshot["quality_assessment"] = assess_observation(source_record)
+            if _payload_fingerprint(source_snapshot) != bundle.get("observation_fingerprint"):
+                raise ValueError("Observation changed since evidence preparation; reload and prepare a governed amendment.")
             connection.execute(
                 """UPDATE evidence_cases
                    SET state = ?, bundle_json = ?, bundle_fingerprint = ?, updated_at = ?
