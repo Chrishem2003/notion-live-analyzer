@@ -126,3 +126,10 @@ def test_builder_rejects_non_json_observation_and_metadata():
             case_id="case-bad-metadata", observation={"site_ref": "pilot-site"},
             evidence=[bad_reference]
         )
+
+def test_builder_rejects_non_finite_json_numbers():
+    with pytest.raises(ValueError, match="JSON serializable"):
+        build_evidence_case(
+            case_id="case-nan", observation={"measurement": float("nan")},
+            evidence=[]
+        )
