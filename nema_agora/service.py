@@ -712,7 +712,7 @@ class NemaAgoraService:
             "regulatory_conclusion": False,
             "nema_authorization": False,
         }
-        return (json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\\n").encode("utf-8")
+        return (json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n").encode("utf-8")
 
     def list_evidence_case_events(
         self, case_id: str, principal: Principal
