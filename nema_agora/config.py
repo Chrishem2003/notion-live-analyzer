@@ -11,8 +11,21 @@ def _section(secrets: Mapping[str, object]) -> Mapping[str, object]:
 
 
 def mode_from_secrets(secrets: Mapping[str, object]) -> str:
-    mode = _section(secrets).get("mode", "demo")
-    return mode.strip().lower() if isinstance(mode, str) and mode.strip().lower() in {"demo", "persistent"} else "demo"
+    """Return demo/persistent only for explicit valid configuration.
+
+    An absent mode preserves the safe first-run demo experience. A present but
+    malformed or unknown mode returns "invalid" so the UI can stop visibly
+    rather than silently pretending an operator's configuration was accepted.
+    """
+    section = _section(secrets)
+    if "mode" not in section:
+        return "demo"
+    mode = section.get("mode")
+    if isinstance(mode, str):
+        normalized = mode.strip().lower()
+        if normalized in {"demo", "persistent"}:
+            return normalized
+    return "invalid"
 
 
 def database_path_from_secrets(secrets: Mapping[str, object]) -> Path | None:
