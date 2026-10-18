@@ -173,3 +173,45 @@ def test_review_rejects_timezone_naive_or_malformed_audit_timestamp(tmp_path):
     assert current["status"] == "Received"
     assert len(events) == 1
 
+def test_status_update_rolls_back_when_audit_insert_fails(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "pilot.sqlite3"
+    repo = NemaAgoraRepository(path)
+    record = repo.create_observation(
+        sample_record(), actor_id="submitter-1", role="submitter"
+    )
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            """
+            CREATE TRIGGER reject_status_audit
+            BEFORE INSERT ON audit_events
+            WHEN NEW.event_type = 'status_changed'
+            BEGIN
+                SELECT RAISE(ABORT, 'simulated audit storage failure');
+            END
+            """
+        )
+
+    with pytest.raises(sqlite3.IntegrityError, match="simulated audit storage failure"):
+        repo.update_review(
+            record["case_id"],
+            actor_id="reviewer-1",
+            role="reviewer",
+            new_status="Under review",
+            review_notes="This update must roll back",
+            changed_at="2026-10-04T12:10:00+03:00",
+        )
+
+    reopened = NemaAgoraRepository(path)
+    current = reopened.get_observation(
+        record["case_id"], actor_id="submitter-1", role="submitter"
+    )
+    events = reopened.list_audit_events(
+        record["case_id"], actor_id="admin-1", role="admin"
+    )
+    assert current["status"] == "Received"
+    assert current.get("review_notes", "") == ""
+    assert len(events) == 1
+    assert events[0]["event_type"] == "record_created"
+
