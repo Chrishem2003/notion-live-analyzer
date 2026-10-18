@@ -115,6 +115,34 @@ def build_evidence_case(
     findings_tuple = tuple(findings)
     if len({r.evidence_id for r in refs}) != len(refs):
         raise ValueError("evidence_id values must be unique")
+    for reference in refs:
+        if not all(isinstance(value, str) and value.strip() for value in (
+            reference.evidence_id, reference.kind, reference.source, reference.content_fingerprint
+        )):
+            raise ValueError("evidence references require id, kind, source, and content fingerprint")
+        if not _has_timezone(reference.captured_at):
+            raise ValueError("evidence captured_at must be an ISO 8601 timestamp with timezone")
+        try:
+            _canonical(dict(reference.metadata))
+        except (TypeError, ValueError):
+            raise ValueError("evidence metadata must be JSON serializable") from None
+    for finding in findings_tuple:
+        if not all(isinstance(value, str) and value.strip() for value in (
+            finding.finding_id, finding.model_id, finding.model_version, finding.summary
+        )):
+            raise ValueError("advisory findings require id, model, version, and summary")
+        if not _has_timezone(finding.generated_at):
+            raise ValueError("finding generated_at must be an ISO 8601 timestamp with timezone")
+        if not isinstance(finding.input_fingerprints, (tuple, list)) or any(
+            not isinstance(item, str) or not item.strip() for item in finding.input_fingerprints
+        ):
+            raise ValueError("finding input fingerprints must be non-empty strings")
+        try:
+            _canonical(observation)
+        except (TypeError, ValueError):
+            raise ValueError("observation must be JSON serializable") from None
+        if not isinstance(observation, Mapping):
+            raise ValueError("observation must be a mapping")
     for finding in findings_tuple:
         if not finding.advisory_only:
             raise ValueError("findings must remain advisory_only")
