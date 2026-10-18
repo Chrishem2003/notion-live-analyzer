@@ -53,3 +53,14 @@ NEMA-AGORA remains an independent student-led prototype. It is not an official N
 - [x] Repository-wide CI passed: [run 39120517124](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39120517124).
 
 These controls are defense in depth only. They do not protect against an operator who can replace the database file or alter its schema, so deployed access controls and independent backups remain mandatory.
+
+
+## Phase 177 — identity resolution hardening
+
+- [x] Unexpected identity SDK/adapter exceptions fail closed to no principal.
+- [x] Regression tests cover errors reading identity claims and login state.
+- [x] Regression tests verify role, groups, and is_admin claims cannot override server-side role bindings.
+- [x] Focused NEMA-AGORA checks passed: [run 39121794403](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39121794403).
+- [x] Repository-wide CI passed: [run 39121794437](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39121794437).
+
+This validates application-level fail-closed behavior and tests; it does not establish that an external OIDC provider is deployed or configured correctly.
