@@ -19,7 +19,7 @@ from nema_agora.config import (
     database_path_from_secrets,
     mode_from_secrets,
 )
-from nema_agora.backup import backup_database, integrity_check, list_backups, prune_backups
+from nema_agora.backup import backup_database, integrity_check, list_backups, prune_backups, restore_database
 from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, make_observation, validate_observation
 from nema_agora.governance import policy_from_secrets, validate_governance
 from nema_agora.quality import assess_observation
@@ -1004,6 +1004,55 @@ if active_section == "Governance & help" and governance_tool == "Operations & ba
                 )
             else:
                 st.info("No recognised backups found in the configured backup directory.")
+            healthy_backups = [p for p in backups if integrity_check(p)]
+            st.markdown("**Restore from a verified backup**")
+            if not healthy_backups:
+                st.info("Restore is unavailable until at least one recognised backup passes integrity checks.")
+            elif not db_exists or not db_healthy:
+                st.error("Restore is blocked because the current target database is missing or unhealthy; use the documented recovery procedure.")
+            else:
+                selected_backup_name = st.selectbox(
+                    "Verified backup",
+                    options=[p.name for p in healthy_backups],
+                    key="nema_agora_restore_backup_choice",
+                )
+                st.warning(
+                    "Restore replaces the current database contents. A pre-restore backup will be attempted first. "
+                    "Coordinate a maintenance window so no other process writes to the database during recovery."
+                )
+                confirm_restore = st.checkbox(
+                    "I understand this replaces current database contents.",
+                    key="nema_agora_restore_confirm_checkbox",
+                )
+                typed_confirmation = st.text_input(
+                    'Type RESTORE DATABASE to enable restore',
+                    key="nema_agora_restore_confirm_text",
+                )
+                if st.button(
+                    "Restore selected backup",
+                    disabled=not (confirm_restore and typed_confirmation == "RESTORE DATABASE"),
+                    key="nema_agora_restore_execute",
+                ):
+                    source_backup = backup_dir / selected_backup_name
+                    try:
+                        # Keep a verified copy of the current database before destructive replacement.
+                        pre_restore_backup = backup_database(database_path, backup_dir)
+                        restore_database(
+                            source_backup,
+                            database_path,
+                            confirm_destructive=True,
+                        )
+                    except Exception as exc:
+                        st.error(
+                            "Restore did not complete successfully. Do not resume normal operations until database integrity and records are checked."
+                        )
+                        st.caption(f"Failure type: {type(exc).__name__}")
+                    else:
+                        st.success(
+                            f"Restore completed from {source_backup.name}. Pre-restore backup retained as {pre_restore_backup.name}."
+                        )
+                        st.rerun()
+
             if len(backups) > retention:
                 st.warning(f"{len(backups) - retention} backup(s) exceed the configured retention target.")
                 if st.button("Apply backup retention", key="nema_agora_apply_retention"):
