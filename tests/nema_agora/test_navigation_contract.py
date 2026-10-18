@@ -106,3 +106,17 @@ def test_review_export_and_intelligence_failures_have_safe_messages():
         "Shadow analysis could not be completed. Check access and service health, then retry.",
     ):
         assert message in page
+
+
+def test_release_readiness_failures_do_not_leak_exception_details_or_claim_approval():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    action = page.index('st.button("Evaluate release readiness"')
+    handler = page.index("except Exception as exc:", action)
+    safe_message = page.index(
+        "Readiness could not be evaluated. Check the candidate SHA and evidence JSON, "
+        "then retry. No release approval was granted.",
+        handler,
+    )
+    assert action < handler < safe_message
