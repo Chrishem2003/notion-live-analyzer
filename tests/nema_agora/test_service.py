@@ -450,3 +450,46 @@ def test_failed_evidence_lifecycle_actions_leave_state_and_audit_unchanged(tmp_p
         "evidence_case_prepared", "evidence_case_reviewed", "evidence_case_exported"
     ]
 
+def test_evidence_transition_rechecks_source_observation_under_write_lock(tmp_path, monkeypatch):
+    repository = NemaAgoraRepository(tmp_path / "evidence-source-race.sqlite3")
+    service = NemaAgoraService(repository)
+    submitter = principal("source-race-submit", "submitter")
+    reviewer = principal("source-race-review", "reviewer")
+    coordinator = principal("source-race-coord", "coordinator")
+    created = service.create_observation(record(), submitter)
+    case_id = created["case_id"]
+    prepared = service.build_governed_evidence_case(case_id, reviewer)["evidence_case"]
+
+    original_transition = repository.transition_evidence_case
+    injected = {"done": False}
+
+    def change_source_then_transition(*args, **kwargs):
+        if not injected["done"]:
+            injected["done"] = True
+            repository.update_review(
+                case_id,
+                actor_id=reviewer.subject_key,
+                role=reviewer.role,
+                new_status="Under review",
+                review_notes="Source changed between service precheck and transition",
+                changed_at="2026-10-04T12:40:00+03:00",
+            )
+        return original_transition(*args, **kwargs)
+
+    monkeypatch.setattr(repository, "transition_evidence_case", change_source_then_transition)
+    with pytest.raises(ValueError, match="Observation changed since evidence preparation"):
+        service.review_governed_evidence_case(
+            prepared,
+            reviewer,
+            decision="ACKNOWLEDGED",
+            notes="Must fail when source changes during transition",
+            reviewed_at="2026-10-04T12:41:00+03:00",
+        )
+
+    persisted = repository.get_evidence_case(
+        case_id, actor_id=reviewer.subject_key, role=reviewer.role
+    )
+    assert persisted["state"] == "READY_FOR_REVIEW"
+    events = service.list_evidence_case_events(case_id, coordinator)
+    assert [event["event_type"] for event in events] == ["evidence_case_prepared"]
+
