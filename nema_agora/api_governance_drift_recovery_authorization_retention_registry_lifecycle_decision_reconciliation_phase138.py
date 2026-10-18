@@ -100,12 +100,16 @@ def reconcile_authorization_history_registry_decisions(
             ):
                 findings.append({"code": "EXECUTION_GATE_VIOLATION", "lifecycle_fingerprint": fp})
 
-    for decision in valid_decisions:
-        if decision["lifecycle_fingerprint"] not in lifecycle_map:
-            findings.append({
-                "code": "ORPHAN_DECISION",
-                "lifecycle_fingerprint": decision["lifecycle_fingerprint"],
-            })
+    # Preserve orphan diagnostics even when the decision itself fails validation.
+    # A stale fingerprint must not hide that a supplied record references no lifecycle.
+    for decision in decisions:
+        if isinstance(decision, Mapping):
+            lifecycle_fingerprint = decision.get("lifecycle_fingerprint")
+            if isinstance(lifecycle_fingerprint, str) and lifecycle_fingerprint not in lifecycle_map:
+                findings.append({
+                    "code": "ORPHAN_DECISION",
+                    "lifecycle_fingerprint": lifecycle_fingerprint,
+                })
 
     if expected_decision_count is not None and expected_decision_count != len(decisions):
         findings.append({
