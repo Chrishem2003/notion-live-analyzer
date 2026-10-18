@@ -99,3 +99,41 @@ def test_invalid_backup_does_not_modify_existing_target(tmp_path):
     assert integrity_check(target_db)
     assert len(NemaAgoraRepository(target_db).list_observations(actor_id="submitter-2", role="submitter")) == 1
 
+def test_restore_post_replace_integrity_failure_rolls_back_existing_target(tmp_path, monkeypatch):
+    import nema_agora.backup as backup_module
+
+    source_db = tmp_path / "source.sqlite3"
+    target_db = tmp_path / "target.sqlite3"
+    NemaAgoraRepository(source_db).create_observation(
+        record(), actor_id="source-user", role="submitter"
+    )
+    NemaAgoraRepository(target_db).create_observation(
+        record(), actor_id="target-user", role="submitter"
+    )
+    backup = backup_database(
+        source_db,
+        tmp_path / "backups",
+        now=datetime(2026, 10, 4, 9, tzinfo=timezone.utc),
+    )
+
+    original_integrity_check = backup_module.integrity_check
+    calls = {"count": 0}
+
+    def fail_once_after_replacement(path):
+        calls["count"] += 1
+        # source backup, temporary restore, and existing target all pass;
+        # fail the post-replacement check to exercise rollback.
+        if calls["count"] == 4:
+            return False
+        return original_integrity_check(path)
+
+    monkeypatch.setattr(backup_module, "integrity_check", fail_once_after_replacement)
+    with pytest.raises(ValueError, match="post-restore integrity_check"):
+        restore_database(backup, target_db, confirm_destructive=True)
+
+    monkeypatch.setattr(backup_module, "integrity_check", original_integrity_check)
+    assert integrity_check(target_db)
+    reopened = NemaAgoraRepository(target_db)
+    assert len(reopened.list_observations(actor_id="target-user", role="submitter")) == 1
+    assert reopened.list_observations(actor_id="source-user", role="submitter") == []
+
