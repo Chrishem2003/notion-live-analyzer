@@ -67,6 +67,18 @@ def test_endpoint_fails_closed_when_notion_config_is_missing(api, monkeypatch):
     assert "NOTION_TOKEN" in response.json()["detail"]["missing"]
 
 
+def test_endpoint_fails_closed_when_literature_source_is_missing(api, monkeypatch):
+    _, client, _ = api
+    monkeypatch.delenv("NOTION_LITERATURE_DATA_SOURCE_ID")
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+    assert response.status_code == 503
+    assert "NOTION_LITERATURE_DATA_SOURCE_ID" in response.json()["detail"]["missing"]
+
+
 def test_endpoint_validates_private_relations_and_returns_verified_run(api, monkeypatch):
     api_server, client, _ = api
     import modules.research_run_adapter as adapter_module
