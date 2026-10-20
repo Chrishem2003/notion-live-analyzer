@@ -6,6 +6,7 @@ from modules.research_run_adapter import (
     AmbiguousWriteError,
     ResearchRunAdapter,
     ResearchRunWriteError,
+    RelationValidationError,
     build_analysis_run_properties,
 )
 
@@ -215,7 +216,7 @@ def test_relation_page_must_belong_to_expected_data_source():
         "template-project",
         {"type": "data_source_id", "data_source_id": "template-projects"},
     ))])
-    with pytest.raises(ResearchRunWriteError, match="does not belong"):
+    with pytest.raises(RelationValidationError, match="does not belong"):
         adapter(wrong).validate_page_parent(
             "template-project", "private-projects", "Project"
         )
@@ -246,3 +247,41 @@ def test_ambiguous_recovery_reads_existing_record_without_creating():
     assert result["created"] is False
     assert result["page"]["id"] == "recovered-existing-page"
     assert [call[0] for call in session.calls] == ["POST", "GET"]
+
+
+
+def test_relation_membership_rejects_sample_with_missing_or_mismatched_project_protocol():
+    page_record = {
+        "id": "sample-page",
+        "properties": {
+            "Project": {"type": "relation", "relation": [{"id": "project-1"}]},
+            "Protocol": {"type": "relation", "relation": []},
+        },
+    }
+    ResearchRunAdapter.validate_relation_membership(
+        page_record, "Project", ["project-1"], "sample project"
+    )
+    with pytest.raises(RelationValidationError, match="does not match"):
+        ResearchRunAdapter.validate_relation_membership(
+            page_record, "Protocol", ["protocol-1"], "sample protocol"
+        )
+    with pytest.raises(RelationValidationError, match="wrong type"):
+        ResearchRunAdapter.validate_relation_membership(
+            page_record, "Missing", ["protocol-1"], "sample protocol"
+        )
+
+
+def test_synthetic_endpoint_rejects_real_or_unclassified_records():
+    demo_page = {
+        "properties": {
+            "Record Classification": {"type": "select", "select": {"name": "Demo"}}
+        }
+    }
+    ResearchRunAdapter.validate_record_classification(demo_page, "sample")
+    real_page = {
+        "properties": {
+            "Record Classification": {"type": "select", "select": {"name": "Real Research"}}
+        }
+    }
+    with pytest.raises(RelationValidationError, match="Demo or Synthetic/Test"):
+        ResearchRunAdapter.validate_record_classification(real_page, "sample")
