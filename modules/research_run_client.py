@@ -24,8 +24,8 @@ def build_run_manifest_hash(payload: Dict[str, Any]) -> str:
         raise ValueError("payload must be a dictionary.")
     manifest_fields = (
         "run_id", "run_name", "project_page_id", "protocol_page_id",
-        "input_sample_page_ids", "input_data_record_page_ids",
-        "analysis_method", "code_revision", "environment", "parameters_json",
+        "input_sample_page_ids", "input_data_record_page_ids", "source_evidence_page_ids",
+        "input_dataset_version", "analysis_method", "code_revision", "environment", "parameters_json",
     )
     manifest = {key: payload.get(key) for key in manifest_fields}
     encoded = json.dumps(
