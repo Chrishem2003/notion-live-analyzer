@@ -329,3 +329,42 @@ def test_existing_external_id_accepts_matching_manifest_after_ledger_reset():
     )
     assert result["created"] is False
     assert result["page"]["id"] == "existing-page"
+
+
+
+def test_ambiguous_recovery_rejects_existing_run_with_different_manifest():
+    submitted_hash = "sha256:submitted"
+    stored_hash = "sha256:stored"
+    existing_page = page("recovered-page")
+    existing_page["properties"] = {
+        "Run Manifest Hash": {
+            "type": "rich_text",
+            "rich_text": [{"type": "text", "text": {"content": stored_hash}}],
+        }
+    }
+    session = FakeSession(
+        post_results=[found_query("recovered-page")],
+        get_results=[Response(200, existing_page)],
+    )
+    with pytest.raises(IdempotencyConflictError, match="different Run Manifest Hash"):
+        adapter(session).recover_run(
+            "stable-run-id",
+            {"Run Manifest Hash": {"rich_text": [{"text": {"content": submitted_hash}}]}},
+        )
+
+
+def test_completed_run_readback_rejects_manifest_mismatch():
+    stored_page = page("completed-page")
+    stored_page["properties"] = {
+        "Run Manifest Hash": {
+            "type": "rich_text",
+            "rich_text": [{"type": "text", "text": {"content": "sha256:stored"}}],
+        }
+    }
+    client = adapter(FakeSession(get_results=[Response(200, stored_page)]))
+    with pytest.raises(IdempotencyConflictError, match="different Run Manifest Hash"):
+        client.get_and_verify_existing_run(
+            "completed-page",
+            "stable-run-id",
+            {"Run Manifest Hash": {"rich_text": [{"text": {"content": "sha256:submitted"}}]}},
+        )
