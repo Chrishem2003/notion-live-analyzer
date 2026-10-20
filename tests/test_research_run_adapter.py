@@ -164,6 +164,8 @@ def test_payload_builder_uses_canonical_schema_and_safe_initial_gates():
         protocol_page_id="private-protocol-id",
         input_sample_page_ids=["private-sample-id"],
         input_data_record_page_ids=["private-data-id"],
+        source_evidence_page_ids=["private-literature-id"],
+        input_dataset_version="demo-v1",
         code_revision="abc123",
         manifest_hash="sha256:example",
     )
@@ -172,6 +174,8 @@ def test_payload_builder_uses_canonical_schema_and_safe_initial_gates():
     assert payload["Protocol"]["relation"] == [{"id": "private-protocol-id"}]
     assert payload["Input Samples"]["relation"] == [{"id": "private-sample-id"}]
     assert payload["Input Data Records"]["relation"] == [{"id": "private-data-id"}]
+    assert payload["Source Evidence"]["relation"] == [{"id": "private-literature-id"}]
+    assert payload["Input Dataset Version"]["rich_text"][0]["text"]["content"] == "demo-v1"
     assert payload["Run Status"]["select"]["name"] == "Draft"
     assert payload["Workflow Gate"]["select"]["name"] == "Intake"
     assert payload["QC Outcome"]["select"]["name"] == "Pending"
