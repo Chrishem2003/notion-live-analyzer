@@ -1,4 +1,5 @@
 services:
+  # User-facing Streamlit application.
   - type: web
     name: notion-live-analyzer
     env: docker
@@ -9,22 +10,67 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
-      # Required by app.py (used to query Notion)
-      # Set these in Render to enable the dashboard.
+      # Keep existing deployment secrets in Render's dashboard; never sync blanks from Git.
       - key: NOTION_TOKEN
-        value: ""
+        sync: false
       - key: DATABASE_ID
-        value: ""
+        sync: false
+      - key: PLATFORM_API_KEY
+        sync: false
+      - key: RESEARCH_RUN_API_URL
+        value: https://notion-live-analyzer-api.onrender.com
       - key: AUTO_FIX_DEPS
         value: "false"
       - key: STREAMLIT_SERVER_RUN_ON_SAVE
         value: "false"
-      # Performance: reduce re-run overhead
       - key: STREAMLIT_RUNNER_FAST_RERUNS
         value: "true"
 
-  # ─── CRON JOB: Keeps the web service awake on Render free tier ───
-  # Pings the app every 14 minutes to prevent 15-min inactivity spin-down
+  # API for authenticated synthetic Bio-Research run write-back.
+  # Free tier has ephemeral storage: this service is staging-only and MUST NOT
+  # receive real research data. Persistent storage and a suitable plan are
+  # required before any real-research workflow is enabled.
+  - type: web
+    name: notion-live-analyzer-api
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerCommand: uvicorn api_server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PLATFORM_API_KEY
+        sync: false
+      - key: NOTION_TOKEN
+        sync: false
+      - key: NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID
+        sync: false
+      - key: NOTION_PROJECTS_DATA_SOURCE_ID
+        sync: false
+      - key: NOTION_PROTOCOLS_DATA_SOURCE_ID
+        sync: false
+      - key: NOTION_SAMPLES_DATA_SOURCE_ID
+        sync: false
+      - key: NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID
+        sync: false
+      - key: NOTION_LITERATURE_DATA_SOURCE_ID
+        sync: false
+      - key: NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID
+        sync: false
+      - key: NOTION_TASKS_DATA_SOURCE_ID
+        sync: false
+      - key: NOTION_BRAIN_NOTES_DATA_SOURCE_ID
+        sync: false
+      # Explicitly permits an ephemeral ledger for synthetic staging only.
+      - key: RESEARCH_RUN_IDEMPOTENCY_DB
+        value: /tmp/research_run_idempotency.sqlite3
+      - key: RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER
+        value: "true"
+
+  # Keepalive applies only to the Streamlit service. Free-tier instances may
+  # sleep; an API cold start can take longer than a normal request.
   - type: cron
     name: notion-live-analyzer-keepalive
     env: python
@@ -44,5 +90,3 @@ except Exception as e:
     envVars:
       - key: RENDER_EXTERNAL_URL
         value: https://YOUR-APP-URL.onrender.com
-
-
