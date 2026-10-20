@@ -542,9 +542,10 @@ def render_bio_research_runs():
         return
 
     st.info(
-        "Staging-only workflow: each record is classified Synthetic/Test and starts "
-        "at Draft / Intake / Pending QC. It is never automatically approved. "
-        "Use IDs from the private Bio-Research workspace, not the published template."
+        "Staging-only workflow: each run starts at Draft / Intake / Pending QC and is never automatically approved. "
+        "Use only Demo or Synthetic/Test records from the private workspace. Each selected sample must already link "
+        "to the chosen Project and Protocol; each data record must link to that same Project/Protocol and at least "
+        "one selected Sample. Incomplete or mismatched links are rejected before any run record is created."
     )
     if "research_run_stable_id" not in st.session_state:
         st.session_state["research_run_stable_id"] = f"bio-run-{uuid.uuid4().hex}"
