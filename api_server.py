@@ -142,8 +142,11 @@ def write_research_run(
             payload.project_page_id, config["NOTION_PROJECTS_DATA_SOURCE_ID"], "Project"
         )
         adapter.validate_record_classification(project_page, "Project")
-        adapter.validate_page_parent(
+        protocol_page = adapter.validate_page_parent(
             payload.protocol_page_id, config["NOTION_PROTOCOLS_DATA_SOURCE_ID"], "Protocol"
+        )
+        adapter.validate_relation_membership(
+            protocol_page, "Project", [payload.project_page_id], "Protocol → Project"
         )
 
         sample_pages = []
