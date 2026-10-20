@@ -87,6 +87,27 @@ class ResearchRunAdapter:
             )
         return response.json()
 
+    def recover_run(self, run_id: str) -> Dict[str, Any]:
+        """Reconcile an ambiguous run without creating anything new.
+
+        This path is intentionally read-only: absence from a query is not
+        proof that an earlier uncertain create failed to commit.
+        """
+        stable_id = self._validate_run_id(run_id)
+        existing = self._find_by_external_id(stable_id)
+        if not existing:
+            raise AmbiguousWriteError(
+                "This run_id has an ambiguous prior write and no matching record is "
+                "currently visible. No new record was created; reconcile in Notion "
+                "before clearing the idempotency reservation."
+            )
+        page_id = existing.get("id")
+        if not page_id:
+            raise AmbiguousWriteError(
+                "A matching record was found without a page ID; manual reconciliation is required."
+            )
+        return {"created": False, "page": self._read_page(page_id)}
+
     def get_page(self, page_id: str) -> Dict[str, Any]:
         """Fetch a page by ID for idempotent completed-run read-back."""
         if not isinstance(page_id, str) or not page_id.strip():
