@@ -173,12 +173,14 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
         ("data-page", "private-data", "Input Data Record"),
         ("literature-page", "private-literature", "Source Evidence"),
     }
-    assert len(checked_memberships) == 5
+    assert len(checked_memberships) == 6
     assert {item[3] for item in checked_memberships} == {
+        "Protocol → Project",
         "Input Sample → Project", "Input Sample → Protocol",
         "Input Data Record → Project", "Input Data Record → Protocol",
         "Input Data Record → selected Input Sample",
     }
+    assert ("protocol-page", "Project", ("project-page",), "Protocol → Project", True) in checked_memberships
     assert {label for _, label in checked_classifications} == {
         "Project", "Input Sample", "Input Data Record", "Source Evidence"
     }
