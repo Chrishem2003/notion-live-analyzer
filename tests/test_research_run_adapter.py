@@ -142,7 +142,7 @@ def test_rejects_conflicting_external_run_id():
 def test_rejects_missing_token_or_database():
     with pytest.raises(ValueError, match="token"):
         ResearchRunAdapter("", "analysis-db")
-    with pytest.raises(ValueError, match="database"):
+    with pytest.raises(ValueError, match="data source"):
         ResearchRunAdapter("token", "")
 
 
