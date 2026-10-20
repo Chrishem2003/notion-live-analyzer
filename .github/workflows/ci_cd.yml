@@ -28,3 +28,6 @@ jobs:
     - name: Run Automated Test Suite
       run: |
         pytest -v
+
+    - name: Build lightweight API container
+      run: docker build --file Dockerfile.api --tag notion-live-analyzer-api:test .
