@@ -8,6 +8,8 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
+from modules.research_run_client import build_run_manifest_hash
+
 
 @pytest.fixture
 def api(monkeypatch, tmp_path):
@@ -44,7 +46,7 @@ def request_payload():
         "analysis_method": "mock validation",
         "code_revision": "test-commit",
         "environment": "staging",
-        "manifest_hash": "sha256:test",
+        "manifest_hash": "",
         "parameters_json": "{\"synthetic\":true}",
     }
 
@@ -85,6 +87,8 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
     import modules.research_run_idempotency as ledger_module
 
     checked_relations = []
+    checked_memberships = []
+    checked_classifications = []
 
     class FakeAdapter:
         def __init__(self, token, data_source_id):
@@ -95,13 +99,38 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
         def validate_page_parent(self, page_id, expected_data_source_id, label):
             self.checked.append((page_id, expected_data_source_id, label))
             checked_relations.append((page_id, expected_data_source_id, label))
-            return {"id": page_id}
+            page = {"id": page_id, "properties": {}}
+            if label == "Project":
+                page["properties"]["Record Classification"] = {"type": "select", "select": {"name": "Demo"}}
+            elif label == "Input Sample":
+                page["properties"].update({
+                    "Project": {"type": "relation", "relation": [{"id": "project-page"}]},
+                    "Protocol": {"type": "relation", "relation": [{"id": "protocol-page"}]},
+                    "Record Classification": {"type": "select", "select": {"name": "Demo"}},
+                })
+            elif label == "Input Data Record":
+                page["properties"].update({
+                    "Project": {"type": "relation", "relation": [{"id": "project-page"}]},
+                    "Protocol": {"type": "relation", "relation": [{"id": "protocol-page"}]},
+                    "Sample": {"type": "relation", "relation": [{"id": "sample-page"}]},
+                    "Record Classification": {"type": "select", "select": {"name": "Demo"}},
+                })
+            elif label == "Source Evidence":
+                page["properties"]["Record Classification"] = {"type": "select", "select": {"name": "Demo"}}
+            return page
+
+        def validate_relation_membership(self, page, property_name, expected_page_ids, label, *, require_all=True):
+            checked_memberships.append((page["id"], property_name, tuple(expected_page_ids), label, require_all))
+
+        def validate_record_classification(self, page, label, allowed=("Demo", "Synthetic/Test")):
+            checked_classifications.append((page["id"], label))
 
         def create_or_get_run(self, run_id, properties):
             assert run_id == "synthetic-api-test-001"
             assert properties["Record Classification"]["select"]["name"] == "Synthetic/Test"
             assert properties["Source Evidence"]["relation"] == [{"id": "literature-page"}]
             assert properties["Input Dataset Version"]["rich_text"][0]["text"]["content"] == "demo-v1"
+            assert properties["Run Manifest Hash"]["rich_text"][0]["text"]["content"] == build_run_manifest_hash(request_payload())
             return {"created": True, "page": {
                 "id": "created-page", "url": "https://notion.example/synthetic-run"
             }}
@@ -142,6 +171,15 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
         ("data-page", "private-data", "Input Data Record"),
         ("literature-page", "private-literature", "Source Evidence"),
     }
+    assert len(checked_memberships) == 5
+    assert {item[3] for item in checked_memberships} == {
+        "Input Sample → Project", "Input Sample → Protocol",
+        "Input Data Record → Project", "Input Data Record → Protocol",
+        "Input Data Record → selected Input Sample",
+    }
+    assert {label for _, label in checked_classifications} == {
+        "Project", "Input Sample", "Input Data Record", "Source Evidence"
+    }
     assert body == {
         "created": True,
         "run_id": "synthetic-api-test-001",
@@ -151,4 +189,33 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
         "workflow_gate": "Intake",
         "qc_outcome": "Pending",
         "record_classification": "Synthetic/Test",
+        "manifest_hash": build_run_manifest_hash(request_payload()),
     }
+
+
+
+def test_data_records_cannot_be_submitted_without_linked_samples(api):
+    _, client, _ = api
+    payload = request_payload()
+    payload["input_sample_page_ids"] = []
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=payload,
+    )
+    assert response.status_code == 422
+    assert "require at least one selected Input Sample" in response.json()["detail"]
+
+
+
+def test_endpoint_rejects_client_supplied_manifest_hash_that_does_not_match_inputs(api):
+    _, client, _ = api
+    payload = request_payload()
+    payload["manifest_hash"] = "sha256:incorrect"
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=payload,
+    )
+    assert response.status_code == 422
+    assert "manifest_hash does not match" in response.json()["detail"]

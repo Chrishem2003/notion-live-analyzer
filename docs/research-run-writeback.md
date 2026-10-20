@@ -57,6 +57,17 @@ Start the API in a trusted deployment:
 
 Put the API behind HTTPS and network controls before exposing it outside a trusted environment. Do not use a per-container ephemeral SQLite path or multiple replicas with separate ledgers.
 
+## Input integrity gates
+
+Before the endpoint writes a run, it validates not only each page's parent data source but also the relationships between the selected records:
+- The selected Project must be classified `Demo` or `Synthetic/Test`.
+- Each selected Sample must already relate to the chosen Project and Protocol and be classified `Demo` or `Synthetic/Test`.
+- Each selected Experimental Data record must already relate to the same Project and Protocol, link to at least one Sample selected for the run, and be classified `Demo` or `Synthetic/Test`. Data records cannot be submitted without at least one selected Sample.
+- Each supplied Source Evidence page must belong to the private Literature source and be classified `Demo` or `Synthetic/Test`.
+- The selected dataset version and source-evidence page IDs are stored on the run and included in its deterministic manifest fingerprint. The API recomputes the SHA-256 manifest from submitted inputs and rejects a client-supplied mismatch; the UI does not accept a manually entered hash.
+
+Invalid or incomplete relationships return HTTP 422 before the Analysis Runs record is created. This is intentional: the current three Demo samples have missing Project and Protocol links, so they must be mapped by a human before they can be used as run inputs. Do not bypass the gate or infer the intended mapping from names.
+
 ## Deployment inventory and separate API service
 
 The repository's current Render blueprint declares the Streamlit web service and a keepalive cron job; it does not provision the research-run API service or persistent idempotency storage. The Dockerfile now declares a default Streamlit command so Docker-based web deployments have an explicit process. This does not deploy the API.

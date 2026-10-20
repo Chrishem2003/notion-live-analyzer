@@ -20,6 +20,10 @@ class AmbiguousWriteError(ResearchRunWriteError):
     """A write may have reached Notion; reconcile by stable ID before retry."""
 
 
+class RelationValidationError(ValueError):
+    """A submitted page is not a valid, linked input for this run."""
+
+
 class ResearchRunAdapter:
     """Create or retrieve an Analysis Run using a stable external run ID."""
 
@@ -127,10 +131,63 @@ class ResearchRunAdapter:
         parent = page.get("parent") or {}
         actual = parent.get("data_source_id")
         if parent.get("type") != "data_source_id" or actual != expected:
-            raise ResearchRunWriteError(
+            raise RelationValidationError(
                 f"{label} page does not belong to the configured private data source."
             )
         return page
+
+    @staticmethod
+    def validate_relation_membership(
+        page: Dict[str, Any],
+        property_name: str,
+        expected_page_ids: list[str],
+        label: str,
+        *,
+        require_all: bool = True,
+    ) -> None:
+        """Ensure a linked input's existing relation agrees with the submitted run."""
+        if not expected_page_ids:
+            raise RelationValidationError(f"{label}: at least one expected related page is required.")
+        properties = page.get("properties") or {}
+        prop = properties.get(property_name)
+        if not isinstance(prop, dict) or prop.get("type") != "relation":
+            raise RelationValidationError(
+                f"{label}: required relation property {property_name!r} is missing or has the wrong type."
+            )
+        actual = {
+            str(item.get("id", "")).replace("-", "").lower()
+            for item in (prop.get("relation") or [])
+            if isinstance(item, dict) and item.get("id")
+        }
+        expected = {
+            str(page_id).strip().replace("-", "").lower()
+            for page_id in expected_page_ids
+            if isinstance(page_id, str) and page_id.strip()
+        }
+        if require_all:
+            valid = expected.issubset(actual)
+        else:
+            valid = bool(expected.intersection(actual))
+        if not valid:
+            raise RelationValidationError(
+                f"{label}: relation {property_name!r} does not match the project, protocol, or samples selected for this run."
+            )
+
+    @staticmethod
+    def validate_record_classification(
+        page: Dict[str, Any],
+        label: str,
+        allowed: tuple[str, ...] = ("Demo", "Synthetic/Test"),
+    ) -> None:
+        """Prevent a synthetic endpoint from being used with real/unclassified records."""
+        properties = page.get("properties") or {}
+        prop = properties.get("Record Classification")
+        selected = prop.get("select") if isinstance(prop, dict) and prop.get("type") == "select" else None
+        name = selected.get("name") if isinstance(selected, dict) else None
+        if name not in allowed:
+            raise RelationValidationError(
+                f"{label} must be classified Demo or Synthetic/Test for this staging endpoint."
+            )
 
     def create_or_get_run(
         self, run_id: str, properties: Dict[str, Any]

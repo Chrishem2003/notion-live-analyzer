@@ -542,9 +542,10 @@ def render_bio_research_runs():
         return
 
     st.info(
-        "Staging-only workflow: each record is classified Synthetic/Test and starts "
-        "at Draft / Intake / Pending QC. It is never automatically approved. "
-        "Use IDs from the private Bio-Research workspace, not the published template."
+        "Staging-only workflow: each run starts at Draft / Intake / Pending QC and is never automatically approved. "
+        "Use only Demo or Synthetic/Test records from the private workspace. Each selected sample must already link "
+        "to the chosen Project and Protocol; each data record must link to that same Project/Protocol and at least "
+        "one selected Sample. Incomplete or mismatched links are rejected before any run record is created."
     )
     if "research_run_stable_id" not in st.session_state:
         st.session_state["research_run_stable_id"] = f"bio-run-{uuid.uuid4().hex}"
@@ -582,9 +583,6 @@ def render_bio_research_runs():
         )
         code_revision = st.text_input(
             "Code revision / commit SHA (optional)", key="research_run_code_revision"
-        )
-        manifest_hash = st.text_input(
-            "Manifest hash (optional)", key="research_run_manifest_hash"
         )
         parameters_json = st.text_area(
             "Parameters JSON (optional)", value='{"synthetic": true}', key="research_run_parameters"
@@ -626,7 +624,7 @@ def render_bio_research_runs():
         "analysis_method": analysis_method.strip(),
         "code_revision": code_revision.strip(),
         "environment": "staging",
-        "manifest_hash": manifest_hash.strip(),
+        "manifest_hash": "",
         "parameters_json": json.dumps(parsed_parameters, sort_keys=True),
     }
     try:

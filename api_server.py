@@ -81,9 +81,11 @@ def write_research_run(
         AmbiguousWriteError,
         ResearchRunAdapter,
         ResearchRunWriteError,
+        RelationValidationError,
         build_analysis_run_properties,
     )
     from modules.research_run_idempotency import IdempotencyConflictError, RunIdempotencyLedger
+    from modules.research_run_client import build_run_manifest_hash
 
     config = {
         "NOTION_TOKEN": os.environ.get("NOTION_TOKEN"),
@@ -102,29 +104,67 @@ def write_research_run(
             detail={"message": "Research run write-back is not configured.", "missing": missing},
         )
 
+    expected_manifest_hash = build_run_manifest_hash(payload.dict())
+    if payload.manifest_hash and payload.manifest_hash != expected_manifest_hash:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="manifest_hash does not match the submitted run inputs.",
+        )
+
     adapter = ResearchRunAdapter(
         token=config["NOTION_TOKEN"],
         data_source_id=config["NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID"],
     )
     try:
-        adapter.validate_page_parent(
+        if payload.input_data_record_page_ids and not payload.input_sample_page_ids:
+            raise RelationValidationError(
+                "Input Data Records require at least one selected Input Sample for traceability."
+            )
+
+        project_page = adapter.validate_page_parent(
             payload.project_page_id, config["NOTION_PROJECTS_DATA_SOURCE_ID"], "Project"
         )
+        adapter.validate_record_classification(project_page, "Project")
         adapter.validate_page_parent(
             payload.protocol_page_id, config["NOTION_PROTOCOLS_DATA_SOURCE_ID"], "Protocol"
         )
+
+        sample_pages = []
         for page_id in payload.input_sample_page_ids:
-            adapter.validate_page_parent(
+            sample_page = adapter.validate_page_parent(
                 page_id, config["NOTION_SAMPLES_DATA_SOURCE_ID"], "Input Sample"
             )
+            adapter.validate_relation_membership(
+                sample_page, "Project", [payload.project_page_id], "Input Sample → Project"
+            )
+            adapter.validate_relation_membership(
+                sample_page, "Protocol", [payload.protocol_page_id], "Input Sample → Protocol"
+            )
+            adapter.validate_record_classification(sample_page, "Input Sample")
+            sample_pages.append(sample_page)
+
         for page_id in payload.input_data_record_page_ids:
-            adapter.validate_page_parent(
+            data_page = adapter.validate_page_parent(
                 page_id, config["NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"], "Input Data Record"
             )
+            adapter.validate_relation_membership(
+                data_page, "Project", [payload.project_page_id], "Input Data Record → Project"
+            )
+            adapter.validate_relation_membership(
+                data_page, "Protocol", [payload.protocol_page_id], "Input Data Record → Protocol"
+            )
+            adapter.validate_relation_membership(
+                data_page, "Sample", payload.input_sample_page_ids,
+                "Input Data Record → selected Input Sample", require_all=False
+            )
+            adapter.validate_record_classification(data_page, "Input Data Record")
+
         for page_id in payload.source_evidence_page_ids:
-            adapter.validate_page_parent(
+            evidence_page = adapter.validate_page_parent(
                 page_id, config["NOTION_LITERATURE_DATA_SOURCE_ID"], "Source Evidence"
             )
+            adapter.validate_record_classification(evidence_page, "Source Evidence")
+
         properties = build_analysis_run_properties(
             run_name=payload.run_name,
             project_page_id=payload.project_page_id,
@@ -136,7 +176,7 @@ def write_research_run(
             analysis_method=payload.analysis_method,
             code_revision=payload.code_revision,
             environment=payload.environment,
-            manifest_hash=payload.manifest_hash,
+            manifest_hash=expected_manifest_hash,
             parameters_json=payload.parameters_json,
         )
         ledger = RunIdempotencyLedger(config["RESEARCH_RUN_IDEMPOTENCY_DB"])
@@ -192,6 +232,7 @@ def write_research_run(
         "workflow_gate": "Intake",
         "qc_outcome": "Pending",
         "record_classification": "Synthetic/Test",
+        "manifest_hash": expected_manifest_hash,
     }
 
 
