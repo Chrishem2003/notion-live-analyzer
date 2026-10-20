@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Research Run write-back path links the Streamlit Research Analyzer to the private Bio-Research Enterprise workspace. It records a reproducibility entry in the private Analysis Runs register, with verified relations to project, protocol, samples and experimental-data records.
+The Research Run write-back path links the Streamlit Research Analyzer to the private Bio-Research Enterprise workspace. It records a reproducibility entry in the private Analysis Runs register, with verified relations to project, protocol, samples, experimental-data records and source literature, plus the input dataset version.
 
 This feature is synthetic/staging only until a live acceptance test passes. It does not approve research or validate scientific correctness.
 
@@ -25,15 +25,15 @@ Set these values in the API deployment's secret/environment configuration. Never
 - NOTION_PROTOCOLS_DATA_SOURCE_ID: private Protocol Register data source.
 - NOTION_SAMPLES_DATA_SOURCE_ID: private Sample Collection data source.
 - NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID: private Experimental Data Engine data source.
+- NOTION_LITERATURE_DATA_SOURCE_ID: private Literature data source used to validate source-evidence page IDs.
 - RESEARCH_RUN_IDEMPOTENCY_DB: absolute path to a persistent SQLite file. All API workers must share the same file on storage that supports SQLite locking.
 
 For the **full relation-graph preflight**, also configure these private source IDs in the API environment:
-- NOTION_LITERATURE_DATA_SOURCE_ID: private Literature source.
 - NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID: private Genomic Sequence Log source.
 - NOTION_TASKS_DATA_SOURCE_ID: private Daily Task source.
 - NOTION_BRAIN_NOTES_DATA_SOURCE_ID: private Brain Notes source.
 
-The API endpoint itself writes only to Analysis Runs and validates its project/protocol/sample/data relations. The extra four IDs let the preflight check the complete connected private graph, including project tasks, literature and genomic-sequence links.
+The API endpoint writes only to Analysis Runs, validates the parent data source for project/protocol/sample/data/evidence pages, and stores linked Source Evidence plus Input Dataset Version. The extra three IDs let the preflight check the rest of the connected private graph, including project-task and genomic-sequence links.
 
 Use the exact private source IDs shown by the Notion data-source schema. The currently audited private IDs are:
 
