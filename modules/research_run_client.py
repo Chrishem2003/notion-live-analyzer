@@ -10,6 +10,28 @@ from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
 import requests
+import hashlib
+import json
+
+
+def build_run_manifest_hash(payload: Dict[str, Any]) -> str:
+    """Return a deterministic SHA-256 fingerprint for run inputs and settings.
+
+    The supplied manifest_hash field is excluded to avoid recursive hashing.
+    Input relation order is preserved because order can be meaningful.
+    """
+    if not isinstance(payload, dict):
+        raise ValueError("payload must be a dictionary.")
+    manifest_fields = (
+        "run_id", "run_name", "project_page_id", "protocol_page_id",
+        "input_sample_page_ids", "input_data_record_page_ids",
+        "analysis_method", "code_revision", "environment", "parameters_json",
+    )
+    manifest = {key: payload.get(key) for key in manifest_fields}
+    encoded = json.dumps(
+        manifest, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    )
+    return "sha256:" + hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
 class ResearchRunClientError(RuntimeError):
