@@ -8,6 +8,8 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 import requests
 
+from modules.research_run_idempotency import IdempotencyConflictError
+
 NOTION_API_URL = "https://api.notion.com/v1"
 DEFAULT_NOTION_VERSION = "2025-09-03"
 
@@ -189,6 +191,35 @@ class ResearchRunAdapter:
                 f"{label} must be classified Demo or Synthetic/Test for this staging endpoint."
             )
 
+    @staticmethod
+    def _manifest_hash(properties: Dict[str, Any]) -> str:
+        """Read a manifest hash from a Notion properties mapping."""
+        prop = properties.get("Run Manifest Hash") or {}
+        rich_text = prop.get("rich_text") if isinstance(prop, dict) else None
+        if not isinstance(rich_text, list):
+            return ""
+        return "".join(
+            item.get("plain_text") or (item.get("text") or {}).get("content", "")
+            for item in rich_text
+            if isinstance(item, dict)
+        )
+
+    def _read_and_verify_existing(
+        self, page_id: str, run_id: str, submitted_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Read back an existing run and reject stable-ID reuse for changed inputs."""
+        page = self._read_page(page_id)
+        expected_hash = self._manifest_hash(submitted_properties)
+        if expected_hash:
+            actual_hash = self._manifest_hash(page.get("properties") or {})
+            if not actual_hash or actual_hash != expected_hash:
+                raise IdempotencyConflictError(
+                    f"External Run ID {run_id!r} already exists with a missing or different "
+                    "Run Manifest Hash. The local ledger may have been reset; manual "
+                    "reconciliation is required and no new record was created."
+                )
+        return page
+
     def create_or_get_run(
         self, run_id: str, properties: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -210,7 +241,10 @@ class ResearchRunAdapter:
             page_id = existing.get("id")
             if not page_id:
                 raise ResearchRunWriteError("Existing run record has no page ID.")
-            return {"created": False, "page": self._read_page(page_id)}
+            return {
+                "created": False,
+                "page": self._read_and_verify_existing(page_id, stable_id, props),
+            }
 
         try:
             response = self.session.post(
@@ -235,7 +269,10 @@ class ResearchRunAdapter:
                     raise AmbiguousWriteError(
                         "A matching record was found without a page ID."
                     ) from exc
-                return {"created": False, "page": self._read_page(page_id)}
+                return {
+                    "created": False,
+                    "page": self._read_and_verify_existing(page_id, stable_id, props),
+                }
             raise AmbiguousWriteError(
                 "Write outcome is unknown and no matching record is visible. "
                 "Retry only with this same run_id after checking Notion; do not "
