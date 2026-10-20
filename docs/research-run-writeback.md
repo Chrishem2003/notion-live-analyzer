@@ -55,7 +55,7 @@ Start the API in a trusted deployment only after environment variables and the r
 
     sh scripts/start_research_run_api.sh
 
-Put the API behind HTTPS and network controls before exposing it outside a trusted environment. Do not use a per-container ephemeral SQLite path or multiple replicas with separate ledgers.
+Put the API behind HTTPS and network controls before exposing it outside a trusted environment. For real research, do not use a per-container ephemeral SQLite path or multiple replicas with separate ledgers.
 
 ## Input integrity gates
 
@@ -99,7 +99,7 @@ A successful result means the configured schema graph and local ledger path are 
 
 1. Confirm Notion integration access to all nine private data sources.
 2. Confirm the source IDs above point to private workspace data sources, not template sources.
-3. Start the API with a persistent shared idempotency database.
+3. Run the read-only startup preflight. The free Render blueprint is for synthetic staging only and explicitly uses an ephemeral ledger; use persistent shared storage before any real-research workflow.
 4. Open Integrations Hub → Bio-Research Runs in Streamlit.
 5. Submit a synthetic test with private Project and Protocol page IDs and optional private Sample/Data page IDs.
 6. Confirm the returned Notion URL opens the new Analysis Run and the linked relations point to the intended private records.
@@ -120,4 +120,4 @@ After a timeout, reuse the same run ID. Do not mint a new ID until the prior att
 
 ## Current status
 
-The automated tests cover the adapter, ledger, API authentication/configuration, relation validation, client behavior, manifest fingerprinting and UI syntax. These tests use mocks and do not prove that the deployed service can authenticate to Notion. The initial implementation is merged. The relation/preflight and staging deployment hardening in PR #32 must pass CI and be merged before the live staging checklist can be run.
+The automated tests cover the adapter, ledger, API authentication/configuration, relation validation, client behavior, manifest fingerprinting and UI syntax. These tests use mocks and do not prove that the deployed service can authenticate to Notion. PR #25 and PR #32 are merged. The latest PR-head test run passed; the main-branch merge commit's CI is still queued. No Render Blueprint sync, authenticated live Notion write, or deployment acceptance test has been completed.
