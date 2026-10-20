@@ -24,6 +24,10 @@ REQUIRED_ENV = (
     "NOTION_PROTOCOLS_DATA_SOURCE_ID",
     "NOTION_SAMPLES_DATA_SOURCE_ID",
     "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID",
+    "NOTION_LITERATURE_DATA_SOURCE_ID",
+    "NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID",
+    "NOTION_TASKS_DATA_SOURCE_ID",
+    "NOTION_BRAIN_NOTES_DATA_SOURCE_ID",
     "RESEARCH_RUN_IDEMPOTENCY_DB",
 )
 
@@ -33,11 +37,25 @@ RELATIONS = (
     ("NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID", "Protocol", "relation", "NOTION_PROTOCOLS_DATA_SOURCE_ID"),
     ("NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID", "Input Samples", "relation", "NOTION_SAMPLES_DATA_SOURCE_ID"),
     ("NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID", "Input Data Records", "relation", "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"),
+    ("NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID", "Source Evidence", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
     ("NOTION_SAMPLES_DATA_SOURCE_ID", "Project", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
     ("NOTION_SAMPLES_DATA_SOURCE_ID", "Protocol", "relation", "NOTION_PROTOCOLS_DATA_SOURCE_ID"),
+    ("NOTION_SAMPLES_DATA_SOURCE_ID", "Literature", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
     ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Project", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
     ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Protocol", "relation", "NOTION_PROTOCOLS_DATA_SOURCE_ID"),
+    ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Sample", "relation", "NOTION_SAMPLES_DATA_SOURCE_ID"),
+    ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Source Evidence", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
+    ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "🧬 Genomic Sequence Log", "relation", "NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID"),
     ("NOTION_PROTOCOLS_DATA_SOURCE_ID", "Project", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
+    ("NOTION_PROTOCOLS_DATA_SOURCE_ID", "Source Evidence", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
+    ("NOTION_PROJECTS_DATA_SOURCE_ID", "Daily Task", "relation", "NOTION_TASKS_DATA_SOURCE_ID"),
+    ("NOTION_PROJECTS_DATA_SOURCE_ID", "Literature & Sources", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
+    ("NOTION_LITERATURE_DATA_SOURCE_ID", "Project Master", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
+    ("NOTION_LITERATURE_DATA_SOURCE_ID", "Literature & Sources", "relation", "NOTION_BRAIN_NOTES_DATA_SOURCE_ID"),
+    ("NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID", "🧪 Project Master", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
+    ("NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID", "Genomic Sequence Log", "relation", "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"),
+    ("NOTION_TASKS_DATA_SOURCE_ID", "Project Master", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
+    ("NOTION_BRAIN_NOTES_DATA_SOURCE_ID", "📄Literature ", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
 )
 
 REQUIRED_PROPERTIES = {
@@ -48,16 +66,36 @@ REQUIRED_PROPERTIES = {
         "Protocol": "relation",
         "Input Samples": "relation",
         "Input Data Records": "relation",
+        "Source Evidence": "relation",
         "Run Status": "select",
         "Workflow Gate": "select",
         "QC Outcome": "select",
         "Record Classification": "select",
         "Reproducibility Check": "select",
     },
-    "NOTION_PROJECTS_DATA_SOURCE_ID": {},
-    "NOTION_PROTOCOLS_DATA_SOURCE_ID": {"Protocol Name": "title", "Project": "relation"},
-    "NOTION_SAMPLES_DATA_SOURCE_ID": {"Sample Name": "title", "Project": "relation", "Protocol": "relation"},
-    "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": {"Project": "relation", "Protocol": "relation"},
+    "NOTION_PROJECTS_DATA_SOURCE_ID": {
+        "Project Name": "title",
+        "Daily Task": "relation",
+        "Literature & Sources": "relation",
+    },
+    "NOTION_PROTOCOLS_DATA_SOURCE_ID": {
+        "Protocol Name": "title", "Project": "relation", "Source Evidence": "relation"
+    },
+    "NOTION_SAMPLES_DATA_SOURCE_ID": {
+        "Sample Name": "title", "Project": "relation", "Protocol": "relation", "Literature": "relation"
+    },
+    "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": {
+        "Project": "relation", "Protocol": "relation", "Sample": "relation",
+        "Source Evidence": "relation", "🧬 Genomic Sequence Log": "relation"
+    },
+    "NOTION_LITERATURE_DATA_SOURCE_ID": {
+        "Paper Name": "title", "Project Master": "relation", "Literature & Sources": "relation"
+    },
+    "NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID": {
+        "🧪 Project Master": "relation", "Genomic Sequence Log": "relation"
+    },
+    "NOTION_TASKS_DATA_SOURCE_ID": {"Project Master": "relation"},
+    "NOTION_BRAIN_NOTES_DATA_SOURCE_ID": {"📄Literature ": "relation"},
 }
 
 
@@ -130,6 +168,10 @@ def run_preflight(
         "NOTION_PROTOCOLS_DATA_SOURCE_ID",
         "NOTION_SAMPLES_DATA_SOURCE_ID",
         "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID",
+        "NOTION_LITERATURE_DATA_SOURCE_ID",
+        "NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID",
+        "NOTION_TASKS_DATA_SOURCE_ID",
+        "NOTION_BRAIN_NOTES_DATA_SOURCE_ID",
     )
     schemas: Dict[str, Mapping[str, Any]] = {}
     for key in source_keys:
