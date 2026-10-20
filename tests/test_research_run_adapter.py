@@ -45,7 +45,7 @@ def page(page_id="page-123"):
 
 def adapter(session):
     return ResearchRunAdapter(
-        "test-token", "analysis-db", session=session, sleep=lambda _: None
+        "test-token", "analysis-db", session=session
     )
 
 
