@@ -207,12 +207,12 @@ def write_research_run(
             page_id = reservation.get("page_id")
             if not page_id:
                 raise ResearchRunWriteError("Completed idempotency record has no Notion page ID.")
-            result = {"created": False, "page": adapter.get_page(page_id)}
+            result = {"created": False, "page": adapter.get_and_verify_existing_run(page_id, payload.run_id, properties)}
         elif reservation["action"] == "recover":
             try:
                 # Never create during ambiguous recovery: a missing query result
                 # is not proof that a previous write failed to commit.
-                result = adapter.recover_run(payload.run_id)
+                result = adapter.recover_run(payload.run_id, properties)
                 ledger.mark_complete(payload.run_id, result["page"]["id"])
             except AmbiguousWriteError:
                 ledger.mark_ambiguous(payload.run_id)
