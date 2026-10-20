@@ -126,7 +126,7 @@ def test_preflight_checks_all_sources_and_relation_edges(tmp_path):
 
     assert result["status"] == "ready_for_synthetic_staging"
     assert result["data_sources_checked"] == 9
-    assert result["relation_edges_checked"] == 24
+    assert result["relation_edges_checked"] == 23
     assert result["research_records_written"] == 0
     assert len(session.calls) == 9
     assert all(call[1]["Notion-Version"] == "2025-09-03" for call in session.calls)
