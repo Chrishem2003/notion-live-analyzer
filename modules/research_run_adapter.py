@@ -93,9 +93,12 @@ class ResearchRunAdapter:
             )
         return response.json()
 
-    def recover_run(self, run_id: str) -> Dict[str, Any]:
+    def recover_run(
+        self, run_id: str, submitted_properties: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Reconcile an ambiguous run without creating anything new.
 
+        When submitted properties are supplied, verify the stored manifest too.
         This path is intentionally read-only: absence from a query is not
         proof that an earlier uncertain create failed to commit.
         """
@@ -112,13 +115,26 @@ class ResearchRunAdapter:
             raise AmbiguousWriteError(
                 "A matching record was found without a page ID; manual reconciliation is required."
             )
-        return {"created": False, "page": self._read_page(page_id)}
+        if submitted_properties is not None:
+            page = self._read_and_verify_existing(page_id, stable_id, submitted_properties)
+        else:
+            page = self._read_page(page_id)
+        return {"created": False, "page": page}
 
     def get_page(self, page_id: str) -> Dict[str, Any]:
         """Fetch a page by ID for idempotent completed-run read-back."""
         if not isinstance(page_id, str) or not page_id.strip():
             raise ValueError("page_id must be a non-empty string.")
         return self._read_page(page_id.strip())
+
+    def get_and_verify_existing_run(
+        self, page_id: str, run_id: str, submitted_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Read a completed run and verify its stored manifest matches the request."""
+        stable_id = self._validate_run_id(run_id)
+        if not isinstance(submitted_properties, dict):
+            raise ValueError("submitted_properties must be a dictionary.")
+        return self._read_and_verify_existing(page_id, stable_id, submitted_properties)
 
     def validate_page_parent(
         self, page_id: str, expected_data_source_id: str, label: str
