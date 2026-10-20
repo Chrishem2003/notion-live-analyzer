@@ -1,17 +1,15 @@
 """Safe, idempotent write-back for research Analysis Run records.
 
-This adapter is separate from the UI and generic sync engine. Call it only
-from a trusted server-side process; never expose the Notion token to a browser.
+This adapter targets a Notion data source (collection:// ID), not a database
+container ID. Call only from a trusted server-side process.
 """
 from __future__ import annotations
 
-import time
 from typing import Any, Dict, Optional
-
 import requests
 
 NOTION_API_URL = "https://api.notion.com/v1"
-DEFAULT_NOTION_VERSION = "2022-06-28"
+DEFAULT_NOTION_VERSION = "2025-09-03"
 
 
 class ResearchRunWriteError(RuntimeError):
@@ -23,38 +21,31 @@ class AmbiguousWriteError(ResearchRunWriteError):
 
 
 class ResearchRunAdapter:
-    """Create or retrieve a Notion Analysis Run using a stable external run ID.
+    """Create or retrieve an Analysis Run using a stable external run ID.
 
-    The target database must have a rich-text property named by
-    external_id_property. Supplied properties use Notion's native payload
-    format, including relation values like {"relation": [{"id": "page-id"}]}.
-    This adapter does not infer schema names or approve QC.
+    data_source_id is the UUID behind the collection:// URL. Supplied
+    properties use native Notion payloads, including relation properties.
     """
 
     def __init__(
-        self,
-        token: str,
-        database_id: str,
-        *,
+        self, token: str, data_source_id: str, *,
         external_id_property: str = "External Run ID",
         notion_version: str = DEFAULT_NOTION_VERSION,
         timeout: float = 15.0,
         session: Optional[requests.Session] = None,
-        sleep=time.sleep,
     ) -> None:
         if not token or not token.strip():
             raise ValueError("A Notion integration token is required.")
-        if not database_id or not database_id.strip():
-            raise ValueError("A target Analysis Runs database ID is required.")
+        if not data_source_id or not data_source_id.strip():
+            raise ValueError("A target Analysis Runs data source ID is required.")
         if not external_id_property or not external_id_property.strip():
             raise ValueError("An external run ID property name is required.")
         if timeout <= 0:
             raise ValueError("timeout must be greater than zero.")
-        self.database_id = database_id
+        self.data_source_id = data_source_id.removeprefix("collection://")
         self.external_id_property = external_id_property
         self.timeout = timeout
         self.session = session or requests.Session()
-        self.sleep = sleep
         self.headers = {
             "Authorization": f"Bearer {token}",
             "Notion-Version": notion_version,
@@ -68,16 +59,13 @@ class ResearchRunAdapter:
         return run_id.strip()
 
     def _find_by_external_id(self, run_id: str) -> Optional[Dict[str, Any]]:
-        url = f"{NOTION_API_URL}/databases/{self.database_id}/query"
-        payload = {
-            "page_size": 2,
-            "filter": {
+        response = self.session.post(
+            f"{NOTION_API_URL}/data_sources/{self.data_source_id}/query",
+            json={"page_size": 2, "filter": {
                 "property": self.external_id_property,
                 "rich_text": {"equals": run_id},
-            },
-        }
-        response = self.session.post(
-            url, json=payload, headers=self.headers, timeout=self.timeout
+            }},
+            headers=self.headers, timeout=self.timeout,
         )
         if response.status_code != 200:
             raise ResearchRunWriteError(
@@ -94,8 +82,7 @@ class ResearchRunAdapter:
     def _read_page(self, page_id: str) -> Dict[str, Any]:
         response = self.session.get(
             f"{NOTION_API_URL}/pages/{page_id}",
-            headers=self.headers,
-            timeout=self.timeout,
+            headers=self.headers, timeout=self.timeout,
         )
         if response.status_code != 200:
             raise ResearchRunWriteError(
@@ -107,11 +94,7 @@ class ResearchRunAdapter:
     def create_or_get_run(
         self, run_id: str, properties: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Persist a run once; retries return the existing record.
-
-        properties must contain Notion-native values for the target schema.
-        The stable External Run ID is injected automatically.
-        """
+        """Persist a run once; retries return the existing record."""
         stable_id = self._validate_run_id(run_id)
         if not isinstance(properties, dict):
             raise ValueError("properties must be a dictionary of Notion properties.")
@@ -131,19 +114,16 @@ class ResearchRunAdapter:
                 raise ResearchRunWriteError("Existing run record has no page ID.")
             return {"created": False, "page": self._read_page(page_id)}
 
-        payload = {
-            "parent": {"database_id": self.database_id},
-            "properties": props,
-        }
         try:
             response = self.session.post(
                 f"{NOTION_API_URL}/pages",
-                json=payload,
-                headers=self.headers,
-                timeout=self.timeout,
+                json={"parent": {
+                    "type": "data_source_id",
+                    "data_source_id": self.data_source_id,
+                }, "properties": props},
+                headers=self.headers, timeout=self.timeout,
             )
         except (requests.Timeout, requests.ConnectionError) as exc:
-            # The write might have succeeded server-side. Check before retry.
             try:
                 recovered = self._find_by_external_id(stable_id)
             except Exception as lookup_error:
@@ -168,11 +148,9 @@ class ResearchRunAdapter:
             raise ResearchRunWriteError(
                 f"Notion rejected the run write (HTTP {response.status_code})."
             )
-        created = response.json()
-        page_id = created.get("id")
+        page_id = response.json().get("id")
         if not page_id:
             raise ResearchRunWriteError(
                 "Notion accepted the write but returned no page ID."
             )
-        verified = self._read_page(page_id)
-        return {"created": True, "page": verified}
+        return {"created": True, "page": self._read_page(page_id)}
