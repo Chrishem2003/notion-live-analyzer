@@ -110,4 +110,7 @@ def test_manifest_hash_is_deterministic_and_changes_with_inputs():
     second = dict(first)
     second["source_evidence_page_ids"] = ["literature-2"]
     assert build_run_manifest_hash(first) != build_run_manifest_hash(second)
+    second = dict(first)
+    second["input_dataset_version"] = "dataset-v2"
+    assert build_run_manifest_hash(first) != build_run_manifest_hash(second)
     assert build_run_manifest_hash(first).startswith("sha256:")
