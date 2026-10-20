@@ -584,9 +584,6 @@ def render_bio_research_runs():
         code_revision = st.text_input(
             "Code revision / commit SHA (optional)", key="research_run_code_revision"
         )
-        manifest_hash = st.text_input(
-            "Manifest hash (optional)", key="research_run_manifest_hash"
-        )
         parameters_json = st.text_area(
             "Parameters JSON (optional)", value='{"synthetic": true}', key="research_run_parameters"
         )
@@ -627,7 +624,7 @@ def render_bio_research_runs():
         "analysis_method": analysis_method.strip(),
         "code_revision": code_revision.strip(),
         "environment": "staging",
-        "manifest_hash": manifest_hash.strip(),
+        "manifest_hash": "",
         "parameters_json": json.dumps(parsed_parameters, sort_keys=True),
     }
     try:
