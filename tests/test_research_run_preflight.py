@@ -69,6 +69,7 @@ def valid_schemas():
             "Protocol": relation("protocols-source"),
             "Input Samples": relation("samples-source"),
             "Input Data Records": relation("data-source"),
+            "Input Dataset Version": text_type("rich_text"),
             "Source Evidence": relation("literature-source"),
             "Run Status": text_type("select"),
             "Workflow Gate": text_type("select"),
