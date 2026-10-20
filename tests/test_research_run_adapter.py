@@ -40,8 +40,11 @@ class FakeSession:
         return result
 
 
-def page(page_id="page-123"):
-    return {"id": page_id, "object": "page", "properties": {}}
+def page(page_id="page-123", parent=None):
+    result = {"id": page_id, "object": "page", "properties": {}}
+    if parent is not None:
+        result["parent"] = parent
+    return result
 
 
 def adapter(session):
@@ -188,4 +191,25 @@ def test_payload_builder_requires_project_and_protocol_and_valid_relation_ids():
         build_analysis_run_properties(
             run_name="Run", project_page_id="project", protocol_page_id="protocol",
             input_sample_page_ids=[""],
+        )
+
+
+def test_relation_page_must_belong_to_expected_data_source():
+    session = FakeSession(get_results=[Response(200, page(
+        "project-page",
+        {"type": "data_source_id", "data_source_id": "private-projects"},
+    ))])
+    client = adapter(session)
+    verified = client.validate_page_parent(
+        "project-page", "collection://private-projects", "Project"
+    )
+    assert verified["id"] == "project-page"
+
+    wrong = FakeSession(get_results=[Response(200, page(
+        "template-project",
+        {"type": "data_source_id", "data_source_id": "template-projects"},
+    ))])
+    with pytest.raises(ResearchRunWriteError, match="does not belong"):
+        adapter(wrong).validate_page_parent(
+            "template-project", "private-projects", "Project"
         )
