@@ -108,6 +108,27 @@ A successful result means the configured schema graph and local ledger path are 
 9. Simulate an ambiguous write/timeout. A retry must use the same run ID and reconcile read-only; it must not create a second page if no match is visible.
 10. Verify run state remains Draft / Intake / Pending QC / Not Checked / Synthetic/Test until a human reviewer completes the workflow.
 
+## Repeatable synthetic acceptance runner
+
+Use `scripts/research_run_staging_smoke.py` after the API is deployed and the read-only preflight passes. The default command is a dry run and sends no requests. The execution mode performs three authenticated calls: initial synthetic run, exact same-ID/same-payload retry (must reuse the page), and changed-payload/same-ID retry (must return HTTP 409). The synthetic Analysis Run is retained as acceptance evidence and is not automatically deleted.
+
+Configure these values in your local shell or trusted runner, never in Git or ChatGPT messages:
+- `RESEARCH_RUN_API_URL`: HTTPS base URL of the staging API.
+- `PLATFORM_API_KEY`: same secret configured on the Streamlit/API services.
+- `RESEARCH_RUN_SMOKE_PROJECT_PAGE_ID`: verified private Demo project page ID.
+- `RESEARCH_RUN_SMOKE_PROTOCOL_PAGE_ID`: verified private draft protocol page ID.
+- `RESEARCH_RUN_SMOKE_CONFIRM_SYNTHETIC=true`: explicit confirmation that this is a synthetic staging test.
+
+First run the dry run:
+
+    python scripts/research_run_staging_smoke.py
+
+Then execute only with a recorded stable run ID:
+
+    python scripts/research_run_staging_smoke.py --execute --run-id staging-smoke-YYYYMMDD-001
+
+If the response is ambiguous, reuse the exact same `--run-id`; do not create a new ID until the prior attempt is reconciled. The script requires HTTPS, uses no sample/data/evidence records, and stops unless the returned classification and workflow gates remain Synthetic/Test / Draft / Intake.
+
 ## Recovery behavior
 
 - 401: API key missing or invalid.
