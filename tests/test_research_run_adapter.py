@@ -77,7 +77,7 @@ def test_creates_relation_linked_run_and_verifies_readback():
     assert result["page"]["id"] == "page-123"
     create_call = session.calls[1]
     payload = create_call[2]["json"]
-    assert payload["parent"] == {"database_id": "analysis-db"}
+    assert payload["parent"] == {"type": "data_source_id", "data_source_id": "analysis-db"}
     assert payload["properties"]["External Run ID"]["rich_text"][0]["text"]["content"] == "run-001"
     assert payload["properties"]["Project"]["relation"] == [{"id": "project-page-id"}]
     assert session.calls[-1][0] == "GET"
