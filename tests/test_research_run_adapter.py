@@ -6,6 +6,7 @@ from modules.research_run_adapter import (
     AmbiguousWriteError,
     ResearchRunAdapter,
     ResearchRunWriteError,
+    build_analysis_run_properties,
 )
 
 
@@ -149,3 +150,42 @@ def test_http_failure_does_not_silently_report_success():
     session = FakeSession(post_results=[empty_query(), Response(403, {"message": "forbidden"})])
     with pytest.raises(ResearchRunWriteError, match="HTTP 403"):
         adapter(session).create_or_get_run("run-007", {})
+
+
+def test_payload_builder_uses_canonical_schema_and_safe_initial_gates():
+    payload = build_analysis_run_properties(
+        run_name="Synthetic smoke test",
+        project_page_id="private-project-id",
+        protocol_page_id="private-protocol-id",
+        input_sample_page_ids=["private-sample-id"],
+        input_data_record_page_ids=["private-data-id"],
+        code_revision="abc123",
+        manifest_hash="sha256:example",
+    )
+    assert payload["Run Name"]["title"][0]["text"]["content"] == "Synthetic smoke test"
+    assert payload["Project"]["relation"] == [{"id": "private-project-id"}]
+    assert payload["Protocol"]["relation"] == [{"id": "private-protocol-id"}]
+    assert payload["Input Samples"]["relation"] == [{"id": "private-sample-id"}]
+    assert payload["Input Data Records"]["relation"] == [{"id": "private-data-id"}]
+    assert payload["Run Status"]["select"]["name"] == "Draft"
+    assert payload["Workflow Gate"]["select"]["name"] == "Intake"
+    assert payload["QC Outcome"]["select"]["name"] == "Pending"
+    assert payload["Reproducibility Check"]["select"]["name"] == "Not Checked"
+    assert payload["Record Classification"]["select"]["name"] == "Synthetic/Test"
+    assert "External Run ID" not in payload  # injected by the adapter from run_id
+
+
+def test_payload_builder_requires_project_and_protocol_and_valid_relation_ids():
+    with pytest.raises(ValueError, match="project_page_id"):
+        build_analysis_run_properties(
+            run_name="Run", project_page_id=" ", protocol_page_id="protocol"
+        )
+    with pytest.raises(ValueError, match="protocol_page_id"):
+        build_analysis_run_properties(
+            run_name="Run", project_page_id="project", protocol_page_id=""
+        )
+    with pytest.raises(ValueError, match="empty page ID"):
+        build_analysis_run_properties(
+            run_name="Run", project_page_id="project", protocol_page_id="protocol",
+            input_sample_page_ids=[""],
+        )
