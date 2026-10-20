@@ -10,9 +10,10 @@ import json
 import os
 import sqlite3
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterator, Mapping
 
 DEFAULT_DB_PATH = os.getenv("PORTFOLIO_OS_DB_PATH", "research_os.db")
 STATUSES = ("Hypothesis", "Research", "Validation", "Pilot", "Scaling", "Parked")
@@ -27,8 +28,18 @@ def _connect(db_path: str | Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     return conn
 
 
+@contextmanager
+def _transaction(db_path: str | Path = DEFAULT_DB_PATH) -> Iterator[sqlite3.Connection]:
+    conn = _connect(db_path)
+    try:
+        with conn:
+            yield conn
+    finally:
+        conn.close()
+
+
 def init_store(db_path: str | Path = DEFAULT_DB_PATH) -> None:
-    with _connect(db_path) as conn:
+    with _transaction(db_path) as conn:
         conn.execute(
             """CREATE TABLE IF NOT EXISTS portfolio_os_opportunities (
                 opportunity_id TEXT PRIMARY KEY,
@@ -49,11 +60,12 @@ def save_opportunity(record: Mapping[str, Any], db_path: str | Path = DEFAULT_DB
     title = str(payload.get("title", "")).strip()
     if not title:
         raise ValueError("Opportunity title is required")
+    init_store(db_path)
     opportunity_id = str(payload.get("opportunity_id") or uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     payload["opportunity_id"] = opportunity_id
     payload["title"] = title
-    with _connect(db_path) as conn:
+    with _transaction(db_path) as conn:
         existing = conn.execute(
             "SELECT created_at FROM portfolio_os_opportunities WHERE opportunity_id = ?",
             (opportunity_id,),
@@ -76,7 +88,7 @@ def save_opportunity(record: Mapping[str, Any], db_path: str | Path = DEFAULT_DB
 
 def list_opportunities(db_path: str | Path = DEFAULT_DB_PATH) -> list[dict[str, Any]]:
     init_store(db_path)
-    with _connect(db_path) as conn:
+    with _transaction(db_path) as conn:
         rows = conn.execute(
             "SELECT payload_json, created_at, updated_at FROM portfolio_os_opportunities ORDER BY updated_at DESC"
         ).fetchall()
@@ -92,7 +104,7 @@ def list_opportunities(db_path: str | Path = DEFAULT_DB_PATH) -> list[dict[str, 
 def seed_examples_if_empty(db_path: str | Path = DEFAULT_DB_PATH) -> None:
     """Add transparent starter hypotheses once; never overwrite user data."""
     init_store(db_path)
-    with _connect(db_path) as conn:
+    with _transaction(db_path) as conn:
         count = conn.execute("SELECT COUNT(*) FROM portfolio_os_opportunities").fetchone()[0]
     if count:
         return
