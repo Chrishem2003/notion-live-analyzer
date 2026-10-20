@@ -89,4 +89,4 @@ except Exception as e:
 "
     envVars:
       - key: RENDER_EXTERNAL_URL
-        value: https://notion-live-analyzer.onrender.com.onrender.com
+        value: https://notion-live-analyzer.onrender.com
