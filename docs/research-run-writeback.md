@@ -35,7 +35,21 @@ For the **full relation-graph preflight**, also configure these private source I
 
 The API endpoint itself writes only to Analysis Runs and validates its project/protocol/sample/data relations. The extra four IDs let the preflight check the complete connected private graph, including project tasks, literature and genomic-sequence links.
 
-Use the exact private source IDs shown by the Notion data-source schema. Do not use IDs from the published template. The API validates each related page's parent source against these configured IDs.
+Use the exact private source IDs shown by the Notion data-source schema. The currently audited private IDs are:
+
+| Environment variable | Private data source UUID |
+|---|---|
+| `NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID` | `eb1a60a3-e6e3-4f4d-bd50-0c63866ee937` |
+| `NOTION_PROJECTS_DATA_SOURCE_ID` | `cf591428-06c6-83d1-b2bc-87f9d5d1a71f` |
+| `NOTION_PROTOCOLS_DATA_SOURCE_ID` | `fa69173a-a184-486d-8730-4897eead8f34` |
+| `NOTION_SAMPLES_DATA_SOURCE_ID` | `de491428-06c6-827b-9f90-87269d0a3e57` |
+| `NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID` | `e9391428-06c6-8361-95eb-0751507c9afd` |
+| `NOTION_LITERATURE_DATA_SOURCE_ID` | `23791428-06c6-83ff-9eb1-079c65f7b2db` |
+| `NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID` | `e6491428-06c6-83a6-bcb6-87bd19bbe65a` |
+| `NOTION_TASKS_DATA_SOURCE_ID` | `27f91428-06c6-82c9-8fe5-07e122070367` |
+| `NOTION_BRAIN_NOTES_DATA_SOURCE_ID` | `8af91428-06c6-83a4-b0b7-074c0a6d17d4` |
+
+These are identifiers, not credentials. The `35f91428-...` sources inspected in the published-template branch are template sources and must **not** be used for this live integration. Re-fetch the schema and verify the parent path before changing these values. The API validates each related page's parent source against the configured IDs.
 
 Start the API in a trusted deployment:
 
