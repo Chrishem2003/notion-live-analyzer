@@ -61,6 +61,7 @@ Put the API behind HTTPS and network controls before exposing it outside a trust
 
 Before the endpoint writes a run, it validates not only each page's parent data source but also the relationships between the selected records:
 - The selected Project must be classified `Demo` or `Synthetic/Test`.
+- The selected Protocol must already relate to the chosen Project; a protocol linked to another project or with a missing Project relation is rejected.
 - Each selected Sample must already relate to the chosen Project and Protocol and be classified `Demo` or `Synthetic/Test`.
 - Each selected Experimental Data record must already relate to the same Project and Protocol, link to at least one Sample selected for the run, and be classified `Demo` or `Synthetic/Test`. Data records cannot be submitted without at least one selected Sample.
 - Each supplied Source Evidence page must belong to the private Literature source and be classified `Demo` or `Synthetic/Test`.
@@ -116,7 +117,7 @@ Configure these values in your local shell or trusted runner, never in Git or Ch
 - `RESEARCH_RUN_API_URL`: HTTPS base URL of the staging API.
 - `PLATFORM_API_KEY`: same secret configured on the Streamlit/API services.
 - `RESEARCH_RUN_SMOKE_PROJECT_PAGE_ID`: verified private Demo project page ID.
-- `RESEARCH_RUN_SMOKE_PROTOCOL_PAGE_ID`: verified private draft protocol page ID.
+- `RESEARCH_RUN_SMOKE_PROTOCOL_PAGE_ID`: verified private draft protocol page ID whose existing `Project` relation points to the selected Demo project.
 - `RESEARCH_RUN_SMOKE_CONFIRM_SYNTHETIC=true`: explicit confirmation that this is a synthetic staging test.
 
 First run the dry run:
@@ -127,7 +128,7 @@ Then execute only with a recorded stable run ID:
 
     python scripts/research_run_staging_smoke.py --execute --run-id staging-smoke-YYYYMMDD-001
 
-If the response is ambiguous, reuse the exact same `--run-id`; do not create a new ID until the prior attempt is reconciled. The script requires HTTPS, uses no sample/data/evidence records, and stops unless the returned classification and workflow gates remain Synthetic/Test / Draft / Intake.
+If the response is ambiguous, reuse the exact same `--run-id`; do not create a new ID until the prior attempt is reconciled. The script requires HTTPS, uses no sample/data/evidence records, and stops unless the protocol already belongs to the selected project and the returned classification and workflow gates remain Synthetic/Test / Draft / Intake / Pending QC.
 
 ## Recovery behavior
 
