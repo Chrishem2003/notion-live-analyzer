@@ -81,6 +81,7 @@ def write_research_run(
         AmbiguousWriteError,
         ResearchRunAdapter,
         ResearchRunWriteError,
+        RelationValidationError,
         build_analysis_run_properties,
     )
     from modules.research_run_idempotency import IdempotencyConflictError, RunIdempotencyLedger
@@ -107,24 +108,55 @@ def write_research_run(
         data_source_id=config["NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID"],
     )
     try:
-        adapter.validate_page_parent(
+        if payload.input_data_record_page_ids and not payload.input_sample_page_ids:
+            raise RelationValidationError(
+                "Input Data Records require at least one selected Input Sample for traceability."
+            )
+
+        project_page = adapter.validate_page_parent(
             payload.project_page_id, config["NOTION_PROJECTS_DATA_SOURCE_ID"], "Project"
         )
+        adapter.validate_record_classification(project_page, "Project")
         adapter.validate_page_parent(
             payload.protocol_page_id, config["NOTION_PROTOCOLS_DATA_SOURCE_ID"], "Protocol"
         )
+
+        sample_pages = []
         for page_id in payload.input_sample_page_ids:
-            adapter.validate_page_parent(
+            sample_page = adapter.validate_page_parent(
                 page_id, config["NOTION_SAMPLES_DATA_SOURCE_ID"], "Input Sample"
             )
+            adapter.validate_relation_membership(
+                sample_page, "Project", [payload.project_page_id], "Input Sample → Project"
+            )
+            adapter.validate_relation_membership(
+                sample_page, "Protocol", [payload.protocol_page_id], "Input Sample → Protocol"
+            )
+            adapter.validate_record_classification(sample_page, "Input Sample")
+            sample_pages.append(sample_page)
+
         for page_id in payload.input_data_record_page_ids:
-            adapter.validate_page_parent(
+            data_page = adapter.validate_page_parent(
                 page_id, config["NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"], "Input Data Record"
             )
+            adapter.validate_relation_membership(
+                data_page, "Project", [payload.project_page_id], "Input Data Record → Project"
+            )
+            adapter.validate_relation_membership(
+                data_page, "Protocol", [payload.protocol_page_id], "Input Data Record → Protocol"
+            )
+            adapter.validate_relation_membership(
+                data_page, "Sample", payload.input_sample_page_ids,
+                "Input Data Record → selected Input Sample", require_all=False
+            )
+            adapter.validate_record_classification(data_page, "Input Data Record")
+
         for page_id in payload.source_evidence_page_ids:
-            adapter.validate_page_parent(
+            evidence_page = adapter.validate_page_parent(
                 page_id, config["NOTION_LITERATURE_DATA_SOURCE_ID"], "Source Evidence"
             )
+            adapter.validate_record_classification(evidence_page, "Source Evidence")
+
         properties = build_analysis_run_properties(
             run_name=payload.run_name,
             project_page_id=payload.project_page_id,
