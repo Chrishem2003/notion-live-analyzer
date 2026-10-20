@@ -1,0 +1,70 @@
+# Bio-Research Analysis Run Write-back
+
+## Purpose
+
+The Research Run write-back path links the Streamlit Research Analyzer to the private Bio-Research Enterprise workspace. It records a reproducibility entry in the private Analysis Runs register, with verified relations to project, protocol, samples and experimental-data records.
+
+This feature is synthetic/staging only until a live acceptance test passes. It does not approve research or validate scientific correctness.
+
+## Components
+
+- modules/research_run_adapter.py: Notion API data-source adapter, schema payload builder, relation-parent validation, read-back and ambiguous-write recovery.
+- modules/research_run_idempotency.py: SQLite ledger with stable run IDs and payload fingerprints.
+- api_server.py: authenticated POST /api/v1/research-runs.
+- modules/research_run_client.py: Streamlit-facing API client with no automatic POST retry.
+- pages/09_Integrations_Hub.py: Bio-Research Runs tab.
+
+## Required server-side environment
+
+Set these values in the API deployment's secret/environment configuration. Never commit actual credentials.
+
+- PLATFORM_API_KEY: high-entropy service-to-service secret.
+- NOTION_TOKEN: Notion integration token with access only to the required private research sources.
+- NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID: private Analysis Runs data source.
+- NOTION_PROJECTS_DATA_SOURCE_ID: private Project Master data source.
+- NOTION_PROTOCOLS_DATA_SOURCE_ID: private Protocol Register data source.
+- NOTION_SAMPLES_DATA_SOURCE_ID: private Sample Collection data source.
+- NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID: private Experimental Data Engine data source.
+- RESEARCH_RUN_IDEMPOTENCY_DB: absolute path to a persistent SQLite file. All API workers must share the same file on storage that supports SQLite locking.
+
+Use the exact private source IDs shown by the Notion data-source schema. Do not use IDs from the published template. The API validates each related page's parent source against these configured IDs.
+
+Start the API in a trusted deployment:
+
+    uvicorn api_server:app --host 0.0.0.0 --port 8000
+
+Put the API behind HTTPS and network controls before exposing it outside a trusted environment. Do not use a per-container ephemeral SQLite path or multiple replicas with separate ledgers.
+
+## Required Streamlit environment
+
+- RESEARCH_RUN_API_URL: base URL of the private API service, e.g. https://api.example.org.
+- PLATFORM_API_KEY: same service secret configured on the API host.
+
+Keep these in deployment secrets, not in the Streamlit page or source code. The new UI is intentionally disabled when either is absent.
+
+## Staging acceptance checklist
+
+1. Confirm Notion integration access to the four private data sources.
+2. Confirm the source IDs above point to private workspace data sources, not template sources.
+3. Start the API with a persistent shared idempotency database.
+4. Open Integrations Hub → Bio-Research Runs in Streamlit.
+5. Submit a synthetic test with private Project and Protocol page IDs and optional private Sample/Data page IDs.
+6. Confirm the returned Notion URL opens the new Analysis Run and the linked relations point to the intended private records.
+7. Submit again with the exact same run ID and payload. It must return the existing page rather than create a duplicate.
+8. Change the payload while keeping the same run ID. The API must return a conflict.
+9. Simulate an ambiguous write/timeout. A retry must use the same run ID and reconcile read-only; it must not create a second page if no match is visible.
+10. Verify run state remains Draft / Intake / Pending QC / Not Checked / Synthetic/Test until a human reviewer completes the workflow.
+
+## Recovery behavior
+
+- 401: API key missing or invalid.
+- 503: API configuration missing or write outcome is ambiguous.
+- 409: run ID is already in progress or has been reused with a different payload.
+- 422: invalid request data.
+- 502: Notion rejected the request, relation parent validation failed, or read-back failed.
+
+After a timeout, reuse the same run ID. Do not mint a new ID until the prior attempt is reconciled. An ambiguous reservation intentionally fails closed when no matching Notion record is visible; an operator must inspect Notion and reconcile the ledger before clearing it.
+
+## Current status
+
+The automated tests cover the adapter, ledger, API authentication/configuration, relation validation, client behavior, manifest fingerprinting and UI syntax. These tests use mocks and do not prove that the deployed service can authenticate to Notion. The feature branch must be merged and deployment configured before the live staging checklist can be run.

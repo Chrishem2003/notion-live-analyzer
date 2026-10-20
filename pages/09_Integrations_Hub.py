@@ -16,6 +16,7 @@ import io
 import re
 import time
 import json
+import uuid
 import hmac
 import hashlib
 import pandas as pd
@@ -519,6 +520,132 @@ def render_world_data():
 
 
 # ==============================================================================
+# 5. BIO-RESEARCH ANALYSIS RUN WRITE-BACK
+# ==============================================================================
+def render_bio_research_runs():
+    section_header(
+        "🧪 Bio-Research Run Write-back",
+        "Submit a synthetic run through the authenticated Analyzer API. The server validates private Notion relation targets, persists the run, and reads it back."
+    )
+    api_url = os.environ.get("RESEARCH_RUN_API_URL", "").strip()
+    api_key = os.environ.get("PLATFORM_API_KEY", "").strip()
+    if not api_url or not api_key:
+        st.warning(
+            "Disabled until RESEARCH_RUN_API_URL and PLATFORM_API_KEY are configured "
+            "as server-side secrets. Never paste API keys into the page or source code."
+        )
+        st.code(
+            "RESEARCH_RUN_API_URL=https://your-private-api-host\n"
+            "PLATFORM_API_KEY=<set in server secrets>",
+            language="text",
+        )
+        return
+
+    st.info(
+        "Staging-only workflow: each record is classified Synthetic/Test and starts "
+        "at Draft / Intake / Pending QC. It is never automatically approved. "
+        "Use IDs from the private Bio-Research workspace, not the published template."
+    )
+    if "research_run_stable_id" not in st.session_state:
+        st.session_state["research_run_stable_id"] = f"bio-run-{uuid.uuid4().hex}"
+    if st.button("Generate a new run ID", key="research_run_new_id"):
+        st.session_state["research_run_stable_id"] = f"bio-run-{uuid.uuid4().hex}"
+
+    with st.form("bio_research_run_form", clear_on_submit=False):
+        run_id = st.text_input(
+            "Stable Run ID (reuse this exact ID after a timeout)",
+            value=st.session_state["research_run_stable_id"],
+            key="research_run_id_input",
+        )
+        run_name = st.text_input(
+            "Run name", value="Synthetic integration smoke test", key="research_run_name"
+        )
+        col1, col2 = st.columns(2)
+        with col1:
+            project_id = st.text_input("Private Project page ID", key="research_run_project_id")
+            protocol_id = st.text_input("Private Protocol page ID", key="research_run_protocol_id")
+        with col2:
+            sample_ids = st.text_input(
+                "Private Sample page IDs (comma-separated, optional)", key="research_run_sample_ids"
+            )
+            data_ids = st.text_input(
+                "Private Experimental Data page IDs (comma-separated, optional)", key="research_run_data_ids"
+            )
+        analysis_method = st.text_input(
+            "Analysis method", value="Integration smoke test", key="research_run_method"
+        )
+        code_revision = st.text_input(
+            "Code revision / commit SHA (optional)", key="research_run_code_revision"
+        )
+        manifest_hash = st.text_input(
+            "Manifest hash (optional)", key="research_run_manifest_hash"
+        )
+        parameters_json = st.text_area(
+            "Parameters JSON (optional)", value='{"synthetic": true}', key="research_run_parameters"
+        )
+        confirm_synthetic = st.checkbox(
+            "I confirm this is a synthetic/demo test and the page IDs belong to the private workspace.",
+            key="research_run_confirm_synthetic",
+        )
+        submitted = st.form_submit_button("Validate and create synthetic run", type="primary")
+
+    if not submitted:
+        return
+    if not confirm_synthetic:
+        st.error("Confirm the synthetic/demo scope before submitting.")
+        return
+    if not (run_id.strip() and run_name.strip() and project_id.strip() and protocol_id.strip()):
+        st.error("Run ID, run name, project page ID, and protocol page ID are required.")
+        return
+    try:
+        parsed_parameters = json.loads(parameters_json) if parameters_json.strip() else {}
+        if not isinstance(parsed_parameters, dict):
+            raise ValueError("Parameters JSON must be a JSON object.")
+    except (json.JSONDecodeError, ValueError) as exc:
+        st.error(f"Parameters JSON is invalid: {exc}")
+        return
+
+    def split_ids(value):
+        return [part.strip() for part in value.split(",") if part.strip()]
+
+    payload = {
+        "run_id": run_id.strip(),
+        "run_name": run_name.strip(),
+        "project_page_id": project_id.strip(),
+        "protocol_page_id": protocol_id.strip(),
+        "input_sample_page_ids": split_ids(sample_ids),
+        "input_data_record_page_ids": split_ids(data_ids),
+        "analysis_method": analysis_method.strip(),
+        "code_revision": code_revision.strip(),
+        "environment": "staging",
+        "manifest_hash": manifest_hash.strip(),
+        "parameters_json": json.dumps(parsed_parameters, sort_keys=True),
+    }
+    try:
+        from modules.research_run_client import ResearchRunClient, build_run_manifest_hash
+        if not payload["manifest_hash"]:
+            payload["manifest_hash"] = build_run_manifest_hash(payload)
+        st.caption("Run manifest fingerprint: " + payload["manifest_hash"])
+        started = time.perf_counter()
+        result = ResearchRunClient(api_url, api_key).create_run(payload)
+        latency = (time.perf_counter() - started) * 1000
+        log_call("Bio-Research Run Write-back", latency, 200, f"Run {result['run_id']} persisted")
+        st.success(
+            f"Run persisted and read back. ID: {result['run_id']} | "
+            f"Status: {result.get('run_status', 'Draft')} | "
+            f"Gate: {result.get('workflow_gate', 'Intake')}"
+        )
+        if result.get("page_url"):
+            st.markdown(f"[Open persisted Analysis Run in Notion]({result['page_url']})")
+        st.caption("Keep the same run ID if you need to reconcile an uncertain response.")
+        st.json(result)
+    except Exception as exc:
+        log_call("Bio-Research Run Write-back", 0, "error", type(exc).__name__)
+        st.error(str(exc))
+        st.warning("After a timeout, retry with the same run ID. Do not generate a new one.")
+
+
+# ==============================================================================
 # MAIN ROUTER
 # ==============================================================================
 def main():
@@ -550,6 +677,7 @@ def main():
         "🌐 API Gateway & Webhooks",
         "📚 Reference Lookup",
         "🌐 Global Real-Data (World Bank)",
+        "🧪 Bio-Research Runs",
     ])
 
     with tabs[0]: render_notion()
@@ -558,6 +686,7 @@ def main():
     with tabs[3]: render_api_gateway()
     with tabs[4]: render_reference_lookup()
     with tabs[5]: render_world_data()
+    with tabs[6]: render_bio_research_runs()
 
     render_standard_footer("INTEGRATIONS HUB V3.0")
 

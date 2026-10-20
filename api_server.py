@@ -55,6 +55,137 @@ def require_api_key(x_api_key: Optional[str] = Header(None)):
     return True
 
 
+class ResearchRunWriteRequest(BaseModel):
+    run_id: str = Field(..., min_length=1, max_length=200)
+    run_name: str = Field(..., min_length=1, max_length=200)
+    project_page_id: str = Field(..., min_length=1, max_length=100)
+    protocol_page_id: str = Field(..., min_length=1, max_length=100)
+    input_sample_page_ids: list[str] = Field(default_factory=list, max_length=100)
+    input_data_record_page_ids: list[str] = Field(default_factory=list, max_length=100)
+    analysis_method: str = Field("", max_length=2000)
+    code_revision: str = Field("", max_length=200)
+    environment: str = Field("staging", max_length=100)
+    manifest_hash: str = Field("", max_length=256)
+    parameters_json: str = Field("", max_length=10000)
+
+
+@app.post("/api/v1/research-runs")
+def write_research_run(
+    payload: ResearchRunWriteRequest,
+    _auth: bool = Depends(require_api_key),
+):
+    """Persist a synthetic-first Analysis Run after validating relation targets."""
+    from modules.research_run_adapter import (
+        AmbiguousWriteError,
+        ResearchRunAdapter,
+        ResearchRunWriteError,
+        build_analysis_run_properties,
+    )
+    from modules.research_run_idempotency import IdempotencyConflictError, RunIdempotencyLedger
+
+    config = {
+        "NOTION_TOKEN": os.environ.get("NOTION_TOKEN"),
+        "NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID": os.environ.get("NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID"),
+        "NOTION_PROJECTS_DATA_SOURCE_ID": os.environ.get("NOTION_PROJECTS_DATA_SOURCE_ID"),
+        "NOTION_PROTOCOLS_DATA_SOURCE_ID": os.environ.get("NOTION_PROTOCOLS_DATA_SOURCE_ID"),
+        "NOTION_SAMPLES_DATA_SOURCE_ID": os.environ.get("NOTION_SAMPLES_DATA_SOURCE_ID"),
+        "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": os.environ.get("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"),
+        "RESEARCH_RUN_IDEMPOTENCY_DB": os.environ.get("RESEARCH_RUN_IDEMPOTENCY_DB"),
+    }
+    missing = [name for name, value in config.items() if not value]
+    if missing:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"message": "Research run write-back is not configured.", "missing": missing},
+        )
+
+    adapter = ResearchRunAdapter(
+        token=config["NOTION_TOKEN"],
+        data_source_id=config["NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID"],
+    )
+    try:
+        adapter.validate_page_parent(
+            payload.project_page_id, config["NOTION_PROJECTS_DATA_SOURCE_ID"], "Project"
+        )
+        adapter.validate_page_parent(
+            payload.protocol_page_id, config["NOTION_PROTOCOLS_DATA_SOURCE_ID"], "Protocol"
+        )
+        for page_id in payload.input_sample_page_ids:
+            adapter.validate_page_parent(
+                page_id, config["NOTION_SAMPLES_DATA_SOURCE_ID"], "Input Sample"
+            )
+        for page_id in payload.input_data_record_page_ids:
+            adapter.validate_page_parent(
+                page_id, config["NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"], "Input Data Record"
+            )
+        properties = build_analysis_run_properties(
+            run_name=payload.run_name,
+            project_page_id=payload.project_page_id,
+            protocol_page_id=payload.protocol_page_id,
+            input_sample_page_ids=payload.input_sample_page_ids,
+            input_data_record_page_ids=payload.input_data_record_page_ids,
+            analysis_method=payload.analysis_method,
+            code_revision=payload.code_revision,
+            environment=payload.environment,
+            manifest_hash=payload.manifest_hash,
+            parameters_json=payload.parameters_json,
+        )
+        ledger = RunIdempotencyLedger(config["RESEARCH_RUN_IDEMPOTENCY_DB"])
+        reservation = ledger.reserve(payload.run_id, properties)
+        if reservation["action"] == "in_progress":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This run_id is already being processed. Retry the same run_id later.",
+            )
+        if reservation["action"] == "complete":
+            page_id = reservation.get("page_id")
+            if not page_id:
+                raise ResearchRunWriteError("Completed idempotency record has no Notion page ID.")
+            result = {"created": False, "page": adapter.get_page(page_id)}
+        elif reservation["action"] == "recover":
+            try:
+                # Never create during ambiguous recovery: a missing query result
+                # is not proof that a previous write failed to commit.
+                result = adapter.recover_run(payload.run_id)
+                ledger.mark_complete(payload.run_id, result["page"]["id"])
+            except AmbiguousWriteError:
+                ledger.mark_ambiguous(payload.run_id)
+                raise
+        else:
+            try:
+                result = adapter.create_or_get_run(payload.run_id, properties)
+                ledger.mark_complete(payload.run_id, result["page"]["id"])
+            except AmbiguousWriteError:
+                ledger.mark_ambiguous(payload.run_id)
+                raise
+            except Exception:
+                ledger.mark_failed(payload.run_id)
+                raise
+    except IdempotencyConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except AmbiguousWriteError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"message": str(exc), "retry_rule": "Reuse the same run_id; do not create a new ID."},
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    except ResearchRunWriteError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+
+    page = result["page"]
+    return {
+        "created": result["created"],
+        "run_id": payload.run_id,
+        "page_id": page.get("id"),
+        "page_url": page.get("url"),
+        "run_status": "Draft",
+        "workflow_gate": "Intake",
+        "qc_outcome": "Pending",
+        "record_classification": "Synthetic/Test",
+    }
+
+
 # ══════════════════════════════════════════════════════════════════
 # Task status — generic poller for anything submitted to celery_app
 # ══════════════════════════════════════════════════════════════════
