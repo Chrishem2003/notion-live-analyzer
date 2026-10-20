@@ -40,7 +40,7 @@ RELATIONS = (
     ("NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID", "Source Evidence", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
     ("NOTION_SAMPLES_DATA_SOURCE_ID", "Project", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
     ("NOTION_SAMPLES_DATA_SOURCE_ID", "Protocol", "relation", "NOTION_PROTOCOLS_DATA_SOURCE_ID"),
-    ("NOTION_SAMPLES_DATA_SOURCE_ID", "Literature", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
+    ("NOTION_SAMPLES_DATA_SOURCE_ID", "📄Literature\u00a0", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
     ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Project", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
     ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Protocol", "relation", "NOTION_PROTOCOLS_DATA_SOURCE_ID"),
     ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Sample", "relation", "NOTION_SAMPLES_DATA_SOURCE_ID"),
@@ -83,7 +83,7 @@ REQUIRED_PROPERTIES = {
         "Protocol Name": "title", "Project": "relation", "Source Evidence": "relation"
     },
     "NOTION_SAMPLES_DATA_SOURCE_ID": {
-        "Sample Name": "title", "Project": "relation", "Protocol": "relation", "Literature": "relation"
+        "Sample Name": "title", "Project": "relation", "Protocol": "relation", "📄Literature\u00a0": "relation"
     },
     "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": {
         "Project": "relation", "Protocol": "relation", "Sample": "relation",
