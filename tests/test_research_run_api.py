@@ -8,6 +8,8 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
+from modules.research_run_client import build_run_manifest_hash
+
 
 @pytest.fixture
 def api(monkeypatch, tmp_path):
@@ -44,7 +46,7 @@ def request_payload():
         "analysis_method": "mock validation",
         "code_revision": "test-commit",
         "environment": "staging",
-        "manifest_hash": "sha256:test",
+        "manifest_hash": "",
         "parameters_json": "{\"synthetic\":true}",
     }
 
@@ -128,6 +130,7 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
             assert properties["Record Classification"]["select"]["name"] == "Synthetic/Test"
             assert properties["Source Evidence"]["relation"] == [{"id": "literature-page"}]
             assert properties["Input Dataset Version"]["rich_text"][0]["text"]["content"] == "demo-v1"
+            assert properties["Run Manifest Hash"]["rich_text"][0]["text"]["content"] == build_run_manifest_hash(request_payload())
             return {"created": True, "page": {
                 "id": "created-page", "url": "https://notion.example/synthetic-run"
             }}
@@ -186,6 +189,7 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
         "workflow_gate": "Intake",
         "qc_outcome": "Pending",
         "record_classification": "Synthetic/Test",
+        "manifest_hash": build_run_manifest_hash(request_payload()),
     }
 
 
@@ -201,3 +205,17 @@ def test_data_records_cannot_be_submitted_without_linked_samples(api):
     )
     assert response.status_code == 422
     assert "require at least one selected Input Sample" in response.json()["detail"]
+
+
+
+def test_endpoint_rejects_client_supplied_manifest_hash_that_does_not_match_inputs(api):
+    _, client, _ = api
+    payload = request_payload()
+    payload["manifest_hash"] = "sha256:incorrect"
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=payload,
+    )
+    assert response.status_code == 422
+    assert "manifest_hash does not match" in response.json()["detail"]
