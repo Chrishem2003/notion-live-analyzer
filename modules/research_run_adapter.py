@@ -21,11 +21,7 @@ class AmbiguousWriteError(ResearchRunWriteError):
 
 
 class ResearchRunAdapter:
-    """Create or retrieve an Analysis Run using a stable external run ID.
-
-    data_source_id is the UUID behind the collection:// URL. Supplied
-    properties use native Notion payloads, including relation properties.
-    """
+    """Create or retrieve an Analysis Run using a stable external run ID."""
 
     def __init__(
         self, token: str, data_source_id: str, *,
@@ -91,68 +87,6 @@ class ResearchRunAdapter:
             )
         return response.json()
 
-
-def build_analysis_run_properties(
-    *,
-    run_name: str,
-    project_page_id: str,
-    protocol_page_id: str,
-    input_sample_page_ids: Optional[list[str]] = None,
-    input_data_record_page_ids: Optional[list[str]] = None,
-    analysis_method: str = "",
-    code_revision: str = "",
-    environment: str = "staging",
-    manifest_hash: str = "",
-    parameters_json: str = "",
-) -> Dict[str, Any]:
-    """Build a schema-aligned, explicitly synthetic-safe Analysis Run payload.
-
-    Uses the canonical private register's actual property names and starts
-    every new record at Draft / Intake / Pending QC / Not Checked. It never
-    marks a run complete or approved. Page IDs must be validated by the caller
-    against the private data sources before this payload is submitted.
-    """
-    def required_text(value: str, field: str) -> str:
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError(f"{field} must be a non-empty string.")
-        return value.strip()
-
-    def relation_ids(values: Optional[list[str]], field: str) -> list[dict[str, str]]:
-        ids = values or []
-        if not isinstance(ids, list):
-            raise ValueError(f"{field} must be a list of page IDs.")
-        cleaned = []
-        for value in ids:
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"{field} contains an empty page ID.")
-            cleaned.append({"id": value.strip()})
-        return cleaned
-
-    props: Dict[str, Any] = {
-        "Run Name": {"title": [{"text": {"content": required_text(run_name, "run_name")}}]},
-        "Project": {"relation": [{"id": required_text(project_page_id, "project_page_id")}]},
-        "Protocol": {"relation": [{"id": required_text(protocol_page_id, "protocol_page_id")}]},
-        "Input Samples": {"relation": relation_ids(input_sample_page_ids, "input_sample_page_ids")},
-        "Input Data Records": {"relation": relation_ids(input_data_record_page_ids, "input_data_record_page_ids")},
-        "Run Status": {"select": {"name": "Draft"}},
-        "Workflow Gate": {"select": {"name": "Intake"}},
-        "QC Outcome": {"select": {"name": "Pending"}},
-        "Reproducibility Check": {"select": {"name": "Not Checked"}},
-        "Record Classification": {"select": {"name": "Synthetic/Test"}},
-    }
-    optional_text = {
-        "Analysis Method": analysis_method,
-        "Code Revision": code_revision,
-        "Environment": environment,
-        "Run Manifest Hash": manifest_hash,
-        "Parameters": parameters_json,
-    }
-    for name, value in optional_text.items():
-        if value:
-            props[name] = {"rich_text": [{"text": {"content": str(value)}}]}
-    return props
-
-
     def create_or_get_run(
         self, run_id: str, properties: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -216,3 +150,63 @@ def build_analysis_run_properties(
                 "Notion accepted the write but returned no page ID."
             )
         return {"created": True, "page": self._read_page(page_id)}
+
+
+def build_analysis_run_properties(
+    *,
+    run_name: str,
+    project_page_id: str,
+    protocol_page_id: str,
+    input_sample_page_ids: Optional[list[str]] = None,
+    input_data_record_page_ids: Optional[list[str]] = None,
+    analysis_method: str = "",
+    code_revision: str = "",
+    environment: str = "staging",
+    manifest_hash: str = "",
+    parameters_json: str = "",
+) -> Dict[str, Any]:
+    """Build a schema-aligned Analysis Run payload with conservative gates.
+
+    Starts at Draft / Intake / Pending QC / Not Checked / Synthetic-Test.
+    It never marks a run complete or approved. The caller must validate all
+    related page IDs against the intended private data sources.
+    """
+    def required_text(value: str, field: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field} must be a non-empty string.")
+        return value.strip()
+
+    def relation_ids(values: Optional[list[str]], field: str) -> list[dict[str, str]]:
+        ids = values or []
+        if not isinstance(ids, list):
+            raise ValueError(f"{field} must be a list of page IDs.")
+        cleaned = []
+        for value in ids:
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{field} contains an empty page ID.")
+            cleaned.append({"id": value.strip()})
+        return cleaned
+
+    props: Dict[str, Any] = {
+        "Run Name": {"title": [{"text": {"content": required_text(run_name, "run_name")}}]},
+        "Project": {"relation": [{"id": required_text(project_page_id, "project_page_id")}]},
+        "Protocol": {"relation": [{"id": required_text(protocol_page_id, "protocol_page_id")}]},
+        "Input Samples": {"relation": relation_ids(input_sample_page_ids, "input_sample_page_ids")},
+        "Input Data Records": {"relation": relation_ids(input_data_record_page_ids, "input_data_record_page_ids")},
+        "Run Status": {"select": {"name": "Draft"}},
+        "Workflow Gate": {"select": {"name": "Intake"}},
+        "QC Outcome": {"select": {"name": "Pending"}},
+        "Reproducibility Check": {"select": {"name": "Not Checked"}},
+        "Record Classification": {"select": {"name": "Synthetic/Test"}},
+    }
+    optional_text = {
+        "Analysis Method": analysis_method,
+        "Code Revision": code_revision,
+        "Environment": environment,
+        "Run Manifest Hash": manifest_hash,
+        "Parameters": parameters_json,
+    }
+    for name, value in optional_text.items():
+        if value:
+            props[name] = {"rich_text": [{"text": {"content": str(value)}}]}
+    return props
