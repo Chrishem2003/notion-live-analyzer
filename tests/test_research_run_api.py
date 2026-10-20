@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from modules.research_run_client import build_run_manifest_hash
+from modules.research_run_idempotency import IdempotencyConflictError
 
 
 @pytest.fixture
@@ -233,3 +234,49 @@ def test_endpoint_rejects_ephemeral_ledger_without_explicit_staging_opt_in(api, 
     )
     assert response.status_code == 503
     assert "Ephemeral idempotency storage is disabled" in response.json()["detail"]
+
+
+
+def test_completed_ledger_manifest_mismatch_returns_http_409(api, monkeypatch):
+    _, client, _ = api
+    import modules.research_run_adapter as adapter_module
+    import modules.research_run_idempotency as ledger_module
+
+    class FakeAdapter:
+        def __init__(self, token, data_source_id):
+            pass
+
+        def validate_page_parent(self, page_id, expected_data_source_id, label):
+            return {"id": page_id, "properties": {}}
+
+        def validate_relation_membership(self, *args, **kwargs):
+            return None
+
+        def validate_record_classification(self, *args, **kwargs):
+            return None
+
+        def get_and_verify_existing_run(self, page_id, run_id, submitted_properties):
+            assert page_id == "existing-notion-page"
+            assert run_id == "synthetic-api-test-001"
+            assert submitted_properties["Run Manifest Hash"]["rich_text"]
+            raise IdempotencyConflictError(
+                "External Run ID already exists with a different Run Manifest Hash."
+            )
+
+    class FakeLedger:
+        def __init__(self, database_path):
+            pass
+
+        def reserve(self, run_id, properties):
+            return {"action": "complete", "page_id": "existing-notion-page"}
+
+    monkeypatch.setattr(adapter_module, "ResearchRunAdapter", FakeAdapter)
+    monkeypatch.setattr(ledger_module, "RunIdempotencyLedger", FakeLedger)
+
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+    assert response.status_code == 409
+    assert "different Run Manifest Hash" in response.json()["detail"]
