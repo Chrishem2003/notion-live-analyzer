@@ -28,3 +28,9 @@ jobs:
     - name: Run Automated Test Suite
       run: |
         pytest -v
+
+    - name: Build lightweight API container
+      run: docker build --file Dockerfile.api --tag notion-live-analyzer-api:test .
+
+    - name: Verify API runtime imports
+      run: docker run --rm --entrypoint python notion-live-analyzer-api:test -c "import api_server; print('api_import_ok')"

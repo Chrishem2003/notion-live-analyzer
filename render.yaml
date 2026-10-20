@@ -35,7 +35,7 @@ services:
     env: docker
     plan: free
     region: oregon
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./Dockerfile.api
     dockerCommand: sh scripts/start_research_run_api.sh
     healthCheckPath: /api/v1/health
     envVars:

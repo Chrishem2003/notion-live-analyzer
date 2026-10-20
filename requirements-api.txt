@@ -1,0 +1,10 @@
+# Runtime dependencies for the dedicated FastAPI service.
+# Keep this separate from the Streamlit/scientific-computing stack to reduce
+# image size, cold-start work, and unnecessary packages in the API container.
+fastapi>=0.110
+uvicorn[standard]>=0.29
+requests>=2.32
+celery[redis]>=5.3
+redis>=5.0
+pycrdt>=0.12
+networkx>=3.3
