@@ -81,7 +81,7 @@ def write_research_run(
         ResearchRunWriteError,
         build_analysis_run_properties,
     )
-    from modules.research_run_idempotency import RunIdempotencyLedger
+    from modules.research_run_idempotency import IdempotencyConflictError, RunIdempotencyLedger
 
     config = {
         "NOTION_TOKEN": os.environ.get("NOTION_TOKEN"),
@@ -152,6 +152,8 @@ def write_research_run(
             except Exception:
                 ledger.mark_failed(payload.run_id)
                 raise
+    except IdempotencyConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except AmbiguousWriteError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
