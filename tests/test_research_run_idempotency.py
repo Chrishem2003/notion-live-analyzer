@@ -1,5 +1,6 @@
 """Tests for the shared persistent research-run idempotency ledger."""
 import pytest
+import sqlite3
 
 from modules.research_run_idempotency import (
     IdempotencyConflictError,
@@ -41,3 +42,17 @@ def test_ambiguous_and_failed_runs_have_explicit_recovery_states(tmp_path):
 def test_requires_persistent_database_path():
     with pytest.raises(ValueError, match="persistent idempotency"):
         RunIdempotencyLedger("")
+
+
+def test_stale_pending_reservation_moves_to_recovery_state(tmp_path):
+    path = str(tmp_path / "runs.sqlite3")
+    ledger = RunIdempotencyLedger(path)
+    payload = {"run_name": "Worker-crash simulation"}
+    ledger.reserve("run-stale", payload)
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "UPDATE research_run_idempotency "
+            "SET updated_at=datetime('now', '-10 minutes') WHERE run_id=?",
+            ("run-stale",),
+        )
+    assert ledger.reserve("run-stale", payload)["action"] == "recover"
