@@ -36,3 +36,22 @@ def test_blueprint_does_not_add_unapproved_billable_cron_service():
     source = Path("render.yaml").read_text(encoding="utf-8")
     assert "- type: cron" not in source
     assert "notion-live-analyzer-keepalive" not in source
+
+
+
+def test_api_service_uses_dedicated_lightweight_runtime_image():
+    blueprint = Path("render.yaml").read_text(encoding="utf-8")
+    api_block = blueprint.split("name: notion-live-analyzer-api", 1)[1]
+    assert "dockerfilePath: ./Dockerfile.api" in api_block
+    assert "dockerfilePath: ./Dockerfile\n" not in api_block
+
+    dockerfile = Path("Dockerfile.api").read_text(encoding="utf-8")
+    assert "COPY requirements-api.txt ." in dockerfile
+    assert "pip install --no-cache-dir -r requirements-api.txt" in dockerfile
+    assert "scripts/start_research_run_api.sh" in dockerfile
+
+    requirements = Path("requirements-api.txt").read_text(encoding="utf-8")
+    for package in ("fastapi", "uvicorn[standard]", "requests", "celery[redis]", "redis", "pycrdt"):
+        assert package in requirements
+    assert "scikit-learn" not in requirements
+    assert "streamlit>=" not in requirements
