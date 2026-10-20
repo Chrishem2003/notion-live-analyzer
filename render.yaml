@@ -80,7 +80,7 @@ services:
     startCommand: |
       python -c "
 import urllib.request, os
-url = os.environ.get('RENDER_EXTERNAL_URL', 'https://YOUR-APP-URL')
+url = os.environ.get('RENDER_EXTERNAL_URL', 'https://notion-live-analyzer.onrender.com')
 try:
   r = urllib.request.urlopen(url, timeout=30)
   print(f'Ping OK — {r.status}')
@@ -89,4 +89,4 @@ except Exception as e:
 "
     envVars:
       - key: RENDER_EXTERNAL_URL
-        value: https://YOUR-APP-URL.onrender.com
+        value: https://notion-live-analyzer.onrender.com.onrender.com
