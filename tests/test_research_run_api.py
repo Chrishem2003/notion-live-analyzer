@@ -69,6 +69,8 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
     import modules.research_run_adapter as adapter_module
     import modules.research_run_idempotency as ledger_module
 
+    checked_relations = []
+
     class FakeAdapter:
         def __init__(self, token, data_source_id):
             assert token == "test-notion-token"
@@ -77,6 +79,7 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
 
         def validate_page_parent(self, page_id, expected_data_source_id, label):
             self.checked.append((page_id, expected_data_source_id, label))
+            checked_relations.append((page_id, expected_data_source_id, label))
             return {"id": page_id}
 
         def create_or_get_run(self, run_id, properties):
@@ -115,6 +118,12 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
     )
     assert response.status_code == 200, response.text
     body = response.json()
+    assert set(checked_relations) == {
+        ("project-page", "private-projects", "Project"),
+        ("protocol-page", "private-protocols", "Protocol"),
+        ("sample-page", "private-samples", "Input Sample"),
+        ("data-page", "private-data", "Input Data Record"),
+    }
     assert body == {
         "created": True,
         "run_id": "synthetic-api-test-001",
