@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import sqlite3
+from contextlib import closing
 from typing import Any, Dict
 
 
@@ -26,7 +27,7 @@ class RunIdempotencyLedger:
         parent = os.path.dirname(self.database_path)
         if parent:
             os.makedirs(parent, exist_ok=True)
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS research_run_idempotency (
                     run_id TEXT PRIMARY KEY,
