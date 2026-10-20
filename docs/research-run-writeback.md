@@ -27,6 +27,14 @@ Set these values in the API deployment's secret/environment configuration. Never
 - NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID: private Experimental Data Engine data source.
 - RESEARCH_RUN_IDEMPOTENCY_DB: absolute path to a persistent SQLite file. All API workers must share the same file on storage that supports SQLite locking.
 
+For the **full relation-graph preflight**, also configure these private source IDs in the API environment:
+- NOTION_LITERATURE_DATA_SOURCE_ID: private Literature source.
+- NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID: private Genomic Sequence Log source.
+- NOTION_TASKS_DATA_SOURCE_ID: private Daily Task source.
+- NOTION_BRAIN_NOTES_DATA_SOURCE_ID: private Brain Notes source.
+
+The API endpoint itself writes only to Analysis Runs and validates its project/protocol/sample/data relations. The extra four IDs let the preflight check the complete connected private graph, including project tasks, literature and genomic-sequence links.
+
 Use the exact private source IDs shown by the Notion data-source schema. Do not use IDs from the published template. The API validates each related page's parent source against these configured IDs.
 
 Start the API in a trusted deployment:
@@ -60,7 +68,7 @@ Run this from the repository root after setting the API service environment vari
 
     python scripts/research_run_preflight.py
 
-The command performs read-only GET requests against the five configured private Notion data sources. It checks required properties and verifies that Analysis Runs, Samples, Experimental Data and Protocol relations point to the configured private Project/Protocol/Sample/Data sources. It also initializes the SQLite idempotency ledger at the configured absolute path to verify that the mounted directory is writable. It does not create or modify any research records.
+The command performs read-only GET requests against nine configured private Notion data sources. It checks required properties and validates 23 relation edges across Analysis Runs, Project Master, Protocols, Samples, Experimental Data, Literature, Genomic Sequence Log, Daily Tasks and Brain Notes. It also initializes the SQLite idempotency ledger at the configured absolute path to verify that the mounted directory is writable. It does not create or modify any research records.
 
 A successful result means the configured schema graph and local ledger path are ready for a synthetic staging test; it does **not** prove the API is reachable from Streamlit, that all workers share the same disk, or that a live research run can be persisted. Keep the service on HOLD until the staging checklist below passes.
 
