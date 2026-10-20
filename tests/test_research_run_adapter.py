@@ -9,6 +9,7 @@ from modules.research_run_adapter import (
     RelationValidationError,
     build_analysis_run_properties,
 )
+from modules.research_run_idempotency import IdempotencyConflictError
 
 
 class Response:
@@ -285,3 +286,46 @@ def test_synthetic_endpoint_rejects_real_or_unclassified_records():
     }
     with pytest.raises(RelationValidationError, match="Demo or Synthetic/Test"):
         ResearchRunAdapter.validate_record_classification(real_page, "sample")
+
+
+def test_existing_external_id_rejects_different_manifest_after_ledger_reset():
+    submitted_hash = "sha256:new-inputs"
+    existing_hash = "sha256:old-inputs"
+    existing_page = page("existing-page")
+    existing_page["properties"] = {
+        "Run Manifest Hash": {
+            "type": "rich_text",
+            "rich_text": [{"type": "text", "text": {"content": existing_hash}}],
+        }
+    }
+    session = FakeSession(
+        post_results=[found_query("existing-page")],
+        get_results=[Response(200, existing_page)],
+    )
+    with pytest.raises(IdempotencyConflictError, match="different Run Manifest Hash"):
+        adapter(session).create_or_get_run(
+            "stable-run-id",
+            {"Run Manifest Hash": {"rich_text": [{"text": {"content": submitted_hash}}]}},
+        )
+    assert len([call for call in session.calls if call[0] == "POST"]) == 1
+
+
+def test_existing_external_id_accepts_matching_manifest_after_ledger_reset():
+    manifest_hash = "sha256:same-inputs"
+    existing_page = page("existing-page")
+    existing_page["properties"] = {
+        "Run Manifest Hash": {
+            "type": "rich_text",
+            "rich_text": [{"type": "text", "text": {"content": manifest_hash}}],
+        }
+    }
+    session = FakeSession(
+        post_results=[found_query("existing-page")],
+        get_results=[Response(200, existing_page)],
+    )
+    result = adapter(session).create_or_get_run(
+        "stable-run-id",
+        {"Run Manifest Hash": {"rich_text": [{"text": {"content": manifest_hash}}]}},
+    )
+    assert result["created"] is False
+    assert result["page"]["id"] == "existing-page"
