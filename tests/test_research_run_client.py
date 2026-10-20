@@ -2,7 +2,11 @@
 import requests
 import pytest
 
-from modules.research_run_client import ResearchRunClient, ResearchRunClientError
+from modules.research_run_client import (
+    ResearchRunClient,
+    ResearchRunClientError,
+    build_run_manifest_hash,
+)
 
 
 class FakeResponse:
@@ -82,3 +86,23 @@ def test_client_rejects_success_response_without_persisted_page_id():
     )
     with pytest.raises(ResearchRunClientError, match="page_id"):
         client.create_run(payload())
+
+
+def test_manifest_hash_is_deterministic_and_changes_with_inputs():
+    first = {
+        "run_id": "run-manifest-1",
+        "run_name": "Smoke test",
+        "project_page_id": "project-1",
+        "protocol_page_id": "protocol-1",
+        "input_sample_page_ids": ["sample-1"],
+        "input_data_record_page_ids": ["data-1"],
+        "analysis_method": "mean",
+        "code_revision": "abc123",
+        "environment": "staging",
+        "parameters_json": "{\"threshold\":0.5}",
+    }
+    second = dict(first)
+    assert build_run_manifest_hash(first) == build_run_manifest_hash(second)
+    second["parameters_json"] = "{\"threshold\":0.6}"
+    assert build_run_manifest_hash(first) != build_run_manifest_hash(second)
+    assert build_run_manifest_hash(first).startswith("sha256:")
