@@ -87,6 +87,12 @@ class ResearchRunAdapter:
             )
         return response.json()
 
+    def get_page(self, page_id: str) -> Dict[str, Any]:
+        """Fetch a page by ID for idempotent completed-run read-back."""
+        if not isinstance(page_id, str) or not page_id.strip():
+            raise ValueError("page_id must be a non-empty string.")
+        return self._read_page(page_id.strip())
+
     def validate_page_parent(
         self, page_id: str, expected_data_source_id: str, label: str
     ) -> Dict[str, Any]:
