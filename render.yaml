@@ -68,25 +68,3 @@ services:
         value: /tmp/research_run_idempotency.sqlite3
       - key: RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER
         value: "true"
-
-  # Keepalive applies only to the Streamlit service. Free-tier instances may
-  # sleep; an API cold start can take longer than a normal request.
-  - type: cron
-    name: notion-live-analyzer-keepalive
-    env: python
-    plan: free
-    schedule: "*/14 * * * *"
-    buildCommand: ""
-    startCommand: |
-      python -c "
-import urllib.request, os
-url = os.environ.get('RENDER_EXTERNAL_URL', 'https://notion-live-analyzer.onrender.com')
-try:
-  r = urllib.request.urlopen(url, timeout=30)
-  print(f'Ping OK — {r.status}')
-except Exception as e:
-  print(f'Ping FAILED — {e}')
-"
-    envVars:
-      - key: RENDER_EXTERNAL_URL
-        value: https://notion-live-analyzer.onrender.com
