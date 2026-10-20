@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements-api.txt .
+RUN pip install --no-cache-dir -r requirements-api.txt
+
+COPY . .
+
+EXPOSE 8000
+# Keep local/container startup aligned with the Render API service command.
+CMD ["sh", "scripts/start_research_run_api.sh"]
