@@ -87,6 +87,24 @@ class ResearchRunAdapter:
             )
         return response.json()
 
+    def validate_page_parent(
+        self, page_id: str, expected_data_source_id: str, label: str
+    ) -> Dict[str, Any]:
+        """Confirm a relation page belongs to the expected Notion data source."""
+        if not isinstance(page_id, str) or not page_id.strip():
+            raise ValueError(f"{label} page ID must be a non-empty string.")
+        expected = expected_data_source_id.removeprefix("collection://").strip()
+        if not expected:
+            raise ValueError(f"Expected data source for {label} is not configured.")
+        page = self._read_page(page_id.strip())
+        parent = page.get("parent") or {}
+        actual = parent.get("data_source_id")
+        if parent.get("type") != "data_source_id" or actual != expected:
+            raise ResearchRunWriteError(
+                f"{label} page does not belong to the configured private data source."
+            )
+        return page
+
     def create_or_get_run(
         self, run_id: str, properties: Dict[str, Any]
     ) -> Dict[str, Any]:
