@@ -79,6 +79,8 @@ def test_creates_relation_linked_run_and_verifies_readback():
     )
     assert result["created"] is True
     assert result["page"]["id"] == "page-123"
+    assert session.calls[0][1] == "https://api.notion.com/v1/data_sources/analysis-db/query"
+    assert session.calls[0][2]["headers"]["Notion-Version"] == "2025-09-03"
     create_call = session.calls[1]
     payload = create_call[2]["json"]
     assert payload["parent"] == {"type": "data_source_id", "data_source_id": "analysis-db"}
@@ -213,3 +215,11 @@ def test_relation_page_must_belong_to_expected_data_source():
         adapter(wrong).validate_page_parent(
             "template-project", "private-projects", "Project"
         )
+
+
+def test_collection_uri_is_normalized_to_data_source_uuid():
+    session = FakeSession(post_results=[empty_query(), Response(200, page())], get_results=[Response(200, page())])
+    client = ResearchRunAdapter("token", "collection://analysis-db", session=session)
+    client.create_or_get_run("run-uri-001", {"Run Name": {"title": []}})
+    assert session.calls[0][1].endswith("/data_sources/analysis-db/query")
+    assert session.calls[1][2]["json"]["parent"]["data_source_id"] == "analysis-db"
