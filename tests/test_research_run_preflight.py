@@ -12,6 +12,10 @@ SOURCE_KEYS = {
     "NOTION_PROTOCOLS_DATA_SOURCE_ID": "protocols-source",
     "NOTION_SAMPLES_DATA_SOURCE_ID": "samples-source",
     "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": "data-source",
+    "NOTION_LITERATURE_DATA_SOURCE_ID": "literature-source",
+    "NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID": "genomic-source",
+    "NOTION_TASKS_DATA_SOURCE_ID": "tasks-source",
+    "NOTION_BRAIN_NOTES_DATA_SOURCE_ID": "brain-source",
 }
 
 
@@ -65,25 +69,50 @@ def valid_schemas():
             "Protocol": relation("protocols-source"),
             "Input Samples": relation("samples-source"),
             "Input Data Records": relation("data-source"),
+            "Source Evidence": relation("literature-source"),
             "Run Status": text_type("select"),
             "Workflow Gate": text_type("select"),
             "QC Outcome": text_type("select"),
             "Record Classification": text_type("select"),
             "Reproducibility Check": text_type("select"),
         }),
-        "projects-source": schema("projects-source", {"Project Name": text_type("title")}),
+        "projects-source": schema("projects-source", {
+            "Project Name": text_type("title"),
+            "Daily Task": relation("tasks-source"),
+            "Literature & Sources": relation("literature-source"),
+        }),
         "protocols-source": schema("protocols-source", {
             "Protocol Name": text_type("title"),
             "Project": relation("projects-source"),
+            "Source Evidence": relation("literature-source"),
         }),
         "samples-source": schema("samples-source", {
             "Sample Name": text_type("title"),
             "Project": relation("projects-source"),
             "Protocol": relation("protocols-source"),
+            "Literature": relation("literature-source"),
         }),
         "data-source": schema("data-source", {
             "Project": relation("projects-source"),
             "Protocol": relation("protocols-source"),
+            "Sample": relation("samples-source"),
+            "Source Evidence": relation("literature-source"),
+            "🧬 Genomic Sequence Log": relation("genomic-source"),
+        }),
+        "literature-source": schema("literature-source", {
+            "Paper Name": text_type("title"),
+            "Project Master": relation("projects-source"),
+            "Literature & Sources": relation("brain-source"),
+        }),
+        "genomic-source": schema("genomic-source", {
+            "🧪 Project Master": relation("projects-source"),
+            "Genomic Sequence Log": relation("data-source"),
+        }),
+        "tasks-source": schema("tasks-source", {
+            "Project Master": relation("projects-source"),
+        }),
+        "brain-source": schema("brain-source", {
+            "📄Literature\u00a0": relation("literature-source"),
         }),
     }
 
@@ -96,10 +125,10 @@ def test_preflight_checks_all_sources_and_relation_edges(tmp_path):
     result = run_preflight(env, session)
 
     assert result["status"] == "ready_for_synthetic_staging"
-    assert result["data_sources_checked"] == 5
-    assert result["relation_edges_checked"] == 9
+    assert result["data_sources_checked"] == 9
+    assert result["relation_edges_checked"] == 24
     assert result["research_records_written"] == 0
-    assert len(session.calls) == 5
+    assert len(session.calls) == 9
     assert all(call[1]["Notion-Version"] == "2025-09-03" for call in session.calls)
     assert Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"]).exists()
 
