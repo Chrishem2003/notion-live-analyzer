@@ -61,6 +61,7 @@ Put the API behind HTTPS and network controls before exposing it outside a trust
 
 Before the endpoint writes a run, it validates not only each page's parent data source but also the relationships between the selected records:
 - The selected Project must be classified `Demo` or `Synthetic/Test`.
+- The selected Protocol must already relate to the chosen Project; a protocol linked to another project or with a missing Project relation is rejected.
 - Each selected Sample must already relate to the chosen Project and Protocol and be classified `Demo` or `Synthetic/Test`.
 - Each selected Experimental Data record must already relate to the same Project and Protocol, link to at least one Sample selected for the run, and be classified `Demo` or `Synthetic/Test`. Data records cannot be submitted without at least one selected Sample.
 - Each supplied Source Evidence page must belong to the private Literature source and be classified `Demo` or `Synthetic/Test`.
