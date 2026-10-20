@@ -64,7 +64,7 @@ Before the endpoint writes a run, it validates not only each page's parent data 
 - Each selected Sample must already relate to the chosen Project and Protocol and be classified `Demo` or `Synthetic/Test`.
 - Each selected Experimental Data record must already relate to the same Project and Protocol, link to at least one Sample selected for the run, and be classified `Demo` or `Synthetic/Test`. Data records cannot be submitted without at least one selected Sample.
 - Each supplied Source Evidence page must belong to the private Literature source and be classified `Demo` or `Synthetic/Test`.
-- The selected dataset version and source-evidence page IDs are stored on the run and included in its deterministic manifest fingerprint.
+- The selected dataset version and source-evidence page IDs are stored on the run and included in its deterministic manifest fingerprint. The API recomputes the SHA-256 manifest from submitted inputs and rejects a client-supplied mismatch; the UI does not accept a manually entered hash.
 
 Invalid or incomplete relationships return HTTP 422 before the Analysis Runs record is created. This is intentional: the current three Demo samples have missing Project and Protocol links, so they must be mapped by a human before they can be used as run inputs. Do not bypass the gate or infer the intended mapping from names.
 
