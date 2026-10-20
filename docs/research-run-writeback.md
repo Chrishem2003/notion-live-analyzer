@@ -54,6 +54,16 @@ The Streamlit deployment needs RESEARCH_RUN_API_URL set to the API's reachable H
 
 Keep these in deployment secrets, not in the Streamlit page or source code. The new UI is intentionally disabled when either is absent.
 
+## Preflight before starting the API
+
+Run this from the repository root after setting the API service environment variables and mounting the persistent disk:
+
+    python scripts/research_run_preflight.py
+
+The command performs read-only GET requests against the five configured private Notion data sources. It checks required properties and verifies that Analysis Runs, Samples, Experimental Data and Protocol relations point to the configured private Project/Protocol/Sample/Data sources. It also initializes the SQLite idempotency ledger at the configured absolute path to verify that the mounted directory is writable. It does not create or modify any research records.
+
+A successful result means the configured schema graph and local ledger path are ready for a synthetic staging test; it does **not** prove the API is reachable from Streamlit, that all workers share the same disk, or that a live research run can be persisted. Keep the service on HOLD until the staging checklist below passes.
+
 ## Staging acceptance checklist
 
 1. Confirm Notion integration access to the four private data sources.
