@@ -96,6 +96,8 @@ def test_manifest_hash_is_deterministic_and_changes_with_inputs():
         "protocol_page_id": "protocol-1",
         "input_sample_page_ids": ["sample-1"],
         "input_data_record_page_ids": ["data-1"],
+        "source_evidence_page_ids": ["literature-1"],
+        "input_dataset_version": "dataset-v1",
         "analysis_method": "mean",
         "code_revision": "abc123",
         "environment": "staging",
@@ -104,5 +106,8 @@ def test_manifest_hash_is_deterministic_and_changes_with_inputs():
     second = dict(first)
     assert build_run_manifest_hash(first) == build_run_manifest_hash(second)
     second["parameters_json"] = "{\"threshold\":0.6}"
+    assert build_run_manifest_hash(first) != build_run_manifest_hash(second)
+    second = dict(first)
+    second["source_evidence_page_ids"] = ["literature-2"]
     assert build_run_manifest_hash(first) != build_run_manifest_hash(second)
     assert build_run_manifest_hash(first).startswith("sha256:")
