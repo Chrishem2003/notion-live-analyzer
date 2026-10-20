@@ -91,7 +91,7 @@ def valid_schemas():
             "Sample Name": text_type("title"),
             "Project": relation("projects-source"),
             "Protocol": relation("protocols-source"),
-            "Literature": relation("literature-source"),
+            "📄Literature\u00a0": relation("literature-source"),
         }),
         "data-source": schema("data-source", {
             "Project": relation("projects-source"),
