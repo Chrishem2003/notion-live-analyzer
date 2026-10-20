@@ -85,6 +85,7 @@ def write_research_run(
         build_analysis_run_properties,
     )
     from modules.research_run_idempotency import IdempotencyConflictError, RunIdempotencyLedger
+    from modules.research_run_client import build_run_manifest_hash
 
     config = {
         "NOTION_TOKEN": os.environ.get("NOTION_TOKEN"),
@@ -101,6 +102,13 @@ def write_research_run(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={"message": "Research run write-back is not configured.", "missing": missing},
+        )
+
+    expected_manifest_hash = build_run_manifest_hash(payload.dict())
+    if payload.manifest_hash and payload.manifest_hash != expected_manifest_hash:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="manifest_hash does not match the submitted run inputs.",
         )
 
     adapter = ResearchRunAdapter(
@@ -168,7 +176,7 @@ def write_research_run(
             analysis_method=payload.analysis_method,
             code_revision=payload.code_revision,
             environment=payload.environment,
-            manifest_hash=payload.manifest_hash,
+            manifest_hash=expected_manifest_hash,
             parameters_json=payload.parameters_json,
         )
         ledger = RunIdempotencyLedger(config["RESEARCH_RUN_IDEMPOTENCY_DB"])
@@ -224,6 +232,7 @@ def write_research_run(
         "workflow_gate": "Intake",
         "qc_outcome": "Pending",
         "record_classification": "Synthetic/Test",
+        "manifest_hash": expected_manifest_hash,
     }
 
 
