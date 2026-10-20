@@ -40,7 +40,7 @@ RELATIONS = (
     ("NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID", "Source Evidence", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
     ("NOTION_SAMPLES_DATA_SOURCE_ID", "Project", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
     ("NOTION_SAMPLES_DATA_SOURCE_ID", "Protocol", "relation", "NOTION_PROTOCOLS_DATA_SOURCE_ID"),
-    ("NOTION_SAMPLES_DATA_SOURCE_ID", "Literature", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
+    ("NOTION_SAMPLES_DATA_SOURCE_ID", "📄Literature\u00a0", "relation", "NOTION_LITERATURE_DATA_SOURCE_ID"),
     ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Project", "relation", "NOTION_PROJECTS_DATA_SOURCE_ID"),
     ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Protocol", "relation", "NOTION_PROTOCOLS_DATA_SOURCE_ID"),
     ("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID", "Sample", "relation", "NOTION_SAMPLES_DATA_SOURCE_ID"),
@@ -83,7 +83,7 @@ REQUIRED_PROPERTIES = {
         "Protocol Name": "title", "Project": "relation", "Source Evidence": "relation"
     },
     "NOTION_SAMPLES_DATA_SOURCE_ID": {
-        "Sample Name": "title", "Project": "relation", "Protocol": "relation", "Literature": "relation"
+        "Sample Name": "title", "Project": "relation", "Protocol": "relation", "📄Literature\u00a0": "relation"
     },
     "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": {
         "Project": "relation", "Protocol": "relation", "Sample": "relation",
@@ -152,6 +152,14 @@ def run_preflight(
     db_path = Path(str(env["RESEARCH_RUN_IDEMPOTENCY_DB"]).strip()).expanduser()
     if not db_path.is_absolute():
         raise PreflightError("RESEARCH_RUN_IDEMPOTENCY_DB must be an absolute path on persistent storage.")
+    ephemeral_roots = (Path("/tmp"), Path("/var/tmp"))
+    is_ephemeral = any(db_path == root or root in db_path.parents for root in ephemeral_roots)
+    allow_ephemeral = str(env.get("RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER", "")).strip().lower() == "true"
+    if is_ephemeral and not allow_ephemeral:
+        raise PreflightError(
+            "The configured idempotency path is ephemeral. Set RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER=true "
+            "only for synthetic staging; real research requires persistent storage."
+        )
     if not db_path.parent.is_dir():
         raise PreflightError("Idempotency database parent directory does not exist; verify the persistent disk mount.")
     if not os.access(str(db_path.parent), os.W_OK):
@@ -205,7 +213,8 @@ def run_preflight(
         "relation_edges_checked": len(RELATIONS),
         "idempotency_database": str(db_path),
         "research_records_written": 0,
-        "note": "This check does not prove API deployment reachability or multi-worker shared-storage semantics.",
+        "ledger_storage": "ephemeral_synthetic_staging_only" if is_ephemeral else "configured_persistent_path_not_independently_verified",
+        "note": "This check does not prove API deployment reachability or multi-worker shared-storage semantics; never use an ephemeral ledger for real research.",
     }
 
 

@@ -44,7 +44,7 @@ class ResearchRunClient:
         base_url: str,
         api_key: str,
         *,
-        timeout: float = 20.0,
+        timeout: float = 90.0,
         session: Optional[requests.Session] = None,
     ) -> None:
         if not isinstance(base_url, str) or not base_url.strip():

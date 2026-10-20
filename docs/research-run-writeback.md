@@ -35,25 +35,25 @@ For the **full relation-graph preflight**, also configure these private source I
 
 The API endpoint writes only to Analysis Runs, validates the parent data source for project/protocol/sample/data/evidence pages, and stores linked Source Evidence plus Input Dataset Version. The extra three IDs let the preflight check the rest of the connected private graph, including project-task and genomic-sequence links.
 
-Use the exact private source IDs shown by the Notion data-source schema. The currently audited private IDs are:
+Use the exact private source IDs shown by the Notion data-source schema. Configure each value using the data-source schema in the **private Bio-Research Enterprise** workspace. Do not copy IDs from the published template, and do not commit private workspace IDs or credentials into this repository.
 
-| Environment variable | Private data source UUID |
+| Environment variable | Required source |
 |---|---|
-| `NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID` | `eb1a60a3-e6e3-4f4d-bd50-0c63866ee937` |
-| `NOTION_PROJECTS_DATA_SOURCE_ID` | `cf591428-06c6-83d1-b2bc-87f9d5d1a71f` |
-| `NOTION_PROTOCOLS_DATA_SOURCE_ID` | `fa69173a-a184-486d-8730-4897eead8f34` |
-| `NOTION_SAMPLES_DATA_SOURCE_ID` | `de491428-06c6-827b-9f90-87269d0a3e57` |
-| `NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID` | `e9391428-06c6-8361-95eb-0751507c9afd` |
-| `NOTION_LITERATURE_DATA_SOURCE_ID` | `23791428-06c6-83ff-9eb1-079c65f7b2db` |
-| `NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID` | `e6491428-06c6-83a6-bcb6-87bd19bbe65a` |
-| `NOTION_TASKS_DATA_SOURCE_ID` | `27f91428-06c6-82c9-8fe5-07e122070367` |
-| `NOTION_BRAIN_NOTES_DATA_SOURCE_ID` | `8af91428-06c6-83a4-b0b7-074c0a6d17d4` |
+| `NOTION_ANALYSIS_RUNS_DATA_SOURCE_ID` | Private Analysis Runs — Reproducibility Register |
+| `NOTION_PROJECTS_DATA_SOURCE_ID` | Private Project Master |
+| `NOTION_PROTOCOLS_DATA_SOURCE_ID` | Private Protocol Register |
+| `NOTION_SAMPLES_DATA_SOURCE_ID` | Private Sample Collection |
+| `NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID` | Private Experimental Data Engine |
+| `NOTION_LITERATURE_DATA_SOURCE_ID` | Private Literature |
+| `NOTION_GENOMIC_SEQUENCE_DATA_SOURCE_ID` | Private Genomic Sequence Log |
+| `NOTION_TASKS_DATA_SOURCE_ID` | Private Daily Task |
+| `NOTION_BRAIN_NOTES_DATA_SOURCE_ID` | Private Brain Notes |
 
-These are identifiers, not credentials. The `35f91428-...` sources inspected in the published-template branch are template sources and must **not** be used for this live integration. Re-fetch the schema and verify the parent path before changing these values. The API validates each related page's parent source against the configured IDs.
+The preflight fails closed if these IDs point to the wrong relation graph. Re-fetch the data-source schema and verify the ancestor path before changing the environment values.
 
-Start the API in a trusted deployment:
+Start the API in a trusted deployment only after environment variables and the read-only preflight are ready:
 
-    uvicorn api_server:app --host 0.0.0.0 --port 8000
+    sh scripts/start_research_run_api.sh
 
 Put the API behind HTTPS and network controls before exposing it outside a trusted environment. Do not use a per-container ephemeral SQLite path or multiple replicas with separate ledgers.
 
@@ -70,15 +70,13 @@ Invalid or incomplete relationships return HTTP 422 before the Analysis Runs rec
 
 ## Deployment inventory and separate API service
 
-The repository's current Render blueprint declares the Streamlit web service and a keepalive cron job; it does not provision the research-run API service or persistent idempotency storage. The Dockerfile now declares a default Streamlit command so Docker-based web deployments have an explicit process. This does not deploy the API.
+The Render blueprint now declares a separate `notion-live-analyzer-api` service, health-checks it at `/api/v1/health`, and starts it through `scripts/start_research_run_api.sh`. That startup script runs the read-only schema/relation preflight before starting Uvicorn; a mismatch or missing source ID stops the API from starting. The Streamlit service points to `https://notion-live-analyzer-api.onrender.com` by default. Confirm the actual Render service hostname after Blueprint sync.
 
-For Render, create a separate private/internal API service from this repository and override its Docker command to:
+**The free-tier blueprint is synthetic staging only.** It opts into an ephemeral SQLite ledger under `/tmp` because free service disks are not persistent. Never use this deployment for real research, regulated data, or production-grade idempotency. Before any real-research workflow, use an appropriate plan with persistent storage mounted at `/var/data`, set `RESEARCH_RUN_IDEMPOTENCY_DB=/var/data/research_run_idempotency.sqlite3`, and set `RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER=false`. Do not create paid resources without reviewing their cost.
 
-    uvicorn api_server:app --host 0.0.0.0 --port $PORT
+Set `PLATFORM_API_KEY` to the same high-entropy value on both the Streamlit and API services. Set `NOTION_TOKEN` and all nine private data-source IDs only in the API service's Render dashboard. These values are marked `sync: false` in the Blueprint and are intentionally absent from Git. The API integration token should have access only to the required private sources.
 
-Configure the required API environment variables listed above and attach persistent storage mounted at /var/data; set RESEARCH_RUN_IDEMPOTENCY_DB=/var/data/research_run_idempotency.sqlite3. If the chosen plan cannot provide persistent storage, do not treat the service as accepted for reliable multi-worker operation. Keep the API private to the Streamlit service where possible, or apply HTTPS, network access controls and secret management. Do not expose the API key in the browser or commit it.
-
-The Streamlit deployment needs RESEARCH_RUN_API_URL set to the API's reachable HTTPS URL (or a private internal URL supported by the deployment) and the matching PLATFORM_API_KEY. No API service or disk is provisioned automatically by the current blueprint; deployment must be an explicit, reviewed step.
+The API endpoint is protected by `X-API-Key`; keep the key server-side. Do not expose it in browser code or paste it into Streamlit inputs.
 
 ## Required Streamlit environment
 
@@ -99,7 +97,7 @@ A successful result means the configured schema graph and local ledger path are 
 
 ## Staging acceptance checklist
 
-1. Confirm Notion integration access to the four private data sources.
+1. Confirm Notion integration access to all nine private data sources.
 2. Confirm the source IDs above point to private workspace data sources, not template sources.
 3. Start the API with a persistent shared idempotency database.
 4. Open Integrations Hub → Bio-Research Runs in Streamlit.
@@ -122,4 +120,4 @@ After a timeout, reuse the same run ID. Do not mint a new ID until the prior att
 
 ## Current status
 
-The automated tests cover the adapter, ledger, API authentication/configuration, relation validation, client behavior, manifest fingerprinting and UI syntax. These tests use mocks and do not prove that the deployed service can authenticate to Notion. The feature branch must be merged and deployment configured before the live staging checklist can be run.
+The automated tests cover the adapter, ledger, API authentication/configuration, relation validation, client behavior, manifest fingerprinting and UI syntax. These tests use mocks and do not prove that the deployed service can authenticate to Notion. The initial implementation is merged. The relation/preflight and staging deployment hardening in PR #32 must pass CI and be merged before the live staging checklist can be run.

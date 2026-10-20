@@ -27,6 +27,7 @@ def api(monkeypatch, tmp_path):
         "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": "private-data",
         "NOTION_LITERATURE_DATA_SOURCE_ID": "private-literature",
         "RESEARCH_RUN_IDEMPOTENCY_DB": str(tmp_path / "runs.sqlite3"),
+        "RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER": "true",
     }
     for key, value in required.items():
         monkeypatch.setenv(key, value)
@@ -219,3 +220,16 @@ def test_endpoint_rejects_client_supplied_manifest_hash_that_does_not_match_inpu
     )
     assert response.status_code == 422
     assert "manifest_hash does not match" in response.json()["detail"]
+
+
+def test_endpoint_rejects_ephemeral_ledger_without_explicit_staging_opt_in(api, monkeypatch):
+    _, client, _ = api
+    monkeypatch.setenv("RESEARCH_RUN_IDEMPOTENCY_DB", "/tmp/research-run-ledger.sqlite3")
+    monkeypatch.setenv("RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER", "false")
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+    assert response.status_code == 503
+    assert "Ephemeral idempotency storage is disabled" in response.json()["detail"]

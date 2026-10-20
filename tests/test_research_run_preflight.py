@@ -45,6 +45,7 @@ def env_for(tmp_path):
         "NOTION_TOKEN": "test-notion-token",
         **SOURCE_KEYS,
         "RESEARCH_RUN_IDEMPOTENCY_DB": str(tmp_path / "persistent" / "runs.sqlite3"),
+        "RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER": "true",
     }
 
 
@@ -91,7 +92,7 @@ def valid_schemas():
             "Sample Name": text_type("title"),
             "Project": relation("projects-source"),
             "Protocol": relation("protocols-source"),
-            "Literature": relation("literature-source"),
+            "📄Literature\u00a0": relation("literature-source"),
         }),
         "data-source": schema("data-source", {
             "Project": relation("projects-source"),
@@ -164,3 +165,11 @@ def test_preflight_rejects_missing_relation_property(tmp_path):
     del schemas["samples-source"]["properties"]["Protocol"]
     with pytest.raises(PreflightError, match="Protocol"):
         run_preflight(env, Session(schemas))
+
+
+def test_preflight_rejects_ephemeral_ledger_without_staging_override(tmp_path):
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = "/tmp/research-run-ledger.sqlite3"
+    env["RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER"] = "false"
+    with pytest.raises(PreflightError, match="ephemeral"):
+        run_preflight(env, Session(valid_schemas()))

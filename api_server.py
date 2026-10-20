@@ -104,6 +104,23 @@ def write_research_run(
             detail={"message": "Research run write-back is not configured.", "missing": missing},
         )
 
+    from pathlib import Path
+    ledger_path = Path(config["RESEARCH_RUN_IDEMPOTENCY_DB"]).expanduser().resolve()
+    ephemeral_roots = (Path("/tmp"), Path("/var/tmp"))
+    is_ephemeral_ledger = any(
+        ledger_path == root or root in ledger_path.parents for root in ephemeral_roots
+    )
+    allow_ephemeral = os.environ.get("RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER", "").strip().lower() == "true"
+    if is_ephemeral_ledger and not allow_ephemeral:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Ephemeral idempotency storage is disabled. Set "
+                "RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER=true only for synthetic staging; "
+                "real research requires persistent storage."
+            ),
+        )
+
     expected_manifest_hash = build_run_manifest_hash(payload.dict())
     if payload.manifest_hash and payload.manifest_hash != expected_manifest_hash:
         raise HTTPException(
