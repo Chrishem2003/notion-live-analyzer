@@ -622,7 +622,10 @@ def render_bio_research_runs():
         "parameters_json": json.dumps(parsed_parameters, sort_keys=True),
     }
     try:
-        from modules.research_run_client import ResearchRunClient
+        from modules.research_run_client import ResearchRunClient, build_run_manifest_hash
+        if not payload["manifest_hash"]:
+            payload["manifest_hash"] = build_run_manifest_hash(payload)
+        st.caption("Run manifest fingerprint: " + payload["manifest_hash"])
         started = time.perf_counter()
         result = ResearchRunClient(api_url, api_key).create_run(payload)
         latency = (time.perf_counter() - started) * 1000
