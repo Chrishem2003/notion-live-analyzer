@@ -81,6 +81,7 @@ def write_research_run(
         ResearchRunWriteError,
         build_analysis_run_properties,
     )
+    from modules.research_run_idempotency import RunIdempotencyLedger
 
     config = {
         "NOTION_TOKEN": os.environ.get("NOTION_TOKEN"),
@@ -89,6 +90,7 @@ def write_research_run(
         "NOTION_PROTOCOLS_DATA_SOURCE_ID": os.environ.get("NOTION_PROTOCOLS_DATA_SOURCE_ID"),
         "NOTION_SAMPLES_DATA_SOURCE_ID": os.environ.get("NOTION_SAMPLES_DATA_SOURCE_ID"),
         "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": os.environ.get("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"),
+        "RESEARCH_RUN_IDEMPOTENCY_DB": os.environ.get("RESEARCH_RUN_IDEMPOTENCY_DB"),
     }
     missing = [name for name, value in config.items() if not value]
     if missing:
@@ -128,7 +130,28 @@ def write_research_run(
             manifest_hash=payload.manifest_hash,
             parameters_json=payload.parameters_json,
         )
-        result = adapter.create_or_get_run(payload.run_id, properties)
+        ledger = RunIdempotencyLedger(config["RESEARCH_RUN_IDEMPOTENCY_DB"])
+        reservation = ledger.reserve(payload.run_id, properties)
+        if reservation["action"] == "in_progress":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This run_id is already being processed. Retry the same run_id later.",
+            )
+        if reservation["action"] == "complete":
+            page_id = reservation.get("page_id")
+            if not page_id:
+                raise ResearchRunWriteError("Completed idempotency record has no Notion page ID.")
+            result = {"created": False, "page": adapter.get_page(page_id)}
+        else:
+            try:
+                result = adapter.create_or_get_run(payload.run_id, properties)
+                ledger.mark_complete(payload.run_id, result["page"]["id"])
+            except AmbiguousWriteError:
+                ledger.mark_ambiguous(payload.run_id)
+                raise
+            except Exception:
+                ledger.mark_failed(payload.run_id)
+                raise
     except AmbiguousWriteError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
