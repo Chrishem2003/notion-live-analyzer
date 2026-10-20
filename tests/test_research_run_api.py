@@ -282,3 +282,35 @@ def test_completed_ledger_manifest_mismatch_returns_http_409(api, monkeypatch):
     )
     assert response.status_code == 409
     assert "different Run Manifest Hash" in response.json()["detail"]
+
+
+
+def test_endpoint_rejects_protocol_not_linked_to_selected_project(api, monkeypatch):
+    _, client, _ = api
+    import modules.research_run_adapter as adapter_module
+    from modules.research_run_adapter import RelationValidationError
+
+    class FakeAdapter:
+        def __init__(self, token, data_source_id):
+            pass
+
+        def validate_page_parent(self, page_id, expected_data_source_id, label):
+            return {"id": page_id, "properties": {}}
+
+        def validate_record_classification(self, *args, **kwargs):
+            return None
+
+        def validate_relation_membership(self, page, property_name, expected_page_ids, label, *, require_all=True):
+            if label == "Protocol → Project":
+                raise RelationValidationError(
+                    "Protocol → Project: relation does not match the selected project."
+                )
+
+    monkeypatch.setattr(adapter_module, "ResearchRunAdapter", FakeAdapter)
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+    assert response.status_code == 422
+    assert "Protocol → Project" in response.json()["detail"]
