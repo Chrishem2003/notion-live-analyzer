@@ -35,6 +35,18 @@ Start the API in a trusted deployment:
 
 Put the API behind HTTPS and network controls before exposing it outside a trusted environment. Do not use a per-container ephemeral SQLite path or multiple replicas with separate ledgers.
 
+## Deployment inventory and separate API service
+
+The repository's current Render blueprint declares the Streamlit web service and a keepalive cron job; it does not provision the research-run API service or persistent idempotency storage. The Dockerfile now declares a default Streamlit command so Docker-based web deployments have an explicit process. This does not deploy the API.
+
+For Render, create a separate private/internal API service from this repository and override its Docker command to:
+
+    uvicorn api_server:app --host 0.0.0.0 --port $PORT
+
+Configure the required API environment variables listed above and attach persistent storage mounted at /var/data; set RESEARCH_RUN_IDEMPOTENCY_DB=/var/data/research_run_idempotency.sqlite3. If the chosen plan cannot provide persistent storage, do not treat the service as accepted for reliable multi-worker operation. Keep the API private to the Streamlit service where possible, or apply HTTPS, network access controls and secret management. Do not expose the API key in the browser or commit it.
+
+The Streamlit deployment needs RESEARCH_RUN_API_URL set to the API's reachable HTTPS URL (or a private internal URL supported by the deployment) and the matching PLATFORM_API_KEY. No API service or disk is provisioned automatically by the current blueprint; deployment must be an explicit, reviewed step.
+
 ## Required Streamlit environment
 
 - RESEARCH_RUN_API_URL: base URL of the private API service, e.g. https://api.example.org.
