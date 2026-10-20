@@ -223,3 +223,22 @@ def test_collection_uri_is_normalized_to_data_source_uuid():
     client.create_or_get_run("run-uri-001", {"Run Name": {"title": []}})
     assert session.calls[0][1].endswith("/data_sources/analysis-db/query")
     assert session.calls[1][2]["json"]["parent"]["data_source_id"] == "analysis-db"
+
+
+def test_ambiguous_recovery_never_creates_a_new_page_when_no_match_is_visible():
+    session = FakeSession(post_results=[empty_query()])
+    with pytest.raises(AmbiguousWriteError, match="No new record was created"):
+        adapter(session).recover_run("run-ambiguous-001")
+    assert len(session.calls) == 1
+    assert session.calls[0][1].endswith("/query")
+
+
+def test_ambiguous_recovery_reads_existing_record_without_creating():
+    session = FakeSession(
+        post_results=[found_query("recovered-existing-page")],
+        get_results=[Response(200, page("recovered-existing-page"))],
+    )
+    result = adapter(session).recover_run("run-ambiguous-002")
+    assert result["created"] is False
+    assert result["page"]["id"] == "recovered-existing-page"
+    assert [call[0] for call in session.calls] == ["POST", "GET"]
