@@ -29,3 +29,10 @@ def test_api_startup_script_runs_read_only_preflight_before_uvicorn():
     assert "python scripts/research_run_preflight.py" in source
     assert source.index("python scripts/research_run_preflight.py") < source.index("uvicorn api_server:app")
     assert "exec uvicorn api_server:app" in source
+
+
+
+def test_blueprint_does_not_add_unapproved_billable_cron_service():
+    source = Path("render.yaml").read_text(encoding="utf-8")
+    assert "- type: cron" not in source
+    assert "notion-live-analyzer-keepalive" not in source
