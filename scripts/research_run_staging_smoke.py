@@ -98,8 +98,14 @@ def run_smoke(
         raise SmokeTestError("Initial response did not identify a persisted run page and matching run ID.")
     if first_body.get("record_classification") != "Synthetic/Test":
         raise SmokeTestError("Initial response did not preserve Synthetic/Test classification.")
-    if first_body.get("run_status") != "Draft" or first_body.get("workflow_gate") != "Intake":
-        raise SmokeTestError("Initial run did not remain at Draft / Intake.")
+    if (
+        first_body.get("run_status") != "Draft"
+        or first_body.get("workflow_gate") != "Intake"
+        or first_body.get("qc_outcome") != "Pending"
+    ):
+        raise SmokeTestError("Initial run did not remain at Draft / Intake / Pending QC.")
+    if not first_body.get("manifest_hash"):
+        raise SmokeTestError("Initial response did not return the server-verified manifest hash.")
 
     retry = _post(client, endpoint, api_key.strip(), payload)
     if retry.status_code != 200:
