@@ -204,6 +204,8 @@ def build_analysis_run_properties(
     protocol_page_id: str,
     input_sample_page_ids: Optional[list[str]] = None,
     input_data_record_page_ids: Optional[list[str]] = None,
+    source_evidence_page_ids: Optional[list[str]] = None,
+    input_dataset_version: str = "",
     analysis_method: str = "",
     code_revision: str = "",
     environment: str = "staging",
@@ -238,6 +240,7 @@ def build_analysis_run_properties(
         "Protocol": {"relation": [{"id": required_text(protocol_page_id, "protocol_page_id")}]},
         "Input Samples": {"relation": relation_ids(input_sample_page_ids, "input_sample_page_ids")},
         "Input Data Records": {"relation": relation_ids(input_data_record_page_ids, "input_data_record_page_ids")},
+        "Source Evidence": {"relation": relation_ids(source_evidence_page_ids, "source_evidence_page_ids")},
         "Run Status": {"select": {"name": "Draft"}},
         "Workflow Gate": {"select": {"name": "Intake"}},
         "QC Outcome": {"select": {"name": "Pending"}},
@@ -245,6 +248,7 @@ def build_analysis_run_properties(
         "Record Classification": {"select": {"name": "Synthetic/Test"}},
     }
     optional_text = {
+        "Input Dataset Version": input_dataset_version,
         "Analysis Method": analysis_method,
         "Code Revision": code_revision,
         "Environment": environment,

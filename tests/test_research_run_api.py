@@ -23,6 +23,7 @@ def api(monkeypatch, tmp_path):
         "NOTION_PROTOCOLS_DATA_SOURCE_ID": "private-protocols",
         "NOTION_SAMPLES_DATA_SOURCE_ID": "private-samples",
         "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": "private-data",
+        "NOTION_LITERATURE_DATA_SOURCE_ID": "private-literature",
         "RESEARCH_RUN_IDEMPOTENCY_DB": str(tmp_path / "runs.sqlite3"),
     }
     for key, value in required.items():
@@ -38,6 +39,8 @@ def request_payload():
         "protocol_page_id": "protocol-page",
         "input_sample_page_ids": ["sample-page"],
         "input_data_record_page_ids": ["data-page"],
+        "source_evidence_page_ids": ["literature-page"],
+        "input_dataset_version": "demo-v1",
         "analysis_method": "mock validation",
         "code_revision": "test-commit",
         "environment": "staging",
@@ -64,6 +67,18 @@ def test_endpoint_fails_closed_when_notion_config_is_missing(api, monkeypatch):
     assert "NOTION_TOKEN" in response.json()["detail"]["missing"]
 
 
+def test_endpoint_fails_closed_when_literature_source_is_missing(api, monkeypatch):
+    _, client, _ = api
+    monkeypatch.delenv("NOTION_LITERATURE_DATA_SOURCE_ID")
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+    assert response.status_code == 503
+    assert "NOTION_LITERATURE_DATA_SOURCE_ID" in response.json()["detail"]["missing"]
+
+
 def test_endpoint_validates_private_relations_and_returns_verified_run(api, monkeypatch):
     api_server, client, _ = api
     import modules.research_run_adapter as adapter_module
@@ -85,6 +100,8 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
         def create_or_get_run(self, run_id, properties):
             assert run_id == "synthetic-api-test-001"
             assert properties["Record Classification"]["select"]["name"] == "Synthetic/Test"
+            assert properties["Source Evidence"]["relation"] == [{"id": "literature-page"}]
+            assert properties["Input Dataset Version"]["rich_text"][0]["text"]["content"] == "demo-v1"
             return {"created": True, "page": {
                 "id": "created-page", "url": "https://notion.example/synthetic-run"
             }}
@@ -123,6 +140,7 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
         ("protocol-page", "private-protocols", "Protocol"),
         ("sample-page", "private-samples", "Input Sample"),
         ("data-page", "private-data", "Input Data Record"),
+        ("literature-page", "private-literature", "Source Evidence"),
     }
     assert body == {
         "created": True,

@@ -62,6 +62,8 @@ class ResearchRunWriteRequest(BaseModel):
     protocol_page_id: str = Field(..., min_length=1, max_length=100)
     input_sample_page_ids: list[str] = Field(default_factory=list, max_length=100)
     input_data_record_page_ids: list[str] = Field(default_factory=list, max_length=100)
+    source_evidence_page_ids: list[str] = Field(default_factory=list, max_length=100)
+    input_dataset_version: str = Field("", max_length=500)
     analysis_method: str = Field("", max_length=2000)
     code_revision: str = Field("", max_length=200)
     environment: str = Field("staging", max_length=100)
@@ -90,6 +92,7 @@ def write_research_run(
         "NOTION_PROTOCOLS_DATA_SOURCE_ID": os.environ.get("NOTION_PROTOCOLS_DATA_SOURCE_ID"),
         "NOTION_SAMPLES_DATA_SOURCE_ID": os.environ.get("NOTION_SAMPLES_DATA_SOURCE_ID"),
         "NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID": os.environ.get("NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"),
+        "NOTION_LITERATURE_DATA_SOURCE_ID": os.environ.get("NOTION_LITERATURE_DATA_SOURCE_ID"),
         "RESEARCH_RUN_IDEMPOTENCY_DB": os.environ.get("RESEARCH_RUN_IDEMPOTENCY_DB"),
     }
     missing = [name for name, value in config.items() if not value]
@@ -118,12 +121,18 @@ def write_research_run(
             adapter.validate_page_parent(
                 page_id, config["NOTION_EXPERIMENTAL_DATA_DATA_SOURCE_ID"], "Input Data Record"
             )
+        for page_id in payload.source_evidence_page_ids:
+            adapter.validate_page_parent(
+                page_id, config["NOTION_LITERATURE_DATA_SOURCE_ID"], "Source Evidence"
+            )
         properties = build_analysis_run_properties(
             run_name=payload.run_name,
             project_page_id=payload.project_page_id,
             protocol_page_id=payload.protocol_page_id,
             input_sample_page_ids=payload.input_sample_page_ids,
             input_data_record_page_ids=payload.input_data_record_page_ids,
+            source_evidence_page_ids=payload.source_evidence_page_ids,
+            input_dataset_version=payload.input_dataset_version,
             analysis_method=payload.analysis_method,
             code_revision=payload.code_revision,
             environment=payload.environment,

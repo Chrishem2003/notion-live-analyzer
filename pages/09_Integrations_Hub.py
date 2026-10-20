@@ -571,8 +571,14 @@ def render_bio_research_runs():
             data_ids = st.text_input(
                 "Private Experimental Data page IDs (comma-separated, optional)", key="research_run_data_ids"
             )
+            evidence_ids = st.text_input(
+                "Private Literature page IDs (comma-separated, optional)", key="research_run_evidence_ids"
+            )
         analysis_method = st.text_input(
             "Analysis method", value="Integration smoke test", key="research_run_method"
+        )
+        input_dataset_version = st.text_input(
+            "Input dataset version (optional)", key="research_run_dataset_version"
         )
         code_revision = st.text_input(
             "Code revision / commit SHA (optional)", key="research_run_code_revision"
@@ -615,6 +621,8 @@ def render_bio_research_runs():
         "protocol_page_id": protocol_id.strip(),
         "input_sample_page_ids": split_ids(sample_ids),
         "input_data_record_page_ids": split_ids(data_ids),
+        "source_evidence_page_ids": split_ids(evidence_ids),
+        "input_dataset_version": input_dataset_version.strip(),
         "analysis_method": analysis_method.strip(),
         "code_revision": code_revision.strip(),
         "environment": "staging",
