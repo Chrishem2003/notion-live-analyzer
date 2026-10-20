@@ -32,6 +32,8 @@ def success(created, page_id="synthetic-page"):
         "record_classification": "Synthetic/Test",
         "run_status": "Draft",
         "workflow_gate": "Intake",
+        "qc_outcome": "Pending",
+        "manifest_hash": "sha256:synthetic-test-hash",
     })
 
 
