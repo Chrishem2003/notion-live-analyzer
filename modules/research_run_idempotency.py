@@ -58,7 +58,7 @@ class RunIdempotencyLedger:
         try:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
-                "SELECT payload_hash, state, notion_page_id "
+                "SELECT payload_hash, state, notion_page_id, updated_at "
                 "FROM research_run_idempotency WHERE run_id = ?",
                 (stable_id,),
             ).fetchone()
@@ -70,12 +70,24 @@ class RunIdempotencyLedger:
                 )
                 connection.execute("COMMIT")
                 return {"action": "reserved", "page_id": None}
-            existing_hash, state, page_id = row
+            existing_hash, state, page_id, updated_at = row
             if existing_hash != payload_hash:
                 raise IdempotencyConflictError(
                     "This run_id was already reserved with a different payload. "
                     "Use the original payload or a new run_id."
                 )
+            if state == "pending":
+                stale = connection.execute(
+                    "SELECT datetime(?) < datetime('now', '-5 minutes')",
+                    (updated_at,),
+                ).fetchone()[0]
+                if stale:
+                    connection.execute(
+                        "UPDATE research_run_idempotency SET state='ambiguous', "
+                        "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
+                        (stable_id,),
+                    )
+                    state = "ambiguous"
             if state == "failed":
                 connection.execute(
                     "UPDATE research_run_idempotency SET state='pending', "
