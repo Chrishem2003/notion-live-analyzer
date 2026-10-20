@@ -66,6 +66,7 @@ REQUIRED_PROPERTIES = {
         "Protocol": "relation",
         "Input Samples": "relation",
         "Input Data Records": "relation",
+        "Input Dataset Version": "rich_text",
         "Source Evidence": "relation",
         "Run Status": "select",
         "Workflow Gate": "select",
