@@ -1958,7 +1958,7 @@ def render_notion_template_vault():
 
     with col1:
         st.markdown("### Interactive Workspace Preview")
-        st.components.v1.iframe(NOTION_EMBED_URL, height=500, scrolling=True)
+        st.iframe(NOTION_EMBED_URL, height=500, scrolling=True)
 
     with col2:
         st.markdown("### Template Duplication Access")
