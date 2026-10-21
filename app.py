@@ -3832,7 +3832,6 @@ def handle_oauth_callback():
         "role": user["role"],
         "is_admin": user["role"] == "admin",
     }
-    cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
     subscription.ensure_trial_started(user["email"])
     st.session_state.pop("oauth_pending", None)
     st.query_params.clear()
@@ -3928,7 +3927,10 @@ try:
 except ImportError:
     pass
 
-# --- SESSION STATE & COOKIE RESTORATION ---
+# --- SESSION STATE & AUTHENTICATION ---
+# Authentication is held in Streamlit's server-side session state only.
+# An email-only browser cookie is not proof of identity and must never unlock
+# an account (especially an administrator account).
 if "portal_unlocked" not in st.session_state:
     st.session_state.portal_unlocked = False
 if "user_identity" not in st.session_state:
@@ -3936,19 +3938,9 @@ if "user_identity" not in st.session_state:
 
 handle_oauth_callback()
 
-if not st.session_state.portal_unlocked:
-    saved_email = cookie_manager.get(cookie="chrishem_user_email")
-    if saved_email:
-        user_record = auth_store.get_user_by_email(saved_email)
-        if user_record:
-            st.session_state.portal_unlocked = True
-            st.session_state.user_identity = {
-                "email": user_record["email"],
-                "name": user_record["name"],
-                "role": user_record["role"],
-                "is_admin": user_record["role"] == "admin",
-            }
-            subscription.ensure_trial_started(user_record["email"])
+# Intentionally do not restore authentication from the legacy
+# chrishem_user_email cookie. Existing copies are ignored; the sign-out action
+# still deletes the legacy cookie when present.
 
 if st.session_state.portal_unlocked:
     handle_checkout_return()
@@ -3987,7 +3979,7 @@ if not st.session_state.portal_unlocked:
             render_oauth_buttons()
             si_email = st.text_input("Portal Email Address", key="si_email_input", placeholder="name@domain.com")
             si_password = st.text_input("Secure Password", type="password", key="si_password_input", placeholder="••••••••")
-            remember_me = st.checkbox("Remember Me on this Device", value=True, key="remember_me_checkbox")
+            st.caption("For security, sign-in is not remembered across a new session. Please sign in again when needed.")
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
             if st.button("🚀 Unlock Portal Workspace", width='stretch'):
@@ -4004,9 +3996,6 @@ if not st.session_state.portal_unlocked:
                         "role": user["role"],
                         "is_admin": user["role"] == "admin",
                     }
-                    if remember_me:
-                        cookie_manager.set("chrishem_user_email", user["email"], expires_at=datetime.datetime.now() + datetime.timedelta(days=90))
-
                     subscription.ensure_trial_started(user["email"])
                     st.rerun()
 
