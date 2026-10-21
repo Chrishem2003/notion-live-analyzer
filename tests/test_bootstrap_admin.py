@@ -38,7 +38,7 @@ def test_concurrent_bootstrap_creates_one_admin(tmp_path):
                 _hash_password,
                 lambda *args: overrides.append(args),
             )
-        except Exception as exc:  # surface thread failures in the test thread
+        except Exception as exc:
             errors.append(exc)
         finally:
             conn.close()
@@ -54,18 +54,20 @@ def test_concurrent_bootstrap_creates_one_admin(tmp_path):
     rows = conn.execute("SELECT email, role FROM auth_users").fetchall()
     conn.close()
     assert rows == [("admin@example.com", "admin")]
-    assert len(overrides) == 1
+    assert len(overrides) == 2
 
 
 def test_missing_bootstrap_credentials_do_not_create_user(tmp_path):
     conn = _connect(tmp_path / "auth.sqlite3")
-    created = ensure_bootstrap_admin_record(conn, "admin@example.com", None, _hash_password, lambda *args: None)
+    created = ensure_bootstrap_admin_record(
+        conn, "admin@example.com", None, _hash_password, lambda *args: None
+    )
     assert created is False
     assert conn.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] == 0
     conn.close()
 
 
-def test_existing_accounts_prevent_bootstrap_insert(tmp_path):
+def test_bootstrap_admin_is_created_even_when_regular_users_exist(tmp_path):
     conn = _connect(tmp_path / "auth.sqlite3")
     conn.execute(
         "INSERT INTO auth_users (email, name, password_hash, salt, role) "
@@ -77,6 +79,56 @@ def test_existing_accounts_prevent_bootstrap_insert(tmp_path):
     created = ensure_bootstrap_admin_record(
         conn, "admin@example.com", "strong-test-password", _hash_password, lambda *args: None
     )
+    rows = conn.execute("SELECT email, role FROM auth_users ORDER BY email").fetchall()
+    assert created is True
+    assert rows == [("admin@example.com", "admin"), ("researcher@example.com", "user")]
+    conn.close()
+
+
+def test_existing_designated_user_is_promoted_and_password_reset(tmp_path):
+    conn = _connect(tmp_path / "auth.sqlite3")
+    conn.execute(
+        "INSERT INTO auth_users (email, name, password_hash, salt, role) "
+        "VALUES (?, ?, ?, ?, ?)",
+        ("chrishem242@gmail.com", "Chris", "old-hash", "old-salt", "user"),
+    )
+    conn.commit()
+    overrides = []
+
+    created = ensure_bootstrap_admin_record(
+        conn,
+        "CHRISHEM242@GMAIL.COM",
+        "new-admin-password",
+        _hash_password,
+        lambda *args: overrides.append(args),
+    )
+    row = conn.execute(
+        "SELECT email, name, password_hash, salt, role FROM auth_users"
+    ).fetchone()
+
     assert created is False
-    assert conn.execute("SELECT COUNT(*) FROM auth_users").fetchone()[0] == 1
+    assert row == (
+        "chrishem242@gmail.com", "CHRISHEM", "hash:new-admin-password", "test-salt", "admin"
+    )
+    assert len(overrides) == 1
+    conn.close()
+
+
+def test_existing_admin_password_is_synchronized_to_configured_secret(tmp_path):
+    conn = _connect(tmp_path / "auth.sqlite3")
+    conn.execute(
+        "INSERT INTO auth_users (email, name, password_hash, salt, role) "
+        "VALUES (?, ?, ?, ?, ?)",
+        ("admin@example.com", "Admin", "old-hash", "old-salt", "admin"),
+    )
+    conn.commit()
+
+    ensure_bootstrap_admin_record(
+        conn, "admin@example.com", "configured-password", _hash_password, lambda *args: None
+    )
+    row = conn.execute(
+        "SELECT password_hash, salt, role FROM auth_users WHERE email = ?",
+        ("admin@example.com",),
+    ).fetchone()
+    assert row == ("hash:configured-password", "test-salt", "admin")
     conn.close()
