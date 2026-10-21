@@ -92,7 +92,7 @@ def valid_schemas():
             "Sample Name": text_type("title"),
             "Project": relation("projects-source"),
             "Protocol": relation("protocols-source"),
-            "📄Literature\u00a0": relation("literature-source"),
+            "Literature": relation("literature-source"),
         }),
         "data-source": schema("data-source", {
             "Project": relation("projects-source"),
@@ -139,7 +139,7 @@ def test_preflight_fails_closed_on_cross_workspace_relation(tmp_path):
     env = env_for(tmp_path)
     Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"]).parent.mkdir(parents=True)
     schemas = valid_schemas()
-    schemas["runs-source"]["properties"]["Project"] = relation("template-projects")
+    schemas["samples-source"]["properties"]["Project"] = relation("template-projects")
     with pytest.raises(PreflightError, match="Relation mismatch"):
         run_preflight(env, Session(schemas))
 
