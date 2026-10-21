@@ -26,10 +26,10 @@ services:
       - key: STREAMLIT_RUNNER_FAST_RERUNS
         value: "true"
 
-  # API for authenticated synthetic Bio-Research run write-back.
-  # Free tier has ephemeral storage: this service is staging-only and MUST NOT
-  # receive real research data. Persistent storage and a suitable plan are
-  # required before any real-research workflow is enabled.
+  # API for authenticated Bio-Research run write-back.
+  # The ledger path below assumes a persistent disk mounted at /var/data.
+  # Do not enable this API for real research until the disk/database and
+  # backup/restore are verified. Render Free does not provide this persistence.
   - type: web
     name: notion-live-analyzer-api
     env: docker
@@ -63,8 +63,8 @@ services:
         sync: false
       - key: NOTION_BRAIN_NOTES_DATA_SOURCE_ID
         sync: false
-      # Explicitly permits an ephemeral ledger for synthetic staging only.
+      # Fail closed unless persistent storage is actually mounted and writable.
       - key: RESEARCH_RUN_IDEMPOTENCY_DB
-        value: /tmp/research_run_idempotency.sqlite3
+        value: /var/data/research_run_idempotency.sqlite3
       - key: RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER
-        value: "true"
+        value: "false"
