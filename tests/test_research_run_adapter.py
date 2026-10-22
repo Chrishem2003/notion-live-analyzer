@@ -203,6 +203,18 @@ def test_read_does_not_retry_non_retryable_client_error(monkeypatch):
     assert sleeps == []
 
 
+def test_notion_server_error_preserves_recovery_state():
+    session = FakeSession(
+        post_results=[empty_query(), Response(500, {"message": "temporary server failure"})]
+    )
+
+    with pytest.raises(AmbiguousWriteError):
+        adapter(session).create_or_get_run("run-011", {"Name": {"title": []}})
+
+    assert len(session.calls) == 2
+    assert session.calls[1][1].endswith("/pages")
+
+
 def test_page_creation_is_not_blindly_retried_after_rate_limit():
     session = FakeSession(
         post_results=[
