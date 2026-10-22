@@ -109,6 +109,44 @@ def test_storage_readiness_checks_integrity_without_claiming_durability(monkeypa
     assert readiness["production_writes_enabled"] is False
 
 
+def test_supabase_backend_readiness_uses_read_only_adapter(monkeypatch):
+    monkeypatch.setenv("NEMA_CASE_STORAGE_BACKEND", "supabase_postgres")
+
+    class FakeRemoteRepository:
+        closed = False
+
+        def storage_readiness(self):
+            return {
+                "status": "configured",
+                "storage_backend": "supabase_postgres",
+                "database_reachable": True,
+                "required_schema_present": True,
+                "storage_durability_verified": False,
+                "production_writes_enabled": False,
+            }
+
+        def close(self):
+            self.closed = True
+
+    from nema_agora import supabase_repository
+    fake = FakeRemoteRepository()
+    monkeypatch.setattr(supabase_repository, "SupabaseReadOnlyNemaRepository", lambda: fake)
+
+    result = api.storage_readiness(_auth=True)
+    assert result["storage_backend"] == "supabase_postgres"
+    assert result["database_reachable"] is True
+    assert result["storage_durability_verified"] is False
+    assert result["production_writes_enabled"] is False
+    assert fake.closed is True
+
+
+def test_unknown_storage_backend_fails_closed(monkeypatch):
+    monkeypatch.setenv("NEMA_CASE_STORAGE_BACKEND", "unknown_backend")
+    with pytest.raises(HTTPException) as error:
+        api.storage_readiness(_auth=True)
+    assert error.value.status_code == 503
+
+
 def test_case_api_does_not_expose_a_write_route():
     route_shapes = {(route.path, tuple(sorted(route.methods or []))) for route in api.router.routes}
     assert ("/api/v1/nema/cases", ("GET",)) in route_shapes
