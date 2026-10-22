@@ -42,6 +42,7 @@
 - [x] Create a provisional feature-to-entrypoint map for all 82 no-runtime-importer modules; module-by-module contract tracing remains in progress.
 - [x] Document the pilot API boundary: NEMA spatial endpoints remain unexposed; do not mount them into the existing shared-key platform API without a separately reviewed authorization design.
 - [ ] Complete module-by-module contract tracing, including dynamic/external entrypoints and deployed consumers.
+- [ ] Implement and independently test cryptographic credential verification and server-side role resolution before enabling any NEMA spatial API query route; current route-level containment returns HTTP 503 by default.
 - [ ] Review the phase-numbered governance/reconciliation family and add regression tests before consolidation; do not mass-delete by filename.
 - [ ] Verify the NEMA page appears in deployed Streamlit navigation and complete the demo-mode journey.
 - [ ] Verify deployed OIDC login/logout and server-side role bindings for each provisioned role.
