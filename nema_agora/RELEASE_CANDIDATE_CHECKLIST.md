@@ -44,7 +44,7 @@
 - [x] Create a provisional feature-to-entrypoint map for all 82 no-runtime-importer modules; module-by-module contract tracing remains in progress.
 - [x] Document the pilot API boundary: NEMA spatial endpoints remain unexposed; do not mount them into the existing shared-key platform API without a separately reviewed authorization design.
 - [ ] Complete module-by-module contract tracing, including dynamic/external entrypoints and deployed consumers.
-- [x] Trace the first governance-drift contract family (Phases 101–109 plus recovery-decision reconciliation) and document distinct contracts in [`GOVERNANCE_DRIFT_CONTRACT_TRACE.md`](GOVERNANCE_DRIFT_CONTRACT_TRACE.md); Phase 102 now recomputes and validates drift fingerprints/IDs with tamper regression tests.
+- [x] Trace the first governance-drift contract family (Phases 101–109 plus recovery-decision reconciliation) and document distinct contracts in [`GOVERNANCE_DRIFT_CONTRACT_TRACE.md`](GOVERNANCE_DRIFT_CONTRACT_TRACE.md); Phase 102 now recomputes and validates drift fingerprints/IDs; Phase 104 validates canonical queue IDs, actor identifier shape, role/outcome allowlists and timezone-aware review timestamps. These checks do not replace trusted authentication or server-side role resolution.
 - [ ] Implement and independently test cryptographic credential verification and server-side role resolution before enabling any NEMA spatial API query route; current route-level containment returns HTTP 503 by default.
 - [ ] Review the phase-numbered governance/reconciliation family and add regression tests before consolidation; do not mass-delete by filename.
 - [ ] Verify the NEMA page appears in deployed Streamlit navigation and complete the demo-mode journey.
