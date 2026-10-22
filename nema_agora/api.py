@@ -198,3 +198,32 @@ def get_case(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
         raise _remote_storage_error(exc) from exc
     finally:
         repository.close()
+
+@router.get("/{case_id}/review-packet")
+def review_packet(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
+    """Build a deterministic read-only preview; this does not submit an automation job."""
+    from nema_agora.supabase_repository import NemaStorageUnavailableError
+    from nema_agora.workflows import build_case_review_packet
+
+    repository = _repository()
+    try:
+        found = repository.get_case(case_id)
+        if found is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found.")
+        record, version = found
+        audit = repository.list_audit_events(case_id, limit=100)
+        packet = build_case_review_packet(
+            case_id,
+            {"record": record, "version": version, "audit": audit, "mode": "read_only"},
+        )
+        packet["execution_mode"] = "preview_only"
+        return packet
+    except NemaStorageUnavailableError as exc:
+        raise _remote_storage_error(exc) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="A review packet could not be prepared from the stored case data.",
+        ) from exc
+    finally:
+        repository.close()
