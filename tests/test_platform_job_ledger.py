@@ -55,6 +55,21 @@ def test_requires_https_and_server_credential(monkeypatch):
         PlatformJobLedger(session=FakeSession())
 
 
+@pytest.mark.parametrize("url", [
+    "https://user:password@demo-project.supabase.co",
+    "https://demo-project.supabase.co/rest/v1",
+    "https://demo-project.supabase.co?apikey=should-not-be-here",
+    "https://demo-project.supabase.co#fragment",
+    "https://localhost",
+    "https://demo-project.supabase.co:invalid",
+])
+def test_rejects_database_urls_with_credentials_or_non_root_components(monkeypatch, url):
+    monkeypatch.setenv("SUPABASE_URL", url)
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "synthetic-secret")
+    with pytest.raises(PlatformLedgerUnavailable):
+        PlatformJobLedger(session=FakeSession())
+
+
 def test_enqueue_hashes_canonical_payload_and_sends_server_auth(monkeypatch):
     configure(monkeypatch)
     session = FakeSession([{
