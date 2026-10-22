@@ -35,6 +35,7 @@
 - Demo mode is session-only. Persistent mode requires explicit configuration, authenticated OIDC identity, and server-side role binding.
 - The prototype is not an official NEMA service and does not submit reports to NEMA.
 - Spatial evidence inputs now capture baseline and comparison AOI/grid IDs independently. Alignment defaults to unverified until the operator explicitly attests it; the attestation is not independent geospatial verification. Date-only inputs use a disclosed 10:00 UTC placeholder, not provider acquisition metadata.
+- Spatial evidence inputs now capture baseline and comparison AOI/grid IDs independently. Alignment defaults to unverified until the operator explicitly attests it; this is not independent geospatial verification. Date-only inputs use a disclosed 10:00 UTC placeholder, not provider acquisition metadata.
 - No live ELMIS/SWIMS integration, autonomous enforcement, regulatory endorsement, or production approval is claimed.
 - Use synthetic or appropriately consented test records only.
 
