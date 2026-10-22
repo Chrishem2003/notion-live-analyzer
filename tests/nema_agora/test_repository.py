@@ -147,7 +147,7 @@ def test_audit_events_are_protected_from_update_and_delete(repository):
             "UPDATE nema_case_audit SET event_type = 'rewritten' WHERE case_id = ?",
             ("NA-TEST1234",),
         )
-    with pytest.raises(Exception, match="append-only"):
+    with pytest.raises(sqlite3.IntegrityError, match="append-only"):
         repository._connection.execute(
             "DELETE FROM nema_case_audit WHERE case_id = ?",
             ("NA-TEST1234",),
@@ -173,3 +173,51 @@ def test_file_backed_case_and_audit_survive_repository_reopen(tmp_path):
         assert len(second.list_audit_events("NA-TEST1234")) == 2
     finally:
         second.close()
+
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("case_id", "X" * 81, "case_id"),
+        ("description", "D" * 1501, "description"),
+        ("latitude", True, "Latitude and longitude"),
+    ],
+)
+def test_case_text_and_coordinate_bounds_fail_closed(repository, field, value, message):
+    record = _record()
+    if field == "latitude":
+        record["latitude"] = value
+        record["longitude"] = 32.3
+    else:
+        record[field] = value
+    with pytest.raises(ValueError, match=message):
+        repository.create_case(
+            record, actor="operator", created_at="2026-10-22T07:00:00Z"
+        )
+    assert repository.get_case("NA-TEST1234") is None
+    assert repository.list_audit_events("NA-TEST1234") == []
+
+
+def test_oversized_case_payload_is_rejected_before_persistence(repository):
+    record = _record()
+    record["additional_notes"] = "x" * 66_000
+    with pytest.raises(ValueError, match="65536-byte"):
+        repository.create_case(
+            record, actor="operator", created_at="2026-10-22T07:00:00Z"
+        )
+    assert repository.get_case("NA-TEST1234") is None
+
+
+@pytest.mark.parametrize(
+    ("latitude", "longitude"),
+    [(91, 32), (1, 181), (float("inf"), 32), (0, float("nan"))],
+)
+def test_invalid_coordinate_ranges_are_rejected(repository, latitude, longitude):
+    record = _record()
+    record["latitude"] = latitude
+    record["longitude"] = longitude
+    with pytest.raises(ValueError, match="Coordinates"):
+        repository.create_case(
+            record, actor="operator", created_at="2026-10-22T07:00:00Z"
+        )
