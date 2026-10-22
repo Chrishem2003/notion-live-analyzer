@@ -45,6 +45,20 @@ Do not deploy a blueprint change that creates paid workers or managed Redis unti
 - The reservation RPC has a 60-second cooldown to bound duplicate broker messages when workers or the broker are unavailable. A later sweep retries unclaimed reservations. The worker claim remains atomic, so duplicate task messages cannot claim the same active lease.
 - The reconciliation loop is best-effort, not a substitute for monitoring. Alert on repeated broker failures, queue age, expired leases, failed jobs, and `needs_review` jobs.
 
+## Non-production end-to-end smoke test
+
+After a separate staging API, database, Redis broker, worker, and Beat are provisioned and reviewed, run the smoke test from a trusted operator environment. It submits only the registered `platform.synthetic.validate` handler.
+
+Required environment variables:
+
+- `PLATFORM_LEDGER_SMOKE_BASE_URL`: HTTPS origin of the approved staging API only.
+- `PLATFORM_LEDGER_SMOKE_API_KEY`: staging API key; keep it out of command history, source control, and logs.
+- `PLATFORM_LEDGER_SMOKE_CONFIRM=I_UNDERSTAND_NON_PRODUCTION`: explicit confirmation.
+
+Run with `python scripts/platform_ledger_staging_smoke.py`. The script refuses the known current production API hostname, verifies health and metrics, enqueues a synthetic job, checks same-key idempotency, checks that changed payload reuse returns HTTP 409, polls status until success, and checks that status/metrics do not expose payloads or lease tokens. It times out after two minutes and prints no secrets.
+
+Do not run against production. The smoke script does not provision infrastructure, apply migrations, or enable feature flags. A successful run is evidence for the tested staging environment only.
+
 ## Aggregate operations endpoint
 
 - Authenticated `GET /api/v1/platform-jobs/metrics` is gated by `PLATFORM_JOB_LEDGER_ENABLED` and the existing service-to-service API key.
