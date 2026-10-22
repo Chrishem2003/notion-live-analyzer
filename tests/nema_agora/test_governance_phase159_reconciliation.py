@@ -24,3 +24,34 @@ def test_tampered_execution_control_is_rejected():
     report["execution_permitted"] = True
     with pytest.raises(ValueError, match="EXECUTION_GATE_VIOLATION"):
         validate_lifecycle_decision_continuity_registry_review_reconciliation(report)
+
+
+def test_recomputed_fingerprint_does_not_bypass_count_invariants():
+    from nema_agora.api_audit_binding import fingerprint
+
+    report = reconcile_lifecycle_decision_continuity_registry_reviews([], [])
+    report["monitor_count"] = -1
+    payload = dict(report)
+    payload.pop("reconciliation_fingerprint")
+    report["reconciliation_fingerprint"] = fingerprint(payload)
+    with pytest.raises(ValueError, match="INVALID_RECONCILIATION_COUNTS"):
+        validate_lifecycle_decision_continuity_registry_review_reconciliation(report)
+
+
+def test_recomputed_fingerprint_does_not_bypass_state_invariants():
+    from nema_agora.api_audit_binding import fingerprint
+
+    report = reconcile_lifecycle_decision_continuity_registry_reviews([], [])
+    report["state"] = "RECONCILED"
+    payload = dict(report)
+    payload.pop("reconciliation_fingerprint")
+    report["reconciliation_fingerprint"] = fingerprint(payload)
+    with pytest.raises(ValueError, match="RECONCILIATION_STATE_MISMATCH"):
+        validate_lifecycle_decision_continuity_registry_review_reconciliation(report)
+
+
+def test_reconciliation_requires_explicit_decision_suppression_fields():
+    report = reconcile_lifecycle_decision_continuity_registry_reviews([], [])
+    del report["environmental_conclusion"]
+    with pytest.raises(ValueError, match="RECONCILIATION_FIELDS_REQUIRED"):
+        validate_lifecycle_decision_continuity_registry_review_reconciliation(report)
