@@ -289,10 +289,54 @@ begin
 end;
 $$;
 
+-- Read status only within the trusted actor scope. Payloads and lease secrets are never returned.
+create or replace function public.platform_get_job(
+    p_job_id uuid,
+    p_actor_scope text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $
+declare
+    v_job public.platform_jobs%rowtype;
+begin
+    if p_job_id is null or p_actor_scope is null
+       or length(p_actor_scope) not between 1 and 200 then
+        raise exception 'invalid job status request' using errcode = '22023';
+    end if;
+
+    select * into v_job
+    from public.platform_jobs
+    where job_id = p_job_id and actor_scope = p_actor_scope;
+
+    if not found then
+        -- Do not disclose whether a job exists in another actor scope.
+        raise exception 'job not found' using errcode = 'P0002';
+    end if;
+
+    return jsonb_build_object(
+        'job_id', v_job.job_id,
+        'status', v_job.status,
+        'attempt_count', v_job.attempt_count,
+        'max_attempts', v_job.max_attempts,
+        'created_at', v_job.created_at,
+        'updated_at', v_job.updated_at,
+        'started_at', v_job.started_at,
+        'finished_at', v_job.finished_at,
+        'result', v_job.result_json,
+        'error', v_job.error_json
+    );
+end;
+$;
+
 -- RPC-only interface: callers cannot directly mutate ledger tables through PostgREST.
 revoke all on function public.platform_enqueue_job(text, text, text, text, jsonb, integer) from public, anon, authenticated;
 revoke all on function public.platform_claim_job(text, integer) from public, anon, authenticated;
 revoke all on function public.platform_finish_job(uuid, text, uuid, text, jsonb, jsonb) from public, anon, authenticated;
+revoke all on function public.platform_get_job(uuid, text) from public, anon, authenticated;
 grant execute on function public.platform_enqueue_job(text, text, text, text, jsonb, integer) to service_role;
 grant execute on function public.platform_claim_job(text, integer) to service_role;
 grant execute on function public.platform_finish_job(uuid, text, uuid, text, jsonb, jsonb) to service_role;
+grant execute on function public.platform_get_job(uuid, text) to service_role;
