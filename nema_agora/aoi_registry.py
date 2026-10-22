@@ -66,10 +66,15 @@ def validate_registry(assets:list[Mapping[str,Any]])->dict[str,Any]:
  f=[];seen=set()
  if not isinstance(assets,list): return {"policy_version":POLICY_VERSION,"state":"CONTROL_REQUIRED","findings":[{"code":"INVALID_ASSETS"}]}
  for a in assets:
-  c=validate_asset(a); f.extend(c["findings"]); aid=a.get("asset_id")
-  if aid in seen:f.append({"code":"DUPLICATE_ASSET_ID","asset_id":aid})
-  seen.add(aid)
-  if a.get("asset_fingerprint") is not None and not _sha(a["asset_fingerprint"]): f.append({"code":"INVALID_ASSET_FINGERPRINT","asset_id":aid})
+  c=validate_asset(a); f.extend(c["findings"])
+  if not isinstance(a,Mapping):
+   continue
+  aid=a.get("asset_id")
+  if _id(aid):
+   if aid in seen:f.append({"code":"DUPLICATE_ASSET_ID","asset_id":aid})
+   seen.add(aid)
+  if a.get("asset_fingerprint") is not None and not _sha(a["asset_fingerprint"]):
+   f.append({"code":"INVALID_ASSET_FINGERPRINT","asset_id":aid})
  return {"policy_version":POLICY_VERSION,"state":"REGISTRY_READY" if not f else "CONTROL_REQUIRED","findings":f,"asset_count":len(assets)}
 def query_assets(assets:list[Mapping[str,Any]],*,asset_type=None,status=None)->list[dict[str,Any]]:
  c=validate_registry(assets)
