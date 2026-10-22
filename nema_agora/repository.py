@@ -13,11 +13,11 @@ import sqlite3
 import threading
 import uuid
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from nema_agora.core import STATUSES
+from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES
 from nema_agora.workflow import apply_case_transition
 
 
@@ -72,6 +72,26 @@ def _validate_case_record(record: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("case_id must be 80 characters or fewer.")
     if stored_record.get("status") not in STATUSES:
         raise ValueError("A recognised case status is required.")
+    for field_name in ("district_or_site", "description"):
+        field_value = stored_record.get(field_name)
+        if not isinstance(field_value, str) or not field_value.strip():
+            raise ValueError(f"{field_name} is required.")
+    category = stored_record.get("category")
+    if category not in CATEGORIES:
+        raise ValueError("A recognised environmental category is required.")
+    severity = stored_record.get("severity")
+    if severity not in SEVERITIES:
+        raise ValueError("A recognised severity is required.")
+    observation_date = stored_record.get("observation_date")
+    if not isinstance(observation_date, str) or not observation_date.strip():
+        raise ValueError("A YYYY-MM-DD observation_date is required.")
+    try:
+        parsed_date = date.fromisoformat(observation_date.strip())
+    except ValueError as exc:
+        raise ValueError("observation_date must use YYYY-MM-DD.") from exc
+    if parsed_date.isoformat() != observation_date.strip():
+        raise ValueError("observation_date must use canonical YYYY-MM-DD.")
+    stored_record["observation_date"] = parsed_date.isoformat()
     latitude, longitude = stored_record.get("latitude"), stored_record.get("longitude")
     if (latitude is None) != (longitude is None):
         raise ValueError("Latitude and longitude must be supplied together.")
