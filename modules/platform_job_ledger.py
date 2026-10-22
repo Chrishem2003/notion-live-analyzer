@@ -130,6 +130,26 @@ class PlatformJobLedger:
             raise PlatformLedgerUnavailable("Ledger returned an unsafe status response.")
         return value
 
+    def reserve_dispatches(self, *, limit: int = 25) -> list[str]:
+        """Atomically reserve a bounded batch of queued or expired-lease jobs for dispatch."""
+        if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 100:
+            raise ValueError("limit must be an integer from 1 to 100")
+        value = self._rpc("platform_reserve_dispatches", {"p_limit": limit})
+        if not isinstance(value, list):
+            raise PlatformLedgerUnavailable("Ledger returned an invalid dispatch reservation response.")
+        job_ids: list[str] = []
+        for item in value:
+            if not isinstance(item, dict) or not isinstance(item.get("job_id"), str):
+                raise PlatformLedgerUnavailable("Ledger returned an invalid dispatch reservation response.")
+            try:
+                from uuid import UUID
+                job_ids.append(str(UUID(item["job_id"])))
+            except (ValueError, TypeError, AttributeError) as exc:
+                raise PlatformLedgerUnavailable("Ledger returned an invalid dispatch reservation response.") from exc
+        if len(job_ids) > limit or len(set(job_ids)) != len(job_ids):
+            raise PlatformLedgerUnavailable("Ledger returned an invalid dispatch reservation batch.")
+        return job_ids
+
     def claim(self, *, worker_id: str, lease_seconds: int = 120) -> dict[str, Any] | None:
         if not isinstance(worker_id, str) or not 1 <= len(worker_id.strip()) <= 200:
             raise ValueError("Worker ID must contain 1–200 characters.")
