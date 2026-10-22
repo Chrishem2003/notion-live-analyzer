@@ -16,6 +16,16 @@ def test_validation_requires_site_description_and_permission():
     assert len(errors) == 3
 
 
+@pytest.mark.parametrize("consent", [False, 0, 1, "true", "false", None])
+def test_permission_confirmation_requires_boolean_true(consent):
+    errors = validate_observation(
+        site="Pilot A",
+        description="Synthetic observation",
+        consent_confirmed=consent,
+    )
+    assert any("Permission and data minimisation" in error for error in errors)
+
+
 def test_validation_rejects_oversized_description():
     errors = validate_observation(site="Pilot A", description="x" * 1501, consent_confirmed=True)
     assert any("1,500" in error for error in errors)
@@ -28,6 +38,21 @@ def test_coordinates_treat_zero_pair_as_omitted():
 
 @pytest.mark.parametrize("lat,lon", [(91, 0), (0, 181), (-91, 0)])
 def test_coordinates_out_of_range_raise(lat, lon):
+    with pytest.raises(ValueError):
+        normalise_coordinates(lat, lon)
+
+
+@pytest.mark.parametrize(
+    "lat,lon",
+    [
+        (float("nan"), 0),
+        (float("inf"), 0),
+        (0, float("-inf")),
+        (True, 32.1),
+        ("2.5", 32.1),
+    ],
+)
+def test_coordinates_reject_non_finite_or_non_numeric_values(lat, lon):
     with pytest.raises(ValueError):
         normalise_coordinates(lat, lon)
 
