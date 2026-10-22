@@ -167,14 +167,14 @@ def test_query_retries_rate_limit_using_retry_after(monkeypatch):
     monkeypatch.setattr(adapter_module.time, "sleep", sleeps.append)
     session = FakeSession(
         post_results=[
-            Response(429, {"code": "rate_limited"}, {"Retry-After": "0"}),
+            Response(429, {"code": "rate_limited"}, {"Retry-After": "1.5"}),
             empty_query(),
         ]
     )
 
     assert adapter(session)._find_by_external_id("run-008") is None
     assert len(session.calls) == 2
-    assert sleeps == [0.0]
+    assert sleeps == [1.5]
 
 
 def test_page_read_retries_transient_server_error(monkeypatch):
