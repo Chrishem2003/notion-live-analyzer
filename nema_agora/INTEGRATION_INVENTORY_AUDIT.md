@@ -71,6 +71,10 @@ The naming suggests a long incremental implementation history and overlapping co
 
 The page imports spatial change, spatial quality, candidate detection, and evidence-bundle modules. Sentinel-2/Google Earth Engine-related modules exist, but the CI checks do not prove credentials, external API access, actual imagery acquisition, coordinate-reference handling, or classification accuracy against validated field observations. Keep these capabilities labelled as configured/experimental until an authorized live-source test and independent validation exist.
 
+## Spatial evidence UI quality-gate hardening
+
+The spatial evidence form now accepts separate baseline/comparison AOI and grid identifiers and passes them independently into the quality gate. Spatial alignment defaults to `UNVERIFIED` unless the operator explicitly attests that both inputs share the AOI boundary, CRS, aligned grid, and resolution. The UI discloses that this is an operator attestation, not independent verification. Date-only input timestamps are disclosed as a 10:00 UTC placeholder. Exact-head NEMA checks and repository CI passed at commit `73598d283c67360c529fba6018228538e23f5271`.
+
 ## Feature-to-entrypoint map and API boundary decision
 
 The first-pass module classification is now recorded in [`nema_agora/FEATURE_ENTRYPOINT_MAP.md`](FEATURE_ENTRYPOINT_MAP.md). It groups all 82 no-runtime-importer modules into provisional governance/audit API contracts, standalone API and spatial/provider boundaries, governance/evidence libraries, and review/operations/reporting/spatial-review modules. The categories are based on names and architecture signals and must be confirmed by contract-level review; they are not deletion decisions.
