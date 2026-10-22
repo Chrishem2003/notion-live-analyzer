@@ -55,6 +55,10 @@ def validate_asset(a:Mapping[str,Any])->dict[str,Any]:
  if not isinstance(a.get("source_reference"),str) or not a["source_reference"].strip(): f.append({"code":"MISSING_SOURCE_REFERENCE"})
  for k in ("effective_from","effective_to"):
   if a.get(k) is not None and not _time(a[k]): f.append({"code":f"INVALID_{k.upper()}"})
+ supplied_fingerprint=a.get("asset_fingerprint")
+ if supplied_fingerprint is not None and _sha(supplied_fingerprint):
+  payload=dict(a); payload.pop("asset_fingerprint",None); payload.pop("policy_version",None)
+  if fingerprint(payload)!=supplied_fingerprint.lower(): f.append({"code":"ASSET_FINGERPRINT_MISMATCH"})
  return {"policy_version":POLICY_VERSION,"state":"CONTROL_REQUIRED" if f else "VALID","findings":f}
 def build_asset(asset_id:str,name:str,asset_type:str,geometry:Mapping[str,Any],source:str,source_reference:str,*,status="PROPOSED",effective_from=None,effective_to=None,version=1,metadata=None)->dict[str,Any]:
  row={"asset_id":asset_id,"name":name,"asset_type":asset_type,"geometry":dict(geometry),"crs":"EPSG:4326","source":source,"source_reference":source_reference,"effective_from":effective_from,"effective_to":effective_to,"version":version,"status":status,"metadata":dict(metadata or {})}
