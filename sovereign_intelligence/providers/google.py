@@ -10,6 +10,7 @@ from ..models import AIRequest, AIResponse
 class GoogleProvider(ModelProvider):
 
     name = "google"
+    default_model = "gemini-2.5-flash"
 
     def __init__(self):
         self.api_key = os.getenv("GOOGLE_API_KEY")
@@ -21,7 +22,7 @@ class GoogleProvider(ModelProvider):
                 "GOOGLE_API_KEY is not configured."
             )
 
-        model = request.model or "gemini-2.5-flash"
+        model = request.model or self.default_model
 
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/"
