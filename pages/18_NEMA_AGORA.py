@@ -702,6 +702,10 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
     )
     with st.form("nema_agora_spatial_evidence_form"):
         st.markdown("**Scene identity and time window**")
+        st.caption(
+            "This prototype has date-only inputs and assigns 10:00 UTC to each date for calculation. "
+            "That time is an explicit placeholder, not provider acquisition metadata; use exact scene timestamps when a verified provider is connected."
+        )
         scene_a, scene_b = st.columns(2)
         with scene_a:
             baseline_scene = st.text_input("Baseline scene ID", value="S2-BASE-DEMO")
