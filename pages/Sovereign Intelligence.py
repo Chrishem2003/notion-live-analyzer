@@ -55,7 +55,7 @@ with st.sidebar:
 
     model_override = (
         os.getenv("SOVEREIGN_AI_MODEL", "").strip()
-        if provider == default_provider
+        if environment_default and provider == environment_default
         else ""
     )
     default_model = provider_registry.get(provider).default_model
