@@ -49,11 +49,17 @@ def process_platform_ledger_job() -> dict[str, Any]:
             return {"processed": True, "status": "needs_review", "job_id": job_id}
         except Exception:
             # Do not put exception text, tokens, or payloads into durable logs.
-            ledger.finish(
+            finished = ledger.finish(
                 job_id=job_id, worker_id=worker_id, lease_token=lease_token,
                 status="failed", error={"code": "handler_failed"},
             )
-            return {"processed": True, "status": "failed", "job_id": job_id}
+            final_status = finished.get("status", "failed")
+            if final_status == "queued":
+                # DB has committed the retry transition. Dispatch another worker
+                # task; if the broker is unavailable, a same-key API retry can
+                # safely dispatch the still-queued durable row later.
+                celery_app.send_task("tasks.process_platform_ledger_job")
+            return {"processed": True, "status": final_status, "job_id": job_id}
 
         ledger.finish(
             job_id=job_id, worker_id=worker_id, lease_token=lease_token,
