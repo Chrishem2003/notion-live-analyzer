@@ -33,6 +33,11 @@ jobs:
       run: |
         pytest -v
 
+    - name: Validate ledger service startup scripts
+      run: |
+        sh -n scripts/start_platform_ledger_worker.sh
+        sh -n scripts/start_platform_ledger_beat.sh
+
     - name: Start isolated PostgreSQL for ledger migration validation
       run: |
         docker run -d --name ledger-postgres \
