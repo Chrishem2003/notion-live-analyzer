@@ -54,3 +54,40 @@ def test_openrouter_uses_qualified_default_model_without_network(monkeypatch):
     assert captured["payload"]["model"] == "openai/gpt-5"
     assert response.text == "deterministic test response"
     assert response.provider == "openrouter"
+
+
+
+def test_google_provider_sends_key_in_header_not_url(monkeypatch):
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-only-google-key")
+    captured = {}
+
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "model": "gemini-2.5-flash",
+                "candidates": [
+                    {"content": {"parts": [{"text": "deterministic test response"}]}}
+                ],
+            }
+
+    def fake_post(url, *, headers, json, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = json
+        captured["timeout"] = timeout
+        return FakeResponse()
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+
+    response = GoogleProvider().generate(AIRequest(prompt="test prompt"))
+
+    assert captured["url"] == (
+        "https://generativelanguage.googleapis.com/v1beta/"
+        "models/gemini-2.5-flash:generateContent"
+    )
+    assert "test-only-google-key" not in captured["url"]
+    assert captured["headers"]["x-goog-api-key"] == "test-only-google-key"
+    assert response.text == "deterministic test response"
