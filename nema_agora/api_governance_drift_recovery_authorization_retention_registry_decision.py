@@ -1,0 +1,117 @@
+"""Phase 129 — explicit human authorization boundary for retention-registry lifecycle states."""
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any, Mapping
+
+from .api_audit_binding import fingerprint
+from .api_governance_drift_recovery_authorization_retention_registry_lifecycle import (
+    validate_retention_registry_lifecycle,
+)
+
+POLICY_VERSION = "phase129-v1"
+DECISIONS = (
+    "AUTHORIZE_RETENTION_REVIEW",
+    "AUTHORIZE_PRESERVATION",
+    "AUTHORIZE_ESCALATION",
+)
+ROLES = ("coordinator", "admin")
+
+
+def authorize_retention_registry_decision(
+    lifecycle: Mapping[str, Any],
+    *,
+    actor_id: str,
+    role: str,
+    decision: str,
+    decided_at: str,
+    rationale: str,
+) -> dict[str, Any]:
+    item = validate_retention_registry_lifecycle(lifecycle)
+    if not isinstance(actor_id, str) or not actor_id.strip():
+        raise ValueError("ACTOR_ID_REQUIRED")
+    if role not in ROLES:
+        raise ValueError("INVALID_ROLE")
+    if decision not in DECISIONS:
+        raise ValueError("INVALID_DECISION")
+    if not isinstance(decided_at, str) or not decided_at.strip():
+        raise ValueError("DECISION_TIME_REQUIRED")
+    try:
+        datetime.fromisoformat(decided_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("INVALID_DECISION_TIME") from exc
+    if not isinstance(rationale, str) or not rationale.strip():
+        raise ValueError("RATIONALE_REQUIRED")
+
+    state = item["lifecycle_state"]
+    allowed = {
+        "AUTHORIZE_RETENTION_REVIEW": {"DEFERRED"},
+        "AUTHORIZE_PRESERVATION": {"ACKNOWLEDGED", "DEFERRED"},
+        "AUTHORIZE_ESCALATION": {"ESCALATED"},
+    }
+    if state not in allowed[decision]:
+        raise ValueError("DECISION_LIFECYCLE_STATE_MISMATCH")
+
+    payload = {
+        "policy_version": POLICY_VERSION,
+        "lifecycle_fingerprint": item["lifecycle_fingerprint"],
+        "monitor_fingerprint": item["monitor_fingerprint"],
+        "review_fingerprint": item["review_fingerprint"],
+        "lifecycle_state": state,
+        "actor_id": actor_id.strip(),
+        "role": role,
+        "decision": decision,
+        "decided_at": decided_at,
+        "rationale": rationale.strip(),
+        "human_authorized": True,
+        "execution_permitted": False,
+        "execution_performed": False,
+        "automatic_repair_performed": False,
+        "execution_gate_closed": True,
+        "environmental_conclusion": None,
+        "regulatory_conclusion": None,
+        "enforcement_action": None,
+        "emergency_action": None,
+    }
+    return dict(payload, decision_fingerprint=fingerprint(payload))
+
+
+def validate_retention_registry_decision(
+    decision: Mapping[str, Any],
+) -> dict[str, Any]:
+    if not isinstance(decision, Mapping):
+        raise ValueError("INVALID_RETENTION_REGISTRY_DECISION")
+    required = (
+        "policy_version", "lifecycle_fingerprint", "monitor_fingerprint",
+        "review_fingerprint", "lifecycle_state", "actor_id", "role",
+        "decision", "decided_at", "rationale", "human_authorized",
+        "execution_permitted", "execution_performed",
+        "automatic_repair_performed", "execution_gate_closed",
+        "decision_fingerprint",
+    )
+    for key in required:
+        if key not in decision:
+            raise ValueError(f"MISSING_{key.upper()}")
+    if decision["policy_version"] != POLICY_VERSION:
+        raise ValueError("INVALID_DECISION_POLICY")
+    if decision["role"] not in ROLES or decision["decision"] not in DECISIONS:
+        raise ValueError("INVALID_DECISION_ROLE_OR_VALUE")
+    if not isinstance(decision["actor_id"], str) or not decision["actor_id"].strip():
+        raise ValueError("ACTOR_ID_REQUIRED")
+    if not isinstance(decision["rationale"], str) or not decision["rationale"].strip():
+        raise ValueError("RATIONALE_REQUIRED")
+    try:
+        datetime.fromisoformat(str(decision["decided_at"]).replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("INVALID_DECISION_TIME") from exc
+    if decision["human_authorized"] is not True:
+        raise ValueError("HUMAN_AUTHORIZATION_REQUIRED")
+    if decision["execution_permitted"] is not False or decision["execution_performed"] is not False:
+        raise ValueError("EXECUTION_MUST_REMAIN_FORBIDDEN")
+    if decision["automatic_repair_performed"] is not False or decision["execution_gate_closed"] is not True:
+        raise ValueError("INVALID_EXECUTION_BOUNDARY")
+    payload = dict(decision)
+    supplied = payload.pop("decision_fingerprint")
+    if fingerprint(payload) != supplied:
+        raise ValueError("DECISION_FINGERPRINT_MISMATCH")
+    return dict(decision)

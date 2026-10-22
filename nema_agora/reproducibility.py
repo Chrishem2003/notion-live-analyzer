@@ -1,29 +1,25 @@
-"""Phase 25 — deployment and reproducibility control.
+"""Deployment and reproducibility controls for NEMA-AGORA.
 
-Builds a non-secret deployment manifest so a NEMA-AGORA run can be identified
-and reproduced from explicit code, policy, dataset, and runtime metadata.
-This is engineering evidence only; it is not production approval, regulatory
-authorization, NEMA endorsement, or environmental truth.
+Manifests identify the code, policy, dataset bindings and non-secret runtime
+configuration used for a run. They are engineering evidence, not environmental
+truth, regulatory authorization, NEMA endorsement or production approval.
 """
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import json
+import os
 import platform
+import subprocess
 import sys
 from typing import Any, Mapping
 
 POLICY_VERSION = "phase25-v1"
 REQUIRED_KEYS = (
-    "application",
-    "git_revision",
-    "python_version",
-    "platform",
-    "policy_versions",
-    "dataset_bindings",
-    "configuration_fingerprint",
+    "application", "git_revision", "python_version", "platform",
+    "policy_versions", "dataset_bindings", "configuration_fingerprint",
 )
 
 @dataclass(frozen=True)
@@ -69,13 +65,13 @@ def build_manifest(
     manifest_id: str | None = None,
     generated_at: str | None = None,
 ) -> ReproducibilityManifest:
-    revision = str(git_revision).strip()
-    if not revision:
-        raise ValueError("git_revision is required")
+    revision = str(git_revision or "").strip()
+    if not revision or revision.upper() == "UNKNOWN":
+        raise ValueError("git_revision must be explicit")
     config = dict(configuration or {})
     return ReproducibilityManifest(
         manifest_id=manifest_id or f"REPRO-{fingerprint([revision, config])[:12].upper()}",
-        generated_at=generated_at or datetime.now().astimezone().isoformat(timespec="seconds"),
+        generated_at=generated_at or datetime.now(timezone.utc).isoformat(timespec="seconds"),
         application=application.strip() or "NEMA-AGORA",
         git_revision=revision,
         python_version=sys.version.split()[0],
@@ -90,9 +86,10 @@ def build_manifest(
 def validate_manifest(manifest: ReproducibilityManifest) -> dict[str, Any]:
     payload = manifest.to_dict()
     missing = [key for key in REQUIRED_KEYS if not payload.get(key)]
-    secret_flag = manifest.secret_values_included is not False
+    revision_unknown = str(manifest.git_revision).strip().upper() == "UNKNOWN"
+    secrets_included = manifest.secret_values_included is not False
     return {
-        "valid": not missing and not secret_flag,
+        "valid": not missing and not revision_unknown and not secrets_included,
         "missing": missing,
         "secret_values_included": manifest.secret_values_included,
         "policy_version": POLICY_VERSION,
@@ -100,3 +97,42 @@ def validate_manifest(manifest: ReproducibilityManifest) -> dict[str, Any]:
 
 def manifest_fingerprint(manifest: ReproducibilityManifest) -> str:
     return fingerprint(manifest.to_dict())
+
+def current_git_revision() -> str:
+    """Resolve a deployment revision from trusted host metadata or Git."""
+    for key in ("GITHUB_SHA", "SOURCE_VERSION", "COMMIT_SHA"):
+        value = os.getenv(key, "").strip()
+        if value and value.upper() != "UNKNOWN":
+            return value
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True, text=True, check=True, timeout=2,
+        )
+        value = result.stdout.strip()
+        if value and value.upper() != "UNKNOWN":
+            return value
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return ""
+
+def build_runtime_manifest(
+    *,
+    policy_versions: Mapping[str, str] | None = None,
+    dataset_bindings: Mapping[str, str] | None = None,
+    configuration: Mapping[str, Any] | None = None,
+    dependencies: Mapping[str, str] | None = None,
+) -> ReproducibilityManifest:
+    """Build only when the deployment revision can be established reliably."""
+    revision = current_git_revision()
+    if not revision:
+        raise RuntimeError(
+            "Deployment Git revision is unavailable; refusing to fabricate deployment identity"
+        )
+    return build_manifest(
+        git_revision=revision,
+        policy_versions=policy_versions,
+        dataset_bindings=dataset_bindings,
+        configuration=configuration,
+        dependencies=dependencies,
+    )
