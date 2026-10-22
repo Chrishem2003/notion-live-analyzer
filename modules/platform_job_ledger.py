@@ -130,6 +130,32 @@ class PlatformJobLedger:
             raise PlatformLedgerUnavailable("Ledger returned an unsafe status response.")
         return value
 
+    def get_metrics(self) -> dict[str, Any]:
+        """Return aggregate-only metrics; never expose job payloads or identities."""
+        value = self._rpc("platform_get_job_metrics", {})
+        integer_fields = (
+            "total", "queued", "running", "succeeded", "failed",
+            "needs_review", "expired_leases", "oldest_queued_age_seconds",
+            "created_last_24h", "finished_last_24h",
+        )
+        if not isinstance(value, dict):
+            raise PlatformLedgerUnavailable("Ledger returned an invalid metrics response.")
+        for field in integer_fields:
+            item = value.get(field)
+            if not isinstance(item, int) or isinstance(item, bool) or item < 0:
+                raise PlatformLedgerUnavailable("Ledger returned an invalid metrics response.")
+        if not isinstance(value.get("sampled_at"), str) or not value["sampled_at"]:
+            raise PlatformLedgerUnavailable("Ledger returned an invalid metrics response.")
+        expected_total = sum(value[field] for field in (
+            "queued", "running", "succeeded", "failed", "needs_review"
+        ))
+        if value["total"] != expected_total or value["expired_leases"] > value["running"]:
+            raise PlatformLedgerUnavailable("Ledger returned inconsistent metrics.")
+        allowed = set(integer_fields) | {"sampled_at"}
+        if set(value) != allowed:
+            raise PlatformLedgerUnavailable("Ledger returned an unexpected metrics response.")
+        return value
+
     def reserve_dispatches(self, *, limit: int = 25) -> list[str]:
         """Atomically reserve a bounded batch of queued or expired-lease jobs for dispatch."""
         if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 100:
