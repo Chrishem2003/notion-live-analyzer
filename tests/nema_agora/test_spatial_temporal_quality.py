@@ -75,3 +75,27 @@ def test_huge_numeric_quality_values_fail_closed():
     result = spatial_temporal_quality_evidence(**data)
     assert result["state"] == "CONTROL_REQUIRED"
     assert "INVALID_SPATIAL_RESOLUTION" in {x["code"] for x in result["findings"]}
+
+
+def test_invalid_quality_threshold_types_fail_closed_without_crashing():
+    data = quality()
+    data["max_cloud_cover_pct"] = "not-a-number"
+    result = validate_change_quality(**qonly(data))
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "INVALID_MAX_CLOUD_THRESHOLD" in {item["code"] for item in result["findings"]}
+
+    data = quality()
+    data["min_valid_fraction"] = "not-a-number"
+    result = validate_change_quality(**qonly(data))
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "INVALID_MIN_VALID_FRACTION" in {item["code"] for item in result["findings"]}
+
+
+def test_invalid_thresholds_do_not_mask_other_quality_findings():
+    data = quality()
+    data["max_cloud_cover_pct"] = "invalid"
+    data["baseline_cloud_cover_pct"] = 45.0
+    result = validate_change_quality(**qonly(data))
+    codes = {item["code"] for item in result["findings"]}
+    assert "INVALID_MAX_CLOUD_THRESHOLD" in codes
+    assert "BASELINE_CLOUD_COVER_ABOVE_THRESHOLD" not in codes
