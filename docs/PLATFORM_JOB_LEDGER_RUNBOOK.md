@@ -27,7 +27,7 @@ Do not deploy a blueprint change that creates paid workers or managed Redis unti
 ## Safe rollout sequence
 
 1. Review both `supabase/migrations/20261022210000_platform_job_ledger.sql` and `supabase/migrations/20261023010000_platform_job_dispatch_reconciliation.sql`; run them only on a disposable Supabase branch or local database first.
-2. Validate the RPC grants, RLS flags, idempotency conflict behavior, stale lease rejection, and append-only audit trigger. Do not apply to production as a substitute for these tests.
+2. Validate the RPC grants, RLS flags, aggregate-metrics RPC privileges, idempotency conflict behavior, stale lease rejection, and append-only audit trigger. Do not apply to production as a substitute for these tests.
 3. Deploy the API and worker with `PLATFORM_JOB_LEDGER_ENABLED=false`. Also run Celery Beat as a separate process (using `sh scripts/start_platform_ledger_beat.sh`) so the 30-second dispatch reconciliation task is actually scheduled.
 4. Verify the API health route and worker startup. Confirm the service-role key is available only to server services.
 5. In a non-production environment, apply the migration, run the unit suite, and exercise one synthetic job twice with the same `Idempotency-Key`. It must create one row and return the same job ID on retry.
@@ -35,6 +35,7 @@ Do not deploy a blueprint change that creates paid workers or managed Redis unti
 7. Only then set `PLATFORM_JOB_LEDGER_ENABLED=true` in the non-production environment and smoke-test:
    - `POST /api/v1/platform-jobs` with `{"job_type":"platform.synthetic.validate","payload":{"test":true}}` and an `Idempotency-Key` header.
    - `GET /api/v1/platform-jobs/{job_id}` until it reaches `succeeded`.
+   - `GET /api/v1/platform-jobs/metrics` and verify aggregate counts only; the response must not contain job IDs, actor scopes, payloads, or error bodies.
 8. Production enablement requires a separate approval after the same checks against the production release candidate. Never use real research records for the first test.
 
 ## Automatic dispatch recovery\n\n- Celery Beat schedules `tasks.reconcile_platform_ledger_dispatches` every 30 seconds. Both the reconciler and the worker processor are inert while `PLATFORM_JOB_LEDGER_ENABLED` is false, so turning the flag off prevents new ledger claims.\n- When enabled, the reconciler asks the database to reserve up to 25 queued jobs or jobs whose worker lease has expired, then dispatches worker tasks. It never reads or returns job payloads.\n- The reservation RPC has a 60-second cooldown to bound duplicate broker messages when workers or the broker are unavailable. A later sweep retries unclaimed reservations. The worker claim remains atomic, so duplicate task messages cannot claim the same active lease.\n- The reconciliation loop is best-effort, not a substitute for monitoring. Alert on repeated broker failures, queue age, expired leases, failed jobs, and `needs_review` jobs.\n\n## API behavior
