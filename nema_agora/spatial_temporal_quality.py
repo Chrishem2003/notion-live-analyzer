@@ -45,18 +45,30 @@ def validate_change_quality(*, baseline_aoi_id: Any, comparison_aoi_id: Any, bas
         findings.append({"code": f"SPATIAL_ALIGNMENT_{spatial_alignment}"})
     if not _finite(spatial_resolution_m) or float(spatial_resolution_m) <= 0:
         findings.append({"code": "INVALID_SPATIAL_RESOLUTION"})
-    for label, value in (("BASELINE", baseline_cloud_cover_pct), ("COMPARISON", comparison_cloud_cover_pct)):
-        if not _bounded(value, 0.0, 100.0): findings.append({"code": f"INVALID_{label}_CLOUD_COVER"})
-        elif float(value) > float(max_cloud_cover_pct): findings.append({"code": f"{label}_CLOUD_COVER_ABOVE_THRESHOLD"})
-    for label, value in (("BASELINE", baseline_valid_fraction), ("COMPARISON", comparison_valid_fraction)):
-        if not _bounded(value, 0.0, 1.0): findings.append({"code": f"INVALID_{label}_VALID_FRACTION"})
-        elif float(value) < float(min_valid_fraction): findings.append({"code": f"{label}_VALID_FRACTION_BELOW_THRESHOLD"})
-    for name, value in (("NDVI", ndvi_uncertainty), ("NDWI", ndwi_uncertainty)):
-        if not _finite(value) or float(value) < 0: findings.append({"code": f"INVALID_{name}_UNCERTAINTY"})
-    if not _finite(max_cloud_cover_pct) or not 0.0 <= float(max_cloud_cover_pct) <= 100.0:
+    valid_max_cloud_threshold = (
+        _finite(max_cloud_cover_pct) and 0.0 <= float(max_cloud_cover_pct) <= 100.0
+    )
+    valid_min_fraction_threshold = (
+        _finite(min_valid_fraction) and 0.0 <= float(min_valid_fraction) <= 1.0
+    )
+    if not valid_max_cloud_threshold:
         findings.append({"code": "INVALID_MAX_CLOUD_THRESHOLD"})
-    if not _finite(min_valid_fraction) or not 0.0 <= float(min_valid_fraction) <= 1.0:
+    if not valid_min_fraction_threshold:
         findings.append({"code": "INVALID_MIN_VALID_FRACTION"})
+
+    for label, value in (("BASELINE", baseline_cloud_cover_pct), ("COMPARISON", comparison_cloud_cover_pct)):
+        if not _bounded(value, 0.0, 100.0):
+            findings.append({"code": f"INVALID_{label}_CLOUD_COVER"})
+        elif valid_max_cloud_threshold and float(value) > float(max_cloud_cover_pct):
+            findings.append({"code": f"{label}_CLOUD_COVER_ABOVE_THRESHOLD"})
+    for label, value in (("BASELINE", baseline_valid_fraction), ("COMPARISON", comparison_valid_fraction)):
+        if not _bounded(value, 0.0, 1.0):
+            findings.append({"code": f"INVALID_{label}_VALID_FRACTION"})
+        elif valid_min_fraction_threshold and float(value) < float(min_valid_fraction):
+            findings.append({"code": f"{label}_VALID_FRACTION_BELOW_THRESHOLD"})
+    for name, value in (("NDVI", ndvi_uncertainty), ("NDWI", ndwi_uncertainty)):
+        if not _finite(value) or float(value) < 0:
+            findings.append({"code": f"INVALID_{name}_UNCERTAINTY"})
     return {"policy_version": POLICY_VERSION, "state": "VALID" if not findings else "CONTROL_REQUIRED", "findings": findings}
 
 def spatial_temporal_quality_evidence(*, change_evidence: Mapping[str, Any],
