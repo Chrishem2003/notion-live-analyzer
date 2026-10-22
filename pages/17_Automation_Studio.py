@@ -77,9 +77,10 @@ status_col, reload_col, link_col, height_col = st.columns([1.2, 1, 1, 2])
 
 with status_col:
     if online:
-        st.success(f"Online · {latency_ms} ms")
+        st.success(f"Embed reachable · {latency_ms} ms")
+        st.caption("This checks the published page responds; it does not verify workflow execution, authentication, or repository sync.")
     else:
-        st.error("Unreachable — open in a new tab to check directly")
+        st.error("Embed unreachable — open in a new tab to check directly")
 
 with reload_col:
     if st.button("↻ Reload studio", use_container_width=True):
@@ -152,6 +153,11 @@ with side_col:
 
     st.divider()
     st.subheader("📝 Notes & bookmarks")
+    st.warning(
+        "These notes use the app instance's local filesystem. On hosted/free deployments "
+        "they may disappear after a restart or redeploy. Do not store passwords, API keys, "
+        "personal data, or critical operational records here."
+    )
 
     notes = load_notes()
 
@@ -180,7 +186,7 @@ with side_col:
                     save_notes(notes)
                     st.rerun()
     else:
-        st.caption("No saved notes yet — automations you jot down here will show up on every visit.")
+        st.caption("No notes found on this app instance. Persistence across restarts/redeploys is not guaranteed.")
 
 st.divider()
 st.caption(
