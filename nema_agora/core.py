@@ -5,6 +5,7 @@ No Streamlit dependency: validation can be tested independently.
 from __future__ import annotations
 
 from datetime import date
+import math
 import uuid
 
 STATUSES = ("Received", "Under review", "Referred", "Action recorded", "Closed")
@@ -30,7 +31,7 @@ def validate_observation(*, site: str, description: str, consent_confirmed: bool
         errors.append("An observation description is required.")
     if len(description or "") > 1500:
         errors.append("The observation description must be 1,500 characters or fewer.")
-    if not consent_confirmed:
+    if consent_confirmed is not True:
         errors.append("Permission and data minimisation must be confirmed.")
     return errors
 
@@ -41,7 +42,19 @@ def new_case_id() -> str:
 
 
 def normalise_coordinates(latitude: float, longitude: float) -> tuple[float, float] | None:
-    """Return valid non-default coordinates, or None when the UI's zero pair means omitted."""
+    """Return finite, in-range coordinates, or None when the zero pair means omitted."""
+    if (
+        isinstance(latitude, bool)
+        or not isinstance(latitude, (int, float))
+        or not math.isfinite(float(latitude))
+    ):
+        raise ValueError("Latitude must be a finite number.")
+    if (
+        isinstance(longitude, bool)
+        or not isinstance(longitude, (int, float))
+        or not math.isfinite(float(longitude))
+    ):
+        raise ValueError("Longitude must be a finite number.")
     if not (-90 <= latitude <= 90):
         raise ValueError("Latitude must be between -90 and 90.")
     if not (-180 <= longitude <= 180):
