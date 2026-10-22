@@ -65,6 +65,17 @@ def _timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _safe_recovery_reason(value: str) -> str:
+    """Redact common inline credentials before operator notes enter the audit log."""
+    safe = re.sub(r"(?i)\b(bearer\s+)[A-Za-z0-9._~+/-]+=*", r"\1[REDACTED]", value)
+    safe = re.sub(
+        r"(?i)\b(api[_-]?key|token|secret|password|authorization)\s*[:=]\s*[^\s,;]+",
+        r"\1=[REDACTED]",
+        safe,
+    )
+    return safe[:1000]
+
+
 class GovernedAutomationRuntime:
     """Run allow-listed workflows with idempotency, authorization and audit events.
 
@@ -241,6 +252,70 @@ class GovernedAutomationRuntime:
                     self._db.execute("ROLLBACK")
                 raise
         return self._public_job(row, replayed=False)
+
+    def resolve_stuck_job_as_failed(
+        self,
+        job_id: str,
+        *,
+        actor: str,
+        reason: str,
+        resolution: str,
+    ) -> dict[str, Any]:
+        """Close a running job only after an operator confirms no side effect occurred.
+
+        This is a manual, audited decision—not automatic lease recovery. If the
+        external effect is uncertain, do not call this method; keep the job blocked
+        and investigate first. The idempotency key remains reserved, preventing a
+        blind replay from re-executing the workflow.
+        """
+        if not isinstance(actor, str) or not actor.strip() or len(actor.strip()) > 120:
+            raise ValueError("A bounded actor identifier is required.")
+        if not isinstance(reason, str) or not reason.strip() or len(reason.strip()) > 1000:
+            raise ValueError("A recovery reason of 1–1000 characters is required.")
+        if resolution != "confirmed_no_side_effect":
+            raise ValueError("Resolution must explicitly confirm that no side effect occurred.")
+        if self._authorize is None:
+            raise AutomationAuthorizationError("Job recovery is not authorized.")
+
+        now = _timestamp()
+        with self._lock:
+            try:
+                self._db.execute("BEGIN IMMEDIATE")
+                row = self._db.execute(
+                    "SELECT * FROM automation_jobs WHERE job_id = ?", (job_id,)
+                ).fetchone()
+                if row is None:
+                    raise KeyError("Automation job was not found.")
+                if self._authorize(actor.strip(), row["workflow_name"]) is not True:
+                    raise AutomationAuthorizationError("Job recovery is not authorized.")
+                if row["status"] != "running":
+                    raise AutomationConflictError("Only a running job can be manually reconciled.")
+                error_code = "ManualRecoveryConfirmedNoSideEffect"
+                updated = self._db.execute(
+                    "UPDATE automation_jobs SET status='failed', error_code=?, updated_at=? "
+                    "WHERE job_id=? AND status='running'",
+                    (error_code, now, job_id),
+                )
+                if updated.rowcount != 1:
+                    raise AutomationConflictError("Job status changed during recovery; read its current status.")
+                self._audit(job_id, "job_manually_reconciled_failed", {
+                    "job_id": job_id,
+                    "workflow_name": row["workflow_name"],
+                    "actor": actor.strip(),
+                    "status": "failed",
+                    "error_code": error_code,
+                    "resolution": resolution,
+                    "reason": _safe_recovery_reason(reason.strip()),
+                }, now)
+                self._db.execute("COMMIT")
+                result = self._db.execute(
+                    "SELECT * FROM automation_jobs WHERE job_id = ?", (job_id,)
+                ).fetchone()
+            except Exception:
+                if self._db.in_transaction:
+                    self._db.execute("ROLLBACK")
+                raise
+        return self._public_job(result, replayed=False)
 
     def get_job(self, job_id: str, *, actor: str) -> dict[str, Any] | None:
         if self._authorize is None:
