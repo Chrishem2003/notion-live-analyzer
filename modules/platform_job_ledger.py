@@ -119,6 +119,10 @@ class PlatformJobLedger:
         return value
 
     def claim(self, *, worker_id: str, lease_seconds: int = 120) -> dict[str, Any] | None:
+        if not isinstance(worker_id, str) or not 1 <= len(worker_id.strip()) <= 200:
+            raise ValueError("Worker ID must contain 1–200 characters.")
+        if not isinstance(lease_seconds, int) or isinstance(lease_seconds, bool) or not 10 <= lease_seconds <= 1800:
+            raise ValueError("lease_seconds must be an integer from 10 to 1800.")
         value = self._rpc("platform_claim_job", {
             "p_worker_id": worker_id,
             "p_lease_seconds": lease_seconds,
@@ -134,6 +138,9 @@ class PlatformJobLedger:
     def finish(self, *, job_id: str, worker_id: str, lease_token: str, status: str,
                result: dict[str, Any] | None = None,
                error: dict[str, Any] | None = None) -> dict[str, Any]:
+        for label, value in (("job_id", job_id), ("worker_id", worker_id), ("lease_token", lease_token)):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{label} is required.")
         if status not in {"succeeded", "failed", "needs_review"}:
             raise ValueError("Unsupported terminal status.")
         if result is not None:
