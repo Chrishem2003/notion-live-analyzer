@@ -53,6 +53,19 @@ def _imports(source: str, module_name: str, *, is_package_init: bool = False) ->
                 found.add(base)
                 if base == "nema_agora":
                     found.update(f"{base}.{alias.name}" for alias in node.names)
+        elif isinstance(node, ast.Call) and node.args:
+            # Recognize common literal dynamic imports so tests and plugin-style
+            # entrypoints are not incorrectly classified as unreferenced.
+            is_import_module = (
+                isinstance(node.func, ast.Attribute)
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "importlib"
+                and node.func.attr == "import_module"
+            )
+            is_builtin_import = isinstance(node.func, ast.Name) and node.func.id == "__import__"
+            first_arg = node.args[0]
+            if (is_import_module or is_builtin_import) and isinstance(first_arg, ast.Constant) and isinstance(first_arg.value, str):
+                found.add(first_arg.value)
     return found
 
 
