@@ -4,27 +4,31 @@
 
 - Integration PR: [#52 — integrate NEMA-AGORA safely onto current main](https://github.com/Chrishem2003/notion-live-analyzer/pull/52)
 - Branch: `integration/nema-agora-current-main`
-- Last code commit with completed automated CI: `7060ce845ca29cdfcd412d33883c3644474ec1db`
-- Status: exact-head automated CI passed. Merge, hosted acceptance, persistent storage, and institutional release remain blocked pending the gates below.
-- Scope: preserves the current-main single-file `app.py` shell and adds the existing NEMA-AGORA page/package/tests; the older divergent branch was not merged wholesale.
+- Last fully tested code commit: `5817e96bf87dfa89997b55429137344d2fe9623b`
+- Exact-head focused NEMA checks and repository CI passed on that commit.
+- Status: automated checks pass; merge, hosted acceptance, NEMA API integration, persistent storage, and institutional release remain blocked pending the gates below.
+- Scope: preserves the current-main single-file `app.py` shell and adds the NEMA-AGORA page/package/tests; the older divergent branch was not merged wholesale.
 
-## Automated evidence on exact head
+## Exact-head automated evidence
 
-- [NEMA-AGORA Pilot Checks — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39747986849)
-  - NEMA unit tests passed.
+- [NEMA-AGORA Pilot Checks — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39750240546)
+  - NEMA unit tests passed, including Earth Engine boundary and Phase 159 contract tests.
   - NEMA package/page compilation passed.
-  - Streamlit pilot and release-readiness smoke checks passed.
-- [Repository CI/CD Pipeline — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39747986838)
-  - Full repository automated test suite passed, including the new import-inventory regression tests.
+  - Static import inventory executed.
+  - Streamlit pilot smoke check passed.
+- [Repository CI/CD Pipeline — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39750240685)
+  - Full repository automated test suite passed.
   - Lightweight API container build passed.
   - API runtime import check passed.
 
-## Inventory audit
+## Static inventory result
 
-- Added `nema_agora/INTEGRATION_INVENTORY_AUDIT.md` with first-pass architecture, security, and cleanup findings.
-- Added `scripts/audit_nema_agora_inventory.py` to report static package imports, importer counts, phase-suffixed module names, and unresolved internal imports.
-- Added `tests/test_nema_agora_inventory_audit.py` to cover package-relative imports, import references, phase suffix reporting, unresolved internal imports, and missing-package failure.
-- The tool is deliberately a triage tool, not a deletion oracle. Dynamic imports, API routes, deployment configuration, external consumers, and public entrypoints still need review.
+- 180 package modules; 425 Python files scanned.
+- 26 phase-suffixed package modules.
+- 0 unresolved internal `nema_agora.*` imports in the scanned package/pages/tests.
+- 82 modules have no detected runtime importer; all 82 are referenced by tests. These are not automatic deletion candidates.
+- The existing `Dockerfile.api` launches `api_server:app`; that app does not import `nema_agora`. The separate NEMA FastAPI spatial modules are therefore not served by the current API entrypoint.
+- See `nema_agora/INTEGRATION_INVENTORY_AUDIT.md` for the module classes and recommended entrypoint review.
 
 ## Current pilot boundaries
 
@@ -35,9 +39,10 @@
 
 ## Required before merge or hosted release
 
-- [ ] Run the inventory tool against the full candidate and review its generated JSON output.
-- [ ] Trace phase-numbered governance/reconciliation modules, dynamic imports, API entrypoints, and tests before proposing consolidation; do not mass-delete based on naming or missing static imports.
-- [ ] Verify the NEMA page appears in the deployed Streamlit navigation and complete the demo-mode user journey.
+- [ ] Build a feature-to-entrypoint map for the 82 test-only/not-runtime-imported modules, including API routes and any dynamic/external entrypoints.
+- [ ] Decide and document whether NEMA spatial API endpoints remain unexposed, are mounted in the existing API, or are deployed as a separate authenticated service.
+- [ ] Review the phase-numbered governance/reconciliation family and add regression tests before consolidation; do not mass-delete by filename.
+- [ ] Verify the NEMA page appears in deployed Streamlit navigation and complete the demo-mode journey.
 - [ ] Verify deployed OIDC login/logout and server-side role bindings for each provisioned role.
 - [ ] Test unprovisioned accounts and direct service/repository calls; confirm deny-by-default behavior.
 - [ ] In an approved persistent environment, create a synthetic record, read it back, review it, and verify actor-attributed audit history.
@@ -48,4 +53,4 @@
 
 ## Release decision
 
-**Not approved for production.** Do not merge or describe this as production-ready until code review, exact-head CI, hosted acceptance, security/storage checks, and governance gates are complete.
+**Not approved for production.** Do not merge or describe this as production-ready until code review, exact-head CI, hosted acceptance, API entrypoint decisions, security/storage checks, and governance gates are complete.
