@@ -16,9 +16,9 @@ def _case(case_id="NEMA-TEST-001"):
     return {
         "case_id": case_id,
         "district_or_site": "Synthetic Pilot Site",
-        "category": "Water",
-        "severity": "Medium",
-        "status": "Reported",
+        "category": "Water pollution",
+        "severity": "Moderate",
+        "status": "Received",
         "observation_date": "2026-10-22",
         "description": "Synthetic test record only.",
         "source": "automated_test",
