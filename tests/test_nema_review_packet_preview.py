@@ -111,6 +111,8 @@ def test_client_calls_review_preview_with_server_side_auth_and_timeout(mock_get)
 def test_client_rejects_invalid_review_case_id_before_request():
     with pytest.raises(ValueError):
         get_review_packet(" ")
+    with pytest.raises(ValueError):
+        get_review_packet(123)
 
 
 @patch.dict("os.environ", {
