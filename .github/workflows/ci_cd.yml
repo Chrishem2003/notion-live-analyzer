@@ -57,7 +57,7 @@ jobs:
       run: |
         psql -h localhost -U postgres -d ledger_test -v ON_ERROR_STOP=1 \
           -f supabase/migrations/20261022210000_platform_job_ledger.sql \
-          -f supabase/migrations/20261023010000_platform_job_dispatch_reconciliation.sql
+          -f supabase/migrations/20261023010000_platform_job_dispatch_reconciliation.sql \\\n          -f supabase/migrations/20261023020000_platform_job_ledger_metrics.sql
 
     - name: Verify ledger SQL security and lifecycle contracts
       env:
@@ -73,6 +73,7 @@ jobs:
           status_doc jsonb;
           reserved_jobs jsonb;
           second_reservation jsonb;
+          metrics jsonb;
           job_uuid uuid;
           lease_uuid uuid;
           crash_job_uuid uuid;
@@ -102,6 +103,12 @@ jobs:
           END IF;
           IF NOT has_function_privilege('service_role', 'public.platform_reserve_dispatches(integer)', 'EXECUTE') THEN
             RAISE EXCEPTION 'service_role cannot execute dispatch reservation RPC';
+          END IF;
+          IF has_function_privilege('anon', 'public.platform_get_job_metrics()', 'EXECUTE') THEN
+            RAISE EXCEPTION 'anon can execute privileged metrics RPC';
+          END IF;
+          IF NOT has_function_privilege('service_role', 'public.platform_get_job_metrics()', 'EXECUTE') THEN
+            RAISE EXCEPTION 'service_role cannot execute metrics RPC';
           END IF;
 
           first_job := public.platform_enqueue_job(
@@ -209,6 +216,16 @@ jobs:
              OR (claim->>'job_id')::uuid <> crash_job_uuid
              OR (claim->>'attempt_count')::integer <> 2 THEN
             RAISE EXCEPTION 'expired worker lease was not recovered as attempt two';
+          END IF;
+
+          metrics := public.platform_get_job_metrics();
+          IF (metrics->>'total')::integer <> 3
+             OR (metrics->>'succeeded')::integer <> 1
+             OR (metrics->>'failed')::integer <> 1
+             OR (metrics->>'running')::integer <> 1
+             OR (metrics->>'expired_leases')::integer <> 0
+             OR metrics ? 'payload' OR metrics ? 'actor_scope' OR metrics ? 'job_id' THEN
+            RAISE EXCEPTION 'aggregate metrics are inconsistent or expose sensitive data';
           END IF;
 
           BEGIN
