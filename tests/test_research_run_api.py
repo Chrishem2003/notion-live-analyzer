@@ -53,6 +53,42 @@ def request_payload():
     }
 
 
+@pytest.mark.parametrize(
+    "parameters_json",
+    ["{malformed", "[]", '"scalar"', "42", "null"],
+)
+def test_research_run_rejects_malformed_or_non_object_parameters(api, monkeypatch, parameters_json):
+    _, client, _ = api
+    monkeypatch.setenv("RESEARCH_RUN_WRITEBACK_ENABLED", "false")
+    payload = request_payload()
+    payload["parameters_json"] = parameters_json
+
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=payload,
+    )
+
+    assert response.status_code == 422
+    assert "parameters_json" in response.text
+
+
+def test_research_run_accepts_empty_parameters_for_legacy_clients(api, monkeypatch):
+    _, client, _ = api
+    monkeypatch.setenv("RESEARCH_RUN_WRITEBACK_ENABLED", "false")
+    payload = request_payload()
+    payload["parameters_json"] = ""
+
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=payload,
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["mode"] == "free_plan_safe_mode"
+
+
 def test_free_plan_safe_mode_disables_research_writes(api, monkeypatch):
     _, client, _ = api
     monkeypatch.setenv("RESEARCH_RUN_WRITEBACK_ENABLED", "false")
