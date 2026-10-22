@@ -103,7 +103,7 @@ begin
        or p_idempotency_key is null or length(p_idempotency_key) not between 1 and 200
        or p_request_hash is null or p_request_hash !~ '^[0-9a-f]{64}$'
        or p_payload is null or jsonb_typeof(p_payload) <> 'object'
-       or p_max_attempts not between 1 and 10 then
+       or p_max_attempts is null or p_max_attempts not between 1 and 10 then
         raise exception 'invalid job request' using errcode = '22023';
     end if;
 
@@ -158,7 +158,7 @@ declare
     v_token uuid;
 begin
     if p_worker_id is null or length(p_worker_id) not between 1 and 200
-       or p_lease_seconds not between 10 and 1800 then
+       or p_lease_seconds is null or p_lease_seconds not between 10 and 1800 then
         raise exception 'invalid worker lease request' using errcode = '22023';
     end if;
 
@@ -247,7 +247,7 @@ as $$
 declare
     v_job public.platform_jobs%rowtype;
 begin
-    if p_status not in ('succeeded', 'failed', 'needs_review') then
+    if p_status is null or p_status not in ('succeeded', 'failed', 'needs_review') then
         raise exception 'invalid terminal status' using errcode = '22023';
     end if;
     if p_result is not null and jsonb_typeof(p_result) <> 'object' then
