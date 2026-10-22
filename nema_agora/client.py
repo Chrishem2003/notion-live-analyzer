@@ -53,3 +53,12 @@ def get_case(case_id: str) -> dict[str, Any]:
     if not clean_id or len(clean_id) > 200:
         raise ValueError("case_id must contain 1–200 non-whitespace characters")
     return _get("/" + quote(clean_id, safe=""))
+
+def get_review_packet(case_id: str) -> dict[str, Any]:
+    """Request a deterministic read-only review packet preview for one case."""
+    clean_id = case_id.strip()
+    if not clean_id or len(clean_id) > 80:
+        raise ValueError("case_id must contain 1–80 non-whitespace characters")
+    if clean_id != case_id:
+        raise ValueError("case_id must not have leading or trailing whitespace")
+    return _get("/" + quote(clean_id, safe="") + "/review-packet")
