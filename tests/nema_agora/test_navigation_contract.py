@@ -1,6 +1,7 @@
 """Navigation contract tests: one visible NEMA-AGORA destination only."""
 from pathlib import Path
 
+
 def test_single_nema_agora_workspace_is_the_only_nema_page_in_current_app():
     root = Path(__file__).resolve().parents[2]
     pages = root / "pages"
