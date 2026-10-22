@@ -69,14 +69,19 @@ The naming suggests a long incremental implementation history and overlapping co
 
 The page imports spatial change, spatial quality, candidate detection, and evidence-bundle modules. Sentinel-2/Google Earth Engine-related modules exist, but the CI checks do not prove credentials, external API access, actual imagery acquisition, coordinate-reference handling, or classification accuracy against validated field observations. Keep these capabilities labelled as configured/experimental until an authorized live-source test and independent validation exist.
 
+## Feature-to-entrypoint map and API boundary decision
+
+The first-pass module classification is now recorded in [`nema_agora/FEATURE_ENTRYPOINT_MAP.md`](FEATURE_ENTRYPOINT_MAP.md). It groups all 82 no-runtime-importer modules into provisional governance/audit API contracts, standalone API and spatial/provider boundaries, governance/evidence libraries, and review/operations/reporting/spatial-review modules. The categories are based on names and architecture signals and must be confirmed by contract-level review; they are not deletion decisions.
+
+**Pilot boundary decision:** keep the current Streamlit NEMA page as the only integrated NEMA user entrypoint for now. Do not mount the NEMA FastAPI apps into the existing `api_server:app`, because that API currently uses a shared platform API key and does not import NEMA. NEMA's OIDC role-binding controls need an explicit, independently tested API authorization design. Keep spatial API endpoints unexposed until the route-level security and deployment target are approved. A separate authenticated service may be considered after the contracts and acceptance tests are complete.
+
 ## Next engineering sequence
 
-1. Create a feature-to-entrypoint map for the 82 test-only modules; distinguish standalone APIs from modules intended for the Streamlit journey.
-2. Decide whether NEMA spatial endpoints should be mounted into the existing API, deployed as a separate authenticated service, or remain explicitly unexposed for the pilot. Do not silently attach a second app to the current API.
-3. For each retained user-facing feature, trace the path from UI/API entrypoint through authorization, service, persistence, audit, and tests.
-4. Add regression tests before consolidation; keep changes additive until contracts and exact-head CI prove compatibility.
-5. Verify deployed Streamlit navigation and demo mode, then OIDC/role boundaries. Only then test persistent write/read/audit/backup/restore in an approved environment.
-6. Re-run exact-head CI after source or tracker changes. Production remains blocked until security, storage, accessibility, data-governance, and institutional review gates have evidence.
+1. Trace public functions/classes, dependencies, side effects, matching tests, authorization, persistence, and intended entrypoints for each module family in the map.
+2. Compare the phase-numbered governance/reconciliation family by public contract and behavior; add equivalence/regression tests before consolidation. Do not mass-delete by filename.
+3. For each retained user-facing feature, test the full path from UI/API entrypoint through permission check, service, persistence, audit, and tests.
+4. Verify deployed Streamlit navigation and demo mode, then OIDC/role boundaries. Only then test persistent write/read/audit/backup/restore in an approved environment.
+5. Re-run exact-head CI after source or tracker changes. Production remains blocked until security, storage, accessibility, data-governance, and institutional review gates have evidence.
 
 ## Explicit non-claims
 
