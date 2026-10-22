@@ -29,6 +29,29 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
+def validate_metrics(payload: object) -> dict:
+    """Validate the complete aggregate-only metrics contract."""
+    fields = {
+        "total", "queued", "running", "succeeded", "failed", "needs_review",
+        "expired_leases", "oldest_queued_age_seconds", "created_last_24h",
+        "finished_last_24h", "sampled_at",
+    }
+    if not isinstance(payload, dict) or set(payload) != fields:
+        raise ValueError("Metrics response has an unexpected schema.")
+    for field in fields - {"sampled_at"}:
+        value = payload.get(field)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            raise ValueError(f"Metrics field {field!r} is invalid.")
+    if not isinstance(payload.get("sampled_at"), str) or not payload["sampled_at"]:
+        raise ValueError("Metrics sample timestamp is invalid.")
+    states_total = sum(payload[field] for field in (
+        "queued", "running", "succeeded", "failed", "needs_review"
+    ))
+    if payload["total"] != states_total or payload["expired_leases"] > payload["running"]:
+        raise ValueError("Metrics counters are inconsistent.")
+    return payload
+
+
 def main() -> None:
     base_url = os.environ.get("PLATFORM_LEDGER_SMOKE_BASE_URL", "").strip().rstrip("/")
     api_key = os.environ.get("PLATFORM_LEDGER_SMOKE_API_KEY", "").strip()
@@ -59,15 +82,19 @@ def main() -> None:
     try:
         health = session.get(f"{base_url}/api/v1/health", timeout=timeout)
         health.raise_for_status()
+        health_body = health.json()
+        if not isinstance(health_body, dict) or health_body.get("status") != "ok":
+            fail("Health endpoint did not report a healthy API.")
 
         metrics_before_response = session.get(
             f"{base_url}/api/v1/platform-jobs/metrics", timeout=timeout
         )
         if metrics_before_response.status_code != 200:
             fail(f"Metrics endpoint unavailable (HTTP {metrics_before_response.status_code}); check staging flag, auth, and migrations.")
-        metrics_before = metrics_before_response.json()
-        if not isinstance(metrics_before, dict):
-            fail("Metrics endpoint returned an invalid response.")
+        try:
+            metrics_before = validate_metrics(metrics_before_response.json())
+        except ValueError:
+            fail("Metrics endpoint returned an invalid or unsafe response.")
 
         request_body = {
             "job_type": "platform.synthetic.validate",
@@ -132,13 +159,12 @@ def main() -> None:
             f"{base_url}/api/v1/platform-jobs/metrics", timeout=timeout
         )
         metrics_after_response.raise_for_status()
-        metrics_after = metrics_after_response.json()
-        forbidden = {"job_id", "actor_scope", "payload", "lease_token", "error", "error_body"}
-        if forbidden.intersection(metrics_after):
-            fail("Metrics endpoint returned a forbidden sensitive field.")
-        for field in ("total", "queued", "running", "succeeded", "failed", "needs_review"):
-            if not isinstance(metrics_after.get(field), int) or isinstance(metrics_after.get(field), bool):
-                fail(f"Metrics field {field!r} is missing or invalid.")
+        try:
+            metrics_after = validate_metrics(metrics_after_response.json())
+        except ValueError:
+            fail("Metrics endpoint returned an invalid or unsafe response.")
+        if metrics_after["succeeded"] < 1:
+            fail("Aggregate metrics do not show any succeeded jobs after the smoke test.")
 
         print("PASS: non-production synthetic job lifecycle completed.")
         print("PASS: same-key idempotency and changed-request conflict verified.")
