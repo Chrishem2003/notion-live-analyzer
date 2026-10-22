@@ -51,3 +51,32 @@ def test_smoke_rejects_unsafe_base_url_before_network(monkeypatch, capsys, url):
     with pytest.raises(SystemExit):
         smoke.main()
     assert "FAIL:" in capsys.readouterr().err
+
+
+def valid_metrics():
+    return {
+        "total": 1, "queued": 0, "running": 0, "succeeded": 1,
+        "failed": 0, "needs_review": 0, "expired_leases": 0,
+        "oldest_queued_age_seconds": 0, "created_last_24h": 1,
+        "finished_last_24h": 1, "sampled_at": "2026-10-23T12:00:00+00:00",
+    }
+
+
+def test_smoke_metrics_validator_accepts_aggregate_schema():
+    assert smoke.validate_metrics(valid_metrics())["succeeded"] == 1
+
+
+@pytest.mark.parametrize("change", [
+    {"payload": {"sensitive": True}},
+    {"total": 99},
+    {"running": -1},
+    {"queued": True},
+    {"expired_leases": 1},
+    {"sampled_at": ""},
+    {"extra_field": "unexpected"},
+])
+def test_smoke_metrics_validator_rejects_inconsistent_or_sensitive_schema(change):
+    payload = valid_metrics()
+    payload.update(change)
+    with pytest.raises(ValueError):
+        smoke.validate_metrics(payload)
