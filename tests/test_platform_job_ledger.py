@@ -64,9 +64,10 @@ def test_enqueue_hashes_canonical_payload_and_sends_server_auth(monkeypatch):
     result = ledger.enqueue(job_type="demo.validate", actor_scope="service:test",
                             idempotency_key="request-1", payload={"b": 2, "a": 1})
     sent = session.calls[0][1]
-    expected = hashlib.sha256(json.dumps({"a": 1, "b": 2}, sort_keys=True,
-                                separators=(",", ":"), ensure_ascii=False,
-                                allow_nan=False).encode()).hexdigest()
+    expected = hashlib.sha256(json.dumps(
+        {"job_type": "demo.validate", "max_attempts": 3, "payload": {"a": 1, "b": 2}},
+        sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    ).encode()).hexdigest()
     assert sent["p_request_hash"] == expected
     assert result["status"] == "queued"
     assert session.headers["Authorization"] == "Bearer synthetic-secret"
