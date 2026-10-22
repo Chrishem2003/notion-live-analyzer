@@ -258,11 +258,17 @@ begin
     end if;
 
     update public.platform_jobs
-    set status = p_status,
+    set status = case
+            when p_status = 'failed' and attempt_count < max_attempts then 'queued'
+            else p_status
+        end,
         result_json = p_result,
         error_json = p_error,
         updated_at = now(),
-        finished_at = now(),
+        finished_at = case
+            when p_status = 'failed' and attempt_count < max_attempts then null
+            else now()
+        end,
         lease_until = null
     where job_id = p_job_id
       and status = 'running'
@@ -282,8 +288,15 @@ begin
       and finished_at is null;
 
     insert into public.platform_audit_events (job_id, actor_scope, event_type, event_json)
-    values (v_job.job_id, v_job.actor_scope, 'job.' || p_status,
-            jsonb_build_object('attempt', v_job.attempt_count, 'worker_id', p_worker_id));
+    values (
+        v_job.job_id, v_job.actor_scope,
+        case when v_job.status = 'queued' then 'job.retry_scheduled' else 'job.' || p_status end,
+        jsonb_build_object(
+            'attempt', v_job.attempt_count,
+            'worker_id', p_worker_id,
+            'retry_scheduled', v_job.status = 'queued'
+        )
+    );
 
     return jsonb_build_object('job_id', v_job.job_id, 'status', v_job.status);
 end;
