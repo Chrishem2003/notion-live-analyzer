@@ -56,6 +56,8 @@ def get_case(case_id: str) -> dict[str, Any]:
 
 def get_review_packet(case_id: str) -> dict[str, Any]:
     """Request a deterministic read-only review packet preview for one case."""
+    if not isinstance(case_id, str):
+        raise ValueError("case_id must be text")
     clean_id = case_id.strip()
     if not clean_id or len(clean_id) > 80:
         raise ValueError("case_id must contain 1–80 non-whitespace characters")
