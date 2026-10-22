@@ -1,8 +1,7 @@
 """Authenticated, read-only API boundary for NEMA-AGORA case records.
 
-Writes deliberately remain unavailable here until a durable idempotency ledger and
-per-actor authorization model are implemented and deployed. The repository itself
-does not authenticate callers or prove that a host path is durable.
+Writes deliberately remain unavailable until a durable idempotency ledger and
+per-actor authorization model are implemented and deployed.
 """
 from __future__ import annotations
 
@@ -53,9 +52,35 @@ def _database_path() -> Path:
 
 
 def _repository():
+    backend = os.environ.get("NEMA_CASE_STORAGE_BACKEND", "sqlite").strip().lower()
+    if backend == "supabase_postgres":
+        from nema_agora.supabase_repository import (
+            NemaStorageUnavailableError,
+            SupabaseReadOnlyNemaRepository,
+        )
+
+        try:
+            return SupabaseReadOnlyNemaRepository()
+        except NemaStorageUnavailableError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="NEMA remote storage is not configured or available.",
+            ) from exc
+    if backend != "sqlite":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="NEMA case storage backend is unsupported.",
+        )
     from nema_agora.repository import NemaCaseRepository
 
     return NemaCaseRepository(_database_path())
+
+
+def _remote_storage_error(exc: Exception) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail="NEMA case storage is temporarily unavailable.",
+    )
 
 
 @router.get("")
@@ -64,6 +89,8 @@ def list_cases(
     _auth: bool = Depends(_require_nema_api_key),
 ):
     """List persisted case summaries; no write or enforcement operation is exposed."""
+    from nema_agora.supabase_repository import NemaStorageUnavailableError
+
     repository = _repository()
     try:
         rows = repository.list_cases(limit=limit)
@@ -73,17 +100,27 @@ def list_cases(
             "limit": limit,
             "mode": "read_only",
         }
+    except NemaStorageUnavailableError as exc:
+        raise _remote_storage_error(exc) from exc
     finally:
         repository.close()
 
 
 @router.get("/storage-readiness")
 def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
-    """Inspect configured storage without creating a database or changing records.
+    """Inspect configured storage without creating a database or changing records."""
+    backend = os.environ.get("NEMA_CASE_STORAGE_BACKEND", "sqlite").strip().lower()
+    if backend == "supabase_postgres":
+        from nema_agora.supabase_repository import NemaStorageUnavailableError
 
-    A healthy SQLite file and an explicit durability flag are necessary but do not
-    independently prove that the hosting provider preserves the underlying disk.
-    """
+        repository = _repository()
+        try:
+            return repository.storage_readiness()
+        except NemaStorageUnavailableError as exc:
+            raise _remote_storage_error(exc) from exc
+        finally:
+            repository.close()
+
     path = _database_path()
     if not path.is_file():
         raise HTTPException(
@@ -125,11 +162,11 @@ def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
     integrity_ok = bool(integrity and integrity[0] == "ok")
     return {
         "status": "configured" if schema_ready and integrity_ok else "not_ready",
+        "storage_backend": "sqlite",
         "database_file_present": True,
         "sqlite_integrity": "ok" if integrity_ok else "failed",
         "required_schema_present": schema_ready,
         "durability_flag_configured": True,
-        # This requires independent confirmation of the hosting disk/mount.
         "storage_durability_verified": False,
         "production_writes_enabled": False,
     }
@@ -138,6 +175,8 @@ def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
 @router.get("/{case_id}")
 def get_case(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
     """Read one persisted case and its audit history."""
+    from nema_agora.supabase_repository import NemaStorageUnavailableError
+
     repository = _repository()
     try:
         found = repository.get_case(case_id)
@@ -150,5 +189,7 @@ def get_case(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
             "audit": repository.list_audit_events(case_id, limit=100),
             "mode": "read_only",
         }
+    except NemaStorageUnavailableError as exc:
+        raise _remote_storage_error(exc) from exc
     finally:
         repository.close()
