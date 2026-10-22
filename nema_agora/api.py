@@ -120,6 +120,11 @@ def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
             raise _remote_storage_error(exc) from exc
         finally:
             repository.close()
+    if backend != "sqlite":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="NEMA case storage backend is unsupported.",
+        )
 
     path = _database_path()
     if not path.is_file():
