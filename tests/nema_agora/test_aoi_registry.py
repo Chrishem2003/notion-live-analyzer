@@ -23,16 +23,19 @@ def test_geometry_rejects_out_of_range_and_non_finite_coordinates():
 def test_geometry_accepts_closed_polygon_and_valid_point():
  x=a()
  assert validate_asset(x)["state"]=="VALID"
- x=a()
- x["geometry"]={"type":"Point","coordinates":[32.0,0.0]}
+ x=build_asset("AOI-POINT","Demo Point","CUSTOM",{"type":"Point","coordinates":[32.0,0.0]},"SYNTHETIC","DEMO-POINT")
  assert validate_asset(x)["state"]=="VALID"
 
 def test_multipolygon_requires_valid_rings():
- x=a()
- x["geometry"]={"type":"MultiPolygon","coordinates":[[[[32,0],[32.1,0],[32.1,0.1],[32,0]]]]}
+ valid_geometry={"type":"MultiPolygon","coordinates":[[[[32,0],[32.1,0],[32.1,0.1],[32,0]]]]}
+ x=build_asset("AOI-MULTI","Demo Multi","WETLAND",valid_geometry,"SYNTHETIC","DEMO-MULTI")
  assert validate_asset(x)["state"]=="VALID"
+ x=a()
  x["geometry"]={"type":"MultiPolygon","coordinates":[[[[32,0],[32.1,0],[32.1,0.1]]]]}
- assert validate_asset(x)["state"]=="CONTROL_REQUIRED"
+ x.pop("asset_fingerprint",None)
+ result=validate_asset(x)
+ assert result["state"]=="CONTROL_REQUIRED"
+ assert "INVALID_GEOMETRY" in {item["code"] for item in result["findings"]}
 
 
 def test_registry_rejects_non_mapping_and_unhashable_asset_ids_without_crashing():
