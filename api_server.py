@@ -393,7 +393,7 @@ async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = 
 @app.get("/api/v1/health")
 def health():
     """Expose service health and the explicit research-write safety mode."""
-    writeback_enabled = os.environ.get("RESEARCH_RUN_WRITEBACK_ENABLED", "true").strip().lower() == "true"
+    writeback_enabled = os.environ.get("RESEARCH_RUN_WRITEBACK_ENABLED", "false").strip().lower() == "true"
     return {
         "status": "ok",
         "research_run_writeback": "enabled_pending_preflight" if writeback_enabled else "disabled_no_durable_ledger",

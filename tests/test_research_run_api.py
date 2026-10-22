@@ -115,6 +115,20 @@ def test_missing_writeback_flag_defaults_to_safe_mode(api, monkeypatch):
     assert response.json()["detail"]["research_records_written"] == 0
 
 
+def test_health_defaults_to_safe_mode_when_writeback_flag_is_missing(api, monkeypatch):
+    _, client, _ = api
+    monkeypatch.delenv("RESEARCH_RUN_WRITEBACK_ENABLED", raising=False)
+
+    response = client.get("/api/v1/health")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "research_run_writeback": "disabled_no_durable_ledger",
+        "research_records_written": 0,
+    }
+
+
 def test_health_reports_free_plan_safe_mode(api, monkeypatch):
     _, client, _ = api
     monkeypatch.setenv("RESEARCH_RUN_WRITEBACK_ENABLED", "false")
