@@ -338,6 +338,14 @@ class ResearchRunAdapter:
                 "mint a new run ID."
             ) from exc
 
+        if response.status_code in (500, 502, 503, 504):
+            # A server error does not prove that the create was not committed.
+            # Keep the ledger ambiguous so recovery queries the same run_id
+            # instead of blindly creating a possible duplicate.
+            raise AmbiguousWriteError(
+                f"Notion returned HTTP {response.status_code} after the run write; "
+                "the outcome is uncertain. Reuse this run_id and reconcile before retry."
+            )
         if response.status_code not in (200, 201):
             raise ResearchRunWriteError(
                 f"Notion rejected the run write (HTTP {response.status_code})."
