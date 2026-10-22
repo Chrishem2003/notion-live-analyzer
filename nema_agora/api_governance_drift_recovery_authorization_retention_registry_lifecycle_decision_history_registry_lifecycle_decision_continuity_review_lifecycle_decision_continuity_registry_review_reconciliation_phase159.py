@@ -11,6 +11,16 @@ STATES = ("NO_HISTORY", "RECONCILED", "CONTROL_REQUIRED")
 def reconcile_lifecycle_decision_continuity_registry_reviews(
     monitor_reports: Sequence[Mapping[str, Any]], reviews: Sequence[Mapping[str, Any]], *, expected_review_count: int | None = None
 ) -> dict[str, Any]:
+    if not isinstance(monitor_reports, Sequence) or isinstance(monitor_reports, (str, bytes)):
+        raise ValueError("INVALID_MONITOR_REPORTS")
+    if not isinstance(reviews, Sequence) or isinstance(reviews, (str, bytes)):
+        raise ValueError("INVALID_REVIEWS")
+    if expected_review_count is not None and (
+        isinstance(expected_review_count, bool)
+        or not isinstance(expected_review_count, int)
+        or expected_review_count < 0
+    ):
+        raise ValueError("INVALID_EXPECTED_REVIEW_COUNT")
     findings: list[str] = []
     monitors: list[dict[str, Any]] = []
     valid_reviews: list[dict[str, Any]] = []
