@@ -33,3 +33,16 @@ def test_multipolygon_requires_valid_rings():
  assert validate_asset(x)["state"]=="VALID"
  x["geometry"]={"type":"MultiPolygon","coordinates":[[[[32,0],[32.1,0],[32.1,0.1]]]]}
  assert validate_asset(x)["state"]=="CONTROL_REQUIRED"
+
+
+def test_registry_rejects_non_mapping_and_unhashable_asset_ids_without_crashing():
+ assert validate_registry([None])["state"]=="CONTROL_REQUIRED"
+ malformed={"asset_id":["not","hashable"],"name":"bad"}
+ result=validate_registry([malformed])
+ assert result["state"]=="CONTROL_REQUIRED"
+ assert "INVALID_ASSET_ID" in {item["code"] for item in result["findings"]}
+
+def test_registry_only_detects_duplicates_for_valid_string_ids():
+ result=validate_registry([{"asset_id":["x"]},{"asset_id":["x"]}])
+ assert result["state"]=="CONTROL_REQUIRED"
+ assert "DUPLICATE_ASSET_ID" not in {item["code"] for item in result["findings"]}
