@@ -3,19 +3,19 @@
   "mode": "AUTONOMOUS_BUILD",
   "status": "RELEASE_READINESS",
   "current_phase": 186,
-  "next_phase": 186,
-  "completed_through": 185,
+  "next_phase": 187,
+  "completed_through": 186,
   "pr_number": 52,
   "branch": "integration/nema-agora-current-main",
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "5817e96bf87dfa89997b55429137344d2fe9623b",
-  "last_verified_head": "5817e96bf87dfa89997b55429137344d2fe9623b",
-  "last_verified_phase": 185,
+  "current_head": "a096102cecf7846347ec2d0e7571be74528c05ed",
+  "last_verified_head": "cb19c1cb6cc638746a3fdba611018a2e5b0d2a75",
+  "last_verified_phase": 186,
   "architecture_checkpoint_after": 174,
-  "last_action": "Ran the static package inventory and added regression tests for the Earth Engine boundary and Phase 159 reconciliation. Exact-head NEMA and repository CI passed on 5817e96bf87dfa89997b55429137344d2fe9623b. Inventory found 82 modules with no detected runtime importer (all test-referenced); current api_server.py does not import NEMA and does not mount NEMA spatial API routes.",
-  "validation_status": "NEMA_AND_REPOSITORY_CI_PASSED_ON_5817e96; STATIC_INVENTORY_FOUND_82_TEST_ONLY_NOT_RUNTIME_IMPORTED_MODULES; NEMA_SPATIAL_API_NOT_MOUNTED_IN_CURRENT_API_ENTRYPOINT; HOSTED_AND_GOVERNANCE_GATES_PENDING",
+  "last_action": "Completed spatial data-integrity hardening: AOI geometry validation for Point/Polygon/MultiPolygon, AOI fingerprint recomputation, malformed registry-row handling, and safe quality-threshold validation. Exact-head NEMA checks and repository CI passed on code commit cb19c1cb6cc638746a3fdba611018a2e5b0d2a75; release checklist and audit refreshed afterward and require final documentation-head CI.",
+  "validation_status": "NEMA_AND_REPOSITORY_CI_PASSED_ON_cb19c1c; SPATIAL_DATA_INTEGRITY_HARDENING_TESTED; DOCUMENTATION_REFRESH_REQUIRES_EXACT_HEAD_CI; HOSTED_AND_GOVERNANCE_GATES_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -26,9 +26,9 @@
   ],
   "release_gate_status": "PENDING_REQUIRED_EVIDENCE",
   "release_gate_pending": [
-    "feature_to_entrypoint_map_for_82_test_only_modules",
-    "decide_and_document_nema_spatial_api_deployment_boundary",
+    "complete_module_contract_tracing_for_no_runtime_importer_modules",
     "review_phase_numbered_governance_and_reconciliation_modules",
+    "trusted_spatial_api_credential_verification_and_server_side_role_resolution",
     "deployed_streamlit_navigation_and_demo_flow",
     "deployed_oidc_login_logout_and_role_verification",
     "persistent_database_write_read_and_audit",
@@ -38,9 +38,9 @@
     "institutional_approval"
   ],
   "validation_evidence": {
-    "candidate_code_sha": "5817e96bf87dfa89997b55429137344d2fe9623b",
-    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39750240546",
-    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39750240685",
+    "candidate_code_sha": "cb19c1cb6cc638746a3fdba611018a2e5b0d2a75",
+    "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39759245444",
+    "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39759245391",
     "inventory_summary": {
       "package_modules": 180,
       "scanned_python_files": 425,
@@ -50,14 +50,18 @@
       "modules_imported_by_tests_but_not_runtime": 82
     },
     "checks": {
-      "nema_unit_tests": "PASSED_ON_5817e96",
-      "nema_compile": "PASSED_ON_5817e96",
-      "inventory_audit": "PASSED_ON_5817e96",
-      "streamlit_smoke_check": "PASSED_ON_5817e96",
-      "repository_test_suite": "PASSED_ON_5817e96",
-      "api_container_build": "PASSED_ON_5817e96",
-      "api_runtime_import": "PASSED_ON_5817e96",
-      "phase_186_complete": "FALSE_UNTIL_ENTRYPOINT_REVIEW_AND_HOSTED_GATES"
+      "nema_unit_tests": "PASSED_ON_cb19c1c",
+      "nema_compile": "PASSED_ON_cb19c1c",
+      "inventory_audit": "PASSED_ON_cb19c1c",
+      "streamlit_smoke_check": "PASSED_ON_cb19c1c",
+      "repository_test_suite": "PASSED_ON_cb19c1c",
+      "api_container_build": "PASSED_ON_cb19c1c",
+      "api_runtime_import": "PASSED_ON_cb19c1c",
+      "aoi_geometry_validation": "TESTED_ON_cb19c1c",
+      "asset_fingerprint_integrity": "TESTED_ON_cb19c1c",
+      "malformed_registry_and_quality_thresholds": "TESTED_ON_cb19c1c",
+      "phase_186_complete": "TRUE_CODE_TESTS_PASSED",
+      "phase_187_complete": "FALSE"
     }
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
