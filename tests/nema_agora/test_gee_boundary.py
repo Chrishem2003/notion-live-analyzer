@@ -40,7 +40,7 @@ def test_scene_request_rejects_oversized_window_and_unapproved_collection():
 def test_missing_provider_never_fakes_live_earth_engine_access():
     request = validate_scene_request(asset(), "2026-09-01", "2026-10-01")
     result = execute_scene_request(request, provider=None, credentials_configured=True)
-    assert result["state"] == "PROVIDER_ERROR"
+    assert result["state"] == "PROVIDER_NOT_CONFIGURED"
     assert result["findings"] == [{"code": "SCENE_PROVIDER_MISSING"}]
     assert result["scenes"] == []
 
