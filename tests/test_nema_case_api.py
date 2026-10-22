@@ -80,9 +80,41 @@ def test_case_api_lists_and_reads_persisted_records_read_only(monkeypatch, tmp_p
     assert retrieved["mode"] == "read_only"
 
 
+def test_storage_readiness_does_not_create_missing_database(monkeypatch, tmp_path):
+    missing_db = tmp_path / "missing.sqlite3"
+    _configure_storage(monkeypatch, missing_db)
+
+    with pytest.raises(HTTPException) as missing:
+        api.storage_readiness(_auth=True)
+
+    assert missing.value.status_code == 503
+    assert missing.value.detail["reason"] == "database_file_missing"
+    assert not missing_db.exists()
+
+
+def test_storage_readiness_checks_integrity_without_claiming_durability(monkeypatch, tmp_path):
+    from nema_agora.repository import NemaCaseRepository
+
+    database = tmp_path / "nema-cases.sqlite3"
+    _configure_storage(monkeypatch, database)
+    repository = NemaCaseRepository(database)
+    repository.close()
+
+    readiness = api.storage_readiness(_auth=True)
+    assert readiness["status"] == "configured"
+    assert readiness["sqlite_integrity"] == "ok"
+    assert readiness["required_schema_present"] is True
+    assert readiness["durability_flag_configured"] is True
+    assert readiness["storage_durability_verified"] is False
+    assert readiness["production_writes_enabled"] is False
+
+
 def test_case_api_does_not_expose_a_write_route():
     route_shapes = {(route.path, tuple(sorted(route.methods or []))) for route in api.router.routes}
     assert ("/api/v1/nema/cases", ("GET",)) in route_shapes
+    assert ("/api/v1/nema/cases/storage-readiness", ("GET",)) in route_shapes
     assert ("/api/v1/nema/cases/{case_id}", ("GET",)) in route_shapes
-    assert not any("POST" in methods or "PUT" in methods or "PATCH" in methods or "DELETE" in methods
-                   for _, methods in route_shapes)
+    assert not any(
+        "POST" in methods or "PUT" in methods or "PATCH" in methods or "DELETE" in methods
+        for _, methods in route_shapes
+    )
