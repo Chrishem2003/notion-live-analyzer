@@ -6,6 +6,7 @@ import sqlite3
 import pytest
 
 from nema_agora.api_governance_drift_human_review import review_drift
+from nema_agora.api_governance_drift_review_queue import build_drift_review_item
 from nema_agora.api_governance_drift_review_registry import (
     GovernanceDriftReviewAuditRegistry,
     POLICY_VERSION,
@@ -15,14 +16,14 @@ from nema_agora.api_audit_binding import fingerprint
 
 
 def _item():
-    return {
-        "review_id": "API-DRIFT-REVIEW-001",
+    return build_drift_review_item({
         "drift_id": "API-DRIFT-001",
         "drift_fingerprint": "a" * 64,
         "baseline_snapshot_id": "API-SNAPSHOT-BASE",
         "current_snapshot_id": "API-SNAPSHOT-CURRENT",
-        "state": "QUEUED",
-    }
+        "severity": "MEDIUM",
+        "state": "REVIEW_TRIGGERED",
+    })
 
 
 def _audit():
