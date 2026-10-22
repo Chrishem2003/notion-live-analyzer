@@ -66,6 +66,19 @@ def test_free_plan_safe_mode_disables_research_writes(api, monkeypatch):
     assert response.json()["detail"]["research_records_written"] == 0
 
 
+def test_missing_writeback_flag_defaults_to_safe_mode(api, monkeypatch):
+    _, client, _ = api
+    monkeypatch.delenv("RESEARCH_RUN_WRITEBACK_ENABLED", raising=False)
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+    assert response.status_code == 503
+    assert response.json()["detail"]["mode"] == "free_plan_safe_mode"
+    assert response.json()["detail"]["research_records_written"] == 0
+
+
 def test_health_reports_free_plan_safe_mode(api, monkeypatch):
     _, client, _ = api
     monkeypatch.setenv("RESEARCH_RUN_WRITEBACK_ENABLED", "false")

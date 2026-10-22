@@ -77,7 +77,7 @@ def write_research_run(
     _auth: bool = Depends(require_api_key),
 ):
     """Persist a synthetic-first Analysis Run after validating relation targets."""
-    if os.environ.get("RESEARCH_RUN_WRITEBACK_ENABLED", "true").strip().lower() != "true":
+    if os.environ.get("RESEARCH_RUN_WRITEBACK_ENABLED", "false").strip().lower() != "true":
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={
