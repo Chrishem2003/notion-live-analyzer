@@ -17,7 +17,7 @@ language plpgsql
 set search_path = pg_catalog, public
 as $$
 begin
-    if new.status = 'running' and old.status is distinct from 'running' then
+    if new.status = 'running' then
         new.dispatch_requested_at := null;
     end if;
     return new;
