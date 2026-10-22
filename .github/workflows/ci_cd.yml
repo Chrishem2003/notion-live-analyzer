@@ -51,7 +51,8 @@ jobs:
         PGPASSWORD: postgres
       run: |
         psql -h localhost -U postgres -d ledger_test -v ON_ERROR_STOP=1 \
-          -f supabase/migrations/20261022210000_platform_job_ledger.sql
+          -f supabase/migrations/20261022210000_platform_job_ledger.sql \
+          -f supabase/migrations/20261023010000_platform_job_dispatch_reconciliation.sql
 
     - name: Verify ledger SQL security and lifecycle contracts
       env:
@@ -65,6 +66,8 @@ jobs:
           claim jsonb;
           finished jsonb;
           status_doc jsonb;
+          reserved_jobs jsonb;
+          second_reservation jsonb;
           job_uuid uuid;
           lease_uuid uuid;
           hash_value text := repeat('a', 64);
@@ -86,6 +89,12 @@ jobs:
           END IF;
           IF has_table_privilege('service_role', 'public.platform_jobs', 'SELECT') THEN
             RAISE EXCEPTION 'service_role has direct table access';
+          END IF;
+          IF has_function_privilege('anon', 'public.platform_reserve_dispatches(integer)', 'EXECUTE') THEN
+            RAISE EXCEPTION 'anon can execute dispatch reservation RPC';
+          END IF;
+          IF NOT has_function_privilege('service_role', 'public.platform_reserve_dispatches(integer)', 'EXECUTE') THEN
+            RAISE EXCEPTION 'service_role cannot execute dispatch reservation RPC';
           END IF;
 
           first_job := public.platform_enqueue_job(
@@ -110,6 +119,16 @@ jobs:
           EXCEPTION WHEN SQLSTATE '23505' THEN
             NULL;
           END;
+
+          reserved_jobs := public.platform_reserve_dispatches(10);
+          IF jsonb_array_length(reserved_jobs) <> 1
+             OR reserved_jobs->0->>'job_id' <> first_job->>'job_id' THEN
+            RAISE EXCEPTION 'dispatch reconciliation did not reserve the queued job';
+          END IF;
+          second_reservation := public.platform_reserve_dispatches(10);
+          IF jsonb_array_length(second_reservation) <> 0 THEN
+            RAISE EXCEPTION 'dispatch reservation cooldown did not prevent duplicate dispatch';
+          END IF;
 
           claim := public.platform_claim_job('ci-worker', 30);
           IF claim IS NULL THEN RAISE EXCEPTION 'queued job was not claimed'; END IF;
@@ -142,6 +161,11 @@ jobs:
           );
           IF finished->>'status' <> 'queued' THEN
             RAISE EXCEPTION 'first handler failure was not queued for retry';
+          END IF;
+          reserved_jobs := public.platform_reserve_dispatches(10);
+          IF jsonb_array_length(reserved_jobs) <> 1
+             OR reserved_jobs->0->>'job_id' <> job_uuid::text THEN
+            RAISE EXCEPTION 'requeued job was not recovered by dispatch reconciliation';
           END IF;
           claim := public.platform_claim_job('ci-worker-2', 30);
           IF claim IS NULL OR (claim->>'attempt_count')::integer <> 2 THEN
