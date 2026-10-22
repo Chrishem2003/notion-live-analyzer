@@ -28,7 +28,7 @@
 - 0 unresolved internal `nema_agora.*` imports in the scanned package/pages/tests.
 - 82 modules have no detected runtime importer; all 82 are referenced by tests. These are not automatic deletion candidates.
 - The existing `Dockerfile.api` launches `api_server:app`; that app does not import `nema_agora`. The separate NEMA FastAPI spatial modules are therefore not served by the current API entrypoint.
-- See `nema_agora/INTEGRATION_INVENTORY_AUDIT.md` for the module classes and recommended entrypoint review.
+- See [`nema_agora/INTEGRATION_INVENTORY_AUDIT.md`](INTEGRATION_INVENTORY_AUDIT.md) and [`nema_agora/FEATURE_ENTRYPOINT_MAP.md`](FEATURE_ENTRYPOINT_MAP.md) for module classification and the API boundary decision.
 
 ## Current pilot boundaries
 
@@ -39,8 +39,9 @@
 
 ## Required before merge or hosted release
 
-- [ ] Build a feature-to-entrypoint map for the 82 test-only/not-runtime-imported modules, including API routes and any dynamic/external entrypoints.
-- [ ] Decide and document whether NEMA spatial API endpoints remain unexposed, are mounted in the existing API, or are deployed as a separate authenticated service.
+- [x] Create a provisional feature-to-entrypoint map for all 82 no-runtime-importer modules; module-by-module contract tracing remains in progress.
+- [x] Document the pilot API boundary: NEMA spatial endpoints remain unexposed; do not mount them into the existing shared-key platform API without a separately reviewed authorization design.
+- [ ] Complete module-by-module contract tracing, including dynamic/external entrypoints and deployed consumers.
 - [ ] Review the phase-numbered governance/reconciliation family and add regression tests before consolidation; do not mass-delete by filename.
 - [ ] Verify the NEMA page appears in deployed Streamlit navigation and complete the demo-mode journey.
 - [ ] Verify deployed OIDC login/logout and server-side role bindings for each provisioned role.
