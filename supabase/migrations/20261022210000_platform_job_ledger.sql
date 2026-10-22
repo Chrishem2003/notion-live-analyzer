@@ -59,10 +59,10 @@ alter table public.platform_audit_events enable row level security;
 
 revoke all on public.platform_jobs, public.platform_job_attempts, public.platform_audit_events
     from public, anon, authenticated;
-grant select, insert, update on public.platform_jobs to service_role;
-grant select, insert, update on public.platform_job_attempts to service_role;
-grant select, insert on public.platform_audit_events to service_role;
-grant usage, select on all sequences in schema public to service_role;
+-- No direct table or sequence access is granted to API callers, including service_role.
+-- SECURITY DEFINER RPCs below are the only intended mutation interface.
+revoke all on public.platform_jobs, public.platform_job_attempts, public.platform_audit_events
+    from service_role;
 
 -- The audit table is append-only for ordinary SQL roles. The application writes
 -- audit events in the same transaction as each state transition.
@@ -166,14 +166,30 @@ begin
     from public.platform_jobs
     where (
         status = 'queued'
-        or (status = 'running' and lease_until < now() and attempt_count < max_attempts)
+        or (status = 'running' and lease_until < now())
     )
-    and attempt_count < max_attempts
     order by created_at, job_id
     for update skip locked
     limit 1;
 
     if not found then
+        return null;
+    end if;
+
+    if v_job.status = 'running' and v_job.attempt_count >= v_job.max_attempts then
+        update public.platform_job_attempts
+        set finished_at = now(), outcome = 'lease_expired',
+            error_json = jsonb_build_object('reason', 'worker lease expired; retry budget exhausted')
+        where job_id = v_job.job_id and attempt_number = v_job.attempt_count
+          and finished_at is null;
+        update public.platform_jobs
+        set status = 'needs_review', lease_until = null, updated_at = now(),
+            finished_at = now(),
+            error_json = jsonb_build_object('reason', 'worker lease expired; retry budget exhausted')
+        where job_id = v_job.job_id;
+        insert into public.platform_audit_events (job_id, actor_scope, event_type, event_json)
+        values (v_job.job_id, v_job.actor_scope, 'job.needs_review',
+                jsonb_build_object('reason', 'lease_expired_retry_budget_exhausted'));
         return null;
     end if;
 
