@@ -83,5 +83,9 @@ try:
             raise HTTPException(result["http_status"], detail=result["body"])
         return result["body"]
 except ImportError:
+    # Keep optional-FastAPI imports safe for library-only environments.
+    def require_spatial_principal(authorization: str | None = None) -> dict[str, str]:
+        raise RuntimeError("FastAPI is unavailable; NEMA spatial query access is disabled.")
+
     app = None
     FASTAPI_AVAILABLE = False
