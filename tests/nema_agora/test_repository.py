@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sqlite3
+
 import pytest
 
 from nema_agora.repository import (
@@ -135,3 +137,39 @@ def test_limit_validation_rejects_bool(repository):
         repository.list_cases(limit=True)
     with pytest.raises(ValueError):
         repository.list_audit_events("NA-TEST1234", limit=0)
+
+
+
+def test_audit_events_are_protected_from_update_and_delete(repository):
+    repository.create_case(_record(), actor="operator", created_at="2026-10-22T07:00:00Z")
+    with pytest.raises(sqlite3.IntegrityError, match="append-only"):
+        repository._connection.execute(
+            "UPDATE nema_case_audit SET event_type = 'rewritten' WHERE case_id = ?",
+            ("NA-TEST1234",),
+        )
+    with pytest.raises(Exception, match="append-only"):
+        repository._connection.execute(
+            "DELETE FROM nema_case_audit WHERE case_id = ?",
+            ("NA-TEST1234",),
+        )
+    assert len(repository.list_audit_events("NA-TEST1234")) == 1
+
+
+def test_file_backed_case_and_audit_survive_repository_reopen(tmp_path):
+    database = tmp_path / "nema" / "cases.sqlite3"
+    first = NemaCaseRepository(database)
+    first.create_case(_record(), actor="operator", created_at="2026-10-22T07:00:00Z")
+    first.transition_case(
+        "NA-TEST1234", new_status="Under review", actor="reviewer",
+        changed_at="2026-10-22T07:05:00Z", expected_version=1,
+    )
+    first.close()
+
+    second = NemaCaseRepository(database)
+    try:
+        record, version = second.get_case("NA-TEST1234")
+        assert record["status"] == "Under review"
+        assert version == 2
+        assert len(second.list_audit_events("NA-TEST1234")) == 2
+    finally:
+        second.close()

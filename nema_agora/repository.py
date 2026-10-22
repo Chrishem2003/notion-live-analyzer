@@ -60,6 +60,10 @@ class NemaCaseRepository:
         path = str(database_path)
         if not path.strip():
             raise ValueError("A database path is required.")
+        # SQLite creates the database file but does not create missing parent
+        # directories. Keep in-memory and explicit SQLite URI paths untouched.
+        if path != ":memory:" and not path.startswith("file:"):
+            Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._connection = sqlite3.connect(
             path, timeout=5.0, isolation_level=None, check_same_thread=False
@@ -85,6 +89,16 @@ class NemaCaseRepository:
             );
             CREATE INDEX IF NOT EXISTS idx_nema_case_audit_case_created
                 ON nema_case_audit(case_id, created_at, audit_id);
+            CREATE TRIGGER IF NOT EXISTS nema_case_audit_no_update
+            BEFORE UPDATE ON nema_case_audit
+            BEGIN
+                SELECT RAISE(ABORT, 'NEMA audit events are append-only');
+            END;
+            CREATE TRIGGER IF NOT EXISTS nema_case_audit_no_delete
+            BEFORE DELETE ON nema_case_audit
+            BEGIN
+                SELECT RAISE(ABORT, 'NEMA audit events are append-only');
+            END;
             """
         )
 
