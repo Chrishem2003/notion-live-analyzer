@@ -6,6 +6,7 @@ container ID. Call only from a trusted server-side process.
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
+import time
 import requests
 
 from modules.research_run_idempotency import IdempotencyConflictError
@@ -60,8 +61,49 @@ class ResearchRunAdapter:
             raise ValueError("run_id must be a non-empty stable string.")
         return run_id.strip()
 
+    _RETRYABLE_READ_STATUSES = frozenset({429, 500, 502, 503, 504})
+    _MAX_READ_ATTEMPTS = 3
+    _MAX_RETRY_AFTER_SECONDS = 10.0
+
+    def _read_request(self, method: str, url: str, **kwargs):
+        """Retry bounded, read-only Notion requests without retrying page creation."""
+        request = getattr(self.session, method)
+        for attempt in range(self._MAX_READ_ATTEMPTS):
+            try:
+                response = request(url, **kwargs)
+            except (requests.Timeout, requests.ConnectionError) as exc:
+                if attempt + 1 >= self._MAX_READ_ATTEMPTS:
+                    raise ResearchRunWriteError(
+                        f"Notion read request failed after {self._MAX_READ_ATTEMPTS} attempts "
+                        f"({type(exc).__name__})."
+                    ) from exc
+                time.sleep(0.25 * (2 ** attempt))
+                continue
+
+            if (
+                response.status_code not in self._RETRYABLE_READ_STATUSES
+                or attempt + 1 >= self._MAX_READ_ATTEMPTS
+            ):
+                return response
+
+            delay = 0.25 * (2 ** attempt)
+            response_headers = getattr(response, "headers", {}) or {}
+            retry_after = response_headers.get("Retry-After")
+            if response.status_code == 429 and retry_after is not None:
+                try:
+                    delay = max(0.0, float(retry_after))
+                except (TypeError, ValueError):
+                    delay = 0.25 * (2 ** attempt)
+                if delay > self._MAX_RETRY_AFTER_SECONDS:
+                    return response
+
+            time.sleep(delay)
+
+        raise ResearchRunWriteError("Notion read request failed after bounded retries.")
+
     def _find_by_external_id(self, run_id: str) -> Optional[Dict[str, Any]]:
-        response = self.session.post(
+        response = self._read_request(
+            "post",
             f"{NOTION_API_URL}/data_sources/{self.data_source_id}/query",
             json={"page_size": 2, "filter": {
                 "property": self.external_id_property,
@@ -82,7 +124,8 @@ class ResearchRunAdapter:
         return results[0] if results else None
 
     def _read_page(self, page_id: str) -> Dict[str, Any]:
-        response = self.session.get(
+        response = self._read_request(
+            "get",
             f"{NOTION_API_URL}/pages/{page_id}",
             headers=self.headers, timeout=self.timeout,
         )
