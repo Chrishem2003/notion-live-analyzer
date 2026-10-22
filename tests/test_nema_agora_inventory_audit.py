@@ -31,6 +31,9 @@ def test_inventory_reports_importers_and_phase_suffix_without_claiming_dead_code
     assert report["module_count"] == 3
     assert records["nema_agora.core"]["static_importer_count"] >= 3
     assert records["nema_agora.legacy_phase139"]["phase_suffixed"] is True
+    assert records["nema_agora.legacy_phase139"]["runtime_importer_count"] == 0
+    assert records["nema_agora.legacy_phase139"]["test_importer_count"] == 1
+    assert records["nema_agora.legacy_phase139"]["no_runtime_importers"] is True
     assert "nema_agora/legacy_phase139.py" in report["phase_suffixed_package_files"]
     assert report["unresolved_nema_imports"] == [
         {"import": "nema_agora.missing", "importers": ["tests.test_core"]}
