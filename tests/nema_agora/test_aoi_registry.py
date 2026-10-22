@@ -46,3 +46,19 @@ def test_registry_only_detects_duplicates_for_valid_string_ids():
  result=validate_registry([{"asset_id":["x"]},{"asset_id":["x"]}])
  assert result["state"]=="CONTROL_REQUIRED"
  assert "DUPLICATE_ASSET_ID" not in {item["code"] for item in result["findings"]}
+
+
+def test_asset_fingerprint_detects_tampered_geometry():
+ x=a()
+ assert validate_asset(x)["state"]=="VALID"
+ x["geometry"]["coordinates"][0][1][0]=32.2
+ result=validate_asset(x)
+ assert result["state"]=="CONTROL_REQUIRED"
+ assert "ASSET_FINGERPRINT_MISMATCH" in {item["code"] for item in result["findings"]}
+
+def test_asset_fingerprint_is_checked_during_registry_validation():
+ x=a()
+ x["source"]="ALTERED"
+ result=validate_registry([x])
+ assert result["state"]=="CONTROL_REQUIRED"
+ assert "ASSET_FINGERPRINT_MISMATCH" in {item["code"] for item in result["findings"]}
