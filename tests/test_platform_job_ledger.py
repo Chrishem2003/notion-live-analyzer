@@ -194,3 +194,25 @@ def test_closes_session(monkeypatch):
     ledger = PlatformJobLedger(session=session)
     ledger.close()
     assert session.closed
+
+
+
+def test_reserve_dispatches_validates_limit_and_returns_job_ids(monkeypatch):
+    configure(monkeypatch)
+    session = FakeSession([[
+        {"job_id": "00000000-0000-0000-0000-000000000123"}
+    ]])
+    ledger = PlatformJobLedger(session=session)
+    assert ledger.reserve_dispatches(limit=10) == ["00000000-0000-0000-0000-000000000123"]
+    assert session.calls[0][1] == {"p_limit": 10}
+    with pytest.raises(ValueError):
+        ledger.reserve_dispatches(limit=True)
+    with pytest.raises(ValueError):
+        ledger.reserve_dispatches(limit=101)
+
+
+def test_reserve_dispatches_rejects_invalid_response(monkeypatch):
+    configure(monkeypatch)
+    ledger = PlatformJobLedger(session=FakeSession([[{"job_id": "not-a-uuid"}]]))
+    with pytest.raises(PlatformLedgerUnavailable):
+        ledger.reserve_dispatches()
