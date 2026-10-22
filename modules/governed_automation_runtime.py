@@ -65,6 +65,17 @@ def _timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _safe_recovery_reason(value: str) -> str:
+    """Redact common inline credentials before operator notes enter the audit log."""
+    safe = re.sub(r"(?i)\b(bearer\s+)[A-Za-z0-9._~+/-]+=*", r"\1[REDACTED]", value)
+    safe = re.sub(
+        r"(?i)\b(api[_-]?key|token|secret|password|authorization)\s*[:=]\s*[^\s,;]+",
+        r"\1=[REDACTED]",
+        safe,
+    )
+    return safe[:1000]
+
+
 class GovernedAutomationRuntime:
     """Run allow-listed workflows with idempotency, authorization and audit events.
 
@@ -294,7 +305,7 @@ class GovernedAutomationRuntime:
                     "status": "failed",
                     "error_code": error_code,
                     "resolution": resolution,
-                    "reason": reason.strip(),
+                    "reason": _safe_recovery_reason(reason.strip()),
                 }, now)
                 self._db.execute("COMMIT")
                 result = self._db.execute(
