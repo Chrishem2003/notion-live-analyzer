@@ -1,64 +1,105 @@
+"""ResearchOS automation preview with explicit non-execution semantics.
 
-import streamlit as st
-import json
+This screen records an operator's intent to implement/run a workflow. It does not
+invoke cross-system jobs. A future execution adapter must own authorization, input
+validation, idempotency, retries, durable status and verifiable execution evidence.
+"""
+from __future__ import annotations
+
 import sqlite3
+import uuid
+
 import pandas as pd
-from datetime import datetime
-from modules.schema_engine import DB_FILE, init_db, log_provenance
+import streamlit as st
 
-def render_master_automation_control_center():
-    st.subheader("âš¡ ResearchOS Master Multi-System Automation Engine")
-    st.caption("Centralized orchestration hub running cross-module event triggers, automated WHO surveillance syncs, and cryptographic audit proofs.")
+from modules.schema_engine import DB_FILE, init_db
 
-    init_db()
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
 
-    # Create automation triggers table
-    cursor.execute('''
+WORKFLOW_OPTIONS = [
+    "Sync Genomics → WHO Pathogen Mesh",
+    "Trigger Satellite Telemetry → Agri-Grant Impact Audit",
+    "Run Anti-Rot Deterministic Snapshot (SHA-256)",
+    "Compile Research Nodes → Policy Brief",
+    "Run Multi-System Health & Integrity Sweep",
+]
+
+
+def _ensure_log_table(connection: sqlite3.Connection) -> None:
+    connection.execute(
+        """
         CREATE TABLE IF NOT EXISTS automated_pipeline_logs (
             trigger_id TEXT PRIMARY KEY,
-            source_module TEXT,
-            action_executed TEXT,
-            status TEXT,
+            source_module TEXT NOT NULL,
+            action_executed TEXT NOT NULL,
+            status TEXT NOT NULL,
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    ''')
-    conn.commit()
+        )
+        """
+    )
 
-    col1, col2 = st.columns(2)
 
-    with col1:
-        st.markdown("### âš™ï¸ Global Pipeline Automation Triggers")
-        st.caption("Execute full-system synchronization across all 22 active research and sponsorship modules.")
-        
-        selected_pipeline = st.selectbox("Select Master Workflow", [
-            "Sync Genomics âž” WHO Pathogen Mesh",
-            "Trigger Satellite Telemetry âž” Agri-Grant Impact Audit",
-            "Run Anti-Rot Deterministic Snapshot (SHA-256)",
-            "Compile All Active Nodes âž” UN/WHO Policy Brief",
-            "Execute Full Multi-System Health & Integrity Sweep"
-        ])
+def render_master_automation_control_center() -> None:
+    st.subheader("ResearchOS Master Automation — Control Center")
+    st.caption(
+        "Workflow request registry. Selecting a workflow records a preview request; "
+        "it does not synchronize systems, call external services, or execute jobs."
+    )
 
-        if st.button("ðŸš€ Execute Autonomous Pipeline", type="primary"):
-            timestamp_id = f"EXEC-{int(datetime.utcnow().timestamp())}"
-            cursor.execute('''
-                INSERT OR REPLACE INTO automated_pipeline_logs (trigger_id, source_module, action_executed, status)
-                VALUES (?, ?, ?, ?)
-            ''', (timestamp_id, selected_pipeline.split(" ")[0], selected_pipeline, "SUCCESS"))
-            conn.commit()
-            
-            log_provenance(timestamp_id, "EXECUTE_MASTER_AUTOMATION", "chief.investigator@lab.org", {"pipeline": selected_pipeline})
-            st.success(f"Pipeline successfully executed! Transaction ID: `{timestamp_id}`")
-            st.balloons()
+    init_db()
+    with sqlite3.connect(DB_FILE) as connection:
+        _ensure_log_table(connection)
 
-    with col2:
-        st.markdown("###  Real-Time Autonomous Audit Log")
-        log_df = pd.read_sql_query("SELECT trigger_id, source_module, action_executed, status, timestamp FROM automated_pipeline_logs ORDER BY timestamp DESC", conn)
-        if not log_df.empty:
-            st.dataframe(log_df, width='stretch')
+    left, right = st.columns(2)
+    with left:
+        st.markdown("### Workflow request")
+        selected_pipeline = st.selectbox(
+            "Select a workflow capability",
+            WORKFLOW_OPTIONS,
+            key="master_automation_workflow",
+        )
+        st.warning(
+            "Execution adapter is not connected. Do not treat a recorded request as "
+            "a successful run or as evidence that an external system changed."
+        )
+        if st.button("Record preview request", type="primary", key="record_automation_preview"):
+            trigger_id = f"PREVIEW-{uuid.uuid4().hex[:12].upper()}"
+            with sqlite3.connect(DB_FILE) as connection:
+                _ensure_log_table(connection)
+                connection.execute(
+                    """
+                    INSERT INTO automated_pipeline_logs
+                    (trigger_id, source_module, action_executed, status)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        trigger_id,
+                        "ResearchOS",
+                        selected_pipeline,
+                        "PREVIEW_ONLY_NOT_EXECUTED",
+                    ),
+                )
+            st.info(
+                f"Preview request recorded as {trigger_id}. No workflow was executed."
+            )
+
+    with right:
+        st.markdown("### Request and execution evidence")
+        with sqlite3.connect(DB_FILE) as connection:
+            _ensure_log_table(connection)
+            log_df = pd.read_sql_query(
+                """
+                SELECT trigger_id, source_module, action_executed, status, timestamp
+                FROM automated_pipeline_logs
+                ORDER BY timestamp DESC
+                LIMIT 100
+                """,
+                connection,
+            )
+        if log_df.empty:
+            st.info("No workflow requests recorded yet.")
         else:
-            st.info("No automated pipelines executed in current session.")
-
-    conn.close()
-
+            st.dataframe(log_df, width="stretch", hide_index=True)
+            st.caption(
+                "PREVIEW_ONLY_NOT_EXECUTED means exactly that: it is not a completed "
+                "job, successful sync, or external side effect."
+            )
