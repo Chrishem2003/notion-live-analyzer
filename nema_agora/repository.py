@@ -85,6 +85,16 @@ class NemaCaseRepository:
             );
             CREATE INDEX IF NOT EXISTS idx_nema_case_audit_case_created
                 ON nema_case_audit(case_id, created_at, audit_id);
+            CREATE TRIGGER IF NOT EXISTS nema_case_audit_no_update
+            BEFORE UPDATE ON nema_case_audit
+            BEGIN
+                SELECT RAISE(ABORT, 'NEMA audit events are append-only');
+            END;
+            CREATE TRIGGER IF NOT EXISTS nema_case_audit_no_delete
+            BEFORE DELETE ON nema_case_audit
+            BEGIN
+                SELECT RAISE(ABORT, 'NEMA audit events are append-only');
+            END;
             """
         )
 
