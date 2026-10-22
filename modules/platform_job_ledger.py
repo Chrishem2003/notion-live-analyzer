@@ -20,6 +20,10 @@ class PlatformLedgerUnavailable(RuntimeError):
     """The durable job ledger could not complete an operation."""
 
 
+class PlatformLedgerConflict(RuntimeError):
+    """An idempotency key was reused with a different request."""
+
+
 class PlatformJobLedger:
     MAX_JSON_BYTES = 256 * 1024
 
@@ -71,6 +75,10 @@ class PlatformJobLedger:
             )
             response.raise_for_status()
             return response.json()
+        except requests.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 409 and name == "platform_enqueue_job":
+                raise PlatformLedgerConflict("Idempotency key was already used for a different request.") from exc
+            raise PlatformLedgerUnavailable(f"Ledger operation '{name}' failed.") from exc
         except (requests.RequestException, ValueError, TypeError) as exc:
             raise PlatformLedgerUnavailable(f"Ledger operation '{name}' failed.") from exc
 
@@ -90,7 +98,11 @@ class PlatformJobLedger:
             "p_job_type": job_type.strip(),
             "p_actor_scope": actor_scope.strip(),
             "p_idempotency_key": idempotency_key.strip(),
-            "p_request_hash": self.request_hash(payload),
+            "p_request_hash": self.request_hash({
+                "job_type": job_type.strip(),
+                "max_attempts": max_attempts,
+                "payload": payload,
+            }),
             "p_payload": payload,
             "p_max_attempts": max_attempts,
         })
