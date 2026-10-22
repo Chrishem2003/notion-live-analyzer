@@ -20,7 +20,7 @@ The API also needs its existing Celery/Redis configuration. The worker service m
 
 The current repository `render.yaml` defines the Streamlit web service and API web service; it does **not** yet define a dedicated ledger worker or Celery Beat service, and it does not provision Redis or configure `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` for the ledger. Therefore, the new ledger cannot execute end to end on the current Render blueprint merely by setting the feature flag.
 
-Before staging activation, provision or select an approved Redis-compatible broker and configure the same private `REDIS_URL` for API, worker, and Beat. Configure the Supabase URL and service-role secret only on the API and worker/Beat services that need them. Add a dedicated Celery worker running `celery -A celery_app.celery_app worker --loglevel=INFO --queues default` and a separate Beat process running `celery -A celery_app.celery_app beat --loglevel=INFO`. Keep all services on a non-production database and keep the ledger feature flag false until the migration and smoke tests pass.
+Before staging activation, provision or select an approved Redis-compatible broker and configure the same private `REDIS_URL` for API, worker, and Beat. Configure the Supabase URL and service-role secret only on the API and worker/Beat services that need them. Add a dedicated Celery worker running `sh scripts/start_platform_ledger_worker.sh` and a separate Beat process running `sh scripts/start_platform_ledger_beat.sh`. Both scripts require an explicit Redis URL and fail closed on missing ledger credentials when the flag is enabled; the worker listens only to the dedicated `platform_ledger` queue. Keep all services on a non-production database and keep the ledger feature flag false until the migration and smoke tests pass.
 
 Do not deploy a blueprint change that creates paid workers or managed Redis until the service plan and recurring cost have been explicitly reviewed. Do not put the service-role key in Streamlit, a browser, repository files, or client-side configuration.
 
@@ -28,7 +28,7 @@ Do not deploy a blueprint change that creates paid workers or managed Redis unti
 
 1. Review both `supabase/migrations/20261022210000_platform_job_ledger.sql` and `supabase/migrations/20261023010000_platform_job_dispatch_reconciliation.sql`; run them only on a disposable Supabase branch or local database first.
 2. Validate the RPC grants, RLS flags, idempotency conflict behavior, stale lease rejection, and append-only audit trigger. Do not apply to production as a substitute for these tests.
-3. Deploy the API and worker with `PLATFORM_JOB_LEDGER_ENABLED=false`. Also run Celery Beat as a separate process (for example, `celery -A celery_app.celery_app beat --loglevel=INFO`) so the 30-second dispatch reconciliation task is actually scheduled.
+3. Deploy the API and worker with `PLATFORM_JOB_LEDGER_ENABLED=false`. Also run Celery Beat as a separate process (using `sh scripts/start_platform_ledger_beat.sh`) so the 30-second dispatch reconciliation task is actually scheduled.
 4. Verify the API health route and worker startup. Confirm the service-role key is available only to server services.
 5. In a non-production environment, apply the migration, run the unit suite, and exercise one synthetic job twice with the same `Idempotency-Key`. It must create one row and return the same job ID on retry.
 6. Verify the status endpoint never returns the request payload or lease token, and verify a different request with the same idempotency key returns HTTP 409.
