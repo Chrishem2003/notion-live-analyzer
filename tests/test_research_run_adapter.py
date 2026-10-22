@@ -13,9 +13,10 @@ from modules.research_run_idempotency import IdempotencyConflictError
 
 
 class Response:
-    def __init__(self, status_code=200, payload=None):
+    def __init__(self, status_code=200, payload=None, headers=None):
         self.status_code = status_code
         self._payload = payload or {}
+        self.headers = headers or {}
 
     def json(self):
         return self._payload
@@ -157,6 +158,64 @@ def test_http_failure_does_not_silently_report_success():
     session = FakeSession(post_results=[empty_query(), Response(403, {"message": "forbidden"})])
     with pytest.raises(ResearchRunWriteError, match="HTTP 403"):
         adapter(session).create_or_get_run("run-007", {})
+
+
+def test_query_retries_rate_limit_using_retry_after(monkeypatch):
+    import modules.research_run_adapter as adapter_module
+
+    sleeps = []
+    monkeypatch.setattr(adapter_module.time, "sleep", sleeps.append)
+    session = FakeSession(
+        post_results=[
+            Response(429, {"code": "rate_limited"}, {"Retry-After": "0"}),
+            empty_query(),
+        ]
+    )
+
+    assert adapter(session)._find_by_external_id("run-008") is None
+    assert len(session.calls) == 2
+    assert sleeps == [0.0]
+
+
+def test_page_read_retries_transient_server_error(monkeypatch):
+    import modules.research_run_adapter as adapter_module
+
+    sleeps = []
+    monkeypatch.setattr(adapter_module.time, "sleep", sleeps.append)
+    session = FakeSession(get_results=[Response(503), Response(200, page("read-page"))])
+
+    assert adapter(session).get_page("read-page")["id"] == "read-page"
+    assert len(session.calls) == 2
+    assert sleeps == [0.25]
+
+
+def test_read_does_not_retry_non_retryable_client_error(monkeypatch):
+    import modules.research_run_adapter as adapter_module
+
+    sleeps = []
+    monkeypatch.setattr(adapter_module.time, "sleep", sleeps.append)
+    session = FakeSession(post_results=[Response(403, {"message": "forbidden"}), empty_query()])
+
+    with pytest.raises(ResearchRunWriteError, match="HTTP 403"):
+        adapter(session)._find_by_external_id("run-009")
+
+    assert len(session.calls) == 1
+    assert sleeps == []
+
+
+def test_page_creation_is_not_blindly_retried_after_rate_limit():
+    session = FakeSession(
+        post_results=[
+            empty_query(),
+            Response(429, {"code": "rate_limited"}, {"Retry-After": "0"}),
+        ]
+    )
+
+    with pytest.raises(ResearchRunWriteError, match="HTTP 429"):
+        adapter(session).create_or_get_run("run-010", {"Name": {"title": []}})
+
+    assert len(session.calls) == 2
+    assert session.calls[1][1].endswith("/pages")
 
 
 def test_payload_builder_uses_canonical_schema_and_safe_initial_gates():
