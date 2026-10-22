@@ -2,7 +2,7 @@
 
 ## Current scope
 
-The ledger adds durable, idempotent job storage with lease-based claiming, attempt history, and append-only audit events. The API currently accepts only `platform.synthetic.validate`; it does not authorize real Notion writes or research actions. Do not add a job type until its handler, authorization, idempotency, and recovery behavior have tests.
+The ledger adds durable, idempotent job storage with lease-based claiming, bounded handler retries, attempt history, and append-only audit events. The API currently accepts only `platform.synthetic.validate`; it does not authorize real Notion writes or research actions. Do not add a job type until its handler, authorization, idempotency, and recovery behavior have tests.
 
 ## Required server-side environment
 
@@ -34,6 +34,7 @@ The API also needs its existing Celery/Redis configuration. The worker service m
 - Missing API key: rejected by the existing service-to-service authentication dependency.
 - Disabled ledger or missing trusted actor scope: returns service unavailable; no job write is attempted when disabled.
 - Missing/oversized idempotency key or invalid request: rejected before dispatch.
+- Handler failures are retried by the ledger while `attempt_count < max_attempts`; exhausted jobs become `failed`. Worker crashes are recovered through lease expiry, and exhausted crash retries become `needs_review`.
 - Redis dispatch failure after enqueue: API returns a retry-safe service-unavailable response. Retry with the *same* idempotency key; the durable row remains available for dispatch.
 - Only the synthetic handler is registered. Unsupported job types are moved to `needs_review` and do not run arbitrary code.
 
