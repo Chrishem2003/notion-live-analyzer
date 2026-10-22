@@ -15,9 +15,11 @@ class OpenAICompatibleProvider(ModelProvider):
         self,
         api_key: str | None = None,
         base_url: str = "https://api.openai.com/v1",
+        default_model: str = "gpt-5",
     ):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.base_url = base_url.rstrip("/")
+        self.default_model = default_model
 
     def generate(self, request: AIRequest) -> AIResponse:
 
@@ -27,7 +29,7 @@ class OpenAICompatibleProvider(ModelProvider):
             )
 
         payload = {
-            "model": request.model or "gpt-5",
+            "model": request.model or self.default_model,
             "messages": [],
             "temperature": request.temperature,
             "max_tokens": request.max_tokens,
