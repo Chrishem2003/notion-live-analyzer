@@ -359,9 +359,9 @@ async def read_limited_webhook_body(request: Request, *, max_bytes: int = MAX_GI
     """Read a webhook body with a hard streaming cap to limit memory abuse."""
     body = bytearray()
     async for chunk in request.stream():
-        body.extend(chunk)
-        if len(body) > max_bytes:
+        if len(body) + len(chunk) > max_bytes:
             raise HTTPException(status_code=413, detail="Webhook payload exceeds the 1 MiB limit.")
+        body.extend(chunk)
     return bytes(body)
 
 
