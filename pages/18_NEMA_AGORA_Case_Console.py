@@ -1,7 +1,7 @@
 """NEMA-AGORA persisted case console — intentionally read-only."""
 from __future__ import annotations
 import streamlit as st
-from nema_agora.client import NemaApiError, get_case, get_storage_readiness, list_cases
+from nema_agora.client import NemaApiError, get_case, get_review_packet, get_storage_readiness, list_cases
 
 st.set_page_config(page_title="NEMA-AGORA Case Console", page_icon="🌿", layout="wide")
 st.title("🌿 NEMA-AGORA · Case Console")
@@ -81,6 +81,20 @@ with right:
             st.json(detail.get("record", {}), expanded=True)
             with st.expander("Audit history", expanded=False):
                 st.json(detail.get("audit", []), expanded=True)
+            if st.button("Generate review packet (read-only preview)", key="nema_generate_review_packet"):
+                try:
+                    packet = get_review_packet(selected_case_id)
+                    st.session_state["nema_review_packet"] = {
+                        "case_id": selected_case_id,
+                        "packet": packet,
+                    }
+                except NemaApiError as exc:
+                    st.error(str(exc))
+            saved_packet = st.session_state.get("nema_review_packet", {})
+            if saved_packet.get("case_id") == selected_case_id:
+                st.subheader("Deterministic review packet")
+                st.caption("Preview only: this does not create a workflow job or change case data. Human review is still required.")
+                st.json(saved_packet.get("packet", {}), expanded=True)
         except NemaApiError as exc:
             st.error(str(exc))
 
