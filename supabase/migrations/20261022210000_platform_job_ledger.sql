@@ -125,7 +125,7 @@ begin
 
         if v_job.request_hash <> p_request_hash then
             raise exception 'idempotency key reused with a different request'
-                using errcode = '22023';
+                using errcode = '23505';
         end if;
     end if;
 
