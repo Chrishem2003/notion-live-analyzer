@@ -30,6 +30,8 @@ def _execute(job_type: str, payload: dict[str, Any], ledger: PlatformJobLedger) 
 @celery_app.task(name="tasks.process_platform_ledger_job", acks_late=True)
 def process_platform_ledger_job() -> dict[str, Any]:
     """Claim and process at most one ledger job; lease recovery handles worker loss."""
+    if os.environ.get("PLATFORM_JOB_LEDGER_ENABLED", "false").strip().lower() != "true":
+        return {"processed": False, "reason": "ledger_disabled"}
     ledger = PlatformJobLedger()
     worker_id = _worker_id()
     try:
