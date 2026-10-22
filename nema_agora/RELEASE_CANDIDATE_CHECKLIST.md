@@ -4,19 +4,19 @@
 
 - Integration PR: [#52 — integrate NEMA-AGORA safely onto current main](https://github.com/Chrishem2003/notion-live-analyzer/pull/52)
 - Branch: `integration/nema-agora-current-main`
-- Last fully tested code commit: `5817e96bf87dfa89997b55429137344d2fe9623b`
-- Exact-head focused NEMA checks and repository CI passed on that commit.
+- Last fully tested code commit: `73598d283c67360c529fba6018228538e23f5271`
+- Exact-head focused NEMA checks and repository CI passed on this commit.
 - Status: automated checks pass; merge, hosted acceptance, NEMA API integration, persistent storage, and institutional release remain blocked pending the gates below.
 - Scope: preserves the current-main single-file `app.py` shell and adds the NEMA-AGORA page/package/tests; the older divergent branch was not merged wholesale.
 
 ## Exact-head automated evidence
 
-- [NEMA-AGORA Pilot Checks — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39750240546)
+- [NEMA-AGORA Pilot Checks — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39754604344)
   - NEMA unit tests passed, including Earth Engine boundary and Phase 159 contract tests.
   - NEMA package/page compilation passed.
   - Static import inventory executed.
   - Streamlit pilot smoke check passed.
-- [Repository CI/CD Pipeline — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39750240685)
+- [Repository CI/CD Pipeline — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39754604369)
   - Full repository automated test suite passed.
   - Lightweight API container build passed.
   - API runtime import check passed.
@@ -34,6 +34,7 @@
 
 - Demo mode is session-only. Persistent mode requires explicit configuration, authenticated OIDC identity, and server-side role binding.
 - The prototype is not an official NEMA service and does not submit reports to NEMA.
+- Spatial evidence inputs now capture baseline and comparison AOI/grid IDs independently. Alignment defaults to unverified until the operator explicitly attests it; the attestation is not independent geospatial verification. Date-only inputs use a disclosed 10:00 UTC placeholder, not provider acquisition metadata.
 - No live ELMIS/SWIMS integration, autonomous enforcement, regulatory endorsement, or production approval is claimed.
 - Use synthetic or appropriately consented test records only.
 
