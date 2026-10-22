@@ -96,16 +96,17 @@ def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
             },
         )
 
+    connection = None
     try:
         # URI read-only mode ensures diagnostics never create or migrate a database.
-        with sqlite3.connect(f"{path.as_uri()}?mode=ro", uri=True, timeout=2.0) as connection:
-            integrity = connection.execute("PRAGMA quick_check").fetchone()
-            tables = {
-                row[0]
-                for row in connection.execute(
-                    "SELECT name FROM sqlite_master WHERE type = 'table'"
-                ).fetchall()
-            }
+        connection = sqlite3.connect(f"{path.as_uri()}?mode=ro", uri=True, timeout=2.0)
+        integrity = connection.execute("PRAGMA quick_check").fetchone()
+        tables = {
+            row[0]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            ).fetchall()
+        }
     except (OSError, sqlite3.Error, ValueError):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -116,6 +117,9 @@ def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
                 "storage_durability_verified": False,
             },
         )
+    finally:
+        if connection is not None:
+            connection.close()
 
     schema_ready = {"nema_cases", "nema_case_audit"}.issubset(tables)
     integrity_ok = bool(integrity and integrity[0] == "ok")
