@@ -215,6 +215,7 @@ class GovernedAutomationRuntime:
             try:
                 output = spec.handler(dict(validated_inputs))
                 output_json, _ = _json_bytes(output, limit=MAX_OUTPUT_BYTES, label="Workflow output")
+                error_code = None
                 break
             except Exception as exc:
                 error_code = type(exc).__name__[:120]
