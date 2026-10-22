@@ -89,6 +89,30 @@ def test_claim_and_finish_validate_contracts(monkeypatch):
     assert session.calls[1][1]["p_status"] == "succeeded"
 
 
+def test_status_is_actor_scoped_and_does_not_expose_payload_or_lease(monkeypatch):
+    configure(monkeypatch)
+    session = FakeSession([{
+        "job_id": "job-1", "status": "succeeded", "attempt_count": 1,
+        "max_attempts": 3, "result": {"checked": True}, "error": None,
+    }])
+    ledger = PlatformJobLedger(session=session)
+    status = ledger.get_status(job_id="job-1", actor_scope="service:test")
+    assert status["status"] == "succeeded"
+    assert "payload" not in status and "lease_token" not in status
+    assert session.calls[0][1] == {
+        "p_job_id": "job-1", "p_actor_scope": "service:test"
+    }
+
+
+def test_status_rejects_unsafe_or_invalid_response(monkeypatch):
+    configure(monkeypatch)
+    ledger = PlatformJobLedger(session=FakeSession([{
+        "job_id": "job-1", "status": "succeeded", "payload": {"secret": True}
+    }]))
+    with pytest.raises(PlatformLedgerUnavailable):
+        ledger.get_status(job_id="job-1", actor_scope="service:test")
+
+
 def test_empty_queue_returns_none(monkeypatch):
     configure(monkeypatch)
     ledger = PlatformJobLedger(session=FakeSession([None]))
