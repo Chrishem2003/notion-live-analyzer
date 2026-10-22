@@ -141,6 +141,8 @@ All 82 modules below are referenced by tests, but none has a detected runtime im
 
 **Decision:** these are candidates for UI/service integration only after checking their contracts against the current Streamlit page and avoiding duplicate workflow implementations. Metrics must distinguish synthetic/demo records from real observations and must not imply validated environmental outcomes without evidence.
 
+The first Phase 101–109 governance-drift contract trace is recorded in [`GOVERNANCE_DRIFT_CONTRACT_TRACE.md`](GOVERNANCE_DRIFT_CONTRACT_TRACE.md). It confirms that drift detection, event storage, queueing, audit reconciliation, snapshot history, monitoring, and recovery-decision reconciliation have distinct contracts; they should not be merged solely because their names are similar.
+
 ## Prioritized next steps
 
 1. **Contract map:** for each module, record public functions/classes, imported dependencies, side effects, matching tests, authorization requirements, persistence behavior and intended entrypoint.
