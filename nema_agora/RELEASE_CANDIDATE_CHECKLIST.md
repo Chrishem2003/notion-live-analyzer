@@ -1,48 +1,47 @@
 # NEMA-AGORA Release Candidate
 
-## Candidate
+## Candidate under review
 
-- Integration PR: [#23 — clean main-based integration](https://github.com/Chrishem2003/notion-live-analyzer/pull/23)
-- Branch: `feature/nema-agora-clean-integration`
-- Current tracker commit: `ba3c60fecf72d4b74223e4e84d8726e7f42d9887`
-- Status: CI passed for the tracker commit; release remains blocked on deployment and governance evidence.
+- Integration PR: [#52 — integrate NEMA-AGORA safely onto current main](https://github.com/Chrishem2003/notion-live-analyzer/pull/52)
+- Branch: `integration/nema-agora-current-main`
+- Code commit validated: `34100c41a4b6a7021a15c1ca0b0b750299200dc7`
+- Status: automated CI passed on that exact code commit. Merge, hosted acceptance, persistent storage, and institutional release remain blocked pending the gates below.
+- Scope: the integration preserves the current-main single-file `app.py` shell and adds the NEMA-AGORA page/package/tests. It does not merge the older divergent branch wholesale.
 
-## Verified automated checks
+## Exact-head automated evidence
 
-The following workflows passed on the current tracker commit:
+- [NEMA-AGORA Pilot Checks — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39744340177)
+  - NEMA unit tests passed.
+  - NEMA package/page compilation passed.
+  - Streamlit page smoke checks passed.
+- [Repository CI/CD Pipeline — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39744340077)
+  - Automated test suite passed.
+  - Lightweight API container build passed.
+  - API runtime import check passed.
 
-- [NEMA-AGORA Pilot Checks](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39133042467)
-- [Repository CI/CD Pipeline](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39133042477)
+These results validate the code commit listed above. They do not establish successful hosted deployment, real data ingestion, or production readiness. If this checklist or build-state metadata changes, rerun CI on the resulting head before treating the updated candidate as verified.
 
-The focused workflow runs the NEMA test suite, compiles the NEMA package and curated Streamlit entrypoints, and smoke-tests the consolidated `app.py` routing. The repository workflow provides broader regression coverage. These are CI results, not proof of a live production deployment.
+## Current pilot boundaries
 
-## Implemented and CI-covered controls
+- The primary NEMA workspace is `pages/18_NEMA_AGORA.py`.
+- Demo mode is session-only. Persistent mode is opt-in and requires explicit authentication, authorization, and storage configuration.
+- Unprovisioned users must remain denied; UI hiding alone is not an authorization boundary.
+- Environmental analysis is advisory and requires human review. The prototype is not an official NEMA service and does not submit reports to NEMA.
+- No official ELMIS/SWIMS integration, autonomous enforcement, or regulatory approval is claimed.
+- Use synthetic or appropriately consented test records only.
 
-- One visible NEMA-AGORA workspace in the curated Streamlit navigation; specialist NEMA pages are kept out of the main sidebar.
-- Explicit demo versus persistent modes; persistent startup does not silently fall back to demo storage.
-- Server-configured role bindings and deny-by-default authorization; unprovisioned users are denied.
-- SQLite repository/service permission checks and actor-attributed audit events.
-- Append-only event-log triggers, backup validation, restore rollback-snapshot preservation, and bounded retention configuration.
-- Evidence lifecycle transitions revalidate source-observation fingerprints inside the write transaction.
-- Lifecycle history checks validate transitions, actor attribution, timezone-aware timestamps, chronology, and agreement with persisted state.
-- Release-readiness reports remain advisory: production approval, official integration, official submission, autonomous deployment, regulatory conclusions, and enforcement actions are explicitly disallowed.
+## Required before merge or hosted release
 
-## Required before production or real-user data
-
-- [ ] Configure OIDC credentials and exact callback URL in the deployment secret manager; never commit secrets.
-- [ ] Test login/logout on the deployed URL and verify server-side role bindings for each provisioned role.
-- [ ] Test unprovisioned accounts and direct service/repository calls; confirm access is denied where required.
+- [ ] Review the inherited module inventory and dependencies. This PR contains 367 paths, including 50 phase-suffixed Python files across implementation and tests; CI passing does not prove every inherited artifact is necessary.
+- [ ] Verify the NEMA page appears in the deployed Streamlit navigation and complete the demo-mode user journey without secrets or persistent storage.
+- [ ] Verify OIDC login/logout on the deployed URL and server-side role bindings for each provisioned role.
+- [ ] Test unprovisioned accounts and direct service/repository calls; confirm deny-by-default behavior.
 - [ ] In an approved persistent environment, create a synthetic record, read it back, review it, and verify actor-attributed audit history.
-- [ ] Exercise backup, integrity check, restore, rollback failure handling, and retention against deployed storage.
-- [ ] Confirm persistent storage survives restarts and document access controls, backup ownership, and recovery steps.
+- [ ] Exercise backup, integrity checks, restore, rollback-failure handling, retention, and persistence across restarts.
 - [ ] Verify evaluation artifacts are present, candidate-bound, and reviewable.
-- [ ] Review accessibility, low-bandwidth use, consent, data minimization, retention, and institutional governance.
+- [ ] Complete accessibility, low-bandwidth, consent, data-minimization, retention, and institutional governance review.
 - [ ] Validate environmental data sources and obtain required institutional approvals.
 
-## Release boundary
+## Release decision
 
-NEMA-AGORA is an independent student-led prototype, not an official NEMA service or endorsement. No ELMIS/SWIMS integration, official report submission, autonomous enforcement, or production approval is claimed. Use synthetic or appropriately consented test records until all deployment and governance gates are closed.
-
-## Current next step — Phase 186
-
-Reconcile release evidence against the exact candidate, verify the consolidated user journey and direct authorization boundaries, then run deployment-backed operational checks. Do not merge or describe the system as production-ready while any required gate remains open.
+**Not approved for production.** Do not merge or describe this as production-ready until code review, exact-head CI, hosted acceptance, security/storage checks, and governance gates are complete.
