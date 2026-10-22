@@ -70,6 +70,8 @@ jobs:
           second_reservation jsonb;
           job_uuid uuid;
           lease_uuid uuid;
+          crash_job_uuid uuid;
+          crash_lease_uuid uuid;
           hash_value text := repeat('a', 64);
         BEGIN
           IF NOT (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.platform_jobs'::regclass) THEN
@@ -177,6 +179,31 @@ jobs:
           );
           IF finished->>'status' <> 'failed' THEN
             RAISE EXCEPTION 'retry budget exhaustion did not become failed';
+          END IF;
+
+          -- A worker crash leaves a running lease. The periodic reconciler must
+          -- reserve it after expiry, and claim must advance the attempt number.
+          PERFORM public.platform_enqueue_job(
+            'platform.synthetic.validate', 'ci:test', 'idem-ci-crash', repeat('d', 64),
+            '{"synthetic":true}'::jsonb, 3
+          );
+          claim := public.platform_claim_job('ci-crash-worker', 30);
+          IF claim IS NULL THEN RAISE EXCEPTION 'crash recovery test job was not claimed'; END IF;
+          crash_job_uuid := (claim->>'job_id')::uuid;
+          crash_lease_uuid := (claim->>'lease_token')::uuid;
+          UPDATE public.platform_jobs
+          SET lease_until = now() - interval '1 second'
+          WHERE job_id = crash_job_uuid;
+          reserved_jobs := public.platform_reserve_dispatches(10);
+          IF jsonb_array_length(reserved_jobs) <> 1
+             OR reserved_jobs->0->>'job_id' <> crash_job_uuid::text THEN
+            RAISE EXCEPTION 'expired worker lease was not reserved for recovery';
+          END IF;
+          claim := public.platform_claim_job('ci-recovery-worker', 30);
+          IF claim IS NULL
+             OR (claim->>'job_id')::uuid <> crash_job_uuid
+             OR (claim->>'attempt_count')::integer <> 2 THEN
+            RAISE EXCEPTION 'expired worker lease was not recovered as attempt two';
           END IF;
 
           BEGIN
