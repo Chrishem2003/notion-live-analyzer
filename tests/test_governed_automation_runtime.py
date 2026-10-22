@@ -207,3 +207,16 @@ def test_manual_recovery_rejects_unauthorized_actor_and_terminal_jobs(runtime):
         runtime.resolve_stuck_job_as_failed(
             "stuck-job", actor="operator-1", reason="second attempt", resolution="confirmed_no_side_effect"
         )
+
+
+def test_manual_recovery_redacts_credential_like_text_from_audit(runtime):
+    _insert_stuck_job(runtime)
+    runtime.resolve_stuck_job_as_failed(
+        "stuck-job", actor="operator-1",
+        reason="Checked logs token=secret-value Bearer abcdefghijklmnop",
+        resolution="confirmed_no_side_effect",
+    )
+    audit_text = json.dumps(runtime.list_audit("stuck-job", actor="operator-1"))
+    assert "secret-value" not in audit_text
+    assert "abcdefghijklmnop" not in audit_text
+    assert "[REDACTED]" in audit_text
