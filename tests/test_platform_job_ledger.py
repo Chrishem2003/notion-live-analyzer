@@ -104,6 +104,31 @@ def test_rejects_non_object_and_non_json_payload(monkeypatch):
         ledger.request_hash({"bad": object()})
 
 
+def test_enforce_job_metadata_and_json_size_limits(monkeypatch):
+    configure(monkeypatch)
+    ledger = PlatformJobLedger(session=FakeSession([{
+        "job_id": "job-1", "status": "queued", "created": True, "attempt_count": 0,
+    }]))
+    with pytest.raises(ValueError):
+        ledger.enqueue(job_type=" " * 121, actor_scope="service:test",
+                       idempotency_key="request-1", payload={})
+    with pytest.raises(ValueError):
+        ledger.enqueue(job_type="demo.validate", actor_scope="service:test",
+                       idempotency_key="request-1", payload={}, max_attempts=True)
+    with pytest.raises(ValueError):
+        ledger.request_hash({"oversized": "x" * (PlatformJobLedger.MAX_JSON_BYTES + 1)})
+
+
+def test_finish_rejects_oversized_result_before_network_call(monkeypatch):
+    configure(monkeypatch)
+    session = FakeSession([])
+    ledger = PlatformJobLedger(session=session)
+    with pytest.raises(ValueError):
+        ledger.finish(job_id="job-1", worker_id="worker-test", lease_token="lease-1",
+                      status="succeeded", result={"large": "x" * PlatformJobLedger.MAX_JSON_BYTES})
+    assert session.calls == []
+
+
 def test_transport_errors_are_redacted(monkeypatch):
     configure(monkeypatch)
     ledger = PlatformJobLedger(session=FakeSession(error=requests.Timeout("sensitive host and token")))
