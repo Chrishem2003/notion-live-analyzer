@@ -725,6 +725,15 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
             aoi_id = st.text_input("Area of interest ID", value="AOI-DEMO-UG")
             grid_id = st.text_input("Aligned grid ID", value="GRID-DEMO-10M")
             resolution_m = st.number_input("Spatial resolution (m)", min_value=0.1, max_value=10000.0, value=10.0, step=1.0)
+            alignment_confirmed = st.checkbox(
+                "I verified that both inputs use the same AOI boundary, coordinate reference system, "
+                "aligned analysis grid, and spatial resolution.",
+                value=False,
+                help=(
+                    "Leave unchecked unless you have checked the source metadata and preprocessing. "
+                    "This is an operator attestation, not independent geospatial verification."
+                ),
+            )
         with qb:
             baseline_cloud = st.number_input("Baseline cloud cover (%)", min_value=0.0, max_value=100.0, value=8.0, step=1.0)
             comparison_cloud = st.number_input("Comparison cloud cover (%)", min_value=0.0, max_value=100.0, value=12.0, step=1.0)
@@ -768,7 +777,7 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
                 comparison_aoi_id=aoi_id.strip(),
                 baseline_grid_id=grid_id.strip(),
                 comparison_grid_id=grid_id.strip(),
-                spatial_alignment="ALIGNED",
+                spatial_alignment="ALIGNED" if alignment_confirmed else "UNVERIFIED",
                 spatial_resolution_m=resolution_m,
                 baseline_cloud_cover_pct=baseline_cloud,
                 comparison_cloud_cover_pct=comparison_cloud,
