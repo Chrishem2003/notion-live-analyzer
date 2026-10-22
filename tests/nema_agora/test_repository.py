@@ -223,6 +223,29 @@ def test_invalid_coordinate_ranges_are_rejected(repository, latitude, longitude)
         )
 
 
+def test_blank_optional_coordinate_fields_are_normalized_to_none(repository):
+    record = _record()
+    record["latitude"] = ""
+    record["longitude"] = "   "
+    saved, version = repository.create_case(
+        record, actor="operator", created_at="2026-10-22T07:00:00Z"
+    )
+    assert version == 1
+    assert saved["latitude"] is None
+    assert saved["longitude"] is None
+
+
+def test_one_blank_coordinate_with_one_value_is_rejected(repository):
+    record = _record()
+    record["latitude"] = ""
+    record["longitude"] = 32.3
+    with pytest.raises(ValueError, match="supplied together"):
+        repository.create_case(
+            record, actor="operator", created_at="2026-10-22T07:00:00Z"
+        )
+    assert repository.get_case("NA-TEST1234") is None
+
+
 @pytest.mark.parametrize(
     ("field", "value", "message"),
     [
