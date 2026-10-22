@@ -24,12 +24,17 @@ def test_inventory_reports_importers_and_phase_suffix_without_claiming_dead_code
         "from nema_agora import legacy_phase139\nfrom nema_agora.missing import VALUE\n",
         encoding="utf-8",
     )
+    (tests / "test_dynamic.py").write_text(
+        "import importlib\nimportlib.import_module('nema_agora.core')\n",
+        encoding="utf-8",
+    )
 
     report = MODULE.build_inventory(tmp_path)
     records = {row["module"]: row for row in report["modules"]}
 
     assert report["module_count"] == 3
-    assert records["nema_agora.core"]["static_importer_count"] >= 3
+    assert records["nema_agora.core"]["static_importer_count"] >= 4
+    assert records["nema_agora.core"]["test_importer_count"] == 1
     assert records["nema_agora.legacy_phase139"]["phase_suffixed"] is True
     assert records["nema_agora.legacy_phase139"]["runtime_importer_count"] == 0
     assert records["nema_agora.legacy_phase139"]["test_importer_count"] == 1
