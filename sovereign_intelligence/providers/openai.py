@@ -7,5 +7,6 @@ class OpenAIProvider(OpenAICompatibleProvider):
 
     def __init__(self):
         super().__init__(
-            base_url="https://api.openai.com/v1"
+            base_url="https://api.openai.com/v1",
+            default_model="gpt-5",
         )
