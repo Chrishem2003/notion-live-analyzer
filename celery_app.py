@@ -28,7 +28,7 @@ celery_app = Celery(
     "chrishem_platform",
     broker=REDIS_URL,
     backend=RESULT_BACKEND_URL,
-    include=["tasks"],
+    include=["tasks", "modules.platform_ledger_tasks"],
 )
 
 celery_app.conf.update(
