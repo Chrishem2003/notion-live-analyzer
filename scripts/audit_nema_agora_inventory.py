@@ -25,12 +25,11 @@ def _module_name(path: Path, root: Path) -> str:
     return ".".join(parts)
 
 
-def _resolve_from(current_module: str, node: ast.ImportFrom) -> str:
+def _resolve_from(current_module: str, node: ast.ImportFrom, *, is_package_init: bool = False) -> str:
     if node.level == 0:
         return node.module or ""
     current_parts = current_module.split(".")
-    # A normal module's relative imports are resolved from its containing package.
-    package_parts = current_parts if current_module.endswith(".__init__") else current_parts[:-1]
+    package_parts = current_parts if is_package_init else current_parts[:-1]
     remove = max(node.level - 1, 0)
     if remove:
         package_parts = package_parts[:-remove]
@@ -39,7 +38,7 @@ def _resolve_from(current_module: str, node: ast.ImportFrom) -> str:
     return ".".join(part for part in package_parts if part)
 
 
-def _imports(source: str, module_name: str) -> set[str]:
+def _imports(source: str, module_name: str, *, is_package_init: bool = False) -> set[str]:
     try:
         tree = ast.parse(source)
     except SyntaxError:
@@ -49,10 +48,9 @@ def _imports(source: str, module_name: str) -> set[str]:
         if isinstance(node, ast.Import):
             found.update(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
-            base = _resolve_from(module_name, node)
+            base = _resolve_from(module_name, node, is_package_init=is_package_init)
             if base:
                 found.add(base)
-                # "from nema_agora import feature" can mean a submodule import.
                 if base == "nema_agora":
                     found.update(f"{base}.{alias.name}" for alias in node.names)
     return found
@@ -65,7 +63,7 @@ def build_inventory(root: Path) -> dict[str, object]:
     module_paths = sorted(package_root.rglob("*.py"))
     module_names = {_module_name(path, root): path for path in module_paths}
     reverse: dict[str, set[str]] = defaultdict(set)
-    external_importers: dict[str, set[str]] = defaultdict(set)
+    unresolved: dict[str, set[str]] = defaultdict(set)
     syntax_errors: list[dict[str, str]] = []
     phase_suffixed: list[str] = []
 
@@ -77,7 +75,7 @@ def build_inventory(root: Path) -> dict[str, object]:
         importer = _module_name(path, root)
         try:
             source = path.read_text(encoding="utf-8-sig")
-            imports = _imports(source, importer)
+            imports = _imports(source, importer, is_package_init=path.name == "__init__.py")
         except OSError as exc:
             syntax_errors.append({"path": str(path.relative_to(root)), "error": type(exc).__name__})
             continue
@@ -87,14 +85,11 @@ def build_inventory(root: Path) -> dict[str, object]:
         if path.is_relative_to(package_root) and PHASE_SUFFIX.search(path.name):
             phase_suffixed.append(str(path.relative_to(root)))
         for imported in imports:
-            # Match a module or its parent package; preserve full import references.
-            target = imported
-            while target and target not in module_names:
-                target = target.rpartition(".")[0]
-            if target in module_names and target != importer:
-                reverse[target].add(importer)
-            elif imported.startswith("nema_agora.") and imported not in module_names:
-                external_importers[imported].add(importer)
+            if imported in module_names:
+                if imported != importer:
+                    reverse[imported].add(importer)
+            elif imported.startswith("nema_agora."):
+                unresolved[imported].add(importer)
 
     records = []
     for name, path in sorted(module_names.items()):
@@ -116,7 +111,7 @@ def build_inventory(root: Path) -> dict[str, object]:
         "modules": records,
         "unresolved_nema_imports": [
             {"import": name, "importers": sorted(importers)}
-            for name, importers in sorted(external_importers.items())
+            for name, importers in sorted(unresolved.items())
         ],
         "syntax_or_read_errors": syntax_errors,
         "warning": (
