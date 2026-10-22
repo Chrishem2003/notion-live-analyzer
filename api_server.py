@@ -294,6 +294,17 @@ class PlatformJobRequest(BaseModel):
     payload: dict = Field(default_factory=dict)
     max_attempts: int = Field(3, ge=1, le=10)
 
+    @validator("payload")
+    def payload_must_be_bounded_json_object(cls, value: dict) -> dict:
+        try:
+            encoded = json.dumps(value, sort_keys=True, separators=(",", ":"),
+                                 ensure_ascii=False, allow_nan=False).encode("utf-8")
+        except (TypeError, ValueError) as exc:
+            raise ValueError("payload must contain valid JSON values.") from exc
+        if len(encoded) > 256 * 1024:
+            raise ValueError("payload exceeds the 256 KiB safety limit.")
+        return value
+
 
 def _platform_job_actor_scope() -> str:
     scope = os.environ.get("PLATFORM_JOB_ACTOR_SCOPE", "").strip()
