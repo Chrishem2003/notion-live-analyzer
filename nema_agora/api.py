@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hmac
 import os
+import sqlite3
 from pathlib import Path
 from typing import Optional
 
@@ -74,6 +75,60 @@ def list_cases(
         }
     finally:
         repository.close()
+
+
+@router.get("/storage-readiness")
+def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
+    """Inspect configured storage without creating a database or changing records.
+
+    A healthy SQLite file and an explicit durability flag are necessary but do not
+    independently prove that the hosting provider preserves the underlying disk.
+    """
+    path = _database_path()
+    if not path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "status": "not_ready",
+                "reason": "database_file_missing",
+                "database_file_present": False,
+                "storage_durability_verified": False,
+            },
+        )
+
+    try:
+        # URI read-only mode ensures diagnostics never create or migrate a database.
+        with sqlite3.connect(f"{path.as_uri()}?mode=ro", uri=True, timeout=2.0) as connection:
+            integrity = connection.execute("PRAGMA quick_check").fetchone()
+            tables = {
+                row[0]
+                for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                ).fetchall()
+            }
+    except (OSError, sqlite3.Error, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "status": "not_ready",
+                "reason": "database_unreadable_or_invalid",
+                "database_file_present": True,
+                "storage_durability_verified": False,
+            },
+        )
+
+    schema_ready = {"nema_cases", "nema_case_audit"}.issubset(tables)
+    integrity_ok = bool(integrity and integrity[0] == "ok")
+    return {
+        "status": "configured" if schema_ready and integrity_ok else "not_ready",
+        "database_file_present": True,
+        "sqlite_integrity": "ok" if integrity_ok else "failed",
+        "required_schema_present": schema_ready,
+        "durability_flag_configured": True,
+        # This requires independent confirmation of the hosting disk/mount.
+        "storage_durability_verified": False,
+        "production_writes_enabled": False,
+    }
 
 
 @router.get("/{case_id}")
