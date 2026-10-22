@@ -9,6 +9,7 @@ authorization at the service boundary.
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 import threading
 import uuid
@@ -73,16 +74,23 @@ def _validate_case_record(record: Mapping[str, Any]) -> dict[str, Any]:
     if stored_record.get("status") not in STATUSES:
         raise ValueError("A recognised case status is required.")
     latitude, longitude = stored_record.get("latitude"), stored_record.get("longitude")
-    if (latitude is None) != (longitude is None):
+    latitude_missing = latitude is None or (isinstance(latitude, str) and not latitude.strip())
+    longitude_missing = longitude is None or (isinstance(longitude, str) and not longitude.strip())
+    if latitude_missing and longitude_missing:
+        # Empty form fields are equivalent to omitted optional coordinates.
+        if "latitude" in stored_record:
+            stored_record["latitude"] = None
+        if "longitude" in stored_record:
+            stored_record["longitude"] = None
+    elif latitude_missing != longitude_missing:
         raise ValueError("Latitude and longitude must be supplied together.")
-    if latitude is not None or longitude is not None:
+    else:
         if isinstance(latitude, bool) or isinstance(longitude, bool):
             raise ValueError("Coordinates must be numeric, not boolean.")
         try:
             lat, lon = float(latitude), float(longitude)
         except (TypeError, ValueError, OverflowError) as exc:
             raise ValueError("Coordinates must be numeric.") from exc
-        import math
         if not math.isfinite(lat) or not math.isfinite(lon):
             raise ValueError("Coordinates must be finite.")
         if not -90 <= lat <= 90 or not -180 <= lon <= 180:
