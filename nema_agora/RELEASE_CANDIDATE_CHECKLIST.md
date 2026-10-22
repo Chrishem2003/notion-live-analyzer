@@ -4,19 +4,19 @@
 
 - Integration PR: [#52 — integrate NEMA-AGORA safely onto current main](https://github.com/Chrishem2003/notion-live-analyzer/pull/52)
 - Branch: `integration/nema-agora-current-main`
-- Last fully tested code commit: `73598d283c67360c529fba6018228538e23f5271`
+- Last fully tested code commit: `cb19c1cb6cc638746a3fdba611018a2e5b0d2a75`
 - Exact-head focused NEMA checks and repository CI passed on this commit.
 - Status: automated checks pass; merge, hosted acceptance, NEMA API integration, persistent storage, and institutional release remain blocked pending the gates below.
 - Scope: preserves the current-main single-file `app.py` shell and adds the NEMA-AGORA page/package/tests; the older divergent branch was not merged wholesale.
 
 ## Exact-head automated evidence
 
-- [NEMA-AGORA Pilot Checks — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39754604344)
+- [NEMA-AGORA Pilot Checks — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39759245444)
   - NEMA unit tests passed, including Earth Engine boundary and Phase 159 contract tests.
   - NEMA package/page compilation passed.
   - Static import inventory executed.
   - Streamlit pilot smoke check passed.
-- [Repository CI/CD Pipeline — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39754604369)
+- [Repository CI/CD Pipeline — passed](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39759245391)
   - Full repository automated test suite passed.
   - Lightweight API container build passed.
   - API runtime import check passed.
@@ -34,8 +34,8 @@
 
 - Demo mode is session-only. Persistent mode requires explicit configuration, authenticated OIDC identity, and server-side role binding.
 - The prototype is not an official NEMA service and does not submit reports to NEMA.
-- Spatial evidence inputs now capture baseline and comparison AOI/grid IDs independently. Alignment defaults to unverified until the operator explicitly attests it; the attestation is not independent geospatial verification. Date-only inputs use a disclosed 10:00 UTC placeholder, not provider acquisition metadata.
-- Spatial evidence inputs now capture baseline and comparison AOI/grid IDs independently. Alignment defaults to unverified until the operator explicitly attests it; this is not independent geospatial verification. Date-only inputs use a disclosed 10:00 UTC placeholder, not provider acquisition metadata.
+- Spatial evidence inputs capture baseline/comparison AOI and grid IDs independently. Alignment defaults to unverified until operator attestation; this is not independent geospatial verification. Date-only inputs use a disclosed 10:00 UTC placeholder, not provider acquisition metadata.
+- AOI geometry now receives structural coordinate/ring validation; supplied asset fingerprints are checked against content. Malformed registry rows and malformed quality thresholds return controlled findings. These controls are covered by tests but do not replace geospatial validation against authoritative boundary data.
 - No live ELMIS/SWIMS integration, autonomous enforcement, regulatory endorsement, or production approval is claimed.
 - Use synthetic or appropriately consented test records only.
 
