@@ -77,6 +77,15 @@ def write_research_run(
     _auth: bool = Depends(require_api_key),
 ):
     """Persist a synthetic-first Analysis Run after validating relation targets."""
+    if os.environ.get("RESEARCH_RUN_WRITEBACK_ENABLED", "true").strip().lower() != "true":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "message": "Research-run write-back is disabled until durable idempotency storage is configured.",
+                "mode": "free_plan_safe_mode",
+                "research_records_written": 0,
+            },
+        )
     from modules.research_run_adapter import (
         AmbiguousWriteError,
         ResearchRunAdapter,
@@ -369,8 +378,13 @@ async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = 
 
 @app.get("/api/v1/health")
 def health():
-    """No auth required — deliberately, so uptime monitors don't need the API key."""
-    return {"status": "ok"}
+    """Expose service health and the explicit research-write safety mode."""
+    writeback_enabled = os.environ.get("RESEARCH_RUN_WRITEBACK_ENABLED", "true").strip().lower() == "true"
+    return {
+        "status": "ok",
+        "research_run_writeback": "enabled_pending_preflight" if writeback_enabled else "disabled_no_durable_ledger",
+        "research_records_written": 0,
+    }
 
 
 # ══════════════════════════════════════════════════════════════════
