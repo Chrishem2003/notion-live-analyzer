@@ -16,6 +16,14 @@ Configure these only on the private API and Celery worker services:
 
 The API also needs its existing Celery/Redis configuration. The worker service must run Celery with the module registered by `celery_app.py`.
 
+## Deployment topology gate
+
+The current repository `render.yaml` defines the Streamlit web service and API web service; it does **not** yet define a dedicated ledger worker or Celery Beat service, and it does not provision Redis or configure `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` for the ledger. Therefore, the new ledger cannot execute end to end on the current Render blueprint merely by setting the feature flag.
+
+Before staging activation, provision or select an approved Redis-compatible broker and configure the same private `REDIS_URL` for API, worker, and Beat. Configure the Supabase URL and service-role secret only on the API and worker/Beat services that need them. Add a dedicated Celery worker running `celery -A celery_app.celery_app worker --loglevel=INFO --queues default` and a separate Beat process running `celery -A celery_app.celery_app beat --loglevel=INFO`. Keep all services on a non-production database and keep the ledger feature flag false until the migration and smoke tests pass.
+
+Do not deploy a blueprint change that creates paid workers or managed Redis until the service plan and recurring cost have been explicitly reviewed. Do not put the service-role key in Streamlit, a browser, repository files, or client-side configuration.
+
 ## Safe rollout sequence
 
 1. Review both `supabase/migrations/20261022210000_platform_job_ledger.sql` and `supabase/migrations/20261023010000_platform_job_dispatch_reconciliation.sql`; run them only on a disposable Supabase branch or local database first.
