@@ -1,6 +1,6 @@
 """Phase 69 — governed AOI/environmental asset registry contract."""
 from __future__ import annotations
-import hashlib,json,re
+import hashlib,json,re,math
 from datetime import datetime
 from typing import Any,Mapping
 POLICY_VERSION="phase69-v1"
@@ -13,7 +13,7 @@ def _position(p: Any) -> bool:
  if not isinstance(p,(list,tuple)) or len(p)<2:return False
  if any(not isinstance(v,(int,float)) or isinstance(v,bool) for v in p):return False
  try:
-  if any(not __import__("math").isfinite(float(v)) for v in p):return False
+  if any(not math.isfinite(float(v)) for v in p):return False
  except (OverflowError,TypeError,ValueError):return False
  return -180<=float(p[0])<=180 and -90<=float(p[1])<=90
 
