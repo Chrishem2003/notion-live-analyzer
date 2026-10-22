@@ -113,6 +113,17 @@ def test_status_rejects_unsafe_or_invalid_response(monkeypatch):
         ledger.get_status(job_id="job-1", actor_scope="service:test")
 
 
+def test_claim_rejects_invalid_lease_before_network_call(monkeypatch):
+    configure(monkeypatch)
+    session = FakeSession([])
+    ledger = PlatformJobLedger(session=session)
+    with pytest.raises(ValueError):
+        ledger.claim(worker_id="worker-test", lease_seconds=True)
+    with pytest.raises(ValueError):
+        ledger.claim(worker_id=" " * 201)
+    assert session.calls == []
+
+
 def test_empty_queue_returns_none(monkeypatch):
     configure(monkeypatch)
     ledger = PlatformJobLedger(session=FakeSession([None]))
