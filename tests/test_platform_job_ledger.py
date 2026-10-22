@@ -216,3 +216,40 @@ def test_reserve_dispatches_rejects_invalid_response(monkeypatch):
     ledger = PlatformJobLedger(session=FakeSession([[{"job_id": "not-a-uuid"}]]))
     with pytest.raises(PlatformLedgerUnavailable):
         ledger.reserve_dispatches()
+
+
+def test_get_metrics_accepts_aggregate_only_response(monkeypatch):
+    configure(monkeypatch)
+    expected = {
+        "total": 5, "queued": 1, "running": 1, "succeeded": 1,
+        "failed": 1, "needs_review": 1, "expired_leases": 0,
+        "oldest_queued_age_seconds": 42, "created_last_24h": 4,
+        "finished_last_24h": 3, "sampled_at": "2026-10-23T10:00:00+00:00",
+    }
+    session = FakeSession([expected])
+    ledger = PlatformJobLedger(session=session)
+    assert ledger.get_metrics() == expected
+    assert session.calls[0][0].endswith("/rpc/platform_get_job_metrics")
+    assert session.calls[0][1] == {}
+
+
+@pytest.mark.parametrize("patch", [
+    {"queued": -1},
+    {"failed": True},
+    {"total": 99},
+    {"expired_leases": 2},
+    {"unexpected_sensitive_field": "payload"},
+    {"sampled_at": ""},
+])
+def test_get_metrics_rejects_invalid_or_unsafe_response(monkeypatch, patch):
+    configure(monkeypatch)
+    response = {
+        "total": 1, "queued": 1, "running": 0, "succeeded": 0,
+        "failed": 0, "needs_review": 0, "expired_leases": 0,
+        "oldest_queued_age_seconds": 0, "created_last_24h": 1,
+        "finished_last_24h": 0, "sampled_at": "2026-10-23T10:00:00+00:00",
+    }
+    response.update(patch)
+    ledger = PlatformJobLedger(session=FakeSession([response]))
+    with pytest.raises(PlatformLedgerUnavailable):
+        ledger.get_metrics()
