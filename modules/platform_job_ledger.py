@@ -30,9 +30,26 @@ class PlatformJobLedger:
     def __init__(self, *, session: Any | None = None, timeout: float = 5.0) -> None:
         base_url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
         secret = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
-        parsed = urlparse(base_url)
-        if parsed.scheme != "https" or not parsed.netloc:
-            raise PlatformLedgerUnavailable("A valid HTTPS database URL is required.")
+        try:
+            parsed = urlparse(base_url)
+            hostname = parsed.hostname
+            parsed.port  # Force validation of malformed ports.
+        except ValueError as exc:
+            raise PlatformLedgerUnavailable("A valid HTTPS database URL is required.") from exc
+        if (
+            parsed.scheme != "https"
+            or not hostname
+            or not parsed.netloc
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path not in ("", "/")
+            or parsed.query
+            or parsed.fragment
+            or hostname.lower() in {"localhost", "localhost.localdomain"}
+        ):
+            raise PlatformLedgerUnavailable(
+                "Database URL must be a root HTTPS URL without credentials, path, query, or fragment."
+            )
         if not secret:
             raise PlatformLedgerUnavailable("Server-side database credentials are not configured.")
         if not 0 < timeout <= 30:
