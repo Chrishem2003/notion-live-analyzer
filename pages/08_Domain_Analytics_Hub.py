@@ -716,6 +716,94 @@ reported honestly above rather than papered over with a single confident-soundin
 
 
 # ==============================================================================
+# NEMA-AGORA pilot intake and quality preview
+# ==============================================================================
+def render_nema_agora_pilot():
+    """Offer a safe, session-only environmental observation pilot in the hub."""
+    from nema_agora.core import CATEGORIES, SEVERITIES, make_observation
+    from nema_agora.quality import assess_observation
+
+    section_header(
+        "🌿 NEMA-AGORA Environmental Observation Pilot",
+        "Capture a minimal observation, validate its structure, and surface review flags. This pilot does not determine environmental truth or regulatory liability.",
+    )
+    st.warning(
+        "**Preview mode only:** records are held in this Streamlit session and may disappear on reload, restart, or redeploy. "
+        "Do not enter sensitive personal data or treat this as an official complaint register. No Notion write-back, regulator notification, or enforcement action occurs."
+    )
+
+    if "nema_agora_demo_observations" not in st.session_state:
+        st.session_state["nema_agora_demo_observations"] = []
+    records = st.session_state["nema_agora_demo_observations"]
+
+    with st.form("nema_agora_observation_intake", clear_on_submit=False):
+        left, right = st.columns(2)
+        with left:
+            observation_date = st.date_input("Observation date", value=datetime.date.today())
+            category = st.selectbox("Observation category", CATEGORIES)
+            severity = st.selectbox("Reported severity (unverified)", SEVERITIES, index=1)
+            site = st.text_input("District / site label", max_chars=120, placeholder="e.g. Pilot Site A")
+        with right:
+            latitude = st.number_input("Latitude (optional; 0,0 means omitted)", min_value=-90.0, max_value=90.0, value=0.0, step=0.0001, format="%.6f")
+            longitude = st.number_input("Longitude (optional; 0,0 means omitted)", min_value=-180.0, max_value=180.0, value=0.0, step=0.0001, format="%.6f")
+            evidence_reference = st.text_input("Evidence reference (optional)", max_chars=300, help="Use a non-sensitive reference only; this does not upload or verify evidence.")
+        description = st.text_area("Observation description", max_chars=1500, placeholder="Describe what was observed without naming private individuals.")
+        consent_confirmed = st.checkbox(
+            "I confirm permission to record this observation and that personal data have been minimised."
+        )
+        submitted = st.form_submit_button("Validate and add to this session", type="primary")
+
+    if submitted:
+        try:
+            record = make_observation(
+                observation_date=observation_date,
+                category=category,
+                severity=severity,
+                site=site,
+                description=description,
+                latitude=latitude,
+                longitude=longitude,
+                consent_confirmed=consent_confirmed,
+                created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                evidence_reference=evidence_reference,
+            )
+        except (TypeError, ValueError) as exc:
+            st.error(f"Observation not added: {exc}")
+        else:
+            records.append(record)
+            st.session_state["nema_agora_demo_observations"] = records
+            st.success(f"Observation {record['case_id']} passed input validation and was added to this session. Human review is still required.")
+
+    st.markdown("#### Quality and review queue")
+    if not records:
+        st.info("No observations in this session yet. Start with synthetic or non-sensitive pilot data.")
+        return
+
+    summaries = []
+    for record in records:
+        quality = assess_observation(record, peer_records=records)
+        summaries.append({
+            "Case ID": record["case_id"],
+            "Date": record["observation_date"],
+            "Site": record["district_or_site"],
+            "Category": record["category"],
+            "Reported severity": record["severity"],
+            "Status": record["status"],
+            "Quality": quality["quality_status"],
+            "Flags": ", ".join(quality["flags"]),
+            "Human review required": quality["human_review_required"],
+        })
+    st.dataframe(pd.DataFrame(summaries), width="stretch", hide_index=True)
+    st.caption(
+        "Quality PASS means only that the supplied fields passed these deterministic checks. "
+        "It is not proof of an incident, an official severity assessment, a legal conclusion, or permission for enforcement."
+    )
+    if st.button("Clear session-only observations", key="clear_nema_agora_session"):
+        st.session_state["nema_agora_demo_observations"] = []
+        st.rerun()
+
+
+# ==============================================================================
 # Main Execution Orchestrator
 # ==============================================================================
 def main():
@@ -753,6 +841,7 @@ def main():
         "🧪 Lab Protocols",
         "🧬 Field Surveillance (mcr/PPWR)",
         "🌀 Chaos & Nonlinear Dynamics",
+        "🌿 NEMA-AGORA Pilot",
     ])
 
     with tabs[0]:
@@ -771,6 +860,8 @@ def main():
         render_field_surveillance()
     with tabs[7]:
         render_chaos_lab(df)
+    with tabs[8]:
+        render_nema_agora_pilot()
 
     render_standard_footer("DOMAIN ANALYTICS HUB")
 
