@@ -24,10 +24,10 @@ class GoogleProvider(ModelProvider):
 
         model = request.model or self.default_model
 
+        # Keep credentials out of URLs, which can be captured by proxies and logs.
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/"
             f"models/{model}:generateContent"
-            f"?key={self.api_key}"
         )
 
         contents = [
@@ -53,6 +53,7 @@ class GoogleProvider(ModelProvider):
         try:
             response = httpx.post(
                 url,
+                headers={"x-goog-api-key": self.api_key},
                 json={
                 "contents": contents,
                 **(
