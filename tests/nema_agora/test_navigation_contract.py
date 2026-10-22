@@ -157,11 +157,12 @@ def test_spatial_evidence_requires_explicit_alignment_attestation():
         'spatial_alignment="ALIGNED" if alignment_confirmed else "UNVERIFIED"',
         quality_call,
     )
-    baseline_aoi = page.index('baseline_aoi_id = st.text_input("Baseline AOI ID"', checkbox)
-    comparison_aoi = page.index('comparison_aoi_id = st.text_input("Comparison AOI ID"', baseline_aoi)
-    baseline_grid = page.index('baseline_grid_id = st.text_input("Baseline aligned grid ID"', comparison_aoi)
-    comparison_grid = page.index('comparison_grid_id = st.text_input("Comparison aligned grid ID"', baseline_grid)
-    assert checkbox < default_unchecked < attestation_warning < baseline_aoi < comparison_aoi < baseline_grid < comparison_grid < quality_call < conditional_alignment
+    baseline_aoi = page.index('baseline_aoi_id = st.text_input("Baseline AOI ID"')
+    comparison_aoi = page.index('comparison_aoi_id = st.text_input("Comparison AOI ID"')
+    baseline_grid = page.index('baseline_grid_id = st.text_input("Baseline aligned grid ID"')
+    comparison_grid = page.index('comparison_grid_id = st.text_input("Comparison aligned grid ID"')
+    assert baseline_aoi < comparison_aoi < baseline_grid < comparison_grid < checkbox
+    assert checkbox < default_unchecked < attestation_warning < quality_call < conditional_alignment
     assert "baseline_aoi_id=baseline_aoi_id.strip()" in page
     assert "comparison_aoi_id=comparison_aoi_id.strip()" in page
     assert "baseline_grid_id=baseline_grid_id.strip()" in page
