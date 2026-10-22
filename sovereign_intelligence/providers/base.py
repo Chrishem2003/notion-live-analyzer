@@ -11,6 +11,7 @@ class ProviderError(RuntimeError):
 class ModelProvider(ABC):
 
     name: str = "unknown"
+    default_model: str = ""
 
     @abstractmethod
     def generate(self, request: AIRequest) -> AIResponse:
