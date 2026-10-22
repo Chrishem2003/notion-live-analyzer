@@ -12,8 +12,14 @@
 | Quality checks and human review | Streamlit page → quality, access, workflow and service modules | Partially surfaced in the page; verify each role and direct service call |
 | Spatial change / evidence | Streamlit page → `spatial_temporal_change`, `spatial_temporal_quality`, `spatial_change_detection`, `spatial_workspace_bundle` | Advisory code path exists; no proof of live imagery acquisition or validated classification |
 | Metrics, controlled export, governance and backups | Streamlit page → reporting / governance / backup and release-readiness functions | Repository contracts exist; hosted authorization, persistence, retention and restore remain release gates |
-| External spatial API | `nema_agora.fastapi_authenticated_routes`, `fastapi_spatial_evidence_app`, related API modules | **Not served** by the current API container |
+| External spatial API | `nema_agora.fastapi_authenticated_routes`, `fastapi_spatial_evidence_app`, related API modules | **Not served** by the current API container; standalone query routes are now disabled by default pending trusted identity verification |
 | Main platform API | `Dockerfile.api` → `uvicorn api_server:app` | Existing CHRISHEM API surface; does not import `nema_agora` |
+
+## Security review finding and containment
+
+The first source review found that the legacy query routes accepted a caller-supplied SQLite path, caller-supplied actor/role, and treated any non-empty Authorization header as proof of authentication. One existing test used `Bearer demo` and expected success. The standalone FastAPI query routes have now been changed to return HTTP 503 until a trusted server-side identity verifier is wired; the database path is taken from `NEMA_SPATIAL_EVIDENCE_DB`, not a query parameter. Regression tests now require this deny-by-default behavior.
+
+This is containment, not production authentication. Do not enable the routes by replacing the 503 with a header-presence check. A future implementation must verify the credential cryptographically, resolve issuer/subject to a server-provisioned role, enforce permissions, and keep storage configuration server-side.
 
 ## Recommended service boundary
 
