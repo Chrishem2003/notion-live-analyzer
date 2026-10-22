@@ -58,6 +58,7 @@ celery_app.conf.update(
         Queue("literature"),
         Queue("data_audit"),
         Queue("agents"),
+        Queue("platform_ledger"),
         Queue("default"),
     ),
     task_routes={
@@ -67,6 +68,8 @@ celery_app.conf.update(
         # call — kept off the literature queue so a burst of quick searches
         # can't starve a slower swarm run, or vice versa.
         "tasks.run_swarm_task": {"queue": "agents"},
+        "tasks.process_platform_ledger_job": {"queue": "platform_ledger"},
+        "tasks.reconcile_platform_ledger_dispatches": {"queue": "platform_ledger"},
     },
     task_default_queue="default",
 
