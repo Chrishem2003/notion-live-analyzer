@@ -78,12 +78,16 @@ jobs:
 
           report = json.loads(Path("/tmp/nema-agora-inventory.json").read_text(encoding="utf-8"))
           modules = report["modules"]
-          unreferenced = [item["module"] for item in modules if item["no_static_importers"]]
+          no_runtime = [item["module"] for item in modules if item["no_runtime_importers"]]
+          test_only = [item["module"] for item in modules if item["test_importer_count"] and item["no_runtime_importers"]]
           print(f"Inventory modules: {report['module_count']}")
           print(f"Scanned Python files: {report['scanned_python_file_count']}")
           print(f"Phase-suffixed package files: {len(report['phase_suffixed_package_files'])}")
-          print(f"Modules with no static importers (review only): {len(unreferenced)}")
-          for name in unreferenced:
+          print(f"Modules with no runtime importers (review only): {len(no_runtime)}")
+          for name in no_runtime:
+              print(f"  - {name}")
+          print(f"Modules imported by tests but not runtime code: {len(test_only)}")
+          for name in test_only:
               print(f"  - {name}")
           print(f"Unresolved internal imports: {len(report['unresolved_nema_imports'])}")
           print("Phase-suffixed files:")
