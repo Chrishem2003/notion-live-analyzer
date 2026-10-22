@@ -1,5 +1,6 @@
 """Phase 157 — health monitoring for the Phase 156 continuity registry."""
 from __future__ import annotations
+from datetime import datetime
 from typing import Any, Mapping, Sequence
 from .api_audit_binding import fingerprint
 from .api_governance_drift_recovery_authorization_retention_registry_lifecycle_decision_history_registry_lifecycle_decision_continuity_review_lifecycle_decision_continuity_phase155 import validate_authorization_history_registry_decision_history_lifecycle_decision_continuity_review_lifecycle_decision_continuity_snapshot
@@ -11,7 +12,6 @@ RECOMMENDATIONS = ("REVIEW_CONTINUITY", "NO_CONTINUITY_ACTION", "PRESERVE_AND_ES
 def build_lifecycle_decision_continuity_registry_monitor(
     registry_records: Sequence[Mapping[str, Any]], *, expected_count: int | None = None, observed_at: str
 ) -> dict[str, Any]:
-    from datetime import datetime
     try:
         observed_time = datetime.fromisoformat(str(observed_at).replace("Z", "+00:00"))
         if observed_time.tzinfo is None or observed_time.utcoffset() is None:
