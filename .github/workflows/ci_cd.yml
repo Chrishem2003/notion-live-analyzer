@@ -124,6 +124,33 @@ jobs:
             RAISE EXCEPTION 'status response unsafe or incorrect';
           END IF;
 
+          -- Handler failures should requeue until the configured attempt budget is exhausted.
+          PERFORM public.platform_enqueue_job(
+            'platform.synthetic.validate', 'ci:test', 'idem-ci-retry', repeat('c', 64),
+            '{"synthetic":true}'::jsonb, 2
+          );
+          claim := public.platform_claim_job('ci-worker', 30);
+          IF claim IS NULL THEN RAISE EXCEPTION 'retry test job was not claimed'; END IF;
+          job_uuid := (claim->>'job_id')::uuid;
+          lease_uuid := (claim->>'lease_token')::uuid;
+          finished := public.platform_finish_job(
+            job_uuid, 'ci-worker', lease_uuid, 'failed', NULL, '{"code":"handler_failed"}'::jsonb
+          );
+          IF finished->>'status' <> 'queued' THEN
+            RAISE EXCEPTION 'first handler failure was not queued for retry';
+          END IF;
+          claim := public.platform_claim_job('ci-worker-2', 30);
+          IF claim IS NULL OR (claim->>'attempt_count')::integer <> 2 THEN
+            RAISE EXCEPTION 'second handler attempt was not claimed';
+          END IF;
+          lease_uuid := (claim->>'lease_token')::uuid;
+          finished := public.platform_finish_job(
+            job_uuid, 'ci-worker-2', lease_uuid, 'failed', NULL, '{"code":"handler_failed"}'::jsonb
+          );
+          IF finished->>'status' <> 'failed' THEN
+            RAISE EXCEPTION 'retry budget exhaustion did not become failed';
+          END IF;
+
           BEGIN
             UPDATE public.platform_audit_events SET event_type = 'tampered'
             WHERE job_id = job_uuid;
