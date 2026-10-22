@@ -69,6 +69,16 @@ celery_app.conf.update(
         "tasks.run_swarm_task": {"queue": "agents"},
     },
     task_default_queue="default",
+
+    # Periodic repair loop for durable ledger jobs. This only dispatches jobs
+    # when the explicit feature flag is enabled; the database reservation RPC
+    # bounds duplicate dispatch if the broker or workers are temporarily down.
+    beat_schedule={
+        "reconcile-platform-ledger-dispatches": {
+            "task": "tasks.reconcile_platform_ledger_dispatches",
+            "schedule": 30.0,
+        },
+    },
 )
 
 if __name__ == "__main__":
