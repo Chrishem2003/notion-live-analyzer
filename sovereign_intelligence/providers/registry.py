@@ -57,7 +57,7 @@ class ProviderRegistry:
 
         for name in self._providers:
             key = environment_keys.get(name)
-            if key and os.getenv(key):
+            if key and os.getenv(key, "").strip():
                 names.append(name)
 
         return sorted(names)
