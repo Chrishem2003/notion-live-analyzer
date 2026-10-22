@@ -181,7 +181,7 @@ def test_file_backed_case_and_audit_survive_repository_reopen(tmp_path):
     [
         ("case_id", "X" * 81, "case_id"),
         ("description", "D" * 1501, "description"),
-        ("latitude", True, "Latitude and longitude"),
+        ("latitude", True, "Coordinates"),
     ],
 )
 def test_case_text_and_coordinate_bounds_fail_closed(repository, field, value, message):
