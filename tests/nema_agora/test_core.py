@@ -26,6 +26,54 @@ def test_permission_confirmation_requires_boolean_true(consent):
     assert any("Permission and data minimisation" in error for error in errors)
 
 
+@pytest.mark.parametrize(
+    "current,new",
+    [
+        ("Received", "Under review"),
+        ("Under review", "Referred"),
+        ("Under review", "Action recorded"),
+        ("Referred", "Closed"),
+        ("Action recorded", "Closed"),
+    ],
+)
+def test_allowed_status_transitions(current, new):
+    from nema_agora.core import validate_status_transition
+
+    assert validate_status_transition(current, new) == []
+
+
+@pytest.mark.parametrize(
+    "current,new",
+    [
+        ("Received", "Closed"),
+        ("Closed", "Action recorded"),
+        ("Action recorded", "Received"),
+        ("unknown", "Under review"),
+        ("Under review", "unknown"),
+    ],
+)
+def test_disallowed_status_transitions_are_rejected(current, new):
+    from nema_agora.core import validate_status_transition
+
+    assert validate_status_transition(current, new)
+
+
+def test_reopening_closed_case_requires_a_meaningful_reason():
+    from nema_agora.core import validate_status_transition
+
+    assert validate_status_transition("Closed", "Under review")
+    assert validate_status_transition("Closed", "Under review", reason="mistake")
+    assert validate_status_transition(
+        "Closed", "Under review", reason="New evidence received"
+    ) == []
+
+
+def test_repeating_same_status_is_idempotent():
+    from nema_agora.core import validate_status_transition
+
+    assert validate_status_transition("Under review", "Under review") == []
+
+
 def test_validation_rejects_oversized_description():
     errors = validate_observation(site="Pilot A", description="x" * 1501, consent_confirmed=True)
     assert any("1,500" in error for error in errors)

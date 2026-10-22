@@ -36,6 +36,38 @@ def validate_observation(*, site: str, description: str, consent_confirmed: bool
     return errors
 
 
+ALLOWED_STATUS_TRANSITIONS = {
+    "Received": {"Under review"},
+    "Under review": {"Referred", "Action recorded", "Closed"},
+    "Referred": {"Under review", "Action recorded", "Closed"},
+    "Action recorded": {"Under review", "Closed"},
+    "Closed": {"Under review"},
+}
+
+
+def validate_status_transition(
+    current_status: str,
+    new_status: str,
+    *,
+    reason: str = "",
+) -> list[str]:
+    """Validate a case-state change; reopening a closed case needs an audit reason."""
+    if current_status not in STATUSES:
+        return ["Current status is not recognised."]
+    if new_status not in STATUSES:
+        return ["New status is not recognised."]
+    if current_status == new_status:
+        return []
+    if new_status not in ALLOWED_STATUS_TRANSITIONS[current_status]:
+        return [f"Transition from {current_status} to {new_status} is not allowed."]
+    if current_status == "Closed" and new_status == "Under review":
+        if not reason.strip():
+            return ["A reason is required to reopen a closed case."]
+        if len(reason.strip()) < 10:
+            return ["The reopening reason must be at least 10 characters."]
+    return []
+
+
 def new_case_id() -> str:
     """Create a short, human-readable case identifier."""
     return f"NA-{uuid.uuid4().hex[:8].upper()}"
