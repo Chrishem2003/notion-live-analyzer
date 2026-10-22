@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from nema_agora.api_governance_drift_human_review import review_drift
+from nema_agora.api_governance_drift_review_queue import build_drift_review_item
 from nema_agora.api_governance_drift_review_reconciliation import reconcile_drift_reviews
 from nema_agora.api_governance_drift_review_registry import GovernanceDriftReviewAuditRegistry
 
@@ -12,16 +13,10 @@ def fixtures():
         "drift_fingerprint": "a" * 64,
         "baseline_snapshot_id": "API-SNAPSHOT-BASE",
         "current_snapshot_id": "API-SNAPSHOT-CURRENT",
+        "severity": "MEDIUM",
         "state": "REVIEW_TRIGGERED",
     }
-    queue = {
-        "review_id": "API-DRIFT-REVIEW-001",
-        "drift_id": drift["drift_id"],
-        "drift_fingerprint": drift["drift_fingerprint"],
-        "baseline_snapshot_id": drift["baseline_snapshot_id"],
-        "current_snapshot_id": drift["current_snapshot_id"],
-        "state": "QUEUED",
-    }
+    queue = build_drift_review_item(drift)
     audit = review_drift(
         queue, actor_id="coordinator-1", role="coordinator",
         outcome="ACKNOWLEDGED", reviewed_at="2026-10-04T12:00:00Z",
