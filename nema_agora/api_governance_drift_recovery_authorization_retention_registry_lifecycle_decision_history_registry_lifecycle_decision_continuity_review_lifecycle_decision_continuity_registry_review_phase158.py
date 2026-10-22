@@ -14,8 +14,12 @@ def review_lifecycle_decision_continuity_registry(
 ) -> dict[str, Any]:
     monitor_report = validate_lifecycle_decision_continuity_registry_monitor(monitor_report)
     if not str(actor_id).strip() or role not in ROLES or outcome not in OUTCOMES: raise ValueError("INVALID_REVIEW_ACTOR_ROLE_OR_OUTCOME")
-    try: datetime.fromisoformat(str(reviewed_at).replace("Z", "+00:00"))
-    except ValueError as exc: raise ValueError("INVALID_REVIEW_TIME") from exc
+    try:
+        review_time = datetime.fromisoformat(str(reviewed_at).replace("Z", "+00:00"))
+        if review_time.tzinfo is None or review_time.utcoffset() is None:
+            raise ValueError("timezone offset required")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("INVALID_REVIEW_TIME") from exc
     allowed = {
         "ACKNOWLEDGED": ("CONTINUITY_HEALTHY",),
         "REVIEW_CONTINUITY": ("NO_HISTORY",),
@@ -42,8 +46,12 @@ def validate_lifecycle_decision_continuity_registry_review(review: Mapping[str, 
     allowed = {"ACKNOWLEDGED":("CONTINUITY_HEALTHY",),"REVIEW_CONTINUITY":("NO_HISTORY",),"PRESERVE_AND_ESCALATE":("CONTROL_REQUIRED",),"ESCALATED":("NO_HISTORY","CONTROL_REQUIRED")}
     if review["monitor_state"] not in allowed[review["outcome"]]: raise ValueError("OUTCOME_STATE_MISMATCH")
     if not str(review["actor_id"]).strip(): raise ValueError("ACTOR_REQUIRED")
-    try: datetime.fromisoformat(str(review["reviewed_at"]).replace("Z", "+00:00"))
-    except ValueError as exc: raise ValueError("INVALID_REVIEW_TIME") from exc
+    try:
+        review_time = datetime.fromisoformat(str(review["reviewed_at"]).replace("Z", "+00:00"))
+        if review_time.tzinfo is None or review_time.utcoffset() is None:
+            raise ValueError("timezone offset required")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("INVALID_REVIEW_TIME") from exc
     if review["human_governed"] is not True or review["automatic_repair_performed"] is not False: raise ValueError("INVALID_REVIEW_CONTROLS")
     if review["execution_gate_closed"] is not True or review["execution_permitted"] is not False or review["execution_performed"] is not False: raise ValueError("EXECUTION_GATE_VIOLATION")
     payload = dict(review); supplied = payload.pop("review_fingerprint")
