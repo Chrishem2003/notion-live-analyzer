@@ -1,9 +1,14 @@
 """NEMA-AGORA persisted case console — intentionally read-only."""
 from __future__ import annotations
 import streamlit as st
+from nema_agora.access import has_authenticated_portal_session
 from nema_agora.client import NemaApiError, get_case, get_review_packet, get_storage_readiness, list_cases
 
 st.set_page_config(page_title="NEMA-AGORA Case Console", page_icon="🌿", layout="wide")
+
+if not has_authenticated_portal_session(st.session_state):
+    st.warning("Sign in through the main CHRISHEM portal to access the NEMA Case Console.")
+    st.stop()
 st.title("🌿 NEMA-AGORA · Case Console")
 st.caption("Read-only view of persisted environmental cases. This console does not create, edit, close, or enforce cases; write operations remain disabled until the governed write path is implemented and tested.")
 
