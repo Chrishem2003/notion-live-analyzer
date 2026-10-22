@@ -23,7 +23,7 @@ The API also needs its existing Celery/Redis configuration. The worker service m
 3. Deploy the API and worker with `PLATFORM_JOB_LEDGER_ENABLED=false`.
 4. Verify the API health route and worker startup. Confirm the service-role key is available only to server services.
 5. In a non-production environment, apply the migration, run the unit suite, and exercise one synthetic job twice with the same `Idempotency-Key`. It must create one row and return the same job ID on retry.
-6. Verify the status endpoint never returns the request payload or lease token, and verify an altered payload with the same idempotency key returns a conflict.
+6. Verify the status endpoint never returns the request payload or lease token, and verify a different request with the same idempotency key returns HTTP 409.
 7. Only then set `PLATFORM_JOB_LEDGER_ENABLED=true` in the non-production environment and smoke-test:
    - `POST /api/v1/platform-jobs` with `{"job_type":"platform.synthetic.validate","payload":{"test":true}}` and an `Idempotency-Key` header.
    - `GET /api/v1/platform-jobs/{job_id}` until it reaches `succeeded`.
