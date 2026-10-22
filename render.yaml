@@ -68,3 +68,6 @@ services:
         value: /var/data/research_run_idempotency.sqlite3
       - key: RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER
         value: "false"
+      # Free-plan safe mode: disable Notion run writes without durable idempotency storage.
+      - key: RESEARCH_RUN_WRITEBACK_ENABLED
+        value: "false"
