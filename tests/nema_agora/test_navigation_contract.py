@@ -167,3 +167,5 @@ def test_spatial_evidence_requires_explicit_alignment_attestation():
     assert "comparison_aoi_id=comparison_aoi_id.strip()" in page
     assert "baseline_grid_id=baseline_grid_id.strip()" in page
     assert "comparison_grid_id=comparison_grid_id.strip()" in page
+    assert "assigns 10:00 UTC to each date for calculation" in page
+    assert "not provider acquisition metadata" in page
