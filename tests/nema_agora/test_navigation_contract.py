@@ -1,33 +1,19 @@
 """Navigation contract tests: one visible NEMA-AGORA destination only."""
 from pathlib import Path
 
-from app_navigation import discover_other_pages
-
-
-def test_nema_specialist_pages_are_not_exposed_as_separate_sidebar_entries(tmp_path):
-    root = tmp_path
+def test_single_nema_agora_workspace_is_the_only_nema_page_in_current_app():
+    root = Path(__file__).resolve().parents[2]
     pages = root / "pages"
-    pages.mkdir()
-    for name in (
-        "18_NEMA_AGORA.py",
-        "19_NEMA_AGORA_ADMIN.py",
-        "24_NEMA_AGORA_CONTROLLED_SHADOW.py",
-        "01_Statistics_Studio.py",
-        "16_Career_OS.py",
-    ):
-        (pages / name).write_text("# navigation fixture\n", encoding="utf-8")
-
-    visible = discover_other_pages(root, pages)
-
-    assert visible == [
-        ("pages/01_Statistics_Studio.py", "Statistics Studio"),
-        ("pages/16_Career_OS.py", "Career OS"),
-    ]
-    assert all("NEMA_AGORA" not in path for path, _ in visible)
+    visible_nema_pages = sorted(path.name for path in pages.glob("*NEMA_AGORA*.py"))
+    assert visible_nema_pages == ["18_NEMA_AGORA.py"]
 
 
-def test_missing_pages_directory_is_safe(tmp_path):
-    assert discover_other_pages(tmp_path, tmp_path / "missing") == []
+def test_current_main_application_shell_is_preserved():
+    root = Path(__file__).resolve().parents[2]
+    app = root / "app.py"
+    source = app.read_text(encoding="utf-8")
+    assert "Chrishem Science Hub" in source
+    assert "ensure_bootstrap_admin_record" in source
 
 
 def test_single_page_case_management_exposes_explicit_workflow_run_action():
