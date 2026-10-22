@@ -60,6 +60,10 @@ class NemaCaseRepository:
         path = str(database_path)
         if not path.strip():
             raise ValueError("A database path is required.")
+        # SQLite creates the database file but does not create missing parent
+        # directories. Keep in-memory and explicit SQLite URI paths untouched.
+        if path != ":memory:" and not path.startswith("file:"):
+            Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._connection = sqlite3.connect(
             path, timeout=5.0, isolation_level=None, check_same_thread=False
