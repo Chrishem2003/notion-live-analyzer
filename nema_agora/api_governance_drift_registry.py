@@ -6,8 +6,31 @@ from .api_audit_binding import fingerprint
 POLICY_VERSION="phase102-v1"
 def validate_drift(d:Mapping[str,Any])->None:
  if not isinstance(d,Mapping) or not d.get("drift_id") or not d.get("drift_fingerprint"): raise ValueError("INVALID_DRIFT")
+ if d.get("policy_version") != "phase101-v1": raise ValueError("DRIFT_POLICY_MISMATCH")
  if d.get("state") not in {"NO_DRIFT","REVIEW_TRIGGERED"}: raise ValueError("INVALID_DRIFT_STATE")
  if not d.get("baseline_snapshot_id") or not d.get("current_snapshot_id"): raise ValueError("INVALID_SNAPSHOT_BINDING")
+ if not isinstance(d.get("drift_detected"), bool): raise ValueError("INVALID_DRIFT_FLAG")
+ if not isinstance(d.get("review_required"), bool) or d["review_required"] != d["drift_detected"]: raise ValueError("INVALID_REVIEW_REQUIREMENT")
+ expected_state = "REVIEW_TRIGGERED" if d["drift_detected"] else "NO_DRIFT"
+ if d["state"] != expected_state: raise ValueError("DRIFT_STATE_MISMATCH")
+ if d.get("severity") not in {"HIGH", "MEDIUM", "NONE"}: raise ValueError("INVALID_DRIFT_SEVERITY")
+ if (not isinstance(d.get("changes"), list)
+     or (d["drift_detected"] != bool(d["changes"]))
+     or (not d["drift_detected"] and d["severity"] != "NONE")
+     or (d["drift_detected"] and d["severity"] == "NONE")):
+  raise ValueError("INVALID_DRIFT_CHANGES")
+ payload = {
+  "policy_version": d["policy_version"],
+  "baseline_snapshot_id": d["baseline_snapshot_id"],
+  "current_snapshot_id": d["current_snapshot_id"],
+  "drift_detected": d["drift_detected"],
+  "severity": d["severity"],
+  "changes": d["changes"],
+  "review_required": d["review_required"],
+ }
+ expected_fingerprint = fingerprint(payload)
+ if d["drift_fingerprint"] != expected_fingerprint: raise ValueError("DRIFT_FINGERPRINT_MISMATCH")
+ if d["drift_id"] != "API-DRIFT-" + expected_fingerprint[:24]: raise ValueError("DRIFT_ID_MISMATCH")
 class GovernanceDriftRegistry:
  def __init__(self,database_path:str):
   if not database_path: raise ValueError("DATABASE_PATH_REQUIRED")
