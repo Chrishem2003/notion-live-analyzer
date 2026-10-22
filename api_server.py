@@ -44,6 +44,10 @@ app = FastAPI(
 API_KEY = os.environ.get("PLATFORM_API_KEY")  # required — no default, no bypass
 GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET")
 
+# NEMA case access is authenticated and read-only until durable idempotent writes exist.
+from nema_agora.api import router as nema_case_router
+app.include_router(nema_case_router)
+
 
 def require_api_key(x_api_key: Optional[str] = Header(None)):
     if not API_KEY:
