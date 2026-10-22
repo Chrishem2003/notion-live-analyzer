@@ -21,6 +21,10 @@ The first source review found that the legacy query routes accepted a caller-sup
 
 This is containment, not production authentication. Do not enable the routes by replacing the 503 with a header-presence check. A future implementation must verify the credential cryptographically, resolve issuer/subject to a server-provisioned role, enforce permissions, and keep storage configuration server-side.
 
+## Spatial evidence UI input controls
+
+The current Streamlit spatial evidence form now accepts separate baseline/comparison AOI IDs and grid IDs so the quality module can detect mismatches rather than receiving identical values by construction. Alignment defaults to `UNVERIFIED` and is only marked `ALIGNED` after an explicit operator attestation; this does not substitute for independent geometry/CRS/grid verification. The form also explains that date-only inputs are assigned a placeholder time of 10:00 UTC. Index, cloud, valid-pixel and uncertainty values remain user-supplied, and no live imagery is fetched by this form.
+
 ## Recommended service boundary
 
 **Do not mount the NEMA API directly into the existing platform API in this batch.** Its current shared-key service-to-service authentication is not interchangeable with the NEMA pilot's OIDC identity and server-side role-binding model. Blindly mounting routers risks creating inconsistent authorization, unclear route ownership, and a false impression that spatial API security has been verified.
