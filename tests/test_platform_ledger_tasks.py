@@ -54,6 +54,7 @@ class FakeWorkerLedger:
 
 
 def test_handler_failure_schedules_retry_when_ledger_requeues(monkeypatch):
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "true")
     ledger = FakeWorkerLedger(finish_status="queued")
     dispatches = []
     monkeypatch.setattr(ledger_tasks, "PlatformJobLedger", lambda: ledger)
@@ -69,6 +70,7 @@ def test_handler_failure_schedules_retry_when_ledger_requeues(monkeypatch):
 
 
 def test_exhausted_handler_failure_does_not_schedule_another_retry(monkeypatch):
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "true")
     ledger = FakeWorkerLedger(finish_status="failed")
     dispatches = []
     monkeypatch.setattr(ledger_tasks, "PlatformJobLedger", lambda: ledger)
@@ -123,3 +125,15 @@ def test_dispatch_reconciler_reports_broker_failure_without_leaking_details(monk
     }
     assert "secret broker password" not in str(result)
     assert ledger.closed
+
+
+
+def test_job_processor_is_disabled_by_default(monkeypatch):
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "false")
+    monkeypatch.setattr(
+        ledger_tasks, "PlatformJobLedger",
+        lambda: (_ for _ in ()).throw(AssertionError("ledger should not be initialized")),
+    )
+    assert ledger_tasks.process_platform_ledger_job.run() == {
+        "processed": False, "reason": "ledger_disabled"
+    }
