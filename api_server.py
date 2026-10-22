@@ -324,7 +324,7 @@ def enqueue_platform_job(
     if not idempotency_key or not idempotency_key.strip() or len(idempotency_key.strip()) > 200:
         raise HTTPException(status_code=400, detail="A 1–200 character Idempotency-Key header is required.")
 
-    from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerUnavailable
+    from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerConflict, PlatformLedgerUnavailable
     ledger = None
     try:
         ledger = PlatformJobLedger()
@@ -353,6 +353,8 @@ def enqueue_platform_job(
             "status_url": f"/api/v1/platform-jobs/{job['job_id']}",
             "job_type": payload.job_type,
         }
+    except PlatformLedgerConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except PlatformLedgerUnavailable as exc:
