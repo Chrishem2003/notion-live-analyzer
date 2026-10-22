@@ -1,4 +1,10 @@
-"""Server-side RPC client for the Supabase platform job ledger."""
+"""Server-side RPC client for the Supabase platform job ledger.
+
+Security boundary: callers must derive ``actor_scope`` from trusted server-side
+identity/configuration. Never copy it from a request body or frontend field.
+The service-role credential must remain server-side and must never be returned
+to clients, logs, or task payloads.
+"""
 from __future__ import annotations
 
 import hashlib
@@ -81,9 +87,9 @@ class PlatformJobLedger:
         if not isinstance(payload, dict):
             raise ValueError("Payload must be a JSON object.")
         value = self._rpc("platform_enqueue_job", {
-            "p_job_type": job_type,
-            "p_actor_scope": actor_scope,
-            "p_idempotency_key": idempotency_key,
+            "p_job_type": job_type.strip(),
+            "p_actor_scope": actor_scope.strip(),
+            "p_idempotency_key": idempotency_key.strip(),
             "p_request_hash": self.request_hash(payload),
             "p_payload": payload,
             "p_max_attempts": max_attempts,
