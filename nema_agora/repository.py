@@ -29,11 +29,68 @@ class ConcurrentCaseUpdateError(RuntimeError):
     """Raised when a caller's expected version is stale."""
 
 
+MAX_CASE_JSON_BYTES = 65_536
+_TEXT_LIMITS = {
+    "case_id": 80,
+    "district_or_site": 120,
+    "category": 120,
+    "severity": 20,
+    "status": 40,
+    "description": 1_500,
+    "source": 120,
+    "reporter_reference": 120,
+}
+
+
 def _json_object(value: Mapping[str, Any]) -> str:
+    if not all(isinstance(key, str) and key.strip() for key in value):
+        raise ValueError("Case field names must be non-empty strings.")
+    for field_name, maximum in _TEXT_LIMITS.items():
+        if field_name not in value:
+            continue
+        field_value = value[field_name]
+        if not isinstance(field_value, str):
+            raise ValueError(f"{field_name} must be text.")
+        if len(field_value) > maximum:
+            raise ValueError(f"{field_name} must be {maximum} characters or fewer.")
     try:
-        return json.dumps(dict(value), sort_keys=True, separators=(",", ":"), allow_nan=False)
+        encoded = json.dumps(dict(value), sort_keys=True, separators=(",", ":"), allow_nan=False)
     except (TypeError, ValueError) as exc:
         raise ValueError("Case data must contain only finite JSON-compatible values.") from exc
+    if len(encoded.encode("utf-8")) > MAX_CASE_JSON_BYTES:
+        raise ValueError("Case record exceeds the 65536-byte storage limit.")
+    return encoded
+
+
+def _validate_case_record(record: Mapping[str, Any]) -> dict[str, Any]:
+    stored_record = dict(record)
+    case_id = stored_record.get("case_id")
+    if not isinstance(case_id, str) or not case_id.strip():
+        raise ValueError("A case ID is required.")
+    stored_record["case_id"] = case_id.strip()
+    if len(stored_record["case_id"]) > _TEXT_LIMITS["case_id"]:
+        raise ValueError("case_id must be 80 characters or fewer.")
+    if stored_record.get("status") not in STATUSES:
+        raise ValueError("A recognised case status is required.")
+    latitude, longitude = stored_record.get("latitude"), stored_record.get("longitude")
+    if (latitude is None) != (longitude is None):
+        raise ValueError("Latitude and longitude must be supplied together.")
+    if latitude is not None or longitude is not None:
+        if isinstance(latitude, bool) or isinstance(longitude, bool):
+            raise ValueError("Coordinates must be numeric, not boolean.")
+        try:
+            lat, lon = float(latitude), float(longitude)
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ValueError("Coordinates must be numeric.") from exc
+        import math
+        if not math.isfinite(lat) or not math.isfinite(lon):
+            raise ValueError("Coordinates must be finite.")
+        if not -90 <= lat <= 90 or not -180 <= lon <= 180:
+            raise ValueError("Coordinates are outside valid latitude/longitude ranges.")
+        stored_record["latitude"] = lat
+        stored_record["longitude"] = lon
+    _json_object(stored_record)
+    return stored_record
 
 
 def _aware_timestamp(value: str) -> str:
@@ -117,17 +174,11 @@ class NemaCaseRepository:
     ) -> tuple[dict[str, Any], int]:
         if not isinstance(record, Mapping):
             raise ValueError("Case record must be a mapping.")
-        case_id = record.get("case_id")
-        if not isinstance(case_id, str) or not case_id.strip():
-            raise ValueError("A case ID is required.")
-        if record.get("status") not in STATUSES:
-            raise ValueError("A recognised initial case status is required.")
         if not isinstance(actor, str) or not actor.strip() or len(actor.strip()) > 120:
             raise ValueError("Actor metadata must be non-empty and at most 120 characters.")
         timestamp = _aware_timestamp(created_at)
-        case_id = case_id.strip()
-        stored_record = dict(record)
-        stored_record["case_id"] = case_id
+        stored_record = _validate_case_record(record)
+        case_id = stored_record["case_id"]
         encoded = _json_object(stored_record)
         event = {
             "event_type": "case_created",
