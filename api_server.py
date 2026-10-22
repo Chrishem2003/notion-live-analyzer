@@ -352,6 +352,19 @@ def rag_query(payload: QueryRequest, _auth: bool = Depends(require_api_key)):
 # ══════════════════════════════════════════════════════════════════
 # Inbound webhooks — real HMAC-SHA256 signature verification (GitHub scheme)
 # ══════════════════════════════════════════════════════════════════
+MAX_GITHUB_WEBHOOK_BYTES = 1_048_576
+
+
+async def read_limited_webhook_body(request: Request, *, max_bytes: int = MAX_GITHUB_WEBHOOK_BYTES) -> bytes:
+    """Read a webhook body with a hard streaming cap to limit memory abuse."""
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > max_bytes:
+            raise HTTPException(status_code=413, detail="Webhook payload exceeds the 1 MiB limit.")
+    return bytes(body)
+
+
 def verify_github_signature(raw_body: bytes, signature_header: Optional[str]) -> bool:
     """
     GitHub signs webhook payloads as `sha256=<hexdigest>` using HMAC-SHA256
@@ -367,11 +380,16 @@ def verify_github_signature(raw_body: bytes, signature_header: Optional[str]) ->
 
 @app.post("/api/v1/webhooks/github")
 async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = Header(None)):
-    raw_body = await request.body()
+    raw_body = await read_limited_webhook_body(request)
     if not verify_github_signature(raw_body, x_hub_signature_256):
         raise HTTPException(status_code=401, detail="Invalid webhook signature.")
 
-    payload = await request.json()
+    try:
+        payload = json.loads(raw_body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        raise HTTPException(status_code=400, detail="Webhook payload must be valid JSON.")
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Webhook payload must be a JSON object.")
     event_type = request.headers.get("X-GitHub-Event", "unknown")
 
     # Real routing example: a push event to a papers/ or data/ directory
