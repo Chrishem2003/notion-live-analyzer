@@ -298,7 +298,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = pg_catalog, public
-as $
+as $$
 declare
     v_job public.platform_jobs%rowtype;
 begin
@@ -329,7 +329,7 @@ begin
         'error', v_job.error_json
     );
 end;
-$;
+$$;
 
 -- RPC-only interface: callers cannot directly mutate ledger tables through PostgREST.
 revoke all on function public.platform_enqueue_job(text, text, text, text, jsonb, integer) from public, anon, authenticated;
