@@ -22,11 +22,11 @@
 3. **Persistence adapters are not interchangeable.** Phase 102 stores drift events; Phase 108 stores sequence-bound reconciliation snapshots. Their append-only triggers serve different records and lifecycles.
 4. **Read-only monitor/reconciliation outputs must not silently repair history.** The current monitor and reconciliation contracts explicitly report findings and leave recovery to an authorized human process.
 5. **Integrity fingerprints are not authentication or signatures.** A digest can detect accidental or uncoordinated tampering only if trusted reference values are protected. It does not establish who authored a record.
-6. **Contract hardening still needed before integration.** In particular, review whether Phase 102's `validate_drift` verifies that the supplied drift fingerprint and drift ID match a recomputed canonical payload; its current validation checks presence and state/binding fields but does not recompute the drift payload fingerprint. This is a candidate hardening item for a separate test-first change, not a reason to mount the module now.
+6. **Phase 102 fingerprint validation is now hardened and tested.** `validate_drift` reconstructs the canonical Phase 101 payload, verifies the supplied fingerprint and derived drift ID, and rejects inconsistent state/review flags, malformed change lists, and unsupported policy versions before persistence. New tests tamper with both the payload and drift ID. This is still a library contract—not a mounted API—and the digest is not a digital signature or identity proof.
 
 ## Safe next steps
 
-- Add tamper tests for Phase 102 before changing validation; update fixtures to use valid Phase 101 outputs rather than arbitrary fingerprints.
+- Phase 102 tamper tests now use valid Phase 101 outputs and reject altered changes and forged drift IDs; preserve these tests during future consolidation.
 - Trace Phase 104/105 review-audit creation and verify actor/role binding, outcome allowlists, timestamps and digest recomputation end-to-end.
 - Add an integration test for the full sequence: snapshot → drift detection → append-only event → review queue → human review audit → reconciliation. Test duplicate and tampered records at every boundary.
 - Only after this chain passes should the current Streamlit page be considered as a potential consumer. No HTTP route should be exposed without a trusted authentication dependency and explicit server-side role resolution.
