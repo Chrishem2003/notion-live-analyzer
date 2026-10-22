@@ -141,3 +141,69 @@ def test_job_and_audit_survive_reopening_database(tmp_path):
         assert len(second.list_audit(job_id, actor="operator-1")) == 2
     finally:
         second.close()
+
+
+def _insert_stuck_job(runtime, *, job_id="stuck-job", key="stuck-key"):
+    import hashlib
+    from datetime import datetime, timezone
+
+    inputs = json.dumps({"value": 5}, sort_keys=True, separators=(",", ":"))
+    now = datetime.now(timezone.utc).isoformat()
+    runtime._db.execute(
+        """INSERT INTO automation_jobs
+        (job_id,idempotency_key,workflow_name,input_hash,input_json,status,actor,attempts,created_at,updated_at)
+        VALUES (?,?,?,?,?,'running',?,0,?,?)""",
+        (job_id, key, "test.stuck", hashlib.sha256(inputs.encode()).hexdigest(), inputs,
+         "operator-1", now, now),
+    )
+    runtime._audit(job_id, "job_started", {
+        "job_id": job_id, "workflow_name": "test.stuck", "actor": "operator-1",
+        "input_hash": hashlib.sha256(inputs.encode()).hexdigest(), "status": "running",
+    }, now)
+
+
+def test_manual_recovery_requires_explicit_no_side_effect_confirmation(runtime):
+    _insert_stuck_job(runtime)
+    with pytest.raises(ValueError, match="confirm that no side effect"):
+        runtime.resolve_stuck_job_as_failed(
+            "stuck-job", actor="operator-1", reason="checked logs", resolution="unknown"
+        )
+    assert runtime.get_job("stuck-job", actor="operator-1")["status"] == "running"
+
+
+def test_manual_recovery_is_authorized_audited_and_blocks_blind_replay(runtime):
+    _insert_stuck_job(runtime)
+    calls = []
+    runtime.register(WorkflowSpec("test.stuck", lambda data: calls.append(data) or {"ok": True}, _validator))
+    resolved = runtime.resolve_stuck_job_as_failed(
+        "stuck-job", actor="operator-1", reason="Checked provider logs and confirmed no request was accepted.",
+        resolution="confirmed_no_side_effect",
+    )
+    assert resolved["status"] == "failed"
+    assert resolved["error_code"] == "ManualRecoveryConfirmedNoSideEffect"
+    events = runtime.list_audit("stuck-job", actor="operator-1")
+    assert events[-1]["event_type"] == "job_manually_reconciled_failed"
+    assert events[-1]["resolution"] == "confirmed_no_side_effect"
+    assert "confirmed no request was accepted" in events[-1]["reason"]
+
+    replay = runtime.execute(
+        "test.stuck", {"value": 5}, actor="operator-1", idempotency_key="stuck-key"
+    )
+    assert replay["status"] == "failed"
+    assert replay["replayed"] is True
+    assert calls == []
+
+
+def test_manual_recovery_rejects_unauthorized_actor_and_terminal_jobs(runtime):
+    _insert_stuck_job(runtime)
+    with pytest.raises(AutomationAuthorizationError):
+        runtime.resolve_stuck_job_as_failed(
+            "stuck-job", actor="intruder", reason="attempt", resolution="confirmed_no_side_effect"
+        )
+    runtime.resolve_stuck_job_as_failed(
+        "stuck-job", actor="operator-1", reason="verified no side effect", resolution="confirmed_no_side_effect"
+    )
+    with pytest.raises(AutomationConflictError, match="Only a running job"):
+        runtime.resolve_stuck_job_as_failed(
+            "stuck-job", actor="operator-1", reason="second attempt", resolution="confirmed_no_side_effect"
+        )
