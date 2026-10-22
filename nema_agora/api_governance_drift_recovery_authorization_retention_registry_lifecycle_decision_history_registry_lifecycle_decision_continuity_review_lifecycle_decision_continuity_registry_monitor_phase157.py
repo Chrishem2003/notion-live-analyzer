@@ -12,8 +12,12 @@ def build_lifecycle_decision_continuity_registry_monitor(
     registry_records: Sequence[Mapping[str, Any]], *, expected_count: int | None = None, observed_at: str
 ) -> dict[str, Any]:
     from datetime import datetime
-    try: datetime.fromisoformat(str(observed_at).replace("Z", "+00:00"))
-    except ValueError as exc: raise ValueError("INVALID_OBSERVED_AT") from exc
+    try:
+        observed_time = datetime.fromisoformat(str(observed_at).replace("Z", "+00:00"))
+        if observed_time.tzinfo is None or observed_time.utcoffset() is None:
+            raise ValueError("timezone offset required")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("INVALID_OBSERVED_AT") from exc
     findings: list[str] = []
     valid: list[dict[str, Any]] = []
     for record in registry_records:
@@ -51,6 +55,12 @@ def validate_lifecycle_decision_continuity_registry_monitor(report: Mapping[str,
     required = ("policy_version","observed_at","state","recommendation","registry_count","valid_registry_count","findings","read_only","human_governed","automatic_repair_performed","execution_gate_closed","execution_permitted","execution_performed","monitor_fingerprint")
     if not isinstance(report, Mapping) or any(k not in report for k in required): raise ValueError("MONITOR_FIELDS_REQUIRED")
     if report["policy_version"] != POLICY_VERSION or report["state"] not in STATES or report["recommendation"] not in RECOMMENDATIONS: raise ValueError("INVALID_MONITOR_POLICY_STATE")
+    try:
+        observed_time = datetime.fromisoformat(str(report["observed_at"]).replace("Z", "+00:00"))
+        if observed_time.tzinfo is None or observed_time.utcoffset() is None:
+            raise ValueError("timezone offset required")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("INVALID_OBSERVED_AT") from exc
     if report["read_only"] is not True or report["human_governed"] is not True or report["automatic_repair_performed"] is not False: raise ValueError("INVALID_MONITOR_CONTROLS")
     if report["execution_gate_closed"] is not True or report["execution_permitted"] is not False or report["execution_performed"] is not False: raise ValueError("EXECUTION_GATE_VIOLATION")
     if report["state"] == "NO_HISTORY" and report["recommendation"] != "REVIEW_CONTINUITY": raise ValueError("STATE_RECOMMENDATION_MISMATCH")
