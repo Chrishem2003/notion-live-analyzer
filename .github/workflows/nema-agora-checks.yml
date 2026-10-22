@@ -83,6 +83,8 @@ jobs:
           print(f"Scanned Python files: {report['scanned_python_file_count']}")
           print(f"Phase-suffixed package files: {len(report['phase_suffixed_package_files'])}")
           print(f"Modules with no static importers (review only): {len(unreferenced)}")
+          for name in unreferenced:
+              print(f"  - {name}")
           print(f"Unresolved internal imports: {len(report['unresolved_nema_imports'])}")
           print("Phase-suffixed files:")
           for path in report["phase_suffixed_package_files"]:
