@@ -8,6 +8,31 @@ ID_RE=re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 SHA_RE=re.compile(r"^[0-9a-f]{64}$")
 ASSET_TYPES={"DISTRICT","WETLAND","WATERSHED","PROTECTED_AREA","FOREST_RESERVE","LAKE","RIVER","RIVER_BUFFER","LAKESHORE_ZONE","CUSTOM"}
 STATUSES={"ACTIVE","INACTIVE","PROPOSED"}
+
+def _position(p: Any) -> bool:
+ if not isinstance(p,(list,tuple)) or len(p)<2:return False
+ if any(not isinstance(v,(int,float)) or isinstance(v,bool) for v in p):return False
+ try:
+  if any(not __import__("math").isfinite(float(v)) for v in p):return False
+ except (OverflowError,TypeError,ValueError):return False
+ return -180<=float(p[0])<=180 and -90<=float(p[1])<=90
+
+def _ring(r: Any) -> bool:
+ return (isinstance(r,(list,tuple)) and len(r)>=4
+         and all(_position(p) for p in r)
+         and list(r[0][:2])==list(r[-1][:2]))
+
+def _geometry(g: Any) -> bool:
+ if not isinstance(g,Mapping):return False
+ kind,coords=g.get("type"),g.get("coordinates")
+ if kind=="Point":return _position(coords)
+ if kind=="Polygon":
+  return isinstance(coords,(list,tuple)) and bool(coords) and all(_ring(r) for r in coords)
+ if kind=="MultiPolygon":
+  return (isinstance(coords,(list,tuple)) and bool(coords)
+          and all(isinstance(poly,(list,tuple)) and bool(poly)
+                  and all(_ring(r) for r in poly) for poly in coords))
+ return False
 def fingerprint(v:Any)->str:
  return hashlib.sha256(json.dumps(v,sort_keys=True,separators=(",",":"),ensure_ascii=False,default=str).encode()).hexdigest()
 def _id(v:Any)->bool:return isinstance(v,str) and bool(ID_RE.fullmatch(v.strip()))
@@ -26,7 +51,7 @@ def validate_asset(a:Mapping[str,Any])->dict[str,Any]:
  if a.get("status") not in STATUSES: f.append({"code":"INVALID_STATUS"})
  if a.get("crs")!="EPSG:4326": f.append({"code":"UNSUPPORTED_CRS"})
  g=a.get("geometry")
- if not isinstance(g,Mapping) or g.get("type") not in {"Point","Polygon","MultiPolygon"}: f.append({"code":"INVALID_GEOMETRY"})
+ if not _geometry(g): f.append({"code":"INVALID_GEOMETRY"})
  if not isinstance(a.get("source_reference"),str) or not a["source_reference"].strip(): f.append({"code":"MISSING_SOURCE_REFERENCE"})
  for k in ("effective_from","effective_to"):
   if a.get(k) is not None and not _time(a[k]): f.append({"code":f"INVALID_{k.upper()}"})
