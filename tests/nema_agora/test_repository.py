@@ -244,3 +244,25 @@ def test_one_blank_coordinate_with_one_value_is_rejected(repository):
             record, actor="operator", created_at="2026-10-22T07:00:00Z"
         )
     assert repository.get_case("NA-TEST1234") is None
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("observation_date", "2026-2-2", "YYYY-MM-DD"),
+        ("observation_date", "not-a-date", "YYYY-MM-DD"),
+        ("category", "made-up category", "category"),
+        ("severity", "catastrophic", "severity"),
+        ("district_or_site", "   ", "district_or_site"),
+        ("description", "", "description"),
+    ],
+)
+def test_invalid_domain_fields_are_rejected_before_write(repository, field, value, message):
+    record = _record()
+    record[field] = value
+    with pytest.raises(ValueError, match=message):
+        repository.create_case(
+            record, actor="operator", created_at="2026-10-22T07:00:00Z"
+        )
+    assert repository.get_case("NA-TEST1234") is None
+    assert repository.list_audit_events("NA-TEST1234") == []
