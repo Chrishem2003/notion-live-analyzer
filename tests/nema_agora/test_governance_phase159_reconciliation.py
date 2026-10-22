@@ -55,3 +55,17 @@ def test_reconciliation_requires_explicit_decision_suppression_fields():
     del report["environmental_conclusion"]
     with pytest.raises(ValueError, match="RECONCILIATION_FIELDS_REQUIRED"):
         validate_lifecycle_decision_continuity_registry_review_reconciliation(report)
+
+
+@pytest.mark.parametrize(
+    "kwargs, message",
+    [
+        ({"monitor_reports": None, "reviews": []}, "INVALID_MONITOR_REPORTS"),
+        ({"monitor_reports": [], "reviews": "not-a-sequence-of-records"}, "INVALID_REVIEWS"),
+        ({"monitor_reports": [], "reviews": [], "expected_review_count": -1}, "INVALID_EXPECTED_REVIEW_COUNT"),
+        ({"monitor_reports": [], "reviews": [], "expected_review_count": True}, "INVALID_EXPECTED_REVIEW_COUNT"),
+    ],
+)
+def test_reconciliation_rejects_malformed_inputs(kwargs, message):
+    with pytest.raises(ValueError, match=message):
+        reconcile_lifecycle_decision_continuity_registry_reviews(**kwargs)
