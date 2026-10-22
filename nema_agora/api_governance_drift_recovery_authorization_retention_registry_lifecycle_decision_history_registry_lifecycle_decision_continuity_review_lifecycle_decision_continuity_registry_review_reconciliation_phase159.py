@@ -53,11 +53,46 @@ def reconcile_lifecycle_decision_continuity_registry_reviews(
     return dict(payload, reconciliation_fingerprint=fingerprint(payload))
 
 def validate_lifecycle_decision_continuity_registry_review_reconciliation(result: Mapping[str, Any]) -> dict[str, Any]:
-    required = ("policy_version","state","monitor_count","valid_monitor_count","review_count","valid_review_count","findings","read_only","human_governed","automatic_repair_performed","execution_gate_closed","execution_permitted","execution_performed","reconciliation_fingerprint")
-    if not isinstance(result, Mapping) or any(k not in result for k in required): raise ValueError("RECONCILIATION_FIELDS_REQUIRED")
-    if result["policy_version"] != POLICY_VERSION or result["state"] not in STATES: raise ValueError("INVALID_RECONCILIATION_STATE")
-    if result["read_only"] is not True or result["human_governed"] is not True or result["automatic_repair_performed"] is not False: raise ValueError("INVALID_RECONCILIATION_CONTROLS")
-    if result["execution_gate_closed"] is not True or result["execution_permitted"] is not False or result["execution_performed"] is not False: raise ValueError("EXECUTION_GATE_VIOLATION")
-    payload = dict(result); supplied = payload.pop("reconciliation_fingerprint")
-    if fingerprint(payload) != supplied: raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
+    required = (
+        "policy_version", "state", "monitor_count", "valid_monitor_count",
+        "review_count", "valid_review_count", "findings", "read_only",
+        "human_governed", "automatic_repair_performed", "execution_gate_closed",
+        "execution_permitted", "execution_performed", "environmental_conclusion",
+        "regulatory_conclusion", "enforcement_action", "emergency_action",
+        "interpretation", "reconciliation_fingerprint",
+    )
+    if not isinstance(result, Mapping) or any(k not in result for k in required):
+        raise ValueError("RECONCILIATION_FIELDS_REQUIRED")
+    if result["policy_version"] != POLICY_VERSION or result["state"] not in STATES:
+        raise ValueError("INVALID_RECONCILIATION_STATE")
+    count_fields = ("monitor_count", "valid_monitor_count", "review_count", "valid_review_count")
+    for field in count_fields:
+        value = result[field]
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise ValueError("INVALID_RECONCILIATION_COUNTS")
+    if result["valid_monitor_count"] > result["monitor_count"] or result["valid_review_count"] > result["review_count"]:
+        raise ValueError("INVALID_RECONCILIATION_COUNTS")
+    findings = result["findings"]
+    if not isinstance(findings, list) or any(not isinstance(item, str) or not item for item in findings):
+        raise ValueError("INVALID_RECONCILIATION_FINDINGS")
+    if findings != sorted(set(findings)):
+        raise ValueError("INVALID_RECONCILIATION_FINDINGS")
+    if result["read_only"] is not True or result["human_governed"] is not True or result["automatic_repair_performed"] is not False:
+        raise ValueError("INVALID_RECONCILIATION_CONTROLS")
+    if result["execution_gate_closed"] is not True or result["execution_permitted"] is not False or result["execution_performed"] is not False:
+        raise ValueError("EXECUTION_GATE_VIOLATION")
+    if any(result[field] is not None for field in ("environmental_conclusion", "regulatory_conclusion", "enforcement_action", "emergency_action")):
+        raise ValueError("UNSUPPORTED_DECISION_OUTPUT")
+    if result["interpretation"] != "LIFECYCLE_DECISION_CONTINUITY_REGISTRY_REVIEW_RECONCILIATION":
+        raise ValueError("INVALID_RECONCILIATION_INTERPRETATION")
+    if result["state"] == "NO_HISTORY" and (result["monitor_count"] or result["review_count"] or findings):
+        raise ValueError("RECONCILIATION_STATE_MISMATCH")
+    if result["state"] == "RECONCILED" and (not (result["monitor_count"] or result["review_count"]) or findings):
+        raise ValueError("RECONCILIATION_STATE_MISMATCH")
+    if result["state"] == "CONTROL_REQUIRED" and not findings:
+        raise ValueError("RECONCILIATION_STATE_MISMATCH")
+    payload = dict(result)
+    supplied = payload.pop("reconciliation_fingerprint")
+    if not isinstance(supplied, str) or fingerprint(payload) != supplied:
+        raise ValueError("RECONCILIATION_FINGERPRINT_MISMATCH")
     return dict(result)
