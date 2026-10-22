@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+from types import SimpleNamespace
 
 import pytest
 import requests
 
-from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerUnavailable
+from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerConflict, PlatformLedgerUnavailable
 
 
 class FakeResponse:
@@ -172,6 +173,19 @@ def test_transport_errors_are_redacted(monkeypatch):
         ledger.claim(worker_id="worker-test")
     assert "sensitive host" not in str(caught.value)
     assert "synthetic-secret" not in str(caught.value)
+
+
+def test_idempotency_conflict_is_distinguished_from_service_unavailable(monkeypatch):
+    configure(monkeypatch)
+    error = requests.HTTPError("conflict", response=SimpleNamespace(status_code=409))
+    ledger = PlatformJobLedger(session=FakeSession(error=error))
+    with pytest.raises(PlatformLedgerConflict):
+        ledger.enqueue(
+            job_type="platform.synthetic.validate",
+            actor_scope="service:test",
+            idempotency_key="same-key",
+            payload={"different": True},
+        )
 
 
 def test_closes_session(monkeypatch):
