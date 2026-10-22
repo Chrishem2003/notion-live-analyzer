@@ -375,6 +375,22 @@ def enqueue_platform_job(
             ledger.close()
 
 
+@app.get("/api/v1/platform-jobs/metrics")
+def get_platform_job_metrics(_auth: bool = Depends(require_api_key)):
+    """Expose aggregate operational counts only; no job payloads or identifiers."""
+    _require_platform_job_ledger_enabled()
+    from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerUnavailable
+    ledger = None
+    try:
+        ledger = PlatformJobLedger()
+        return ledger.get_metrics()
+    except PlatformLedgerUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    finally:
+        if ledger is not None:
+            ledger.close()
+
+
 @app.get("/api/v1/platform-jobs/{job_id}")
 def get_platform_job_status(job_id: UUID, _auth: bool = Depends(require_api_key)):
     """Read status within the server-configured actor scope; payload is never returned."""
