@@ -25,6 +25,10 @@
 6. **Integrity fingerprints are not authentication or signatures.** A digest can detect accidental or uncoordinated tampering only if trusted reference values are protected. It does not establish who authored a record.
 7. **Phase 102 fingerprint validation is now hardened and tested.** `validate_drift` reconstructs the canonical Phase 101 payload, verifies the supplied fingerprint and derived drift ID, and rejects inconsistent state/review flags, malformed change lists, and unsupported policy versions before persistence. New tests tamper with both the payload and drift ID. This is still a library contract—not a mounted API—and the digest is not a digital signature or identity proof.
 
+## End-to-end contract verification
+
+Added `tests/nema_agora/test_governance_drift_chain_integration.py`. It runs the repository-level path from two governance snapshots through drift detection, append-only event storage, review queue creation, human-review audit persistence, and final read-only reconciliation. The exact-head NEMA checks and full repository CI passed at code commit `1e06490f1502d6d9a1951dbb3918ef89d4172da7`. This verifies library contracts against temporary test databases; it does not prove the hosted UI/API, OIDC, or production storage is wired.
+
 ## Safe next steps
 
 - Phase 102 tamper tests now use valid Phase 101 outputs and reject altered changes and forged drift IDs; Phase 104 tests now reject tampered queue IDs, invalid actor IDs and timestamps without timezone offsets. Preserve these tests during future consolidation.
