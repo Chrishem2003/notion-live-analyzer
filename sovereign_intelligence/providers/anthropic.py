@@ -10,6 +10,7 @@ from ..models import AIRequest, AIResponse
 class AnthropicProvider(ModelProvider):
 
     name = "anthropic"
+    default_model = "claude-sonnet-4-5"
 
     def __init__(self):
         self.api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -22,7 +23,7 @@ class AnthropicProvider(ModelProvider):
             )
 
         payload = {
-            "model": request.model or "claude-sonnet-4-5",
+            "model": request.model or self.default_model,
             "max_tokens": request.max_tokens,
             "messages": [
                 {
