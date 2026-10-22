@@ -141,3 +141,20 @@ def test_restore_is_admin_gated_and_requires_two_explicit_confirmations():
     assert section < admin_gate < restore_section < checkbox < typed_phrase < disabled_guard < pre_backup < destructive_restore
     assert "Coordinate a maintenance window" in page[restore_section:]
 
+def test_spatial_evidence_requires_explicit_alignment_attestation():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+
+    checkbox = page.index('alignment_confirmed = st.checkbox(')
+    default_unchecked = page.index('value=False,', checkbox)
+    attestation_warning = page.index(
+        "This is an operator attestation, not independent geospatial verification.",
+        checkbox,
+    )
+    quality_call = page.index("quality_evidence = spatial_temporal_quality_evidence(", checkbox)
+    conditional_alignment = page.index(
+        'spatial_alignment="ALIGNED" if alignment_confirmed else "UNVERIFIED"',
+        quality_call,
+    )
+    assert checkbox < default_unchecked < attestation_warning < quality_call < conditional_alignment
