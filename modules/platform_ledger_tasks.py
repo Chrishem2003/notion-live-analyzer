@@ -11,7 +11,7 @@ import socket
 from typing import Any
 
 from celery_app import celery_app
-from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerUnavailable
+from modules.platform_job_ledger import PlatformJobLedger
 
 
 def _worker_id() -> str:
@@ -66,5 +66,35 @@ def process_platform_ledger_job() -> dict[str, Any]:
             status="succeeded", result=result,
         )
         return {"processed": True, "status": "succeeded", "job_id": job_id}
+    finally:
+        ledger.close()
+
+
+@celery_app.task(name="tasks.reconcile_platform_ledger_dispatches")
+def reconcile_platform_ledger_dispatches() -> dict[str, Any]:
+    """Redispatch durable queued/expired jobs on a schedule; safe to run repeatedly."""
+    if os.environ.get("PLATFORM_JOB_LEDGER_ENABLED", "false").strip().lower() != "true":
+        return {"enabled": False, "reserved": 0, "dispatched": 0}
+
+    ledger = PlatformJobLedger()
+    reserved = 0
+    dispatched = 0
+    try:
+        job_ids = ledger.reserve_dispatches(limit=25)
+        reserved = len(job_ids)
+        for _job_id in job_ids:
+            try:
+                celery_app.send_task("tasks.process_platform_ledger_job")
+                dispatched += 1
+            except Exception:
+                # The reservation has a 60-second cooldown; a later beat tick
+                # retries it. Never include broker exception text in task output.
+                break
+        return {
+            "enabled": True,
+            "reserved": reserved,
+            "dispatched": dispatched,
+            "dispatch_incomplete": dispatched < reserved,
+        }
     finally:
         ledger.close()
