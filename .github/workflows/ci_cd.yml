@@ -103,7 +103,7 @@ jobs:
               '{"synthetic":true}'::jsonb, 2
             );
             RAISE EXCEPTION 'idempotency hash conflict was accepted';
-          EXCEPTION WHEN SQLSTATE '22023' THEN
+          EXCEPTION WHEN SQLSTATE '23505' THEN
             NULL;
           END;
 
