@@ -100,6 +100,24 @@ class PlatformJobLedger:
             raise PlatformLedgerUnavailable("Ledger returned an invalid enqueue response.")
         return value
 
+    def get_status(self, *, job_id: str, actor_scope: str) -> dict[str, Any]:
+        """Read a job only inside a trusted actor scope; never returns its payload or lease token."""
+        if not isinstance(job_id, str) or not job_id.strip():
+            raise ValueError("job_id is required.")
+        if not isinstance(actor_scope, str) or not 1 <= len(actor_scope.strip()) <= 200:
+            raise ValueError("Actor scope must contain 1–200 characters.")
+        value = self._rpc("platform_get_job", {
+            "p_job_id": job_id.strip(),
+            "p_actor_scope": actor_scope.strip(),
+        })
+        if not isinstance(value, dict) or value.get("job_id") != job_id.strip() or value.get("status") not in {
+            "queued", "running", "succeeded", "failed", "needs_review"
+        }:
+            raise PlatformLedgerUnavailable("Ledger returned an invalid status response.")
+        if "payload" in value or "lease_token" in value:
+            raise PlatformLedgerUnavailable("Ledger returned an unsafe status response.")
+        return value
+
     def claim(self, *, worker_id: str, lease_seconds: int = 120) -> dict[str, Any] | None:
         value = self._rpc("platform_claim_job", {
             "p_worker_id": worker_id,
