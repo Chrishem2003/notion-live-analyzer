@@ -21,11 +21,12 @@ Run: uvicorn api_server:app --host 0.0.0.0 --port 8000
 
 import hashlib
 import hmac
+import json
 import os
 from typing import Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from celery_app import celery_app
 from celery.result import AsyncResult
@@ -69,6 +70,19 @@ class ResearchRunWriteRequest(BaseModel):
     environment: str = Field("staging", max_length=100)
     manifest_hash: str = Field("", max_length=256)
     parameters_json: str = Field("", max_length=10000)
+
+    @validator("parameters_json")
+    def parameters_json_must_be_object(cls, value: str) -> str:
+        """Reject malformed/non-object parameters before any external side effect."""
+        if not value.strip():
+            return value
+        try:
+            parsed = json.loads(value)
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise ValueError("parameters_json must contain valid JSON.") from exc
+        if not isinstance(parsed, dict):
+            raise ValueError("parameters_json must encode a JSON object.")
+        return value
 
 
 @app.post("/api/v1/research-runs")
