@@ -81,3 +81,45 @@ def test_exhausted_handler_failure_does_not_schedule_another_retry(monkeypatch):
     assert dispatches == []
     assert ledger.closed
 
+
+
+
+def test_dispatch_reconciler_is_gated_and_closes_ledger(monkeypatch):
+    ledger = FakeWorkerLedger()
+    reservations = ["job-1", "job-2"]
+    dispatches = []
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "false")
+    monkeypatch.setattr(ledger_tasks, "PlatformJobLedger", lambda: ledger)
+    disabled = ledger_tasks.reconcile_platform_ledger_dispatches.run()
+    assert disabled == {"enabled": False, "reserved": 0, "dispatched": 0}
+    assert not ledger.closed
+
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "true")
+    monkeypatch.setattr(ledger, "reserve_dispatches", lambda *, limit: reservations)
+    monkeypatch.setattr(ledger_tasks.celery_app, "send_task", lambda name: dispatches.append(name))
+    result = ledger_tasks.reconcile_platform_ledger_dispatches.run()
+    assert result == {
+        "enabled": True, "reserved": 2, "dispatched": 2, "dispatch_incomplete": False
+    }
+    assert dispatches == [
+        "tasks.process_platform_ledger_job", "tasks.process_platform_ledger_job"
+    ]
+    assert ledger.closed
+
+
+def test_dispatch_reconciler_reports_broker_failure_without_leaking_details(monkeypatch):
+    ledger = FakeWorkerLedger()
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "true")
+    monkeypatch.setattr(ledger_tasks, "PlatformJobLedger", lambda: ledger)
+    monkeypatch.setattr(ledger, "reserve_dispatches", lambda *, limit: ["job-1", "job-2"])
+
+    def broker_failure(_name):
+        raise RuntimeError("secret broker password")
+
+    monkeypatch.setattr(ledger_tasks.celery_app, "send_task", broker_failure)
+    result = ledger_tasks.reconcile_platform_ledger_dispatches.run()
+    assert result == {
+        "enabled": True, "reserved": 2, "dispatched": 0, "dispatch_incomplete": True
+    }
+    assert "secret broker password" not in str(result)
+    assert ledger.closed
