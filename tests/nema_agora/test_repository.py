@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sqlite3
+
 import pytest
 
 from nema_agora.repository import (
@@ -140,7 +142,7 @@ def test_limit_validation_rejects_bool(repository):
 
 def test_audit_events_are_protected_from_update_and_delete(repository):
     repository.create_case(_record(), actor="operator", created_at="2026-10-22T07:00:00Z")
-    with pytest.raises(Exception, match="append-only"):
+    with pytest.raises(sqlite3.IntegrityError, match="append-only"):
         repository._connection.execute(
             "UPDATE nema_case_audit SET event_type = 'rewritten' WHERE case_id = ?",
             ("NA-TEST1234",),
