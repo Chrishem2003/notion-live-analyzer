@@ -62,7 +62,8 @@ def build_inventory(root: Path) -> dict[str, object]:
         raise FileNotFoundError(f"Expected package directory: {package_root}")
     module_paths = sorted(package_root.rglob("*.py"))
     module_names = {_module_name(path, root): path for path in module_paths}
-    reverse: dict[str, set[str]] = defaultdict(set)
+    runtime_reverse: dict[str, set[str]] = defaultdict(set)
+    test_reverse: dict[str, set[str]] = defaultdict(set)
     unresolved: dict[str, set[str]] = defaultdict(set)
     syntax_errors: list[dict[str, str]] = []
     phase_suffixed: list[str] = []
@@ -73,6 +74,7 @@ def build_inventory(root: Path) -> dict[str, object]:
     )
     for path in scan_paths:
         importer = _module_name(path, root)
+        is_test = path.is_relative_to(root / "tests")
         try:
             source = path.read_text(encoding="utf-8-sig")
             imports = _imports(source, importer, is_package_init=path.name == "__init__.py")
@@ -85,22 +87,29 @@ def build_inventory(root: Path) -> dict[str, object]:
         if path.is_relative_to(package_root) and PHASE_SUFFIX.search(path.name):
             phase_suffixed.append(str(path.relative_to(root)))
         for imported in imports:
-            if imported in module_names:
-                if imported != importer:
-                    reverse[imported].add(importer)
-            elif imported.startswith("nema_agora."):
+            if imported in module_names and imported != importer:
+                target = test_reverse if is_test else runtime_reverse
+                target[imported].add(importer)
+            elif imported.startswith("nema_agora.") and imported not in module_names:
                 unresolved[imported].add(importer)
 
     records = []
     for name, path in sorted(module_names.items()):
-        importers = sorted(reverse.get(name, set()))
+        runtime_importers = sorted(runtime_reverse.get(name, set()))
+        test_importers = sorted(test_reverse.get(name, set()))
+        all_importers = sorted(set(runtime_importers) | set(test_importers))
         records.append({
             "module": name,
             "path": str(path.relative_to(root)),
-            "static_importer_count": len(importers),
-            "static_importers": importers,
+            "static_importer_count": len(all_importers),
+            "static_importers": all_importers,
+            "runtime_importer_count": len(runtime_importers),
+            "runtime_importers": runtime_importers,
+            "test_importer_count": len(test_importers),
+            "test_importers": test_importers,
             "phase_suffixed": bool(PHASE_SUFFIX.search(path.name)),
-            "no_static_importers": not importers,
+            "no_static_importers": not all_importers,
+            "no_runtime_importers": not runtime_importers,
         })
     return {
         "schema_version": 1,
