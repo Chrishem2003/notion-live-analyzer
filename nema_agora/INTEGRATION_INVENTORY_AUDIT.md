@@ -45,6 +45,8 @@ Existing tests cover server-side role binding, ignoring privilege claims supplie
 
 Those are repository-level checks. They do not verify deployed OIDC callbacks, actual role bindings, Render filesystem persistence, direct API authorization, or real external data ingestion. The current deployed API entrypoint is not the NEMA spatial API, so that integration must be designed explicitly before claiming the spatial API is live.
 
+A route-level review found that the legacy standalone spatial API accepted a caller-provided database path and treated the presence of any Authorization header as authentication while accepting caller-supplied actor/role values. A query test even treated `Bearer demo` as sufficient. The two FastAPI query entrypoints have now been changed to fail closed with HTTP 503 until a trusted server-side identity verifier is wired; the database path is read from server configuration rather than request parameters. This is a containment fix, **not a completed authentication integration**. The query routes remain disabled, and their new exact-head CI must pass before this candidate is considered validated.
+
 ### 3. Test-only modules require product decisions
 
 The 82 modules with no detected runtime importer include governance/audit/reconciliation helpers, separate FastAPI route/app modules, spatial evidence utilities, remote-sensing adapters, and reporting/recovery contracts. All have test references, but tests alone do not make a feature reachable by end users.
