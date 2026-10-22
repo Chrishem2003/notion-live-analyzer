@@ -38,6 +38,9 @@ jobs:
         sh -n scripts/start_platform_ledger_worker.sh
         sh -n scripts/start_platform_ledger_beat.sh
 
+    - name: Validate non-production ledger smoke test syntax
+      run: python -m py_compile scripts/platform_ledger_staging_smoke.py
+
     - name: Start isolated PostgreSQL for ledger migration validation
       run: |
         docker run -d --name ledger-postgres \
