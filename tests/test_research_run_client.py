@@ -49,7 +49,7 @@ def test_client_posts_to_authenticated_endpoint_without_auto_retry():
     assert url == "https://api.example/api/v1/research-runs"
     assert kwargs["headers"]["X-API-Key"] == "secret-test"
     assert kwargs["json"] == payload()
-    assert kwargs["timeout"] == 20.0
+    assert kwargs["timeout"] == 90.0
 
 
 def test_client_requires_server_config_and_absolute_http_url():
