@@ -80,3 +80,23 @@ def test_smoke_metrics_validator_rejects_inconsistent_or_sensitive_schema(change
     payload.update(change)
     with pytest.raises(ValueError):
         smoke.validate_metrics(payload)
+
+
+
+def test_smoke_metrics_transition_requires_this_job_to_be_counted():
+    before = valid_metrics()
+    after = valid_metrics()
+    before.update({"total": 10, "succeeded": 5, "finished_last_24h": 4})
+    after.update({"total": 11, "succeeded": 6, "finished_last_24h": 5})
+    smoke.validate_successful_job_transition(before, after)
+
+
+@pytest.mark.parametrize("field", ["succeeded", "finished_last_24h"])
+def test_smoke_metrics_transition_rejects_stale_aggregate_counts(field):
+    before = valid_metrics()
+    after = valid_metrics()
+    before.update({"total": 10, "succeeded": 5, "finished_last_24h": 4})
+    after.update({"total": 11, "succeeded": 6, "finished_last_24h": 5})
+    after[field] = before[field]
+    with pytest.raises(ValueError):
+        smoke.validate_successful_job_transition(before, after)
