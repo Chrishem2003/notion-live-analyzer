@@ -52,6 +52,14 @@ def validate_metrics(payload: object) -> dict:
     return payload
 
 
+def validate_successful_job_transition(before: dict, after: dict) -> None:
+    """Require the completed smoke job to appear in the aggregate counters."""
+    if after["succeeded"] < before["succeeded"] + 1:
+        raise ValueError("Succeeded-job count did not increase after the smoke job.")
+    if after["finished_last_24h"] < before["finished_last_24h"] + 1:
+        raise ValueError("Finished-job count did not increase after the smoke job.")
+
+
 def main() -> None:
     base_url = os.environ.get("PLATFORM_LEDGER_SMOKE_BASE_URL", "").strip().rstrip("/")
     api_key = os.environ.get("PLATFORM_LEDGER_SMOKE_API_KEY", "").strip()
@@ -163,8 +171,10 @@ def main() -> None:
             metrics_after = validate_metrics(metrics_after_response.json())
         except ValueError:
             fail("Metrics endpoint returned an invalid or unsafe response.")
-        if metrics_after["succeeded"] < 1:
-            fail("Aggregate metrics do not show any succeeded jobs after the smoke test.")
+        try:
+            validate_successful_job_transition(metrics_before, metrics_after)
+        except ValueError:
+            fail("Aggregate metrics did not record the successful smoke job.")
 
         print("PASS: non-production synthetic job lifecycle completed.")
         print("PASS: same-key idempotency and changed-request conflict verified.")
