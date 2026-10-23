@@ -1,4 +1,4 @@
-"""Static safeguards for the Render staging deployment blueprint."""
+"""Static safeguards for the Render research-run deployment blueprint."""
 from pathlib import Path
 
 
@@ -14,29 +14,31 @@ def test_render_blueprint_exposes_separate_api_service_and_health_check():
     assert ".onrender.com.onrender.com" not in source
 
 
-def test_free_api_service_is_explicitly_synthetic_staging_only():
+def test_free_api_service_fails_closed_without_durable_storage():
     source = Path("render.yaml").read_text(encoding="utf-8")
-    assert "RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER" in source
-    assert "value: /tmp/research_run_idempotency.sqlite3" in source
-    assert "MUST NOT" in source
-    assert "Persistent storage and a suitable plan are" in source
-    assert "key: NOTION_TOKEN\n        sync: false" in source
-    assert "key: PLATFORM_API_KEY\n        sync: false" in source
+    api_block = source.split("name: notion-live-analyzer-api", 1)[1]
+
+    assert "plan: free" in api_block
+    assert "key: RESEARCH_RUN_IDEMPOTENCY_DB\n        value: /var/data/research_run_idempotency.sqlite3" in api_block
+    assert "key: RESEARCH_RUN_IDEMPOTENCY_DB\n        value: /tmp/research_run_idempotency.sqlite3" not in api_block
+    assert 'key: RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER\n        value: "false"' in api_block
+    assert 'key: RESEARCH_RUN_WRITEBACK_ENABLED\n        value: "false"' in api_block
+    assert "Do not enable this API for real research until the disk/database and" in api_block
 
 
-def test_api_startup_script_runs_read_only_preflight_before_uvicorn():
+def test_api_startup_script_fails_closed_by_default_and_preflights_before_uvicorn():
     source = Path("scripts/start_research_run_api.sh").read_text(encoding="utf-8")
-    assert "python scripts/research_run_preflight.py" in source
+    default_off = 'if [ "${RESEARCH_RUN_WRITEBACK_ENABLED:-false}" = "true" ]; then'
+    assert default_off in source
+    assert source.index(default_off) < source.index("python scripts/research_run_preflight.py")
     assert source.index("python scripts/research_run_preflight.py") < source.index("uvicorn api_server:app")
     assert "exec uvicorn api_server:app" in source
-
 
 
 def test_blueprint_does_not_add_unapproved_billable_cron_service():
     source = Path("render.yaml").read_text(encoding="utf-8")
     assert "- type: cron" not in source
     assert "notion-live-analyzer-keepalive" not in source
-
 
 
 def test_api_service_uses_dedicated_lightweight_runtime_image():
