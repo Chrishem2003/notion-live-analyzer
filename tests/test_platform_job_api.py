@@ -133,3 +133,65 @@ def test_enqueue_never_accepts_actor_scope_from_request_body(api, monkeypatch):
     )
     assert response.status_code == 503
     assert "actor scope" in response.json()["detail"].lower()
+
+def test_metrics_endpoint_is_feature_gated_and_authenticated(api, monkeypatch):
+    _, client = api
+    disabled = client.get("/api/v1/platform-jobs/metrics", headers=headers())
+    assert disabled.status_code == 503
+    assert "disabled" in disabled.json()["detail"].lower()
+
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "true")
+    unauthenticated = client.get("/api/v1/platform-jobs/metrics")
+    assert unauthenticated.status_code in (401, 403)
+
+
+def test_metrics_endpoint_returns_only_aggregate_counts_and_closes_ledger(api, monkeypatch):
+    api_server, client = api
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "true")
+    expected = {
+        "total": 2, "queued": 1, "running": 0, "succeeded": 1,
+        "failed": 0, "needs_review": 0, "expired_leases": 0,
+        "oldest_queued_age_seconds": 4, "created_last_24h": 2,
+        "finished_last_24h": 1, "sampled_at": "2026-10-23T12:00:00Z",
+    }
+    state = {"closed": False}
+
+    class FakeLedger:
+        def get_metrics(self):
+            return expected
+
+        def close(self):
+            state["closed"] = True
+
+    import modules.platform_job_ledger as ledger_module
+    monkeypatch.setattr(ledger_module, "PlatformJobLedger", FakeLedger)
+
+    response = client.get("/api/v1/platform-jobs/metrics", headers=headers())
+    assert response.status_code == 200
+    assert response.json() == expected
+    assert not ({"job_id", "actor_scope", "payload", "lease_token", "error"} & set(response.json()))
+    assert state["closed"]
+
+
+def test_metrics_endpoint_fails_closed_when_ledger_is_unavailable(api, monkeypatch):
+    _, client = api
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "true")
+    import modules.platform_job_ledger as ledger_module
+
+    class BrokenLedger:
+        def __init__(self):
+            self.closed = False
+
+        def get_metrics(self):
+            raise ledger_module.PlatformLedgerUnavailable("safe failure")
+
+        def close(self):
+            self.closed = True
+
+    instance = BrokenLedger()
+    monkeypatch.setattr(ledger_module, "PlatformJobLedger", lambda: instance)
+    response = client.get("/api/v1/platform-jobs/metrics", headers=headers())
+    assert response.status_code == 503
+    assert response.json()["detail"] == "safe failure"
+    assert instance.closed
+
