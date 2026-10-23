@@ -26,16 +26,15 @@ Illustrative configuration shape only (not a working credential-bearing configur
     {
       "mcpServers": {
         "github": {
-          "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-github"],
-          "env": {
-            "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+          "httpUrl": "https://api.githubcopilot.com/mcp/",
+          "headers": {
+            "Authorization": "Bearer $GITHUB_MCP_PAT"
           }
         }
       }
     }
 
-Before using this example, verify the package and current official GitHub MCP server instructions. Do not paste a token into the JSON file or commit a populated settings file. Store credentials in the local environment or approved secret manager. Use a fine-grained token restricted to the required repositories and permissions.
+Prefer the official hosted endpoint or install the official Gemini CLI extension using the instructions linked below. Store the token as GITHUB_MCP_PAT in the local Gemini environment file (~/.gemini/.env) and never commit that file. Use a fine-grained token restricted to the intended repositories and minimum required permissions; begin with read-only access.
 
 Typical Gemini CLI checks after configuring a server are gemini mcp list and /mcp inside Gemini CLI; exact commands can change with CLI versions. Confirm the current Gemini CLI documentation before setup.
 
@@ -84,5 +83,6 @@ The platform job ledger remains feature-flagged off by default. Synthetic-only h
 ## Official references
 
 - Gemini CLI MCP server configuration: https://geminicli.com/docs/tools/mcp-server/
+- Official GitHub MCP server Gemini CLI installation: https://github.com/github/github-mcp-server/blob/main/docs/installation-guides/install-gemini-cli.md
 - OpenAI's current custom MCP connection availability and setup: https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt
 - OpenAI API MCP guide for developers building an orchestrator: https://developers.openai.com/api/docs/guides/tools-connectors-mcp
