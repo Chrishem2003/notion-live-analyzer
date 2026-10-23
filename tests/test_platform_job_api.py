@@ -195,3 +195,21 @@ def test_metrics_endpoint_fails_closed_when_ledger_is_unavailable(api, monkeypat
     assert response.json()["detail"] == "safe failure"
     assert instance.closed
 
+def test_status_requires_server_actor_scope_before_opening_database(api, monkeypatch):
+    _, client = api
+    monkeypatch.setenv("PLATFORM_JOB_LEDGER_ENABLED", "true")
+    monkeypatch.delenv("PLATFORM_JOB_ACTOR_SCOPE", raising=False)
+
+    import modules.platform_job_ledger as ledger_module
+
+    def forbidden_database_init():
+        raise AssertionError("database client must not be initialized without actor scope")
+
+    monkeypatch.setattr(ledger_module, "PlatformJobLedger", forbidden_database_init)
+    response = client.get(
+        "/api/v1/platform-jobs/00000000-0000-0000-0000-000000000123",
+        headers=headers(),
+    )
+    assert response.status_code == 503
+    assert "actor scope" in response.json()["detail"].lower()
+
