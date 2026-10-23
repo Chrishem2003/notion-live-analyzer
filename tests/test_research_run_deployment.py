@@ -10,7 +10,7 @@ def test_render_blueprint_exposes_separate_api_service_and_health_check():
     assert "RESEARCH_RUN_API_URL" in source
     assert "https://notion-live-analyzer-api.onrender.com" in source
     assert "https://YOUR-APP-URL" not in source
-    assert "https://notion-live-analyzer.onrender.com" in source
+    assert "value: https://notion-live-analyzer-api.onrender.com" in source
     assert ".onrender.com.onrender.com" not in source
 
 
