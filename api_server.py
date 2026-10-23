@@ -338,8 +338,9 @@ def enqueue_platform_job(
     from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerConflict, PlatformLedgerUnavailable
     ledger = None
     try:
-        ledger = PlatformJobLedger()
+        # Fail fast on missing server identity before opening a database client.
         actor_scope = _platform_job_actor_scope()
+        ledger = PlatformJobLedger()
         job = ledger.enqueue(
             job_type=payload.job_type,
             actor_scope=actor_scope,
