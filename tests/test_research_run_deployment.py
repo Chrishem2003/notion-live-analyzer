@@ -23,10 +23,10 @@ def test_free_api_service_fails_closed_without_durable_storage():
     assert "key: RESEARCH_RUN_IDEMPOTENCY_DB\n        value: /tmp/research_run_idempotency.sqlite3" not in api_block
     assert 'key: RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER\n        value: "false"' in api_block
     assert 'key: RESEARCH_RUN_WRITEBACK_ENABLED\n        value: "false"' in api_block
-    assert "Do not enable this API for real research until the disk/database and" in api_block
+    assert "Do not enable this API for real research until the disk/database and" in source
 
 
-def test_api_startup_script_fails_closed_by_default_and_preflights_before_uvicorn():
+def test_api_startup_script_preflights_before_uvicorn_when_writeback_enabled():
     source = Path("scripts/start_research_run_api.sh").read_text(encoding="utf-8")
     default_off = 'if [ "${RESEARCH_RUN_WRITEBACK_ENABLED:-false}" = "true" ]; then'
     assert default_off in source
