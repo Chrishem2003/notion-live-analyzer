@@ -399,8 +399,10 @@ def get_platform_job_status(job_id: UUID, _auth: bool = Depends(require_api_key)
     from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerUnavailable
     ledger = None
     try:
+        # Resolve trusted identity before opening a database client.
+        actor_scope = _platform_job_actor_scope()
         ledger = PlatformJobLedger()
-        return ledger.get_status(job_id=str(job_id), actor_scope=_platform_job_actor_scope())
+        return ledger.get_status(job_id=str(job_id), actor_scope=actor_scope)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail="Invalid job status request.") from exc
     except PlatformLedgerUnavailable as exc:
