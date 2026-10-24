@@ -283,3 +283,40 @@ def test_audit_actor_pseudonym_changes_with_secret_and_fails_closed_without_it(m
     gateway._audit_event("test.event", "alice@example.com", "platform_general", "help", "success")
     assert "actor_hash=unavailable" in caplog.text
     assert "alice@example.com" not in caplog.text
+
+def test_supabase_rate_limit_rejects_non_https_url_without_request(monkeypatch):
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "http://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(
+        gateway.requests, "post",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not send credentials over HTTP")),
+    )
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected invalid backend configuration to fail closed"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+
+
+def test_redis_failure_does_not_fall_back_to_supabase(monkeypatch):
+    class BrokenRedis:
+        def eval(self, *args, **kwargs):
+            raise gateway.redis.RedisError("unavailable")
+
+    monkeypatch.setenv("AI_GATEWAY_REDIS_URL", "redis://localhost:6379/0")
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(gateway.redis.Redis, "from_url", lambda *args, **kwargs: BrokenRedis())
+    monkeypatch.setattr(
+        gateway.requests, "post",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not silently switch quota backends")),
+    )
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected Redis failure to fail closed"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+
