@@ -228,7 +228,7 @@ def _parse_json_object(text: str) -> dict[str, Any]:
 @router.post("/api/v1/automations/draft")
 def draft_automation(payload: AutomationDraftRequest, authorization: Optional[str] = Header(default=None)):
     actor = require_user(authorization)
-    _ensure_enabled()
+    _ensure_enabled(actor)
     system = (
         _PRODUCT_SYSTEMS["auto_studio"]
         + " Output exactly one JSON object matching this contract: "
