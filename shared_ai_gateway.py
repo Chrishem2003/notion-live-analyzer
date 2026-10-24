@@ -8,6 +8,7 @@ not execute automations or retrieve cross-user records.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import logging
 import os
@@ -32,7 +33,12 @@ _logger = logging.getLogger("shared_ai_gateway")
 
 def _audit_event(event: str, actor: str, product: str, task: str, outcome: str) -> None:
     """Emit privacy-minimized audit metadata; never log prompts, tokens, or outputs."""
-    actor_hash = hashlib.sha256(actor.encode("utf-8")).hexdigest()[:16]
+    audit_key = os.getenv("CHAT_TOKEN_SECRET", "").encode("utf-8")
+    # Do not emit a guessable hash of an email if the audit key is missing.
+    actor_hash = (
+        hmac.new(audit_key, actor.encode("utf-8"), hashlib.sha256).hexdigest()[:16]
+        if audit_key else "unavailable"
+    )
     # Normalize untrusted task labels to prevent multiline/log-forging injection.
     safe_fields = [re.sub(r"[^a-zA-Z0-9_.:-]", "_", value)[:120] for value in (event, product, task, outcome)]
     _logger.info(
