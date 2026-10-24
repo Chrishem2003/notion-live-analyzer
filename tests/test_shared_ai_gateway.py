@@ -74,7 +74,7 @@ def test_supabase_jwt_is_validated_by_auth_service(monkeypatch):
         raise gateway.ChatAuthError("not a chat token")
 
     monkeypatch.setattr(gateway, "verify_chat_token", reject_hmac)
-    monkeypatch.setattr(gateway.httpx, "get", lambda *args, **kwargs: Response())
+    monkeypatch.setattr(gateway.requests, "get", lambda *args, **kwargs: Response())
     monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
     monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test")
     assert gateway.require_user("Bearer supabase-user-token") == "supabase:user-123"
