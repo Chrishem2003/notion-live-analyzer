@@ -300,7 +300,7 @@ def respond(payload: AIRespondRequest, authorization: Optional[str] = Header(def
         _audit_event("ai.respond", actor, payload.product, payload.task, f"error_{exc.status_code}")
         raise
     _audit_event("ai.respond", actor, payload.product, payload.task, "success")
-    return {"actor": actor, **result}
+    return result
 
 def _parse_json_object(text: str) -> dict[str, Any]:
     candidate = text.strip()
@@ -347,7 +347,6 @@ def draft_automation(payload: AutomationDraftRequest, authorization: Optional[st
     for step in draft.steps:
         step.requires_approval = True
     return {
-        "actor": actor,
         "provider": result["provider"],
         "model": result["model"],
         "draft": draft.dict(),
