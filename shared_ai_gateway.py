@@ -12,7 +12,7 @@ import json
 import os
 from urllib.parse import urlparse
 
-import httpx
+import requests
 import redis
 from typing import Any, Literal, Optional
 
@@ -104,12 +104,12 @@ def require_user(authorization: Optional[str] = Header(default=None)) -> str:
     if not base_url or parsed_url.scheme != "https" or not parsed_url.netloc or not publishable_key:
         raise HTTPException(status_code=401, detail="User token is invalid or expired.")
     try:
-        response = httpx.get(
+        response = requests.get(
             f"{base_url}/auth/v1/user",
             headers={"apikey": publishable_key, "Authorization": f"Bearer {token}"},
             timeout=5.0,
         )
-    except httpx.HTTPError:
+    except requests.RequestException:
         raise HTTPException(status_code=503, detail="User identity service is temporarily unavailable.")
     if response.status_code in (401, 403):
         raise HTTPException(status_code=401, detail="User token is invalid or expired.")
