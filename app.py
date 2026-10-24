@@ -4053,6 +4053,7 @@ else:
         "🔬 Bioinformatics Studio",
         "⚙️ Profile Settings",
         "🎓 Student Discount Verification",
+        "🦙 Ollama AI Workspace",
         "🛡️ Admin Security & User Controls"
     ])
 
@@ -4189,6 +4190,10 @@ else:
                 db_conn.commit()
                 st.success("Reverted to default picture successfully!")
                 st.rerun()
+
+    elif menu_selection == "🦙 Ollama AI Workspace":
+        from modules.ollama_workspace import render_ollama_workspace
+        render_ollama_workspace()
 
     elif menu_selection == "🛡️ Admin Security & User Controls":
         if not is_admin():
