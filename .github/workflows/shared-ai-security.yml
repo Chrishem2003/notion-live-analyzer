@@ -3,10 +3,12 @@ name: Shared AI gateway security tests
 on:
   pull_request:
     branches:
-      - feat/shared-ai-gateway
+      - main
   push:
     branches:
+      - main
       - feat/shared-ai-gateway
+      - feat/shared-ai-gateway-clean
 
 permissions:
   contents: read
