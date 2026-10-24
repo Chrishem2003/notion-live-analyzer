@@ -28,6 +28,25 @@ python -m uvicorn ollama_gateway:app --host 127.0.0.1 --port 11435
 
 Keep that terminal open. In a second terminal, create a TLS tunnel whose local target is `http://127.0.0.1:11435`. Prefer a stable hostname. A temporary quick-tunnel URL may change and is only suitable for initial testing.
 
+## No-domain option: temporary Cloudflare Quick Tunnel
+
+A domain is **not required** for the first controlled test. Install `cloudflared` from Cloudflare's official Windows instructions, then in a second PowerShell terminal run:
+
+```powershell
+cloudflared tunnel --url http://127.0.0.1:11435
+```
+
+Copy the generated `https://….trycloudflare.com` origin. The hostname is temporary and changes when the tunnel is restarted. Keep the terminal open. This is for a short staging test only, not production uptime.
+
+**Important security boundaries:**
+- Keep the gateway bound to `127.0.0.1:11435` and Ollama bound to `127.0.0.1:11434`; never tunnel port 11434.
+- The Quick Tunnel URL is publicly reachable by anyone who learns it. The gateway's bearer token is therefore mandatory; keep it random, private, and server-side. The public `/health` route reveals only a generic status.
+- Do not paste the token into the browser, repository, issue tracker, or chat. Set it only in the Windows process environment and Render's server-side environment settings.
+- Cloudflare's optional `--allowed-mail` protection is browser-interactive and cannot be used for the Render service's non-interactive API calls. Do not assume it replaces the gateway bearer token.
+- Quick Tunnels are explicitly for development/testing, have no uptime guarantee, and do not support Server-Sent Events (SSE). Confirm the app's non-streaming request path works before testing. Stop the tunnel after the test.
+
+Official docs: [Cloudflare Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
+
 ## Server-side settings
 
 After the HTTPS tunnel is live, configure the **existing** Render API service's environment variables by merging (not replacing) these values:
