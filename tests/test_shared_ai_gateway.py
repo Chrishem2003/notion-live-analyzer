@@ -61,3 +61,36 @@ def test_automation_draft_rejects_invalid_model_json(monkeypatch):
         json={"description":"Build an automation"})
     assert response.status_code == 502
     assert "nothing was saved or executed" in response.json()["detail"].lower()
+
+def test_supabase_jwt_is_validated_by_auth_service(monkeypatch):
+    class Response:
+        status_code = 200
+        def json(self):
+            return {"id": "user-123", "email": "person@example.com"}
+
+    def reject_hmac(_token):
+        raise gateway.ChatAuthError("not a chat token")
+
+    monkeypatch.setattr(gateway, "verify_chat_token", reject_hmac)
+    monkeypatch.setattr(gateway.httpx, "get", lambda *args, **kwargs: Response())
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test")
+    assert gateway.require_user("Bearer supabase-user-token") == "supabase:user-123"
+
+def test_supabase_jwt_requires_https_identity_endpoint(monkeypatch):
+    def reject_hmac(_token):
+        raise gateway.ChatAuthError("not a chat token")
+
+    monkeypatch.setattr(gateway, "verify_chat_token", reject_hmac)
+    monkeypatch.setenv("SUPABASE_URL", "http://untrusted.example")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test")
+    from fastapi import HTTPException
+    try:
+        gateway.require_user("Bearer supabase-user-token")
+        assert False, "Expected authentication rejection"
+    except HTTPException as exc:
+        assert exc.status_code == 401
+
+def test_json_parser_accepts_fenced_json():
+    from shared_ai_gateway import _parse_json_object
+    assert _parse_json_object('\\`\\`\\`json\\n{"ok": true}\\n\\`\\`\\`') == {"ok": True}
