@@ -52,3 +52,9 @@ The gateway test suite verifies that audit actor identifiers are HMAC-keyed with
 ## Shared AI token lifetime
 
 The shared Streamlit client requests a five-minute HMAC token for each AI call. The token endpoint validates requested lifetimes between 60 and 3,600 seconds; existing chat clients retain the 3,600-second default unless they request a shorter lifetime. The platform API key remains server-to-server only. Staging must still verify that the email passed to token issuance is taken only from the server-side authenticated session, never from an untrusted form or request payload.
+
+## Verified Render region constraint (2026-10-25)
+
+The current API web service is in **Oregon**, while the existing free Key Value instance `notion-live-analyzer-ai-rate-limit` is in **Frankfurt**. Render internal datastore URLs are for services in the same region, so do not configure the API with the Key Value internal URL as-is. See the official [Render Key Value connection guide](https://render.com/docs/key-value) and [private networking guide](https://render.com/docs/private-network).
+
+Zero-cost-safe next steps are to verify the API service's published outbound IP ranges and evaluate a TLS external Key Value connection with a narrowly scoped allowlist, or plan a same-region datastore migration. Do not use an unrestricted external allowlist, do not guess the URL, and do not delete/recreate the existing Key Value instance without an explicit backup and migration plan. The gateway must stay disabled until the API can successfully reach the rate-limit store and the shared-quota tests pass.
