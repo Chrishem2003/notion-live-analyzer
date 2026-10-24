@@ -101,6 +101,8 @@ def test_json_parser_accepts_fenced_json():
 def test_enabled_gateway_requires_distributed_rate_limit_backend(monkeypatch):
     monkeypatch.setenv("SHARED_AI_GATEWAY_ENABLED", "true")
     monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.delenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
     from fastapi import HTTPException
     try:
         gateway._ensure_enabled("user@example.com")
@@ -108,6 +110,53 @@ def test_enabled_gateway_requires_distributed_rate_limit_backend(monkeypatch):
     except HTTPException as exc:
         assert exc.status_code == 503
         assert "rate-limit" in exc.detail.lower()
+
+
+def test_supabase_rate_limit_rpc_returns_429_after_limit(monkeypatch):
+    class Response:
+        status_code = 200
+        def json(self):
+            return 2
+
+    captured = {}
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setenv("AI_GATEWAY_RATE_LIMIT_PER_MINUTE", "1")
+    monkeypatch.setattr(gateway.requests, "post", fake_post)
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected rate-limit rejection"
+    except HTTPException as exc:
+        assert exc.status_code == 429
+    assert captured["url"] == "https://project.supabase.co/rest/v1/rpc/consume_shared_ai_rate_limit"
+    assert captured["json"]["p_limit"] == 1
+    assert len(captured["json"]["p_actor_hash"]) == 64
+    assert "user@example.com" not in str(captured["json"])
+
+
+def test_supabase_rate_limit_fails_closed_on_rpc_error(monkeypatch):
+    class Response:
+        status_code = 500
+        def json(self):
+            return {"message": "failure"}
+
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(gateway.requests, "post", lambda *args, **kwargs: Response())
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected rate-limit backend failure"
+    except HTTPException as exc:
+        assert exc.status_code == 503
 
 def test_distributed_rate_limit_returns_429_after_limit(monkeypatch):
     class FakeRedis:
