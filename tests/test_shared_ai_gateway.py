@@ -28,6 +28,7 @@ def test_gateway_is_disabled_by_default(monkeypatch):
 def test_automation_draft_is_schema_validated_and_never_executed(monkeypatch):
     monkeypatch.setenv("SHARED_AI_GATEWAY_ENABLED", "true")
     monkeypatch.setattr(gateway, "verify_chat_token", lambda token: "user@example.com")
+    monkeypatch.setattr(gateway, "_ensure_enabled", lambda actor: None)
     monkeypatch.setattr(gateway, "_generate", lambda *args, **kwargs: {
         "provider": "ollama", "model": "qwen2.5:3b", "output": json.dumps({
             "title": "New lead follow-up",
@@ -94,3 +95,30 @@ def test_supabase_jwt_requires_https_identity_endpoint(monkeypatch):
 def test_json_parser_accepts_fenced_json():
     from shared_ai_gateway import _parse_json_object
     assert _parse_json_object(chr(96) * 3 + 'json\n{"ok": true}\n' + chr(96) * 3) == {"ok": True}
+
+
+def test_enabled_gateway_requires_distributed_rate_limit_backend(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_GATEWAY_ENABLED", "true")
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    from fastapi import HTTPException
+    try:
+        gateway._ensure_enabled("user@example.com")
+        assert False, "Expected fail-closed quota configuration"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+        assert "rate-limit" in exc.detail.lower()
+
+def test_distributed_rate_limit_returns_429_after_limit(monkeypatch):
+    class FakeRedis:
+        def eval(self, *args):
+            return 2
+
+    monkeypatch.setenv("AI_GATEWAY_REDIS_URL", "redis://localhost:6379/0")
+    monkeypatch.setenv("AI_GATEWAY_RATE_LIMIT_PER_MINUTE", "1")
+    monkeypatch.setattr(gateway.redis.Redis, "from_url", lambda *args, **kwargs: FakeRedis())
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected rate-limit rejection"
+    except HTTPException as exc:
+        assert exc.status_code == 429
