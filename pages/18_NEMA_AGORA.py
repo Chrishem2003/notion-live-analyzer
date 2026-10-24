@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 import json
+import os
 import pandas as pd
 import streamlit as st
 
@@ -100,6 +101,39 @@ st.info(
     "does not submit reports to NEMA, and is not connected to ELMIS or SWIMS. "
     "Do not enter personal, confidential, or urgent incident information."
 )
+
+with st.expander("🧠 Shared AI environmental review (advisory only)", expanded=False):
+    if not os.getenv("SHARED_AI_API_URL", "").strip():
+        st.info("Shared AI is not connected yet. It will be available after the shared gateway is configured and verified.")
+    elif principal is None or not principal.is_authorised or not principal.email:
+        st.warning("A provisioned, signed-in reviewer with a verified email is required to use shared AI in NEMA-AGORA.")
+    else:
+        nema_ai_question = st.text_area(
+            "Describe an environmental observation, evidence question, or draft report issue. Do not include personal or confidential information.",
+            max_chars=8000,
+            key="nema_agora_shared_ai_question",
+        )
+        if st.button("Ask Shared AI for advisory analysis", key="nema_agora_shared_ai_submit"):
+            if not nema_ai_question.strip():
+                st.warning("Enter a question first.")
+            else:
+                try:
+                    from modules.shared_ai_client import request_shared_ai, SharedAIError
+                    response = request_shared_ai(
+                        product="nema_agora",
+                        task="environmental_advisory",
+                        input_text=nema_ai_question,
+                        user_email=principal.email,
+                    )
+                    st.markdown(response["output"])
+                    st.warning("AI output is advisory only. Verify every claim against source evidence and complete the required human review. This is not an official NEMA determination.")
+                    st.caption(f"Provider: {response.get('provider', 'server configured')} · Model: {response.get('model', 'server default')}")
+                except Exception as exc:
+                    from modules.shared_ai_client import SharedAIError
+                    if isinstance(exc, SharedAIError):
+                        st.error(str(exc))
+                    else:
+                        st.error("Shared AI could not complete the environmental review request.")
 
 with st.sidebar:
     st.header("Security & data mode")
