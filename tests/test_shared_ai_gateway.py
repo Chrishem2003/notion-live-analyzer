@@ -208,9 +208,11 @@ def test_request_cannot_spoof_actor_identity(monkeypatch):
         lambda token: actors[token] if token in actors else (_ for _ in ()).throw(gateway.ChatAuthError("invalid")),
     )
     monkeypatch.setattr(gateway, "_ensure_enabled", lambda actor: None)
-    monkeypatch.setattr(gateway, "_generate", lambda *args, **kwargs: {
-        "provider": "ollama", "model": "qwen2.5:3b", "output": "ok", "usage": {}
-    })
+    observed_actors = []
+    def fake_generate(*args, **kwargs):
+        observed_actors.append(args[3])
+        return {"provider": "ollama", "model": "qwen2.5:3b", "output": "ok", "usage": {}}
+    monkeypatch.setattr(gateway, "_generate", fake_generate)
 
     app_client = client()
     alice = app_client.post(
@@ -233,9 +235,11 @@ def test_request_cannot_spoof_actor_identity(monkeypatch):
 
     assert alice.status_code == 200
     assert bob.status_code == 200
-    assert alice.json()["actor"] == "alice@example.com"
-    assert bob.json()["actor"] == "bob@example.com"
-    assert alice.json()["actor"] != bob.json()["actor"]
+    assert observed_actors == ["alice@example.com", "bob@example.com"]
+    assert "actor" not in alice.json()
+    assert "actor" not in bob.json()
+    assert "alice@example.com" not in alice.text
+    assert "bob@example.com" not in bob.text
 
 
 def test_ai_request_rejects_oversized_input(monkeypatch):
