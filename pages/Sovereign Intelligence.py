@@ -25,7 +25,7 @@ st.caption("The problem-solving intelligence layer of the platform.")
 
 provider_registry = ProviderRegistry.default()
 all_providers = ["ollama", "openai", "openrouter", "anthropic", "google"]
-configured_providers = provider_registry.configured_names()
+configured_providers = [] if SHARED_GATEWAY_CONFIGURED else provider_registry.configured_names()
 configured_provider_priority = ["ollama", "anthropic", "openai", "openrouter", "google"]
 configured_default = next(
     (name for name in configured_provider_priority if name in configured_providers),
