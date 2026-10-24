@@ -55,6 +55,7 @@ def test_automation_draft_is_schema_validated_and_never_executed(monkeypatch):
 def test_automation_draft_rejects_invalid_model_json(monkeypatch):
     monkeypatch.setenv("SHARED_AI_GATEWAY_ENABLED", "true")
     monkeypatch.setattr(gateway, "verify_chat_token", lambda token: "user@example.com")
+    monkeypatch.setattr(gateway, "_ensure_enabled", lambda actor: None)
     monkeypatch.setattr(gateway, "_generate", lambda *args, **kwargs: {
         "provider": "ollama", "model": "qwen2.5:3b", "output": "not json", "usage": {}})
     response = client().post("/api/v1/automations/draft",
