@@ -1947,6 +1947,36 @@ def render_notion_template_vault():
     st.title("🗄️ Bio-Research Enterprise Planner - Notion Vault")
     st.info("🔒 **Single-Duplication License:** This template is protected. Duplication link is restricted exclusively to active paid subscribers.")
 
+    with st.expander("🧠 Shared AI Research Assistant", expanded=False):
+        if not os.getenv("SHARED_AI_API_URL", "").strip():
+            st.info("Shared AI is not connected to this deployment yet. It will be available after the shared gateway is configured and verified.")
+        else:
+            research_question = st.text_area(
+                "What research question, protocol, or quality-control issue would you like help with?",
+                key="bio_research_shared_ai_question",
+                max_chars=8000,
+            )
+            if st.button("Ask Shared AI", key="bio_research_shared_ai_submit"):
+                if not research_question.strip():
+                    st.warning("Enter a research question first.")
+                else:
+                    try:
+                        from modules.shared_ai_client import request_shared_ai, SharedAIError
+                        response = request_shared_ai(
+                            product="bio_research",
+                            task="research_support",
+                            input_text=research_question,
+                            user_email=user_email,
+                        )
+                        st.markdown(response["output"])
+                        st.caption(f"Provider: {response.get('provider', 'server configured')} · Model: {response.get('model', 'server default')}")
+                    except Exception as exc:
+                        from modules.shared_ai_client import SharedAIError
+                        if isinstance(exc, SharedAIError):
+                            st.error(str(exc))
+                        else:
+                            st.error("Shared AI could not complete the research request.")
+
     conn = sqlite3.connect("sovereign_apex_engine.db")
     cursor = conn.cursor()
     cursor.execute("SELECT duplication_count FROM template_claims WHERE email = ?", (user_email,))
@@ -3574,8 +3604,7 @@ ensure_bootstrap_admin()
 
 # Admin promotion is handled only by ensure_bootstrap_admin_record(), which
 # requires BOTH SOVEREIGN_ADMIN_EMAIL and SOVEREIGN_ADMIN_PASSWORD and uses
-# a transaction. Do not reintroduce email-only role promotion here.
-
+# a transaction. Do not reintroduce email-only role promotion.
 
 # --- AUTHENTICATION STORE ---
 class AuthStore:
@@ -3622,8 +3651,6 @@ class AuthStore:
             return {"ok": False, "error": "Email already registered."}
 
         pwd_hash, salt = _hash_password(password)
-        # Public registration must never grant caller-selected privileges.
-        # Elevated roles are assigned only by trusted server-side admin workflows.
         cursor.execute(
             "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
             (email_norm, name, pwd_hash, salt, "user"),
