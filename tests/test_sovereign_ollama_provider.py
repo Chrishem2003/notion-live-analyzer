@@ -24,17 +24,19 @@ def test_ollama_provider_sends_chat_request(monkeypatch):
                 "eval_count": 4,
             }
 
-    def fake_post(url, *, json, timeout):
-        captured.update(url=url, payload=json, timeout=timeout)
+    def fake_post(url, *, json, headers=None, timeout):
+        captured.update(url=url, payload=json, headers=headers or {}, timeout=timeout)
         return FakeResponse()
 
+    monkeypatch.setenv("OLLAMA_API_KEY", "test-secret")
     monkeypatch.setattr(httpx, "post", fake_post)
-    provider = OllamaProvider(base_url="http://127.0.0.1:11434")
+    provider = OllamaProvider(base_url="https://ollama-gateway.example.test")
     result = provider.generate(
         AIRequest(prompt="Say ready", system="Be concise", temperature=0.1, max_tokens=50)
     )
 
-    assert captured["url"] == "http://127.0.0.1:11434/api/chat"
+    assert captured["url"] == "https://ollama-gateway.example.test/api/chat"
+    assert captured["headers"] == {"Authorization": "Bearer test-secret"}
     assert captured["payload"]["model"] == "qwen2.5:3b"
     assert captured["payload"]["stream"] is False
     assert captured["payload"]["messages"] == [
