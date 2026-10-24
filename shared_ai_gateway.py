@@ -184,7 +184,12 @@ def _consume_rate_limit(actor: str) -> None:
         raise HTTPException(status_code=503, detail="Shared AI rate-limit configuration is invalid.")
 
     redis_url = os.getenv("AI_GATEWAY_REDIS_URL", "").strip()
-    actor_hash = hashlib.sha256(actor.encode("utf-8")).hexdigest()
+    quota_hash_secret = os.getenv("CHAT_TOKEN_SECRET", "").encode("utf-8")
+    if not quota_hash_secret:
+        raise HTTPException(status_code=503, detail="Shared AI rate-limit hashing secret is not configured.")
+    # Keyed pseudonym prevents database/Redis snapshots from exposing guessable
+    # hashes of email addresses or other low-entropy actor identifiers.
+    actor_hash = hmac.new(quota_hash_secret, actor.encode("utf-8"), hashlib.sha256).hexdigest()
     if redis_url:
         key = "shared-ai:minute:" + actor_hash
         try:
