@@ -401,3 +401,21 @@ def test_supabase_rate_limit_uses_bounded_timeout_and_server_only_credentials(mo
     assert "server-only-test-key" not in str(captured["json"])
     assert captured["json"]["p_actor_hash"] != "user@example.com"
 
+def test_supabase_rate_limit_migration_keeps_rpc_locked_down():
+    from pathlib import Path
+
+    migration = (
+        Path(__file__).resolve().parents[1]
+        / "supabase"
+        / "migrations"
+        / "20261025000000_shared_ai_rate_limit.sql"
+    ).read_text(encoding="utf-8").lower()
+
+    assert "security definer" in migration
+    assert "set search_path = pg_catalog" in migration
+    assert "on conflict (actor_hash, window_start)" in migration
+    assert "revoke all on table private.shared_ai_rate_limits from public, anon, authenticated, service_role" in migration
+    assert "revoke all on function public.consume_shared_ai_rate_limit(text, integer) from public, anon, authenticated" in migration
+    assert "grant execute on function public.consume_shared_ai_rate_limit(text, integer) to service_role" in migration
+    assert "pg_catalog.random() < 0.01" in migration
+
