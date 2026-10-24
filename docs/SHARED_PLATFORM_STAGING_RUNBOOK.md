@@ -48,3 +48,7 @@ Production enablement, database migrations, broad RLS policy changes, and live w
 ## Audit pseudonym regression checks
 
 The gateway test suite verifies that audit actor identifiers are HMAC-keyed with the server-side `CHAT_TOKEN_SECRET`, remain stable for the same identity and key, change when the key rotates, and become `unavailable` when the key is missing. The raw identity must not appear in the audit log. These tests are regression checks, not a substitute for verifying secret provisioning and rotation in the hosted environment.
+
+## Shared AI token lifetime
+
+The shared Streamlit client requests a five-minute HMAC token for each AI call. The token endpoint validates requested lifetimes between 60 and 3,600 seconds; existing chat clients retain the 3,600-second default unless they request a shorter lifetime. The platform API key remains server-to-server only. Staging must still verify that the email passed to token issuance is taken only from the server-side authenticated session, never from an untrusted form or request payload.
