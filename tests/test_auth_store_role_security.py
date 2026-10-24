@@ -74,3 +74,15 @@ def test_concurrent_bootstrap_creates_at_most_one_admin(tmp_path, monkeypatch):
     assert len(rows) == 1
     assert rows[0][1] == "admin"
     assert sum(bool(result.get("ok")) for result in results) == 1
+
+def test_streamlit_signup_does_not_persist_caller_selected_role():
+    """Guard the separate AuthStore implementation in app.py against role regressions."""
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "app.py").read_text(encoding="utf-8")
+    method_start = source.index('    def create_user(self, email, name, password, role="user"):')
+    method_end = source.index("    def get_or_create_oauth_user(", method_start)
+    method = source[method_start:method_end]
+
+    assert 'pwd_hash, salt, "user"' in method
+    assert "pwd_hash, salt, role" not in method
