@@ -47,7 +47,7 @@ class LLMRouter:
         ollama_base_url: Optional[str] = None,
         ollama_model: Optional[str] = None,
     ):
-        self.gemini_api_key = gemini_api_key or os.environ.get("GEMINI_API_KEY", "")
+        self.gemini_api_key = os.environ.get("GEMINI_API_KEY", "") if gemini_api_key is None else gemini_api_key
         self.ollama_base_url = ollama_base_url or os.environ.get(
             "OLLAMA_BASE_URL", "http://localhost:11434"
         )
