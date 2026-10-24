@@ -3622,9 +3622,11 @@ class AuthStore:
             return {"ok": False, "error": "Email already registered."}
 
         pwd_hash, salt = _hash_password(password)
+        # Public registration must never grant caller-selected privileges.
+        # Elevated roles are assigned only by trusted server-side admin workflows.
         cursor.execute(
             "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
-            (email_norm, name, pwd_hash, salt, role),
+            (email_norm, name, pwd_hash, salt, "user"),
         )
         db_conn.commit()
         subscription.ensure_trial_started(email_norm)
