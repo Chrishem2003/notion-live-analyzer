@@ -70,11 +70,20 @@ class LLMRouter:
             "deterministic": True,  # always available
         }
 
+    def _ollama_headers(self) -> Dict[str, str]:
+        """Return server-side auth headers for a protected Ollama gateway, if configured."""
+        token = os.environ.get("OLLAMA_API_KEY", "").strip()
+        return {"Authorization": f"Bearer {token}"} if token else {}
+
     def _ollama_available(self) -> bool:
         if not HAS_REQUESTS:
             return False
         try:
-            r = requests.get(f"{self.ollama_base_url}/api/tags", timeout=2)
+            r = requests.get(
+                f"{self.ollama_base_url}/api/tags",
+                headers=self._ollama_headers(),
+                timeout=2,
+            )
             return r.status_code == 200
         except Exception:
             return False
@@ -138,6 +147,7 @@ class LLMRouter:
                     "stream": False,
                     "options": {"temperature": temperature},
                 },
+                headers=self._ollama_headers(),
                 timeout=60,
             )
             if r.status_code == 200:
@@ -189,6 +199,7 @@ class LLMRouter:
             r = requests.post(
                 f"{self.ollama_base_url}/api/embeddings",
                 json={"model": "nomic-embed-text", "prompt": text[:2000]},
+                headers=self._ollama_headers(),
                 timeout=30,
             )
             if r.status_code == 200:
