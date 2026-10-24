@@ -1,0 +1,74 @@
+name: Bio-Research API Regression Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api_server.py"
+      - "modules/research_run_*.py"
+      - "scripts/research_run_*.py"
+      - "tests/test_research_run_*.py"
+      - "tests/test_render_api_storage_defaults.py"
+      - "render.yaml"
+      - "Dockerfile.api"
+      - "requirements-api.txt"
+      - ".github/workflows/bio-research-api-checks.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "api_server.py"
+      - "modules/research_run_*.py"
+      - "scripts/research_run_*.py"
+      - "tests/test_research_run_*.py"
+      - "tests/test_render_api_storage_defaults.py"
+      - "render.yaml"
+      - "Dockerfile.api"
+      - "requirements-api.txt"
+      - ".github/workflows/bio-research-api-checks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bio-research-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-api.txt
+
+      - name: Install API runtime and focused test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-api.txt pytest httpx numpy pandas
+
+      - name: Run Bio-Research API regression suite explicitly
+        run: |
+          python -m pytest -q \
+            tests/test_research_run_adapter.py \
+            tests/test_research_run_api.py \
+            tests/test_research_run_client.py \
+            tests/test_research_run_deployment.py \
+            tests/test_research_run_idempotency.py \
+            tests/test_research_run_preflight.py \
+            tests/test_research_run_staging_smoke.py \
+            tests/test_research_run_ui.py \
+            tests/test_render_api_storage_defaults.py
+
+      - name: Compile research-run API modules
+        run: |
+          python -m compileall -q \
+            api_server.py \
+            modules/research_run_adapter.py \
+            modules/research_run_client.py \
+            modules/research_run_idempotency.py \
+            scripts/research_run_preflight.py \
+            scripts/research_run_staging_smoke.py
