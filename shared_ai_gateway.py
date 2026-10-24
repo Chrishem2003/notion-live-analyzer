@@ -7,11 +7,13 @@ not execute automations or retrieve cross-user records.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from urllib.parse import urlparse
 
 import httpx
+import redis
 from typing import Any, Literal, Optional
 
 from fastapi import APIRouter, Header, HTTPException
@@ -122,12 +124,45 @@ def require_user(authorization: Optional[str] = Header(default=None)) -> str:
         raise HTTPException(status_code=401, detail="User token did not resolve to a valid account.")
     return f"supabase:{user_id.strip()}"
 
-def _ensure_enabled() -> None:
+def _consume_rate_limit(actor: str) -> None:
+    """Enforce a distributed fixed-window quota; fail closed if Redis is absent."""
+    redis_url = os.getenv("AI_GATEWAY_REDIS_URL", "").strip()
+    if not redis_url:
+        raise HTTPException(status_code=503, detail="Shared AI requires a configured distributed rate-limit backend.")
+    try:
+        limit = int(os.getenv("AI_GATEWAY_RATE_LIMIT_PER_MINUTE", "10"))
+    except ValueError:
+        raise HTTPException(status_code=503, detail="Shared AI rate-limit configuration is invalid.")
+    if limit < 1 or limit > 120:
+        raise HTTPException(status_code=503, detail="Shared AI rate-limit configuration is invalid.")
+    key = "shared-ai:minute:" + hashlib.sha256(actor.encode("utf-8")).hexdigest()
+    try:
+        client = redis.Redis.from_url(
+            redis_url,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+            decode_responses=True,
+        )
+        count = int(client.eval(
+            "local n = redis.call('INCR', KEYS[1]); "
+            "if n == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end; "
+            "return n",
+            1,
+            key,
+            60,
+        ))
+    except (redis.RedisError, OSError, ValueError):
+        raise HTTPException(status_code=503, detail="Shared AI rate-limit service is unavailable.")
+    if count > limit:
+        raise HTTPException(status_code=429, detail="Shared AI request limit reached. Please wait before retrying.")
+
+def _ensure_enabled(actor: str) -> None:
     if os.getenv("SHARED_AI_GATEWAY_ENABLED", "false").strip().lower() != "true":
         raise HTTPException(
             status_code=503,
             detail="Shared AI gateway is disabled until authentication, quotas, and staging checks are completed.",
         )
+    _consume_rate_limit(actor)
 
 def _generate(product: str, task: str, input_text: str, actor: str, *, system_override: str | None = None) -> dict[str, Any]:
     """Call one explicitly selected provider without shared cross-user memory."""
@@ -170,7 +205,7 @@ def _generate(product: str, task: str, input_text: str, actor: str, *, system_ov
 @router.post("/api/v1/ai/respond")
 def respond(payload: AIRespondRequest, authorization: Optional[str] = Header(default=None)):
     actor = require_user(authorization)
-    _ensure_enabled()
+    _ensure_enabled(actor)
     result = _generate(payload.product, payload.task, payload.input, actor)
     return {"actor": actor, **result}
 
