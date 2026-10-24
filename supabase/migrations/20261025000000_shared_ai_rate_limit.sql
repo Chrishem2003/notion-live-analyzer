@@ -39,9 +39,12 @@ begin
     do update set request_count = private.shared_ai_rate_limits.request_count + 1
     returning request_count into v_count;
 
-    -- Bound stale-key growth; only short-lived quota metadata is stored.
-    delete from private.shared_ai_rate_limits
-    where window_start < now() - interval '2 hours';
+    -- Run stale-row cleanup opportunistically under one transaction-scoped lock.
+    -- This avoids a full-table cleanup scan on every API request.
+    if pg_catalog.pg_try_advisory_xact_lock(2026102500::bigint) then
+        delete from private.shared_ai_rate_limits
+        where window_start < now() - interval '2 hours';
+    end if;
 
     return v_count;
 end;
