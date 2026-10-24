@@ -199,3 +199,38 @@ def test_ai_request_rejects_oversized_input(monkeypatch):
         json={"product": "platform_general", "task": "help", "input": "x" * 12001},
     )
     assert response.status_code == 422
+
+def test_audit_actor_pseudonym_is_keyed_and_stable(monkeypatch, caplog):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-key-one")
+    caplog.set_level("INFO", logger="shared_ai_gateway")
+    gateway._audit_event("test.event", "alice@example.com", "platform_general", "help", "success")
+    first_line = caplog.text.splitlines()[-1]
+    first_hash = first_line.split("actor_hash=")[1].split()[0]
+
+    caplog.clear()
+    gateway._audit_event("test.event", "alice@example.com", "platform_general", "help", "success")
+    second_hash = caplog.text.splitlines()[-1].split("actor_hash=")[1].split()[0]
+
+    assert first_hash == second_hash
+    assert first_hash != "unavailable"
+    assert "alice@example.com" not in caplog.text
+
+
+def test_audit_actor_pseudonym_changes_with_secret_and_fails_closed_without_it(monkeypatch, caplog):
+    caplog.set_level("INFO", logger="shared_ai_gateway")
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-key-one")
+    gateway._audit_event("test.event", "alice@example.com", "platform_general", "help", "success")
+    first_hash = caplog.text.split("actor_hash=")[1].split()[0]
+
+    caplog.clear()
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-key-two")
+    gateway._audit_event("test.event", "alice@example.com", "platform_general", "help", "success")
+    rotated_hash = caplog.text.split("actor_hash=")[1].split()[0]
+    assert rotated_hash != first_hash
+    assert "alice@example.com" not in caplog.text
+
+    caplog.clear()
+    monkeypatch.delenv("CHAT_TOKEN_SECRET", raising=False)
+    gateway._audit_event("test.event", "alice@example.com", "platform_general", "help", "success")
+    assert "actor_hash=unavailable" in caplog.text
+    assert "alice@example.com" not in caplog.text
