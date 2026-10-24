@@ -31,7 +31,7 @@ def request_shared_ai(*, product: str, task: str, input_text: str, user_email: s
     try:
         token_response = requests.post(
             f"{base_url}/api/v1/chat/token",
-            params={"email": email},
+            params={"email": email, "ttl_seconds": 300},
             headers={"X-API-Key": api_key},
             timeout=8,
         )
