@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import json
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -139,6 +141,10 @@ def test_supabase_rate_limit_rpc_returns_429_after_limit(monkeypatch):
     assert captured["url"] == "https://project.supabase.co/rest/v1/rpc/consume_shared_ai_rate_limit"
     assert captured["json"]["p_limit"] == 1
     assert len(captured["json"]["p_actor_hash"]) == 64
+    expected_hash = hmac.new(
+        b"test-quota-hash-secret", b"user@example.com", hashlib.sha256
+    ).hexdigest()
+    assert captured["json"]["p_actor_hash"] == expected_hash
     assert "user@example.com" not in str(captured["json"])
 
 
@@ -159,6 +165,24 @@ def test_supabase_rate_limit_fails_closed_on_malformed_counter(monkeypatch):
         assert False, "Expected malformed quota result to fail closed"
     except HTTPException as exc:
         assert exc.status_code == 503
+
+
+def test_rate_limit_fails_closed_without_hashing_secret(monkeypatch):
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.delenv("CHAT_TOKEN_SECRET", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(
+        gateway.requests, "post",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not send unkeyed actor hashes")),
+    )
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected missing hashing secret to fail closed"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+        assert "hashing secret" in exc.detail.lower()
 
 
 def test_supabase_rate_limit_fails_closed_on_rpc_error(monkeypatch):
