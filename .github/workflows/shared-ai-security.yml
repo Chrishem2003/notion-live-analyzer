@@ -43,5 +43,5 @@ jobs:
             tests/test_shared_ai_gateway.py \
             tests/test_chat_token_ttl.py \
             tests/test_sovereign_ollama_config.py \
-            tests/test_sovereign_ollama_provider.py \\
+            tests/test_sovereign_ollama_provider.py \
             tests/test_ollama_gateway_auth.py
