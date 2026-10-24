@@ -44,3 +44,7 @@ Configure values only in the relevant Render service's environment settings. Nev
 - Notion write-back needs verified canonical source IDs and a valid server-side token.
 
 Production enablement, database migrations, broad RLS policy changes, and live workflow execution require separate review and explicit approval.
+
+## Audit pseudonym regression checks
+
+The gateway test suite verifies that audit actor identifiers are HMAC-keyed with the server-side `CHAT_TOKEN_SECRET`, remain stable for the same identity and key, change when the key rotates, and become `unavailable` when the key is missing. The raw identity must not appear in the audit log. These tests are regression checks, not a substitute for verifying secret provisioning and rotation in the hosted environment.
