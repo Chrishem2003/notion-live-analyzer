@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import json
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -101,6 +103,8 @@ def test_json_parser_accepts_fenced_json():
 def test_enabled_gateway_requires_distributed_rate_limit_backend(monkeypatch):
     monkeypatch.setenv("SHARED_AI_GATEWAY_ENABLED", "true")
     monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.delenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
     from fastapi import HTTPException
     try:
         gateway._ensure_enabled("user@example.com")
@@ -109,7 +113,98 @@ def test_enabled_gateway_requires_distributed_rate_limit_backend(monkeypatch):
         assert exc.status_code == 503
         assert "rate-limit" in exc.detail.lower()
 
+
+def test_supabase_rate_limit_rpc_returns_429_after_limit(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
+    class Response:
+        status_code = 200
+        def json(self):
+            return 2
+
+    captured = {}
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setenv("AI_GATEWAY_RATE_LIMIT_PER_MINUTE", "1")
+    monkeypatch.setattr(gateway.requests, "post", fake_post)
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected rate-limit rejection"
+    except HTTPException as exc:
+        assert exc.status_code == 429
+    assert captured["url"] == "https://project.supabase.co/rest/v1/rpc/consume_shared_ai_rate_limit"
+    assert captured["json"]["p_limit"] == 1
+    assert len(captured["json"]["p_actor_hash"]) == 64
+    expected_hash = hmac.new(
+        b"test-quota-hash-secret", b"user@example.com", hashlib.sha256
+    ).hexdigest()
+    assert captured["json"]["p_actor_hash"] == expected_hash
+    assert "user@example.com" not in str(captured["json"])
+
+
+def test_supabase_rate_limit_fails_closed_on_malformed_counter(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
+    class Response:
+        status_code = 200
+        def json(self):
+            return True  # bool is an int subclass in Python; it must not be accepted as a counter.
+
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(gateway.requests, "post", lambda *args, **kwargs: Response())
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected malformed quota result to fail closed"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+
+
+def test_rate_limit_fails_closed_without_hashing_secret(monkeypatch):
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.delenv("CHAT_TOKEN_SECRET", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(
+        gateway.requests, "post",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not send unkeyed actor hashes")),
+    )
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected missing hashing secret to fail closed"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+        assert "hashing secret" in exc.detail.lower()
+
+
+def test_supabase_rate_limit_fails_closed_on_rpc_error(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
+    class Response:
+        status_code = 500
+        def json(self):
+            return {"message": "failure"}
+
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(gateway.requests, "post", lambda *args, **kwargs: Response())
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected rate-limit backend failure"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+
 def test_distributed_rate_limit_returns_429_after_limit(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
     class FakeRedis:
         def eval(self, *args):
             return 2
@@ -159,9 +254,11 @@ def test_request_cannot_spoof_actor_identity(monkeypatch):
         lambda token: actors[token] if token in actors else (_ for _ in ()).throw(gateway.ChatAuthError("invalid")),
     )
     monkeypatch.setattr(gateway, "_ensure_enabled", lambda actor: None)
-    monkeypatch.setattr(gateway, "_generate", lambda *args, **kwargs: {
-        "provider": "ollama", "model": "qwen2.5:3b", "output": "ok", "usage": {}
-    })
+    observed_actors = []
+    def fake_generate(*args, **kwargs):
+        observed_actors.append(args[3])
+        return {"provider": "ollama", "model": "qwen2.5:3b", "output": "ok", "usage": {}}
+    monkeypatch.setattr(gateway, "_generate", fake_generate)
 
     app_client = client()
     alice = app_client.post(
@@ -184,9 +281,11 @@ def test_request_cannot_spoof_actor_identity(monkeypatch):
 
     assert alice.status_code == 200
     assert bob.status_code == 200
-    assert alice.json()["actor"] == "alice@example.com"
-    assert bob.json()["actor"] == "bob@example.com"
-    assert alice.json()["actor"] != bob.json()["actor"]
+    assert observed_actors == ["alice@example.com", "bob@example.com"]
+    assert "actor" not in alice.json()
+    assert "actor" not in bob.json()
+    assert "alice@example.com" not in alice.text
+    assert "bob@example.com" not in bob.text
 
 
 def test_ai_request_rejects_oversized_input(monkeypatch):
@@ -234,3 +333,89 @@ def test_audit_actor_pseudonym_changes_with_secret_and_fails_closed_without_it(m
     gateway._audit_event("test.event", "alice@example.com", "platform_general", "help", "success")
     assert "actor_hash=unavailable" in caplog.text
     assert "alice@example.com" not in caplog.text
+
+def test_supabase_rate_limit_rejects_non_https_url_without_request(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "http://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(
+        gateway.requests, "post",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not send credentials over HTTP")),
+    )
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected invalid backend configuration to fail closed"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+
+
+def test_redis_failure_does_not_fall_back_to_supabase(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
+    class BrokenRedis:
+        def eval(self, *args, **kwargs):
+            raise gateway.redis.RedisError("unavailable")
+
+    monkeypatch.setenv("AI_GATEWAY_REDIS_URL", "redis://localhost:6379/0")
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(gateway.redis.Redis, "from_url", lambda *args, **kwargs: BrokenRedis())
+    monkeypatch.setattr(
+        gateway.requests, "post",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not silently switch quota backends")),
+    )
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected Redis failure to fail closed"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+
+def test_supabase_rate_limit_uses_bounded_timeout_and_server_only_credentials(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+
+    captured = {}
+
+    class Response:
+        status_code = 200
+
+        def json(self):
+            return 1
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.setattr(gateway.requests, "post", fake_post)
+    gateway._consume_rate_limit("user@example.com")
+
+    assert captured["timeout"] == 5.0
+    assert captured["url"].startswith("https://")
+    assert captured["headers"]["apikey"] == "server-only-test-key"
+    assert captured["headers"]["Authorization"] == "Bearer server-only-test-key"
+    assert "server-only-test-key" not in str(captured["json"])
+    assert captured["json"]["p_actor_hash"] != "user@example.com"
+
+def test_supabase_rate_limit_migration_keeps_rpc_locked_down():
+    from pathlib import Path
+
+    migration = (
+        Path(__file__).resolve().parents[1]
+        / "supabase"
+        / "migrations"
+        / "20261025000000_shared_ai_rate_limit.sql"
+    ).read_text(encoding="utf-8").lower()
+
+    assert "security definer" in migration
+    assert "set search_path = pg_catalog" in migration
+    assert "on conflict (actor_hash, window_start)" in migration
+    assert "revoke all on table private.shared_ai_rate_limits from public, anon, authenticated, service_role" in migration
+    assert "revoke all on function public.consume_shared_ai_rate_limit(text, integer) from public, anon, authenticated" in migration
+    assert "grant execute on function public.consume_shared_ai_rate_limit(text, integer) to service_role" in migration
+    assert "pg_catalog.random() < 0.01" in migration
+
