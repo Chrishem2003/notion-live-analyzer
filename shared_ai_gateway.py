@@ -226,7 +226,10 @@ def _consume_rate_limit(actor: str) -> None:
             )
             if response.status_code != 200:
                 raise ValueError("Supabase rate-limit RPC rejected the request.")
-            count = int(response.json())
+            raw_count = response.json()
+            if type(raw_count) is not int or raw_count < 1:
+                raise ValueError("Supabase rate-limit RPC returned an invalid counter.")
+            count = raw_count
         except (requests.RequestException, ValueError, TypeError):
             raise HTTPException(status_code=503, detail="Shared AI rate-limit service is unavailable.")
 
