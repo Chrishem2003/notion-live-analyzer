@@ -145,3 +145,57 @@ def test_ai_response_audit_logs_metadata_without_prompt(monkeypatch, caplog):
     assert "success" in caplog.text
     assert secret_prompt not in caplog.text
     assert "person@example.com" not in caplog.text
+
+
+
+def test_request_cannot_spoof_actor_identity(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_GATEWAY_ENABLED", "true")
+    actors = {
+        "alice-token": "alice@example.com",
+        "bob-token": "bob@example.com",
+    }
+    monkeypatch.setattr(
+        gateway, "verify_chat_token",
+        lambda token: actors[token] if token in actors else (_ for _ in ()).throw(gateway.ChatAuthError("invalid")),
+    )
+    monkeypatch.setattr(gateway, "_ensure_enabled", lambda actor: None)
+    monkeypatch.setattr(gateway, "_generate", lambda *args, **kwargs: {
+        "provider": "ollama", "model": "qwen2.5:3b", "output": "ok", "usage": {}
+    })
+
+    app_client = client()
+    alice = app_client.post(
+        "/api/v1/ai/respond",
+        headers={"Authorization": "Bearer alice-token"},
+        json={
+            "product": "platform_general",
+            "task": "help",
+            "input": "hello",
+            "user_id": "bob",
+            "email": "bob@example.com",
+            "actor": "bob@example.com",
+        },
+    )
+    bob = app_client.post(
+        "/api/v1/ai/respond",
+        headers={"Authorization": "Bearer bob-token"},
+        json={"product": "platform_general", "task": "help", "input": "hello"},
+    )
+
+    assert alice.status_code == 200
+    assert bob.status_code == 200
+    assert alice.json()["actor"] == "alice@example.com"
+    assert bob.json()["actor"] == "bob@example.com"
+    assert alice.json()["actor"] != bob.json()["actor"]
+
+
+def test_ai_request_rejects_oversized_input(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_GATEWAY_ENABLED", "true")
+    monkeypatch.setattr(gateway, "verify_chat_token", lambda token: "user@example.com")
+    monkeypatch.setattr(gateway, "_ensure_enabled", lambda actor: None)
+    response = client().post(
+        "/api/v1/ai/respond",
+        headers={"Authorization": "Bearer test-token"},
+        json={"product": "platform_general", "task": "help", "input": "x" * 12001},
+    )
+    assert response.status_code == 422
