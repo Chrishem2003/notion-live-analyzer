@@ -372,3 +372,32 @@ def test_redis_failure_does_not_fall_back_to_supabase(monkeypatch):
     except HTTPException as exc:
         assert exc.status_code == 503
 
+def test_supabase_rate_limit_uses_bounded_timeout_and_server_only_credentials(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+
+    captured = {}
+
+    class Response:
+        status_code = 200
+
+        def json(self):
+            return 1
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.setattr(gateway.requests, "post", fake_post)
+    gateway._consume_rate_limit("user@example.com")
+
+    assert captured["timeout"] == 5.0
+    assert captured["url"].startswith("https://")
+    assert captured["headers"]["apikey"] == "server-only-test-key"
+    assert captured["headers"]["Authorization"] == "Bearer server-only-test-key"
+    assert "server-only-test-key" not in str(captured["json"])
+    assert captured["json"]["p_actor_hash"] != "user@example.com"
+
