@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass
 
 
-SUPPORTED_PROVIDERS = frozenset({"openai", "openrouter", "anthropic", "google"})
+SUPPORTED_PROVIDERS = frozenset({"openai", "openrouter", "anthropic", "google", "ollama"})
 
 # Priority order used only when SOVEREIGN_AI_PROVIDER is not set explicitly.
 _PROVIDER_KEY_ENV = (
@@ -17,10 +17,12 @@ _PROVIDER_KEY_ENV = (
 
 
 def _autodetect_provider() -> str:
-    """Select the first supported provider whose API key is configured."""
+    """Select a configured cloud provider, or local Ollama when requested."""
     for provider_name, env_var in _PROVIDER_KEY_ENV:
         if os.getenv(env_var, "").strip():
             return provider_name
+    if os.getenv("OLLAMA_BASE_URL", "").strip() or os.getenv("OLLAMA_MODEL", "").strip():
+        return "ollama"
     # Preserve a clear unconfigured default; provider invocation will report
     # missing credentials instead of silently disabling AI functionality.
     return "openai"
