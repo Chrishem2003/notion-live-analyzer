@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 from urllib.parse import urlparse
 
@@ -25,6 +26,16 @@ from sovereign_intelligence.providers.base import ProviderError
 from sovereign_intelligence.providers.registry import ProviderRegistry
 
 router = APIRouter(tags=["shared-ai"])
+_logger = logging.getLogger("shared_ai_gateway")
+
+
+def _audit_event(event: str, actor: str, product: str, task: str, outcome: str) -> None:
+    """Emit privacy-minimized audit metadata; never log prompts, tokens, or outputs."""
+    actor_hash = hashlib.sha256(actor.encode("utf-8")).hexdigest()[:16]
+    _logger.info(
+        "shared_ai_audit event=%s actor_hash=%s product=%s task=%s outcome=%s",
+        event, actor_hash, product, task, outcome,
+    )
 
 Product = Literal["sovereign_intelligence", "auto_studio", "nema_agora", "bio_research", "platform_general", "sales", "marketing", "finance", "it_operations", "supply_chain"]
 
@@ -242,7 +253,12 @@ def _generate(product: str, task: str, input_text: str, actor: str, *, system_ov
 def respond(payload: AIRespondRequest, authorization: Optional[str] = Header(default=None)):
     actor = require_user(authorization)
     _ensure_enabled(actor)
-    result = _generate(payload.product, payload.task, payload.input, actor)
+    try:
+        result = _generate(payload.product, payload.task, payload.input, actor)
+    except HTTPException as exc:
+        _audit_event("ai.respond", actor, payload.product, payload.task, f"error_{exc.status_code}")
+        raise
+    _audit_event("ai.respond", actor, payload.product, payload.task, "success")
     return {"actor": actor, **result}
 
 def _parse_json_object(text: str) -> dict[str, Any]:
@@ -274,12 +290,17 @@ def draft_automation(payload: AutomationDraftRequest, authorization: Optional[st
         + "For step type choose exactly one of: trigger, action, condition, transform, notification, manual_approval. For risk_level choose exactly one of low, medium, high. Use only schema fields. Every step must be reviewed. Set approval_required=true. "
         + "Do not include executable source code or credentials."
     )
-    result = _generate("auto_studio", "draft_automation", payload.description, actor, system_override=system)
-    draft_data = _parse_json_object(result["output"])
     try:
+        result = _generate("auto_studio", "draft_automation", payload.description, actor, system_override=system)
+        draft_data = _parse_json_object(result["output"])
         draft = AutomationDraft.parse_obj(draft_data)
+    except HTTPException as exc:
+        _audit_event("automation.draft", actor, "auto_studio", "draft_automation", f"error_{exc.status_code}")
+        raise
     except Exception:
+        _audit_event("automation.draft", actor, "auto_studio", "draft_automation", "error_502")
         raise HTTPException(status_code=502, detail="AI workflow draft failed schema validation; nothing was saved or executed.")
+    _audit_event("automation.draft", actor, "auto_studio", "draft_automation", "success")
     # Enforce approval regardless of model output. This endpoint only returns a draft.
     draft.approval_required = True
     for step in draft.steps:
