@@ -3602,27 +3602,9 @@ def ensure_bootstrap_admin():
 ensure_bootstrap_admin()
 
 
-def sync_designated_admin():
-    designated_email = os.environ.get("SOVEREIGN_ADMIN_EMAIL")
-    if not designated_email:
-        try:
-            designated_email = st.secrets.get("SOVEREIGN_ADMIN_EMAIL")
-        except Exception:
-            designated_email = None
-    if not designated_email:
-        return
-
-    designated_email = designated_email.lower().strip()
-    cursor = db_conn.cursor()
-    cursor.execute("SELECT role FROM auth_users WHERE email = ?", (designated_email,))
-    row = cursor.fetchone()
-    if row and row[0] != "admin":
-        cursor.execute("UPDATE auth_users SET role = 'admin', name = 'CHRISHEM' WHERE email = ?", (designated_email,))
-        db_conn.commit()
-
-
-sync_designated_admin()
-
+# Admin promotion is handled only by ensure_bootstrap_admin_record(), which
+# requires BOTH SOVEREIGN_ADMIN_EMAIL and SOVEREIGN_ADMIN_PASSWORD and uses
+# a transaction. Do not reintroduce email-only role promotion.
 
 # --- AUTHENTICATION STORE ---
 class AuthStore:
@@ -3671,7 +3653,7 @@ class AuthStore:
         pwd_hash, salt = _hash_password(password)
         cursor.execute(
             "INSERT INTO auth_users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)",
-            (email_norm, name, pwd_hash, salt, role),
+            (email_norm, name, pwd_hash, salt, "user"),
         )
         db_conn.commit()
         subscription.ensure_trial_started(email_norm)
