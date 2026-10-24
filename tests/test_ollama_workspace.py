@@ -24,3 +24,14 @@ def test_workspace_requires_authenticated_session(monkeypatch):
     monkeypatch.setattr(workspace.st, "error", lambda message: calls.append(message))
     workspace.render_ollama_workspace()
     assert calls and "Sign in" in calls[0]
+
+def test_ollama_gateway_token_is_server_side_bearer_header():
+    from modules.llm_router import LLMRouter
+
+    with patch.dict("os.environ", {"OLLAMA_API_KEY": "test-secret"}, clear=False):
+        router = LLMRouter(gemini_api_key="", ollama_base_url="https://gateway.example.test")
+        assert router._ollama_headers() == {"Authorization": "Bearer test-secret"}
+
+    with patch.dict("os.environ", {"OLLAMA_API_KEY": ""}, clear=False):
+        router = LLMRouter(gemini_api_key="", ollama_base_url="http://127.0.0.1:11434")
+        assert router._ollama_headers() == {}
