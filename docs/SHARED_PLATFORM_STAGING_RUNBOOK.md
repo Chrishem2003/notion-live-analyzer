@@ -17,7 +17,7 @@ Configure values only in the relevant Render service's environment settings. Nev
 - `AI_GATEWAY_REDIS_URL` (preferred): copy the actual private URL from Render; never guess it. **Zero-cost alternative:** apply the reviewed migration `supabase/migrations/20261025000000_shared_ai_rate_limit.sql`, then set `AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY` to the Supabase service-role secret in the API service only. Never expose this key to Streamlit/browser clients, commit it, or paste it into chat. Do not configure both backends unless intentionally choosing Redis.
 - `AI_GATEWAY_RATE_LIMIT_PER_MINUTE=10` initially; supported range 1–120.
 - `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (or supported anon key) for Supabase JWT validation. Do not use a service-role key here.
-- `PLATFORM_API_KEY` and `CHAT_TOKEN_SECRET` for the existing service-token flow; keep both private.
+- `PLATFORM_API_KEY` for server-to-server token issuance and `CHAT_TOKEN_SECRET` for signed tokens, keyed quota pseudonyms, and audit pseudonyms; keep both private. The gateway must fail closed if `CHAT_TOKEN_SECRET` is missing.
 - `SOVEREIGN_AI_PROVIDER` and `SOVEREIGN_AI_MODEL` for an explicitly chosen provider/model, plus only the credential that provider needs.
 - Verify the Streamlit `user_identity` is assigned only after successful authentication before relying on it for multi-user token issuance.
 
