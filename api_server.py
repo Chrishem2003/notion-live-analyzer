@@ -48,6 +48,10 @@ GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET")
 from nema_agora.api import router as nema_case_router
 app.include_router(nema_case_router)
 
+# Shared AI routes remain disabled until the staged auth/quota gate is approved.
+from shared_ai_gateway import router as shared_ai_router
+app.include_router(shared_ai_router)
+
 
 def require_api_key(x_api_key: Optional[str] = Header(None)):
     if not API_KEY:
