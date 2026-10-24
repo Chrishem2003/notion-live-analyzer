@@ -123,3 +123,25 @@ def test_distributed_rate_limit_returns_429_after_limit(monkeypatch):
         assert False, "Expected rate-limit rejection"
     except HTTPException as exc:
         assert exc.status_code == 429
+
+
+def test_ai_response_audit_logs_metadata_without_prompt(monkeypatch, caplog):
+    monkeypatch.setenv("SHARED_AI_GATEWAY_ENABLED", "true")
+    monkeypatch.setattr(gateway, "verify_chat_token", lambda token: "person@example.com")
+    monkeypatch.setattr(gateway, "_ensure_enabled", lambda actor: None)
+    monkeypatch.setattr(gateway, "_generate", lambda *args, **kwargs: {
+        "provider": "ollama", "model": "qwen2.5:3b", "output": "safe answer", "usage": {}
+    })
+    caplog.set_level("INFO", logger="shared_ai_gateway")
+    secret_prompt = "private-case-detail-do-not-log"
+    response = client().post(
+        "/api/v1/ai/respond",
+        headers={"Authorization": "Bearer test-token"},
+        json={"product": "bio_research", "task": "summarize", "input": secret_prompt},
+    )
+    assert response.status_code == 200
+    assert "shared_ai_audit event=ai.respond" in caplog.text
+    assert "actor_hash=" in caplog.text
+    assert "success" in caplog.text
+    assert secret_prompt not in caplog.text
+    assert "person@example.com" not in caplog.text
