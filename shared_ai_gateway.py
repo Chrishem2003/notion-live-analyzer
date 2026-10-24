@@ -175,8 +175,19 @@ def _generate(product: str, task: str, input_text: str, actor: str, *, system_ov
         provider = registry.get(provider_name)
     except KeyError:
         raise HTTPException(status_code=503, detail="Configured AI provider is not supported.")
-    if provider_name not in registry.configured_names():
-        raise HTTPException(status_code=503, detail="Configured AI provider is not currently available.")
+    if provider_name == "ollama":
+        if not callable(getattr(provider, "is_available", None)) or not provider.is_available():
+            raise HTTPException(status_code=503, detail="Configured AI provider is not currently available.")
+    else:
+        provider_keys = {
+            "openai": "OPENAI_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY",
+            "anthropic": "ANTHROPIC_API_KEY",
+            "google": "GOOGLE_API_KEY",
+        }
+        provider_key = provider_keys.get(provider_name)
+        if not provider_key or not os.getenv(provider_key, "").strip():
+            raise HTTPException(status_code=503, detail="Configured AI provider is not currently available.")
     model = os.getenv("SOVEREIGN_AI_MODEL", "").strip() or provider.default_model
     system = system_override or _PRODUCT_SYSTEMS[product]
     prompt = f"Product: {product}\nTask: {task}\nUser request:\n{input_text}"
