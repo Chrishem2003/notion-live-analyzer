@@ -35,3 +35,32 @@ def test_ollama_gateway_token_is_server_side_bearer_header():
     with patch.dict("os.environ", {"OLLAMA_API_KEY": ""}, clear=False):
         router = LLMRouter(gemini_api_key="", ollama_base_url="http://127.0.0.1:11434")
         assert router._ollama_headers() == {}
+
+def test_gateway_rejects_missing_or_wrong_token(monkeypatch):
+    from fastapi import HTTPException
+    from ollama_gateway import _authorize
+
+    monkeypatch.setenv("OLLAMA_GATEWAY_TOKEN", "x" * 40)
+    try:
+        _authorize(None)
+        assert False, "missing token should be rejected"
+    except HTTPException as exc:
+        assert exc.status_code == 401
+
+    try:
+        _authorize("Bearer wrong-token")
+        assert False, "wrong token should be rejected"
+    except HTTPException as exc:
+        assert exc.status_code == 401
+
+
+def test_gateway_rejects_weak_or_missing_server_secret(monkeypatch):
+    from fastapi import HTTPException
+    from ollama_gateway import _configured_token
+
+    monkeypatch.setenv("OLLAMA_GATEWAY_TOKEN", "short")
+    try:
+        _configured_token()
+        assert False, "weak token should be rejected"
+    except HTTPException as exc:
+        assert exc.status_code == 503
