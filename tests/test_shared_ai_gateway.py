@@ -113,6 +113,7 @@ def test_enabled_gateway_requires_distributed_rate_limit_backend(monkeypatch):
 
 
 def test_supabase_rate_limit_rpc_returns_429_after_limit(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
     class Response:
         status_code = 200
         def json(self):
@@ -142,6 +143,7 @@ def test_supabase_rate_limit_rpc_returns_429_after_limit(monkeypatch):
 
 
 def test_supabase_rate_limit_fails_closed_on_malformed_counter(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
     class Response:
         status_code = 200
         def json(self):
@@ -160,6 +162,7 @@ def test_supabase_rate_limit_fails_closed_on_malformed_counter(monkeypatch):
 
 
 def test_supabase_rate_limit_fails_closed_on_rpc_error(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
     class Response:
         status_code = 500
         def json(self):
@@ -177,6 +180,7 @@ def test_supabase_rate_limit_fails_closed_on_rpc_error(monkeypatch):
         assert exc.status_code == 503
 
 def test_distributed_rate_limit_returns_429_after_limit(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
     class FakeRedis:
         def eval(self, *args):
             return 2
@@ -307,6 +311,7 @@ def test_audit_actor_pseudonym_changes_with_secret_and_fails_closed_without_it(m
     assert "alice@example.com" not in caplog.text
 
 def test_supabase_rate_limit_rejects_non_https_url_without_request(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
     monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
     monkeypatch.setenv("SUPABASE_URL", "http://project.supabase.co")
     monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
@@ -323,6 +328,7 @@ def test_supabase_rate_limit_rejects_non_https_url_without_request(monkeypatch):
 
 
 def test_redis_failure_does_not_fall_back_to_supabase(monkeypatch):
+    monkeypatch.setenv("CHAT_TOKEN_SECRET", "test-quota-hash-secret")
     class BrokenRedis:
         def eval(self, *args, **kwargs):
             raise gateway.redis.RedisError("unavailable")
