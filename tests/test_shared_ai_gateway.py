@@ -141,6 +141,24 @@ def test_supabase_rate_limit_rpc_returns_429_after_limit(monkeypatch):
     assert "user@example.com" not in str(captured["json"])
 
 
+def test_supabase_rate_limit_fails_closed_on_malformed_counter(monkeypatch):
+    class Response:
+        status_code = 200
+        def json(self):
+            return True  # bool is an int subclass in Python; it must not be accepted as a counter.
+
+    monkeypatch.delenv("AI_GATEWAY_REDIS_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://project.supabase.co")
+    monkeypatch.setenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "server-only-test-key")
+    monkeypatch.setattr(gateway.requests, "post", lambda *args, **kwargs: Response())
+    from fastapi import HTTPException
+    try:
+        gateway._consume_rate_limit("user@example.com")
+        assert False, "Expected malformed quota result to fail closed"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+
+
 def test_supabase_rate_limit_fails_closed_on_rpc_error(monkeypatch):
     class Response:
         status_code = 500
