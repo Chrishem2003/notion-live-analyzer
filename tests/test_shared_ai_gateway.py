@@ -93,4 +93,4 @@ def test_supabase_jwt_requires_https_identity_endpoint(monkeypatch):
 
 def test_json_parser_accepts_fenced_json():
     from shared_ai_gateway import _parse_json_object
-    assert _parse_json_object('\\`\\`\\`json\\n{"ok": true}\\n\\`\\`\\`') == {"ok": True}
+    assert _parse_json_object(chr(96) * 3 + 'json\n{"ok": true}\n' + chr(96) * 3) == {"ok": True}
