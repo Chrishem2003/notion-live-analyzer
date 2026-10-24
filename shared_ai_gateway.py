@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import json
 import os
-import re
+from urllib.parse import urlparse
+
+import httpx
 from typing import Any, Literal, Optional
 
 from fastapi import APIRouter, Header, HTTPException
@@ -85,9 +87,40 @@ def require_user(authorization: Optional[str] = Header(default=None)) -> str:
         raise HTTPException(status_code=401, detail="A valid user bearer token is required.")
     try:
         actor = verify_chat_token(token)
+        return actor.strip().lower()
     except ChatAuthError:
+        pass
+
+    # Supabase-backed modules use their own user JWT. Validate it against
+    # Supabase Auth; never trust decoded, unsigned claims.
+    base_url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+    publishable_key = (
+        os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
+        or os.getenv("SUPABASE_ANON_KEY", "").strip()
+    )
+    parsed_url = urlparse(base_url)
+    if not base_url or parsed_url.scheme != "https" or not parsed_url.netloc or not publishable_key:
         raise HTTPException(status_code=401, detail="User token is invalid or expired.")
-    return actor.strip().lower()
+    try:
+        response = httpx.get(
+            f"{base_url}/auth/v1/user",
+            headers={"apikey": publishable_key, "Authorization": f"Bearer {token}"},
+            timeout=5.0,
+        )
+    except httpx.HTTPError:
+        raise HTTPException(status_code=503, detail="User identity service is temporarily unavailable.")
+    if response.status_code in (401, 403):
+        raise HTTPException(status_code=401, detail="User token is invalid or expired.")
+    if response.status_code != 200:
+        raise HTTPException(status_code=503, detail="User identity service is temporarily unavailable.")
+    try:
+        user = response.json()
+        user_id = user.get("id")
+    except (ValueError, AttributeError):
+        user_id = None
+    if not isinstance(user_id, str) or not user_id.strip():
+        raise HTTPException(status_code=401, detail="User token did not resolve to a valid account.")
+    return f"supabase:{user_id.strip()}"
 
 def _ensure_enabled() -> None:
     if os.getenv("SHARED_AI_GATEWAY_ENABLED", "false").strip().lower() != "true":
@@ -144,8 +177,11 @@ def respond(payload: AIRespondRequest, authorization: Optional[str] = Header(def
 def _parse_json_object(text: str) -> dict[str, Any]:
     candidate = text.strip()
     if candidate.startswith("```"):
-        candidate = re.sub(r"^\`\`\`(?:json)?\s*", "", candidate, flags=re.IGNORECASE)
-        candidate = re.sub(r"\s*\`\`\`$", "", candidate)
+        candidate = candidate[3:].lstrip()
+        if candidate[:4].lower() == "json":
+            candidate = candidate[4:].lstrip()
+        if candidate.endswith("```"):
+            candidate = candidate[:-3].rstrip()
     try:
         value = json.loads(candidate)
     except (TypeError, json.JSONDecodeError):
@@ -161,10 +197,10 @@ def draft_automation(payload: AutomationDraftRequest, authorization: Optional[st
     system = (
         _PRODUCT_SYSTEMS["auto_studio"]
         + " Output exactly one JSON object matching this contract: "
-        + '{"title":"...","trigger":"...","steps":[{"id":"step_1","type":"trigger|action|condition|transform|notification|manual_approval","description":"...","connector":null,"inputs":{},"requires_approval":true}],'
+        + '{"title":"...","trigger":"...","steps":[{"id":"step_1","type":"action","description":"...","connector":null,"inputs":{},"requires_approval":true}],'
         + '"error_handling":["..."],"permissions_required":["..."],"approval_required":true,'
         + '"risk_level":"low|medium|high","test_plan":["..."],"assumptions":["..."]}. '
-        + "Use only schema fields. Every step must be reviewed. Set approval_required=true. "
+        + "For step type choose exactly one of: trigger, action, condition, transform, notification, manual_approval. For risk_level choose exactly one of low, medium, high. Use only schema fields. Every step must be reviewed. Set approval_required=true. "
         + "Do not include executable source code or credentials."
     )
     result = _generate("auto_studio", "draft_automation", payload.description, actor, system_override=system)
