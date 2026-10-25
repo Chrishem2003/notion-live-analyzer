@@ -77,7 +77,7 @@ The optional shared AI Streamlit surface now has a dedicated `Design an automati
 
 This is still a proposal-only capability. It does not save workflows, invoke connectors, schedule jobs, or execute external actions. Tests cover bearer-token forwarding, missing-token failure, HTTPS enforcement, and rejection of a step without an approval gate.
 
-The helper is not yet connected to the main application's verified login flow. Do not set `SUPABASE_AUTH_ENABLED=true` or `SHARED_AI_GATEWAY_ENABLED=true` in production. Complete main-app auth wiring, session expiry/logout checks, two-account isolation, provider connectivity, and quota-backend verification in staging first.
+The main app now contains the opt-in Supabase Auth flow behind `SUPABASE_AUTH_ENABLED`; this is still a separate sign-in from the legacy portal. Do not set `SUPABASE_AUTH_ENABLED=true` or `SHARED_AI_GATEWAY_ENABLED=true` in production. Complete session expiry/logout checks, two-account isolation, provider connectivity, and quota-backend verification in staging first.
 
 
 ## Main-app Shared AI integration status (2026-10-25)
@@ -102,3 +102,25 @@ The per-user job router is separate from the legacy service-key queue and is mou
 The candidate includes a disposable PostgreSQL integration workflow that applies the durable queue, quota, and cancellation migrations to an ephemeral test database. It checks quota idempotency and tenant separation, cross-tenant cancellation denial, terminal-state protection, worker lease recovery, RPC execute privileges, and concurrent quota reservations. API/repository tests separately cover auth failure behavior, client ownership injection, tenant-scoped reads, and user-owned enqueue/cancel operations.
 
 **Do not apply either user-job migration to the connected production database.** Wait for exact-head CI and PostgreSQL integration to pass, then use an isolated staging database with no production records. Verify two independent Supabase users end-to-end before enabling the API flag in staging. The shared service-role key remains API/worker-only; do not configure it in Streamlit or browser code.
+
+
+## Two-account staging smoke test (2026-10-25)
+
+The repository now includes `scripts/staging_shared_ai_isolation_smoke.py`. It performs black-box checks against an isolated staging API using two distinct staging Supabase access tokens:
+- Both accounts can read their own job history.
+- User A can submit and inspect a synthetic intelligence job.
+- Repeating the same request with the same idempotency key returns the same job ID.
+- User B receives the same 404 for User A's job read and cancellation, and cannot see that job in history.
+- The script attempts to cancel the synthetic job as User A in a cleanup path, even when an assertion fails.
+- Tokens and response bodies are never printed.
+
+Run only after deploying the candidate to a clearly named isolated staging API with a separate staging database, `USER_JOB_API_ENABLED=true`, and `PLATFORM_JOB_WORKER_ENABLED=false`. Do not point it at production; it creates a synthetic job and consumes staging quota. Set these environment variables in the shell running the script (never commit them):
+- `STAGING_SHARED_AI_API_URL`: HTTPS URL for the isolated staging API.
+- `STAGING_USER_A_ACCESS_TOKEN`: access token for staging user A.
+- `STAGING_USER_B_ACCESS_TOKEN`: access token for staging user B.
+
+Then run `python scripts/staging_shared_ai_isolation_smoke.py`. A successful run is necessary but not sufficient: also test signup confirmation, expired/revoked tokens, logout/session cleanup, logs for token/prompt/result non-disclosure, and quota exhaustion.
+
+### Staging infrastructure cost guard
+
+The connected Supabase account currently has one active project and no development branches. The Supabase branch cost quote returned **US$0.01344/hour** (about **US$9.81 for 730 hours**, before any applicable taxes/usage). No branch was created and no database was changed. To honor the zero-cost preference, do not create a paid branch without explicit approval; first determine whether an already-available free isolated Supabase project or an approved disposable Postgres environment can host the staging database. The CI disposable-Postgres integration is not a substitute for real Supabase Auth end-to-end verification.
