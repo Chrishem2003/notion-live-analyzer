@@ -46,7 +46,7 @@ def test_solve_validates_prompt_and_checks_answer(monkeypatch):
 
 def test_client_sanitizes_auth_error(monkeypatch):
     def fake_request(*args, **kwargs):
-        return httpx.Response(401, json={"detail": "secret details"})
+        return httpx.Response(401, request=httpx.Request("GET", "https://api.example.com/api/v1/intelligence/providers"), json={"detail": "secret details"})
 
     monkeypatch.setattr(httpx, "request", fake_request)
     client = IntelligenceServiceClient("https://api.example.com", "test-secret")
