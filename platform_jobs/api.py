@@ -12,7 +12,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from platform_jobs.repository import JobConflict, JobStoreUnavailable, SupabaseJobRepository
 
@@ -35,6 +35,12 @@ class JobCreateRequest(BaseModel):
     model: Optional[str] = Field(default=None, max_length=200)
     strategy: str = Field(default="direct", min_length=1, max_length=80)
     max_attempts: int = Field(default=3, ge=1, le=5)
+
+    @validator("prompt")
+    def prompt_must_not_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Prompt cannot be blank.")
+        return value
 
 
 @router.post("", status_code=202, dependencies=[Depends(_require_service_key)])
