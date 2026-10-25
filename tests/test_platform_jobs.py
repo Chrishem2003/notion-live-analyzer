@@ -112,3 +112,34 @@ def test_repository_scopes_idempotency_recovery_to_tenant():
     assert result["job_id"] == "22222222-2222-4222-8222-222222222222"
     assert session.request.call_args_list[1].kwargs["params"]["tenant_id"] == f"eq.{tenant_id}"
 
+
+
+def test_repository_quota_reservation_calls_atomic_rpc_and_returns_boolean():
+    from unittest.mock import Mock, patch
+
+    session = Mock()
+    response = _fake_response(True)
+    session.request.return_value = response
+    tenant_id = "11111111-1111-4111-8111-111111111111"
+    with patch.dict("os.environ", {
+        "SUPABASE_URL": "https://example.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "server-only-test-key",
+    }):
+        repo = SupabaseJobRepository(session=session)
+        try:
+            allowed = repo.reserve_user_quota(
+                tenant_id=tenant_id, idempotency_key="req-1", limit=20, window_seconds=3600,
+            )
+        finally:
+            repo.close()
+
+    assert allowed is True
+    call = session.request.call_args
+    assert call.args[0] == "POST"
+    assert call.args[1].endswith("/rest/v1/rpc/reserve_user_job_quota")
+    assert call.kwargs["json"] == {
+        "p_tenant_id": tenant_id,
+        "p_idempotency_key": "req-1",
+        "p_limit": 20,
+        "p_window_seconds": 3600,
+    }
