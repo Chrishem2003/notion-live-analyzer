@@ -3,6 +3,7 @@
 from .config import BrainConfig
 from .models import Problem, BrainResult
 from .providers.registry import ProviderRegistry
+from .providers.circuit import ProviderCircuitBreaker
 from .agents.registry import AgentRegistry
 from .memory import MemoryStore, MemoryManager
 from .execution import Planner, ExecutionEngine
@@ -27,6 +28,10 @@ class SovereignBrain:
         )
 
         self.providers = ProviderRegistry.default()
+
+        # Retain provider health across governed requests handled by this brain.
+        # This is process-local; durable cross-restart health is a later storage concern.
+        self.provider_circuit_breaker = ProviderCircuitBreaker()
 
         self.agents = AgentRegistry()
 
@@ -241,6 +246,7 @@ class SovereignBrain:
             governed_executor = GovernedBrainExecutor(
                 providers=self.providers,
                 config=self.config,
+                circuit_breaker=self.provider_circuit_breaker,
             )
 
             governed_result = governed_executor.execute(
