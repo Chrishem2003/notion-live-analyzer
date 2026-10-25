@@ -3917,7 +3917,32 @@ if "portal_unlocked" not in st.session_state:
 if "user_identity" not in st.session_state:
     st.session_state.user_identity = {}
 
-handle_oauth_callback()
+# Durable Supabase identity is opt-in until account/role migration is approved.
+# When enabled, every rerun revalidates the server-side access token; invalid
+# or expired sessions are locked out. There is deliberately no legacy fallback.
+SUPABASE_AUTH_ENABLED = os.getenv("SUPABASE_AUTH_ENABLED", "false").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+if SUPABASE_AUTH_ENABLED:
+    from modules.supabase_auth_streamlit import current_supabase_user
+
+    verified_supabase_user = current_supabase_user()
+    if verified_supabase_user:
+        verified_email = verified_supabase_user["email"]
+        st.session_state.portal_unlocked = True
+        st.session_state.user_identity = {
+            "id": verified_supabase_user["id"],
+            "email": verified_email,
+            "name": verified_email.split("@", 1)[0],
+            "role": "user",
+            "is_admin": False,
+            "auth_provider": "supabase",
+        }
+    else:
+        st.session_state.portal_unlocked = False
+        st.session_state.user_identity = {}
+else:
+    handle_oauth_callback()
 
 # Intentionally do not restore authentication from the legacy
 # chrishem_user_email cookie. Existing copies are ignored; the sign-out action
@@ -3943,6 +3968,16 @@ if not st.session_state.portal_unlocked:
     """, unsafe_allow_html=True)
 
     st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+
+    if SUPABASE_AUTH_ENABLED:
+        # The feature flag replaces the legacy login entirely; never show a
+        # second authentication route or silently fall back if Supabase fails.
+        from modules.supabase_auth_streamlit import render_supabase_auth
+
+        _, supabase_portal_col, _ = st.columns([0.4, 3.2, 0.4])
+        with supabase_portal_col:
+            render_supabase_auth()
+        st.stop()
 
     no_admin_yet = db_conn.execute("SELECT COUNT(*) FROM auth_users WHERE role = 'admin'").fetchone()[0] == 0
     if no_admin_yet:
@@ -4031,7 +4066,12 @@ else:
 
     if st.sidebar.button("🔒 Lock Portal & Sign Out", width='stretch'):
         cookie_manager.delete("chrishem_user_email")
+        if SUPABASE_AUTH_ENABLED:
+            from modules.supabase_auth_streamlit import logout_supabase_user
+
+            logout_supabase_user()
         st.session_state.portal_unlocked = False
+        st.session_state.user_identity = {}
         st.rerun()
 
     st.sidebar.markdown('<div class="glass-hr"></div>', unsafe_allow_html=True)
