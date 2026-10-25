@@ -20,8 +20,8 @@ def require_https_base() -> str:
     parsed = urlparse(base)
     if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
         raise SystemExit("Set STAGING_SHARED_AI_API_URL to the HTTPS base URL of an isolated staging API.")
-    if "onrender.com" in parsed.netloc and "staging" not in parsed.netloc.lower():
-        raise SystemExit("Refusing a likely production Render hostname; use a clearly named isolated staging service.")
+    if "staging" not in parsed.netloc.lower():
+        raise SystemExit("Refusing a hostname not explicitly labelled staging; use a clearly named isolated staging service.")
     return base
 
 
